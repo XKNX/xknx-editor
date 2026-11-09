@@ -37,7 +37,7 @@ if TYPE_CHECKING:
     from xknxeditor.prod import Application
     from xknxeditor.prod.parser_v2.application_indexer import ApplicationIndexer
     from xknxeditor.prod.parser_v2.dynamic import DynamicUI
-    from xknxeditor.prod.parser_v2.encode import TypedPropertyKey
+    from xknxeditor.prod.parser_v2.encode import PropertyLayout, TypedPropertyKey
     from xknxeditor.prod.parser_v2.ui import UiParameter
 
 
@@ -61,14 +61,15 @@ class RecoveredParameters:
     values: dict[str, str]
     # parameter ids whose value could not be reconstructed from bytes.
     unknown: list[str]
-    # Bytes that differ, and missing linked objects or shown objects with a different size.
+    # Bytes that differ (of the memory and of the properties), and missing linked objects or
+    # shown objects with a different size.
     differing_bytes: int = 0
     differing_objects: int = 0
     # The search stopped at the limit of its effort, or was cancelled, with values left to try:
     # more effort may find a result that fits the device.
     limited: bool = False
     # Of ``unknown``, those whose type cannot give back a value from bytes at all (a lossy
-    # encoding, such as an HSV colour or a date without its year).
+    # encoding, such as a date without its year).
     lossy: list[str] = field(default_factory=list[str])
 
     @property
@@ -466,7 +467,13 @@ def _search(
         and not result.complete
         and not result.limited
         and _pairs_to_try(
-            application, parameter_segments, project_code_page, linked, sizes, result
+            application,
+            parameter_segments,
+            property_values,
+            project_code_page,
+            linked,
+            sizes,
+            result,
         )
     ):
         # The fast search leaves out the search of pairs the other efforts make: with
@@ -478,6 +485,7 @@ def _search(
 def _pairs_to_try(
     application: Application,
     parameter_segments: Mapping[str, bytes],
+    property_values: Mapping[TypedPropertyKey, bytes] | None,
     project_code_page: str | None,
     linked: set[int],
     sizes: Mapping[int, str],
@@ -488,7 +496,7 @@ def _pairs_to_try(
     ui = _seeded(application, recovered.values, project_code_page)
     if ui is None:
         return False
-    current = _misfit(ui, parameter_segments, linked, sizes)
+    current = _misfit(ui, parameter_segments, linked, sizes, property_values)
     if current is None:
         return False
     return any(
@@ -613,6 +621,127 @@ def _written_cells(ui: DynamicUI) -> set[_Cell]:
         for segment_id, cells in ui.memory_param_map().items()
         for offset in cells
     }
+
+
+def _compared(ui: DynamicUI, cells: set[_Cell]) -> set[_Cell]:
+    """Of the differing bytes ``cells``, those that tell the device apart: of the memory where
+    a parameter is stored or ``ui`` writes (a device can keep other data in its segments, which
+    changes at run time), and of the properties."""
+    stored = ui.stored_parameter_cells().keys() | _written_cells(ui)
+    return {cell for cell in cells if cell in stored or _is_property_cell(cell)}
+
+
+# A byte of a property in place of one of a code segment: the key of the property spelled out
+# after this prefix, which no segment id has.
+_PROPERTY = "property:"
+
+
+def _property_cell(key: TypedPropertyKey, offset: int) -> _Cell:
+    """The byte ``offset`` of the property ``key`` as a cell of its own."""
+    return (
+        _PROPERTY + ",".join("" if part is None else str(part) for part in key),
+        offset,
+    )
+
+
+def _is_property_cell(cell: _Cell) -> bool:
+    """Whether ``cell`` is a byte of a property (see :func:`_property_cell`)."""
+    return cell[0].startswith(_PROPERTY)
+
+
+# The property layout of each UI, of the last few (a search asks again and again for the same):
+# the layout, the offsets of each property it stores parameters at, and (once asked for) the
+# param-refs of each byte as cells.
+_PROPERTY_LAYOUTS: list[
+    tuple[
+        DynamicUI,
+        PropertyLayout,
+        dict[TypedPropertyKey, list[int]],
+        list[dict[_Cell, set[str]]],
+    ]
+] = []
+
+
+def _property_layout(
+    ui: DynamicUI,
+) -> tuple[
+    PropertyLayout, dict[TypedPropertyKey, list[int]], list[dict[_Cell, set[str]]]
+]:
+    """The layout of the properties of ``ui`` (see :meth:`DynamicUI.stored_property_layout`),
+    the offsets of each property it stores parameters at, and a slot for the param-refs of
+    each byte as cells (see :func:`_property_owners`)."""
+    for seen, layout, offsets, owners in _PROPERTY_LAYOUTS:
+        if seen is ui:
+            return layout, offsets, owners
+    layout = ui.stored_property_layout()
+    offsets: dict[TypedPropertyKey, list[int]] = {}
+    for key, offset in layout.cells:
+        offsets.setdefault(key, []).append(offset)
+    entry = (ui, layout, offsets, list[dict[_Cell, set[str]]]())
+    _PROPERTY_LAYOUTS.insert(0, entry)
+    del _PROPERTY_LAYOUTS[8:]
+    return entry[1:]
+
+
+def _property_owners(ui: DynamicUI) -> dict[_Cell, set[str]]:
+    """The param-refs stored at each byte of a property of ``ui``, as cells (see
+    :func:`_property_cell`)."""
+    layout, _offsets, owners = _property_layout(ui)
+    if not owners:
+        owners.append(
+            {
+                _property_cell(key, offset): refs
+                for (key, offset), refs in layout.cells.items()
+            }
+        )
+    return owners[0]
+
+
+def _differing_property_cells(
+    ui: DynamicUI, properties: Mapping[TypedPropertyKey, bytes]
+) -> set[_Cell] | None:
+    """The bytes of the ``properties`` read off the device that ``ui`` does not give back, as
+    cells (see :func:`_property_cell`), where a parameter is stored: the bits its active
+    parameters write, otherwise those the parameters there (no member of a union) write with
+    their default values. A property holds its parameter's default until a download writes
+    it, so another value there is one a configuration that writes it gave (a setting shown
+    behind a switch the device keeps no copy of). An object addressed by index is one object
+    whatever the occurrence (as :func:`~xknxeditor.prod.parser_v2.encode.property_data` reads
+    it). ``None`` when ``ui`` cannot be encoded."""
+    from xknxeditor.prod.errors import EncodingError
+
+    try:
+        written = ui.encode_to_typed_properties_masked()
+    except (EncodingError, ValueError):
+        return None
+    layout, offsets, _owners = _property_layout(ui)
+    by_index: dict[tuple[int | None, int | None, int], bytes] = {}
+    for (index, object_type, pid, _occurrence), value in properties.items():
+        if index is not None:
+            by_index.setdefault((index, object_type, pid), value)
+    differing: set[_Cell] = set()
+    for key, stored in offsets.items():
+        device = properties.get(key)
+        if device is None and key[0] is not None:
+            device = by_index.get(key[:3])
+        if device is None:
+            continue
+        mine = written.get(key)
+        default = layout.defaults.get(key)
+        for offset in stored:
+            if offset >= len(device):
+                continue
+            own = mine
+            if own is None or offset >= len(own.mask) or not own.mask[offset]:
+                # Not written, or kept as the device holds it (an inactive parameter
+                # downloaded in the background): the default, unless a configuration wrote
+                # another value.
+                own = default
+                if own is None or offset >= len(own.mask):
+                    continue
+            if (own.data[offset] ^ device[offset]) & own.mask[offset]:
+                differing.add(_property_cell(key, offset))
+    return differing
 
 
 def _differing_cells(
@@ -920,7 +1049,7 @@ def _refine(
         return RecoveredParameters(values=values, unknown=unknown)
 
     def misfit(seeded: DynamicUI) -> tuple[_Score, set[_Cell], set[int]] | None:
-        return _misfit(seeded, parameter_segments, linked, sizes)
+        return _misfit(seeded, parameter_segments, linked, sizes, property_values)
 
     def finish(
         fit: tuple[_Score, set[_Cell], set[int]] | None,
@@ -934,8 +1063,7 @@ def _refine(
         is stored (a device can keep other data in its segments, which changes at run time),
         and objects that contradict the links or sizes read from the device."""
         if fit is not None and fit[1]:
-            stored = seeded.stored_parameter_cells().keys() | _written_cells(seeded)
-            fit = (fit[0], fit[1] & stored, fit[2])
+            fit = (fit[0], _compared(seeded, fit[1]), fit[2])
         if fit is not None:
             fit = (fit[0], fit[1], _contradicting_objects(seeded, linked, sizes))
         return _with_misfit(values, unknown, fit, seeded, limited=limited)
@@ -1081,12 +1209,22 @@ def _misfit(
     parameter_segments: Mapping[str, bytes],
     linked: set[int],
     sizes: Mapping[int, str],
+    properties: Mapping[TypedPropertyKey, bytes] | None = None,
 ) -> tuple[_Score, set[_Cell], set[int]] | None:
+    """How far ``seeded`` is from the device (see ``_Score``), the bytes it differs in (of the
+    memory where a parameter is stored, and of the ``properties`` read, see
+    :func:`_differing_property_cells`) and the group objects it shows otherwise; ``None`` when
+    it cannot be encoded."""
     differing = _differing_cells(seeded, parameter_segments)
     if differing is None:
         return None
     if differing:
-        differing &= seeded.stored_parameter_cells().keys() | _written_cells(seeded)
+        differing = _compared(seeded, differing)
+    if properties:
+        in_properties = _differing_property_cells(seeded, properties)
+        if in_properties is None:
+            return None
+        differing |= in_properties
     objects: set[int] = _shown_objects(seeded) if linked or sizes else set()
     matching = _shown_objects(seeded, sizes) if sizes else objects
     conflicts = objects - matching
@@ -1122,7 +1260,12 @@ def _refinement_trials(
     cells = ui.stored_parameter_cells()
     for cell in sorted(differing):
         _check(cancel)
-        for ref_id in sorted(cells.get(cell, ())):
+        owners = (
+            _property_owners(ui).get(cell, set[str]())
+            if _is_property_cell(cell)
+            else cells.get(cell, ())
+        )
+        for ref_id in sorted(owners):
             _count_selectors(ui, _gates_of(ui, ref_id), shown, weight)
             _count_selectors(ui, _outer_gates(ui, ref_id), shown, outer)
     objects_of = _objects_by_number(ui) if wrong else {}
@@ -1272,7 +1415,7 @@ def _refine_pairs(
     ui = _seeded(application, recovered.values, project_code_page)
     if ui is None:
         return recovered
-    current = _misfit(ui, parameter_segments, linked, sizes)
+    current = _misfit(ui, parameter_segments, linked, sizes, property_values)
     if current is None:
         return recovered
     values, unknown = recovered.values, recovered.unknown
@@ -1285,10 +1428,9 @@ def _refine_pairs(
     def finish() -> RecoveredParameters:
         assert current is not None
         assert ui is not None
-        stored = ui.stored_parameter_cells().keys() | _written_cells(ui)
         fit = (
             current[0],
-            current[1] & stored,
+            _compared(ui, current[1]),
             _contradicting_objects(ui, linked, sizes),
         )
         return _with_misfit(values, unknown, fit, ui, limited=limited)
@@ -1321,7 +1463,7 @@ def _refine_pairs(
                 first = _seeded(application, first_values, project_code_page)
                 if first is None:
                     continue
-                fit = _misfit(first, parameter_segments, linked, sizes)
+                fit = _misfit(first, parameter_segments, linked, sizes, property_values)
                 if fit is not None and fit[0] < current[0]:
                     current, ui, values, unknown, inferred = (
                         fit,
@@ -1384,7 +1526,13 @@ def _refine_pairs(
                             )
                             if seeded is None:
                                 continue
-                            fit = _misfit(seeded, parameter_segments, linked, sizes)
+                            fit = _misfit(
+                                seeded,
+                                parameter_segments,
+                                linked,
+                                sizes,
+                                property_values,
+                            )
                             if fit is None:
                                 continue
                             if fit[0] < current[0]:
@@ -1494,7 +1642,7 @@ def _refine_fixed(
     values, unknown = decoded
     ui = _seeded(application, values, project_code_page)
     assert ui is not None
-    current = _misfit(ui, parameter_segments, linked, sizes)
+    current = _misfit(ui, parameter_segments, linked, sizes, property_values)
     if current is None:
         raise RecoverError("Cannot validate recovered parameters with fixed values")
     limited = recovered.limited
@@ -1535,7 +1683,7 @@ def _refine_fixed(
         )
         seeded = _seeded(application, trial_values, project_code_page)
         assert seeded is not None
-        fit = _misfit(seeded, parameter_segments, linked, sizes)
+        fit = _misfit(seeded, parameter_segments, linked, sizes, property_values)
         if fit is None or fit[0] > fit_now[0]:
             return None
         trial_bits: int | None = None

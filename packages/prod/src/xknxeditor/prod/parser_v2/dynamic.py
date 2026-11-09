@@ -71,6 +71,7 @@ from .encode import (
     MaskedProperty,
     MemWrite,
     PropertyKey,
+    PropertyLayout,
     PropWrite,
     TypedPropertyKey,
     Writes,
@@ -91,6 +92,7 @@ from .encode import (
     resolve_param_values,
     segment_seed,
     stored_parameter_cells,
+    stored_property_layout,
     type_size_in_bit,
     validate_parameter_value,
     written_bit_mask,
@@ -1544,6 +1546,16 @@ class DynamicUI:
         :func:`~xknxeditor.prod.parser_v2.encode.stored_parameter_cells`."""
         self.ui()
         return stored_parameter_cells(self._app, self._idx, self._state)
+
+    def stored_property_layout(self) -> PropertyLayout:
+        """The param-refs stored at each byte of each property, active or not, and what the
+        parameters that are no member of a union write with their default values (module
+        instances' qualified); see
+        :func:`~xknxeditor.prod.parser_v2.encode.stored_property_layout`."""
+        self.ui()
+        return stored_property_layout(
+            self._app, self._idx, self._state, self.text_encoding
+        )
 
     def written_bit_mask(self) -> dict[str, bytes]:
         """Return {seg_id: bit_mask} marking the bits an active parameter writes.

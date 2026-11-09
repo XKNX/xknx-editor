@@ -8,6 +8,8 @@ from __future__ import annotations
 
 import base64
 
+import pytest
+
 from xknxeditor.namespaces.intermediate.parameter_type_t_type_color import (
     ParameterTypeTypeColor,
 )
@@ -452,11 +454,33 @@ def test_decode_color_rgb() -> None:
     assert _decode_value(raw, 24, tc, little_endian=False) == "#0A0B0C"
 
 
-def test_decode_color_hsv_is_unknown() -> None:
+@pytest.mark.parametrize(
+    ("colour", "decoded"),
+    [
+        ("#808080", "#808080"),
+        ("#000000", "#000000"),
+        ("#0A0B0C", "#0A0B0C"),
+        # Several colours convert to the same octets: one of them, which writes them again.
+        ("#FF8000", "#FF7E00"),
+        ("#0029C8", "#002AC8"),
+        ("#02B87E", "#02B87A"),
+    ],
+)
+def test_decode_color_hsv_gives_a_colour_with_the_same_octets(
+    colour: str, decoded: str
+) -> None:
     tc = _color(ParameterTypeTypeColorSpace.HSV)
-    raw = _encode_value("#0A0B0C", 24, tc)
+    raw = _encode_value(colour, 24, tc)
     assert raw is not None
-    assert _decode_value(raw, 24, tc, little_endian=False) is None
+    value = _decode_value(raw, 24, tc, little_endian=False)
+    assert value == decoded
+    assert _encode_value(value, 24, tc) == raw
+
+
+def test_decode_color_hsv_without_a_colour_of_its_octets_is_unknown() -> None:
+    # Saturation 0 with a hue: no colour converts to it.
+    tc = _color(ParameterTypeTypeColorSpace.HSV)
+    assert _decode_value(0x400080, 24, tc, little_endian=False) is None
 
 
 def test_decode_raw_data_round_trip_big_endian() -> None:

@@ -3,6 +3,7 @@ from __future__ import annotations
 import base64
 import binascii
 import ipaddress
+import itertools
 import logging
 import math
 import re
@@ -558,6 +559,40 @@ def _rgb_to_hsv(r: int, g: int, b: int) -> tuple[int, int, int]:
         hue -= 360.0
     saturation = 0 if high == 0 else int(255.0 * (high - low) / high)
     return int(255.0 * hue / 360.0), saturation, high
+
+
+@lru_cache(maxsize=4096)
+def _hsv_to_rgb(h: int, s: int, v: int) -> tuple[int, int, int] | None:
+    """An RGB triple :func:`_rgb_to_hsv` converts to the KNX HSV octets ``h``, ``s``, ``v``:
+    the usual conversion back when it gives them again, else the first triple that does
+    (several colours share the same octets); ``None`` when none does."""
+    hue = h * 360.0 / 255.0
+    chroma = v * s / 255.0
+    second = chroma * (1.0 - abs((hue / 60.0) % 2.0 - 1.0))
+    base = v - chroma
+    sector = int(hue // 60.0) % 6
+    parts = [
+        (chroma, second, 0.0),
+        (second, chroma, 0.0),
+        (0.0, chroma, second),
+        (0.0, second, chroma),
+        (second, 0.0, chroma),
+        (chroma, 0.0, second),
+    ][sector]
+    for rounding in (round, math.floor, math.ceil):
+        r, g, b = (min(255, max(0, int(rounding(base + part)))) for part in parts)
+        if _rgb_to_hsv(r, g, b) == (h, s, v):
+            return r, g, b
+    # The highest channel is the value, the lowest follows from the saturation: only the
+    # middle one and which channel takes which are left to search.
+    for low in range(v, -1, -1):
+        if (0 if v == 0 else int(255.0 * (v - low) / v)) != s:
+            continue
+        for middle in range(low, v + 1):
+            for r, g, b in itertools.permutations((v, middle, low)):
+                if _rgb_to_hsv(r, g, b) == (h, s, v):
+                    return r, g, b
+    return None
 
 
 # Whitespace characters a standard base64 decoder ignores (ASCII space/tab/CR/LF only).
@@ -1556,6 +1591,122 @@ def stored_parameter_cells(
     return cells
 
 
+class PropertyLayout(NamedTuple):
+    """Where settings live in properties, whatever is shown now (see
+    :func:`stored_property_layout`)."""
+
+    # The param-refs stored at each byte ``(property key, offset)``, active or not.
+    cells: dict[tuple[TypedPropertyKey, int], set[str]]
+    # What the parameters that are no member of a union write with their default values,
+    # active or not (a property holds its parameter's default until a download writes it).
+    defaults: dict[TypedPropertyKey, MaskedProperty]
+
+
+def stored_property_layout(
+    app: ApplicationProgram,
+    idx: ApplicationIndexer,
+    state: GlobalState,
+    text_encoding: str | None = None,
+) -> PropertyLayout:
+    """The property counterpart of :func:`stored_parameter_cells`: the param-refs stored at
+    each byte of each property (keyed as by :func:`encode_to_typed_properties`), of every
+    property parameter and union member of the application and of the module instances
+    ``state`` makes, active or not (those of a module instance qualified with it); and the
+    bytes the parameters that are no member of a union write with their default values. A
+    default that cannot be encoded writes nothing."""
+    refs_of = _refs_of_parameters(idx)
+
+    def stored(writes: Writes) -> Iterator[tuple[PropWrite, range]]:
+        for w in writes.prop:
+            pt = idx.parameter_types.get(w.parameter_type)
+            size = type_size_in_bit(pt.choice, for_property=True) if pt else 0
+            if size:
+                start = w.offset * 8 + w.bit_offset
+                yield w, range(start // 8, (start + size - 1) // 8 + 1)
+
+    def key_of(w: PropWrite) -> TypedPropertyKey:
+        return (w.object_index, w.object_type, w.property_id, w.occurrence)
+
+    # The application's own part is the same for every state: made once per indexer, shared
+    # (a cell a module instance adds to is copied).
+    own = next(
+        ((cells, writes) for seen, cells, writes in _OWN_PROPERTIES if seen is idx),
+        None,
+    )
+    if own is None:
+        own_cells: dict[tuple[TypedPropertyKey, int], set[str]] = {}
+        # Without a state every parameter is written, and a union member whenever it has a
+        # value.
+        for w, cell_range in stored(
+            collect_writes(app, idx, dict.fromkeys(idx.parameters, "0"), None)
+        ):
+            for offset in cell_range:
+                own_cells.setdefault((key_of(w), offset), set()).update(
+                    refs_of.get(w.param_id, [])
+                )
+        own_plain = [
+            w
+            for w in collect_writes(app, idx, {}, None).prop
+            if isinstance(
+                idx.parameters.get(w.param_id),
+                ApplicationProgramStaticParametersParameter,
+            )
+        ]
+        own = (own_cells, own_plain)
+        _OWN_PROPERTIES.insert(0, (idx, own_cells, own_plain))
+        del _OWN_PROPERTIES[4:]
+    own_cells, own_plain = own
+    cells = dict(own_cells)
+    plain: list[PropWrite] = list(own_plain)
+
+    def add(writes: Writes, qualify: Callable[[str], str]) -> None:
+        for w, cell_range in stored(writes):
+            qualified = {qualify(r) for r in refs_of.get(w.param_id, [])}
+            for offset in cell_range:
+                key = (key_of(w), offset)
+                current = cells.get(key)
+                if current is None or current is own_cells.get(key):
+                    cells[key] = qualified | current if current else qualified
+                else:
+                    current.update(qualified)
+
+    def walk(ms: ModuleState) -> None:
+        md = idx.module_defs.get(ms.ref_id) if ms.ref_id is not None else None
+        if md is not None and md.static.parameters is not None:
+            every = Writes()
+            defaults = Writes()
+            for item in md.static.parameters.choice:
+                if isinstance(item, ModuleDefStaticParametersParameter):
+                    _collect_param(item, {}, ms, every)
+                    _collect_param(item, {}, ms, defaults)
+                else:
+                    _collect_union(
+                        item, {up.id: up.value for up in item.parameter}, ms, every
+                    )
+            add(every, ms.qualify)
+            plain.extend(defaults.prop)
+        for child in ms.module_children():
+            walk(child)
+
+    for ms in state.module_children():
+        walk(ms)
+    return PropertyLayout(
+        cells,
+        _masked_property_writes(app, idx, plain, key_of, text_encoding, strict=False),
+    )
+
+
+# The application's own part of the property layout (see stored_property_layout) of the last
+# few indexers: the param-refs of each byte, and the writes of the parameters' defaults.
+_OWN_PROPERTIES: list[
+    tuple[
+        ApplicationIndexer,
+        dict[tuple[TypedPropertyKey, int], set[str]],
+        list[PropWrite],
+    ]
+] = []
+
+
 def written_bit_mask(
     app: ApplicationProgram,
     idx: ApplicationIndexer,
@@ -1651,8 +1802,8 @@ def _decode_float(raw: int, size_in_bit: int, tc: ParameterTypeTypeFloat) -> str
 
 def decodable_type(tc: object, size_in_bit: int) -> bool:
     """Whether the bytes of a parameter of this type and size can give back its value at all
-    (see :func:`_decode_value`): not for a lossy encoding (HSV colour, a date without its year),
-    a text, address, colour or raw-data field that does not fill whole octets, or a float of
+    (see :func:`_decode_value`): not for a lossy encoding (a date without its year), a
+    text, address, colour or raw-data field that does not fill whole octets, or a float of
     another size than its encoding has. A decodable type can still have bytes that are no
     value of it."""
     octets = size_in_bit > 0 and not size_in_bit % 8
@@ -1674,9 +1825,7 @@ def decodable_type(tc: object, size_in_bit: int) -> bool:
     if isinstance(tc, ParameterTypeTypeDate):
         return tc.display_the_year is not False
     if isinstance(tc, ParameterTypeTypeColor):
-        return (
-            octets and size_in_bit >= 24 and tc.space != ParameterTypeTypeColorSpace.HSV
-        )
+        return octets and size_in_bit >= 24
     return False
 
 
@@ -1737,10 +1886,11 @@ def _decode_value(
     Enumerations are matched by re-encoding each candidate (so an explicit
     ``BinaryValue`` or byte order is handled by the same forward path). Integer,
     time, float, text, date, IPv4, RGB/RGBW colour and raw-data types are decoded
-    directly. The result is a canonical string (e.g. a normalised number/float),
-    not necessarily the exact original text. Non-injective encodings (HSV colour,
-    a date whose year the type does not display, sub-octet byte types) return
-    ``None`` - the original cannot be reconstructed from the bytes alone.
+    directly, an HSV colour as one of the RGB colours that convert to its octets. The
+    result is a canonical string (e.g. a normalised number/float), not necessarily the
+    exact original text, but one that encodes to the same bytes. Encodings that drop
+    part of the value (a date whose year the type does not display, sub-octet byte
+    types) return ``None`` - the original cannot be reconstructed from the bytes alone.
 
     ``for_property`` selects the RawData framing (memory has a 4-octet length
     prefix, a property value has none - see :func:`_encode_raw_data`); ``text_encoding``
@@ -1792,11 +1942,13 @@ def _decode_value(
         return f"{century + year:04d}-{month:02d}-{day:02d}"
     if isinstance(tc, ParameterTypeTypeColor):
         data = _field_bytes(raw, size_in_bit)
-        if data is None or tc.space == ParameterTypeTypeColorSpace.HSV:
-            return None  # HSV<-RGB is lossy; not inverted
-        if len(data) >= 3:
-            return "#" + data[:3].hex().upper()
-        return None
+        if data is None or len(data) < 3:
+            return None
+        if tc.space == ParameterTypeTypeColorSpace.HSV:
+            # Several colours convert to the same octets: one of them, which writes them again.
+            rgb = _hsv_to_rgb(data[0], data[1], data[2])
+            return None if rgb is None else "#" + bytes(rgb).hex().upper()
+        return "#" + data[:3].hex().upper()
     if isinstance(tc, ParameterTypeTypeRawData):
         data = _field_bytes(raw, size_in_bit)
         if data is None:
@@ -2222,6 +2374,21 @@ def _encode_properties_masked[K](
     text_encoding: str | None,
 ) -> dict[K, MaskedProperty]:
     writes = collect_writes(app, idx, overrides, state, inactive_ranges=True)
+    return _masked_property_writes(app, idx, writes.prop, key_of, text_encoding)
+
+
+def _masked_property_writes[K](
+    app: ApplicationProgram,
+    idx: ApplicationIndexer,
+    writes: Iterable[PropWrite],
+    key_of: Callable[[PropWrite], K],
+    text_encoding: str | None,
+    *,
+    strict: bool = True,
+) -> dict[K, MaskedProperty]:
+    """The properties the property writes ``writes`` make (see :class:`MaskedProperty`). A
+    value that cannot be encoded raises :class:`EncodingError`; not ``strict``, it writes
+    nothing."""
     little_endian = _program_little_endian(app)
     text_encoding = text_encoding or text_parameter_encoding(app)
     bitwise = (app.id or "").startswith(DO_NOT_FILL_UNUSED_BITS)
@@ -2239,7 +2406,7 @@ def _encode_properties_masked[K](
             part.extend(bytearray(max(0, needed - len(part))))
         return parts
 
-    for w in writes.prop:
+    for w in writes:
         pt = idx.parameter_types.get(w.parameter_type)
         if pt is None:
             continue
@@ -2256,15 +2423,22 @@ def _encode_properties_masked[K](
             _, _, cover = extend(key, needed)
             cover[first:needed] = b"\xff" * (needed - first)
             continue
-        encoded = _encode_value(
-            w.value,
-            size_in_bit,
-            tc,
-            little_endian=little_endian,
-            for_property=True,
-            text_encoding=text_encoding,
-        )
+        try:
+            encoded = _encode_value(
+                w.value,
+                size_in_bit,
+                tc,
+                little_endian=little_endian,
+                for_property=True,
+                text_encoding=text_encoding,
+            )
+        except (EncodingError, ValueError):
+            if strict:
+                raise
+            encoded = None
         if encoded is None:
+            if not strict:
+                continue
             raise EncodingError(
                 f"cannot encode parameter {w.param_id} value {w.value!r} "
                 f"as {w.parameter_type}"
