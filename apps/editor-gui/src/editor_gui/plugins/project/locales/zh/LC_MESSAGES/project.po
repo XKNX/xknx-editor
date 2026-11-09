@@ -3127,3 +3127,9 @@ msgstr[0] "存在 {count} 个镇流器"
 msgid "Procedure {number}  ({count} step)"
 msgid_plural "Procedure {number}  ({count} steps)"
 msgstr[0] "流程 {number}  （{count} 个步骤）"
+
+msgid "Download pending: {parts}"
+msgstr "等待编程：{parts}"
+
+msgid "Medium Configuration"
+msgstr "介质配置"

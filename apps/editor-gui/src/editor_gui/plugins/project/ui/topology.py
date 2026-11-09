@@ -597,9 +597,10 @@ class TopologyPanel:
 
     @staticmethod
     def _render_description(device: TreeDevice) -> bool:
-        """After the device's row: the KNX Data Secure shield, then its description (a short
-        one inline, a longer one behind a hover icon). Returns whether an icon is hovered."""
-        return render_device_marks(device.node_id, device.description)
+        """Append security, pending download and description markers to the device's row."""
+        return render_device_marks(
+            device.node_id, device.description, show_pending=True
+        )
 
     def _render_unloaded_device_context_menu(self, device: UnloadedDevice) -> None:
         if context_menu(f"##dev_ctx_{device.node_id}"):

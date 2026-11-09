@@ -8,6 +8,7 @@ from collections.abc import Callable, Collection
 
 from imgui_bundle import imgui
 
+from editor_gui.theme import status_color
 from editor_gui.widgets.dpi import px
 from editor_gui.widgets.tree import same_row
 
@@ -15,6 +16,7 @@ from editor_gui.widgets.tree import same_row
 ICON_DESCRIPTION = ""
 # FontAwesome 4 "shield": the device is commissioned with KNX Data Secure.
 ICON_SECURE = ""
+ICON_DOWNLOAD = ""
 # Width the description wraps at in its tooltip, at 100 % scaling.
 _WRAP_WIDTH = 420.0
 # A description this short or shorter is shown inline; a longer one (or one of several lines)
@@ -26,6 +28,13 @@ MIN_DESCRIPTION_LENGTH = 20
 # project (see set_secure_devices).
 _secure_devices: Callable[[], Collection[int]] = frozenset
 _secure_tooltip: Callable[[], str] = str
+_pending_download: Callable[[int], str] | None = None
+
+
+def set_pending_downloads(tooltip: Callable[[int], str] | None) -> None:
+    """Where device rows read their pending download text; empty means no marker."""
+    global _pending_download
+    _pending_download = tooltip
 
 
 def set_secure_devices(
@@ -41,11 +50,29 @@ def is_secure_device(node_id: int) -> bool:
     return node_id in _secure_devices()
 
 
-def render_device_marks(node_id: int, description: str | None) -> bool:
-    """After a device's row: the shield of a device commissioned with KNX Data Secure, then its
-    description (see :func:`render_description`). Returns whether an icon is hovered."""
+def render_device_marks(
+    node_id: int, description: str | None, *, show_pending: bool = False
+) -> bool:
+    """Append security, pending download and description markers. Return whether one is hovered."""
     secure_hovered = is_secure_device(node_id) and secure_icon()
-    return render_description(description) or secure_hovered
+    pending_hovered = False
+    if (
+        show_pending
+        and _pending_download is not None
+        and (text := _pending_download(node_id))
+    ):
+        pending_hovered = _hover_icon(ICON_DOWNLOAD, None, status_color("warning"))
+        popup = f"##pending_download_{node_id}"
+        if pending_hovered:
+            wrapped_tooltip(text)
+            if imgui.is_mouse_clicked(0):
+                imgui.open_popup(popup)
+        if imgui.begin_popup(popup):
+            imgui.push_text_wrap_pos(px(_WRAP_WIDTH))
+            imgui.text_unformatted(text)
+            imgui.pop_text_wrap_pos()
+            imgui.end_popup()
+    return render_description(description) or secure_hovered or pending_hovered
 
 
 def secure_tooltip() -> str:
@@ -102,7 +129,7 @@ def description_icon(description: str, *, x: float | None = None) -> bool:
     return hovered
 
 
-def _hover_icon(icon: str, x: float | None) -> bool:
+def _hover_icon(icon: str, x: float | None, tint: imgui.ImVec4 | None = None) -> bool:
     """``icon`` on the line of the previous item, after it or at screen position ``x``, dimmed and
     in the text colour while hovered; returns whether it is hovered."""
     with same_row():
@@ -119,7 +146,7 @@ def _hover_icon(icon: str, x: float | None) -> bool:
             pos, imgui.ImVec2(pos.x + size.x, pos.y + imgui.get_text_line_height())
         )
         color = imgui.Col_.text if hovered else imgui.Col_.text_disabled
-        imgui.text_colored(imgui.get_style().color_(color), icon)
+        imgui.text_colored(tint or imgui.get_style().color_(color), icon)
     return hovered
 
 

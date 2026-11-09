@@ -73,13 +73,17 @@ def test_edit_persists_calculated_values_as_one_step(
     node_id = _add(proj, app)
     device = proj.find_device_by_node_id(node_id)
     assert device is not None
+    proj.record_download(node_id, "full")
+    assert proj.pending_downloads() == {}
     proj.set_param(device, _ref(1), "5")
+    assert proj.pending_downloads()[node_id] == ("parameters",)
     stored = _stored(proj, node_id)
     assert stored[_ref(1)] == "5"
     assert stored[_ref(2)] == "11"
     assert stored[_ref(4)] == "15"
 
     assert proj.undo()
+    assert proj.pending_downloads() == {}
     stored = _stored(proj, node_id)
     assert _ref(1) not in stored
     assert _ref(2) not in stored

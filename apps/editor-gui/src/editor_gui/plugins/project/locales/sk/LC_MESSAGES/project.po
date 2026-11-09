@@ -3258,3 +3258,9 @@ msgid_plural "Procedure {number}  ({count} steps)"
 msgstr[0] "Procedúra {number}  ({count} krok)"
 msgstr[1] "Procedúra {number}  ({count} kroky)"
 msgstr[2] "Procedúra {number}  ({count} krokov)"
+
+msgid "Download pending: {parts}"
+msgstr "Čaká na naprogramovanie: {parts}"
+
+msgid "Medium Configuration"
+msgstr "Konfigurácia média"

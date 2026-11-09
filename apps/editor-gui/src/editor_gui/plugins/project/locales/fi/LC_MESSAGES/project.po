@@ -3179,3 +3179,9 @@ msgid "Procedure {number}  ({count} step)"
 msgid_plural "Procedure {number}  ({count} steps)"
 msgstr[0] "Menettely {number}  ({count} vaihe)"
 msgstr[1] "Menettely {number}  ({count} vaihetta)"
+
+msgid "Download pending: {parts}"
+msgstr "Ohjelmointi odottaa: {parts}"
+
+msgid "Medium Configuration"
+msgstr "Siirtotien määritys"

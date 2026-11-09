@@ -3310,3 +3310,9 @@ msgstr[0] "Postopek {number}  ({count} korak)"
 msgstr[1] "Postopek {number}  ({count} koraka)"
 msgstr[2] "Postopek {number}  ({count} koraki)"
 msgstr[3] "Postopek {number}  ({count} korakov)"
+
+msgid "Download pending: {parts}"
+msgstr "Čaka na programiranje: {parts}"
+
+msgid "Medium Configuration"
+msgstr "Konfiguracija medija"

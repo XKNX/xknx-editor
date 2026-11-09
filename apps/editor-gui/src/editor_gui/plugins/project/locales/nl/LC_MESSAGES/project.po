@@ -3212,3 +3212,9 @@ msgid "Procedure {number}  ({count} step)"
 msgid_plural "Procedure {number}  ({count} steps)"
 msgstr[0] "Procedure {number}  ({count} stap)"
 msgstr[1] "Procedure {number}  ({count} stappen)"
+
+msgid "Download pending: {parts}"
+msgstr "Programmering vereist: {parts}"
+
+msgid "Medium Configuration"
+msgstr "Mediaconfiguratie"

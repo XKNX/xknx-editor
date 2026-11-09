@@ -17,7 +17,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Literal
+from typing import TYPE_CHECKING, Any, Literal, overload
 
 from fastmcp.exceptions import ToolError
 
@@ -56,7 +56,7 @@ PLUGIN_PARAMETERS_ERROR = (
 if TYPE_CHECKING:
     from fastmcp import FastMCP
 
-    from editor_gui.device import ComObject, Device
+    from editor_gui.device import ComObject, Device, UnloadedDevice
     from editor_gui.plugins.project.service import ProjectService
     from xknxeditor.prod.parser_v2.activation import ActivationPlan, PlanStep
     from xknxeditor.prod.parser_v2.ui import UiParameter
@@ -166,7 +166,7 @@ def _line_entry(line: Any) -> dict[str, Any]:
     return entry
 
 
-def _device_dict(device: Device) -> dict[str, Any]:
+def _device_dict(device: Device | UnloadedDevice) -> dict[str, Any]:
     return {
         "node_id": device.node_id,
         "name": device.name,
@@ -1123,20 +1123,46 @@ def param_change_result(
     return result
 
 
+@overload
 def require_device(
     project: ProjectService,
     node_id: int | None = None,
     device_address: str | None = None,
-) -> Device:
+    *,
+    include_unloaded: Literal[False] = False,
+) -> Device: ...
+
+
+@overload
+def require_device(
+    project: ProjectService,
+    node_id: int | None = None,
+    device_address: str | None = None,
+    *,
+    include_unloaded: Literal[True],
+) -> Device | UnloadedDevice: ...
+
+
+def require_device(
+    project: ProjectService,
+    node_id: int | None = None,
+    device_address: str | None = None,
+    *,
+    include_unloaded: bool = False,
+) -> Device | UnloadedDevice:
     """Resolve a device by its internal node_id OR its individual address (e.g. "1.0.30"). Exactly
     one must be given; the int form stays the primary id, the string form saves the extra
-    project_list_devices lookup when the agent already knows the address."""
+    project_list_devices lookup when the agent already knows the address. ``include_unloaded``
+    lets metadata reads resolve devices whose product data is missing too."""
     if (node_id is None) == (device_address is None):
         raise ToolError(
             "pass exactly one of node_id (int) or device_address (str, e.g. '1.0.30')"
         )
     if device_address is not None:
-        matches = [d for d in project.devices if d.individual_address == device_address]
+        devices: list[Device | UnloadedDevice] = list(project.devices)
+        if include_unloaded:
+            devices.extend(project.unloaded_devices)
+        matches = [d for d in devices if d.individual_address == device_address]
         if not matches:
             raise ToolError(
                 f"no device with individual_address {device_address!r}; "
@@ -1151,6 +1177,12 @@ def require_device(
         return matches[0]
     assert node_id is not None  # proven by the exactly-one check above
     device = project.find_device_by_node_id(node_id)
+    if device is None and include_unloaded:
+        missing = next(
+            (d for d in project.unloaded_devices if d.node_id == node_id), None
+        )
+        if missing is not None:
+            return missing
     if device is None:
         raise ToolError(
             f"no device with node_id {node_id}; call project_list_devices for valid ids"
@@ -1911,17 +1943,55 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
     # --- reads ------------------------------------------------------------
 
     @tool("read")
-    def project_list_devices(name_contains: str | None = None) -> dict[str, Any]:
-        """List project devices, optionally filtering names by a case-insensitive substring.
-        Returns {items, count}; each item has {node_id, name, individual_address, description}.
-        Pass node_id to device tools; individual_address is null when unset. This reads the project."""
+    def project_health(category: str | None = None) -> dict[str, Any]:
+        """Project health findings as shown in Health and the device overview's issues column.
+        Returns {items, count}; each item has {severity, category, message, device_node_id,
+        ga_id}. Optional ``category`` filters by address, catalog, com-object, group-address
+        or download-pending. Download findings have one entry per device, naming its missing
+        parts; project_list_devices(download_pending_only=true) lists their machine-readable
+        pending_download_parts. This reads stored project status, not the bus."""
+        from dataclasses import asdict
+
+        from editor_gui.plugins.health.service import HealthService
+
+        def _read() -> list[dict[str, Any]]:
+            health = HealthService(project)
+            if ctx.home_assistant is not None:
+                health.external_senders = ctx.home_assistant.senders
+            return [
+                {**asdict(finding), "severity": finding.severity.value}
+                for finding in health.findings()
+                if category is None or finding.category == category
+            ]
+
+        return _items(ctx.run_locked(_read))
+
+    @tool("read")
+    def project_list_devices(
+        name_contains: str | None = None, download_pending_only: bool = False
+    ) -> dict[str, Any]:
+        """List project devices, including those whose product data is missing, optionally
+        filtering names by a case-insensitive substring.
+        Returns {items, count}; each item has {node_id, name, individual_address, description,
+        pending_download_parts}. The parts are individual_address, application_program,
+        parameters, group_communication and medium_config; an empty list means nothing pending.
+        ``download_pending_only`` lists only devices with pending parts. Devices with missing
+        product data can be read with project_get_device, but need their product data before
+        configuration or programming. Pass node_id to device tools; individual_address is null
+        when unset. This reads the project."""
 
         def _read() -> list[dict[str, Any]]:
             needle = (name_contains or "").lower()
+            pending = project.pending_downloads()
+            devices = [*project.devices, *project.unloaded_devices]
             return [
-                _device_dict(d)
-                for d in project.devices
-                if not needle or needle in d.name.lower()
+                {
+                    **_device_dict(d),
+                    "pending_download_parts": list(pending.get(d.node_id, ())),
+                }
+                for d in devices
+                if (not needle or needle in d.name.lower())
+                and (not download_pending_only or d.node_id in pending)
             ]
 
         return _items(ctx.run_locked(_read))
@@ -1932,7 +2002,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
     ) -> dict[str, Any]:
         """Read a project device. Identify it by ``node_id`` OR ``device_address`` (an individual
         address like "1.0.30"); pass exactly one. Returns {node_id, name, individual_address,
-        description}, plus {product_ref_id, hardware2program_ref_id, order_number, hardware_name,
+        description, pending_download_parts}, plus {product_ref_id, hardware2program_ref_id, order_number, hardware_name,
         product_name, manufacturer_name, additional_addresses, last_modified, last_downloaded} when
         catalog metadata is available. individual_address is null when unset. last_modified (its
         configuration last changed) and last_downloaded are UTC times as the project stores them
@@ -1946,12 +2016,18 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         that line's address ("1.5", null on no line), also for a device without a device number
         (project_park_device). space is the room (or other space) it is placed in, {space_id,
         name, path} with path its spaces from the building down ("House > Ground Floor >
-        Kitchen"), null when it is in no space; pass space_id to project_set_device_space."""
+        Kitchen"), null when it is in no space; pass space_id to project_set_device_space.
+        pending_download_parts lists the unloaded parts as in project_list_devices."""
 
         def _read() -> dict[str, Any]:
-            device = _require_device(node_id, device_address)
+            device = require_device(
+                project, node_id, device_address, include_unloaded=True
+            )
             info = project.get_device_info(device.node_id)
             data = _device_dict(device)
+            data["pending_download_parts"] = list(
+                project.pending_downloads().get(device.node_id, ())
+            )
             data["segment_id"] = project.device_segments().get(device.node_id)
             data["line"] = project.device_lines().get(device.node_id)
             data["space"] = _device_space(project.get_space_tree(), device.node_id)

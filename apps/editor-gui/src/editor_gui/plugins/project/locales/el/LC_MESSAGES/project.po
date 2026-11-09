@@ -3179,3 +3179,9 @@ msgid "Procedure {number}  ({count} step)"
 msgid_plural "Procedure {number}  ({count} steps)"
 msgstr[0] "Διαδικασία {number}  ({count} βήμα)"
 msgstr[1] "Διαδικασία {number}  ({count} βήματα)"
+
+msgid "Download pending: {parts}"
+msgstr "Εκκρεμεί προγραμματισμός: {parts}"
+
+msgid "Medium Configuration"
+msgstr "Διαμόρφωση μέσου"

@@ -1012,10 +1012,10 @@ class SpacesPanel:
             ):
                 self._ask_delete_device(device)
             imgui.end_popup()
-        # The KNX Data Secure shield, then a short description inline or a longer one while its
-        # icon is hovered.
-        if render_device_marks(device.id, detail):
+        imgui.push_id(f"spdev{where}{device.id}")
+        if render_device_marks(device.id, detail, show_pending=True):
             hovered = False
+        imgui.pop_id()
         if hovered:
             parts = [
                 p

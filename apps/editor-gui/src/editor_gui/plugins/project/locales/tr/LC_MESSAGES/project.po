@@ -3127,3 +3127,9 @@ msgstr[0] "{count} balast mevcut"
 msgid "Procedure {number}  ({count} step)"
 msgid_plural "Procedure {number}  ({count} steps)"
 msgstr[0] "Prosedür {number}  ({count} adım)"
+
+msgid "Download pending: {parts}"
+msgstr "Programlama bekliyor: {parts}"
+
+msgid "Medium Configuration"
+msgstr "Ortam yapılandırması"

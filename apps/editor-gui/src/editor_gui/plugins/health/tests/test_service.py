@@ -50,6 +50,11 @@ class _Project:
     group_addresses: list[_Ga] = field(default_factory=list)
     links: list[DeviceLinkInfo] = field(default_factory=list)
     link_reads: int = 0
+    unloaded_devices: list[Any] = field(default_factory=list)
+    pending: dict[int, tuple[str, ...]] = field(default_factory=dict)
+
+    def pending_downloads(self) -> dict[int, tuple[str, ...]]:
+        return self.pending
 
     def missing_program_refs(self) -> list[str]:
         return []
@@ -148,3 +153,20 @@ def test_a_group_address_another_program_sends_to_has_a_sender() -> None:
     # A change of what the other program sends is taken at once.
     senders.add(0x0903)
     assert health.findings() == []
+
+
+def test_pending_downloads_include_missing_product_data_and_combine_parts() -> None:
+    project = _Project(
+        devices=[_Device(1, "Actuator", [], "1.1.1")],
+        unloaded_devices=[_Device(2, "Missing product", [], "1.1.2")],
+        pending={
+            1: ("parameters", "group_communication"),
+            2: ("application_program",),
+        },
+    )
+    findings = HealthService(cast(Any, project)).findings()
+    assert [(f.category, f.device_node_id, f.severity) for f in findings] == [
+        ("download-pending", 1, Severity.WARNING),
+        ("download-pending", 2, Severity.WARNING),
+    ]
+    assert "Download pending: Parameters, Group Addresses" in findings[0].message

@@ -13,6 +13,7 @@ from typing import TYPE_CHECKING
 
 from editor_gui.device import device_label
 from editor_gui.plugins.health.strings import S
+from editor_gui.plugins.project.commissioning import pending_download_text
 from editor_gui.strings import get_locale
 
 if TYPE_CHECKING:
@@ -73,6 +74,17 @@ class HealthService:
         links = self._project.device_links()
         out.extend(self._check_addresses(devices))
         out.extend(self._check_missing_apps())
+        pending = self._project.pending_downloads()
+        for device in [*devices, *self._project.unloaded_devices]:
+            if parts := pending.get(device.node_id):
+                out.append(
+                    Finding(
+                        Severity.WARNING,
+                        "download-pending",
+                        f"{device_label(device)}: {pending_download_text(parts)}",
+                        device.node_id,
+                    )
+                )
         out.extend(
             self._check_com_objects(devices, {link.com_object_id for link in links})
         )

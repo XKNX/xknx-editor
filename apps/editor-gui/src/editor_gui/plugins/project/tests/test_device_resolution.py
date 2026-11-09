@@ -91,6 +91,7 @@ def test_device_without_application_stays_listed(tmp_path: Path) -> None:
     )
     assert unloaded.individual_address
     assert unloaded.display_name == "Button"
+    assert device_id in proj.pending_downloads()
 
     proj.remove_device(device_id)
     assert proj.unloaded_devices == []
@@ -114,6 +115,7 @@ def test_product_without_application_is_a_device(tmp_path: Path) -> None:
     assert device.get_visible_com_objects() == []
     assert proj.unloaded_devices == []
     assert proj.missing_program_refs() == []
+    assert proj.pending_downloads() == {}
     proj.close()
 
 

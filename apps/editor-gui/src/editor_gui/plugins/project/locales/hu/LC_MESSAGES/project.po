@@ -3154,3 +3154,9 @@ msgstr[0] "{count} előtét van jelen"
 msgid "Procedure {number}  ({count} step)"
 msgid_plural "Procedure {number}  ({count} steps)"
 msgstr[0] "Eljárás {number}  ({count} lépés)"
+
+msgid "Download pending: {parts}"
+msgstr "Programozásra vár: {parts}"
+
+msgid "Medium Configuration"
+msgstr "Közegkonfiguráció"

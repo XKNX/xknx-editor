@@ -149,6 +149,11 @@ panel, choose the display type, and load or export the display's LVS project (`.
 issues (missing or duplicate addresses, applications missing from the catalog, unlinked objects,
 group addresses without a type or sender); click a finding to jump to the device.
 
+Devices with pending downloads have a download marker in the topology and building trees.
+Hover or click it to see the missing parts. Health and the cockpit's needs-attention filter
+show the same pending state, including flags imported with a project. MCP clients can use
+`project_list_devices(download_pending_only=true)` or `project_health(category="download-pending")`.
+
 ![Cockpit and health checks](docs/images/cockpit.png)
 
 **Bus monitors and logs** — record and inspect bus traffic in the Group Monitor, Bus Monitor and Bus

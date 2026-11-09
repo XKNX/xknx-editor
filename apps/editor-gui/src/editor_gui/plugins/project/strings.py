@@ -2465,6 +2465,20 @@ class ProjectStrings:
         return _("Partial")
 
     @property
+    def DOWNLOAD_PENDING(self) -> str:
+        return _("Download pending: {parts}")
+
+    @property
+    def DOWNLOAD_PART_LABELS(self) -> dict[str, str]:
+        return {
+            "individual_address": _("Individual Address"),
+            "application_program": _("Application Program"),
+            "parameters": _("Parameters"),
+            "group_communication": _("Group Addresses"),
+            "medium_config": _("Medium Configuration"),
+        }
+
+    @property
     def SCOPE_PARAMETERS(self) -> str:
         return _("Partial: Parameters")
 

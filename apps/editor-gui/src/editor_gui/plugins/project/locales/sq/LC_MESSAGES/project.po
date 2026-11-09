@@ -3179,3 +3179,9 @@ msgid "Procedure {number}  ({count} step)"
 msgid_plural "Procedure {number}  ({count} steps)"
 msgstr[0] "Procedura {number}  ({count} hap)"
 msgstr[1] "Procedura {number}  ({count} hapa)"
+
+msgid "Download pending: {parts}"
+msgstr "Programimi në pritje: {parts}"
+
+msgid "Medium Configuration"
+msgstr "Konfigurimi i mediumit"

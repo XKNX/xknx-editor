@@ -3127,3 +3127,9 @@ msgstr[0] "{count}台のECGが存在"
 msgid "Procedure {number}  ({count} step)"
 msgid_plural "Procedure {number}  ({count} steps)"
 msgstr[0] "手順 {number}（{count}ステップ）"
+
+msgid "Download pending: {parts}"
+msgstr "書き込み待ち: {parts}"
+
+msgid "Medium Configuration"
+msgstr "メディア設定"

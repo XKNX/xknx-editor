@@ -44,6 +44,7 @@ from editor_gui.device_snapshot import (
 from editor_gui.dpt import dpt_from_token, lookup_or_make_dpt
 from editor_gui.hardware_text import current_text
 from editor_gui.plugins.project.code_page import code_page_text
+from editor_gui.plugins.project.commissioning import LOADED_PARTS, pending_download_text
 from editor_gui.plugins.project.element_status import status_label, usage_label
 from editor_gui.plugins.project.medium_text import (
     medium_error_text,
@@ -175,13 +176,7 @@ class UpdateApplicationResult:
 # Which commissioning "loaded" flags a successful download of each scope sets (keyed by
 # DownloadScope.value). FULL/UNLOAD_ALL set all true/false, UNLOAD clears the application's part
 # (not the address); partial scopes set only their part. Flags not listed are left unchanged.
-_ALL_LOADED = (
-    "individual_address_loaded",
-    "application_program_loaded",
-    "communication_part_loaded",
-    "medium_config_loaded",
-    "parameters_loaded",
-)
+_ALL_LOADED = tuple(LOADED_PARTS)
 _COMMISSIONING_BY_SCOPE: dict[str, dict[str, bool]] = {
     "full": dict.fromkeys(_ALL_LOADED, True),
     "unload": {
@@ -198,6 +193,7 @@ _COMMISSIONING_BY_SCOPE: dict[str, dict[str, bool]] = {
     },
     "par": {"parameters_loaded": True},  # PARAMETERS
     "grp": {"communication_part_loaded": True},  # GROUP_COMMUNICATION
+    "par,grp": {"parameters_loaded": True, "communication_part_loaded": True},
     "ia": {"individual_address_loaded": True},  # INDIVIDUAL_ADDRESS
     "ia_overwrite": {"individual_address_loaded": True},  # OVERWRITE_INDIVIDUAL_ADDRESS
 }
@@ -4514,6 +4510,35 @@ class ProjectService:
                 a.address for a in row.additional_addresses if a.address is not None
             ),
         )
+
+    @io_guarded(dict)
+    @revision_cached
+    def pending_downloads(self) -> dict[int, tuple[str, ...]]:
+        """Devices with unloaded commissioning parts, including missing product data.
+
+        Read the stored flags once per revision, without evaluating applications. Products
+        known to have no application program do not need programming.
+        """
+        if self._pid is None:
+            return {}
+        pending: dict[int, tuple[str, ...]] = {}
+        without_application: dict[str | None, bool] = {}
+        for row in self._svc.devices(self._pid):
+            program = row.hardware2program_ref_id
+            if program not in without_application:
+                without_application[program] = self._without_application(program)
+            if without_application[program]:
+                continue
+            parts = tuple(
+                part for flag, part in LOADED_PARTS.items() if not getattr(row, flag)
+            )
+            if parts:
+                pending[row.id] = parts
+        return pending
+
+    def pending_download_text(self, node_id: int) -> str:
+        """The pending parts of a device as shown in the trees, in the current language."""
+        return pending_download_text(self.pending_downloads().get(node_id, ()))
 
     def download_parts(self, node_id: int, scope: "DownloadScope") -> "PartialDownload":
         """What a download of ``scope`` loads into the device: a partial one

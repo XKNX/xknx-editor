@@ -3206,3 +3206,9 @@ msgid "Procedure {number}  ({count} step)"
 msgid_plural "Procedure {number}  ({count} steps)"
 msgstr[0] "Ferli {number}  ({count} skref)"
 msgstr[1] "Ferli {number}  ({count} skref)"
+
+msgid "Download pending: {parts}"
+msgstr "Forritun í bið: {parts}"
+
+msgid "Medium Configuration"
+msgstr "Stillingar miðils"

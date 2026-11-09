@@ -136,7 +136,7 @@ from editor_gui.update_check import (
 from editor_gui.web import enable_web_mode, wake_frame, web_options
 from editor_gui.widgets.checkbox import checkbox, radio_button
 from editor_gui.widgets.combo import begin_combo
-from editor_gui.widgets.description import set_secure_devices
+from editor_gui.widgets.description import set_pending_downloads, set_secure_devices
 from editor_gui.widgets.dialog import (
     begin_dialog,
     closed_from_tab,
@@ -908,6 +908,7 @@ class KnxGuiApp:
         set_secure_devices(
             self._project_service.secure_device_ids, lambda: S.DATA_SECURE_DEVICE
         )
+        set_pending_downloads(self._project_service.pending_download_text)
         self.bottom_expanded = bool(load_settings("app").get("bottom_expanded", False))
         # The browser UI's layout for the size it is shown in (see form_factor), the usual one
         # meanwhile remembered, and since when another one would fit.
