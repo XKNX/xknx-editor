@@ -417,6 +417,16 @@ class GroupObjectsTable:
                 - px(12),
             )
         )
+        style = imgui.get_style()
+        max_height = min(
+            20 * imgui.get_frame_height_with_spacing()
+            + 2 * style.window_padding.y
+            - style.item_spacing.y,
+            0.6 * imgui.get_window_viewport().work_size.y,
+        )
+        imgui.set_next_window_size_constraints(
+            imgui.ImVec2(0, 0), imgui.ImVec2(imgui.FLT_MAX, max_height)
+        )
         if begin_combo(S.GROUP_OBJECTS_MODULES, preview):
             if imgui.selectable(S.GROUP_OBJECTS_ALL_MODULES, self._module_ids is None)[
                 0

@@ -26,6 +26,7 @@ class TableUI:
     def __init__(self, device: Device, monkeypatch: pytest.MonkeyPatch) -> None:
         self.device = device
         self.width = 950
+        self.popup_height = 0.0
         self.rects: dict[str, tuple[float, float]] = {}
         self.texts: list[str] = []
         self.created: list[list[int]] = []
@@ -50,6 +51,8 @@ class TableUI:
                 label: str, *args: Any, _original: Any = original, **kwargs: Any
             ) -> Any:
                 result = _original(label, *args, **kwargs)
+                if label == "Modules" and result:
+                    self.popup_height = imgui.get_window_size().y
                 low, high = imgui.get_item_rect_min(), imgui.get_item_rect_max()
                 self.rects[label] = ((low.x + high.x) / 2, (low.y + high.y) / 2)
                 return result
@@ -120,6 +123,7 @@ def ui(device: Device, monkeypatch: pytest.MonkeyPatch) -> Iterator[TableUI]:
 def test_dropdown_filters_multiple_modules_and_resets(ui: TableUI) -> None:
     assert ui.numbers() == [254, 253, 262, 261]
     ui.click("Modules")
+    assert ui.popup_height < 180
     ui.click("Channel 2 (...)")
     ui.close_combo()
     assert ui.numbers() == [262, 261]
@@ -131,6 +135,51 @@ def test_dropdown_filters_multiple_modules_and_resets(ui: TableUI) -> None:
     ui.click("All modules")
     ui.close_combo()
     assert ui.numbers() == [254, 253, 262, 261]
+
+
+@pytest.mark.parametrize("screen_height", [1000, 400])
+def test_long_module_list_uses_more_room_but_at_most_sixty_percent(
+    ui: TableUI, screen_height: int
+) -> None:
+    from xml.etree import ElementTree as ET
+
+    from xknxeditor.prod.application import parse_application_xml
+
+    fixture = (
+        Path(__file__).parents[6]
+        / "packages/prod/tests/fixtures/object_tree_application.xml"
+    )
+    root = ET.fromstring(fixture.read_bytes())
+    dynamic = root.find(".//{*}Dynamic")
+    assert dynamic is not None
+    namespace = dynamic.tag.removesuffix("Dynamic")
+    ET.register_namespace("", namespace[1:-1])
+    dynamic.clear()
+    for index in range(30):
+        channel = ET.SubElement(
+            dynamic,
+            f"{namespace}Channel",
+            {
+                "Id": f"M-00FA_A-0005-01-0000_CH-{index}",
+                "Text": f"Module {index}",
+                "Name": f"Module {index}",
+                "Number": str(index),
+            },
+        )
+        ET.SubElement(
+            channel,
+            f"{namespace}ComObjectRefRef",
+            {
+                "RefId": "M-00FA_A-0005-01-0000_O-2_R-2",
+            },
+        )
+    app = parse_application_xml(ET.tostring(root), "M-00FA")[0]
+    ui.device = Device(2, "Many modules", app, "1.2.10")
+    imgui.get_io().display_size = imgui.ImVec2(1000, screen_height)
+    ui.frame()
+    ui.frame()
+    ui.click("Modules")
+    assert min(300, screen_height * 0.5) < ui.popup_height <= screen_height * 0.6
 
 
 def test_nested_modules_are_indented_and_selectable(ui: TableUI) -> None:
