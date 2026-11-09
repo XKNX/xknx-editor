@@ -21,6 +21,7 @@ from urllib.parse import quote_plus, urlparse
 from fastmcp.exceptions import ToolError
 
 from editor_gui.cache import docs_cache_dir
+from editor_gui.doc_links import MANUFACTURER_DOC_DOMAINS as _MANUFACTURER_DOC_DOMAINS
 from editor_gui.doc_links import MANUFACTURER_DOMAINS as _MANUFACTURER_DOMAINS
 from editor_gui.doc_links import domain_for as _domain_for
 from editor_gui.doc_links import resolve_manual_url as _resolve_manual_url
@@ -80,10 +81,6 @@ _EXTRA_DOC_HOSTS: frozenset[str] = frozenset(
     {
         # manufacturer alternate / documentation domains (subdomains of a map domain, e.g.
         # downloads.jung.de, assets.hager.com, *.feller.ch, *.zennio.com, are already covered)
-        "basalte.world",  # Basalte downloads (primary basalte.be)
-        "hager.ch",  # Hager CH manuals (primary hager.com)
-        "gira-smartbuilding.net",  # Gira documentation portal
-        "jung-group.com",  # JUNG download portal (primary jung.de)
         # KNX distributor documentation portals
         "futurasmus-knxgroup.org",
         "futurasmus-knxgroup.com",
@@ -108,6 +105,7 @@ _DOC_HOSTS: frozenset[str] = frozenset(
     {"knx.org", "github.com", "raw.githubusercontent.com"}
     | _EXTRA_DOC_HOSTS
     | set(_MANUFACTURER_DOMAINS.values())
+    | {domain for domains in _MANUFACTURER_DOC_DOMAINS.values() for domain in domains}
 )
 
 
@@ -365,8 +363,9 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         Returns {query, manufacturer, order_number, document_url, references, note}; each reference
         has {title, kind, url} and optionally hint.
 
-        document_url is a best-effort manual link and may be null. Try it with catalog_docs_fetch,
-        verify the exact order number and series/generation, then use references as fallbacks.
+        document_url is a product-matched documentation link and is null when no match is found.
+        Try it with catalog_docs_fetch and check the document's scope and application version;
+        use references for manual selection when no document was resolved.
         Read only relevant sections (manuals are often large PDFs). The references are ordered
         best-source-first and are fallbacks for each other (manufacturer site / KNX device database /
         web search); if none is fetchable, ask the user to open a link and paste the relevant section
@@ -375,9 +374,10 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         resolved_mfr = manufacturer
         order_number: str | None = None
         product_name: str | None = None
+        manufacturer_id: str | None = None
         if product_ref_id:
 
-            def _lookup() -> tuple[str | None, str | None, str | None]:
+            def _lookup() -> tuple[str | None, str | None, str | None, str]:
                 product = next(
                     (
                         p
@@ -390,16 +390,25 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                     raise ToolError(
                         f"no catalog product {product_ref_id!r}; call catalog_list_products"
                     )
-                return product.manufacturer_name, product.order_number, product.name
+                return (
+                    product.manufacturer_name,
+                    product.order_number,
+                    product.name,
+                    product.manufacturer_id,
+                )
 
-            resolved_mfr, order_number, product_name = ctx.run_locked(_lookup)
+            resolved_mfr, order_number, product_name, manufacturer_id = ctx.run_locked(
+                _lookup
+            )
 
-        # Best-effort resolved manual PDF, same resolver the GUI "Download PDF manual" button uses:
-        # KNX application description / technical manual, preferring the manufacturer's own site
-        # (parses knx.org, else a documentation web search). Network, on the request thread; may be
-        # None. This is what the LLM should fetch first, instead of guessing a URL from the links.
+        # Use the GUI resolver on the request thread, outside the project lock.
         document_url = (
-            _resolve_manual_url(resolved_mfr, order_number, product_name)
+            _resolve_manual_url(
+                resolved_mfr,
+                order_number,
+                product_name,
+                manufacturer_id=manufacturer_id,
+            )
             if (order_number or product_name)
             else None
         )
@@ -434,6 +443,15 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                     "hint": "Product page: Datenblatt (short overview), Funktionsbeschreibung (medium), Technisches Handbuch (large/full). If the exact order number/series is not here, fall back to the KNX device database result above.",
                 }
             )
+        if domain == "basalte.be":
+            references.append(
+                {
+                    "title": "Basalte World technical documents",
+                    "kind": "manufacturer_portal",
+                    "url": "https://www.basalte.world/",
+                    "hint": "The technical portal requires a partner login. Publicly available PDF links can still be read with catalog_docs_fetch.",
+                }
+            )
         if is_openknx:
             references.append(
                 {
@@ -460,9 +478,9 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             "document_url": document_url,
             "references": references,
             "note": (
-                "``document_url`` is best-effort (may be null, a wrong series/datasheet, or a host "
-                "catalog_docs_fetch refuses) — fetch and VERIFY it first, otherwise fall back to "
-                "``references``. See this tool's description for the full guidance."
+                "``document_url`` is matched to the product and may be null. Check the document's "
+                "scope and application version; it may be a datasheet. Use ``references`` to "
+                "select documentation manually when no matching document is available."
             ),
         }
 

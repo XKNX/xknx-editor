@@ -1269,11 +1269,72 @@ def test_extra_doc_hosts_allowed() -> None:
         "https://www.basalte.world/x.pdf",
         "https://hager.ch/x.pdf",
         "https://partner.gira.com/x.pdf",  # subdomain of gira.com
+        "https://partner.gira.de/data3/manual.pdf?download=1",
+        "https://www.jung-group.com/manual.pdf",
+        "https://sid.siemens.com/api/khub/documents/id/content",
+        "https://search.abb.com/library/Download.aspx?DocumentID=manual",
+        "https://library.e.abb.com/public/manual.pdf?signature=abc",
         "https://siblik.com/x.pdf",
         "https://www.futurasmus-knxgroup.es/x.pdf",
     ):
         assert catalog_tools._host_allowed(url), url
     assert not catalog_tools._host_allowed("https://evil.example.com/x.pdf")
+
+
+@pytest.mark.parametrize("has_match", [True, False])
+async def test_catalog_docs_checks_product_identity(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, has_match: bool
+) -> None:
+    from editor_gui import doc_links
+    from xknxeditor.catalog.core.products import ProductSummary
+
+    ctx = _build_ctx(tmp_path)
+    ref = "M-0083_H-128-64_P-JAL.2D0810M.2E02"
+    product = ProductSummary(
+        product_ref_id=ref,
+        hardware2program_ref_id="hardware",
+        name="JAL-0810M.02 Shutter Actuator",
+        order_number="JAL-0810M.02",
+        application_id=None,
+        manufacturer_id="M-0083",
+        manufacturer_name="MDT technologies",
+    )
+    monkeypatch.setattr(ctx.api.catalog, "get_products", lambda: [product])
+    knx = "https://www.knx.org"
+    expected = f"{knx}/devices/131/M-0083_H-128-64/de-DE/download"
+    search = """<div class="spotlight"><a href="/de/gerate/klic-mdi">KLIC-MDI</a></div>
+      <div class="listings-view__listings-grid">
+        <article class="node-device-card"><a class="node-device-card__wrapper"
+          href="/de/gerate/wrong">Other device</a></article>"""
+    if has_match:
+        search += """<article class="node-device-card"><a class="node-device-card__wrapper"
+          href="/de/gerate/jal">Shutter Actuator</a></article>"""
+    search += "</div>"
+
+    def detail(manufacturer_id: str, document: str) -> str:
+        return f'''<div class="hero-header__content">
+          <img src="/devices/{manufacturer_id}_H-x.jpg">
+          <table class="project-details-table">
+            <tr><td>Bestellnummer</td><td>JAL-0810M.02</td></tr>
+          </table>
+          <ul class="documentation-download-list">
+            <li><a href="{document}">Manual.pdf</a></li>
+          </ul></div>'''
+
+    pages = {
+        f"{knx}/de/gerate": search,
+        f"{knx}/de/gerate/wrong": detail("M-0071", "https://www.zennio.com/wrong.pdf"),
+        f"{knx}/de/gerate/jal": detail("M-0083", expected),
+    }
+    monkeypatch.setattr(doc_links, "_get_text", lambda url, params=None: pages.get(url))
+    async with Client(build_server(ctx)) as client:
+        result = await _data(client, "catalog_docs", query="manual", product_ref_id=ref)
+    assert result["order_number"] == "JAL-0810M.02"
+    assert result["document_url"] == (expected if has_match else None)
+    assert {r["kind"] for r in result["references"]} >= {
+        "knx_database",
+        "manufacturer_site",
+    }
 
 
 @pytest.mark.skipif(not _FIXTURE.exists(), reason="knxprod fixture missing")
@@ -1998,3 +2059,17 @@ async def test_rename_device_sets_name_and_description(tmp_path: Path) -> None:
         assert (device["name"], device["description"]) == ("Taster", "Flur")
         with pytest.raises(Exception, match="name, description or both"):
             await client.call_tool("project_rename_device", {"node_id": node_id})
+
+
+async def test_catalog_docs_exposes_basalte_partner_portal(tmp_path: Path) -> None:
+    mcp, _project = _build(tmp_path)
+    async with Client(mcp) as client:
+        result = await _data(
+            client, "catalog_docs", query="Sentido KNX", manufacturer="Basalte"
+        )
+        assert result["document_url"] is None
+        portal = next(
+            ref for ref in result["references"] if ref["kind"] == "manufacturer_portal"
+        )
+        assert portal["url"] == "https://www.basalte.world/"
+        assert "partner login" in portal["hint"]

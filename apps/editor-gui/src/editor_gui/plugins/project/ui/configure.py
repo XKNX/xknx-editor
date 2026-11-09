@@ -1319,7 +1319,12 @@ class ConfigurePanel:
             self._manual_busy = True
             threading.Thread(
                 target=self._open_manual,
-                args=(info.manufacturer_name, info.order_number, info.product_name),
+                args=(
+                    info.manufacturer_name,
+                    info.order_number,
+                    info.product_name,
+                    info.product_ref_id.split("_", 1)[0],
+                ),
                 daemon=True,
             ).start()
         if imgui.is_item_hovered():
@@ -1327,14 +1332,21 @@ class ConfigurePanel:
         return True
 
     def _open_manual(
-        self, manufacturer: str, order_number: str, product_name: str
+        self,
+        manufacturer: str,
+        order_number: str,
+        product_name: str,
+        manufacturer_id: str | None = None,
     ) -> None:
         """Resolve and open the manual URL off the UI thread; always opens something (KNX search as
         last resort). Only touches ``open_url`` and a plain bool flag, never imgui."""
         _log.info("open manual", manufacturer=manufacturer, order=order_number)
         try:
             url = doc_links.resolve_manual_url(
-                manufacturer, order_number, product_name
+                manufacturer,
+                order_number,
+                product_name,
+                manufacturer_id=manufacturer_id,
             ) or doc_links.knx_search_url(order_number, manufacturer)
             open_url(url)
             _log.info("manual opened", url=url)
