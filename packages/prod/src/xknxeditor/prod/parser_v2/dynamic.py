@@ -114,6 +114,7 @@ from .nodes import (
     RenameNode,
     RepeatNode,
 )
+from .nodes.choose import tested_values
 from .state import (
     GlobalState,
     ModuleState,
@@ -362,6 +363,8 @@ class DynamicTreeBuilder:
         self.object_gates: dict[str, frozenset[str]]
         self.module_gates: dict[str, frozenset[str]]
         self.selector_param_refs: frozenset[str] = frozenset()
+        # Per choose param-ref (local), the values its when tests name (see tested_values).
+        self.selector_tested_values: dict[str, tuple[str, ...]] = {}
         (
             self.allocation_param_refs,
             self.object_param_refs,
@@ -412,6 +415,7 @@ class DynamicTreeBuilder:
         object_placements: dict[str, set[str]] = {}
         module_placements: dict[str, set[str]] = {}
         sources: dict[str, set[str]] = {}
+        tests: dict[str, list[str]] = {}
 
         def walk(elem: object, gates: tuple[str, ...]) -> None:
             if isinstance(
@@ -419,6 +423,8 @@ class DynamicTreeBuilder:
             ):
                 inner = (*gates, elem.param_ref_id)
                 for when in elem.when:
+                    if when.test is not None:
+                        tests.setdefault(elem.param_ref_id, []).append(when.test)
                     for child in when.choice:
                         walk(child, inner)
                 return
@@ -493,6 +499,10 @@ class DynamicTreeBuilder:
                     selectors.add(source)
                     pending.append(source)
         self.selector_param_refs = frozenset(selectors)
+        self.selector_tested_values = {
+            ref: tuple(dict.fromkeys(v for test in found for v in tested_values(test)))
+            for ref, found in tests.items()
+        }
         return (
             closed(seeds),
             closed(object_seeds),
@@ -1049,6 +1059,7 @@ class DynamicUI:
         "_page_for",
         "_parameter_gates",
         "_selector_param_refs",
+        "_selector_tested_values",
         "_state",
         "_tree",
         "_ui",
@@ -1086,6 +1097,7 @@ class DynamicUI:
         self._object_gates = builder.object_gates
         self._module_gates = builder.module_gates
         self._selector_param_refs = builder.selector_param_refs
+        self._selector_tested_values = builder.selector_tested_values
         self._union_competitors = builder.union_competitors
         self._page_for = builder.page_param_for
         self._state = GlobalState.from_project(
@@ -2172,6 +2184,12 @@ class DynamicUI:
         what the tree shows: the selectors on the way to any parameter, group object or module,
         and the sources their Assigns copy from."""
         return self._selector_param_refs
+
+    def tested_values(self, ref_id: str) -> tuple[str, ...]:
+        """The values the chooses on a param-ref (of a module instance too) test for, in the
+        order of the product's when tests (see :func:`~.nodes.choose.tested_values`): what
+        changes what such a selector shows. Empty for a param-ref no choose is on."""
+        return self._selector_tested_values.get(self.local_ref_id(ref_id), ())
 
     def parameter_gates(self, local_ref_id: str) -> frozenset[str]:
         """The selectors (local param-refs) right on the way to the placements of a param-ref

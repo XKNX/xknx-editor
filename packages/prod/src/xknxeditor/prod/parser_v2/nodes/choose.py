@@ -39,6 +39,28 @@ def _token_matches(value: str, token: str) -> bool:
         return value == token
 
 
+def tested_values(condition: str) -> list[str]:
+    """Values that satisfy a ``when`` test, one per token (see :func:`_token_matches`): a bare
+    literal or ``=n`` itself, a bound its comparison takes in (``>=n`` and ``<=n`` n, ``>n``
+    n + 1, ``<n`` n - 1). ``!=n`` names no value of its own (all others satisfy it)."""
+    found: list[str] = []
+    for token in (t.strip() for t in condition.split()):
+        if not token:
+            continue
+        op = next((op for op in _OPERATORS if token.startswith(op)), None)
+        if op is None:
+            found.append(token)
+            continue
+        if op == "!=":
+            continue
+        try:
+            bound = int(token[len(op) :])
+        except ValueError:
+            continue
+        found.append(str(bound + 1 if op == ">" else bound - 1 if op == "<" else bound))
+    return found
+
+
 def _value_matches(value: str, test_values: list[str]) -> bool:
     return any(_token_matches(value, t) for t in test_values)
 

@@ -1447,7 +1447,7 @@ def _kept_values_to_try(
         widget=resolve_widget(parameter_type),
         default_value=default,
     )
-    return values_to_try(parameter, parameter.value)
+    return values_to_try(parameter, parameter.value, ui.tested_values(ref_id))
 
 
 def _guessed(ui: DynamicUI, values: Mapping[str, str]) -> _ValueMap:
