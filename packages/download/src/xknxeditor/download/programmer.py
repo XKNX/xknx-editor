@@ -92,16 +92,17 @@ if TYPE_CHECKING:
     from xknx.telegram.apci import APCI
 
 # Octets consumed by TPCI/APCI/count/address in a standard A_Memory_Write ASDU.
-_MEMORY_OVERHEAD = 3
+MEMORY_OVERHEAD = 3
 # A_Memory_Write/Read encode the octet count in 6 bits. By default the chunk is sized
 # from the negotiated APDU (fast). A device that rejects a long classic memory write
 # (some firmwares advertise a large APDU yet only accept short memory services) is
 # retried with a lowered cap set via ``max_memory_service_count``.
 _MAX_MEMORY_CHUNK = 0x3F
 # Fallback memory-service caps tried, in order, after a memory write is not
-# acknowledged. 15 octets still need a long frame (an 18-octet APDU with the 3-octet
-# memory header); 12 is the most a standard frame carries.
-MEMORY_SERVICE_FALLBACKS = (15, 12)
+# acknowledged. 52 octets fill APDU 55 (with the 3-octet memory header), the most many
+# TP couplers forward in a long frame; 15 octets still need a long frame (an 18-octet
+# APDU); 12 is the most a standard frame carries.
+MEMORY_SERVICE_FALLBACKS = (52, 15, 12)
 # Only response timeouts are retried here; transport ACK retries belong to the connection.
 _TRANSIENT_RETRIES = 2
 _TRANSIENT_RETRY_DELAY = 0.2
@@ -318,7 +319,7 @@ class DeviceProgrammer:
     @property
     def memory_chunk_size(self) -> int:
         """Largest classic memory payload per telegram, within the current cap."""
-        return self._payload_budget(_MEMORY_OVERHEAD, self.max_memory_service_count)
+        return self._payload_budget(MEMORY_OVERHEAD, self.max_memory_service_count)
 
     def _payload_budget(self, overhead: int, maximum: int) -> int:
         size = min(self._plain_apdu_length - overhead, maximum)
@@ -752,7 +753,7 @@ class DeviceProgrammer:
         except ManagementConnectionError as exc:
             # A response longer than a standard frame can be dropped by the interface or a
             # coupler; the caller retries with standard-size blocks then.
-            if count > DEFAULT_MAX_APDU_LENGTH - _MEMORY_OVERHEAD:
+            if count > DEFAULT_MAX_APDU_LENGTH - MEMORY_OVERHEAD:
                 raise MemoryReadNotAnswered(
                     f"{exc} while reading memory {address:#06x} ({count} byte(s)) "
                     f"[{self.diagnostic_context}]"
@@ -795,7 +796,7 @@ class DeviceProgrammer:
             return _OPTIMISTIC_USER_MEMORY_BLOCK
         return min(
             _OPTIMISTIC_MEMORY_BLOCK,
-            max(DEFAULT_MAX_APDU_LENGTH, self.max_apdu_length) - _MEMORY_OVERHEAD,
+            max(DEFAULT_MAX_APDU_LENGTH, self.max_apdu_length) - MEMORY_OVERHEAD,
         )
 
     async def write_memory_optimistic(self, address: int, data: bytes) -> bool:

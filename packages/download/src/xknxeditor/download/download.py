@@ -51,6 +51,7 @@ from .programmer import (
     DEFAULT_MAX_APDU_LENGTH,
     FREE_ACCESS_KEY,
     MAX_COMMUNICATION_APDU_LENGTH,
+    MEMORY_OVERHEAD,
     MEMORY_SERVICE_FALLBACKS,
     DeviceProgrammer,
 )
@@ -139,16 +140,23 @@ _MAC_ADDRESS_LENGTH = 6
 _PID_MANAGEMENT_DESCRIPTOR = 72
 
 
-def _memory_cap_ladder(seed: int | None) -> tuple[int | None, ...]:
+def _memory_cap_ladder(
+    seed: int | None, apdu_ceiling: int | None = None
+) -> tuple[int | None, ...]:
     """Memory-service caps to try in order.
 
     Without a seed, start from the APDU-derived default (``None``) and fall back to
-    progressively smaller caps. With a seed (a previously learned limit), start there
-    and only fall back to still-smaller caps, so a known device skips the discovery.
+    progressively smaller caps, skipping those ``apdu_ceiling`` already enforces. With a
+    seed (a previously learned limit), start there and only fall back to still-smaller
+    caps, so a known device skips the discovery.
     """
-    if seed is None:
-        return (None, *MEMORY_SERVICE_FALLBACKS)
-    return (seed, *(c for c in MEMORY_SERVICE_FALLBACKS if c < seed))
+    if seed is not None:
+        limit: int | None = seed
+    elif apdu_ceiling is not None:
+        limit = apdu_ceiling - MEMORY_OVERHEAD
+    else:
+        limit = None
+    return (seed, *(c for c in MEMORY_SERVICE_FALLBACKS if limit is None or c < limit))
 
 
 def _resolve_controls(
@@ -841,7 +849,7 @@ async def download(
     # retry the whole download with progressively smaller memory-service caps. A caller
     # that already learned a device's limit passes it as ``memory_service_count`` to
     # start there and skip the discovery retry.
-    memory_caps = _memory_cap_ladder(memory_service_count)
+    memory_caps = _memory_cap_ladder(memory_service_count, apdu_ceiling)
     if memory_service_count is not None:
         logger.info(
             "download: %s starting at a learned %d-octet memory-service cap",
@@ -1015,7 +1023,7 @@ async def preflight(
     apdu_ceiling, negotiate_apdu = _apdu_settings(
         max_apdu_length, interface_max_apdu_length
     )
-    memory_caps = _memory_cap_ladder(None)
+    memory_caps = _memory_cap_ladder(None, apdu_ceiling)
     for attempt, memory_cap in enumerate(memory_caps):
         manager = _connection_manager(xknx, address, security)
         runner = LoadProcedureRunner(
