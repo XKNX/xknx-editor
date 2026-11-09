@@ -544,10 +544,14 @@ async def _read_memory_mapped(
     if association_table is not None and association_table.code_segment is not None:
         # Where the device keeps it, when the mask points to it (a download with dynamic
         # table management packs it right after the address table); else as declared.
-        assoc_address = await _association_table_address(
-            programmer, application
-        ) or base_addresses[association_table.code_segment] + (
-            association_table.offset or 0
+        # A pointer to the start of the declared segment is the segment's table
+        # reference: the table lies at its offset in it, where the download writes it.
+        segment_address = base_addresses[association_table.code_segment]
+        pointer = await _association_table_address(programmer, application)
+        assoc_address = (
+            pointer
+            if pointer is not None and pointer != segment_address
+            else segment_address + (association_table.offset or 0)
         )
         assoc_bytes = await _read_count_table(
             programmer, assoc_address, count_width=1, entry_width=2
@@ -560,6 +564,11 @@ async def _read_memory_mapped(
         com_object_table is not None
         and com_object_table.code_segment is not None
         and com_object_table.code_segment in base_addresses
+        and not _only_allocated(
+            application,
+            base_addresses[com_object_table.code_segment]
+            + (com_object_table.offset or 0),
+        )
     ):
         table_offset = com_object_table.offset or 0
         seg_size = sizes.get(com_object_table.code_segment, 0) - table_offset
@@ -606,6 +615,36 @@ async def _read_memory_mapped(
         links=links,
         group_objects=group_objects,
     )
+
+
+# The memory type bits of an EEPROM segment, the only one whose data a download writes.
+_EEPROM_MEMORY = 0x03
+
+
+def _only_allocated(application: Application, address: int) -> bool:
+    """Whether the application's procedures only allocate the memory at ``address``: an
+    absolute segment of another memory type than EEPROM holds it, and no memory write
+    reaches it. A download writes nothing there, so what the device holds there tells
+    nothing of its configuration."""
+    from xknxeditor.namespaces.intermediate.ld_ctrl_abs_segment_t import (
+        LdCtrlAbsSegment,
+    )
+    from xknxeditor.namespaces.intermediate.ld_ctrl_write_mem_t import LdCtrlWriteMem
+
+    procedures = application.load_procedures
+    allocated = False
+    for procedure in procedures.load_procedure if procedures is not None else ():
+        for control in procedure.choice:
+            if not isinstance(control, (LdCtrlAbsSegment, LdCtrlWriteMem)) or not (
+                control.address <= address < control.address + control.size
+            ):
+                continue
+            if isinstance(control, LdCtrlWriteMem) or (
+                control.mem_type & _EEPROM_MEMORY == _EEPROM_MEMORY
+            ):
+                return False
+            allocated = True
+    return allocated
 
 
 def _record_ranges(numbers: list[int], max_records: int) -> list[tuple[int, int]]:

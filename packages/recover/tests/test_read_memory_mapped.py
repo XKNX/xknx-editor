@@ -95,3 +95,52 @@ async def test_table_is_not_read_past_its_segment() -> None:
     programmer = cast(Any, _Programmer(_memory(_BASE + 0x40, table)))
     read = await _read_memory_mapped(programmer, application)
     assert sorted(read.group_objects) == [0]
+
+
+def _procedure(*controls: object) -> SimpleNamespace:
+    return SimpleNamespace(load_procedure=[SimpleNamespace(choice=list(controls))])
+
+
+def _segment(mem_type: int) -> object:
+    from xknxeditor.namespaces.intermediate.ld_ctrl_abs_segment_t import (
+        LdCtrlAbsSegment,
+    )
+
+    return LdCtrlAbsSegment(
+        lsm_idx=3,
+        seg_type=0,
+        address=_BASE,
+        size=0x80,
+        access=0,
+        mem_type=mem_type,
+        seg_flags=0,
+    )
+
+
+_M112_TABLE = bytes.fromhex("034000" + "4100d700" + "4101df07" + "4102d708")
+
+
+async def test_a_table_the_procedure_only_allocates_is_not_read() -> None:
+    # A segment of another memory type than EEPROM is allocated, not written: whatever the
+    # device holds there is none of the download's group objects.
+    application = _application("MV-0705", table_offset=0x40, size=0x80)
+    application.load_procedures = _procedure(_segment(0))
+    programmer = cast(Any, _Programmer(_memory(_BASE + 0x40, _M112_TABLE)))
+    read = await _read_memory_mapped(programmer, application)
+    assert read.group_objects == {}
+
+
+async def test_a_table_in_an_eeprom_segment_or_a_memory_write_is_read() -> None:
+    from xknxeditor.namespaces.intermediate.ld_ctrl_write_mem_t import LdCtrlWriteMem
+
+    for procedure in (
+        _procedure(_segment(3)),
+        _procedure(
+            _segment(0), LdCtrlWriteMem(address=_BASE + 0x40, size=0x20, verify=True)
+        ),
+    ):
+        application = _application("MV-0705", table_offset=0x40, size=0x80)
+        application.load_procedures = procedure
+        programmer = cast(Any, _Programmer(_memory(_BASE + 0x40, _M112_TABLE)))
+        read = await _read_memory_mapped(programmer, application)
+        assert sorted(read.group_objects) == [0, 1, 2]
