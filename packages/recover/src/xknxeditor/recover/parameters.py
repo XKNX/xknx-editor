@@ -36,6 +36,7 @@ from xknxeditor.prod.script.sandbox import AbortToken
 if TYPE_CHECKING:
     from xknxeditor.prod import Application
     from xknxeditor.prod.parser_v2.application_indexer import ApplicationIndexer
+    from xknxeditor.prod.parser_v2.context import Gate
     from xknxeditor.prod.parser_v2.dynamic import DynamicUI
     from xknxeditor.prod.parser_v2.encode import PropertyLayout, TypedPropertyKey
     from xknxeditor.prod.parser_v2.ui import UiParameter
@@ -572,6 +573,20 @@ def _infer_rounds(
     """The inference rounds of :func:`_infer_all` from the values decoded first."""
     for _ in range(_INFER_ROUNDS):
         _check(cancel)
+        # The memory names the branch of a selector through a hidden setting with a fixed
+        # value behind it first: what it holds there is no guess. Only without such values
+        # do the objects and the unions decide.
+        named = _infer_from_fixed(
+            application,
+            parameter_segments,
+            property_values,
+            project_code_page,
+            values,
+            linked,
+            sizes,
+            fixed,
+            cancel,
+        )
         chosen = (
             _infer_unstored(
                 application,
@@ -584,8 +599,8 @@ def _infer_rounds(
                 segments=parameter_segments,
                 cancel=cancel,
             )
-            if linked
-            else {}
+            if linked and not named
+            else named
         ) or _infer_from_memory(
             application,
             parameter_segments,
@@ -2951,3 +2966,286 @@ def _infer_from_memory(
         ):
             best, fewest = {ref_id: candidate}, len(trial_misfits)
     return best
+
+
+def _same_value(a: str, b: str) -> bool:
+    """Whether two values of a setting are the same: as written, or as numbers."""
+    if a == b:
+        return True
+    try:
+        return float(a) == float(b)
+    except ValueError:
+        return False
+
+
+def _gate_holds(
+    ui: DynamicUI, gate: Gate, shown: Collection[str], active: Collection[str]
+) -> bool:
+    """Whether ``ui`` takes the branch the gate ``gate`` stands for (see
+    :class:`~xknxeditor.prod.parser_v2.context.Gate`)."""
+    from xknxeditor.prod.parser_v2.nodes.choose import satisfies
+
+    if gate.needs_active and gate.param not in shown and gate.param not in active:
+        return False
+    value = ui.get_value(gate.param) or ""
+    if gate.when is not None:
+        return satisfies(gate.when, value)
+    return not any(satisfies(test, value) for test in gate.unless)
+
+
+def _infer_from_fixed(
+    application: Application,
+    parameter_segments: Mapping[str, bytes],
+    property_values: Mapping[TypedPropertyKey, bytes] | None,
+    project_code_page: str | None,
+    values: Mapping[str, str],
+    linked: set[int],
+    sizes: Mapping[int, str],
+    fixed: _ValueMap,
+    cancel: Callable[[], bool] | None = None,
+) -> _ValueMap:
+    """Values for shown settings the device keeps no copy of, read from the hidden settings
+    with a fixed value (see :func:`_fixed_values`) their branches hold: a datapoint's type
+    picks one of the references of a hidden setting the device stores (or one of the members
+    of a union), each with its own value, so the value the memory holds names the branch, and
+    with it the type.
+
+    A setting whose branches' hidden settings the memory holds otherwise than its value now
+    writes them takes the value whose branch has the most of them with the value held and
+    none with another. Where several values have as many (the same value for several types),
+    the one whose group objects have the sizes the device's table gives, when only one does.
+    Taken together when they make fewer bytes of the hidden settings differ from the memory
+    and hide no linked group object shown now; empty otherwise, or when nothing differs.
+    ``values`` are decoded with no fixed values kept (each reference of a hidden setting of a
+    module instance has the value the device holds); the application's own hidden settings
+    are each read as if they were the one written.
+    """
+    from xknxeditor.prod.errors import EncodingError
+    from xknxeditor.prod.parser_v2.activation import shown_parameters, values_to_try
+    from xknxeditor.prod.parser_v2.nodes.choose import satisfies, tested_values
+
+    if not fixed:
+        return {}
+    seeded = _seeded(application, values, project_code_page)
+    assert seeded is not None
+    # The hidden settings at the values the product fixes, as a download writes them.
+    clean = {
+        key: value
+        for key, value in values.items()
+        if seeded.local_ref_id(key) not in fixed
+    }
+    ui = _seeded(application, clean, project_code_page)
+    assert ui is not None
+    indexer = ui.indexer
+    shown = shown_parameters(ui.ui())
+    gating = {gate for local in fixed for gate in ui.parameter_gates(local)}
+    selectors = {
+        ref_id: parameter
+        for ref_id, parameter in shown.items()
+        if ref_id not in values
+        and ui.local_ref_id(ref_id) in gating
+        and _inferable(ui, ref_id, parameter)
+    }
+    if not selectors:
+        return {}
+    _check(cancel)
+    try:
+        written = ui.encode_to_memory()
+    except (EncodingError, ValueError, AllocatorOverflow):
+        return {}
+    held = _held_values(application, ui, parameter_segments, property_values)
+    cells_of: dict[str, set[_Cell]] = {}
+    for cell, owners in ui.stored_parameter_cells().items():
+        for owner in owners:
+            cells_of.setdefault(owner, set()).add(cell)
+
+    def differs(cell: _Cell) -> bool:
+        device = parameter_segments.get(cell[0], b"")
+        mine = written.get(cell[0], b"")
+        offset = cell[1]
+        return offset < min(len(device), len(mine)) and device[offset] != mine[offset]
+
+    _check(cancel)
+    active = ui.active_parameter_ref_ids()
+    # Per selector and value, how many of the hidden settings its branch holds have the value
+    # held and how many another; and the selectors whose branches' bytes differ.
+    evidence: dict[str, dict[str, list[int]]] = {}
+    differing: set[str] = set()
+    for placement in ui.explore_parameters():
+        ref_id = placement.parameter.ref_id
+        local = ui.local_ref_id(ref_id)
+        own = fixed.get(local)
+        gates = placement.gates
+        if own is None or not gates:
+            continue
+        inner = gates[-1]
+        test = inner.when
+        parameter = selectors.get(inner.param)
+        if parameter is None or not all(
+            _gate_holds(ui, gate, shown, active) for gate in gates[:-1]
+        ):
+            continue
+        value = (
+            held.get(indexer.parameter_refs[local].ref_id)
+            if ref_id == local
+            else values.get(ref_id)
+        )
+        if value is None:
+            continue
+        if any(differs(cell) for cell in cells_of.get(ref_id, ())):
+            differing.add(inner.param)
+        current = ui.get_value(inner.param) or parameter.default_value
+        # The values to try and the value now (counted too: one that fits as well is kept).
+        allowed = [
+            *values_to_try(parameter, current, ui.tested_values(inner.param)),
+            current,
+        ]
+        # A default branch takes every value its choose tests for nothing else.
+        taken = (
+            [name for name in tested_values(test) if satisfies(test, name)]
+            if test is not None
+            else [
+                name
+                for name in allowed
+                if not any(satisfies(other, name) for other in inner.unless)
+            ]
+        )
+        counts = evidence.setdefault(inner.param, {})
+        for name in taken:
+            if name in allowed:
+                tally = counts.setdefault(name, [0, 0])
+                tally[0 if _same_value(value, own) else 1] += 1
+    candidates: dict[str, set[str]] = {}
+    for selector in differing:
+        fitting = {
+            name: fit
+            for name, (fit, misfit) in evidence.get(selector, {}).items()
+            if fit and not misfit
+        }
+        if not fitting:
+            continue
+        most = max(fitting.values())
+        best = {name for name, fit in fitting.items() if fit == most}
+        current = ui.get_value(selector) or selectors[selector].default_value
+        if current not in best:
+            candidates[selector] = best
+    chosen: _ValueMap = {
+        selector: next(iter(names))
+        for selector, names in candidates.items()
+        if len(names) == 1
+    }
+    ties = {selector: names for selector, names in candidates.items() if len(names) > 1}
+    if ties and sizes:
+        chosen.update(
+            _sized(application, clean, project_code_page, sizes, ties, cancel)
+        )
+    if not chosen:
+        return {}
+    _check(cancel)
+    try:
+        trial = _seeded(application, {**clean, **chosen}, project_code_page)
+        assert trial is not None
+        if not _shown_objects(ui, sizes) & linked <= _shown_objects(trial, sizes):
+            return {}
+        cells = _fixed_cells(ui, fixed) | _fixed_cells(trial, fixed)
+        before = _mismatches(ui, parameter_segments, cells)
+        after = _mismatches(trial, parameter_segments, cells)
+    except AllocatorOverflow:
+        # More than the product has room for: no configuration of the device.
+        return {}
+    return chosen if after < before else {}
+
+
+# The stored settings of the last device read, decoded each on its own (see _held_values).
+_HELD: list[tuple[object, object, object, dict[str, str | None]]] = []
+
+
+def _held_values(
+    application: Application,
+    ui: DynamicUI,
+    parameter_segments: Mapping[str, bytes],
+    property_values: Mapping[TypedPropertyKey, bytes] | None,
+) -> dict[str, str | None]:
+    """Every stored setting of the application (not those of module instances) decoded from
+    the device as if it were the one written, the members of a union each on its own:
+    parameter id -> value (None: the bytes are no value of its type). The last device read
+    is kept: a search asks again and again."""
+    from xknxeditor.namespaces.intermediate.application_program_static_t_parameters_union import (
+        ApplicationProgramStaticParametersUnion,
+    )
+    from xknxeditor.prod.parser_v2.encode import (
+        collect_writes,
+        decode_memory_parameters,
+        decode_property_parameters,
+    )
+
+    program = application.program
+    segments = dict(parameter_segments)
+    properties = dict(property_values or {})
+    for seen, seen_segments, seen_properties, held in _HELD:
+        if (
+            seen is program
+            and seen_segments == segments
+            and seen_properties == properties
+        ):
+            return held
+    parameters = program.static.parameters
+    members = {
+        member.id: member.value or ""
+        for item in (parameters.choice if parameters is not None else [])
+        if isinstance(item, ApplicationProgramStaticParametersUnion)
+        for member in item.parameter
+    }
+    writes = collect_writes(program, ui.indexer, members, None)
+    held = decode_memory_parameters(
+        program, ui.indexer, parameter_segments, None, ui.text_encoding, writes=writes
+    )
+    if property_values:
+        held.update(
+            decode_property_parameters(
+                program,
+                ui.indexer,
+                property_values,
+                None,
+                ui.text_encoding,
+                writes=writes,
+            )
+        )
+    _HELD[:] = [(program, segments, properties, held)]
+    return held
+
+
+def _sized(
+    application: Application,
+    values: Mapping[str, str],
+    project_code_page: str | None,
+    sizes: Mapping[int, str],
+    ties: Mapping[str, set[str]],
+    cancel: Callable[[], bool] | None,
+) -> _ValueMap:
+    """Of the values ``ties`` names for each selector, the one with which no group object it
+    shows has another size than the device's table gives (``sizes``), when only one has none.
+    The selectors take each value together (one UI per value)."""
+    good: dict[str, set[str]] = {}
+    for value in sorted({value for names in ties.values() for value in names}):
+        _check(cancel)
+        trial = {selector: value for selector, names in ties.items() if value in names}
+        try:
+            seeded = _seeded(application, {**values, **trial}, project_code_page)
+            assert seeded is not None
+            wrong = _shown_objects(seeded) - _shown_objects(seeded, sizes)
+        except AllocatorOverflow:
+            continue
+        objects_of = _objects_by_number(seeded) if wrong else {}
+        blamed: set[str] = set()
+        for number in wrong:
+            for ref_id in objects_of.get(number, ()):
+                blamed |= _gates_of(seeded, ref_id, seeded.object_gates)
+        for selector in trial:
+            if selector not in blamed:
+                good.setdefault(selector, set()).add(value)
+    return {
+        selector: next(iter(names))
+        for selector, names in good.items()
+        if len(names) == 1
+    }
