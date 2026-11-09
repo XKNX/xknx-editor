@@ -34,6 +34,9 @@ from xknx.telegram.apci import (
     DeviceDescriptorRead,
     DeviceDescriptorResponse,
     FunctionPropertyCommand,
+    FunctionPropertyExtCommand,
+    FunctionPropertyExtStateRead,
+    FunctionPropertyExtStateResponse,
     FunctionPropertyStateRead,
     FunctionPropertyStateResponse,
     KeyResponse,
@@ -126,8 +129,32 @@ PID_IO_LIST = ResourceDevicePropertyId.PID_IO_LIST
 PID_TABLE_REFERENCE = ResourceGenericPropertyId.PID_TABLE_REFERENCE
 PID_TABLE = ResourceGenericPropertyId.PID_TABLE
 ASSOCIATION_TABLE_OBJECT_TYPE = ResourceObjectType.OBJECT_ASSOCIATION_TABLE
-# Highest interface object index scanned when locating an object by type.
+# Highest interface object index scanned when locating an object by type: the standard
+# property services carry the object index in one octet.
 _MAX_OBJECT_INDEX = 255
+# Objects past the one-octet index are reachable by object type and instance only, over the
+# extended property services (KNX 3/4/1 4.1, 3/3/7 3.4.5). ``locate_object`` gives such an
+# object an index from here on, which the property methods address over those services.
+_EXTENDED_OBJECT_BASE = _MAX_OBJECT_INDEX + 1
+# A_PropertyExt* frames carry the object instance in 12 bits.
+_MAX_OBJECT_INSTANCE = 0xFFF
+
+
+def extended_object_index(object_type: int, instance: int) -> int:
+    """The index ``locate_object`` gives the ``instance``-th object (from 1) of a type that the
+    one-octet object index does not reach: the same for every connection."""
+    return _EXTENDED_OBJECT_BASE + ((object_type << 12) | instance)
+
+
+def extended_object(index: int) -> tuple[int, int] | None:
+    """The object type and instance of an index from :func:`extended_object_index`, ``None``
+    for an object index of the standard property services."""
+    if index < _EXTENDED_OBJECT_BASE:
+        return None
+    key = index - _EXTENDED_OBJECT_BASE
+    return key >> 12, key & _MAX_OBJECT_INSTANCE
+
+
 # A_Memory_Read/Write carry a 16-bit address, so they only reach the first 64
 # KiB; at and above this boundary A_UserMemory_Read/Write (3-byte address) are
 # used. Split transfers at this boundary so each block uses the correct service.
@@ -1011,7 +1038,20 @@ class DeviceProgrammer:
         start_index: int = 1,
         require_nonzero: bool = False,
     ) -> bytes:
-        """Read a property; required image captures reject absent elements."""
+        """Read a property; required image captures reject absent elements.
+
+        An object past the one-octet index (see :func:`extended_object_index`) is read with
+        A_PropertyExtValue_Read."""
+        target = extended_object(object_index)
+        if target is not None:
+            return await self.read_property_ext(
+                *target,
+                property_id,
+                count=count,
+                start_index=start_index,
+                require_nonzero=require_nonzero
+                or property_id == load_state.PID_LOAD_STATE_CONTROL,
+            )
         telegram = await self.connection.request(
             PropertyValueRead(
                 object_index=object_index,
@@ -1046,8 +1086,13 @@ class DeviceProgrammer:
     async def read_property_element_size(
         self, object_index: int, property_id: int
     ) -> int:
+        """Element size of a property (A_PropertyDescription_Read, or
+        A_PropertyExtDescription_Read for an object past the one-octet index)."""
         from .property_layout import property_width
 
+        target = extended_object(object_index)
+        if target is not None:
+            return await self.read_property_ext_element_size(*target, property_id)
         telegram = await self.connection.request(
             PropertyDescriptionRead(object_index=object_index, property_id=property_id),
             PropertyDescriptionResponse,
@@ -1104,7 +1149,21 @@ class DeviceProgrammer:
         Ordinary unverified writes may accept a zero-element confirmation. Load
         control (PID 5) always requires a nonempty state response, independent of
         ``verify``.
+
+        An object past the one-octet index (see :func:`extended_object_index`) is written
+        with A_PropertyExtValue_WriteCon (WriteUnCon without ``verify``), see
+        :meth:`_write_extended_object`.
         """
+        target = extended_object(object_index)
+        if target is not None:
+            return await self._write_extended_object(
+                target,
+                property_id,
+                data,
+                count=count,
+                start_index=start_index,
+                verify=verify,
+            )
         if count <= 0:
             raise VerificationError(
                 f"property write for object {object_index} property {property_id} "
@@ -1138,6 +1197,35 @@ class DeviceProgrammer:
             )
             element += frame_count
         return result
+
+    async def _write_extended_object(
+        self,
+        target: tuple[int, int],
+        property_id: int,
+        data: bytes,
+        *,
+        count: int,
+        start_index: int,
+        verify: bool,
+    ) -> bytes:
+        """Write a property of the object ``target`` (type, instance) over the extended
+        property services. Their confirmation carries a return code only, so the resulting
+        state of a load state control (PID 5, always confirmed) is read back; any other
+        write returns ``data``."""
+        load_control = property_id == load_state.PID_LOAD_STATE_CONTROL
+        await self.write_property_ext(
+            *target,
+            property_id,
+            data,
+            count=count,
+            start_index=start_index,
+            verify=verify or load_control,
+        )
+        if load_control:
+            return await self.read_property_ext(
+                *target, property_id, require_nonzero=True
+            )
+        return data
 
     async def _write_property_frame(
         self,
@@ -1254,8 +1342,19 @@ class DeviceProgrammer:
         interface object and is confirmed by A_FunctionPropertyState_Response
         carrying a return code and the resulting state (KNX Standard v3.0.0,
         3/3/7 section 3.4.7.1). A non-zero return code means the device rejected
-        the command.
+        the command. An object past the one-octet index (see
+        :func:`extended_object_index`) takes A_FunctionPropertyExtCommand (3.4.8.1).
         """
+        target = extended_object(object_index)
+        if target is not None:
+            return await self._extended_function_property(
+                FunctionPropertyExtCommand(
+                    interface_object_type=target[0],
+                    object_instance=target[1],
+                    property_id=property_id,
+                    data=data,
+                )
+            )
         telegram = await self.connection.request(
             FunctionPropertyCommand(
                 object_index=object_index, property_id=property_id, data=data
@@ -1271,8 +1370,18 @@ class DeviceProgrammer:
 
         A_FunctionPropertyState_Read reads the state of a function property and is
         answered by A_FunctionPropertyState_Response (KNX Standard v3.0.0, 3/3/7
-        section 3.4.7.2).
+        section 3.4.7.2). An object past the one-octet index (see
+        :func:`extended_object_index`) takes A_FunctionPropertyExtState_Read (3.4.8.2).
         """
+        target = extended_object(object_index)
+        if target is not None:
+            return await self._extended_function_property(
+                FunctionPropertyExtStateRead(
+                    interface_object_type=target[0],
+                    object_instance=target[1],
+                    property_id=property_id,
+                )
+            )
         telegram = await self.connection.request(
             FunctionPropertyStateRead(
                 object_index=object_index, property_id=property_id
@@ -1280,6 +1389,33 @@ class DeviceProgrammer:
             FunctionPropertyStateResponse,
         )
         return self._function_property_result(telegram, object_index, property_id)
+
+    async def _extended_function_property(
+        self, request: FunctionPropertyExtCommand | FunctionPropertyExtStateRead
+    ) -> bytes:
+        """Send an extended Function Property command or state read and return the state of
+        its A_FunctionPropertyExtState_Response; a return code other than E_SUCCESS means the
+        device rejected it."""
+        target = (
+            f"object type {request.interface_object_type} instance "
+            f"{request.object_instance} property {request.property_id}"
+        )
+        telegram = await self.connection.request(
+            request, FunctionPropertyExtStateResponse
+        )
+        payload = telegram.payload
+        if (
+            not isinstance(payload, FunctionPropertyExtStateResponse)
+            or payload.interface_object_type != request.interface_object_type
+            or payload.object_instance != request.object_instance
+            or payload.property_id != request.property_id
+        ):
+            raise VerificationError(f"no function property response for {target}")
+        if payload.return_code != ReturnCode.E_SUCCESS:
+            raise LoadStateError(
+                f"function property {target} returned {payload.return_code.name}"
+            )
+        return payload.data
 
     async def function_property_raw(
         self, object_index: int, property_id: int, data: bytes, *, command: bool
@@ -1405,10 +1541,44 @@ class DeviceProgrammer:
         Each object tells its own type; the device object's ``PID_IO_LIST`` is only used
         from the first object whose type cannot be read on. A list that does not match
         the objects (e.g. one missing an entry) therefore never leads to a wrong object.
+
+        A device with an object at every one-octet index can hold more than that index
+        reaches: an object of the type not found there is then looked for by object type and
+        instance (``occurrence`` + 1) over the extended property services, and gets an index
+        of :func:`extended_object_index` that the property methods address over those services.
         """
         cached = self._object_index_cache.get((object_type, occurrence))
         if cached is not None:
             return cached
+        index = await self._scan_objects(object_type, occurrence)
+        if index is None and self._object_types.get(_MAX_OBJECT_INDEX) is not None:
+            index = await self._locate_extended_object(object_type, occurrence + 1)
+        if index is None:
+            raise LoadStateError(
+                f"interface object type {object_type} occurrence {occurrence} not found"
+            )
+        self._object_index_cache[(object_type, occurrence)] = index
+        return index
+
+    async def _locate_extended_object(
+        self, object_type: int, instance: int
+    ) -> int | None:
+        """The index of :func:`extended_object_index` for the ``instance``-th object of a type,
+        when the device has it: it answers the object's type over the extended property
+        services."""
+        if instance > _MAX_OBJECT_INSTANCE:
+            return None
+        try:
+            data = await self.read_property_ext(object_type, instance, PID_OBJECT_TYPE)
+        except (VerificationError, DownloadError):
+            return None
+        if len(data) < 2 or int.from_bytes(data[:2], "big") != object_type:
+            return None
+        return extended_object_index(object_type, instance)
+
+    async def _scan_objects(self, object_type: int, occurrence: int) -> int | None:
+        """The one-octet index of the ``occurrence``-th object of a type, ``None`` when no
+        object up to the last index or the last object is one (see :meth:`locate_object`)."""
         ordinal = 0
         for index in range(_MAX_OBJECT_INDEX + 1):
             if index not in self._object_types:
@@ -1427,12 +1597,9 @@ class DeviceProgrammer:
                 break
             if found_type == object_type:
                 if ordinal == occurrence:
-                    self._object_index_cache[(object_type, occurrence)] = index
                     return index
                 ordinal += 1
-        raise LoadStateError(
-            f"interface object type {object_type} occurrence {occurrence} not found"
-        )
+        return None
 
     async def _read_io_list(self) -> None:
         """Take the object types from the device object's PID_IO_LIST, when it has one,

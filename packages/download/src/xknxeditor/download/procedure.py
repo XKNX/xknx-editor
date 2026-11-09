@@ -126,6 +126,7 @@ from .programmer import (
     ApduRestriction,
     DeviceProgrammer,
     apdu_restriction,
+    extended_object,
     negotiated_apdu_length,
 )
 from .property_layout import STANDARD_WRITE_WIDTHS, property_width
@@ -1140,7 +1141,10 @@ class LoadProcedureRunner:
         ``lsm_idx`` which, for property based management, is the object index.
         With ``extended``, an object addressed by type gets a key for the extended
         property services instead (instance = occurrence + 1) when the application
-        supports them; the device's object list is not read then.
+        supports them; the device's object list is not read then. It gets one too
+        when the device has the object past the one-octet object index (see
+        :meth:`DeviceProgrammer.locate_object`), so its property controls address it
+        over those services alike.
         """
         obj_idx = getattr(control, "obj_idx", None)
         if obj_idx is not None:
@@ -1149,12 +1153,12 @@ class LoadProcedureRunner:
         if obj_type is not None:
             occurrence = getattr(control, "occurrence", 0)
             if extended and self._extended_properties:
-                key = -1 - ((obj_type << 12) | (occurrence + 1))
-                self._extended_targets[key] = (obj_type, occurrence + 1)
-                self._index_types[key] = obj_type
-                return key
+                return self._extended_key(obj_type, occurrence + 1)
             programmer = await self._bus()
             index = await programmer.locate_object(obj_type, occurrence)
+            target = extended_object(index)
+            if extended and target is not None:
+                return self._extended_key(*target)
             self._index_types[index] = obj_type
             return index
         lsm_idx = getattr(control, "lsm_idx", None)
@@ -1167,6 +1171,14 @@ class LoadProcedureRunner:
                 f"object (neither obj_idx, obj_type nor lsm_idx is set)"
             ),
         )
+
+    def _extended_key(self, object_type: int, instance: int) -> int:
+        """The key of the ``instance``-th object of a type for the extended property
+        services (see :meth:`_resolve_index`)."""
+        key = -1 - ((object_type << 12) | instance)
+        self._extended_targets[key] = (object_type, instance)
+        self._index_types[key] = object_type
+        return key
 
     def _memory_mapped_mask(self) -> bool:
         """Whether this mask's product procedure places tables through absolute
@@ -1342,7 +1354,8 @@ class LoadProcedureRunner:
         where = f" [{self._position[0]}/{self._position[1]}]" if self._position else ""
         logger.debug("execute load control: %s%s", type(control).__name__, where)
         if isinstance(control, LdCtrlDeclarePropDesc):
-            index = await self._resolve_index(control)
+            # Keyed as the property controls of the object address it.
+            index = await self._resolve_index(control, extended=True)
             self._property_widths[index, control.prop_id] = property_width(
                 control.prop_type
             )
@@ -2416,7 +2429,7 @@ class LoadProcedureRunner:
     def _object_label(self, index: int) -> str:
         """``index`` as messages show it: object type and instance for a key of the extended
         property services (see :meth:`_resolve_index`), otherwise the object index."""
-        target = self._extended_targets.get(index)
+        target = self._extended_targets.get(index) or extended_object(index)
         if target is None:
             return str(index)
         return f"type {target[0]} instance {target[1]}"
@@ -3555,13 +3568,16 @@ class LoadProcedureRunner:
             if await self._extended_fits(object_index, property_id)
             else None
         )
+        device_index = (
+            object_index
+            if target is not None
+            else await self._object_index(object_index)
+        )
+        # An object past the one-octet index is shown by its type too.
+        target = target or extended_object(device_index)
         properties.append(
             PropertyDiff(
-                object_index=(
-                    object_index
-                    if target is not None
-                    else await self._object_index(object_index)
-                ),
+                object_index=device_index,
                 property_id=property_id,
                 current=current,
                 planned=bytes(planned),
