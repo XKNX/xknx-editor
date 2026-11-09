@@ -332,6 +332,14 @@ def _module_instance_changes(
     return new, ended
 
 
+def _has_module_refs(device: Device) -> bool:
+    """Whether a parameter value or group object of ``device`` is one of a module instance."""
+    return any(
+        "_MI-" in (ref.ref_id or "")
+        for ref in (*device.parameter_instance_refs, *device.com_object_instance_refs)
+    )
+
+
 def _without_objects_of(
     device: Device,
     target: set[str] | None,
@@ -4762,12 +4770,24 @@ class ProjectService:
 
     @io_guarded(dict)
     def module_arguments(self) -> dict[int, dict[str, list[tuple[str, str]]]]:
-        """The module instance arguments of the project's devices, by device id, for the
-        ``.knxproj`` export of instances that have none stored (devices added in the editor)."""
+        """The module instances of the project's devices as their evaluated application has them,
+        with their arguments, by device id, for the ``.knxproj`` export: the arguments of instances
+        that have none stored (devices added in the editor), and the instances a device has not
+        stored (a project saved before module instances were stored), which the export writes so
+        their parameter values and group objects are not lost. A device without a stored module
+        instance or a value or group object of one, and a device whose application cannot be
+        evaluated, is left out."""
         result: dict[int, dict[str, list[tuple[str, str]]]] = {}
         for device in self.devices:
-            if device.module_instances:
-                result[device.node_id] = device.get_module_instance_arguments()
+            if not (device.module_instances or _has_module_refs(device)):
+                continue
+            resident = device.evaluated
+            if device.app is None or device.dynamic_ui is None:
+                continue
+            result[device.node_id] = device.get_module_instance_arguments()
+            # Only the devices in use keep their (large) evaluator.
+            if not resident:
+                device.release_dynamic_ui()
         return result
 
     def group_object_trees(self) -> dict[int, str]:

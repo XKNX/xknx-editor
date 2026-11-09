@@ -109,6 +109,7 @@ from xknxeditor.proj.models import (
     GroupRange,
     Installation,
     Line,
+    ModuleInstance,
     Project,
     Space,
     Trade,
@@ -780,9 +781,13 @@ def export_knxproj(
         returns true :class:`ExportCancelled` is raised. The archive is written to a temporary
         file that replaces ``dest`` only when it is complete, so a cancelled or failed export
         leaves ``dest`` as it was.
-      module_arguments: The arguments of module instances the project has none stored for (a device
-        added in the editor), by device id and instance id: ``(argument ref id, value)`` each. An
-        importer numbers the instance's group objects from them.
+      module_arguments: The module instances of the devices' evaluated applications with their
+        arguments, by device id and instance id: ``(argument ref id, value)`` each. An importer
+        numbers the instance's group objects from the arguments. They are written for instances the project
+        has none stored for (a device added in the editor), and an instance a device has not
+        stored (a project saved before module instances were stored) is written from them. The
+        values and group objects of an instance a device listed here neither stores nor has in
+        its evaluation are left out, as a project file only has those of its module instances.
       group_object_trees: The ``<GroupObjectTree>`` of devices whose stored one does not list all
         their active group objects (objects the editor activated), by device id, as the stored
         trees are kept (namespace-free XML). The importer takes the objects a tree lists as the
@@ -1003,14 +1008,38 @@ def _relidref(ref_id: str) -> str:
     return ref_id
 
 
+# The ``_MI-<n>`` part of a module instance id (``_MI-1-1-2`` for a submodule instance).
+_INSTANCE_NUMBER = re.compile(r"_MI-\d+(?:-\d+)*(?=_|$)")
+
+
+def _module_instances_in(ref: str) -> list[str]:
+    """The module instances (relative ids) a group object, parameter or module instance ref is
+    in, outermost first: ``["MD-1_M-2_MI-1"]`` for ``MD-1_M-2_MI-1_O-2-0_R-1`` or
+    ``M-0001_A-1_MD-1_M-2_MI-1_P-3_R-1``, the instance and its submodule instance for a ref of a
+    submodule (``MD-1_M-2_MI-1`` and ``MD-1_M-2_MI-1_SM-1_M-1_MI-1-1-1`` for
+    ``MD-1_M-2_MI-1_SM-1_M-1_MI-1-1-1_SM-1_P-1_R-1``); empty for one of the application itself."""
+    ref = _relidref(ref)
+    return [ref[: match.end()] for match in _INSTANCE_NUMBER.finditer(ref)]
+
+
+def _instance_order(instance_id: str) -> tuple[int, int, str, str]:
+    """The key of the order a project file lists its module instances in, for a relative
+    module instance id: by the number of the module definition and of the module, then by the
+    instance number as text, an instance's submodule instances after it. ``MD-1_M-10_MI-1`` comes
+    after ``MD-1_M-4_MI-1`` and before ``MD-2_M-5_MI-1``; ``MD-1_M-3_MI-10`` before
+    ``MD-1_M-3_MI-2``."""
+    match = re.match(r"MD-(\d+)_M-(\d+)_MI-([^_]*)_?(.*)$", instance_id)
+    if match is None:
+        return (0, 0, instance_id, "")
+    definition, module, number, rest = match.groups()
+    return (int(definition), int(module), number, rest)
+
+
 def _module_instance_of(ref: str) -> str | None:
-    """The module instance (relative id) a relative group object ref is of
-    (``MD-1_M-2_MI-1`` for ``MD-1_M-2_MI-1_O-2-0_R-1``, the submodule instance for an object
-    of one); ``None`` for an object of the application itself."""
-    at = ref.rfind("_O-")
-    if at == -1 or "_MI-" not in ref[:at]:
-        return None
-    return ref[:at]
+    """The module instance (relative id) a group object or parameter ref is of (the innermost
+    one, see :func:`_module_instances_in`); ``None`` for one of the application itself."""
+    instances = _module_instances_in(ref)
+    return instances[-1] if instances else None
 
 
 def module_repeat_indexes(app_xml: bytes) -> dict[str, str]:
@@ -2141,15 +2170,35 @@ class _Writer:
             tree, device.com_objects
         ):
             di.set("IsActivityCalculated", "false")
+        # Every parameter value and group object of a module instance is written with the
+        # <ModuleInstance> of the device it belongs to (a project file has no other); one of an
+        # instance the evaluated application no longer reaches (left from an earlier
+        # configuration) is not written, as the importers cannot place it.
+        instances = self._device_module_instances(device)
+        written_instances = {instance_id for instance_id, _, _ in instances}
+        evaluated = device.id in self._module_arguments
         # Genuine exports order the device's children ParameterInstanceRefs, then
         # ComObjectInstanceRefs.
         # NOTE: unlike ComObjectInstanceRef (a RELIDREF), ParameterInstanceRef/@RefId is the FULL
         # id ("M-XXXX_A-..._P-n_R-m"); the importer reconstructs it via its parameter-id parser and
         # crashes (IndexOutOfRange in ParameterRefId.GetLongId) on a stripped id, dropping every
         # device.
-        if device.parameters:
+        params_written = [
+            param
+            for param in device.parameters
+            if not evaluated
+            or (instance := _module_instance_of(param.ref_id)) is None
+            or instance in written_instances
+        ]
+        if len(params_written) < len(device.parameters):
+            logger.debug(
+                "skipping %d values of module instances device %s has not",
+                len(device.parameters) - len(params_written),
+                device.address,
+            )
+        if params_written:
             params = self._el(di, "ParameterInstanceRefs")
-            for param in device.parameters:
+            for param in params_written:
                 self._el(
                     params,
                     "ParameterInstanceRef",
@@ -2165,12 +2214,6 @@ class _Writer:
         # tree does NOT cover (a from-scratch device has no tree) is still emitted so its
         # instantiation is not lost.
         tree_instances = _group_object_tree_instances(tree)
-        # Every object of a module instance belongs to a <ModuleInstance> the device has: an
-        # object of an instance it no longer has (left from an earlier configuration) is not
-        # written, as the importers cannot place it.
-        written_instances = {
-            _relidref(mi.instance_id) for mi in device.module_instances
-        }
         pending: list[tuple[ComObject, str, str]] = []
         for co in device.com_objects:
             # Genuine exports order the sending link first; our ComObjectLink.is_sending marks it.
@@ -2189,7 +2232,7 @@ class _Writer:
                 continue
             instance = _module_instance_of(ref)
             if instance is not None and instance not in written_instances:
-                logger.debug(
+                logger.warning(
                     "skipping group object %s of module instance %s the device has not",
                     ref,
                     instance,
@@ -2231,7 +2274,7 @@ class _Writer:
         # module-scoped ParameterInstanceRefs, which reference these instances by their relative
         # @Id; without the block ETS can't resolve those refs. The on-disk @RefId is the instance_id
         # with its trailing "_MI-<n>" removed (RELID/RELIDREF, relative to the DeviceInstance).
-        self._build_module_instances(di, device)
+        self._build_module_instances(di, device, instances)
         # <GroupObjectTree> (schema order: after ModuleInstances, before BinaryData). The channel/
         # folder grouping of the device's group objects, captured verbatim on import and re-emitted
         # here so it round-trips (issue #14); xknxproject flattens it to channel ids and loses it.
@@ -2470,8 +2513,41 @@ class _Writer:
             self._repeat_indexes[app_id] = indexes
         return indexes.get(_relidref(instance_id), "")
 
-    def _build_module_instances(self, di: ET.Element, device: Device) -> None:
-        if not device.module_instances:
+    def _device_module_instances(
+        self, device: Device
+    ) -> list[tuple[str, str, ModuleInstance | None]]:
+        """The module instances the export writes for ``device``, each as ``(relative id, id as
+        stored or evaluated, stored row or None)``: the stored ones and those of its evaluated
+        application (``module_arguments``) the stored ones lack. A project file has a
+        ``<ModuleInstance>`` for every instance the application reaches, so a device saved before
+        its module instances were stored, or with one missing, still has the values and group
+        objects of each instance written with it, all instances in the order of a project file
+        (see :func:`_instance_order`); a device whose stored instances are complete is written
+        as stored."""
+        instances: list[tuple[str, str, ModuleInstance | None]] = [
+            (_relidref(mi.instance_id), mi.instance_id, mi)
+            for mi in device.module_instances
+        ]
+        known = {instance_id for instance_id, _, _ in instances}
+        complete = True
+        for instance_id in self._module_arguments.get(device.id, {}):
+            relative = _relidref(instance_id)
+            if relative not in known:
+                instances.append((relative, instance_id, None))
+                known.add(relative)
+                complete = False
+        if not complete:
+            # In the order of a project file (see _instance_order).
+            instances.sort(key=lambda instance: _instance_order(instance[0]))
+        return instances
+
+    def _build_module_instances(
+        self,
+        di: ET.Element,
+        device: Device,
+        instances: Sequence[tuple[str, str, ModuleInstance | None]],
+    ) -> None:
+        if not instances:
             return
         container = self._el(di, "ModuleInstances")
         computed = {
@@ -2480,24 +2556,24 @@ class _Writer:
                 device.id, {}
             ).items()
         }
-        for mi in device.module_instances:
-            arguments = mi.arguments or [
+        for relative, instance_id, mi in instances:
+            arguments = (mi.arguments if mi is not None else None) or [
                 {"ref_id": ref_id, "value": value}
-                for ref_id, value in computed.get(_relidref(mi.instance_id), ())
+                for ref_id, value in computed.get(relative, ())
             ]
             module = self._el(
                 container,
                 "ModuleInstance",
                 # Relative, like the group object refs that name the instance; a device added in
                 # the editor stores the full id.
-                Id=_relidref(mi.instance_id),
+                Id=relative,
                 # The Module the instance is of; for a submodule instance, as genuine exports
                 # write it, the Module of the instance it is in (``MD-4_M-15`` for
                 # ``MD-4_M-15_MI-1_SM-1_M-1_MI-1-1-1``).
-                RefId=_relidref(re.sub(r"_MI-.*$", "", mi.instance_id)),
+                RefId=_relidref(re.sub(r"_MI-.*$", "", instance_id)),
                 # A device added in the editor has none stored: the importer needs one.
-                RepeatIndex=mi.repeat_index
-                or self._repeat_index(device, mi.instance_id)
+                RepeatIndex=(mi.repeat_index if mi is not None else "")
+                or self._repeat_index(device, instance_id)
                 or None,
             )
             if arguments:
