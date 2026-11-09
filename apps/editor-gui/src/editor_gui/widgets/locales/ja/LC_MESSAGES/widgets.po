@@ -297,3 +297,15 @@ msgstr[0] "テキストは最大{count}バイトまでです。"
 msgid "{count} difference"
 msgid_plural "{count} differences"
 msgstr[0] "{count} 件の差異"
+
+msgid "Modules"
+msgstr "モジュール"
+
+msgid "All modules"
+msgstr "すべてのモジュール"
+
+msgid "Without module"
+msgstr "モジュールなし"
+
+msgid "Modules ({count})"
+msgstr "モジュール ({count})"

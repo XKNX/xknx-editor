@@ -297,3 +297,15 @@ msgstr[0] "文本最多可占 {count} 个字节。"
 msgid "{count} difference"
 msgid_plural "{count} differences"
 msgstr[0] "{count} 处差异"
+
+msgid "Modules"
+msgstr "模块"
+
+msgid "All modules"
+msgstr "所有模块"
+
+msgid "Without module"
+msgstr "无模块"
+
+msgid "Modules ({count})"
+msgstr "模块 ({count})"

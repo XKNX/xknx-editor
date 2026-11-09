@@ -48,8 +48,7 @@ class ComObjectParameterBlockNode(DynamicNode):
                 hidden=hidden,
             )
         tree = ctx.object_tree if self._elem.show_in_com_object_tree else None
-        if tree is not None:
-            tree.enter("Folder", ctx.qualify(self._elem.id))
+        tree_node = tree.enter("Folder", ctx.qualify(self._elem.id)) if tree else None
         try:
             items = eval_all(self._children, ctx)
         finally:
@@ -68,6 +67,8 @@ class ComObjectParameterBlockNode(DynamicNode):
         )
         raw_text = apply_text_args(template or "", arg_defaults)
         text = fill_name(raw_text, name_value or "") or None
+        if tree_node is not None:
+            tree_node.text = text or self._elem.name or tree_node.ref_id
         text_indent = len(raw_text) - len(raw_text.lstrip(" ")) if text else 0
         rows = self._elem.rows.row if self._elem.rows else []
         cols = self._elem.columns.column if self._elem.columns else []

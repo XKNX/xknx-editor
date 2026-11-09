@@ -84,12 +84,13 @@ class ObjectTreeNode:
     """A node of a device's group object tree: a channel or a parameter block shown in the group
     object tree (``kind`` "Channel" or "Folder", ``ref_id`` its instance-qualified id), with its
     group objects (instance-qualified ComObjectRef ids) and its nodes, both in document order.
-    The tree's root has neither kind nor id."""
+    ``text`` is the evaluated heading. The tree's root has neither kind nor id."""
 
     kind: str
     ref_id: str
     objects: list[str]
     nodes: list[ObjectTreeNode]
+    text: str = ""
 
 
 class ObjectTreeCapture:
@@ -107,10 +108,11 @@ class ObjectTreeCapture:
         # A converted application's single "Generic" channel is no node.
         self.pre_ets4_style = pre_ets4_style
 
-    def enter(self, kind: str, ref_id: str) -> None:
+    def enter(self, kind: str, ref_id: str) -> ObjectTreeNode:
         node = ObjectTreeNode(kind, ref_id, [], [])
         self._stack[-1].nodes.append(node)
         self._stack.append(node)
+        return node
 
     def leave(self) -> None:
         node = self._stack.pop()

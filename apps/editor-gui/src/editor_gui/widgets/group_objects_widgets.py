@@ -28,6 +28,7 @@ from editor_gui.widgets.dialog import (
     end_dialog,
 )
 from editor_gui.widgets.dpi import px
+from editor_gui.widgets.filter_box import filter_box
 from editor_gui.widgets.flow import button_width, checkbox_width, same_line_if_fits
 from editor_gui.widgets.strings import S
 from editor_gui.widgets.tables import begin_data_table, data_table_headers
@@ -268,6 +269,9 @@ class GroupObjectsTable:
         # Paste option: merge keeps the target's existing links (add-only) instead of replacing.
         self._paste_merge = False
         self._picker_filter = ""
+        self._module_ids: set[str] | None = None
+        self._module_search = ""
+        self._filter_device: Device | None = None
         self._selected: set[str] = set()
         self._batch_template = "{object}"
         self._batch_start = ""
@@ -299,6 +303,19 @@ class GroupObjectsTable:
         get_links: GroupLinkResolver,
         get_all_group_addresses: GroupAddressCatalog,
     ) -> None:
+        if self._filter_device is not device:
+            self._filter_device = device
+            self._module_ids = None
+            self._module_search = ""
+            self._selected.clear()
+            self._batch_open = False
+        self._render_module_filter(device)
+        if self._module_ids is not None:
+            visible = {
+                co.id for co in device.get_filtered_com_objects(list(self._module_ids))
+            }
+            com_objects = [co for co in com_objects if co.id in visible]
+        self._selected.intersection_update(co.id for co in com_objects)
         # Bulk action: create + link a group address for every selected com-object.
         if self._on_auto_create_gas is not None:
             selected = [c for c in com_objects if c.id in self._selected]
@@ -384,6 +401,62 @@ class GroupObjectsTable:
         # other left-hand tabs and can be docked.
         self._render_add_window(get_links, get_all_group_addresses)
         self._render_description_popup()
+
+    def _render_module_filter(self, device: Device) -> None:
+        groups = device.get_com_object_modules()
+        if not any(groups) and self._module_ids is None:
+            return
+        preview = S.GROUP_OBJECTS_ALL_MODULES
+        if self._module_ids is not None:
+            preview = S.GROUP_OBJECTS_MODULE_COUNT.format(count=len(self._module_ids))
+        imgui.set_next_item_width(max(px(80), imgui.get_content_region_avail().x))
+        style = imgui.get_style()
+        max_height = min(
+            20 * imgui.get_frame_height_with_spacing()
+            + 2 * style.window_padding.y
+            - style.item_spacing.y,
+            0.6 * imgui.get_window_viewport().work_size.y,
+        )
+        imgui.set_next_window_size_constraints(
+            imgui.ImVec2(0, 0), imgui.ImVec2(imgui.FLT_MAX, max_height)
+        )
+        if begin_combo(
+            "##module_filter", preview, background=style.color_(imgui.Col_.frame_bg)
+        ):
+            if imgui.selectable(S.GROUP_OBJECTS_ALL_MODULES, self._module_ids is None)[
+                0
+            ]:
+                self._module_ids = None
+            self._module_search = filter_box(
+                "##module_search", S.SEARCH_HINT, self._module_search
+            )
+            needle = self._module_search.casefold()
+            parents = device.get_com_object_module_parents()
+            depths: dict[str, int] = {}
+            for key, name in groups.items():
+                parent = parents[key]
+                depth = depths[parent] + 1 if parent is not None else 0
+                depths[key] = depth
+                label = name or S.GROUP_OBJECTS_WITHOUT_MODULE
+                if needle not in label.casefold():
+                    continue
+                imgui.push_id(key)
+                if depth:
+                    imgui.indent(px(20) * depth)
+                changed, selected = checkbox(
+                    label, self._module_ids is not None and key in self._module_ids
+                )
+                if changed:
+                    if self._module_ids is None:
+                        self._module_ids = set()
+                    if selected:
+                        self._module_ids.add(key)
+                    else:
+                        self._module_ids.discard(key)
+                if depth:
+                    imgui.unindent(px(20) * depth)
+                imgui.pop_id()
+            imgui.end_combo()
 
     def _checked_targets(self, com_objects: list[ComObject]) -> list[ComObject]:
         """Checked com-objects that have a DB row (the copy/paste source and target set)."""

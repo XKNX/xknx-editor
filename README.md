@@ -93,7 +93,10 @@ and `~/.local/state/xknx-editor/log` on Linux.
 
 **Project editor** — a tree for the installation (topology, group addresses, buildings and rooms), a
 detail table, and a properties panel. Communication objects are linked to group addresses with live
-compatibility checks, and every change has full undo/redo.
+compatibility checks, and every change has full undo/redo. In the Group Objects tab, the searchable
+Modules dropdown shows the product's channel and group-object folder hierarchy and can show
+several groups together. Selecting a parent includes its subgroups. Select All modules to clear
+the filter, or Without module for ungrouped objects. Bulk actions use only the selected, shown objects.
 
 ![Project editor](docs/images/editor.png)
 

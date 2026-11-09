@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+from collections import Counter
 from collections.abc import Callable, Iterable, Mapping, Sequence
 from dataclasses import InitVar, dataclass, field
 from enum import Enum
 from typing import TYPE_CHECKING, Any
 
+from editor_gui.device_channels import ComObjectModule, com_object_modules
 from editor_gui.dpt import DPT
 from xknxeditor.prod import Application
 
@@ -286,6 +288,9 @@ class Device:
     _cached_visible_cos: list[ComObject] | None = field(
         default=None, repr=False, compare=False, init=False
     )
+    _cached_modules: list[ComObjectModule] | None = field(
+        default=None, repr=False, compare=False, init=False
+    )
     _cached_rows: list[PinRow] | None = field(
         default=None, repr=False, compare=False, init=False
     )
@@ -521,6 +526,46 @@ class Device:
         self._cached_visible_cos = result
         return result
 
+    def get_com_object_modules(self) -> dict[str, str]:
+        """Available KO filter groups as stable id -> label; empty id means no module."""
+        groups = {group.id: group.name for group in self._com_object_modules()}
+        repeated = Counter(groups.values())
+        return {
+            key: f"{label} ({index})" if label and repeated[label] > 1 else label
+            for index, (key, label) in enumerate(groups.items(), 1)
+        }
+
+    def get_com_object_module_parents(self) -> dict[str, str | None]:
+        """Parent group IDs in tree order; None means a root group."""
+        return {group.id: group.parent_id for group in self._com_object_modules()}
+
+    def _com_object_modules(self) -> list[ComObjectModule]:
+        if self._cached_modules is None:
+            from xknxeditor.prod.parser_v2.context import ObjectTreeNode
+
+            dyn = self._ensure_dynamic_ui()
+            tree = dyn.group_object_tree() if dyn else ObjectTreeNode("", "", [], [])
+            self._cached_modules = com_object_modules(
+                tree, self.get_ui(), {co.id for co in self.get_visible_com_objects()}
+            )
+        return self._cached_modules
+
+    def get_filtered_com_objects(
+        self, module_ids: Sequence[str] | None = None
+    ) -> list[ComObject]:
+        """Visible objects in selected modules. None selects all; an empty list selects none."""
+        objects = self.get_visible_com_objects()
+        if module_ids is None:
+            return objects
+        selected = set(module_ids)
+        ids = {
+            ref
+            for group in self._com_object_modules()
+            if group.id in selected
+            for ref in group.object_ids
+        }
+        return [co for co in objects if co.id in ids]
+
     def active_parameter_driven_com_object_ref_ids(self) -> set[str]:
         """The parameter-driven active com-object set for the current parameter values (chain-AND:
         objects whose every gate is driven by an active parameter, plus unconditional objects — see
@@ -565,6 +610,7 @@ class Device:
         )
         self.edited_in_place = True
         self._cached_visible_cos = None
+        self._cached_modules = None
         self._cached_rows = None
 
     def set_param_value(self, ref_id: str, value: str) -> None:

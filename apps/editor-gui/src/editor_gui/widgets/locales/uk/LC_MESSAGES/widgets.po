@@ -303,3 +303,15 @@ msgid_plural "{count} differences"
 msgstr[0] "{count} відмінність"
 msgstr[1] "{count} відмінності"
 msgstr[2] "{count} відмінностей"
+
+msgid "Modules"
+msgstr "Модулі"
+
+msgid "All modules"
+msgstr "Усі модулі"
+
+msgid "Without module"
+msgstr "Без модуля"
+
+msgid "Modules ({count})"
+msgstr "Модулі ({count})"

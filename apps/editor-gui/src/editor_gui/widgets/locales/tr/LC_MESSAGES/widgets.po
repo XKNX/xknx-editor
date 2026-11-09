@@ -297,3 +297,15 @@ msgstr[0] "Metin en fazla {count} bayt olabilir."
 msgid "{count} difference"
 msgid_plural "{count} differences"
 msgstr[0] "{count} fark"
+
+msgid "Modules"
+msgstr "Modüller"
+
+msgid "All modules"
+msgstr "Tüm modüller"
+
+msgid "Without module"
+msgstr "Modülsüz"
+
+msgid "Modules ({count})"
+msgstr "Modüller ({count})"

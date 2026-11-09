@@ -300,3 +300,15 @@ msgid "{count} difference"
 msgid_plural "{count} differences"
 msgstr[0] "{count} διαφορά"
 msgstr[1] "{count} διαφορές"
+
+msgid "Modules"
+msgstr "Μονάδες"
+
+msgid "All modules"
+msgstr "Όλες οι μονάδες"
+
+msgid "Without module"
+msgstr "Χωρίς μονάδα"
+
+msgid "Modules ({count})"
+msgstr "Μονάδες ({count})"

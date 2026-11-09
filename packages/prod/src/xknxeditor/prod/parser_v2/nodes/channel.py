@@ -65,8 +65,7 @@ class ChannelNode(DynamicNode):
             )
         ):
             tree = None
-        if tree is not None:
-            tree.enter("Channel", ctx.qualify(self._id or ""))
+        tree_node = tree.enter("Channel", ctx.qualify(self._id or "")) if tree else None
         try:
             items = eval_all(self._children, ctx)
         finally:
@@ -75,6 +74,8 @@ class ChannelNode(DynamicNode):
             if tree is not None:
                 tree.leave()
         text = self._heading(ctx)
+        if tree_node is not None:
+            tree_node.text = text or self._name or tree_node.ref_id
         return [
             UiTab(
                 children=tuple(items),

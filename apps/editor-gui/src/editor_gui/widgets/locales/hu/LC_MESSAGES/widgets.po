@@ -306,3 +306,15 @@ msgstr[0] "A szöveg legfeljebb {count} bájt lehet."
 msgid "{count} difference"
 msgid_plural "{count} differences"
 msgstr[0] "{count} eltérés"
+
+msgid "Modules"
+msgstr "Modulok"
+
+msgid "All modules"
+msgstr "Összes modul"
+
+msgid "Without module"
+msgstr "Modul nélkül"
+
+msgid "Modules ({count})"
+msgstr "Modulok ({count})"
