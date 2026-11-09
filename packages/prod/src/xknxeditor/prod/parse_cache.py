@@ -38,8 +38,11 @@ logger = logging.getLogger(__name__)
 # How often a wait for a worker looks whether the import was cancelled, in seconds.
 _CANCEL_POLL = 0.2
 
-# Bump when the IR shape or pickle compatibility changes, to abandon old cache entries.
-CACHE_VERSION = "1"
+# Bump when the IR shape, the conversion into it or pickle compatibility changes, to abandon old
+# cache entries (2: a v10/v11 colour text is a TypeColor).
+CACHE_VERSION = "2"
+# The cache folders whose entries of other cache versions this process removed.
+_SWEPT: set[Path] = set()
 
 # Parsing in worker processes pays off from about this much application XML besides the largest
 # application, which takes its own time either way. A worker needs about 0.5 s to start and 0.7 s
@@ -55,6 +58,20 @@ _WORKER_MEMORY = 1 << 30
 def _cache_path(xml_bytes: bytes, version: str, cache_dir: Path) -> Path:
     digest = hashlib.sha256(xml_bytes).hexdigest()
     return cache_dir / f"ir_{CACHE_VERSION}_{version}_{digest}.pkl"
+
+
+def _remove_other_versions(cache_dir: Path) -> None:
+    """Remove the entries of other cache versions from ``cache_dir`` (once per process): they
+    are never read again."""
+    if cache_dir in _SWEPT:
+        return
+    _SWEPT.add(cache_dir)
+    for entry in cache_dir.glob("ir_*.pkl"):
+        if not entry.name.startswith(f"ir_{CACHE_VERSION}_"):
+            try:
+                entry.unlink()
+            except OSError as exc:  # another process may hold or remove it
+                logger.debug("could not remove parse cache %s: %s", entry.name, exc)
 
 
 def cached_to_ir(xml_bytes: bytes, version: str, cache_dir: Path | None) -> Knx:
@@ -74,6 +91,7 @@ def cached_to_ir(xml_bytes: bytes, version: str, cache_dir: Path | None) -> Knx:
     knx = to_ir(xml_bytes, version)
     try:
         cache_dir.mkdir(parents=True, exist_ok=True)
+        _remove_other_versions(cache_dir)
         # Written aside and renamed, so a reader never sees a partly written entry.
         partial = path.with_name(f"{path.name}.{os.getpid()}.tmp")
         partial.write_bytes(pickle.dumps(knx, protocol=pickle.HIGHEST_PROTOCOL))

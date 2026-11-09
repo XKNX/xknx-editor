@@ -108,3 +108,26 @@ def test_without_workers_the_caller_parses(
     for xml in _xmls():
         knx = parse_cache.cached_to_ir(xml, detect_version(xml), tmp_path)
         assert knx.manufacturer_data is not None
+
+
+def test_entries_of_other_cache_versions_are_removed(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A parse written by another cache version (another conversion) is never read again: the
+    next parse into the folder removes it, and the parse is made anew."""
+    monkeypatch.setattr(parse_cache, "_SWEPT", set())
+    xml = _xmls()[0]
+    version = detect_version(xml)
+    stale = parse_cache._cache_path(xml, version, tmp_path).name.replace(  # pyright: ignore[reportPrivateUsage]
+        f"ir_{parse_cache.CACHE_VERSION}_", "ir_0_"
+    )
+    (tmp_path / stale).write_bytes(b"old conversion")
+    other = tmp_path / "unrelated.txt"
+    other.write_text("kept")
+
+    knx = parse_cache.cached_to_ir(xml, version, tmp_path)
+
+    assert knx.manufacturer_data is not None
+    assert not (tmp_path / stale).exists()
+    assert other.exists()
+    assert pickle.loads(_cached(xml, tmp_path)) == knx

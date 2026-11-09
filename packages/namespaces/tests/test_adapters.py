@@ -669,3 +669,77 @@ def test_default_logger_is_noop():
     ctx = Context(version="v10")
     assert isinstance(ctx.logger, _NullLogger)
     assert ctx.logger.info("ignored", x=1) is None  # no-op
+
+
+# --- v11->v12: colour as TypeText with a TypeColor pattern -> TypeColor -------------
+
+
+@pytest.mark.parametrize(
+    ("version", "pattern", "space"),
+    [
+        ("11", "^#[0-9a-fA-F]{6}$(?# TypeColor:RGB)", "RGB"),
+        ("v10", "^#[0-9a-fA-F]{6}$(?# TypeColor:HSV)", "HSV"),
+        ("11", "^#[0-9a-fA-F]{6}$", None),
+        ("11", None, None),
+    ],
+)
+def test_pre_v12_colour_text_becomes_type_color(
+    version: str, pattern: str | None, space: str | None
+) -> None:
+    """A v10/v11 colour is a 56-bit text whose pattern names the colour space; its memory holds
+    three colour octets. Other texts stay texts."""
+    from xknxeditor.namespaces.files.v11.parameter_type_t import (
+        ParameterType as V11ParameterType,
+    )
+    from xknxeditor.namespaces.files.v11.parameter_type_t_type_text import (
+        ParameterTypeTypeText as V11TypeText,
+    )
+    from xknxeditor.namespaces.intermediate.parameter_type_t import (
+        ParameterType as IRParameterType,
+    )
+    from xknxeditor.namespaces.intermediate.parameter_type_t_type_color import (
+        ParameterTypeTypeColor,
+    )
+    from xknxeditor.namespaces.intermediate.parameter_type_t_type_text import (
+        ParameterTypeTypeText,
+    )
+
+    src = V11ParameterType(
+        id="M-0001_A-1_PT-C",
+        name="TypeColorRGB",
+        choice=V11TypeText(size_in_bit=56, pattern=pattern),
+    )
+    out = convert(Context(version=version), src, IRParameterType)
+    assert out.id == "M-0001_A-1_PT-C"
+    if space is None:
+        assert isinstance(out.choice, ParameterTypeTypeText)
+        assert out.choice.size_in_bit == 56
+    else:
+        assert isinstance(out.choice, ParameterTypeTypeColor)
+        assert out.choice.space.value == space
+
+
+def test_v12_colour_pattern_text_stays_text() -> None:
+    """From v12 on a colour is a TypeColor of its own: a text with that pattern is a text."""
+    from xknxeditor.namespaces.files.v12.parameter_type_t import (
+        ParameterType as V12ParameterType,
+    )
+    from xknxeditor.namespaces.files.v12.parameter_type_t_type_text import (
+        ParameterTypeTypeText as V12TypeText,
+    )
+    from xknxeditor.namespaces.intermediate.parameter_type_t import (
+        ParameterType as IRParameterType,
+    )
+    from xknxeditor.namespaces.intermediate.parameter_type_t_type_text import (
+        ParameterTypeTypeText,
+    )
+
+    src = V12ParameterType(
+        id="M-0001_A-1_PT-C",
+        name="TypeColorRGB",
+        choice=V12TypeText(
+            size_in_bit=56, pattern="^#[0-9a-fA-F]{6}$(?# TypeColor:RGB)"
+        ),
+    )
+    out = convert(Context(version="12"), src, IRParameterType)
+    assert isinstance(out.choice, ParameterTypeTypeText)
