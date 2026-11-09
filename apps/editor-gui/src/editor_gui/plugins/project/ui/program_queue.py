@@ -16,6 +16,7 @@ from editor_gui.plugins.project.program_queue import OperationState, QueueItem
 from editor_gui.plugins.project.strings import S
 from editor_gui.theme import status_color
 from editor_gui.widgets.tabs import begin_tab_bar
+from editor_gui.widgets.text_util import human_size
 from xknxeditor.download.scope import DownloadScope
 
 # Seconds a script may ignore Cancel before Force stop is offered.
@@ -37,10 +38,13 @@ class ProgramQueuePanel:
         on_clear_history: Callable[[], None],
         get_bus_operation: Callable[[], tuple[str, str] | None] = lambda: None,
         is_connecting: Callable[[QueueItem], bool] = lambda _item: False,
+        get_memory_progress: Callable[[], tuple[int, int] | None] = lambda: None,
     ) -> None:
         """``get_bus_operation`` is the running bus operation the queue has no entry for
         (kind and address, see ``bus_operation_text``): a restart, a scan …;
-        ``is_connecting`` whether an operation still waits for the connection opened for it."""
+        ``is_connecting`` whether an operation still waits for the connection opened for it;
+        ``get_memory_progress`` the octets the running load control wrote of its memory."""
+        self._get_memory_progress = get_memory_progress
         self._get_bus_operation = get_bus_operation
         self._is_connecting = is_connecting
         self._get_active = get_active
@@ -102,13 +106,7 @@ class ProgramQueuePanel:
         where, and how far it is."""
         imgui.text(bus_operation_text(kind, address))
         bar = imgui.ImVec2(-1.0, hello_imgui.em_size(1.0))
-        progress = self._get_progress()
-        if progress is not None and progress[1] > 0:
-            imgui.progress_bar(
-                progress[0] / progress[1], bar, f"{progress[0]}/{progress[1]}"
-            )
-        else:
-            imgui.progress_bar(-1.0 * float(imgui.get_time()), bar, "")
+        self._render_bus_progress(self._get_progress(), bar)
         imgui.separator()
 
     def _render_history(self) -> None:
@@ -197,9 +195,18 @@ class ProgramQueuePanel:
             return
         # While it waits for its connection, the bus progress is not its own.
         progress = None if self._is_connecting(item) else self._get_progress()
+        self._render_bus_progress(progress, bar)
+
+    def _render_bus_progress(
+        self, progress: tuple[int, int] | None, bar: imgui.ImVec2
+    ) -> None:
+        """The load controls done, moving on while the current one writes memory."""
         if progress is not None and progress[1] > 0:
+            memory = self._get_memory_progress()
             imgui.progress_bar(
-                progress[0] / progress[1], bar, f"{progress[0]}/{progress[1]}"
+                download_progress_fraction(progress, memory),
+                bar,
+                download_progress_text(progress, memory),
             )
         else:
             imgui.progress_bar(-1.0 * float(imgui.get_time()), bar, "")
@@ -298,6 +305,27 @@ def _bus_operation_names() -> dict[str, str]:
 
 # Addresses that only name a step of an operation, not where it runs.
 _STEPS = frozenset({"broadcast", "read-back", "verify"})
+
+
+def download_progress_text(
+    progress: tuple[int, int], memory: tuple[int, int] | None
+) -> str:
+    """``progress`` (load controls done, total), with the octets the current control wrote of
+    its memory when it writes some: "17/28, 6.2 KB/14.6 KB"."""
+    text = f"{progress[0]}/{progress[1]}"
+    if memory is not None and memory[1] > 0:
+        text += f", {human_size(memory[0])}/{human_size(memory[1])}"
+    return text
+
+
+def download_progress_fraction(
+    progress: tuple[int, int], memory: tuple[int, int] | None
+) -> float:
+    """How far a download is, 0..1: the controls done plus the written part of the current one."""
+    done = float(progress[0])
+    if memory is not None and memory[1] > 0:
+        done += min(memory[0] / memory[1], 1.0)
+    return min(done / progress[1], 1.0) if progress[1] > 0 else 0.0
 
 
 def bus_operation_text(kind: str, address: str) -> str:

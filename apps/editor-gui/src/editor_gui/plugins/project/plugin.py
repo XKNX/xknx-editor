@@ -209,6 +209,7 @@ class ProjectPlugin:
             get_active=lambda: self._program_queue.active,
             get_history=lambda: self._program_queue.history,
             get_progress=lambda: api.connection.busy_progress,
+            get_memory_progress=lambda: api.connection.busy_memory_progress,
             on_cancel=self._program_queue.cancel_item,
             on_cancel_all=self._program_queue.cancel_all,
             on_clear_history=self._program_queue.clear_history,

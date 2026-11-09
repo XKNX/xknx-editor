@@ -528,6 +528,7 @@ async def download_device(
     access_key: int = 0xFFFFFFFF,
     in_programming_mode: bool = False,
     waiting: Callable[[], None] | None = None,
+    memory_progress: Callable[[int, int], None] | None = None,
 ) -> DownloadResult:
     """Program ``device``: build its image and run the load procedure on the bus.
 
@@ -536,7 +537,8 @@ async def download_device(
     supplies the address/association tables a full or group download writes. ``master``
     supplies the mask version's default procedures (required for an ``UNLOAD`` scope and
     for default/merged procedure styles). ``progress`` (optional) is called
-    ``progress(done, total)`` after each executed load control. ``security`` (KNX Data
+    ``progress(done, total)`` after each executed load control, ``memory_progress``
+    ``(done, total)`` in octets while a control writes memory. ``security`` (KNX Data
     Secure tool key) secures every management APDU when set; ``None`` programs in the clear.
 
     A full download commissions a virgin device: if nothing answers at the device's
@@ -580,4 +582,5 @@ async def download_device(
         access_key=access_key,
         in_programming_mode=in_programming_mode,
         waiting=waiting,
+        memory_progress=memory_progress,
     )
