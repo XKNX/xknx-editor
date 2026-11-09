@@ -9,7 +9,7 @@ from .._name import apply_text_args, fill_name
 from ..context import EvalContext
 from ..ui import UiNode
 from ..ui.parameter_block import UiParameterBlock
-from .base import DynamicNode
+from .base import DynamicNode, eval_all
 
 
 class ComObjectParameterBlockNode(DynamicNode):
@@ -51,7 +51,7 @@ class ComObjectParameterBlockNode(DynamicNode):
         if tree is not None:
             tree.enter("Folder", ctx.qualify(self._elem.id))
         try:
-            items = [u for c in self._children if c for u in c.eval(ctx)]
+            items = eval_all(self._children, ctx)
         finally:
             if explorer is not None:
                 explorer.leave_section(hidden=hidden)

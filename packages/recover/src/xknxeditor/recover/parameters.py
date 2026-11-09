@@ -21,8 +21,9 @@ write, or the group objects it shows, still differ from the device (see :func:`_
 from __future__ import annotations
 
 import contextlib
-from collections import Counter
-from collections.abc import Callable, Collection, Mapping
+import threading
+from collections import Counter, OrderedDict
+from collections.abc import Callable, Collection, Mapping, Sequence
 from dataclasses import dataclass, field, replace
 from enum import Enum
 from itertools import count
@@ -34,6 +35,7 @@ from xknxeditor.prod.script.sandbox import AbortToken
 
 if TYPE_CHECKING:
     from xknxeditor.prod import Application
+    from xknxeditor.prod.parser_v2.application_indexer import ApplicationIndexer
     from xknxeditor.prod.parser_v2.dynamic import DynamicUI
     from xknxeditor.prod.parser_v2.encode import TypedPropertyKey
     from xknxeditor.prod.parser_v2.ui import UiParameter
@@ -169,15 +171,129 @@ _State = tuple[
 ]
 
 
-def _parameter_to_refs(application: Application) -> dict[str, list[str]]:
-    """Map each parameter id to the reference ids that point at it."""
+class _SearchCache:
+    """What a search of one application's settings computes again and again from the same
+    values: the UIs seeded with them (only read, never changed) and what the calculations make
+    of them. Both depend on the application, the values and the code page alone."""
+
+    # UIs and calculated values kept at most (the last used ones): a search asks for the same
+    # values again soon after (a decode for the UI it seeded last), each holds thousands of
+    # values (a UI megabytes).
+    UIS = 8
+    CALCULATED = 128
+
+    def __init__(self, application: Application) -> None:
+        self.application = application
+        self.uis: OrderedDict[tuple[object, ...], DynamicUI | None] = OrderedDict()
+        self.calculated: OrderedDict[tuple[object, ...], _ValueMap] = OrderedDict()
+
+    @staticmethod
+    def get[V](store: OrderedDict[tuple[object, ...], V], key: tuple[object, ...]) -> V:
+        value = store[key]
+        store.move_to_end(key)
+        return value
+
+    @staticmethod
+    def put[V](
+        store: OrderedDict[tuple[object, ...], V],
+        key: tuple[object, ...],
+        value: V,
+        limit: int,
+    ) -> None:
+        store[key] = value
+        if len(store) > limit:
+            store.popitem(last=False)
+
+
+# The cache of the search running in this thread (see recover_parameters).
+_SEARCH = threading.local()
+
+
+def _search_cache(application: Application) -> _SearchCache | None:
+    """The cache of the search of ``application`` running in this thread, if any."""
+    cache: _SearchCache | None = getattr(_SEARCH, "cache", None)
+    return cache if cache is not None and cache.application is application else None
+
+
+def _seeded(
+    application: Application,
+    values: Mapping[str, str],
+    project_code_page: str | None,
+    *,
+    module_instances: Sequence[tuple[str, str]] | None = None,
+) -> DynamicUI | None:
+    """:func:`~xknxeditor.recover.recover.seed_dynamic_ui`, the same UI again for the same
+    values within a search: it is only read, never changed. Every reader evaluates it first,
+    so it may come evaluated already."""
+    from .recover import seed_dynamic_ui
+
+    cache = _search_cache(application)
+    if cache is None:
+        return seed_dynamic_ui(
+            application,
+            values,
+            project_code_page,
+            module_instances=module_instances,
+            evaluated=True,
+        )
+    key = (
+        frozenset(values.items()),
+        project_code_page,
+        None if module_instances is None else tuple(module_instances),
+    )
+    if key in cache.uis:
+        return cache.get(cache.uis, key)
+    ui = seed_dynamic_ui(
+        application,
+        values,
+        project_code_page,
+        module_instances=module_instances,
+        evaluated=True,
+    )
+    cache.put(cache.uis, key, ui, cache.UIS)
+    return ui
+
+
+def _parameter_to_refs(application: Application) -> Mapping[str, list[str]]:
+    """Map each parameter id to the reference ids that point at it (of the last few programs:
+    every decode asks for it)."""
     from xknxeditor.prod.parser_v2.application_indexer import ApplicationIndexer
 
-    indexer = ApplicationIndexer(application.program)
+    program = application.program
+    for n, (seen, refs) in enumerate(_PARAMETER_TO_REFS):
+        if seen is program:
+            _PARAMETER_TO_REFS.insert(0, _PARAMETER_TO_REFS.pop(n))
+            return refs
+    refs = _refs_by_parameter(ApplicationIndexer(program))
+    _PARAMETER_TO_REFS.insert(0, (program, refs))
+    del _PARAMETER_TO_REFS[4:]
+    return refs
+
+
+def _refs_by_parameter(indexer: ApplicationIndexer) -> dict[str, list[str]]:
+    """The reference ids of each parameter id, in the order of the indexer's references."""
     refs: dict[str, list[str]] = {}
     for ref_id, ref in indexer.parameter_refs.items():
         refs.setdefault(ref.ref_id, []).append(ref_id)
     return refs
+
+
+def _refs_of_parameters(indexer: ApplicationIndexer) -> Mapping[str, list[str]]:
+    """:func:`_refs_by_parameter` of the indexer of a UI (an application's, shared by its UIs),
+    of the last few."""
+    for n, (seen, refs) in enumerate(_INDEXER_REFS):
+        if seen is indexer:
+            _INDEXER_REFS.insert(0, _INDEXER_REFS.pop(n))
+            return refs
+    refs = _refs_by_parameter(indexer)
+    _INDEXER_REFS.insert(0, (indexer, refs))
+    del _INDEXER_REFS[4:]
+    return refs
+
+
+# The references of each parameter, of the last programs decoded and of the last indexers.
+_PARAMETER_TO_REFS: list[tuple[object, Mapping[str, list[str]]]] = []
+_INDEXER_REFS: list[tuple[object, Mapping[str, list[str]]]] = []
 
 
 def recover_parameters(
@@ -219,6 +335,34 @@ def recover_parameters(
 
         cancel = latched_cancel
 
+    previous = getattr(_SEARCH, "cache", None)
+    _SEARCH.cache = _SearchCache(application)
+    try:
+        return _search(
+            application,
+            parameter_segments,
+            property_values,
+            project_code_page,
+            linked_objects,
+            object_sizes,
+            effort,
+            cancel,
+        )
+    finally:
+        _SEARCH.cache = previous
+
+
+def _search(
+    application: Application,
+    parameter_segments: Mapping[str, bytes],
+    property_values: Mapping[TypedPropertyKey, bytes] | None,
+    project_code_page: str | None,
+    linked_objects: Collection[int],
+    object_sizes: Mapping[int, str] | None,
+    effort: RecoveryEffort,
+    cancel: Callable[[], bool] | None,
+) -> RecoveredParameters:
+    """The search of :func:`recover_parameters`."""
     ui = application.dynamic_ui()
     if ui is None:
         return RecoveredParameters(values={}, unknown=[])
@@ -336,9 +480,7 @@ def _pairs_to_try(
 ) -> bool:
     """Whether the search of pairs (see :func:`_refine_pairs`) has selectors to try where
     ``recovered`` differs from the device."""
-    from .recover import seed_dynamic_ui
-
-    ui = seed_dynamic_ui(application, recovered.values, project_code_page)
+    ui = _seeded(application, recovered.values, project_code_page)
     if ui is None:
         return False
     current = _misfit(ui, parameter_segments, linked, sizes)
@@ -749,9 +891,7 @@ def _refine(
     better than the result is taken, and the search goes on from there.
     The values the inference found to show nothing (``dead``) are not tried again behind them.
     When ``cancel`` returns true the search stops with the result so far."""
-    from .recover import seed_dynamic_ui
-
-    ui = seed_dynamic_ui(application, values, project_code_page)
+    ui = _seeded(application, values, project_code_page)
     if ui is None:
         return RecoveredParameters(values=values, unknown=unknown)
 
@@ -852,7 +992,7 @@ def _refine(
                     # A value that lays out more than the product has room for (more module
                     # instances than an allocator holds): no configuration of the device.
                     continue
-                seeded = seed_dynamic_ui(application, trial_values, project_code_page)
+                seeded = _seeded(application, trial_values, project_code_page)
                 if seeded is None:
                     continue
                 try:
@@ -1100,12 +1240,10 @@ def _refine_pairs(
     """
     from xknxeditor.prod.parser_v2.activation import shown_parameters, values_to_try
 
-    from .recover import seed_dynamic_ui
-
     if cancel is not None and cancel():
         # Cancelled: the result so far, measured already.
         return recovered
-    ui = seed_dynamic_ui(application, recovered.values, project_code_page)
+    ui = _seeded(application, recovered.values, project_code_page)
     if ui is None:
         return recovered
     current = _misfit(ui, parameter_segments, linked, sizes)
@@ -1154,7 +1292,7 @@ def _refine_pairs(
                     chosen,
                     fixed=fixed,
                 )
-                first = seed_dynamic_ui(application, first_values, project_code_page)
+                first = _seeded(application, first_values, project_code_page)
                 if first is None:
                     continue
                 fit = _misfit(first, parameter_segments, linked, sizes)
@@ -1192,9 +1330,7 @@ def _refine_pairs(
                             chosen,
                             fixed=fixed,
                         )
-                        seeded = seed_dynamic_ui(
-                            application, trial_values, project_code_page
-                        )
+                        seeded = _seeded(application, trial_values, project_code_page)
                         if seeded is None:
                             continue
                         fit = _misfit(seeded, parameter_segments, linked, sizes)
@@ -1239,11 +1375,10 @@ def _refine_fixed(
     their conflicting cells direct local corrections before the result is returned.
     """
     from .errors import RecoverError
-    from .recover import seed_dynamic_ui
 
     if not fixed:
         return recovered
-    ui = seed_dynamic_ui(application, recovered.values, project_code_page)
+    ui = _seeded(application, recovered.values, project_code_page)
     if ui is None:
         return recovered
     inferred = _guessed(ui, recovered.values)
@@ -1272,7 +1407,7 @@ def _refine_fixed(
             list(recovered.unknown),
         )
     values, unknown = decoded
-    ui = seed_dynamic_ui(application, values, project_code_page)
+    ui = _seeded(application, values, project_code_page)
     assert ui is not None
     current = _misfit(ui, parameter_segments, linked, sizes)
     if current is None:
@@ -1313,7 +1448,7 @@ def _refine_fixed(
             chosen,
             fixed=fixed,
         )
-        seeded = seed_dynamic_ui(application, trial_values, project_code_page)
+        seeded = _seeded(application, trial_values, project_code_page)
         assert seeded is not None
         fit = _misfit(seeded, parameter_segments, linked, sizes)
         if fit is None or fit[0] > fit_now[0]:
@@ -1344,7 +1479,7 @@ def _refine_fixed(
                 set(),
                 cancel,
             )
-            seeded = seed_dynamic_ui(application, inferred_values, project_code_page)
+            seeded = _seeded(application, inferred_values, project_code_page)
         except AllocatorOverflow:
             return None
         if seeded is None:
@@ -1480,8 +1615,11 @@ def _decode(
     between rounds once ``cancel`` says so."""
     from .recover import seed_dynamic_ui
 
+    # The settings with a fixed value are looked up in the UI as it is seeded, before it is
+    # evaluated (which drops the module instances it does not show): a UI of its own then.
+    seed = seed_dynamic_ui if fixed is None or fixed else _seeded
     ui = (
-        seed_dynamic_ui(application, inferred, project_code_page)
+        seed(application, inferred, project_code_page)
         if inferred
         else application.dynamic_ui()
     )
@@ -1497,7 +1635,7 @@ def _decode(
         }
         if clean != inferred:
             inferred = clean
-            ui = seed_dynamic_ui(application, inferred, project_code_page)
+            ui = _seeded(application, inferred, project_code_page)
             assert ui is not None
     parameter_to_refs = _parameter_to_refs(application)
     values: _ValueMap = {}
@@ -1523,10 +1661,8 @@ def _decode(
             if n:
                 cancelled.partial = ({**inferred, **values}, unknown, dict(inferred))
             raise
-        decoded = dict(ui.decode_memory_parameters(parameter_segments))
-        if property_values:
-            # Memory and property parameters are disjoint, so a plain merge is safe.
-            decoded.update(ui.decode_property_parameters(property_values))
+        # Memory and property parameters are disjoint, so a plain merge is safe.
+        decoded = ui.decode_stored_parameters(parameter_segments, property_values or {})
         read: _ValueMap = {}
         unknown = []
         # The value the memory holds is not that of a ref a hidden ref with a fixed value of
@@ -1567,7 +1703,7 @@ def _decode(
         values = read
         # With what the calculations make of them too: a parameter shown behind a calculated
         # switch is decoded once the switch has its value.
-        seeded_ui = seed_dynamic_ui(
+        seeded_ui = _seeded(
             application, calculated({**inferred, **values}), project_code_page
         )
         if seeded_ui is None:
@@ -1596,7 +1732,7 @@ def _decode(
                     dict(inferred),
                 )
                 raise
-        seeded = seed_dynamic_ui(
+        seeded = _seeded(
             application,
             calculated({**values, **module_values}) if module_values else values,
             project_code_page,
@@ -1666,7 +1802,25 @@ def _with_calculated(
     the device keeps no copy of, computed from a stored one). A read value is kept. A computed
     value can show a read one (a channel switch computed from another setting): the settings
     that read value is computed from are then computed too. Raises :class:`_Cancelled` once
-    ``cancel`` says so."""
+    ``cancel`` says so. Within a search, computed once for the same values."""
+    cache = _search_cache(application)
+    if cache is None:
+        return _calculate(application, values, project_code_page, cancel)
+    key = (frozenset(values.items()), project_code_page)
+    if key in cache.calculated:
+        return dict(cache.get(cache.calculated, key))
+    result = _calculate(application, values, project_code_page, cancel)
+    cache.put(cache.calculated, key, dict(result), cache.CALCULATED)
+    return result
+
+
+def _calculate(
+    application: Application,
+    values: Mapping[str, str],
+    project_code_page: str | None,
+    cancel: Callable[[], bool] | None,
+) -> _ValueMap:
+    """:func:`_with_calculated`, computed."""
     from .recover import seed_dynamic_ui
 
     result = dict(values)
@@ -1676,7 +1830,8 @@ def _with_calculated(
     stored: set[str] = set()
     refs: list[str] | None = None
     while True:
-        ui = seed_dynamic_ui(application, result, project_code_page)
+        # Changed below (the calculations run in it): a UI of its own, evaluated first.
+        ui = seed_dynamic_ui(application, result, project_code_page, evaluated=True)
         if ui is None:
             return result
         if cancel is not None:
@@ -1875,8 +2030,6 @@ def _written_over_values(
         return {}
     from xknxeditor.prod.parser_v2.activation import shown_parameters, values_to_try
 
-    from .recover import seed_dynamic_ui
-
     lost = set(unknown)
     actives = ui.active_parameter_ref_ids()
     shown: Mapping[str, UiParameter] | None = None
@@ -1902,9 +2055,7 @@ def _written_over_values(
         if given is not None:
             candidates = [given, *(value for value in candidates if value != given)]
         for value in candidates:
-            seeded = seed_dynamic_ui(
-                application, {**values, ref_id: value}, project_code_page
-            )
+            seeded = _seeded(application, {**values, ref_id: value}, project_code_page)
             if seeded is None:
                 continue
             memory = seeded.encode_to_memory()
@@ -2154,9 +2305,7 @@ def _infer_unstored(
     """
     from xknxeditor.prod.parser_v2.activation import shown_parameters, values_to_try
 
-    from .recover import seed_dynamic_ui
-
-    ui = seed_dynamic_ui(application, values, project_code_page)
+    ui = _seeded(application, values, project_code_page)
     assert ui is not None
     base = _shown_objects(ui, sizes) & linked
     if base == linked:
@@ -2169,7 +2318,7 @@ def _infer_unstored(
     def shown(trial: Mapping[str, str]) -> tuple[set[int], int, bool]:
         """The linked objects ``values`` with ``trial`` show, how many others, and whether
         they show such settings that are not shown now."""
-        seeded = seed_dynamic_ui(
+        seeded = _seeded(
             application,
             {**values, **trial},
             project_code_page,
@@ -2192,7 +2341,7 @@ def _infer_unstored(
         assert fixed is not None and segments is not None
         uis: dict[str, DynamicUI] = {}
         for key, trial in trials.items():
-            seeded = seed_dynamic_ui(
+            seeded = _seeded(
                 application,
                 {**values, **trial},
                 project_code_page,
@@ -2305,9 +2454,7 @@ def _decode_once(
     """One decode pass over the memory and properties against ``ui``: top-level parameters
     by id, module parameters by their instance's ref, ``None`` where the bytes are no value
     of the type."""
-    decoded = dict(ui.decode_memory_parameters(parameter_segments))
-    if property_values:
-        decoded.update(ui.decode_property_parameters(property_values))
+    decoded = ui.decode_stored_parameters(parameter_segments, property_values or {})
     decoded.update(
         ui.decode_module_parameters(parameter_segments, property_values or {})
     )
@@ -2326,7 +2473,7 @@ def _union_fit(
     def local_refs(key: str) -> list[str]:
         # A top-level parameter is reported by its id, a module parameter by its ref.
         if isinstance(indexer.parameters.get(key), UnionParameter):
-            return [r for r, ref in indexer.parameter_refs.items() if ref.ref_id == key]
+            return _refs_of_parameters(indexer).get(key, [])
         local = ui.local_ref_id(key)
         ref = indexer.parameter_refs.get(local)
         parameter = indexer.parameters.get(ref.ref_id) if ref is not None else None
@@ -2363,11 +2510,9 @@ def _infer_from_memory(
     """
     from xknxeditor.prod.parser_v2.activation import shown_parameters, values_to_try
 
-    from .recover import seed_dynamic_ui
-
     if not unknown:
         return {}
-    ui = seed_dynamic_ui(application, values, project_code_page)
+    ui = _seeded(application, values, project_code_page)
     assert ui is not None
     fitting, misfits = _union_fit(
         ui, _decode_once(ui, parameter_segments, property_values)
@@ -2396,9 +2541,7 @@ def _infer_from_memory(
     share = fitting / (fitting + fewest)
     for _, ref_id, candidate in candidates[:_MEMORY_TRIES]:
         _check(cancel)
-        seeded = seed_dynamic_ui(
-            application, {**values, ref_id: candidate}, project_code_page
-        )
+        seeded = _seeded(application, {**values, ref_id: candidate}, project_code_page)
         assert seeded is not None
         try:
             if not base <= _shown_objects(seeded, sizes):

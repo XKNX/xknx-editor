@@ -4,7 +4,7 @@ from functools import lru_cache
 
 from ..context import EvalContext, Explorer, Gate
 from ..ui import UiNode
-from .base import DynamicNode
+from .base import DynamicNode, eval_all
 
 _OPERATORS = ("!=", ">=", "<=", ">", "<", "=")
 
@@ -118,13 +118,13 @@ class ChooseWhenNode(DynamicNode):
         # by a discovery pass (union suppression off) that runs before this render pass. Suppress this
         # member iff it was not reached but a sibling was. During discovery (union_suppress False) this
         # is skipped so both members render and the reached one is recorded.
-        if (
-            self._union_sibling_refs
-            and ctx.union_suppress
-            and not ctx.is_discovered_active(self._param_ref_id)
-            and any(ctx.is_discovered_active(sib) for sib in self._union_sibling_refs)
-        ):
-            return []
+        if self._union_sibling_refs:
+            if not ctx.union_suppress:
+                ctx.note_union_choose(self._param_ref_id, self._union_sibling_refs)
+            elif not ctx.is_discovered_active(self._param_ref_id) and any(
+                ctx.is_discovered_active(sib) for sib in self._union_sibling_refs
+            ):
+                return []
         # A Choose on a parameter that is neither shown nor assigned selects no branch at all,
         # not even its default.
         if not ctx.is_gate_active(self._param_ref_id):
@@ -149,9 +149,9 @@ class ChooseWhenNode(DynamicNode):
             for condition, nodes in self._condition_to_nodes.items():
                 if satisfies(condition, value):
                     matched = True
-                    result.extend(u for n in nodes if n for u in n.eval(ctx))
+                    result.extend(eval_all(nodes, ctx))
             if not matched and self._default_nodes is not None:
-                result.extend(u for n in self._default_nodes if n for u in n.eval(ctx))
+                result.extend(eval_all(self._default_nodes, ctx))
         finally:
             if gating:
                 capture.pop()  # type: ignore[union-attr]

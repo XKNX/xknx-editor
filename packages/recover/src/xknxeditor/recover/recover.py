@@ -81,6 +81,7 @@ def seed_dynamic_ui(
     project_code_page: str | None = None,
     *,
     module_instances: Sequence[tuple[str, str]] | None = None,
+    evaluated: bool = False,
 ) -> DynamicUI | None:
     """Build a dynamic UI evaluated with recovered parameter reference values.
 
@@ -100,34 +101,46 @@ def seed_dynamic_ui(
     the first build is left out. Returns ``None`` when the application has no dynamic
     section. ``project_code_page`` as for
     :func:`~xknxeditor.recover.parameters.recover_parameters`.
+
+    With ``evaluated`` the UI may come back evaluated already: when seeding with the module
+    instances the first build found gives the state the first build started from (each value
+    in the scope it was in), the second build would evaluate it alike, and the first one is
+    returned instead.
     """
     from xknxeditor.namespaces.intermediate.module_instance_t import ModuleInstance
-    from xknxeditor.namespaces.intermediate.parameter_instance_ref_t import (
-        ParameterInstanceRef,
-    )
     from xknxeditor.prod.parser_v2.dynamic import DynamicUI
 
     # The evaluation tree depends on the program only: build it once, not per seeding.
     program, tree_builder = application.resolved()
     if program.dynamic is None:
         return None
-    pirs = [
-        ParameterInstanceRef(ref_id=ref_id, value=value)
-        for ref_id, value in parameter_values.items()
-    ]
     if module_instances is None:
         probe = DynamicUI(
             program,
-            parameter_instance_refs=pirs,
+            parameter_values=parameter_values,
             project_code_page=project_code_page,
             tree_builder=tree_builder,
         )
+        layout = probe.state_layout() if evaluated else None
         module_instances = probe.get_module_instances()
-        if not (module_instances and pirs):
+        if not (module_instances and parameter_values):
             return probe
+        seeded = DynamicUI(
+            program,
+            parameter_values=parameter_values,
+            tree_builder=tree_builder,
+            module_instances=[
+                ModuleInstance(id=instance_id, ref_id=ref_id)
+                for instance_id, ref_id in module_instances
+            ],
+            project_code_page=project_code_page,
+        )
+        if layout is not None and layout == seeded.state_layout():
+            return probe
+        return seeded
     return DynamicUI(
         program,
-        parameter_instance_refs=pirs,
+        parameter_values=parameter_values,
         tree_builder=tree_builder,
         module_instances=[
             ModuleInstance(id=instance_id, ref_id=ref_id)

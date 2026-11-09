@@ -89,3 +89,25 @@ def test_the_active_member_of_a_module_union_is_decoded_without_a_value() -> Non
     read.set_parameter_ref(_SWITCH, "1")
     decoded = read.decode_module_parameters(segments, {})
     assert decoded[_SECOND] == "7"
+
+
+def test_an_instance_decodes_anew_when_its_values_or_the_bytes_change() -> None:
+    # What an instance decodes is kept for the same writes and bytes: the member its switch
+    # makes active, and the bytes read, still decide what it reads.
+    application = _application()
+    ui = application.dynamic_ui()
+    assert ui is not None
+    segments = {_SEGMENT: b""}
+    assert ui.decode_module_parameters(segments, {})[_FIRST] == "7"
+    assert ui.decode_module_parameters(segments, {})[_FIRST] == "7"
+    ui.set_parameter_ref(_SWITCH, "1")
+    decoded = ui.decode_module_parameters(segments, {})
+    assert decoded[_SECOND] == "7"
+    assert _FIRST not in decoded
+    segments[_SEGMENT] = b""
+    assert ui.decode_module_parameters(segments, {})[_SECOND] == "5"
+    # Bytes that can change are read every time.
+    changing = {_SEGMENT: bytearray(b"")}
+    assert ui.decode_module_parameters(changing, {})[_SECOND] == "6"  # pyright: ignore[reportArgumentType]
+    changing[_SEGMENT][0] = 9
+    assert ui.decode_module_parameters(changing, {})[_SECOND] == "9"  # pyright: ignore[reportArgumentType]

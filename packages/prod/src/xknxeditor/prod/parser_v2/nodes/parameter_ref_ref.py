@@ -11,6 +11,10 @@ from ..ui import UiNode
 from ..ui.parameter import UiParameter, Widget, resolve_widget
 from .base import DynamicNode
 
+# UiParameters a node keeps at most in each of its two generations (a node of a module
+# definition places one per instance, each pass).
+_MADE = 512
+
 
 class ParameterRefRefNode(DynamicNode):
     """Leaf: a parameter widget placed straight into the UI."""
@@ -30,6 +34,11 @@ class ParameterRefRefNode(DynamicNode):
         # the tree several times.
         self._widget: Widget = None
         self._widget_resolved = False
+        # The UiParameters made so far, by what differs between them (the rest, the access
+        # too, is this node's): each pass of each evaluation places the same parameters again.
+        self._made: dict[tuple[str, str, str, str | None], UiParameter] = {}
+        # The generation before: what is used again moves back into ``_made``.
+        self._made_before: dict[tuple[str, str, str, str | None], UiParameter] = {}
 
     def _get_widget(self) -> Widget:
         if not self._widget_resolved:
@@ -58,18 +67,51 @@ class ParameterRefRefNode(DynamicNode):
 
     def _ui_parameter(self, ctx: EvalContext, access: Access) -> UiParameter:
         local_ref_id = self._elem.ref_id
-        arg_defaults = ctx.text_args()
-        static_label = apply_text_args(
-            self._param_ref.text or self._param.text or "", arg_defaults
-        )
+        static_label = self._param_ref.text or self._param.text or ""
+        raw_suffix = self._param_ref.suffix_text or self._param.suffix_text
+        suffix = raw_suffix
+        # The arguments are looked up only for a text with a placeholder (few of them; every
+        # evaluation of a large application places tens of thousands of parameters).
+        if "{{" in static_label or (raw_suffix and "{{" in raw_suffix):
+            arg_defaults = ctx.text_args()
+            static_label = apply_text_args(static_label, arg_defaults)
+            if raw_suffix:
+                suffix = apply_text_args(raw_suffix, arg_defaults)
         text_ref = self._param_ref.text_parameter_ref_id
         label = (ctx.get(text_ref) if text_ref else None) or static_label
-        raw_suffix = self._param_ref.suffix_text or self._param.suffix_text
-        suffix = apply_text_args(raw_suffix, arg_defaults) if raw_suffix else raw_suffix
         default_value = self._param_ref.value or self._param.value or ""
         value = ctx.get(local_ref_id) or default_value
+        ref_id = ctx.qualify(local_ref_id)
+        handed = ctx.handed
+        if handed is None:
+            return self._make(ref_id, label, value, suffix, access, default_value)
+        key = (ref_id, label, value, suffix)
+        made = self._made.get(key)
+        if made is None:
+            made = self._made_before.get(key)
+        if made is None or id(made) in handed:
+            made = self._make(ref_id, label, value, suffix, access, default_value)
+        if key not in self._made:
+            if len(self._made) >= _MADE:
+                self._made_before = self._made
+                self._made = {}
+            self._made[key] = made
+        elif self._made[key] is not made:
+            self._made[key] = made
+        handed.add(id(made))
+        return made
+
+    def _make(
+        self,
+        ref_id: str,
+        label: str,
+        value: str,
+        suffix: str | None,
+        access: Access,
+        default_value: str,
+    ) -> UiParameter:
         return UiParameter(
-            ref_id=ctx.qualify(local_ref_id),
+            ref_id=ref_id,
             label=label,
             value=value,
             widget=self._get_widget(),

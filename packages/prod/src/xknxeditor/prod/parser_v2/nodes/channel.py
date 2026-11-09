@@ -4,7 +4,7 @@ from .._name import apply_text_args, fill_name
 from ..context import EvalContext
 from ..ui import UiNode
 from ..ui.tab import UiTab
-from .base import DynamicNode
+from .base import DynamicNode, eval_all
 
 
 class ChannelNode(DynamicNode):
@@ -68,7 +68,7 @@ class ChannelNode(DynamicNode):
         if tree is not None:
             tree.enter("Channel", ctx.qualify(self._id or ""))
         try:
-            items = [u for c in self._children if c for u in c.eval(ctx)]
+            items = eval_all(self._children, ctx)
         finally:
             if explorer is not None:
                 explorer.leave_section()

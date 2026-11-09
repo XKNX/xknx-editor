@@ -520,6 +520,28 @@ def test_restriction_decodes_by_the_first_entry_of_a_value() -> None:
     assert _decode_value(0x0002, 16, tc, little_endian=True) is None
 
 
+def test_restriction_decodes_alike_again_and_by_its_byte_order() -> None:
+    # Two entries writing the same bytes: the first one is read, every time; the values of
+    # each size and byte order are looked up apart.
+    tc = ParameterTypeTypeRestriction(
+        base="Value",
+        size_in_bit=16,
+        enumeration=[
+            ParameterTypeTypeRestrictionEnumeration(id="EN-3", value=3),
+            ParameterTypeTypeRestrictionEnumeration(
+                id="EN-4", value=4, binary_value=b"\x00\x03"
+            ),
+            ParameterTypeTypeRestrictionEnumeration(id="EN-x", value="x"),
+        ],
+    )
+    for _ in range(2):
+        assert _decode_value(0x0003, 16, tc, little_endian=False) == "3"
+        assert _decode_value(0x0300, 16, tc, little_endian=True) == "3"
+        assert _decode_value(0x0003, 16, tc, little_endian=True) == "4"
+        assert _decode_value(0x0004, 16, tc, little_endian=False) is None
+        assert _decode_value(0x03, 8, tc, little_endian=False) == "3"
+
+
 # --- bit fields ---------------------------------------------------------------
 
 from xknxeditor.prod.parser_v2.encode import _read_bits, _write_bits  # noqa: E402

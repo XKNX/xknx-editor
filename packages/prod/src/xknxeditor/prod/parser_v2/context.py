@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from collections.abc import Iterable, Iterator, Mapping
+from collections.abc import Collection, Iterable, Iterator, Mapping
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
@@ -207,11 +207,13 @@ class EvalContext:
     __slots__ = (
         "_capture",
         "_explore",
+        "_handed",
         "_idx",
         "_in_repeat",
         "_object_tree",
         "_repeat_idx",
         "_scope",
+        "_union_chooses",
         "_union_suppress",
     )
 
@@ -225,6 +227,8 @@ class EvalContext:
         explore: Explorer | None = None,
         object_tree: ObjectTreeCapture | None = None,
         in_repeat: bool = False,
+        union_chooses: list[tuple[ParameterState, str, Collection[str]]] | None = None,
+        handed: set[int] | None = None,
     ) -> None:
         self._scope = scope
         self._repeat_idx = repeat_idx
@@ -239,6 +243,11 @@ class EvalContext:
         self._explore = explore
         # Set to record the device's group object tree (see ObjectTreeCapture).
         self._object_tree = object_tree
+        # Set to record the Chooses on a union member the pass reaches (see note_union_choose).
+        self._union_chooses = union_chooses
+        # Set when the nodes may hand out what they made in an earlier pass again: the ids of
+        # what this pass has handed out (none twice in one tree, see :attr:`handed`).
+        self._handed = handed
 
     @property
     def capture(self) -> EvalCapture | None:
@@ -253,11 +262,24 @@ class EvalContext:
         return self._object_tree
 
     @property
+    def handed(self) -> set[int] | None:
+        """The ids of the UiNodes this pass handed out that a node made in an earlier pass
+        (an evaluation of the same values again); None when every node is made anew. A node
+        hands out none twice in one pass, as a tree may tell its nodes apart by identity."""
+        return self._handed
+
+    @property
     def union_suppress(self) -> bool:
         return self._union_suppress
 
     def is_discovered_active(self, ref_id: str) -> bool:
         return self._scope.is_discovered_active(ref_id)
+
+    def note_union_choose(self, param_ref_id: str, siblings: Collection[str]) -> None:
+        """A Choose on the union member ``param_ref_id`` (competing with ``siblings``) is reached
+        in this scope; recorded when the pass records them."""
+        if self._union_chooses is not None:
+            self._union_chooses.append((self._scope, param_ref_id, siblings))
 
     def is_gate_active(self, ref_id: str) -> bool:
         return self._scope.is_gate_active(ref_id)
@@ -352,6 +374,8 @@ class EvalContext:
             self._explore,
             self._object_tree,
             in_repeat=True,
+            union_chooses=self._union_chooses,
+            handed=self._handed,
         )
 
     def get_arg_value(self, ref_id: str) -> int:
@@ -414,4 +438,6 @@ class EvalContext:
             union_suppress=self._union_suppress,
             explore=self._explore,
             object_tree=self._object_tree,
+            union_chooses=self._union_chooses,
+            handed=self._handed,
         )

@@ -145,7 +145,7 @@ def test_recovery_decodes_again_with_the_values_read(
                 return frozenset({"R-selector", "R-alternative"})
             return frozenset({"R-selector", "R-default"})
 
-        def decode_memory_parameters(self, _segments: object) -> dict[str, str | None]:
+        def decode_stored_parameters(self, *_args: object) -> dict[str, str | None]:
             if self.seeded.get("R-selector") == "1":
                 return {"P-selector": "1", "P-alternative": "7"}
             return {"P-selector": "1", "P-default": "3"}
@@ -166,7 +166,9 @@ def test_recovery_decodes_again_with_the_values_read(
 
     seeds: list[dict[str, str]] = []
 
-    def seed(_application: object, values: dict[str, str], _code_page: object) -> UI:
+    def seed(
+        _application: object, values: dict[str, str], _code_page: object, **_kw: object
+    ) -> UI:
         seeds.append(dict(values))
         return UI(dict(values))
 

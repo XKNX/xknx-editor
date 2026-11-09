@@ -3,7 +3,15 @@ from __future__ import annotations
 import contextlib
 import copy
 import logging
-from collections.abc import Callable, Generator, Iterable, Iterator, Mapping, Sequence
+from collections.abc import (
+    Callable,
+    Collection,
+    Generator,
+    Iterable,
+    Iterator,
+    Mapping,
+    Sequence,
+)
 from typing import TYPE_CHECKING
 
 from xknxeditor.namespaces.intermediate import (
@@ -72,6 +80,7 @@ from .encode import (
     decode_memory_parameters,
     decode_module_parameters,
     decode_property_parameters,
+    decode_writes,
     download_param_values,
     encode_to_memory,
     encode_to_memory_masked,
@@ -757,6 +766,23 @@ class DynamicTreeBuilder:
         return None
 
 
+# The local ids of the refs looked up in UIs, by their module scopes (see
+# DynamicUI.local_ref_id), of the last few kinds of scopes.
+_LOCAL_IDS: dict[tuple[object, ...], dict[str, str]] = {}
+
+
+def _local_ids_of(scopes: tuple[object, ...]) -> dict[str, str]:
+    """The local ids looked up in UIs with the module scopes ``scopes``."""
+    found = _LOCAL_IDS.get(scopes)
+    if found is None:
+        if len(_LOCAL_IDS) >= 64:
+            _LOCAL_IDS.clear()
+        found = _LOCAL_IDS[scopes] = {}
+    elif len(found) >= 1 << 17:
+        found.clear()
+    return found
+
+
 def _com_object_number(ref_id: str) -> str:
     """A com-object ref canonicalized by dropping ONLY the terminal ComObjectRef qualifier
     (``_R-<m>``), while preserving any module-instance path (``MD-…_M-…_MI-…_O-…``).
@@ -1008,10 +1034,13 @@ def _rehome_to_pages(
 
 class DynamicUI:
     __slots__ = (
+        "_active_refs",
         "_active_snapshot",
         "_allocation_param_refs",
         "_app",
         "_idx",
+        "_local_ids",
+        "_located",
         "_module_gates",
         "_object_gates",
         "_object_param_refs",
@@ -1035,7 +1064,10 @@ class DynamicUI:
         com_object_instance_refs: list[ComObjectInstanceRef] | None = None,
         tree_builder: DynamicTreeBuilder | None = None,
         project_code_page: str | None = None,
+        parameter_values: Mapping[str, str] | None = None,
     ) -> None:
+        """``parameter_values``: values by ref id, as ``parameter_instance_refs`` give them
+        (after them; see :meth:`GlobalState.from_project`)."""
         # The builder (indexer + node tree) is a pure function of the app program and is read-only
         # during eval, so callers share one across all devices of the same app (see
         # Application.tree_builder) instead of rebuilding it per device.
@@ -1060,6 +1092,7 @@ class DynamicUI:
             com_object_instance_refs=com_object_instance_refs,
             app_id=app.id,
             padded_ref_ids=self._idx.padded_ref_ids,
+            parameter_values=parameter_values,
         )
         self._ui: list[UiNode] | None = None
         # The parameter-driven active com-object set, snapshotted from the same settle that builds
@@ -1067,6 +1100,15 @@ class DynamicUI:
         # read of the active set reuse the UI settle instead of running its own, and is cleared
         # together with ``_ui`` on every state change (see ``_invalidate``).
         self._active_snapshot: tuple[EvalCapture | None, frozenset[str]] | None = None
+        # The active parameter refs of the last evaluation, read again and again (see
+        # :meth:`active_parameter_ref_ids`); cleared with ``_ui``.
+        self._active_refs: frozenset[str] | None = None
+        # The scope and local id of each ref looked up in the evaluated state (see _locate);
+        # cleared with ``_ui``.
+        self._located: dict[str, tuple[ParameterState, str]] = {}
+        # The local ids of the refs looked up, shared by the UIs with the same module scopes
+        # (see local_ref_id); cleared with ``_ui``.
+        self._local_ids: dict[str, str] | None = None
         self.script_env: JScriptEnv | None = None
         self.script_abort: AbortToken | None = None
 
@@ -1074,8 +1116,11 @@ class DynamicUI:
         """Drop the cached UI and the active-set snapshot after a state change."""
         self._ui = None
         self._active_snapshot = None
+        self._active_refs = None
+        self._located = {}
+        self._local_ids = None
 
-    def _discover_union_activity(self) -> None:
+    def _discover_union_activity(self) -> list[UiNode] | None:
         """Discovery pass ahead of a render eval: evaluate the tree WITHOUT union suppression so every
         reached Union member is marked active, then freeze that as the discovery snapshot. The render
         pass reads it (is_discovered_active) to pick each Union's active overlay order-independently —
@@ -1086,43 +1131,68 @@ class DynamicUI:
         reached are those of the settled values and active parameters: a Choose on a parameter
         that is not active selects nothing here either, and a member selected by a value an Assign
         writes later in the tree is reached; a single traversal order does not decide which
-        overlay wins."""
-        self._state.clear_gate()
-        self._settle(
-            lambda: EvalContext(self._state, idx=self._idx, union_suppress=False)
-        )
-        self._state.snapshot_discovered_active()
+        overlay wins.
 
-    def _settle(self, make_ctx: Callable[[], EvalContext]) -> list[UiNode]:
+        Returns the tree of the last pass when a render pass would evaluate it the same way:
+        the discovery settled, and no Choose on a union member it reached is suppressed by the
+        snapshot (the only difference between the two kinds of pass). The render pass would then
+        repeat that last pass: from the same values, gated by the same parameters."""
+        self._state.clear_gate()
+        chooses: list[tuple[ParameterState, str, Collection[str]]] = []
+
+        def make_ctx() -> EvalContext:
+            chooses.clear()
+            return EvalContext(
+                self._state,
+                idx=self._idx,
+                union_suppress=False,
+                union_chooses=chooses,
+                handed=set(),
+            )
+
+        tree, settled = self._settle(make_ctx)
+        self._state.snapshot_discovered_active()
+        if not settled or any(
+            not scope.is_discovered_active(param)
+            and any(scope.is_discovered_active(sibling) for sibling in siblings)
+            for scope, param, siblings in chooses
+        ):
+            return None
+        return tree
+
+    def _settle(self, make_ctx: Callable[[], EvalContext]) -> tuple[list[UiNode], bool]:
         """Evaluate the tree until a pass changes neither the active parameters nor a value or
         text that an Assign or a Rename writes, at most ``_MAX_GATE_PASSES`` times; the tree of
-        the last pass. Each pass gates Chooses by the parameters active in the pass before, so a
-        Choose renders nothing when its parameter is not active, wherever in the tree it is shown
-        or assigned; and a node read before a write saw the old value, so the pass after it sees
-        the new one."""
+        the last pass, and whether it settled before the limit. Each pass gates Chooses by the
+        parameters active in the pass before, so a Choose renders nothing when its parameter is
+        not active, wherever in the tree it is shown or assigned; and a node read before a write
+        saw the old value, so the pass after it sees the new one."""
         tree: list[UiNode] = []
         for _ in range(_MAX_GATE_PASSES):
             self._state.reset_active()
             tree = self._tree.eval(make_ctx())
             gate_changed = self._state.update_gate_active()
             if not gate_changed and not self._state.pass_changed_state():
-                break
-        return tree
+                return tree, True
+        return tree, False
 
     def _eval_settled(
         self, capture: Callable[[], EvalCapture] | None = None
     ) -> tuple[list[UiNode], EvalCapture | None]:
         """Evaluate until settled (see :meth:`_settle`), after the union discovery.
         ``capture`` makes a fresh capture for each pass; the one of the last pass is returned."""
-        self._discover_union_activity()
+        discovered = self._discover_union_activity()
+        if discovered is not None and capture is None:
+            # The render pass would repeat the last pass of the discovery, and settle with it.
+            return discovered, None
         result: EvalCapture | None = None
 
         def make_ctx() -> EvalContext:
             nonlocal result
             result = capture() if capture is not None else None
-            return EvalContext(self._state, idx=self._idx, capture=result)
+            return EvalContext(self._state, idx=self._idx, capture=result, handed=set())
 
-        tree = self._settle(make_ctx)
+        tree, _settled = self._settle(make_ctx)
         return tree, result
 
     def _build_ui(self, *, capture_active: bool) -> None:
@@ -1131,6 +1201,9 @@ class DynamicUI:
         following :meth:`active_parameter_driven_com_object_ref_ids` reuses this evaluation instead
         of running another full settle."""
         capture = (lambda: EvalCapture(None)) if capture_active else None
+        self._active_refs = None
+        self._located = {}
+        self._local_ids = None
         self._ui, result = self._eval_settled(capture)
         self._state.trim_to_active()
         if capture_active:
@@ -1392,6 +1465,41 @@ class DynamicUI:
             self._app, self._idx, properties, self._state, self.text_encoding
         )
 
+    def state_layout(self) -> tuple[object, ...]:
+        """What the parameter state holds (see :meth:`ParameterState.layout`), with the code page:
+        two UIs of one program, neither evaluated yet, with the same layout evaluate alike."""
+        return (self.project_code_page, self._state.layout())
+
+    def decode_stored_parameters(
+        self,
+        segments: Mapping[str, bytes],
+        properties: Mapping[TypedPropertyKey, bytes],
+    ) -> dict[str, str | None]:
+        """:meth:`decode_memory_parameters`, with :meth:`decode_property_parameters` (of
+        non-empty ``properties``) merged over it: the fields both read laid out once."""
+        self.ui()
+        writes = decode_writes(self._app, self._idx, self._state)
+        decoded = decode_memory_parameters(
+            self._app,
+            self._idx,
+            segments,
+            self._state,
+            self.text_encoding,
+            writes=writes,
+        )
+        if properties:
+            decoded.update(
+                decode_property_parameters(
+                    self._app,
+                    self._idx,
+                    properties,
+                    self._state,
+                    self.text_encoding,
+                    writes=writes,
+                )
+            )
+        return decoded
+
     def decode_module_parameters(
         self,
         segments: Mapping[str, bytes],
@@ -1505,6 +1613,16 @@ class DynamicUI:
         return self.get_value(ref_id)
 
     def _locate(self, ref_id: str) -> tuple[ParameterState, str]:
+        # The module scopes of an evaluated state stay as they are until the next evaluation
+        # (which clears this), and a search looks up the same refs again and again.
+        if self._ui is not None:
+            located = self._located.get(ref_id)
+            if located is None:
+                located = self._located[ref_id] = self._find_scope(ref_id)
+            return located
+        return self._find_scope(ref_id)
+
+    def _find_scope(self, ref_id: str) -> tuple[ParameterState, str]:
         found = self._state.find_scope_for_qualified(ref_id)
         if (
             found is None
@@ -1968,7 +2086,9 @@ class DynamicUI:
 
     def active_parameter_ref_ids(self) -> frozenset[str]:
         self.ui()
-        return frozenset(self._state.active_param_refs())
+        if self._active_refs is None:
+            self._active_refs = frozenset(self._state.active_param_refs())
+        return self._active_refs
 
     def later_union_members(self, ref_id: str) -> set[str]:
         """The param-refs of the members of ``ref_id``'s union written after its own member over
@@ -2011,6 +2131,7 @@ class DynamicUI:
         state = self._state
         ui = self._ui
         snapshot = self._active_snapshot
+        active_refs = self._active_refs
         self._state = copy.deepcopy(state)
         self._invalidate()
         try:
@@ -2019,6 +2140,9 @@ class DynamicUI:
             self._state = state
             self._ui = ui
             self._active_snapshot = snapshot
+            self._active_refs = active_refs
+            self._located = {}
+            self._local_ids = None
 
     @property
     def indexer(self) -> ApplicationIndexer:
@@ -2080,7 +2204,17 @@ class DynamicUI:
 
     def local_ref_id(self, ref_id: str) -> str:
         """The ParameterRef id a (possibly module-qualified) ref id stands for."""
-        return self._locate(ref_id)[1]
+        if self._ui is None:
+            return self._locate(ref_id)[1]
+        # Evaluated, the module scopes decide it alone: UIs with the same scopes (a search
+        # seeds many) look up each ref once.
+        local_ids = self._local_ids
+        if local_ids is None:
+            local_ids = self._local_ids = _local_ids_of(self._state.scopes())
+        local = local_ids.get(ref_id)
+        if local is None:
+            local = local_ids[ref_id] = self._locate(ref_id)[1]
+        return local
 
     def find_parameter_ref(
         self, kind: str, key: object, instance_id: str | None = None

@@ -2,7 +2,8 @@ from __future__ import annotations
 
 import copy
 import re
-from collections.abc import Mapping
+from collections.abc import Iterable, Mapping
+from functools import lru_cache
 from typing import Any, ClassVar, Self
 
 from xknxeditor.namespaces.ids import unpadded_id
@@ -108,11 +109,99 @@ def _instance_length(scope: ParameterState) -> int:
     return len(scope.module_instance_id) if isinstance(scope, ModuleState) else 0
 
 
+@lru_cache(maxsize=1 << 16)
 def _qualified(element_id: str, app_id: str | None) -> str:
     """``element_id`` qualified with the application id, when it is relative to it."""
     if not app_id or element_id.startswith(f"{app_id}_"):
         return element_id
     return f"{app_id}_{element_id}"
+
+
+@lru_cache(maxsize=1 << 17)
+def _qualified_in(module_instance_id: str, ref_id: str) -> str:
+    """``ref_id`` (local to a module definition) qualified with the module instance
+    ``module_instance_id``: the part they share swapped for the instance's id. Every evaluation
+    qualifies each parameter of each instance again."""
+    i, n = 0, min(len(module_instance_id), len(ref_id))
+    while i < n and module_instance_id[i] == ref_id[i]:
+        i += 1
+    return module_instance_id + ref_id[i - 1 :]
+
+
+class _InstanceIds:
+    """Module instance ids in their order, to find the first one that is a part of a ref id
+    between underscores (or at its start or end) without searching for each of them: such a
+    part is a run of the ref id's underscore-separated pieces, which starts with the first
+    piece of an instance id and ends with the last piece of one."""
+
+    __slots__ = ("_firsts", "_lasts", "_order", "_owners", "_placed")
+
+    def __init__(self, ids: Iterable[str]) -> None:
+        self._order = {mid: n for n, mid in enumerate(ids)}
+        self._firsts = {mid.split("_", 1)[0] for mid in self._order}
+        self._lasts = {mid.rsplit("_", 1)[-1] for mid in self._order}
+        # The owners found so far: the same instances own the same values seeding after seeding.
+        self._owners: dict[str, str | None] = {}
+        self._placed: dict[tuple[str, str, str], tuple[str, str]] = {}
+
+    def place(self, ref_id: str, owner: str, definition: str) -> tuple[str, str]:
+        """For the value of ``ref_id`` its instance ``owner`` owns (a module instance of the
+        module definition ``definition``): the instance's id with the application's part of
+        ``ref_id`` in front, and the value's ref id in the definition."""
+        key = (ref_id, owner, definition)
+        placed = self._placed.get(key)
+        if placed is None:
+            p = f"_{ref_id}_".find(f"_{owner}_")
+            app_prefix = ref_id[:p]
+            suffix = ref_id[p + len(owner) :]
+            placed = self._placed[key] = (
+                app_prefix + owner,
+                app_prefix + definition + suffix,
+            )
+        return placed
+
+    def owner(self, ref_id: str) -> str | None:
+        """The first instance id that is such a part of ``ref_id``; None when none is."""
+        owners = self._owners
+        if ref_id in owners:
+            return owners[ref_id]
+        found = owners[ref_id] = self._find(ref_id)
+        return found
+
+    def _find(self, ref_id: str) -> str | None:
+        order = self._order
+        if len(order) <= 8:
+            wrapped = f"_{ref_id}_"
+            return next((mid for mid in order if f"_{mid}_" in wrapped), None)
+        pieces = ref_id.split("_")
+        found: str | None = None
+        rank = len(order)
+        for start, first in enumerate(pieces):
+            if first not in self._firsts:
+                continue
+            for end in range(start, len(pieces)):
+                if pieces[end] not in self._lasts:
+                    continue
+                part = "_".join(pieces[start : end + 1])
+                n = order.get(part)
+                if n is not None and n < rank:
+                    found, rank = part, n
+        return found
+
+
+@lru_cache(maxsize=16)
+def _instance_ids(ids: tuple[str, ...]) -> _InstanceIds:
+    """The :class:`_InstanceIds` of module instance ids in their order (of the last few lists:
+    a UI is seeded again and again with the same instances)."""
+    return _InstanceIds(ids)
+
+
+@lru_cache(maxsize=1 << 17)
+def _instance_in_ref(ref_id: str) -> tuple[str, str] | None:
+    """The module instance in an instance-qualified ref id and its module definition (see
+    ``_INSTANCE_IN_REF`` and ``_LEGACY_SUBMODULE_IN_REF``); None for another ref id."""
+    match = _INSTANCE_IN_REF.search(ref_id) or _LEGACY_SUBMODULE_IN_REF.search(ref_id)
+    return None if match is None else (match.group(1), match.group(2))
 
 
 class ParameterState:
@@ -503,6 +592,15 @@ class ParameterState:
                 found = result
         return found
 
+    def scopes(self) -> tuple[object, ...]:
+        """The module scopes below this one in their order, each with its ids and the scopes
+        below it: all :meth:`find_scope_for_qualified` goes by."""
+        return tuple(child.scope_ids() for child in self._children.values())
+
+    def scope_ids(self) -> tuple[object, ...]:
+        """This scope's part of :meth:`scopes`."""
+        return (None, None, self.scopes())
+
     def explicit_value(self, ref_id: str) -> str | None:
         """The value explicitly set in this scope, ignoring parents and defaults."""
         return self._known_param_ref_values.get(ref_id)
@@ -671,6 +769,36 @@ class ParameterState:
             result.extend(child.module_instances())
         return result
 
+    def layout(self) -> tuple[object, ...]:
+        """What this scope and the module scopes below hold, each in its order: the scope's
+        ids, its values and texts, its group object instances, its defaults and arguments,
+        and what an evaluation leaves (active refs, gates, allocator positions). Two states of
+        one program with the same layout evaluate alike."""
+        # A copy of a mapping with its keys in their order compares like its items in their
+        # order, and is made much faster (a state holds thousands of values).
+        return (
+            type(self).__name__,
+            self._own_layout(),
+            dict(self.param_ref_id_to_value),
+            tuple(self.param_ref_id_to_value),
+            dict(self._known_param_ref_values),
+            tuple(self._known_param_ref_values),
+            tuple(self._text.items()),
+            tuple(self._com_obj_instance_refs.items()),
+            tuple(self._param_ref_defaults.items()),
+            tuple(self._alloc_positions.items()),
+            tuple(self._active_param_refs),
+            tuple(self._active_module_keys),
+            tuple(self._active_com_object_refs),
+            tuple(self._discovered_active_param_refs),
+            None if self._gate_param_refs is None else tuple(self._gate_param_refs),
+            tuple((key, child.layout()) for key, child in self._children.items()),
+        )
+
+    def _own_layout(self) -> tuple[object, ...]:
+        """The part of :meth:`layout` of a kind of scope."""
+        return ()
+
 
 class GlobalState(ParameterState):
     """Root parameter state; module children hang beneath it."""
@@ -683,8 +811,12 @@ class GlobalState(ParameterState):
         com_object_instance_refs: list[ComObjectInstanceRef] | None = None,
         app_id: str | None = None,
         padded_ref_ids: Mapping[str, str] | None = None,
+        parameter_values: Mapping[str, str] | None = None,
     ) -> GlobalState:
         """Rebuild a GlobalState tree from saved project data.
+
+        ``parameter_values`` holds values by ref id as ``parameter_instance_refs`` do (after
+        them): a seeding with thousands of values needs no instance ref made for each.
 
         A module instance id is either qualified with the application id ``app_id`` or relative to
         it (``MD-1_M-1_MI-1``, as a ``.knxproj`` stores it); its state is keyed by the qualified id,
@@ -733,33 +865,37 @@ class GlobalState(ParameterState):
         # A value of a module instance the saved list lacks (created by a later edit) still belongs
         # to that instance, not to the application.
         known = {_qualified(mid, app_id) for mid in stored}
-        for pir in parameter_instance_refs or []:
-            if pir.value is None:
+        pairs: Iterable[tuple[str, str | None]] = (
+            parameter_values.items()
+            if parameter_instance_refs is None and parameter_values is not None
+            else [
+                *((pir.ref_id, pir.value) for pir in parameter_instance_refs or []),
+                *(parameter_values or {}).items(),
+            ]
+        )
+        for ref_id, value in pairs:
+            if value is None:
                 continue
-            match = _INSTANCE_IN_REF.search(
-                pir.ref_id
-            ) or _LEGACY_SUBMODULE_IN_REF.search(pir.ref_id)
-            if match is None or _qualified(match.group(1), app_id) in known:
+            match = _instance_in_ref(ref_id)
+            if match is None or _qualified(match[0], app_id) in known:
                 continue
-            known.add(_qualified(match.group(1), app_id))
-            add(match.group(1), match.group(2))
+            known.add(_qualified(match[0], app_id))
+            add(match[0], match[1])
         # The innermost instance a value is of: a submodule instance's id starts with that of
-        # its enclosing instance.
+        # its enclosing instance. With many instances, the parts of the value's ref id are
+        # looked up instead of every instance being searched for.
         by_length = sorted(stored.items(), key=lambda item: len(item[0]), reverse=True)
-        for pir in parameter_instance_refs or []:
-            if pir.value is None:
+        instances = _instance_ids(tuple(mid for mid, _ in by_length))
+        for ref_id, value in pairs:
+            if value is None:
                 continue
-            ref_id, value = pir.ref_id, pir.value
-            for mid, (ms, base) in by_length:
-                p = f"_{ref_id}_".find(f"_{mid}_")
-                if p != -1:
-                    app_prefix = ref_id[:p]
-                    suffix = ref_id[p + len(mid) :]
-                    ms.module_instance_id = app_prefix + mid
-                    put(ms, app_prefix + base + suffix, value)
-                    break
-            else:
+            owner = instances.owner(ref_id)
+            if owner is None:
                 put(root, ref_id, value)
+                continue
+            ms, base = stored[owner]
+            ms.module_instance_id, local = instances.place(ref_id, owner, base)
+            put(ms, local, value)
 
         for coir in com_object_instance_refs or []:
             root._com_obj_instance_refs[coir.ref_id] = coir
@@ -853,6 +989,15 @@ class ModuleState(ParameterState):
         arg = self.arguments.get(ref_id)
         return arg if isinstance(arg, ModuleNumericArg) else None
 
+    def _own_layout(self) -> tuple[object, ...]:
+        return (
+            self.module_instance_id,
+            self.ref_id,
+            tuple(self.arguments.items()),
+            tuple(self._arg_defaults.items()),
+            tuple(self.param_ref_bases.items()),
+        )
+
     def as_module_instance(self) -> tuple[str, str, dict[str, ModuleArg]]:
         instance_id = self.module_instance_id
         ref_id = (
@@ -863,6 +1008,9 @@ class ModuleState(ParameterState):
 
     def qualify(self, ref_id: str) -> str:
         return self._qualify(ref_id)
+
+    def scope_ids(self) -> tuple[object, ...]:
+        return (self.module_instance_id, self.ref_id, self.scopes())
 
     def find_scope_for_qualified(
         self, ref_id: str
@@ -887,10 +1035,7 @@ class ModuleState(ParameterState):
         base = self._local_base()
         if base is not None and ref_id.startswith(base + "_"):
             return self.module_instance_id + ref_id[len(base) :]
-        i, n = 0, min(len(self.module_instance_id), len(ref_id))
-        while i < n and self.module_instance_id[i] == ref_id[i]:
-            i += 1
-        return self.module_instance_id + ref_id[i - 1 :]
+        return _qualified_in(self.module_instance_id, ref_id)
 
     def active_param_refs(self) -> set[str]:
         result = {self.qualify(ref) for ref in self._active_param_refs}

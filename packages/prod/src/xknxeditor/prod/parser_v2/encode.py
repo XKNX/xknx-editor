@@ -7,10 +7,11 @@ import logging
 import math
 import re
 import struct
-from collections.abc import Callable, Container, Iterable, Iterator, Mapping
+from collections.abc import Callable, Container, Iterable, Iterator, Mapping, Sequence
+from functools import lru_cache
 from typing import NamedTuple
 
-from xknxeditor.namespaces.intermediate import ApplicationProgram
+from xknxeditor.namespaces.intermediate import ApplicationProgram, ModuleDef
 from xknxeditor.namespaces.intermediate.application_program_static_t_parameters_parameter import (
     ApplicationProgramStaticParametersParameter,
 )
@@ -614,6 +615,8 @@ def _raw_data_written_octets(str_value: str, max_size: int) -> int | None:
 _REF_NUMBER = re.compile(r"_R-(\d+)$")
 
 
+# Asked for every active ref of every module instance at each encoding and decoding.
+@lru_cache(maxsize=1 << 17)
 def parameter_ref_order(ref_id: str, tag: str | None) -> tuple[int, int]:
     """Where a ParameterRef comes when a download applies a parameter's refs one after the
     other (the last active one sets the value): the refs without a numeric ``Tag`` by their
@@ -711,7 +714,7 @@ def download_param_values(
         or app.static.parameters is None
     ):
         return values
-    referenced = {ref.ref_id for ref in idx.parameter_refs.values()}
+    referenced = _referenced_parameters(idx)
     for item in app.static.parameters.choice:
         if isinstance(item, ApplicationProgramStaticParametersParameter):
             if item.id in referenced and item.id not in values:
@@ -959,9 +962,10 @@ def _collect_scope_writes(
     behavior: DownloadBehavior | None = None,
     keep: bool = False,
     active_unions: bool = False,
-) -> None:
+) -> tuple[tuple[MemWrite, ...], tuple[PropWrite, ...]]:
     """Collect one module instance scope's writes (not its children), resolved to
-    that instance's offsets.
+    that instance's offsets; returns the writes added to ``out`` (the same tuples for a scope
+    that writes alike, see below).
 
     Without ``behavior`` every parameter is collected with its instance value or default;
     with ``active_unions`` a union also takes the members whose ParameterRef is active,
@@ -969,15 +973,24 @@ def _collect_scope_writes(
     With ``behavior``, the instance's active ParameterRefs give the values, and inactive
     parameters are handled as the application's ``DownloadInvisibleParameters`` asks;
     ``keep`` adds the ranges of inactive parameters under ``Background``.
+
+    The writes depend on the module definition, the values taken, the ranks of the active
+    refs and the instance's numeric arguments alone: what a scope with the same ones wrote
+    before is taken again (a recovery evaluates the instances again and again with the same
+    values).
     """
     if ms.ref_id is None:
-        return
+        return (), ()
     md = idx.module_defs.get(ms.ref_id)
     if md is None or md.static.parameters is None:
-        return
+        return (), ()
     refs = md.static.parameter_refs.parameter_ref if md.static.parameter_refs else []
     active = ms.local_active_param_refs()
     ranks = last_active_ref_ranks(refs, active)
+    arguments = tuple(
+        (name, arg.value if isinstance(arg, ModuleNumericArg) else None)
+        for name, arg in ms.arguments.items()
+    )
     if behavior is None:
         instance_overrides = _build_instance_overrides(ms, idx)
         if active_unions and md.static.parameter_refs is not None:
@@ -990,14 +1003,26 @@ def _collect_scope_writes(
                     value = ms.get(ref.id)
                     if value is not None:
                         instance_overrides[ref.ref_id] = value
+        key: tuple[object, ...] = (
+            id(md),
+            None,
+            False,
+            tuple(instance_overrides.items()),
+            frozenset(ranks.items()),
+            arguments,
+        )
+        cached = _SCOPE_WRITES.get(key)
+        if cached is not None and cached[0] is md:
+            return _added(out, cached[1], cached[2])
+        own = Writes()
         for item in md.static.parameters.choice:
             if isinstance(item, ModuleDefStaticParametersParameter):
-                _collect_param(item, instance_overrides, ms, out)
+                _collect_param(item, instance_overrides, ms, own)
             else:
                 assert isinstance(item, ModuleDefStaticParametersUnion)
-                _collect_union(item, instance_overrides, ms, out, ranks=ranks)
-        return
-    referenced = {ref.ref_id for ref in refs}
+                _collect_union(item, instance_overrides, ms, own, ranks=ranks)
+        return _added(out, *_keep_scope_writes(key, md, own))
+    referenced = _referenced_by(md)
     # A parameter with several active refs: the download writes each in turn, the last in
     # parameter_ref_order sets the value (as for the application's own parameters).
     values: dict[str, str] = {}
@@ -1008,29 +1033,84 @@ def _collect_scope_writes(
             value = ms.get(ref.id)
             if value is not None:
                 values[ref.ref_id] = value
-    active_params = set(values)
-    items = sorted(
-        md.static.parameters.choice,
-        key=lambda item: not _has_active_param(item, active_params),
+    key = (
+        id(md),
+        behavior,
+        keep,
+        tuple(values.items()),
+        frozenset(ranks.items()),
+        arguments,
     )
+    cached = _SCOPE_WRITES.get(key)
+    if cached is not None and cached[0] is md:
+        return _added(out, cached[1], cached[2])
+    own = Writes()
+    active_params = set(values)
+    items = _active_first(md.static.parameters.choice, active_params)
     defaults = behavior is DownloadBehavior.DEFAULT_VALUE
     for item in items:
         if isinstance(item, ModuleDefStaticParametersParameter):
             if item.id in values:
-                _collect_param(item, values, ms, out)
+                _collect_param(item, values, ms, own)
             elif item.id in referenced and defaults:
-                _collect_param(item, {}, ms, out)
+                _collect_param(item, {}, ms, own)
             elif item.id in referenced and keep:
-                _collect_kept(item, ms, out)
+                _collect_kept(item, ms, own)
             continue
         assert isinstance(item, ModuleDefStaticParametersUnion)
         members = [up for up in item.parameter if up.id in referenced]
         if any(up.id in values for up in item.parameter):
-            _collect_union(item, values, ms, out, gated=True, ranks=ranks)
+            _collect_union(item, values, ms, own, gated=True, ranks=ranks)
         elif members and defaults:
-            _collect_union(item, {}, ms, out)
+            _collect_union(item, {}, ms, own)
         elif members and keep:
-            _collect_kept(item, ms, out, members)
+            _collect_kept(item, ms, own, members)
+    return _added(out, *_keep_scope_writes(key, md, own))
+
+
+def _added(
+    out: Writes, mem: tuple[MemWrite, ...], prop: tuple[PropWrite, ...]
+) -> tuple[tuple[MemWrite, ...], tuple[PropWrite, ...]]:
+    """``mem`` and ``prop`` added to ``out``, and returned."""
+    out.mem.extend(mem)
+    out.prop.extend(prop)
+    return mem, prop
+
+
+def _keep_scope_writes(
+    key: tuple[object, ...], md: object, own: Writes
+) -> tuple[tuple[MemWrite, ...], tuple[PropWrite, ...]]:
+    """The writes ``own`` of a module scope, kept for scopes that write alike (``key``)."""
+    mem, prop = tuple(own.mem), tuple(own.prop)
+    if len(_SCOPE_WRITES) >= 1024:
+        _SCOPE_WRITES.clear()
+    _SCOPE_WRITES[key] = (md, mem, prop)
+    return mem, prop
+
+
+# The writes of module scopes (see _collect_scope_writes), by the identity of the module
+# definition (held, so the identity stays its) and what the writes depend on.
+_SCOPE_WRITES: dict[
+    tuple[object, ...], tuple[object, tuple[MemWrite, ...], tuple[PropWrite, ...]]
+] = {}
+
+
+def _referenced_by(md: ModuleDef) -> frozenset[str]:
+    """The parameters the ParameterRefs of the module definition ``md`` refer to."""
+    found = _MODULE_REFERENCED.get(id(md))
+    if found is None or found[0] is not md:
+        container = md.static.parameter_refs
+        refs = container.parameter_ref if container is not None else []
+        if len(_MODULE_REFERENCED) >= 1024:
+            _MODULE_REFERENCED.clear()
+        found = _MODULE_REFERENCED[id(md)] = (
+            md,
+            frozenset(ref.ref_id for ref in refs),
+        )
+    return found[1]
+
+
+_MODULE_REFERENCED: dict[int, tuple[ModuleDef, frozenset[str]]] = {}
 
 
 def _collect_kept(
@@ -1086,10 +1166,11 @@ def collect_writes(
     s = app.static
     behavior = download_behavior(app)
     keep = inactive_ranges and behavior is DownloadBehavior.BACKGROUND
-    referenced = {ref.ref_id for ref in idx.parameter_refs.values()}
+    referenced = _referenced_parameters(idx)
+    active_refs = state.active_param_refs() if state is not None else set[str]()
     # Active union members over the same bits are written in ParameterRef order.
     ranks = (
-        last_active_ref_ranks(idx.parameter_refs.values(), state.active_param_refs())
+        last_active_ref_ranks(idx.parameter_refs.values(), active_refs)
         if state is not None
         else None
     )
@@ -1103,16 +1184,16 @@ def collect_writes(
         else None
     )
     if s.parameters is not None:
-        items = list(s.parameters.choice)
+        items = s.parameters.choice
         if state is not None:
             # Values of active ParameterRefs come first and the defaults of inactive
             # parameters after them, so a default wins where the two share bits.
             active_params = {
                 idx.parameter_refs[ref].ref_id
-                for ref in state.active_param_refs()
+                for ref in active_refs
                 if ref in idx.parameter_refs
             }
-            items.sort(key=lambda item: not _has_active_param(item, active_params))
+            items = _active_first(items, active_params)
         for item in items:
             if isinstance(item, ApplicationProgramStaticParametersParameter):
                 if active_ids is not None and item.id not in active_ids:
@@ -1140,20 +1221,54 @@ def collect_writes(
     return out
 
 
-def _has_active_param(
-    item: ApplicationProgramStaticParametersParameter
-    | ApplicationProgramStaticParametersUnion
-    | ModuleDefStaticParametersParameter
-    | ModuleDefStaticParametersUnion,
-    active_params: set[str],
-) -> bool:
+def _referenced_parameters(idx: ApplicationIndexer) -> frozenset[str]:
+    """The parameters some ParameterRef of the application refers to (of the last few
+    indexers: every encoding and decoding asks)."""
+    for n, (seen, found) in enumerate(_REFERENCED):
+        if seen is idx:
+            _REFERENCED.insert(0, _REFERENCED.pop(n))
+            return found
+    found = frozenset(ref.ref_id for ref in idx.parameter_refs.values())
+    _REFERENCED.insert(0, (idx, found))
+    del _REFERENCED[4:]
+    return found
+
+
+_REFERENCED: list[tuple[ApplicationIndexer, frozenset[str]]] = []
+
+
+def _active_first[T](items: list[T], active_params: set[str]) -> list[T]:
+    """The parameters and unions ``items`` of a static section, those with a parameter in
+    ``active_params`` first (a union with one of its members there), each part in its order:
+    what a stable sort by that gives, with the parameters of each item looked up once."""
+    cached = _ITEM_PARAMETERS.get(id(items))
+    if cached is None or cached[0] is not items:
+        if len(_ITEM_PARAMETERS) >= 64:
+            _ITEM_PARAMETERS.clear()
+        cached = _ITEM_PARAMETERS[id(items)] = (
+            items,
+            tuple(frozenset(_item_parameters(item)) for item in items),
+        )
+    first: list[T] = []
+    rest: list[T] = []
+    for item, own in zip(items, cached[1], strict=True):
+        (rest if active_params.isdisjoint(own) else first).append(item)
+    return first + rest
+
+
+def _item_parameters(item: object) -> tuple[str, ...]:
+    """The parameter ids of a static section's parameter or union (its members)."""
     if isinstance(
         item,
         ApplicationProgramStaticParametersParameter
         | ModuleDefStaticParametersParameter,
     ):
-        return item.id in active_params
-    return any(up.id in active_params for up in item.parameter)
+        return (item.id,)
+    return tuple(up.id for up in getattr(item, "parameter", []))
+
+
+# The parameters of the items of the last static sections sorted (see _active_first).
+_ITEM_PARAMETERS: dict[int, tuple[Sequence[object], tuple[frozenset[str], ...]]] = {}
 
 
 def _written_width_in_bit(tc: object, value: str) -> int | None:
@@ -1565,6 +1680,49 @@ def decodable_type(tc: object, size_in_bit: int) -> bool:
     return False
 
 
+def _restriction_values(
+    tc: ParameterTypeTypeRestriction, size_in_bit: int, little_endian: bool
+) -> tuple[Mapping[int, str], Exception | None]:
+    """The enumeration value each raw field value of a restricted type decodes to: the first
+    entry that encodes to it as _encode_value does (with the BinaryValue of the first entry of
+    each value); and what an entry that cannot be encoded raises (the entries before it are
+    in the table). Made once per type, size and byte order: a recovery decodes the same
+    enumerations (a few hundred icons in every module instance) again and again."""
+    key = (id(tc), size_in_bit, little_endian)
+    cached = _RESTRICTION_VALUES.get(key)
+    if cached is not None and cached[0] is tc:
+        return cached[1], cached[2]
+    binary = _first_binary_values(tc)
+    values: dict[int, str] = {}
+    failure: Exception | None = None
+    for enumeration in tc.enumeration:
+        try:
+            str_value = validate_parameter_value(str(enumeration.value), tc)
+        except ValueError:
+            continue
+        try:
+            encoded = _encode_restriction(
+                str_value, size_in_bit, tc, little_endian, binary=binary
+            )
+        except Exception as exc:  # raised again where it was raised before
+            failure = exc
+            break
+        if encoded is not None:
+            values.setdefault(encoded, str(enumeration.value))
+    if len(_RESTRICTION_VALUES) >= 4096:
+        _RESTRICTION_VALUES.clear()
+    _RESTRICTION_VALUES[key] = (tc, values, failure)
+    return values, failure
+
+
+# The raw values of the restricted types decoded so far (see _restriction_values), by the
+# identity of the type (held, so the identity stays its), the size and the byte order.
+_RESTRICTION_VALUES: dict[
+    tuple[int, int, bool],
+    tuple[ParameterTypeTypeRestriction, Mapping[int, str], Exception | None],
+] = {}
+
+
 def _decode_value(
     raw: int,
     size_in_bit: int,
@@ -1589,21 +1747,12 @@ def _decode_value(
     is the codec of ``Text`` parameters.
     """
     if isinstance(tc, ParameterTypeTypeRestriction):
-        # Each entry encoded as _encode_value does, with the BinaryValue of the first entry
-        # of each value looked up once (not searched again per entry: an enumeration of a
-        # few hundred icons is decoded for every module instance).
-        binary = _first_binary_values(tc)
-        for enumeration in tc.enumeration:
-            try:
-                str_value = validate_parameter_value(str(enumeration.value), tc)
-            except ValueError:
-                continue
-            encoded = _encode_restriction(
-                str_value, size_in_bit, tc, little_endian, binary=binary
-            )
-            if encoded is not None and encoded == raw:
-                return str(enumeration.value)
-        return None
+        values, failure = _restriction_values(tc, size_in_bit, little_endian)
+        value = values.get(raw)
+        if value is None and failure is not None:
+            # An entry after the ones that encode to this value cannot be encoded.
+            raise failure
+        return value
     if isinstance(tc, ParameterTypeTypeNumber):
         logical = _apply_byte_order(raw, size_in_bit, little_endian) or 0
         if _is_signed_number(tc) and logical >= (1 << (size_in_bit - 1)):
@@ -1667,12 +1816,27 @@ def _decode_value(
     return None
 
 
+def decode_writes(
+    app: ApplicationProgram, idx: ApplicationIndexer, state: GlobalState | None
+) -> Writes:
+    """The fields :func:`decode_memory_parameters` and :func:`decode_property_parameters` read.
+
+    Resolving against the evaluated state (not empty overrides) is what makes union members
+    appear in the write set: a union only contributes its active alternative once the parameter
+    values are resolved. Only the field layout (segment/offset/size) is used for decoding; the
+    resolved values themselves are irrelevant here."""
+    overrides = resolve_param_values(idx, state) if state is not None else {}
+    return collect_writes(app, idx, overrides, state)
+
+
 def decode_memory_parameters(
     app: ApplicationProgram,
     idx: ApplicationIndexer,
     segments: Mapping[str, bytes],
     state: GlobalState | None = None,
     text_encoding: str | None = None,
+    *,
+    writes: Writes | None = None,
 ) -> dict[str, str | None]:
     """Best-effort inverse of :func:`encode_to_memory` for recovering parameter values.
 
@@ -1688,16 +1852,14 @@ def decode_memory_parameters(
     instances and the values could not be mapped back to instance-qualified project
     references. Recovering those correctly needs the resolved per-instance layout
     and is left to a caller that has it. Property-backed parameters are omitted too.
+    ``writes``: :func:`decode_writes` of ``state``, when the caller has them already.
     """
     little_endian = _program_little_endian(app)
     text_encoding = text_encoding or text_parameter_encoding(app)
     result: dict[str, str | None] = {}
-    # Resolving against the evaluated state (not empty overrides) is what makes union
-    # members appear in the write set: a union only contributes its active alternative
-    # once the parameter values are resolved. Only the field layout (segment/offset/
-    # size) is used for decoding; the resolved values themselves are irrelevant here.
-    overrides = resolve_param_values(idx, state) if state is not None else {}
-    for w in collect_writes(app, idx, overrides, state).mem:
+    if writes is None:
+        writes = decode_writes(app, idx, state)
+    for w in writes.mem:
         data = segments.get(w.seg_id)
         if data is None:
             continue
@@ -1751,6 +1913,8 @@ def decode_property_parameters(
     properties: Mapping[TypedPropertyKey, bytes],
     state: GlobalState | None = None,
     text_encoding: str | None = None,
+    *,
+    writes: Writes | None = None,
 ) -> dict[str, str | None]:
     """Best-effort inverse of :func:`encode_to_typed_properties` for property parameters.
 
@@ -1758,13 +1922,14 @@ def decode_property_parameters(
     property value bytes read off the device (see :func:`property_data`). Decodes each
     top-level static property-backed parameter's field from those bytes. Fields that do
     not fit the read bytes are skipped. Module-instanced parameters are omitted for the
-    same reason as :func:`decode_memory_parameters`.
+    same reason as :func:`decode_memory_parameters`. ``writes`` as there.
     """
     little_endian = _program_little_endian(app)
     text_encoding = text_encoding or text_parameter_encoding(app)
     result: dict[str, str | None] = {}
-    overrides = resolve_param_values(idx, state) if state is not None else {}
-    for w in collect_writes(app, idx, overrides, state).prop:
+    if writes is None:
+        writes = decode_writes(app, idx, state)
+    for w in writes.prop:
         data = property_data(properties, w)
         if data is None:
             continue
@@ -1817,6 +1982,24 @@ def _decode_field(
     )
 
 
+def _refs_of_parameters(idx: ApplicationIndexer) -> Mapping[str, list[str]]:
+    """The ParameterRef ids of each parameter id, in the indexer's order (of the last few
+    indexers: a recovery decodes the module instances again and again)."""
+    for n, (seen, refs) in enumerate(_PARAMETER_REFS):
+        if seen is idx:
+            _PARAMETER_REFS.insert(0, _PARAMETER_REFS.pop(n))
+            return refs
+    found: dict[str, list[str]] = {}
+    for ref_id, ref in idx.parameter_refs.items():
+        found.setdefault(ref.ref_id, []).append(ref_id)
+    _PARAMETER_REFS.insert(0, (idx, found))
+    del _PARAMETER_REFS[4:]
+    return found
+
+
+_PARAMETER_REFS: list[tuple[ApplicationIndexer, Mapping[str, list[str]]]] = []
+
+
 def decode_module_parameters(
     app: ApplicationProgram,
     idx: ApplicationIndexer,
@@ -1835,16 +2018,47 @@ def decode_module_parameters(
     """
     little_endian = _program_little_endian(app)
     text_encoding = text_encoding or text_parameter_encoding(app)
-    param_to_refs: dict[str, list[str]] = {}
-    for ref_id, ref in idx.parameter_refs.items():
-        param_to_refs.setdefault(ref.ref_id, []).append(ref_id)
+    param_to_refs = _refs_of_parameters(idx)
 
     result: dict[str, str | None] = {}
+    # The bytes read, by the identity of each value (held below, so the identities stay
+    # theirs); None when one can change (not bytes): then nothing is kept.
+    read = _identities(segments, properties)
 
     def visit(scope: ModuleState) -> None:
-        writes = Writes()
-        _collect_scope_writes(scope, idx, writes, active_unions=True)
-        for w in writes.mem:
+        mem, prop = _collect_scope_writes(scope, idx, Writes(), active_unions=True)
+        if read is None:
+            result.update(decode_scope(scope, mem, prop))
+        else:
+            # The same writes of the same instance read from the same bytes decode alike.
+            key = (
+                id(mem),
+                id(prop),
+                scope.module_instance_id,
+                read[0],
+                little_endian,
+                text_encoding,
+            )
+            cached = _SCOPE_DECODED.get(key)
+            if cached is not None and cached[0] is mem and cached[1] is prop:
+                result.update(cached[3])
+            else:
+                decoded = decode_scope(scope, mem, prop)
+                if len(_SCOPE_DECODED) >= 1024:
+                    _SCOPE_DECODED.clear()
+                _SCOPE_DECODED[key] = (mem, prop, read[1], decoded)
+                result.update(decoded)
+        for child in scope.module_children():
+            visit(child)
+
+    def decode_scope(
+        scope: ModuleState,
+        mem: tuple[MemWrite, ...],
+        prop: tuple[PropWrite, ...],
+    ) -> dict[str, str | None]:
+        """The values of the instance ``scope`` its writes ``mem`` and ``prop`` read."""
+        result: dict[str, str | None] = {}
+        for w in mem:
             data = segments.get(w.seg_id)
             if data is not None:
                 value = _decode_field(
@@ -1857,7 +2071,7 @@ def decode_module_parameters(
                 )
                 for ref_id in param_to_refs.get(w.param_id, []):
                     result[scope.qualify(ref_id)] = value
-        for w in writes.prop:
+        for w in prop:
             data = property_data(properties, w)
             if data is not None:
                 value = _decode_field(
@@ -1870,12 +2084,41 @@ def decode_module_parameters(
                 )
                 for ref_id in param_to_refs.get(w.param_id, []):
                     result[scope.qualify(ref_id)] = value
-        for child in scope.module_children():
-            visit(child)
+        return result
 
     for child in state.module_children():
         visit(child)
     return result
+
+
+def _identities(
+    segments: Mapping[str, bytes], properties: Mapping[TypedPropertyKey, bytes]
+) -> tuple[tuple[object, ...], tuple[bytes, ...]] | None:
+    """The keys of ``segments`` and ``properties`` with the identity of each value, and the
+    values; None when a value is no ``bytes`` (it can change)."""
+    values = (*segments.values(), *properties.values())
+    if not all(type(value) is bytes for value in values):
+        return None
+    return (
+        (
+            tuple((key, id(value)) for key, value in segments.items()),
+            tuple((key, id(value)) for key, value in properties.items()),
+        ),
+        values,
+    )
+
+
+# What the module instances decoded (see decode_module_parameters), by the identity of their
+# writes and of the bytes they read (all held, so the identities stay theirs).
+_SCOPE_DECODED: dict[
+    tuple[object, ...],
+    tuple[
+        tuple[MemWrite, ...],
+        tuple[PropWrite, ...],
+        tuple[bytes, ...],
+        dict[str, str | None],
+    ],
+] = {}
 
 
 def encode_to_properties(

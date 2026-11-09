@@ -249,13 +249,57 @@ def _compute(
     trial: Mapping[str, str] | None = None,
 ) -> dict[str, Any] | None:
     """What ``calc`` computes in ``direction``, by output alias (None: no code for it), with the
-    values of ``trial`` (by local ref) in place of the current ones."""
+    values of ``trial`` (by local ref) in place of the current ones.
+
+    The code sees nothing but the values of its parameters (and the product's script and
+    messages), so what it computed from the same values is computed once per application (with
+    the script environment of the system, ``env`` None); a search of a device's settings runs the
+    same calculations on the same values again and again."""
 
     def get(ref_id: str) -> str | None:
         if trial is not None and ref_id in trial:
             return trial[ref_id]
         return scope.get(ref_id)
 
+    ins, outs = _sides(calc, direction)
+    if env is not None:
+        return _compute_now(idx, calc, direction, scope, env, abort, get)
+    key = (
+        _COMPUTED,
+        calc.id,
+        direction,
+        scope.locale,
+        tuple(get(pr.ref_id) for pr in ins),
+        tuple(get(pr.ref_id) for pr in outs),
+    )
+    results = idx.calculation_results
+    found = results.get(key, _NOT_COMPUTED)
+    if found is not _NOT_COMPUTED:
+        cached = cast("dict[str, Any] | None", found)
+        return dict(cached) if cached is not None else None
+    computed = _compute_now(idx, calc, direction, scope, env, abort, get)
+    if len(results) >= _MAX_RESULTS:
+        results.clear()
+    results[key] = dict(computed) if computed is not None else None
+    return computed
+
+
+# Marks the results of _compute among the calculation results an indexer keeps, and stands
+# for one not computed yet.
+_COMPUTED = "_compute"
+_NOT_COMPUTED = object()
+
+
+def _compute_now(
+    idx: ApplicationIndexer,
+    calc: ParameterCalculation,
+    direction: str,
+    scope: CalculationScope,
+    env: JScriptEnv | None,
+    abort: AbortToken | None,
+    get: Callable[[str], str | None],
+) -> dict[str, Any] | None:
+    """:func:`_compute`, run: the values of the parameters read with ``get``."""
     lr = direction == "LR"
     ins, outs = _sides(calc, direction)
     if calc.language == ParameterCalculationLanguage.VBSCRIPT:

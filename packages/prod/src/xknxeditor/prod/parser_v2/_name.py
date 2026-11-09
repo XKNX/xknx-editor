@@ -3,10 +3,14 @@ from __future__ import annotations
 import contextlib
 import re
 from collections.abc import Mapping
+from functools import lru_cache
+from typing import cast
 
 _NAME_PLACEHOLDER = re.compile(r"\{\{0(?::[^{}]*)?\}\}")
 _ARG_PLACEHOLDER = re.compile(r"\{\{([^{}]+)\}\}")
 _MODIFIER = re.compile(r"\b(Format|Offset)\s*=\s*(\S+)")
+_LEFTOVER = re.compile(r"\{\{[^{}]+\}\}")
+_WHITESPACE = re.compile(r"\s+")
 
 
 def apply_text_args(text: str, text_args: Mapping[str, str]) -> str:
@@ -24,14 +28,34 @@ def apply_text_args(text: str, text_args: Mapping[str, str]) -> str:
     The placeholder regex refuses to match across nested braces, so nested forms like
     ``{{0:Channel {{ChannelNum}}}}`` are resolved inside-out across iterations.
     """
+    if "{{" not in text:
+        # No placeholder (most texts): every evaluation of a large application asks for
+        # thousands of them.
+        return text
+    # The text depends on the arguments it looks up alone: what it gave with the same ones
+    # (each module instance of each evaluation fills the same texts again) is given again.
+    known = _APPLIED.get(text)
+    if known is not None:
+        for names, results in known.items():
+            result = results.get(tuple(_argument(text_args, name) for name in names))
+            if result is not None:
+                return result
+    looked: dict[str, tuple[bool, str | None]] = {}
+
+    def lookup(name: str) -> tuple[bool, str | None]:
+        answer = looked.get(name)
+        if answer is None:
+            answer = looked[name] = _argument(text_args, name)
+        return answer
 
     def replace(match: re.Match[str]) -> str:
         inner = match.group(1).strip()
         head, _, rest = inner.partition(" ")
         name, colon, _ = head.partition(":")
-        if name not in text_args:
+        present, found = lookup(name)
+        if not present:
             return match.group(0)
-        value = text_args[name]
+        value = cast(str, found)
         if not value and colon:
             return inner.partition(":")[2]
         fmt: str | None = None
@@ -54,14 +78,37 @@ def apply_text_args(text: str, text_args: Mapping[str, str]) -> str:
 
     # Iterate until the string stops changing so inner placeholders surface after each pass.
     # Bound the loop against pathological inputs.
+    original = text
     for _ in range(16):
         new_text = _ARG_PLACEHOLDER.sub(replace, text)
         if new_text == text:
             break
         text = new_text
+    if len(_APPLIED) >= 1 << 14:
+        _APPLIED.clear()
+    results = _APPLIED.setdefault(original, {}).setdefault(tuple(looked), {})
+    if len(results) >= 1 << 12:
+        results.clear()
+    results[tuple(looked.values())] = text
     return text
 
 
+def _argument(text_args: Mapping[str, str], name: str) -> tuple[bool, str | None]:
+    """Whether ``text_args`` has ``name``, and its value."""
+    if name not in text_args:
+        return False, None
+    return True, text_args[name]
+
+
+# What texts with placeholders gave: by the names of the arguments looked up, and what each
+# was (whether there, its value).
+_APPLIED: dict[
+    str, dict[tuple[str, ...], dict[tuple[tuple[bool, str | None], ...], str]]
+] = {}
+
+
+# Every evaluation fills the same few texts with the same values again (tens of thousands).
+@lru_cache(maxsize=1 << 16)
 def fill_name(template: str, name_value: str, *, keep_whitespace: bool = False) -> str:
     """Resolve {{0}}/{{0:fallback}} to name_value (or its fallback) and drop leftover {{...}}.
 
@@ -76,8 +123,10 @@ def fill_name(template: str, name_value: str, *, keep_whitespace: bool = False) 
         colon = s.find(":")
         return s[colon + 1 : -2] if colon != -1 else ""
 
-    text = _NAME_PLACEHOLDER.sub(replace, template)
-    text = re.sub(r"\{\{[^{}]+\}\}", "", text)
+    text = template
+    if "{{" in text:
+        text = _NAME_PLACEHOLDER.sub(replace, text)
+        text = _LEFTOVER.sub("", text)
     if keep_whitespace:
         return text.rstrip()
-    return re.sub(r"\s+", " ", text).strip()
+    return _WHITESPACE.sub(" ", text).strip()
