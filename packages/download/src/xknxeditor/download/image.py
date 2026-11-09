@@ -541,8 +541,10 @@ class DownloadImage:
         *,
         include_initialized: bool = False,
         partial: bool = False,
+        user: bool = False,
     ) -> list[tuple[int, bytes]] | None:
-        """Return the ``(address, data)`` runs to write within ``[address, size)``.
+        """Return the ``(address, data)`` runs to write within ``[address, size)``, in the
+        user memory (``user_segments``) with ``user``.
 
         Collects the masked runs of every segment that *overlaps* the range,
         clipped to it (see :meth:`MemorySegment.masked_runs`; ``partial`` for a
@@ -573,7 +575,8 @@ class DownloadImage:
         data = bytearray(size)
         written = bytearray(size)
         covered = False
-        for segment in sorted(self.segments, key=lambda s: s.address):
+        source = self.user_segments if user else self.segments
+        for segment in sorted(source, key=lambda s: s.address):
             if segment.address >= end or segment.end <= address:
                 continue  # no overlap with the requested range
             covered = True
@@ -587,9 +590,13 @@ class DownloadImage:
                         lo - run_address : hi - run_address
                     ]
                     written[lo - address : hi - address] = b"\xff" * (hi - lo)
-        if not covered and any(
-            start <= address and end <= start + length
-            for start, length in self.mask_memory
+        if (
+            not covered
+            and not user
+            and any(
+                start <= address and end <= start + length
+                for start, length in self.mask_memory
+            )
         ):
             # The mask's own memory is part of every image, with nothing to write.
             covered = True

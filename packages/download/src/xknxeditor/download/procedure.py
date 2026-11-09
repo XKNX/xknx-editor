@@ -119,7 +119,7 @@ from .group_communication import materialize_group_communication_controls
 from .image import merge_device_bits
 from .ip_config import IP_PARAMETER_OBJECT, IP_PROPERTY_WIDTHS
 from .merge import SECOND_PROGRAM_LSM, device_mask_version, resolve_download_controls
-from .preflight import PreflightReport, PropertyDiff, SegmentDiff
+from .preflight import PreflightReport, PropertyDiff, SegmentDiff, memory_key
 from .programmer import (
     DEFAULT_MAX_APDU_LENGTH,
     FREE_ACCESS_KEY,
@@ -610,12 +610,12 @@ class LoadProcedureRunner:
         # The properties and memory ranges a preflight previews as procedure steps (see
         # _procedure_steps and _memory_procedure_steps).
         self._procedure_steps: set[_PropertyKey] = set()
-        self._memory_steps: set[tuple[int, int]] = set()
+        self._memory_steps: set[tuple[bool, int, int]] = set()
         # What a preflight left unwritten so far: (object index, PID) of properties and
-        # [start, end) ranges of memory. A later compare there checks the device's reaction
-        # to the write, which a preview cannot see.
+        # (user memory, start, end) ranges of memory. A later compare there checks the
+        # device's reaction to the write, which a preview cannot see.
         self._preview_properties: set[tuple[int, int]] = set()
-        self._preview_memory: list[tuple[int, int]] = []
+        self._preview_memory: list[tuple[bool, int, int]] = []
         # What the preview's first compare of each property element range expected (see
         # _expects_a_change).
         self._preview_compares: dict[
@@ -833,6 +833,7 @@ class LoadProcedureRunner:
             size,
             include_initialized=include_initialized,
             partial=not self._writes_seed(),
+            user=space is LdCtrlMemAddrSpace.USER,
         )
         if (
             space is LdCtrlMemAddrSpace.LC_FILTER
@@ -1458,20 +1459,23 @@ class LoadProcedureRunner:
         if isinstance(control, LdCtrlLoadImageMem):
             # LoadImageMem reads device memory into the image (read-back /
             # compare), it does not write.
-            _require_standard(control.address_space)
             programmer = await self._bus()
             self._capture_memory(
                 control.address_space,
                 control.address,
-                await programmer.read_memory(control.address, control.size),
+                await programmer.read_memory(
+                    control.address, control.size, user=_user_memory(control)
+                ),
             )
             return
         if isinstance(control, LdCtrlCompareMem):
-            _require_standard(control.address_space)
             await self._polled_compare(
                 control,
                 lambda: self._compare_mem(
-                    control.address, self._memory_compare_data(control), control.mask
+                    control.address,
+                    self._memory_compare_data(control),
+                    control.mask,
+                    user=_user_memory(control),
                 ),
             )
             return
@@ -1614,9 +1618,9 @@ class LoadProcedureRunner:
     async def _write_mem(self, control: LdCtrlWriteMem) -> None:
         """Write a WriteMem control to memory.
 
-        Supplied and captured image bytes overlay inline defaults within Size.
+        Supplied and captured image bytes overlay inline defaults within Size. A write in
+        the user memory (``AddressSpace="User"``) takes the A_UserMemory services.
         """
-        _require_standard(control.address_space)
         programmer = await self._memory_programmer()
         runs = self._memory_write_runs(control)
         if runs is None:
@@ -1626,13 +1630,16 @@ class LoadProcedureRunner:
             )
         verify = self._direct_memory_verify(control)
         logger.debug(
-            "write_mem image-backed: addr=%#06x size=%d runs=%d verify=%s",
+            "write_mem image-backed: space=%s addr=%#06x size=%d runs=%d verify=%s",
+            control.address_space.value,
             control.address,
             control.size,
             len(runs),
             verify,
         )
-        await self._write_memory_runs(programmer, runs, verify=verify)
+        await self._write_memory_runs(
+            programmer, runs, verify=verify, user=_user_memory(control)
+        )
 
     async def _write_memory_runs(
         self,
@@ -1640,22 +1647,29 @@ class LoadProcedureRunner:
         runs: list[tuple[int, bytes]],
         *,
         verify: bool,
+        user: bool = False,
     ) -> None:
         """Write the runs of one WriteMem or segment allocation. A verified write compares
         the device first and writes only what differs (``EnableOptimisticWrite``, on unless
         the procedure turns it off), except where the device verifies its memory writes
         itself; once a run turns out mostly different, it and the runs after it are written
-        whole."""
+        whole. ``user``: the runs are in the user memory (A_UserMemory services), where the
+        image keeps no octets of only some bits."""
         optimistic = (
             verify and self._enable_optimistic_write and not self._uses_auto_verify()
         )
         with self._reporting_memory(programmer, runs) as run_done:
             for address, data in runs:
-                data = await self._with_device_bits(programmer, address, data)
+                if not user:
+                    data = await self._with_device_bits(programmer, address, data)
                 if optimistic:
-                    optimistic = await programmer.write_memory_optimistic(address, data)
+                    optimistic = await programmer.write_memory_optimistic(
+                        address, data, user=user
+                    )
                 else:
-                    await programmer.write_memory(address, data, verify=verify)
+                    await programmer.write_memory(
+                        address, data, verify=verify, user=user
+                    )
                 run_done(len(data))
 
     async def _with_device_bits(
@@ -1892,10 +1906,15 @@ class LoadProcedureRunner:
             await asyncio.sleep((control.retry_interval or 0) / 1000)
 
     async def _compare_mem(
-        self, address: int, expected: bytes | None, mask: bytes | None = None
+        self,
+        address: int,
+        expected: bytes | None,
+        mask: bytes | None = None,
+        *,
+        user: bool = False,
     ) -> None:
         """Read memory and compare it against expected data (mask-aware, like _compare_prop);
-        ``None``: there is nothing to compare."""
+        ``None``: there is nothing to compare. ``user``: in the user memory."""
         if expected is None:
             logger.info(
                 "download: %s compares memory %#06x without data to compare; not checked",
@@ -1904,10 +1923,11 @@ class LoadProcedureRunner:
             )
             return
         programmer = await self._bus()
-        read_back = await programmer.read_memory(address, len(expected))
+        read_back = await programmer.read_memory(address, len(expected), user=user)
         matched = _bytes_match(read_back, expected, mask, len(expected))
         logger.debug(
-            "compare_mem: addr=%#06x len=%d masked=%s -> %s",
+            "compare_mem: user=%s addr=%#06x len=%d masked=%s -> %s",
+            user,
             address,
             len(expected),
             mask is not None,
@@ -1915,7 +1935,7 @@ class LoadProcedureRunner:
         )
         if not matched:
             raise CompareMismatch(
-                f"memory compare failed at {address:#06x}: "
+                f"{'user ' if user else ''}memory compare failed at {address:#06x}: "
                 f"expected {expected.hex()} read {read_back.hex()}"
             )
 
@@ -2340,6 +2360,11 @@ class LoadProcedureRunner:
         if factory is None:
             return []
         relative = isinstance(control, LdCtrlWriteRelMem)
+        location = (
+            FactoryLocation.USER_MEMORY
+            if not relative and _user_memory(control)
+            else FactoryLocation.MEMORY
+        )
         found: list[tuple[int, bytes]] = []
         for segment in factory.segments:
             if segment.data is None:
@@ -2347,7 +2372,7 @@ class LoadProcedureRunner:
             if relative:
                 if index is None or not self._factory_relative_hit(segment, index):
                     continue
-            elif segment.location is not FactoryLocation.MEMORY:
+            elif segment.location is not location:
                 continue
             kind = (
                 _FACTORY_TABLE
@@ -2455,18 +2480,23 @@ class LoadProcedureRunner:
         programmer = await self._bus()
         return await programmer.locate_object(target[0], target[1] - 1)
 
-    def _preview_wrote_memory(self, address: int, size: int) -> bool:
-        """Whether the preflight left a write into ``size`` bytes at ``address`` out before, so a
-        compare there is not checked (see :meth:`preflight`)."""
+    def _preview_wrote_memory(
+        self, address: int, size: int, *, user: bool = False
+    ) -> bool:
+        """Whether the preflight left a write into ``size`` bytes at ``address`` (of the user
+        memory with ``user``) out before, so a compare there is not checked (see
+        :meth:`preflight`)."""
         end = address + size
         if not any(
-            start < end and address < stop for start, stop in self._preview_memory
+            space == user and start < end and address < stop
+            for space, start, stop in self._preview_memory
         ):
             return False
         logger.info(
-            "preflight: %s compares memory %#06x..%#06x after a write the preview left out; "
-            "not checked",
+            "preflight: %s compares %smemory %#06x..%#06x after a write the preview left "
+            "out; not checked",
             self._target(),
+            "user " if user else "",
             address,
             end,
         )
@@ -3302,19 +3332,21 @@ class LoadProcedureRunner:
             await self._register_factory(control.erase_code)
             return
         if isinstance(control, LdCtrlWriteMem):
-            _require_standard(control.address_space)
             runs = self._memory_write_runs(control)
             if runs is None:
                 raise ImageError(
                     f"no image data for address range {control.address:#06x}"
                 )
+            user = _user_memory(control)
             step = (
                 control.inline_data is not None
-                and (control.address, control.size) in self._memory_steps
+                and (user, control.address, control.size) in self._memory_steps
             )
             for address, planned in runs:
-                await self._diff_memory(address, planned, segments, procedure_step=step)
-                self._preview_memory.append((address, address + len(planned)))
+                await self._diff_memory(
+                    address, planned, segments, procedure_step=step, user=user
+                )
+                self._preview_memory.append((user, address, address + len(planned)))
             return
         if isinstance(control, LdCtrlWriteRelMem):
             index = await self._resolve_index(control)
@@ -3322,7 +3354,7 @@ class LoadProcedureRunner:
             base = await programmer.read_table_reference(index)
             await self._diff_masked_rel(base, control, segments, index=index)
             start = base + control.offset
-            self._preview_memory.append((start, start + control.size))
+            self._preview_memory.append((False, start, start + control.size))
             return
         if isinstance(control, LdCtrlAbsSegment):
             # An allocation whose range the image covers is an image backed write;
@@ -3338,7 +3370,7 @@ class LoadProcedureRunner:
                     missing_ok=True,
                     include_initialized=self._writes_seed(segment=True),
                 )
-                self._preview_memory.append((address, address + size))
+                self._preview_memory.append((False, address, address + size))
             return
         if isinstance(control, LdCtrlWriteProp):
             index = await self._resolve_index(control, extended=True)
@@ -3364,13 +3396,16 @@ class LoadProcedureRunner:
             self._preview_properties.add((index, control.prop_id))
             return
         if isinstance(control, LdCtrlCompareMem):
-            _require_standard(control.address_space)
-            if self._preview_wrote_memory(control.address, control.size):
+            user = _user_memory(control)
+            if self._preview_wrote_memory(control.address, control.size, user=user):
                 return
             await self._polled_compare(
                 control,
                 lambda: self._compare_mem(
-                    control.address, self._memory_compare_data(control), control.mask
+                    control.address,
+                    self._memory_compare_data(control),
+                    control.mask,
+                    user=user,
                 ),
                 poll=False,
             )
@@ -3439,12 +3474,15 @@ class LoadProcedureRunner:
         address: int,
         current: bytes,
         planned: bytes,
+        *,
+        user: bool = False,
     ) -> None:
         """Flag changed bytes the device rewrites itself at runtime.
 
         A changed byte whose device value differs again on a second read is written
         by the firmware, not a real configuration difference. Only the bytes that
         differ from ``planned`` are re-read, so an in-sync device costs no extra I/O.
+        A byte of the user memory (``user``) is flagged by its :func:`memory_key`.
         """
         changed = [
             i
@@ -3453,10 +3491,10 @@ class LoadProcedureRunner:
         ]
         if not changed:
             return
-        again = await programmer.read_memory(address, len(current))
+        again = await programmer.read_memory(address, len(current), user=user)
         for i in changed:
             if i < len(again) and again[i] != current[i]:
-                self._device_written.add(address + i)
+                self._device_written.add(memory_key(address + i, user=user))
 
     async def _diff_memory(
         self,
@@ -3465,12 +3503,29 @@ class LoadProcedureRunner:
         segments: list[SegmentDiff],
         *,
         procedure_step: bool = False,
+        user: bool = False,
     ) -> None:
-        """Read current memory at ``address`` and record a diff against ``planned``;
-        ``procedure_step`` marks it as a step of the procedure (see
+        """Read current memory at ``address`` (of the user memory with ``user``) and record a
+        diff against ``planned``; ``procedure_step`` marks it as a step of the procedure (see
         :attr:`SegmentDiff.procedure_step`)."""
         programmer = await self._bus()
-        current = await programmer.read_memory(address, len(planned))
+        current = await programmer.read_memory(address, len(planned), user=user)
+        if user:
+            # The user memory has no group tables, octets of only some bits or corrected
+            # octets: those are kept by standard memory address.
+            await self._note_device_written(
+                programmer, address, current, bytes(planned), user=True
+            )
+            segments.append(
+                SegmentDiff(
+                    address=address,
+                    current=current,
+                    planned=bytes(planned),
+                    procedure_step=procedure_step,
+                    user_memory=True,
+                )
+            )
+            return
         planned = self._planned_with(address, bytes(planned), current)
         await self._note_device_written(programmer, address, current, bytes(planned))
         segments.append(
@@ -3727,16 +3782,29 @@ def _writes_no_elements(control: LdCtrlWriteProp) -> bool:
     return control.count == 0 and control.start_element > 0 and not control.inline_data
 
 
-def _memory_procedure_steps(controls: Sequence[object]) -> set[tuple[int, int]]:
-    """The ``(address, size)`` ranges ``controls`` write more than once with different inline
-    data: steps of the procedure, as :func:`_procedure_steps` for properties."""
-    values: dict[tuple[int, int], set[bytes]] = {}
+def _memory_procedure_steps(controls: Sequence[object]) -> set[tuple[bool, int, int]]:
+    """The ``(user memory, address, size)`` ranges ``controls`` write more than once with
+    different inline data: steps of the procedure, as :func:`_procedure_steps` for
+    properties."""
+    values: dict[tuple[bool, int, int], set[bytes]] = {}
     for control in controls:
         if isinstance(control, LdCtrlWriteMem) and control.inline_data is not None:
-            values.setdefault((control.address, control.size), set()).add(
-                control.inline_data
-            )
+            key = (_user_memory(control), control.address, control.size)
+            values.setdefault(key, set()).add(control.inline_data)
     return {key for key, data in values.items() if len(data) > 1}
+
+
+def _user_memory(
+    control: LdCtrlWriteMem | LdCtrlWriteRelMem | LdCtrlCompareMem | LdCtrlLoadImageMem,
+) -> bool:
+    """Whether ``control`` accesses the user memory (``AddressSpace="User"``): an address
+    space of its own, read and written with A_UserMemory_Read/Write at every address (KNX
+    3/3/7 3.5.6). The other spaces (standard, LcFilter, LcSlave) are flat absolute memory
+    of A_Memory_Read/Write (KNX 3/5/1)."""
+    return (
+        not isinstance(control, LdCtrlWriteRelMem)
+        and control.address_space is LdCtrlMemAddrSpace.USER
+    )
 
 
 def _leave_factory_runs(
@@ -3770,31 +3838,3 @@ def _keep_uncovered(current: bytes, planned: bytes, covered: bytes) -> bytes:
     for i, (value, bits) in enumerate(zip(current, covered, strict=False)):
         merged[i] = (value & ~bits & 0xFF) | (planned[i] & bits)
     return bytes(merged)
-
-
-# Memory address spaces this engine writes as a flat absolute A_Memory access. STANDARD is the
-# normal device memory; LC_FILTER (a BCU1 coupler's filter-table region) and LC_SLAVE (its
-# slave-side BCU config region) both live in ordinary EEPROM addressed absolutely and are written by
-# the same A_Memory_Write (KNX Standard v3.0.0, 3/5/1 Resources; both are plain memory, distinct
-# from properties/relative memory). USER memory needs the A_UserMemory services and is not
-# implemented.
-_ABSOLUTE_MEMORY_SPACES = frozenset(
-    {
-        LdCtrlMemAddrSpace.STANDARD,
-        LdCtrlMemAddrSpace.LC_FILTER,
-        LdCtrlMemAddrSpace.LC_SLAVE,
-    }
-)
-
-
-def _require_standard(address_space: LdCtrlMemAddrSpace) -> None:
-    """Reject memory operations outside the flat absolute address spaces (STANDARD/LcFilter/LcSlave)."""
-    if address_space not in _ABSOLUTE_MEMORY_SPACES:
-        message = (
-            f"memory address space {address_space.value!r} is not implemented; only the standard, "
-            f"LcFilter and LcSlave (all flat absolute A_Memory) address spaces are handled (KNX "
-            f"Standard v3.0.0, 3/5/1 Resources). User memory needs the A_UserMemory services; "
-            f"please file a bug report with the product data so it can be added."
-        )
-        logger.warning("unsupported load control: %s", message)
-        raise UnsupportedProcedureError(message)

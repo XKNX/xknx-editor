@@ -217,6 +217,7 @@ def preflight_locations(
                 segment.planned,
                 list(preflight_segment_ranges(segment, runtime, driven_bits)),
             ),
+            **({"user_memory": True} if segment.user_memory else {}),
         }
         for segment in report.changed_segments
     ]
@@ -731,7 +732,8 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         device already carries the configuration; do not treat that as a pending change. changed_segments/
         changed_properties are counts and do not describe unload/restart or address-reset effects.
         ``locations`` lists every changed location, as the pre-flight window does: a memory segment
-        as {memory: "0x4400", ...} or a property write as {object: "5" (index) or "type 40960"
+        as {memory: "0x4400", ...} (with user_memory: true in the user memory, an address space of
+        its own) or a property write as {object: "5" (index) or "type 40960"
         (addressed by type), property: PID, ...}, each with size, changed_bytes, category ("config",
         "default" or "runtime", as above; the most significant class of its bytes) and changes:
         [{offset, current, planned, category}] per changed range, offset from the location's start,
