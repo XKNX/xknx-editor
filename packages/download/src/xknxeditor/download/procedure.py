@@ -1138,8 +1138,10 @@ class LoadProcedureRunner:
 
         A control identifies its object by explicit ``obj_idx``, by
         ``obj_type`` + zero-based ``occurrence`` (resolved on the device), or by
-        ``lsm_idx`` which, for property based management, is the object index.
-        With ``extended``, an object addressed by type gets a key for the extended
+        ``lsm_idx`` which, for property based management, is the object index: the
+        device's object of that load state machine where the mask keeps it elsewhere
+        than the image numbers it (see :meth:`MaskResources.lsm_object`). With
+        ``extended``, an object addressed by type gets a key for the extended
         property services instead (instance = occurrence + 1) when the application
         supports them; the device's object list is not read then. It gets one too
         when the device has the object past the one-octet object index (see
@@ -1163,7 +1165,8 @@ class LoadProcedureRunner:
             return index
         lsm_idx = getattr(control, "lsm_idx", None)
         if lsm_idx is not None:
-            return lsm_idx
+            resources = bundled_mask_resources(device_mask_version(self.application))
+            return lsm_idx if resources is None else resources.lsm_object(lsm_idx)
         raise self._unsupported(
             control,
             reason=(

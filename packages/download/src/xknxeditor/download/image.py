@@ -9,6 +9,7 @@ are part of the segment data as well; project specific values can be supplied vi
 
 from __future__ import annotations
 
+import logging
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, replace
 from types import MappingProxyType
@@ -76,6 +77,8 @@ from .tables_systemb import (
 # A coupler's group address filter table lives in the Router object's relative memory
 # (PID_TABLE_REFERENCE), so it is written by an ``LdCtrlWriteRelMem ObjType=6``.
 _ROUTER_OBJECT_TYPE = ResourceObjectType.OBJECT_ROUTER
+
+logger = logging.getLogger(__name__)
 
 
 # Fixed bytes a TP1 line coupler (mask version 091x) gets with the application's
@@ -2150,6 +2153,13 @@ def _short_com_object_table(
     the product data leaves unset (``count_unset``) is the number of records.
     """
     data, mask = bytearray(seed), bytearray(len(seed))
+    if table_offset >= len(data):
+        logger.warning(
+            "group object table at offset %d lies past its code segment of %d octets: "
+            "it is not written",
+            table_offset,
+            len(data),
+        )
     if count_unset and table_offset < len(data):
         data[table_offset] = record_count & 0xFF
     partial = _object_count(bytes(data), mask, table_offset, record_count)

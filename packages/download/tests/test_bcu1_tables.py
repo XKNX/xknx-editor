@@ -158,13 +158,19 @@ def _application(
             module_defs=None,
             static=SimpleNamespace(
                 script=None,
+                extension=None,
                 options=SimpleNamespace(
                     easy_ctrl_mode_mode_style_empty_group_com_tables=easy
                 ),
                 code=SimpleNamespace(
                     absolute_segment=[
                         SimpleNamespace(
-                            id=_SEGMENT, address=_BASE, data=_seed(), mask=None
+                            id=_SEGMENT,
+                            address=_BASE,
+                            size=256,
+                            data=_seed(),
+                            mask=None,
+                            user_memory=False,
                         )
                     ],
                     relative_segment=[],
@@ -669,6 +675,24 @@ def test_bcu2_tables_stay_where_the_product_declares_them() -> None:
     association = next(segment for segment in segments if segment.address == 0x013B)
     assert association.data == bytes.fromhex("03fe000101fe02")
     assert _association_pointer(segments) == 0x3B
+
+
+def test_a_group_object_table_past_its_segment_is_reported(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    application = _application("MV-0020")
+    application.program.static.com_object_table.offset = 300
+    with caplog.at_level("WARNING", logger="xknxeditor.download.image"):
+        segments = _group_communication_segments(
+            application,
+            _UI(_NODES),
+            {_SEGMENT: _BASE},
+            {_SEGMENT: (_seed(), bytes(256))},
+            GroupCommunication(device_address=0x1133, links=()),
+        )
+    assert "group object table at offset 300 lies past its code segment" in caplog.text
+    eeprom = next(segment for segment in segments if segment.address == _BASE)
+    assert eeprom.data == _seed()
 
 
 def test_bcu2_easy_controller_style_has_no_reserved_slots() -> None:

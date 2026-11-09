@@ -18,13 +18,15 @@ from xknxeditor.prod.master import parse_master_xml
 # Locations the download reads, plus the three group tables and the individual
 # address. The table flavours and the individual-address octets are how the
 # image decides layout; the load-control locations are how the procedure
-# addresses a mask; the identity locations are where the image puts the
+# addresses a mask (and their image locations, where the image numbers a load
+# state machine other than the device does); the identity locations are where the image puts the
 # application id and PEI type. PeiprogLoadStatus stays out: publishing it would
 # make MV-0705 poll an LSM 5 the devices we have do not answer.
 RELEVANT = {
     N.APPLICATION_ID,
     N.APPLICATION_PEI_TYPE,
     N.PEIPROG_ID,
+    N.PEIPROG_LOAD_CONTROL,
     N.APPLICATION_LOAD_CONTROL,
     N.APPLICATION_LOAD_STATUS,
     N.APPLICATION_RUN_CONTROL,
@@ -106,14 +108,35 @@ def _row(resource: object) -> list[object]:
     return row
 
 
+def _memory_segments(configuration: object) -> list[list[int]]:
+    """The mask's memory in standard memory as ``[start, length]``: with the code
+    segments, the memory a download image has (``memory`` in the table)."""
+    segments = getattr(configuration, "memory_segments", None)
+    result: list[list[int]] = []
+    for segment in getattr(segments, "memory_segment", ()):
+        location = segment.location
+        if (
+            location is not None
+            and location.address_space.value == "StandardMemory"
+            and location.start_address is not None
+            and segment.length
+        ):
+            result.append([location.start_address, segment.length])
+    return result
+
+
 def main(master_path: str, out_path: str) -> None:
     master = parse_master_xml(Path(master_path).read_bytes())
     table: dict[str, dict[str, object]] = {}
     for mv in master.raw.mask_versions.mask_version:
         features: dict[str, int] = {}
         chosen: dict[str, object] = {}
+        memory: list[list[int]] = []
         for cfg in _current_configurations(list(mv.hawk_configuration_data)):
             property_mapped = _property_mapped(cfg)
+            memory += [
+                segment for segment in _memory_segments(cfg) if segment not in memory
+            ]
             if cfg.features is not None:
                 for feature in cfg.features.feature:
                     features.setdefault(feature.name.value, feature.value)
@@ -138,6 +161,8 @@ def main(master_path: str, out_path: str) -> None:
                 name: _row(resource) for name, resource in sorted(chosen.items())
             },
         }
+        if memory:
+            table[mv.id]["memory"] = sorted(memory)
     out = {mask: table[mask] for mask in sorted(table)}
     Path(out_path).write_text(json.dumps(out, indent=1) + "\n")
     print(f"wrote {len(out)} masks to {out_path}")
