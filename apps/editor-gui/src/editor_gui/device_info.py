@@ -23,7 +23,7 @@ from xknx.profile.const import (
     ResourceObjectType,
 )
 
-from editor_gui.device import flag_letter
+from editor_gui.device import flag_letter, object_size_text
 from xknxeditor.download.errors import DownloadError, MemoryReadNotAnswered
 from xknxeditor.download.load_state import LoadState
 
@@ -148,10 +148,13 @@ def firmware_text(version: int | None) -> str | None:
 
 
 def size_text(object_size: str | None) -> str | None:
-    """A ``ComObjectSize`` (``"1 Bit"``, ``"2 Bytes"``) as ``"1 bit"`` / ``"2 Byte"``."""
+    """A ``ComObjectSize`` (``"1 Bit"``, ``"2 Bytes"``) as ``"1 bit"`` / ``"2 Byte"``, the
+    variable-length one as ``"Variable"``."""
     if object_size is None:
         return None
     count, _, unit = object_size.partition(" ")
+    if not unit:
+        return object_size_text(object_size)
     return f"{count} {'bit' if unit.lower() == 'bit' else 'Byte'}"
 
 

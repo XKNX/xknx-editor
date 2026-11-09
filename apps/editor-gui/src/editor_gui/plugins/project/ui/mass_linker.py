@@ -24,7 +24,7 @@ from typing import TYPE_CHECKING
 
 from imgui_bundle import imgui
 
-from editor_gui.device import address_order, device_label
+from editor_gui.device import address_order, device_label, object_size_text
 from editor_gui.plugins.project.strings import S
 from editor_gui.plugins.project.ui._filter import filter_box
 from editor_gui.theme import status_color
@@ -74,7 +74,7 @@ def _co_text(co: ComObject) -> str:
     if dpt != "-":
         parts.append(dpt)
     if getattr(co, "object_size", ""):
-        parts.append(co.object_size)
+        parts.append(object_size_text(co.object_size))
     return "  ".join(parts)
 
 

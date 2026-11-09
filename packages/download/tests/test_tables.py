@@ -18,6 +18,8 @@ from xknxeditor.download.tables import (
     build_group_address_table,
     group_address_index,
     memory_size_code,
+    object_size_name,
+    size_code,
 )
 
 # Device 1.1.74 = 0x114a; its 18 group addresses (sorted ascending).
@@ -160,3 +162,45 @@ def test_association_slots_of_objects_without_links_are_unused() -> None:
 )
 def test_memory_size_codes(object_size: str, code: int) -> None:
     assert memory_size_code(object_size) == code
+
+
+@pytest.mark.parametrize(
+    ("object_size", "code"),
+    [
+        ("1 Bit", 0),
+        ("13 Bytes", 20),
+        ("5 Bytes", 15),
+        ("LegacyVarData", 15),
+        ("15 Bytes", 21),
+        ("50 Bytes", 56),
+    ],
+)
+def test_size_codes_of_a_group_object_descriptor(object_size: str, code: int) -> None:
+    # The same codes as a BCU1/BCU2 record: the variable-length size is 15.
+    assert size_code(object_size) == code
+
+
+@pytest.mark.parametrize("object_size", ["", "51 Bytes", "Variable"])
+def test_a_size_without_a_descriptor_code_is_an_error(object_size: str) -> None:
+    with pytest.raises(ImageError, match="is not implemented"):
+        size_code(object_size)
+
+
+@pytest.mark.parametrize(
+    ("code", "object_size"),
+    [
+        (0, "1 Bit"),
+        (15, "5 Bytes"),
+        (20, "13 Bytes"),
+        (21, "15 Bytes"),
+        (56, "50 Bytes"),
+    ],
+)
+def test_object_size_name_inverts_the_descriptor_code(
+    code: int, object_size: str
+) -> None:
+    assert object_size_name(code) == object_size
+
+
+def test_object_size_name_of_a_code_without_a_size() -> None:
+    assert object_size_name(57) is None

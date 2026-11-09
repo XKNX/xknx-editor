@@ -409,8 +409,24 @@ def _fill_empty_parameter_types(data: bytes) -> bytes:
     return _PARAM_TYPE_EMPTY_PAIR.sub(rb"\1<TypeNone/></ParameterType>", data)
 
 
+# An ObjectSize attribute with the value "Variable", which no KNX schema lists.
+_VARIABLE_OBJECT_SIZE = re.compile(
+    rb"""(?P<head>\sObjectSize\s*=\s*)(?P<quote>["'])Variable(?P=quote)"""
+)
+
+
+def _schema_object_sizes(data: bytes) -> bytes:
+    """Write the object size "Variable" of product data as the schema's name of that
+    variable-length size, "LegacyVarData", so the archive is valid for its schema."""
+    if b"Variable" not in data:
+        return data
+    return _VARIABLE_OBJECT_SIZE.sub(rb"\g<head>\g<quote>LegacyVarData\g<quote>", data)
+
+
 def _heal_manufacturer_member(data: bytes, schema: str) -> bytes:
     """Heal one manufacturer XML member for the archive.
+
+    An object size "Variable" is written as "LegacyVarData" (see :func:`_schema_object_sizes`).
 
     A member of an older schema than the project's (a project/20 product inside a project/23
     archive, or a legacy project/<=14 one) is converted up to the project schema: namespace and
@@ -421,6 +437,7 @@ def _heal_manufacturer_member(data: bytes, schema: str) -> bytes:
     verbatim and reported (:func:`_schema_incompatible_folders`). A member already at the project
     schema has an unreleased tool identity restamped. Childless parameter types are always filled
     (ETS aborts the import with a NullReferenceException otherwise)."""
+    data = _schema_object_sizes(data)
     detected = _schema_from_knx_xml(data)
     if detected is not None and detected != schema:
         if detected.isdigit() and schema.isdigit() and int(detected) < int(schema):

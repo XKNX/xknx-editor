@@ -93,6 +93,13 @@ def device_label(device: Device | UnloadedDevice) -> str:
     return primary
 
 
+def object_size_text(object_size: str) -> str:
+    """A ``ComObjectSize`` as the group object lists show it: as it is (``"1 Bit"``,
+    ``"2 Bytes"``), the variable-length ``"LegacyVarData"`` as ``"Variable"``, its spelling in
+    product data."""
+    return "Variable" if object_size == "LegacyVarData" else object_size
+
+
 def com_object_display_name(co: ComObject) -> str:
     """The object's name, plus its function when that adds information.
 

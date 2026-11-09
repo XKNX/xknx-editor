@@ -177,7 +177,7 @@ class CatalogPlugin:
             self._api.tell_refused(medium_error_text(error))
             return
         except ParseError as error:
-            # Product data the KNX schema does not allow (an object size "Variable").
+            # Product data the KNX schema does not allow (a value outside an enumeration).
             self._log.warning("device not added", error=str(error))
             self._api.tell_refused(S.CATALOG_ADD_NO_APP)
             return

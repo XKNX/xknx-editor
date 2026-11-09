@@ -91,11 +91,11 @@ def test_a_device_the_medium_refuses_is_not_added() -> None:
 
 
 def test_a_device_whose_product_data_breaks_the_schema_is_not_added() -> None:
-    # Product data with a value no KNX schema has (an object size "Variable"): refused with
-    # the product's "no usable application program", not an error from somewhere inside.
+    # Product data with a value no KNX schema has (an object size "Huge"): refused with the
+    # product's "no usable application program", not an error from somewhere inside.
     def add_device(**_kwargs: Any) -> int:
         raise ParseError(
-            "object size 'Variable' of M-1_A-1_O-1_R-1 is not one of the KNX schema"
+            "object size 'Huge' of M-1_A-1_O-1_R-1 is not one of the KNX schema"
         )
 
     notices: list[str] = []

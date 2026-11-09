@@ -9,6 +9,10 @@ These helpers add such a missing bound back with a best-effort value so the byte
 are not authoritative ranges - they only let non-conformant legacy data load. The heal is a no-op on
 conformant XML: it inserts an attribute only when it is absent, so a file that already carries both
 bounds comes back as the very same ``bytes`` object, byte for byte.
+
+Group objects of such products can also have the object size ``"Variable"``, which no KNX schema
+lists: it is the variable-length size the schemas call ``"LegacyVarData"`` (a BCU1/BCU2 record
+of type 15), and is read as that.
 """
 
 from __future__ import annotations
@@ -29,6 +33,11 @@ _TAG = re.compile(
 _HAS_MIN = re.compile(rb"\bminInclusive\s*=")
 _HAS_MAX = re.compile(rb"\bmaxInclusive\s*=")
 _SIZE = re.compile(rb'\bSizeInBit\s*=\s*"(\d+)"')
+
+# An ObjectSize attribute (of a ComObject or a ComObjectRef) with the value "Variable".
+_VARIABLE_SIZE = re.compile(
+    rb"""(?P<head>\sObjectSize\s*=\s*)(?P<quote>["'])Variable(?P=quote)"""
+)
 
 # Best-effort upper bound when the element carries no SizeInBit to derive one from.
 _FALLBACK_MAX = 2147483647
@@ -54,15 +63,26 @@ def _heal_tag(match: re.Match[bytes]) -> bytes:
     return b"<" + match.group("name") + attrs + injected + slash + b">"
 
 
-def heal_application_xml(xml_bytes: bytes) -> bytes:
-    """Return ``xml_bytes`` with any missing numeric-range bound injected into bounded elements.
-
-    Conformant input is returned unchanged (the same object), so caches and conformant parses stay
-    byte-identical. Runs in one linear pass over the bytes."""
+def _heal_bounds(xml_bytes: bytes) -> bytes:
     # Cheap gate: only the presence of a bounded element can need a heal, and most files need none.
     if not any(
         tag in xml_bytes for tag in (b"<TypeNumber", b"<TypeFloat", b"<TypeTime")
     ):
         return xml_bytes
-    healed = _TAG.sub(_heal_tag, xml_bytes)
+    return _TAG.sub(_heal_tag, xml_bytes)
+
+
+def _heal_object_sizes(xml_bytes: bytes) -> bytes:
+    if b"Variable" not in xml_bytes:
+        return xml_bytes
+    return _VARIABLE_SIZE.sub(rb"\g<head>\g<quote>LegacyVarData\g<quote>", xml_bytes)
+
+
+def heal_application_xml(xml_bytes: bytes) -> bytes:
+    """Return ``xml_bytes`` with any missing numeric-range bound injected into bounded elements and
+    every object size ``"Variable"`` read as ``"LegacyVarData"``.
+
+    Conformant input is returned unchanged (the same object), so caches and conformant parses stay
+    byte-identical. Runs in linear passes over the bytes."""
+    healed = _heal_object_sizes(_heal_bounds(xml_bytes))
     return healed if healed != xml_bytes else xml_bytes

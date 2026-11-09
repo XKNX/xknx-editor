@@ -221,7 +221,15 @@ class TestValuesOutsideTheSchema:
         assert co.object_size == "1 Byte"
 
     def test_a_size_the_schema_does_not_have_names_itself(self):
-        # Product data with ObjectSize="Variable" (no KNX schema has it) cannot be used: the
-        # group object says what is wrong instead of failing later.
-        with pytest.raises(ParseError, match=r"object size 'Variable' of .*_O-1_R-1"):
-            ComObjectRefRefNode(_ELEM, _cor(), _co(object_size="Variable"))
+        # Product data with an object size no KNX schema has cannot be used: the group object
+        # says what is wrong instead of failing later.
+        with pytest.raises(ParseError, match=r"object size 'Huge' of .*_O-1_R-1"):
+            ComObjectRefRefNode(_ELEM, _cor(), _co(object_size="Huge"))
+
+    def test_the_variable_length_size_is_its_text(self):
+        node = ComObjectRefRefNode(
+            _ELEM, _cor(), _co(object_size=ComObjectSize.LEGACY_VAR_DATA)
+        )
+        co = node.eval(EvalContext(GlobalState()))[0]
+        assert isinstance(co, UiComObject)
+        assert co.object_size == "LegacyVarData"

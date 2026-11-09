@@ -18,6 +18,7 @@ from editor_gui.device import (
     com_object_display_name,
     flag_letter,
     flag_name,
+    object_size_text,
 )
 from editor_gui.widgets.checkbox import checkbox
 from editor_gui.widgets.combo import begin_combo
@@ -625,7 +626,7 @@ class GroupObjectsTable:
             imgui.text_disabled(getattr(com_object.dpt, "name", "") or "")
 
         imgui.table_set_column_index(3)
-        imgui.text_disabled(com_object.object_size)
+        imgui.text_disabled(object_size_text(com_object.object_size))
 
         imgui.table_set_column_index(4)
         if self._on_set_priority is not None:
