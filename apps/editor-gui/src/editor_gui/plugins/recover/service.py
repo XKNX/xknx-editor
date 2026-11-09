@@ -359,6 +359,7 @@ class RecoverService:
                     project_code_page=self._api.project.project_code_page(),
                     effort=self.effort,
                     cancel=self._cancelled,
+                    master=self._api.connection.master,
                 )
                 entry.state = _recovered_state(entry.recovered)
                 if self._log is not None:
@@ -537,6 +538,7 @@ class RecoverService:
         self.phase = "searching"
         effort = self.effort
         code_page = self._api.project.project_code_page()
+        master = self._api.connection.master
         future: Future[list[tuple[RecoverEntry, RecoveredDevice]]] = Future()
         self._search = future
 
@@ -555,6 +557,7 @@ class RecoverService:
                         effort,
                         code_page,
                         cancel=self._cancelled,
+                        master=master,
                     )
                 except Exception as exc:  # one device failing must not stop the others
                     if self._log is not None:

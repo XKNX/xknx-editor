@@ -166,6 +166,7 @@ class _FakeProject:
 class _FakeAPI:
     def __init__(self, project: _FakeProject) -> None:
         self.project = project
+        self.connection = SimpleNamespace(master=object())
 
 
 @pytest.fixture(scope="module")
@@ -500,6 +501,7 @@ def test_search_again_replaces_the_device_it_added(
 
     searched: list[tuple[str, RecoveryEffort]] = []
     cancels: list[Any] = []
+    masters: list[Any] = []
 
     def search(
         device: RecoveredDevice,
@@ -507,9 +509,11 @@ def test_search_again_replaces_the_device_it_added(
         effort: RecoveryEffort,
         _code_page: Any,
         cancel: Any = None,
+        master: Any = None,
     ) -> RecoveredDevice:
         searched.append((device.address, effort))
         cancels.append(cancel)
+        masters.append(master)
         return dataclasses.replace(
             device,
             parameters=RecoveredParameters(values={"R-1": "1"}, unknown=[]),
@@ -528,6 +532,8 @@ def test_search_again_replaces_the_device_it_added(
     # Only the incomplete device is searched, with the effort chosen; the device it was added
     # as is replaced by the new result.
     assert searched == [("1.1.3", RecoveryEffort.MAXIMUM)]
+    # With the master data the download resolves the load procedure with.
+    assert masters == [service._api.connection.master]  # pyright: ignore[reportPrivateUsage]
     assert service.phase == "recovered"
     assert not service.busy
     assert entry.recovered is not None and entry.recovered.parameters.complete

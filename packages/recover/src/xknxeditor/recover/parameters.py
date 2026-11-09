@@ -34,7 +34,8 @@ from xknxeditor.prod.script.errors import ScriptAborted
 from xknxeditor.prod.script.sandbox import AbortToken
 
 if TYPE_CHECKING:
-    from xknxeditor.prod import Application
+    from xknxeditor.download.image import PropertyTarget
+    from xknxeditor.prod import Application, MasterData
     from xknxeditor.prod.parser_v2.application_indexer import ApplicationIndexer
     from xknxeditor.prod.parser_v2.context import Gate
     from xknxeditor.prod.parser_v2.dynamic import DynamicUI
@@ -62,8 +63,8 @@ class RecoveredParameters:
     values: dict[str, str]
     # parameter ids whose value could not be reconstructed from bytes.
     unknown: list[str]
-    # Bytes that differ (of the memory and of the properties), and missing linked objects or
-    # shown objects with a different size.
+    # Bytes that differ (of the memory and of the properties a download writes), and missing
+    # linked objects or shown objects with a different size.
     differing_bytes: int = 0
     differing_objects: int = 0
     # The search stopped at the limit of its effort, or was cancelled, with values left to try:
@@ -158,10 +159,12 @@ _Cell = tuple[str, int]
 # it shows with another size than the device's (the device's tables hold them: no number of
 # objects shown without a link outweighs one), then what contradicts the device, the differing
 # bytes and those objects (each weighing _OBJECT_WEIGHT bytes: the memory read holds the
-# settings, no number of objects shown without a link outweighs a byte either), then the objects
-# it shows that are not linked, which only tell apart results that contradict the device alike
-# (a device can have channels on whose objects it links to nothing).
-_Score = tuple[int, int, int]
+# settings, no number of objects shown without a link outweighs a byte either), then the bytes
+# that differ of properties no download writes (the device keeps its own value there, such as
+# its hardware type: no result may match both, but the one that does tells the variant), then
+# the objects it shows that are not linked, which only tell apart results that contradict the
+# device alike (a device can have channels on whose objects it links to nothing).
+_Score = tuple[int, int, int, int]
 # How far a result is from the device, with the bytes it writes otherwise and the group objects
 # it shows otherwise.
 _Fit = tuple[_Score, set[_Cell], set[int]]
@@ -190,14 +193,51 @@ class _SearchCache:
     # Explore passes kept at most (see _explored): their layouts compare, they do not hash.
     EXPLORED = 4
 
-    def __init__(self, application: Application) -> None:
+    def __init__(
+        self, application: Application, master: MasterData | None = None
+    ) -> None:
         self.application = application
+        self.master = master
         self.uis: OrderedDict[tuple[object, ...], DynamicUI | None] = OrderedDict()
         self.calculated: OrderedDict[tuple[object, ...], _ValueMap] = OrderedDict()
         # The explore layouts of UIs explored, with the places found (the last used first).
         self.explored: list[
             tuple[tuple[object, ...], list[tuple[str, tuple[Gate, ...]]]]
         ] = []
+        # The properties every download writes (``None``: not resolved yet, empty when the
+        # procedure does not resolve), and those the download of each of the last UIs writes.
+        self.always_written: frozenset[PropertyTarget] | None = None
+        self.resolves = True
+        self.written: OrderedDict[int, tuple[DynamicUI, frozenset[PropertyTarget]]] = (
+            OrderedDict()
+        )
+
+    def unwritten(self, ui: DynamicUI, key: TypedPropertyKey) -> bool:
+        """Whether no control of the load procedure a download of ``ui`` runs writes the
+        property ``key`` (see :func:`~xknxeditor.download.written_properties`); false for
+        every property when the procedure does not resolve."""
+        from xknxeditor.download import written_properties
+        from xknxeditor.download.errors import DownloadError
+
+        if self.always_written is None:
+            try:
+                self.always_written = written_properties(self.application, self.master)
+            except (DownloadError, ValueError):
+                self.always_written, self.resolves = frozenset(), False
+        if not self.resolves or _addresses(self.always_written, key):
+            return False
+        # By the UI itself (kept with its entry, so no other object has its id meanwhile).
+        entry = self.written.get(id(ui))
+        if entry is None or entry[0] is not ui:
+            try:
+                entry = (ui, written_properties(self.application, self.master, ui))
+            except (DownloadError, ValueError):
+                return False
+            self.written[id(ui)] = entry
+            if len(self.written) > self.UIS:
+                self.written.popitem(last=False)
+        self.written.move_to_end(id(ui))
+        return not _addresses(entry[1], key)
 
     @staticmethod
     def get[V](store: OrderedDict[tuple[object, ...], V], key: tuple[object, ...]) -> V:
@@ -347,6 +387,8 @@ def recover_parameters(
     object_sizes: Mapping[int, str] | None = None,
     effort: RecoveryEffort = RecoveryEffort.MEDIUM,
     cancel: Callable[[], bool] | None = None,
+    *,
+    master: MasterData | None = None,
 ) -> RecoveredParameters:
     """Recover parameter reference values from a device's memory and properties.
 
@@ -364,7 +406,10 @@ def recover_parameters(
     ``effort`` allows (see :func:`_refine`), until ``cancel`` returns true. Returns the recovered value for every
     parameter reference whose type is reconstructable, the parameter ids whose
     value is unknown (lossy types / absent data), and how far the result still differs from
-    the device.
+    the device. ``master`` is the master data a download resolves the device's load procedure
+    with: a property no control of it writes keeps the device's own value whatever the
+    configuration, so its bytes only tell apart results alike otherwise, and do not count
+    as differing. Without it, a merged procedure does not resolve, and every property counts.
     """
     if cancel is not None:
         requested = cancel
@@ -378,7 +423,7 @@ def recover_parameters(
         cancel = latched_cancel
 
     previous = getattr(_SEARCH, "cache", None)
-    _SEARCH.cache = _SearchCache(application)
+    _SEARCH.cache = _SearchCache(application, master)
     try:
         return _search(
             application,
@@ -794,6 +839,49 @@ def _differing_property_cells(
     return differing
 
 
+def _addresses(targets: Collection[PropertyTarget], key: TypedPropertyKey) -> bool:
+    """Whether one of the load controls' ``targets`` (see
+    :func:`~xknxeditor.download.written_properties`) is the property ``key``: the same index,
+    or the same object type and occurrence. One addressed by index and the other by type may
+    be the same object, and counts."""
+    index, object_type, pid, occurrence = key
+    for target_index, target_type, target_occurrence, target_pid in targets:
+        if target_pid != pid:
+            continue
+        if index is not None and target_index is not None:
+            if index == target_index:
+                return True
+        elif object_type is not None and target_type is not None:
+            if object_type == target_type and (occurrence or 0) == target_occurrence:
+                return True
+        else:
+            return True
+    return False
+
+
+def _unwritten_property_cells(ui: DynamicUI, cells: Collection[_Cell]) -> set[_Cell]:
+    """Of ``cells``, the bytes of properties no control of the load procedure a download of
+    ``ui`` runs writes (see :meth:`_SearchCache.unwritten`): the device keeps its own value
+    there whatever a download writes (a hardware type), so they only tell apart results that
+    fit the device alike otherwise. None outside a search."""
+    names = {cell[0] for cell in cells if _is_property_cell(cell)}
+    cache: _SearchCache | None = getattr(_SEARCH, "cache", None)
+    if not names or cache is None:
+        return set()
+    _layout, offsets, _owners = _property_layout(ui)
+    keys = {_property_cell(key, 0)[0]: key for key in offsets}
+    unwritten = {
+        name for name in names if name in keys and cache.unwritten(ui, keys[name])
+    }
+    return {cell for cell in cells if cell[0] in unwritten}
+
+
+def _nothing_differs(score: _Score) -> bool:
+    """Whether a result with ``score`` contradicts no byte or object of the device, not even
+    one of a property no download writes (only objects it shows without a link)."""
+    return not score[1] and not score[2]
+
+
 def _differing_cells(
     ui: DynamicUI, parameter_segments: Mapping[str, bytes]
 ) -> set[_Cell] | None:
@@ -1190,7 +1278,7 @@ def _refine(
         return _with_misfit(values, unknown, fit, seeded, limited=limited)
 
     first = misfit(ui)
-    if first is None or not first[0][1]:
+    if first is None or _nothing_differs(first[0]):
         return finish(first, ui, values, unknown, limited=False)
     tries = None if scale is None else _REFINE_TRIES * scale
     rounds = None if scale is None else _REFINE_ROUNDS * scale
@@ -1283,11 +1371,11 @@ def _refine(
                     current, values, unknown, inferred, ui = trial
                     score = result[0]
                     corrected.add(scope)
-                    if not score[1]:
+                    if _nothing_differs(score):
                         break
                 elif worse is not None:
                     worse.append((result[0], gate, trial))
-            if not corrected or not current[0][1]:
+            if not corrected or _nothing_differs(current[0]):
                 break
         else:
             # Every correction was taken, and the result still differs.
@@ -1298,7 +1386,7 @@ def _refine(
     while True:
         worse: list[tuple[_Score, str, _State]] = []
         state, limited, stopped = descend(state, worse)
-        if stopped or not state[0][0][1]:
+        if stopped or _nothing_differs(state[0][0]):
             break
         # A selector whose value alone fits worse, as a channel that only fits once its own
         # settings are corrected too: the corrections behind the values that fit worse (the
@@ -1345,10 +1433,13 @@ def _misfit(
         return None
     if differing:
         differing = _compared(seeded, differing)
+    unwritten: set[_Cell] = set()
     if properties:
         in_properties = _differing_property_cells(seeded, properties)
         if in_properties is None:
             return None
+        # Kept with the others, so the search tries the selectors behind them too.
+        unwritten = _unwritten_property_cells(seeded, in_properties)
         differing |= in_properties
     objects: set[int] = _shown_objects(seeded) if linked or sizes else set()
     matching = _shown_objects(seeded, sizes) if sizes else objects
@@ -1357,11 +1448,12 @@ def _misfit(
     # Missing linked objects and size conflicts contradict the device, and count first: a
     # channel whose linked objects show is on, however many objects it shows without a link.
     # The differing bytes count next: a channel whose settings the memory holds is on, however
-    # many objects it shows without a link. Those only tell apart results alike otherwise.
+    # many objects it shows without a link. Those only tell apart results alike otherwise, after
+    # the bytes of properties no download writes.
     contradicted = len((linked - objects) | conflicts)
-    contradiction = _OBJECT_WEIGHT * contradicted + len(differing)
+    contradiction = _OBJECT_WEIGHT * contradicted + len(differing) - len(unwritten)
     unlinked = len(objects - linked) if linked else 0
-    return (contradicted, contradiction, unlinked), differing, wrong
+    return (contradicted, contradiction, len(unwritten), unlinked), differing, wrong
 
 
 def _refinement_trials(
@@ -1942,7 +2034,7 @@ def _refine_fixed(
     try:
         for _ in rounds:
             _check(cancel)
-            if not current[0][1]:
+            if _nothing_differs(current[0]):
                 break
             differing = current[1] & _fixed_cells(ui, fixed)
             improved = False
@@ -2030,6 +2122,8 @@ def _with_misfit(
     if misfit is None:
         return RecoveredParameters(values=values, unknown=unknown, lossy=lossy)
     _score, differing, wrong = misfit
+    # The bytes of properties no download writes are the device's own: no result has to match.
+    differing = differing - _unwritten_property_cells(seeded, differing)
     return RecoveredParameters(
         values=values,
         unknown=unknown,

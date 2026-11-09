@@ -40,6 +40,7 @@ from .image import (
     MemorySegment,
     PropertyValue,
     build_image,
+    written_properties,
 )
 from .ip_config import IpDeviceConfig
 from .ip_secure import IpSecureConfig
@@ -142,4 +143,5 @@ __all__ = [
     "resolve_download_controls",
     "routed_group_addresses",
     "switch_programming_mode",
+    "written_properties",
 ]

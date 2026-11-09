@@ -23,6 +23,8 @@ from xknxeditor.namespaces.intermediate.application_program_static_t_code_relati
 from xknxeditor.namespaces.intermediate.com_object_t import ComObject
 from xknxeditor.namespaces.intermediate.enable_t import Enable
 from xknxeditor.namespaces.intermediate.ld_ctrl_abs_segment_t import LdCtrlAbsSegment
+from xknxeditor.namespaces.intermediate.ld_ctrl_compare_prop_t import LdCtrlCompareProp
+from xknxeditor.namespaces.intermediate.ld_ctrl_write_prop_t import LdCtrlWriteProp
 from xknxeditor.namespaces.intermediate.resource_addr_space_t import ResourceAddrSpace
 from xknxeditor.namespaces.intermediate.resource_name_t import ResourceName
 from xknxeditor.prod import Application
@@ -30,7 +32,12 @@ from xknxeditor.prod.errors import EncodingError
 
 from .errors import ImageError
 from .factory_image import FactoryImage, FactoryLocation
-from .merge import device_mask_version, iter_load_controls, procedure_parameter_refs
+from .merge import (
+    device_mask_version,
+    iter_load_controls,
+    procedure_parameter_refs,
+    resolve_download_controls,
+)
 from .project_data import (
     GroupObjectLink,
     SeedDevice,
@@ -121,6 +128,7 @@ if TYPE_CHECKING:
     from xknxeditor.namespaces.intermediate.application_program_static_t_code_absolute_segment import (
         ApplicationProgramStaticCodeAbsoluteSegment,
     )
+    from xknxeditor.prod import MasterData
     from xknxeditor.prod.parser_v2.dynamic import DynamicUI
 
 
@@ -950,6 +958,41 @@ def _procedure_parameters(application: Application, ui: DynamicUI) -> dict[str, 
         if value is not None:
             values[ref] = value
     return values
+
+
+# A property as a load control addresses it: object index, object type, occurrence and PID.
+PropertyTarget = tuple[int | None, int | None, int, int]
+
+
+def written_properties(
+    application: Application,
+    master: MasterData | None,
+    ui: DynamicUI | None = None,
+) -> frozenset[PropertyTarget]:
+    """The properties a full download of ``application`` writes (``LdCtrlWriteProp``) or
+    compares with what it would write (``LdCtrlCompareProp``), each as a load control of its
+    procedure addresses it: the Load procedure resolved and merged as a download resolves it,
+    for the configuration ``ui`` (the values its ``choose`` tests, the controls of its module
+    instances). Without ``ui``, the properties every configuration's download writes: a
+    ``choose`` selects nothing then, and no module instance adds controls. Raises
+    :class:`~xknxeditor.download.errors.DownloadError` when the procedure does not resolve
+    (a merged procedure without ``master``)."""
+    controls = resolve_download_controls(
+        application,
+        master.raw if master is not None else None,
+        parameter_values=_procedure_parameters(application, ui) if ui else None,
+        module_controls={
+            merge_id: tuple(controls)
+            for merge_id, controls in ui.module_load_controls().items()
+        }
+        if ui
+        else None,
+    )
+    return frozenset(
+        (control.obj_idx, control.obj_type, control.occurrence, control.prop_id)
+        for control in controls
+        if isinstance(control, LdCtrlWriteProp | LdCtrlCompareProp)
+    )
 
 
 def _security_tables(
