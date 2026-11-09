@@ -154,11 +154,16 @@ def _check(cancel: Callable[[], bool] | None) -> None:
 
 # A byte of a code segment: (segment id, offset).
 _Cell = tuple[str, int]
-# How far a result is from the device: the differing bytes, linked objects it does not show
-# (each weighing _OBJECT_WEIGHT bytes) and objects it shows that are not linked (each weighing
+# How far a result is from the device: first the linked objects it does not show and the objects
+# it shows with another size than the device's (the device's tables hold them: no number of
+# objects shown without a link outweighs one), then the differing bytes, those objects (each
+# weighing _OBJECT_WEIGHT bytes) and objects it shows that are not linked (each weighing
 # 1 / _UNLINKED_PER_BYTE byte), counted in such fractions; then only what contradicts the
 # device, the bytes and the linked objects.
-_Score = tuple[int, int]
+_Score = tuple[int, int, int]
+# How far a result is from the device, with the bytes it writes otherwise and the group objects
+# it shows otherwise.
+_Fit = tuple[_Score, set[_Cell], set[int]]
 # A state of the correction step: how far it is from the device (the score, the differing bytes,
 # the group objects shown otherwise), the values, those left unknown, the inferred settings and
 # the UI seeded with them.
@@ -651,9 +656,28 @@ def _gates_of(
 def _module_gates_of(ui: DynamicUI, instance: tuple[str, str]) -> set[str]:
     """The selectors on the way to the module of the module instance ``instance`` (see
     :func:`_instance_of`): of its Module, its definition's id with the module's number
-    (``..._MD-7_SM-1_M-1`` for ``..._MD-7_M-30_MI-1_SM-1_M-1_MI-1-1``)."""
+    (``..._MD-7_SM-1_M-1`` for ``..._MD-7_M-30_MI-1_SM-1_M-1_MI-1-1``). Those of a submodule
+    are settings of the instance its Module is placed in: qualified with that one."""
     module = instance[0][: instance[0].rindex("_MI-")]
-    return set(ui.module_gates(instance[1] + module[module.rindex("_M-") :]))
+    gates = ui.module_gates(instance[1] + module[module.rindex("_M-") :])
+    return _qualified(gates, _enclosing_instance(module, instance[1]))
+
+
+def _enclosing_instance(module: str, definition: str) -> tuple[str, str] | None:
+    """For the module ``module`` (a module instance's id without its ``_MI-`` part) of the
+    definition ``definition``, the instance its Module element is placed in, as
+    :func:`_instance_of` gives it (``("..._MD-7_M-30_MI-1", "..._MD-7")`` for
+    ``..._MD-7_M-30_MI-1_SM-1_M-1``); None for a module the application places."""
+    if "_SM-" not in definition:
+        return None
+    top = definition[: definition.index("_SM-")]
+    enclosing = module[: module.rindex("_SM-")]
+    if "_SM-" not in enclosing:
+        return enclosing, top
+    # A submodule placed in another submodule: the ids of that one's elements carry its
+    # definition's part (``..._MI-1-1_SM-2_P-1_R-1`` for ``..._MD-7_SM-2_P-1_R-1``).
+    submodule = enclosing[enclosing.rindex("_SM-") + 1 :].split("_")[0]
+    return f"{enclosing}_{submodule}", f"{top}_{submodule}"
 
 
 def _outer_gates(
@@ -917,7 +941,7 @@ def _refine(
         return _with_misfit(values, unknown, fit, seeded, limited=limited)
 
     first = misfit(ui)
-    if first is None or not first[0][1]:
+    if first is None or not first[0][2]:
         return finish(first, ui, values, unknown, limited=False)
     tries = None if scale is None else _REFINE_TRIES * scale
     rounds = None if scale is None else _REFINE_ROUNDS * scale
@@ -1006,11 +1030,11 @@ def _refine(
                     current, values, unknown, inferred, ui = trial
                     score = result[0]
                     corrected.add(scope)
-                    if not score[1]:
+                    if not score[2]:
                         break
                 elif worse is not None:
                     worse.append((result[0], gate, trial))
-            if not corrected or not current[0][1]:
+            if not corrected or not current[0][2]:
                 break
         else:
             # Every correction was taken, and the result still differs.
@@ -1021,7 +1045,7 @@ def _refine(
     while True:
         worse: list[tuple[_Score, str, _State]] = []
         state, limited, stopped = descend(state, worse)
-        if stopped or not state[0][0][1]:
+        if stopped or not state[0][0][2]:
             break
         # A selector whose value alone fits worse, as a channel that only fits once its own
         # settings are corrected too: the corrections behind the values that fit worse (the
@@ -1067,13 +1091,15 @@ def _misfit(
     matching = _shown_objects(seeded, sizes) if sizes else objects
     conflicts = objects - matching
     wrong = (linked ^ objects) | conflicts if linked else conflicts
-    # Missing linked objects and size conflicts contradict the device. Extra unlinked
-    # objects carry a smaller penalty to avoid enabling channels for a few matching bytes.
+    # Missing linked objects and size conflicts contradict the device, and count first: a
+    # channel whose linked objects show is on, however many objects it shows without a link.
+    # Extra unlinked objects carry a smaller penalty to avoid enabling channels for a few
+    # matching bytes.
     contradicted = len((linked - objects) | conflicts)
     contradiction = _OBJECT_WEIGHT * contradicted + len(differing)
     unlinked = len(objects - linked) if linked else 0
     cost = _UNLINKED_PER_BYTE * contradiction + unlinked
-    return (cost, contradiction), differing, wrong
+    return (contradicted, cost, contradiction), differing, wrong
 
 
 def _refinement_trials(
@@ -1306,45 +1332,104 @@ def _refine_pairs(
                     )
                     improved = True
                     break
-                for child, parameter in shown_parameters(first.ui()).items():
-                    if (
-                        child == gate
-                        or not _inferable(first, child, parameter)
-                        or gate not in _gates_of(first, child)
-                        or _calculated_from_reads(first, child)
-                    ):
-                        continue
-                    now = first.get_value(child) or parameter.default_value
-                    for child_value in values_to_try(parameter, now):
-                        _check(cancel)
-                        if evaluated == budget:
-                            limited = True
-                            return finish()
-                        evaluated += 1
-                        chosen = {**inferred, gate: value, child: child_value}
-                        trial_values, trial_unknown = _decode(
-                            application,
-                            parameter_segments,
-                            property_values,
-                            project_code_page,
-                            chosen,
-                            fixed=fixed,
-                        )
-                        seeded = _seeded(application, trial_values, project_code_page)
-                        if seeded is None:
-                            continue
-                        fit = _misfit(seeded, parameter_segments, linked, sizes)
-                        if fit is not None and fit[0] < current[0]:
-                            current, ui, values, unknown, inferred = (
-                                fit,
-                                seeded,
-                                trial_values,
-                                trial_unknown,
+                # The settings the value shows, corrected one after the other: one that
+                # brings the result closer to the device (with as many bytes differing, in
+                # fewer bits) stays behind the value while the next is tried, and the
+                # settings it shows are tried too (a function whose two inputs each fit only
+                # with the other one, a button's function whose two assignments do).
+                kept: dict[str, str] = {}
+                base, base_ui = fit, first
+                base_bits: int | None = None
+                done: set[str] = {gate}
+                while base is not None and not improved:
+                    owners = {gate, *kept}
+                    children = [
+                        (child, parameter)
+                        for child, parameter in shown_parameters(base_ui.ui()).items()
+                        if child not in done
+                        and _inferable(base_ui, child, parameter)
+                        and owners & _gates_of(base_ui, child)
+                        and not _calculated_from_reads(base_ui, child)
+                    ]
+                    moved = False
+                    for child, parameter in children:
+                        done.add(child)
+                        now = base_ui.get_value(child) or parameter.default_value
+                        # The value of the setting that brings the result closest, of all
+                        # it can take: one that fits only a little better is no reason to
+                        # leave out one that fits.
+                        best: tuple[str, _Fit, DynamicUI, int | None] | None = None
+                        for child_value in values_to_try(parameter, now):
+                            _check(cancel)
+                            if evaluated == budget:
+                                limited = True
+                                return finish()
+                            evaluated += 1
+                            chosen = {
+                                **inferred,
+                                gate: value,
+                                **kept,
+                                child: child_value,
+                            }
+                            trial_values, trial_unknown = _decode(
+                                application,
+                                parameter_segments,
+                                property_values,
+                                project_code_page,
                                 chosen,
+                                fixed=fixed,
                             )
-                            improved = True
+                            seeded = _seeded(
+                                application, trial_values, project_code_page
+                            )
+                            if seeded is None:
+                                continue
+                            fit = _misfit(seeded, parameter_segments, linked, sizes)
+                            if fit is None:
+                                continue
+                            if fit[0] < current[0]:
+                                current, ui, values, unknown, inferred = (
+                                    fit,
+                                    seeded,
+                                    trial_values,
+                                    trial_unknown,
+                                    chosen,
+                                )
+                                improved = True
+                                break
+                            trial_bits: int | None = None
+                            if fit[0] == base[0]:
+                                if base_bits is None:
+                                    base_bits = _differing_bits(
+                                        base_ui, parameter_segments, base[1]
+                                    )
+                                trial_bits = _differing_bits(
+                                    seeded, parameter_segments, fit[1]
+                                )
+                            closer = fit[0] < base[0] or (
+                                trial_bits is not None
+                                and base_bits is not None
+                                and trial_bits < base_bits
+                            )
+                            if closer and (
+                                best is None
+                                or fit[0] < best[1][0]
+                                or (
+                                    fit[0] == best[1][0]
+                                    and trial_bits is not None
+                                    and best[3] is not None
+                                    and trial_bits < best[3]
+                                )
+                            ):
+                                best = (child_value, fit, seeded, trial_bits)
+                        if improved:
                             break
-                    if improved:
+                        if best is not None:
+                            kept[child] = best[0]
+                            base, base_ui, base_bits = best[1], best[2], best[3]
+                            moved = True
+                            break
+                    if not moved:
                         break
                 if improved:
                     break
@@ -1489,7 +1574,7 @@ def _refine_fixed(
     try:
         for _ in rounds:
             _check(cancel)
-            if not current[0][1]:
+            if not current[0][2]:
                 break
             differing = current[1] & _fixed_cells(ui, fixed)
             improved = False
