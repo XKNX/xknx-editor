@@ -6,7 +6,7 @@ from __future__ import annotations
 import re
 from collections.abc import Callable
 from dataclasses import dataclass
-from typing import cast
+from typing import Any, cast
 
 import darkdetect
 from imgui_bundle import hello_imgui, imgui
@@ -140,11 +140,30 @@ _WINDOWS_COLORS = {
     imgui.Col_.tab_dimmed: _rgb(228, 228, 228),
     imgui.Col_.tab_dimmed_selected: _rgb(255, 255, 255),
     imgui.Col_.tab_dimmed_selected_overline: _rgb(160, 160, 160),
+    # Buttons in the light gray of Windows dialogs.
+    imgui.Col_.button: _rgb(242, 242, 242),
     imgui.Col_.button_hovered: _rgb(229, 241, 251),
     imgui.Col_.button_active: _rgb(204, 228, 247),
     imgui.Col_.header_hovered: _rgb(229, 241, 251),
     imgui.Col_.header_active: _rgb(204, 228, 247),
 }
+
+# A disabled button in Windows dialogs: nearly white with a faint border and text, not the enabled
+# button faded (which could never get lighter than the window it is drawn on).
+_WINDOWS_DISABLED_BUTTON: dict[imgui.Col_, imgui.ImVec4] = {
+    imgui.Col_.button: _rgb(253, 253, 253),
+    imgui.Col_.border: _rgb(247, 247, 247),
+    imgui.Col_.text: _rgb(222, 222, 222),
+}
+# In the dark theme a disabled button moves as far towards the window: its fill, border and text
+# that share of the way from the window to the enabled button's.
+_DARK_DISABLED_SHARE: dict[imgui.Col_, float] = {
+    imgui.Col_.button: 0.25,
+    imgui.Col_.border: 0.3,
+    imgui.Col_.text: 0.3,
+}
+# The colors disabled buttons are drawn with in the current theme; empty: imgui's faded ones.
+_disabled_button: dict[imgui.Col_, imgui.ImVec4] = {}
 
 # The window background of Microsoft Style.
 _MICROSOFT_WINDOW = _rgb(245, 246, 247)
@@ -224,7 +243,92 @@ def apply_style() -> None:
     _apply_link_color(style)
     _apply_table_lines(style)
     _apply_row_selection(style)
+    _apply_resize_lines(style)
+    _apply_disabled_buttons(style, windows, tweaked.theme == DARK_THEME)
     apply_window_colors()
+
+
+def _apply_resize_lines(style: imgui.Style) -> None:
+    """Every line that resizes something lights up in one color while hovered or dragged: the
+    splitters between docked windows have the resize grip's colors, so the lines beside the page
+    tree and above the help, and table column borders, get them too."""
+    style.set_color_(
+        imgui.Col_.separator_hovered, style.color_(imgui.Col_.resize_grip_hovered)
+    )
+    style.set_color_(
+        imgui.Col_.separator_active, style.color_(imgui.Col_.resize_grip_active)
+    )
+
+
+def _apply_disabled_buttons(style: imgui.Style, windows: bool, dark: bool) -> None:
+    """The colors disabled buttons get in the light and the dark theme (see
+    _WINDOWS_DISABLED_BUTTON); other themes keep imgui's faded ones."""
+    _disabled_button.clear()
+    if windows:
+        _disabled_button.update(_WINDOWS_DISABLED_BUTTON)
+    elif dark:
+        window = style.color_(imgui.Col_.window_bg)
+
+        def shown(col: imgui.Col_) -> imgui.ImVec4:
+            # A color as drawn on the window: its alpha mixed in.
+            c = style.color_(col)
+            return imgui.ImVec4(
+                window.x + (c.x - window.x) * c.w,
+                window.y + (c.y - window.y) * c.w,
+                window.z + (c.z - window.z) * c.w,
+                1.0,
+            )
+
+        for col, share in _DARK_DISABLED_SHARE.items():
+            enabled = shown(col)
+            _disabled_button[col] = imgui.ImVec4(
+                window.x + (enabled.x - window.x) * share,
+                window.y + (enabled.y - window.y) * share,
+                window.z + (enabled.z - window.z) * share,
+                1.0,
+            )
+    _install_disabled_buttons()
+
+
+def _disabled_now() -> bool:
+    """Whether the next item is drawn disabled (inside imgui.begin_disabled)."""
+    return bool(
+        imgui.get_current_context().current_item_flags & imgui.ItemFlags_.disabled
+    )
+
+
+def _install_disabled_buttons() -> None:
+    """Draw imgui.button and imgui.small_button in the theme's disabled colors while disabled:
+    at full opacity with those colors instead of imgui's faded enabled ones."""
+    if getattr(imgui.button, "_disabled_colors", False):
+        return
+    for name in ("button", "small_button"):
+        original = getattr(imgui, name)
+
+        def drawn(*args: object, _original: Any = original, **kwargs: object) -> bool:
+            if not _disabled_button or not _disabled_now():
+                return _original(*args, **kwargs)
+            context = imgui.get_current_context()
+            imgui.push_style_var(imgui.StyleVar_.alpha, context.disabled_alpha_backup)
+            fill = _disabled_button[imgui.Col_.button]
+            for col in (
+                imgui.Col_.button,
+                imgui.Col_.button_hovered,
+                imgui.Col_.button_active,
+            ):
+                imgui.push_style_color(col, fill)
+            imgui.push_style_color(
+                imgui.Col_.border, _disabled_button[imgui.Col_.border]
+            )
+            imgui.push_style_color(imgui.Col_.text, _disabled_button[imgui.Col_.text])
+            try:
+                return _original(*args, **kwargs)
+            finally:
+                imgui.pop_style_color(5)
+                imgui.pop_style_var()
+
+        drawn._disabled_colors = True  # type: ignore[attr-defined]
+        setattr(imgui, name, drawn)
 
 
 def _clamp_colors(style: imgui.Style) -> None:
