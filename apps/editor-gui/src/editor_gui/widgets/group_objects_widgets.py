@@ -101,6 +101,13 @@ def _link_button_size() -> imgui.ImVec2:
     return imgui.ImVec2(width + (width - side) % 2, height + (height - side) % 2)
 
 
+def ga_range_label(node: Any) -> str:
+    """A group range as the group-address tree shows it: number and name ("1/2  Lights")."""
+    base = node.name or f"[{node.id}]"
+    number = getattr(node, "address", "")
+    return f"{number}  {base}" if number else base
+
+
 def _link_gap() -> int:
     """The room above, beside, between and below the link buttons of a cell."""
     return (_row_room() - round(_link_button_size().y)) // 2
@@ -1053,7 +1060,7 @@ class GroupObjectsTable:
         group addresses. While filtering, only matching folders/addresses show (folder auto-open)."""
         if needle and not self._range_matches(node, needle):
             return
-        label = f"{node.name or f'[{node.id}]'}##grpick{node.id}"
+        label = f"{ga_range_label(node)}##grpick{node.id}"
         if needle:
             imgui.set_next_item_open(True, imgui.Cond_.always)
         if not imgui.tree_node_ex(label):
