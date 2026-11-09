@@ -33,7 +33,7 @@ from editor_gui.plugins.monitor.strings import S
 from editor_gui.plugins.monitor.xmlio import export_xml, import_xml
 from editor_gui.strings import get_locale
 from editor_gui.theme import status_color
-from editor_gui.widgets.checkbox import radio_button
+from editor_gui.widgets.checkbox import checkbox, radio_button
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
 from editor_gui.widgets.dpi import px
 from editor_gui.widgets.filter_box import filter_box
@@ -135,12 +135,16 @@ class TelegramView:
         connection: ConnectionService,
         notify: Callable[[str], None] | None = None,
         on_select_device: Callable[[int], None] | None = None,
+        persist_get: Callable[[], bool] | None = None,
+        persist_set: Callable[[bool], None] | None = None,
     ) -> None:
         self.kind = kind
         self._service = service
         self._connection = connection
         self._notify = notify
         self._on_select_device = on_select_device
+        self._persist_get = persist_get
+        self._persist_set = persist_set
         self._channel = service.channel(kind)
         self.filter = ""
         # The rows shown: the log's records that match the filter, oldest first.
@@ -312,7 +316,7 @@ class TelegramView:
         """A small int input that sets the cap on the records this monitor keeps."""
         label = S.MONITOR_MAX_RECORDS
         label_w = text_width(label)
-        input_w = px(80.0)
+        input_w = px(60.0)
         # Keep buffer in sync when the cap was changed elsewhere (e.g. persisted on load).
         current = self._service.max_records(self.kind)
         if self._max_records_buf != current and not imgui.is_any_item_active():
@@ -327,11 +331,49 @@ class TelegramView:
         _, self._max_records_buf = imgui.input_int(
             f"##mon_max_records_{self.kind.value}", self._max_records_buf, 0, 0
         )
-        imgui.set_item_tooltip(S.MONITOR_MAX_RECORDS_HINT)
+        imgui.set_item_tooltip(
+            f"{S.MONITOR_MAX_RECORDS_HINT} ({S.MONITOR_MAX_RECORDS_UNLIMITED})"
+        )
         # Commit on Enter or when the field loses focus, so each keystroke does not trim.
         if imgui.is_item_deactivated_after_edit():
-            self._service.set_max_records(self.kind, max(self._max_records_buf, 10))
-            self._max_records_buf = self._service.max_records(self.kind)
+            self._commit_max_records(self._max_records_buf)
+
+    def _commit_max_records(self, value: int) -> None:
+        """Apply a new cap: 0 = unlimited, otherwise at least 10. Disabling the cap while the
+        group monitor persists asks first (unbounded memory + disk)."""
+        target = 0 if value <= 0 else max(value, 10)
+        if (
+            target == 0
+            and self._persist_get is not None
+            and self._persist_get()
+            and self._service.max_records(self.kind) != 0
+        ):
+            self._question = _Question(
+                S.QUESTION_UNLIMITED_TITLE,
+                S.QUESTION_UNLIMITED,
+                lambda: self._apply_max_records(0),
+            )
+            self._max_records_buf = self._service.max_records(
+                self.kind
+            )  # revert until confirmed
+            return
+        self._apply_max_records(target)
+
+    def _apply_max_records(self, value: int) -> None:
+        self._service.set_max_records(self.kind, value)
+        self._max_records_buf = self._service.max_records(self.kind)
+
+    def _render_persist_toggle(self) -> None:
+        """A checkbox to keep this project's group telegrams across restarts (Group Monitor only)."""
+        if self._persist_get is None or self._persist_set is None:
+            return
+        if self._toolbar_items:
+            same_line_if_fits(text_width(S.TOOL_PERSIST) + px(28.0))
+        self._toolbar_items += 1
+        changed, value = checkbox(S.TOOL_PERSIST, self._persist_get(), centred=True)
+        if changed:
+            self._persist_set(value)
+        imgui.set_item_tooltip(S.TOOL_PERSIST_HINT)
 
     def _render_toolbar(self) -> None:
         self._toolbar_items = 0
@@ -387,6 +429,8 @@ class TelegramView:
             ):
                 self._service.stop_replay()
             self._report_replay()
+            # After the buttons (which always fit) so it does not wrap onto its own line.
+            self._render_persist_toggle()
         # The bus load and the telegram count only while recording; otherwise just the state.
         if self._render_state():
             load = S.MONITOR_BUS_LOAD.format(rate=f"{self._service.bus_load():.1f}")

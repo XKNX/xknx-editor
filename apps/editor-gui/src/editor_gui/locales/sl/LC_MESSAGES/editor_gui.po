@@ -1753,3 +1753,6 @@ msgstr[0] "Iz {name} uvožena {count} različica izdelka:"
 msgstr[1] "Iz {name} uvoženi {count} različici izdelkov:"
 msgstr[2] "Iz {name} uvožene {count} različice izdelkov:"
 msgstr[3] "Iz {name} uvoženih {count} različic izdelkov:"
+
+msgid "Monitor"
+msgstr "Monitor"

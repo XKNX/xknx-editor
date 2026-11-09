@@ -1714,3 +1714,6 @@ msgstr[0] "Távolítsa el az érintett készülékeket, vagy exportáljon az új
 msgid "Imported {count} product version from {name}:"
 msgid_plural "Imported {count} product versions from {name}:"
 msgstr[0] "{count} termékverzió importálva innen: {name}:"
+
+msgid "Monitor"
+msgstr "Monitor"

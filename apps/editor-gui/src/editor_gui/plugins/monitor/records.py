@@ -113,7 +113,8 @@ class TelegramLog:
     def __init__(self, max_records: int = DEFAULT_MAX_RECORDS) -> None:
         self._lock = threading.Lock()
         self._records: list[MonitorRecord] = []
-        self._max = max(max_records, 10)
+        # 0 means no count limit; a positive cap is at least 10.
+        self._max = 0 if max_records == 0 else max(max_records, 10)
         self._next_number = 1
         # Changes whenever records are removed (clear, import, trim): views rebuild then.
         self._generation = 0
@@ -128,13 +129,13 @@ class TelegramLog:
         return self._max
 
     def set_max_records(self, value: int) -> None:
-        """Change the cap and trim down right away if the current log is longer."""
-        value = max(value, 10)
+        """Change the cap and trim down right away if the current log is longer. 0 = no limit."""
+        value = 0 if value == 0 else max(value, 10)
         with self._lock:
             if value == self._max:
                 return
             self._max = value
-            if len(self._records) > self._max:
+            if self._max and len(self._records) > self._max:
                 del self._records[: len(self._records) - self._max]
                 self._generation += 1
 
@@ -146,8 +147,20 @@ class TelegramLog:
         """Telegrams were recorded since the log was last cleared, loaded or exported."""
         return self._unsaved
 
-    def mark_saved(self) -> None:
-        self._unsaved = False
+    @property
+    def sequence(self) -> int:
+        """A token that increases with every appended record. Capture it before writing the
+        log out, then pass it to :meth:`mark_saved` so a telegram that arrives during the write
+        is not wrongly counted as saved."""
+        with self._lock:
+            return self._next_number
+
+    def mark_saved(self, upto: int | None = None) -> None:
+        """Mark the log saved. With ``upto`` (a value from :attr:`sequence`) only when no record
+        has been appended since it was taken, so a concurrent append stays unsaved."""
+        with self._lock:
+            if upto is None or upto == self._next_number:
+                self._unsaved = False
 
     def append(self, record: MonitorRecord) -> None:
         with self._lock:
@@ -156,7 +169,7 @@ class TelegramLog:
             self._records.append(record)
             if record.is_telegram:
                 self._unsaved = True
-            if len(self._records) > self._max:
+            if self._max and len(self._records) > self._max:
                 del self._records[: max(self._max // 10, 1)]
                 self._generation += 1
 
@@ -181,7 +194,8 @@ class TelegramLog:
                 self._next_number += 1
                 record.cells = None
                 self._records.append(record)
-            self._records = self._records[-self._max :]
+            if self._max:
+                self._records = self._records[-self._max :]
             self._generation += 1
             self._unsaved = False
 

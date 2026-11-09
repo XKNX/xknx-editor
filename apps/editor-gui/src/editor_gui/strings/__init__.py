@@ -494,14 +494,8 @@ class MenuStrings:
         return _("Catalog")
 
     @property
-    def SETTING_MAX_TELEGRAMS(self) -> str:
-        return _("Maximum Telegrams")
-
-    @property
-    def SETTING_MAX_TELEGRAMS_HINT(self) -> str:
-        return _(
-            "How many telegrams the Group Monitor keeps before dropping the oldest."
-        )
+    def SETTINGS_PAGE_MONITOR(self) -> str:
+        return _("Monitor")
 
     @property
     def SETTING_EXPORT_FORMAT(self) -> str:

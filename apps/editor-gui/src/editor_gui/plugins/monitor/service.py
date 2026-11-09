@@ -436,6 +436,14 @@ class MonitorService:
             channel.session = False
             channel.log.replace(records)
 
+    def restore_persisted(
+        self, kind: MonitorKind, records: Iterable[MonitorRecord]
+    ) -> None:
+        """Seed a monitor's log with persisted records, leaving recording as it is (unlike
+        :meth:`load`, which stops it). Used to reload a project's saved telegrams at open."""
+        with self._lock:
+            self.channels[kind].log.replace(records)
+
     # --- latest values and the legacy telegram list -----------------------
 
     def latest(self, address: str) -> LiveValue | None:

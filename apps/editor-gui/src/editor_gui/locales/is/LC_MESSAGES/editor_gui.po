@@ -1727,3 +1727,6 @@ msgid "Imported {count} product version from {name}:"
 msgid_plural "Imported {count} product versions from {name}:"
 msgstr[0] "{count} vöruútgáfa flutt inn úr {name}:"
 msgstr[1] "{count} vöruútgáfur fluttar inn úr {name}:"
+
+msgid "Monitor"
+msgstr "Monitor"

@@ -407,3 +407,80 @@ msgid "Replay cancelled: {count} telegram sent"
 msgid_plural "Replay cancelled: {count} telegrams sent"
 msgstr[0] "Wiedergabe abgebrochen: {count} Telegramm gesendet"
 msgstr[1] "Wiedergabe abgebrochen: {count} Telegramme gesendet"
+
+msgid "Persist"
+msgstr "Behalten"
+
+msgid "Keep this project's group telegrams across restarts"
+msgstr "Die Gruppen-Telegramme dieses Projekts über Neustarts hinweg behalten"
+
+msgid "Persist Group Monitor Telegrams"
+msgstr "Gruppenmonitor-Telegramme behalten"
+
+msgid "Save the group monitor's telegrams per project and reload them on the next start."
+msgstr "Die Telegramme des Gruppenmonitors pro Projekt speichern und beim nächsten Start wieder laden."
+
+msgid "Maximum Telegram File (MB)"
+msgstr "Maximale Telegrammdatei (MB)"
+
+msgid "The oldest telegrams are dropped to keep the saved file under this size. 0 = no limit."
+msgstr "Älteste Telegramme werden verworfen, damit die Datei unter dieser Größe bleibt. 0 = kein Limit."
+
+msgid "Unlimited Recording"
+msgstr "Unbegrenzte Aufzeichnung"
+
+msgid "Without a count limit the telegrams can use a lot of memory, and disk while persisting. Continue?"
+msgstr "Ohne Anzahl-Limit können die Telegramme viel Speicher belegen, beim Persistieren auch Plattenplatz. Fortfahren?"
+
+msgid "0 = unlimited"
+msgstr "0 = unbegrenzt"
+
+msgid "Maximum Telegrams"
+msgstr "Maximale Telegramme"
+
+msgid "How many telegrams the Group Monitor keeps before dropping the oldest. 0 = unlimited."
+msgstr "Wie viele Telegramme der Gruppenmonitor behält, bevor die ältesten verworfen werden. 0 = unbegrenzt."
+
+msgid "Open Monitor Folder"
+msgstr "Monitor-Ordner öffnen"
+
+msgid "Statistics"
+msgstr "Statistik"
+
+msgid "No telegrams recorded yet."
+msgstr "Noch keine Telegramme aufgezeichnet."
+
+msgid "{rate}/min"
+msgstr "{rate}/min"
+
+msgid "over {span}"
+msgstr "über {span}"
+
+msgid "{hours}h {minutes}m"
+msgstr "{hours}h {minutes}m"
+
+msgid "{minutes}m {seconds}s"
+msgstr "{minutes}m {seconds}s"
+
+msgid "{seconds}s"
+msgstr "{seconds}s"
+
+msgid "Top Sources"
+msgstr "Top-Quellen"
+
+msgid "Top Destinations"
+msgstr "Top-Ziele"
+
+msgid "Description"
+msgstr "Beschreibung"
+
+msgid "Telegrams"
+msgstr "Telegramme"
+
+msgid "{count} telegram"
+msgid_plural "{count} telegrams"
+msgstr[0] "{count} Telegramm"
+msgstr[1] "{count} Telegramme"
+
+msgid "max {peak}/min at {when}"
+msgstr "max {peak}/min um {when}"

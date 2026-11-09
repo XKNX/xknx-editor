@@ -1668,3 +1668,6 @@ msgid_plural "Imported {count} product versions from {name}:"
 msgstr[0] "Z {name} importována {count} verze produktu:"
 msgstr[1] "Z {name} importovány {count} verze produktů:"
 msgstr[2] "Z {name} importováno {count} verzí produktů:"
+
+msgid "Monitor"
+msgstr "Monitor"

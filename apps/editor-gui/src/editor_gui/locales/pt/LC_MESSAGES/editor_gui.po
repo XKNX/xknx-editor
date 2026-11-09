@@ -1655,3 +1655,6 @@ msgid "Imported {count} product version from {name}:"
 msgid_plural "Imported {count} product versions from {name}:"
 msgstr[0] "{count} versão de produto importada de {name}:"
 msgstr[1] "{count} versões de produto importadas de {name}:"
+
+msgid "Monitor"
+msgstr "Monitor"

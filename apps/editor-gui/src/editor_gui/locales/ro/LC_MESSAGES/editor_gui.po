@@ -1740,3 +1740,6 @@ msgid_plural "Imported {count} product versions from {name}:"
 msgstr[0] "S-a importat {count} versiune de produs din {name}:"
 msgstr[1] "S-au importat {count} versiuni de produs din {name}:"
 msgstr[2] "S-au importat {count} de versiuni de produs din {name}:"
+
+msgid "Monitor"
+msgstr "Monitor"

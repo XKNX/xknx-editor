@@ -46,6 +46,10 @@ class MonitorStrings:
         return _("Group Objects")
 
     @property
+    def MONITOR_TAB_STATISTICS(self) -> str:
+        return _("Statistics")
+
+    @property
     def MONITOR_TAB_BUS(self) -> str:
         return _("Bus Monitor")
 
@@ -298,6 +302,123 @@ class MonitorStrings:
     @property
     def BTN_CANCEL(self) -> str:
         return _("Cancel")
+
+    # --- persisting the group monitor ----------------------------------------
+
+    @property
+    def TOOL_PERSIST(self) -> str:
+        return _("Persist")
+
+    @property
+    def TOOL_PERSIST_HINT(self) -> str:
+        return _("Keep this project's group telegrams across restarts")
+
+    @property
+    def SETTING_PERSIST(self) -> str:
+        return _("Persist Group Monitor Telegrams")
+
+    @property
+    def SETTING_MAX_TELEGRAMS(self) -> str:
+        return _("Maximum Telegrams")
+
+    @property
+    def SETTING_MAX_TELEGRAMS_HINT(self) -> str:
+        return _(
+            "How many telegrams the Group Monitor keeps before dropping the oldest. "
+            "0 = unlimited."
+        )
+
+    @property
+    def SETTING_OPEN_FOLDER(self) -> str:
+        return _("Open Monitor Folder")
+
+    @property
+    def SETTING_PERSIST_HINT(self) -> str:
+        return _(
+            "Save the group monitor's telegrams per project and reload them on the next start."
+        )
+
+    @property
+    def SETTING_MAX_FILE_MB(self) -> str:
+        return _("Maximum Telegram File (MB)")
+
+    @property
+    def SETTING_MAX_FILE_MB_HINT(self) -> str:
+        return _(
+            "The oldest telegrams are dropped to keep the saved file under this size. 0 = no limit."
+        )
+
+    @property
+    def QUESTION_UNLIMITED_TITLE(self) -> str:
+        return _("Unlimited Recording")
+
+    @property
+    def QUESTION_UNLIMITED(self) -> str:
+        return _(
+            "Without a count limit the telegrams can use a lot of memory, and disk while "
+            "persisting. Continue?"
+        )
+
+    @property
+    def MONITOR_MAX_RECORDS_UNLIMITED(self) -> str:
+        return _("0 = unlimited")
+
+    # --- statistics ----------------------------------------------------------
+
+    @property
+    def STATS_EMPTY(self) -> str:
+        return _("No telegrams recorded yet.")
+
+    def STATS_TOTAL(self, count: int) -> str:
+        return _.plural("{count} telegram", "{count} telegrams", count)
+
+    @property
+    def STATS_RATE(self) -> str:
+        return _("{rate}/min")
+
+    @property
+    def STATS_PEAK(self) -> str:
+        return _("max {peak}/min at {when}")
+
+    @property
+    def STATS_SPAN(self) -> str:
+        return _("over {span}")
+
+    @property
+    def STATS_SPAN_HMS(self) -> str:
+        return _("{hours}h {minutes}m")
+
+    @property
+    def STATS_SPAN_MS(self) -> str:
+        return _("{minutes}m {seconds}s")
+
+    @property
+    def STATS_SPAN_S(self) -> str:
+        return _("{seconds}s")
+
+    @property
+    def STATS_SOURCES(self) -> str:
+        return _("Top Sources")
+
+    @property
+    def STATS_DESTINATIONS(self) -> str:
+        return _("Top Destinations")
+
+    @property
+    def STATS_ADDRESS(self) -> str:
+        return _("Address")
+
+    @property
+    def STATS_NAME(self) -> str:
+        return _("Name")
+
+    @property
+    def STATS_DESCRIPTION(self) -> str:
+        return _("Description")
+
+    @property
+    def STATS_COUNT(self) -> str:
+        return _("Telegrams")
 
     @property
     def SCOPE_EXPORT_TITLE(self) -> str:

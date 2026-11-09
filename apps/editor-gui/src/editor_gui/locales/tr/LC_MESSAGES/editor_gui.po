@@ -1642,3 +1642,6 @@ msgstr[0] "Etkilenen cihazları kaldırın veya daha yeni ETS için dışa aktar
 msgid "Imported {count} product version from {name}:"
 msgid_plural "Imported {count} product versions from {name}:"
 msgstr[0] "{name} dosyasından {count} ürün sürümü içe aktarıldı:"
+
+msgid "Monitor"
+msgstr "Monitor"
