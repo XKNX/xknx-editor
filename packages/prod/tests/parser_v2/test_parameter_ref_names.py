@@ -79,3 +79,18 @@ def test_a_script_finds_a_ref_by_its_own_name_and_by_its_parameters() -> None:
     ui = _ui()
     assert ui.find_parameter_ref("name", "flag_ro") == _FLAG_COPY
     assert ui.find_parameter_ref("name", "flag") == _FLAG
+
+
+def test_under_its_parameters_name_a_ref_without_a_name_of_its_own_comes_first() -> (
+    None
+):
+    # The copy named apart comes first in the application: a lookup by the parameter's name
+    # still finds the ref that has no name of its own, by its own name the copy.
+    copy = f'<ParameterRef Id="{_FLAG_COPY}" RefId="{_APP}_P-1" Name="flag_ro" Access="Read" Value="1" />'
+    plain = f'<ParameterRef Id="{_FLAG}" RefId="{_APP}_P-1" />'
+    xml = _XML.replace(plain + "\n" + copy, copy + "\n" + plain)
+    assert xml != _XML
+    program = parse_application_xml(xml.encode(), "M-00FA")[0].program
+    ui = DynamicUI(program)
+    assert ui.find_parameter_ref("name", "flag") == _FLAG
+    assert ui.find_parameter_ref("name", "flag_ro") == _FLAG_COPY

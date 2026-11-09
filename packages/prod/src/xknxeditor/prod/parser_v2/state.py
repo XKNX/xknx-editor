@@ -109,6 +109,11 @@ def _instance_length(scope: ParameterState) -> int:
     return len(scope.module_instance_id) if isinstance(scope, ModuleState) else 0
 
 
+def _counters(path: tuple[int, ...]) -> str:
+    """The counters of a repeat path as a submodule instance's id ends with them (``1-1-2``)."""
+    return "-".join(str(n) for n in path)
+
+
 @lru_cache(maxsize=1 << 16)
 def _qualified(element_id: str, app_id: str | None) -> str:
     """``element_id`` qualified with the application id, when it is relative to it."""
@@ -644,17 +649,26 @@ class ParameterState:
         arg_defaults: dict[str, str] | None = None,
         ref_id: str | None = None,
         param_ref_bases: dict[str, str] | None = None,
-        in_repeat: bool = False,
+        repeat_path: tuple[int, ...] = (),
     ) -> ModuleState:
         """Fetch or create the module instance state, linked into the tree.
 
-        ``repeat_idx`` is the iteration of the ``Repeat`` the ``Module`` is reached in
-        (``in_repeat``), 1 outside one."""
-        key, path = self._instance_key(module_id, repeat_idx, in_repeat)
+        ``repeat_path`` holds the iteration of each ``Repeat`` of this scope the ``Module`` is
+        reached in, outermost first (empty outside one), ``repeat_idx`` the iteration counted
+        through all of them (1 outside one)."""
+        key, path, earlier = self._instance_key(module_id, repeat_idx, repeat_path)
         self._active_module_keys[key] = None
         if key not in self._children:
             stored = self._stored_at_root(key)
-            legacy = self._stored_legacy(module_id, repeat_idx)
+            legacy = None
+            if self._parent is not None and "_SM-" in module_id:
+                if earlier[0] != key:
+                    legacy = self._stored_legacy(earlier[0])
+                if legacy is None:
+                    # The innermost iteration: what an instance was numbered by before.
+                    legacy = self._stored_legacy(
+                        f"{module_id}_MI-{repeat_path[-1] if repeat_path else 1}"
+                    )
             if legacy is not None:
                 if stored is None:
                     # A copy for each enclosing instance; the stored one is dropped with the
@@ -676,6 +690,7 @@ class ParameterState:
             )
             child._parent = self
             child.repeat_path = path
+            child.earlier = earlier
             dormant = self._dormant_children.pop(key, None)
             if dormant is not None:
                 # The instance comes back with the values it had (its submodule instances
@@ -688,6 +703,7 @@ class ParameterState:
             child = self._children[key]
             child._parent = self
             child.repeat_path = path
+            child.earlier = earlier
             if ref_id is not None:
                 child.ref_id = ref_id
             if arguments is not None:
@@ -701,25 +717,32 @@ class ParameterState:
         return self._children[key]
 
     def _instance_key(
-        self, module_id: str, repeat_idx: int, in_repeat: bool
-    ) -> tuple[str, tuple[int, ...]]:
-        """The id of the instance of ``module_id`` reached here, and its repeat path (the
+        self, module_id: str, repeat_idx: int, repeat_path: tuple[int, ...]
+    ) -> tuple[str, tuple[int, ...], tuple[str, tuple[int, ...]]]:
+        """The id of the instance of ``module_id`` reached here, its repeat path (the
         counters of the ``Repeat`` and ``Module`` elements it is nested in, outermost
-        first). A module instance of the application is ``<Module>_MI-<iteration>``."""
-        return f"{module_id}_MI-{repeat_idx}", (repeat_idx,) if in_repeat else ()
+        first), and both as they were before each of several nested Repeats had a counter of
+        its own (only the innermost one counted). A module instance of the application is
+        ``<Module>_MI-<iteration>``, the iteration counted through all its Repeats."""
+        return (
+            f"{module_id}_MI-{repeat_idx}",
+            repeat_path,
+            (
+                f"{module_id}_MI-{repeat_path[-1] if repeat_path else 1}",
+                repeat_path[-1:],
+            ),
+        )
 
-    def _stored_legacy(self, module_id: str, repeat_idx: int) -> ModuleState | None:
-        """The state a project stored at the root for an instance of the submodule
-        ``module_id`` under the id without its enclosing instance
-        (``..._MD-1_SM-1_M-1_MI-1``), left there: that id stood for the submodule instance of
-        every instance of the enclosing module, so each of them reads it. ``None`` for a
-        module of the application, or when there is none."""
-        if self._parent is None or "_SM-" not in module_id:
-            return None
+    def _stored_legacy(self, legacy: str) -> ModuleState | None:
+        """The state a project stored at the root for a submodule instance under an earlier
+        id ``legacy``, left there: an id without the enclosing instance
+        (``..._MD-1_SM-1_M-1_MI-1``), or with only the innermost of several nested Repeats
+        counted (``..._MI-1_SM-1_M-1_MI-1-1-2`` for ``..._MI-1_SM-1_M-1_MI-1-1-1-2``). Such
+        an id stood for the submodule instance of several instances, so each of them reads
+        it. ``None`` when there is none."""
         root: ParameterState = self
         while root._parent is not None:
             root = root._parent
-        legacy = f"{module_id}_MI-{repeat_idx}"
         if legacy in root._active_module_keys:
             return None
         # Set aside when the first evaluation did not reach it (see trim_to_active).
@@ -985,6 +1008,7 @@ class ModuleState(ParameterState):
     __slots__ = (
         "_arg_defaults",
         "arguments",
+        "earlier",
         "module_instance_id",
         "param_ref_bases",
         "ref_id",
@@ -1017,20 +1041,31 @@ class ModuleState(ParameterState):
         # The counters of the Repeat and Module elements the instance is nested in, outermost
         # first (see ``RepeatIndex`` of a project's ModuleInstance): set when it is evaluated.
         self.repeat_path: tuple[int, ...] = ()
+        # The id and the repeat path as they were before each of several nested Repeats had
+        # a counter of its own (the same unless the instance is in such Repeats): the earlier
+        # ids of its submodule instances are made of them.
+        self.earlier: tuple[str, tuple[int, ...]] = (module_instance_id, ())
 
     def _instance_key(
-        self, module_id: str, repeat_idx: int, in_repeat: bool
-    ) -> tuple[str, tuple[int, ...]]:
+        self, module_id: str, repeat_idx: int, repeat_path: tuple[int, ...]
+    ) -> tuple[str, tuple[int, ...], tuple[str, tuple[int, ...]]]:
         """A submodule instance is named after its enclosing instance, as a project stores it:
         ``MD-4_M-15_MI-1`` + ``_SM-1_M-1_MI-<counters>``, the counters being those of every
         Repeat and Module it is nested in (``1-1-2``: the first iteration of the enclosing
-        instance, its Module, the second iteration of the submodule's Repeat)."""
+        instance, its Module, the second iteration of the submodule's Repeat; in two nested
+        Repeats one counter for each, ``1-1-2-1``)."""
         at = module_id.rfind("_SM-")
         if at == -1:
-            return super()._instance_key(module_id, repeat_idx, in_repeat)
-        path = (*self.repeat_path, 1, *((repeat_idx,) if in_repeat else ()))
-        counters = "-".join(str(n) for n in path)
-        return f"{self.module_instance_id}_{module_id[at + 1 :]}_MI-{counters}", path
+            return super()._instance_key(module_id, repeat_idx, repeat_path)
+        module = module_id[at + 1 :]
+        path = (*self.repeat_path, 1, *repeat_path)
+        earlier_id, earlier_outer = self.earlier
+        earlier_path = (*earlier_outer, 1, *repeat_path[-1:])
+        return (
+            f"{self.module_instance_id}_{module}_MI-{_counters(path)}",
+            path,
+            (f"{earlier_id}_{module}_MI-{_counters(earlier_path)}", earlier_path),
+        )
 
     def _local_base(self) -> str | None:
         """The id the local ids of this instance's parameters and objects start with: its

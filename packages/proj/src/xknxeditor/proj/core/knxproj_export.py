@@ -1074,6 +1074,10 @@ def _module_instance_of(ref: str) -> str | None:
     return instances[-1] if instances else None
 
 
+# The iterations of a repeat counted at most (see module_repeat_indexes).
+_MAX_REPEAT_COUNT = 1024
+
+
 def module_repeat_indexes(app_xml: bytes) -> dict[str, str]:
     """The ``RepeatIndex`` of every module instance of an application program, by its relative
     id (``MD-1_M-2_MI-1``), as genuine exports write it and the importer requires it (without
@@ -1083,11 +1087,14 @@ def module_repeat_indexes(app_xml: bytes) -> dict[str, str]:
     the ``<Dynamic>`` itself (0). An instance's index is the place of its ``<Module>`` with
     ``x1``, after ``{place}x{iteration}`` of each ``<Repeat>`` it is in (outermost first,
     separated by spaces); ``MI-n`` is the n-th iteration: ``529x1``, or ``2x3 3x1`` for the third
-    instance of a module in a repeat.
+    instance of a module in a repeat (in nested repeats counted through all of them). A repeat
+    whose count a parameter gives has as many iterations as that parameter's type allows.
 
     A submodule instance (``MD-1_M-2_MI-3_SM-1_M-1_MI-3-1-2``, see the module state) follows
     the index of the instance it is in with the places in its module definition's
-    ``<Dynamic>``, counted the same way."""
+    ``<Dynamic>``, counted the same way; its id has the counters of the instance it is in, of
+    that instance's Module and of each repeat it is in (``MI-3-1-1-2`` in two nested
+    repeats)."""
     root = ET.fromstring(app_xml)
     program = next(
         (el for el in root.iter() if _tag(el) == "ApplicationProgram"),
@@ -1104,6 +1111,30 @@ def module_repeat_indexes(app_xml: bytes) -> dict[str, str]:
     definitions = {
         el.get("Id", ""): el for el in program.iter() if _tag(el) == "ModuleDef"
     }
+    # A Repeat without a Count repeats as often as its parameter says: as often as that
+    # parameter's type allows, at most.
+    ref_parameters: dict[str, str] = {}
+    parameter_types: dict[str, str] = {}
+    type_maxima: dict[str, int] = {}
+    for el in program.iter():
+        tag = _tag(el)
+        if tag == "ParameterRef":
+            ref_parameters[el.get("Id", "")] = el.get("RefId", "")
+        elif tag == "Parameter":
+            parameter_types[el.get("Id", "")] = el.get("ParameterType", "")
+        elif tag == "ParameterType":
+            for kind in el:
+                maximum = kind.get("maxInclusive")
+                if maximum is not None and maximum.lstrip("-").isdigit():
+                    type_maxima[el.get("Id", "")] = int(maximum)
+
+    def repeat_count(repeat: ET.Element) -> int:
+        count = repeat.get("Count") or ""
+        if count.isdigit() and int(count) > 0:
+            return int(count)
+        parameter = ref_parameters.get(repeat.get("ParameterRefId") or "", "")
+        maximum = type_maxima.get(parameter_types.get(parameter, ""), 1)
+        return min(max(maximum, 1), _MAX_REPEAT_COUNT)
 
     def iterations(repeats: list[tuple[int, int]]) -> list[list[int]]:
         result: list[list[int]] = [[]]
@@ -1128,8 +1159,7 @@ def module_repeat_indexes(app_xml: bytes) -> dict[str, str]:
             if tag == "Module" and element.get("Id"):
                 on_module(element, here, repeats)
             if tag == "Repeat":
-                count = int(element.get("Count") or "1")
-                repeats = [*repeats, (here, max(count, 1))]
+                repeats = [*repeats, (here, repeat_count(element))]
             for child in element:
                 visit(child, repeats)
 

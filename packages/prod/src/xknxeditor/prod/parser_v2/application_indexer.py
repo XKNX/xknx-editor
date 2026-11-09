@@ -2,7 +2,8 @@ from __future__ import annotations
 
 import re
 import warnings
-from collections.abc import Iterable
+from collections.abc import Iterable, Sequence
+from typing import TYPE_CHECKING
 
 from xknxeditor.namespaces.ids import unpadded_id
 from xknxeditor.namespaces.intermediate import (
@@ -29,6 +30,9 @@ from xknxeditor.namespaces.intermediate.segment_base_t import SegmentBase
 
 from .allocator import Allocator
 
+if TYPE_CHECKING:
+    from .encode import MemWrite, PropWrite, TypedPropertyKey
+
 
 class ApplicationIndexer:
     """Prebuilt indexes over the static IR (parameters, refs, types, module defs)."""
@@ -45,15 +49,23 @@ class ApplicationIndexer:
         "code_segments",
         "com_object_refs",
         "com_objects",
+        "item_parameters",
+        "local_ids",
         "messages",
         "module_defs",
+        "module_referenced",
+        "own_properties",
         "padded_ref_ids",
         "parameter_refs",
         "parameter_types",
         "parameters",
         "ref_owner",
+        "referenced_parameters",
         "refs_by_name",
         "refs_by_number",
+        "refs_of_parameters",
+        "scope_decoded",
+        "scope_writes",
         "script",
         "stored_cells",
     )
@@ -75,11 +87,41 @@ class ApplicationIndexer:
         # What calculations computed from given values, for searches that try many values (a
         # calculation is a function of its values: each run starts in a fresh script context).
         self.calculation_results: dict[tuple[object, ...], object] = {}
-        # The param-refs of each parameter and the bytes the application's own parameters are
-        # stored at (see encode.stored_parameter_cells): the same for every state.
-        self.stored_cells: (
-            tuple[dict[str, list[str]], dict[tuple[str, int], set[str]]] | None
+        # What encoding and decoding work out once per application (they go with it; see
+        # encode): the param-refs at the bytes the application's own parameters are stored at
+        # (stored_parameter_cells) and its own part of the property layout
+        # (stored_property_layout), the same for every state; the ParameterRefs of each
+        # parameter and the parameters some ParameterRef refers to, of the application and of
+        # each module definition (by its id); the parameters of each item of a static section
+        # (by the identity of the section's list, held, so the identity stays its); the
+        # writes of module scopes by what they depend on; and what module instances decoded,
+        # by the identity of their writes and of the bytes they read (all held).
+        self.stored_cells: dict[tuple[str, int], frozenset[str]] | None = None
+        self.own_properties: (
+            tuple[dict[tuple[TypedPropertyKey, int], frozenset[str]], list[PropWrite]]
+            | None
         ) = None
+        self.refs_of_parameters: dict[str, list[str]] | None = None
+        self.referenced_parameters: frozenset[str] | None = None
+        self.module_referenced: dict[str, frozenset[str]] = {}
+        self.item_parameters: dict[
+            int, tuple[Sequence[object], tuple[frozenset[str], ...]]
+        ] = {}
+        self.scope_writes: dict[
+            tuple[object, ...], tuple[tuple[MemWrite, ...], tuple[PropWrite, ...]]
+        ] = {}
+        self.scope_decoded: dict[
+            tuple[object, ...],
+            tuple[
+                tuple[MemWrite, ...],
+                tuple[PropWrite, ...],
+                tuple[bytes, ...],
+                dict[str, str | None],
+            ],
+        ] = {}
+        # The local ids of the refs looked up in UIs, by their module scopes (see
+        # DynamicUI.local_ref_id), of the last few kinds of scopes.
+        self.local_ids: dict[tuple[object, ...], dict[str, str]] = {}
         self.ref_owner: dict[str, str | None] = {}
         self.refs_by_name: dict[str | None, dict[str, str]] = {}
         self.refs_by_number: dict[str | None, dict[int, str]] = {}
@@ -160,13 +202,25 @@ class ApplicationIndexer:
     def _index_ref_lookup(self, pr: ParameterRef, owner: str | None) -> None:
         self.ref_owner[pr.id] = owner
         base = self.parameters.get(pr.ref_id)
-        # A ref with a name of its own is found by it too, as by its parameter's.
-        for name in (pr.name, getattr(base, "name", None)):
-            if name:
-                self.refs_by_name.setdefault(owner, {}).setdefault(name, pr.id)
+        # A ref with a name of its own is found by it too, as by its parameter's; under its
+        # parameter's name a ref without a name of its own comes first (the first such in
+        # order), a ref named apart only when no other ref has that name.
+        names = self.refs_by_name.setdefault(owner, {})
+        if pr.name:
+            names.setdefault(pr.name, pr.id)
+        name = getattr(base, "name", None)
+        if name and name != pr.name:
+            found = names.get(name)
+            if found is None or (not pr.name and self._named_apart(found, name)):
+                names[name] = pr.id
         m = self._REF_NUMBER.search(pr.id)
         if m:
             self.refs_by_number.setdefault(owner, {}).setdefault(int(m.group(1)), pr.id)
+
+    def _named_apart(self, ref_id: str, name: str) -> bool:
+        """Whether the ref ``ref_id`` has a name of its own other than ``name``."""
+        own = self.parameter_refs[ref_id].name
+        return bool(own) and own != name
 
     def default_value(self, ref_id: str) -> str | None:
         """Value of a ParameterRef that has never been set."""

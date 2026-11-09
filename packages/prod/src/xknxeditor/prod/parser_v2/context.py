@@ -217,9 +217,9 @@ class EvalContext:
         "_gate_checks",
         "_handed",
         "_idx",
-        "_in_repeat",
         "_object_tree",
         "_repeat_idx",
+        "_repeat_path",
         "_scope",
         "_union_chooses",
         "_union_suppress",
@@ -234,15 +234,18 @@ class EvalContext:
         union_suppress: bool = True,
         explore: Explorer | None = None,
         object_tree: ObjectTreeCapture | None = None,
-        in_repeat: bool = False,
+        repeat_path: tuple[int, ...] = (),
         union_chooses: list[tuple[ParameterState, str, Collection[str]]] | None = None,
         handed: set[int] | None = None,
         gate_checks: GateChecks | None = None,
     ) -> None:
         self._scope = scope
+        # The iteration of the Repeats of this scope it is in, counted through all of them
+        # (the third iteration of a Repeat of 2 in the second of another: 5); 1 outside one.
         self._repeat_idx = repeat_idx
-        # Whether ``repeat_idx`` is the iteration of a Repeat in this scope (it is 1 outside one).
-        self._in_repeat = in_repeat
+        # The iteration of each Repeat of this scope it is in, outermost first (empty outside
+        # one).
+        self._repeat_path = repeat_path
         self._idx = idx
         self._capture = capture
         # False during the union-discovery pass (render both overlapping members so the reached one
@@ -388,16 +391,23 @@ class EvalContext:
     def repeat_idx(self) -> int:
         return self._repeat_idx
 
-    def repeat_ctx(self, repeat_idx: int) -> EvalContext:
+    def repeat_ctx(self, repeat_idx: int, count: int) -> EvalContext:
+        """The context of the iteration ``repeat_idx`` of a Repeat of ``count`` iterations
+        reached in this one."""
+        number = (
+            (self._repeat_idx - 1) * count + repeat_idx
+            if self._repeat_path
+            else repeat_idx
+        )
         return EvalContext(
             self._scope,
-            repeat_idx,
+            number,
             self._idx,
             self._capture,
             self._union_suppress,
             self._explore,
             self._object_tree,
-            in_repeat=True,
+            repeat_path=(*self._repeat_path, repeat_idx),
             union_chooses=self._union_chooses,
             handed=self._handed,
             gate_checks=self._gate_checks,
@@ -454,7 +464,7 @@ class EvalContext:
             arg_defaults=arg_defaults,
             ref_id=ref_id,
             param_ref_bases=param_ref_bases,
-            in_repeat=self._in_repeat,
+            repeat_path=self._repeat_path,
         )
         return EvalContext(
             ms,

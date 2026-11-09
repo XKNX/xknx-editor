@@ -789,18 +789,17 @@ class DynamicTreeBuilder:
         return None
 
 
-# The local ids of the refs looked up in UIs, by their module scopes (see
-# DynamicUI.local_ref_id), of the last few kinds of scopes.
-_LOCAL_IDS: dict[tuple[object, ...], dict[str, str]] = {}
-
-
-def _local_ids_of(scopes: tuple[object, ...]) -> dict[str, str]:
-    """The local ids looked up in UIs with the module scopes ``scopes``."""
-    found = _LOCAL_IDS.get(scopes)
+def _local_ids_of(
+    idx: ApplicationIndexer, scopes: tuple[object, ...]
+) -> dict[str, str]:
+    """The local ids looked up in UIs of the application of ``idx`` with the module scopes
+    ``scopes`` (of the last few kinds of scopes, kept with the indexer)."""
+    local_ids = idx.local_ids
+    found = local_ids.get(scopes)
     if found is None:
-        if len(_LOCAL_IDS) >= 64:
-            _LOCAL_IDS.clear()
-        found = _LOCAL_IDS[scopes] = {}
+        if len(local_ids) >= 64:
+            local_ids.clear()
+        found = local_ids[scopes] = {}
     elif len(found) >= 1 << 17:
         found.clear()
     return found
@@ -1592,7 +1591,7 @@ class DynamicUI:
             self._state,
         )
 
-    def stored_parameter_cells(self) -> dict[tuple[str, int], set[str]]:
+    def stored_parameter_cells(self) -> dict[tuple[str, int], frozenset[str]]:
         """The param-refs stored at each byte, active or not (module instances' qualified); see
         :func:`~xknxeditor.prod.parser_v2.encode.stored_parameter_cells`."""
         self.ui()
@@ -2288,7 +2287,7 @@ class DynamicUI:
         # seeds many) look up each ref once.
         local_ids = self._local_ids
         if local_ids is None:
-            local_ids = self._local_ids = _local_ids_of(self._state.scopes())
+            local_ids = self._local_ids = _local_ids_of(self._idx, self._state.scopes())
         local = local_ids.get(ref_id)
         if local is None:
             local = local_ids[ref_id] = self._locate(ref_id)[1]

@@ -155,6 +155,15 @@ def test_the_layout_holds_the_settings_shown_or_not(application: Application) ->
     assert _FILTER_KEY not in layout.defaults
 
 
+def test_a_changed_layout_leaves_the_next_one_as_it_was(
+    application: Application,
+) -> None:
+    ui = seed_dynamic_ui(application, {})
+    assert ui is not None
+    ui.stored_property_layout().cells[(_ZONE_KEY, 0)].add("changed")
+    assert ui.stored_property_layout().cells[(_ZONE_KEY, 0)] == {_ZONE}
+
+
 def test_a_property_value_other_than_its_default_shows_its_setting(
     application: Application,
 ) -> None:
