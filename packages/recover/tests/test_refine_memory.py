@@ -336,20 +336,141 @@ def _channel_with_objects(objects: int) -> Application:
     return parse_application_xml(xml.encode(), "M-00FA")[0]
 
 
-@pytest.mark.parametrize(("objects", "active"), [(2, True), (8, False)])
-def test_a_channel_showing_unlinked_objects_takes_more_than_a_byte(
-    objects: int, active: bool
+@pytest.mark.parametrize("objects", [2, 8, 40])
+def test_a_differing_byte_takes_more_than_a_channel_showing_unlinked_objects(
+    objects: int,
 ) -> None:
-    # The second byte holds 7, though the channel is off on the device (data the device keeps
-    # there at run time, say). Turning the channel on explains the byte, and shows objects the
-    # device does not link: a few weigh less than the byte, a whole channel of them more.
+    """The second byte holds 7, and only the channel turned on explains it, showing objects the
+    device does not link. The memory read is what the device holds, the objects shown without
+    a link tell nothing (a device can have channels on whose objects it links to nothing): the
+    channel is on, however many of them it shows."""
     application = _channel_with_objects(objects)
     channel = f"{application.id}_P-1_R-1"
     segments = _device(application)
     segment = next(iter(segments))
     segments[segment] = segments[segment][:1] + b"\x07" + segments[segment][2:]
     recovered = recover_parameters(application, segments, linked_objects={0})
-    assert (recovered.values.get(channel, "0") == "1") is active
+    assert recovered.values.get(channel, "0") == "1"
+    assert recovered.complete
+
+
+def _units_application(objects: int) -> Application:
+    """A selector of how many units a gateway serves (1 or 4, the device keeps no copy of it):
+    each unit from the second on shows a setting of its own (initially 1, in byte n - 1 of unit
+    n) and ``objects`` group objects; object 0, of the first unit, always shows."""
+    app = "M-00FA_A-0009-01-0000"
+    numbers = range(1 + 3 * objects)
+    table = "".join(
+        f'<ComObject Id="{app}_O-{n}" Name="O{n}" Text="Object {n}" Number="{n}"'
+        ' FunctionText="" ObjectSize="1 Bit" ReadFlag="Disabled" WriteFlag="Enabled"'
+        ' CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Disabled"'
+        ' ReadOnInitFlag="Disabled" />'
+        for n in numbers
+    )
+    object_refs = "".join(
+        f'<ComObjectRef Id="{app}_O-{n}_R-{n}" RefId="{app}_O-{n}" />' for n in numbers
+    )
+    settings = "".join(
+        f'<Parameter Id="{app}_P-{unit}" Name="Unit{unit}" ParameterType="{app}_PT-N"'
+        f' Text="Unit {unit}" Value="1"><Memory CodeSegment="{app}_AS-0000"'
+        f' Offset="{unit - 1}" BitOffset="0" /></Parameter>'
+        for unit in range(2, 5)
+    )
+    refs = "".join(
+        f'<ParameterRef Id="{app}_P-{n}_R-{n}" RefId="{app}_P-{n}" />'
+        for n in range(1, 5)
+    )
+    units = "".join(
+        f'<ParameterRefRef RefId="{app}_P-{unit}_R-{unit}" />'
+        + "".join(
+            f'<ComObjectRefRef RefId="{app}_O-{n}_R-{n}" />'
+            for n in range(1 + (unit - 2) * objects, 1 + (unit - 1) * objects)
+        )
+        for unit in range(2, 5)
+    )
+    xml = f"""<?xml version="1.0" encoding="utf-8"?>
+<KNX xmlns="http://knx.org/xml/project/20" CreatedBy="test" ToolVersion="1">
+  <ManufacturerData><Manufacturer RefId="M-00FA"><ApplicationPrograms>
+    <ApplicationProgram Id="{app}" ApplicationNumber="9" ApplicationVersion="1"
+        ProgramType="ApplicationProgram" MaskVersion="MV-07B0" Name="Units"
+        LoadProcedureStyle="MergedProcedure" PeiType="0" DefaultLanguage="en-US"
+        DynamicTableManagement="false" Linkable="false" MinEtsVersion="5.0">
+      <Static>
+        <Code><AbsoluteSegment Id="{app}_AS-0000" Address="0" Size="4"><Data>AAAAAA==</Data></AbsoluteSegment></Code>
+        <ParameterTypes>
+          <ParameterType Id="{app}_PT-Units" Name="Units">
+            <TypeRestriction Base="Value" SizeInBit="8">
+              <Enumeration Text="1" Value="1" Id="{app}_PT-Units_EN-1" />
+              <Enumeration Text="4" Value="4" Id="{app}_PT-Units_EN-4" />
+            </TypeRestriction>
+          </ParameterType>
+          <ParameterType Id="{app}_PT-N" Name="N">
+            <TypeNumber SizeInBit="8" Type="unsignedInt" minInclusive="0" maxInclusive="255" />
+          </ParameterType>
+        </ParameterTypes>
+        <Parameters>
+          <Parameter Id="{app}_P-1" Name="Units" ParameterType="{app}_PT-Units" Text="Units" Value="1" />
+          {settings}
+        </Parameters>
+        <ParameterRefs>{refs}</ParameterRefs>
+        <ComObjectTable>{table}</ComObjectTable>
+        <ComObjectRefs>{object_refs}</ComObjectRefs>
+      </Static>
+      <Dynamic>
+        <ChannelIndependentBlock>
+          <ParameterBlock Id="{app}_PB-1" Text="General">
+            <ParameterRefRef RefId="{app}_P-1_R-1" />
+            <choose ParamRefId="{app}_P-1_R-1"><when test="4">{units}</when></choose>
+          </ParameterBlock>
+          <ComObjectRefRef RefId="{app}_O-0_R-0" />
+        </ChannelIndependentBlock>
+      </Dynamic>
+    </ApplicationProgram>
+  </ApplicationPrograms></Manufacturer></ManufacturerData>
+</KNX>
+"""
+    return parse_application_xml(xml.encode(), "M-00FA")[0]
+
+
+def test_units_whose_settings_the_memory_holds_are_on_without_links() -> None:
+    """A gateway set to four units, of which only the first has a linked object: the memory
+    holds the other units' settings, the objects of those units are linked to nothing. One unit
+    leaves three bytes differing, four show 60 objects without a link and differ in none: the
+    bytes decide (before, 60 such objects outweighed the three bytes, and one unit was kept)."""
+    application = _units_application(20)
+    units = f"{application.id}_P-1_R-1"
+    segments = _device(application, (units, "4"))
+    assert next(iter(segments.values()))[1:4] == b"\x01\x01\x01"
+    recovered = recover_parameters(application, segments, linked_objects={0})
+    assert recovered.values.get(units) == "4"
+    assert recovered.complete
+
+
+def test_unlinked_objects_tell_apart_results_alike_otherwise() -> None:
+    """Of two results that differ from the device in as many bytes, the one that shows fewer
+    objects without a link fits better."""
+    application = _units_application(20)
+    units = f"{application.id}_P-1_R-1"
+    segments = _device(application)
+    segment = next(iter(segments))
+    # The memory holds 7 for unit 2 and 0 for units 3 and 4: one unit differs in the byte of
+    # unit 2, four units with 7 and 0 for units 2 and 3 in the byte of unit 4 (initially 1).
+    segments[segment] = segments[segment][:1] + b"\x07" + segments[segment][2:]
+    misfit = parameters._misfit  # pyright: ignore[reportPrivateUsage]
+    one = application.dynamic_ui()
+    four = application.dynamic_ui()
+    assert one is not None
+    assert four is not None
+    four.set_parameter_ref(units, "4")
+    four.set_parameter_ref(f"{application.id}_P-2_R-2", "7")
+    four.set_parameter_ref(f"{application.id}_P-3_R-3", "0")
+    one_fit = misfit(one, segments, {0}, {})
+    four_fit = misfit(four, segments, {0}, {})
+    assert one_fit is not None
+    assert four_fit is not None
+    assert len(one_fit[1]) == len(four_fit[1]) == 1
+    assert one_fit[0][:2] == four_fit[0][:2]
+    assert one_fit[0] < four_fit[0]
 
 
 _PAIR_APP = "M-00FA_A-0008-01-0000"
