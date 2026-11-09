@@ -2150,6 +2150,15 @@ def _decode(
                 unknown.append(ref_id)
             else:
                 module_read[ref_id] = value
+        # The settings of the instances the device keeps no copy of that an Assign copies
+        # into their stored settings, as for the application's above.
+        module_read.update(
+            (ref_id, value)
+            for ref_id, value in _assigned_from(
+                seeded, {**values, **module_read}, inferred
+            ).items()
+            if "_MI-" in ref_id
+        )
         # Seeding again changes nothing unless a value the UI was seeded with otherwise
         # decides what it shows.
         if module_read == module_values or not any(
@@ -2584,8 +2593,10 @@ def _assigned_from(
         value = read.get(target)
         if value is None or source in read or source in inferred:
             continue
-        target_ref = indexer.parameter_refs.get(target)
-        source_ref = indexer.parameter_refs.get(source)
+        # A module instance's are qualified with the instance: the indexer knows them by
+        # their local ids.
+        target_ref = indexer.parameter_refs.get(ui.local_ref_id(target))
+        source_ref = indexer.parameter_refs.get(ui.local_ref_id(source))
         if target_ref is None or source_ref is None:
             continue
         target_parameter = indexer.parameters.get(target_ref.ref_id)

@@ -1702,7 +1702,12 @@ class DynamicUI:
         return value if value is not None else self._idx.default_value(local)
 
     def validate_parameter_values(self) -> None:
-        """Check resolved values, including selectors without storage."""
+        """Check resolved values, including selectors without storage.
+
+        A number outside its type's range is accepted: values set in the editor are checked
+        when they are set, so one here is the product's own (an Assign writes its value as
+        given), and the encoder writes it while it fits the parameter's size.
+        """
         for ref_id, value in self._state.relative_param_values():
             ref = self._idx.parameter_refs.get(ref_id)
             if ref is None:
@@ -1710,7 +1715,7 @@ class DynamicUI:
             parameter = self._idx.parameters[ref.ref_id]
             tc = self._idx.parameter_types[parameter.parameter_type].choice
             try:
-                validate_parameter_value(value, tc)
+                validate_parameter_value(value, tc, check_range=False)
             except ValueError as exc:
                 raise EncodingError(f"parameter {ref_id}: {exc}") from exc
 
@@ -2244,10 +2249,22 @@ class DynamicUI:
         return self._parameter_gates.get(local_ref_id, frozenset())
 
     def assigned_from(self) -> dict[str, str]:
-        """The application's param-refs the Assigns of the evaluated tree write from another
-        one: target -> source (its module instances' are left out)."""
+        """The param-refs the Assigns of the evaluated tree write from another one: target ->
+        source, those of the module instances it reaches too, each qualified in the scope
+        that owns it (as :meth:`assigned_source` gives it)."""
         self.ui()
-        return self._state.assigned_from()
+        found = self._state.assigned_from()
+        pending = self._state.reached_module_children()
+        while pending:
+            scope = pending.pop()
+            found.update(
+                {
+                    scope.qualify_local(target): scope.qualify_local(source)
+                    for target, source in scope.assigned_from().items()
+                }
+            )
+            pending.extend(scope.reached_module_children())
+        return found
 
     def assigned_source(self, ref_id: str) -> str | None:
         """The param-ref an Assign of the evaluated tree writes the (possibly module-qualified)

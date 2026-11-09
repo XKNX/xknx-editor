@@ -380,11 +380,17 @@ def _encode_number(str_value: str, size_in_bit: int) -> int | None:
     return v & ((1 << size_in_bit) - 1)
 
 
-def validate_parameter_value(value: str, tc: object) -> str:
-    """Validate integer domains and resolve restriction labels to numeric values."""
+def validate_parameter_value(
+    value: str, tc: object, *, check_range: bool = True
+) -> str:
+    """Validate integer domains and resolve restriction labels to numeric values.
+
+    ``check_range=False`` accepts a whole number outside its type's range (it still has to
+    be a number).
+    """
     if isinstance(tc, ParameterTypeTypeNumber):
         number = int(value, 16) if value[:2].lower() == "0x" else int(value)
-        if not tc.min_inclusive <= number <= tc.max_inclusive:
+        if check_range and not tc.min_inclusive <= number <= tc.max_inclusive:
             raise ValueError(
                 f"value {value!r} outside {tc.min_inclusive}..{tc.max_inclusive}"
             )
