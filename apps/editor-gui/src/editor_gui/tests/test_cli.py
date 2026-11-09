@@ -14,6 +14,7 @@ from editor_gui.web import web_options
 _ARGUMENTS = (
     "--help",
     "--new-instance",
+    "--password-file=",
     "--profile",
     "--web[=",
     "--web-password-file=",

@@ -83,7 +83,7 @@ Every new UI feature gets MCP access in the same change:
 
 ## Command-Line Options
 
-Every new command-line option of the editor is documented in the same change: in `editor_gui.cli` (the `--help` text) and in the options tables of `README.md` (the browser UI's, or "Started by Another Program" for options a launcher such as the Home Assistant integration passes); options of `editor_gui.host` also in `apps/editor-gui/AGENTS.md` ("Inside Home Assistant").
+Every new command-line option of the editor is documented in the same change: in `editor_gui.cli` (the `--help` text) and in the options tables of `README.md` ("Command Line" for general options such as `--password-file`, the browser UI's, or "Started by Another Program" for options a launcher such as the Home Assistant integration passes); options of `editor_gui.host` also in `apps/editor-gui/AGENTS.md` ("Inside Home Assistant").
 
 ## Adding a New Package
 

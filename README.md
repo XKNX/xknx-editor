@@ -80,6 +80,35 @@ switch to the running one, which then opens a project given at the start, or to 
 for a second project or another bus connection. `--new-instance` starts another without asking.
 Opening a project another XKNX Editor has open asks first as well.
 
+## Command Line
+
+```
+XKNX-Editor [options] [project file]
+```
+
+The project file given opens at the start: an `.xknx` project, or a `.knxproj` to import. Opening a
+project from the file manager passes it the same way. For a password-protected `.xknx` project,
+`--password-file` (or the environment variable `XKNX_PROJECT_PASSWORD`) gives the password, so the
+editor is ready to use right after the start, e.g. in an autostart:
+
+```bash
+XKNX-Editor.exe --password-file=C:\Users\Me\xknx-password.txt C:\Projekte\Haus.xknx
+```
+
+| Option | Meaning |
+|---|---|
+| `--password-file=FILE` | The password of the project file given, from the first line of `FILE` (or `XKNX_PROJECT_PASSWORD`); a wrong one is asked for as usual |
+| `--new-instance` | Start another editor without offering to switch to one that runs already |
+| `--profile` | Print where the time went when the editor ends (for developers) |
+| `-h`, `--help` | List all options and end |
+
+The password is read from a file or the environment, never given on the command line itself, where
+other programs could read it in the list of running processes. Keep the file readable for your user
+only.
+
+The options of the browser UI and those for a program that starts the editor are under
+[Browser UI](#browser-ui).
+
 ## Reporting problems
 
 Report a problem via **Help → Report a Bug**, which opens the
@@ -226,7 +255,7 @@ Start the app with `--web` and open the address it prints:
 
 By default it serves `http://localhost:8080/` on this computer only, opens the browser there (no
 sign-in) and shows a tray icon with **Open in Browser** / **Stop XKNX Editor**. **Stop XKNX
-Editor** or Ctrl+C ends it (the browser itself has no **File → Exit**). A project file can be given as usual, e.g. `XKNX-Editor.exe --web Haus.xknx`.
+Editor** or Ctrl+C ends it (the browser itself has no **File → Exit**). A project file can be given as usual (see [Command Line](#command-line)), e.g. `XKNX-Editor.exe --web Haus.xknx`.
 
 To reach it from other devices, give an address and a password (or `--web-trust-proxy` behind a
 proxy that signs users in itself; for HTTPS pass a certificate or terminate TLS in the proxy):

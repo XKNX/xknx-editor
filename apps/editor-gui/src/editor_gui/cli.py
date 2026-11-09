@@ -17,6 +17,11 @@ _GENERAL = (
         "--new-instance",
         "Start another editor without offering to switch to one that runs already.",
     ),
+    (
+        "--password-file=FILE",
+        "Password of the project file given from the first line of FILE (or "
+        "XKNX_PROJECT_PASSWORD) instead of asking for it.",
+    ),
     ("--profile", "Print where the time went when the editor ends (for developers)."),
 )
 _WEB = (
