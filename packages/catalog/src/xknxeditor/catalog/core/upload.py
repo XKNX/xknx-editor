@@ -39,16 +39,17 @@ def _ingest_manufacturers(session: Session, reg: Registry) -> None:
 
 
 def _ingest_applications(session: Session, reg: Registry) -> None:
+    # From the facts the load kept: the parsed programs are not in memory any more.
     for app in reg.applications.values():
-        program = app.program
+        facts = reg.application_facts[app.id]
         session.merge(
             Application(
                 id=app.id,
                 name=app.name,
-                application_number=program.application_number,
-                application_version=program.application_version,
-                mask_version=program.mask_version,
-                is_secure_enabled=bool(program.is_secure_enabled),
+                application_number=facts.application_number,
+                application_version=facts.application_version,
+                mask_version=facts.mask_version,
+                is_secure_enabled=facts.is_secure_enabled,
             )
         )
 

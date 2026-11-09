@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import pickle
+from collections.abc import Callable
 from pathlib import Path
 
 import psutil
@@ -67,6 +68,22 @@ def _xmls() -> list[bytes]:
     return [path.read_bytes() for path in _APPLICATIONS]
 
 
+def _sources(
+    xmls: list[bytes], reads: list[str] | None = None
+) -> list[parse_cache.XmlSource]:
+    """``xmls`` as sources for ``fill_cache``; ``reads`` hears "read <index>" of each one read."""
+
+    def reader(index: int) -> Callable[[], bytes]:
+        def read() -> bytes:
+            if reads is not None:
+                reads.append(f"read {index}")
+            return xmls[index]
+
+        return read
+
+    return [(len(xml), reader(index)) for index, xml in enumerate(xmls)]
+
+
 def _cached(xml: bytes, cache_dir: Path) -> bytes:
     return parse_cache._cache_path(xml, detect_version(xml), cache_dir).read_bytes()  # pyright: ignore[reportPrivateUsage]
 
@@ -75,7 +92,7 @@ def test_workers_parse_into_the_cache(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     monkeypatch.setattr(parse_cache, "parse_workers", _one_per_application)
-    parse_cache.fill_cache(_xmls(), tmp_path / "parallel")
+    parse_cache.fill_cache(_sources(_xmls()), tmp_path / "parallel")
 
     for xml in _xmls():
         parsed = parse_cache.cached_to_ir(xml, detect_version(xml), tmp_path / "own")
@@ -90,8 +107,81 @@ def test_small_applications_stay_in_this_process(
         raise AssertionError("worker processes were started")
 
     monkeypatch.setattr(parse_cache, "ProcessPoolExecutor", no_pool)
-    parse_cache.fill_cache(_xmls(), tmp_path)
+    reads: list[str] = []
+    parse_cache.fill_cache(_sources(_xmls(), reads), tmp_path)
     assert list(tmp_path.iterdir()) == []
+    # Their sizes alone show that no workers pay off: none of them is read.
+    assert reads == []
+
+
+class _Done:
+    """A finished parse that tells when it is waited for."""
+
+    def __init__(self, events: list[str], index: int) -> None:
+        self._events = events
+        self._index = index
+
+    def result(self, timeout: float | None = None) -> None:
+        self._events.append(f"wait {self._index}")
+
+
+class _RecordingPool:
+    """A worker pool that records which XMLs it is handed and when they are waited for."""
+
+    def __init__(self, events: list[str], xmls: list[bytes]) -> None:
+        self._events = events
+        self._xmls = xmls
+
+    def __call__(self, **_kwargs: object) -> _RecordingPool:
+        return self
+
+    def __enter__(self) -> _RecordingPool:
+        return self
+
+    def __exit__(self, *_args: object) -> None:
+        pass
+
+    def submit(self, _fn: object, xml: bytes, _cache_dir: Path) -> _Done:
+        index = self._xmls.index(xml)
+        self._events.append(f"submit {index}")
+        return _Done(self._events, index)
+
+
+def test_only_a_few_xmls_are_handed_over_at_once(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The XMLs are read one by one, first to see which are cached, then each right before it is
+    handed to a worker, and only twice as many as there are workers are handed over before the
+    first of them is done; a cached XML is not handed over."""
+    base = _xmls()[0]
+    # Ten different applications of falling size (the largest are handed over first).
+    xmls = [base + b"<!--" + b"x" * (10 - index) + b"-->" for index in range(10)]
+    parse_cache.cached_to_ir(xmls[3], detect_version(xmls[3]), tmp_path)
+    events: list[str] = []
+    monkeypatch.setattr(
+        parse_cache, "ProcessPoolExecutor", _RecordingPool(events, xmls)
+    )
+    monkeypatch.setattr(parse_cache, "parse_workers", lambda _sizes: 2)
+    progress: list[tuple[int, int]] = []
+
+    parse_cache.fill_cache(
+        _sources(xmls, events),
+        tmp_path,
+        progress=lambda done, total: progress.append((done, total)),
+    )
+
+    todo = [0, 1, 2, 4, 5, 6, 7, 8, 9]
+    assert events == [
+        *(f"read {index}" for index in range(10)),
+        *(step for index in todo[:4] for step in (f"read {index}", f"submit {index}")),
+        *(
+            step
+            for waited, submitted in zip(todo, todo[4:], strict=False)
+            for step in (f"wait {waited}", f"read {submitted}", f"submit {submitted}")
+        ),
+        *(f"wait {index}" for index in todo[-4:]),
+    ]
+    assert progress == [(done, 10) for done in range(2, 11)]
 
 
 def test_without_workers_the_caller_parses(
@@ -102,7 +192,7 @@ def test_without_workers_the_caller_parses(
 
     monkeypatch.setattr(parse_cache, "parse_workers", _one_per_application)
     monkeypatch.setattr(parse_cache, "ProcessPoolExecutor", no_pool)
-    parse_cache.fill_cache(_xmls(), tmp_path)
+    parse_cache.fill_cache(_sources(_xmls()), tmp_path)
     assert "parallel application parsing failed" in caplog.text
 
     for xml in _xmls():
@@ -131,3 +221,20 @@ def test_entries_of_other_cache_versions_are_removed(
     assert not (tmp_path / stale).exists()
     assert other.exists()
     assert pickle.loads(_cached(xml, tmp_path)) == knx
+
+
+def test_a_cache_entry_is_the_pickled_parse(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The entry written is the pickle of the parse, and it is read back without parsing."""
+    xml = _xmls()[0]
+    version = detect_version(xml)
+    knx = parse_cache.cached_to_ir(xml, version, tmp_path)
+    assert _cached(xml, tmp_path) == pickle.dumps(knx, protocol=pickle.HIGHEST_PROTOCOL)
+    assert not list(tmp_path.glob("*.tmp"))
+
+    def no_parse(*_args: object) -> None:
+        raise AssertionError("parsed again")
+
+    monkeypatch.setattr(parse_cache, "to_ir", no_parse)
+    assert parse_cache.cached_to_ir(xml, version, tmp_path) == knx

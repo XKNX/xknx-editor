@@ -112,7 +112,6 @@ def test_parallel_parsing_drops_the_rest(
     cancel = threading.Event()
     threading.Timer(0.05, cancel.set).start()
     with pytest.raises(ImportCancelled):
-        parse_cache.fill_cache(
-            [b'<KNX xmlns="http://knx.org/xml/project/20"/>'], tmp_path, cancel=cancel
-        )
+        xml = b'<KNX xmlns="http://knx.org/xml/project/20"/>'
+        parse_cache.fill_cache([(len(xml), lambda: xml)], tmp_path, cancel=cancel)
     assert _Pool.shutdowns == [True]
