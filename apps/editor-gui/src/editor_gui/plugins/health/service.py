@@ -5,7 +5,6 @@ project revision so the panel can call :meth:`findings` every frame cheaply."""
 
 from __future__ import annotations
 
-from collections import Counter
 from collections.abc import Callable
 from dataclasses import dataclass
 from enum import Enum
@@ -69,6 +68,16 @@ class HealthService:
             return []
         out: list[Finding] = []
         devices = self._project.devices
+        active_objects = {
+            co.db_id: False
+            for device in devices
+            for co in device.com_objects
+            if co.db_id is not None
+        }
+        for device in devices:
+            for co in device.get_visible_com_objects():
+                if co.db_id is not None:
+                    active_objects[co.db_id] = True
         # Every link of the project in one read: one per group object and group address would be
         # thousands of queries after each edit.
         links = self._project.device_links()
@@ -88,7 +97,7 @@ class HealthService:
         out.extend(
             self._check_com_objects(devices, {link.com_object_id for link in links})
         )
-        out.extend(self._check_group_addresses(links))
+        out.extend(self._check_group_addresses(links, active_objects))
         return out
 
     def _check_addresses(self, devices: list[Device]) -> list[Finding]:
@@ -158,11 +167,35 @@ class HealthService:
                 )
         return out
 
-    def _check_group_addresses(self, links: list[DeviceLinkInfo]) -> list[Finding]:
-        """Group addresses without a datapoint type, and linked ones without exactly one
-        sender."""
-        assigned = {link.group_address_id for link in links}
-        senders_of = Counter(link.group_address_id for link in links if link.is_sending)
+    def _check_group_addresses(
+        self, links: list[DeviceLinkInfo], active_objects: dict[int, bool]
+    ) -> list[Finding]:
+        """Check active value senders and whether any known source can supply a value.
+
+        Read responders can supply values without transmitting changes. An unresolved object
+        may also supply values, so it cannot prove that a group address has no source.
+        """
+        assigned: set[int] = set()
+        sources: set[int] = set()
+        senders_of: dict[int, set[int]] = {}
+        for link in links:
+            active = active_objects.get(link.com_object_id)
+            if active is False:
+                continue
+            assigned.add(link.group_address_id)
+            if not link.is_sending:
+                continue
+            if active is None:
+                sources.add(link.group_address_id)
+                continue
+            if link.communication is True and link.transmit is True:
+                senders_of.setdefault(link.group_address_id, set()).add(
+                    link.com_object_id
+                )
+            if link.communication is not False and (
+                link.transmit is not False or link.read is not False
+            ):
+                sources.add(link.group_address_id)
         external = self.external_senders()
         out: list[Finding] = []
         for ga in self._project.group_addresses:
@@ -176,8 +209,8 @@ class HealthService:
                     )
                 )
             if ga.id in assigned:
-                senders = senders_of[ga.id]
-                if senders == 0 and ga.raw not in external:
+                senders = len(senders_of.get(ga.id, ()))
+                if ga.id not in sources and ga.raw not in external:
                     out.append(
                         Finding(
                             Severity.WARNING,

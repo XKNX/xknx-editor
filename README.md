@@ -154,6 +154,11 @@ Hover or click it to see the missing parts. Health and the cockpit's needs-atten
 show the same pending state, including flags imported with a project. MCP clients can use
 `project_list_devices(download_pending_only=true)` or `project_health(category="download-pending")`.
 
+The sender check counts active group objects with communication and transmit enabled on their
+sending group address. Multiple transmitters are a prompt to check the assignment, as shared
+controls may be intentional. Read responders and known external senders also qualify as value
+sources; missing product data does not produce a false missing-source finding.
+
 ![Cockpit and health checks](docs/images/cockpit.png)
 
 **Bus monitors and logs** — record and inspect bus traffic in the Group Monitor, Bus Monitor and Bus

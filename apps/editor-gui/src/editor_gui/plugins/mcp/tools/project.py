@@ -1949,7 +1949,11 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         ga_id}. Optional ``category`` filters by address, catalog, com-object, group-address
         or download-pending. Download findings have one entry per device, naming its missing
         parts; project_list_devices(download_pending_only=true) lists their machine-readable
-        pending_download_parts. This reads stored project status, not the bus."""
+        pending_download_parts. Group-address checks count active objects with communication
+        and transmit enabled on their sending link; write/update flags do not exclude them.
+        Multiple transmitters are a review hint, not proof of a conflict. Read responders and
+        known external senders also provide values; unresolved objects suppress missing-source
+        findings. This reads stored project status, not the bus."""
         from dataclasses import asdict
 
         from editor_gui.plugins.health.service import HealthService

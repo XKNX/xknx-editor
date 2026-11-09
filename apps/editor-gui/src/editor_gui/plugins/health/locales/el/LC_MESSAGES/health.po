@@ -25,8 +25,8 @@ msgstr "Διπλότυπη ατομική διεύθυνση {address} ({device}
 msgid "{address} {name}: no datapoint type"
 msgstr "{address} {name}: χωρίς τύπο datapoint"
 
-msgid "{address} {name}: no sending group object"
-msgstr "{address} {name}: κανένα αντικείμενο επικοινωνίας αποστολής"
+msgid "{address} {name}: no known value source in the project"
+msgstr "{address} {name}: δεν υπάρχει γνωστή πηγή τιμών στο έργο"
 
 msgid "{count} error"
 msgid_plural "{count} errors"
@@ -48,7 +48,7 @@ msgid_plural "{device}: {count} unlinked group objects"
 msgstr[0] "{device}: {count} μη συνδεδεμένο αντικείμενο επικοινωνίας"
 msgstr[1] "{device}: {count} μη συνδεδεμένα αντικείμενα επικοινωνίας"
 
-msgid "{address} {name}: {count} sending group object"
-msgid_plural "{address} {name}: {count} sending group objects"
-msgstr[0] "{address} {name}: {count} αντικείμενο επικοινωνίας αποστολής"
-msgstr[1] "{address} {name}: {count} αντικείμενα επικοινωνίας αποστολής"
+msgid "{address} {name}: {count} transmit-capable group object; check assignment"
+msgid_plural "{address} {name}: {count} transmit-capable group objects; check assignment"
+msgstr[0] "{address} {name}: {count} ομαδικό αντικείμενο με δυνατότητα μετάδοσης; ελέγξτε την αντιστοίχιση"
+msgstr[1] "{address} {name}: {count} ομαδικά αντικείμενα με δυνατότητα μετάδοσης; ελέγξτε την αντιστοίχιση"

@@ -55,12 +55,12 @@ class HealthStrings:
 
     @property
     def HEALTH_NO_SENDER(self) -> str:
-        return _("{address} {name}: no sending group object")
+        return _("{address} {name}: no known value source in the project")
 
     def HEALTH_SENDERS(self, count: int) -> str:
         return _.plural(
-            "{address} {name}: {count} sending group object",
-            "{address} {name}: {count} sending group objects",
+            "{address} {name}: {count} transmit-capable group object; check assignment",
+            "{address} {name}: {count} transmit-capable group objects; check assignment",
             count,
         )
 
