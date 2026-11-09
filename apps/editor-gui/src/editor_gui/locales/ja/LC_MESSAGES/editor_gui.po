@@ -1642,3 +1642,6 @@ msgstr[0] "該当するデバイスを削除するか、新しいETS用にエク
 msgid "Imported {count} product version from {name}:"
 msgid_plural "Imported {count} product versions from {name}:"
 msgstr[0] "{name}から{count}個の製品バージョンをインポートしました："
+
+msgid "Monitor"
+msgstr "Monitor"

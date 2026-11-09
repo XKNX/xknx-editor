@@ -1655,3 +1655,6 @@ msgid "Imported {count} product version from {name}:"
 msgid_plural "Imported {count} product versions from {name}:"
 msgstr[0] "Εισήχθη {count} έκδοση προϊόντος από το {name}:"
 msgstr[1] "Εισήχθησαν {count} εκδόσεις προϊόντος από το {name}:"
+
+msgid "Monitor"
+msgstr "Monitor"

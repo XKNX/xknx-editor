@@ -106,7 +106,6 @@ from editor_gui.plugins.logger import LoggerPlugin, LogService
 from editor_gui.plugins.mcp import McpServerPlugin
 from editor_gui.plugins.mcp.plugin import advertise_url as _mcp_advertise_url
 from editor_gui.plugins.monitor import MonitorPlugin
-from editor_gui.plugins.monitor.service import MonitorKind
 from editor_gui.plugins.project import ProjectPlugin, ProjectService
 from editor_gui.plugins.project.knxproj_manufacturer import collect_manufacturer_bundle
 from editor_gui.plugins.project.space_text import space_type_name
@@ -1219,6 +1218,8 @@ class KnxGuiApp:
         self._mcp_plugin.stop()
         self._catalog_plugin.stop_alternative()
         self._connection_plugin.shutdown()
+        # Persist the group monitor while the project is still open (closing it flushes too).
+        self._monitor_plugin.flush_current()
         if self._project_service.is_open:
             self._project_service.close()
         # The backup made when the project closed is written before the app ends.
@@ -5276,6 +5277,8 @@ class KnxGuiApp:
                     window.is_visible = True
                     window.focus_window_at_next_frame = True
         self._project_plugin.render_overlays()
+        # Reload the group monitor on a project switch, flush it periodically.
+        self._monitor_plugin.autosave_tick()
         self._render_progress_modal()
         self._render_import_password_modal()
         self._render_open_password_modal()
@@ -6502,6 +6505,11 @@ class KnxGuiApp:
                     lambda: S.SETTINGS_PAGE_CATALOG,
                     self._catalog_plugin.settings(),
                 ),
+                SettingsPage(
+                    "monitor",
+                    lambda: S.SETTINGS_PAGE_MONITOR,
+                    self._monitor_plugin.settings(self._open_folder),
+                ),
             ]
             if host.home_assistant():
                 self._settings_page_list.append(
@@ -6580,17 +6588,6 @@ class KnxGuiApp:
                 "bool",
                 get=self._update_check_enabled,
                 set=lambda enabled: self._set_update_check_enabled(bool(enabled)),
-            ),
-            Setting(
-                "max_telegrams",
-                lambda: S.SETTING_MAX_TELEGRAMS,
-                "int",
-                get=lambda: self._monitor_plugin.service.max_records(MonitorKind.GROUP),
-                set=lambda value: self._monitor_plugin.service.set_max_records(
-                    MonitorKind.GROUP, max(10, int(value))
-                ),
-                bounds=(10, 1000000),
-                hint=lambda: S.SETTING_MAX_TELEGRAMS_HINT,
             ),
             Setting(
                 "export_format",

@@ -16,15 +16,17 @@ from xknx.cemi.const import CEMIMessageCode
 from xknx.telegram import GroupAddress, Telegram, TelegramDirection
 
 from editor_gui.plugins.mcp.context import McpContext, make_tool
+from editor_gui.plugins.monitor.formatting import ProjectIndex, build_index
 from editor_gui.plugins.monitor.frames import individual_address_text
 from editor_gui.plugins.monitor.records import ticks_to_datetime
-from editor_gui.plugins.monitor.service import LINK_LAYER_KINDS
+from editor_gui.plugins.monitor.service import LINK_LAYER_KINDS, MonitorKind
+from editor_gui.plugins.monitor.statistics import compute
 
 if TYPE_CHECKING:
     from fastmcp import FastMCP
 
     from editor_gui.plugins.monitor.records import MonitorRecord
-    from editor_gui.plugins.monitor.service import MonitorKind, MonitorService
+    from editor_gui.plugins.monitor.service import MonitorService
 
 # Every frame of these recordings comes from the normal connection.
 _SOURCE_TYPE = "connection"
@@ -109,6 +111,23 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
     tool = make_tool(mcp, ctx)
     monitor = ctx.monitor
 
+    def _project_index() -> ProjectIndex:
+        """Names for the statistics; empty (addresses only) when no project is open."""
+        project = ctx.api.project
+        if not project.is_open or project.loading:
+            return ProjectIndex()
+        try:
+            style = project.group_address_style
+        except Exception:
+            style = None
+        return build_index(
+            revision=None,
+            group_addresses=project.group_addresses,
+            devices=[*project.devices, *project.unloaded_devices],
+            spaces=list(project.get_space_tree()),
+            ga_style=style,
+        )
+
     @tool("read")
     def network_state() -> dict[str, Any]:
         """Read recording state for the normal connection's Group Monitor and Bus Activity.
@@ -182,3 +201,52 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             entries = entries[-limit:]
         items = [_cemi_item(kind, record) for kind, record in entries]
         return {"items": items, "count": len(items)}
+
+    @tool("read")
+    def network_statistics(limit: int = 50) -> dict[str, Any]:
+        """Aggregate the Group Monitor's group telegrams: who sends how much, and to which group
+        address. limit caps how many of each ranking is returned (top N by count; <=0 means all).
+        Returns {total, per_minute, peak_per_minute, peak_at, bus_load, span_seconds, sources,
+        destinations}. total is the number of group telegrams in the log; per_minute is their
+        average rate over the recorded span; peak_per_minute is the highest count in any one
+        clock-minute and peak_at is that minute's ISO timestamp (null when empty); bus_load is the
+        live rate in telegrams/second over the last seconds (every bus frame, independent of the
+        log); span_seconds is first-to-last telegram. sources and destinations
+        are lists of {address, name, description, count}, most frequent first; source is the sending
+        device (individual address), destination the group address. Names and descriptions are empty
+        when no project is open or an address is unknown. Reads the same log the Group Monitor
+        shows."""
+
+        def _run() -> dict[str, Any]:
+            index = _project_index()
+            records = monitor.channels[MonitorKind.GROUP].log.snapshot()
+            stats = compute(records, index)
+
+            def _rows(items: list[Any]) -> list[dict[str, Any]]:
+                ranked = items[:limit] if limit > 0 else items
+                return [
+                    {
+                        "address": r.address,
+                        "name": r.name,
+                        "description": r.description,
+                        "count": r.count,
+                    }
+                    for r in ranked
+                ]
+
+            return {
+                "total": stats.total,
+                "per_minute": round(stats.per_minute, 3),
+                "peak_per_minute": stats.peak_per_minute,
+                "peak_at": (
+                    ticks_to_datetime(stats.peak_ticks).isoformat()
+                    if stats.peak_ticks
+                    else None
+                ),
+                "bus_load": round(monitor.bus_load(), 3),
+                "span_seconds": round(stats.span_seconds, 3),
+                "sources": _rows(stats.sources),
+                "destinations": _rows(stats.destinations),
+            }
+
+        return ctx.run_locked(_run)

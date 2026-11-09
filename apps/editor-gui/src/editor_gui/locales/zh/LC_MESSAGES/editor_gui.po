@@ -1642,3 +1642,6 @@ msgstr[0] "请移除受影响的设备，或为较新的 ETS 导出。"
 msgid "Imported {count} product version from {name}:"
 msgid_plural "Imported {count} product versions from {name}:"
 msgstr[0] "已从 {name} 导入 {count} 个产品版本："
+
+msgid "Monitor"
+msgstr "Monitor"

@@ -397,3 +397,79 @@ msgstr[0] "回放完成：已发送 {count} 条电报"
 msgid "Replay cancelled: {count} telegram sent"
 msgid_plural "Replay cancelled: {count} telegrams sent"
 msgstr[0] "回放已取消：已发送 {count} 条电报"
+
+msgid "Persist"
+msgstr "Persist"
+
+msgid "Keep this project's group telegrams across restarts"
+msgstr "Keep this project's group telegrams across restarts"
+
+msgid "Persist Group Monitor Telegrams"
+msgstr "Persist Group Monitor Telegrams"
+
+msgid "Save the group monitor's telegrams per project and reload them on the next start."
+msgstr "Save the group monitor's telegrams per project and reload them on the next start."
+
+msgid "Maximum Telegram File (MB)"
+msgstr "Maximum Telegram File (MB)"
+
+msgid "The oldest telegrams are dropped to keep the saved file under this size. 0 = no limit."
+msgstr "The oldest telegrams are dropped to keep the saved file under this size. 0 = no limit."
+
+msgid "Unlimited Recording"
+msgstr "Unlimited Recording"
+
+msgid "Without a count limit the telegrams can use a lot of memory, and disk while persisting. Continue?"
+msgstr "Without a count limit the telegrams can use a lot of memory, and disk while persisting. Continue?"
+
+msgid "0 = unlimited"
+msgstr "0 = unlimited"
+
+msgid "Maximum Telegrams"
+msgstr "Maximum Telegrams"
+
+msgid "How many telegrams the Group Monitor keeps before dropping the oldest. 0 = unlimited."
+msgstr "How many telegrams the Group Monitor keeps before dropping the oldest. 0 = unlimited."
+
+msgid "Open Monitor Folder"
+msgstr "Open Monitor Folder"
+
+msgid "Statistics"
+msgstr "统计"
+
+msgid "No telegrams recorded yet."
+msgstr "尚未记录任何电报。"
+
+msgid "{rate}/min"
+msgstr "{rate}/分钟"
+
+msgid "over {span}"
+msgstr "{span} 内"
+
+msgid "{hours}h {minutes}m"
+msgstr "{hours} 小时 {minutes} 分"
+
+msgid "{minutes}m {seconds}s"
+msgstr "{minutes} 分 {seconds} 秒"
+
+msgid "{seconds}s"
+msgstr "{seconds} 秒"
+
+msgid "Top Sources"
+msgstr "主要来源"
+
+msgid "Top Destinations"
+msgstr "主要目标"
+
+msgid "Description"
+msgstr "描述"
+
+msgid "Telegrams"
+msgstr "电报数"
+
+msgid "{count} telegram"
+msgid_plural "{count} telegrams"
+msgstr[0] "{count} 条电报"
+
+msgid "max {peak}/min at {when}"
+msgstr "峰值 {peak}/分钟 于 {when}"

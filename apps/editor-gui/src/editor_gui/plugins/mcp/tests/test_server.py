@@ -1532,6 +1532,51 @@ async def test_network_tools_read_the_monitor_logs(tmp_path: Path) -> None:
         assert cleared["state"] == "capturing"
 
 
+async def test_network_statistics_aggregates(tmp_path: Path) -> None:
+    """network_statistics ranks sources and destinations by telegram count and reports the rate."""
+    ctx = _build_ctx(tmp_path)
+    mcp = build_server(ctx)
+    monitor = ctx.monitor
+    # Three telegrams from 1.1.1 (two to 1/2/3, one to 1/2/4) and one from 1.1.2 to 1/2/3.
+    for src, dst in (("1.1.1", "1/2/3"), ("1.1.1", "1/2/3"), ("1.1.1", "1/2/4")):
+        monitor.on_raw_cemi(
+            _cemi(
+                CEMIMessageCode.L_DATA_IND,
+                GroupAddress(dst),
+                GroupValueWrite(DPTBinary(1)),
+                src,
+            )
+        )
+    monitor.on_raw_cemi(
+        _cemi(
+            CEMIMessageCode.L_DATA_IND,
+            GroupAddress("1/2/3"),
+            GroupValueWrite(DPTBinary(0)),
+            "1.1.2",
+        )
+    )
+    async with Client(mcp) as client:
+        stats = await _data(client, "network_statistics")
+        assert stats["total"] == 4
+        assert [(s["address"], s["count"]) for s in stats["sources"]] == [
+            ("1.1.1", 3),
+            ("1.1.2", 1),
+        ]
+        assert [(d["address"], d["count"]) for d in stats["destinations"]] == [
+            ("1/2/3", 3),
+            ("1/2/4", 1),
+        ]
+        # No project is open: names and descriptions come back empty, addresses resolved.
+        assert all(s["name"] == "" and s["description"] == "" for s in stats["sources"])
+        assert "bus_load" in stats and "per_minute" in stats
+        # The busiest clock-minute is reported with its timestamp.
+        assert stats["peak_per_minute"] == 4 and stats["peak_at"] is not None
+
+        # limit caps each ranking to the top N.
+        top1 = await _data(client, "network_statistics", limit=1)
+        assert len(top1["sources"]) == 1 and top1["sources"][0]["address"] == "1.1.1"
+
+
 _KNXPROJ = (
     Path(__file__).parents[7]
     / "packages/proj/tests/fixtures/xknx_test_project_no_password.knxproj"

@@ -11,6 +11,7 @@ from imgui_bundle import imgui
 
 from editor_gui.plugins.monitor.formatting import ProjectIndex, dpt_text
 from editor_gui.plugins.monitor.service import MonitorKind, decode_group_value
+from editor_gui.plugins.monitor.statistics import StatisticsView
 from editor_gui.plugins.monitor.strings import S
 from editor_gui.plugins.monitor.table import TelegramView
 from editor_gui.theme import status_color
@@ -42,13 +43,24 @@ class MonitorPanel:
         get_index: Callable[[], ProjectIndex],
         notify: Callable[[str], None] | None = None,
         on_select_device: Callable[[int], None] | None = None,
+        persist_get: Callable[[], bool] | None = None,
+        persist_set: Callable[[bool], None] | None = None,
     ) -> None:
         self._service = service
         self._connection = connection
         self._get_group_addresses = get_group_addresses
         self._get_index = get_index
         self._views = {
-            kind: TelegramView(kind, service, connection, notify, on_select_device)
+            kind: TelegramView(
+                kind,
+                service,
+                connection,
+                notify,
+                on_select_device,
+                # Persistence applies to the Group Monitor only.
+                persist_get if kind is MonitorKind.GROUP else None,
+                persist_set if kind is MonitorKind.GROUP else None,
+            )
             for kind in MonitorKind
         }
         # Group Objects tab.
@@ -59,6 +71,8 @@ class MonitorPanel:
         self._cmd_address = ""
         self._cmd_value = DptValueInput("mon_cmd_value")
         self._cmd_focused: MonitorRecord | None = None
+        # Statistics tab (Group Monitor telegrams aggregated).
+        self._statistics = StatisticsView(service, persist_get, persist_set)
 
     def _is_connected(self) -> bool:
         """Whether the command bars can send (also through Home Assistant's connection)."""
@@ -100,6 +114,9 @@ class MonitorPanel:
                 imgui.end_tab_item()
         if imgui.begin_tab_item(f"{S.MONITOR_TAB_GROUP_OBJECTS}###mon_tab_objects")[0]:
             self._render_group_objects()
+            imgui.end_tab_item()
+        if imgui.begin_tab_item(f"{S.MONITOR_TAB_STATISTICS}###mon_tab_statistics")[0]:
+            self._statistics.render(index)
             imgui.end_tab_item()
         imgui.end_tab_bar()
 

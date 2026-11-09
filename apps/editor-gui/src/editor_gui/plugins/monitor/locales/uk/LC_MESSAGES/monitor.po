@@ -411,3 +411,81 @@ msgid_plural "Replay cancelled: {count} telegrams sent"
 msgstr[0] "Повтор скасовано: надіслано {count} телеграму"
 msgstr[1] "Повтор скасовано: надіслано {count} телеграми"
 msgstr[2] "Повтор скасовано: надіслано {count} телеграм"
+
+msgid "Persist"
+msgstr "Persist"
+
+msgid "Keep this project's group telegrams across restarts"
+msgstr "Keep this project's group telegrams across restarts"
+
+msgid "Persist Group Monitor Telegrams"
+msgstr "Persist Group Monitor Telegrams"
+
+msgid "Save the group monitor's telegrams per project and reload them on the next start."
+msgstr "Save the group monitor's telegrams per project and reload them on the next start."
+
+msgid "Maximum Telegram File (MB)"
+msgstr "Maximum Telegram File (MB)"
+
+msgid "The oldest telegrams are dropped to keep the saved file under this size. 0 = no limit."
+msgstr "The oldest telegrams are dropped to keep the saved file under this size. 0 = no limit."
+
+msgid "Unlimited Recording"
+msgstr "Unlimited Recording"
+
+msgid "Without a count limit the telegrams can use a lot of memory, and disk while persisting. Continue?"
+msgstr "Without a count limit the telegrams can use a lot of memory, and disk while persisting. Continue?"
+
+msgid "0 = unlimited"
+msgstr "0 = unlimited"
+
+msgid "Maximum Telegrams"
+msgstr "Maximum Telegrams"
+
+msgid "How many telegrams the Group Monitor keeps before dropping the oldest. 0 = unlimited."
+msgstr "How many telegrams the Group Monitor keeps before dropping the oldest. 0 = unlimited."
+
+msgid "Open Monitor Folder"
+msgstr "Open Monitor Folder"
+
+msgid "Statistics"
+msgstr "Статистика"
+
+msgid "No telegrams recorded yet."
+msgstr "Телеграми ще не записано."
+
+msgid "{rate}/min"
+msgstr "{rate}/хв"
+
+msgid "over {span}"
+msgstr "за {span}"
+
+msgid "{hours}h {minutes}m"
+msgstr "{hours} год {minutes} хв"
+
+msgid "{minutes}m {seconds}s"
+msgstr "{minutes} хв {seconds} с"
+
+msgid "{seconds}s"
+msgstr "{seconds} с"
+
+msgid "Top Sources"
+msgstr "Основні джерела"
+
+msgid "Top Destinations"
+msgstr "Основні призначення"
+
+msgid "Description"
+msgstr "Опис"
+
+msgid "Telegrams"
+msgstr "Телеграми"
+
+msgid "{count} telegram"
+msgid_plural "{count} telegrams"
+msgstr[0] "{count} телеграма"
+msgstr[1] "{count} телеграми"
+msgstr[2] "{count} телеграм"
+
+msgid "max {peak}/min at {when}"
+msgstr "макс {peak}/хв о {when}"

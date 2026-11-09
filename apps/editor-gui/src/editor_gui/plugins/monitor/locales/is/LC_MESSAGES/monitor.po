@@ -407,3 +407,80 @@ msgid "Replay cancelled: {count} telegram sent"
 msgid_plural "Replay cancelled: {count} telegrams sent"
 msgstr[0] "Hætt við endurspilun: {count} skeyti sent"
 msgstr[1] "Hætt við endurspilun: {count} skeyti send"
+
+msgid "Persist"
+msgstr "Persist"
+
+msgid "Keep this project's group telegrams across restarts"
+msgstr "Keep this project's group telegrams across restarts"
+
+msgid "Persist Group Monitor Telegrams"
+msgstr "Persist Group Monitor Telegrams"
+
+msgid "Save the group monitor's telegrams per project and reload them on the next start."
+msgstr "Save the group monitor's telegrams per project and reload them on the next start."
+
+msgid "Maximum Telegram File (MB)"
+msgstr "Maximum Telegram File (MB)"
+
+msgid "The oldest telegrams are dropped to keep the saved file under this size. 0 = no limit."
+msgstr "The oldest telegrams are dropped to keep the saved file under this size. 0 = no limit."
+
+msgid "Unlimited Recording"
+msgstr "Unlimited Recording"
+
+msgid "Without a count limit the telegrams can use a lot of memory, and disk while persisting. Continue?"
+msgstr "Without a count limit the telegrams can use a lot of memory, and disk while persisting. Continue?"
+
+msgid "0 = unlimited"
+msgstr "0 = unlimited"
+
+msgid "Maximum Telegrams"
+msgstr "Maximum Telegrams"
+
+msgid "How many telegrams the Group Monitor keeps before dropping the oldest. 0 = unlimited."
+msgstr "How many telegrams the Group Monitor keeps before dropping the oldest. 0 = unlimited."
+
+msgid "Open Monitor Folder"
+msgstr "Open Monitor Folder"
+
+msgid "Statistics"
+msgstr "Tölfræði"
+
+msgid "No telegrams recorded yet."
+msgstr "Engin skeyti skráð enn."
+
+msgid "{rate}/min"
+msgstr "{rate}/mín"
+
+msgid "over {span}"
+msgstr "yfir {span}"
+
+msgid "{hours}h {minutes}m"
+msgstr "{hours}h {minutes}m"
+
+msgid "{minutes}m {seconds}s"
+msgstr "{minutes}m {seconds}s"
+
+msgid "{seconds}s"
+msgstr "{seconds}s"
+
+msgid "Top Sources"
+msgstr "Helstu upptök"
+
+msgid "Top Destinations"
+msgstr "Helstu áfangastaðir"
+
+msgid "Description"
+msgstr "Lýsing"
+
+msgid "Telegrams"
+msgstr "Skeyti"
+
+msgid "{count} telegram"
+msgid_plural "{count} telegrams"
+msgstr[0] "{count} skeyti"
+msgstr[1] "{count} skeyti"
+
+msgid "max {peak}/min at {when}"
+msgstr "hám {peak}/mín kl. {when}"
