@@ -129,3 +129,31 @@ def test_most_stored_copies_decide() -> None:
 def test_a_tie_infers_nothing() -> None:
     recovered = recover_parameters(_application(), {_SEGMENT: b"\x07\x09\x01\x08"})
     assert recovered.values.get(_SHOWN, "5") == "5"
+
+
+def _overwritten_application() -> Application:
+    """The product with "First" and "Second" copied from "Shown" and then given the fixed
+    value 9 by a later Assign: only "Third" holds a copy."""
+    xml = _XML.replace(
+        f'<Assign TargetParamRefRef="{_FIRST}" SourceParamRefRef="{_SHOWN}" />',
+        f'<Assign TargetParamRefRef="{_FIRST}" SourceParamRefRef="{_SHOWN}" />'
+        f'<Assign TargetParamRefRef="{_FIRST}" Value="9" />'
+        f'<Assign TargetParamRefRef="{_SECOND}" SourceParamRefRef="{_SHOWN}" />'
+        f'<Assign TargetParamRefRef="{_SECOND}" Value="9" />',
+    )
+    return parse_application_xml(xml.encode(), "M-00FA")[0]
+
+
+def test_a_copy_written_over_by_a_fixed_value_is_not_recorded() -> None:
+    ui = _overwritten_application().dynamic_ui()
+    assert ui is not None
+    ui.set_parameter_ref(_MODE, "1")
+    assert ui.assigned_from() == {_THIRD: _SHOWN}
+
+
+def test_a_copy_written_over_by_a_fixed_value_does_not_count() -> None:
+    application = _overwritten_application()
+    segments = _device(application, **{_SHOWN: "7", _MODE: "1"})
+    assert segments[_SEGMENT] == b"\x09\x09\x01\x07"
+    recovered = recover_parameters(application, segments)
+    assert recovered.values[_SHOWN] == "7"

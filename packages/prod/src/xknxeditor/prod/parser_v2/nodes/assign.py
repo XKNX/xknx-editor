@@ -20,6 +20,8 @@ class AssignNode(DynamicNode):
         if self._elem.source_param_ref_ref is not None:
             ctx.mark_active_param(self._elem.source_param_ref_ref)
         if self._elem.value is not None:
+            # The last Assign of the pass decides where the target's value comes from.
+            ctx.mark_assigned_constant(self._elem.target_param_ref_ref)
             ctx.assign(self._elem.target_param_ref_ref, self._elem.value)
         elif self._elem.source_param_ref_ref is not None:
             ctx.mark_assigned_from(

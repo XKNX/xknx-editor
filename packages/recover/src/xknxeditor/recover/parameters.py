@@ -2046,6 +2046,7 @@ def _decode(
             {**inferred, **read},
             unknown,
             project_code_page,
+            property_values or {},
         )
         if written_over:
             read.update(written_over)
@@ -2434,12 +2435,14 @@ def _written_over_values(
     values: Mapping[str, str],
     unknown: Collection[str],
     project_code_page: str | None,
+    properties: Mapping[TypedPropertyKey, bytes],
 ) -> _ValueMap:
     """The values of the active shown union members that a later active member writes over
     in part (see :meth:`DynamicUI.later_union_members`), read as no value of theirs: the
-    value whose bytes, written in ``ui`` with ``values``, are those of ``segments``. A later
-    member the value itself shows (a switch whose "yes" shows an option stored in one of its
-    bits) is written with the value the memory holds for it."""
+    value whose bytes, written in ``ui`` with ``values``, are those of ``segments`` (memory)
+    and ``properties`` (property members). A later member the value itself shows (a switch
+    whose "yes" shows an option stored in one of its bits) is written with the value the
+    memory holds for it. A member with no byte the device was read at stays unknown."""
     if not unknown:
         return {}
     from xknxeditor.prod.parser_v2.activation import shown_parameters, values_to_try
@@ -2448,6 +2451,7 @@ def _written_over_values(
     actives = ui.active_parameter_ref_ids()
     shown: Mapping[str, UiParameter] | None = None
     cells: Mapping[_Cell, Collection[str]] = {}
+    property_cells: Mapping[tuple[TypedPropertyKey, int], Collection[str]] = {}
     found: _ValueMap = {}
     for ref_id in actives:
         ref = ui.indexer.parameter_refs.get(ref_id)
@@ -2459,10 +2463,23 @@ def _written_over_values(
         if shown is None:
             shown = shown_parameters(ui.ui())
             cells = ui.stored_parameter_cells()
+            property_cells = ui.stored_property_layout().cells
         parameter = shown.get(ref_id)
         if parameter is None:
             continue
-        own = [cell for cell, refs in cells.items() if ref_id in refs]
+        own = [
+            cell
+            for cell, refs in cells.items()
+            if ref_id in refs and cell[1] < len(segments.get(cell[0], b""))
+        ]
+        own_properties = [
+            cell
+            for cell, refs in property_cells.items()
+            if ref_id in refs and cell[1] < len(properties.get(cell[0], b""))
+        ]
+        if not own and not own_properties:
+            # Nothing the device was read at holds a bit of it: no value can be told.
+            continue
         # Several values may fit the bits left; the one already given (a search's trial)
         # stays when it fits.
         given = values.get(ref_id)
@@ -2484,10 +2501,15 @@ def _written_over_values(
                 if seeded is None:
                     continue
             memory = seeded.encode_to_memory()
+            written = seeded.encode_to_typed_properties() if own_properties else {}
             if all(
                 memory.get(segment, b"")[offset : offset + 1]
-                == segments.get(segment, b"")[offset : offset + 1]
+                == segments[segment][offset : offset + 1]
                 for segment, offset in own
+            ) and all(
+                written.get(key, b"")[offset : offset + 1]
+                == properties[key][offset : offset + 1]
+                for key, offset in own_properties
             ):
                 found[ref_id] = value
                 break

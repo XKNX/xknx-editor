@@ -321,6 +321,9 @@ class EvalContext:
     def mark_assigned_from(self, target: str, source: str) -> None:
         self._scope.mark_assigned_from(target, source)
 
+    def mark_assigned_constant(self, target: str) -> None:
+        self._scope.mark_assigned_constant(target)
+
     def get_com_obj_instance_ref(self, ref_id: str) -> ComObjectInstanceRef | None:
         return self._scope.get_com_obj_instance_ref(ref_id)
 

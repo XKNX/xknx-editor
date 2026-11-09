@@ -410,6 +410,11 @@ class ParameterState:
         """An Assign of the current pass wrote ``target`` from ``source``."""
         self._assigned_from[target] = source
 
+    def mark_assigned_constant(self, target: str) -> None:
+        """An Assign of the current pass wrote a fixed value into ``target``: a copy an
+        earlier Assign of the pass made is written over."""
+        self._assigned_from.pop(target, None)
+
     def assigned_from(self) -> dict[str, str]:
         """The param-refs the Assigns of the last pass wrote from another one, in this scope:
         target -> source."""
