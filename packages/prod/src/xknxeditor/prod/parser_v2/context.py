@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from collections.abc import Collection, Iterable, Iterator, Mapping
+from collections.abc import Callable, Collection, Iterable, Iterator, Mapping
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
@@ -44,17 +44,30 @@ class Placement:
 class Explorer:
     """Records every parameter placement of a tree evaluated in explore mode: each choose
     evaluates all its branches and each repeat at least one pass, whatever the current values,
-    pushing the condition of the branch it is in (see :class:`Gate`)."""
+    pushing the condition of the branch it is in (see :class:`Gate`). ``check`` is called
+    every ``CHECK_EVERY`` branches and placements: an exception it raises ends the pass (the
+    pass of a large application takes long)."""
 
-    __slots__ = ("_gates", "_hidden", "_sections", "placements")
+    __slots__ = ("_check", "_gates", "_hidden", "_sections", "_steps", "placements")
 
-    def __init__(self) -> None:
+    CHECK_EVERY = 256
+
+    def __init__(self, check: Callable[[], None] | None = None) -> None:
         self._gates: list[Gate] = []
         self._sections: list[str] = []
         self._hidden = 0
+        self._check = check
+        self._steps = 0
         self.placements: list[Placement] = []
 
+    def _step(self) -> None:
+        if self._check is not None:
+            self._steps += 1
+            if self._steps % self.CHECK_EVERY == 0:
+                self._check()
+
     def push_gate(self, gate: Gate) -> None:
+        self._step()
         self._gates.append(gate)
 
     def pop_gate(self) -> None:
@@ -69,6 +82,7 @@ class Explorer:
         self._hidden -= hidden
 
     def record(self, parameter: UiParameter) -> None:
+        self._step()
         self.placements.append(
             Placement(
                 parameter,

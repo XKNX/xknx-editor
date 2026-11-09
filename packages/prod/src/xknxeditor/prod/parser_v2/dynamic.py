@@ -374,6 +374,10 @@ class DynamicTreeBuilder:
         self.object_gates: dict[str, frozenset[str]]
         self.module_gates: dict[str, frozenset[str]]
         self.selector_param_refs: frozenset[str] = frozenset()
+        # The param-refs (local) whose values an explore pass reads to know where it goes: the
+        # counts of repeats and the sources of the assigns that write them (see
+        # DynamicUI.explore_layout).
+        self.explore_param_refs: frozenset[str] = frozenset()
         # Per choose param-ref (local), the values its when tests name (see tested_values).
         self.selector_tested_values: dict[str, tuple[str, ...]] = {}
         (
@@ -427,6 +431,7 @@ class DynamicTreeBuilder:
         module_placements: dict[str, set[str]] = {}
         sources: dict[str, set[str]] = {}
         tests: dict[str, list[str]] = {}
+        explored: set[str] = set()
 
         def walk(elem: object, gates: tuple[str, ...]) -> None:
             if isinstance(
@@ -443,6 +448,8 @@ class DynamicTreeBuilder:
                 inner = (
                     (*gates, elem.parameter_ref_id) if elem.parameter_ref_id else gates
                 )
+                if elem.parameter_ref_id:
+                    explored.add(elem.parameter_ref_id)
                 for child in elem.choice:
                     walk(child, inner)
                 return
@@ -510,6 +517,14 @@ class DynamicTreeBuilder:
                     selectors.add(source)
                     pending.append(source)
         self.selector_param_refs = frozenset(selectors)
+        # A count an assign writes is read with the value of the assign's source.
+        pending = list(explored)
+        while pending:
+            for source in sources.get(pending.pop(), ()):
+                if source not in explored:
+                    explored.add(source)
+                    pending.append(source)
+        self.explore_param_refs = frozenset(explored)
         self.selector_tested_values = {
             ref: tuple(dict.fromkeys(v for test in found for v in tested_values(test)))
             for ref, found in tests.items()
@@ -1060,6 +1075,7 @@ class DynamicUI:
         "_active_snapshot",
         "_allocation_param_refs",
         "_app",
+        "_explore_param_refs",
         "_idx",
         "_local_ids",
         "_located",
@@ -1107,6 +1123,7 @@ class DynamicUI:
         self._object_gates = builder.object_gates
         self._module_gates = builder.module_gates
         self._selector_param_refs = builder.selector_param_refs
+        self._explore_param_refs = builder.explore_param_refs
         self._selector_tested_values = builder.selector_tested_values
         self._union_competitors = builder.union_competitors
         self._page_for = builder.page_param_for
@@ -2178,10 +2195,13 @@ class DynamicUI:
         of ``ref_id``'s value."""
         return self._union_competitors.covered(ref_id, by)
 
-    def explore_parameters(self) -> list[Placement]:
+    def explore_parameters(
+        self, check: Callable[[], None] | None = None
+    ) -> list[Placement]:
         """Every place of every parameter in the tree, whatever the current values select, with
-        the gates leading there (see :class:`Explorer`). Evaluated on a copy of the state."""
-        explorer = Explorer()
+        the gates leading there (see :class:`Explorer`). Evaluated on a copy of the state.
+        ``check`` is called now and then while exploring: an exception it raises ends it."""
+        explorer = Explorer(check)
         state = copy.deepcopy(self._state)
         # The copy holds the allocator positions where the last evaluation ended.
         state.reset_alloc_positions()
@@ -2189,6 +2209,13 @@ class DynamicUI:
             EvalContext(state, idx=self._idx, union_suppress=False, explore=explorer)
         )
         return explorer.placements
+
+    def explore_layout(self) -> tuple[object, ...]:
+        """What decides where :meth:`explore_parameters` goes (see
+        :meth:`ParameterState.explore_layout`): two UIs of one program with the same explore
+        layout give the same parameters (by ref id) in the same places, under the same gates.
+        Their labels, values and sections can differ."""
+        return self._state.explore_layout(self._explore_param_refs)
 
     def group_object_tree(self) -> ObjectTreeNode:
         """The device's group object tree as the current values select it (see

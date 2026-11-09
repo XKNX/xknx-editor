@@ -859,6 +859,61 @@ class ParameterState:
         """The part of :meth:`layout` of a kind of scope."""
         return ()
 
+    def explore_layout(self, refs: frozenset[str]) -> tuple[object, ...]:
+        """What an explore pass from this root state (every branch of every choose evaluated,
+        see :class:`~xknxeditor.prod.parser_v2.context.Explorer`) reads to know where it goes:
+        per module instance (by its path of instance ids) the values of ``refs`` it reads there
+        (the counts of repeats and the sources of the assigns that write them, local ids). Two
+        root states of one program with the same explore layout are explored alike: the same
+        repeats pass as often, so the same instances are made and the same places found,
+        whatever their other values.
+
+        An instance reached last (and its instances) is taken again as it is, with its
+        allocators at their start; one set aside comes back with the values it keeps for good
+        (and its own instances set aside too). A submodule instance stored at the root is taken
+        as it is, with its allocators where they stood, unless the last pass reached its id at
+        the root."""
+        entries: list[
+            tuple[
+                tuple[str, ...],
+                tuple[tuple[str, str], ...],
+                tuple[tuple[str, int], ...],
+            ]
+        ] = []
+
+        def picked(values: dict[str, str]) -> dict[str, str]:
+            if len(values) <= len(refs):
+                return {key: value for key, value in values.items() if key in refs}
+            return {key: values[key] for key in refs if key in values}
+
+        def visit(
+            scope: ParameterState, path: tuple[str, ...], revived: bool, stale: bool
+        ) -> None:
+            values = picked(scope._known_param_ref_values)
+            if not revived:
+                values = {**picked(scope.param_ref_id_to_value), **values}
+            positions = scope._alloc_positions if stale else {}
+            if values or positions:
+                # An instance without either is explored as one made anew.
+                entries.append(
+                    (
+                        path,
+                        tuple(sorted(values.items())),
+                        tuple(sorted(positions.items())),
+                    )
+                )
+            for key, child in scope._children.items():
+                visit(child, (*path, key), revived, stale)
+            for key, child in scope._dormant_children.items():
+                stored = scope is self and "_SM-" in key
+                visit(child, (*path, key), not stored, stored)
+
+        visit(self, (), False, False)
+        return (
+            tuple(key for key in self._active_module_keys if "_SM-" in key),
+            tuple(sorted(entries, key=lambda entry: entry[0])),
+        )
+
 
 def layouts_alike(first: tuple[object, ...], second: tuple[object, ...]) -> bool:
     """Whether two root states of one program with the layouts ``first`` and ``second`` (see

@@ -187,11 +187,17 @@ class _SearchCache:
     # values (a UI megabytes).
     UIS = 8
     CALCULATED = 128
+    # Explore passes kept at most (see _explored): their layouts compare, they do not hash.
+    EXPLORED = 4
 
     def __init__(self, application: Application) -> None:
         self.application = application
         self.uis: OrderedDict[tuple[object, ...], DynamicUI | None] = OrderedDict()
         self.calculated: OrderedDict[tuple[object, ...], _ValueMap] = OrderedDict()
+        # The explore layouts of UIs explored, with the places found (the last used first).
+        self.explored: list[
+            tuple[tuple[object, ...], list[tuple[str, tuple[Gate, ...]]]]
+        ] = []
 
     @staticmethod
     def get[V](store: OrderedDict[tuple[object, ...], V], key: tuple[object, ...]) -> V:
@@ -1649,7 +1655,7 @@ def _refine_pairs(
             evaluated = 0
             improved = False
             for gate, value in _refinement_trials(
-                ui, current[1], _contradicting_objects(ui, linked, sizes)
+                ui, current[1], _contradicting_objects(ui, linked, sizes), cancel
             ):
                 if _calculated_from_reads(ui, gate) and not alike(gate, value):
                     continue
@@ -1665,6 +1671,7 @@ def _refine_pairs(
                     property_values,
                     project_code_page,
                     chosen,
+                    cancel,
                     fixed=fixed,
                 )
                 first = _seeded(application, first_values, project_code_page)
@@ -1726,6 +1733,7 @@ def _refine_pairs(
                                 property_values,
                                 project_code_page,
                                 chosen,
+                                cancel,
                                 fixed=fixed,
                             )
                             seeded = _seeded(
@@ -1890,6 +1898,7 @@ def _refine_fixed(
             property_values,
             project_code_page,
             chosen,
+            cancel,
             fixed=fixed,
         )
         seeded = _seeded(application, trial_values, project_code_page)
@@ -1942,7 +1951,7 @@ def _refine_fixed(
             # The settings a trial of a calculated selector changes together (see
             # :func:`_joint_values_to_try`): what they compute is no guess of the selector.
             joint: dict[tuple[str, str], _ValueMap] = {}
-            trials = _refinement_trials(ui, differing, set(), joint=joint)
+            trials = _refinement_trials(ui, differing, set(), cancel, joint=joint)
             # The values alone first. When none fits better, each with the settings it shows
             # inferred behind it, taken when it fits better: a value that fits worse alone (a
             # channel's function without the settings that show its linked objects) can fit
@@ -2156,6 +2165,7 @@ def _decode(
             unknown,
             project_code_page,
             property_values or {},
+            cancel,
         )
         if written_over:
             read.update(written_over)
@@ -2688,13 +2698,15 @@ def _written_over_values(
     unknown: Collection[str],
     project_code_page: str | None,
     properties: Mapping[TypedPropertyKey, bytes],
+    cancel: Callable[[], bool] | None = None,
 ) -> _ValueMap:
     """The values of the active shown union members that a later active member writes over
     in part (see :meth:`DynamicUI.later_union_members`), read as no value of theirs: the
     value whose bytes, written in ``ui`` with ``values``, are those of ``segments`` (memory)
     and ``properties`` (property members). A later member the value itself shows (a switch
     whose "yes" shows an option stored in one of its bits) is written with the value the
-    memory holds for it. A member with no byte the device was read at stays unknown."""
+    memory holds for it. A member with no byte the device was read at stays unknown. Raises
+    :class:`_Cancelled` once ``cancel`` says so."""
     if not unknown:
         return {}
     from xknxeditor.prod.parser_v2.activation import shown_parameters, values_to_try
@@ -2739,6 +2751,7 @@ def _written_over_values(
         if given is not None:
             candidates = [given, *(value for value in candidates if value != given)]
         for value in candidates:
+            _check(cancel)
             trial = {**values, ref_id: value}
             seeded = _seeded(application, trial, project_code_page)
             if seeded is None:
@@ -3070,6 +3083,7 @@ def _infer_unstored(
         assert fixed is not None and segments is not None
         uis: dict[str, DynamicUI] = {}
         for key, trial in trials.items():
+            _check(cancel)
             seeded = _seeded(
                 application,
                 {**values, **trial},
@@ -3133,6 +3147,7 @@ def _infer_unstored(
         chosen: _ValueMap = {first_ref: first_value}
         covered = len(base) + gain
         for _, ref_id, value in best[1:]:
+            _check(cancel)
             count = len(shown({**chosen, ref_id: value})[0])
             if count > covered:
                 chosen[ref_id] = value
@@ -3145,6 +3160,7 @@ def _infer_unstored(
     found: _ValueMap = {}
     found_count = len(base)
     for ref_id, candidate in neutral[:_LOOK_AHEAD_TRIES]:
+        _check(cancel)
         nested = _infer_unstored(
             application,
             {**values, ref_id: candidate},
@@ -3403,11 +3419,9 @@ def _infer_from_fixed(
     # held and how many another; and the selectors whose branches' bytes differ.
     evidence: dict[str, dict[str, list[int]]] = {}
     differing: set[str] = set()
-    for placement in ui.explore_parameters():
-        ref_id = placement.parameter.ref_id
+    for ref_id, gates in _explored(application, ui, cancel):
         local = ui.local_ref_id(ref_id)
         own = fixed.get(local)
-        gates = placement.gates
         if own is None or not gates:
             continue
         inner = gates[-1]
@@ -3486,6 +3500,37 @@ def _infer_from_fixed(
         # More than the product has room for: no configuration of the device.
         return {}
     return chosen if after < before else {}
+
+
+def _explored(
+    application: Application,
+    ui: DynamicUI,
+    cancel: Callable[[], bool] | None = None,
+) -> list[tuple[str, tuple[Gate, ...]]]:
+    """Every place of every parameter in ``ui``'s tree with the gates leading there (see
+    :meth:`DynamicUI.explore_parameters`): its ref id and the gates. Within a search, explored
+    once for the UIs explored alike (see :meth:`DynamicUI.explore_layout`): exploring a large
+    application takes far longer than evaluating it, and the values a search tries seldom
+    change where an explore pass goes. Raises :class:`_Cancelled` once ``cancel`` says so,
+    also while exploring."""
+    cache = _search_cache(application)
+    layout: tuple[object, ...] = ()
+    if cache is not None:
+        layout = ui.explore_layout()
+        for n, (seen, placements) in enumerate(cache.explored):
+            if seen == layout:
+                cache.explored.insert(0, cache.explored.pop(n))
+                return placements
+    placements = [
+        (placement.parameter.ref_id, placement.gates)
+        for placement in ui.explore_parameters(
+            None if cancel is None else lambda: _check(cancel)
+        )
+    ]
+    if cache is not None:
+        cache.explored.insert(0, (layout, placements))
+        del cache.explored[cache.EXPLORED :]
+    return placements
 
 
 # The stored settings of the last device read, decoded each on its own (see _held_values).

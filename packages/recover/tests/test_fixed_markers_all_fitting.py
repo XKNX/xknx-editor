@@ -4,6 +4,8 @@ correct."""
 
 from __future__ import annotations
 
+from typing import Any
+
 import pytest
 from test_fixed_datapoint_types import _COUNT, _application, _device
 
@@ -27,9 +29,9 @@ def _named(
     looked = [0]
     explore = DynamicUI.explore_parameters
 
-    def counted(self: DynamicUI) -> object:
+    def counted(self: DynamicUI, *args: Any) -> object:
         looked[0] += 1
-        return explore(self)
+        return explore(self, *args)
 
     monkeypatch.setattr(DynamicUI, "explore_parameters", counted)
     named = parameters._infer_from_fixed(  # pyright: ignore[reportPrivateUsage]
