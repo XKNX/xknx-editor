@@ -1651,3 +1651,12 @@ msgstr "文件对话框不可用"
 
 msgid "The file dialog cannot open. Required programs were not found:\n{programs}\n\nOn Debian 13, run this command in a terminal, then restart XKNX Editor:\n{command}"
 msgstr "无法打开文件对话框。未找到所需程序：\n{programs}\n\n在 Debian 13 上，请在终端中运行以下命令，然后重新启动 XKNX Editor：\n{command}"
+
+msgid "No Signing Key"
+msgstr "没有签名密钥"
+
+msgid "No valid signing key is set, so the exported .knxproj will not have a valid signature and ETS will reject it on import. Set a signing key under the Signing menu, or export without a valid signature."
+msgstr "未设置有效的签名密钥，因此导出的 .knxproj 将没有有效签名，ETS 在导入时会拒绝它。请在“签名”菜单中设置签名密钥，或在没有有效签名的情况下导出。"
+
+msgid "Export Anyway"
+msgstr "仍然导出"

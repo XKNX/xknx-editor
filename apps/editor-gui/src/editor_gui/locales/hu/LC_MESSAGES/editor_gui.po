@@ -1723,3 +1723,12 @@ msgstr "A fájlválasztó párbeszédablak nem érhető el"
 
 msgid "The file dialog cannot open. Required programs were not found:\n{programs}\n\nOn Debian 13, run this command in a terminal, then restart XKNX Editor:\n{command}"
 msgstr "A fájlválasztó párbeszédablak nem nyitható meg. A szükséges programok nem találhatók:\n{programs}\n\nDebian 13 rendszeren futtassa ezt a parancsot egy terminálban, majd indítsa újra az XKNX Editort:\n{command}"
+
+msgid "No Signing Key"
+msgstr "Nincs aláíró kulcs"
+
+msgid "No valid signing key is set, so the exported .knxproj will not have a valid signature and ETS will reject it on import. Set a signing key under the Signing menu, or export without a valid signature."
+msgstr "Nincs beállítva érvényes aláíró kulcs, ezért az exportált .knxproj nem kap érvényes aláírást, és az ETS importáláskor elutasítja. Állíts be aláíró kulcsot az Aláírás menüben, vagy exportálj érvényes aláírás nélkül."
+
+msgid "Export Anyway"
+msgstr "Exportálás mindenképp"

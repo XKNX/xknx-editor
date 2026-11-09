@@ -1240,6 +1240,22 @@ class MenuStrings:
         )
 
     @property
+    def SIGNING_WARNING_TITLE(self) -> str:
+        return _("No Signing Key")
+
+    @property
+    def SIGNING_WARNING_TEXT(self) -> str:
+        return _(
+            "No valid signing key is set, so the exported .knxproj will not have a valid "
+            "signature and ETS will reject it on import. Set a signing key under the Signing "
+            "menu, or export without a valid signature."
+        )
+
+    @property
+    def SIGNING_WARNING_EXPORT_ANYWAY(self) -> str:
+        return _("Export Anyway")
+
+    @property
     def MYKNX_DONGLE_EXPORT_STORE(self) -> str:
         return _("Export to ProjectStore")
 

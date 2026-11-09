@@ -1749,3 +1749,12 @@ msgstr "Dialog de fișiere indisponibil"
 
 msgid "The file dialog cannot open. Required programs were not found:\n{programs}\n\nOn Debian 13, run this command in a terminal, then restart XKNX Editor:\n{command}"
 msgstr "Dialogul de fișiere nu poate fi deschis. Programele necesare nu au fost găsite:\n{programs}\n\nPe Debian 13, executați această comandă într-un terminal, apoi reporniți XKNX Editor:\n{command}"
+
+msgid "No Signing Key"
+msgstr "Fără cheie de semnare"
+
+msgid "No valid signing key is set, so the exported .knxproj will not have a valid signature and ETS will reject it on import. Set a signing key under the Signing menu, or export without a valid signature."
+msgstr "Nu este setată o cheie de semnare validă, așa că fișierul .knxproj exportat nu va avea o semnătură validă, iar ETS îl va respinge la import. Setați o cheie de semnare din meniul Semnare sau exportați fără o semnătură validă."
+
+msgid "Export Anyway"
+msgstr "Exportă oricum"

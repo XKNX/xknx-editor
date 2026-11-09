@@ -1762,3 +1762,12 @@ msgstr "Pogovorno okno za datoteke ni na voljo"
 
 msgid "The file dialog cannot open. Required programs were not found:\n{programs}\n\nOn Debian 13, run this command in a terminal, then restart XKNX Editor:\n{command}"
 msgstr "Pogovornega okna za datoteke ni mogoče odpreti. Zahtevani programi niso bili najdeni:\n{programs}\n\nV Debianu 13 zaženite ta ukaz v terminalu in nato znova zaženite XKNX Editor:\n{command}"
+
+msgid "No Signing Key"
+msgstr "Ni podpisnega ključa"
+
+msgid "No valid signing key is set, so the exported .knxproj will not have a valid signature and ETS will reject it on import. Set a signing key under the Signing menu, or export without a valid signature."
+msgstr "Veljaven podpisni ključ ni nastavljen, zato izvožena datoteka .knxproj ne bo imela veljavnega podpisa in jo bo ETS pri uvozu zavrnil. Nastavite podpisni ključ v meniju Podpisovanje ali izvozite brez veljavnega podpisa."
+
+msgid "Export Anyway"
+msgstr "Vseeno izvozi"

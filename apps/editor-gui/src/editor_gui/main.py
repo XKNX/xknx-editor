@@ -745,6 +745,13 @@ class KnxGuiApp:
         # The result of an export through the installed ETS, shown in its own window (not a toast).
         self._ets_result: str | None = None
         self._ets_result_requested = False
+        # A one-time warning before an export signs with a placeholder key (ETS would reject the
+        # signature on import). Acknowledged once per session; the deferred export is re-run then.
+        self._signing_warning_acknowledged = False
+        self._signing_warning_requested = False
+        self._signing_warning_pending: (
+            tuple[str, Callable[[str, bytes, str], bytes | None] | None] | None
+        ) = None
         # The certificate signer used for the export, kept so the export-complete window can
         # re-export after removing a device whose product data is too new for the chosen ETS.
         self._export_summary_signer: (
@@ -1573,6 +1580,12 @@ class KnxGuiApp:
         # file is only current after a write-back, and reading it directly could be stale or fail.
         source = self._project_service.working_path
         if source is None or (self._myknx_thread and self._myknx_thread.is_alive()):
+            return
+        # Warn once per session before signing with a placeholder key: the folder signature would
+        # be invalid and ETS rejects the import. Defer this export until the warning is confirmed.
+        if signing_key_is_placeholder() and not self._signing_warning_acknowledged:
+            self._signing_warning_pending = (dest, signer)
+            self._signing_warning_requested = True
             return
         # Snapshot the program refs now (UI thread) together with `source`, so switching projects
         # mid-export can't pair project A's file with project B's manufacturer bundle.
@@ -4846,6 +4859,32 @@ class KnxGuiApp:
             imgui.close_current_popup()
         end_dialog()
 
+    def _render_signing_warning_modal(self) -> None:
+        """One-time warning before an export whose folder signature would use a placeholder key:
+        ETS rejects such a file on import. Shown once per session; confirming re-runs the export."""
+        if self._signing_warning_requested:
+            imgui.open_popup(S.SIGNING_WARNING_TITLE)
+            self._signing_warning_requested = False
+        if not begin_dialog(S.SIGNING_WARNING_TITLE, width=520.0):
+            return
+        imgui.push_style_color(imgui.Col_.text, imgui.ImVec4(0.85, 0.7, 0.3, 1.0))
+        imgui.text_wrapped(S.SIGNING_WARNING_TEXT)
+        imgui.pop_style_color()
+        clicked = dialog_buttons(S.SIGNING_WARNING_EXPORT_ANYWAY, S.BTN_CANCEL)
+        if clicked == 0:
+            self._signing_warning_acknowledged = True
+            pending = self._signing_warning_pending
+            self._signing_warning_pending = None
+            imgui.close_current_popup()
+            end_dialog()
+            if pending is not None:
+                self._do_export_knxproj(*pending)
+            return
+        if clicked == 1:
+            self._signing_warning_pending = None
+            imgui.close_current_popup()
+        end_dialog()
+
     # --- compact project ---------------------------------------------------
 
     def _can_compact(self) -> bool:
@@ -5347,6 +5386,7 @@ class KnxGuiApp:
         self._render_export_summary_modal()
         self._render_export_failure_modal()
         self._render_ets_result_modal()
+        self._render_signing_warning_modal()
         self._render_compact_modal()
         self._render_compact_result_modal()
         self._render_knxprod_result_modal()

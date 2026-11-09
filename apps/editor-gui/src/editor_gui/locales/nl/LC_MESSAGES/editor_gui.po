@@ -1724,3 +1724,12 @@ msgstr "Bestandsdialoog niet beschikbaar"
 
 msgid "The file dialog cannot open. Required programs were not found:\n{programs}\n\nOn Debian 13, run this command in a terminal, then restart XKNX Editor:\n{command}"
 msgstr "De bestandsdialoog kan niet worden geopend. Vereiste programma's zijn niet gevonden:\n{programs}\n\nVoer op Debian 13 deze opdracht uit in een terminal en start XKNX Editor daarna opnieuw:\n{command}"
+
+msgid "No Signing Key"
+msgstr "Geen ondertekeningssleutel"
+
+msgid "No valid signing key is set, so the exported .knxproj will not have a valid signature and ETS will reject it on import. Set a signing key under the Signing menu, or export without a valid signature."
+msgstr "Er is geen geldige ondertekeningssleutel ingesteld, dus de geëxporteerde .knxproj heeft geen geldige handtekening en ETS weigert deze bij het importeren. Stel een ondertekeningssleutel in via het menu Ondertekening, of exporteer zonder geldige handtekening."
+
+msgid "Export Anyway"
+msgstr "Toch exporteren"

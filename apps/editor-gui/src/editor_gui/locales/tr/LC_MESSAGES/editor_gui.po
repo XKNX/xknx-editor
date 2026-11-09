@@ -1651,3 +1651,12 @@ msgstr "Dosya İletişim Kutusu Kullanılamıyor"
 
 msgid "The file dialog cannot open. Required programs were not found:\n{programs}\n\nOn Debian 13, run this command in a terminal, then restart XKNX Editor:\n{command}"
 msgstr "Dosya iletişim kutusu açılamıyor. Gerekli programlar bulunamadı:\n{programs}\n\nDebian 13'te bu komutu bir terminalde çalıştırın, ardından XKNX Editor'ü yeniden başlatın:\n{command}"
+
+msgid "No Signing Key"
+msgstr "İmzalama anahtarı yok"
+
+msgid "No valid signing key is set, so the exported .knxproj will not have a valid signature and ETS will reject it on import. Set a signing key under the Signing menu, or export without a valid signature."
+msgstr "Geçerli bir imzalama anahtarı ayarlanmadı; bu nedenle dışa aktarılan .knxproj geçerli bir imzaya sahip olmayacak ve ETS içe aktarırken onu reddedecek. İmzalama menüsünden bir imzalama anahtarı ayarlayın veya geçerli imza olmadan dışa aktarın."
+
+msgid "Export Anyway"
+msgstr "Yine de dışa aktar"

@@ -1677,3 +1677,12 @@ msgstr "Диалог выбора файла недоступен"
 
 msgid "The file dialog cannot open. Required programs were not found:\n{programs}\n\nOn Debian 13, run this command in a terminal, then restart XKNX Editor:\n{command}"
 msgstr "Не удалось открыть диалог выбора файла. Не найдены необходимые программы:\n{programs}\n\nВ Debian 13 выполните эту команду в терминале, затем перезапустите XKNX Editor:\n{command}"
+
+msgid "No Signing Key"
+msgstr "Нет ключа подписи"
+
+msgid "No valid signing key is set, so the exported .knxproj will not have a valid signature and ETS will reject it on import. Set a signing key under the Signing menu, or export without a valid signature."
+msgstr "Действительный ключ подписи не задан, поэтому экспортированный .knxproj не будет иметь действительной подписи, и ETS отклонит его при импорте. Задайте ключ подписи в меню «Подпись» или экспортируйте без действительной подписи."
+
+msgid "Export Anyway"
+msgstr "Экспортировать всё равно"

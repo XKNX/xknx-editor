@@ -1664,3 +1664,12 @@ msgstr "Fildialog er ikke tilgængelig"
 
 msgid "The file dialog cannot open. Required programs were not found:\n{programs}\n\nOn Debian 13, run this command in a terminal, then restart XKNX Editor:\n{command}"
 msgstr "Fildialogen kan ikke åbnes. Følgende nødvendige programmer blev ikke fundet:\n{programs}\n\nPå Debian 13 skal du køre denne kommando i en terminal og derefter genstarte XKNX Editor:\n{command}"
+
+msgid "No Signing Key"
+msgstr "Ingen signeringsnøgle"
+
+msgid "No valid signing key is set, so the exported .knxproj will not have a valid signature and ETS will reject it on import. Set a signing key under the Signing menu, or export without a valid signature."
+msgstr "Der er ikke angivet en gyldig signeringsnøgle, så den eksporterede .knxproj får ikke en gyldig signatur, og ETS afviser den ved import. Angiv en signeringsnøgle i menuen Signering, eller eksportér uden en gyldig signatur."
+
+msgid "Export Anyway"
+msgstr "Eksportér alligevel"

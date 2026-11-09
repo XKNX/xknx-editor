@@ -1664,3 +1664,12 @@ msgstr "Boîte de dialogue de fichiers indisponible"
 
 msgid "The file dialog cannot open. Required programs were not found:\n{programs}\n\nOn Debian 13, run this command in a terminal, then restart XKNX Editor:\n{command}"
 msgstr "Impossible d’ouvrir la boîte de dialogue de fichiers. Les programmes requis sont introuvables :\n{programs}\n\nSous Debian 13, exécutez cette commande dans un terminal, puis redémarrez XKNX Editor :\n{command}"
+
+msgid "No Signing Key"
+msgstr "Aucune clé de signature"
+
+msgid "No valid signing key is set, so the exported .knxproj will not have a valid signature and ETS will reject it on import. Set a signing key under the Signing menu, or export without a valid signature."
+msgstr "Aucune clé de signature valide n'est définie ; le .knxproj exporté n'aura donc pas de signature valide et ETS le refusera à l'import. Définissez une clé de signature dans le menu Signature, ou exportez sans signature valide."
+
+msgid "Export Anyway"
+msgstr "Exporter quand même"
