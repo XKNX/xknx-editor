@@ -286,6 +286,27 @@ def startup_file(argv: list[str]) -> str | None:
     return None
 
 
+# The password of the project given on the command line, without --password-file.
+PROJECT_PASSWORD_ENV = "XKNX_PROJECT_PASSWORD"
+
+
+def startup_password_file(argv: list[str]) -> str | None:
+    """The file ``--password-file=FILE`` names, as an absolute path: its first line is the
+    password of the project given on the command line."""
+    for arg in argv[1:]:
+        if arg.startswith("--password-file="):
+            value = arg.partition("=")[2]
+            return os.path.abspath(value) if value else None
+    return None
+
+
+def read_password_file(path: str) -> str | None:
+    """The first line of the file at ``path`` (a byte order mark, as Windows editors write, left
+    out); None when it is empty. Raises OSError when it cannot be read."""
+    lines = Path(path).read_text(encoding="utf-8-sig").splitlines()
+    return lines[0] if lines and lines[0] else None
+
+
 def _restore_subprocess_library_path() -> None:
     """PyInstaller's Linux bootloader prepends the bundle directory to ``LD_LIBRARY_PATH`` and saves
     the caller's original value as ``LD_LIBRARY_PATH_ORIG``. External binaries the app spawns (the
@@ -786,15 +807,19 @@ class KnxGuiApp:
         # "user"/"machine" when running from an installation of the Windows installer, which
         # updates in place (self_update.py); None opens the release page instead.
         self._update_scope = self_update.installed_scope()
-        # A project passed on the command line, opened once the window is up.
+        # A project passed on the command line, opened once the window is up, and the file with
+        # its password (--password-file).
         self.startup_file: str | None = None
+        self.startup_password_file: str | None = None
         # Other editors running when this one started: asked about first (see instances.py).
         self.running_editors: list[Instance] = []
         # This editor's entry for the others, and their requests (handled on the UI thread).
         self._registry: Registry | None = None
         self._editor_requests: collections.deque[dict[str, Any]] = collections.deque()
         # A project another editor has open, and those editors: asked about before opening it.
-        self._elsewhere: tuple[str, list[Instance]] | None = None
+        self._elsewhere: tuple[str, list[Instance], str | None, str | None] | None = (
+            None
+        )
         self._update_manual = False  # a user-triggered check also reports "up to date"
         # The dialog of a user-triggered check: "checking", "current", "failed", or None (closed).
         self._update_check_state: str | None = None
@@ -1033,7 +1058,11 @@ class KnxGuiApp:
         if host.current().mcp_managed or load_settings("mcp").get("running"):
             self._start_mcp(save=False)
         if self.startup_file is not None:
-            self._do_open_project(self.startup_file)
+            self._do_open_project(
+                self.startup_file,
+                password_file=self.startup_password_file,
+                password=os.environ.get(PROJECT_PASSWORD_ENV) or None,
+            )
 
     # --- other running editors (instances.py) -----------------------------
 
@@ -1068,18 +1097,29 @@ class KnxGuiApp:
                 if current is None or not same_file(str(current), file):
                     if self._bg_thread is not None or self._import_thread is not None:
                         return  # opened once the running task is done
-                    self._do_open_project(file)
+                    # The file with the password, not the password, comes with the request.
+                    password_file = command.get("password_file")
+                    self._do_open_project(
+                        file,
+                        password_file=password_file
+                        if isinstance(password_file, str) and password_file
+                        else None,
+                    )
             self._editor_requests.popleft()
             if web.active_hub is None:
                 bring_to_front()
 
-    def _switch_to(self, other: Instance, file: str | None) -> bool:
-        """Bring ``other`` to the front (or its browser UI), opening ``file`` there; whether it
-        answered."""
+    def _switch_to(
+        self, other: Instance, file: str | None, password_file: str | None = None
+    ) -> bool:
+        """Bring ``other`` to the front (or its browser UI), opening ``file`` there (with the
+        password in ``password_file``); whether it answered."""
         allow_foreground(other.pid)
         command: dict[str, Any] = {"cmd": "activate"}
         if file:
             command["file"] = file
+            if password_file:
+                command["password_file"] = password_file
         if request(other, command) is None:
             self._flash_toast(S.EDITOR_GONE)
             return False
@@ -1109,7 +1149,9 @@ class KnxGuiApp:
             return
         imgui.text_wrapped(S.EDITOR_RUNNING_TEXT)
         imgui.spacing()
-        switched = self._render_editor_rows(self.running_editors, self.startup_file)
+        switched = self._render_editor_rows(
+            self.running_editors, self.startup_file, self.startup_password_file
+        )
         imgui.spacing()
         clicked = dialog_buttons(S.EDITOR_START_ANOTHER, S.BTN_CANCEL)
         if switched or clicked == 1:
@@ -1122,7 +1164,12 @@ class KnxGuiApp:
             self._start_session()
         end_dialog()
 
-    def _render_editor_rows(self, editors: list[Instance], file: str | None) -> bool:
+    def _render_editor_rows(
+        self,
+        editors: list[Instance],
+        file: str | None,
+        password_file: str | None = None,
+    ) -> bool:
         """One row per editor with its "Switch to It" button; whether one was switched to."""
         switched = False
         for index, other in enumerate(editors):
@@ -1130,7 +1177,9 @@ class KnxGuiApp:
             imgui.align_text_to_frame_padding()
             imgui.bullet_text(self._editor_label(other))
             imgui.same_line()
-            if imgui.button(S.EDITOR_SWITCH) and self._switch_to(other, file):
+            if imgui.button(S.EDITOR_SWITCH) and self._switch_to(
+                other, file, password_file
+            ):
                 switched = True
             imgui.pop_id()
         return switched
@@ -1146,7 +1195,7 @@ class KnxGuiApp:
             imgui.close_current_popup()
             end_dialog()
             return
-        path, editors = self._elsewhere
+        path, editors, password_file, password = self._elsewhere
         imgui.text_wrapped(S.PROJECT_ELSEWHERE_TEXT.format(name=Path(path).name))
         imgui.spacing()
         switched = self._render_editor_rows(editors, None)
@@ -1158,7 +1207,12 @@ class KnxGuiApp:
         elif clicked == 0:
             imgui.close_current_popup()
             self._elsewhere = None
-            self._do_open_project(path, open_anyway=True)
+            self._do_open_project(
+                path,
+                open_anyway=True,
+                password_file=password_file,
+                password=password,
+            )
         end_dialog()
 
     # --- update check (GitHub releases) -----------------------------------
@@ -3162,7 +3216,17 @@ class KnxGuiApp:
         )  # not added to Recent — it is a throwaway until saved
         self._log.info("untitled project created", path=str(path))
 
-    def _do_open_project(self, path: str, *, open_anyway: bool = False) -> None:
+    def _do_open_project(
+        self,
+        path: str,
+        *,
+        open_anyway: bool = False,
+        password_file: str | None = None,
+        password: str | None = None,
+    ) -> None:
+        """Open the project at ``path`` (or import it); an ``.xknx`` with the password in the
+        first line of ``password_file`` (--password-file), else ``password``, instead of asking
+        for it."""
         suffix = Path(path).suffix.lower()
         self._log.info(
             "routing open project",
@@ -3219,7 +3283,7 @@ class KnxGuiApp:
         if not open_anyway:
             elsewhere = with_project(path, others())
             if elsewhere:
-                self._elsewhere = (path, elsewhere)
+                self._elsewhere = (path, elsewhere, password_file, password)
                 return
 
         def report(done: int, total: int, label: str = "") -> None:
@@ -3229,16 +3293,31 @@ class KnxGuiApp:
                 f"{text} — {label}" if label else text,
             )
 
-        self._open_xknx(path, report)
+        if password_file is not None:
+            try:
+                password = read_password_file(password_file)
+            except OSError as e:
+                # Opened as without the file: a protected project asks for its password.
+                self._log.error(
+                    "cannot read the project password file",
+                    path=password_file,
+                    error=str(e),
+                )
+        self._open_xknx(path, report, password, consented=False)
 
     def _open_xknx(
         self,
         path: str,
         report: Callable[[int, int, str], None],
         password: str | None = None,
+        *,
+        consented: bool | None = None,
     ) -> None:
         """Open the ``.xknx`` at ``path`` behind the progress modal. A protected project asks for
-        its password; one with KNX Secure data but no password asks to set one."""
+        its password (also when ``password`` is wrong); one with KNX Secure data but no password
+        asks to set one. A project on a network location asks for consent to work on a local
+        copy first, unless ``consented`` (by default: when a password is given, as the password
+        prompt is answered after that question)."""
 
         def products(done: int, total: int) -> None:
             self.set_progress(
@@ -3278,7 +3357,7 @@ class KnxGuiApp:
 
         # Open on a worker thread behind the spinner: building a large project's device view is slow.
         # A network location asks for consent first (work on a local copy), then runs the worker.
-        if password is not None:
+        if consented if consented is not None else password is not None:
             self._run_bg(S.PROGRESS_OPEN_PROJECT, worker)
             return
         self._maybe_consent_then(
@@ -7569,6 +7648,7 @@ def _main() -> None:
     move_product_cache(config_dir() / "ir_cache")
     app = KnxGuiApp(catalog_path)
     app.startup_file = startup_file(sys.argv)
+    app.startup_password_file = startup_password_file(sys.argv)
     # Editors running already are offered first; --new-instance starts another without asking.
     if "--new-instance" not in sys.argv:
         app.running_editors = others()
