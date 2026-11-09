@@ -1976,12 +1976,37 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         return ctx.run_locked(_read)
 
     @tool("read")
+    def project_list_com_object_modules(
+        node_id: int | None = None,
+        device_address: str | None = None,
+    ) -> dict[str, Any]:
+        """List the module filter choices of a device's Group Objects tab.
+
+        Identify the device by node_id OR device_address; pass exactly one. Returns
+        {items, count}, with {module_id, name} per item. Groups follow the product's
+        displayed channels, including module-instance channels, and contain only visible
+        objects. The empty module_id and name mean objects without a channel (Without module).
+        Pass module_ids to project_list_com_objects to select one or several groups.
+        IDs, unlike labels, distinguish equally named channels.
+        """
+
+        def _read() -> list[dict[str, str]]:
+            device = _require_device(node_id, device_address)
+            return [
+                {"module_id": key, "name": label}
+                for key, label in device.get_com_object_modules().items()
+            ]
+
+        return _items(ctx.run_locked(_read))
+
+    @tool("read")
     def project_list_com_objects(
         node_id: int | None = None,
         device_address: str | None = None,
         search: str | None = None,
         linked_only: bool = False,
         compact: bool = False,
+        module_ids: list[str] | None = None,
     ) -> dict[str, Any]:
         """List a project device's visible com-objects with their group-address links, as the
         Group Objects tab shows them. Identify the device by ``node_id`` OR ``device_address`` (an
@@ -1996,6 +2021,10 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         group address (its address or name) contains it, case-insensitive. ``linked_only`` keeps
         the objects with at least one link: all of a device's links in one call. ``compact`` gives
         each item only ref_id, number, name, dpt and links.
+        ``module_ids`` selects the union of groups from project_list_com_object_modules.
+        Omit it (or pass null) for all modules; [] selects none; [""] selects objects without
+        a module. Unknown IDs match no objects. The filter combines with search and linked_only
+        and never includes objects hidden by the device's parameters.
         Pass ref_id as com_object_ref_id with the same device. Linking and flag edits require
         linkable=true (db_id set)."""
 
@@ -2012,7 +2041,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             device = _require_device(node_id, device_address)
             rows = [
                 {**com_object_dict(co), "links": com_object_links(project, co)}
-                for co in device.get_visible_com_objects()
+                for co in device.get_filtered_com_objects(module_ids)
             ]
             rows = [
                 r

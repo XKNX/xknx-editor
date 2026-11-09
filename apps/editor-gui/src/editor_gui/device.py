@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+from collections import Counter
 from collections.abc import Callable, Iterable, Mapping, Sequence
 from dataclasses import InitVar, dataclass, field
 from enum import Enum
 from typing import TYPE_CHECKING, Any
 
+from editor_gui.device_channels import com_object_channels
 from editor_gui.dpt import DPT
 from xknxeditor.prod import Application
 
@@ -520,6 +522,30 @@ class Device:
             result.append(co)
         self._cached_visible_cos = result
         return result
+
+    def get_com_object_modules(self) -> dict[str, str]:
+        """Available KO filter groups as stable id -> label; empty id means no module."""
+        channels = com_object_channels(self.get_ui())
+        groups: dict[str, str] = {}
+        for co in self.get_visible_com_objects():
+            key, label, _position = channels.get(co.id, ("", "", 0))
+            groups.setdefault(key, label)
+        repeated = Counter(groups.values())
+        return {
+            key: f"{label} ({index})" if label and repeated[label] > 1 else label
+            for index, (key, label) in enumerate(groups.items(), 1)
+        }
+
+    def get_filtered_com_objects(
+        self, module_ids: Sequence[str] | None = None
+    ) -> list[ComObject]:
+        """Visible objects in selected modules. None selects all; an empty list selects none."""
+        objects = self.get_visible_com_objects()
+        if module_ids is None:
+            return objects
+        selected = set(module_ids)
+        channels = com_object_channels(self.get_ui())
+        return [co for co in objects if channels.get(co.id, ("", "", 0))[0] in selected]
 
     def active_parameter_driven_com_object_ref_ids(self) -> set[str]:
         """The parameter-driven active com-object set for the current parameter values (chain-AND:

@@ -300,3 +300,15 @@ msgid "{count} difference"
 msgid_plural "{count} differences"
 msgstr[0] "{count} diferencia"
 msgstr[1] "{count} diferencias"
+
+msgid "Modules"
+msgstr "Módulos"
+
+msgid "All modules"
+msgstr "Todos los módulos"
+
+msgid "Without module"
+msgstr "Sin módulo"
+
+msgid "Modules ({count})"
+msgstr "Módulos ({count})"

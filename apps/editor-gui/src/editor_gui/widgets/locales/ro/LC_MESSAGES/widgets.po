@@ -312,3 +312,15 @@ msgid_plural "{count} differences"
 msgstr[0] "{count} diferență"
 msgstr[1] "{count} diferențe"
 msgstr[2] "{count} de diferențe"
+
+msgid "Modules"
+msgstr "Module"
+
+msgid "All modules"
+msgstr "Toate modulele"
+
+msgid "Without module"
+msgstr "Fără modul"
+
+msgid "Modules ({count})"
+msgstr "Module ({count})"

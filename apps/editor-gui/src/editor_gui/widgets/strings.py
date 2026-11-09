@@ -10,6 +10,22 @@ _ = create_translator("widgets", _locale_dir)
 
 class WidgetStrings(BaseStrings):
     @property
+    def GROUP_OBJECTS_MODULES(self) -> str:
+        return _("Modules")
+
+    @property
+    def GROUP_OBJECTS_ALL_MODULES(self) -> str:
+        return _("All modules")
+
+    @property
+    def GROUP_OBJECTS_WITHOUT_MODULE(self) -> str:
+        return _("Without module")
+
+    @property
+    def GROUP_OBJECTS_MODULE_COUNT(self) -> str:
+        return _("Modules ({count})")
+
+    @property
     def NODE_IMAGE_PLACEHOLDER(self) -> str:
         return _("(image)")
 

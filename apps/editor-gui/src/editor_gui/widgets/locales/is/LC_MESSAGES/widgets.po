@@ -309,3 +309,15 @@ msgid "{count} difference"
 msgid_plural "{count} differences"
 msgstr[0] "{count} frávik"
 msgstr[1] "{count} frávik"
+
+msgid "Modules"
+msgstr "Einingar"
+
+msgid "All modules"
+msgstr "Allar einingar"
+
+msgid "Without module"
+msgstr "Án einingar"
+
+msgid "Modules ({count})"
+msgstr "Einingar ({count})"
