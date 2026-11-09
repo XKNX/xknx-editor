@@ -26,6 +26,7 @@ from editor_gui.device import (
 )
 from editor_gui.device import (
     com_object_display_name,
+    object_size_text,
 )
 from editor_gui.device_plugins import parameters_in_plugin
 from editor_gui.plugins.mcp.context import McpContext, make_tool, require_project
@@ -93,7 +94,8 @@ def com_object_dict(co: ComObject) -> dict[str, Any]:
         "number": co.number,
         "dpt": co.dpt.code,
         "dpt_name": co.dpt.name,
-        "object_size": co.object_size,
+        # As the group object lists show it: the variable-length size as "Variable".
+        "object_size": object_size_text(co.object_size),
         "flags": _flags_dict(co),
         "description": co.description,
         "priority": co.priority,
@@ -2094,10 +2096,11 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         Group Objects tab shows them. Identify the device by ``node_id`` OR ``device_address`` (an
         individual address like "1.0.30"); pass exactly one.
         Returns {items, count}; each item has {ref_id, db_id, linkable, name, number, dpt, dpt_name,
-        object_size, flags, description, priority, links}. flags contains communication, read,
-        write, transmit, update, read_on_init. links are the object's group-address links as
-        project_get_com_object_links returns them ({assignment_id, group_address_id, address, name,
-        is_sending}); empty when it has none: one call shows which group address is on which
+        object_size, flags, description, priority, links}. object_size is the text the tab shows
+        ("1 Bit", "2 Bytes", "Variable" for a variable-length object). flags contains
+        communication, read, write, transmit, update, read_on_init. links are the object's
+        group-address links as project_get_com_object_links returns them ({assignment_id,
+        group_address_id, address, name, is_sending}); empty when it has none: one call shows which group address is on which
         object, and gives the assignment_id project_unlink_com_object takes.
         ``search`` keeps the objects whose name (with its function), description, or a linked
         group address (its address or name) contains it, case-insensitive. ``linked_only`` keeps
@@ -2148,6 +2151,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         ``device_address`` (an individual address like "1.0.30"); pass exactly one.
 
         Returns {items, count}; each item has {ref_id, number, name, function_text, dpt, object_size}
+        (object_size as the Group Objects tab shows it, "Variable" for a variable-length object)
         from the STATIC declaration: names/function texts are templates (no parameter or module
         substitution) and ``number`` is the base (a module instance offsets it). This is NOT a
         reachability proof — a declared object may never be activatable in a given configuration, and
@@ -2159,7 +2163,10 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             dyn = device.dynamic_ui
             if dyn is None:
                 raise ToolError(f"device {device.node_id} has no application loaded")
-            return dyn.declared_com_objects()
+            return [
+                {**item, "object_size": object_size_text(str(item["object_size"]))}
+                for item in dyn.declared_com_objects()
+            ]
 
         return _items(ctx.run_locked(_read))
 
