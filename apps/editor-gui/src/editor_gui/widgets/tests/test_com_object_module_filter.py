@@ -133,6 +133,27 @@ def test_dropdown_filters_multiple_modules_and_resets(ui: TableUI) -> None:
     assert ui.numbers() == [254, 253, 262, 261]
 
 
+def test_nested_modules_are_indented_and_selectable(ui: TableUI) -> None:
+    from xknxeditor.prod.application import parse_application_xml
+
+    fixture = (
+        Path(__file__).parents[6]
+        / "packages/prod/tests/fixtures/object_tree_application.xml"
+    )
+    app = parse_application_xml(fixture.read_bytes(), "M-00FA")[0]
+    ui.device = Device(2, "Tree", app, "1.2.10")
+    ui.frame()
+    ui.click("Modules")
+    assert ui.rects["Status"][0] > ui.rects["Channel A"][0]
+    ui.click("Status")
+    ui.close_combo()
+    assert ui.numbers() == [3]
+    ui.click("Modules")
+    ui.click("Channel A")
+    ui.close_combo()
+    assert ui.numbers() == [6, 2, 3]
+
+
 def test_hidden_selection_does_not_return_and_device_switch_clears_selection(
     ui: TableUI,
 ) -> None:

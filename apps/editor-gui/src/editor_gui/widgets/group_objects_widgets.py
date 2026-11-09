@@ -426,11 +426,18 @@ class GroupObjectsTable:
                 "##module_search", S.SEARCH_HINT, self._module_search
             )
             needle = self._module_search.casefold()
+            parents = device.get_com_object_module_parents()
+            depths: dict[str, int] = {}
             for key, name in groups.items():
+                parent = parents[key]
+                depth = depths[parent] + 1 if parent is not None else 0
+                depths[key] = depth
                 label = name or S.GROUP_OBJECTS_WITHOUT_MODULE
                 if needle not in label.casefold():
                     continue
                 imgui.push_id(key)
+                if depth:
+                    imgui.indent(px(20) * depth)
                 changed, selected = checkbox(
                     label, self._module_ids is not None and key in self._module_ids
                 )
@@ -441,6 +448,8 @@ class GroupObjectsTable:
                         self._module_ids.add(key)
                     else:
                         self._module_ids.discard(key)
+                if depth:
+                    imgui.unindent(px(20) * depth)
                 imgui.pop_id()
             imgui.end_combo()
 

@@ -4,6 +4,39 @@ from editor_gui.device import ComObject, ComObjectFlags, Device
 from editor_gui.dpt import DPT_UNKNOWN
 
 
+def test_ets_folders_preserve_hierarchy_and_parent_selection() -> None:
+    from pathlib import Path
+
+    from xknxeditor.prod.application import parse_application_xml
+
+    fixture = (
+        Path(__file__).parents[5]
+        / "packages/prod/tests/fixtures/object_tree_application.xml"
+    )
+    app = parse_application_xml(fixture.read_bytes(), "M-00FA")[0]
+    device = Device(1, "Tree", app, "1.2.10")
+    channel = f"{app.id}_CH-1"
+    folder = f"{app.id}_PB-3"
+    assert device.get_com_object_modules() == {
+        "": "",
+        channel: "Channel A",
+        folder: "Status",
+    }
+    assert device.get_com_object_module_parents() == {
+        "": None,
+        channel: None,
+        folder: channel,
+    }
+    assert [co.number for co in device.get_filtered_com_objects([folder])] == [3]
+    assert [co.number for co in device.get_filtered_com_objects([channel])] == [6, 2, 3]
+    assert [co.number for co in device.get_filtered_com_objects([folder, channel])] == [
+        6,
+        2,
+        3,
+    ]
+    assert [co.number for co in device.get_filtered_com_objects([""])] == [1]
+
+
 def test_objects_without_application_are_available_without_module() -> None:
     co = ComObject(id="O-1", name="Switch", dpt=DPT_UNKNOWN, flags=ComObjectFlags())
     device = Device(1, "Device", None, "1.1.1", com_objects=[co])

@@ -5,8 +5,52 @@ from __future__ import annotations
 import re
 from collections import Counter
 from collections.abc import Iterable
+from dataclasses import dataclass
 
+from xknxeditor.prod.parser_v2.context import ObjectTreeNode
 from xknxeditor.prod.parser_v2.ui import UiComObject, UiNode, UiParameterBlock, UiTab
+
+
+@dataclass(frozen=True)
+class ComObjectModule:
+    id: str
+    name: str
+    parent_id: str | None
+    object_ids: frozenset[str]
+
+
+def com_object_modules(
+    tree: ObjectTreeNode, nodes: Iterable[UiNode], visible: set[str]
+) -> list[ComObjectModule]:
+    """Visible ETS groups in tree order, with each parent's descendant objects."""
+    channel_labels = {
+        key: label for key, label, _ in com_object_channels(nodes).values()
+    }
+    groups: list[ComObjectModule] = []
+
+    def walk(node: ObjectTreeNode, parent: str | None) -> frozenset[str]:
+        position = len(groups)
+        objects = set(node.objects) & visible
+        for child in node.nodes:
+            objects.update(walk(child, node.ref_id or None))
+        ids = frozenset(objects)
+        if node.ref_id and ids:
+            groups.insert(
+                position,
+                ComObjectModule(
+                    node.ref_id,
+                    channel_labels.get(node.ref_id, node.text or node.ref_id),
+                    parent,
+                    ids,
+                ),
+            )
+        return ids
+
+    walk(tree, None)
+    assigned = {ref for group in groups for ref in group.object_ids}
+    if unassigned := visible - assigned:
+        groups.insert(0, ComObjectModule("", "", None, frozenset(unassigned)))
+    return groups
 
 
 def raw_label(node: UiTab | UiParameterBlock) -> str:

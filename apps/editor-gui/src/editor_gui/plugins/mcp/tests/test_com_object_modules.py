@@ -22,6 +22,7 @@ async def test_modules_are_discoverable_and_filter_group_objects(
             "Channel 2 (...)",
         ]
         second = modules["items"][1]["module_id"]
+        assert [item["parent_id"] for item in modules["items"]] == [None, None]
         selected = await _data(
             client,
             "project_list_com_objects",
