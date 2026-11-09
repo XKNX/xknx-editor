@@ -1658,3 +1658,9 @@ msgstr[1] "Εισήχθησαν {count} εκδόσεις προϊόντος απ
 
 msgid "Monitor"
 msgstr "Monitor"
+
+msgid "File Dialog Unavailable"
+msgstr "Μη διαθέσιμος διάλογος αρχείων"
+
+msgid "The file dialog cannot open. Required programs were not found:\n{programs}\n\nOn Debian 13, run this command in a terminal, then restart XKNX Editor:\n{command}"
+msgstr "Δεν είναι δυνατό το άνοιγμα του διαλόγου αρχείων. Δεν βρέθηκαν τα απαιτούμενα προγράμματα:\n{programs}\n\nΣε Debian 13, εκτελέστε αυτή την εντολή σε ένα τερματικό και επανεκκινήστε το XKNX Editor:\n{command}"

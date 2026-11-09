@@ -1645,3 +1645,9 @@ msgstr[0] "{name} dosyasından {count} ürün sürümü içe aktarıldı:"
 
 msgid "Monitor"
 msgstr "Monitor"
+
+msgid "File Dialog Unavailable"
+msgstr "Dosya İletişim Kutusu Kullanılamıyor"
+
+msgid "The file dialog cannot open. Required programs were not found:\n{programs}\n\nOn Debian 13, run this command in a terminal, then restart XKNX Editor:\n{command}"
+msgstr "Dosya iletişim kutusu açılamıyor. Gerekli programlar bulunamadı:\n{programs}\n\nDebian 13'te bu komutu bir terminalde çalıştırın, ardından XKNX Editor'ü yeniden başlatın:\n{command}"

@@ -572,6 +572,9 @@ class KnxGuiApp:
         self._projectstore_confirm_open = False
         self._last_export_path: str | None = None
         self._file_dialogs_available: bool | None = None
+        self._file_dialog_missing: list[str] = []
+        self._file_dialog_install_command = ""
+        self._file_dialog_error_requested = False
         # One-shot guard for the startup OpenGL renderer log (see _log_gl_renderer). Done from the
         # frame path, not post_init, so the GL context is guaranteed current (a context-less
         # glGetString segfaults at the C level and would be uncatchable).
@@ -990,7 +993,7 @@ class KnxGuiApp:
     def setup(self) -> None:
         self._log.info("editor started", installation=self._update_scope or "none")
         self._catalog_plugin.start_alternative()
-        self._can_launch_file_dialog()
+        self._can_launch_file_dialog(show_error=False)
         # In the browser UI, notes about downloads show as this app's toasts.
         if web.active_hub is not None:
             web.active_hub.notify = self._flash_toast
@@ -1299,21 +1302,59 @@ class KnxGuiApp:
         )
         self._log.debug("project file dialog opened")
 
-    def _can_launch_file_dialog(self) -> bool:
+    def _can_launch_file_dialog(self, *, show_error: bool = True) -> bool:
         # The browser view draws its own file dialogs; only a desktop on Linux needs a helper.
         if sys.platform != "linux" or web.active_hub is not None:
             return True
         if self._file_dialogs_available is None:
             helper = _find_linux_file_dialog_helper()
-            self._file_dialogs_available = helper is not None
+            self._file_dialog_missing = []
+            packages: list[str] = []
             if helper is None:
+                self._file_dialog_missing.append(
+                    "zenity / kdialog / matedialog / qarma"
+                )
+                packages.append("zenity")
+            if shutil.which("which") is None:
+                self._file_dialog_missing.append("which")
+                packages.append("gnu-which")
+            self._file_dialogs_available = not self._file_dialog_missing
+            self._file_dialog_install_command = "sudo apt install " + " ".join(packages)
+            if not self._file_dialogs_available:
                 self._log.error(
                     "file dialog unavailable",
-                    error="Install a file-dialog helper such as zenity or kdialog, then restart the app.",
+                    missing=", ".join(self._file_dialog_missing),
+                    error="Install the missing programs, then restart the app.",
                 )
             else:
                 self._log.debug("file dialog helper found", helper=helper)
+        if not self._file_dialogs_available and show_error:
+            self._file_dialog_error_requested = True
         return self._file_dialogs_available
+
+    def _render_file_dialog_error_modal(self) -> None:
+        title = f"{S.FILE_DIALOG_UNAVAILABLE_TITLE}###file-dialog-unavailable"
+        if self._file_dialog_error_requested and not _any_popup_open():
+            imgui.open_popup(title)
+            self._file_dialog_error_requested = False
+        if not begin_dialog(title, width=560.0):
+            return
+        imgui.text_wrapped(
+            S.FILE_DIALOG_UNAVAILABLE_TEXT.format(
+                programs=", ".join(self._file_dialog_missing),
+                command=self._file_dialog_install_command,
+            )
+        )
+        clicked = dialog_buttons(S.BTN_COPY, S.BTN_CLOSE)
+        if clicked == 0:
+            imgui.set_clipboard_text(self._file_dialog_install_command)
+        elif clicked == 1:
+            imgui.close_current_popup()
+        end_dialog()
+
+    def _import_group_addresses(self) -> None:
+        if self._can_launch_file_dialog():
+            self._project_plugin.import_group_addresses()
 
     def _export_knxproj(self) -> None:
         if not self._project_service.is_open or not self._can_launch_file_dialog():
@@ -4255,9 +4296,9 @@ class KnxGuiApp:
             S.MENU_IMPORT_GA,
             "",
             False,
-            self._project_service.is_open and self._can_launch_file_dialog(),
+            self._project_service.is_open,
         )[0]:
-            self._project_plugin.import_group_addresses()
+            self._import_group_addresses()
         imgui.separator()
         if imgui.menu_item(S.MENU_LOAD_PRODUCT, "", False)[0]:
             self._choose_product_file()
@@ -5325,6 +5366,7 @@ class KnxGuiApp:
                 f"{_DOCK_LABELS['operations']()}###operations"
             )
         self._render_command_palette()
+        self._render_file_dialog_error_modal()
         self._render_toasts()
         self._keep_dialog_open()
 
@@ -5807,14 +5849,14 @@ class KnxGuiApp:
             ),
             (is_open, file, S.MENU_EXPORT_GA_EXPORT, "", self._export_ga_export),
             (
-                is_open and self._can_launch_file_dialog(),
+                is_open,
                 file,
                 S.MENU_IMPORT_GA,
                 "",
-                self._project_plugin.import_group_addresses,
+                self._import_group_addresses,
             ),
             (
-                self._can_launch_file_dialog(),
+                True,
                 file,
                 S.MENU_LOAD_PRODUCT,
                 "",

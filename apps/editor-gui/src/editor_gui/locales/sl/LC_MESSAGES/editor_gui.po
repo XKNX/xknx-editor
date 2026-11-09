@@ -1756,3 +1756,9 @@ msgstr[3] "Iz {name} uvoženih {count} različic izdelkov:"
 
 msgid "Monitor"
 msgstr "Monitor"
+
+msgid "File Dialog Unavailable"
+msgstr "Pogovorno okno za datoteke ni na voljo"
+
+msgid "The file dialog cannot open. Required programs were not found:\n{programs}\n\nOn Debian 13, run this command in a terminal, then restart XKNX Editor:\n{command}"
+msgstr "Pogovornega okna za datoteke ni mogoče odpreti. Zahtevani programi niso bili najdeni:\n{programs}\n\nV Debianu 13 zaženite ta ukaz v terminalu in nato znova zaženite XKNX Editor:\n{command}"

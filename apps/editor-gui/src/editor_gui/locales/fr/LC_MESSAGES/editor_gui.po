@@ -1658,3 +1658,9 @@ msgstr[1] "{count} versions de produit importées depuis {name} :"
 
 msgid "Monitor"
 msgstr "Monitor"
+
+msgid "File Dialog Unavailable"
+msgstr "Boîte de dialogue de fichiers indisponible"
+
+msgid "The file dialog cannot open. Required programs were not found:\n{programs}\n\nOn Debian 13, run this command in a terminal, then restart XKNX Editor:\n{command}"
+msgstr "Impossible d’ouvrir la boîte de dialogue de fichiers. Les programmes requis sont introuvables :\n{programs}\n\nSous Debian 13, exécutez cette commande dans un terminal, puis redémarrez XKNX Editor :\n{command}"

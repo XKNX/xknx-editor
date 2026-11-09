@@ -1658,3 +1658,9 @@ msgstr[1] "{count} produktversioner importerade från {name}:"
 
 msgid "Monitor"
 msgstr "Monitor"
+
+msgid "File Dialog Unavailable"
+msgstr "Fildialogen är inte tillgänglig"
+
+msgid "The file dialog cannot open. Required programs were not found:\n{programs}\n\nOn Debian 13, run this command in a terminal, then restart XKNX Editor:\n{command}"
+msgstr "Fildialogen kan inte öppnas. Nödvändiga program hittades inte:\n{programs}\n\nPå Debian 13 kör du det här kommandot i en terminal och startar sedan om XKNX Editor:\n{command}"

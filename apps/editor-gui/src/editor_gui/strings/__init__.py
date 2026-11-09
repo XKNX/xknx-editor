@@ -1708,6 +1708,18 @@ class MenuStrings:
         return _("Open KNX Product Archive")
 
     @property
+    def FILE_DIALOG_UNAVAILABLE_TITLE(self) -> str:
+        return _("File Dialog Unavailable")
+
+    @property
+    def FILE_DIALOG_UNAVAILABLE_TEXT(self) -> str:
+        return _(
+            "The file dialog cannot open. Required programs were not found:\n{programs}\n\n"
+            "On Debian 13, run this command in a terminal, then restart XKNX Editor:\n"
+            "{command}"
+        )
+
+    @property
     def FILE_DIALOG_PRODUCT_FILTER(self) -> str:
         return _("KNX Product (*.knxprod, *.vd1-*.vd5)")
 

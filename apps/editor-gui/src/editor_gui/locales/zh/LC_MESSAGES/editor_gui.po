@@ -1645,3 +1645,9 @@ msgstr[0] "已从 {name} 导入 {count} 个产品版本："
 
 msgid "Monitor"
 msgstr "Monitor"
+
+msgid "File Dialog Unavailable"
+msgstr "文件对话框不可用"
+
+msgid "The file dialog cannot open. Required programs were not found:\n{programs}\n\nOn Debian 13, run this command in a terminal, then restart XKNX Editor:\n{command}"
+msgstr "无法打开文件对话框。未找到所需程序：\n{programs}\n\n在 Debian 13 上，请在终端中运行以下命令，然后重新启动 XKNX Editor：\n{command}"

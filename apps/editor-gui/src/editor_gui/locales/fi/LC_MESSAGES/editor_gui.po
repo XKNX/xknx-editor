@@ -1658,3 +1658,9 @@ msgstr[1] "Tiedostosta {name} tuotiin {count} tuoteversiota:"
 
 msgid "Monitor"
 msgstr "Monitor"
+
+msgid "File Dialog Unavailable"
+msgstr "Tiedostovalinta ei ole käytettävissä"
+
+msgid "The file dialog cannot open. Required programs were not found:\n{programs}\n\nOn Debian 13, run this command in a terminal, then restart XKNX Editor:\n{command}"
+msgstr "Tiedostovalintaa ei voi avata. Tarvittavia ohjelmia ei löytynyt:\n{programs}\n\nSuorita Debian 13:ssa tämä komento päätteessä ja käynnistä sitten XKNX Editor uudelleen:\n{command}"

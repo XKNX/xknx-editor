@@ -58,6 +58,11 @@ disk-image tool instead of launching):
 chmod +x XKNX-Editor-x86_64.AppImage && ./XKNX-Editor-x86_64.AppImage
 ```
 
+The Linux desktop app needs `which` and a file-dialog program (`zenity`, `kdialog`,
+`matedialog` or `qarma`). On Debian 13, install them with
+`sudo apt install zenity gnu-which`, then restart the editor. If they are missing, a
+window shows what to install. The browser UI needs neither program.
+
 On Linux, a KNX USB interface is used through its `/dev/hidraw*` device, which only root may open
 by default. A udev rule gives the logged-in user access to it; `lsusb` shows its vendor and product
 id (here those of a SpaceLogic interface):

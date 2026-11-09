@@ -1717,3 +1717,9 @@ msgstr[0] "{count} termékverzió importálva innen: {name}:"
 
 msgid "Monitor"
 msgstr "Monitor"
+
+msgid "File Dialog Unavailable"
+msgstr "A fájlválasztó párbeszédablak nem érhető el"
+
+msgid "The file dialog cannot open. Required programs were not found:\n{programs}\n\nOn Debian 13, run this command in a terminal, then restart XKNX Editor:\n{command}"
+msgstr "A fájlválasztó párbeszédablak nem nyitható meg. A szükséges programok nem találhatók:\n{programs}\n\nDebian 13 rendszeren futtassa ezt a parancsot egy terminálban, majd indítsa újra az XKNX Editort:\n{command}"

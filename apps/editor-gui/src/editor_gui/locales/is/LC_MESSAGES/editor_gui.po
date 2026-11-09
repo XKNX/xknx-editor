@@ -1730,3 +1730,9 @@ msgstr[1] "{count} vöruútgáfur fluttar inn úr {name}:"
 
 msgid "Monitor"
 msgstr "Monitor"
+
+msgid "File Dialog Unavailable"
+msgstr "Skráargluggi er ekki tiltækur"
+
+msgid "The file dialog cannot open. Required programs were not found:\n{programs}\n\nOn Debian 13, run this command in a terminal, then restart XKNX Editor:\n{command}"
+msgstr "Ekki er hægt að opna skráargluggann. Nauðsynleg forrit fundust ekki:\n{programs}\n\nÁ Debian 13 skaltu keyra þessa skipun í skjáhermi og endurræsa síðan XKNX Editor:\n{command}"

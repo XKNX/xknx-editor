@@ -1743,3 +1743,9 @@ msgstr[2] "Z {name} importovaných {count} verzií produktov:"
 
 msgid "Monitor"
 msgstr "Monitor"
+
+msgid "File Dialog Unavailable"
+msgstr "Dialóg na výber súboru nie je dostupný"
+
+msgid "The file dialog cannot open. Required programs were not found:\n{programs}\n\nOn Debian 13, run this command in a terminal, then restart XKNX Editor:\n{command}"
+msgstr "Dialóg na výber súboru sa nedá otvoriť. Nenašli sa požadované programy:\n{programs}\n\nV Debiane 13 spustite tento príkaz v termináli a potom reštartujte XKNX Editor:\n{command}"

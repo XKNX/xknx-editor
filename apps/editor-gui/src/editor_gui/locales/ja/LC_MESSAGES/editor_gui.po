@@ -1645,3 +1645,9 @@ msgstr[0] "{name}から{count}個の製品バージョンをインポートし�
 
 msgid "Monitor"
 msgstr "Monitor"
+
+msgid "File Dialog Unavailable"
+msgstr "ファイルダイアログを利用できません"
+
+msgid "The file dialog cannot open. Required programs were not found:\n{programs}\n\nOn Debian 13, run this command in a terminal, then restart XKNX Editor:\n{command}"
+msgstr "ファイルダイアログを開けません。必要なプログラムが見つかりませんでした：\n{programs}\n\nDebian 13 では、ターミナルで次のコマンドを実行し、XKNX Editor を再起動してください：\n{command}"
