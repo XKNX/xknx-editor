@@ -326,11 +326,16 @@ msgstr[1] "{count} verschillen"
 msgid "Modules"
 msgstr "Modules"
 
-msgid "All modules"
-msgstr "Alle modules"
+msgid "All Modules Selected"
+msgstr "Alle modules geselecteerd"
+
+msgid "No Modules Selected"
+msgstr "Geen modules geselecteerd"
 
 msgid "Without module"
 msgstr "Zonder module"
 
-msgid "Modules ({count})"
-msgstr "Modules ({count})"
+msgid "{count} Module Selected"
+msgid_plural "{count} Modules Selected"
+msgstr[0] "{count} module geselecteerd"
+msgstr[1] "{count} modules geselecteerd"

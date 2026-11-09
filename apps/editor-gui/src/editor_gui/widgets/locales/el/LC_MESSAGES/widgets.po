@@ -304,11 +304,16 @@ msgstr[1] "{count} διαφορές"
 msgid "Modules"
 msgstr "Μονάδες"
 
-msgid "All modules"
-msgstr "Όλες οι μονάδες"
+msgid "All Modules Selected"
+msgstr "Επιλέχθηκαν όλες οι μονάδες"
+
+msgid "No Modules Selected"
+msgstr "Δεν επιλέχθηκε καμία μονάδα"
 
 msgid "Without module"
 msgstr "Χωρίς μονάδα"
 
-msgid "Modules ({count})"
-msgstr "Μονάδες ({count})"
+msgid "{count} Module Selected"
+msgid_plural "{count} Modules Selected"
+msgstr[0] "Επιλέχθηκε {count} μονάδα"
+msgstr[1] "Επιλέχθηκαν {count} μονάδες"

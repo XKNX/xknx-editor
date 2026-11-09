@@ -301,11 +301,15 @@ msgstr[0] "{count} 件の差異"
 msgid "Modules"
 msgstr "モジュール"
 
-msgid "All modules"
-msgstr "すべてのモジュール"
+msgid "All Modules Selected"
+msgstr "すべてのモジュールを選択済み"
+
+msgid "No Modules Selected"
+msgstr "モジュール未選択"
 
 msgid "Without module"
 msgstr "モジュールなし"
 
-msgid "Modules ({count})"
-msgstr "モジュール ({count})"
+msgid "{count} Module Selected"
+msgid_plural "{count} Modules Selected"
+msgstr[0] "{count} 個のモジュールを選択済み"
