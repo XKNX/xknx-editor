@@ -160,9 +160,10 @@ class ApplicationIndexer:
     def _index_ref_lookup(self, pr: ParameterRef, owner: str | None) -> None:
         self.ref_owner[pr.id] = owner
         base = self.parameters.get(pr.ref_id)
-        name = getattr(base, "name", None)
-        if name:
-            self.refs_by_name.setdefault(owner, {}).setdefault(name, pr.id)
+        # A ref with a name of its own is found by it too, as by its parameter's.
+        for name in (pr.name, getattr(base, "name", None)):
+            if name:
+                self.refs_by_name.setdefault(owner, {}).setdefault(name, pr.id)
         m = self._REF_NUMBER.search(pr.id)
         if m:
             self.refs_by_number.setdefault(owner, {}).setdefault(int(m.group(1)), pr.id)
@@ -189,8 +190,14 @@ class ApplicationIndexer:
         return pt.choice if pt is not None else None
 
     def parameter_name(self, ref_id: str) -> str | None:
+        """The name of a ParameterRef: its own ``Name``, else that of its parameter (the name
+        a calculation and a script know it by)."""
         pr = self.parameter_refs.get(ref_id)
-        base = self.parameters.get(pr.ref_id) if pr is not None else None
+        if pr is None:
+            return None
+        if pr.name:
+            return pr.name
+        base = self.parameters.get(pr.ref_id)
         return getattr(base, "name", None)
 
     def message_values(self) -> dict[str, str]:

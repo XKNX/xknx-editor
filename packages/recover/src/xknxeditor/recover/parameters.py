@@ -2437,7 +2437,9 @@ def _written_over_values(
 ) -> _ValueMap:
     """The values of the active shown union members that a later active member writes over
     in part (see :meth:`DynamicUI.later_union_members`), read as no value of theirs: the
-    value whose bytes, written in ``ui`` with ``values``, are those of ``segments``."""
+    value whose bytes, written in ``ui`` with ``values``, are those of ``segments``. A later
+    member the value itself shows (a switch whose "yes" shows an option stored in one of its
+    bits) is written with the value the memory holds for it."""
     if not unknown:
         return {}
     from xknxeditor.prod.parser_v2.activation import shown_parameters, values_to_try
@@ -2451,7 +2453,8 @@ def _written_over_values(
         ref = ui.indexer.parameter_refs.get(ref_id)
         if ref is None or ref.ref_id not in lost:
             continue
-        if not _written_over_in_part(ui, ref_id, actives):
+        later = ui.later_union_members(ref_id)
+        if not later or ui.union_member_covered(ref_id, later):
             continue
         if shown is None:
             shown = shown_parameters(ui.ui())
@@ -2467,9 +2470,19 @@ def _written_over_values(
         if given is not None:
             candidates = [given, *(value for value in candidates if value != given)]
         for value in candidates:
-            seeded = _seeded(application, {**values, ref_id: value}, project_code_page)
+            trial = {**values, ref_id: value}
+            seeded = _seeded(application, trial, project_code_page)
             if seeded is None:
                 continue
+            if not _written_over_in_part(
+                seeded, ref_id, seeded.active_parameter_ref_ids()
+            ):
+                continue
+            behind = _later_members_read(seeded, ref_id, segments, trial)
+            if behind:
+                seeded = _seeded(application, {**trial, **behind}, project_code_page)
+                if seeded is None:
+                    continue
             memory = seeded.encode_to_memory()
             if all(
                 memory.get(segment, b"")[offset : offset + 1]
@@ -2479,6 +2492,25 @@ def _written_over_values(
                 found[ref_id] = value
                 break
     return found
+
+
+def _later_members_read(
+    ui: DynamicUI, ref_id: str, segments: Mapping[str, bytes], values: Mapping[str, str]
+) -> _ValueMap:
+    """The values the memory holds for the active later members of ``ref_id``'s union (see
+    :meth:`DynamicUI.later_union_members`) that ``values`` gives none."""
+    later = ui.later_union_members(ref_id) & ui.active_parameter_ref_ids()
+    missing = [ref for ref in sorted(later) if ref not in values]
+    if not missing:
+        return {}
+    decoded = ui.decode_stored_parameters(segments, {})
+    read: _ValueMap = {}
+    for ref in missing:
+        local = ui.indexer.parameter_refs.get(ui.local_ref_id(ref))
+        value = decoded.get(local.ref_id) if local is not None else None
+        if value is not None:
+            read[ref] = value
+    return read
 
 
 def _keeps_no_copy(parameter: object) -> bool:

@@ -51,7 +51,7 @@ from .tables_decode import (
 )
 
 if TYPE_CHECKING:
-    from collections.abc import Iterable
+    from collections.abc import Iterable, Iterator
 
     from xknxeditor.download import DeviceProgrammer
     from xknxeditor.prod import Application
@@ -377,7 +377,9 @@ async def read_parameter_memory(
     object's table reference. Segments whose location cannot be resolved are
     skipped, and so are the segments in the device's user memory: an address space of its
     own, which a standard memory read at the same address does not reach (and the
-    download does not write). This is the raw material parameter recovery matches against.
+    download does not write), and the segments the application's own load procedure
+    writes nothing of (see :func:`_never_written`). This is the raw material parameter
+    recovery matches against.
     """
     base_addresses, sizes = _segment_layout(application)
     memory_mapped = _is_memory_mapped(application)
@@ -394,7 +396,12 @@ async def read_parameter_memory(
         }
         for segment_id, size in sizes.items():
             base = base_addresses.get(segment_id)
-            if not size or base is None or segment_id in user_memory:
+            if (
+                not size
+                or base is None
+                or segment_id in user_memory
+                or _never_written(application, base, size)
+            ):
                 continue
             try:
                 result[segment_id] = await programmer.read_memory(base, size)
@@ -645,6 +652,47 @@ def _only_allocated(application: Application, address: int) -> bool:
                 return False
             allocated = True
     return allocated
+
+
+def _memory_controls(controls: Iterable[object]) -> Iterator[object]:
+    """The controls of a load procedure that place or write memory at an address of their
+    own, those in every branch of its chooses too."""
+    from xknxeditor.namespaces.intermediate.ld_ctrl_abs_segment_t import (
+        LdCtrlAbsSegment,
+    )
+    from xknxeditor.namespaces.intermediate.ld_ctrl_load_image_mem_t import (
+        LdCtrlLoadImageMem,
+    )
+    from xknxeditor.namespaces.intermediate.ld_ctrl_write_mem_t import LdCtrlWriteMem
+
+    for control in controls:
+        if isinstance(control, (LdCtrlAbsSegment, LdCtrlWriteMem, LdCtrlLoadImageMem)):
+            yield control
+        for when in getattr(control, "when", None) or ():
+            yield from _memory_controls(getattr(when, "choice", None) or ())
+
+
+def _never_written(application: Application, address: int, size: int) -> bool:
+    """Whether a download writes nothing of the ``size`` bytes at ``address``: the
+    application loads with a procedure of its own, which places its memory itself, and no
+    step of it reaches them. What the device holds there tells nothing of its configuration
+    (a converted product's segment for a project id the procedure never loads)."""
+    from xknxeditor.namespaces.intermediate.load_procedure_style_t import (
+        LoadProcedureStyle,
+    )
+
+    if application.load_procedure_style != LoadProcedureStyle.PRODUCT_PROCEDURE:
+        return False
+    procedures = application.load_procedures
+    placing = False
+    for procedure in procedures.load_procedure if procedures is not None else ():
+        for control in _memory_controls(procedure.choice):
+            placing = True
+            start = int(getattr(control, "address", 0))
+            length = int(getattr(control, "size", 0))
+            if start < address + size and address < start + length:
+                return False
+    return placing
 
 
 def _record_ranges(numbers: list[int], max_records: int) -> list[tuple[int, int]]:

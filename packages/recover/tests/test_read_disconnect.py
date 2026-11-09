@@ -41,6 +41,8 @@ async def test_memory_disconnect_propagates_but_unreadable_segment_is_skipped(
                 segment_sizes=lambda: {segment: 8},
                 segment_base_addrs=lambda: {segment: 0x1000},
             ),
+            load_procedure_style=None,
+            load_procedures=None,
             program=SimpleNamespace(
                 static=SimpleNamespace(
                     address_table=None
