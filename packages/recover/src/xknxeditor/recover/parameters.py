@@ -1207,6 +1207,9 @@ def _refine(
         limited = False
         for _ in count() if rounds is None else range(rounds):
             score, differing, wrong = current
+            # The settings a trial of a calculated selector changes together (see
+            # :func:`_joint_values_to_try`).
+            joint: dict[tuple[str, str], _ValueMap] = {}
             try:
                 trials = [
                     trial
@@ -1216,6 +1219,7 @@ def _refine(
                         wrong,
                         cancel,
                         hidden=_hidden_fixed_values(application.program, ui),
+                        joint=joint,
                     )
                     if trial[0] != locked and trial not in tried
                 ]
@@ -1246,7 +1250,7 @@ def _refine(
                         linked,
                         sizes,
                         fixed,
-                        {**inferred, gate: value},
+                        {**inferred, **joint.get((gate, value), {gate: value})},
                         set(dead),
                         cancel,
                     )
@@ -1361,10 +1365,14 @@ def _refinement_trials(
     cancel: Callable[[], bool] | None = None,
     *,
     hidden: Mapping[str, str] | None = None,
+    joint: dict[tuple[str, str], _ValueMap] | None = None,
 ) -> list[tuple[str, str]]:
     """Candidate selectors, ordered by how many mismatching cells and objects they gate; with
     ``hidden`` (local param-ref -> fixed value, see :func:`_hidden_fixed_values`) a hidden
-    selector's fixed value too. Raises :class:`_Cancelled` once ``cancel`` says so."""
+    selector's fixed value too. With ``joint``, a hidden selector a calculation computes from
+    several shown settings the device keeps no copy of is tried with those changed together
+    (see :func:`_joint_values_to_try`), after the other trials: the trial
+    ``(selector, value)`` stands for the settings ``joint`` maps it to. Raises :class:`_Cancelled` once ``cancel`` says so."""
     from xknxeditor.prod.parser_v2.activation import shown_parameters, values_to_try
 
     shown = shown_parameters(ui.ui())
@@ -1413,6 +1421,7 @@ def _refinement_trials(
             _count_selectors(ui, _module_gates_of(ui, instance), shown, outer)
         _count_selectors(ui, _absent_module_gates(ui), shown, outer)
     trials: list[tuple[str, str]] = []
+    together: list[tuple[str, str]] = []
     actives: frozenset[str] | None = None
     ranked = [
         *weight.most_common(),
@@ -1427,9 +1436,12 @@ def _refinement_trials(
             if value is not None and ui.get_value(gate) != value:
                 trials.append((gate, value))
             elif value is None:
-                trials.extend(
-                    (gate, kept) for kept in _kept_values_to_try(ui, gate, shown)
-                )
+                kept = _kept_values_to_try(ui, gate, shown)
+                trials.extend((gate, other) for other in kept)
+                if not kept and joint is not None:
+                    for other, change in _joint_values_to_try(ui, gate, shown):
+                        joint[(gate, other)] = change
+                        together.append((gate, other))
             continue
         if actives is None:
             actives = ui.active_parameter_ref_ids()
@@ -1440,7 +1452,8 @@ def _refinement_trials(
         ):
             now = ui.get_value(gate) or parameter.default_value
             trials.extend((gate, value) for value in values_to_try(parameter, now))
-    return trials
+    # The settings changed together after every one alone: those decide more often.
+    return trials + together
 
 
 def _kept_values_to_try(
@@ -1491,6 +1504,56 @@ def _kept_values_to_try(
         default_value=default,
     )
     return values_to_try(parameter, parameter.value, ui.tested_values(ref_id))
+
+
+def _joint_values_to_try(
+    ui: DynamicUI, ref_id: str, shown: Mapping[str, UiParameter]
+) -> list[tuple[str, _ValueMap]]:
+    """For a hidden setting a parameter calculation computes from several shown settings of
+    one type the device keeps no copy of (a channel shown while any of its groups is switched
+    on), those settings changed together: for each value of the type, every one of them that
+    has another one set to it (all groups switched off), as ``(value, settings)``. Each of
+    them changed alone can leave the calculated setting as it is, and with it what the device
+    holds. Empty when fewer than two such settings change."""
+    from xknxeditor.prod.parser_v2.activation import values_to_try
+
+    local = ui.local_ref_id(ref_id)
+    indexer = ui.indexer
+    inputs = _qualified(
+        {
+            ref.ref_id
+            for calculation in indexer.calculations_for_r(local)
+            for ref in calculation.lparameters.parameter_ref_ref
+        },
+        _instance_of(ref_id, local),
+    )
+    by_type: dict[str, list[str]] = {}
+    for ref in sorted(inputs):
+        if ref not in shown or not _inferable(ui, ref, shown[ref]):
+            continue
+        parameter_ref = indexer.parameter_refs.get(ui.local_ref_id(ref))
+        parameter = (
+            indexer.parameters.get(parameter_ref.ref_id)
+            if parameter_ref is not None
+            else None
+        )
+        if parameter is not None:
+            by_type.setdefault(parameter.parameter_type, []).append(ref)
+    found: list[tuple[str, _ValueMap]] = []
+    for refs in by_type.values():
+        if len(refs) < 2:
+            continue
+        others = {
+            ref: values_to_try(
+                shown[ref], ui.get_value(ref) or shown[ref].default_value
+            )
+            for ref in refs
+        }
+        for value in dict.fromkeys(value for ref in refs for value in others[ref]):
+            change = {ref: value for ref in refs if value in others[ref]}
+            if len(change) > 1:
+                found.append((value, change))
+    return found
 
 
 def _guessed(ui: DynamicUI, values: Mapping[str, str]) -> _ValueMap:
@@ -1876,15 +1939,23 @@ def _refine_fixed(
             improved = False
             exhausted = False
             evaluated = 0
-            trials = _refinement_trials(ui, differing, set())
+            # The settings a trial of a calculated selector changes together (see
+            # :func:`_joint_values_to_try`): what they compute is no guess of the selector.
+            joint: dict[tuple[str, str], _ValueMap] = {}
+            trials = _refinement_trials(ui, differing, set(), joint=joint)
             # The values alone first. When none fits better, each with the settings it shows
             # inferred behind it, taken when it fits better: a value that fits worse alone (a
             # channel's function without the settings that show its linked objects) can fit
             # with them.
             for wide in (False, True):
                 for gate, value in trials:
-                    if _calculated_from_reads(ui, gate) and not _alike_for_reads(
-                        application, values, project_code_page, gate, value
+                    change = joint.get((gate, value))
+                    if (
+                        change is None
+                        and _calculated_from_reads(ui, gate)
+                        and not _alike_for_reads(
+                            application, values, project_code_page, gate, value
+                        )
                     ):
                         continue
                     _check(cancel)
@@ -1892,7 +1963,7 @@ def _refine_fixed(
                         exhausted = True
                         break
                     evaluated += 1
-                    chosen = {**inferred, gate: value}
+                    chosen = {**inferred, **(change or {gate: value})}
                     if wide:
                         wider = behind(chosen)
                         if wider is None or wider == chosen:
@@ -2151,14 +2222,10 @@ def _decode(
             else:
                 module_read[ref_id] = value
         # The settings of the instances the device keeps no copy of that an Assign copies
-        # into their stored settings, as for the application's above.
-        module_read.update(
-            (ref_id, value)
-            for ref_id, value in _assigned_from(
-                seeded, {**values, **module_read}, inferred
-            ).items()
-            if "_MI-" in ref_id
-        )
+        # into their stored settings, as for the application's above; and those of the
+        # application an Assign of an instance copies into the instance's stored settings
+        # (one the values read give already is left as it is).
+        module_read.update(_assigned_from(seeded, {**values, **module_read}, inferred))
         # Seeding again changes nothing unless a value the UI was seeded with otherwise
         # decides what it shows.
         if module_read == module_values or not any(
