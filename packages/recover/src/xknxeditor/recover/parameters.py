@@ -863,7 +863,10 @@ def _calculated_from_reads(ui: DynamicUI, ref_id: str) -> bool:
     the disabling function" switch computed from the settings that show it), it is guessed
     like any of them; so is one on the left side of a calculation whose stored values on the
     right ``ui`` does not give the device (a switch that shows the times the calculation
-    downloads: they are read once it has the right value)."""
+    downloads: they are read once it has the right value), and one on the left side of a
+    calculation with a setting on its right the device keeps no copy of either (the shown
+    copy of a hidden switch, beside the copies of settings read): the values read need not be
+    what it is computed from."""
     local = ui.local_ref_id(ref_id)
     instance = _instance_of(ref_id, local)
     indexer = ui.indexer
@@ -875,10 +878,56 @@ def _calculated_from_reads(ui: DynamicUI, ref_id: str) -> bool:
         },
         instance,
     )
-    actives = ui.active_parameter_ref_ids() if right else frozenset[str]()
+    if any(_is_unstored(ui, ref) for ref in right):
+        # The values read on the right do not decide it: only a stored setting an LR
+        # transformation computes it from still does.
+        right_reads: frozenset[str] = frozenset()
+    else:
+        right_reads = ui.active_parameter_ref_ids() if right else frozenset[str]()
     return any(
-        not _is_unstored(ui, ref) and (ref not in right or ref in actives)
+        not _is_unstored(ui, ref) and (ref not in right or ref in right_reads)
         for ref in _calculation_inputs(ui, ref_id)
+    )
+
+
+def _alike_for_reads(
+    application: Application,
+    values: Mapping[str, str],
+    project_code_page: str | None,
+    ref_id: str,
+    value: str,
+) -> bool:
+    """Whether ``value`` of a setting a calculation computes from the values read (see
+    :func:`_calculated_from_reads`) gives the stored settings the values ``values`` has: the
+    calculation computes the same for several of its values (two functions of a button with
+    one function code), which only the settings they show tell apart. One a calculation
+    computes from a stored setting (on its right side) has the one value it computes."""
+    from .recover import seed_dynamic_ui
+
+    trial = seed_dynamic_ui(
+        application, {**values, ref_id: value}, project_code_page, evaluated=True
+    )
+    if trial is None:
+        return False
+    local = trial.local_ref_id(ref_id)
+    instance = _instance_of(ref_id, local)
+    if any(
+        not _is_unstored(trial, source)
+        for calculation in trial.indexer.calculations_for_r(local)
+        for source in _qualified(
+            [ref.ref_id for ref in calculation.lparameters.parameter_ref_ref], instance
+        )
+    ):
+        return False
+    try:
+        changes = trial.recalculate([ref_id])
+    except ScriptAborted:
+        return False
+    return not any(
+        new is not None
+        and new != values.get(changed)
+        and not _is_unstored(trial, changed)
+        for changed, (_old, new) in changes.items()
     )
 
 
@@ -957,27 +1006,49 @@ def _objects_by_number(ui: DynamicUI) -> dict[int, list[str]]:
     return result
 
 
-def _absent_module_gates(ui: DynamicUI) -> set[str]:
+def _absent_module_gates(ui: DynamicUI, *, objects: bool = True) -> set[str]:
     """The selectors on the way to the application's modules that ``ui`` makes no instance of
-    and whose definition has group objects (in a submodule too)."""
-    made = {
-        instance[: instance.rindex("_MI-")] for instance, _ in ui.get_module_instances()
-    }
+    and whose definition has group objects (in a submodule too; without ``objects`` any); of a
+    submodule, in each module instance that makes none of it, those of that instance."""
+    instances = ui.get_module_instances()
+    made = {instance[: instance.rindex("_MI-")] for instance, _ in instances}
     with_objects = {
-        ref_id[: ref_id.index("_", ref_id.index("_MD-") + 1)]
+        _definition_of(ref_id)
         for ref_id in ui.indexer.com_object_refs
         if "_MD-" in ref_id
     }
+
+    def has_objects(definition: str) -> bool:
+        return not objects or any(
+            seen == definition or seen.startswith(f"{definition}_SM-")
+            for seen in with_objects
+        )
+
     gates: set[str] = set()
     for module_id, module_gates in ui.gated_modules().items():
-        if (
-            "_SM-" in module_id
-            or module_id in made
-            or "_M-" not in module_id
-            or module_id[: module_id.rindex("_M-")] not in with_objects
+        if "_M-" not in module_id or not has_objects(
+            module_id[: module_id.rindex("_M-")]
         ):
             continue
-        gates |= module_gates
+        if "_SM-" not in module_id:
+            if module_id not in made:
+                gates |= module_gates
+            continue
+        # A submodule's Module placed in a module definition (``..._MD-7_SM-1_M-1``, local to
+        # ``..._MD-7``): in each instance of that definition (``..._MD-7_M-30_MI-1``, its
+        # Module then ``..._MD-7_M-30_MI-1_SM-1_M-1``).
+        for instance, definition in instances:
+            if not module_id.startswith(f"{definition}_SM-"):
+                continue
+            rest = module_id[len(definition) :]
+            if rest.count("_SM-") != 1 or f"{instance}{rest}" in made:
+                continue
+            gates |= _qualified(
+                module_gates,
+                _enclosing_instance(
+                    f"{instance}{rest}", f"{definition}{rest[: rest.rindex('_M-')]}"
+                ),
+            )
     return gates
 
 
@@ -1258,6 +1329,8 @@ def _refinement_trials(
     # The selectors that decide whether a module instance is there, tried after the others.
     outer: Counter[str] = Counter()
     cells = ui.stored_parameter_cells()
+    active_refs: frozenset[str] | None = None
+    unowned = False
     for cell in sorted(differing):
         _check(cancel)
         owners = (
@@ -1268,6 +1341,15 @@ def _refinement_trials(
         for ref_id in sorted(owners):
             _count_selectors(ui, _gates_of(ui, ref_id), shown, weight)
             _count_selectors(ui, _outer_gates(ui, ref_id), shown, outer)
+        if not unowned and not _is_property_cell(cell):
+            if active_refs is None:
+                active_refs = ui.active_parameter_ref_ids()
+            unowned = not any(ref_id in active_refs for ref_id in owners)
+    if unowned:
+        # A byte no active setting writes (only settings shown otherwise are stored there): a
+        # module instance the tree does not make can own it (a submodule another function of
+        # a button places), whose settings are not known before it is there.
+        _count_selectors(ui, _absent_module_gates(ui, objects=False), shown, outer)
     objects_of = _objects_by_number(ui) if wrong else {}
     for number in sorted(wrong):
         _check(cancel)
@@ -1387,6 +1469,15 @@ def _written_over_in_part(ui: DynamicUI, ref_id: str, actives: Collection[str]) 
     return bool(later) and not ui.union_member_covered(ref_id, later)
 
 
+def _gates_and_sources(ui: DynamicUI, ref_id: str) -> set[str]:
+    """The selectors on the way to the param-ref ``ref_id`` (see :func:`_gates_of`), and the
+    param-refs their Assigns copy them from: a module placed behind a hidden copy of a shown
+    setting is shown by that setting."""
+    gates = _gates_of(ui, ref_id)
+    sources = {ui.assigned_source(gate) for gate in gates}
+    return gates | {source for source in sources if source is not None}
+
+
 def _refine_pairs(
     application: Application,
     parameter_segments: Mapping[str, bytes],
@@ -1412,13 +1503,14 @@ def _refine_pairs(
     if cancel is not None and cancel():
         # Cancelled: the result so far, measured already.
         return recovered
-    ui = _seeded(application, recovered.values, project_code_page)
+    ui: DynamicUI | None = _seeded(application, recovered.values, project_code_page)
     if ui is None:
         return recovered
     current = _misfit(ui, parameter_segments, linked, sizes, property_values)
     if current is None:
         return recovered
-    values, unknown = recovered.values, recovered.unknown
+    values: dict[str, str] = recovered.values
+    unknown: list[str] = recovered.unknown
     if fixed is None:
         fixed = _fixed_values(application, ui)
     inferred = _guessed(ui, values)
@@ -1435,6 +1527,9 @@ def _refine_pairs(
         )
         return _with_misfit(values, unknown, fit, ui, limited=limited)
 
+    def alike(gate: str, value: str) -> bool:
+        return _alike_for_reads(application, values, project_code_page, gate, value)
+
     rounds = count() if scale is None else range(_PAIR_ROUNDS * scale)
     try:
         for _ in rounds:
@@ -1444,7 +1539,7 @@ def _refine_pairs(
             for gate, value in _refinement_trials(
                 ui, current[1], _contradicting_objects(ui, linked, sizes)
             ):
-                if _calculated_from_reads(ui, gate):
+                if _calculated_from_reads(ui, gate) and not alike(gate, value):
                     continue
                 _check(cancel)
                 if evaluated == budget:
@@ -1490,7 +1585,7 @@ def _refine_pairs(
                         for child, parameter in shown_parameters(base_ui.ui()).items()
                         if child not in done
                         and _inferable(base_ui, child, parameter)
-                        and owners & _gates_of(base_ui, child)
+                        and owners & _gates_and_sources(base_ui, child)
                         and not _calculated_from_reads(base_ui, child)
                     ]
                     moved = False
@@ -1735,7 +1830,9 @@ def _refine_fixed(
             # with them.
             for wide in (False, True):
                 for gate, value in trials:
-                    if _calculated_from_reads(ui, gate):
+                    if _calculated_from_reads(ui, gate) and not _alike_for_reads(
+                        application, values, project_code_page, gate, value
+                    ):
                         continue
                     _check(cancel)
                     if evaluated == budget:
@@ -2074,6 +2171,7 @@ def _calculate(
     # ends).
     stored: set[str] = set()
     refs: list[str] | None = None
+    guesses_run = False
     while True:
         # Changed below (the calculations run in it): a UI of its own, evaluated first.
         ui = seed_dynamic_ui(application, result, project_code_page, evaluated=True)
@@ -2081,6 +2179,26 @@ def _calculate(
             return result
         if cancel is not None:
             ui.script_abort = _CancelToken(cancel)
+        if not guesses_run:
+            guesses_run = True
+            sources, targets = _guessed_sources(ui, values)
+            if sources:
+                # A calculation with values read on its right side runs from that side below,
+                # from the default of a setting on that side the device keeps no copy of (a
+                # hidden copy of a shown switch): it is computed from the given settings first,
+                # as an edit of them computes it.
+                try:
+                    changes = ui.recalculate(sources)
+                except ScriptAborted:
+                    raise _Cancelled from None
+                computed = {
+                    ref_id: new
+                    for ref_id, (_old, new) in changes.items()
+                    if new is not None and ref_id in targets
+                }
+                if computed:
+                    result.update(computed)
+                    continue
         before = len(stored)
         stored |= ui.active_parameter_ref_ids() & values.keys()
         if refs is not None and len(stored) == before:
@@ -2112,6 +2230,36 @@ def _calculate(
                 for calculation in indexer.calculations_for_r(ui.local_ref_id(ref_id))
             )
         ]
+
+
+def _guessed_sources(
+    ui: DynamicUI, values: Mapping[str, str]
+) -> tuple[list[str], set[str]]:
+    """The settings of ``values`` the device keeps no copy of that are on the left side of a
+    calculation with settings on its right side the device keeps no copy of either and that
+    ``values`` does not give, and those settings: what they are computed from."""
+    indexer = ui.indexer
+    sources: list[str] = []
+    targets: set[str] = set()
+    for ref_id in values:
+        local = ui.local_ref_id(ref_id)
+        calculations = indexer.calculations_for_l(local)
+        if not calculations or not _is_unstored(ui, ref_id):
+            continue
+        instance = _instance_of(ref_id, local)
+        rights = {
+            right
+            for calculation in calculations
+            for right in _qualified(
+                [ref.ref_id for ref in calculation.rparameters.parameter_ref_ref],
+                instance,
+            )
+            if right not in values and _is_unstored(ui, right)
+        }
+        if rights:
+            sources.append(ref_id)
+            targets |= rights
+    return sources, targets
 
 
 def _copies_first(ui: DynamicUI, refs: list[str]) -> list[str]:

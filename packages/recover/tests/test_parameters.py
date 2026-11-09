@@ -124,8 +124,13 @@ def test_recovery_decodes_again_with_the_values_read(
 
     class UI:
         project_code_page: str | None = None
-        # One ref per parameter, none hidden: none comes after another.
-        indexer = SimpleNamespace(parameter_refs={}, parameters={}, module_defs={})
+        # One ref per parameter, none hidden: none comes after another. No calculations.
+        indexer = SimpleNamespace(
+            parameter_refs={},
+            parameters={},
+            module_defs={},
+            calculations_for_l=lambda _ref_id: (),
+        )
 
         def __init__(self, seeded: dict[str, str]) -> None:
             self.seeded = seeded
