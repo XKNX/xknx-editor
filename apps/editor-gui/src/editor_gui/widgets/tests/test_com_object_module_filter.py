@@ -51,7 +51,7 @@ class TableUI:
                 label: str, *args: Any, _original: Any = original, **kwargs: Any
             ) -> Any:
                 result = _original(label, *args, **kwargs)
-                if label == "Modules" and result:
+                if label == "##module_filter" and result:
                     self.popup_height = imgui.get_window_size().y
                 low, high = imgui.get_item_rect_min(), imgui.get_item_rect_max()
                 self.rects[label] = ((low.x + high.x) / 2, (low.y + high.y) / 2)
@@ -122,19 +122,24 @@ def ui(device: Device, monkeypatch: pytest.MonkeyPatch) -> Iterator[TableUI]:
 
 def test_dropdown_filters_multiple_modules_and_resets(ui: TableUI) -> None:
     assert ui.numbers() == [254, 253, 262, 261]
-    ui.click("Modules")
+    ui.click("##module_filter")
     assert ui.popup_height < 180
     ui.click("Channel 2 (...)")
     ui.close_combo()
     assert ui.numbers() == [262, 261]
-    ui.click("Modules")
+    ui.click("##module_filter")
     ui.click("Channel 1 (...)")
     ui.close_combo()
     assert ui.numbers() == [254, 253, 262, 261]
-    ui.click("Modules")
+    ui.click("##module_filter")
     ui.click("All modules")
     ui.close_combo()
     assert ui.numbers() == [254, 253, 262, 261]
+
+
+def test_module_filter_has_no_external_label(ui: TableUI) -> None:
+    assert "Modules" not in ui.rects
+    assert "##module_filter" in ui.rects
 
 
 @pytest.mark.parametrize("screen_height", [1000, 400])
@@ -178,7 +183,7 @@ def test_long_module_list_uses_more_room_but_at_most_sixty_percent(
     imgui.get_io().display_size = imgui.ImVec2(1000, screen_height)
     ui.frame()
     ui.frame()
-    ui.click("Modules")
+    ui.click("##module_filter")
     assert min(300, screen_height * 0.5) < ui.popup_height <= screen_height * 0.6
 
 
@@ -192,12 +197,12 @@ def test_nested_modules_are_indented_and_selectable(ui: TableUI) -> None:
     app = parse_application_xml(fixture.read_bytes(), "M-00FA")[0]
     ui.device = Device(2, "Tree", app, "1.2.10")
     ui.frame()
-    ui.click("Modules")
+    ui.click("##module_filter")
     assert ui.rects["Status"][0] > ui.rects["Channel A"][0]
     ui.click("Status")
     ui.close_combo()
     assert ui.numbers() == [3]
-    ui.click("Modules")
+    ui.click("##module_filter")
     ui.click("Channel A")
     ui.close_combo()
     assert ui.numbers() == [6, 2, 3]
@@ -207,10 +212,10 @@ def test_hidden_selection_does_not_return_and_device_switch_clears_selection(
     ui: TableUI,
 ) -> None:
     ui.click("All")
-    ui.click("Modules")
+    ui.click("##module_filter")
     ui.click("Channel 2 (...)")
     ui.close_combo()
-    ui.click("Modules")
+    ui.click("##module_filter")
     ui.click("All modules")
     ui.close_combo()
     ui.click("Create Group Addresses (2)")
@@ -228,7 +233,7 @@ def test_search_and_device_switch_work_on_wide_and_narrow_panels(
 ) -> None:
     ui.width = width
     ui.frame()
-    ui.click("Modules")
+    ui.click("##module_filter")
     ui.click("##module_search")
     imgui.get_io().add_input_characters_utf8("CHANNEL 2")
     ui.frame()
@@ -240,6 +245,6 @@ def test_search_and_device_switch_work_on_wide_and_narrow_panels(
     ui.device = Device(2, "Other", ui.device.app, "1.1.2")
     ui.frame()
     assert ui.numbers() == [254, 253, 262, 261]
-    ui.click("Modules")
+    ui.click("##module_filter")
     assert "Channel 1 (...)" in ui.rects
     assert "Channel 2 (...)" in ui.rects

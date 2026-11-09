@@ -409,14 +409,7 @@ class GroupObjectsTable:
         preview = S.GROUP_OBJECTS_ALL_MODULES
         if self._module_ids is not None:
             preview = S.GROUP_OBJECTS_MODULE_COUNT.format(count=len(self._module_ids))
-        imgui.set_next_item_width(
-            max(
-                px(80),
-                imgui.get_content_region_avail().x
-                - imgui.calc_text_size(S.GROUP_OBJECTS_MODULES).x
-                - px(12),
-            )
-        )
+        imgui.set_next_item_width(max(px(80), imgui.get_content_region_avail().x))
         style = imgui.get_style()
         max_height = min(
             20 * imgui.get_frame_height_with_spacing()
@@ -427,7 +420,7 @@ class GroupObjectsTable:
         imgui.set_next_window_size_constraints(
             imgui.ImVec2(0, 0), imgui.ImVec2(imgui.FLT_MAX, max_height)
         )
-        if begin_combo(S.GROUP_OBJECTS_MODULES, preview):
+        if begin_combo("##module_filter", preview):
             if imgui.selectable(S.GROUP_OBJECTS_ALL_MODULES, self._module_ids is None)[
                 0
             ]:
