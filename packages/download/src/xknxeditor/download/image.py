@@ -691,11 +691,17 @@ def build_image(
             initialized = bytes(
                 a & b for a, b in zip(initialized, seed_mask, strict=True)
             )
-            bit_masks.update(
-                (base_addresses[segment_id] + offset, bits)
-                for offset, bits in partial.items()
-                if not mask[offset]
-            )
+            # Kept by standard-memory address, so only for an absolute segment there: a
+            # relative segment's offsets and user memory are other address spaces.
+            if (
+                not isinstance(declaration, ApplicationProgramStaticCodeRelativeSegment)
+                and not declaration.user_memory
+            ):
+                bit_masks.update(
+                    (base_addresses[segment_id] + offset, bits)
+                    for offset, bits in partial.items()
+                    if not mask[offset]
+                )
         if segment_id in table_ids:
             # Table builders supply initialized table bytes. Retain any parameters
             # sharing this code segment, as the earlier image builder did.
@@ -868,15 +874,23 @@ def with_second_program(
 
     bit_masks = dict(image.bit_masks)
 
-    def memory(address: int, size: int, seed: bytes | None, seed_mask: bytes | None):
+    def memory(
+        address: int,
+        size: int,
+        seed: bytes | None,
+        seed_mask: bytes | None,
+        standard: bool = False,
+    ):
         data = (seed or b"")[:size]
         initialized = bytes([0xFF]) * len(data)
         if seed_mask is not None:
             mask, partial = seed_mask_bits(seed_mask, len(data))
             initialized = bytes(a & b for a, b in zip(initialized, mask, strict=True))
-            bit_masks.update(
-                (address + offset, bits) for offset, bits in partial.items()
-            )
+            # Kept by standard-memory address: not for a relative segment or user memory.
+            if standard:
+                bit_masks.update(
+                    (address + offset, bits) for offset, bits in partial.items()
+                )
         return MemorySegment(
             address,
             data.ljust(size, b"\x00"),
@@ -891,7 +905,7 @@ def with_second_program(
         for s in code.relative_segment
     ]
     absolute = [
-        memory(s.address, s.size, s.data, s.mask)
+        memory(s.address, s.size, s.data, s.mask, standard=True)
         for s in code.absolute_segment
         if s.size and not s.user_memory
     ]

@@ -722,7 +722,11 @@ class ParameterState:
         legacy = f"{module_id}_MI-{repeat_idx}"
         if legacy in root._active_module_keys:
             return None
-        return root._children.get(legacy)
+        # Set aside when the first evaluation did not reach it (see trim_to_active).
+        found = root._children.get(legacy) or root._dormant_children.pop(legacy, None)
+        if found is not None:
+            root._children.setdefault(legacy, found)
+        return found
 
     def take_missing_values(self, other: ParameterState) -> None:
         """Take the explicit values of ``other`` for the param-refs this scope has none for."""
@@ -740,7 +744,10 @@ class ParameterState:
             root = root._parent
         if root is self or key in root._active_module_keys:
             return None
-        return root._children.pop(key, None)
+        # A stored instance the first evaluation did not reach was set aside there (see
+        # trim_to_active); it comes back with its values when its instance reaches it.
+        found = root._children.pop(key, None)
+        return found if found is not None else root._dormant_children.pop(key, None)
 
     def parameter_instance_refs(self) -> dict[str, str]:
         result = dict(self.param_ref_id_to_value)

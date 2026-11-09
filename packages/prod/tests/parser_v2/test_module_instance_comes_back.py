@@ -154,3 +154,14 @@ def test_an_ended_module_instance_writes_nothing() -> None:
     ((data, mask),) = ui.encode_to_memory_masked().values()
     assert data[1] == 0
     assert mask[1] == 0
+
+
+def test_a_stored_instance_set_aside_on_opening_comes_back_with_its_values() -> None:
+    """A project opened with the channel off stores the instance and its submodule instance;
+    turned on, both come back with the values the project holds, not with defaults."""
+    ui = _ui(**{_ON: "0", _MODE: "4", _SUB_MODE: "7"})
+    assert ui.get_module_instances() == []
+    ui.set_parameter_ref(_ON, "1")
+    ui.ui()
+    assert ui.get_value(_MODE) == "4"
+    assert ui.get_value(_SUB_MODE) == "7"
