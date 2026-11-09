@@ -27,6 +27,7 @@ class TableUI:
         self.device = device
         self.width = 950
         self.popup_height = 0.0
+        self.backgrounds: dict[str, tuple[float, float, float, float]] = {}
         self.rects: dict[str, tuple[float, float]] = {}
         self.texts: list[str] = []
         self.created: list[list[int]] = []
@@ -50,6 +51,8 @@ class TableUI:
             def record(
                 label: str, *args: Any, _original: Any = original, **kwargs: Any
             ) -> Any:
+                color = imgui.get_style().color_(imgui.Col_.frame_bg)
+                self.backgrounds[label] = (color.x, color.y, color.z, color.w)
                 result = _original(label, *args, **kwargs)
                 if label == "##module_filter" and result:
                     self.popup_height = imgui.get_window_size().y
@@ -140,6 +143,29 @@ def test_dropdown_filters_multiple_modules_and_resets(ui: TableUI) -> None:
 def test_module_filter_has_no_external_label(ui: TableUI) -> None:
     assert "Modules" not in ui.rects
     assert "##module_filter" in ui.rects
+
+
+def test_closed_module_filter_uses_field_background_without_changing_other_combos(
+    ui: TableUI,
+) -> None:
+    from editor_gui.widgets.combo import begin_combo
+
+    style = imgui.get_style()
+    style.set_color_(imgui.Col_.frame_bg, imgui.ImVec4(1, 1, 1, 1))
+    style.set_color_(imgui.Col_.text, imgui.ImVec4(0.1, 0.1, 0.1, 1))
+    ui.frame()
+    assert ui.backgrounds["##module_filter"] == pytest.approx((1, 1, 1, 1))
+    imgui.new_frame()
+    imgui.begin("Reference")
+    if begin_combo("Other dropdown", "Choice"):
+        imgui.end_combo()
+    imgui.end()
+    imgui.render()
+    assert ui.backgrounds["Other dropdown"] == pytest.approx(
+        (0.9424, 0.9424, 0.9424, 1)
+    )
+    color = style.color_(imgui.Col_.frame_bg)
+    assert (color.x, color.y, color.z, color.w) == pytest.approx((1, 1, 1, 1))
 
 
 @pytest.mark.parametrize("screen_height", [1000, 400])

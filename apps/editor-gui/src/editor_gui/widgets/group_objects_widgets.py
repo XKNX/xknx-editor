@@ -420,7 +420,9 @@ class GroupObjectsTable:
         imgui.set_next_window_size_constraints(
             imgui.ImVec2(0, 0), imgui.ImVec2(imgui.FLT_MAX, max_height)
         )
-        if begin_combo("##module_filter", preview):
+        if begin_combo(
+            "##module_filter", preview, background=style.color_(imgui.Col_.frame_bg)
+        ):
             if imgui.selectable(S.GROUP_OBJECTS_ALL_MODULES, self._module_ids is None)[
                 0
             ]:

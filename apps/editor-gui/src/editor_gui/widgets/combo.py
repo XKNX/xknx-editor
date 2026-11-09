@@ -43,9 +43,19 @@ def combo_border() -> imgui.ImVec4:
     )
 
 
-def begin_combo(label: str, preview: str, flags: int = 0) -> bool:
-    """``imgui.begin_combo`` drawn as a Windows drop-down; end it with ``imgui.end_combo``."""
-    background = combo_background()
+def begin_combo(
+    label: str,
+    preview: str,
+    flags: int = 0,
+    *,
+    background: imgui.ImVec4 | None = None,
+) -> bool:
+    """A Windows-style drop-down, with an optional closed-field background.
+
+    End it with ``imgui.end_combo``. Hover, border and arrow keep the shared style.
+    """
+    if background is None:
+        background = combo_background()
     hovered = combo_background(hovered=True)
     colors = (
         (imgui.Col_.frame_bg, background),
