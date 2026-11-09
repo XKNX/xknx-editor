@@ -26,7 +26,7 @@ from xknxeditor.proj.core.knxproj_export import export_knxproj
 from xknxeditor.proj.core.knxproj_import import _build_com_object
 from xknxeditor.proj.core.service import ProjectService
 from xknxeditor.proj.db import make_engine, url_for
-from xknxeditor.proj.models import ComObject, ComObjectLink, Device
+from xknxeditor.proj.models import ComObject, ComObjectLink, Device, ModuleInstance
 
 _APP = "M-02DC_A-0000-10-DB14"
 
@@ -78,8 +78,13 @@ def test_non_module_object_is_unaffected() -> None:
     assert row.instance_ref_id == "O-3_R-4"
 
 
-def _export_com_object_refs(tmp_path: Path, rows: list[tuple[str, str]]) -> list[str]:
-    """Build a one-device project carrying ``(ref_id, instance_ref_id)`` objects; return emitted RefIds."""
+def _export_com_object_refs(
+    tmp_path: Path,
+    rows: list[tuple[str, str]],
+    instances: tuple[str, ...] = (),
+) -> list[str]:
+    """Build a one-device project carrying ``(ref_id, instance_ref_id)`` objects and the module
+    instances ``instances`` (relative ids); return emitted RefIds."""
     src = tmp_path / "p.xknx"
     svc = ProjectService()
     pid = svc.create(src, "P-MOD")
@@ -113,6 +118,15 @@ def _export_com_object_refs(tmp_path: Path, rows: list[tuple[str, str]]) -> list
                     instance_ref_id=instance_ref_id,
                 )
             )
+        for instance_id in instances:
+            s.add(
+                ModuleInstance(
+                    device_id=device.id,
+                    instance_id=instance_id,
+                    ref_id=instance_id.rsplit("_MI-", 1)[0],
+                    repeat_index="2x1",
+                )
+            )
         s.commit()
 
     out = tmp_path / "out.knxproj"
@@ -135,12 +149,32 @@ def test_export_emits_the_module_qualified_ref(tmp_path: Path) -> None:
             (f"{_APP}_MD-1_O-2-0_R-0", "MD-1_M-1_MI-2_O-2-0_R-0"),
             (f"{_APP}_MD-1_O-2-0_R-0", "MD-1_M-1_MI-10_O-2-0_R-0"),
         ],
+        instances=("MD-1_M-1_MI-2", "MD-1_M-1_MI-10"),
     )
     assert sorted(emitted) == [
         "MD-1_M-1_MI-10_O-2-0_R-0",
         "MD-1_M-1_MI-2_O-2-0_R-0",
     ]
     assert len(set(emitted)) == 2  # the collapse would have produced one distinct id
+
+
+def test_export_leaves_out_the_objects_of_a_module_instance_the_device_has_not(
+    tmp_path: Path,
+) -> None:
+    """An object left from a module instance an earlier configuration had is not written: every
+    ComObjectInstanceRef of a module instance belongs to a ModuleInstance of the device, as
+    importers require. Objects of the instances the device has, and of the application, stay."""
+    emitted = _export_com_object_refs(
+        tmp_path,
+        [
+            (f"{_APP}_MD-1_O-2-0_R-0", "MD-1_M-200_MI-1_O-2-0_R-1"),
+            (f"{_APP}_MD-1_O-2-0_R-0", "MD-1_M-100_MI-1_O-2-0_R-1"),
+            (f"{_APP}_MD-2_O-2-0_R-0", "MD-2_M-250_MI-1_SM-1_M-1_MI-1-1-1_O-2-0_R-1"),
+            (f"{_APP}_O-3_R-4", ""),
+        ],
+        instances=("MD-1_M-100_MI-1",),
+    )
+    assert sorted(emitted) == ["MD-1_M-100_MI-1_O-2-0_R-1", "O-3_R-4"]
 
 
 def test_export_falls_back_to_ref_id_without_an_instance_id(tmp_path: Path) -> None:

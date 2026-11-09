@@ -332,6 +332,31 @@ def _module_instance_changes(
     return new, ended
 
 
+def _without_objects_of(
+    device: Device,
+    target: set[str] | None,
+    ended_instances: Collection[str],
+    app_program_id: str,
+) -> set[str] | None:
+    """The com-object set ``target`` (``None``: the device's objects stay as they are) without
+    the objects of the module instances a change ended, and of their submodule instances: no
+    object of an instance the device no longer has may stay. ``None`` when that leaves the
+    device's objects as they are."""
+    if not ended_instances:
+        return target
+    current = {co.id for co in device.com_objects}
+    prefixes = tuple(
+        f"{i if i.startswith(f'{app_program_id}_') else f'{app_program_id}_{i}'}_"
+        for i in ended_instances
+    )
+    kept = {
+        ref
+        for ref in (current if target is None else target)
+        if not ref.startswith(prefixes)
+    }
+    return None if kept == current else kept
+
+
 def _device_source_key(row: Any) -> tuple[Any, ...]:
     """Everything a device is built from: its program, parameters, module instances, com objects."""
     return (
@@ -5679,14 +5704,26 @@ class ProjectService:
         device = self.find_device_by_node_id(node_id)
         if self._pid is None or device is None or device.app is None:
             return
-        target = self._com_object_target(device, old_active)
-        if target is not None:
+        new_instances, ended_instances = _module_instance_changes(
+            device, device.app.program.id
+        )
+        target = _without_objects_of(
+            device,
+            self._com_object_target(device, old_active),
+            ended_instances,
+            device.app.program.id,
+        )
+        if target is not None or new_instances or ended_instances:
             self._svc.set_parameters(
                 self._pid,
                 node_id,
                 [],
-                com_object_target=[(r, None) for r in sorted(target)],
+                com_object_target=None
+                if target is None
+                else [(r, None) for r in sorted(target)],
                 app_program_id=device.app.program.id,
+                module_instances=new_instances,
+                removed_module_instances=ended_instances,
             )
         self._refresh_device(node_id)
         self._bump(structural=False)
@@ -5714,12 +5751,17 @@ class ProjectService:
         values = [(ref, new) for ref, (_, new) in changes.items() if new is not None]
         if self._pid is None or not values or device.app is None:
             return
-        target = self._com_object_target(device, old_active)
-        if target is not None:
-            device.last_lost_links = self._removed_links(device, target)
         new_instances, ended_instances = _module_instance_changes(
             device, device.app.program.id
         )
+        target = _without_objects_of(
+            device,
+            self._com_object_target(device, old_active),
+            ended_instances,
+            device.app.program.id,
+        )
+        if target is not None:
+            device.last_lost_links = self._removed_links(device, target)
         self._svc.set_parameters(
             self._pid,
             device.node_id,

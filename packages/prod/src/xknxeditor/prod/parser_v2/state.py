@@ -222,6 +222,7 @@ class ParameterState:
         "_children",
         "_com_obj_instance_refs",
         "_discovered_active_param_refs",
+        "_dormant_children",
         "_gate_param_refs",
         "_known_param_ref_values",
         "_param_ref_defaults",
@@ -266,6 +267,9 @@ class ParameterState:
         self._known_param_ref_values: dict[str, str] = dict(values or {})
         self._parent: ParameterState | None = parent
         self._children: dict[str, ModuleState] = {}
+        # The module instances an evaluation no longer reached, by key: an instance that comes
+        # back takes their explicit values again, as a device built from its stored values does.
+        self._dormant_children: dict[str, ModuleState] = {}
         self._text: dict[str, str] = {}
         self._active_param_refs: set[str] = set()
         # Params marked active during the union-discovery pass (a full eval WITHOUT union
@@ -364,7 +368,9 @@ class ParameterState:
         for key, child in self._children.items():
             result.update(
                 child.changed_explicit_values(
-                    before._children.get(key) if before is not None else None
+                    None
+                    if before is None
+                    else before._children.get(key) or before._dormant_children.get(key)
                 )
             )
         return result
@@ -526,7 +532,8 @@ class ParameterState:
     def trim_to_active(self) -> None:
         """Drop inactive param-ref values, then recurse into module children.
 
-        Unvisited module children are dropped so inactive modules encode nothing.
+        Unvisited module children are dropped so inactive modules encode nothing; their
+        explicit values are kept for the instance to take again when it comes back.
         Active ref sets stay intact here for callers to read post-traversal.
         """
         inactive = self.param_ref_id_to_value.keys() - self._active_param_refs
@@ -535,7 +542,7 @@ class ParameterState:
         self._text.clear()
         inactive_modules = self._children.keys() - self._active_module_keys.keys()
         for key in inactive_modules:
-            del self._children[key]
+            self._dormant_children[key] = self._children.pop(key)
         for child in self._children.values():
             child.trim_to_active()
 
@@ -664,6 +671,13 @@ class ParameterState:
             )
             child._parent = self
             child.repeat_path = path
+            dormant = self._dormant_children.pop(key, None)
+            if dormant is not None:
+                # The instance comes back with the values it had (its submodule instances
+                # too), not with the defaults.
+                child.take_missing_values(dormant)
+                child._dormant_children.update(dormant._dormant_children)
+                child._dormant_children.update(dormant._children)
             self._children[key] = child
         else:
             child = self._children[key]

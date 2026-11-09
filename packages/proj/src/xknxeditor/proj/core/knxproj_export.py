@@ -1003,6 +1003,16 @@ def _relidref(ref_id: str) -> str:
     return ref_id
 
 
+def _module_instance_of(ref: str) -> str | None:
+    """The module instance (relative id) a relative group object ref is of
+    (``MD-1_M-2_MI-1`` for ``MD-1_M-2_MI-1_O-2-0_R-1``, the submodule instance for an object
+    of one); ``None`` for an object of the application itself."""
+    at = ref.rfind("_O-")
+    if at == -1 or "_MI-" not in ref[:at]:
+        return None
+    return ref[:at]
+
+
 def module_repeat_indexes(app_xml: bytes) -> dict[str, str]:
     """The ``RepeatIndex`` of every module instance of an application program, by its relative
     id (``MD-1_M-2_MI-1``), as genuine exports write it and the importer requires it (without
@@ -2155,6 +2165,12 @@ class _Writer:
         # tree does NOT cover (a from-scratch device has no tree) is still emitted so its
         # instantiation is not lost.
         tree_instances = _group_object_tree_instances(tree)
+        # Every object of a module instance belongs to a <ModuleInstance> the device has: an
+        # object of an instance it no longer has (left from an earlier configuration) is not
+        # written, as the importers cannot place it.
+        written_instances = {
+            _relidref(mi.instance_id) for mi in device.module_instances
+        }
         pending: list[tuple[ComObject, str, str]] = []
         for co in device.com_objects:
             # Genuine exports order the sending link first; our ComObjectLink.is_sending marks it.
@@ -2170,6 +2186,14 @@ class _Writer:
             # it collapses the instances onto one id that no longer resolves to a ModuleInstance.
             ref = _relidref(co.instance_ref_id or co.ref_id)
             if not (co.links or _has_override(co) or ref not in tree_instances):
+                continue
+            instance = _module_instance_of(ref)
+            if instance is not None and instance not in written_instances:
+                logger.debug(
+                    "skipping group object %s of module instance %s the device has not",
+                    ref,
+                    instance,
+                )
                 continue
             pending.append((co, ref, links))
         # An empty <ComObjectInstanceRefs> violates the schema, so only open it when non-empty.
