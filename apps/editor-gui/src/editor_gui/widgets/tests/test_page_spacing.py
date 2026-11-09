@@ -386,22 +386,30 @@ def test_a_button_label_is_centred_on_whole_pixels_as_wpf_centres_it(
 def test_the_line_beside_the_page_tree_is_highlighted_while_resized(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    # As the line above the help: hovered or dragged, the whole line in the theme's highlight.
-    rects: list[int] = []
+    # As the line above the help: hovered or dragged, the line in the theme's highlight, still
+    # open beside the selected page, as when it is not hovered.
+    rects: list[tuple[float, float, int]] = []
     draw = imgui.ImDrawList.add_rect_filled
 
     def record(
         self: imgui.ImDrawList, low: imgui.ImVec2, high: imgui.ImVec2, col: int, *a: Any
     ) -> None:
-        rects.append(col)
+        rects.append((low.y, high.y, col))
         draw(self, low, high, col, *a)
 
     monkeypatch.setattr(imgui.ImDrawList, "add_rect_filled", record)
     monkeypatch.setattr(parameter_widgets, "_selected_row", [(10.0, 30.0)])
-    parameter_widgets._draw_page_line(  # pyright: ignore[reportPrivateUsage]
-        100, 102, 0, 300, imgui.Col_.separator_hovered
-    )
-    assert rects == [imgui.get_color_u32(imgui.Col_.separator_hovered)]
+    monkeypatch.setattr(parameter_widgets, "_tree_scrolls", [False])
+    page = imgui.get_color_u32(backgrounds.content_background())
+    for highlight in (None, imgui.Col_.separator_hovered):
+        rects.clear()
+        parameter_widgets._draw_page_line(  # pyright: ignore[reportPrivateUsage]
+            100, 102, 0, 300, highlight
+        )
+        line = imgui.get_color_u32(
+            imgui.Col_.separator if highlight is None else highlight
+        )
+        assert rects == [(0, 300, line), (11.0, 30.0, page)]
 
 
 def test_a_text_field_as_high_as_a_number_field_with_black_text(
