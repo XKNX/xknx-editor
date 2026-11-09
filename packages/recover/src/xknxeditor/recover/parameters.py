@@ -1656,7 +1656,11 @@ def _refine_pairs(
                                 improved = True
                                 break
                             trial_bits: int | None = None
-                            if fit[0] == base[0]:
+                            # As many bytes differing and objects contradicting, whatever
+                            # it shows that is not linked: two settings behind settings of
+                            # their own share a byte, the first one shown and read alone
+                            # leaves the byte differing, in fewer bits.
+                            if fit[0][0] == base[0][0] and fit[0][2] == base[0][2]:
                                 if base_bits is None:
                                     base_bits = _differing_bits(
                                         base_ui, parameter_segments, base[1]

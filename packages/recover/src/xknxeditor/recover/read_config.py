@@ -26,6 +26,7 @@ from xknxeditor.download.resources import (
     bcu1_group_object_table,
     bcu2_group_object_table,
     bundled_mask_resources,
+    mask_number,
     property_group_tables,
 )
 from xknxeditor.download.tables_system300 import ADDRESS_TABLE, ASSOCIATION_TABLE
@@ -104,6 +105,10 @@ def _segment_layout(application: Application) -> tuple[dict[str, int], dict[str,
     )
 
 
+# The mask version number of System 300 (``MV-0300``, with or without its configuration).
+_SYSTEM_300 = 0x0300
+
+
 def _is_memory_mapped(application: Application) -> bool:
     """Whether the application uses fixed segment addresses (vs System B relative)."""
     address_table = application.program.static.address_table
@@ -146,8 +151,16 @@ async def read_group_communication(
             return RawGroupCommunication(
                 device_address=None, group_addresses=[], links=[], group_objects={}
             )
-        if property_group_tables(device_mask_version(application)):
+        mask = device_mask_version(application)
+        if property_group_tables(mask):
             return await _read_system_300(programmer)
+        if mask_number(mask) == _SYSTEM_300:
+            # The memory configuration of System 300: its procedure only allocates the
+            # table segments, and the download writes no more of the tables than the count
+            # of the group address table. No group address and no link is there to read.
+            return RawGroupCommunication(
+                device_address=None, group_addresses=[], links=[], group_objects={}
+            )
     if application is not None and _is_memory_mapped(application):
         return await _read_memory_mapped(programmer, application)
     return await _read_system_b(

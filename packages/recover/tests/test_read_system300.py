@@ -83,3 +83,25 @@ async def test_an_application_without_group_objects_reads_nothing(
     read = await read_group_communication(cast(Any, programmer), application)
     assert (read.group_addresses, read.links, read.group_objects) == ([], [], {})
     assert not programmer.reads
+
+
+async def test_the_memory_configuration_of_system_300_has_no_tables_to_read(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # Its download writes only the count of the group address table: no address table
+    # object to locate, nothing to read.
+    monkeypatch.setattr(read_config, "_has_com_objects", lambda _app: True)
+    programmer = _Programmer({})
+    application = cast(
+        Any,
+        SimpleNamespace(
+            program=SimpleNamespace(
+                mask_version="MV-0300-01000000000000000000",
+                static=SimpleNamespace(address_table=None),
+            ),
+            load_procedures=None,
+        ),
+    )
+    read = await read_group_communication(cast(Any, programmer), application)
+    assert (read.group_addresses, read.links, read.group_objects) == ([], [], {})
+    assert not programmer.reads
