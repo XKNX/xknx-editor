@@ -307,11 +307,17 @@ msgstr[2] "{count} відмінностей"
 msgid "Modules"
 msgstr "Модулі"
 
-msgid "All modules"
-msgstr "Усі модулі"
+msgid "All Modules Selected"
+msgstr "Вибрано всі модулі"
+
+msgid "No Modules Selected"
+msgstr "Модулі не вибрано"
 
 msgid "Without module"
 msgstr "Без модуля"
 
-msgid "Modules ({count})"
-msgstr "Модулі ({count})"
+msgid "{count} Module Selected"
+msgid_plural "{count} Modules Selected"
+msgstr[0] "Вибрано {count} модуль"
+msgstr[1] "Вибрано {count} модулі"
+msgstr[2] "Вибрано {count} модулів"

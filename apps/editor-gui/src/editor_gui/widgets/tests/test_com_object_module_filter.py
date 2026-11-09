@@ -27,6 +27,9 @@ class TableUI:
         self.device = device
         self.width = 950
         self.popup_height = 0.0
+        self.preview = ""
+        self.values: dict[str, Any] = {}
+        self.disabled: dict[str, bool] = {}
         self.backgrounds: dict[str, tuple[float, float, float, float]] = {}
         self.rects: dict[str, tuple[float, float]] = {}
         self.texts: list[str] = []
@@ -54,8 +57,16 @@ class TableUI:
                 color = imgui.get_style().color_(imgui.Col_.frame_bg)
                 self.backgrounds[label] = (color.x, color.y, color.z, color.w)
                 result = _original(label, *args, **kwargs)
-                if label == "##module_filter" and result:
-                    self.popup_height = imgui.get_window_size().y
+                if args:
+                    self.values[label] = args[0]
+                self.disabled[label] = bool(
+                    imgui.get_current_context().current_item_flags
+                    & imgui.ItemFlags_.disabled
+                )
+                if label == "##module_filter":
+                    self.preview = args[0]
+                    if result:
+                        self.popup_height = imgui.get_window_size().y
                 low, high = imgui.get_item_rect_min(), imgui.get_item_rect_max()
                 self.rects[label] = ((low.x + high.x) / 2, (low.y + high.y) / 2)
                 return result
@@ -95,6 +106,20 @@ class TableUI:
         self.frame()
         self.frame()
 
+    def click_at(self, x: float, y: float) -> None:
+        io = imgui.get_io()
+        io.add_mouse_pos_event(x, y)
+        self.frame()
+        io.add_mouse_button_event(0, True)
+        self.frame()
+        io.add_mouse_button_event(0, False)
+        self.frame()
+        self.frame()
+
+    def checked(self, label: str) -> bool:
+        assert label in self.rects, f"Checkbox missing: {label}"
+        return bool(self.values[label])
+
     def close_combo(self) -> None:
         io = imgui.get_io()
         io.add_key_event(imgui.Key.escape, True)
@@ -123,21 +148,77 @@ def ui(device: Device, monkeypatch: pytest.MonkeyPatch) -> Iterator[TableUI]:
     imgui.destroy_context(context)
 
 
-def test_dropdown_filters_multiple_modules_and_resets(ui: TableUI) -> None:
+def test_every_module_is_checked_at_first_and_unchecking_hides_its_objects(
+    ui: TableUI,
+) -> None:
     assert ui.numbers() == [254, 253, 262, 261]
+    assert ui.preview == "All Modules Selected"
     ui.click("##module_filter")
     assert ui.popup_height < 180
+    assert ui.checked("Channel 1 (...)")
+    assert ui.checked("Channel 2 (...)")
     ui.click("Channel 2 (...)")
     ui.close_combo()
-    assert ui.numbers() == [262, 261]
+    assert ui.numbers() == [254, 253]
+    assert ui.preview == "1 Module Selected"
     ui.click("##module_filter")
     ui.click("Channel 1 (...)")
     ui.close_combo()
-    assert ui.numbers() == [254, 253, 262, 261]
+    assert ui.numbers() == []
+    assert ui.preview == "No Modules Selected"
     ui.click("##module_filter")
-    ui.click("All modules")
+    ui.click("Channel 2 (...)")
+    ui.click("Channel 1 (...)")
     ui.close_combo()
+    # Every module checked again: no filter, as at first.
     assert ui.numbers() == [254, 253, 262, 261]
+    assert ui.table._module_ids is None
+    assert ui.preview == "All Modules Selected"
+
+
+def test_all_and_none_check_and_uncheck_every_module_and_the_list_follows(
+    ui: TableUI,
+) -> None:
+    """The buttons beside the search check every module, or none; the objects follow at once.
+    No "All modules" entry is left in the list."""
+    ui.click("##module_filter")
+    assert "All Modules" not in ui.rects
+    # Each button only while it changes something.
+    assert ui.disabled["All##modules_all"]
+    assert not ui.disabled["None##modules_none"]
+    ui.click("None##modules_none")
+    assert ui.disabled["None##modules_none"]
+    assert not ui.disabled["All##modules_all"]
+    assert not ui.checked("Channel 1 (...)")
+    assert not ui.checked("Channel 2 (...)")
+    assert ui.numbers() == []
+    assert ui.preview == "No Modules Selected"
+    ui.click("Channel 1 (...)")
+    assert ui.numbers() == [254, 253]
+    assert not ui.disabled["None##modules_none"]
+    ui.click("All##modules_all")
+    assert ui.disabled["All##modules_all"]
+    assert ui.checked("Channel 1 (...)")
+    assert ui.checked("Channel 2 (...)")
+    assert ui.numbers() == [254, 253, 262, 261]
+    assert ui.preview == "All Modules Selected"
+
+
+def test_count_of_checked_modules_uses_the_plural_form(ui: TableUI) -> None:
+    from xknxeditor.prod.application import parse_application_xml
+
+    fixture = (
+        Path(__file__).parents[6]
+        / "packages/prod/tests/fixtures/object_tree_application.xml"
+    )
+    app = parse_application_xml(fixture.read_bytes(), "M-00FA")[0]
+    ui.device = Device(2, "Tree", app, "1.2.10")
+    ui.frame()
+    ui.click("##module_filter")
+    ui.click("None##modules_none")
+    ui.click("Status")
+    ui.click("Channel A")
+    assert ui.preview == "2 Modules Selected"
 
 
 def test_module_filter_has_no_external_label(ui: TableUI) -> None:
@@ -225,6 +306,7 @@ def test_nested_modules_are_indented_and_selectable(ui: TableUI) -> None:
     ui.frame()
     ui.click("##module_filter")
     assert ui.rects["Status"][0] > ui.rects["Channel A"][0]
+    ui.click("None##modules_none")
     ui.click("Status")
     ui.close_combo()
     assert ui.numbers() == [3]
@@ -237,17 +319,15 @@ def test_nested_modules_are_indented_and_selectable(ui: TableUI) -> None:
 def test_hidden_selection_does_not_return_and_device_switch_clears_selection(
     ui: TableUI,
 ) -> None:
-    ui.click("All")
+    ui.click("##objects_all")
     ui.click("##module_filter")
-    ui.click("Channel 2 (...)")
-    ui.close_combo()
-    ui.click("##module_filter")
-    ui.click("All modules")
-    ui.close_combo()
+    ui.click("Channel 1 (...)")
+    # The list stays open while modules are checked: a click below it closes it.
+    ui.click_at(ui.width - 10, 640)
     ui.click("Create Group Addresses (2)")
     ui.click("Create Group Addresses (2)")
     assert ui.created == [[262, 261]]
-    ui.click("All")
+    ui.click("##objects_all")
     ui.device = Device(2, "Other", ui.device.app, "1.1.2")
     ui.frame()
     assert "Create Group Addresses (0)" in ui.rects
@@ -267,10 +347,27 @@ def test_search_and_device_switch_work_on_wide_and_narrow_panels(
     assert "Channel 2 (...)" in ui.rects
     ui.click("Channel 2 (...)")
     ui.close_combo()
-    assert ui.numbers() == [262, 261]
+    assert ui.numbers() == [254, 253]
     ui.device = Device(2, "Other", ui.device.app, "1.1.2")
     ui.frame()
     assert ui.numbers() == [254, 253, 262, 261]
     ui.click("##module_filter")
     assert "Channel 1 (...)" in ui.rects
     assert "Channel 2 (...)" in ui.rects
+
+
+def test_header_checkbox_checks_every_listed_object_or_none(ui: TableUI) -> None:
+    """The checkbox before "#" replaces the All/None buttons above the table."""
+    assert "All" not in ui.rects
+    assert "None" not in ui.rects
+    assert not ui.checked("##objects_all")
+    ui.click("##objects_all")
+    assert ui.checked("##objects_all")
+    assert "Create Group Addresses (4)" in ui.rects
+    ui.click("##sel_1_" + ui.device.get_visible_com_objects()[0].id)
+    # One object unchecked: the header is unchecked too, and checks all again.
+    assert not ui.checked("##objects_all")
+    ui.click("##objects_all")
+    assert "Create Group Addresses (4)" in ui.rects
+    ui.click("##objects_all")
+    assert "Create Group Addresses (0)" in ui.rects

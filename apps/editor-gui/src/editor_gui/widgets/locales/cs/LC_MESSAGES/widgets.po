@@ -307,11 +307,17 @@ msgstr[2] "{count} rozdílů"
 msgid "Modules"
 msgstr "Moduly"
 
-msgid "All modules"
-msgstr "Všechny moduly"
+msgid "All Modules Selected"
+msgstr "Vybrány všechny moduly"
+
+msgid "No Modules Selected"
+msgstr "Nevybrán žádný modul"
 
 msgid "Without module"
 msgstr "Bez modulu"
 
-msgid "Modules ({count})"
-msgstr "Moduly ({count})"
+msgid "{count} Module Selected"
+msgid_plural "{count} Modules Selected"
+msgstr[0] "Vybrán {count} modul"
+msgstr[1] "Vybrány {count} moduly"
+msgstr[2] "Vybráno {count} modulů"

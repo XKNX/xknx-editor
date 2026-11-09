@@ -301,11 +301,15 @@ msgstr[0] "{count} 处差异"
 msgid "Modules"
 msgstr "模块"
 
-msgid "All modules"
-msgstr "所有模块"
+msgid "All Modules Selected"
+msgstr "已选择所有模块"
+
+msgid "No Modules Selected"
+msgstr "未选择模块"
 
 msgid "Without module"
 msgstr "无模块"
 
-msgid "Modules ({count})"
-msgstr "模块 ({count})"
+msgid "{count} Module Selected"
+msgid_plural "{count} Modules Selected"
+msgstr[0] "已选择 {count} 个模块"

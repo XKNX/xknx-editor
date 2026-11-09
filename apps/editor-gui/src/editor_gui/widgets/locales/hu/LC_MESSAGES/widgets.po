@@ -310,11 +310,15 @@ msgstr[0] "{count} eltérés"
 msgid "Modules"
 msgstr "Modulok"
 
-msgid "All modules"
-msgstr "Összes modul"
+msgid "All Modules Selected"
+msgstr "Minden modul kijelölve"
+
+msgid "No Modules Selected"
+msgstr "Nincs kijelölt modul"
 
 msgid "Without module"
 msgstr "Modul nélkül"
 
-msgid "Modules ({count})"
-msgstr "Modulok ({count})"
+msgid "{count} Module Selected"
+msgid_plural "{count} Modules Selected"
+msgstr[0] "{count} modul kijelölve"

@@ -319,11 +319,18 @@ msgstr[3] "{count} razlik"
 msgid "Modules"
 msgstr "Moduli"
 
-msgid "All modules"
-msgstr "Vsi moduli"
+msgid "All Modules Selected"
+msgstr "Izbrani vsi moduli"
+
+msgid "No Modules Selected"
+msgstr "Ni izbranih modulov"
 
 msgid "Without module"
 msgstr "Brez modula"
 
-msgid "Modules ({count})"
-msgstr "Moduli ({count})"
+msgid "{count} Module Selected"
+msgid_plural "{count} Modules Selected"
+msgstr[0] "Izbran {count} modul"
+msgstr[1] "Izbrana {count} modula"
+msgstr[2] "Izbrani {count} moduli"
+msgstr[3] "Izbranih {count} modulov"

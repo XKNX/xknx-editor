@@ -301,11 +301,15 @@ msgstr[0] "{count} fark"
 msgid "Modules"
 msgstr "Modüller"
 
-msgid "All modules"
-msgstr "Tüm modüller"
+msgid "All Modules Selected"
+msgstr "Tüm modüller seçili"
+
+msgid "No Modules Selected"
+msgstr "Seçili modül yok"
 
 msgid "Without module"
 msgstr "Modülsüz"
 
-msgid "Modules ({count})"
-msgstr "Modüller ({count})"
+msgid "{count} Module Selected"
+msgid_plural "{count} Modules Selected"
+msgstr[0] "{count} modül seçili"

@@ -15,15 +15,18 @@ class WidgetStrings(BaseStrings):
 
     @property
     def GROUP_OBJECTS_ALL_MODULES(self) -> str:
-        return _("All modules")
+        return _("All Modules Selected")
+
+    @property
+    def GROUP_OBJECTS_NO_MODULES(self) -> str:
+        return _("No Modules Selected")
 
     @property
     def GROUP_OBJECTS_WITHOUT_MODULE(self) -> str:
         return _("Without module")
 
-    @property
-    def GROUP_OBJECTS_MODULE_COUNT(self) -> str:
-        return _("Modules ({count})")
+    def GROUP_OBJECTS_MODULE_COUNT(self, count: int) -> str:
+        return _.plural("{count} Module Selected", "{count} Modules Selected", count)
 
     @property
     def NODE_IMAGE_PLACEHOLDER(self) -> str:

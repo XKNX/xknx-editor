@@ -316,11 +316,17 @@ msgstr[2] "{count} de diferențe"
 msgid "Modules"
 msgstr "Module"
 
-msgid "All modules"
-msgstr "Toate modulele"
+msgid "All Modules Selected"
+msgstr "Toate modulele selectate"
+
+msgid "No Modules Selected"
+msgstr "Niciun modul selectat"
 
 msgid "Without module"
 msgstr "Fără modul"
 
-msgid "Modules ({count})"
-msgstr "Module ({count})"
+msgid "{count} Module Selected"
+msgid_plural "{count} Modules Selected"
+msgstr[0] "{count} modul selectat"
+msgstr[1] "{count} module selectate"
+msgstr[2] "{count} de module selectate"

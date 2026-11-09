@@ -19,7 +19,7 @@ from editor_gui.plugins.catalog.alternative import (
     program_version_text,
 )
 from editor_gui.plugins.catalog.strings import S
-from editor_gui.plugins.catalog.ui.panel import fetched_date
+from editor_gui.plugins.catalog.ui.panel import fetched_date, updated_time
 from editor_gui.strings import S as AppS
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
 from editor_gui.widgets.dpi import px
@@ -191,16 +191,20 @@ class AlternativeCatalogPanel:
             | imgui.TableFlags_.resizable
             | imgui.TableFlags_.sizing_fixed_fit
         )
-        if begin_data_table("##alternative_products_v5", 9, flags, min_width=1500):
+        if begin_data_table("##alternative_products_v6", 9, flags, min_width=1500):
             if reset_scroll:
                 imgui.set_scroll_y(0)
                 imgui.set_scroll_x(0)
+            # The name takes the width the other columns leave, so no empty space follows them.
+            imgui.table_setup_column(
+                S.CATALOG_DETAIL_MANUFACTURER,
+                imgui.TableColumnFlags_.width_fixed,
+                imgui.calc_text_size(S.CATALOG_DETAIL_MANUFACTURER).x + px(8),
+            )
+            imgui.table_setup_column(
+                S.CATALOG_DETAIL_NAME, imgui.TableColumnFlags_.width_stretch, 1.0
+            )
             for name, width in (
-                (
-                    S.CATALOG_DETAIL_MANUFACTURER,
-                    imgui.calc_text_size(S.CATALOG_DETAIL_MANUFACTURER).x / px(1) + 8,
-                ),
-                (S.CATALOG_DETAIL_NAME, 180),
                 (S.CATALOG_DETAIL_ORDER, 170),
                 (
                     S.ALTERNATIVE_VERSION,
@@ -210,7 +214,7 @@ class AlternativeCatalogPanel:
                 (S.CATALOG_DETAIL_APPLICATION, 90),
                 (S.ALTERNATIVE_MASK, 90),
                 (S.ALTERNATIVE_SIZE, 110),
-                (S.ALTERNATIVE_UPDATED, 180),
+                (S.ALTERNATIVE_UPDATED, 130),
             ):
                 imgui.table_setup_column(
                     name, imgui.TableColumnFlags_.width_fixed, px(width)
@@ -242,7 +246,7 @@ class AlternativeCatalogPanel:
                         ", ".join(p["applicationNumber"] for p in entry.programs),
                         ", ".join(p["maskVersion"] for p in entry.programs),
                         f"{entry.size:,} B",
-                        entry.updated,
+                        updated_time(entry.updated),
                     ):
                         imgui.table_next_column()
                         imgui.text_unformatted(" ".join(value.splitlines()))
@@ -401,7 +405,7 @@ class AlternativeCatalogPanel:
                 (S.CATALOG_DETAIL_ORDER, ", ".join(entry.order_numbers)),
                 (S.ALTERNATIVE_FILE, entry.file_name),
                 (S.ALTERNATIVE_SIZE, f"{entry.size:,} B"),
-                (S.ALTERNATIVE_UPDATED, entry.updated),
+                (S.ALTERNATIVE_UPDATED, updated_time(entry.updated)),
                 ("ID", entry.id),
                 ("SHA-256", entry.sha256),
                 ("URL", self._client.settings.base_url + entry.download_url),

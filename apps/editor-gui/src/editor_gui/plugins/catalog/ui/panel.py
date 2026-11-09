@@ -171,6 +171,17 @@ def fetched_date(fetched_at: str | None) -> str:
     return format_date(moment.date().isoformat(), True, regional_format())
 
 
+def updated_time(updated: str) -> str:
+    """When a product was updated (an ISO time with its offset), in local time: the date in the
+    regional short date format and the time to the minute; the text as it is when unreadable."""
+    try:
+        moment = datetime.fromisoformat(updated).astimezone()
+    except ValueError:
+        return updated
+    day = format_date(moment.date().isoformat(), True, regional_format())
+    return f"{day} {moment:%H:%M}"
+
+
 class CatalogPanel:
     def __init__(
         self,

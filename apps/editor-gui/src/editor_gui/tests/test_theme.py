@@ -113,6 +113,27 @@ def test_the_editor_style_keeps_an_adjusted_rounding(
     assert style.tab_close_button_min_width_unselected > 1e20
 
 
+@pytest.mark.parametrize("applied", [theme.LIGHT_THEME, theme.DARK_THEME])
+def test_lines_that_resize_light_up_as_the_splitters_between_docked_windows(
+    context: None, monkeypatch: pytest.MonkeyPatch, applied: hello_imgui.ImGuiTheme_
+) -> None:
+    """The lines beside the page tree and above the help (and table column borders) use the
+    hovered and dragged colors of the splitters between docked windows."""
+    hello_imgui.apply_theme(applied)
+    _use_theme(monkeypatch, hello_imgui.ImGuiThemeTweaks(), applied)
+    theme.apply_style()
+    style = imgui.get_style()
+
+    def rgba(col: imgui.Col_) -> tuple[float, ...]:
+        c = style.color_(col)
+        return (c.x, c.y, c.z, c.w)
+
+    assert rgba(imgui.Col_.separator_hovered) == rgba(imgui.Col_.resize_grip_hovered)
+    assert rgba(imgui.Col_.separator_active) == rgba(imgui.Col_.resize_grip_active)
+    # Hovering shows: the color differs from the line's own.
+    assert rgba(imgui.Col_.separator_hovered) != rgba(imgui.Col_.separator)
+
+
 @pytest.mark.parametrize(
     ("applied", "rounding", "window"),
     [
@@ -190,3 +211,65 @@ def test_status_colors_read_on_light_and_dark_windows(kind: str) -> None:
     on_dark = theme.status_color(kind)
     # Dark on a white window, light on a dark one.
     assert theme._luminance(on_light) < 0.5 < theme._luminance(on_dark)  # pyright: ignore[reportPrivateUsage]
+
+
+def _button_colors(disabled: bool) -> tuple[tuple[int, ...], tuple[int, ...]]:
+    """The fill and the text color a button is drawn with, from imgui's draw data."""
+    io = imgui.get_io()
+    io.display_size = imgui.ImVec2(400, 200)
+    io.backend_flags |= imgui.BackendFlags_.renderer_has_textures
+    # A new window is drawn from its second frame on.
+    for _ in range(2):
+        imgui.new_frame()
+        imgui.set_next_window_pos(imgui.ImVec2(0, 0))
+        imgui.set_next_window_size(imgui.ImVec2(300, 100))
+        imgui.begin("w")
+        imgui.begin_disabled(disabled)
+        imgui.button("Teach")
+        imgui.end_disabled()
+        imgui.end()
+        imgui.render()
+    colors = [
+        v.col
+        for cmd_list in imgui.get_draw_data().cmd_lists
+        for v in cmd_list.vtx_buffer
+    ]
+
+    def rgb(col: int) -> tuple[int, ...]:
+        return (col & 0xFF, (col >> 8) & 0xFF, (col >> 16) & 0xFF)
+
+    return rgb(colors[0]), tuple(sorted({rgb(c) for c in colors}))
+
+
+@pytest.mark.usefixtures("context")
+def test_a_disabled_button_has_the_colors_of_windows_dialogs(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Enabled #F2F2F2 with a #CCCCCC border and #333333 text; disabled nearly white (#FDFDFD,
+    border #F7F7F7, text #DEDEDE), not the enabled button faded."""
+    _use_theme(
+        monkeypatch,
+        hello_imgui.ImGuiThemeTweaks(),
+        hello_imgui.ImGuiTheme_.microsoft_style,
+    )
+    hello_imgui.apply_theme(hello_imgui.ImGuiTheme_.microsoft_style)
+    theme.apply_style()
+    _, enabled = _button_colors(False)
+    assert (242, 242, 242) in enabled and (51, 51, 51) in enabled
+    _, disabled = _button_colors(True)
+    assert (253, 253, 253) in disabled
+    assert (247, 247, 247) in disabled
+    assert (242, 242, 242) not in disabled
+
+
+@pytest.mark.usefixtures("context")
+def test_a_disabled_button_is_closer_to_the_window_in_the_dark_theme(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _use_theme(monkeypatch, hello_imgui.ImGuiThemeTweaks())
+    hello_imgui.apply_theme(hello_imgui.ImGuiTheme_.darcula_darker)
+    theme.apply_style()
+    window = imgui.get_style().color_(imgui.Col_.window_bg)
+    _, disabled = _button_colors(True)
+    # Fill and border within a little of the window.
+    assert min(abs(c[0] - round(window.x * 255)) for c in disabled) <= 6

@@ -31,7 +31,12 @@ from editor_gui.widgets.dpi import px
 from editor_gui.widgets.filter_box import filter_box
 from editor_gui.widgets.flow import button_width, checkbox_width, same_line_if_fits
 from editor_gui.widgets.strings import S
-from editor_gui.widgets.tables import begin_data_table, data_table_headers
+from editor_gui.widgets.tables import (
+    begin_data_table,
+    data_table_headers,
+    freeze_header,
+    table_header_menu,
+)
 from xknxeditor.proj.core.addressing import GroupAddressStyle
 
 # One com-object → group-address link: (assignment_id, group_address_id, text, is_sending).
@@ -319,18 +324,9 @@ class GroupObjectsTable:
         # Bulk action: create + link a group address for every selected com-object.
         if self._on_auto_create_gas is not None:
             selected = [c for c in com_objects if c.id in self._selected]
-            # All three regular buttons so they share the same height/baseline (mixing small_button
-            # with button left the taller "Create" button looking lower than All/None).
-            # The row goes on in the next line where the panel is narrow.
-            if imgui.button(S.GROUP_OBJECTS_SELECT_ALL):
-                self._selected = {c.id for c in com_objects}
-            same_line_if_fits(button_width(S.GROUP_OBJECTS_SELECT_NONE))
-            imgui.begin_disabled(not selected)
-            if imgui.button(S.GROUP_OBJECTS_SELECT_NONE):
-                self._selected.clear()
-            imgui.end_disabled()
+            # Every object is checked (or none) in the table's header; the row goes on in the
+            # next line where the panel is narrow.
             create = S.GROUP_OBJECTS_AUTO_CREATE.format(count=len(selected))
-            same_line_if_fits(button_width(create))
             imgui.begin_disabled(not selected)
             if imgui.button(create):
                 self._batch_open = True
@@ -391,7 +387,10 @@ class GroupObjectsTable:
             letter = flag_letter(attr)
             width = max(px(22.0), imgui.calc_text_size(letter).x + padding)
             imgui.table_setup_column(letter, imgui.TableColumnFlags_.width_fixed, width)
-        data_table_headers()
+        if self._on_auto_create_gas is not None:
+            self._render_headers(com_objects)
+        else:
+            data_table_headers()
 
         for com_obj in com_objects:
             self._render_row(device, com_obj, get_links, get_all_group_addresses)
@@ -402,13 +401,39 @@ class GroupObjectsTable:
         self._render_add_window(get_links, get_all_group_addresses)
         self._render_description_popup()
 
+    def _render_headers(self, com_objects: list[ComObject]) -> None:
+        """The header row: a checkbox before "#" that checks every listed object (or none), then
+        the column titles."""
+        freeze_header()
+        imgui.table_next_row(imgui.TableRowFlags_.headers)
+        for column in range(imgui.table_get_column_count()):
+            imgui.table_set_column_index(column)
+            if not column:
+                every = bool(com_objects) and all(
+                    co.id in self._selected for co in com_objects
+                )
+                imgui.begin_disabled(not com_objects)
+                changed, every = checkbox("##objects_all", every)
+                imgui.end_disabled()
+                if changed:
+                    self._selected = {co.id for co in com_objects} if every else set()
+                imgui.same_line()
+            imgui.table_header(imgui.table_get_column_name(column))
+        table_header_menu()
+
     def _render_module_filter(self, device: Device) -> None:
         groups = device.get_com_object_modules()
         if not any(groups) and self._module_ids is None:
             return
-        preview = S.GROUP_OBJECTS_ALL_MODULES
-        if self._module_ids is not None:
-            preview = S.GROUP_OBJECTS_MODULE_COUNT.format(count=len(self._module_ids))
+        checked = (
+            len(groups.keys() & self._module_ids) if self._module_ids is not None else 0
+        )
+        if self._module_ids is None:
+            preview = S.GROUP_OBJECTS_ALL_MODULES
+        elif not checked:
+            preview = S.GROUP_OBJECTS_NO_MODULES
+        else:
+            preview = S.GROUP_OBJECTS_MODULE_COUNT(checked).format(count=checked)
         imgui.set_next_item_width(max(px(80), imgui.get_content_region_avail().x))
         style = imgui.get_style()
         max_height = min(
@@ -423,13 +448,29 @@ class GroupObjectsTable:
         if begin_combo(
             "##module_filter", preview, background=style.color_(imgui.Col_.frame_bg)
         ):
-            if imgui.selectable(S.GROUP_OBJECTS_ALL_MODULES, self._module_ids is None)[
-                0
-            ]:
-                self._module_ids = None
+            # Beside the search: check every module, or none (which shows no group object).
+            spacing = px(4.0)
+            select_all = f"{S.GROUP_OBJECTS_SELECT_ALL}##modules_all"
+            select_none = f"{S.GROUP_OBJECTS_SELECT_NONE}##modules_none"
             self._module_search = filter_box(
-                "##module_search", S.SEARCH_HINT, self._module_search
+                "##module_search",
+                S.SEARCH_HINT,
+                self._module_search,
+                reserve=button_width(S.GROUP_OBJECTS_SELECT_ALL)
+                + button_width(S.GROUP_OBJECTS_SELECT_NONE)
+                + 2 * spacing,
             )
+            # Each only while it would change what is checked.
+            imgui.same_line(0.0, spacing)
+            imgui.begin_disabled(self._module_ids is None)
+            if imgui.button(select_all):
+                self._module_ids = None
+            imgui.end_disabled()
+            imgui.same_line(0.0, spacing)
+            imgui.begin_disabled(self._module_ids is not None and not checked)
+            if imgui.button(select_none):
+                self._module_ids = set()
+            imgui.end_disabled()
             needle = self._module_search.casefold()
             parents = device.get_com_object_module_parents()
             depths: dict[str, int] = {}
@@ -444,15 +485,18 @@ class GroupObjectsTable:
                 if depth:
                     imgui.indent(px(20) * depth)
                 changed, selected = checkbox(
-                    label, self._module_ids is not None and key in self._module_ids
+                    label, self._module_ids is None or key in self._module_ids
                 )
                 if changed:
                     if self._module_ids is None:
-                        self._module_ids = set()
+                        self._module_ids = set(groups)
                     if selected:
                         self._module_ids.add(key)
                     else:
                         self._module_ids.discard(key)
+                    if groups.keys() <= self._module_ids:
+                        # Every module checked: no filter, so modules that appear later show too.
+                        self._module_ids = None
                 if depth:
                     imgui.unindent(px(20) * depth)
                 imgui.pop_id()

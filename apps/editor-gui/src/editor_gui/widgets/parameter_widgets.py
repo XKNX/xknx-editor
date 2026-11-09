@@ -1694,7 +1694,12 @@ def render_ui_tree(
                 if table.hovered_column_border == 0
                 else None
             )
+            # Without the table's own highlight of the border, which starts above the tree.
+            clear = imgui.ImVec4(0.0, 0.0, 0.0, 0.0)
+            imgui.push_style_color(imgui.Col_.separator_hovered, clear)
+            imgui.push_style_color(imgui.Col_.separator_active, clear)
             imgui.end_table()
+            imgui.pop_style_color(2)
             _draw_page_line(line_left, line_right, line_top, line_bottom, highlight)
     imgui.pop_clip_rect()
     # The area ends at the window's edges, in its padding: it leaves nothing to scroll to (but
@@ -1738,29 +1743,22 @@ def _draw_page_line(
     left: float, right: float, top: float, bottom: float, highlight: int | None = None
 ) -> None:
     """The line between the page tree and the page, open beside the selected page, which has the
-    page's background, so the two join; in the color ``highlight`` along its whole length while
-    it is hovered or dragged to resize the tree."""
+    page's background, so the two join; in the color ``highlight`` while it is hovered or dragged
+    to resize the tree (still open beside the selected page)."""
     draw_list = imgui.get_window_draw_list()
+    scrolls = bool(_tree_scrolls and _tree_scrolls[0])
     if highlight is not None:
-        draw_list.add_rect_filled(
-            imgui.ImVec2(left, top),
-            imgui.ImVec2(right, bottom),
-            imgui.get_color_u32(highlight),
-        )
-        return
-    if _tree_scrolls and _tree_scrolls[0]:
+        color = imgui.get_color_u32(highlight)
+    elif scrolls:
         # The tree's scrollbar parts it from the page.
-        draw_list.add_rect_filled(
-            imgui.ImVec2(left, top),
-            imgui.ImVec2(right, bottom),
-            imgui.get_color_u32(content_background()),
-        )
-        return
+        color = imgui.get_color_u32(content_background())
+    else:
+        color = imgui.get_color_u32(imgui.Col_.separator)
     draw_list.add_rect_filled(
-        imgui.ImVec2(left, top),
-        imgui.ImVec2(right, bottom),
-        imgui.get_color_u32(imgui.Col_.separator),
+        imgui.ImVec2(left, top), imgui.ImVec2(right, bottom), color
     )
+    if scrolls:
+        return
     if _selected_row:
         # Between the row's thin lines, which meet the line at its top and bottom.
         row_top, row_bottom = _selected_row[0]

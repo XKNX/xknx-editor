@@ -304,11 +304,16 @@ msgstr[1] "{count} eroa"
 msgid "Modules"
 msgstr "Moduulit"
 
-msgid "All modules"
-msgstr "Kaikki moduulit"
+msgid "All Modules Selected"
+msgstr "Kaikki moduulit valittu"
+
+msgid "No Modules Selected"
+msgstr "Ei valittuja moduuleja"
 
 msgid "Without module"
 msgstr "Ilman moduulia"
 
-msgid "Modules ({count})"
-msgstr "Moduulit ({count})"
+msgid "{count} Module Selected"
+msgid_plural "{count} Modules Selected"
+msgstr[0] "{count} moduuli valittu"
+msgstr[1] "{count} moduulia valittu"

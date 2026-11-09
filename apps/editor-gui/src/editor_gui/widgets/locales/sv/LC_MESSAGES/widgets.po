@@ -304,11 +304,16 @@ msgstr[1] "{count} skillnader"
 msgid "Modules"
 msgstr "Moduler"
 
-msgid "All modules"
-msgstr "Alla moduler"
+msgid "All Modules Selected"
+msgstr "Alla moduler valda"
+
+msgid "No Modules Selected"
+msgstr "Inga moduler valda"
 
 msgid "Without module"
 msgstr "Utan modul"
 
-msgid "Modules ({count})"
-msgstr "Moduler ({count})"
+msgid "{count} Module Selected"
+msgid_plural "{count} Modules Selected"
+msgstr[0] "{count} modul vald"
+msgstr[1] "{count} moduler valda"
