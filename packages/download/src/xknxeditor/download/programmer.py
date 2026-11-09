@@ -291,6 +291,8 @@ class DeviceProgrammer:
         # Upper bound on the classic memory-service payload. Defaults to the protocol
         # maximum so the chunk follows the negotiated APDU; a no-ACK fallback lowers it.
         self.max_memory_service_count: int = _MAX_MEMORY_CHUNK
+        # Called with the octets of each memory block written (a download's progress).
+        self.memory_written: Callable[[int], None] | None = None
         # The device's application takes A_MemoryExtended_Read/Write (24-bit addresses):
         # writes always use them then, reads when the APDU is longer than 15 octets or the
         # range ends above 64 KiB (see ``memory_services``).
@@ -866,6 +868,8 @@ class DeviceProgrammer:
                 address + offset, block, verify=verify or self.memory_auto_verify
             )
             offset += len(block)
+            if self.memory_written is not None:
+                self.memory_written(len(block))
 
     async def _write_extended_block(
         self, address: int, block: bytes, *, verify: bool
@@ -934,6 +938,8 @@ class DeviceProgrammer:
                         f"wrote {block.hex()} read {read_back.hex()}"
                     )
             offset += count
+            if self.memory_written is not None:
+                self.memory_written(count)
 
     @staticmethod
     def _validate_memory_range(

@@ -654,6 +654,7 @@ async def download(
     access_key: int = FREE_ACCESS_KEY,
     in_programming_mode: bool = False,
     waiting: Callable[[], None] | None = None,
+    memory_progress: Callable[[int, int], None] | None = None,
 ) -> DownloadResult:
     """Download ``application`` into the device at ``individual_address``.
 
@@ -723,6 +724,10 @@ async def download(
     ``in_programming_mode`` the user puts it there first (``waiting`` is called while none is,
     and it has to be the device at ``individual_address``), otherwise the unload switches it
     on itself.
+
+    ``progress`` is called ``(done, total)`` in load controls after each control,
+    ``memory_progress`` ``(done, total)`` in octets while a control writes memory (see
+    :meth:`.procedure.LoadProcedureRunner.run`).
     """
     if tool_key is not None and security is None:
         raise DownloadError("writing the Tool Key needs a secured download")
@@ -880,7 +885,7 @@ async def download(
             access_key=access_key,
         )
         try:
-            await runner.run(progress)
+            await runner.run(progress, memory_progress)
             used_memory_cap = memory_cap
             break
         except (MemoryWriteNotAcknowledged, MemoryReadNotAnswered) as exc:

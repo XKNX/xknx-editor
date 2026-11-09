@@ -75,6 +75,15 @@ async def test_operations_show_the_queue_and_the_bus_operation(tmp_path: Path) -
         assert state["active"][0]["operation"] == "Download (Full)"
         assert state["active"][1]["origin"] == "MCP"
         assert state["history"] == []
+        # The running download writes memory: how far, in octets.
+        connection = ctx.api.connection
+        connection._on_program_progress(17, 28)  # pyright: ignore[reportPrivateUsage]
+        connection._on_memory_progress(6000, 14968)  # pyright: ignore[reportPrivateUsage]
+        running = (await _data(client, "connection_operations"))["active"][0]
+        assert (running["progress"], running["progress_bytes"]) == (
+            [17, 28],
+            [6000, 14968],
+        )
 
         # The running download ends: it moves to the history, the next one runs.
         started[first].set_result(None)
@@ -89,7 +98,6 @@ async def test_operations_show_the_queue_and_the_bus_operation(tmp_path: Path) -
 
         # A bus operation without a queue entry, with its progress.
         started[second].set_result(None)
-        connection = ctx.api.connection
         assert connection.begin_operation("recover", "1.0.1..1.0.20")
         connection._on_program_progress(3, 20)  # pyright: ignore[reportPrivateUsage]
         state = await _data(client, "connection_operations")

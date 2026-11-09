@@ -27,10 +27,11 @@ programmer the connection is assumed to stay open (Connect/Disconnect are no-ops
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import logging
 import re
 import time
-from collections.abc import Awaitable, Callable, Mapping, Sequence
+from collections.abc import Awaitable, Callable, Generator, Mapping, Sequence
 from dataclasses import dataclass, replace
 from typing import TYPE_CHECKING, cast
 
@@ -620,14 +621,23 @@ class LoadProcedureRunner:
         self._preview_compares: dict[
             tuple[int, int, int, int], tuple[bytes | None, bytes | None, str | None]
         ] = {}
+        # The octets of the memory a control writes, reported while it runs (see run).
+        self._memory_progress: Callable[[int, int], None] | None = None
 
-    async def run(self, progress: Callable[[int, int], None] | None = None) -> None:
+    async def run(
+        self,
+        progress: Callable[[int, int], None] | None = None,
+        memory_progress: Callable[[int, int], None] | None = None,
+    ) -> None:
         """Execute the Load Procedure, honouring the selected download scope.
 
         ``progress`` (optional) is called ``progress(done, total)`` after each executed
         control, where ``total`` is the number of in-scope controls, so a UI can show
-        download progress.
+        download progress. ``memory_progress`` (optional) is called ``(done, total)`` in
+        octets while a control writes memory: at its start and after each block, so a long
+        write (a large segment in small blocks) shows movement.
         """
+        self._memory_progress = memory_progress
         in_scope = materialize_group_communication_controls(
             self.image,
             self._controls,
@@ -1639,12 +1649,14 @@ class LoadProcedureRunner:
         optimistic = (
             verify and self._enable_optimistic_write and not self._uses_auto_verify()
         )
-        for address, data in runs:
-            data = await self._with_device_bits(programmer, address, data)
-            if optimistic:
-                optimistic = await programmer.write_memory_optimistic(address, data)
-            else:
-                await programmer.write_memory(address, data, verify=verify)
+        with self._reporting_memory(programmer, runs) as run_done:
+            for address, data in runs:
+                data = await self._with_device_bits(programmer, address, data)
+                if optimistic:
+                    optimistic = await programmer.write_memory_optimistic(address, data)
+                else:
+                    await programmer.write_memory(address, data, verify=verify)
+                run_done(len(data))
 
     async def _with_device_bits(
         self, programmer: DeviceProgrammer, address: int, data: bytes
@@ -1697,10 +1709,54 @@ class LoadProcedureRunner:
         runs = runs or []
         if runs:
             programmer = await self._memory_programmer()
-        for run_offset, data in runs:
-            await programmer.write_memory(
-                base + run_offset, data, verify=control.verify
-            )
+        with self._reporting_memory(programmer, runs) as run_done:
+            for run_offset, data in runs:
+                await programmer.write_memory(
+                    base + run_offset, data, verify=control.verify
+                )
+                run_done(len(data))
+
+    @contextlib.contextmanager
+    def _reporting_memory(
+        self, programmer: DeviceProgrammer, runs: Sequence[tuple[int, bytes]]
+    ) -> Generator[Callable[[int], None]]:
+        """Report the octets of ``runs`` written to ``memory_progress``, block by block.
+
+        Yields the call that ends a run: a run written only in part (an optimistic write
+        skips what the device holds) still counts whole.
+        """
+        report = self._memory_progress
+        if report is None or not runs:
+            yield lambda _length: None
+            return
+        total = sum(len(data) for _, data in runs)
+        finished = 0
+        current = 0
+        reported = 0
+
+        def tell(done: int) -> None:
+            nonlocal reported
+            if done != reported:
+                reported = done
+                report(done, total)
+
+        def block_written(count: int) -> None:
+            nonlocal current
+            current += count
+            tell(min(finished + current, total))
+
+        def run_done(length: int) -> None:
+            nonlocal finished, current
+            finished += length
+            current = 0
+            tell(finished)
+
+        report(0, total)
+        programmer.memory_written = block_written
+        try:
+            yield run_done
+        finally:
+            programmer.memory_written = None
 
     def _uses_auto_verify(self) -> bool:
         """Whether the device verifies memory writes itself: as ``EnableMemoryAutoVerify``

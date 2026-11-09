@@ -851,6 +851,9 @@ class KnxGuiApp:
         self._connection_service.keyring = self._keyring_plugin.service
         self._connection_service.project_keys = self._project_service.device_keys
         self._connection_service.project_access_key = self._project_service.access_key
+        self._connection_service.project_device = (
+            self._project_service.find_device_by_address
+        )
         # KNX IP Secure tunnels and routing, and KNX Data Secure group communication, of the
         # editor's own connection: from the project, else from the loaded keyring.
         self._connection_service.project_tunnels = self._project_service.secure_tunnels
@@ -3978,7 +3981,12 @@ class KnxGuiApp:
                 text = S.STATUS_PROGRAMMING.format(address=address)
                 prog = self._connection_service.busy_progress
                 if prog is not None:
-                    text += f" ({prog[0]}/{prog[1]})"
+                    from editor_gui.plugins.project.ui.program_queue import (
+                        download_progress_text,
+                    )
+
+                    memory = self._connection_service.busy_memory_progress
+                    text += f" ({download_progress_text(prog, memory)})"
             elif kind == "device_info":
                 text = S.STATUS_READING.format(address=address)
             else:
