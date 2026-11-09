@@ -1421,12 +1421,52 @@ def _bcu_group_tables(
             _ADDRESS_TABLE, address_data, mask=_address_table_mask(address_data)
         )
     )
+    _check_in_memory(application, address, len(association_data), len(associations))
     result.append(
         MemorySegment(address, association_data, mask=b"\xff" * len(association_data))
     )
     if pointer is not None:
         _set_octet(result, _ASSOCIATION_POINTER, pointer & 0xFF)
     return moved
+
+
+def _check_in_memory(
+    application: Application, address: int, length: int, entries: int
+) -> None:
+    """Refuse a BCU association table that starts in the memory of the image and runs past
+    its end: the application's code segments and the mask's memory segments, where they
+    overlap or touch one memory. Nothing past that end reaches the device. With a reserved
+    slot per group object the table is that long without any link (a product that declares
+    it at 0317h for 213 objects, on a mask whose memory ends at 046Fh). A table that starts
+    outside that memory is left as it is."""
+    code = application.program.static.code
+    spans = [
+        (segment.address, segment.address + segment.size)
+        for segment in (code.absolute_segment if code is not None else ())
+        if segment.size and not segment.user_memory
+    ]
+    resources = bundled_mask_resources(device_mask_version(application))
+    if resources is not None:
+        spans += [(start, start + size) for start, size in resources.memory()]
+    merged: list[list[int]] = []
+    for start, stop in sorted(spans):
+        if merged and start <= merged[-1][1]:
+            merged[-1][1] = max(merged[-1][1], stop)
+        else:
+            merged.append([start, stop])
+    end = next((stop for start, stop in merged if start <= address < stop), None)
+    if end is None or address + length <= end:
+        return
+    plugin = getattr(application.program.static.extension, "ets_download_plugin", None)
+    raise ImageError(
+        f"association table has {entries} entries ({length} octets from {address:04X}h); "
+        f"the device's memory ends at {end - 1:04X}h"
+        + (
+            "; the product data leaves its tables to the manufacturer's download plug-in"
+            if plugin
+            else ""
+        )
+    )
 
 
 def _check_declared_entries(

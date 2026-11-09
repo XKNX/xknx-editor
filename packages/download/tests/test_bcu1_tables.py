@@ -677,6 +677,30 @@ def test_bcu2_tables_stay_where_the_product_declares_them() -> None:
     assert _association_pointer(segments) == 0x3B
 
 
+def test_bcu2_association_table_past_the_memory_is_refused() -> None:
+    """A declared association table that runs past the end of the device's memory (the
+    code segment and the mask's 880 octets from 0100h: up to 046Fh) is refused, not cut:
+    with a slot per object it needs 7 octets from 046Ah, 1 too many. One octet earlier it
+    fits."""
+
+    def tables(offset: int) -> list[MemorySegment]:
+        return _group_communication_segments(
+            _application("MV-0020", association_offset=offset),
+            _UI(_NODES),
+            {_SEGMENT: _BASE},
+            {_SEGMENT: (_seed(), bytes(256))},
+            GroupCommunication(device_address=0x1133, links=()),
+        )
+
+    with pytest.raises(
+        ImageError,
+        match=r"3 entries \(7 octets from 046Ah\); the device's memory ends at 046Fh$",
+    ):
+        tables(0x036A)
+    association = next(s for s in tables(0x0369) if s.address == 0x0469)
+    assert association.data == bytes.fromhex("03fe00fe01fe02")
+
+
 def test_a_group_object_table_past_its_segment_is_reported(
     caplog: pytest.LogCaptureFixture,
 ) -> None:
@@ -693,6 +717,21 @@ def test_a_group_object_table_past_its_segment_is_reported(
     assert "group object table at offset 300 lies past its code segment" in caplog.text
     eeprom = next(segment for segment in segments if segment.address == _BASE)
     assert eeprom.data == _seed()
+
+
+def test_an_association_table_past_the_memory_names_a_download_plug_in() -> None:
+    application = _application("MV-0020", association_offset=0x036A)
+    application.program.static.extension = SimpleNamespace(
+        ets_download_plugin="{00000000-0000-0000-0000-000000000001}"
+    )
+    with pytest.raises(ImageError, match=r"manufacturer's download plug-in$"):
+        _group_communication_segments(
+            application,
+            _UI(_NODES),
+            {_SEGMENT: _BASE},
+            {_SEGMENT: (_seed(), bytes(256))},
+            GroupCommunication(device_address=0x1133, links=()),
+        )
 
 
 def test_bcu2_easy_controller_style_has_no_reserved_slots() -> None:
