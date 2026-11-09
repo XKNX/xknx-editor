@@ -374,12 +374,14 @@ async def read_parameter_memory(
     Returns ``{segment_id: bytes}`` sized to the application's segment seeds. For
     the memory-mapped model each segment is read at its fixed base address; for
     System B a relative segment (id ``..._RS-<objidx>-...``) is read through that
-    object's table reference. Segments whose location cannot be resolved are
-    skipped, and so are the segments in the device's user memory: an address space of its
-    own, which a standard memory read at the same address does not reach (and the
-    download does not write), and the segments the application's own load procedure
-    writes nothing of (see :func:`_never_written`). This is the raw material parameter
-    recovery matches against.
+    object's table reference. A segment in the device's user memory, an address space of
+    its own which a standard memory read at the same address does not reach, is read with
+    the user memory services, and only where a step of the load procedure writes it in the
+    user memory (see :func:`_written_in_user_memory`): the download writes nothing else
+    there. Segments whose location cannot be resolved are skipped, and so are the segments
+    the application's own load procedure writes nothing of (see :func:`_never_written`).
+    This is the raw material parameter recovery matches against, keyed by segment id like
+    the download image's segments (the user memory's included).
     """
     base_addresses, sizes = _segment_layout(application)
     memory_mapped = _is_memory_mapped(application)
@@ -396,15 +398,17 @@ async def read_parameter_memory(
         }
         for segment_id, size in sizes.items():
             base = base_addresses.get(segment_id)
+            if not size or base is None:
+                continue
+            user = segment_id in user_memory
             if (
-                not size
-                or base is None
-                or segment_id in user_memory
-                or _never_written(application, base, size)
+                not _written_in_user_memory(application, base, size)
+                if user
+                else _never_written(application, base, size)
             ):
                 continue
             try:
-                result[segment_id] = await programmer.read_memory(base, size)
+                result[segment_id] = await programmer.read_memory(base, size, user=user)
             except ManagementConnectionError:
                 raise
             except (LoadStateError, VerificationError, XKNXException):
@@ -688,11 +692,39 @@ def _never_written(application: Application, address: int, size: int) -> bool:
     for procedure in procedures.load_procedure if procedures is not None else ():
         for control in _memory_controls(procedure.choice):
             placing = True
-            start = int(getattr(control, "address", 0))
-            length = int(getattr(control, "size", 0))
-            if start < address + size and address < start + length:
+            # A step in the user memory writes another address space at the same address
+            # (see _written_in_user_memory).
+            if not _in_user_memory(control) and _overlaps(control, address, size):
                 return False
     return placing
+
+
+def _written_in_user_memory(application: Application, address: int, size: int) -> bool:
+    """Whether a step of the application's load procedures writes any of the ``size`` bytes
+    at ``address`` of the user memory (a WriteMem or LoadImageMem with
+    ``AddressSpace="User"``): the download writes a user memory segment there only."""
+    procedures = application.load_procedures
+    return any(
+        _in_user_memory(control) and _overlaps(control, address, size)
+        for procedure in (procedures.load_procedure if procedures is not None else ())
+        for control in _memory_controls(procedure.choice)
+    )
+
+
+def _in_user_memory(control: object) -> bool:
+    """Whether a memory control accesses the user memory (``AddressSpace="User"``)."""
+    from xknxeditor.namespaces.intermediate.ld_ctrl_mem_addr_space_t import (
+        LdCtrlMemAddrSpace,
+    )
+
+    return getattr(control, "address_space", None) is LdCtrlMemAddrSpace.USER
+
+
+def _overlaps(control: object, address: int, size: int) -> bool:
+    """Whether a memory control's range reaches any of the ``size`` bytes at ``address``."""
+    start = int(getattr(control, "address", 0))
+    length = int(getattr(control, "size", 0))
+    return start < address + size and address < start + length
 
 
 def _record_ranges(numbers: list[int], max_records: int) -> list[tuple[int, int]]:

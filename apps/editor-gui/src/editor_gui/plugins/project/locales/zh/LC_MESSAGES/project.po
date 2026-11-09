@@ -1075,10 +1075,13 @@ msgstr "导出路径："
 msgid "Export Programming Test Result"
 msgstr "导出编程测试结果"
 
-msgid "memory {address}"
+msgid "Memory {address}"
 msgstr "存储器 {address}"
 
-msgid "object {object} property {property}"
+msgid "User memory {address}"
+msgstr "用户存储器 {address}"
+
+msgid "Object {object} property {property}"
 msgstr "对象 {object} 属性 {property}"
 
 msgid "Filter devices (name, address)…"

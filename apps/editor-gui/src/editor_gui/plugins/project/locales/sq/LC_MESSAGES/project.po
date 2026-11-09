@@ -1075,11 +1075,14 @@ msgstr "Shtegu i eksportit:"
 msgid "Export Programming Test Result"
 msgstr "Eksporto rezultatin e testit të programimit"
 
-msgid "memory {address}"
-msgstr "memoria {address}"
+msgid "Memory {address}"
+msgstr "Memoria {address}"
 
-msgid "object {object} property {property}"
-msgstr "objekti {object} vetia {property}"
+msgid "User memory {address}"
+msgstr "Memoria e përdoruesit {address}"
+
+msgid "Object {object} property {property}"
+msgstr "Objekti {object} vetia {property}"
 
 msgid "Filter devices (name, address)…"
 msgstr "Filtro pajisjet (emri, adresa)…"

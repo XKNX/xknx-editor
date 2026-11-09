@@ -265,11 +265,14 @@ msgstr "Flytja út Ist/Soll…"
 msgid "Export Path:"
 msgstr "Útflutningsslóð:"
 
-msgid "memory {address}"
-msgstr "minni {address}"
+msgid "Memory {address}"
+msgstr "Minni {address}"
 
-msgid "object {object} property {property}"
-msgstr "hlutur {object} eiginleiki {property}"
+msgid "User memory {address}"
+msgstr "Notendaminni {address}"
+
+msgid "Object {object} property {property}"
+msgstr "Hlutur {object} eiginleiki {property}"
 
 msgid "Filter devices (name, address)…"
 msgstr "Sía tæki (heiti, vistfang)…"

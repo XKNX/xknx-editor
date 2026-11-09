@@ -20,7 +20,10 @@ class _Programmer:
     def __init__(self) -> None:
         self.reads: list[tuple[int, int]] = []
 
-    async def read_memory(self, address: int, size: int) -> bytes:
+    async def read_memory(
+        self, address: int, size: int, *, user: bool = False
+    ) -> bytes:
+        assert not user
         self.reads.append((address, size))
         return bytes(size)
 

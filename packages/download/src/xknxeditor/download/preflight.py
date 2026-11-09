@@ -190,8 +190,9 @@ class PreflightReport:
             f"{len(changed_properties)} property write(s))."
         ]
         for segment in changed_segments:
+            space = "user memory" if segment.user_memory else "memory"
             lines.append(
-                f"  memory {segment.address:#06x}: "
+                f"  {space} {segment.address:#06x}: "
                 f"{segment.changed_bytes}/{len(segment.planned)} changed"
                 + (" (procedure step)" if segment.procedure_step else "")
             )

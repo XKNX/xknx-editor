@@ -1075,11 +1075,14 @@ msgstr "Cesta exportu:"
 msgid "Export Programming Test Result"
 msgstr "Exportovat výsledek testu programování"
 
-msgid "memory {address}"
-msgstr "paměť {address}"
+msgid "Memory {address}"
+msgstr "Paměť {address}"
 
-msgid "object {object} property {property}"
-msgstr "objekt {object} vlastnost {property}"
+msgid "User memory {address}"
+msgstr "Uživatelská paměť {address}"
+
+msgid "Object {object} property {property}"
+msgstr "Objekt {object} vlastnost {property}"
 
 msgid "Filter devices (name, address)…"
 msgstr "Filtrovat zařízení (název, adresa)…"

@@ -265,3 +265,21 @@ def test_the_parameter_maps_key_a_user_memory_segment_apart() -> None:
             0x100,
             memory_key(0x100, user=True),
         }
+
+
+def test_a_user_memory_segment_is_labelled_apart_from_standard_memory() -> None:
+    standard = SegmentDiff(address=0x100, current=b"\x00", planned=b"\x01")
+    user = SegmentDiff(
+        address=0x100, current=b"\x00", planned=b"\x01", user_memory=True
+    )
+    assert PreflightResultWindow._segment_location(standard) == "Memory 0x0100"
+    assert PreflightResultWindow._segment_location(user) == "User memory 0x0100"
+    report = PreflightReport(segments=(standard, user), properties=())
+    assert "  memory 0x0100: 1/1 changed" in report.summary()
+    assert "  user memory 0x0100: 1/1 changed" in report.summary()
+    w = _window()
+    w._label = "1.1.1"
+    w._scope = "all"
+    exported = w._export_text(report)
+    assert "## memory 0x0100 (1B) changed=1" in exported
+    assert "## user memory 0x0100 (1B) changed=1" in exported

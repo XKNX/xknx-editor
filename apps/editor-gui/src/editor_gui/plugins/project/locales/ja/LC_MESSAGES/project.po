@@ -1075,10 +1075,13 @@ msgstr "エクスポート・パス："
 msgid "Export Programming Test Result"
 msgstr "プログラミング・テストの結果をエクスポート"
 
-msgid "memory {address}"
+msgid "Memory {address}"
 msgstr "メモリ {address}"
 
-msgid "object {object} property {property}"
+msgid "User memory {address}"
+msgstr "ユーザーメモリ {address}"
+
+msgid "Object {object} property {property}"
 msgstr "オブジェクト {object} プロパティ {property}"
 
 msgid "Filter devices (name, address)…"

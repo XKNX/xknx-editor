@@ -1312,14 +1312,17 @@ msgstr "wijkt af van project V{version} — programmeer om toe te passen"
 msgid "match"
 msgstr "overeenkomst"
 
-msgid "memory {address}"
-msgstr "geheugen {address}"
+msgid "Memory {address}"
+msgstr "Geheugen {address}"
+
+msgid "User memory {address}"
+msgstr "Gebruikersgeheugen {address}"
 
 msgid "none"
 msgstr "geen"
 
-msgid "object {object} property {property}"
-msgstr "object {object} eigenschap {property}"
+msgid "Object {object} property {property}"
+msgstr "Object {object} eigenschap {property}"
 
 msgid "removed"
 msgstr "verwijderd"

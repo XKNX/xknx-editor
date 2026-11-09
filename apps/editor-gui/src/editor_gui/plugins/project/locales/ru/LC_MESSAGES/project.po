@@ -1075,11 +1075,14 @@ msgstr "Путь экспорта:"
 msgid "Export Programming Test Result"
 msgstr "Экспорт результата тестового программирования"
 
-msgid "memory {address}"
-msgstr "память {address}"
+msgid "Memory {address}"
+msgstr "Память {address}"
 
-msgid "object {object} property {property}"
-msgstr "объект {object} свойство {property}"
+msgid "User memory {address}"
+msgstr "Пользовательская память {address}"
+
+msgid "Object {object} property {property}"
+msgstr "Объект {object} свойство {property}"
 
 msgid "Filter devices (name, address)…"
 msgstr "Фильтр устройств (имя, адрес)…"

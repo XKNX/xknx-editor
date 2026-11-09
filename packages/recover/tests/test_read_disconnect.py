@@ -18,7 +18,9 @@ class _Programmer:
     def __init__(self, error: Exception) -> None:
         self.error = error
 
-    async def read_memory(self, address: int, size: int) -> bytes:
+    async def read_memory(
+        self, address: int, size: int, *, user: bool = False
+    ) -> bytes:
         raise self.error
 
     async def read_table_reference(self, object_index: int) -> int:

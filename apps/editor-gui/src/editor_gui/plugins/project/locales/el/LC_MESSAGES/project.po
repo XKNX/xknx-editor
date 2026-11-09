@@ -1075,11 +1075,14 @@ msgstr "Διαδρομή Εξαγωγής:"
 msgid "Export Programming Test Result"
 msgstr "Εξαγωγή Αποτελέσματος Δοκιμής Προγραμματισμού"
 
-msgid "memory {address}"
-msgstr "μνήμη {address}"
+msgid "Memory {address}"
+msgstr "Μνήμη {address}"
 
-msgid "object {object} property {property}"
-msgstr "αντικείμενο {object} ιδιότητα {property}"
+msgid "User memory {address}"
+msgstr "Μνήμη χρήστη {address}"
+
+msgid "Object {object} property {property}"
+msgstr "Αντικείμενο {object} ιδιότητα {property}"
 
 msgid "Filter devices (name, address)…"
 msgstr "Φιλτράρισμα συσκευών (όνομα, διεύθυνση)…"
