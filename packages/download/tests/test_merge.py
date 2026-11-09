@@ -213,6 +213,38 @@ def test_unload_without_master_raises() -> None:
         )  # type: ignore[arg-type]
 
 
+def test_an_unload_on_a_mask_with_load_procedures_only_sends_nothing() -> None:
+    # The TP couplers' mask MV-0911 has Load procedures only: the unload has no controls for
+    # the application, and no Load procedure stands in for one.
+    application = _application(
+        LoadProcedureStyle.DEFAULT_PROCEDURE, _fragment(0, LdCtrlConnect())
+    )
+    master = _master_with_default(LdCtrlConnect(), LdCtrlRestart())
+    assert (
+        resolve_download_controls(
+            cast("object", application), master, procedure_type=ProcedureType.UNLOAD
+        )  # type: ignore[arg-type]
+        == []
+    )
+    # A load still needs its procedure.
+    assert resolve_download_controls(cast("object", application), master)  # type: ignore[arg-type]
+
+
+def test_an_unload_on_a_mask_without_procedures_sends_nothing() -> None:
+    application = SimpleNamespace(
+        load_procedure_style=LoadProcedureStyle.DEFAULT_PROCEDURE,
+        load_procedures=None,
+        program=SimpleNamespace(mask_version="MV-0001"),
+    )
+    master = _master_with_default(LdCtrlConnect())
+    assert (
+        resolve_download_controls(
+            cast("object", application), master, procedure_type=ProcedureType.UNLOAD
+        )  # type: ignore[arg-type]
+        == []
+    )
+
+
 def _master_with_features(*features: object) -> MasterData:
     mask = SimpleNamespace(
         id=_MASK,

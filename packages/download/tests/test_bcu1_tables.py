@@ -32,6 +32,7 @@ from xknxeditor.download.image import (
     MovedTables,
     _communication_by_link,
     _group_communication_relative_segments,
+    table_ranges,
 )
 from xknxeditor.download.image import (
     _group_communication_segments as _group_tables,
@@ -157,13 +158,19 @@ def _application(
             module_defs=None,
             static=SimpleNamespace(
                 script=None,
+                extension=None,
                 options=SimpleNamespace(
                     easy_ctrl_mode_mode_style_empty_group_com_tables=easy
                 ),
                 code=SimpleNamespace(
                     absolute_segment=[
                         SimpleNamespace(
-                            id=_SEGMENT, address=_BASE, data=_seed(), mask=None
+                            id=_SEGMENT,
+                            address=_BASE,
+                            size=256,
+                            data=_seed(),
+                            mask=None,
+                            user_memory=False,
                         )
                     ],
                     relative_segment=[],
@@ -384,6 +391,25 @@ def test_m112_count_is_the_number_of_records() -> None:
     assert address == _BASE + _TABLE
     assert data[0] == 5
     assert data[1:3] == seed[_TABLE + 1 : _TABLE + 3]
+
+
+def test_the_table_memory_is_what_the_table_writes() -> None:
+    # The group object table's segment is the whole code segment: the parameters before and
+    # behind the table are no table bytes, so the preview does not count them as one.
+    application = _application("MV-0705")
+    application.program.static.com_object_table.com_object.append(_static_object(4))
+    seed = bytearray(_seed())
+    seed[_TABLE] = 0xFE
+    eeprom = _m112_segments(application, seed, _NODES)
+    end = _BASE + _TABLE + 3 + 5 * 4
+    ranges = table_ranges([eeprom])
+
+    def in_table(address: int) -> bool:
+        return any(start <= address < stop for start, stop in ranges)
+
+    assert in_table(_BASE + _TABLE) and in_table(end - 1)
+    assert not in_table(_BASE + _TABLE - 1) and not in_table(end)
+    assert not in_table(_BASE + 200)
 
 
 def test_m112_count_that_matches_the_product_is_kept_everywhere() -> None:
@@ -649,6 +675,63 @@ def test_bcu2_tables_stay_where_the_product_declares_them() -> None:
     association = next(segment for segment in segments if segment.address == 0x013B)
     assert association.data == bytes.fromhex("03fe000101fe02")
     assert _association_pointer(segments) == 0x3B
+
+
+def test_bcu2_association_table_past_the_memory_is_refused() -> None:
+    """A declared association table that runs past the end of the device's memory (the
+    code segment and the mask's 880 octets from 0100h: up to 046Fh) is refused, not cut:
+    with a slot per object it needs 7 octets from 046Ah, 1 too many. One octet earlier it
+    fits."""
+
+    def tables(offset: int) -> list[MemorySegment]:
+        return _group_communication_segments(
+            _application("MV-0020", association_offset=offset),
+            _UI(_NODES),
+            {_SEGMENT: _BASE},
+            {_SEGMENT: (_seed(), bytes(256))},
+            GroupCommunication(device_address=0x1133, links=()),
+        )
+
+    with pytest.raises(
+        ImageError,
+        match=r"3 entries \(7 octets from 046Ah\); the device's memory ends at 046Fh$",
+    ):
+        tables(0x036A)
+    association = next(s for s in tables(0x0369) if s.address == 0x0469)
+    assert association.data == bytes.fromhex("03fe00fe01fe02")
+
+
+def test_a_group_object_table_past_its_segment_is_reported(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    application = _application("MV-0020")
+    application.program.static.com_object_table.offset = 300
+    with caplog.at_level("WARNING", logger="xknxeditor.download.image"):
+        segments = _group_communication_segments(
+            application,
+            _UI(_NODES),
+            {_SEGMENT: _BASE},
+            {_SEGMENT: (_seed(), bytes(256))},
+            GroupCommunication(device_address=0x1133, links=()),
+        )
+    assert "group object table at offset 300 lies past its code segment" in caplog.text
+    eeprom = next(segment for segment in segments if segment.address == _BASE)
+    assert eeprom.data == _seed()
+
+
+def test_an_association_table_past_the_memory_names_a_download_plug_in() -> None:
+    application = _application("MV-0020", association_offset=0x036A)
+    application.program.static.extension = SimpleNamespace(
+        ets_download_plugin="{00000000-0000-0000-0000-000000000001}"
+    )
+    with pytest.raises(ImageError, match=r"manufacturer's download plug-in$"):
+        _group_communication_segments(
+            application,
+            _UI(_NODES),
+            {_SEGMENT: _BASE},
+            {_SEGMENT: (_seed(), bytes(256))},
+            GroupCommunication(device_address=0x1133, links=()),
+        )
 
 
 def test_bcu2_easy_controller_style_has_no_reserved_slots() -> None:

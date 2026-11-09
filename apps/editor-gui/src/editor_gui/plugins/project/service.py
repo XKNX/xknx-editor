@@ -332,6 +332,39 @@ def _module_instance_changes(
     return new, ended
 
 
+def _has_module_refs(device: Device) -> bool:
+    """Whether a parameter value or group object of ``device`` is one of a module instance."""
+    return any(
+        "_MI-" in (ref.ref_id or "")
+        for ref in (*device.parameter_instance_refs, *device.com_object_instance_refs)
+    )
+
+
+def _without_objects_of(
+    device: Device,
+    target: set[str] | None,
+    ended_instances: Collection[str],
+    app_program_id: str,
+) -> set[str] | None:
+    """The com-object set ``target`` (``None``: the device's objects stay as they are) without
+    the objects of the module instances a change ended, and of their submodule instances: no
+    object of an instance the device no longer has may stay. ``None`` when that leaves the
+    device's objects as they are."""
+    if not ended_instances:
+        return target
+    current = {co.id for co in device.com_objects}
+    prefixes = tuple(
+        f"{i if i.startswith(f'{app_program_id}_') else f'{app_program_id}_{i}'}_"
+        for i in ended_instances
+    )
+    kept = {
+        ref
+        for ref in (current if target is None else target)
+        if not ref.startswith(prefixes)
+    }
+    return None if kept == current else kept
+
+
 def _device_source_key(row: Any) -> tuple[Any, ...]:
     """Everything a device is built from: its program, parameters, module instances, com objects."""
     return (
@@ -4737,12 +4770,24 @@ class ProjectService:
 
     @io_guarded(dict)
     def module_arguments(self) -> dict[int, dict[str, list[tuple[str, str]]]]:
-        """The module instance arguments of the project's devices, by device id, for the
-        ``.knxproj`` export of instances that have none stored (devices added in the editor)."""
+        """The module instances of the project's devices as their evaluated application has them,
+        with their arguments, by device id, for the ``.knxproj`` export: the arguments of instances
+        that have none stored (devices added in the editor), and the instances a device has not
+        stored (a project saved before module instances were stored), which the export writes so
+        their parameter values and group objects are not lost. A device without a stored module
+        instance or a value or group object of one, and a device whose application cannot be
+        evaluated, is left out."""
         result: dict[int, dict[str, list[tuple[str, str]]]] = {}
         for device in self.devices:
-            if device.module_instances:
-                result[device.node_id] = device.get_module_instance_arguments()
+            if not (device.module_instances or _has_module_refs(device)):
+                continue
+            resident = device.evaluated
+            if device.app is None or device.dynamic_ui is None:
+                continue
+            result[device.node_id] = device.get_module_instance_arguments()
+            # Only the devices in use keep their (large) evaluator.
+            if not resident:
+                device.release_dynamic_ui()
         return result
 
     def group_object_trees(self) -> dict[int, str]:
@@ -5679,14 +5724,26 @@ class ProjectService:
         device = self.find_device_by_node_id(node_id)
         if self._pid is None or device is None or device.app is None:
             return
-        target = self._com_object_target(device, old_active)
-        if target is not None:
+        new_instances, ended_instances = _module_instance_changes(
+            device, device.app.program.id
+        )
+        target = _without_objects_of(
+            device,
+            self._com_object_target(device, old_active),
+            ended_instances,
+            device.app.program.id,
+        )
+        if target is not None or new_instances or ended_instances:
             self._svc.set_parameters(
                 self._pid,
                 node_id,
                 [],
-                com_object_target=[(r, None) for r in sorted(target)],
+                com_object_target=None
+                if target is None
+                else [(r, None) for r in sorted(target)],
                 app_program_id=device.app.program.id,
+                module_instances=new_instances,
+                removed_module_instances=ended_instances,
             )
         self._refresh_device(node_id)
         self._bump(structural=False)
@@ -5714,12 +5771,17 @@ class ProjectService:
         values = [(ref, new) for ref, (_, new) in changes.items() if new is not None]
         if self._pid is None or not values or device.app is None:
             return
-        target = self._com_object_target(device, old_active)
-        if target is not None:
-            device.last_lost_links = self._removed_links(device, target)
         new_instances, ended_instances = _module_instance_changes(
             device, device.app.program.id
         )
+        target = _without_objects_of(
+            device,
+            self._com_object_target(device, old_active),
+            ended_instances,
+            device.app.program.id,
+        )
+        if target is not None:
+            device.last_lost_links = self._removed_links(device, target)
         self._svc.set_parameters(
             self._pid,
             device.node_id,

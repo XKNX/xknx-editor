@@ -36,9 +36,14 @@
               <Parameter Id="M-00FA_A-0002-01-0000_P-5" Name="Protection" ParameterType="M-00FA_A-0002-01-0000_PT-Mode" Text="Protection" Value="0" />
               <Parameter Id="M-00FA_A-0002-01-0000_P-6" Name="Level" ParameterType="M-00FA_A-0002-01-0000_PT-Level" Text="Level" Value="1" />
               <Parameter Id="M-00FA_A-0002-01-0000_P-7" Name="LevelValue" ParameterType="M-00FA_A-0002-01-0000_PT-Byte" Text="" Access="None" Value="3" />
+              <Parameter Id="M-00FA_A-0002-01-0000_P-8" Name="LevelHigh" ParameterType="M-00FA_A-0002-01-0000_PT-Mode" Text="" Access="None" Value="0" />
+              <Parameter Id="M-00FA_A-0002-01-0000_P-9" Name="Timer" ParameterType="M-00FA_A-0002-01-0000_PT-Mode" Text="Timer" Value="0" />
+              <Parameter Id="M-00FA_A-0002-01-0000_P-10" Name="Night" ParameterType="M-00FA_A-0002-01-0000_PT-Mode" Text="Night" Value="0" />
+              <Parameter Id="M-00FA_A-0002-01-0000_P-11" Name="Hour" ParameterType="M-00FA_A-0002-01-0000_PT-Level" Text="Hour" Value="6" />
+              <Parameter Id="M-00FA_A-0002-01-0000_P-12" Name="HourValue" ParameterType="M-00FA_A-0002-01-0000_PT-Byte" Text="" Access="None" Value="255" />
             </Parameters>
             <ParameterRefs>
-              <ParameterRef Id="M-00FA_A-0002-01-0000_P-1_R-1" RefId="M-00FA_A-0002-01-0000_P-1" /><ParameterRef Id="M-00FA_A-0002-01-0000_P-2_R-2" RefId="M-00FA_A-0002-01-0000_P-2" /><ParameterRef Id="M-00FA_A-0002-01-0000_P-3_R-3" RefId="M-00FA_A-0002-01-0000_P-3" /><ParameterRef Id="M-00FA_A-0002-01-0000_P-4_R-4" RefId="M-00FA_A-0002-01-0000_P-4" /><ParameterRef Id="M-00FA_A-0002-01-0000_P-5_R-5" RefId="M-00FA_A-0002-01-0000_P-5" /><ParameterRef Id="M-00FA_A-0002-01-0000_P-6_R-6" RefId="M-00FA_A-0002-01-0000_P-6" /><ParameterRef Id="M-00FA_A-0002-01-0000_P-7_R-7" RefId="M-00FA_A-0002-01-0000_P-7" />
+              <ParameterRef Id="M-00FA_A-0002-01-0000_P-1_R-1" RefId="M-00FA_A-0002-01-0000_P-1" /><ParameterRef Id="M-00FA_A-0002-01-0000_P-2_R-2" RefId="M-00FA_A-0002-01-0000_P-2" /><ParameterRef Id="M-00FA_A-0002-01-0000_P-3_R-3" RefId="M-00FA_A-0002-01-0000_P-3" /><ParameterRef Id="M-00FA_A-0002-01-0000_P-4_R-4" RefId="M-00FA_A-0002-01-0000_P-4" /><ParameterRef Id="M-00FA_A-0002-01-0000_P-5_R-5" RefId="M-00FA_A-0002-01-0000_P-5" /><ParameterRef Id="M-00FA_A-0002-01-0000_P-6_R-6" RefId="M-00FA_A-0002-01-0000_P-6" /><ParameterRef Id="M-00FA_A-0002-01-0000_P-7_R-7" RefId="M-00FA_A-0002-01-0000_P-7" /><ParameterRef Id="M-00FA_A-0002-01-0000_P-8_R-8" RefId="M-00FA_A-0002-01-0000_P-8" /><ParameterRef Id="M-00FA_A-0002-01-0000_P-9_R-9" RefId="M-00FA_A-0002-01-0000_P-9" /><ParameterRef Id="M-00FA_A-0002-01-0000_P-10_R-10" RefId="M-00FA_A-0002-01-0000_P-10" /><ParameterRef Id="M-00FA_A-0002-01-0000_P-11_R-11" RefId="M-00FA_A-0002-01-0000_P-11" /><ParameterRef Id="M-00FA_A-0002-01-0000_P-12_R-12" RefId="M-00FA_A-0002-01-0000_P-12" />
             </ParameterRefs>
             <ParameterCalculations>
               <!-- The RL transformation is not the inverse of the LR one for the shift. -->
@@ -57,17 +62,29 @@
               <!-- No RL transformation. -->
               <ParameterCalculation Id="M-00FA_A-0002-01-0000_PC-2" Name="Level" Language="JavaScript" LRTransformationFunc="triple">
                 <LParameters><ParameterRefRef RefId="M-00FA_A-0002-01-0000_P-6_R-6" AliasName="l" /></LParameters>
-                <RParameters><ParameterRefRef RefId="M-00FA_A-0002-01-0000_P-7_R-7" AliasName="lv" /></RParameters>
+                <RParameters><ParameterRefRef RefId="M-00FA_A-0002-01-0000_P-7_R-7" AliasName="lv" /><ParameterRefRef RefId="M-00FA_A-0002-01-0000_P-8_R-8" AliasName="high" /></RParameters>
+              </ParameterCalculation>
+              <!-- The RL transformation computes the hour only; the hour is downloaded when both
+                   switches are on. -->
+              <ParameterCalculation Id="M-00FA_A-0002-01-0000_PC-3" Name="Night" Language="JavaScript">
+                <RLTransformation>h = hv == 255 ? 0 : hv;</RLTransformation>
+                <LRTransformation>hv = t == 1 &amp;&amp; n == 1 ? h : 255;</LRTransformation>
+                <LParameters>
+                  <ParameterRefRef RefId="M-00FA_A-0002-01-0000_P-9_R-9" AliasName="t" />
+                  <ParameterRefRef RefId="M-00FA_A-0002-01-0000_P-10_R-10" AliasName="n" />
+                  <ParameterRefRef RefId="M-00FA_A-0002-01-0000_P-11_R-11" AliasName="h" />
+                </LParameters>
+                <RParameters><ParameterRefRef RefId="M-00FA_A-0002-01-0000_P-12_R-12" AliasName="hv" /></RParameters>
               </ParameterCalculation>
             </ParameterCalculations>
             <Script>
-function triple(input, output) { output.lv = input.l * 3; }
+function triple(input, output) { output.lv = input.l * 3; output.high = input.l > 2 ? 1 : 0; }
 </Script>
           </Static>
           <Dynamic>
             <ChannelIndependentBlock>
               <ParameterBlock Id="M-00FA_A-0002-01-0000_PB-1" Text="Main">
-                <ParameterRefRef RefId="M-00FA_A-0002-01-0000_P-1_R-1" /><ParameterRefRef RefId="M-00FA_A-0002-01-0000_P-2_R-2" /><ParameterRefRef RefId="M-00FA_A-0002-01-0000_P-5_R-5" /><ParameterRefRef RefId="M-00FA_A-0002-01-0000_P-6_R-6" /><ParameterRefRef RefId="M-00FA_A-0002-01-0000_P-7_R-7" />
+                <ParameterRefRef RefId="M-00FA_A-0002-01-0000_P-1_R-1" /><ParameterRefRef RefId="M-00FA_A-0002-01-0000_P-2_R-2" /><ParameterRefRef RefId="M-00FA_A-0002-01-0000_P-5_R-5" /><ParameterRefRef RefId="M-00FA_A-0002-01-0000_P-6_R-6" /><ParameterRefRef RefId="M-00FA_A-0002-01-0000_P-7_R-7" /><ParameterRefRef RefId="M-00FA_A-0002-01-0000_P-9_R-9" /><ParameterRefRef RefId="M-00FA_A-0002-01-0000_P-10_R-10" /><ParameterRefRef RefId="M-00FA_A-0002-01-0000_P-11_R-11" /><ParameterRefRef RefId="M-00FA_A-0002-01-0000_P-12_R-12" />
                 <choose ParamRefId="M-00FA_A-0002-01-0000_P-5_R-5">
                   <when test="1">
                     <ParameterRefRef RefId="M-00FA_A-0002-01-0000_P-3_R-3" /><ParameterRefRef RefId="M-00FA_A-0002-01-0000_P-4_R-4" />

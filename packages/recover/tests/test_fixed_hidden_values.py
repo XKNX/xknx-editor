@@ -10,12 +10,15 @@ single-button ones).
 
 from __future__ import annotations
 
+from typing import Any
+
 import pytest
 
 import xknxeditor.recover.parameters as parameters
 from xknxeditor.prod.application import Application, parse_application_xml
 from xknxeditor.recover.errors import RecoverError
 from xknxeditor.recover.parameters import (
+    RecoveryEffort,
     _decode,
     _gates_of,
     _objects_by_number,
@@ -299,7 +302,7 @@ def test_fixed_references_are_not_seeded_from_observed_or_inferred_values(
     values, _ = _decode(
         application,
         {f"{_APP}_AS-0000": b"\x09\x00\x00\x00"},
-        {(4, 80, 0): b"\x09"} if property_backed else {},
+        {(4, None, 80, 0): b"\x09"} if property_backed else {},
         None,
         {_STATUS: "4", marker: "9"},
     )
@@ -323,7 +326,7 @@ def test_an_editable_reference_to_a_hidden_parameter_is_decoded(
     values, _ = _decode(
         application,
         {f"{_APP}_AS-0000": b"\x2a\x00\x00\x00"},
-        {(4, 80, 0): b"\x2a"} if property_backed else {},
+        {(4, None, 80, 0): b"\x2a"} if property_backed else {},
         None,
         {_STATUS: "4"},
     )
@@ -410,6 +413,72 @@ def test_interrupted_fixed_validation_keeps_the_marker_conflict(
     assert result.differing_bytes == 1
     assert not result.complete
     assert result.limited
+
+
+def test_a_cancelled_fixed_validation_decodes_nothing(
+    application: Application, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # Once cancelled the validation does not decode the memory again (with the calculations
+    # of a large application that takes as long as a step of the search): the result so far
+    # with the marker at its own value, measured.
+    marker = f"{_APP}_P-2_R-21"
+    ui = application.dynamic_ui()
+    assert ui is not None
+
+    def no_decode(*_args: object, **_kwargs: object) -> None:
+        raise AssertionError("decoded after the cancel")
+
+    monkeypatch.setattr(parameters, "_decode", no_decode)
+    result = parameters._refine_fixed(
+        application,
+        _device(application, (_STATUS, "4")),
+        {},
+        None,
+        {40},
+        {},
+        parameters.RecoveredParameters({_STATUS: "4", marker: "9"}, []),
+        parameters._fixed_values(application, ui),
+        1,
+        lambda: True,
+    )
+    assert result.values == {_STATUS: "4"}
+    assert result.complete
+
+
+def test_a_fixed_validation_cancelled_while_decoding_ends_with_the_result_so_far(
+    application: Application, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # A cancel given while the validation decodes is heard there too.
+    marker = f"{_APP}_P-2_R-21"
+    ui = application.dynamic_ui()
+    assert ui is not None
+    decode = parameters._decode  # pyright: ignore[reportPrivateUsage]
+    cancelled: list[bool] = []
+    finished: list[bool] = []
+
+    def cancelling(*args: Any, **kwargs: Any) -> Any:
+        cancelled.append(True)
+        result = decode(*args, **kwargs)
+        finished.append(True)
+        return result
+
+    monkeypatch.setattr(parameters, "_decode", cancelling)
+    result = parameters._refine_fixed(
+        application,
+        _device(application, (_STATUS, "4")),
+        {},
+        None,
+        {40},
+        {},
+        parameters.RecoveredParameters({_STATUS: "4", marker: "9"}, []),
+        parameters._fixed_values(application, ui),
+        1,
+        lambda: bool(cancelled),
+    )
+    assert cancelled == [True]
+    assert not finished
+    assert result.values == {_STATUS: "4"}
+    assert result.complete
 
 
 def test_fixed_validation_can_correct_several_independent_markers(
@@ -601,3 +670,127 @@ def test_a_shown_object_the_device_does_not_link_is_no_misfit(
     recovered = recover_parameters(application, segments, linked_objects={51})
     assert recovered.differing_objects == 0
     assert recovered.complete
+
+
+_SHARED_APP = "M-00FA_A-0C02-01-0000"
+_SHARED_STATUS = f"{_SHARED_APP}_P-1_R-1"
+_SHARED_VALUE = f"{_SHARED_APP}_P-3_R-30"
+_SHARED_XML = f"""<?xml version="1.0" encoding="utf-8"?>
+<KNX xmlns="http://knx.org/xml/project/20" CreatedBy="test" ToolVersion="1">
+  <ManufacturerData>
+    <Manufacturer RefId="M-00FA">
+      <ApplicationPrograms>
+        <ApplicationProgram Id="{_SHARED_APP}" ApplicationNumber="194" ApplicationVersion="1"
+            ProgramType="ApplicationProgram" MaskVersion="MV-07B0" Name="Shared byte"
+            LoadProcedureStyle="MergedProcedure" PeiType="0" DefaultLanguage="en-US"
+            DynamicTableManagement="false" Linkable="false" MinEtsVersion="5.0">
+          <Static>
+            <Code>
+              <AbsoluteSegment Id="{_SHARED_APP}_AS-0000" Address="0" Size="1"><Data>AA==</Data></AbsoluteSegment>
+            </Code>
+            <ParameterTypes>
+              <ParameterType Id="{_SHARED_APP}_PT-Status" Name="Status">
+                <TypeRestriction Base="Value" SizeInBit="2">
+                  <Enumeration Text="on request" Value="1" Id="{_SHARED_APP}_PT-Status_EN-1" />
+                  <Enumeration Text="on change" Value="2" Id="{_SHARED_APP}_PT-Status_EN-2" />
+                </TypeRestriction>
+              </ParameterType>
+              <ParameterType Id="{_SHARED_APP}_PT-Six" Name="Six">
+                <TypeNumber SizeInBit="6" Type="unsignedInt" minInclusive="0" maxInclusive="63" />
+              </ParameterType>
+            </ParameterTypes>
+            <Parameters>
+              <Parameter Id="{_SHARED_APP}_P-1" Name="Status" ParameterType="{_SHARED_APP}_PT-Status" Text="Status" Value="2" />
+              <Parameter Id="{_SHARED_APP}_P-2" Name="StatusA" ParameterType="{_SHARED_APP}_PT-Status" Text="" Access="None" Value="2">
+                <Memory CodeSegment="{_SHARED_APP}_AS-0000" Offset="0" BitOffset="0" />
+              </Parameter>
+              <Parameter Id="{_SHARED_APP}_P-3" Name="Value" ParameterType="{_SHARED_APP}_PT-Six" Text="Value" Value="0">
+                <Memory CodeSegment="{_SHARED_APP}_AS-0000" Offset="0" BitOffset="2" />
+              </Parameter>
+            </Parameters>
+            <ParameterRefs>
+              <ParameterRef Id="{_SHARED_STATUS}" RefId="{_SHARED_APP}_P-1" />
+              <ParameterRef Id="{_SHARED_APP}_P-2_R-21" RefId="{_SHARED_APP}_P-2" />
+              <ParameterRef Id="{_SHARED_APP}_P-2_R-22" RefId="{_SHARED_APP}_P-2" Value="1" />
+              <ParameterRef Id="{_SHARED_VALUE}" RefId="{_SHARED_APP}_P-3" />
+            </ParameterRefs>
+          </Static>
+          <Dynamic>
+            <ChannelIndependentBlock>
+              <ParameterBlock Id="{_SHARED_APP}_PB-1" Text="General">
+                <ParameterRefRef RefId="{_SHARED_STATUS}" />
+                <choose ParamRefId="{_SHARED_STATUS}">
+                  <when test="2"><ParameterRefRef RefId="{_SHARED_APP}_P-2_R-21" /></when>
+                  <when test="1"><ParameterRefRef RefId="{_SHARED_APP}_P-2_R-22" /></when>
+                </choose>
+                <ParameterRefRef RefId="{_SHARED_VALUE}" />
+              </ParameterBlock>
+            </ChannelIndependentBlock>
+          </Dynamic>
+        </ApplicationProgram>
+      </ApplicationPrograms>
+    </Manufacturer>
+  </ManufacturerData>
+</KNX>
+"""
+
+
+@pytest.mark.parametrize("effort", [RecoveryEffort.FAST, RecoveryEffort.MEDIUM])
+def test_a_fixed_marker_sharing_its_byte_with_another_setting_picks_the_branch(
+    effort: RecoveryEffort,
+) -> None:
+    # The hidden status of the chosen branch takes the top two bits of a byte whose other six
+    # bits hold a shown value: the bits still tell which branch the device was given.
+    application = parse_application_xml(_SHARED_XML.encode(), "M-00FA")[0]
+    segments = _device(application, (_SHARED_STATUS, "1"), (_SHARED_VALUE, "5"))
+    assert segments == {f"{_SHARED_APP}_AS-0000": bytes([0b01000101])}
+    recovered = recover_parameters(application, segments, effort=effort)
+    assert recovered.complete
+    assert recovered.values[_SHARED_STATUS] == "1"
+    assert recovered.values[_SHARED_VALUE] == "5"
+
+
+def test_the_bytes_of_a_fixed_marker_include_those_it_shares() -> None:
+    application = parse_application_xml(_SHARED_XML.encode(), "M-00FA")[0]
+    ui = application.dynamic_ui()
+    assert ui is not None
+    fixed = parameters._fixed_values(application, ui)  # pyright: ignore[reportPrivateUsage]
+    assert fixed == {
+        f"{_SHARED_APP}_P-2_R-21": "2",
+        f"{_SHARED_APP}_P-2_R-22": "1",
+    }
+    cells = parameters._fixed_cells(ui, fixed)  # pyright: ignore[reportPrivateUsage]
+    assert cells == {(f"{_SHARED_APP}_AS-0000", 0)}
+    # Nothing fixed is active: no bytes.
+    assert not parameters._fixed_cells(ui, {})  # pyright: ignore[reportPrivateUsage]
+
+
+def test_the_selector_of_a_module_is_tried_after_the_selectors_inside_it(
+    application: Application,
+) -> None:
+    # The single-button function's stored type sits behind the function's own choice; whether
+    # the module is there at all (the pair in its place) the buttons' function decides.
+    ui = seed_dynamic_ui(application, {_FUNCTION: "2", f"{_SINGLE}P-1_R-1": "5"})
+    assert ui is not None
+    # At the module's offset (its first argument).
+    cell = (f"{_APP}_AS-0000", 2)
+    assert f"{_SINGLE}P-2_R-2" in ui.stored_parameter_cells()[cell]
+    gates = [
+        gate
+        for gate, _value in parameters._refinement_trials(ui, {cell}, set())  # pyright: ignore[reportPrivateUsage]
+    ]
+    assert f"{_SINGLE}P-1_R-1" in gates
+    assert _FUNCTION in gates
+    assert gates.index(_FUNCTION) > gates.index(f"{_SINGLE}P-1_R-1")
+
+
+def test_selectors_counted_as_often_are_tried_in_a_fixed_order(
+    application: Application,
+) -> None:
+    # Whatever order a set gives them in (it changes with the hash seed of the process).
+    ui = application.dynamic_ui()
+    assert ui is not None
+    gates = {f"{_APP}_P-{n}_R-{n}" for n in range(100, 140)}
+    weight: parameters.Counter[str] = parameters.Counter()
+    parameters._count_selectors(ui, gates, gates, weight)  # pyright: ignore[reportPrivateUsage]
+    assert list(weight) == sorted(gates)

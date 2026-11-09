@@ -116,14 +116,18 @@ from .errors import (
 )
 from .factory_image import FactoryLocation, FactorySegment, FactoryStamp, PropertyStamp
 from .group_communication import materialize_group_communication_controls
+from .image import merge_device_bits
 from .ip_config import IP_PARAMETER_OBJECT, IP_PROPERTY_WIDTHS
-from .merge import device_mask_version, resolve_download_controls
+from .merge import SECOND_PROGRAM_LSM, device_mask_version, resolve_download_controls
 from .preflight import PreflightReport, PropertyDiff, SegmentDiff
 from .programmer import (
     DEFAULT_MAX_APDU_LENGTH,
     FREE_ACCESS_KEY,
     PID_TABLE_REFERENCE,
+    ApduRestriction,
     DeviceProgrammer,
+    apdu_restriction,
+    extended_object,
     negotiated_apdu_length,
 )
 from .property_layout import STANDARD_WRITE_WIDTHS, property_width
@@ -570,6 +574,7 @@ class LoadProcedureRunner:
         self._negotiate_apdu = negotiate_apdu
         self._descriptor_checked = False
         self._negotiated_apdu: int | None = None
+        self._apdu_restricted_by = ApduRestriction.SETTINGS
         self._authorize_levels = authorize_levels
         # BCU1 has no interface-object properties. Leave this on for every other mask.
         self._property_services = property_services
@@ -584,7 +589,10 @@ class LoadProcedureRunner:
             list(controls)
             if controls is not None
             else resolve_download_controls(
-                application, scope=scope, parameter_values=image.procedure_parameters
+                application,
+                scope=scope,
+                parameter_values=image.procedure_parameters,
+                module_controls=image.module_load_controls,
             )
         )
         # Position of the control currently being executed, for diagnostics.
@@ -608,6 +616,11 @@ class LoadProcedureRunner:
         # to the write, which a preview cannot see.
         self._preview_properties: set[tuple[int, int]] = set()
         self._preview_memory: list[tuple[int, int]] = []
+        # What the preview's first compare of each property element range expected (see
+        # _expects_a_change).
+        self._preview_compares: dict[
+            tuple[int, int, int, int], tuple[bytes | None, bytes | None, str | None]
+        ] = {}
         # The octets of the memory a control writes, reported while it runs (see run).
         self._memory_progress: Callable[[int, int], None] | None = None
 
@@ -746,7 +759,9 @@ class LoadProcedureRunner:
         would write. Compare controls (the application fingerprint gate) still run
         - they only read - except a compare of what the preview left unwritten before:
         it checks the device's reaction to that write (e.g. the load state after an
-        unload), not its configuration. The connection is opened read-only and closed again.
+        unload), not its configuration; likewise a compare that expects other data of a
+        property than an earlier one (the device changes it in between). The connection is
+        opened read-only and closed again.
         """
         segments: list[SegmentDiff] = []
         properties: list[PropertyDiff] = []
@@ -769,6 +784,7 @@ class LoadProcedureRunner:
             self._memory_steps |= _memory_procedure_steps(self._full_controls)
         self._preview_properties = set()
         self._preview_memory = []
+        self._preview_compares = {}
         self._enable_segment_write = True
         self._enable_verify_on_write_direct = True
         self._enable_optimistic_write = True
@@ -1073,6 +1089,9 @@ class LoadProcedureRunner:
                     self._negotiated_apdu = negotiated_apdu_length(
                         device_max, self._max_apdu_length
                     )
+                    self._apdu_restricted_by = apdu_restriction(
+                        device_max, self._max_apdu_length
+                    )
                     logger.info(
                         "negotiated APDU length: %d (device reports %d)",
                         self._negotiated_apdu,
@@ -1082,7 +1101,9 @@ class LoadProcedureRunner:
                     # BCU1 APDU length is the classic 15 octets. Property 56
                     # does not exist there; reading it times out.
                     self._negotiated_apdu = DEFAULT_MAX_APDU_LENGTH
+                    self._apdu_restricted_by = ApduRestriction.DEVICE
             programmer.max_apdu_length = self._negotiated_apdu
+            programmer.apdu_restricted_by = self._apdu_restricted_by
         if self._authorize_levels > 0:
             # Access protection is per connection, so authorize on every open (a
             # Restart drops the connection and the next control reconnects), with the
@@ -1127,10 +1148,15 @@ class LoadProcedureRunner:
 
         A control identifies its object by explicit ``obj_idx``, by
         ``obj_type`` + zero-based ``occurrence`` (resolved on the device), or by
-        ``lsm_idx`` which, for property based management, is the object index.
-        With ``extended``, an object addressed by type gets a key for the extended
+        ``lsm_idx`` which, for property based management, is the object index: the
+        device's object of that load state machine where the mask keeps it elsewhere
+        than the image numbers it (see :meth:`MaskResources.lsm_object`). With
+        ``extended``, an object addressed by type gets a key for the extended
         property services instead (instance = occurrence + 1) when the application
-        supports them; the device's object list is not read then.
+        supports them; the device's object list is not read then. It gets one too
+        when the device has the object past the one-octet object index (see
+        :meth:`DeviceProgrammer.locate_object`), so its property controls address it
+        over those services alike.
         """
         obj_idx = getattr(control, "obj_idx", None)
         if obj_idx is not None:
@@ -1139,17 +1165,18 @@ class LoadProcedureRunner:
         if obj_type is not None:
             occurrence = getattr(control, "occurrence", 0)
             if extended and self._extended_properties:
-                key = -1 - ((obj_type << 12) | (occurrence + 1))
-                self._extended_targets[key] = (obj_type, occurrence + 1)
-                self._index_types[key] = obj_type
-                return key
+                return self._extended_key(obj_type, occurrence + 1)
             programmer = await self._bus()
             index = await programmer.locate_object(obj_type, occurrence)
+            target = extended_object(index)
+            if extended and target is not None:
+                return self._extended_key(*target)
             self._index_types[index] = obj_type
             return index
         lsm_idx = getattr(control, "lsm_idx", None)
         if lsm_idx is not None:
-            return lsm_idx
+            resources = bundled_mask_resources(device_mask_version(self.application))
+            return lsm_idx if resources is None else resources.lsm_object(lsm_idx)
         raise self._unsupported(
             control,
             reason=(
@@ -1157,6 +1184,14 @@ class LoadProcedureRunner:
                 f"object (neither obj_idx, obj_type nor lsm_idx is set)"
             ),
         )
+
+    def _extended_key(self, object_type: int, instance: int) -> int:
+        """The key of the ``instance``-th object of a type for the extended property
+        services (see :meth:`_resolve_index`)."""
+        key = -1 - ((object_type << 12) | instance)
+        self._extended_targets[key] = (object_type, instance)
+        self._index_types[key] = object_type
+        return key
 
     def _memory_mapped_mask(self) -> bool:
         """Whether this mask's product procedure places tables through absolute
@@ -1332,7 +1367,8 @@ class LoadProcedureRunner:
         where = f" [{self._position[0]}/{self._position[1]}]" if self._position else ""
         logger.debug("execute load control: %s%s", type(control).__name__, where)
         if isinstance(control, LdCtrlDeclarePropDesc):
-            index = await self._resolve_index(control)
+            # Keyed as the property controls of the object address it.
+            index = await self._resolve_index(control, extended=True)
             self._property_widths[index, control.prop_id] = property_width(
                 control.prop_type
             )
@@ -1543,8 +1579,9 @@ class LoadProcedureRunner:
             # WriteRelMem/WriteMem fails with "no image data".
             return
         if isinstance(control, LdCtrlMerge):
-            # A merge point inside a merged fragment: fragments are merged one level deep
-            # (a fragment may name its own merge id), the point left over does nothing.
+            # A merge point inside a merged fragment that no module instance fills: fragments
+            # are merged one level deep (a fragment may name its own merge id), the point left
+            # over does nothing.
             return
         if isinstance(control, LdCtrlMapError):
             # Arm or reset tolerance of a specific error. The mapped value carries
@@ -1614,11 +1651,35 @@ class LoadProcedureRunner:
         )
         with self._reporting_memory(programmer, runs) as run_done:
             for address, data in runs:
+                data = await self._with_device_bits(programmer, address, data)
                 if optimistic:
                     optimistic = await programmer.write_memory_optimistic(address, data)
                 else:
                     await programmer.write_memory(address, data, verify=verify)
                 run_done(len(data))
+
+    async def _with_device_bits(
+        self, programmer: DeviceProgrammer, address: int, data: bytes
+    ) -> bytes:
+        """``data`` for ``address`` with the octets the product data gives only some bits of
+        (``DownloadImage.bit_masks``) merged into what the device holds: read first, its other
+        bits kept."""
+        masks = self.image.bit_masks
+        inside = [a for a in range(address, address + len(data)) if a in masks]
+        if not inside:
+            return data
+        start, end = inside[0], inside[-1] + 1
+        held = await programmer.read_memory(start, end - start)
+        return merge_device_bits(masks, address, data, start, held)
+
+    def _planned_with(self, address: int, planned: bytes, current: bytes) -> bytes:
+        """What the download writes at ``address`` on a device holding ``current`` there (see
+        :meth:`_with_device_bits`)."""
+        if not self.image.bit_masks:
+            return planned
+        return merge_device_bits(
+            self.image.bit_masks, address, planned, address, current
+        )
 
     async def _write_rel_mem(self, control: LdCtrlWriteRelMem) -> None:
         """Write a WriteRelMem control relative to the object's table base.
@@ -2411,10 +2472,23 @@ class LoadProcedureRunner:
         )
         return True
 
+    def _expects_a_change(self, index: int, control: LdCtrlCompareProp) -> bool:
+        """Whether a compare expects other data of a property than an earlier compare of the
+        preview did: the device cannot hold both at once, so the procedure changes it in
+        between (a Hager TR131N reports another hardware type after a write to object 9),
+        which a preview cannot see. Inverted compares (data the device must not hold) are
+        never in conflict."""
+        if control.invert:
+            return False
+        key = (index, control.prop_id, control.start_element, control.count)
+        expected = (control.inline_data, control.mask, control.range)
+        first = self._preview_compares.setdefault(key, expected)
+        return first != expected
+
     def _object_label(self, index: int) -> str:
         """``index`` as messages show it: object type and instance for a key of the extended
         property services (see :meth:`_resolve_index`), otherwise the object index."""
-        target = self._extended_targets.get(index)
+        target = self._extended_targets.get(index) or extended_object(index)
         if target is None:
             return str(index)
         return f"type {target[0]} instance {target[1]}"
@@ -3135,6 +3209,34 @@ class LoadProcedureRunner:
             and (control.mem_type or 0) & _EEPROM_MEMORY == _EEPROM_MEMORY
         )
 
+    def _task_program(self, control: LdCtrlTaskSegment) -> Application:
+        """The program whose id and PEI type a task segment carries: with a second program,
+        that one for the task segment on the object of its id, or, when the procedure has
+        none there, on LSM 4 (where product data converted from older data loads it); the
+        application otherwise."""
+        second = self.application2
+        lsm = control.lsm_idx
+        if second is None or lsm is None:
+            return self.application
+        resources = bundled_mask_resources(device_mask_version(self.application))
+        location = resources.location(ResourceName.PEIPROG_ID) if resources else None
+        own = (
+            location.interface_object_ref
+            if location is not None
+            and location.address_space is ResourceAddrSpace.SYSTEM_PROPERTY
+            else None
+        )
+        if own is not None and lsm == own:
+            return second
+        controls = (
+            self._full_controls if self._full_controls is not None else self._controls
+        )
+        on_own = own is not None and any(
+            isinstance(other, LdCtrlTaskSegment) and other.lsm_idx == own
+            for other in controls
+        )
+        return second if lsm == SECOND_PROGRAM_LSM and not on_own else self.application
+
     async def _task_segment(self, control: LdCtrlTaskSegment) -> None:
         """Allocate the task segment via a load event."""
         index = await self._resolve_index(control)
@@ -3143,7 +3245,8 @@ class LoadProcedureRunner:
         # would otherwise remap the group-object table at 0x4400).
         if mapped is not None and mapped[1] is None:
             return
-        application_id = _application_id(self.application)
+        program = self._task_program(control)
+        application_id = _application_id(program)
         static = getattr(self.application.program, "static", None)
         options = getattr(static, "options", None) if static is not None else None
         # Only applications that ask for it (LegacyPatchManufacturerIdInTaskSegment)
@@ -3156,7 +3259,7 @@ class LoadProcedureRunner:
             application_id = (0x0002).to_bytes(2, "big") + application_id[2:]
         event = load_state.alloc_task_segment(
             self._task_address(control),
-            self.application.program.pei_type,
+            program.program.pei_type,
             application_id,
         )
         await self._emit_load_event(
@@ -3299,6 +3402,15 @@ class LoadProcedureRunner:
                     control.prop_id,
                 )
                 return
+            if self._expects_a_change(index, control):
+                logger.info(
+                    "preflight: %s compares object %s property %d with other data than "
+                    "before, a change the procedure causes; not checked",
+                    self._target(),
+                    self._object_label(index),
+                    control.prop_id,
+                )
+                return
             await self._polled_compare(
                 control, lambda: self._compare_prop(control), poll=False
             )
@@ -3359,6 +3471,7 @@ class LoadProcedureRunner:
         :attr:`SegmentDiff.procedure_step`)."""
         programmer = await self._bus()
         current = await programmer.read_memory(address, len(planned))
+        planned = self._planned_with(address, bytes(planned), current)
         await self._note_device_written(programmer, address, current, bytes(planned))
         segments.append(
             SegmentDiff(
@@ -3426,6 +3539,7 @@ class LoadProcedureRunner:
         programmer = await self._bus()
         for run_address, planned in runs:
             current = await programmer.read_memory(run_address, len(planned))
+            planned = self._planned_with(run_address, bytes(planned), current)
             await self._note_device_written(
                 programmer, run_address, current, bytes(planned)
             )
@@ -3513,13 +3627,16 @@ class LoadProcedureRunner:
             if await self._extended_fits(object_index, property_id)
             else None
         )
+        device_index = (
+            object_index
+            if target is not None
+            else await self._object_index(object_index)
+        )
+        # An object past the one-octet index is shown by its type too.
+        target = target or extended_object(device_index)
         properties.append(
             PropertyDiff(
-                object_index=(
-                    object_index
-                    if target is not None
-                    else await self._object_index(object_index)
-                ),
+                object_index=device_index,
                 property_id=property_id,
                 current=current,
                 planned=bytes(planned),

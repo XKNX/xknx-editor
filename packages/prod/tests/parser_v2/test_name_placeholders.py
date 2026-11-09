@@ -79,3 +79,13 @@ def test_internal_name_placeholder_is_not_consumed() -> None:
     )
     assert fill_name("Header {{0:no name}}", "") == "Header no name"
     assert fill_name("Header {{0:no name}}", "Living") == "Header Living"
+
+
+def test_a_text_is_filled_with_the_arguments_it_is_given_each_time() -> None:
+    # What a text gave is given again only for the same arguments.
+    text = "Channel {{Number}} ({{Name:none}})"
+    assert apply_text_args(text, {"Number": "1", "Name": "A"}) == "Channel 1 (A)"
+    assert apply_text_args(text, {"Number": "2", "Name": "A"}) == "Channel 2 (A)"
+    assert apply_text_args(text, {"Number": "1", "Name": ""}) == "Channel 1 (none)"
+    assert apply_text_args(text, {"Number": "1"}) == "Channel 1 ({{Name:none}})"
+    assert apply_text_args(text, {"Number": "1", "Name": "A"}) == "Channel 1 (A)"

@@ -8,6 +8,8 @@ from __future__ import annotations
 
 import base64
 
+import pytest
+
 from xknxeditor.namespaces.intermediate.parameter_type_t_type_color import (
     ParameterTypeTypeColor,
 )
@@ -452,11 +454,33 @@ def test_decode_color_rgb() -> None:
     assert _decode_value(raw, 24, tc, little_endian=False) == "#0A0B0C"
 
 
-def test_decode_color_hsv_is_unknown() -> None:
+@pytest.mark.parametrize(
+    ("colour", "decoded"),
+    [
+        ("#808080", "#808080"),
+        ("#000000", "#000000"),
+        ("#0A0B0C", "#0A0B0C"),
+        # Several colours convert to the same octets: one of them, which writes them again.
+        ("#FF8000", "#FF7E00"),
+        ("#0029C8", "#002AC8"),
+        ("#02B87E", "#02B87A"),
+    ],
+)
+def test_decode_color_hsv_gives_a_colour_with_the_same_octets(
+    colour: str, decoded: str
+) -> None:
     tc = _color(ParameterTypeTypeColorSpace.HSV)
-    raw = _encode_value("#0A0B0C", 24, tc)
+    raw = _encode_value(colour, 24, tc)
     assert raw is not None
-    assert _decode_value(raw, 24, tc, little_endian=False) is None
+    value = _decode_value(raw, 24, tc, little_endian=False)
+    assert value == decoded
+    assert _encode_value(value, 24, tc) == raw
+
+
+def test_decode_color_hsv_without_a_colour_of_its_octets_is_unknown() -> None:
+    # Saturation 0 with a hue: no colour converts to it.
+    tc = _color(ParameterTypeTypeColorSpace.HSV)
+    assert _decode_value(0x400080, 24, tc, little_endian=False) is None
 
 
 def test_decode_raw_data_round_trip_big_endian() -> None:
@@ -493,3 +517,83 @@ def test_ipaddress_v6_round_trip() -> None:
 def test_ipaddress_v6_literal_in_v4_field_returns_none() -> None:
     tc = _ipaddress(ParameterTypeTypeIpaddressVersion.IPV4)
     assert _encode_value("2001:db8::1", 32, tc) is None
+
+
+def test_restriction_decodes_by_the_first_entry_of_a_value() -> None:
+    # An entry repeating a value is encoded as the first entry of that value (its binary
+    # value), as the encoder looks it up; one that is no valid value decodes nothing.
+    tc = ParameterTypeTypeRestriction(
+        base="BinaryValue",
+        size_in_bit=16,
+        enumeration=[
+            ParameterTypeTypeRestrictionEnumeration(
+                id="EN-1", value=1, binary_value=b"\x12\x34"
+            ),
+            ParameterTypeTypeRestrictionEnumeration(
+                id="EN-1b", value=1, binary_value=b"\x00\x09"
+            ),
+            ParameterTypeTypeRestrictionEnumeration(id="EN-2", value=2),
+        ],
+    )
+    for value in ("1", "2"):
+        raw = _encode_value(value, 16, tc, little_endian=True)
+        assert raw is not None
+        assert _decode_value(raw, 16, tc, little_endian=True) == value
+    assert _decode_value(0x0009, 16, tc, little_endian=True) is None
+    assert _decode_value(0x0200, 16, tc, little_endian=True) == "2"
+    assert _decode_value(0x0002, 16, tc, little_endian=True) is None
+
+
+def test_restriction_decodes_alike_again_and_by_its_byte_order() -> None:
+    # Two entries writing the same bytes: the first one is read, every time; the values of
+    # each size and byte order are looked up apart.
+    tc = ParameterTypeTypeRestriction(
+        base="Value",
+        size_in_bit=16,
+        enumeration=[
+            ParameterTypeTypeRestrictionEnumeration(id="EN-3", value=3),
+            ParameterTypeTypeRestrictionEnumeration(
+                id="EN-4", value=4, binary_value=b"\x00\x03"
+            ),
+            ParameterTypeTypeRestrictionEnumeration(id="EN-x", value="x"),
+        ],
+    )
+    for _ in range(2):
+        assert _decode_value(0x0003, 16, tc, little_endian=False) == "3"
+        assert _decode_value(0x0300, 16, tc, little_endian=True) == "3"
+        assert _decode_value(0x0003, 16, tc, little_endian=True) == "4"
+        assert _decode_value(0x0004, 16, tc, little_endian=False) is None
+        assert _decode_value(0x03, 8, tc, little_endian=False) == "3"
+
+
+# --- bit fields ---------------------------------------------------------------
+
+from xknxeditor.prod.parser_v2.encode import _read_bits, _write_bits  # noqa: E402
+
+
+def test_read_bits_inverts_write_bits() -> None:
+    # Sub-octet fields, fields across octets and whole octets, MSB first.
+    for offset, bit_offset, size in [
+        (0, 0, 1),
+        (1, 3, 4),
+        (0, 6, 5),
+        (2, 0, 16),
+        (1, 1, 30),
+    ]:
+        value = (0b1011 << max(0, size - 4)) % (1 << size) | 1
+        buf = bytearray(b"\xa5" * 8)
+        _write_bits(buf, offset, bit_offset, size, value)
+        assert _read_bits(bytes(buf), offset, bit_offset, size) == value
+
+
+def test_read_bits_past_the_end_reads_zero_bits() -> None:
+    assert _read_bits(b"\xff", 0, 4, 8) == 0xF0
+    assert _read_bits(b"\xff", 3, 0, 8) == 0
+    assert _read_bits(b"", 0, 0, 0) == 0
+
+
+def test_read_bits_of_a_large_field() -> None:
+    # A field of a megabit (a picture of a touch panel) is read in one go.
+    data = bytes(range(256)) * 512
+    assert _read_bits(data, 0, 0, len(data) * 8) == int.from_bytes(data, "big")
+    assert _read_bits(data, 1, 4, 12) == 0x102

@@ -61,11 +61,12 @@ def device_snapshot(device: RecoveredDevice) -> dict[str, Any]:
         "raw_properties": [
             {
                 "object_index": object_index,
+                "object_type": object_type,
                 "property_id": property_id,
                 "occurrence": occurrence,
                 "data": data.hex(),
             }
-            for (object_index, property_id, occurrence), data in (
+            for (object_index, object_type, property_id, occurrence), data in (
                 device.property_values or {}
             ).items()
         ],
@@ -78,7 +79,8 @@ def devices_from_snapshot(text: str) -> list[RecoveredDevice]:
     Raises ``ValueError`` when the text is no snapshot. The group object references are left
     to the caller, which resolves them against the application in its catalog (see
     :func:`~xknxeditor.recover.recover.com_object_ref_by_number`). Snapshots written before
-    the property values were kept have none.
+    the property values were kept have none; those written before their object types were
+    kept hold only properties of objects addressed by index (no type).
     """
     from .recover import RecoveredDevice
 
@@ -123,6 +125,7 @@ def devices_from_snapshot(text: str) -> list[RecoveredDevice]:
                     property_values={
                         (
                             entry["object_index"],
+                            entry.get("object_type"),
                             int(entry["property_id"]),
                             int(entry["occurrence"]),
                         ): bytes.fromhex(entry["data"])

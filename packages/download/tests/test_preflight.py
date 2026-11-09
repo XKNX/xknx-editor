@@ -2,14 +2,14 @@
 
 from __future__ import annotations
 
-from types import SimpleNamespace
+from types import MappingProxyType, SimpleNamespace
 from typing import cast
 
 import pytest
 from xknx.telegram.apci import MemoryRead, MemoryWrite, PropertyValueWrite
 
 from xknxeditor.download.errors import ImageError, VerificationError
-from xknxeditor.download.image import DownloadImage, MemorySegment
+from xknxeditor.download.image import DownloadImage, MemorySegment, seed_mask_bits
 from xknxeditor.download.preflight import (
     ByteRange,
     PreflightReport,
@@ -271,6 +271,73 @@ async def test_preflight_compare_prop_gate_raises_on_mismatch() -> None:
         await runner.preflight()
 
 
+def _hardware_type_handshake(second: bytes, *, invert: bool = False) -> Application:
+    """A Hager TR131N procedure: the device reports hardware type 208Ah, and E817h after
+    the write to object 9 PID 51."""
+    return _application(
+        LdCtrlWriteProp(
+            obj_idx=5,
+            prop_id=51,
+            start_element=1,
+            count=1,
+            verify=False,
+            inline_data=b"\x01" + bytes(9),
+        ),
+        LdCtrlCompareProp(
+            obj_idx=0,
+            prop_id=78,
+            start_element=1,
+            count=1,
+            inline_data=bytes.fromhex("000009208A0000000000"),
+        ),
+        LdCtrlWriteProp(
+            obj_idx=9,
+            prop_id=51,
+            start_element=1,
+            count=1,
+            verify=False,
+            inline_data=b"\x01",
+        ),
+        LdCtrlCompareProp(
+            obj_idx=0,
+            prop_id=78,
+            start_element=1,
+            count=1,
+            inline_data=second,
+            invert=invert,
+        ),
+    )
+
+
+async def test_preflight_leaves_out_a_compare_of_a_change_the_procedure_causes() -> (
+    None
+):
+    application = _hardware_type_handshake(bytes.fromhex("000009E8170000000000"))
+    runner, device = _runner(application, DownloadImage(segments=(), properties=()))
+    device.properties[(0, 78)] = bytes.fromhex("000009208a00")
+    for key in ((5, 51), (9, 51)):
+        device.property_element_sizes[key] = 1
+
+    await runner.preflight()
+
+    assert not any(isinstance(p, PropertyValueWrite) for p in device.sent)
+
+
+async def test_preflight_still_checks_a_compare_that_repeats_or_inverts() -> None:
+    # The same data again, and data the device must not hold, are no change: checked.
+    for second, invert, device_type in (
+        (bytes.fromhex("000009208A0000000000"), False, "000009e81700"),
+        (bytes.fromhex("000009E8170000000000"), True, "000009e81700"),
+    ):
+        application = _hardware_type_handshake(second, invert=invert)
+        runner, device = _runner(application, DownloadImage(segments=(), properties=()))
+        device.properties[(0, 78)] = bytes.fromhex(device_type)
+        for key in ((5, 51), (9, 51)):
+            device.property_element_sizes[key] = 1
+        with pytest.raises(VerificationError, match="compare failed"):
+            await runner.preflight()
+
+
 async def test_preflight_ignores_inline_property_source() -> None:
     # inline data is used directly as the planned value (no image lookup needed)
     application = _application(
@@ -512,3 +579,30 @@ async def test_preflight_marks_the_octets_only_a_partial_download_writes(
     assert segment.planned[1] == (0x7D if application_loaded else 0xC8)
     assert segment.changed_bytes == 1
     assert segment.corrected_bytes == frozenset({1})
+
+
+def test_a_product_mask_over_part_of_an_octet_splits_whole_from_partial() -> None:
+    whole, partial = seed_mask_bits(bytes([0xFF, 0x0F, 0x00, 0x30]), 5)
+    assert whole == bytes([0xFF, 0xFF, 0x00, 0xFF, 0x00])
+    assert partial == {1: 0x0F, 3: 0x30}
+
+
+async def test_an_octet_the_product_gives_some_bits_of_keeps_the_others() -> None:
+    # The image gives the low nibble of 0x4001 only: the download reads the octet and writes
+    # its own bits into it; the preview compares the same.
+    image = DownloadImage(
+        segments=(MemorySegment(address=0x4000, data=bytes.fromhex("11050033")),),
+        properties=(),
+        bit_masks=MappingProxyType({0x4001: 0x0F}),
+    )
+    application = _application(
+        LdCtrlWriteMem(address=0x4000, size=4, verify=False, inline_data=None)
+    )
+    runner, device = _runner(application, image)
+    device.memory.update(enumerate(bytes.fromhex("00a00000"), start=0x4000))
+
+    (segment,) = (await runner.preflight()).segments
+    assert segment.planned == bytes.fromhex("11a50033")
+
+    await runner.run()
+    assert [device.memory[0x4000 + i] for i in range(4)] == [0x11, 0xA5, 0x00, 0x33]

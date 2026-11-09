@@ -564,13 +564,16 @@ class _Builder:
     def _module_definition(context: _DeviceContext, instance: str) -> str:
         """The module definition of an object instance (xknxproject
         ``ModuleInstance.definition_id``): ``MD-1``, or ``MD-1_SM-2`` in a submodule."""
-        identifier = next(
+        # The innermost instance: a submodule instance's id starts with that of the instance
+        # it is in.
+        identifier = max(
             (
                 instance_id
                 for instance_id, _args in context.module_arguments
                 if instance.startswith(f"{instance_id}_")
             ),
-            instance.split("_O-", 1)[0],
+            key=len,
+            default=instance.split("_O-", 1)[0],
         )
         definition = identifier.split("_", 1)[0]
         if (match := _SUBMODULE.search(identifier)) is not None:

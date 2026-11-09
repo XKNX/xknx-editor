@@ -21,7 +21,7 @@ from xknxeditor.recover.parameters import RecoveredParameters
 
 def test_lossy_types_give_back_no_value() -> None:
     assert decodable_type(ParameterTypeTypeText(size_in_bit=32), 32)
-    # Text that does not fill whole octets, a date without its year, an HSV colour.
+    # Text that does not fill whole octets, a date without its year.
     assert not decodable_type(ParameterTypeTypeText(size_in_bit=12), 12)
     assert not decodable_type(
         ParameterTypeTypeDate(
@@ -29,7 +29,8 @@ def test_lossy_types_give_back_no_value() -> None:
         ),
         24,
     )
-    assert not decodable_type(
+    # An HSV colour gives back one of the colours that convert to its octets.
+    assert decodable_type(
         ParameterTypeTypeColor(space=ParameterTypeTypeColorSpace.HSV), 24
     )
     assert decodable_type(

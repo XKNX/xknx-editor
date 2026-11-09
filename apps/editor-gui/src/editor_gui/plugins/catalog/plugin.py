@@ -13,6 +13,7 @@ from editor_gui.plugins.catalog.ui.alternative import AlternativeCatalogPanel
 from editor_gui.plugins.project.medium_text import medium_error_text
 from editor_gui.plugins.project.service import DeviceProduct
 from editor_gui.settings_window import Setting
+from xknxeditor.prod.errors import ParseError
 from xknxeditor.proj.core.medium import MediumError
 from xknxeditor.proj.core.space_rules import holds_devices
 
@@ -174,6 +175,11 @@ class CatalogPlugin:
         except MediumError as error:
             self._log.warning("device not added", error=str(error))
             self._api.tell_refused(medium_error_text(error))
+            return
+        except ParseError as error:
+            # Product data the KNX schema does not allow (an object size "Variable").
+            self._log.warning("device not added", error=str(error))
+            self._api.tell_refused(S.CATALOG_ADD_NO_APP)
             return
         if device_id:
             ask = self._api.ask_device_certificate

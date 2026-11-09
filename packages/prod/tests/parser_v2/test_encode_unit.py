@@ -46,11 +46,14 @@ from xknxeditor.namespaces.intermediate.property_union_t import PropertyUnion
 from xknxeditor.namespaces.intermediate.union_parameter_t import UnionParameter
 from xknxeditor.prod.parser_v2.application_indexer import ApplicationIndexer
 from xknxeditor.prod.parser_v2.encode import (
+    PropWrite,
     Writes,
     collect_writes,
+    decode_property_parameters,
     encode_to_memory,
     encode_to_properties,
     encode_to_typed_properties,
+    property_data,
     written_bit_mask,
 )
 
@@ -354,6 +357,48 @@ def test_encode_to_typed_properties_keeps_object_types_apart() -> None:
     )
     props = encode_to_typed_properties(app, idx, {"P1": "7", "P2": "9"})
     assert props == {(None, 11, 205, 0): b"", (None, 50001, 205, 0): b"	"}
+
+
+def test_decode_property_parameters_keeps_object_types_apart() -> None:
+    # Objects addressed by type with the same property id and occurrence are different
+    # objects: each parameter is decoded from its own.
+    app, idx = _app(
+        [
+            _param(
+                "P1",
+                PropertyParameter(
+                    object_type=60001,
+                    property_id=54,
+                    occurrence=0,
+                    offset=0,
+                    bit_offset=0,
+                ),
+            ),
+            _param(
+                "P2",
+                PropertyParameter(
+                    object_type=50001,
+                    property_id=54,
+                    occurrence=0,
+                    offset=0,
+                    bit_offset=0,
+                ),
+            ),
+        ]
+    )
+    props = encode_to_typed_properties(app, idx, {"P1": "16", "P2": "1"})
+    assert decode_property_parameters(app, idx, props) == {"P1": "16", "P2": "1"}
+
+
+def test_property_data_of_an_object_by_type_needs_its_occurrence() -> None:
+    # An object addressed by index is one object whatever the occurrence; one addressed by
+    # type is another object per occurrence.
+    by_index = PropWrite(4, 54, 1, 0, 0, "P1", _PT_ID, "0")
+    by_type = PropWrite(None, 54, 1, 0, 0, "P2", _PT_ID, "0", object_type=50001)
+    props = {(4, None, 54, 0): b"\x05", (None, 50001, 54, 0): b"\x06"}
+    assert property_data(props, by_index) == b"\x05"
+    assert property_data(props, by_type) is None
+    assert property_data({**props, (None, 50001, 54, 1): b"\x07"}, by_type) == b"\x07"
 
 
 def test_encode_to_properties_empty_when_no_prop_params() -> None:

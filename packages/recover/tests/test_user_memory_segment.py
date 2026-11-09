@@ -28,6 +28,8 @@ async def test_a_user_memory_segment_is_not_read() -> None:
             dynamic_ui=lambda: SimpleNamespace(
                 segment_sizes=lambda: sizes, segment_base_addrs=lambda: bases
             ),
+            load_procedure_style=None,
+            load_procedures=None,
             program=SimpleNamespace(
                 static=SimpleNamespace(
                     address_table=SimpleNamespace(code_segment="AS-4000"),

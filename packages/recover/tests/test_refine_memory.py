@@ -5,6 +5,11 @@ channels)."""
 
 from __future__ import annotations
 
+import base64
+from collections.abc import Mapping
+from pathlib import Path
+from typing import Any
+
 import pytest
 
 import xknxeditor.recover.parameters as parameters
@@ -224,6 +229,74 @@ def test_a_cancel_is_heard_inside_the_inference(application: Application) -> Non
     assert not recovered.complete
 
 
+def test_a_trial_cancelled_while_inferring_is_not_measured(
+    application: Application, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # Cancelled during the inference behind a value tried: the search ends without encoding
+    # that trial (which takes seconds for a large application).
+    segments = _device(
+        application, (_CHANNEL, "1"), (_MODE, "1"), (_DELAY, "5"), (_STEP, "9")
+    )
+    infer_all = parameters._infer_all  # pyright: ignore[reportPrivateUsage]
+    misfit = parameters._misfit  # pyright: ignore[reportPrivateUsage]
+    inferences: list[int] = []
+    measured: list[int] = []
+
+    def inferred(*args: Any, **kwargs: Any) -> Any:
+        result = infer_all(*args, **kwargs)
+        inferences.append(len(inferences))
+        return result
+
+    def measuring(*args: Any, **kwargs: Any) -> Any:
+        measured.append(len(inferences))
+        return misfit(*args, **kwargs)
+
+    monkeypatch.setattr(parameters, "_infer_all", inferred)
+    monkeypatch.setattr(parameters, "_misfit", measuring)
+    # The first inference is the search's start, the second the first value tried.
+    recovered = recover_parameters(
+        application,
+        segments,
+        effort=RecoveryEffort.UNLIMITED,
+        cancel=lambda: len(inferences) >= 2,
+    )
+    assert len(inferences) == 2
+    assert all(n < 2 for n in measured)
+    assert recovered.limited
+
+
+def test_a_cancel_while_inferring_keeps_what_was_decoded(
+    application: Application, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # Cancelled after the first decode: its values are the result, not decoded once more
+    # (which can take as long as the search did).
+    segments = _device(
+        application, (_CHANNEL, "1"), (_MODE, "1"), (_DELAY, "5"), (_STEP, "9")
+    )
+    decodes: list[Mapping[str, str]] = []
+    decode = parameters._decode  # pyright: ignore[reportPrivateUsage]
+
+    def counted(*args: Any, **kwargs: Any) -> Any:
+        decodes.append(args[4])
+        return decode(*args, **kwargs)
+
+    monkeypatch.setattr(parameters, "_decode", counted)
+    asked: list[bool] = []
+
+    def cancel() -> bool:
+        asked.append(len(asked) >= 1)
+        return asked[-1]
+
+    recovered = recover_parameters(
+        application, segments, effort=RecoveryEffort.UNLIMITED, cancel=cancel
+    )
+    assert decodes == [{}]
+    assert asked == [False, True]
+    assert recovered.values.get(_CHANNEL, "0") == "0"
+    assert recovered.limited
+    assert not recovered.complete
+
+
 def _channel_with_objects(objects: int) -> Application:
     """A channel the device keeps no copy of: on, it shows a setting in the second byte and
     ``objects`` group objects (numbers 1 and up); object 0 always shows."""
@@ -277,3 +350,508 @@ def test_a_channel_showing_unlinked_objects_takes_more_than_a_byte(
     segments[segment] = segments[segment][:1] + b"\x07" + segments[segment][2:]
     recovered = recover_parameters(application, segments, linked_objects={0})
     assert (recovered.values.get(channel, "0") == "1") is active
+
+
+_PAIR_APP = "M-00FA_A-0008-01-0000"
+
+
+def _pair_application() -> Application:
+    """A channel ``CH`` (no memory): off it shows ``A`` in the first byte; on, the sub-selectors
+    ``S1`` and ``S2`` (no memory), each choosing for its byte a parameter of the values 1 and 2 or
+    one of the values 3 and 4."""
+    app = _PAIR_APP
+
+    def parameter(n: int, type_id: str, offset: int | None) -> str:
+        memory = (
+            ""
+            if offset is None
+            else f'<Memory CodeSegment="{app}_AS-0000" Offset="{offset}" BitOffset="0" />'
+        )
+        return (
+            f'<Parameter Id="{app}_P-{n}" Name="P{n}" ParameterType="{app}_PT-{type_id}"'
+            f' Text="P{n}" Value="{1 if type_id == "Low" else 3 if type_id == "High" else 0}">'
+            f"{memory}</Parameter>"
+        )
+
+    def enumeration(type_id: str, *values: int) -> str:
+        return (
+            f'<ParameterType Id="{app}_PT-{type_id}" Name="{type_id}">'
+            '<TypeRestriction Base="Value" SizeInBit="8">'
+            + "".join(
+                f'<Enumeration Text="v{v}" Value="{v}" Id="{app}_PT-{type_id}_EN-{v}" />'
+                for v in values
+            )
+            + "</TypeRestriction></ParameterType>"
+        )
+
+    # 1 CH, 2 S1, 3 S2 (no memory); 4 A (byte 0); 5/6 the two of byte 1; 7/8 those of byte 2.
+    parameters = (
+        parameter(1, "OnOff", None)
+        + parameter(2, "OnOff", None)
+        + parameter(3, "OnOff", None)
+        + f'<Parameter Id="{app}_P-4" Name="P4" ParameterType="{app}_PT-N" Text="A" Value="0">'
+        f'<Memory CodeSegment="{app}_AS-0000" Offset="0" BitOffset="0" /></Parameter>'
+        + parameter(5, "Low", 1)
+        + parameter(6, "High", 1)
+        + parameter(7, "Low", 2)
+        + parameter(8, "High", 2)
+    )
+    refs = "".join(
+        f'<ParameterRef Id="{app}_P-{n}_R-{n}" RefId="{app}_P-{n}" />'
+        for n in range(1, 9)
+    )
+
+    def ref(n: int) -> str:
+        return f'<ParameterRefRef RefId="{app}_P-{n}_R-{n}" />'
+
+    def choose(n: int, off: str, on: str) -> str:
+        return (
+            f'<choose ParamRefId="{app}_P-{n}_R-{n}"><when test="0">{off}</when>'
+            f'<when test="1">{on}</when></choose>'
+        )
+
+    dynamic = ref(1) + choose(
+        1,
+        ref(4),
+        ref(2) + choose(2, ref(5), ref(6)) + ref(3) + choose(3, ref(7), ref(8)),
+    )
+    xml = f"""<?xml version="1.0" encoding="utf-8"?>
+<KNX xmlns="http://knx.org/xml/project/20" CreatedBy="test" ToolVersion="1">
+  <ManufacturerData><Manufacturer RefId="M-00FA"><ApplicationPrograms>
+    <ApplicationProgram Id="{app}" ApplicationNumber="8" ApplicationVersion="1"
+        ProgramType="ApplicationProgram" MaskVersion="MV-07B0" Name="Channel pairs"
+        LoadProcedureStyle="MergedProcedure" PeiType="0" DefaultLanguage="en-US"
+        DynamicTableManagement="false" Linkable="false" MinEtsVersion="5.0">
+      <Static>
+        <Code><AbsoluteSegment Id="{app}_AS-0000" Address="0" Size="4"><Data>AAAAAA==</Data></AbsoluteSegment></Code>
+        <ParameterTypes>{enumeration("OnOff", 0, 1)}{enumeration("Low", 1, 2)}{enumeration("High", 3, 4)}
+          <ParameterType Id="{app}_PT-N" Name="N"><TypeNumber SizeInBit="8" Type="unsignedInt" minInclusive="0" maxInclusive="255" /></ParameterType>
+        </ParameterTypes>
+        <Parameters>{parameters}</Parameters>
+        <ParameterRefs>{refs}</ParameterRefs>
+      </Static>
+      <Dynamic><ChannelIndependentBlock><ParameterBlock Id="{app}_PB-1" Text="General">{dynamic}</ParameterBlock></ChannelIndependentBlock></Dynamic>
+    </ApplicationProgram>
+  </ApplicationPrograms></Manufacturer></ManufacturerData>
+</KNX>
+"""
+    return parse_application_xml(xml.encode(), "M-00FA")[0]
+
+
+def test_a_channel_that_fits_only_with_its_own_selectors_is_found() -> None:
+    # The channel on alone fits no better than off (its two bytes decode to no value of the
+    # parameters it shows by default); with its sub-selectors on too it fits exactly.
+    application = _pair_application()
+    on = (
+        (f"{_PAIR_APP}_P-1_R-1", "1"),
+        (f"{_PAIR_APP}_P-2_R-2", "1"),
+        (f"{_PAIR_APP}_P-3_R-3", "1"),
+        (f"{_PAIR_APP}_P-6_R-6", "3"),
+        (f"{_PAIR_APP}_P-8_R-8", "4"),
+    )
+    segments = _device(application, *on)
+    recovered = recover_parameters(application, segments)
+    assert recovered.complete
+    for ref_id, value in on:
+        assert recovered.values.get(ref_id) == value
+
+
+def _chain_application(depth: int) -> Application:
+    """``depth`` settings in a chain, each in a byte of its own, each shown when the one before
+    it is on."""
+    app = "M-00FA_A-0009-01-0000"
+    parameters = "".join(
+        f'<Parameter Id="{app}_P-{n}" Name="P{n}" ParameterType="{app}_PT-OnOff" Text="P{n}"'
+        f' Value="0"><Memory CodeSegment="{app}_AS-0000" Offset="{n - 1}" BitOffset="0" />'
+        "</Parameter>"
+        for n in range(1, depth + 1)
+    )
+    refs = "".join(
+        f'<ParameterRef Id="{app}_P-{n}_R-{n}" RefId="{app}_P-{n}" />'
+        for n in range(1, depth + 1)
+    )
+    dynamic = ""
+    for n in range(depth, 0, -1):
+        inner = (
+            f'<choose ParamRefId="{app}_P-{n}_R-{n}"><when test="1">{dynamic}</when></choose>'
+            if dynamic
+            else ""
+        )
+        dynamic = f'<ParameterRefRef RefId="{app}_P-{n}_R-{n}" />{inner}'
+    xml = f"""<?xml version="1.0" encoding="utf-8"?>
+<KNX xmlns="http://knx.org/xml/project/20" CreatedBy="test" ToolVersion="1">
+  <ManufacturerData><Manufacturer RefId="M-00FA"><ApplicationPrograms>
+    <ApplicationProgram Id="{app}" ApplicationNumber="9" ApplicationVersion="1"
+        ProgramType="ApplicationProgram" MaskVersion="MV-07B0" Name="Chain"
+        LoadProcedureStyle="MergedProcedure" PeiType="0" DefaultLanguage="en-US"
+        DynamicTableManagement="false" Linkable="false" MinEtsVersion="5.0">
+      <Static>
+        <Code><AbsoluteSegment Id="{app}_AS-0000" Address="0" Size="{depth}"><Data>{base64.b64encode(bytes(depth)).decode()}</Data></AbsoluteSegment></Code>
+        <ParameterTypes>
+          <ParameterType Id="{app}_PT-OnOff" Name="OnOff"><TypeRestriction Base="Value" SizeInBit="8">
+            <Enumeration Text="off" Value="0" Id="{app}_PT-OnOff_EN-0" />
+            <Enumeration Text="on" Value="1" Id="{app}_PT-OnOff_EN-1" />
+          </TypeRestriction></ParameterType>
+        </ParameterTypes>
+        <Parameters>{parameters}</Parameters>
+        <ParameterRefs>{refs}</ParameterRefs>
+      </Static>
+      <Dynamic><ChannelIndependentBlock><ParameterBlock Id="{app}_PB-1" Text="General">{dynamic}</ParameterBlock></ChannelIndependentBlock></Dynamic>
+    </ApplicationProgram>
+  </ApplicationPrograms></Manufacturer></ManufacturerData>
+</KNX>
+"""
+    return parse_application_xml(xml.encode(), "M-00FA")[0]
+
+
+def test_a_long_chain_of_stored_selectors_is_read_to_its_end() -> None:
+    # Each decoding round shows one more setting of the chain: the decoding goes on until
+    # nothing changes, not a fixed number of rounds.
+    depth = 12
+    application = _chain_application(depth)
+    on = [(f"{application.id}_P-{n}_R-{n}", "1") for n in range(1, depth + 1)]
+    recovered = recover_parameters(application, _device(application, *on))
+    assert recovered.complete
+    for ref_id, value in on:
+        assert recovered.values.get(ref_id) == value
+
+
+def _hidden_ref_application() -> Application:
+    """``P`` (byte 0) with the shown ref ``R-1`` (tag 1) and the hidden ``R-2`` (tag 2, fixed
+    value 1), which the download writes last; ``R-1`` off shows ``X`` (byte 1), on ``Y`` (byte 2)."""
+    app = "M-00FA_A-000A-01-0000"
+
+    def stored(n: int, offset: int) -> str:
+        return (
+            f'<Parameter Id="{app}_P-{n}" Name="P{n}" ParameterType="{app}_PT-N" Text="P{n}"'
+            f' Value="0"><Memory CodeSegment="{app}_AS-0000" Offset="{offset}" BitOffset="0" />'
+            "</Parameter>"
+        )
+
+    xml = f"""<?xml version="1.0" encoding="utf-8"?>
+<KNX xmlns="http://knx.org/xml/project/20" CreatedBy="test" ToolVersion="1">
+  <ManufacturerData><Manufacturer RefId="M-00FA"><ApplicationPrograms>
+    <ApplicationProgram Id="{app}" ApplicationNumber="10" ApplicationVersion="1"
+        ProgramType="ApplicationProgram" MaskVersion="MV-07B0" Name="Hidden ref"
+        LoadProcedureStyle="MergedProcedure" PeiType="0" DefaultLanguage="en-US"
+        DynamicTableManagement="false" Linkable="false" MinEtsVersion="5.0">
+      <Static>
+        <Code><AbsoluteSegment Id="{app}_AS-0000" Address="0" Size="3"><Data>AAAA</Data></AbsoluteSegment></Code>
+        <ParameterTypes>
+          <ParameterType Id="{app}_PT-OnOff" Name="OnOff"><TypeRestriction Base="Value" SizeInBit="8">
+            <Enumeration Text="off" Value="0" Id="{app}_PT-OnOff_EN-0" />
+            <Enumeration Text="on" Value="1" Id="{app}_PT-OnOff_EN-1" />
+          </TypeRestriction></ParameterType>
+          <ParameterType Id="{app}_PT-N" Name="N"><TypeNumber SizeInBit="8" Type="unsignedInt" minInclusive="0" maxInclusive="255" /></ParameterType>
+        </ParameterTypes>
+        <Parameters>
+          <Parameter Id="{app}_P-1" Name="P" ParameterType="{app}_PT-OnOff" Text="P" Value="0"><Memory CodeSegment="{app}_AS-0000" Offset="0" BitOffset="0" /></Parameter>
+          {stored(2, 1)}{stored(3, 2)}
+        </Parameters>
+        <ParameterRefs>
+          <ParameterRef Id="{app}_P-1_R-1" RefId="{app}_P-1" Tag="1" />
+          <ParameterRef Id="{app}_P-1_R-2" RefId="{app}_P-1" Tag="2" Access="None" Value="1" />
+          <ParameterRef Id="{app}_P-2_R-3" RefId="{app}_P-2" />
+          <ParameterRef Id="{app}_P-3_R-4" RefId="{app}_P-3" />
+        </ParameterRefs>
+      </Static>
+      <Dynamic><ChannelIndependentBlock><ParameterBlock Id="{app}_PB-1" Text="General">
+        <ParameterRefRef RefId="{app}_P-1_R-1" />
+        <ParameterRefRef RefId="{app}_P-1_R-2" />
+        <choose ParamRefId="{app}_P-1_R-1">
+          <when test="0"><ParameterRefRef RefId="{app}_P-2_R-3" /></when>
+          <when test="1"><ParameterRefRef RefId="{app}_P-3_R-4" /></when>
+        </choose>
+      </ParameterBlock></ChannelIndependentBlock></Dynamic>
+    </ApplicationProgram>
+  </ApplicationPrograms></Manufacturer></ManufacturerData>
+</KNX>
+"""
+    return parse_application_xml(xml.encode(), "M-00FA")[0]
+
+
+def test_a_ref_whose_memory_a_later_ref_sets_is_inferred() -> None:
+    # The hidden ref writes 1 into P's byte whatever the shown ref says; the shown ref is off,
+    # which shows X. Taking the byte's 1 for the shown ref showed Y instead.
+    application = _hidden_ref_application()
+    shown, x = f"{application.id}_P-1_R-1", f"{application.id}_P-2_R-3"
+    segments = _device(application, (shown, "0"), (x, "5"))
+    assert next(iter(segments.values()))[:2] == b"\x01\x05"
+    recovered = recover_parameters(application, segments)
+    assert recovered.complete
+    assert recovered.values.get(shown, "0") == "0"
+    assert recovered.values.get(x) == "5"
+
+
+def _union_application() -> Application:
+    """A union over byte 0 with the hidden member ``UA`` (fixed 45) and, after it, the shown
+    ``UB``, both always active; ``UA`` 45 shows ``X`` (byte 1)."""
+    app = "M-00FA_A-000B-01-0000"
+    xml = f"""<?xml version="1.0" encoding="utf-8"?>
+<KNX xmlns="http://knx.org/xml/project/20" CreatedBy="test" ToolVersion="1">
+  <ManufacturerData><Manufacturer RefId="M-00FA"><ApplicationPrograms>
+    <ApplicationProgram Id="{app}" ApplicationNumber="11" ApplicationVersion="1"
+        ProgramType="ApplicationProgram" MaskVersion="MV-07B0" Name="Union"
+        LoadProcedureStyle="MergedProcedure" PeiType="0" DefaultLanguage="en-US"
+        DynamicTableManagement="false" Linkable="false" MinEtsVersion="5.0">
+      <Static>
+        <Code><AbsoluteSegment Id="{app}_AS-0000" Address="0" Size="2"><Data>AAA=</Data></AbsoluteSegment></Code>
+        <ParameterTypes>
+          <ParameterType Id="{app}_PT-N" Name="N"><TypeNumber SizeInBit="8" Type="unsignedInt" minInclusive="0" maxInclusive="255" /></ParameterType>
+        </ParameterTypes>
+        <Parameters>
+          <Union SizeInBit="8">
+            <Memory CodeSegment="{app}_AS-0000" Offset="0" BitOffset="0" />
+            <Parameter Id="{app}_UP-1" Name="UA" ParameterType="{app}_PT-N" Offset="0" BitOffset="0" Text="UA" Access="None" Value="45" DefaultUnionParameter="true" />
+            <Parameter Id="{app}_UP-2" Name="UB" ParameterType="{app}_PT-N" Offset="0" BitOffset="0" Text="UB" Value="0" />
+          </Union>
+          <Parameter Id="{app}_P-3" Name="X" ParameterType="{app}_PT-N" Text="X" Value="0"><Memory CodeSegment="{app}_AS-0000" Offset="1" BitOffset="0" /></Parameter>
+        </Parameters>
+        <ParameterRefs>
+          <ParameterRef Id="{app}_UP-1_R-1" RefId="{app}_UP-1" />
+          <ParameterRef Id="{app}_UP-2_R-2" RefId="{app}_UP-2" />
+          <ParameterRef Id="{app}_P-3_R-3" RefId="{app}_P-3" />
+        </ParameterRefs>
+      </Static>
+      <Dynamic><ChannelIndependentBlock><ParameterBlock Id="{app}_PB-1" Text="General">
+        <ParameterRefRef RefId="{app}_UP-1_R-1" />
+        <ParameterRefRef RefId="{app}_UP-2_R-2" />
+        <choose ParamRefId="{app}_UP-1_R-1"><when test="45"><ParameterRefRef RefId="{app}_P-3_R-3" /></when></choose>
+      </ParameterBlock></ChannelIndependentBlock></Dynamic>
+    </ApplicationProgram>
+  </ApplicationPrograms></Manufacturer></ManufacturerData>
+</KNX>
+"""
+    return parse_application_xml(xml.encode(), "M-00FA")[0]
+
+
+def test_a_union_member_written_over_by_a_later_one_keeps_its_value() -> None:
+    # Both members are written, UB last: the byte holds UB's 7. Taking the 7 for the hidden UA
+    # too hid X.
+    application = _union_application()
+    ub, x = f"{application.id}_UP-2_R-2", f"{application.id}_P-3_R-3"
+    segments = _device(application, (ub, "7"), (x, "5"))
+    assert next(iter(segments.values())) == b"\x07\x05"
+    recovered = recover_parameters(application, segments)
+    assert recovered.complete
+    assert recovered.values.get(ub) == "7"
+    assert recovered.values.get(x) == "5"
+
+
+def _hidden_union_application() -> Application:
+    """A union over byte 0 with the hidden members ``UA`` (fixed 45) and ``UB`` (fixed 0): the
+    stored switch ``S`` (byte 1) off shows ``UA`` by its ref ``R-5``, on by ``R-1``, and that
+    one 45 shows ``UB`` and ``X`` (byte 2)."""
+    app = "M-00FA_A-000C-01-0000"
+    xml = f"""<?xml version="1.0" encoding="utf-8"?>
+<KNX xmlns="http://knx.org/xml/project/20" CreatedBy="test" ToolVersion="1">
+  <ManufacturerData><Manufacturer RefId="M-00FA"><ApplicationPrograms>
+    <ApplicationProgram Id="{app}" ApplicationNumber="12" ApplicationVersion="1"
+        ProgramType="ApplicationProgram" MaskVersion="MV-07B0" Name="Hidden union"
+        LoadProcedureStyle="MergedProcedure" PeiType="0" DefaultLanguage="en-US"
+        DynamicTableManagement="false" Linkable="false" MinEtsVersion="5.0">
+      <Static>
+        <Code><AbsoluteSegment Id="{app}_AS-0000" Address="0" Size="3"><Data>AAAA</Data></AbsoluteSegment></Code>
+        <ParameterTypes>
+          <ParameterType Id="{app}_PT-OnOff" Name="OnOff"><TypeRestriction Base="Value" SizeInBit="8">
+            <Enumeration Text="off" Value="0" Id="{app}_PT-OnOff_EN-0" />
+            <Enumeration Text="on" Value="1" Id="{app}_PT-OnOff_EN-1" />
+          </TypeRestriction></ParameterType>
+          <ParameterType Id="{app}_PT-N" Name="N"><TypeNumber SizeInBit="8" Type="unsignedInt" minInclusive="0" maxInclusive="255" /></ParameterType>
+        </ParameterTypes>
+        <Parameters>
+          <Union SizeInBit="8">
+            <Memory CodeSegment="{app}_AS-0000" Offset="0" BitOffset="0" />
+            <Parameter Id="{app}_UP-1" Name="UA" ParameterType="{app}_PT-N" Offset="0" BitOffset="0" Text="UA" Access="None" Value="45" DefaultUnionParameter="true" />
+            <Parameter Id="{app}_UP-2" Name="UB" ParameterType="{app}_PT-N" Offset="0" BitOffset="0" Text="UB" Access="None" Value="0" />
+          </Union>
+          <Parameter Id="{app}_P-3" Name="S" ParameterType="{app}_PT-OnOff" Text="S" Value="0"><Memory CodeSegment="{app}_AS-0000" Offset="1" BitOffset="0" /></Parameter>
+          <Parameter Id="{app}_P-4" Name="X" ParameterType="{app}_PT-N" Text="X" Value="0"><Memory CodeSegment="{app}_AS-0000" Offset="2" BitOffset="0" /></Parameter>
+        </Parameters>
+        <ParameterRefs>
+          <ParameterRef Id="{app}_UP-1_R-1" RefId="{app}_UP-1" />
+          <ParameterRef Id="{app}_UP-1_R-5" RefId="{app}_UP-1" />
+          <ParameterRef Id="{app}_UP-2_R-2" RefId="{app}_UP-2" />
+          <ParameterRef Id="{app}_P-3_R-3" RefId="{app}_P-3" />
+          <ParameterRef Id="{app}_P-4_R-4" RefId="{app}_P-4" />
+        </ParameterRefs>
+      </Static>
+      <Dynamic><ChannelIndependentBlock><ParameterBlock Id="{app}_PB-1" Text="General">
+        <ParameterRefRef RefId="{app}_P-3_R-3" />
+        <choose ParamRefId="{app}_P-3_R-3"><when test="0">
+          <ParameterRefRef RefId="{app}_UP-1_R-5" />
+        </when><when test="1">
+          <ParameterRefRef RefId="{app}_UP-1_R-1" />
+          <choose ParamRefId="{app}_UP-1_R-1"><when test="45">
+            <ParameterRefRef RefId="{app}_UP-2_R-2" />
+            <ParameterRefRef RefId="{app}_P-4_R-4" />
+          </when></choose>
+        </when></choose>
+      </ParameterBlock></ChannelIndependentBlock></Dynamic>
+    </ApplicationProgram>
+  </ApplicationPrograms></Manufacturer></ManufacturerData>
+</KNX>
+"""
+    return parse_application_xml(xml.encode(), "M-00FA")[0]
+
+
+def test_a_hidden_union_member_keeps_its_fixed_value_where_another_wrote_the_memory() -> (
+    None
+):
+    # UA keeps 45, which shows UB; UB is written last and leaves its 0 in the byte. Taking the
+    # 0 for UA (read for its ref R-5, which S off shows) hid UB and X, and nothing the user
+    # edits brings them back.
+    application = _hidden_union_application()
+    s, x = f"{application.id}_P-3_R-3", f"{application.id}_P-4_R-4"
+    segments = _device(application, (s, "1"), (x, "5"))
+    assert next(iter(segments.values())) == b"\x00\x01\x05"
+    recovered = recover_parameters(application, segments)
+    assert recovered.complete
+    assert recovered.values.get(s) == "1"
+    assert recovered.values.get(x) == "5"
+    assert recovered.values.get(f"{application.id}_UP-1_R-1", "45") == "45"
+
+
+def _written_over_application() -> Application:
+    """A union over bytes 0 and 1 with ``UA`` (16 bits, "no" 65535 or "K" 61679) and, after
+    it, ``UB`` (5 bits from bit 3 of byte 0), both always shown."""
+    app = "M-00FA_A-000D-01-0000"
+    xml = f"""<?xml version="1.0" encoding="utf-8"?>
+<KNX xmlns="http://knx.org/xml/project/20" CreatedBy="test" ToolVersion="1">
+  <ManufacturerData><Manufacturer RefId="M-00FA"><ApplicationPrograms>
+    <ApplicationProgram Id="{app}" ApplicationNumber="13" ApplicationVersion="1"
+        ProgramType="ApplicationProgram" MaskVersion="MV-07B0" Name="Written over"
+        LoadProcedureStyle="MergedProcedure" PeiType="0" DefaultLanguage="en-US"
+        DynamicTableManagement="false" Linkable="false" MinEtsVersion="5.0">
+      <Static>
+        <Code><AbsoluteSegment Id="{app}_AS-0000" Address="0" Size="2"><Data>AAA=</Data></AbsoluteSegment></Code>
+        <ParameterTypes>
+          <ParameterType Id="{app}_PT-A" Name="A"><TypeRestriction Base="Value" SizeInBit="16">
+            <Enumeration Text="no" Value="65535" Id="{app}_PT-A_EN-65535" />
+            <Enumeration Text="K" Value="61679" Id="{app}_PT-A_EN-61679" />
+          </TypeRestriction></ParameterType>
+          <ParameterType Id="{app}_PT-B" Name="B"><TypeNumber SizeInBit="5" Type="unsignedInt" minInclusive="0" maxInclusive="31" /></ParameterType>
+        </ParameterTypes>
+        <Parameters>
+          <Union SizeInBit="16">
+            <Memory CodeSegment="{app}_AS-0000" Offset="0" BitOffset="0" />
+            <Parameter Id="{app}_UP-1" Name="UA" ParameterType="{app}_PT-A" Offset="0" BitOffset="0" Text="UA" Value="61679" DefaultUnionParameter="true" />
+            <Parameter Id="{app}_UP-2" Name="UB" ParameterType="{app}_PT-B" Offset="0" BitOffset="3" Text="UB" Value="0" />
+          </Union>
+        </Parameters>
+        <ParameterRefs>
+          <ParameterRef Id="{app}_UP-1_R-1" RefId="{app}_UP-1" />
+          <ParameterRef Id="{app}_UP-2_R-2" RefId="{app}_UP-2" />
+        </ParameterRefs>
+      </Static>
+      <Dynamic><ChannelIndependentBlock><ParameterBlock Id="{app}_PB-1" Text="General">
+        <ParameterRefRef RefId="{app}_UP-1_R-1" />
+        <ParameterRefRef RefId="{app}_UP-2_R-2" />
+      </ParameterBlock></ChannelIndependentBlock></Dynamic>
+    </ApplicationProgram>
+  </ApplicationPrograms></Manufacturer></ManufacturerData>
+</KNX>
+"""
+    return parse_application_xml(xml.encode(), "M-00FA")[0]
+
+
+def test_a_union_member_written_over_in_part_is_read_from_its_own_bits() -> None:
+    # UB writes its 8 over bits 3 to 7 of byte 0: the 16 bits read, E8FFh, are no value of UA,
+    # but its own bits (the top 3 of byte 0 and byte 1) are those of "no" alone.
+    application = _written_over_application()
+    ua, ub = f"{application.id}_UP-1_R-1", f"{application.id}_UP-2_R-2"
+    segments = _device(application, (ua, "65535"), (ub, "8"))
+    assert next(iter(segments.values())) == b"\xe8\xff"
+    recovered = recover_parameters(application, segments)
+    assert recovered.complete
+    assert recovered.values.get(ua) == "65535"
+    assert recovered.values.get(ub) == "8"
+
+
+def _look_ahead_application() -> Application:
+    """Two settings the device keeps no copy of: ``A`` on shows ``B``, and ``B`` on shows group
+    object 2. Object 1 is never shown."""
+    app = "M-00FA_A-000E-01-0000"
+    xml = f"""<?xml version="1.0" encoding="utf-8"?>
+<KNX xmlns="http://knx.org/xml/project/20" CreatedBy="test" ToolVersion="1">
+  <ManufacturerData><Manufacturer RefId="M-00FA"><ApplicationPrograms>
+    <ApplicationProgram Id="{app}" ApplicationNumber="14" ApplicationVersion="1"
+        ProgramType="ApplicationProgram" MaskVersion="MV-07B0" Name="Look ahead"
+        LoadProcedureStyle="MergedProcedure" PeiType="0" DefaultLanguage="en-US"
+        DynamicTableManagement="false" Linkable="false" MinEtsVersion="5.0">
+      <Static>
+        <Code><AbsoluteSegment Id="{app}_AS-0000" Address="0" Size="1"><Data>AA==</Data></AbsoluteSegment></Code>
+        <ParameterTypes>
+          <ParameterType Id="{app}_PT-OnOff" Name="OnOff"><TypeRestriction Base="Value" SizeInBit="8">
+            <Enumeration Text="off" Value="0" Id="{app}_PT-OnOff_EN-0" />
+            <Enumeration Text="on" Value="1" Id="{app}_PT-OnOff_EN-1" />
+          </TypeRestriction></ParameterType>
+        </ParameterTypes>
+        <Parameters>
+          <Parameter Id="{app}_P-1" Name="A" ParameterType="{app}_PT-OnOff" Text="A" Value="0" />
+          <Parameter Id="{app}_P-2" Name="B" ParameterType="{app}_PT-OnOff" Text="B" Value="0" />
+        </Parameters>
+        <ParameterRefs>
+          <ParameterRef Id="{app}_P-1_R-1" RefId="{app}_P-1" />
+          <ParameterRef Id="{app}_P-2_R-2" RefId="{app}_P-2" />
+        </ParameterRefs>
+        <ComObjectTable>
+          <ComObject Id="{app}_O-1" Name="O1" Text="Object 1" Number="1" FunctionText="" ObjectSize="1 Bit" ReadFlag="Disabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" />
+          <ComObject Id="{app}_O-2" Name="O2" Text="Object 2" Number="2" FunctionText="" ObjectSize="1 Bit" ReadFlag="Disabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" />
+        </ComObjectTable>
+        <ComObjectRefs>
+          <ComObjectRef Id="{app}_O-1_R-1" RefId="{app}_O-1" />
+          <ComObjectRef Id="{app}_O-2_R-2" RefId="{app}_O-2" />
+        </ComObjectRefs>
+      </Static>
+      <Dynamic><ChannelIndependentBlock><ParameterBlock Id="{app}_PB-1" Text="General">
+        <ParameterRefRef RefId="{app}_P-1_R-1" />
+        <choose ParamRefId="{app}_P-1_R-1"><when test="1">
+          <ParameterRefRef RefId="{app}_P-2_R-2" />
+          <choose ParamRefId="{app}_P-2_R-2"><when test="1">
+            <ComObjectRefRef RefId="{app}_O-2_R-2" />
+          </when></choose>
+        </when></choose>
+      </ParameterBlock></ChannelIndependentBlock></Dynamic>
+    </ApplicationProgram>
+  </ApplicationPrograms></Manufacturer></ManufacturerData>
+</KNX>
+"""
+    return parse_application_xml(xml.encode(), "M-00FA")[0]
+
+
+def test_a_value_whose_look_ahead_shows_nothing_more_is_not_tried_again() -> None:
+    # A on shows only B, and B on only an object that is not linked: nothing behind A shows
+    # the linked object 1, so A on is not tried again (each try seeds the whole UI).
+    application = _look_ahead_application()
+    a = f"{application.id}_P-1_R-1"
+    dead: set[tuple[str, str]] = set()
+    chosen = parameters._infer_unstored(  # pyright: ignore[reportPrivateUsage]
+        application, {}, {1}, {}, None, dead=dead
+    )
+    assert chosen == {}
+    assert (a, "1") in dead
+
+
+_CALCULATIONS = (
+    Path(__file__).parents[2]
+    / "prod"
+    / "tests"
+    / "fixtures"
+    / "calculations_application.xml"
+)
+
+
+def test_a_cancel_stops_the_calculations_of_a_decode() -> None:
+    # The calculations of a large application can take longer than the rest of a search:
+    # they stop at the cancel too.
+    application = parse_application_xml(_CALCULATIONS.read_bytes(), "M-00FA")[0]
+    values = {f"{application.id}_P-1_R-1": "3"}
+    calculated = parameters._with_calculated(  # pyright: ignore[reportPrivateUsage]
+        application, values, None
+    )
+    assert calculated != values
+    with pytest.raises(parameters._Cancelled):  # pyright: ignore[reportPrivateUsage]
+        parameters._with_calculated(  # pyright: ignore[reportPrivateUsage]
+            application, values, None, lambda: True
+        )

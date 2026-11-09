@@ -520,6 +520,37 @@ def _parameter_separator(ctx: Context, src: Any) -> dict[str, Any]:
     return {}
 
 
+# Up to v11 a colour parameter is a TypeText with one of these patterns; v12 made it TypeColor.
+_TEXT_COLOR_SPACES = {
+    "^#[0-9a-fA-F]{6}$(?# TypeColor:RGB)": "RGB",
+    "^#[0-9a-fA-F]{6}$(?# TypeColor:HSV)": "HSV",
+}
+
+
+@override("ParameterType_t")
+def _parameter_type(ctx: Context, src: Any) -> dict[str, Any]:
+    """v10/v11 had no TypeColor: a colour is a TypeText whose Pattern carries the colour space
+    as a ``(?# TypeColor:RGB)`` comment, and its memory holds the three colour octets, not the
+    seven characters of the text. Map such a text onto TypeColor of that space."""
+    if ctx.version.removeprefix("v") not in ("10", "11"):
+        return {}
+    choice = getattr(src, "choice", None)
+    if type(choice).__name__ != "ParameterTypeTypeText":
+        return {}
+    space = _TEXT_COLOR_SPACES.get(getattr(choice, "pattern", None) or "")
+    if space is None:
+        return {}
+    from xknxeditor.namespaces.intermediate.parameter_type_t_type_color import (
+        ParameterTypeTypeColor,
+    )
+    from xknxeditor.namespaces.intermediate.parameter_type_t_type_color_space import (
+        ParameterTypeTypeColorSpace,
+    )
+
+    ctx.logger.info("convert.parameter_type.text_to_color", id=getattr(src, "id", "?"))
+    return {"choice": ParameterTypeTypeColor(space=ParameterTypeTypeColorSpace(space))}
+
+
 @override("Security_t")
 def _security(ctx: Context, src: Any) -> dict[str, Any]:
     """v14 swapped the plaintext Loaded* credentials for hashed forms; the IR keeps both.

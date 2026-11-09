@@ -7,6 +7,7 @@ import logging
 import re
 from collections.abc import Callable, Collection, Iterable, Mapping
 from dataclasses import dataclass, field
+from itertools import islice
 from typing import TYPE_CHECKING, Any, cast
 
 from xknxeditor.namespaces.intermediate.parameter_calculation_t import (
@@ -78,6 +79,12 @@ class Journal:
         if ref_id not in self.before:
             self.before[ref_id] = (self.read(ref_id), self.explicit(ref_id))
         self.write(ref_id, value)
+
+    def note(self, ref_id: str, old: str | None, explicit: str | None) -> None:
+        """Record a value the change wrote without the journal (an Assign), with its value
+        (``old``) and explicit value before the change; a value journaled already keeps
+        what it had before."""
+        self.before.setdefault(ref_id, (old, explicit))
 
     def rollback(self) -> None:
         for ref_id, (_, explicit) in reversed(self.before.items()):
@@ -242,13 +249,57 @@ def _compute(
     trial: Mapping[str, str] | None = None,
 ) -> dict[str, Any] | None:
     """What ``calc`` computes in ``direction``, by output alias (None: no code for it), with the
-    values of ``trial`` (by local ref) in place of the current ones."""
+    values of ``trial`` (by local ref) in place of the current ones.
+
+    The code sees nothing but the values of its parameters (and the product's script and
+    messages), so what it computed from the same values is computed once per application (with
+    the script environment of the system, ``env`` None); a search of a device's settings runs the
+    same calculations on the same values again and again."""
 
     def get(ref_id: str) -> str | None:
         if trial is not None and ref_id in trial:
             return trial[ref_id]
         return scope.get(ref_id)
 
+    ins, outs = _sides(calc, direction)
+    if env is not None:
+        return _compute_now(idx, calc, direction, scope, env, abort, get)
+    key = (
+        _COMPUTED,
+        calc.id,
+        direction,
+        scope.locale,
+        tuple(get(pr.ref_id) for pr in ins),
+        tuple(get(pr.ref_id) for pr in outs),
+    )
+    results = idx.calculation_results
+    found = results.get(key, _NOT_COMPUTED)
+    if found is not _NOT_COMPUTED:
+        cached = cast("dict[str, Any] | None", found)
+        return dict(cached) if cached is not None else None
+    computed = _compute_now(idx, calc, direction, scope, env, abort, get)
+    if len(results) >= _MAX_RESULTS:
+        results.clear()
+    results[key] = dict(computed) if computed is not None else None
+    return computed
+
+
+# Marks the results of _compute among the calculation results an indexer keeps, and stands
+# for one not computed yet.
+_COMPUTED = "_compute"
+_NOT_COMPUTED = object()
+
+
+def _compute_now(
+    idx: ApplicationIndexer,
+    calc: ParameterCalculation,
+    direction: str,
+    scope: CalculationScope,
+    env: JScriptEnv | None,
+    abort: AbortToken | None,
+    get: Callable[[str], str | None],
+) -> dict[str, Any] | None:
+    """:func:`_compute`, run: the values of the parameters read with ``get``."""
     lr = direction == "LR"
     ins, outs = _sides(calc, direction)
     if calc.language == ParameterCalculationLanguage.VBSCRIPT:
@@ -390,6 +441,11 @@ def _write_outputs(
 # keeps for the next search.
 _MAX_CANDIDATES = 256
 _MAX_RESULTS = 100_000
+# Fewer other values than this make a parameter one the search of _match_stored also tries
+# together with another such one (switches, choices).
+_PAIR_CANDIDATES = 8
+# Most pairs of values that search tries for one calculation at a time.
+_PAIR_TRIALS = 64
 
 
 def _match_stored(
@@ -408,8 +464,11 @@ def _match_stored(
     download writes the R values with. Each L parameter that changes one of the R values not
     given back (seen by trying two other values of it) is tried with every value of its domain,
     when that is small; the value that gives the most R values back is taken when it gives more
-    than before. An R value no L value gives back (one the product cannot download) is left as
-    it is; those are returned."""
+    than before. Where that leaves R values not given back, two L parameters with few values
+    each are tried together (two switches that both have to be on for a time to be downloaded),
+    and the single ones again after them. An R value no L value gives back (one the product
+    cannot download) is left as it is; those are returned. The R values not ``stored`` take
+    what the LR transformation computes from the L values, as an edit of them would set them."""
     if not (calc.lrtransformation_func or calc.lrtransformation):
         return []
     targets: dict[str, str] = {}
@@ -450,6 +509,17 @@ def _match_stored(
             if isinstance(value := got.get(ref), str) and _same_value(value, want)
         }
 
+    def write_unstored(got: Mapping[str, str | CalculationError]) -> None:
+        # The R values not read follow the L values, as an edit of them sets them (a switch
+        # computed from them that shows or hides other settings).
+        for ref, value in got.items():
+            if (
+                ref not in stored
+                and isinstance(value, str)
+                and not _same_value(value, scope.get(ref) or "")
+            ):
+                journal.set(scope.qualify(ref), value)
+
     current: dict[str, str] = {}
     for pr in calc.lparameters.parameter_ref_ref:
         value = scope.get(pr.ref_id)
@@ -458,33 +528,75 @@ def _match_stored(
     base = evaluate(current)
     matched = given_back(base)
     if matched == set(targets):
+        write_unstored(base)
         return []
     chosen = dict(current)
-    for ref in current:
-        candidates = _candidates(idx.type_of(ref), current[ref])
-        if not candidates:
-            continue
-        missing = set(targets) - matched
-        affects = set[str]()
-        for probe in {candidates[0], candidates[-1]}:
-            got = evaluate({**chosen, ref: probe})
-            affects |= {r for r in targets if str(got.get(r)) != str(base.get(r))}
-        if not affects & missing:
-            continue
-        best, best_matched = chosen[ref], matched
-        for candidate in candidates:
-            same = given_back(evaluate({**chosen, ref: candidate}))
+
+    def search_singles() -> None:
+        nonlocal matched, base
+        for ref in current:
+            candidates = _candidates(idx.type_of(ref), chosen[ref])
+            if not candidates:
+                continue
+            missing = set(targets) - matched
+            affects = set[str]()
+            for probe in dict.fromkeys((candidates[0], candidates[-1])):
+                got = evaluate({**chosen, ref: probe})
+                affects |= {r for r in targets if str(got.get(r)) != str(base.get(r))}
+            if not affects & missing:
+                continue
+            best, best_matched = chosen[ref], matched
+            for candidate in candidates:
+                same = given_back(evaluate({**chosen, ref: candidate}))
+                if len(same) > len(best_matched):
+                    best, best_matched = candidate, same
+            if best != chosen[ref]:
+                chosen[ref] = best
+                matched = best_matched
+                base = evaluate(chosen)
+                if matched == set(targets):
+                    return
+
+    def search_pairs() -> bool:
+        """Two settings with few values each that change the R values only together (two
+        switches that both have to be on), tried together: whether a pair gives more back."""
+        nonlocal matched, base
+        few = [
+            (ref, candidates)
+            for ref in current
+            if (candidates := _candidates(idx.type_of(ref), chosen[ref]))
+            and len(candidates) < _PAIR_CANDIDATES
+        ]
+        best: tuple[tuple[str, str], tuple[str, str]] | None = None
+        best_matched = matched
+        pairs = (
+            ((first, a), (second, b))
+            for n, (first, first_values) in enumerate(few)
+            for second, second_values in few[n + 1 :]
+            for a in first_values
+            for b in second_values
+        )
+        # A calculation over many such settings (a channel's worth of switches) is not
+        # searched pair by pair: each trial runs its script.
+        for pair in islice(pairs, _PAIR_TRIALS):
+            same = given_back(evaluate({**chosen, **dict(pair)}))
             if len(same) > len(best_matched):
-                best, best_matched = candidate, same
-        if best != chosen[ref]:
-            chosen[ref] = best
-            matched = best_matched
-            base = evaluate(chosen)
-            if matched == set(targets):
-                break
+                best, best_matched = pair, same
+        if best is None:
+            return False
+        for ref, value in best:
+            chosen[ref] = value
+        matched = best_matched
+        base = evaluate(chosen)
+        return True
+
+    search_singles()
+    while matched != set(targets) and search_pairs():
+        search_singles()
     for ref, value in chosen.items():
         if value != current[ref]:
             journal.set(scope.qualify(ref), value)
+    write_unstored(base)
     return [ref for ref in targets if ref not in matched]
 
 

@@ -41,6 +41,8 @@ async def test_memory_disconnect_propagates_but_unreadable_segment_is_skipped(
                 segment_sizes=lambda: {segment: 8},
                 segment_base_addrs=lambda: {segment: 0x1000},
             ),
+            load_procedure_style=None,
+            load_procedures=None,
             program=SimpleNamespace(
                 static=SimpleNamespace(
                     address_table=None
@@ -71,12 +73,24 @@ async def test_property_disconnect_propagates(monkeypatch: pytest.MonkeyPatch) -
     import xknxeditor.prod.parser_v2.application_indexer as indexing
     import xknxeditor.prod.parser_v2.encode as encoding
 
-    monkeypatch.setattr(indexing, "ApplicationIndexer", lambda _: None)
+    monkeypatch.setattr(
+        indexing,
+        "ApplicationIndexer",
+        lambda _: SimpleNamespace(parameter_types={}, module_defs={}),
+    )
     monkeypatch.setattr(
         encoding,
         "collect_writes",
         lambda *args: SimpleNamespace(
-            prop=[SimpleNamespace(object_index=4, property_id=80, occurrence=0)]
+            prop=[
+                SimpleNamespace(
+                    object_index=4,
+                    object_type=None,
+                    property_id=80,
+                    occurrence=0,
+                    parameter_type="PT",
+                )
+            ]
         ),
     )
     application = cast(Any, SimpleNamespace(program=None))

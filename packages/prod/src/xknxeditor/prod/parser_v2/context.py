@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from collections.abc import Iterable, Iterator, Mapping
+from collections.abc import Collection, Iterable, Iterator, Mapping
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
@@ -207,10 +207,13 @@ class EvalContext:
     __slots__ = (
         "_capture",
         "_explore",
+        "_handed",
         "_idx",
+        "_in_repeat",
         "_object_tree",
         "_repeat_idx",
         "_scope",
+        "_union_chooses",
         "_union_suppress",
     )
 
@@ -223,9 +226,14 @@ class EvalContext:
         union_suppress: bool = True,
         explore: Explorer | None = None,
         object_tree: ObjectTreeCapture | None = None,
+        in_repeat: bool = False,
+        union_chooses: list[tuple[ParameterState, str, Collection[str]]] | None = None,
+        handed: set[int] | None = None,
     ) -> None:
         self._scope = scope
         self._repeat_idx = repeat_idx
+        # Whether ``repeat_idx`` is the iteration of a Repeat in this scope (it is 1 outside one).
+        self._in_repeat = in_repeat
         self._idx = idx
         self._capture = capture
         # False during the union-discovery pass (render both overlapping members so the reached one
@@ -235,6 +243,11 @@ class EvalContext:
         self._explore = explore
         # Set to record the device's group object tree (see ObjectTreeCapture).
         self._object_tree = object_tree
+        # Set to record the Chooses on a union member the pass reaches (see note_union_choose).
+        self._union_chooses = union_chooses
+        # Set when the nodes may hand out what they made in an earlier pass again: the ids of
+        # what this pass has handed out (none twice in one tree, see :attr:`handed`).
+        self._handed = handed
 
     @property
     def capture(self) -> EvalCapture | None:
@@ -249,11 +262,24 @@ class EvalContext:
         return self._object_tree
 
     @property
+    def handed(self) -> set[int] | None:
+        """The ids of the UiNodes this pass handed out that a node made in an earlier pass
+        (an evaluation of the same values again); None when every node is made anew. A node
+        hands out none twice in one pass, as a tree may tell its nodes apart by identity."""
+        return self._handed
+
+    @property
     def union_suppress(self) -> bool:
         return self._union_suppress
 
     def is_discovered_active(self, ref_id: str) -> bool:
         return self._scope.is_discovered_active(ref_id)
+
+    def note_union_choose(self, param_ref_id: str, siblings: Collection[str]) -> None:
+        """A Choose on the union member ``param_ref_id`` (competing with ``siblings``) is reached
+        in this scope; recorded when the pass records them."""
+        if self._union_chooses is not None:
+            self._union_chooses.append((self._scope, param_ref_id, siblings))
 
     def is_gate_active(self, ref_id: str) -> bool:
         return self._scope.is_gate_active(ref_id)
@@ -276,6 +302,10 @@ class EvalContext:
     def set(self, ref_id: str, value: str) -> None:
         self._scope.set(ref_id, value)
 
+    def assign(self, ref_id: str, value: str) -> None:
+        """An Assign writes ``value`` into ``ref_id`` (see :meth:`ParameterState.assign`)."""
+        self._scope.assign(ref_id, value)
+
     def set_text(self, ref_id: str, text: str) -> None:
         self._scope.set_text(ref_id, text)
 
@@ -288,6 +318,12 @@ class EvalContext:
     def mark_active_com_object(self, ref_id: str) -> None:
         self._scope.mark_active_com_object(ref_id)
 
+    def mark_assigned_from(self, target: str, source: str) -> None:
+        self._scope.mark_assigned_from(target, source)
+
+    def mark_assigned_constant(self, target: str) -> None:
+        self._scope.mark_assigned_constant(target)
+
     def get_com_obj_instance_ref(self, ref_id: str) -> ComObjectInstanceRef | None:
         return self._scope.get_com_obj_instance_ref(ref_id)
 
@@ -297,12 +333,19 @@ class EvalContext:
         """Take the next address from the pool, bump the scope position, and return it."""
         if self._idx is None:
             raise RuntimeError("allocate() requires an ApplicationIndexer")
-        # A module argument's Allocator may be defined on the module definition OR on the
-        # application (both are valid); look in the module def first, then fall back to the
-        # application-level allocators.
-        alloc = (self._idx.allocators.get(def_ref_id) or {}).get(
-            alloc_id
-        ) or self._idx.app_allocators.get(alloc_id)
+        # A module argument's Allocator may be defined on the module definition, on the
+        # definition a submodule is in (``..._MD-4_L-1`` for ``..._MD-4_SM-1``) OR on the
+        # application (all are valid); look in the module def first, then in the enclosing
+        # ones, then fall back to the application-level allocators.
+        alloc = None
+        owner = def_ref_id
+        while alloc is None:
+            alloc = (self._idx.allocators.get(owner) or {}).get(alloc_id)
+            at = owner.rfind("_SM-")
+            if at == -1:
+                break
+            owner = owner[:at]
+        alloc = alloc or self._idx.app_allocators.get(alloc_id)
         arg_allocs = self._idx.arg_alloc.get(def_ref_id)
         if alloc is None or arg_allocs is None or arg_ref_id not in arg_allocs:
             # Truly unresolved (e.g. partial module data) — don't crash the device load; fall back
@@ -333,6 +376,9 @@ class EvalContext:
             self._union_suppress,
             self._explore,
             self._object_tree,
+            in_repeat=True,
+            union_chooses=self._union_chooses,
+            handed=self._handed,
         )
 
     def get_arg_value(self, ref_id: str) -> int:
@@ -386,6 +432,7 @@ class EvalContext:
             arg_defaults=arg_defaults,
             ref_id=ref_id,
             param_ref_bases=param_ref_bases,
+            in_repeat=self._in_repeat,
         )
         return EvalContext(
             ms,
@@ -394,4 +441,6 @@ class EvalContext:
             union_suppress=self._union_suppress,
             explore=self._explore,
             object_tree=self._object_tree,
+            union_chooses=self._union_chooses,
+            handed=self._handed,
         )

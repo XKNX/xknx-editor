@@ -11,13 +11,14 @@ from xknx.telegram.apci import UserMemoryRead, UserMemoryWrite
 
 from xknxeditor.download.crc import expected_mcb_table, segment_crc
 from xknxeditor.download.errors import (
+    InsufficientApduLength,
     LoadStateError,
     UnsupportedProcedureError,
     VerificationError,
 )
 from xknxeditor.download.image import DownloadImage
 from xknxeditor.download.procedure import LoadProcedureRunner
-from xknxeditor.download.programmer import DeviceProgrammer
+from xknxeditor.download.programmer import ApduRestriction, DeviceProgrammer
 
 from .conftest import FakeDevice
 
@@ -89,9 +90,31 @@ async def test_write_property_rejects_indivisible_data() -> None:
 
 
 async def test_write_property_rejects_oversized_element() -> None:
-    programmer = DeviceProgrammer(FakeDevice(), max_apdu_length=15)
-    with pytest.raises(VerificationError, match="does not fit the APDU"):
+    device = FakeDevice()
+    programmer = DeviceProgrammer(device, max_apdu_length=15)
+    with pytest.raises(
+        InsufficientApduLength,
+        match=r"restricted to 15 by communication settings, required: 69\)",
+    ):
         await programmer.write_property(0, 5, bytes(64), count=1)
+    assert not device.sent
+
+
+async def test_oversized_element_counts_the_secure_and_extended_headers() -> None:
+    programmer = DeviceProgrammer(FakeDevice(), max_apdu_length=40, apdu_overhead=13)
+    programmer.apdu_restricted_by = ApduRestriction.INTERFACE
+    # 40 - 13 - 5 leaves 22 octets for the elements of a standard frame.
+    assert programmer.property_chunk_size(22) == 1
+    with pytest.raises(InsufficientApduLength) as raised:
+        programmer.property_chunk_size(23)
+    assert (raised.value.usable, raised.value.required) == (40, 41)
+    assert raised.value.restricted_by == "capabilities of the bus interface"
+    # The extended services add 4 octets of header.
+    assert programmer.extended_property_chunk_size(18) == 1
+    with pytest.raises(InsufficientApduLength, match="required: 41"):
+        programmer.extended_property_chunk_size(19)
+    with pytest.raises(VerificationError, match="invalid property element size"):
+        programmer.property_chunk_size(-1)
 
 
 async def test_read_table_reference_rejects_zero() -> None:

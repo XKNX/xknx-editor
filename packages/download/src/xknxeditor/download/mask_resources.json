@@ -74,7 +74,13 @@
     "ProgrammingMode_Bcu1",
     1
    ]
-  }
+  },
+  "memory": [
+   [
+    256,
+    256
+   ]
+  ]
  },
  "MV-0011": {
   "features": {},
@@ -151,7 +157,13 @@
     "ProgrammingMode_Bcu1",
     1
    ]
-  }
+  },
+  "memory": [
+   [
+    256,
+    256
+   ]
+  ]
  },
  "MV-0012": {
   "features": {},
@@ -228,7 +240,13 @@
     "ProgrammingMode_Bcu1",
     1
    ]
-  }
+  },
+  "memory": [
+   [
+    256,
+    256
+   ]
+  ]
  },
  "MV-0013": {
   "features": {},
@@ -305,7 +323,13 @@
     "ProgrammingMode_Bcu1",
     1
    ]
-  }
+  },
+  "memory": [
+   [
+    256,
+    256
+   ]
+  ]
  },
  "MV-0020": {
   "features": {
@@ -323,7 +347,11 @@
     13,
     0,
     null,
-    5
+    5,
+    "StandardMemory",
+    null,
+    null,
+    259
    ],
    "ApplicationLoadControl": [
     "SystemProperty",
@@ -363,7 +391,11 @@
     null,
     null,
     "AddressTable_Bcu1",
-    1
+    1,
+    "StandardMemory",
+    null,
+    null,
+    278
    ],
    "GroupAddressTableLoadControl": [
     "SystemProperty",
@@ -453,7 +485,13 @@
     "ProgrammingMode_Bcu1",
     1
    ]
-  }
+  },
+  "memory": [
+   [
+    256,
+    880
+   ]
+  ]
  },
  "MV-0021": {
   "features": {
@@ -471,7 +509,11 @@
     13,
     0,
     null,
-    5
+    5,
+    "StandardMemory",
+    null,
+    null,
+    259
    ],
    "ApplicationLoadControl": [
     "SystemProperty",
@@ -511,7 +553,11 @@
     null,
     null,
     "AddressTable_Bcu1",
-    1
+    1,
+    "StandardMemory",
+    null,
+    null,
+    278
    ],
    "GroupAddressTableLoadControl": [
     "SystemProperty",
@@ -601,7 +647,13 @@
     "ProgrammingMode_Bcu1",
     1
    ]
-  }
+  },
+  "memory": [
+   [
+    256,
+    880
+   ]
+  ]
  },
  "MV-0025": {
   "features": {
@@ -619,7 +671,11 @@
     13,
     0,
     null,
-    5
+    5,
+    "StandardMemory",
+    null,
+    null,
+    259
    ],
    "ApplicationLoadControl": [
     "SystemProperty",
@@ -643,7 +699,11 @@
     null,
     null,
     "PeiType_Prop",
-    1
+    1,
+    "StandardMemory",
+    null,
+    null,
+    265
    ],
    "ApplicationRunControl": [
     "SystemProperty",
@@ -659,7 +719,11 @@
     null,
     null,
     "AddressTable_Bcu1",
-    1
+    1,
+    "StandardMemory",
+    null,
+    null,
+    278
    ],
    "GroupAddressTableLoadControl": [
     "SystemProperty",
@@ -715,7 +779,11 @@
     7,
     0,
     "Ptr_StandardMemory",
-    2
+    2,
+    "StandardMemory",
+    null,
+    null,
+    273
    ],
    "GroupObjectTable": [
     "Pointer",
@@ -749,7 +817,13 @@
     "ProgrammingMode_Bcu1",
     1
    ]
-  }
+  },
+  "memory": [
+   [
+    256,
+    880
+   ]
+  ]
  },
  "MV-0300-01000000000000000000": {
   "features": {
@@ -773,7 +847,11 @@
     5,
     0,
     "LoadControl_Bcu2",
-    10
+    10,
+    "SystemProperty",
+    3,
+    5,
+    0
    ],
    "ApplicationLoadStatus": [
     "SystemProperty",
@@ -797,7 +875,11 @@
     23,
     0,
     "AddressTable_Bcu1",
-    1
+    1,
+    "StandardMemory",
+    null,
+    null,
+    278
    ],
    "GroupAddressTableLoadControl": [
     "SystemProperty",
@@ -829,7 +911,11 @@
     5,
     0,
     "LoadControl_Bcu2",
-    10
+    10,
+    "SystemProperty",
+    2,
+    5,
+    0
    ],
    "GroupAssociationTableLoadStatus": [
     "SystemProperty",
@@ -847,6 +933,18 @@
     "GroupObjectTable_Bcu2",
     1
    ],
+   "PeiprogLoadControl": [
+    null,
+    null,
+    null,
+    null,
+    "LoadControl_Bcu2",
+    10,
+    "SystemProperty",
+    4,
+    5,
+    0
+   ],
    "ProgrammingMode": [
     "SystemProperty",
     0,
@@ -855,7 +953,13 @@
     "ProgrammingMode_Prop",
     1
    ]
-  }
+  },
+  "memory": [
+   [
+    256,
+    57344
+   ]
+  ]
  },
  "MV-0300-01000001000000000000": {
   "features": {
@@ -1080,6 +1184,14 @@
     null,
     5
    ],
+   "PeiprogLoadControl": [
+    "StandardMemory",
+    null,
+    null,
+    260,
+    "LoadControl_M112",
+    12
+   ],
    "ProgrammingMode": [
     "StandardMemory",
     null,
@@ -1088,7 +1200,21 @@
     "ProgrammingMode_Bcu1",
     1
    ]
-  }
+  },
+  "memory": [
+   [
+    16384,
+    8192
+   ],
+   [
+    24576,
+    22016
+   ],
+   [
+    47104,
+    2048
+   ]
+  ]
  },
  "MV-0701": {
   "features": {
@@ -1201,6 +1327,14 @@
     null,
     5
    ],
+   "PeiprogLoadControl": [
+    "StandardMemory",
+    null,
+    null,
+    260,
+    "LoadControl_M112",
+    12
+   ],
    "ProgrammingMode": [
     "StandardMemory",
     null,
@@ -1209,7 +1343,21 @@
     "ProgrammingMode_Bcu1",
     1
    ]
-  }
+  },
+  "memory": [
+   [
+    16384,
+    8192
+   ],
+   [
+    24576,
+    22016
+   ],
+   [
+    47104,
+    2048
+   ]
+  ]
  },
  "MV-0705": {
   "features": {
@@ -1324,6 +1472,14 @@
     null,
     5
    ],
+   "PeiprogLoadControl": [
+    "StandardMemory",
+    null,
+    null,
+    260,
+    "LoadControl_M112",
+    12
+   ],
    "ProgrammingMode": [
     "StandardMemory",
     null,
@@ -1332,7 +1488,21 @@
     "ProgrammingMode_Bcu1",
     1
    ]
-  }
+  },
+  "memory": [
+   [
+    16384,
+    8192
+   ],
+   [
+    24576,
+    22016
+   ],
+   [
+    47104,
+    2048
+   ]
+  ]
  },
  "MV-07B0": {
   "features": {
@@ -1488,6 +1658,14 @@
     null,
     5
    ],
+   "PeiprogLoadControl": [
+    "SystemProperty",
+    5,
+    5,
+    0,
+    "LoadControl_Bcu2",
+    10
+   ],
    "ProgrammingMode": [
     "SystemProperty",
     0,
@@ -1511,7 +1689,13 @@
     "ProgrammingMode_Bcu1",
     1
    ]
-  }
+  },
+  "memory": [
+   [
+    256,
+    256
+   ]
+  ]
  },
  "MV-0910": {
   "features": {
@@ -1526,7 +1710,13 @@
     "ProgrammingMode_Bcu1",
     1
    ]
-  }
+  },
+  "memory": [
+   [
+    256,
+    256
+   ]
+  ]
  },
  "MV-0911": {
   "features": {
@@ -1541,7 +1731,13 @@
     "ProgrammingMode_Bcu1",
     1
    ]
-  }
+  },
+  "memory": [
+   [
+    256,
+    256
+   ]
+  ]
  },
  "MV-0912": {
   "features": {
@@ -1657,7 +1853,13 @@
     "ProgrammingMode_Bcu1",
     1
    ]
-  }
+  },
+  "memory": [
+   [
+    256,
+    256
+   ]
+  ]
  },
  "MV-1012": {
   "features": {
@@ -1737,7 +1939,13 @@
     "ProgrammingMode_Bcu1",
     1
    ]
-  }
+  },
+  "memory": [
+   [
+    256,
+    256
+   ]
+  ]
  },
  "MV-1013": {
   "features": {
@@ -1817,7 +2025,13 @@
     "ProgrammingMode_Bcu1",
     1
    ]
-  }
+  },
+  "memory": [
+   [
+    256,
+    256
+   ]
+  ]
  },
  "MV-17B0": {
   "features": {
@@ -1973,6 +2187,14 @@
     null,
     5
    ],
+   "PeiprogLoadControl": [
+    "SystemProperty",
+    5,
+    5,
+    0,
+    "LoadControl_Bcu2",
+    10
+   ],
    "ProgrammingMode": [
     "SystemProperty",
     0,
@@ -2005,7 +2227,13 @@
     "ProgrammingMode_Bcu1",
     1
    ]
-  }
+  },
+  "memory": [
+   [
+    16384,
+    30208
+   ]
+  ]
  },
  "MV-2705": {
   "features": {
@@ -2120,6 +2348,14 @@
     null,
     5
    ],
+   "PeiprogLoadControl": [
+    "SystemProperty",
+    4,
+    5,
+    0,
+    "LoadControl_Bcu2",
+    10
+   ],
    "ProgrammingMode": [
     "SystemProperty",
     0,
@@ -2128,7 +2364,21 @@
     "ProgrammingMode_Prop",
     1
    ]
-  }
+  },
+  "memory": [
+   [
+    16384,
+    8192
+   ],
+   [
+    24576,
+    22016
+   ],
+   [
+    47104,
+    2048
+   ]
+  ]
  },
  "MV-27B0": {
   "features": {
@@ -2284,6 +2534,14 @@
     null,
     5
    ],
+   "PeiprogLoadControl": [
+    "SystemProperty",
+    5,
+    5,
+    0,
+    "LoadControl_Bcu2",
+    10
+   ],
    "ProgrammingMode": [
     "SystemProperty",
     0,
@@ -2427,6 +2685,14 @@
     null,
     5
    ],
+   "PeiprogLoadControl": [
+    "StandardMemory",
+    null,
+    null,
+    260,
+    "LoadControl_M112",
+    12
+   ],
    "ProgrammingMode": [
     "StandardMemory",
     null,
@@ -2435,7 +2701,21 @@
     "ProgrammingMode_Bcu1",
     1
    ]
-  }
+  },
+  "memory": [
+   [
+    16384,
+    8192
+   ],
+   [
+    24576,
+    22016
+   ],
+   [
+    47104,
+    2048
+   ]
+  ]
  },
  "MV-57B0": {
   "features": {
@@ -2590,6 +2870,14 @@
     0,
     null,
     5
+   ],
+   "PeiprogLoadControl": [
+    "SystemProperty",
+    5,
+    5,
+    0,
+    "LoadControl_Bcu2",
+    10
    ],
    "ProgrammingMode": [
     "SystemProperty",

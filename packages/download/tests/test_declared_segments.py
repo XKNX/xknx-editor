@@ -82,6 +82,7 @@ def _image(*, table: bool = False) -> tuple[Application, DownloadImage]:
                 "empty": (bytes(_SIZE), bytes(_SIZE)),
             },
             encode_to_typed_properties_masked=lambda: {},
+            module_load_controls=lambda: {},
         ),
     )
     return app, build_image(app, ui=ui)

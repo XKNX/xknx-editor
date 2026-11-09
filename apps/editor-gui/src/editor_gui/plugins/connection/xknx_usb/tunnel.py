@@ -3,12 +3,13 @@ KNX tunnelling over a KNX USB interface.
 
 On connect the bus access server is checked and set up - KNX v01.03.04 - Basic and
 System Components - Couplers 09.03 - §3.5.3.3.2: the supported EMI types are read,
-cEMI is activated, and the cEMI server is switched to the data link layer
-(PID_COMM_MODE, read back to verify) - KNX v01.04.02 - External Message Interface
+the one used is activated (cEMI where supported), and the cEMI server is switched
+to the data link layer (PID_COMM_MODE, read back to verify) - KNX v01.04.02 - External Message Interface
 03.06.03 - §4.2.2.4.2. The interface's own individual address and maximum APDU
 length are read from its device object. On disconnect the interface is closed as
 it is: whoever connects next sets the communication mode again, as the cEMI server
-may be in any mode until then (§4.2.2.4.2).
+may be in any mode until then (KNX v01.04.02 - External Message Interface 03.06.03 -
+§4.2.2.4.2).
 """
 
 from __future__ import annotations
@@ -486,10 +487,10 @@ class USBTunnel(Interface):
         """
         Close the interface.
 
-        An EMI1/EMI2 interface is switched back to its normal mode first: there, the
-        layers given access to are switched off for the device's own application
-        (KNX v01.04.02 - External Message Interface 03.06.03 - §3.1.2). A cEMI
-        interface is closed as it is.
+        An EMI1/EMI2 interface is switched back to its normal mode first: while the
+        external interface has access to the data link layer, the device's own
+        application and object servers do not run (KNX v01.04.02 - External
+        Message Interface 03.06.03 - §3.1.2). A cEMI interface is closed as it is.
         """
         was_established = self._established
         self._prepare_disconnect()

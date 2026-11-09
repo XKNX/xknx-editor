@@ -8,21 +8,18 @@ from ..ui import UiNode
 from .base import DynamicNode
 
 
-def _resolved_base(ref_id: str, args: dict[str, ModuleArg]) -> int:
-    ref = args.get(ref_id)
-    return (
-        ref.value if isinstance(ref, ModuleNumericArg) and ref.value is not None else 0
-    )
-
-
 def _resolve_arguments(
     ctx: EvalContext, ref_id: str, arguments: dict[str, ModuleArg]
 ) -> dict[str, ModuleArg]:
+    """The instance's numeric arguments with their values: an Allocator's address, else the
+    value plus that of its ``BaseValue``. A ``BaseValue`` names an argument of the enclosing
+    module (a SubModule placed in its definition's Dynamic), so it is read from ``ctx``, the
+    enclosing instance's scope; outside a module it counts 0."""
     out = dict(arguments)
     for r_id, arg in arguments.items():
         if not isinstance(arg, ModuleNumericArg):
             continue
-        base = _resolved_base(arg.base_value, out) if arg.base_value is not None else 0
+        base = ctx.get_arg_value(arg.base_value) if arg.base_value is not None else 0
         if arg.allocator_ref_id is not None:
             out[r_id] = ModuleNumericArg(
                 ref_id=r_id,

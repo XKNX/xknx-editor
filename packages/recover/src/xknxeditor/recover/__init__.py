@@ -52,6 +52,7 @@ from .tables_decode import (
     decode_group_address_table,
     decode_group_address_table_b,
     decode_group_object_table_b,
+    decode_short_com_object_table,
 )
 from .validate import LinkWarning, validate_group_communication
 from .verify import build_group_communication, verify_recovered
@@ -81,6 +82,7 @@ __all__ = [
     "decode_group_address_table",
     "decode_group_address_table_b",
     "decode_group_object_table_b",
+    "decode_short_com_object_table",
     "device_snapshot",
     "devices_from_snapshot",
     "identify_device_at",

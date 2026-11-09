@@ -3,10 +3,14 @@ text written by an Assign or a Rename changes, and the passes reuse the widget o
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from pathlib import Path
+
+import pytest
 
 from xknxeditor.prod.application import parse_application_xml
 from xknxeditor.prod.parser_v2.activation import shown_parameters
+from xknxeditor.prod.parser_v2.context import EvalContext
 from xknxeditor.prod.parser_v2.dynamic import DynamicUI
 from xknxeditor.prod.parser_v2.state import GlobalState
 from xknxeditor.prod.parser_v2.ui import UiParameter
@@ -80,3 +84,98 @@ def test_settles_reuse_the_widget_of_a_parameter() -> None:
     after = _parameters(list(ui.ui()))[_ref(1)]
     assert after.value == "2"
     assert after.widget is before.widget
+
+
+APPLICATIONS = sorted(path.name for path in FIXTURES.glob("*_application.xml"))
+
+
+def _counted_passes(monkeypatch: pytest.MonkeyPatch) -> list[int]:
+    """Count the passes of every settle from now on (one entry, increased per pass)."""
+    passes = [0]
+    settle = DynamicUI._settle  # pyright: ignore[reportPrivateUsage]
+
+    def counted(
+        self: DynamicUI, make_ctx: Callable[[], EvalContext]
+    ) -> tuple[list[object], bool]:
+        def make() -> EvalContext:
+            passes[0] += 1
+            return make_ctx()
+
+        return settle(self, make)  # pyright: ignore[reportReturnType]
+
+    monkeypatch.setattr(DynamicUI, "_settle", counted)
+    return passes
+
+
+def _render_pass_forced(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Evaluate the render pass after the union discovery every time."""
+    discover = DynamicUI._discover_union_activity  # pyright: ignore[reportPrivateUsage]
+
+    def without_reuse(self: DynamicUI) -> None:
+        discover(self)
+
+    monkeypatch.setattr(DynamicUI, "_discover_union_activity", without_reuse)
+
+
+@pytest.mark.parametrize("name", APPLICATIONS)
+def test_the_last_discovery_pass_gives_what_the_render_pass_gives(
+    name: str, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # Without a union member the discovery reached that the snapshot suppresses, the render
+    # pass would evaluate the tree as the last discovery pass did: its tree is taken instead.
+    program = parse_application_xml((FIXTURES / name).read_bytes(), "M-00FA")[0].program
+    reused = DynamicUI(program)
+    tree = reused.ui()
+    _render_pass_forced(monkeypatch)
+    rendered = DynamicUI(program)
+    assert tree == rendered.ui()
+    assert reused.active_parameter_ref_ids() == rendered.active_parameter_ref_ids()
+    assert reused.get_module_instances() == rendered.get_module_instances()
+    assert reused.state_layout() == rendered.state_layout()
+
+
+def test_the_render_pass_is_left_out_when_it_would_repeat_the_last_discovery_pass(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    program = parse_application_xml(
+        (FIXTURES / "activation_application.xml").read_bytes(), "M-00FA"
+    )[0].program
+    passes = _counted_passes(monkeypatch)
+    DynamicUI(program).ui()
+    reused = passes[0]
+    _render_pass_forced(monkeypatch)
+    passes[0] = 0
+    DynamicUI(program).ui()
+    assert passes[0] == reused + 1
+
+
+def test_a_suppressed_union_member_is_evaluated_by_the_render_pass(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # The discovery reaches both members of the union; the snapshot suppresses the one the
+    # settled values do not select, which the render pass leaves out.
+    program = parse_application_xml(
+        (FIXTURES / "union_late_assign_application.xml").read_bytes(), "M-00FA"
+    )[0].program
+    passes = _counted_passes(monkeypatch)
+    DynamicUI(program).ui()
+    reused = passes[0]
+    _render_pass_forced(monkeypatch)
+    passes[0] = 0
+    DynamicUI(program).ui()
+    assert passes[0] == reused
+
+
+def test_with_a_capture_the_render_pass_is_evaluated(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # The capture of the active group objects records the gates of the render pass.
+    program = parse_application_xml(
+        (FIXTURES / "activation_application.xml").read_bytes(), "M-00FA"
+    )[0].program
+    passes = _counted_passes(monkeypatch)
+    DynamicUI(program).ui()
+    reused = passes[0]
+    passes[0] = 0
+    DynamicUI(program).active_parameter_driven_com_object_ref_ids()
+    assert passes[0] == reused + 1

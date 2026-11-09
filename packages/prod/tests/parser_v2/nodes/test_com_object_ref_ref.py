@@ -1,9 +1,13 @@
+import pytest
+
 from xknxeditor.namespaces.intermediate import ComObjectRefRef
 from xknxeditor.namespaces.intermediate.com_object_ref_t import (
     ComObjectRef as IrComObjectRef,
 )
+from xknxeditor.namespaces.intermediate.com_object_size_t import ComObjectSize
 from xknxeditor.namespaces.intermediate.com_object_t import ComObject as IrComObject
 from xknxeditor.namespaces.intermediate.enable_t import Enable
+from xknxeditor.prod.errors import ParseError
 from xknxeditor.prod.parser_v2.nodes import EvalContext, GlobalState
 from xknxeditor.prod.parser_v2.nodes.com_object_ref_ref import ComObjectRefRefNode
 from xknxeditor.prod.parser_v2.ui.com_object import UiComObject
@@ -205,3 +209,19 @@ class TestActiveTracking:
         state = GlobalState()
         node.eval(EvalContext(state))
         assert _REF_ID in state.active_com_object_refs()
+
+
+class TestValuesOutsideTheSchema:
+    def test_a_known_size_and_priority_are_their_text(self):
+        node = ComObjectRefRefNode(
+            _ELEM, _cor(), _co(object_size=ComObjectSize.VALUE_1_BYTE)
+        )
+        co = node.eval(EvalContext(GlobalState()))[0]
+        assert isinstance(co, UiComObject)
+        assert co.object_size == "1 Byte"
+
+    def test_a_size_the_schema_does_not_have_names_itself(self):
+        # Product data with ObjectSize="Variable" (no KNX schema has it) cannot be used: the
+        # group object says what is wrong instead of failing later.
+        with pytest.raises(ParseError, match=r"object size 'Variable' of .*_O-1_R-1"):
+            ComObjectRefRefNode(_ELEM, _cor(), _co(object_size="Variable"))

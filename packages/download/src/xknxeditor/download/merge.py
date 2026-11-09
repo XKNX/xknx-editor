@@ -127,6 +127,7 @@ def resolve_download_controls(
     has_application_program2: bool = False,
     parameter_values: Mapping[str, str] | None = None,
     application2: Application | None = None,
+    module_controls: Mapping[int, Sequence[object]] | None = None,
 ) -> list[object]:
     """Return the flat, ordered list of Load Controls to run for a download.
 
@@ -142,6 +143,9 @@ def resolve_download_controls(
     procedures of their own (``ProductProcedure``) both in one (see
     :func:`_with_second_procedure`). An Unload always takes the mask's procedure for both
     programs, with the application's fragments only.
+    ``module_controls`` holds the load controls of the device's module instances by the merge
+    id of their module's load procedure (see ``DownloadImage.module_load_controls``): a merge
+    point of that id in the application's procedure or fragments runs them.
     """
     if procedure_type is not ProcedureType.LOAD:
         has_application_program2, application2 = True, None
@@ -159,6 +163,7 @@ def resolve_download_controls(
             has_application_program2=has_application_program2,
             values=parameter_values or {},
             application2=application2,
+            modules=module_controls or {},
         )
     except UnsupportedProcedureError:
         # A product the manufacturer's download plug-in downloads may ship no Load procedure
@@ -195,8 +200,10 @@ def _resolve_controls(
     has_application_program2: bool,
     values: Mapping[str, str],
     application2: Application | None = None,
+    modules: Mapping[int, Sequence[object]] | None = None,
 ) -> list[object]:
     style = application.load_procedure_style
+    modules = modules or {}
     load_procedures = application.load_procedures
 
     # An application ships only its Load procedure (ProductProcedure) or Load
@@ -211,7 +218,11 @@ def _resolve_controls(
     second = application2 is not None
     if load and style == LoadProcedureStyle.PRODUCT_PROCEDURE:
         controls = _program_controls(
-            application, _flatten(load_procedures, values), bim_m112, False, second
+            application,
+            _splice_modules(_flatten(load_procedures, values), modules),
+            bim_m112,
+            False,
+            second,
         )
         if application2 is not None:
             controls = _with_second_procedure(
@@ -233,14 +244,36 @@ def _resolve_controls(
             has_application_program2,
         )
 
-    default = _default_procedure(
-        master_data,
-        device_mask_version(application),
-        procedure_type,
-        scope=scope,
-        access=access,
-        has_application_program2=has_application_program2,
-    )
+    try:
+        default = _default_procedure(
+            master_data,
+            device_mask_version(application),
+            procedure_type,
+            scope=scope,
+            access=access,
+            has_application_program2=has_application_program2,
+        )
+    except UnsupportedProcedureError:
+        if procedure_type is ProcedureType.UNLOAD:
+            # A mask with Load procedures only (the TP couplers of MV-0911): an unload sends
+            # nothing for the application, and goes on as after its procedure.
+            logger.info(
+                "no unload procedure for mask %s: nothing to unload",
+                device_mask_version(application),
+            )
+            return []
+        raise
+    if (
+        default is None
+        and procedure_type is ProcedureType.UNLOAD
+        and master_data is not None
+    ):
+        # The master data has no procedures for the mask at all: likewise.
+        logger.info(
+            "no procedures for mask %s: nothing to unload",
+            device_mask_version(application),
+        )
+        return []
     if default is None:
         mask = application.program.mask_version
         if master_data is not None:
@@ -261,7 +294,9 @@ def _resolve_controls(
         )
 
     fragments = {
-        merge_id: _program_controls(application, more, bim_m112, False, second)
+        merge_id: _program_controls(
+            application, _splice_modules(more, modules), bim_m112, False, second
+        )
         for merge_id, more in _fragments_by_merge_id(load_procedures, values).items()
     }
     if application2 is not None:
@@ -273,14 +308,20 @@ def _resolve_controls(
                 _program_controls(application2, more, bim_m112, True, second)
             )
     # An Unload runs every control of the procedure; the merge points always take their
-    # fragments.
+    # fragments, or the module instances' controls of that merge id.
     controls = _splice(
         [
             c
             for c in _expand(default.choice, values)
             if not load or isinstance(c, LdCtrlMerge) or control_applies(c, scope)
         ],
-        fragments,
+        {
+            **{
+                merge_id: [_explicit(c) for c in more]
+                for merge_id, more in modules.items()
+            },
+            **fragments,
+        },
     )
     if load:
         controls = correct_anomalies([c for c in controls if control_applies(c, scope)])
@@ -379,9 +420,10 @@ def _flatten(
     return controls
 
 
-# On a BIM M112 the second program has load state machine 4, the application 1 to 3; the
-# controls of these applications are taken as they are.
-_SECOND_PROGRAM_LSM = 4
+# On a BIM M112, and in product data converted from older data, the second program has load
+# state machine 4, the application 1 to 3. On a BIM M112 the controls of these applications
+# are taken as they are.
+SECOND_PROGRAM_LSM = 4
 _DO_NOT_FILTER_LOAD_CONTROLS = (
     "M-0001_A-8018-04",
     "M-0001_A-8018-06",
@@ -423,9 +465,9 @@ def _program_controls(
         if lsm is None:
             keep = True
         elif second:
-            keep = lsm >= _SECOND_PROGRAM_LSM
+            keep = lsm >= SECOND_PROGRAM_LSM
         else:
-            keep = lsm != _SECOND_PROGRAM_LSM or (
+            keep = lsm != SECOND_PROGRAM_LSM or (
                 isinstance(control, LdCtrlUnload) and not has_second
             )
         if keep:
@@ -554,6 +596,23 @@ def procedure_parameter_refs(application: Application) -> frozenset[str]:
     for procedure in procedures.load_procedure if procedures is not None else ():
         collect(procedure.choice)
     return frozenset(refs)
+
+
+def _splice_modules(
+    controls: Sequence[object], modules: Mapping[int, Sequence[object]]
+) -> list[object]:
+    """``controls`` with each merge point of a module's merge id replaced by the module
+    instances' controls of that id; the controls are the manufacturer's (see
+    :func:`_explicit`)."""
+    if not modules:
+        return list(controls)
+    result: list[object] = []
+    for control in controls:
+        if isinstance(control, LdCtrlMerge) and control.merge_id in modules:
+            result.extend(_explicit(c) for c in modules[control.merge_id])
+        else:
+            result.append(control)
+    return result
 
 
 def _splice(

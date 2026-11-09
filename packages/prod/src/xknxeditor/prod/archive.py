@@ -20,6 +20,7 @@ class Archive:
     """Reads .knxprod archives holding KNX device definitions."""
 
     __slots__ = (
+        "_application_paths",
         "_entries",
         "_manufacturer_ids",
         "_require_catalog",
@@ -32,6 +33,8 @@ class Archive:
     _entries: set[str]  # every path in the archive
     _manufacturer_ids: set[str]
     _require_catalog: bool
+    # manufacturer id -> app id -> path of its application XML, filled when first asked for
+    _application_paths: dict[str, dict[str, str]]
 
     def __init__(
         self, source: str | Path | bytes, *, require_catalog: bool = True
@@ -44,6 +47,7 @@ class Archive:
         """
         self._source_holder = None
         self._require_catalog = require_catalog
+        self._application_paths = {}
 
         if isinstance(source, bytes):
             self._source_holder = io.BytesIO(source)
@@ -123,21 +127,52 @@ class Archive:
         self._validate_manufacturer_id(manufacturer_id)
         return self._zipfile.read(f"{manufacturer_id}/Hardware.xml")
 
-    def get_application_xmls(self, manufacturer_id: str) -> dict[str, bytes]:
-        """App XMLs for a manufacturer, keyed by app ID."""
+    def _application_entries(self, manufacturer_id: str) -> dict[str, str]:
+        """The archive paths of a manufacturer's application XMLs, keyed by app ID, in the order
+        of their IDs."""
         self._validate_manufacturer_id(manufacturer_id)
-        result: dict[str, bytes] = {}
+        known = self._application_paths.get(manufacturer_id)
+        if known is not None:
+            return known
+        result: dict[str, str] = {}
         prefix = f"{manufacturer_id}/"
 
-        for entry in self._entries:
+        for entry in sorted(self._entries):
             if not entry.startswith(prefix):
                 continue
             filename = entry[len(prefix) :]
             if APPLICATION_PATTERN.match(filename):
-                app_id = filename.removesuffix(".xml")
-                result[app_id] = self._zipfile.read(entry)
+                result[filename.removesuffix(".xml")] = entry
 
+        self._application_paths[manufacturer_id] = result
         return result
+
+    def application_ids(self, manufacturer_id: str) -> list[str]:
+        """The IDs of a manufacturer's application XMLs, sorted, without reading them."""
+        return list(self._application_entries(manufacturer_id))
+
+    def application_xml_size(self, manufacturer_id: str, app_id: str) -> int:
+        """The size of an application XML (as listed by :meth:`application_ids`) in bytes,
+        without reading it."""
+        entry = self._application_entries(manufacturer_id)[app_id]
+        return self._zipfile.getinfo(entry).file_size
+
+    def read_application_xml(self, manufacturer_id: str, app_id: str) -> bytes:
+        """The bytes of one application XML listed by :meth:`application_ids`."""
+        entry = self._application_entries(manufacturer_id).get(app_id)
+        if entry is None:
+            raise ArchiveError(f"No application XML {app_id} of {manufacturer_id}")
+        return self._zipfile.read(entry)
+
+    def get_application_xmls(self, manufacturer_id: str) -> dict[str, bytes]:
+        """App XMLs for a manufacturer, keyed by app ID.
+
+        Holds all of them in memory at once: to go through them one by one, read each with
+        :meth:`read_application_xml` instead."""
+        return {
+            app_id: self._zipfile.read(entry)
+            for app_id, entry in self._application_entries(manufacturer_id).items()
+        }
 
     def get_application_xml(self, manufacturer_id: str, app_id: str) -> bytes | None:
         """The XML of one application, or None if the archive has no such application.

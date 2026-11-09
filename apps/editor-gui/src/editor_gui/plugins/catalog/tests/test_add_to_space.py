@@ -14,6 +14,7 @@ from editor_gui.plugins.catalog.plugin import CatalogPlugin
 from editor_gui.plugins.catalog.strings import S
 from editor_gui.plugins.project.medium_text import medium_error_text
 from xknxeditor.catalog import ProductSummary
+from xknxeditor.prod.errors import ParseError
 from xknxeditor.proj.core.medium import MediumError
 
 
@@ -87,6 +88,26 @@ def test_a_device_the_medium_refuses_is_not_added() -> None:
     plugin._add(product, cast(Any, SimpleNamespace(name="App")), 3)  # pyright: ignore[reportPrivateUsage]
     # Told as a refusal (the toast that stands out), not as a confirmation.
     assert refused == [medium_error_text(error)] and notices == []
+
+
+def test_a_device_whose_product_data_breaks_the_schema_is_not_added() -> None:
+    # Product data with a value no KNX schema has (an object size "Variable"): refused with
+    # the product's "no usable application program", not an error from somewhere inside.
+    def add_device(**_kwargs: Any) -> int:
+        raise ParseError(
+            "object size 'Variable' of M-1_A-1_O-1_R-1 is not one of the KNX schema"
+        )
+
+    notices: list[str] = []
+    refused: list[str] = []
+    plugin = _plugin(
+        SimpleNamespace(add_device=add_device, device_target_segment=None),
+        notices,
+        refused,
+    )
+    product = ProductSummary("P", "H", "Switch", None, None, "M-1", None)
+    plugin._add(product, cast(Any, SimpleNamespace(name="App")), 3)  # pyright: ignore[reportPrivateUsage]
+    assert refused == [S.CATALOG_ADD_NO_APP] and notices == []
 
 
 def test_a_device_goes_on_the_line_chosen() -> None:

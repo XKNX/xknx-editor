@@ -56,6 +56,19 @@ def test_parameters_are_matched_by_ref_number() -> None:
     assert carried.dropped == 3
 
 
+def test_a_submodule_parameter_is_matched_in_its_definition() -> None:
+    # A submodule instance is named after the instance it is in; its parameters are numbered
+    # in the submodule definition.
+    indexer = _Indexer(
+        {f"{NEW}_MD-1_SM-1": {4: f"{NEW}_MD-1_SM-1_P-2_R-4"}}, none=set()
+    )
+    display = "MD-1_M-1_MI-2_SM-1_M-1_MI-2-1"
+    carried = carry_parameters(
+        [(f"{OLD}_{display}_SM-1_P-1_R-4", "1")], OLD, NEW, cast(Any, indexer)
+    )
+    assert carried.values == [(f"{NEW}_{display}_SM-1_P-2_R-4", "1")]
+
+
 def _row(
     ref: str, instance: str, *, links: list[tuple[int, bool]], **fields: Any
 ) -> Any:

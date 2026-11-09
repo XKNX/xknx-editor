@@ -163,10 +163,14 @@ def _candidates(gate: Gate, parameter: UiParameter, current: str) -> list[str]:
     return result
 
 
-def values_to_try(parameter: UiParameter, current: str) -> list[str]:
+def values_to_try(
+    parameter: UiParameter, current: str, tested: Iterable[str] = ()
+) -> list[str]:
     """The values other than ``current`` worth trying for a parameter (a calculation input, a
     setting a recovered device keeps no copy of): every choice, or the numbers of a small range
-    (the ends and the neighbours of the current value of a larger one)."""
+    (the ends and the neighbours of the current value of a larger one). For a larger range,
+    ``tested`` (the values the chooses on the parameter test for, see
+    :meth:`DynamicUI.tested_values`) come first: a selector shows something else only at them."""
     widget = parameter.widget
     if isinstance(widget, EnumWidget):
         values = [str(choice.value) for choice in widget.choices]
@@ -178,8 +182,15 @@ def values_to_try(parameter: UiParameter, current: str) -> list[str]:
             values = [str(n) for n in range(low, high + 1)]
         else:
             around = int(current) if current.lstrip("-").isdigit() else low
+            selected = [
+                int(value)
+                for value in tested
+                if value.lstrip("-").isdigit() and low <= int(value) <= high
+            ]
             values = [
-                str(n) for n in (around + 1, around - 1, high, low) if low <= n <= high
+                str(n)
+                for n in (*selected, around + 1, around - 1, high, low)
+                if low <= n <= high
             ]
     else:
         values = []

@@ -159,7 +159,10 @@ if TYPE_CHECKING:
     from xknxeditor.prod import MasterData
 
 # Bundled per-mask resource table (see mask_resources.json / packages/download/tools/gen_mask_resources.py).
-# A resource row is [addressSpace, interfaceObjectRef, propertyId, startAddress, flavour, length].
+# A resource row is [addressSpace, interfaceObjectRef, propertyId, startAddress, flavour, length],
+# followed by [addressSpace, interfaceObjectRef, propertyId, startAddress] of its ImgLocation
+# when the master data gives it one. ``memory`` lists the mask's memory segments in standard
+# memory as [start, length].
 _BUNDLED_TABLE = "mask_resources.json"
 _ROW_SPACE = 0
 _ROW_OBJECT = 1
@@ -167,6 +170,14 @@ _ROW_PROPERTY = 2
 _ROW_START = 3
 _ROW_FLAVOUR = 4
 _ROW_LENGTH = 5
+_ROW_IMAGE_SPACE = 6
+_ROW_IMAGE_OBJECT = 7
+_ROW_IMAGE_PROPERTY = 8
+_ROW_IMAGE_START = 9
+# Address spaces of a resource in memory.
+_MEMORY_SPACES = frozenset(
+    {ResourceAddrSpace.STANDARD_MEMORY, ResourceAddrSpace.USER_MEMORY}
+)
 
 # BIM M112 loadable-part index to the named LoadStatus resource. Missing names
 # mean that LSM has no status byte to poll.
@@ -179,6 +190,18 @@ _LSM_STATUS_RESOURCES: MappingProxyType[int, ResourceName] = MappingProxyType(
         5: ResourceName.PEIPROG_LOAD_STATUS,
     }
 )
+
+# The load controls of the load state machines, and their property on a property-mapped
+# mask (PID_LOAD_STATE_CONTROL).
+_LOAD_CONTROLS = (
+    ResourceName.GROUP_ADDRESS_TABLE_LOAD_CONTROL,
+    ResourceName.GROUP_ASSOCIATION_TABLE_LOAD_CONTROL,
+    ResourceName.APPLICATION_LOAD_CONTROL,
+    ResourceName.PEIPROG_LOAD_CONTROL,
+    ResourceName.GROUP_OBJECT_TABLE_LOAD_CONTROL,
+    ResourceName.GROUP_FILTER_TABLE_LOAD_CONTROL,
+)
+_PID_LOAD_STATE_CONTROL = 5
 
 # Address spaces that place a resource in interface object relative memory (the
 # System B group communication tables and parameter segment).
@@ -217,6 +240,16 @@ class MaskResources:
     _lengths: Mapping[ResourceName, int] = MappingProxyType({})
     _flavours: Mapping[ResourceName, ResourceFlavour] = MappingProxyType({})
     _features: Mapping[MaskFeature, int] = MappingProxyType({})
+    # Where the download image keeps a resource the device reports elsewhere (its
+    # ImgLocation in the master data).
+    _images: Mapping[ResourceName, ResourceLocation] = MappingProxyType({})
+    # The mask's memory in standard memory, as (start, length).
+    _memory: tuple[tuple[int, int], ...] = ()
+
+    def memory(self) -> tuple[tuple[int, int], ...]:
+        """The mask's memory segments in standard memory as ``(start, length)``: with the
+        application's code segments, the memory a download image has."""
+        return self._memory
 
     def location(self, name: ResourceName) -> ResourceLocation | None:
         """The raw location of a named resource, or ``None`` if the mask lacks it."""
@@ -249,10 +282,17 @@ class MaskResources:
     def memory_address(self, name: ResourceName) -> int | None:
         """Return the start address for a memory-located resource, else ``None``."""
         location = self._by_name.get(name)
-        if location is None or location.address_space not in (
-            ResourceAddrSpace.STANDARD_MEMORY,
-            ResourceAddrSpace.USER_MEMORY,
-        ):
+        if location is None or location.address_space not in _MEMORY_SPACES:
+            return None
+        return location.start_address
+
+    def image_address(self, name: ResourceName) -> int | None:
+        """Where the download image keeps a resource in memory: its image location when
+        the mask gives one, else its location. A BCU 2 reports its application id as
+        property 13 of object 3 and keeps it at 0103h, so a segment over 0103h carries
+        it. ``None`` when the resource is not in memory."""
+        location = self._images.get(name) or self._by_name.get(name)
+        if location is None or location.address_space not in _MEMORY_SPACES:
             return None
         return location.start_address
 
@@ -299,7 +339,11 @@ class MaskResources:
         restart. The mask publishes no PEI LoadStatus, and ETS does not send
         those events. The LSM index is used as the object index, which on this
         mask is the first application object; it rejects property 5.
+
+        Also true for a load state machine only the image has (see :meth:`lsm_object`).
         """
+        if self._lsm_not_on_device(index):
+            return True
         if self.feature(MaskFeature.PROPERTY_MAPPED_LSMS) != 1:
             return False
         flavour = self.flavour(ResourceName.APPLICATION_LOAD_CONTROL)
@@ -311,6 +355,40 @@ class MaskResources:
         if name is None:
             return False
         return self.location(name) is None
+
+    def lsm_object(self, index: int) -> int:
+        """The device's interface object of the load state machine a load procedure
+        numbers ``index``.
+
+        A mask can keep a load state machine on another object than the download image
+        numbers it: its load control's ``ImgLocation`` is property 5 of the object the
+        image uses, its ``Location`` property 5 of the device's object. The System 300
+        configuration 01000000000000000000 keeps the association table's machine on
+        object 6 and the application's on object 7; its product procedures number them 2
+        and 3, its own procedures as the device does (its Unload: 1, 6 and 7). The load
+        state is read where the device keeps it, so it is written there too. ``index``
+        itself when no load control maps it (also for a machine only the image has, see
+        :meth:`omits_load_event`).
+        """
+        for name in _LOAD_CONTROLS:
+            if _lsm_of(self._images.get(name)) == index:
+                device = _lsm_of(self._by_name.get(name))
+                if device is not None:
+                    return device
+        return index
+
+    def _lsm_not_on_device(self, index: int) -> bool:
+        """Whether the image numbers a load state machine ``index`` the device does not
+        have: its load control has an image location and no location (the PEI program
+        of the System 300 configuration 01000000000000000000), and no load control of the
+        device is on that object."""
+        image_only = any(
+            _lsm_of(self._images.get(name)) == index and name not in self._by_name
+            for name in _LOAD_CONTROLS
+        )
+        return image_only and not any(
+            _lsm_of(self._by_name.get(name)) == index for name in _LOAD_CONTROLS
+        )
 
     def reserved_addresses(self) -> frozenset[int]:
         """Octets a segment write leaves untouched because the device owns them.
@@ -335,6 +413,17 @@ class MaskResources:
             addresses.add(start + 1)
             addresses.add(start + 2)
         return frozenset(addresses)
+
+
+def _lsm_of(location: ResourceLocation | None) -> int | None:
+    """The object of a load control at property 5 of an interface object, else ``None``."""
+    if (
+        location is None
+        or location.address_space != ResourceAddrSpace.SYSTEM_PROPERTY
+        or location.property_id != _PID_LOAD_STATE_CONTROL
+    ):
+        return None
+    return location.interface_object_ref
 
 
 def mask_resources(
@@ -396,14 +485,21 @@ def _from_master(
         if mask_version.id != mask_version_id:
             continue
         by_name: dict[ResourceName, ResourceLocation] = {}
+        images: dict[ResourceName, ResourceLocation] = {}
         lengths: dict[ResourceName, int] = {}
         flavours: dict[ResourceName, ResourceFlavour] = {}
         features: dict[MaskFeature, int] = {}
         chosen: dict[ResourceName, HawkConfigurationDataResourcesResource] = {}
+        memory: list[tuple[int, int]] = []
         for configuration in _current_configurations(
             mask_version.hawk_configuration_data
         ):
             property_mapped = _property_mapped(configuration)
+            memory += [
+                segment
+                for segment in _memory_segments(configuration)
+                if segment not in memory
+            ]
             if configuration.features is not None:
                 for feature in configuration.features.feature:
                     features.setdefault(feature.name, feature.value)
@@ -420,6 +516,8 @@ def _from_master(
             location = resource.location
             if location is not None:
                 by_name.setdefault(name, location)
+            if resource.img_location is not None:
+                images.setdefault(name, resource.img_location)
             lengths.setdefault(name, resource.resource_type.length)
             flavour = resource.resource_type.flavour
             if flavour is not None:
@@ -430,8 +528,23 @@ def _from_master(
                 _lengths=lengths,
                 _flavours=flavours,
                 _features=features,
+                _images=images,
+                _memory=tuple(sorted(memory)),
             )
     return None
+
+
+def _memory_segments(configuration: HawkConfigurationData) -> list[tuple[int, int]]:
+    """The memory segments of a mask configuration in standard memory."""
+    segments = configuration.memory_segments
+    return [
+        (segment.location.start_address, segment.length)
+        for segment in (segments.memory_segment if segments is not None else ())
+        if segment.location is not None
+        and segment.location.address_space is ResourceAddrSpace.STANDARD_MEMORY
+        and segment.location.start_address is not None
+        and segment.length
+    ]
 
 
 @cache
@@ -587,6 +700,7 @@ def bundled_mask_resources(mask_version_id: str) -> MaskResources | None:
     if resources is None:
         return None
     by_name: dict[ResourceName, ResourceLocation] = {}
+    images: dict[ResourceName, ResourceLocation] = {}
     lengths: dict[ResourceName, int] = {}
     flavours: dict[ResourceName, ResourceFlavour] = {}
     for name, values in resources.items():
@@ -597,19 +711,22 @@ def bundled_mask_resources(mask_version_id: str) -> MaskResources | None:
             resource_name = ResourceName(name)
         except ValueError:
             continue
-        space = _at(row, _ROW_SPACE)
-        if isinstance(space, str):
-            try:
-                address_space = ResourceAddrSpace(space)
-            except ValueError:
-                address_space = None
-            if address_space is not None:
-                by_name[resource_name] = ResourceLocation(
-                    address_space=address_space,
-                    interface_object_ref=_as_int(_at(row, _ROW_OBJECT)),
-                    property_id=_as_int(_at(row, _ROW_PROPERTY)),
-                    start_address=_as_int(_at(row, _ROW_START)),
-                )
+        address_space = _address_space(_at(row, _ROW_SPACE))
+        if address_space is not None:
+            by_name[resource_name] = ResourceLocation(
+                address_space=address_space,
+                interface_object_ref=_as_int(_at(row, _ROW_OBJECT)),
+                property_id=_as_int(_at(row, _ROW_PROPERTY)),
+                start_address=_as_int(_at(row, _ROW_START)),
+            )
+        image_space = _address_space(_at(row, _ROW_IMAGE_SPACE))
+        if image_space is not None:
+            images[resource_name] = ResourceLocation(
+                address_space=image_space,
+                interface_object_ref=_as_int(_at(row, _ROW_IMAGE_OBJECT)),
+                property_id=_as_int(_at(row, _ROW_IMAGE_PROPERTY)),
+                start_address=_as_int(_at(row, _ROW_IMAGE_START)),
+            )
         flavour = _flavour(_at(row, _ROW_FLAVOUR))
         if flavour is not None:
             flavours[resource_name] = flavour
@@ -623,7 +740,33 @@ def bundled_mask_resources(mask_version_id: str) -> MaskResources | None:
         _lengths=lengths,
         _flavours=flavours,
         _features=features,
+        _images=images,
+        _memory=_memory_rows(entry.get("memory")),
     )
+
+
+def _memory_rows(value: object) -> tuple[tuple[int, int], ...]:
+    """The ``[start, length]`` rows of a bundled-table ``memory`` field."""
+    rows = _object_list(value)
+    result: list[tuple[int, int]] = []
+    for row in rows if rows is not None else ():
+        pair = _object_list(row)
+        if pair is None or len(pair) != 2:
+            continue
+        start, length = _as_int(pair[0]), _as_int(pair[1])
+        if start is not None and length:
+            result.append((start, length))
+    return tuple(result)
+
+
+def _address_space(value: object) -> ResourceAddrSpace | None:
+    """The address space a bundled-table field names, else ``None``."""
+    if not isinstance(value, str):
+        return None
+    try:
+        return ResourceAddrSpace(value)
+    except ValueError:
+        return None
 
 
 def _object_dict(value: object) -> dict[str, object] | None:

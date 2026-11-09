@@ -18,7 +18,7 @@ from xknxeditor.proj.models import ModuleInstance
 APP = "M-0083_A-0317-31-7DC6"
 
 
-def _project_with_modules(path: Path) -> int:
+def _project_with_modules(path: Path, *more: tuple[str, str]) -> int:
     svc = ProjectService()
     pid = svc.create(path, "P-MI")
     line = svc.create_line(pid, svc.create_area(pid, 0, 2, "A"), 1, "L")
@@ -39,6 +39,7 @@ def _project_with_modules(path: Path) -> int:
         module_instances=[
             (f"{APP}_MD-2_M-12_MI-1", f"{APP}_MD-2"),
             (f"{APP}_MD-2_M-2_MI-1", f"{APP}_MD-2"),
+            *more,
         ],
     )
     svc.close(pid)
@@ -136,15 +137,40 @@ _APP_XML = f"""<KNX xmlns="http://knx.org/xml/project/23"><ManufacturerData><Man
 
 
 def test_repeat_indexes_count_the_places_in_the_dynamic_section() -> None:
-    # The program's <Dynamic> is place 0; a repeat's iterations number the instances; the
-    # modules of a module definition's own <Dynamic> are not counted.
+    # The program's <Dynamic> is place 0; a repeat's iterations number the instances. The
+    # submodule instances of each instance follow its index with their places in the module
+    # definition's own <Dynamic>.
     assert module_repeat_indexes(_APP_XML.encode()) == {
         "MD-2_M-12_MI-1": "3x1",
+        "MD-2_M-12_MI-1_SM-1_M-1_MI-1": "3x1 1x1",
         "MD-2_M-2_MI-1": "4x1 5x1",
+        "MD-2_M-2_MI-1_SM-1_M-1_MI-1-1": "4x1 5x1 1x1",
         "MD-2_M-2_MI-2": "4x2 5x1",
+        "MD-2_M-2_MI-2_SM-1_M-1_MI-2-1": "4x2 5x1 1x1",
         "MD-2_M-2_MI-3": "4x3 5x1",
+        "MD-2_M-2_MI-3_SM-1_M-1_MI-3-1": "4x3 5x1 1x1",
     }
     assert module_repeat_indexes(b"<KNX />") == {}
+
+
+def test_a_submodule_in_a_repeat_is_numbered_like_genuine_exports() -> None:
+    # A submodule repeated inside a repeated module, as a genuine export numbers it: the
+    # counters of the room, its Module and the display's repeat in the id, the places of both
+    # Dynamic sections in the index.
+    xml = f"""<KNX><ManufacturerData><Manufacturer><ApplicationPrograms>
+<ApplicationProgram Id="{APP}">
+<ModuleDefs><ModuleDef Id="{APP}_MD-4"><Dynamic><ParameterBlock Id="{APP}_MD-4_PB-1">
+  <Repeat Id="{APP}_MD-4_X-1" Count="2">
+    <Module Id="{APP}_MD-4_SM-1_M-1" RefId="{APP}_MD-4_SM-1" />
+  </Repeat>
+</ParameterBlock></Dynamic></ModuleDef></ModuleDefs>
+<Dynamic><Repeat Id="{APP}_X-15" Count="2"><Module Id="{APP}_MD-4_M-15" RefId="{APP}_MD-4" /></Repeat></Dynamic>
+</ApplicationProgram></ApplicationPrograms></Manufacturer></ManufacturerData></KNX>"""
+    indexes = module_repeat_indexes(xml.encode())
+    assert indexes["MD-4_M-15_MI-2"] == "1x2 2x1"
+    assert indexes["MD-4_M-15_MI-2_SM-1_M-1_MI-2-1-1"] == "1x2 2x1 2x1 3x1"
+    assert indexes["MD-4_M-15_MI-1_SM-1_M-1_MI-1-1-2"] == "1x1 2x1 2x2 3x1"
+    assert len(indexes) == 6
 
 
 def test_export_numbers_the_module_instances_of_a_device_added_in_the_editor(
@@ -161,6 +187,22 @@ def test_export_numbers_the_module_instances_of_a_device_added_in_the_editor(
     # Without the application program there is nothing to number them by.
     export_knxproj(src, out)
     assert all("RepeatIndex" not in m for m in _module_instances(out))
+
+
+def test_export_names_a_submodule_instance_after_the_module_it_is_in(
+    tmp_path: Path,
+) -> None:
+    src = tmp_path / "p.xknx"
+    _project_with_modules(
+        src, (f"{APP}_MD-2_M-2_MI-1_SM-1_M-1_MI-1-1", f"{APP}_MD-2_SM-1")
+    )
+    out = tmp_path / "out.knxproj"
+    export_knxproj(src, out, extra_files={f"M-0083/{APP}.xml": _APP_XML.encode()})
+    *_, submodule = _module_instances(out)
+    assert (
+        'Id="MD-2_M-2_MI-1_SM-1_M-1_MI-1-1" RefId="MD-2_M-2" RepeatIndex="4x1 5x1 1x1"'
+        in submodule
+    )
 
 
 def test_function_group_address_refs_are_numbered_in_the_project(

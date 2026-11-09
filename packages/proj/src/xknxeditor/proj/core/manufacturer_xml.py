@@ -191,9 +191,14 @@ def combine_product_members(
     a product is inserted into a project; a device of the project's own data whose application was
     replaced keeps the catalog as it was. Without own catalog data for a manufacturer, the entries
     of all its added devices are written. A project without own product data (created in the editor)
-    writes ``sources`` unchanged."""
+    writes what its devices use of ``sources``, not every product of a file that holds a whole
+    manufacturer catalog; ``sources`` unchanged only when a device names neither its product nor
+    its ``Hardware2Program``, so what it uses is not known."""
     if not own:
-        return dict(sources)
+        devices = list(devices)
+        if not devices or any(not (d.product or d.hardware2program) for d in devices):
+            return dict(sources)
+        return _subset(sources, devices)
     return add_product_members(own, sources, devices)
 
 

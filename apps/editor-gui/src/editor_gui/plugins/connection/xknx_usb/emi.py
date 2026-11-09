@@ -28,7 +28,7 @@ MAX_APDU_LENGTH: Final = 15
 
 
 class EMIMessageCode:
-    """Message codes of EMI1 and EMI2 - KNX v01.04.02 - External Message Interface 03.06.03 - §3, Table 1."""
+    """Message codes of EMI1 and EMI2 - KNX v01.04.02 - External Message Interface 03.06.03 - §2, Table 1."""
 
     def __init__(
         self,
@@ -71,10 +71,11 @@ MESSAGE_CODES: Final = {
 
 # EMI2 PEI_Switch.req - KNX v01.04.02 - External Message Interface 03.06.03 - §3.1.4
 PEI_SWITCH_REQ: Final = 0xA9
-# memory location "system status" of EMI1 - §3.1.3; KNX v01.10.01 - Resources 03.05.01 - §4.26.3.2
+# memory location "system status" of EMI1 - KNX v01.04.02 - External Message Interface
+# 03.06.03 - §3.1.3; KNX v01.10.01 - Resources 03.05.01 - §4.26.3.2
 SYSTEM_STATUS_ADDRESS: Final = 0x0060
 # the individual address: the first entry of the group address table at 0116h -
-# KNX v01.10.01 - Resources 03.05.01 - §4.16.3.1
+# KNX v01.10.01 - Resources 03.05.01 - §4.16.3.1, §4.16.3.2
 INDIVIDUAL_ADDRESS_ADDRESS: Final = 0x0117
 
 
@@ -93,7 +94,8 @@ SYSTEM_STATUS: Final = {
     EMILayer.BUSMONITOR: 0x90,
 }
 # EMI2 system status and redirections - KNX v01.04.02 - External Message Interface
-# 03.06.03 - §3.1.4: normal mode sets the default system status again after a bus monitor
+# 03.06.03 - §3.1.4, Figure 2. Normal mode writes the system status 1Eh (all layers and
+# the user program enabled) instead of 00h (unchanged), so a bus monitor mode is left too.
 _PEI_SWITCH: Final = {
     EMILayer.NORMAL: bytes((0x1E, 0x12, 0x34, 0x56, 0x78, 0x9A)),
     EMILayer.DATA_LINK_LAYER: bytes((0x00, 0x18, 0x34, 0x56, 0x78, 0x0A)),
@@ -123,7 +125,11 @@ def pc_get_value(emi: EMIID, address: int, length: int) -> bytes:
 
 
 def parse_pc_get_value_con(emi: EMIID, raw: bytes) -> tuple[int, bytes] | None:
-    """Address and data of a PC_Get_Value.con - §3.3.9.4; None for another message."""
+    """
+    Address and data of a PC_Get_Value.con; None for another message.
+
+    KNX v01.04.02 - External Message Interface 03.06.03 - §3.3.9.4
+    """
     if len(raw) < 4 or raw[0] != MESSAGE_CODES[emi].pc_get_value_con:
         return None
     return int.from_bytes(raw[2:4], "big"), raw[4 : 4 + raw[1]]
@@ -172,7 +178,8 @@ def to_cemi(emi: EMIID, raw: bytes, busmonitor: bool) -> bytes | None:
     codes = MESSAGE_CODES[emi]
     code = raw[0]
     if busmonitor and code == codes.l_busmon_ind:
-        # status, time stamp, raw frame - §3.3.3.2
+        # status, time stamp, raw frame - KNX v01.04.02 - External Message Interface
+        # 03.06.03 - §3.3.3.2
         if len(raw) < 4:
             return None
         return (
@@ -196,7 +203,8 @@ def to_cemi(emi: EMIID, raw: bytes, busmonitor: bool) -> bytes | None:
         cemi_code = _CEMI_L_DATA_IND
     else:
         return None
-    # control, source, destination, AT/NPCI/LG, TPDU - §3.3.4.3, §3.3.4.4
+    # control, source, destination, AT/NPCI/LG, TPDU - KNX v01.04.02 - External
+    # Message Interface 03.06.03 - §3.3.4.3, §3.3.4.4
     if len(raw) < 8:
         return None
     control, npci = raw[1], raw[6]

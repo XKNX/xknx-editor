@@ -15,6 +15,16 @@ from .hardware import DeviceProgram, Hardware, Product
 from .master import MasterData
 
 
+@dataclass(frozen=True, slots=True)
+class ApplicationFacts:
+    """What identifies an application program, known without its parsed program in memory."""
+
+    application_number: int
+    application_version: int
+    mask_version: str
+    is_secure_enabled: bool
+
+
 @dataclass(slots=True)
 class Registry:
     master: MasterData
@@ -24,6 +34,10 @@ class Registry:
     products: dict[str, Product] = field(default_factory=dict[str, Product])
     programs: dict[str, DeviceProgram] = field(default_factory=dict[str, DeviceProgram])
     applications: dict[str, Application] = field(default_factory=dict[str, Application])
+    # The facts of each of `applications`, read while it was parsed.
+    application_facts: dict[str, ApplicationFacts] = field(
+        default_factory=dict[str, ApplicationFacts]
+    )
     catalog_sections: dict[str, CatalogSection] = field(
         default_factory=dict[str, CatalogSection]
     )

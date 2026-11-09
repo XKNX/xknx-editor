@@ -129,8 +129,35 @@ def test_a_device_added_in_the_editor_adds_its_catalog_entry() -> None:
     assert _app("30")[0] not in result
 
 
-def test_without_own_data_the_product_files_are_written_unchanged() -> None:
+def test_without_own_data_only_what_the_devices_use_is_written() -> None:
+    # A project created in the editor, with one device of a file holding several products (a
+    # manufacturer's whole catalog in one file): only that device's product data is exported.
     devices = [_device("2", "Two", "20", imported=False)]
+    result = combine_product_members({}, _SOURCE, devices)
+
+    assert _ids(result[f"{_M}/Hardware.xml"], "Hardware") == {f"{_M}_H-2"}
+    assert _ids(result[f"{_M}/Catalog.xml"], "CatalogItem") == {f"{_M}_CI-2-20"}
+    assert _app("20")[0] in result
+    assert not {_app(s)[0] for s in ("10", "11", "30")} & set(result)
+
+
+def test_without_own_data_a_product_without_application_keeps_its_hardware() -> None:
+    # A power supply names its product only: its hardware and catalog entry stay.
+    supply = DeviceProduct(
+        product=f"{_M}_H-3_P-Three", hardware2program="", application="", imported=False
+    )
+    result = combine_product_members({}, _SOURCE, [supply])
+
+    assert _ids(result[f"{_M}/Hardware.xml"], "Hardware") == {f"{_M}_H-3"}
+    assert not {_app(s)[0] for s in ("10", "11", "20")} & set(result)
+
+
+def test_without_own_data_a_device_naming_no_product_keeps_the_files_whole() -> None:
+    # Nothing tells what such a device uses: the product files are written unchanged.
+    unknown = DeviceProduct(
+        product="", hardware2program="", application="", imported=False
+    )
+    devices = [_device("2", "Two", "20", imported=False), unknown]
     assert combine_product_members({}, _SOURCE, devices) == _SOURCE
 
 

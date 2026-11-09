@@ -19,6 +19,7 @@ from xknx.telegram.apci import (
 from xknxeditor.download.errors import (
     DownloadError,
     ImageError,
+    InsufficientApduLength,
     PropertyAccessRejected,
 )
 from xknxeditor.download.image import (
@@ -37,7 +38,7 @@ from xknxeditor.download.procedure import (
     UNCONFIRMED_MASTER_RESET_COOLDOWN,
     LoadProcedureRunner,
 )
-from xknxeditor.download.programmer import DeviceProgrammer
+from xknxeditor.download.programmer import ApduRestriction, DeviceProgrammer
 from xknxeditor.download.scope import DownloadScope
 from xknxeditor.namespaces.intermediate.ld_ctrl_abs_segment_t import LdCtrlAbsSegment
 from xknxeditor.namespaces.intermediate.ld_ctrl_clear_lcfilter_table_t import (
@@ -1383,6 +1384,48 @@ async def test_negotiate_apdu_uses_device_maximum() -> None:
         and getattr(p, "property_id", None) == 56
         for p in manager.device.sent
     )
+    assert runner._programmer is not None
+    assert runner._programmer.max_apdu_length == 40
+    assert runner._programmer.apdu_restricted_by is ApduRestriction.DEVICE
+
+
+async def test_bcu1_apdu_is_restricted_by_the_device() -> None:
+    runner, _ = _managed_runner(
+        LdCtrlConnect(),
+        max_apdu_length=239,
+        negotiate_apdu=True,
+        property_services=False,
+    )
+    await runner.run()
+    assert runner._programmer is not None
+    assert runner._programmer.apdu_restricted_by is ApduRestriction.DEVICE
+
+
+async def test_property_element_longer_than_the_interface_frame_is_refused() -> None:
+    """A 20-octet element (PDT_GENERIC_20, a Gira unit text) needs an APDU of 25 octets; behind
+    an interface of standard frames nothing of it is sent, and the message names the limit."""
+    write = LdCtrlWriteProp(
+        obj_idx=0,
+        prop_id=210,
+        start_element=1,
+        count=1,
+        verify=True,
+        inline_data=b"\xc2\xb0C".ljust(20, b"\x00"),
+    )
+    runner, manager = _managed_runner(
+        LdCtrlConnect(), write, max_apdu_length=15, negotiate_apdu=True
+    )
+    manager.device.properties[(0, 56)] = (254).to_bytes(2, "big")
+    manager.device.property_element_sizes[(0, 210)] = 20
+
+    with pytest.raises(InsufficientApduLength) as raised:
+        await runner.run()
+
+    assert str(raised.value) == (
+        "insufficient APDU length (restricted to 15 by capabilities of the bus interface, "
+        "required: 25)"
+    )
+    assert not [p for p in manager.device.sent if isinstance(p, PropertyValueWrite)]
 
 
 async def test_compare_prop_rejects_a_truncated_response() -> None:
@@ -1970,3 +2013,80 @@ async def test_an_mcb_write_takes_the_capture_as_it_is() -> None:
     await runner.run()
     # The CRC is written back as captured.
     assert _mcb_writes(device) == ["0000070c0033abcd"]
+
+
+def _system_b_device() -> FakeDevice:
+    """An MV-17B0 device: group object table object 3, application 4, PEI program 5."""
+    device = FakeDevice(
+        object_types={0: 0, 1: 1, 2: 2, 3: 9, 4: 3, 5: 4}, descriptor=0x17B0
+    )
+    for index in (3, 4, 5):
+        device.load_states[index] = LoadState.LOADING
+    return device
+
+
+def _task_events(device: FakeDevice) -> dict[int, bytes]:
+    return {
+        payload.object_index: payload.data
+        for payload in device.sent
+        if isinstance(payload, PropertyValueWrite)
+        and payload.property_id == PID_LOAD_STATE_CONTROL
+        and payload.data[:2] == b"\x03\x02"
+    }
+
+
+def _pei(*controls: object) -> Application:
+    pei = _application(*controls)
+    pei.manufacturer_id = "M-0007"  # type: ignore[misc]
+    pei.program.application_number = 0x6136  # type: ignore[misc]
+    pei.program.application_version = 0x31  # type: ignore[misc]
+    pei.program.pei_type = 2  # type: ignore[misc]
+    return pei
+
+
+async def test_converted_product_data_loads_the_pei_program_with_its_own_id() -> None:
+    # Product data converted from older data loads the application on LSM 1 to 3 and the PEI
+    # program on LSM 4: each task segment carries its own program's id and PEI type.
+    controls = (
+        LdCtrlTaskSegment(lsm_idx=4, address=0x1000),
+        LdCtrlTaskSegment(lsm_idx=3, address=0x9000),
+    )
+    application = _application(*controls)
+    application.program.mask_version = "MV-17B0"
+    device = _system_b_device()
+    runner = LoadProcedureRunner(
+        application,
+        _empty_image(),
+        DeviceProgrammer(device),
+        application2=_pei(),
+    )
+
+    await runner.run()
+
+    events = _task_events(device)
+    assert events[4] == bytes.fromhex("0302100002") + bytes.fromhex("0007613631")
+    assert events[3] == bytes.fromhex("0302900001") + bytes.fromhex("0072000101")
+
+
+async def test_the_pei_program_task_segment_of_its_own_object_takes_its_id() -> None:
+    # With a task segment on the PEI program's object (5), the one on LSM 4 is the
+    # application's.
+    controls = (
+        LdCtrlTaskSegment(lsm_idx=5, address=0x1000),
+        LdCtrlTaskSegment(lsm_idx=4, address=0x9000),
+    )
+    application = _application(*controls)
+    application.program.mask_version = "MV-17B0"
+    device = _system_b_device()
+    runner = LoadProcedureRunner(
+        application,
+        _empty_image(),
+        DeviceProgrammer(device),
+        application2=_pei(),
+    )
+
+    await runner.run()
+
+    events = _task_events(device)
+    assert events[5] == bytes.fromhex("0302100002") + bytes.fromhex("0007613631")
+    assert events[4] == bytes.fromhex("0302900001") + bytes.fromhex("0072000101")

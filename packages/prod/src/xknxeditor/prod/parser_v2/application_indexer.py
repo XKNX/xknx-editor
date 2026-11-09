@@ -4,6 +4,7 @@ import re
 import warnings
 from collections.abc import Iterable
 
+from xknxeditor.namespaces.ids import unpadded_id
 from xknxeditor.namespaces.intermediate import (
     ApplicationProgram,
     ApplicationProgramStaticParametersUnion,
@@ -46,6 +47,7 @@ class ApplicationIndexer:
         "com_objects",
         "messages",
         "module_defs",
+        "padded_ref_ids",
         "parameter_refs",
         "parameter_types",
         "parameters",
@@ -53,6 +55,7 @@ class ApplicationIndexer:
         "refs_by_name",
         "refs_by_number",
         "script",
+        "stored_cells",
     )
 
     def __init__(self, app: ApplicationProgram) -> None:
@@ -72,6 +75,11 @@ class ApplicationIndexer:
         # What calculations computed from given values, for searches that try many values (a
         # calculation is a function of its values: each run starts in a fresh script context).
         self.calculation_results: dict[tuple[object, ...], object] = {}
+        # The param-refs of each parameter and the bytes the application's own parameters are
+        # stored at (see encode.stored_parameter_cells): the same for every state.
+        self.stored_cells: (
+            tuple[dict[str, list[str]], dict[tuple[str, int], set[str]]] | None
+        ) = None
         self.ref_owner: dict[str, str | None] = {}
         self.refs_by_name: dict[str | None, dict[str, str]] = {}
         self.refs_by_number: dict[str | None, dict[int, str]] = {}
@@ -86,6 +94,13 @@ class ApplicationIndexer:
         if app.module_defs is not None:
             for md in app.module_defs.module_def:
                 self._index_module_def(md)
+        # The parameter refs whose id the application writes with leading zeros, by their
+        # unpadded id: the spelling a project stores their values under (see unpadded_id).
+        self.padded_ref_ids: dict[str, str] = {
+            unpadded: ref_id
+            for ref_id in self.parameter_refs
+            if (unpadded := unpadded_id(ref_id)) != ref_id
+        }
 
     def _index_app(self, app: ApplicationProgram) -> None:
         s = app.static
@@ -145,9 +160,10 @@ class ApplicationIndexer:
     def _index_ref_lookup(self, pr: ParameterRef, owner: str | None) -> None:
         self.ref_owner[pr.id] = owner
         base = self.parameters.get(pr.ref_id)
-        name = getattr(base, "name", None)
-        if name:
-            self.refs_by_name.setdefault(owner, {}).setdefault(name, pr.id)
+        # A ref with a name of its own is found by it too, as by its parameter's.
+        for name in (pr.name, getattr(base, "name", None)):
+            if name:
+                self.refs_by_name.setdefault(owner, {}).setdefault(name, pr.id)
         m = self._REF_NUMBER.search(pr.id)
         if m:
             self.refs_by_number.setdefault(owner, {}).setdefault(int(m.group(1)), pr.id)
@@ -174,8 +190,14 @@ class ApplicationIndexer:
         return pt.choice if pt is not None else None
 
     def parameter_name(self, ref_id: str) -> str | None:
+        """The name of a ParameterRef: its own ``Name``, else that of its parameter (the name
+        a calculation and a script know it by)."""
         pr = self.parameter_refs.get(ref_id)
-        base = self.parameters.get(pr.ref_id) if pr is not None else None
+        if pr is None:
+            return None
+        if pr.name:
+            return pr.name
+        base = self.parameters.get(pr.ref_id)
         return getattr(base, "name", None)
 
     def message_values(self) -> dict[str, str]:

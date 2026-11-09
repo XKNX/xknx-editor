@@ -3,7 +3,15 @@ from __future__ import annotations
 import contextlib
 import copy
 import logging
-from collections.abc import Callable, Generator, Iterable, Iterator, Mapping, Sequence
+from collections.abc import (
+    Callable,
+    Collection,
+    Generator,
+    Iterable,
+    Iterator,
+    Mapping,
+    Sequence,
+)
 from typing import TYPE_CHECKING
 
 from xknxeditor.namespaces.intermediate import (
@@ -63,6 +71,7 @@ from .encode import (
     MaskedProperty,
     MemWrite,
     PropertyKey,
+    PropertyLayout,
     PropWrite,
     TypedPropertyKey,
     Writes,
@@ -72,18 +81,22 @@ from .encode import (
     decode_memory_parameters,
     decode_module_parameters,
     decode_property_parameters,
+    decode_writes,
     download_param_values,
     encode_to_memory,
     encode_to_memory_masked,
     encode_to_properties,
     encode_to_typed_properties,
     encode_to_typed_properties_masked,
+    parameter_ref_order,
     resolve_param_values,
     segment_seed,
     stored_parameter_cells,
+    stored_property_layout,
     type_size_in_bit,
     validate_parameter_value,
     written_bit_mask,
+    written_parameter_cells,
 )
 from .nodes import (
     AssignNode,
@@ -101,6 +114,7 @@ from .nodes import (
     RenameNode,
     RepeatNode,
 )
+from .nodes.choose import tested_values
 from .state import (
     GlobalState,
     ModuleState,
@@ -154,6 +168,7 @@ __all__ = [
     "encode_to_typed_properties_masked",
     "resolve_param_values",
     "written_bit_mask",
+    "written_parameter_cells",
 ]
 
 
@@ -181,15 +196,25 @@ class _UnionCompetitors:
     members - so the competitor sets are not built for every member up front.
     """
 
-    __slots__ = ("_by_union", "_cache", "_member_of", "_member_refs", "_members")
+    __slots__ = (
+        "_by_union",
+        "_cache",
+        "_member_of",
+        "_member_refs",
+        "_members",
+        "_ref_ranks",
+    )
 
     def __init__(
         self,
         members: dict[str, tuple[int, int, int | None]],
         member_refs: dict[str, set[str]],
+        ref_ranks: dict[str, tuple[int, int]],
     ) -> None:
         self._members = members
         self._member_refs = member_refs
+        # Each param-ref's place in the order a download writes the refs (parameter_ref_order).
+        self._ref_ranks = ref_ranks
         self._member_of = {r: mid for mid, refs in member_refs.items() for r in refs}
         self._by_union: dict[int, list[str]] = {}
         for mid, (key, _s, _z) in members.items():
@@ -222,6 +247,52 @@ class _UnionCompetitors:
             }
             self._cache[mid] = competitors or None
         return self._cache[mid]
+
+    def later(self, ref_id: str) -> set[str]:
+        """The parameter-refs of the other members of ``ref_id``'s union whose bits overlap its
+        own and that a download writes after ``ref_id`` (ParameterRef order, see
+        :func:`parameter_ref_order`): one of them active, its value is what the memory holds."""
+        mid = self._member_of.get(ref_id)
+        if mid is None:
+            return set()
+        own = self._ref_ranks.get(ref_id, (-1, -1))
+        return {
+            r
+            for m2 in self._by_union[self._members[mid][0]]
+            if m2 != mid and m2 in self._member_refs and self._overlap(mid, m2)
+            for r in self._member_refs[m2]
+            if self._ref_ranks.get(r, (-1, -1)) > own
+        }
+
+    def covered(self, ref_id: str, by: Iterable[str]) -> bool:
+        """Whether the members of the param-refs ``by`` together cover every bit of
+        ``ref_id``'s member (one of unknown width: when one starts at the same bit, as
+        :meth:`_overlap` counts it)."""
+        mid = self._member_of.get(ref_id)
+        if mid is None:
+            return False
+        key, start, size = self._members[mid]
+        spans: list[tuple[int, int]] = []
+        for other in by:
+            m2 = self._member_of.get(other)
+            if m2 is None or m2 == mid:
+                continue
+            k2, s2, z2 = self._members[m2]
+            if k2 != key:
+                continue
+            if size is None or z2 is None:
+                if s2 == start:
+                    return True
+                continue
+            spans.append((s2, s2 + z2))
+        if size is None:
+            return False
+        reached = start
+        for begin, end in sorted(spans):
+            if begin > reached:
+                break
+            reached = max(reached, end)
+        return reached >= start + size
 
 
 def _modules(elems: Iterable[object]) -> Iterator[Module]:
@@ -261,6 +332,8 @@ class DynamicTreeBuilder:
         # render every union member's Choose branch, duplicating content (issue: MDT Glas push
         # button "Display mode" — two ViewMode union members both rendered).
         self._union_sibling_refs = self._build_union_sibling_refs(app)
+        # The same, for DynamicUI.later_union_members.
+        self.union_competitors = self._union_sibling_refs
         # Some applications (e.g. simple power supplies / couplers) carry no <Dynamic> section, or
         # one that produces no tree. Such a device has no parameters/objects to show — build an
         # empty tree so it still appears in the project instead of failing to load.
@@ -289,6 +362,9 @@ class DynamicTreeBuilder:
         self.parameter_gates: dict[str, frozenset[str]]
         self.object_gates: dict[str, frozenset[str]]
         self.module_gates: dict[str, frozenset[str]]
+        self.selector_param_refs: frozenset[str] = frozenset()
+        # Per choose param-ref (local), the values its when tests name (see tested_values).
+        self.selector_tested_values: dict[str, tuple[str, ...]] = {}
         (
             self.allocation_param_refs,
             self.object_param_refs,
@@ -339,6 +415,7 @@ class DynamicTreeBuilder:
         object_placements: dict[str, set[str]] = {}
         module_placements: dict[str, set[str]] = {}
         sources: dict[str, set[str]] = {}
+        tests: dict[str, list[str]] = {}
 
         def walk(elem: object, gates: tuple[str, ...]) -> None:
             if isinstance(
@@ -346,6 +423,8 @@ class DynamicTreeBuilder:
             ):
                 inner = (*gates, elem.param_ref_id)
                 for when in elem.when:
+                    if when.test is not None:
+                        tests.setdefault(elem.param_ref_id, []).append(when.test)
                     for child in when.choice:
                         walk(child, inner)
                 return
@@ -405,6 +484,24 @@ class DynamicTreeBuilder:
         }
         gates_by_module = {
             ref: frozenset(gates) for ref, gates in module_placements.items()
+        }
+        # Every selector, and the sources its Assigns copy into it: no other value can change
+        # what the tree shows.
+        selectors = set[str]().union(
+            *placements.values(),
+            *object_placements.values(),
+            *module_placements.values(),
+        )
+        pending = list(selectors)
+        while pending:
+            for source in sources.get(pending.pop(), ()):
+                if source not in selectors:
+                    selectors.add(source)
+                    pending.append(source)
+        self.selector_param_refs = frozenset(selectors)
+        self.selector_tested_values = {
+            ref: tuple(dict.fromkeys(v for test in found for v in tested_values(test)))
+            for ref, found in tests.items()
         }
         return (
             closed(seeds),
@@ -532,10 +629,12 @@ class DynamicTreeBuilder:
                         _add_union(p, id(p))
         # member id -> its parameter-ref ids
         member_refs: dict[str, set[str]] = {}
+        ref_ranks: dict[str, tuple[int, int]] = {}
         for pr in self.idx.parameter_refs.values():
             if pr.ref_id in members:  # pr.ref_id is the underlying member id
                 member_refs.setdefault(pr.ref_id, set()).add(pr.id)
-        return _UnionCompetitors(members, member_refs)
+                ref_ranks[pr.id] = parameter_ref_order(pr.id, pr.tag)
+        return _UnionCompetitors(members, member_refs, ref_ranks)
 
     def _build(self, elem: object) -> DynamicNode | None:
         if isinstance(elem, ApplicationProgramDynamic):
@@ -605,11 +704,15 @@ class DynamicTreeBuilder:
         elif isinstance(elem, Module):
             ref_id = elem.ref_id
             mod_def = self.idx.module_defs.get(ref_id)
-            if mod_def is None or mod_def.dynamic is None:
+            if mod_def is None:
                 return None
             children = self._module_subtrees.get(ref_id)
             if children is None:
-                children = [self._build(child) for child in mod_def.dynamic.choice]
+                # A definition without a Dynamic section (a placeholder that only reserves
+                # its arguments' Allocates) still takes its allocator ranges, so the modules
+                # after it keep their addresses.
+                choice = mod_def.dynamic.choice if mod_def.dynamic is not None else []
+                children = [self._build(child) for child in choice]
                 self._module_subtrees[ref_id] = children
             arguments: dict[str, ModuleArg] = {arg.ref_id: arg for arg in elem.choice}
             param_ref_defaults = compute_param_ref_defaults(
@@ -673,6 +776,23 @@ class DynamicTreeBuilder:
             # Leaf: renames a channel or element inside a choose branch
             return RenameNode(elem)
         return None
+
+
+# The local ids of the refs looked up in UIs, by their module scopes (see
+# DynamicUI.local_ref_id), of the last few kinds of scopes.
+_LOCAL_IDS: dict[tuple[object, ...], dict[str, str]] = {}
+
+
+def _local_ids_of(scopes: tuple[object, ...]) -> dict[str, str]:
+    """The local ids looked up in UIs with the module scopes ``scopes``."""
+    found = _LOCAL_IDS.get(scopes)
+    if found is None:
+        if len(_LOCAL_IDS) >= 64:
+            _LOCAL_IDS.clear()
+        found = _LOCAL_IDS[scopes] = {}
+    elif len(found) >= 1 << 17:
+        found.clear()
+    return found
 
 
 def _com_object_number(ref_id: str) -> str:
@@ -926,18 +1046,24 @@ def _rehome_to_pages(
 
 class DynamicUI:
     __slots__ = (
+        "_active_refs",
         "_active_snapshot",
         "_allocation_param_refs",
         "_app",
         "_idx",
+        "_local_ids",
+        "_located",
         "_module_gates",
         "_object_gates",
         "_object_param_refs",
         "_page_for",
         "_parameter_gates",
+        "_selector_param_refs",
+        "_selector_tested_values",
         "_state",
         "_tree",
         "_ui",
+        "_union_competitors",
         "project_code_page",
         "script_abort",
         "script_env",
@@ -951,7 +1077,10 @@ class DynamicUI:
         com_object_instance_refs: list[ComObjectInstanceRef] | None = None,
         tree_builder: DynamicTreeBuilder | None = None,
         project_code_page: str | None = None,
+        parameter_values: Mapping[str, str] | None = None,
     ) -> None:
+        """``parameter_values``: values by ref id, as ``parameter_instance_refs`` give them
+        (after them; see :meth:`GlobalState.from_project`)."""
         # The builder (indexer + node tree) is a pure function of the app program and is read-only
         # during eval, so callers share one across all devices of the same app (see
         # Application.tree_builder) instead of rebuilding it per device.
@@ -967,12 +1096,17 @@ class DynamicUI:
         self._parameter_gates = builder.parameter_gates
         self._object_gates = builder.object_gates
         self._module_gates = builder.module_gates
+        self._selector_param_refs = builder.selector_param_refs
+        self._selector_tested_values = builder.selector_tested_values
+        self._union_competitors = builder.union_competitors
         self._page_for = builder.page_param_for
         self._state = GlobalState.from_project(
             parameter_instance_refs=parameter_instance_refs,
             module_instances=module_instances,
             com_object_instance_refs=com_object_instance_refs,
             app_id=app.id,
+            padded_ref_ids=self._idx.padded_ref_ids,
+            parameter_values=parameter_values,
         )
         self._ui: list[UiNode] | None = None
         # The parameter-driven active com-object set, snapshotted from the same settle that builds
@@ -980,6 +1114,15 @@ class DynamicUI:
         # read of the active set reuse the UI settle instead of running its own, and is cleared
         # together with ``_ui`` on every state change (see ``_invalidate``).
         self._active_snapshot: tuple[EvalCapture | None, frozenset[str]] | None = None
+        # The active parameter refs of the last evaluation, read again and again (see
+        # :meth:`active_parameter_ref_ids`); cleared with ``_ui``.
+        self._active_refs: frozenset[str] | None = None
+        # The scope and local id of each ref looked up in the evaluated state (see _locate);
+        # cleared with ``_ui``.
+        self._located: dict[str, tuple[ParameterState, str]] = {}
+        # The local ids of the refs looked up, shared by the UIs with the same module scopes
+        # (see local_ref_id); cleared with ``_ui``.
+        self._local_ids: dict[str, str] | None = None
         self.script_env: JScriptEnv | None = None
         self.script_abort: AbortToken | None = None
 
@@ -987,8 +1130,11 @@ class DynamicUI:
         """Drop the cached UI and the active-set snapshot after a state change."""
         self._ui = None
         self._active_snapshot = None
+        self._active_refs = None
+        self._located = {}
+        self._local_ids = None
 
-    def _discover_union_activity(self) -> None:
+    def _discover_union_activity(self) -> list[UiNode] | None:
         """Discovery pass ahead of a render eval: evaluate the tree WITHOUT union suppression so every
         reached Union member is marked active, then freeze that as the discovery snapshot. The render
         pass reads it (is_discovered_active) to pick each Union's active overlay order-independently —
@@ -999,43 +1145,68 @@ class DynamicUI:
         reached are those of the settled values and active parameters: a Choose on a parameter
         that is not active selects nothing here either, and a member selected by a value an Assign
         writes later in the tree is reached; a single traversal order does not decide which
-        overlay wins."""
-        self._state.clear_gate()
-        self._settle(
-            lambda: EvalContext(self._state, idx=self._idx, union_suppress=False)
-        )
-        self._state.snapshot_discovered_active()
+        overlay wins.
 
-    def _settle(self, make_ctx: Callable[[], EvalContext]) -> list[UiNode]:
+        Returns the tree of the last pass when a render pass would evaluate it the same way:
+        the discovery settled, and no Choose on a union member it reached is suppressed by the
+        snapshot (the only difference between the two kinds of pass). The render pass would then
+        repeat that last pass: from the same values, gated by the same parameters."""
+        self._state.clear_gate()
+        chooses: list[tuple[ParameterState, str, Collection[str]]] = []
+
+        def make_ctx() -> EvalContext:
+            chooses.clear()
+            return EvalContext(
+                self._state,
+                idx=self._idx,
+                union_suppress=False,
+                union_chooses=chooses,
+                handed=set(),
+            )
+
+        tree, settled = self._settle(make_ctx)
+        self._state.snapshot_discovered_active()
+        if not settled or any(
+            not scope.is_discovered_active(param)
+            and any(scope.is_discovered_active(sibling) for sibling in siblings)
+            for scope, param, siblings in chooses
+        ):
+            return None
+        return tree
+
+    def _settle(self, make_ctx: Callable[[], EvalContext]) -> tuple[list[UiNode], bool]:
         """Evaluate the tree until a pass changes neither the active parameters nor a value or
         text that an Assign or a Rename writes, at most ``_MAX_GATE_PASSES`` times; the tree of
-        the last pass. Each pass gates Chooses by the parameters active in the pass before, so a
-        Choose renders nothing when its parameter is not active, wherever in the tree it is shown
-        or assigned; and a node read before a write saw the old value, so the pass after it sees
-        the new one."""
+        the last pass, and whether it settled before the limit. Each pass gates Chooses by the
+        parameters active in the pass before, so a Choose renders nothing when its parameter is
+        not active, wherever in the tree it is shown or assigned; and a node read before a write
+        saw the old value, so the pass after it sees the new one."""
         tree: list[UiNode] = []
         for _ in range(_MAX_GATE_PASSES):
             self._state.reset_active()
             tree = self._tree.eval(make_ctx())
             gate_changed = self._state.update_gate_active()
             if not gate_changed and not self._state.pass_changed_state():
-                break
-        return tree
+                return tree, True
+        return tree, False
 
     def _eval_settled(
         self, capture: Callable[[], EvalCapture] | None = None
     ) -> tuple[list[UiNode], EvalCapture | None]:
         """Evaluate until settled (see :meth:`_settle`), after the union discovery.
         ``capture`` makes a fresh capture for each pass; the one of the last pass is returned."""
-        self._discover_union_activity()
+        discovered = self._discover_union_activity()
+        if discovered is not None and capture is None:
+            # The render pass would repeat the last pass of the discovery, and settle with it.
+            return discovered, None
         result: EvalCapture | None = None
 
         def make_ctx() -> EvalContext:
             nonlocal result
             result = capture() if capture is not None else None
-            return EvalContext(self._state, idx=self._idx, capture=result)
+            return EvalContext(self._state, idx=self._idx, capture=result, handed=set())
 
-        tree = self._settle(make_ctx)
+        tree, _settled = self._settle(make_ctx)
         return tree, result
 
     def _build_ui(self, *, capture_active: bool) -> None:
@@ -1044,6 +1215,9 @@ class DynamicUI:
         following :meth:`active_parameter_driven_com_object_ref_ids` reuses this evaluation instead
         of running another full settle."""
         capture = (lambda: EvalCapture(None)) if capture_active else None
+        self._active_refs = None
+        self._located = {}
+        self._local_ids = None
         self._ui, result = self._eval_settled(capture)
         self._state.trim_to_active()
         if capture_active:
@@ -1174,6 +1348,16 @@ class DynamicUI:
             result[iid] = values
         return result
 
+    def module_load_controls(self) -> dict[int, list[object]]:
+        """After eval, the load controls of the module instances by the merge id of their
+        definition's load procedure: each instance's in the order of the instances, with its
+        arguments applied and its parameters' ``choose`` resolved (see
+        :mod:`.module_procedures`)."""
+        from .module_procedures import module_load_controls
+
+        self.ui()
+        return module_load_controls(self._state, self._idx)
+
     def set_com_obj_instance_ref(self, ref_id: str, coir: ComObjectInstanceRef) -> None:
         self._state.set_com_obj_instance_ref(ref_id, coir)
         self._invalidate()
@@ -1280,12 +1464,13 @@ class DynamicUI:
         )
 
     def decode_property_parameters(
-        self, properties: Mapping[PropertyKey, bytes]
+        self, properties: Mapping[TypedPropertyKey, bytes]
     ) -> dict[str, str | None]:
-        """Best-effort inverse of :meth:`encode_to_properties` for recovering values.
+        """Best-effort inverse of :meth:`encode_to_typed_properties` for recovering values.
 
         Decodes each top-level static property-backed parameter's value from the
-        given property bytes (read off a device). ``None`` marks an unreconstructable
+        given property bytes (read off a device, keyed as by
+        :meth:`encode_to_typed_properties`). ``None`` marks an unreconstructable
         value; module-instanced parameters are skipped (see
         :func:`decode_property_parameters`).
         """
@@ -1294,12 +1479,48 @@ class DynamicUI:
             self._app, self._idx, properties, self._state, self.text_encoding
         )
 
+    def state_layout(self) -> tuple[object, ...]:
+        """What the parameter state holds (see :meth:`ParameterState.layout`), with the code page:
+        two UIs of one program, neither evaluated yet, with the same layout evaluate alike."""
+        return (self.project_code_page, self._state.layout())
+
+    def decode_stored_parameters(
+        self,
+        segments: Mapping[str, bytes],
+        properties: Mapping[TypedPropertyKey, bytes],
+    ) -> dict[str, str | None]:
+        """:meth:`decode_memory_parameters`, with :meth:`decode_property_parameters` (of
+        non-empty ``properties``) merged over it: the fields both read laid out once."""
+        self.ui()
+        writes = decode_writes(self._app, self._idx, self._state)
+        decoded = decode_memory_parameters(
+            self._app,
+            self._idx,
+            segments,
+            self._state,
+            self.text_encoding,
+            writes=writes,
+        )
+        if properties:
+            decoded.update(
+                decode_property_parameters(
+                    self._app,
+                    self._idx,
+                    properties,
+                    self._state,
+                    self.text_encoding,
+                    writes=writes,
+                )
+            )
+        return decoded
+
     def decode_module_parameters(
         self,
         segments: Mapping[str, bytes],
-        properties: Mapping[PropertyKey, bytes],
+        properties: Mapping[TypedPropertyKey, bytes],
     ) -> dict[str, str | None]:
-        """Decode module-instance parameter values from device memory/properties.
+        """Decode module-instance parameter values from device memory/properties (keyed as
+        by :meth:`encode_to_typed_properties`).
 
         Uses this UI's evaluated module instances (seed it from the recovered
         top-level parameters first, so the instances match the device). Returns
@@ -1321,11 +1542,32 @@ class DynamicUI:
             self._state,
         )
 
+    def written_parameter_cells(self) -> dict[tuple[str, int], set[str]]:
+        """The parameter ids each byte the active parameters write is written by, all of them
+        (see :func:`~xknxeditor.prod.parser_v2.encode.written_parameter_cells`)."""
+        self.ui()
+        return written_parameter_cells(
+            self._app,
+            self._idx,
+            download_param_values(self._app, self._idx, self._state),
+            self._state,
+        )
+
     def stored_parameter_cells(self) -> dict[tuple[str, int], set[str]]:
         """The param-refs stored at each byte, active or not (module instances' qualified); see
         :func:`~xknxeditor.prod.parser_v2.encode.stored_parameter_cells`."""
         self.ui()
         return stored_parameter_cells(self._app, self._idx, self._state)
+
+    def stored_property_layout(self) -> PropertyLayout:
+        """The param-refs stored at each byte of each property, active or not, and what the
+        parameters that are no member of a union write with their default values (module
+        instances' qualified); see
+        :func:`~xknxeditor.prod.parser_v2.encode.stored_property_layout`."""
+        self.ui()
+        return stored_property_layout(
+            self._app, self._idx, self._state, self.text_encoding
+        )
 
     def written_bit_mask(self) -> dict[str, bytes]:
         """Return {seg_id: bit_mask} marking the bits an active parameter writes.
@@ -1395,6 +1637,16 @@ class DynamicUI:
         return self.get_value(ref_id)
 
     def _locate(self, ref_id: str) -> tuple[ParameterState, str]:
+        # The module scopes of an evaluated state stay as they are until the next evaluation
+        # (which clears this), and a search looks up the same refs again and again.
+        if self._ui is not None:
+            located = self._located.get(ref_id)
+            if located is None:
+                located = self._located[ref_id] = self._find_scope(ref_id)
+            return located
+        return self._find_scope(ref_id)
+
+    def _find_scope(self, ref_id: str) -> tuple[ParameterState, str]:
         found = self._state.find_scope_for_qualified(ref_id)
         if (
             found is None
@@ -1534,6 +1786,8 @@ class DynamicUI:
                 # holds) is rejected with the allocator's message, as a failed validation. The
                 # settle is the one the next read needs anyway.
                 self._build_ui(capture_active=True)
+                if before is not None and require_active:
+                    self._store_assigns(journal, before, (ref_id,))
         except AllocatorOverflow as exc:
             journal.rollback()
             if before is not None:
@@ -1545,6 +1799,108 @@ class DynamicUI:
             self._invalidate()
             raise
         return journal.changes()
+
+    def _store_assigns(
+        self, journal: Journal, before: ParameterState, edited: Iterable[str]
+    ) -> None:
+        """Make what the Assigns did part of an edit, in ``journal``: the tree is settled for the
+        edited values, ``before`` is a copy of the state settled before the edit, ``edited`` the
+        parameters the edit sets.
+
+        An Assign that applies writes its value into its target, which is stored like a value the
+        user set: the values the Assigns wrote go into the change. A target no Assign writes any
+        more, though one did before the edit, gets its default (the value of its ParameterRef,
+        else of its Parameter), however it is shown, unless the edit sets it; and the tree is
+        settled again, until no further Assign stops applying. A value an Assign writes or a reset
+        gives runs the calculations of its target, as an edit of it does (a hidden setting an
+        Assign copies that a calculation shows a channel's settings with). A UI seeded from the
+        stored values (a device opened, an undo) runs the Assigns without these resets and keeps
+        the stored values."""
+        keep = set(edited)
+        was = before.assign_targets() - keep
+        # The value of each target its calculations last ran with.
+        calculated: dict[str, str | None] = {}
+        for _ in range(_MAX_GATE_PASSES):
+            self._note_assigned(journal, before)
+            now = self._state.assign_targets()
+            reset = False
+            for ref_id in sorted(was - now):
+                local = self.local_ref_id(ref_id)
+                default = self._idx.default_value(local)
+                # A target of a module instance that ended has nothing to reset.
+                if (
+                    local in self._idx.parameter_refs
+                    and default is not None
+                    and self.get_value(ref_id) != default
+                ):
+                    journal.set(ref_id, default)
+                    reset = True
+            recalculated = self._calculate_assigned(
+                journal, (was | now) - keep, calculated, before
+            )
+            if not reset and not recalculated:
+                return
+            was = now - keep
+            self._invalidate()
+            self._build_ui(capture_active=True)
+        self._note_assigned(journal, before)
+
+    def _calculate_assigned(
+        self,
+        journal: Journal,
+        targets: Iterable[str],
+        calculated: dict[str, str | None],
+        before: ParameterState,
+    ) -> bool:
+        """Run the calculations of the Assign ``targets`` whose value changed since ``before``
+        and since their calculations last ran (``calculated``, updated), in ``journal``: whether
+        any ran."""
+        changed: list[str] = []
+        for ref_id in sorted(targets):
+            local = self.local_ref_id(ref_id)
+            if local not in self._idx.parameter_refs or not (
+                self._idx.calculations_for_l(local)
+                or self._idx.calculations_for_r(local)
+            ):
+                continue
+            value = self.get_value(ref_id)
+            found = before.find_scope_for_qualified(ref_id)
+            scope, old_local = found if found is not None else (before, local)
+            old = scope.get(old_local)
+            if old is None:
+                old = self._idx.default_value(old_local)
+            if calculated.get(ref_id, old) == value:
+                continue
+            calculated[ref_id] = value
+            changed.append(ref_id)
+        for scope, locals_ in self._group_by_scope(changed):
+            run_calculations_many(
+                self._idx,
+                locals_,
+                self._calc_scope(scope),
+                journal,
+                self.script_env,
+                raise_errors=False,
+                abort=self.script_abort,
+            )
+        if changed:
+            self._invalidate()
+        return bool(changed)
+
+    def _note_assigned(self, journal: Journal, before: ParameterState) -> None:
+        """Journal the values the evaluations since ``before`` wrote (the Assigns), with what they
+        were in ``before``."""
+        for ref_id in self._state.changed_explicit_values(before):
+            if ref_id in journal.before:
+                continue
+            found = before.find_scope_for_qualified(ref_id)
+            scope, local = found if found is not None else (before, ref_id)
+            old = scope.get(local)
+            journal.note(
+                ref_id,
+                old if old is not None else self._idx.default_value(local),
+                scope.explicit_value(local),
+            )
 
     def _overflow_rejection(
         self, exc: AllocatorOverflow, ref_id: str
@@ -1652,10 +2008,13 @@ class DynamicUI:
         so one rejected edit does not discard the rest); otherwise the batch is all-or-nothing."""
         if skip_invalid:
             return self._edit_best_effort(edits, validate=validate)
-        before = copy.deepcopy(self._state)  # see _change
         journal = self._journal()
         groups: dict[int, tuple[ParameterState, list[str]]] = {}
+        before: ParameterState | None = None
         try:
+            # The state settled before the edit (see _change and _store_assigns).
+            self.ui()
+            before = copy.deepcopy(self._state)
             for ref_id, value in edits:
                 scope, local = self._apply_direct_edit(
                     journal, ref_id, value, validate=validate
@@ -1674,9 +2033,11 @@ class DynamicUI:
             # Evaluated inside the batch, so an allocator overflow rejects it (see _change).
             self._invalidate()
             self._build_ui(capture_active=True)
+            self._store_assigns(journal, before, (ref for ref, _ in edits))
         except AllocatorOverflow as exc:
             journal.rollback()
-            self._state = before
+            if before is not None:
+                self._state = before
             self._invalidate()
             raise self._overflow_rejection(exc, edits[-1][0]) from exc
         except BaseException:
@@ -1749,7 +2110,21 @@ class DynamicUI:
 
     def active_parameter_ref_ids(self) -> frozenset[str]:
         self.ui()
-        return frozenset(self._state.active_param_refs())
+        if self._active_refs is None:
+            self._active_refs = frozenset(self._state.active_param_refs())
+        return self._active_refs
+
+    def later_union_members(self, ref_id: str) -> set[str]:
+        """The param-refs of the members of ``ref_id``'s union written after its own member over
+        the same bits (an application's union; empty for any other ref): when one is active,
+        the memory holds its value, not ``ref_id``'s."""
+        return self._union_competitors.later(ref_id)
+
+    def union_member_covered(self, ref_id: str, by: Iterable[str]) -> bool:
+        """Whether the union members of the param-refs ``by`` together write every bit of
+        ``ref_id``'s member (see :meth:`later_union_members`): the memory then holds nothing
+        of ``ref_id``'s value."""
+        return self._union_competitors.covered(ref_id, by)
 
     def explore_parameters(self) -> list[Placement]:
         """Every place of every parameter in the tree, whatever the current values select, with
@@ -1780,6 +2155,7 @@ class DynamicUI:
         state = self._state
         ui = self._ui
         snapshot = self._active_snapshot
+        active_refs = self._active_refs
         self._state = copy.deepcopy(state)
         self._invalidate()
         try:
@@ -1788,6 +2164,9 @@ class DynamicUI:
             self._state = state
             self._ui = ui
             self._active_snapshot = snapshot
+            self._active_refs = active_refs
+            self._located = {}
+            self._local_ids = None
 
     @property
     def indexer(self) -> ApplicationIndexer:
@@ -1799,10 +2178,39 @@ class DynamicUI:
         which group objects and module instances the tree makes."""
         return self._object_param_refs
 
+    @property
+    def selector_param_refs(self) -> frozenset[str]:
+        """Param-refs (local to their application or module definition) whose value can change
+        what the tree shows: the selectors on the way to any parameter, group object or module,
+        and the sources their Assigns copy from."""
+        return self._selector_param_refs
+
+    def tested_values(self, ref_id: str) -> tuple[str, ...]:
+        """The values the chooses on a param-ref (of a module instance too) test for, in the
+        order of the product's when tests (see :func:`~.nodes.choose.tested_values`): what
+        changes what such a selector shows. Empty for a param-ref no choose is on."""
+        return self._selector_tested_values.get(self.local_ref_id(ref_id), ())
+
     def parameter_gates(self, local_ref_id: str) -> frozenset[str]:
         """The selectors (local param-refs) right on the way to the placements of a param-ref
         (local to its application or module definition)."""
         return self._parameter_gates.get(local_ref_id, frozenset())
+
+    def assigned_from(self) -> dict[str, str]:
+        """The application's param-refs the Assigns of the evaluated tree write from another
+        one: target -> source (its module instances' are left out)."""
+        self.ui()
+        return self._state.assigned_from()
+
+    def assigned_source(self, ref_id: str) -> str | None:
+        """The param-ref an Assign of the evaluated tree writes the (possibly module-qualified)
+        ``ref_id`` from, qualified in the scope that owns it: a module instance's own one with
+        the instance, one of the application (an Assign in a module copying an application
+        setting) as it is. None when no Assign copies another param-ref into it."""
+        self.ui()
+        scope, local = self._locate(ref_id)
+        source = scope.assigned_from().get(local)
+        return scope.qualify_local(source) if source is not None else None
 
     def object_gates(self, com_object_ref_id: str) -> frozenset[str]:
         """The selectors (local param-refs) right on the way to the placements of a group object
@@ -1814,13 +2222,29 @@ class DynamicUI:
         application or module definition)."""
         return self._module_gates.get(module_id, frozenset())
 
+    def gated_modules(self) -> dict[str, frozenset[str]]:
+        """Every module (its id, local to its application or module definition) with the
+        selectors (local param-refs) right on the way to it, also the modules the evaluated
+        tree does not make."""
+        return dict(self._module_gates)
+
     @property
     def application_name(self) -> str:
         return self._app.name
 
     def local_ref_id(self, ref_id: str) -> str:
         """The ParameterRef id a (possibly module-qualified) ref id stands for."""
-        return self._locate(ref_id)[1]
+        if self._ui is None:
+            return self._locate(ref_id)[1]
+        # Evaluated, the module scopes decide it alone: UIs with the same scopes (a search
+        # seeds many) look up each ref once.
+        local_ids = self._local_ids
+        if local_ids is None:
+            local_ids = self._local_ids = _local_ids_of(self._state.scopes())
+        local = local_ids.get(ref_id)
+        if local is None:
+            local = local_ids[ref_id] = self._locate(ref_id)[1]
+        return local
 
     def find_parameter_ref(
         self, kind: str, key: object, instance_id: str | None = None
