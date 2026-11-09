@@ -1039,17 +1039,32 @@ def _module_instances_in(ref: str) -> list[str]:
     return [ref[: match.end()] for match in _INSTANCE_NUMBER.finditer(ref)]
 
 
-def _instance_order(instance_id: str) -> tuple[int, int, str, str]:
+def _instance_order(instance_id: str) -> tuple[int, int, int, str, str]:
     """The key of the order a project file lists its module instances in, for a relative
-    module instance id: by the number of the module definition and of the module, then by the
-    instance number as text, an instance's submodule instances after it. ``MD-1_M-10_MI-1`` comes
-    after ``MD-1_M-4_MI-1`` and before ``MD-2_M-5_MI-1``; ``MD-1_M-3_MI-10`` before
-    ``MD-1_M-3_MI-2``."""
+    module instance id: by the number of the module definition and of the module, the
+    submodule instances of the module's instances before the instances themselves (the
+    innermost first), then by the instance number as text. ``MD-1_M-10_MI-1`` comes after
+    ``MD-1_M-4_MI-1`` and before ``MD-2_M-5_MI-1``; ``MD-1_M-3_MI-10`` before ``MD-1_M-3_MI-2``;
+    ``MD-1_M-3_MI-2_SM-1_M-1_MI-2-1`` before ``MD-1_M-3_MI-1``. The importers take the first
+    instance a group object's id starts with as the one it is in, so a submodule instance has
+    to come before the instance it is in."""
     match = re.match(r"MD-(\d+)_M-(\d+)_MI-([^_]*)_?(.*)$", instance_id)
     if match is None:
-        return (0, 0, instance_id, "")
+        return (0, 0, 0, instance_id, "")
     definition, module, number, rest = match.groups()
-    return (int(definition), int(module), number, rest)
+    depth = len(_INSTANCE_NUMBER.findall(instance_id))
+    return (int(definition), int(module), -depth, number, rest)
+
+
+def _submodule_instances_first(instance_ids: Iterable[str]) -> bool:
+    """Whether each submodule instance of the relative module instance ids comes before the
+    instance it is in, as in a project file (see :func:`_instance_order`)."""
+    seen: set[str] = set()
+    for instance_id in instance_ids:
+        if any(outer in seen for outer in _module_instances_in(instance_id)[:-1]):
+            return False
+        seen.add(instance_id)
+    return True
 
 
 def _module_instance_of(ref: str) -> str | None:
@@ -2539,8 +2554,8 @@ class _Writer:
         ``<ModuleInstance>`` for every instance the application reaches, so a device saved before
         its module instances were stored, or with one missing, still has the values and group
         objects of each instance written with it, all instances in the order of a project file
-        (see :func:`_instance_order`); a device whose stored instances are complete is written
-        as stored."""
+        (see :func:`_instance_order`); a device whose stored instances are complete, each
+        submodule instance before the instance it is in, is written as stored."""
         instances: list[tuple[str, str, ModuleInstance | None]] = [
             (_relidref(mi.instance_id), mi.instance_id, mi)
             for mi in device.module_instances
@@ -2553,8 +2568,11 @@ class _Writer:
                 instances.append((relative, instance_id, None))
                 known.add(relative)
                 complete = False
-        if not complete:
-            # In the order of a project file (see _instance_order).
+        if not complete or not _submodule_instances_first(
+            instance_id for instance_id, _, _ in instances
+        ):
+            # In the order of a project file (see _instance_order); a device added in the
+            # editor stores its submodule instances after the instance they are in.
             instances.sort(key=lambda instance: _instance_order(instance[0]))
         return instances
 

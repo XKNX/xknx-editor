@@ -9,11 +9,13 @@ import zipfile
 from pathlib import Path
 from xml.etree import ElementTree as ET
 
+import pytest
 from sqlalchemy.orm import Session
 from xknxproject import XKNXProj
 
 from xknxeditor.proj import ProjectService, export_knxproj
 from xknxeditor.proj.core.knxproj_export import (
+    _instance_order,  # pyright: ignore[reportPrivateUsage]
     _module_instance_of,  # pyright: ignore[reportPrivateUsage]
     _module_instances_in,  # pyright: ignore[reportPrivateUsage]
 )
@@ -220,8 +222,8 @@ def test_every_instance_the_application_reaches_is_written(tmp_path: Path) -> No
 
 def test_added_instances_are_in_the_order_of_a_project_file(tmp_path: Path) -> None:
     # By module definition and module number, then by instance number as text (as genuine
-    # files list a repeat's instances), whatever order the evaluation has them in; a
-    # submodule instance follows the instance it is in.
+    # files list a repeat's instances), whatever order the evaluation has them in; the
+    # submodule instances of a module's instances come before the instances.
     src = tmp_path / "old.xknx"
     device_id = _project(src, stored=(SECOND,))
     out = tmp_path / "out.knxproj"
@@ -237,8 +239,8 @@ def test_added_instances_are_in_the_order_of_a_project_file(tmp_path: Path) -> N
     assert _instance_ids(out) == [
         "MD-1_M-1_MI-1",
         "MD-1_M-2_MI-1",
-        "MD-1_M-10_MI-1",
         "MD-1_M-10_MI-1_SM-1_M-1_MI-1-1",
+        "MD-1_M-10_MI-1",
         "MD-1_M-10_MI-10",
         "MD-1_M-10_MI-2",
         "MD-2_M-5_MI-1",
@@ -337,7 +339,21 @@ def test_the_instances_a_ref_is_in() -> None:
     assert _module_instance_of("O-3_R-4") is None
 
 
-def test_a_submodule_instance_is_written_with_the_instance_it_is_in(
+def test_submodule_instances_come_before_the_instances_they_are_in() -> None:
+    # The innermost first; a project file has them so, and the importers rely on it.
+    sub = "MD-1_M-2_MI-1_SM-1_M-1_MI-1-1"
+    subsub = f"{sub}_SM-2_M-1_MI-1-1-1"
+    ids = ["MD-1_M-2_MI-2", "MD-1_M-2_MI-1", sub, subsub, "MD-1_M-1_MI-1"]
+    assert sorted(ids, key=_instance_order) == [
+        "MD-1_M-1_MI-1",
+        subsub,
+        sub,
+        "MD-1_M-2_MI-1",
+        "MD-1_M-2_MI-2",
+    ]
+
+
+def test_a_submodule_instance_is_written_before_the_instance_it_is_in(
     tmp_path: Path,
 ) -> None:
     src = tmp_path / "sub.xknx"
@@ -365,4 +381,144 @@ def test_a_submodule_instance_is_written_with_the_instance_it_is_in(
         for el in root.iter()
         if el.tag.rsplit("}", 1)[-1] == "ModuleInstance"
     ]
-    assert ids == ["MD-1_M-1_MI-1", sub.removeprefix(APP + "_"), "MD-1_M-2_MI-1"]
+    assert ids == [sub.removeprefix(APP + "_"), "MD-1_M-1_MI-1", "MD-1_M-2_MI-1"]
+
+
+SUB_APP = "M-00FA_A-0007-01-0000"
+SUB_HP = "M-00FA_H-1_HP-0007-01-0000"
+
+# A room module with a display submodule whose group object is numbered from the submodule's
+# argument, which adds the room's base to its own value.
+_SUB_APPLICATION = f"""<?xml version="1.0" encoding="utf-8"?>
+<KNX xmlns="{_NS}"><ManufacturerData><Manufacturer RefId="M-00FA"><ApplicationPrograms>
+  <ApplicationProgram Id="{SUB_APP}" ApplicationNumber="7" ApplicationVersion="1"
+      ProgramType="ApplicationProgram" MaskVersion="MV-07B0" Name="Rooms"
+      LoadProcedureStyle="MergedProcedure" PeiType="0" DefaultLanguage="en-US"
+      DynamicTableManagement="false" Linkable="false" MinEtsVersion="5.0">
+    <Static />
+    <ModuleDefs>
+      <ModuleDef Id="{SUB_APP}_MD-1" Name="Room">
+        <Arguments><Argument Id="{SUB_APP}_MD-1_A-1" Name="ObjBase" /></Arguments>
+        <SubModuleDefs>
+          <ModuleDef Id="{SUB_APP}_MD-1_SM-1" Name="Display">
+            <Arguments><Argument Id="{SUB_APP}_MD-1_SM-1_A-1" Name="ObjBase" /></Arguments>
+            <Static>
+              <ComObjects>
+                <ComObject Id="{SUB_APP}_MD-1_SM-1_O-1" Name="Input" Text="Input" Number="1"
+                    FunctionText="Input" ObjectSize="1 Bit"
+                    BaseNumber="{SUB_APP}_MD-1_SM-1_A-1" {_FLAGS} />
+              </ComObjects>
+              <ComObjectRefs>
+                <ComObjectRef Id="{SUB_APP}_MD-1_SM-1_O-1_R-1" RefId="{SUB_APP}_MD-1_SM-1_O-1" />
+              </ComObjectRefs>
+            </Static>
+            <Dynamic>
+              <ParameterBlock Id="{SUB_APP}_MD-1_SM-1_PB-1" Text="Display">
+                <ComObjectRefRef RefId="{SUB_APP}_MD-1_SM-1_O-1_R-1" />
+              </ParameterBlock>
+            </Dynamic>
+          </ModuleDef>
+        </SubModuleDefs>
+        <Dynamic>
+          <ParameterBlock Id="{SUB_APP}_MD-1_PB-1" Text="Room">
+            <Module Id="{SUB_APP}_MD-1_SM-1_M-1" RefId="{SUB_APP}_MD-1_SM-1">
+              <NumericArg RefId="{SUB_APP}_MD-1_SM-1_A-1" Value="2"
+                  BaseValue="{SUB_APP}_MD-1_A-1" />
+            </Module>
+          </ParameterBlock>
+        </Dynamic>
+      </ModuleDef>
+    </ModuleDefs>
+    <Dynamic>
+      <ChannelIndependentBlock><ParameterBlock Id="{SUB_APP}_PB-1" Text="General" /></ChannelIndependentBlock>
+      <Module Id="{SUB_APP}_MD-1_M-1" RefId="{SUB_APP}_MD-1" Name="Room">
+        <NumericArg RefId="{SUB_APP}_MD-1_A-1" Value="10" />
+      </Module>
+    </Dynamic>
+  </ApplicationProgram>
+</ApplicationPrograms></Manufacturer></ManufacturerData></KNX>
+"""
+
+ROOM = f"{SUB_APP}_MD-1_M-1_MI-1"
+DISPLAY = f"{ROOM}_SM-1_M-1_MI-1"
+# As the evaluation has them: the instance first, the submodule's argument resolved in it.
+SUB_EVALUATED = {
+    ROOM: [("MD-1_A-1", "10")],
+    DISPLAY: [("MD-1_SM-1_A-1", "12")],
+}
+
+
+@pytest.mark.parametrize("stored", [False, True], ids=["no rows", "rows as added"])
+def test_a_submodule_object_numbered_from_its_argument_reads_back(
+    tmp_path: Path, stored: bool
+) -> None:
+    # Rows as a device added in the editor stores them: in the order of the evaluation,
+    # without arguments.
+    src = tmp_path / "rooms.xknx"
+    svc = ProjectService()
+    pid = svc.create(src, "P-SUB")
+    line = svc.create_line(pid, svc.create_area(pid, 0, 2, "A"), 1, "L")
+    segment_id = next(
+        ln.segments[0].id
+        for area in svc.topology(pid, 0).areas
+        for ln in area.lines
+        if ln.id == line
+    )
+    device_id = svc.add_device(
+        pid,
+        segment_id,
+        PRODUCT,
+        address=1,
+        name="Rooms",
+        hardware2program_ref_id=SUB_HP,
+    )
+    ga_id = svc.create_group_address(pid, 0, 0x0801, "Display")
+    svc.close(pid)
+    with Session(make_engine(url_for(src))) as session:
+        device = session.get(Device, device_id)
+        assert device is not None
+        device.application_program_ref_id = SUB_APP
+        co = ComObject(
+            device_id=device_id,
+            ref_id=f"{SUB_APP}_MD-1_SM-1_O-1_R-1",
+            instance_ref_id=f"{DISPLAY.removeprefix(SUB_APP + '_')}_SM-1_O-1_R-1",
+        )
+        session.add(co)
+        if stored:
+            for instance_id, ref_id in ((ROOM, "MD-1"), (DISPLAY, "MD-1_SM-1")):
+                session.add(
+                    ModuleInstance(
+                        device_id=device_id,
+                        instance_id=instance_id,
+                        ref_id=f"{SUB_APP}_{ref_id}",
+                    )
+                )
+        session.commit()
+        co_id = co.id
+    svc = ProjectService()
+    svc.open(src)
+    svc.link_com_object(pid, co_id, ga_id, sending=True)
+    svc.close(pid)
+    hardware = _HARDWARE.replace(HP, SUB_HP).replace(APP, SUB_APP)
+    out = tmp_path / "out.knxproj"
+    export_knxproj(
+        src,
+        out,
+        extra_files={
+            "M-00FA/Hardware.xml": hardware.encode(),
+            f"M-00FA/{SUB_APP}.xml": _SUB_APPLICATION.encode(),
+        },
+        module_arguments={device_id: SUB_EVALUATED},
+    )
+    project = XKNXProj(out).parse()
+    (device,) = project["devices"].values()
+    (number,) = device["communication_object_ids"]
+    com_object = project["communication_objects"][number]
+    # 1 + the display's 2 + the room's 10.
+    assert com_object["number"] == 13
+    assert com_object["group_address_links"] == ["1/0/1"]
+    # The submodule instance with its argument, before the instance it is in.
+    display, room = _module_instances(_zero_xml(out))
+    assert 'Id="MD-1_M-1_MI-1_SM-1_M-1_MI-1"' in display
+    assert '<Argument RefId="MD-1_SM-1_A-1" Value="12"' in display
+    assert 'Id="MD-1_M-1_MI-1"' in room

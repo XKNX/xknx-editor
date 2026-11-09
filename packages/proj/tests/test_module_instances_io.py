@@ -198,7 +198,8 @@ def test_export_names_a_submodule_instance_after_the_module_it_is_in(
     )
     out = tmp_path / "out.knxproj"
     export_knxproj(src, out, extra_files={f"M-0083/{APP}.xml": _APP_XML.encode()})
-    *_, submodule = _module_instances(out)
+    # Before the instance it is in, as in a project file.
+    submodule, *_ = _module_instances(out)
     assert (
         'Id="MD-2_M-2_MI-1_SM-1_M-1_MI-1-1" RefId="MD-2_M-2" RepeatIndex="4x1 5x1 1x1"'
         in submodule
