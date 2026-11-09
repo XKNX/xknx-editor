@@ -30,10 +30,14 @@ def _row(label: str, value: str) -> dict[str, Any]:
 
 
 def item_dict(
-    item: QueueItem, progress: tuple[int, int] | None, connecting: bool = False
+    item: QueueItem,
+    progress: tuple[int, int] | None,
+    connecting: bool = False,
+    memory_progress: tuple[int, int] | None = None,
 ) -> dict[str, Any]:
     """An entry of the Operations panel; ``progress`` is the running download's (done, total),
-    ``connecting`` whether it still waits for the connection opened for it."""
+    ``connecting`` whether it still waits for the connection opened for it,
+    ``memory_progress`` the (done, total) octets its current load control wrote of its memory."""
     from editor_gui.plugins.project.program_queue import OperationState
     from editor_gui.plugins.project.ui.program_queue import (
         FORCE_STOP_AFTER,
@@ -71,6 +75,8 @@ def item_dict(
             )
         elif progress is not None and progress[1] > 0:
             entry["progress"] = list(progress)
+            if memory_progress is not None and memory_progress[1] > 0:
+                entry["progress_bytes"] = list(memory_progress)
     return entry
 
 
@@ -102,7 +108,8 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         "ok" or "differs" where the value is compared with the project), connection, started_at, ended_at,
         canceled_by_user, awaiting_overwrite_answer (a download asks whether to overwrite the
         application in the device: answer with connection_answer_overwrite), and while running
-        progress [done, total] or, for a parameter script, progress_percent, script_text and
+        progress [done, total] (load controls) with progress_bytes [done, total] (octets the
+        current control wrote of its memory, while it writes memory) or, for a parameter script, progress_percent, script_text and
         force_stop_available}."""
         plugin = _plugin()
 
@@ -129,6 +136,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                         i,
                         progress,
                         ctx.api.connection.waiting_for_connection(i.future),
+                        ctx.api.connection.busy_memory_progress,
                     )
                     for i in queue.active
                 ],

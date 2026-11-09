@@ -248,6 +248,8 @@ class ConnectionService:
         self._busy_lock = threading.Lock()
         self._busy: tuple[str, str] | None = None
         self._busy_progress: tuple[int, int] | None = None
+        # (done, total) octets the running load control wrote of its memory.
+        self._busy_memory_progress: tuple[int, int] | None = None
         # When the operation in the slot started, and the ones ended with ``end_operation`` since
         # the last ``take_ended_operations``.
         self._busy_since = datetime.datetime.now()
@@ -273,10 +275,18 @@ class ConnectionService:
         with self._busy_lock:
             return self._busy_progress
 
+    @property
+    def busy_memory_progress(self) -> tuple[int, int] | None:
+        """``(done, total)`` octets the running download's current load control wrote of its
+        memory, or ``None`` while it writes none."""
+        with self._busy_lock:
+            return self._busy_memory_progress
+
     def _set_busy(self, kind: str, address: str) -> None:
         with self._busy_lock:
             self._busy = (kind, address)
             self._busy_progress = None
+            self._busy_memory_progress = None
 
     def begin_operation(self, kind: str, address: str) -> bool:
         """Acquire the exclusive point-to-point operation slot.
@@ -290,6 +300,7 @@ class ConnectionService:
                 return False
             self._busy = (kind, address)
             self._busy_progress = None
+            self._busy_memory_progress = None
             self._busy_since = datetime.datetime.now()
             return True
 
@@ -322,10 +333,16 @@ class ConnectionService:
         with self._busy_lock:
             self._busy = None
             self._busy_progress = None
+            self._busy_memory_progress = None
 
     def _on_program_progress(self, done: int, total: int) -> None:
         with self._busy_lock:
             self._busy_progress = (done, total)
+            self._busy_memory_progress = None
+
+    def _on_memory_progress(self, done: int, total: int) -> None:
+        with self._busy_lock:
+            self._busy_memory_progress = (done, total)
 
     def set_logger(self, log: Logger) -> None:
         self._log = log
@@ -1086,6 +1103,7 @@ class ConnectionService:
                 group_communication,
                 master=self.master,
                 progress=self._on_program_progress,
+                memory_progress=self._on_memory_progress,
                 security=security,
                 serial_number=serial_number,
                 confirm_full_download=confirm_full_download,

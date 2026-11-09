@@ -3981,7 +3981,12 @@ class KnxGuiApp:
                 text = S.STATUS_PROGRAMMING.format(address=address)
                 prog = self._connection_service.busy_progress
                 if prog is not None:
-                    text += f" ({prog[0]}/{prog[1]})"
+                    from editor_gui.plugins.project.ui.program_queue import (
+                        download_progress_text,
+                    )
+
+                    memory = self._connection_service.busy_memory_progress
+                    text += f" ({download_progress_text(prog, memory)})"
             elif kind == "device_info":
                 text = S.STATUS_READING.format(address=address)
             else:
