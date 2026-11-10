@@ -102,7 +102,8 @@ class RecoveredParameters:
 # button); the decoding ends when nothing changes, or when it comes back to what it read before.
 _DECODE_ROUNDS = 256
 # Inference rounds at most: each one can only show settings nested one level deeper (a
-# channel first, then the settings inside it), or take one setting from the memory.
+# channel first, then the settings inside it), or take one setting from the memory (the
+# same setting of several channels at once where each does as well, see _with_alike_values).
 _INFER_ROUNDS = 16
 # Values tried for the memory per round at most, and values tried together with the
 # settings they show.
@@ -4082,6 +4083,9 @@ def _infer_from_memory(
     call to the next: a value tried before with the same values of the application's scope
     and of its own instance is not evaluated again (only the values of other instances
     differ, whose evaluation it does not change).
+
+    The values of other module instances doing as well as the chosen one are taken with it
+    where they fit together as they do alone (see :func:`_with_alike_values`).
     """
     from xknxeditor.prod.parser_v2.activation import shown_parameters, values_to_try
 
@@ -4119,6 +4123,9 @@ def _infer_from_memory(
         if evaluated is None
         else _InstanceValues(values, ui.get_module_instances(), evaluated)
     )
+    # The values doing better than none, each with the union members it leaves with no value
+    # of their type.
+    doing_better: list[tuple[str, str, int]] = []
     for _, ref_id, candidate in candidates[:_MEMORY_TRIES]:
         _check(cancel)
         instance = None if split is None else split.instance(ref_id)
@@ -4169,6 +4176,10 @@ def _infer_from_memory(
                 # More than the product has room for: no configuration of the device.
                 continue
         total = trial_fitting + len(trial_misfits)
+        if len(trial_misfits) < len(misfits) and (
+            not total or trial_fitting / total >= share
+        ):
+            doing_better.append((ref_id, candidate, len(trial_misfits)))
         if len(trial_misfits) < fewest and (
             not total or trial_fitting / total >= share
         ):
@@ -4176,7 +4187,88 @@ def _infer_from_memory(
             if not fewest:
                 # Every union member fits: no value after it can do better.
                 break
-    return best
+    return _with_alike_values(
+        application,
+        parameter_segments,
+        property_values,
+        project_code_page,
+        values,
+        ui,
+        best,
+        doing_better,
+        _AlikeFit(len(misfits), fewest, share, base),
+        sizes,
+        cancel,
+    )
+
+
+class _AlikeFit(NamedTuple):
+    """How a round of :func:`_infer_from_memory` fits: the union members whose bytes are no
+    value of their type before it, after its best value, the share of union members fitting
+    before it and the linked objects shown before it."""
+
+    misfits: int
+    fewest: int
+    share: float
+    linked: set[int]
+
+
+def _with_alike_values(
+    application: Application,
+    parameter_segments: Mapping[str, bytes],
+    property_values: Mapping[TypedPropertyKey, bytes] | None,
+    project_code_page: str | None,
+    values: Mapping[str, str],
+    ui: DynamicUI,
+    best: _ValueMap,
+    tried: Sequence[tuple[str, str, int]],
+    fit: _AlikeFit,
+    sizes: Mapping[int, str],
+    cancel: Callable[[], bool] | None,
+) -> _ValueMap:
+    """The best value of a round of :func:`_infer_from_memory` together with the values of
+    other module instances that do as well alone (the first of each instance in the order
+    ``tried`` gives them, each with the union members it leaves with no value of their type),
+    when they do so together too: as many members fewer as each makes alone, no smaller share
+    fitting and no linked object hidden. Otherwise the best value alone: the next rounds take
+    the others one by one, and a value that only fits alone is not taken with another.
+
+    One round so takes the same setting of every channel the memory shows it in, where one
+    round per channel would take the same values one after another."""
+    if len(best) != 1 or not fit.fewest:
+        return best
+    ids = {instance_id for instance_id, _ in ui.get_module_instances()}
+    ((best_ref, _),) = best.items()
+    first = _top_instance(best_ref, ids)
+    if first is None:
+        return best
+    taken = {first}
+    together = dict(best)
+    for ref_id, candidate, misfits in tried:
+        instance = _top_instance(ref_id, ids)
+        if misfits != fit.fewest or instance is None or instance in taken:
+            continue
+        taken.add(instance)
+        together[ref_id] = candidate
+    if len(together) == 1:
+        return best
+    _check(cancel)
+    try:
+        seeded = _seeded(application, {**values, **together}, project_code_page)
+        if seeded is None or not fit.linked <= _shown_objects(seeded, sizes):
+            return best
+        fitting, left = _union_fit(
+            seeded, _decode_once(seeded, parameter_segments, property_values)
+        )
+    except AllocatorOverflow:
+        return best
+    total = fitting + len(left)
+    each = fit.misfits - fit.fewest
+    if len(left) > fit.misfits - each * len(together) or (
+        total and fitting / total < fit.share
+    ):
+        return best
+    return together
 
 
 def _same_value(a: str, b: str) -> bool:

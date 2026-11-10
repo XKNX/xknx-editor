@@ -1,6 +1,7 @@
 """The values tried for the memory in a round of the inference are taken again in the next
 round where only another module instance's values differ: the result is the one each value
-evaluated anew gives."""
+evaluated anew gives. The rounds here take one value each, as a round does where the values
+of other instances doing as well do not fit together."""
 
 from __future__ import annotations
 
@@ -120,6 +121,16 @@ def application() -> Application:
 
 
 @pytest.fixture
+def one_by_one(monkeypatch: pytest.MonkeyPatch) -> None:
+    """From now on a round of the memory inference takes its best value alone."""
+
+    def best_alone(*args: object, **_kw: object) -> object:
+        return args[6]
+
+    monkeypatch.setattr(parameters, "_with_alike_values", best_alone)
+
+
+@pytest.fixture
 def taken_again(monkeypatch: pytest.MonkeyPatch) -> Iterator[list[str]]:
     """The module instances whose evaluation of a value is taken again from now on."""
     seen: list[str] = []
@@ -170,6 +181,7 @@ def _rounds(application: Application) -> tuple[object, ...]:
     )
 
 
+@pytest.mark.usefixtures("one_by_one")
 def test_the_inference_takes_a_value_tried_before_again(
     application: Application, taken_again: list[str]
 ) -> None:
@@ -183,6 +195,7 @@ def test_the_inference_takes_a_value_tried_before_again(
     assert taken_again == [f"{_MD}_M-3_MI-1"]
 
 
+@pytest.mark.usefixtures("one_by_one")
 def test_the_inference_ends_as_with_every_value_evaluated_anew(
     application: Application, taken_again: list[str], monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -207,6 +220,7 @@ def test_a_search_ends_as_with_every_value_evaluated_anew(
     assert recovered.values.get(_kind(4), "0") == "0"
 
 
+@pytest.mark.usefixtures("one_by_one")
 def test_a_value_is_evaluated_anew_once_the_application_scope_differs(
     application: Application, taken_again: list[str]
 ) -> None:
