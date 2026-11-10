@@ -979,8 +979,9 @@ def hidden_parameter_rows(
         ):
             continue
         seen.add(ref_id)
+        value = ui.get_value(ref_id)
         parameter = replace(
-            parameter, value=ui.get_value(ref_id) or parameter.default_value
+            parameter, value=parameter.default_value if value is None else value
         )
         if modified_only and parameter.value == parameter.default_value:
             continue
