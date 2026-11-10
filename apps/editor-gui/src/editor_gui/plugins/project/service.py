@@ -5275,9 +5275,10 @@ class ProjectService:
         Application Program Version"). Every parameter of the old device is matched by
         ParameterRef number and set on the new one in the old application's order, its value or,
         without one, its old default, as an edit sets it (see ``carry_values``): a value the new
-        version refuses is left out and logged. Group objects of the same size carry over by
-        ComObjectRef number with their flags, priority, datapoint type and links. Returns the
-        outcome, or ``None`` when there is no such version or it cannot be resolved."""
+        version refuses is left out and logged, one whose calculations fail is kept and logged.
+        Group objects of the same size carry over by ComObjectRef number with their flags,
+        priority, datapoint type and links. Returns the outcome, or ``None`` when there is no
+        such version or it cannot be resolved."""
         from editor_gui.plugins.project.application_update import (
             carry_com_objects,
             carry_parameters,
@@ -5352,12 +5353,22 @@ class ProjectService:
                     reason=message,
                 )
 
+            def failed(ref: str, value: str, message: str) -> None:
+                self._log.warning(
+                    "application update: calculation of a value taken over failed",
+                    device=device.node_id,
+                    parameter=ref,
+                    value=value,
+                    reason=message,
+                )
+
             carried = carry_values(
                 ui,
                 everything,
                 stored,
                 module_instances(old_refs, device.app.id, new_app.id),
                 refused,
+                failed,
             )
             values = carried.values
             not_taken = len(stored & carried.not_taken)

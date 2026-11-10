@@ -2277,7 +2277,12 @@ class DynamicUI:
                 self._state.set_instance_ref(ref_id, value)
         self._invalidate()
 
-    def carry_value(self, ref_id: str, value: str) -> ChangeSet | None:
+    def carry_value(
+        self,
+        ref_id: str,
+        value: str,
+        written: Callable[[str], None] | None = None,
+    ) -> ChangeSet | None:
         """Take over ``value`` for the (possibly module-qualified) parameter ``ref_id``, as an
         application update carries a value of the old device over.
 
@@ -2285,8 +2290,12 @@ class DynamicUI:
         refusal raises :class:`ParameterValidationError`. A value the parameter has already
         (its own one, not that of a module argument it takes its value from) changes nothing:
         ``None``. Any other is set, whether the parameter is active or not, and runs the
-        parameter's calculations, whose errors are logged; returns the changes. An Assign that
-        stops applying leaves its target as it is."""
+        parameter's calculations, which write their outputs one after another; returns the
+        changes. ``written`` is told the ref of the value, once it is set, and of each output
+        a calculation changes, once it is written (the tree evaluates them, read then). A
+        calculation that fails raises :class:`CalculationError` and ends the calculations: the
+        value and the outputs written before stay. An Assign that stops applying leaves its
+        target as it is."""
         scope, local = self._locate(ref_id)
         tc = self._idx.type_of(local)
         if local not in self._idx.parameter_refs or tc is None:
@@ -2303,17 +2312,26 @@ class DynamicUI:
         if own is not None and _same_value(value, own, tc, self.text_encoding):
             return None
         journal = self._journal()
-        journal.set(ref_id, value)
-        run_calculations(
-            self._idx,
-            local,
-            self._calc_scope(scope),
-            journal,
-            self.script_env,
-            raise_errors=False,
-            abort=self.script_abort,
-        )
-        self._invalidate()
+        if written is not None:
+
+            def noted(ref: str) -> None:
+                self._invalidate()
+                written(ref)
+
+            journal.on_set = noted
+        try:
+            journal.set(ref_id, value)
+            run_calculations(
+                self._idx,
+                local,
+                self._calc_scope(scope),
+                journal,
+                self.script_env,
+                raise_errors=True,
+                abort=self.script_abort,
+            )
+        finally:
+            self._invalidate()
         return journal.changes()
 
     def has_parameter(self, ref_id: str) -> bool:

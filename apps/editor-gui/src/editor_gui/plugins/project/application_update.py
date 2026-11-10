@@ -13,11 +13,12 @@ import re
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
 
+from xknxeditor.prod.script import CalculationError
+
 if TYPE_CHECKING:
     from collections.abc import Callable, Collection, Iterable, Mapping, Sequence
 
     from xknxeditor.prod.parser_v2.application_indexer import ApplicationIndexer
-    from xknxeditor.prod.parser_v2.calculation import ChangeSet
     from xknxeditor.prod.parser_v2.dynamic import DynamicUI
     from xknxeditor.proj.models import ComObject as ComObjectRow
 
@@ -160,6 +161,7 @@ def carry_values(
     stored: Collection[str],
     instances: Sequence[str] = (),
     refused: Callable[[str, str, str], None] | None = None,
+    failed: Callable[[str, str, str], None] | None = None,
 ) -> CarriedValues:
     """Set the values ``values`` on ``ui``'s new device, of the new application, which holds
     its defaults: the outcome of the update, the values to store.
@@ -177,10 +179,14 @@ def carry_values(
     told; one the parameter has by then changes nothing; any other is set and runs the
     parameter's calculations. So a value set later wins over what a calculation of an earlier
     one wrote, and a setting left unchanged keeps the old version's default, also where the
-    new version has another one. When, after a value is set (and not refused), the last value
-    that changed something had stopped an Assign applying (its target keeps what the Assign
-    wrote), the values of the application or of the instance are all set again once they are
-    through, at most three times in all.
+    new version has another one. A value whose calculations fail stays set, with the outputs
+    written before the failure, and ``failed(ref, value, message)`` is told.
+
+    Each change, of the value and of each output its calculations write, is evaluated on its
+    own: whether it stopped an Assign applying (its target keeps what the Assign wrote). When,
+    after a value is set (neither refused nor failed), the last change made by then had, the
+    values of the application or of the instance are all set again once they are through, at
+    most three times in all.
 
     The values to store are the stored ones the device took, as they end up, and every other
     value the update set or wrote (a calculation, an Assign)."""
@@ -196,8 +202,13 @@ def carry_values(
     before = ui.explicit_values()
     active = ui.active_assigns() if ui.has_assigns else frozenset[tuple[str, int]]()
     not_taken: set[str] = set()
-    # Whether the last value that changed something stopped an Assign applying.
+    # Whether the last change stopped an Assign applying.
     deactivated = False
+
+    def written(ref: str) -> None:
+        nonlocal deactivated, active
+        deactivated, active = _assigns_after(ui, ref, active)
+
     for key in ["", *modules]:
         group = groups.get(key, [])
         if key and group and not ui.has_parameter(group[0][0]):
@@ -207,15 +218,19 @@ def carry_values(
             again = False
             for ref, value in group:
                 try:
-                    changes = ui.carry_value(ref, value)
+                    ui.carry_value(ref, value, written)
+                except CalculationError as exc:
+                    # Set: taken, but not checked.
+                    not_taken.discard(ref)
+                    if failed is not None:
+                        failed(ref, value, str(exc))
+                    continue
                 except ValueError as exc:
                     not_taken.add(ref)
                     if refused is not None:
                         refused(ref, value, str(exc))
                     continue
                 not_taken.discard(ref)
-                if changes is not None:
-                    deactivated, active = _assigns_after(ui, changes, active)
                 again = again or deactivated
             if not again:
                 break
@@ -232,14 +247,13 @@ def carry_values(
 
 
 def _assigns_after(
-    ui: DynamicUI, changes: ChangeSet, active: frozenset[tuple[str, int]]
+    ui: DynamicUI, ref: str, active: frozenset[tuple[str, int]]
 ) -> tuple[bool, frozenset[tuple[str, int]]]:
-    """Whether the changes ``changes`` of ``ui``'s device stopped one of the Assigns ``active``
-    (those that applied before them) applying, and the Assigns that apply after them. Only a
-    value that can change what the tree shows can change which Assigns apply."""
-    if not ui.has_assigns or not any(
-        ui.local_ref_id(ref) in ui.selector_param_refs for ref in changes
-    ):
+    """Whether the change of the value of ``ref`` on ``ui``'s device stopped one of the
+    Assigns ``active`` (those that applied before it) applying, and the Assigns that apply
+    after it. Only a value that can change what the tree shows can change which Assigns
+    apply."""
+    if not ui.has_assigns or ui.local_ref_id(ref) not in ui.selector_param_refs:
         return False, active
     now = ui.active_assigns()
     return bool(active - now), now
