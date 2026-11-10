@@ -3137,9 +3137,15 @@ def _later_members_read(
 
 
 def _keeps_no_copy(parameter: object) -> bool:
-    """Whether a parameter has no memory, no property and is no member of a union."""
+    """Whether a parameter has no memory, no property and is no member of a union. One
+    kept as an IoT point has neither: a memory and property read does not give it."""
+    from xknxeditor.namespaces.intermediate.io_tpoint_parameter_t import (
+        IoPointParameter,
+    )
+
+    storage = getattr(parameter, "choice", None)
     return isinstance(parameter, _plain_parameter_types()) and (
-        getattr(parameter, "choice", None) is None
+        storage is None or isinstance(storage, IoPointParameter)
     )
 
 
