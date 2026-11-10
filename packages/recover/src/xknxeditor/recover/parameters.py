@@ -1605,14 +1605,28 @@ def _kept_values_to_try(
     setting keeps the value computed before (a "show the lead objects" switch computed from
     functions a configuration no longer shows), which only the objects it shows tell. Empty for
     any other setting: the values read decide it, or a shown input the device keeps no copy of,
-    whose values are tried instead."""
+    whose values are tried instead.
+
+    The same for a hidden setting only Assigns of constants set, none of which is in effect:
+    it keeps the value the last one assigned (a "show the total objects" switch the Assigns of
+    functions a configuration no longer shows set): the values the Assigns give it."""
     from xknxeditor.prod.parser_v2.activation import values_to_try
     from xknxeditor.prod.parser_v2.ui.parameter import UiParameter, resolve_widget
 
     local = ui.local_ref_id(ref_id)
     indexer = ui.indexer
     calculations = indexer.calculations_for_r(local)
-    if not calculations or not _is_unstored(ui, ref_id):
+    if not calculations:
+        assigned = _assigned_constants(ui).get(local)
+        if (
+            not assigned
+            or not _is_unstored(ui, ref_id)
+            or ref_id in ui.assign_targets()
+        ):
+            return []
+        now = ui.get_value(ref_id) or indexer.default_value(local) or ""
+        return sorted(value for value in assigned if not _same_value(value, now))
+    if not _is_unstored(ui, ref_id):
         return []
     instance = _instance_of(ref_id, local)
     inputs = _qualified(
@@ -1644,6 +1658,51 @@ def _kept_values_to_try(
         default_value=default,
     )
     return values_to_try(parameter, parameter.value, ui.tested_values(ref_id))
+
+
+# The constants the Assigns write into each local param-ref, per indexer of the last few
+# applications searched (see _assigned_constants).
+_ASSIGNED_CONSTANTS: list[tuple[object, dict[str, frozenset[str]]]] = []
+
+
+def _assigned_constants(ui: DynamicUI) -> dict[str, frozenset[str]]:
+    """The values the Assigns of the application and its module definitions write into each
+    param-ref (local to its application or module definition), of those only Assigns of
+    constants write: one an Assign copies another setting into takes that one's value."""
+    from xknxeditor.namespaces.intermediate import Assign
+
+    indexer = ui.indexer
+    for seen, known in _ASSIGNED_CONSTANTS:
+        if seen is indexer:
+            return known
+    constants: dict[str, set[str]] = {}
+    copied: set[str] = set()
+    stack: list[object] = [
+        getattr(getattr(ui, "_app", None), "dynamic", None),
+        *(definition.dynamic for definition in indexer.module_defs.values()),
+    ]
+    while stack:
+        element = stack.pop()
+        if element is None:
+            continue
+        if isinstance(element, Assign):
+            if element.source_param_ref_ref is not None or element.value is None:
+                copied.add(element.target_param_ref_ref)
+            else:
+                constants.setdefault(element.target_param_ref_ref, set()).add(
+                    element.value
+                )
+            continue
+        stack.extend(getattr(element, "when", None) or [])
+        stack.extend(getattr(element, "choice", None) or [])
+    known = {
+        target: frozenset(values)
+        for target, values in constants.items()
+        if target not in copied
+    }
+    _ASSIGNED_CONSTANTS.insert(0, (indexer, known))
+    del _ASSIGNED_CONSTANTS[4:]
+    return known
 
 
 def _joint_values_to_try(

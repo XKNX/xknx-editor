@@ -91,9 +91,12 @@ def test_a_seeded_value_is_kept() -> None:
     assert ui.encode_to_memory()[_SEGMENT] == b"\x01\x01"
 
 
-def test_the_values_are_completed_with_what_the_assigns_write() -> None:
+def test_no_value_is_lost_to_the_first_pass() -> None:
+    # The first pass of an evaluation selects a branch of every choose: the Assign behind the
+    # choose on "Flag" writes 0 into "Setting" there. Once "Gate" has set "Flag", that Assign
+    # does not apply, and the value read is given back: nothing to complete.
     application = _application()
-    assert assigned_completion(application, {_GATE: "1", _SETTING: "1"}) == {_FLAG: "1"}
+    assert assigned_completion(application, {_GATE: "1", _SETTING: "1"}) == {}
 
 
 def test_nothing_is_added_when_no_value_is_lost() -> None:
@@ -112,8 +115,7 @@ def test_the_device_is_recovered_completely() -> None:
     assert recovered.complete
     assert recovered.values[_GATE] == "1"
     assert recovered.values[_SETTING] == "1"
-    # A project stores the value the Assign wrote, so it opens with the value read.
-    assert recovered.values[_FLAG] == "1"
+    # A project with the values recovered opens with the value read.
     program, tree_builder = application.resolved()
     reopened = DynamicUI(
         program, parameter_values=recovered.values, tree_builder=tree_builder

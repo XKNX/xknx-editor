@@ -235,6 +235,7 @@ class ParameterState:
         "_pass_texts",
         "_pass_values",
         "_text",
+        "_ungated_writes",
         "param_ref_id_to_value",
     )
 
@@ -301,6 +302,9 @@ class ParameterState:
         # The param-refs an Assign of the current pass wrote (local ids of this scope): the
         # targets of the Assigns that apply.
         self._assign_targets: set[str] = set()
+        # The values the targets of the Assigns of a pass without gates (see
+        # undo_ungated_assigns) had before (the known value, and the value of the map).
+        self._ungated_writes: dict[str, tuple[str | None, str | None]] = {}
         self._pass_texts: dict[str, str | None] = {}
 
     def get(self, ref_id: str) -> str | None:
@@ -349,8 +353,38 @@ class ParameterState:
     def assign(self, ref_id: str, value: str) -> None:
         """An Assign of the current pass writes ``value`` into ``ref_id``: it is stored like
         any other value and stays when the Assign no longer applies."""
+        if self._gate_param_refs is None and ref_id not in self._ungated_writes:
+            self._ungated_writes[ref_id] = (
+                self._known_param_ref_values.get(ref_id),
+                self.param_ref_id_to_value.get(ref_id),
+            )
         self.set(ref_id, value)
         self._assign_targets.add(ref_id)
+
+    def undo_ungated_assigns(self) -> None:
+        """After a pass with gates, give back the values the Assigns of the pass without gates
+        before it wrote that no Assign of this pass writes (this scope and the module scopes
+        below). A pass without gates (the first, no parameter known active yet) selects a branch
+        of every Choose, also of one whose parameter is not active, which selects none: its
+        Assigns do not apply, and leave the values as they were. A value given back counts as
+        changed by the pass."""
+        if self._gate_param_refs is not None and self._ungated_writes:
+            for ref_id, (known, value) in self._ungated_writes.items():
+                if ref_id in self._assign_targets:
+                    continue
+                if ref_id not in self._pass_values:
+                    self._pass_values[ref_id] = self._known_param_ref_values.get(ref_id)
+                if known is None:
+                    self._known_param_ref_values.pop(ref_id, None)
+                else:
+                    self._known_param_ref_values[ref_id] = known
+                if value is None:
+                    self.param_ref_id_to_value.pop(ref_id, None)
+                else:
+                    self.param_ref_id_to_value[ref_id] = value
+            self._ungated_writes.clear()
+        for child in self._children.values():
+            child.undo_ungated_assigns()
 
     def assign_targets(self) -> set[str]:
         """The (instance-qualified) param-refs the Assigns of the last pass wrote, in this
@@ -506,6 +540,7 @@ class ParameterState:
     def clear_gate(self) -> None:
         """Stop gating Chooses (this scope and its children) until the next update."""
         self._gate_param_refs = None
+        self._ungated_writes.clear()
         for child in self._children.values():
             child.clear_gate()
 

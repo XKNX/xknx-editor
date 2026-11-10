@@ -1220,6 +1220,7 @@ class DynamicUI:
             checks: GateChecks = []
             ctx.record_gate_checks(checks)
             tree = self._tree.eval(ctx)
+            self._state.undo_ungated_assigns()
             gate_changed = self._state.update_gate_active()
             if self._state.pass_changed_state():
                 continue
