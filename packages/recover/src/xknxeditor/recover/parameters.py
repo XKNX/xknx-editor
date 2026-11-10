@@ -1854,14 +1854,16 @@ def _refine_pairs(
     ui: DynamicUI | None = _seeded(application, recovered.values, project_code_page)
     if ui is None:
         return recovered
-    current = _misfit(ui, parameter_segments, linked, sizes, property_values)
+    current: _Fit | None = _misfit(
+        ui, parameter_segments, linked, sizes, property_values
+    )
     if current is None:
         return recovered
     values: dict[str, str] = recovered.values
     unknown: list[str] = recovered.unknown
     if fixed is None:
         fixed = _fixed_values(application, ui)
-    inferred = _guessed(ui, values)
+    inferred: _ValueMap = _guessed(ui, values)
     limited = recovered.limited
     budget = None if scale is None else _PAIR_TRIES * scale
 
@@ -1884,6 +1886,10 @@ def _refine_pairs(
             _check(cancel)
             evaluated = 0
             improved = False
+            # Selectors whose value alone leaves as many bytes differing, in fewer bits, with
+            # its fewest bits and that value: tried together after the others.
+            partial: dict[str, tuple[int, str]] = {}
+            current_bits: int | None = None
             for gate, value in _refinement_trials(
                 ui, current[1], _contradicting_objects(ui, linked, sizes), cancel
             ):
@@ -1918,6 +1924,16 @@ def _refine_pairs(
                     )
                     improved = True
                     break
+                if fit is not None and fit[0][:2] == current[0][:2]:
+                    if current_bits is None:
+                        current_bits = _differing_bits(
+                            ui, parameter_segments, current[1]
+                        )
+                    bits = _differing_bits(first, parameter_segments, fit[1])
+                    if bits < current_bits and (
+                        gate not in partial or bits < partial[gate][0]
+                    ):
+                        partial[gate] = (bits, value)
                 # The settings the value shows, corrected one after the other: one that
                 # brings the result closer to the device (with as many bytes differing, in
                 # fewer bits) stays behind the value while the next is tried, and the
@@ -2030,6 +2046,53 @@ def _refine_pairs(
                         break
                 if improved:
                     break
+            if not improved and len(partial) > 1:
+                # Selectors each of which alone fits only some bits of the bytes that
+                # differ (the switches of several channels whose settings share bytes, a
+                # few bits each): taken one after the other, each that fits fewer bits
+                # with those before it stays.
+                stacked: _ValueMap = dict(inferred)
+                stacked_bits: int | None = current_bits
+                for gate, (_bits, value) in partial.items():
+                    _check(cancel)
+                    if evaluated == budget:
+                        limited = True
+                        return finish()
+                    evaluated += 1
+                    together: _ValueMap = {**stacked, gate: value}
+                    stack_values, stack_unknown = _decode(
+                        application,
+                        parameter_segments,
+                        property_values,
+                        project_code_page,
+                        together,
+                        cancel,
+                        fixed=fixed,
+                    )
+                    stack_ui = _seeded(application, stack_values, project_code_page)
+                    if stack_ui is None:
+                        continue
+                    stack_fit = _misfit(
+                        stack_ui, parameter_segments, linked, sizes, property_values
+                    )
+                    if stack_fit is None:
+                        continue
+                    if stack_fit[0] < current[0]:
+                        current, ui, values, unknown, inferred = (
+                            stack_fit,
+                            stack_ui,
+                            stack_values,
+                            stack_unknown,
+                            together,
+                        )
+                        improved = True
+                        break
+                    if stack_fit[0][:2] == current[0][:2]:
+                        bits = _differing_bits(
+                            stack_ui, parameter_segments, stack_fit[1]
+                        )
+                        if stacked_bits is None or bits < stacked_bits:
+                            stacked, stacked_bits = together, bits
             if not improved or finish().complete:
                 return finish()
         limited = True
