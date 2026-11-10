@@ -2,7 +2,9 @@
 
 Parameters are matched by their ParameterRef number and group objects by their ComObjectRef
 number, each within the same module instance. A group object keeps its flags, priority,
-datapoint type and links only when the new object has the same size.
+datapoint type and links only when the new object has the same size. The values of parameters
+in a calculation are set one after another, each running its calculations (see
+:func:`replay_calculated`).
 """
 
 from __future__ import annotations
@@ -12,9 +14,10 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from collections.abc import Iterable, Mapping
+    from collections.abc import Iterable, Mapping, Sequence
 
     from xknxeditor.prod.parser_v2.application_indexer import ApplicationIndexer
+    from xknxeditor.prod.parser_v2.dynamic import DynamicUI
     from xknxeditor.proj.models import ComObject as ComObjectRow
 
 _PARAMETER = re.compile(r"(?:(.+)_)?U?P-\d+_R-(\d+)")
@@ -83,6 +86,57 @@ def carry_parameters(
         new_ref = f"{new_app_id}_{scope}_{tail}" if scope else f"{new_app_id}_{tail}"
         carried.values.append((new_ref, value))
     return carried
+
+
+def in_application_order(
+    rows: Iterable[tuple[str, str]], indexer: ApplicationIndexer
+) -> list[tuple[str, str]]:
+    """``rows`` (refs of the application ``indexer`` indexes, with their values) in the order
+    the application lists its ParameterRefs, those of a module definition in its own order; refs
+    it does not list last, as given."""
+    order = {ref: n for n, ref in enumerate(indexer.parameter_refs)}
+    return sorted(
+        rows, key=lambda row: order.get(_INSTANCE.sub("", row[0]), len(order))
+    )
+
+
+def in_calculation(indexer: ApplicationIndexer, ref: str) -> bool:
+    """Whether the (possibly module-qualified) parameter ref ``ref`` is an input or an output of
+    one of the application's parameter calculations."""
+    local = _INSTANCE.sub("", ref)
+    return bool(indexer.calculations_for_l(local) or indexer.calculations_for_r(local))
+
+
+def replay_calculated(
+    ui: DynamicUI, values: Sequence[tuple[str, str]]
+) -> list[tuple[str, str]]:
+    """The values to store for a device updated to ``ui``'s application.
+
+    ``ui`` holds the new application's defaults and the values of ``values`` that are in no
+    calculation. The values of the parameters in a calculation are then set one after another,
+    in the order of ``values`` (the old application's, see :func:`in_application_order`): each
+    one that differs from the value its parameter has by then is set and runs the calculations
+    of its parameter, as an edit does; one that equals it changes nothing. So a calculated
+    setting that the inputs set before it already gave its value leaves them as they are, while
+    one they did not give it writes over them (an input set after it then gets its own value
+    back). Returns ``values`` with these, and every value a calculation wrote, as they end up.
+    """
+    indexer = ui.indexer
+    stored = dict(values)
+    replayed: list[str] = []
+    for ref, value in values:
+        if not in_calculation(indexer, ref):
+            continue
+        replayed.append(ref)
+        if ui.get_value(ref) == value:
+            continue
+        ui.apply_parameter_values({ref: value})
+        replayed.extend(ui.recalculate([ref]))
+    for ref in dict.fromkeys(replayed):
+        value = ui.get_value(ref)
+        if value is not None:
+            stored[ref] = value
+    return list(stored.items())
 
 
 @dataclass

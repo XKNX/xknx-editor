@@ -5273,12 +5273,16 @@ class ProjectService:
     def _update_application(self, device: Device) -> UpdateApplicationResult | None:
         """Update ``device`` to the local application version that replaces its own ("Update
         Application Program Version"). Parameter values are carried over by ParameterRef number,
-        group objects of the same size by ComObjectRef number with their flags, priority,
-        datapoint type and links. Returns the outcome, or ``None`` when there is no such version
-        or it cannot be resolved."""
+        those of parameters in a calculation one after another with their calculations (see
+        ``replay_calculated``), group objects of the same size by ComObjectRef number with their
+        flags, priority, datapoint type and links. Returns the outcome, or ``None`` when there is
+        no such version or it cannot be resolved."""
         from editor_gui.plugins.project.application_update import (
             carry_com_objects,
             carry_parameters,
+            in_application_order,
+            in_calculation,
+            replay_calculated,
         )
         from xknxeditor.prod.parser_v2.application_indexer import ApplicationIndexer
 
@@ -5297,15 +5301,32 @@ class ProjectService:
         )
         if new_app is None or row is None:
             return None
+        indexer = ApplicationIndexer(new_app.program)
+        old_ui = device.dynamic_ui
+        old_indexer = (
+            old_ui.indexer
+            if old_ui is not None
+            else ApplicationIndexer(device.app.program)
+        )
         parameters = carry_parameters(
-            [(p.ref_id, p.value) for p in row.parameters],
+            in_application_order(
+                [(p.ref_id, p.value) for p in row.parameters], old_indexer
+            ),
             device.app.id,
             new_app.id,
-            ApplicationIndexer(new_app.program),
+            indexer,
         )
-        module_instances, new_objects = self._initial_rows(
-            device.name, new_app, parameters.values
-        )
+        values = parameters.values
+        if any(in_calculation(indexer, ref) for ref, _ in values):
+            probe = self._initial_device(
+                device.name,
+                new_app,
+                [(ref, v) for ref, v in values if not in_calculation(indexer, ref)],
+            )
+            ui = probe.dynamic_ui
+            if ui is not None:
+                values = replay_calculated(ui, values)
+        module_instances, new_objects = self._initial_rows(device.name, new_app, values)
         objects = carry_com_objects(
             row.com_objects,
             {co.id: co.object_size for co in device.com_objects},
@@ -5320,17 +5341,12 @@ class ProjectService:
             new_app_id=new_app.id,
             com_objects=[(co.id, None) for co in new_objects],
             module_instances=module_instances or None,
-            parameters=parameters.values,
+            parameters=values,
             com_object_data=objects.data,
             additional_addresses=new_app.program.additional_addresses_count or 0,
         )
         self._app_cache[target.id] = new_app
         self._bump()
-        updated = self.find_device_by_node_id(device.node_id)
-        if updated is not None:
-            self.recalculate_params(
-                updated.node_id, [p.ref_id for p in updated.parameter_instance_refs]
-            )
         kept = len(parameters.values) + objects.kept
         dropped = parameters.dropped + objects.dropped
         self._log.info(
@@ -5473,6 +5489,16 @@ class ProjectService:
     ) -> tuple[list[tuple[str, str]], list[ComObject]]:
         """The module instances and active group objects of a new device of ``app`` with
         ``parameters``."""
+        init_device = self._initial_device(name, app, parameters)
+        module_instances = init_device.get_module_instances()
+        com_objects = list(init_device.com_objects)
+        init_device.release_dynamic_ui()
+        return module_instances, com_objects
+
+    def _initial_device(
+        self, name: str, app: Application, parameters: list[tuple[str, str]] | None
+    ) -> Device:
+        """A new device of ``app`` with ``parameters``, its module instances materialized."""
         pirs = _parameter_instance_refs(parameters)
         # A module-scoped parameter override (…_M-100_MI-1_P-…) only routes into its module scope
         # once that scope has been materialized — building with parameter_instance_refs alone leaves
@@ -5508,12 +5534,8 @@ class ProjectService:
                     for instance_id, ref_id in module_instances
                 ],
             )
-            module_instances = init_device.get_module_instances()
-        else:
-            init_device = probe
-        com_objects = list(init_device.com_objects)
-        init_device.release_dynamic_ui()
-        return module_instances, com_objects
+            return init_device
+        return probe
 
     def add_device(
         self,
