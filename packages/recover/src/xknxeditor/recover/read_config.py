@@ -110,9 +110,14 @@ _SYSTEM_300 = 0x0300
 
 
 def _is_memory_mapped(application: Application) -> bool:
-    """Whether the application uses fixed segment addresses (vs System B relative)."""
-    address_table = application.program.static.address_table
-    return address_table is not None and address_table.code_segment is not None
+    """Whether the application uses fixed segment addresses (vs System B relative). Tables in
+    a relative segment are in their objects' relative memory."""
+    static = application.program.static
+    address_table = static.address_table
+    if address_table is None or address_table.code_segment is None:
+        return False
+    relative = static.code.relative_segment if static.code is not None else ()
+    return all(segment.id != address_table.code_segment for segment in relative)
 
 
 def _has_com_objects(application: Application) -> bool:
@@ -181,9 +186,10 @@ async def read_property_values(
     An object addressed by type is the device's object of that type and occurrence. The
     properties module instances keep their parameters in, in objects addressed by type (one
     object per instance), are read from every object of that type the device has, as the
-    instances are only known once the parameters are decoded. Absent or unreadable
-    properties are skipped, and elements after the first that cannot be read are left out.
-    This is the raw material property parameter recovery decodes.
+    instances are only known once the parameters are decoded; a property the application
+    shares with them is read as far as theirs. Absent or unreadable properties are skipped,
+    and elements after the first that cannot be read are left out. This is the raw material
+    property parameter recovery decodes.
     """
     from xknxeditor.prod.parser_v2.application_indexer import ApplicationIndexer
     from xknxeditor.prod.parser_v2.encode import collect_writes
@@ -191,6 +197,7 @@ async def read_property_values(
     indexer = ApplicationIndexer(application.program)
     writes = collect_writes(application.program, indexer, {}, None)
     needed = _property_sizes(indexer, writes.prop)
+    module_sizes = _module_properties(indexer)
     cache: dict[_PropertyTarget, bytes] = {}
     result: dict[TypedPropertyKey, bytes] = {}
     for write in writes.prop:
@@ -198,13 +205,16 @@ async def read_property_values(
         if target is None:
             continue
         if target not in cache:
-            cache[target] = await _read_target(
-                programmer, target, needed.get(target, 0)
-            )
+            size = needed.get(target, 0)
+            object_type = target[1]
+            if object_type is not None:
+                # Module instances keep parameters further on in the same property.
+                size = max(size, module_sizes.get((object_type, write.property_id), 0))
+            cache[target] = await _read_target(programmer, target, size)
         if cache[target]:
             key = (write.object_index, write.object_type, write.property_id)
             result[(*key, write.occurrence)] = cache[target]
-    for (object_type, property_id), size in _module_properties(indexer).items():
+    for (object_type, property_id), size in module_sizes.items():
         for occurrence in range(_MAX_OCCURRENCES):
             try:
                 await programmer.locate_object(object_type, occurrence)

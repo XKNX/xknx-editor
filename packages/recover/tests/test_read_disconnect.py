@@ -51,8 +51,12 @@ async def test_memory_disconnect_propagates_but_unreadable_segment_is_skipped(
                     if relative
                     else SimpleNamespace(code_segment=segment),
                     code=SimpleNamespace(
-                        absolute_segment=[],
-                        relative_segment=[SimpleNamespace(id=segment, offset=0)],
+                        absolute_segment=[]
+                        if relative
+                        else [SimpleNamespace(id=segment, user_memory=False)],
+                        relative_segment=[SimpleNamespace(id=segment, offset=0)]
+                        if relative
+                        else [],
                     ),
                 )
             ),

@@ -757,9 +757,15 @@ def build_image(
     table_memory: list[tuple[int, int]] = []
     if group_communication is not None:
         static = application.program.static
+        # Tables in a relative segment live in their objects' relative memory, as without
+        # a code segment.
         memory_mapped = (
             static.address_table is not None
             and static.address_table.code_segment is not None
+            and not isinstance(
+                declarations.get(static.address_table.code_segment),
+                ApplicationProgramStaticCodeRelativeSegment,
+            )
         )
         mask_version = device_mask_version(application)
         if property_group_tables(mask_version):
