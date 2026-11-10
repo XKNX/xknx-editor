@@ -1381,6 +1381,28 @@ class DynamicUI:
         self.ui()
         return [(iid, rid) for iid, rid, _ in self._state.module_instances()]
 
+    def parameter_ref_ids(self) -> list[str]:
+        """Every ParameterRef of the device, set or not, qualified: the application's in the
+        order it lists them, then each module instance's (a submodule instance's after the
+        instance it is in) in the order its definition lists them."""
+        self.ui()
+        idx = self._idx
+        by_owner: dict[str | None, list[str]] = {}
+        for ref_id in idx.parameter_refs:
+            by_owner.setdefault(idx.ref_owner.get(ref_id), []).append(ref_id)
+        result = list(by_owner.get(None, ()))
+
+        def walk(scope: ParameterState) -> None:
+            for child in scope.module_children():
+                if child.ref_id is not None:
+                    result.extend(
+                        child.qualify(ref) for ref in by_owner.get(child.ref_id, ())
+                    )
+                walk(child)
+
+        walk(self._state)
+        return result
+
     def get_module_instance_arguments(self) -> dict[str, list[tuple[str, str]]]:
         """After eval, the arguments of each top-level module instance as a project stores them:
         ``(argument ref id relative to the application, value)``, numbers resolved (allocators and

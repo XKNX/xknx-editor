@@ -223,3 +223,9 @@ def test_a_value_stored_without_the_room_and_without_its_instance_is_read() -> N
     ui.ui()
     assert ui.get_value(_brightness(_DISPLAYS[0])) == "2"
     assert ui.get_value(_brightness(_DISPLAYS[2])) == "2"
+
+
+def test_every_parameter_of_each_instance_is_listed_in_order() -> None:
+    # Set or not: the displays of the first room, then those of the second.
+    ui = _ui({_brightness(_DISPLAYS[2]): "5"})
+    assert ui.parameter_ref_ids() == [_brightness(display) for display in _DISPLAYS]

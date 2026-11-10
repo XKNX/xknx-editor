@@ -5273,16 +5273,18 @@ class ProjectService:
     def _update_application(self, device: Device) -> UpdateApplicationResult | None:
         """Update ``device`` to the local application version that replaces its own ("Update
         Application Program Version"). Parameter values are carried over by ParameterRef number,
-        those of parameters in a calculation one after another with their calculations (see
-        ``replay_calculated``), group objects of the same size by ComObjectRef number with their
+        and the old defaults of the parameters without a value where the new version's value
+        differs, those of parameters in a calculation one after another with their calculations
+        (see ``carry_values``), group objects of the same size by ComObjectRef number with their
         flags, priority, datapoint type and links. Returns the outcome, or ``None`` when there is
         no such version or it cannot be resolved."""
         from editor_gui.plugins.project.application_update import (
             carry_com_objects,
             carry_parameters,
+            carry_values,
             in_application_order,
             in_calculation,
-            replay_calculated,
+            unstored_defaults,
         )
         from xknxeditor.prod.parser_v2.application_indexer import ApplicationIndexer
 
@@ -5308,24 +5310,42 @@ class ProjectService:
             if old_ui is not None
             else ApplicationIndexer(device.app.program)
         )
-        parameters = carry_parameters(
-            in_application_order(
-                [(p.ref_id, p.value) for p in row.parameters], old_indexer
-            ),
+        stored_rows = in_application_order(
+            [(p.ref_id, p.value) for p in row.parameters], old_indexer
+        )
+        parameters = carry_parameters(stored_rows, device.app.id, new_app.id, indexer)
+        values = parameters.values
+        # Every parameter of the old device in the old application's order: its values and
+        # the defaults of the parameters it holds none for.
+        old_refs = (
+            old_ui.parameter_ref_ids()
+            if old_ui is not None
+            else [
+                ref
+                for ref in old_indexer.parameter_refs
+                if old_indexer.ref_owner.get(ref) is None
+            ]
+        )
+        defaults = unstored_defaults(
+            old_refs, (ref for ref, _ in stored_rows), device.app.id, old_indexer
+        )
+        everything = carry_parameters(
+            in_application_order([*stored_rows, *defaults], old_indexer),
             device.app.id,
             new_app.id,
             indexer,
+        ).values
+        kept_refs = {ref for ref, _ in values}
+        unstored = {ref for ref, _ in everything if ref not in kept_refs}
+        probe = self._initial_device(
+            device.name,
+            new_app,
+            [(ref, v) for ref, v in values if not in_calculation(indexer, ref)],
         )
-        values = parameters.values
-        if any(in_calculation(indexer, ref) for ref, _ in values):
-            probe = self._initial_device(
-                device.name,
-                new_app,
-                [(ref, v) for ref, v in values if not in_calculation(indexer, ref)],
-            )
-            ui = probe.dynamic_ui
-            if ui is not None:
-                values = replay_calculated(ui, values)
+        ui = probe.dynamic_ui
+        if ui is not None:
+            values = carry_values(ui, everything, unstored)
+        probe.release_dynamic_ui()
         module_instances, new_objects = self._initial_rows(device.name, new_app, values)
         objects = carry_com_objects(
             row.com_objects,

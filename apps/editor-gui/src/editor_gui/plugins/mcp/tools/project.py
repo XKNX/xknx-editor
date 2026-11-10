@@ -1313,8 +1313,11 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         """Update a device to the local catalog version of the SAME application program that
         replaces the current one ("Update Application Program Version"). Identify the device by
         ``node_id`` OR ``device_address`` (an individual address like "1.0.30"); pass exactly one.
-        Parameter values carry over by ParameterRef number, group objects of the same size by
-        ComObjectRef number with their flags, priority, datapoint type and group-address links.
+        Parameter values carry over by ParameterRef number in the old application's order, each
+        running its own calculations; a parameter without a value keeps the old version's default
+        where the new version has another one (also one with no access). Group objects of the
+        same size carry over by ComObjectRef number with their flags, priority, datapoint type
+        and group-address links.
 
         This is an undoable project edit (project_undo). To apply it on the bus, program the device
         afterwards with connection_program_device and scope="FULL". Returns {node_id, new_version,
