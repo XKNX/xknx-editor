@@ -79,16 +79,8 @@ class ParameterRefRefNode(DynamicNode):
                 suffix = apply_text_args(raw_suffix, arg_defaults)
         text_ref = self._param_ref.text_parameter_ref_id
         label = (ctx.get(text_ref) if text_ref else None) or static_label
-        # An empty value is a value (a text cleared): only a parameter without one shows the
-        # default, the ParameterRef's when it has one.
-        default_value = (
-            self._param_ref.value
-            if self._param_ref.value is not None
-            else self._param.value or ""
-        )
-        value = ctx.get(local_ref_id)
-        if value is None:
-            value = default_value
+        default_value = self._param_ref.value or self._param.value or ""
+        value = ctx.get(local_ref_id) or default_value
         ref_id = ctx.qualify(local_ref_id)
         handed = ctx.handed
         if handed is None:

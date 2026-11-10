@@ -28,7 +28,7 @@ from dataclasses import dataclass, field, replace
 from enum import Enum
 from functools import partial
 from itertools import count
-from typing import TYPE_CHECKING, NamedTuple
+from typing import TYPE_CHECKING, NamedTuple, cast
 
 from xknxeditor.prod.parser_v2.allocator import AllocatorOverflow
 from xknxeditor.prod.script.errors import ScriptAborted
@@ -3329,6 +3329,19 @@ def _written_over_values(
         if not own and not own_properties:
             # Nothing the device was read at holds a bit of it: no value can be told.
             continue
+        if tested is not None and not _later_member_can_hold(
+            application,
+            ui,
+            ref_id,
+            ref.ref_id,
+            later,
+            segments,
+            values,
+            project_code_page,
+            own,
+        ):
+            # No later member that a value shows can hold the bits read: none fits.
+            continue
         # Several values may fit the bits left; the one already given (a search's trial)
         # stays when it fits.
         given = values.get(ref_id)
@@ -3490,6 +3503,428 @@ def _memory_union_bits(
 
 # The union members in memory of the last few programs (see _memory_union_bits).
 _MEMORY_UNION_BITS: list[tuple[object, Mapping[str, tuple[str, int, int | None]]]] = []
+
+
+def _later_member_can_hold(
+    application: Application,
+    ui: DynamicUI,
+    ref_id: str,
+    parameter_id: str,
+    later: Collection[str],
+    segments: Mapping[str, bytes],
+    values: Mapping[str, str],
+    project_code_page: str | None,
+    own: Collection[tuple[str, int]],
+) -> bool:
+    """Whether a value of the application's union member ``parameter_id`` (of the param-ref
+    ``ref_id``) can show one of the members of the param-refs ``later`` (written after it over
+    all of its bits) whose bits hold those of ``segments``, the bytes ``own`` of it compared,
+    with ``values``. False only when that cannot be:
+
+    - no other parameter writes its bits (no module, no parameter outside the union), and each
+      later member writes all of them;
+    - the value of a member comes from ``values`` or its default alone (no Assign in the
+      application, no calculation of it or of ``ref_id``);
+    - each later member either has a restricted type whose choices (from ``values`` and its
+      default too) have other bits there, with any setting of its bits around them (see
+      :func:`_choice_with_bits`); or it is not active with ``values``, and ``ref_id`` decides
+      nothing on the way to it (see :func:`_deciding`).
+
+    Whatever its value, the last later member active writes all of the bits then, with other
+    bits than those read: the bytes differ."""
+    indexer = ui.indexer
+    if ui.has_assigns or indexer.module_defs:
+        return True
+    local = ui.local_ref_id(ref_id)
+    if indexer.calculations_for_l(local) or indexer.calculations_for_r(local):
+        return True
+    layout = _memory_union_bits(application, indexer)
+    mine = layout.get(parameter_id)
+    if mine is None:
+        return True
+    segment, start, size = mine
+    data = segments.get(segment)
+    if size is None or data is None or (start + size + 7) // 8 > len(data):
+        return True
+    compared = set(own)
+    if any(
+        (segment, byte) not in compared
+        for byte in range(start // 8, (start + size + 7) // 8)
+    ):
+        return True
+    if _memory_writers_over(application, indexer, segment, start, size) != frozenset(
+        {_union_of(application, parameter_id)}
+    ):
+        return True
+    raw = _bits_of(data, start, size)
+    holding: list[str] = []
+    for other_ref in sorted(later):
+        ref = indexer.parameter_refs.get(ui.local_ref_id(other_ref))
+        parameter = indexer.parameters.get(ref.ref_id) if ref is not None else None
+        other = layout.get(ref.ref_id) if ref is not None else None
+        if ref is None or parameter is None or other is None:
+            return True
+        other_segment, other_start, other_size = other
+        if (
+            other_size is None
+            or other_segment != segment
+            or other_start > start
+            or other_start + other_size < start + size
+        ):
+            return True
+        if indexer.calculations_for_l(ref.id) or indexer.calculations_for_r(ref.id):
+            return True
+        if _member_can_hold(
+            application,
+            indexer,
+            parameter,
+            (ref.value, values.get(other_ref)),
+            other_size,
+            start - other_start,
+            size,
+            raw,
+        ):
+            holding.append(ref.id)
+    if not holding:
+        return False
+    try:
+        seeded = _seeded(application, values, project_code_page)
+    except AllocatorOverflow:
+        return True
+    if seeded is None:
+        return True
+    actives = seeded.active_parameter_ref_ids()
+    for member in holding:
+        deciding = _deciding(application, ui, member)
+        if member in actives or deciding is None or local in deciding:
+            return True
+    return False
+
+
+def _member_can_hold(
+    application: Application,
+    indexer: ApplicationIndexer,
+    parameter: object,
+    given: tuple[object, ...],
+    type_size: int,
+    at: int,
+    size: int,
+    raw: int,
+) -> bool:
+    """Whether the union member ``parameter`` (``type_size`` bits) can write the bits ``raw``
+    (``size`` of them) from its bit ``at`` on: a type other than a restricted one, a value of
+    ``given`` (those of its param-ref) or its default that is none of its choices, or a choice
+    with those bits (see :func:`_choice_with_bits`)."""
+    from xknxeditor.namespaces.intermediate.parameter_type_t_type_restriction import (
+        ParameterTypeTypeRestriction,
+    )
+
+    type_id = getattr(parameter, "parameter_type", None)
+    parameter_type = indexer.parameter_types.get(type_id) if type_id else None
+    if type_id is None or parameter_type is None:
+        return True
+    if not isinstance(parameter_type.choice, ParameterTypeTypeRestriction):
+        return True
+    for value in (*given, getattr(parameter, "value", None)):
+        if value is not None and not _type_has_value(indexer, parameter, str(value)):
+            return True
+    return _choice_with_bits(application, indexer, type_id, type_size, at, size, raw)
+
+
+def _deciding(
+    application: Application, ui: DynamicUI, local_ref_id: str
+) -> frozenset[str] | None:
+    """The param-refs (local) whose values can decide whether the application's param-ref
+    ``local_ref_id`` is active: the selectors on the way to its placements, and what decides
+    whether those are active (a choose selects nothing while its parameter is not active),
+    with the siblings of a union member among them (a choose on a member renders nothing
+    while a sibling is the one reached). ``None`` when a block heading is among them (active
+    wherever its block is shown, which the selectors do not tell). Of the last few
+    applications."""
+    indexer = ui.indexer
+    known = next((cache for seen, cache in _DECIDING if seen is indexer), None)
+    if known is None:
+        known = dict[str, frozenset[str] | None]()
+        _DECIDING.insert(0, (indexer, known))
+        del _DECIDING[4:]
+    if local_ref_id in known:
+        return known[local_ref_id]
+    siblings = _union_sibling_refs(application, indexer)
+    headings = _block_headings(application)
+    seen: set[str] = set()
+    pending = list(ui.parameter_gates(local_ref_id))
+    found: frozenset[str] | None = None
+    if local_ref_id not in headings:
+        while pending:
+            gate = pending.pop()
+            if gate in seen:
+                continue
+            if gate in headings:
+                break
+            seen.add(gate)
+            pending.extend(ui.parameter_gates(gate))
+            pending.extend(siblings.get(gate, ()))
+        else:
+            found = frozenset(seen)
+    known[local_ref_id] = found
+    return found
+
+
+# What decides whether a param-ref is active, per indexer, of the last few (see _deciding).
+_DECIDING: list[tuple[object, dict[str, frozenset[str] | None]]] = []
+
+
+def _block_headings(application: Application) -> frozenset[str]:
+    """The param-refs that head a parameter block of the application (its ``ParamRefId``):
+    active while the block is shown. Of the last few applications."""
+    from xknxeditor.namespaces.intermediate import ComObjectParameterBlock
+
+    program = application.program
+    for seen, known in _BLOCK_HEADINGS:
+        if seen is program:
+            return known
+    found: set[str] = set()
+    pending: list[object] = [program.dynamic]
+    while pending:
+        elem = pending.pop()
+        if isinstance(elem, ComObjectParameterBlock) and elem.param_ref_id:
+            found.add(elem.param_ref_id)
+        for name in ("choice", "when"):
+            children = getattr(elem, name, None)
+            if isinstance(children, list):
+                pending.extend(cast("list[object]", children))
+    headings = frozenset(found)
+    _BLOCK_HEADINGS.insert(0, (program, headings))
+    del _BLOCK_HEADINGS[4:]
+    return headings
+
+
+# The block headings of the last few programs (see _block_headings).
+_BLOCK_HEADINGS: list[tuple[object, frozenset[str]]] = []
+
+
+def _union_sibling_refs(
+    application: Application, indexer: ApplicationIndexer
+) -> Mapping[str, frozenset[str]]:
+    """For each param-ref of a member of one of the application's unions (in memory or in a
+    property), the param-refs of the other members of its union. Of the last few
+    applications."""
+    from xknxeditor.namespaces.intermediate.application_program_static_t_parameters_union import (
+        ApplicationProgramStaticParametersUnion,
+    )
+
+    for seen, known in _UNION_SIBLING_REFS:
+        if seen is indexer:
+            return known
+    refs_of: dict[str, list[str]] = {}
+    for ref in indexer.parameter_refs.values():
+        refs_of.setdefault(ref.ref_id, []).append(ref.id)
+    found: dict[str, frozenset[str]] = {}
+    parameters = application.program.static.parameters
+    for item in parameters.choice if parameters is not None else []:
+        if not isinstance(item, ApplicationProgramStaticParametersUnion):
+            continue
+        members = frozenset(
+            ref for member in item.parameter for ref in refs_of.get(member.id, ())
+        )
+        for ref in members:
+            found[ref] = members - {ref}
+    _UNION_SIBLING_REFS.insert(0, (indexer, found))
+    del _UNION_SIBLING_REFS[4:]
+    return found
+
+
+# The union siblings of the param-refs of the last few applications (see _union_sibling_refs).
+_UNION_SIBLING_REFS: list[tuple[object, Mapping[str, frozenset[str]]]] = []
+
+
+def _bits_of(data: bytes, start: int, size: int) -> int:
+    """The ``size`` bits of ``data`` from bit ``start`` on (eight per byte, the most
+    significant first)."""
+    first, last = start // 8, (start + size + 7) // 8
+    return (int.from_bytes(data[first:last], "big") >> (last * 8 - start - size)) & (
+        (1 << size) - 1
+    )
+
+
+# The bits of a member around those compared that are tried with each setting at most (see
+# _choice_with_bits).
+_AROUND_BITS = 8
+
+
+def _choice_with_bits(
+    application: Application,
+    indexer: ApplicationIndexer,
+    type_id: str,
+    type_size: int,
+    at: int,
+    size: int,
+    raw: int,
+) -> bool:
+    """Whether a choice of the parameter type ``type_id`` (``type_size`` bits) has the bits
+    ``raw`` (``size`` of them) from its bit ``at`` on; also when that cannot be told (more
+    than ``_AROUND_BITS`` bits around them, a type that cannot be decoded). Of the last few
+    programs."""
+    from xknxeditor.prod.parser_v2.encode import (
+        MemWrite,
+        Writes,
+        decode_memory_parameters,
+    )
+
+    program = application.program
+    known = next((cache for seen, cache in _CHOICE_BITS if seen is program), None)
+    if known is None:
+        known = dict[tuple[str, int, int, int, int], bool]()
+        _CHOICE_BITS.insert(0, (program, known))
+        del _CHOICE_BITS[4:]
+    key = (type_id, type_size, at, size, raw)
+    found = known.get(key)
+    if found is not None:
+        return found
+    around = type_size - size
+    found = True
+    if around <= _AROUND_BITS:
+        # Each setting of the bits around in a field of its own, all decoded at once (the
+        # decode keys them by the id given).
+        width = (type_size + 7) // 8
+        settings = 1 << around
+        window = bytearray(width * settings)
+        writes = Writes()
+        for setting in range(settings):
+            low = setting & ((1 << (type_size - at - size)) - 1)
+            high = setting >> (type_size - at - size)
+            field = (
+                high << (type_size - at) | raw << (type_size - at - size) | low
+            ) << (width * 8 - type_size)
+            window[setting * width : (setting + 1) * width] = field.to_bytes(
+                width, "big"
+            )
+            writes.mem.append(
+                MemWrite("", setting * width, 0, str(setting), type_id, "")
+            )
+        try:
+            decoded = decode_memory_parameters(
+                program, indexer, {"": bytes(window)}, writes=writes
+            )
+        except Exception:
+            decoded = None
+        found = decoded is None or any(
+            decoded.get(str(setting)) is not None for setting in range(settings)
+        )
+    known[key] = found
+    return found
+
+
+# Whether a choice of a type has some bits, per program, of the last few (see
+# _choice_with_bits).
+_CHOICE_BITS: list[tuple[object, dict[tuple[str, int, int, int, int], bool]]] = []
+
+
+def _union_of(application: Application, parameter_id: str) -> int | None:
+    """The position of the union in memory holding the parameter ``parameter_id`` among the
+    application's parameters (``None``: none)."""
+    return _memory_fields(application).unions.get(parameter_id)
+
+
+def _memory_writers_over(
+    application: Application,
+    indexer: ApplicationIndexer,
+    segment: str,
+    start: int,
+    size: int,
+) -> frozenset[int | None]:
+    """What writes any of the ``size`` bits from bit ``start`` on of the code segment
+    ``segment``: the position of each union in memory (see :func:`_union_of`), ``None`` for
+    a parameter outside a union or one of unknown size."""
+    from xknxeditor.prod.parser_v2.encode import type_size_in_bit
+
+    fields = _memory_fields(application)
+    key = (segment, start, size)
+    known = fields.writers.get(key)
+    if known is not None:
+        return known
+    found: set[int | None] = set()
+    for field_segment, field_start, type_id, union in fields.fields:
+        if field_segment != segment:
+            continue
+        parameter_type = indexer.parameter_types.get(type_id)
+        field_size = (
+            type_size_in_bit(parameter_type.choice)
+            if parameter_type is not None
+            else None
+        )
+        if not field_size:
+            found.add(None)
+        elif field_start < start + size and start < field_start + field_size:
+            found.add(union)
+    known = frozenset(found)
+    fields.writers[key] = known
+    return known
+
+
+class _MemoryFields(NamedTuple):
+    """The parameters of a program in memory: code segment, first bit, type and the union
+    each is in (``None``: none), the union of each union member, and what writes the bits
+    asked for so far (see :func:`_memory_writers_over`)."""
+
+    fields: list[tuple[str, int, str, int | None]]
+    unions: dict[str, int]
+    writers: dict[tuple[str, int, int], frozenset[int | None]]
+
+
+def _memory_fields(application: Application) -> _MemoryFields:
+    """The parameters of the application in memory (see :class:`_MemoryFields`); of the last
+    few applications."""
+    from xknxeditor.namespaces.intermediate.application_program_static_t_parameters_union import (
+        ApplicationProgramStaticParametersUnion,
+    )
+    from xknxeditor.namespaces.intermediate.memory_parameter_t import MemoryParameter
+    from xknxeditor.namespaces.intermediate.memory_union_t import MemoryUnion
+
+    program = application.program
+    for seen, known in _MEMORY_FIELDS:
+        if seen is program:
+            return known
+    fields: list[tuple[str, int, str, int | None]] = []
+    unions: dict[str, int] = {}
+    parameters = program.static.parameters
+    for position, item in enumerate(
+        parameters.choice if parameters is not None else []
+    ):
+        if isinstance(item, ApplicationProgramStaticParametersUnion):
+            storage = item.choice
+            if not isinstance(storage, MemoryUnion):
+                continue
+            base = storage.offset * 8 + storage.bit_offset
+            for member in item.parameter:
+                unions[member.id] = position
+                fields.append(
+                    (
+                        storage.code_segment,
+                        base + (member.offset or 0) * 8 + (member.bit_offset or 0),
+                        member.parameter_type,
+                        position,
+                    )
+                )
+        else:
+            storage = item.choice
+            if isinstance(storage, MemoryParameter):
+                fields.append(
+                    (
+                        storage.code_segment,
+                        storage.offset * 8 + storage.bit_offset,
+                        item.parameter_type,
+                        None,
+                    )
+                )
+    known = _MemoryFields(fields, unions, {})
+    _MEMORY_FIELDS.insert(0, (program, known))
+    del _MEMORY_FIELDS[4:]
+    return known
+
+
+# The parameters in memory of the last few programs (see _memory_fields).
+_MEMORY_FIELDS: list[tuple[object, _MemoryFields]] = []
 
 
 def _later_members_read(
