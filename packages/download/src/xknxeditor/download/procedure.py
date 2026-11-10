@@ -1580,7 +1580,7 @@ class LoadProcedureRunner:
             # memory clear only matters for a partial filter-table update, which this engine
             # does not perform. The filter-table bytes themselves must be supplied in the
             # image (see GroupCommunication.filter_table); otherwise the following
-            # WriteRelMem/WriteMem fails with "no image data".
+            # WriteRelMem/WriteMem fails with "no filter table".
             return
         if isinstance(control, LdCtrlMerge):
             # A merge point inside a merged fragment that no module instance fills: fragments
@@ -1714,13 +1714,18 @@ class LoadProcedureRunner:
             control.size,
         )
         runs = self._memory_write_runs(control, index=index)
-        if runs is None and control.size:
-            raise ImageError(
-                f"no image data for relative range {control.offset:#06x}.."
-                f"{control.offset + control.size:#06x}"
+        if runs is None:
+            # No segment of the image at that range and no inline data: nothing to write,
+            # e.g. an application without parameter memory whose procedure still allocates
+            # and writes a few octets of it (the allocation's fill stays).
+            logger.info(
+                "write_rel_mem: no image data for relative range %#06x..%#06x of object "
+                "%d, nothing written",
+                control.offset,
+                control.offset + control.size,
+                index,
             )
-        # A write of no octets (an application without parameter memory) writes nothing.
-        runs = runs or []
+            return
         if runs:
             programmer = await self._memory_programmer()
         with self._reporting_memory(programmer, runs) as run_done:
@@ -1859,6 +1864,18 @@ class LoadProcedureRunner:
                 return self._overlay_memory_capture(
                     index, control.offset, control.size, runs
                 )
+        if object_type == _ROUTER_OBJECT_TYPE and not allow_missing:
+            captured = self._overlay_memory_capture(
+                index, control.offset, control.size, None
+            )
+            if captured is not None:
+                return captured
+            # The filter table is computed for the line the coupler couples; a download
+            # without it would leave the coupler's table as it was.
+            raise ImageError(
+                "no filter table for this coupler: a filter table is computed for a coupler "
+                "at a coupler address (x.y.0)"
+            )
         if object_type in GROUP_COMMUNICATION_OBJECTS:
             captured = self._overlay_memory_capture(
                 index, control.offset, control.size, None
@@ -3620,18 +3637,13 @@ class LoadProcedureRunner:
 
         Mirrors :meth:`_write_rel_mem` - the image holds the segment in its own
         relative address space, and the device address adds the run-time table base.
-        ``None`` (no image data) is an error there, so it must be one here too; see
-        :meth:`_diff_masked`.
+        A range without image data writes nothing there, so it has nothing to compare
+        here either.
 
         The download allocates the segment anew, so the device's current one may be
         smaller than the planned data: it is read as far as the device answers.
         """
         runs = self._memory_write_runs(control, index=index)
-        if runs is None and control.size:
-            raise ImageError(
-                f"no image data for relative range {control.offset:#06x}.."
-                f"{control.offset + control.size:#06x}"
-            )
         if not runs:
             return
         programmer = await self._bus()
