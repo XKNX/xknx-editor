@@ -20,13 +20,11 @@ from editor_gui.plugins.catalog.service import CatalogService
 from editor_gui.plugins.logger.service import LogService
 from editor_gui.plugins.project.application_update import (
     carry_parameters,
+    carry_values,
     in_application_order,
-    in_calculation,
-    replay_calculated,
 )
 from editor_gui.plugins.project.service import ProjectService
 from xknxeditor.catalog.core.hardware import ProgramSummary
-from xknxeditor.namespaces.intermediate import ParameterInstanceRef
 from xknxeditor.prod.application import parse_application_xml
 from xknxeditor.prod.parser_v2.application_indexer import ApplicationIndexer
 from xknxeditor.prod.parser_v2.dynamic import DynamicUI
@@ -125,14 +123,8 @@ def _replayed(order: tuple[str, ...]) -> dict[str, str]:
         _NEW,
         indexer,
     ).values
-    plain = [(ref, v) for ref, v in rows if not in_calculation(indexer, ref)]
-    ui = DynamicUI(
-        new.program,
-        parameter_instance_refs=[
-            ParameterInstanceRef(ref_id=ref, value=v) for ref, v in plain
-        ],
-    )
-    return dict(replay_calculated(ui, rows))
+    ui = DynamicUI(new.program)
+    return dict(carry_values(ui, rows, {ref for ref, _ in rows}).values)
 
 
 def test_rows_follow_the_order_the_application_lists_its_refs() -> None:
@@ -141,8 +133,6 @@ def test_rows_follow_the_order_the_application_lists_its_refs() -> None:
     assert [ref for ref, _ in in_application_order(rows, indexer)] == [
         _ref(_OLD, n) for n in (1, 3, 2, 4)
     ]
-    assert in_calculation(indexer, _ref(_OLD, 3))
-    assert not in_calculation(indexer, _ref(_OLD, 4))
 
 
 def test_a_switch_its_settings_already_set_changes_nothing() -> None:

@@ -218,6 +218,7 @@ class ParameterState:
     """
 
     __slots__ = (
+        "_active_assigns",
         "_active_com_object_refs",
         "_active_module_keys",
         "_active_param_refs",
@@ -302,6 +303,9 @@ class ParameterState:
         # The param-refs an Assign of the current pass wrote (local ids of this scope): the
         # targets of the Assigns that apply.
         self._assign_targets: set[str] = set()
+        # The Assigns the current pass reached in this scope (see note_assign): those that
+        # apply.
+        self._active_assigns: set[int] = set()
         # The values the targets of the Assigns of a pass without gates (see
         # undo_ungated_assigns) had before (the known value, and the value of the map).
         self._ungated_writes: dict[str, tuple[str | None, str | None]] = {}
@@ -360,6 +364,20 @@ class ParameterState:
             )
         self.set(ref_id, value)
         self._assign_targets.add(ref_id)
+
+    def note_assign(self, key: int) -> None:
+        """The current pass reached the Assign ``key`` (the id of its element) in this scope:
+        it applies, whatever it writes."""
+        self._active_assigns.add(key)
+
+    def active_assigns(self) -> set[tuple[str, int]]:
+        """The Assigns the last pass reached, in this scope and the module scopes below, each
+        as the id of the module instance it is in (empty for the application) with its key."""
+        instance = getattr(self, "module_instance_id", "")
+        result = {(instance, key) for key in self._active_assigns}
+        for child in self._children.values():
+            result |= child.active_assigns()
+        return result
 
     def undo_ungated_assigns(self) -> None:
         """After a pass with gates, give back the values the Assigns of the pass without gates
@@ -514,6 +532,7 @@ class ParameterState:
         self._pass_texts.clear()
         self._assigned_from.clear()
         self._assign_targets.clear()
+        self._active_assigns.clear()
         for child in self._children.values():
             child.reset_active()
 
@@ -656,6 +675,11 @@ class ParameterState:
     def explicit_value(self, ref_id: str) -> str | None:
         """The value explicitly set in this scope, ignoring parents and defaults."""
         return self._known_param_ref_values.get(ref_id)
+
+    def own_value(self, ref_id: str) -> str | None:
+        """The value of ``ref_id`` as :meth:`get` gives it, but never that of a module argument
+        the parameter takes its value from: its own, set or default."""
+        return ParameterState.get(self, ref_id)
 
     def set_instance_ref(self, ref_id: str, value: str) -> None:
         found = self.find_scope_for_qualified(ref_id)

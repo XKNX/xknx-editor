@@ -18,19 +18,17 @@ from editor_gui.plugins.base import Logger
 from editor_gui.plugins.catalog.service import CatalogService
 from editor_gui.plugins.logger.service import LogService
 from editor_gui.plugins.project.application_update import (
-    carried_default,
     carry_parameters,
     carry_values,
     in_application_order,
-    in_calculation,
     unstored_defaults,
 )
 from editor_gui.plugins.project.service import ProjectService
 from xknxeditor.catalog.core.hardware import ProgramSummary
-from xknxeditor.namespaces.intermediate import ParameterInstanceRef
 from xknxeditor.prod.application import parse_application_xml
 from xknxeditor.prod.parser_v2.application_indexer import ApplicationIndexer
 from xknxeditor.prod.parser_v2.dynamic import DynamicUI
+from xknxeditor.prod.script.errors import ParameterValidationError
 
 OLD = "M-00FA_A-0D05-01-0000"
 NEW = "M-00FA_A-0D05-02-0000"
@@ -148,15 +146,8 @@ def _carried(order: tuple[int, ...]) -> dict[str, str]:
     everything = carry_parameters(
         in_application_order([*stored, *defaults], old), OLD, NEW, indexer
     ).values
-    kept = {r for r, _ in values}
-    plain = [(r, v) for r, v in values if not in_calculation(indexer, r)]
-    ui = DynamicUI(
-        new_app.program,
-        parameter_instance_refs=[
-            ParameterInstanceRef(ref_id=r, value=v) for r, v in plain
-        ],
-    )
-    return dict(carry_values(ui, everything, {r for r, _ in everything} - kept))
+    ui = DynamicUI(new_app.program)
+    return dict(carry_values(ui, everything, {r for r, _ in values}).values)
 
 
 def test_the_defaults_of_the_refs_without_a_value_are_listed_in_order() -> None:
@@ -208,10 +199,24 @@ def test_an_old_default_the_new_device_cannot_take_is_left_out() -> None:
     ui = DynamicUI(application(NEW, 2).program)
     # Not a value of the new type, no such parameter (as in a module instance the new device
     # does not have), the value it has already, and one it takes as its type writes it.
-    assert carried_default(ui, ref(NEW, 1), "9") is None
-    assert carried_default(ui, f"{NEW}_MD-1_M-1_MI-1_P-1_R-1", "1") is None
-    assert carried_default(ui, ref(NEW, 8), "2.50") is None
-    assert carried_default(ui, ref(NEW, 1), "02") == "2"
+    with pytest.raises(ParameterValidationError):
+        ui.carry_value(ref(NEW, 1), "9")
+    assert not ui.has_parameter(f"{NEW}_MD-1_M-1_MI-1_P-1_R-1")
+    assert ui.has_parameter(ref(NEW, 1))
+    assert ui.carry_value(ref(NEW, 8), "2.50") is None
+    assert ui.carry_value(ref(NEW, 1), "02") == {ref(NEW, 1): ("1", "2")}
+    assert ui.get_value(ref(NEW, 1)) == "2"
+    # An unchanged setting the new type refuses keeps the new default.
+    refused: list[tuple[str, str]] = []
+    carried = carry_values(
+        DynamicUI(application(NEW, 2).program),
+        [(ref(NEW, 1), "9")],
+        (),
+        refused=lambda r, value, _message: refused.append((r, value)),
+    )
+    assert carried.values == []
+    assert carried.not_taken == {ref(NEW, 1)}
+    assert refused == [(ref(NEW, 1), "9")]
 
 
 def target() -> ProgramSummary:

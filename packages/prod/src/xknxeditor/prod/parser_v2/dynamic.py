@@ -42,6 +42,9 @@ from xknxeditor.namespaces.intermediate import (
 from xknxeditor.namespaces.intermediate.module_def_static_t_parameters_union_property import (
     ModuleDefStaticParametersUnionProperty,
 )
+from xknxeditor.namespaces.intermediate.parameter_type_t_type_float import (
+    ParameterTypeTypeFloat,
+)
 from xknxeditor.namespaces.intermediate.property_union_t import PropertyUnion
 
 from ..errors import EncodingError
@@ -346,6 +349,8 @@ class DynamicTreeBuilder:
         self._union_sibling_refs = self._build_union_sibling_refs(app)
         # The same, for DynamicUI.later_union_members.
         self.union_competitors = self._union_sibling_refs
+        # Whether the tree holds an Assign anywhere (set by _build).
+        self.has_assigns = False
         # Some applications (e.g. simple power supplies / couplers) carry no <Dynamic> section, or
         # one that produces no tree. Such a device has no parameters/objects to show — build an
         # empty tree so it still appears in the project instead of failing to load.
@@ -798,6 +803,7 @@ class DynamicTreeBuilder:
             return BinaryDataRefNode(elem)
         elif isinstance(elem, Assign):
             # Leaf: pins a parameter to a fixed value; state-only, no UI
+            self.has_assigns = True
             return AssignNode(elem)
         elif isinstance(elem, Rename):
             # Leaf: renames a channel or element inside a choose branch
@@ -929,6 +935,18 @@ def _as_int(value: object) -> int | None:
     except ValueError:
         return None
     return int(number) if number.is_integer() else None
+
+
+def _same_value(value: str, current: str, tc: object, text_encoding: str) -> bool:
+    """Whether ``value`` (as the parameter type ``tc`` writes it) is the value ``current``: the
+    same value of the type, numbers of a float type compared as numbers."""
+    try:
+        current = check_value(current, tc, text_encoding=text_encoding)
+    except ValueError:
+        return False
+    if isinstance(tc, ParameterTypeTypeFloat):
+        return float(value) == float(current)
+    return value == current
 
 
 def _has_parameter_dialog(app: ApplicationProgram) -> bool:
@@ -1077,6 +1095,7 @@ class DynamicUI:
         "_allocation_param_refs",
         "_app",
         "_explore_param_refs",
+        "_has_assigns",
         "_idx",
         "_local_ids",
         "_located",
@@ -1124,6 +1143,7 @@ class DynamicUI:
         self._object_gates = builder.object_gates
         self._module_gates = builder.module_gates
         self._selector_param_refs = builder.selector_param_refs
+        self._has_assigns = builder.has_assigns
         self._explore_param_refs = builder.explore_param_refs
         self._selector_tested_values = builder.selector_tested_values
         self._union_competitors = builder.union_competitors
@@ -2256,6 +2276,85 @@ class DynamicUI:
             else:
                 self._state.set_instance_ref(ref_id, value)
         self._invalidate()
+
+    def carry_value(self, ref_id: str, value: str) -> ChangeSet | None:
+        """Take over ``value`` for the (possibly module-qualified) parameter ``ref_id``, as an
+        application update carries a value of the old device over.
+
+        The value is checked by the parameter's type and its validations, as an edit is: a
+        refusal raises :class:`ParameterValidationError`. A value the parameter has already
+        (its own one, not that of a module argument it takes its value from) changes nothing:
+        ``None``. Any other is set, whether the parameter is active or not, and runs the
+        parameter's calculations, whose errors are logged; returns the changes. An Assign that
+        stops applying leaves its target as it is."""
+        scope, local = self._locate(ref_id)
+        tc = self._idx.type_of(local)
+        if local not in self._idx.parameter_refs or tc is None:
+            raise ValueError(f"unknown parameter ref {ref_id!r}")
+        try:
+            value = check_value(value, tc, text_encoding=self.text_encoding)
+        except ValueError as exc:
+            text = self._idx.type_error_text(local)
+            raise ParameterValidationError(text or str(exc), ref_id=ref_id) from exc
+        self._validate(scope, local, ref_id, value)
+        own = scope.own_value(local)
+        if own is None:
+            own = self._idx.default_value(local)
+        if own is not None and _same_value(value, own, tc, self.text_encoding):
+            return None
+        journal = self._journal()
+        journal.set(ref_id, value)
+        run_calculations(
+            self._idx,
+            local,
+            self._calc_scope(scope),
+            journal,
+            self.script_env,
+            raise_errors=False,
+            abort=self.script_abort,
+        )
+        self._invalidate()
+        return journal.changes()
+
+    def has_parameter(self, ref_id: str) -> bool:
+        """Whether the device has the (possibly module-qualified) parameter ref ``ref_id``: one
+        of the application's, or one of a module instance the evaluated tree makes."""
+        idx = self._idx
+        if ref_id in idx.parameter_refs:
+            return idx.ref_owner.get(ref_id) is None
+        self.ui()
+        found = self._state.find_scope_for_qualified(ref_id)
+        return found is not None and found[1] in idx.parameter_refs
+
+    def argument_value(self, ref_id: str) -> str | None:
+        """The value of the module argument the module-qualified parameter ``ref_id`` takes its
+        value from (its Parameter's ``BaseValue``); ``None`` for a parameter without one, or
+        while the argument has no value."""
+        self.ui()
+        scope, local = self._locate(ref_id)
+        if not isinstance(scope, ModuleState):
+            return None
+        base = scope.param_ref_bases.get(local)
+        arg = scope.get_arg(base) if base is not None else None
+        return str(arg.value) if arg is not None and arg.value is not None else None
+
+    def explicit_values(self) -> dict[str, str]:
+        """The values set in the evaluated state (stored, edited, or written by an Assign or a
+        calculation), of the application and of the module instances the tree makes, by
+        qualified ref."""
+        self.ui()
+        return self._state.changed_explicit_values(None)
+
+    @property
+    def has_assigns(self) -> bool:
+        """Whether the application has an Assign anywhere."""
+        return self._has_assigns
+
+    def active_assigns(self) -> frozenset[tuple[str, int]]:
+        """The Assigns of the evaluated tree that apply, each as the module instance it is in
+        (empty for the application) with a key of its own."""
+        self.ui()
+        return frozenset(self._state.active_assigns())
 
     def active_parameter_ref_ids(self) -> frozenset[str]:
         self.ui()

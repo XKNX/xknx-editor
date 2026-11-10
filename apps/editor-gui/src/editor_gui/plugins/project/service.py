@@ -5272,19 +5272,20 @@ class ProjectService:
 
     def _update_application(self, device: Device) -> UpdateApplicationResult | None:
         """Update ``device`` to the local application version that replaces its own ("Update
-        Application Program Version"). Parameter values are carried over by ParameterRef number,
-        and the old defaults of the parameters without a value where the new version's value
-        differs, those of parameters in a calculation one after another with their calculations
-        (see ``carry_values``), group objects of the same size by ComObjectRef number with their
-        flags, priority, datapoint type and links. Returns the outcome, or ``None`` when there is
-        no such version or it cannot be resolved."""
+        Application Program Version"). Every parameter of the old device is matched by
+        ParameterRef number and set on the new one in the old application's order, its value or,
+        without one, its old default, as an edit sets it (see ``carry_values``): a value the new
+        version refuses is left out and logged. Group objects of the same size carry over by
+        ComObjectRef number with their flags, priority, datapoint type and links. Returns the
+        outcome, or ``None`` when there is no such version or it cannot be resolved."""
         from editor_gui.plugins.project.application_update import (
             carry_com_objects,
             carry_parameters,
             carry_values,
             in_application_order,
-            in_calculation,
+            module_instances,
             unstored_defaults,
+            with_argument_values,
         )
         from xknxeditor.prod.parser_v2.application_indexer import ApplicationIndexer
 
@@ -5315,8 +5316,10 @@ class ProjectService:
         )
         parameters = carry_parameters(stored_rows, device.app.id, new_app.id, indexer)
         values = parameters.values
+        stored = {ref for ref, _ in values}
         # Every parameter of the old device in the old application's order: its values and
-        # the defaults of the parameters it holds none for.
+        # the defaults of the parameters it holds none for, each as the parameter has it (a
+        # module parameter that takes the value of an argument has the argument's).
         old_refs = (
             old_ui.parameter_ref_ids()
             if old_ui is not None
@@ -5329,24 +5332,37 @@ class ProjectService:
         defaults = unstored_defaults(
             old_refs, (ref for ref, _ in stored_rows), device.app.id, old_indexer
         )
+        old_values = in_application_order([*stored_rows, *defaults], old_indexer)
+        if old_ui is not None:
+            old_values = with_argument_values(old_values, old_ui)
         everything = carry_parameters(
-            in_application_order([*stored_rows, *defaults], old_indexer),
-            device.app.id,
-            new_app.id,
-            indexer,
+            old_values, device.app.id, new_app.id, indexer
         ).values
-        kept_refs = {ref for ref, _ in values}
-        unstored = {ref for ref, _ in everything if ref not in kept_refs}
-        probe = self._initial_device(
-            device.name,
-            new_app,
-            [(ref, v) for ref, v in values if not in_calculation(indexer, ref)],
-        )
+        not_taken = 0
+        probe = self._initial_device(device.name, new_app, [])
         ui = probe.dynamic_ui
         if ui is not None:
-            values = carry_values(ui, everything, unstored)
+
+            def refused(ref: str, value: str, message: str) -> None:
+                self._log.warning(
+                    "application update: value not taken over",
+                    device=device.node_id,
+                    parameter=ref,
+                    value=value,
+                    reason=message,
+                )
+
+            carried = carry_values(
+                ui,
+                everything,
+                stored,
+                module_instances(old_refs, device.app.id, new_app.id),
+                refused,
+            )
+            values = carried.values
+            not_taken = len(stored & carried.not_taken)
         probe.release_dynamic_ui()
-        module_instances, new_objects = self._initial_rows(device.name, new_app, values)
+        instances, new_objects = self._initial_rows(device.name, new_app, values)
         objects = carry_com_objects(
             row.com_objects,
             {co.id: co.object_size for co in device.com_objects},
@@ -5360,15 +5376,16 @@ class ProjectService:
             hardware2program_ref_id=target.id,
             new_app_id=new_app.id,
             com_objects=[(co.id, None) for co in new_objects],
-            module_instances=module_instances or None,
+            module_instances=instances or None,
             parameters=values,
             com_object_data=objects.data,
             additional_addresses=new_app.program.additional_addresses_count or 0,
         )
         self._app_cache[target.id] = new_app
         self._bump()
-        kept = len(parameters.values) + objects.kept
-        dropped = parameters.dropped + objects.dropped
+        # The values the device held that the new one took, and those it did not.
+        kept = len(stored) - not_taken + objects.kept
+        dropped = parameters.dropped + not_taken + objects.dropped
         self._log.info(
             "application updated",
             device=device.node_id,

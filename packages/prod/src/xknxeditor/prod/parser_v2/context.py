@@ -344,6 +344,10 @@ class EvalContext:
         """An Assign writes ``value`` into ``ref_id`` (see :meth:`ParameterState.assign`)."""
         self._scope.assign(ref_id, value)
 
+    def note_assign(self, key: int) -> None:
+        """The pass reached an Assign (see :meth:`ParameterState.note_assign`)."""
+        self._scope.note_assign(key)
+
     def set_text(self, ref_id: str, text: str) -> None:
         self._scope.set_text(ref_id, text)
 
