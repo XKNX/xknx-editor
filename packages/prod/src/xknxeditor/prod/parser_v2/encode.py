@@ -1088,26 +1088,33 @@ def _collect_scope_writes(
     if cached is not None:
         return _added(out, *cached)
     own = Writes()
-    active_params = set(values)
-    items = _active_first(idx, md.static.parameters.choice, active_params)
+    first, rest = _split_active(idx, md.static.parameters.choice, set(values))
     defaults = behavior is DownloadBehavior.DEFAULT_VALUE
-    for item in items:
+
+    def collect(item: object, target: Writes) -> None:
         if isinstance(item, ModuleDefStaticParametersParameter):
             if item.id in values:
-                _collect_param(item, values, ms, own)
+                _collect_param(item, values, ms, target)
             elif item.id in referenced and defaults:
-                _collect_param(item, {}, ms, own)
+                _collect_param(item, {}, ms, target)
             elif item.id in referenced and keep:
-                _collect_kept(item, ms, own)
-            continue
+                _collect_kept(item, ms, target)
+            return
         assert isinstance(item, ModuleDefStaticParametersUnion)
         members = [up for up in item.parameter if up.id in referenced]
         if any(up.id in values for up in item.parameter):
-            _collect_union(item, values, ms, own, gated=True, ranks=ranks)
+            _collect_union(item, values, ms, target, gated=True, ranks=ranks)
         elif members and defaults:
-            _collect_union(item, {}, ms, own)
+            _collect_union(item, {}, ms, target)
         elif members and keep:
-            _collect_kept(item, ms, own, members)
+            _collect_kept(item, ms, target, members)
+
+    active = Writes()
+    for item in first:
+        collect(item, active)
+    _extend_in_ref_order(own, active, ranks)
+    for item in rest:
+        collect(item, own)
     return _added(out, *_keep_scope_writes(idx, key, own))
 
 
@@ -1216,24 +1223,15 @@ def collect_writes(
         else None
     )
     if s.parameters is not None:
-        items = s.parameters.choice
-        if state is not None:
-            # Values of active ParameterRefs come first and the defaults of inactive
-            # parameters after them, so a default wins where the two share bits.
-            active_params = {
-                idx.parameter_refs[ref].ref_id
-                for ref in active_refs
-                if ref in idx.parameter_refs
-            }
-            items = _active_first(idx, items, active_params)
-        for item in items:
+
+        def collect(item: object, target: Writes) -> None:
             if isinstance(item, ApplicationProgramStaticParametersParameter):
                 if active_ids is not None and item.id not in active_ids:
                     if keep and item.id in referenced:
-                        _collect_kept(item, None, out)
-                    continue
-                _collect_param(item, overrides, None, out)
-                continue
+                        _collect_kept(item, None, target)
+                    return
+                _collect_param(item, overrides, None, target)
+                return
             assert isinstance(item, ApplicationProgramStaticParametersUnion)
             members = [up for up in item.parameter if up.id in referenced]
             if (
@@ -1242,11 +1240,35 @@ def collect_writes(
                 and members
                 and not any(up.id in overrides for up in item.parameter)
             ):
-                _collect_kept(item, None, out, members)
-                continue
+                _collect_kept(item, None, target, members)
+                return
             _collect_union(
-                item, overrides, None, out, gated=active_ids is not None, ranks=ranks
+                item,
+                overrides,
+                None,
+                target,
+                gated=active_ids is not None,
+                ranks=ranks,
             )
+
+        if state is None or ranks is None:
+            for item in s.parameters.choice:
+                collect(item, out)
+        else:
+            # Values of active ParameterRefs come first and the defaults of inactive
+            # parameters after them, so a default wins where the two share bits.
+            active_params = {
+                idx.parameter_refs[ref].ref_id
+                for ref in active_refs
+                if ref in idx.parameter_refs
+            }
+            first, rest = _split_active(idx, s.parameters.choice, active_params)
+            active = Writes()
+            for item in first:
+                collect(item, active)
+            _extend_in_ref_order(out, active, ranks)
+            for item in rest:
+                collect(item, out)
     if state is not None:
         for ms in state.module_children():
             _collect_module_writes(ms, idx, out, behavior, keep)
@@ -1264,13 +1286,13 @@ def _referenced_parameters(idx: ApplicationIndexer) -> frozenset[str]:
     return found
 
 
-def _active_first[T](
+def _split_active[T](
     idx: ApplicationIndexer, items: list[T], active_params: set[str]
-) -> list[T]:
+) -> tuple[list[T], list[T]]:
     """The parameters and unions ``items`` of a static section of the application of
-    ``idx``, those with a parameter in ``active_params`` first (a union with one of its
-    members there), each part in its order: what a stable sort by that gives, with the
-    parameters of each item looked up once per indexer."""
+    ``idx`` split in those with a parameter in ``active_params`` (a union with one of its
+    members there) and the others, each part in its order, with the parameters of each item
+    looked up once per indexer."""
     cached = idx.item_parameters.get(id(items))
     if cached is None or cached[0] is not items:
         cached = idx.item_parameters[id(items)] = (
@@ -1281,7 +1303,23 @@ def _active_first[T](
     rest: list[T] = []
     for item, own in zip(items, cached[1], strict=True):
         (rest if active_params.isdisjoint(own) else first).append(item)
-    return first + rest
+    return first, rest
+
+
+def _extend_in_ref_order(
+    out: Writes, writes: Writes, ranks: Mapping[str, tuple[int, int]]
+) -> None:
+    """Add the writes of active parameters to ``out`` in the order a download applies the
+    ParameterRefs: each at the place of its parameter's last active ref (see
+    :func:`last_active_ref_ranks`), a write without one first, equal places in their order.
+    Where parameters share bits, also members of different unions, the later one holds
+    them."""
+
+    def key(write: MemWrite | PropWrite) -> tuple[int, int]:
+        return ranks.get(write.param_id, (-1, -1))
+
+    out.mem.extend(sorted(writes.mem, key=key))
+    out.prop.extend(sorted(writes.prop, key=key))
 
 
 def _item_parameters(item: object) -> tuple[str, ...]:
