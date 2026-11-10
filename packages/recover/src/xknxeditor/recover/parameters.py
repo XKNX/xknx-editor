@@ -810,8 +810,8 @@ def _differing_property_cells(
 ) -> set[_Cell] | None:
     """The bytes of the ``properties`` read off the device that ``ui`` does not give back, as
     cells (see :func:`_property_cell`), where a parameter is stored: the bits its active
-    parameters write, otherwise those the parameters there (no member of a union) write with
-    their default values. A property holds its parameter's default until a download writes
+    parameters write, and the other bits of the byte as the parameters there (no member of a
+    union) write them with their default values. A property holds its parameter's default until a download writes
     it, so another value there is one a configuration that writes it gave (a setting shown
     behind a switch the device keeps no copy of). A byte only inactive parameters cover is
     written with the property's base, zeros (or the factory contents, which the defaults
@@ -841,24 +841,23 @@ def _differing_property_cells(
         for offset in stored:
             if offset >= len(device):
                 continue
-            own = mine
+            held = device[offset]
+            ours = 0
             base = False
-            if own is None or offset >= len(own.mask) or not own.mask[offset]:
-                # Not written: the default, unless a configuration wrote another value. Covered
-                # by an inactive parameter (downloaded in the background), the download writes
-                # the base there.
-                base = (
-                    own is not None
-                    and offset < len(own.covered)
-                    and own.covered[offset] != 0
-                )
-                own = default
-                if own is None or offset >= len(own.mask):
+            if mine is not None and offset < len(mine.mask):
+                ours = mine.mask[offset]
+                if (mine.data[offset] ^ held) & ours:
+                    differing.add(_property_cell(key, offset))
                     continue
-            bits = own.mask[offset]
-            if (own.data[offset] ^ device[offset]) & bits and not (
-                base and not device[offset] & bits
-            ):
+                # Covered (by an inactive parameter downloaded in the background, or beside
+                # an active one), the download writes the base where no value is.
+                base = mine.covered[offset] != 0
+            # The bits no active parameter writes: the default, unless a configuration wrote
+            # another value.
+            if default is None or offset >= len(default.mask):
+                continue
+            rest = default.mask[offset] & ~ours
+            if (default.data[offset] ^ held) & rest and not (base and not held & rest):
                 differing.add(_property_cell(key, offset))
     return differing
 

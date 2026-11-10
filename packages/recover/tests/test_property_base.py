@@ -17,6 +17,10 @@ _APP = "M-00FA_A-0009-01-0000"
 _CHANNEL = f"{_APP}_P-1_R-1"
 _DELAY = f"{_APP}_P-2_R-2"
 _KEY: TypedPropertyKey = (6, None, 52, 0)
+_SHOW = f"{_APP}_P-3_R-3"
+_LEVEL = f"{_APP}_P-4_R-4"
+_FLAG = f"{_APP}_P-5_R-5"
+_SHARED: TypedPropertyKey = (6, None, 53, 0)
 _XML = f"""<?xml version="1.0" encoding="utf-8"?>
 <KNX xmlns="http://knx.org/xml/project/20" CreatedBy="test" ToolVersion="1">
   <ManufacturerData>
@@ -34,6 +38,12 @@ _XML = f"""<?xml version="1.0" encoding="utf-8"?>
               <ParameterType Id="{_APP}_PT-D" Name="D">
                 <TypeNumber SizeInBit="8" Type="unsignedInt" minInclusive="0" maxInclusive="60" />
               </ParameterType>
+              <ParameterType Id="{_APP}_PT-L" Name="L">
+                <TypeNumber SizeInBit="7" Type="unsignedInt" minInclusive="0" maxInclusive="100" />
+              </ParameterType>
+              <ParameterType Id="{_APP}_PT-F" Name="F">
+                <TypeNumber SizeInBit="1" Type="unsignedInt" minInclusive="0" maxInclusive="1" />
+              </ParameterType>
             </ParameterTypes>
             <Parameters>
               <Parameter Id="{_APP}_P-1" Name="Channel" ParameterType="{_APP}_PT-B" Text="Channel" Value="0">
@@ -42,10 +52,20 @@ _XML = f"""<?xml version="1.0" encoding="utf-8"?>
               <Parameter Id="{_APP}_P-2" Name="Delay" ParameterType="{_APP}_PT-D" Text="Delay" Value="5">
                 <Property ObjectIndex="6" PropertyId="52" Offset="1" BitOffset="0" />
               </Parameter>
+              <Parameter Id="{_APP}_P-3" Name="ShowFlag" ParameterType="{_APP}_PT-B" Text="Use the flag" Value="0" />
+              <Parameter Id="{_APP}_P-4" Name="Level" ParameterType="{_APP}_PT-L" Text="Level" Value="10">
+                <Property ObjectIndex="6" PropertyId="53" Offset="0" BitOffset="0" />
+              </Parameter>
+              <Parameter Id="{_APP}_P-5" Name="Flag" ParameterType="{_APP}_PT-F" Text="Flag" Value="0">
+                <Property ObjectIndex="6" PropertyId="53" Offset="0" BitOffset="7" />
+              </Parameter>
             </Parameters>
             <ParameterRefs>
               <ParameterRef Id="{_CHANNEL}" RefId="{_APP}_P-1" />
               <ParameterRef Id="{_DELAY}" RefId="{_APP}_P-2" />
+              <ParameterRef Id="{_SHOW}" RefId="{_APP}_P-3" />
+              <ParameterRef Id="{_LEVEL}" RefId="{_APP}_P-4" />
+              <ParameterRef Id="{_FLAG}" RefId="{_APP}_P-5" />
             </ParameterRefs>
           </Static>
           <Dynamic>
@@ -55,6 +75,13 @@ _XML = f"""<?xml version="1.0" encoding="utf-8"?>
                 <choose ParamRefId="{_CHANNEL}">
                   <when test="1">
                     <ParameterRefRef RefId="{_DELAY}" />
+                  </when>
+                </choose>
+                <ParameterRefRef RefId="{_LEVEL}" />
+                <ParameterRefRef RefId="{_SHOW}" />
+                <choose ParamRefId="{_SHOW}">
+                  <when test="1">
+                    <ParameterRefRef RefId="{_FLAG}" />
                   </when>
                 </choose>
               </ParameterBlock>
@@ -128,3 +155,28 @@ def test_another_value_where_a_hidden_setting_is_stored_differs(
     recovered = recover_parameters(application, {}, {_KEY: b"\x00\x07"})
     assert not recovered.complete
     assert recovered.differing_bytes == 1
+
+
+def test_a_hidden_setting_beside_a_shown_one_in_its_byte_is_compared(
+    application: Application,
+) -> None:
+    # The level takes the high bits of the byte, the flag its lowest bit: with the flag shown
+    # and on, the level alone does not give the byte back.
+    ui = seed_dynamic_ui(application, {_SHOW: "1", _LEVEL: "20", _FLAG: "1"})
+    assert ui is not None
+    written = ui.encode_to_typed_properties_masked()[_SHARED]
+    assert written.data == bytes([41])
+    recovered = recover_parameters(application, {}, {_SHARED: bytes([41])})
+    assert recovered.complete
+    assert recovered.values[_LEVEL] == "20"
+    assert recovered.values[_SHOW] == "1"
+    assert recovered.values[_FLAG] == "1"
+
+
+def test_the_lowest_bit_at_its_default_leaves_the_flag_hidden(
+    application: Application,
+) -> None:
+    recovered = recover_parameters(application, {}, {_SHARED: bytes([40])})
+    assert recovered.complete
+    assert recovered.values[_LEVEL] == "20"
+    assert recovered.values.get(_SHOW, "0") == "0"
