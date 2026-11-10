@@ -2264,11 +2264,16 @@ def _refine_fixed(
     if ui is None:
         return recovered
     # A hidden setting a calculation computes is computed again from each value tried (a
-    # channel's function decides which of its settings show), not kept as the result has it.
+    # channel's function decides which of its settings show), not kept as the result has it;
+    # unless it keeps the value computed before from settings now hidden, which only the
+    # objects it shows tell (see :func:`_kept_values_to_try`).
+    from xknxeditor.prod.parser_v2.activation import shown_parameters
+
+    shown = shown_parameters(ui.ui())
     inferred = {
         key: value
         for key, value in _guessed(ui, recovered.values).items()
-        if not _computed_hidden(ui, key)
+        if not _computed_hidden(ui, key) or _kept_values_to_try(ui, key, shown)
     }
     decoded: tuple[_ValueMap, list[str]] | None = None
     if cancel is None or not cancel():

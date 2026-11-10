@@ -131,3 +131,63 @@ def test_values_of_the_switch_are_tried_only_while_its_input_is_hidden(
     assert shown is not None
     # The lead function is shown: its own values are tried, which compute the switch.
     assert _kept_values_to_try(shown, _SHOW, {_LEAD}) == []
+
+
+# The same application with the lead function stored (hidden, the download leaves its byte
+# as it is) and a hidden marker of a fixed value the device stores (the kind of the function),
+# so the result is checked once more with the fixed values kept.
+_MARKER = f"{_APP}_P-4_R-4"
+_MARKED_XML = (
+    _XML.replace('Size="2"><Data>AAA=</Data>', 'Size="3"><Data>AAAA</Data>')
+    .replace(
+        'Text="Lead temperature" Value="0" />',
+        'Text="Lead temperature" Value="0">\n'
+        f'            <Memory CodeSegment="{_SEGMENT}" Offset="1" BitOffset="0" />\n'
+        "          </Parameter>",
+    )
+    .replace(
+        "        </Parameters>",
+        f'          <Parameter Id="{_APP}_P-4" Name="Kind" ParameterType="{_APP}_PT-OnOff"'
+        ' Text="" Access="None" Value="0">\n'
+        f'            <Memory CodeSegment="{_SEGMENT}" Offset="2" BitOffset="0" />\n'
+        "          </Parameter>\n"
+        "        </Parameters>",
+    )
+    .replace(
+        f'<ParameterRef Id="{_SHOW}" RefId="{_APP}_P-3" />',
+        f'<ParameterRef Id="{_SHOW}" RefId="{_APP}_P-3" />\n'
+        f'          <ParameterRef Id="{_MARKER}" RefId="{_APP}_P-4" Value="1" />',
+    )
+    .replace(
+        f'<ParameterRefRef RefId="{_MODE}" />',
+        f'<ParameterRefRef RefId="{_MODE}" />\n'
+        f'            <ParameterRefRef RefId="{_MARKER}" />',
+    )
+)
+
+
+@pytest.mark.parametrize("effort", list(RecoveryEffort))
+def test_the_kept_switch_stays_with_a_fixed_marker(effort: RecoveryEffort) -> None:
+    application = parse_application_xml(_MARKED_XML.encode(), "M-00FA")[0]
+    ui = application.dynamic_ui()
+    assert ui is not None
+    ui.set_parameter_ref(_LEAD, "1")
+    ui.set_parameter_ref(_MODE, "1")
+    assert ui.get_value(_SHOW) == "1"
+    memory = ui.encode_to_memory()
+    # The hidden lead function keeps the byte the download leaves.
+    assert memory[_SEGMENT] == b"\x01\x00\x01"
+
+    result = recover_parameters(
+        application,
+        memory,
+        linked_objects={1},
+        object_sizes={1: "2 Bytes"},
+        effort=effort,
+    )
+
+    # Only the linked object tells the switch: checked with the marker's fixed value, it
+    # keeps the value the object needs, not the one the lead function read computes.
+    assert result.values.get(_MODE) == "1"
+    assert result.values.get(_SHOW) == "1"
+    assert result.complete
