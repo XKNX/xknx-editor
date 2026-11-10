@@ -2300,6 +2300,12 @@ class DynamicUI:
             pending.extend(scope.reached_module_children())
         return found
 
+    def assign_targets(self) -> frozenset[str]:
+        """The param-refs the Assigns of the evaluated tree write (a constant or a copy), those
+        of the module instances it reaches qualified with their instance."""
+        self.ui()
+        return frozenset(self._state.assign_targets())
+
     def assigned_source(self, ref_id: str) -> str | None:
         """The param-ref an Assign of the evaluated tree writes the (possibly module-qualified)
         ``ref_id`` from, qualified in the scope that owns it: a module instance's own one with

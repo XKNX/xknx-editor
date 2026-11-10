@@ -107,6 +107,10 @@ def seed_dynamic_ui(
     in the scope it was in; an instance it lists that holds no value is made by the evaluation
     that reaches it, and the root's instances are found by their ids, not their order), the
     second build would evaluate it alike, and the first one is returned instead.
+
+    Values that leave out a setting the device keeps no copy of that an Assign writes are
+    completed with what the Assigns write there (see :func:`assigned_completion`) when the
+    first build loses a value they give without it.
     """
     from xknxeditor.namespaces.intermediate.module_instance_t import ModuleInstance
     from xknxeditor.prod.parser_v2.dynamic import DynamicUI
@@ -124,6 +128,17 @@ def seed_dynamic_ui(
         )
         layout = probe.state_layout() if evaluated else None
         module_instances = probe.get_module_instances()
+        completion = _lost_to_assigns(probe, parameter_values)
+        if completion:
+            parameter_values = {**parameter_values, **completion}
+            probe = DynamicUI(
+                program,
+                parameter_values=parameter_values,
+                project_code_page=project_code_page,
+                tree_builder=tree_builder,
+            )
+            layout = probe.state_layout() if evaluated else None
+            module_instances = probe.get_module_instances()
         if not (module_instances and parameter_values):
             return probe
         seeded = DynamicUI(
@@ -151,6 +166,69 @@ def seed_dynamic_ui(
         ],
         project_code_page=project_code_page,
     )
+
+
+def _lost_to_assigns(
+    ui: DynamicUI, parameter_values: Mapping[str, str]
+) -> dict[str, str]:
+    """What the Assigns of the evaluated ``ui`` write into the settings ``parameter_values``
+    leaves out, when one of its values got lost: a setting the evaluation shows (and no Assign
+    writes) that holds another value than given was written over by an Assign that applied only
+    until a later one set the selector it hangs on. A project holds what the Assigns wrote like
+    any other value, so seeded with these the evaluation starts from where it ends and keeps
+    every value given. Empty when nothing got lost.
+
+    Only the application's own settings count (a module instance's values only reach their
+    scope in a second build), and only Assigns of a constant or of another application setting:
+    they write the same whatever the module instances hold."""
+    targets = ui.assign_targets()
+    active = ui.active_parameter_ref_ids()
+    if not any(
+        "_MI-" not in ref_id
+        and ref_id in active
+        and ref_id not in targets
+        and ui.get_value(ref_id) != value
+        for ref_id, value in parameter_values.items()
+    ):
+        return {}
+    sources = ui.assigned_from()
+    completion: dict[str, str] = {}
+    for target in targets:
+        source = sources.get(target)
+        if (
+            target in parameter_values
+            or "_MI-" in target
+            or (source is not None and "_MI-" in source)
+        ):
+            continue
+        value = ui.get_value(target)
+        if value is not None:
+            completion[target] = value
+    return completion
+
+
+def assigned_completion(
+    application: Application,
+    parameter_values: Mapping[str, str],
+    project_code_page: str | None = None,
+) -> dict[str, str]:
+    """The values to add to ``parameter_values`` so that a UI seeded with them keeps each value
+    given: what the Assigns write into the settings they leave out, when without them an Assign
+    that applies only until a later one sets its selector writes over a value given (see
+    :func:`seed_dynamic_ui`). Empty when nothing has to be added."""
+    from xknxeditor.prod.parser_v2.dynamic import DynamicUI
+
+    if not parameter_values or application.program.dynamic is None:
+        return {}
+    program, tree_builder = application.resolved()
+    probe = DynamicUI(
+        program,
+        parameter_values=parameter_values,
+        project_code_page=project_code_page,
+        tree_builder=tree_builder,
+    )
+    probe.ui()
+    return _lost_to_assigns(probe, parameter_values)
 
 
 def com_object_ref_by_number(
