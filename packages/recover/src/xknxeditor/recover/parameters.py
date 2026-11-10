@@ -1458,6 +1458,7 @@ def _refine(
                         hidden=_hidden_fixed_values(application.program, ui),
                         joint=joint,
                         beyond_stored=True,
+                        application=application,
                     )
                     if trial[0] != locked and trial not in tried
                 ]
@@ -1609,6 +1610,7 @@ def _refinement_trials(
     hidden: Mapping[str, str] | None = None,
     joint: dict[tuple[str, str], _ValueMap] | None = None,
     beyond_stored: bool = False,
+    application: Application | None = None,
 ) -> list[tuple[str, str]]:
     """Candidate selectors, ordered by how many mismatching cells and objects they gate; with
     ``hidden`` (local param-ref -> fixed value, see :func:`_hidden_fixed_values`) a hidden
@@ -1617,8 +1619,10 @@ def _refinement_trials(
     (see :func:`_joint_values_to_try`), after the other trials: the trial
     ``(selector, value)`` stands for the settings ``joint`` maps it to. With
     ``beyond_stored``, the selectors right on the way to a shown selector the device keeps a
-    copy of (see :func:`_count_selectors`) are tried after all the others. Raises
-    :class:`_Cancelled` once ``cancel`` says so."""
+    copy of (see :func:`_count_selectors`) are tried after all the others. With
+    ``application``, a shown selector with a range too large to try every value first tries
+    the values of the branches that place the settings stored at the mismatching cells (see
+    :func:`_branch_values`). Raises :class:`_Cancelled` once ``cancel`` says so."""
     from xknxeditor.prod.parser_v2.activation import shown_parameters, values_to_try
 
     shown = shown_parameters(ui.ui())
@@ -1630,6 +1634,8 @@ def _refinement_trials(
     cells = ui.stored_parameter_cells()
     active_refs: frozenset[str] | None = None
     unowned = False
+    # The settings stored at the mismatching cells.
+    owning: set[str] = set()
     for cell in sorted(differing):
         _check(cancel)
         owners = (
@@ -1637,6 +1643,7 @@ def _refinement_trials(
             if _is_property_cell(cell)
             else cells.get(cell, ())
         )
+        owning.update(owners)
         for ref_id in sorted(owners):
             _count_selectors(ui, _gates_of(ui, ref_id), shown, weight, beyond)
             _count_selectors(ui, _outer_gates(ui, ref_id), shown, outer, beyond)
@@ -1675,6 +1682,7 @@ def _refinement_trials(
     trials: list[tuple[str, str]] = []
     together: list[tuple[str, str]] = []
     actives: frozenset[str] | None = None
+    branches: dict[str, list[str]] | None = None
     ranked = [
         *weight.most_common(),
         *((gate, n) for gate, n in outer.most_common() if gate not in weight),
@@ -1708,9 +1716,42 @@ def _refinement_trials(
             _editable(parameter) and _written_over_in_part(ui, gate, actives)
         ):
             now = ui.get_value(gate) or parameter.default_value
-            trials.extend((gate, value) for value in values_to_try(parameter, now))
+            tried = values_to_try(parameter, now)
+            if application is not None and not set(
+                values_to_try(parameter, now, ui.tested_values(gate))
+            ) <= set(tried):
+                # A range too large to try every value (a channel number choosing which
+                # channel's settings show): the values of the branches the settings at the
+                # mismatching cells are placed in first.
+                if branches is None:
+                    branches = _branch_values(application, ui, owning, cancel)
+                tried = values_to_try(parameter, now, branches.get(gate, ()))
+            trials.extend((gate, value) for value in tried)
     # The settings changed together after every one alone: those decide more often.
     return trials + together
+
+
+def _branch_values(
+    application: Application,
+    ui: DynamicUI,
+    refs: Collection[str],
+    cancel: Callable[[], bool] | None = None,
+) -> dict[str, list[str]]:
+    """Per selector, the values its ``when`` tests name on the way to the places of the
+    param-refs ``refs`` (see :func:`_explored`), in the order of those places: the values that
+    show them. Raises :class:`_Cancelled` once ``cancel`` says so."""
+    from xknxeditor.prod.parser_v2.nodes.choose import tested_values
+
+    found: dict[str, list[str]] = {}
+    if not refs:
+        return found
+    for ref_id, gates in _explored(application, ui, cancel):
+        if ref_id not in refs:
+            continue
+        for gate in gates:
+            if gate.when is not None:
+                found.setdefault(gate.param, []).extend(tested_values(gate.when))
+    return {gate: list(dict.fromkeys(values)) for gate, values in found.items()}
 
 
 def _kept_values_to_try(
@@ -3156,7 +3197,10 @@ def _assigned_from(
 ) -> _ValueMap:
     """The values of the settings the device keeps no copy of that an Assign of ``ui`` copies
     into stored settings read (a "virtual" setting shown in their place): the value read, for
-    a source of the same type. Where the targets of a source were read with different values
+    a source of the same type. A union member the active members written after it write over
+    in full (see :func:`_shadowed`) keeps no copy either: an Assign that copies it into one of
+    those gives it the value read when its own type has that value (a member with fewer
+    choices for the same bits). Where the targets of a source were read with different values
     (one of them assigned in another branch on the device), the value most of them hold."""
     indexer = ui.indexer
     votes: dict[str, Counter[str]] = {}
@@ -3172,9 +3216,13 @@ def _assigned_from(
             continue
         target_parameter = indexer.parameters.get(target_ref.ref_id)
         source_parameter = indexer.parameters.get(source_ref.ref_id)
-        if _keeps_no_copy(source_parameter) and getattr(
-            source_parameter, "parameter_type", None
-        ) == getattr(target_parameter, "parameter_type", None):
+        alike = getattr(source_parameter, "parameter_type", None) == getattr(
+            target_parameter, "parameter_type", None
+        )
+        if (_keeps_no_copy(source_parameter) and alike) or (
+            _shadowed(ui, source)
+            and (alike or _type_has_value(indexer, source_parameter, value))
+        ):
             votes.setdefault(source, Counter())[value] += 1
     found: _ValueMap = {}
     for source, counted in votes.items():
@@ -3182,6 +3230,30 @@ def _assigned_from(
         if len(ranked) == 1 or ranked[0][1] > ranked[1][1]:
             found[source] = ranked[0][0]
     return found
+
+
+def _type_has_value(indexer: ApplicationIndexer, parameter: object, value: str) -> bool:
+    """Whether the type of ``parameter`` has the value ``value``: one of its choices, or a
+    number in its range."""
+    from xknxeditor.namespaces.intermediate.parameter_type_t_type_number import (
+        ParameterTypeTypeNumber,
+    )
+    from xknxeditor.namespaces.intermediate.parameter_type_t_type_restriction import (
+        ParameterTypeTypeRestriction,
+    )
+
+    type_id = getattr(parameter, "parameter_type", None)
+    parameter_type = indexer.parameter_types.get(type_id) if type_id else None
+    kind = parameter_type.choice if parameter_type is not None else None
+    if isinstance(kind, ParameterTypeTypeRestriction):
+        return any(str(entry.value) == value for entry in kind.enumeration)
+    if isinstance(kind, ParameterTypeTypeNumber):
+        try:
+            number = int(value)
+        except ValueError:
+            return False
+        return kind.min_inclusive <= number <= kind.max_inclusive
+    return False
 
 
 def _written_over_values(
