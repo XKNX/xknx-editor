@@ -781,6 +781,40 @@ class ParameterState:
     def module_children(self) -> list[ModuleState]:
         return list(self._children.values())
 
+    def with_module_child_of(
+        self, other: ParameterState, instance_id: str
+    ) -> Self | None:
+        """This state with the module instance ``instance_id`` (one of this scope's own) as
+        ``other`` holds it, under the same key and in the same place among the instances: the
+        instance's scope is ``other``'s, everything else this state's, both shared, not copied.
+        ``None`` when either state has no such instance under that key. Only to be read: an
+        evaluation of it would change both states."""
+        key = next(
+            (
+                key
+                for key, child in self._children.items()
+                if child.module_instance_id == instance_id
+            ),
+            None,
+        )
+        theirs = other._children.get(key) if key is not None else None
+        if theirs is None or theirs.module_instance_id != instance_id:
+            return None
+        cls = type(self)
+        new = cls.__new__(cls)
+        for name in (
+            n for klass in cls.__mro__ for n in getattr(klass, "__slots__", ())
+        ):
+            if hasattr(self, name):
+                setattr(new, name, getattr(self, name))
+        for name, value in getattr(self, "__dict__", {}).items():
+            setattr(new, name, value)
+        new._children = {
+            own_key: theirs if own_key == key else child
+            for own_key, child in self._children.items()
+        }
+        return new
+
     def reached_module_children(self) -> list[ModuleState]:
         """The module instances of this scope the last pass reached, in the order it reached
         them: the order of the ``Dynamic`` and of the iterations of a ``Repeat``."""

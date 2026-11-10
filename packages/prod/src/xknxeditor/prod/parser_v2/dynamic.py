@@ -1588,6 +1588,56 @@ class DynamicUI:
             self._app, self._idx, self._state, segments, properties, self.text_encoding
         )
 
+    def decode_parameters_with_instance(
+        self,
+        segments: Mapping[str, bytes],
+        properties: Mapping[TypedPropertyKey, bytes],
+        instance_id: str,
+        other: DynamicUI,
+    ) -> dict[str, str | None] | None:
+        """:meth:`decode_stored_parameters` merged with :meth:`decode_module_parameters` of
+        this UI's evaluated state with the module instance ``instance_id`` (one the application
+        places itself) as ``other`` evaluated it, without evaluating anything; ``None`` when
+        either UI makes no such instance.
+
+        An instance's nodes write into the instance's own scope alone, and read only its own
+        values and those of the application's scope, which reads none of an instance's. So
+        when a UI of the same program, code page and module instances is seeded with this
+        UI's values but those of an instance without instances of its own, which it takes from
+        ``other``'s seeding, it evaluates to this state with that instance as ``other`` has it,
+        and decodes what this returns."""
+        other.ui()
+        self.ui()
+        state = self._state.with_module_child_of(other._state, instance_id)
+        if state is None:
+            return None
+        writes = decode_writes(self._app, self._idx, state)
+        decoded = decode_memory_parameters(
+            self._app,
+            self._idx,
+            segments,
+            state,
+            self.text_encoding,
+            writes=writes,
+        )
+        if properties:
+            decoded.update(
+                decode_property_parameters(
+                    self._app,
+                    self._idx,
+                    properties,
+                    state,
+                    self.text_encoding,
+                    writes=writes,
+                )
+            )
+        decoded.update(
+            decode_module_parameters(
+                self._app, self._idx, state, segments, properties, self.text_encoding
+            )
+        )
+        return decoded
+
     def memory_param_map(self) -> dict[str, dict[int, tuple[str, str]]]:
         """Map {seg_id: {byte_offset: (param_id, value)}} for hex-viewer hovers."""
         self.ui()

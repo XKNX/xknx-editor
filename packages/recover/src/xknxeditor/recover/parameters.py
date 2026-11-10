@@ -27,7 +27,7 @@ from collections.abc import Callable, Collection, Mapping, Sequence
 from dataclasses import dataclass, field, replace
 from enum import Enum
 from itertools import count
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, NamedTuple
 
 from xknxeditor.prod.parser_v2.allocator import AllocatorOverflow
 from xknxeditor.prod.script.errors import ScriptAborted
@@ -659,6 +659,10 @@ def _infer_rounds(
     inferred: _ValueMap,
 ) -> tuple[dict[str, str], list[str], _ValueMap]:
     """The inference rounds of :func:`_infer_all` from the values decoded first."""
+    # The values tried for the memory in a round before, each with its UI: one round takes one
+    # setting of one module instance, so most values of the next are tried again where only
+    # that instance differs (see _infer_from_memory).
+    evaluated: dict[tuple[str, str], _Evaluated] = {}
     for _ in range(_INFER_ROUNDS):
         _check(cancel)
         # The memory names the branch of a selector through a hidden setting with a fixed
@@ -699,6 +703,7 @@ def _infer_rounds(
             linked,
             sizes,
             cancel,
+            evaluated,
         )
         if not chosen:
             break
@@ -2664,6 +2669,100 @@ def _shown_objects(ui: DynamicUI, sizes: Mapping[int, str] | None = None) -> set
     return numbers
 
 
+def _shown_objects_split(
+    ui: DynamicUI, sizes: Mapping[int, str], instance: str
+) -> tuple[set[int], set[int]]:
+    """:func:`_shown_objects` of ``ui`` with ``sizes``, those of other module instances and the
+    application's apart from those of the module instance ``instance``."""
+    from xknxeditor.prod.parser_v2.ui import UiComObject, UiParameterBlock, UiTab
+
+    outside: set[int] = set()
+    inside: set[int] = set()
+    prefix = instance + "_"
+    stack: list[object] = list(ui.ui())
+    while stack:
+        node = stack.pop()
+        if isinstance(node, UiComObject):
+            size = sizes.get(node.number) if sizes else None
+            if size is None or node.object_size == size:
+                (inside if node.ref_id.startswith(prefix) else outside).add(node.number)
+        elif isinstance(node, UiTab | UiParameterBlock):
+            stack.extend(node.children)
+    return outside, inside
+
+
+class _Evaluated(NamedTuple):
+    """A UI a value of a module instance's setting was tried in for the memory (see
+    :func:`_infer_from_memory`), with what it was seeded with: its module instances, the
+    values of the application's scope and those of the value's instance."""
+
+    instances: frozenset[tuple[str, str]]
+    shared: Mapping[str, str]
+    own: Mapping[str, str]
+    ui: DynamicUI
+
+
+def _top_instance(key: str, ids: Collection[str]) -> str | None:
+    """The module instance of ``ids`` the application places itself that the (qualified) id
+    ``key`` belongs to, or is; None when it belongs to none of them."""
+    start = key.find("_MI-")
+    if start < 0:
+        return None
+    end = key.find("_", start + 1)
+    prefix = key if end < 0 else key[:end]
+    return prefix if prefix in ids else None
+
+
+class _InstanceValues:
+    """Values split into those of each module instance the application places itself (with
+    its instances' values) and the others (the application's scope), as a UI seeded with
+    them makes the module instances ``instances``. Drops what ``evaluated`` holds that was
+    seeded with other instances or other values of the application's scope."""
+
+    def __init__(
+        self,
+        values: Mapping[str, str],
+        instances: Sequence[tuple[str, str]],
+        evaluated: dict[tuple[str, str], _Evaluated],
+    ) -> None:
+        self.instances = frozenset(instances)
+        self.ids = {instance_id for instance_id, _ in self.instances}
+        self.shared: _ValueMap = {}
+        self.own: dict[str, _ValueMap] = {}
+        for key, value in values.items():
+            instance = _top_instance(key, self.ids)
+            if instance is None:
+                self.shared[key] = value
+            else:
+                self.own.setdefault(instance, {})[key] = value
+        # The instances with instances of their own.
+        self.nested = {
+            top
+            for instance_id in self.ids
+            if (top := _top_instance(instance_id, self.ids)) not in (None, instance_id)
+        }
+        alike: dict[int, bool] = {}
+        for key, entry in list(evaluated.items()):
+            same = alike.get(id(entry.shared))
+            if same is None:
+                same = alike[id(entry.shared)] = entry.shared == self.shared
+            if same and entry.instances == self.instances:
+                evaluated[key] = entry._replace(shared=self.shared)
+            else:
+                del evaluated[key]
+
+    def instance(self, ref_id: str) -> str | None:
+        """The module instance the setting ``ref_id`` belongs to, when the application places
+        it itself, it has no instances of its own and values of it are given; None otherwise.
+        A UI seeded with the values places the instances with values in the order the values
+        give them first, then those it makes: with a value of such an instance added, it
+        places them as it does without."""
+        instance = _top_instance(ref_id, self.ids)
+        if instance is None or instance in self.nested or instance not in self.own:
+            return None
+        return instance
+
+
 def _contradicting_objects(
     ui: DynamicUI, linked: set[int], sizes: Mapping[int, str]
 ) -> set[int]:
@@ -3365,6 +3464,7 @@ def _infer_from_memory(
     linked: set[int],
     sizes: Mapping[int, str],
     cancel: Callable[[], bool] | None = None,
+    evaluated: dict[tuple[str, str], _Evaluated] | None = None,
 ) -> _ValueMap:
     """A value for a shown setting the device keeps no copy of that leads to a member of a
     union whose bytes are no value of its type, chosen so fewer union members do so (and no
@@ -3372,6 +3472,11 @@ def _infer_from_memory(
     holds what an inactive channel writes, is not taken for an active one. The settings that
     lead to the most such members are tried first, ``_MEMORY_TRIES`` values at most. Empty
     when no value does better, or when every union member's bytes fit.
+
+    ``evaluated`` keeps the UIs a value of a module instance's setting is tried in, from one
+    call to the next: a value tried before with the same values of the application's scope
+    and of its own instance is not evaluated again (only the values of other instances
+    differ, whose evaluation it does not change).
     """
     from xknxeditor.prod.parser_v2.activation import shown_parameters, values_to_try
 
@@ -3404,19 +3509,60 @@ def _infer_from_memory(
     best: _ValueMap = {}
     fewest = len(misfits)
     share = fitting / (fitting + fewest)
+    split = (
+        None
+        if evaluated is None
+        else _InstanceValues(values, ui.get_module_instances(), evaluated)
+    )
     for _, ref_id, candidate in candidates[:_MEMORY_TRIES]:
         _check(cancel)
-        seeded = _seeded(application, {**values, ref_id: candidate}, project_code_page)
-        assert seeded is not None
-        try:
-            if not base <= _shown_objects(seeded, sizes):
+        instance = None if split is None else split.instance(ref_id)
+        own: _ValueMap = {}
+        if split is not None and instance is not None:
+            own = {**split.own[instance], ref_id: candidate}
+        before = evaluated.get((ref_id, candidate)) if evaluated is not None else None
+        if (
+            split is not None
+            and instance is not None
+            and before is not None
+            and before.own == own
+        ):
+            # Tried in a round before, seeded alike but for other instances' values: that
+            # UI's instance in this round's UI is what seeding this round's values with the
+            # value evaluates to (see DynamicUI.decode_parameters_with_instance).
+            outside, _ = _shown_objects_split(ui, sizes, instance)
+            _, inside = _shown_objects_split(before.ui, sizes, instance)
+            if not base <= outside | inside:
                 continue
-            trial_fitting, trial_misfits = _union_fit(
-                seeded, _decode_once(seeded, parameter_segments, property_values)
+            decoded = ui.decode_parameters_with_instance(
+                parameter_segments, property_values or {}, instance, before.ui
             )
-        except AllocatorOverflow:
-            # More than the product has room for: no configuration of the device.
-            continue
+            assert decoded is not None
+            trial_fitting, trial_misfits = _union_fit(ui, decoded)
+        else:
+            seeded = _seeded(
+                application, {**values, ref_id: candidate}, project_code_page
+            )
+            assert seeded is not None
+            try:
+                shown = _shown_objects(seeded, sizes)
+                if (
+                    split is not None
+                    and evaluated is not None
+                    and instance is not None
+                    and frozenset(seeded.get_module_instances()) == split.instances
+                ):
+                    evaluated[(ref_id, candidate)] = _Evaluated(
+                        split.instances, split.shared, own, seeded
+                    )
+                if not base <= shown:
+                    continue
+                trial_fitting, trial_misfits = _union_fit(
+                    seeded, _decode_once(seeded, parameter_segments, property_values)
+                )
+            except AllocatorOverflow:
+                # More than the product has room for: no configuration of the device.
+                continue
         total = trial_fitting + len(trial_misfits)
         if len(trial_misfits) < fewest and (
             not total or trial_fitting / total >= share
