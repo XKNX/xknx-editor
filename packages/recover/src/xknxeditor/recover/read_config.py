@@ -198,22 +198,29 @@ async def read_property_values(
     writes = collect_writes(application.program, indexer, {}, None)
     needed = _property_sizes(indexer, writes.prop)
     module_sizes = _module_properties(indexer)
-    cache: dict[_PropertyTarget, bytes] = {}
-    result: dict[TypedPropertyKey, bytes] = {}
+    stored: list[tuple[_PropertyTarget, TypedPropertyKey]] = []
     for write in writes.prop:
         target = _property_target(write)
-        if target is None:
-            continue
+        if target is not None:
+            key = (write.object_index, write.object_type, write.property_id)
+            stored.append((target, (*key, write.occurrence)))
+    # A union without a default member writes nothing without a configuration: its property
+    # is read as well, as far as the union goes.
+    for target, key, size in _union_properties(application):
+        needed[target] = max(needed.get(target, 0), size)
+        stored.append((target, key))
+    cache: dict[_PropertyTarget, bytes] = {}
+    result: dict[TypedPropertyKey, bytes] = {}
+    for target, key in stored:
         if target not in cache:
             size = needed.get(target, 0)
             object_type = target[1]
             if object_type is not None:
                 # Module instances keep parameters further on in the same property.
-                size = max(size, module_sizes.get((object_type, write.property_id), 0))
+                size = max(size, module_sizes.get((object_type, target[3]), 0))
             cache[target] = await _read_target(programmer, target, size)
         if cache[target]:
-            key = (write.object_index, write.object_type, write.property_id)
-            result[(*key, write.occurrence)] = cache[target]
+            result[key] = cache[target]
     for (object_type, property_id), size in module_sizes.items():
         for occurrence in range(_MAX_OCCURRENCES):
             try:
@@ -281,6 +288,52 @@ def _module_properties(indexer: ApplicationIndexer) -> dict[tuple[int, int], int
 # The property a parameter is stored in: (object index, object type, occurrence of an object
 # addressed by type, property id); an object addressed by index has no type and occurrence.
 _PropertyTarget = tuple[int | None, int | None, int, int]
+
+
+def _union_properties(
+    application: Application,
+) -> list[tuple[_PropertyTarget, TypedPropertyKey, int]]:
+    """The properties the application's unions are stored in, each with its key (as
+    :func:`~xknxeditor.prod.parser_v2.encode.encode_to_typed_properties` keys it) and the
+    octets the union takes of it from the first element on."""
+    from xknxeditor.namespaces.intermediate.application_program_static_t_parameters_union import (
+        ApplicationProgramStaticParametersUnion,
+    )
+    from xknxeditor.namespaces.intermediate.property_union_t import PropertyUnion
+
+    parameters = application.program.static.parameters
+    found: list[tuple[_PropertyTarget, TypedPropertyKey, int]] = []
+    for item in parameters.choice if parameters is not None else []:
+        if not isinstance(item, ApplicationProgramStaticParametersUnion):
+            continue
+        storage = item.choice
+        if not isinstance(storage, PropertyUnion):
+            continue
+        if storage.object_index is not None:
+            target: _PropertyTarget = (
+                storage.object_index,
+                None,
+                0,
+                storage.property_id,
+            )
+        elif storage.object_type is not None:
+            target = (
+                None,
+                storage.object_type,
+                storage.occurrence,
+                storage.property_id,
+            )
+        else:
+            continue
+        key = (
+            storage.object_index,
+            storage.object_type,
+            storage.property_id,
+            storage.occurrence,
+        )
+        size = (storage.offset * 8 + storage.bit_offset + item.size_in_bit + 7) // 8
+        found.append((target, key, size))
+    return found
 
 
 def _property_target(write: PropWrite) -> _PropertyTarget | None:

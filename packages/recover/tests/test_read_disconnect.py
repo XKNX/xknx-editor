@@ -99,7 +99,13 @@ async def test_property_disconnect_propagates(monkeypatch: pytest.MonkeyPatch) -
             ]
         ),
     )
-    application = cast(Any, SimpleNamespace(program=None))
+    # No unions, so only the property the stubbed writes name is read.
+    application = cast(
+        Any,
+        SimpleNamespace(
+            program=SimpleNamespace(static=SimpleNamespace(parameters=None))
+        ),
+    )
     with pytest.raises(ManagementConnectionError):
         await read_property_values(
             cast(Any, _Programmer(ManagementConnectionError("disconnected"))),
