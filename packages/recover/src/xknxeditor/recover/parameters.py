@@ -813,9 +813,11 @@ def _differing_property_cells(
     parameters write, otherwise those the parameters there (no member of a union) write with
     their default values. A property holds its parameter's default until a download writes
     it, so another value there is one a configuration that writes it gave (a setting shown
-    behind a switch the device keeps no copy of). An object addressed by index is one object
-    whatever the occurrence (as :func:`~xknxeditor.prod.parser_v2.encode.property_data` reads
-    it). ``None`` when ``ui`` cannot be encoded."""
+    behind a switch the device keeps no copy of). A byte only inactive parameters cover is
+    written with the property's base, zeros (or the factory contents, which the defaults
+    stand for here): zeros there fit too. An object addressed by index is one object whatever
+    the occurrence (as :func:`~xknxeditor.prod.parser_v2.encode.property_data` reads it).
+    ``None`` when ``ui`` cannot be encoded."""
     from xknxeditor.prod.errors import EncodingError
 
     try:
@@ -840,14 +842,23 @@ def _differing_property_cells(
             if offset >= len(device):
                 continue
             own = mine
+            base = False
             if own is None or offset >= len(own.mask) or not own.mask[offset]:
-                # Not written, or kept as the device holds it (an inactive parameter
-                # downloaded in the background): the default, unless a configuration wrote
-                # another value.
+                # Not written: the default, unless a configuration wrote another value. Covered
+                # by an inactive parameter (downloaded in the background), the download writes
+                # the base there.
+                base = (
+                    own is not None
+                    and offset < len(own.covered)
+                    and own.covered[offset] != 0
+                )
                 own = default
                 if own is None or offset >= len(own.mask):
                     continue
-            if (own.data[offset] ^ device[offset]) & own.mask[offset]:
+            bits = own.mask[offset]
+            if (own.data[offset] ^ device[offset]) & bits and not (
+                base and not device[offset] & bits
+            ):
                 differing.add(_property_cell(key, offset))
     return differing
 
