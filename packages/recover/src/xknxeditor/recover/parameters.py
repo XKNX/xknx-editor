@@ -214,6 +214,64 @@ class _SearchCache:
         # The octet a full download fills each relative segment with (``None``: not resolved
         # yet, empty when the procedure does not resolve).
         self.fills: dict[str, int] | None = None
+        # The bits the group tables of a download write in the code segments, by the objects
+        # a UI shows and the ones it instantiates (see :meth:`table_bits`).
+        self.tables: OrderedDict[
+            tuple[frozenset[int], frozenset[str]], dict[_Cell, int]
+        ] = OrderedDict()
+        # The code segments the group communication tables are in (``None``: not resolved
+        # yet).
+        self.table_segments: frozenset[str] | None = None
+
+    def in_tables(self, segment_id: str) -> bool:
+        """Whether a group communication table of the application is in the code segment
+        ``segment_id``."""
+        if self.table_segments is None:
+            static = self.application.program.static
+            self.table_segments = frozenset(
+                table.code_segment
+                for table in (
+                    static.address_table,
+                    static.association_table,
+                    static.com_object_table,
+                )
+                if table is not None and table.code_segment is not None
+            )
+        return segment_id in self.table_segments
+
+    def table_bits(self, ui: DynamicUI) -> dict[_Cell, int]:
+        """The bits of the bytes of the code segments that the group communication tables
+        of a full download of ``ui`` write from the objects and the links (see
+        :func:`~xknxeditor.download.group_table_bits`), by cell: what a setting stored
+        there encodes never reaches the device. They depend on the UI only by the objects
+        it shows and instantiates (which records get their object's size)."""
+        from xknxeditor.download import group_table_bits
+
+        key = (
+            frozenset(_shown_objects(ui)),
+            frozenset(ui.instantiated_com_object_ref_ids()),
+        )
+        cells = self.tables.get(key)
+        if cells is None:
+            bits = group_table_bits(self.application, ui)
+            cells = {}
+            if bits:
+                code = self.application.program.static.code
+                bases, sizes = ui.segment_base_addrs(), ui.segment_sizes()
+                for segment in code.absolute_segment if code is not None else ():
+                    base = bases.get(segment.id)
+                    # The user memory is an address space of its own.
+                    if segment.user_memory or base is None:
+                        continue
+                    for offset in range(sizes.get(segment.id, 0)):
+                        own = bits.get(base + offset)
+                        if own:
+                            cells[(segment.id, offset)] = own
+            self.tables[key] = cells
+            if len(self.tables) > self.CALCULATED:
+                self.tables.popitem(last=False)
+        self.tables.move_to_end(key)
+        return cells
 
     def segment_fills(self) -> dict[str, int]:
         """The octet a full download fills each relative segment of the application with, by
@@ -923,7 +981,10 @@ def _differing_cells(
     record the product places a parameter in, which the download writes from the links), and
     no result writes them otherwise. One a module instance's setting is stored at as well
     counts as a whole. A byte no active setting writes in a relative segment a full download
-    fills when it allocates it holds the fill (see :meth:`_SearchCache.segment_fills`)."""
+    fills when it allocates it holds the fill (see :meth:`_SearchCache.segment_fills`). The
+    bits the group communication tables write from the objects and the links (see
+    :meth:`_SearchCache.table_bits`) hold the tables, not what a setting stored there
+    encodes: they do not count either."""
     from xknxeditor.prod.errors import EncodingError
 
     try:
@@ -932,6 +993,7 @@ def _differing_cells(
         return None
     cache: _SearchCache | None = getattr(_SEARCH, "cache", None)
     fills = cache.segment_fills() if cache is not None else {}
+    tables: dict[_Cell, int] | None = None
     bits: dict[str, bytes] | None = None
     written: dict[str, bytes] | None = None
     cells: dict[_Cell, frozenset[str]] | None = None
@@ -952,11 +1014,18 @@ def _differing_cells(
                     mine = fill
                     if mine == theirs:
                         continue
+            diff = mine ^ theirs
+            if cache is not None and cache.in_tables(segment_id):
+                if tables is None:
+                    tables = cache.table_bits(ui)
+                diff &= ~tables.get((segment_id, offset), 0)
+                if not diff:
+                    continue
             if bits is None:
                 bits = ui.stored_bit_mask()
             stored = bits.get(segment_id, b"")
             own = stored[offset] if offset < len(stored) else 0
-            if own and not (mine ^ theirs) & own:
+            if own and not diff & own:
                 if cells is None:
                     cells = ui.stored_parameter_cells()
                 if not any(
@@ -3368,7 +3437,9 @@ def _mismatches(
 def _differing_bits(
     ui: DynamicUI, parameter_segments: Mapping[str, bytes], cells: Collection[_Cell]
 ) -> int:
-    """How many bits of the bytes ``cells`` the device holds otherwise than ``ui`` writes them."""
+    """How many bits of the bytes ``cells`` the device holds otherwise than ``ui`` writes them,
+    leaving out those the group communication tables write (see
+    :meth:`_SearchCache.table_bits`)."""
     from xknxeditor.prod.errors import EncodingError
 
     if not cells:
@@ -3377,12 +3448,22 @@ def _differing_bits(
         encoded = ui.encode_to_memory()
     except (EncodingError, ValueError):
         return 8 * len(cells)
+    cache: _SearchCache | None = getattr(_SEARCH, "cache", None)
+    tables = (
+        cache.table_bits(ui)
+        if cache is not None
+        and any(cache.in_tables(segment_id) for segment_id, _offset in cells)
+        else {}
+    )
     count = 0
     for segment_id, offset in cells:
         device = parameter_segments.get(segment_id, b"")
         mine = encoded.get(segment_id, b"")
         if offset < min(len(device), len(mine)):
-            count += (device[offset] ^ mine[offset]).bit_count()
+            diff = (device[offset] ^ mine[offset]) & ~tables.get(
+                (segment_id, offset), 0
+            )
+            count += diff.bit_count()
     return count
 
 

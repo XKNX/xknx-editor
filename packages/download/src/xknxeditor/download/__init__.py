@@ -40,6 +40,7 @@ from .image import (
     MemorySegment,
     PropertyValue,
     build_image,
+    group_table_bits,
     relative_segment_fills,
     written_properties,
 )
@@ -133,6 +134,7 @@ __all__ = [
     "download_individual_address",
     "group_address_table",
     "group_communication_from_device",
+    "group_table_bits",
     "is_coupler_address",
     "load_device_security",
     "module_instances_from_device",

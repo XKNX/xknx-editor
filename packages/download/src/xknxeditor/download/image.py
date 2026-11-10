@@ -1029,6 +1029,65 @@ def relative_segment_fills(
     }
 
 
+def group_table_bits(application: Application, ui: DynamicUI) -> dict[int, int]:
+    """The bits of each octet (by absolute address) that the group communication tables of
+    a full download of ``ui`` write from the objects and the links, whatever the parameters
+    stored there encode: the flags of a group object table record, the slots of an
+    association table. What a parameter stored in those bits encodes never reaches the
+    device. Bits a table writes from the code segment's own data (a record's value pointer,
+    bit 5 of its flag byte) are the parameters' and are left out. Built without links: a
+    download with links writes longer tables, never shorter ones. Empty where the tables
+    are not in memory at absolute addresses (System B, System 300, properties) or the image
+    does not build."""
+    mask_version = device_mask_version(application)
+    static = application.program.static
+    code = static.code
+    relative: set[str] = (
+        {segment.id for segment in code.relative_segment} if code else set()
+    )
+    address_table = static.address_table
+    if (
+        property_group_tables(mask_version)
+        or mask_number(mask_version) == _SYSTEM_300
+        or address_table is None
+        or address_table.code_segment is None
+        or address_table.code_segment in relative
+    ):
+        return {}
+    try:
+        encoded = ui.encode_to_memory_masked()
+    except (EncodingError, ValueError):
+        return {}
+    base_addresses = ui.segment_base_addrs()
+    communication = GroupCommunication(device_address=0, links=())
+    # The tables built over the parameters' encoding and over its inverse: a bit the same
+    # in both is the tables' own.
+    octets: list[dict[int, int]] = []
+    for flip in (0x00, 0xFF):
+        seeds = {
+            segment_id: (bytes(value ^ flip for value in data), mask)
+            for segment_id, (data, mask) in encoded.items()
+        }
+        try:
+            tables = _group_communication_segments(
+                application, ui, base_addresses, seeds, communication
+            )
+        except (ImageError, EncodingError, ValueError):
+            return {}
+        written: dict[int, int] = {}
+        for segment in sorted(tables.segments, key=lambda s: s.address):
+            for address, data in segment.masked_runs(include_initialized=True):
+                for offset, value in enumerate(data):
+                    written[address + offset] = value
+        octets.append(written)
+    plain, inverse = octets
+    return {
+        address: bits
+        for address, value in plain.items()
+        if address in inverse and (bits := ~(value ^ inverse[address]) & 0xFF)
+    }
+
+
 def _security_tables(
     application: Application, ui: DynamicUI, gc: GroupCommunication
 ) -> SecurityTables | None:
