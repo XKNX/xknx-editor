@@ -197,7 +197,9 @@ def test_recovery_decodes_again_with_the_values_read(
     application = cast(
         Any,
         SimpleNamespace(
-            dynamic_ui=lambda: UI({}), program=SimpleNamespace(dynamic=None)
+            dynamic_ui=lambda: UI({}),
+            # No code segments: none a download fills.
+            program=SimpleNamespace(dynamic=None, static=SimpleNamespace(code=None)),
         ),
     )
     recovered = recover_parameters(application, {})

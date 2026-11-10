@@ -211,6 +211,23 @@ class _SearchCache:
         self.written: OrderedDict[int, tuple[DynamicUI, frozenset[PropertyTarget]]] = (
             OrderedDict()
         )
+        # The octet a full download fills each relative segment with (``None``: not resolved
+        # yet, empty when the procedure does not resolve).
+        self.fills: dict[str, int] | None = None
+
+    def segment_fills(self) -> dict[str, int]:
+        """The octet a full download fills each relative segment of the application with, by
+        segment id (see :func:`~xknxeditor.download.relative_segment_fills`); empty when the
+        procedure does not resolve."""
+        from xknxeditor.download import relative_segment_fills
+        from xknxeditor.download.errors import DownloadError
+
+        if self.fills is None:
+            try:
+                self.fills = relative_segment_fills(self.application, self.master)
+            except (DownloadError, ValueError):
+                self.fills = {}
+        return self.fills
 
     def unwritten(self, ui: DynamicUI, key: TypedPropertyKey) -> bool:
         """Whether no control of the load procedure a download of ``ui`` runs writes the
@@ -905,22 +922,36 @@ def _differing_cells(
     setting is stored at: its other bits are no setting's (the flags of a group object table
     record the product places a parameter in, which the download writes from the links), and
     no result writes them otherwise. One a module instance's setting is stored at as well
-    counts as a whole."""
+    counts as a whole. A byte no active setting writes in a relative segment a full download
+    fills when it allocates it holds the fill (see :meth:`_SearchCache.segment_fills`)."""
     from xknxeditor.prod.errors import EncodingError
 
     try:
         encoded = ui.encode_to_memory()
     except (EncodingError, ValueError):
         return None
+    cache: _SearchCache | None = getattr(_SEARCH, "cache", None)
+    fills = cache.segment_fills() if cache is not None else {}
     bits: dict[str, bytes] | None = None
+    written: dict[str, bytes] | None = None
     cells: dict[_Cell, frozenset[str]] | None = None
     differing: set[_Cell] = set()
     for segment_id, device in parameter_segments.items():
+        fill = fills.get(segment_id, 0)
         for offset, (mine, theirs) in enumerate(
             zip(encoded.get(segment_id, b""), device, strict=False)
         ):
             if mine == theirs:
                 continue
+            if fill:
+                if written is None:
+                    written = ui.written_bit_mask()
+                mask = written.get(segment_id, b"")
+                if not (mask[offset] if offset < len(mask) else 0):
+                    # No active setting writes the byte: the download leaves the fill.
+                    mine = fill
+                    if mine == theirs:
+                        continue
             if bits is None:
                 bits = ui.stored_bit_mask()
             stored = bits.get(segment_id, b"")

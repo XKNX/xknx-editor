@@ -24,6 +24,7 @@ from xknxeditor.namespaces.intermediate.com_object_t import ComObject
 from xknxeditor.namespaces.intermediate.enable_t import Enable
 from xknxeditor.namespaces.intermediate.ld_ctrl_abs_segment_t import LdCtrlAbsSegment
 from xknxeditor.namespaces.intermediate.ld_ctrl_compare_prop_t import LdCtrlCompareProp
+from xknxeditor.namespaces.intermediate.ld_ctrl_rel_segment_t import LdCtrlRelSegment
 from xknxeditor.namespaces.intermediate.ld_ctrl_write_prop_t import LdCtrlWriteProp
 from xknxeditor.namespaces.intermediate.resource_addr_space_t import ResourceAddrSpace
 from xknxeditor.namespaces.intermediate.resource_name_t import ResourceName
@@ -999,6 +1000,33 @@ def written_properties(
         for control in controls
         if isinstance(control, LdCtrlWriteProp | LdCtrlCompareProp)
     )
+
+
+def relative_segment_fills(
+    application: Application, master: MasterData | None
+) -> dict[str, int]:
+    """The octet a full download of ``application`` fills each of its relative segments with
+    when it allocates the segment (``LdCtrlRelSegment`` of the segment's load state machine
+    with mode bit 0 set), by segment id: what the device holds there where no parameter is
+    written (an inactive parameter under ``DownloadInvisibleParameters="None"``). Left out
+    are segments filled with zeros, those not filled, and those with data of their own (the
+    download writes that data). Raises :class:`~xknxeditor.download.errors.DownloadError`
+    when the procedure does not resolve."""
+    code = application.program.static.code
+    if code is None or not code.relative_segment:
+        return {}
+    controls = resolve_download_controls(
+        application, master.raw if master is not None else None
+    )
+    fills: dict[int, int] = {}
+    for control in controls:
+        if isinstance(control, LdCtrlRelSegment) and control.lsm_idx is not None:
+            fills[control.lsm_idx] = control.fill if control.mode & 1 else 0
+    return {
+        segment.id: fills[segment.load_state_machine]
+        for segment in code.relative_segment
+        if segment.data is None and fills.get(segment.load_state_machine)
+    }
 
 
 def _security_tables(

@@ -40,6 +40,7 @@ from .image import (
     MemorySegment,
     PropertyValue,
     build_image,
+    relative_segment_fills,
     written_properties,
 )
 from .ip_config import IpDeviceConfig
@@ -140,6 +141,7 @@ __all__ = [
     "parameter_values_from_device",
     "preflight",
     "program_individual_address",
+    "relative_segment_fills",
     "resolve_download_controls",
     "routed_group_addresses",
     "switch_programming_mode",
