@@ -166,6 +166,30 @@ def test_a_stamp_is_read_three_octets_per_crc_when_the_length_allows_it() -> Non
     )
 
 
+def test_a_stamp_fitting_both_layouts_is_read_wide_when_three_octets_run_past_the_end() -> (
+    None
+):
+    # Objects 3, 4 and 5 with one CRC each in the older layout: 15 octets of CRCs fit both
+    # layouts, but three octets per CRC run past the end.
+    raw = struct.pack("<IIi", 0x00010001, 1, 3)
+    for index, crc in ((3, 0x3AD0), (4, 0xA107), (5, 0xE3DB)):
+        raw += struct.pack("<Bi?H", index, 1, True, crc) + b"\x00\x00"
+    assert parse_factory_stamp(raw) == FactoryStamp(
+        objects=(
+            ObjectStamp(3, ((True, 0x3AD0),)),
+            ObjectStamp(4, ((True, 0xA107),)),
+            ObjectStamp(5, ((True, 0xE3DB),)),
+        )
+    )
+
+
+def test_a_stamp_fitting_neither_layout_is_rejected() -> None:
+    # One object with 1000 CRCs and two octets of them: neither layout reads to the end.
+    raw = struct.pack("<IIi", 0x00010001, 1, 1) + struct.pack("<Bi", 3, 1000) + bytes(2)
+    with pytest.raises(FactoryImageError, match="truncated"):
+        parse_factory_stamp(raw)
+
+
 def test_no_stamp_or_one_of_another_flavour_checks_nothing() -> None:
     assert parse_factory_stamp(None) is None
     assert parse_factory_stamp(b"") is None
