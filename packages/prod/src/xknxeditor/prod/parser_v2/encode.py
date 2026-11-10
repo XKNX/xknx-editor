@@ -85,6 +85,7 @@ from xknxeditor.namespaces.intermediate.union_parameter_t import UnionParameter
 
 from ..errors import EncodingError
 from .application_indexer import ApplicationIndexer
+from .ip_text import parse_ip_address
 from .state import GlobalState, ModuleState
 from .text_encoding import text_parameter_encoding
 
@@ -509,11 +510,12 @@ def _encode_ipaddress(str_value: str, tc: ParameterTypeTypeIpaddress) -> int | N
     """An IP address to its network-order octets: 4 for IPv4, 16 for IPv6.
 
     The address family must match the type's declared ``version`` (a v4 literal in a
-    v6 field, or vice versa, does not encode).
+    v6 field, or vice versa, does not encode). The text is read as
+    :func:`~xknxeditor.prod.parser_v2.ip_text.parse_ip_address` reads it (``0`` is
+    ``0.0.0.0``).
     """
-    try:
-        addr = ipaddress.ip_address(str_value.strip())
-    except ValueError:
+    addr = parse_ip_address(str_value)
+    if addr is None:
         return None
     want = 16 if tc.version == ParameterTypeTypeIpaddressVersion.IPV6 else 4
     packed = addr.packed

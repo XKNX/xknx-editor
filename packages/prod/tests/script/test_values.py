@@ -130,7 +130,10 @@ def test_check_value() -> None:
     assert check_value("3", ENUM) == "3"
     assert check_value("abcde", TEXT) == "abcde"
     assert check_value("192.168.1.1", IP) == "192.168.1.1"
+    # A single number is the whole address.
+    assert check_value("0", IP) == "0"
     for value, tc in [
+        ("1.2.3.256", IP),
         ("201", NUMBER),
         ("2", ENUM),
         ("11", FLOAT),
