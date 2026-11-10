@@ -422,12 +422,10 @@ def recover_parameters(
 
         cancel = latched_cancel
 
-    from .recover import assigned_completion
-
     previous = getattr(_SEARCH, "cache", None)
     _SEARCH.cache = _SearchCache(application, master)
     try:
-        result = _search(
+        return _search(
             application,
             parameter_segments,
             property_values,
@@ -439,12 +437,6 @@ def recover_parameters(
         )
     finally:
         _SEARCH.cache = previous
-    # The values a project holds for the device: with what the Assigns wrote where a value read
-    # is lost without it (see seed_dynamic_ui).
-    completion = assigned_completion(application, result.values, project_code_page)
-    if not completion:
-        return result
-    return replace(result, values={**result.values, **completion})
 
 
 def _search(

@@ -12,7 +12,7 @@ from __future__ import annotations
 from xknxeditor.prod.application import Application, parse_application_xml
 from xknxeditor.prod.parser_v2.dynamic import DynamicUI
 from xknxeditor.recover.parameters import recover_parameters
-from xknxeditor.recover.recover import assigned_completion, seed_dynamic_ui
+from xknxeditor.recover.recover import seed_dynamic_ui
 
 _APP = "M-00FA_A-00F3-01-0000"
 _SEGMENT = f"{_APP}_AS-0000"
@@ -91,20 +91,30 @@ def test_a_seeded_value_is_kept() -> None:
     assert ui.encode_to_memory()[_SEGMENT] == b"\x01\x01"
 
 
+def _opened(application: Application, values: dict[str, str]) -> DynamicUI:
+    """A UI evaluated once with ``values``, as a project opens."""
+    program, tree_builder = application.resolved()
+    ui = DynamicUI(program, parameter_values=values, tree_builder=tree_builder)
+    ui.ui()
+    return ui
+
+
 def test_no_value_is_lost_to_the_first_pass() -> None:
     # The first pass of an evaluation selects a branch of every choose: the Assign behind the
     # choose on "Flag" writes 0 into "Setting" there. Once "Gate" has set "Flag", that Assign
-    # does not apply, and the value read is given back: nothing to complete.
-    application = _application()
-    assert assigned_completion(application, {_GATE: "1", _SETTING: "1"}) == {}
+    # does not apply, and the value given is kept by one evaluation.
+    ui = _opened(_application(), {_GATE: "1", _SETTING: "1"})
+    assert ui.get_value(_FLAG) == "1"
+    assert ui.get_value(_SETTING) == "1"
 
 
-def test_nothing_is_added_when_no_value_is_lost() -> None:
+def test_the_fixed_assign_applies_while_the_flag_is_off() -> None:
     application = _application()
-    assert assigned_completion(application, {_GATE: "1", _SETTING: "0"}) == {}
-    # The fixed Assign still applies: it writes "Setting", nothing lost there either.
-    assert assigned_completion(application, {_GATE: "0", _SETTING: "1"}) == {}
-    assert assigned_completion(application, {}) == {}
+    assert _opened(application, {_GATE: "1", _SETTING: "0"}).get_value(_SETTING) == "0"
+    # "Gate" leaves "Flag" at 0: the fixed Assign writes "Setting".
+    ui = _opened(application, {_GATE: "0", _SETTING: "1"})
+    assert ui.get_value(_FLAG) == "0"
+    assert ui.get_value(_SETTING) == "0"
 
 
 def test_the_device_is_recovered_completely() -> None:
@@ -116,9 +126,4 @@ def test_the_device_is_recovered_completely() -> None:
     assert recovered.values[_GATE] == "1"
     assert recovered.values[_SETTING] == "1"
     # A project with the values recovered opens with the value read.
-    program, tree_builder = application.resolved()
-    reopened = DynamicUI(
-        program, parameter_values=recovered.values, tree_builder=tree_builder
-    )
-    reopened.ui()
-    assert reopened.get_value(_SETTING) == "1"
+    assert _opened(application, recovered.values).get_value(_SETTING) == "1"
