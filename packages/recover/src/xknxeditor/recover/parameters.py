@@ -1708,6 +1708,21 @@ def _guessed(ui: DynamicUI, values: Mapping[str, str]) -> _ValueMap:
     }
 
 
+def _computed_hidden(ui: DynamicUI, ref_id: str) -> bool:
+    """Whether a parameter calculation computes the param-ref ``ref_id`` (it is on the right
+    side of one) and the user cannot change it (no edit ever sets it otherwise)."""
+    from xknxeditor.namespaces.intermediate.access_t import Access
+
+    local = ui.local_ref_id(ref_id)
+    indexer = ui.indexer
+    if not indexer.calculations_for_r(local):
+        return False
+    ref = indexer.parameter_refs.get(local)
+    parameter = indexer.parameters.get(ref.ref_id) if ref is not None else None
+    access = getattr(ref, "access", None) or getattr(parameter, "access", None)
+    return access is not None and access is not Access.READ_WRITE
+
+
 def _written_over_in_part(ui: DynamicUI, ref_id: str, actives: Collection[str]) -> bool:
     """Whether later active members of ``ref_id``'s union write over some of its bits, but not
     all (see :meth:`DynamicUI.later_union_members`)."""
@@ -1967,7 +1982,13 @@ def _refine_fixed(
     ui = _seeded(application, recovered.values, project_code_page)
     if ui is None:
         return recovered
-    inferred = _guessed(ui, recovered.values)
+    # A hidden setting a calculation computes is computed again from each value tried (a
+    # channel's function decides which of its settings show), not kept as the result has it.
+    inferred = {
+        key: value
+        for key, value in _guessed(ui, recovered.values).items()
+        if not _computed_hidden(ui, key)
+    }
     decoded: tuple[_ValueMap, list[str]] | None = None
     if cancel is None or not cancel():
         with contextlib.suppress(_Cancelled):
@@ -2078,7 +2099,11 @@ def _refine_fixed(
             _check(cancel)
             if _nothing_differs(current[0]):
                 break
-            differing = current[1] & _fixed_cells(ui, fixed)
+            differing = current[1] & _fixed_cells(
+                ui,
+                fixed,
+                properties=any(_is_property_cell(cell) for cell in current[1]),
+            )
             improved = False
             exhausted = False
             evaluated = 0
@@ -3128,9 +3153,12 @@ def _hidden_fixed_values(program: object, ui: DynamicUI) -> Mapping[str, str]:
     return values
 
 
-def _fixed_cells(ui: DynamicUI, fixed: _ValueMap) -> set[_Cell]:
+def _fixed_cells(
+    ui: DynamicUI, fixed: _ValueMap, *, properties: bool = False
+) -> set[_Cell]:
     """The bytes the active hidden settings with a fixed value (see :func:`_fixed_values`) take
-    in ``ui``, also the ones they share with other settings (a few bits of a byte each)."""
+    in ``ui``, also the ones they share with other settings (a few bits of a byte each); with
+    ``properties`` those of properties too."""
     indexer = ui.indexer
     active_refs = ui.active_parameter_ref_ids()
     active = {ui.local_ref_id(ref_id) for ref_id in active_refs}
@@ -3149,9 +3177,15 @@ def _fixed_cells(ui: DynamicUI, fixed: _ValueMap) -> set[_Cell]:
         if (local := ui.local_ref_id(ref_id)) in fixed
         and indexer.parameter_refs[local].ref_id in parameters
     }
-    return {
+    cells = {
         cell for cell, owners in ui.stored_parameter_cells().items() if owners & refs
     }
+    if properties:
+        # Those stored in a property, as cells of their own (see _property_cell).
+        cells |= {
+            cell for cell, owners in _property_owners(ui).items() if owners & refs
+        }
+    return cells
 
 
 def _mismatches(
