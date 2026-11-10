@@ -23,9 +23,10 @@ from __future__ import annotations
 import contextlib
 import threading
 from collections import Counter, OrderedDict
-from collections.abc import Callable, Collection, Mapping, Sequence
+from collections.abc import Callable, Collection, Iterator, Mapping, Sequence
 from dataclasses import dataclass, field, replace
 from enum import Enum
+from functools import partial
 from itertools import count
 from typing import TYPE_CHECKING, NamedTuple
 
@@ -107,6 +108,9 @@ _INFER_ROUNDS = 16
 # settings they show.
 _MEMORY_TRIES = 24
 _LOOK_AHEAD_TRIES = 12
+# Combinations of the values of the selectors on the way to a group object looked at at most
+# (see _nested_values_to_try).
+_NESTED_COMBINATIONS = 64
 # Corrections of the result at most, the values tried for one (each with the whole inference
 # behind it), and how far up the selectors are followed from a byte or group object that differs.
 _REFINE_ROUNDS = 4
@@ -1328,12 +1332,15 @@ def _count_selectors(
     gates: Collection[str],
     shown: Collection[str],
     weight: Counter[str],
+    beyond: Counter[str] | None = None,
 ) -> None:
     """Count the selectors ``gates`` in ``weight``, and for one not ``shown`` those on its own way,
     ``_REFINE_DEPTH`` selectors up; for one a parameter calculation sets, the parameters it is
     calculated from, and for one an Assign copies from another param-ref, that one (shown or
     not: the selector follows them; a module's hidden copy of an application setting is decided
-    by that setting)."""
+    by that setting). With ``beyond``, for a shown one the device keeps a copy of, those right
+    on its way in ``beyond``: it has the value read, what shows it decides too (a channel switch
+    above a stored mode whose choose places modules beside the switch)."""
     frontier = set(gates)
     for _depth in range(_REFINE_DEPTH):
         above: set[str] = set()
@@ -1342,6 +1349,9 @@ def _count_selectors(
             weight[gate] += 1
             if gate not in shown:
                 above |= _gates_of(ui, gate)
+            elif beyond is not None and not _is_unstored(ui, gate):
+                for outside in sorted(_gates_of(ui, gate)):
+                    beyond[outside] += 1
             above |= _calculation_inputs(ui, gate)
             source = ui.assigned_source(gate)
             if source is not None:
@@ -1447,6 +1457,7 @@ def _refine(
                         cancel,
                         hidden=_hidden_fixed_values(application.program, ui),
                         joint=joint,
+                        beyond_stored=True,
                     )
                     if trial[0] != locked and trial not in tried
                 ]
@@ -1597,19 +1608,25 @@ def _refinement_trials(
     *,
     hidden: Mapping[str, str] | None = None,
     joint: dict[tuple[str, str], _ValueMap] | None = None,
+    beyond_stored: bool = False,
 ) -> list[tuple[str, str]]:
     """Candidate selectors, ordered by how many mismatching cells and objects they gate; with
     ``hidden`` (local param-ref -> fixed value, see :func:`_hidden_fixed_values`) a hidden
     selector's fixed value too. With ``joint``, a hidden selector a calculation computes from
     several shown settings the device keeps no copy of is tried with those changed together
     (see :func:`_joint_values_to_try`), after the other trials: the trial
-    ``(selector, value)`` stands for the settings ``joint`` maps it to. Raises :class:`_Cancelled` once ``cancel`` says so."""
+    ``(selector, value)`` stands for the settings ``joint`` maps it to. With
+    ``beyond_stored``, the selectors right on the way to a shown selector the device keeps a
+    copy of (see :func:`_count_selectors`) are tried after all the others. Raises
+    :class:`_Cancelled` once ``cancel`` says so."""
     from xknxeditor.prod.parser_v2.activation import shown_parameters, values_to_try
 
     shown = shown_parameters(ui.ui())
     weight: Counter[str] = Counter()
     # The selectors that decide whether a module instance is there, tried after the others.
     outer: Counter[str] = Counter()
+    # The selectors above the stored ones, tried after both (see _count_selectors).
+    beyond: Counter[str] | None = Counter() if beyond_stored else None
     cells = ui.stored_parameter_cells()
     active_refs: frozenset[str] | None = None
     unowned = False
@@ -1621,8 +1638,8 @@ def _refinement_trials(
             else cells.get(cell, ())
         )
         for ref_id in sorted(owners):
-            _count_selectors(ui, _gates_of(ui, ref_id), shown, weight)
-            _count_selectors(ui, _outer_gates(ui, ref_id), shown, outer)
+            _count_selectors(ui, _gates_of(ui, ref_id), shown, weight, beyond)
+            _count_selectors(ui, _outer_gates(ui, ref_id), shown, outer, beyond)
         if not unowned and not _is_property_cell(cell):
             if active_refs is None:
                 active_refs = ui.active_parameter_ref_ids()
@@ -1631,14 +1648,18 @@ def _refinement_trials(
         # A byte no active setting writes (only settings shown otherwise are stored there): a
         # module instance the tree does not make can own it (a submodule another function of
         # a button places), whose settings are not known before it is there.
-        _count_selectors(ui, _absent_module_gates(ui, objects=False), shown, outer)
+        _count_selectors(
+            ui, _absent_module_gates(ui, objects=False), shown, outer, beyond
+        )
     objects_of = _objects_by_number(ui) if wrong else {}
     for number in sorted(wrong):
         _check(cancel)
         for ref_id in objects_of.get(number, ()):
-            _count_selectors(ui, _gates_of(ui, ref_id, ui.object_gates), shown, weight)
             _count_selectors(
-                ui, _outer_gates(ui, ref_id, ui.object_gates), shown, outer
+                ui, _gates_of(ui, ref_id, ui.object_gates), shown, weight, beyond
+            )
+            _count_selectors(
+                ui, _outer_gates(ui, ref_id, ui.object_gates), shown, outer, beyond
             )
     if any(number not in objects_of for number in wrong):
         # A linked object no reference of the instances there are now has (its number is one
@@ -1649,14 +1670,19 @@ def _refinement_trials(
         # objects.
         for instance in ui.get_module_instances():
             _check(cancel)
-            _count_selectors(ui, _module_gates_of(ui, instance), shown, outer)
-        _count_selectors(ui, _absent_module_gates(ui), shown, outer)
+            _count_selectors(ui, _module_gates_of(ui, instance), shown, outer, beyond)
+        _count_selectors(ui, _absent_module_gates(ui), shown, outer, beyond)
     trials: list[tuple[str, str]] = []
     together: list[tuple[str, str]] = []
     actives: frozenset[str] | None = None
     ranked = [
         *weight.most_common(),
         *((gate, n) for gate, n in outer.most_common() if gate not in weight),
+        *(
+            (gate, n)
+            for gate, n in (beyond.most_common() if beyond is not None else [])
+            if gate not in weight and gate not in outer
+        ),
     ]
     for gate, _count in ranked:
         parameter = shown.get(gate)
@@ -3173,8 +3199,10 @@ def _written_over_values(
     value whose bytes, written in ``ui`` with ``values``, are those of ``segments`` (memory)
     and ``properties`` (property members). A later member the value itself shows (a switch
     whose "yes" shows an option stored in one of its bits) is written with the value the
-    memory holds for it. A member with no byte the device was read at stays unknown. Raises
-    :class:`_Cancelled` once ``cancel`` says so."""
+    memory holds for it; so a member whose bytes hold a later member's value, with no later
+    member active, takes the value that shows one whose value they are (a "role" whose
+    "slave" shows the slave's type on the same bits). A member with no byte the device was
+    read at stays unknown. Raises :class:`_Cancelled` once ``cancel`` says so."""
     if not unknown:
         return {}
     from xknxeditor.prod.parser_v2.activation import shown_parameters, values_to_try
@@ -3190,8 +3218,19 @@ def _written_over_values(
         if ref is None or ref.ref_id not in lost:
             continue
         later = ui.later_union_members(ref_id)
-        if not later or ui.union_member_covered(ref_id, later):
+        if not later:
             continue
+        # A member the active later ones write over in full keeps no bit of its own (see
+        # _shadowed). With none active, of one later ones can write over in full only a
+        # value a choose on it tests can show one.
+        tested: tuple[str, ...] | None = None
+        if later & actives:
+            if ui.union_member_covered(ref_id, later & actives):
+                continue
+        elif ui.union_member_covered(ref_id, later):
+            tested = ui.tested_values(ref_id)
+            if not tested:
+                continue
         if shown is None:
             shown = shown_parameters(ui.ui())
             cells = ui.stored_parameter_cells()
@@ -3216,16 +3255,29 @@ def _written_over_values(
         # stays when it fits.
         given = values.get(ref_id)
         candidates = values_to_try(parameter, "")
+        if tested is not None:
+            candidates = [value for value in candidates if value in tested]
         if given is not None:
             candidates = [given, *(value for value in candidates if value != given)]
-        for value in candidates:
+
+        # Of a wide range only some values are tried: then those the bits the later members
+        # leave give, with each setting of the bits they write.
+        readings = (
+            partial(
+                _readings_under, application, ui, ref.ref_id, later & actives, segments
+            )
+            if tested is None
+            else None
+        )
+        for value in _then_read(candidates, readings):
             _check(cancel)
             trial = {**values, ref_id: value}
             seeded = _seeded(application, trial, project_code_page)
             if seeded is None:
                 continue
-            if not _written_over_in_part(
-                seeded, ref_id, seeded.active_parameter_ref_ids()
+            if (
+                not seeded.later_union_members(ref_id)
+                & seeded.active_parameter_ref_ids()
             ):
                 continue
             behind = _later_members_read(seeded, ref_id, segments, trial)
@@ -3247,6 +3299,119 @@ def _written_over_values(
                 found[ref_id] = value
                 break
     return found
+
+
+def _then_read(
+    candidates: list[str], readings: Callable[[], list[str]] | None
+) -> Iterator[str]:
+    """``candidates``, then (computed only when they are used up) the values ``readings``
+    gives that are not among them."""
+    yield from candidates
+    if readings is not None:
+        yield from (value for value in readings() if value not in candidates)
+
+
+# The bits of a union member a later member writes over that are tried with each setting at most
+# (see _readings_under).
+_COVERED_BITS = 4
+
+
+def _readings_under(
+    application: Application,
+    ui: DynamicUI,
+    parameter_id: str,
+    later: Collection[str],
+    segments: Mapping[str, bytes],
+) -> list[str]:
+    """The values of the application's union member ``parameter_id`` in memory that ``ui``
+    decodes from ``segments`` with the bits of it the members of the param-refs ``later``
+    write set each way (``_COVERED_BITS`` of them at most): what it held before they were
+    written over it."""
+    layout = _memory_union_bits(application, ui.indexer)
+    own = layout.get(parameter_id)
+    if own is None:
+        return []
+    segment, start, size = own
+    data = segments.get(segment)
+    if data is None or size is None:
+        return []
+    covered: set[int] = set()
+    for ref in later:
+        local = ui.indexer.parameter_refs.get(ui.local_ref_id(ref))
+        other = layout.get(local.ref_id) if local is not None else None
+        if other is None or other[0] != segment:
+            continue
+        _segment, other_start, other_size = other
+        if other_size is None:
+            return []
+        covered.update(
+            range(max(start, other_start), min(start + size, other_start + other_size))
+        )
+    bits = sorted(covered)
+    if not bits or len(bits) > _COVERED_BITS or bits[-1] // 8 >= len(data):
+        return []
+    found: list[str] = []
+    for setting in range(1 << len(bits)):
+        variant = bytearray(data)
+        for n, bit in enumerate(bits):
+            # The first bit of a byte is its most significant one.
+            mask = 0x80 >> (bit % 8)
+            if setting >> n & 1:
+                variant[bit // 8] |= mask
+            else:
+                variant[bit // 8] &= ~mask & 0xFF
+        value = ui.decode_stored_parameters(
+            {**segments, segment: bytes(variant)}, {}
+        ).get(parameter_id)
+        if value is not None and value not in found:
+            found.append(value)
+    return found
+
+
+def _memory_union_bits(
+    application: Application, indexer: ApplicationIndexer
+) -> Mapping[str, tuple[str, int, int | None]]:
+    """For each member of the application's unions in memory, its code segment, its first bit
+    in it (eight per byte, the most significant first) and its width in bits (``None``:
+    unknown); of the last few applications."""
+    from xknxeditor.namespaces.intermediate.application_program_static_t_parameters_union import (
+        ApplicationProgramStaticParametersUnion,
+    )
+    from xknxeditor.namespaces.intermediate.memory_union_t import MemoryUnion
+    from xknxeditor.prod.parser_v2.encode import type_size_in_bit
+
+    program = application.program
+    for seen, layout in _MEMORY_UNION_BITS:
+        if seen is program:
+            return layout
+    found: dict[str, tuple[str, int, int | None]] = {}
+    parameters = program.static.parameters
+    for item in parameters.choice if parameters is not None else []:
+        if not isinstance(item, ApplicationProgramStaticParametersUnion):
+            continue
+        storage = item.choice
+        if not isinstance(storage, MemoryUnion):
+            continue
+        base = storage.offset * 8 + storage.bit_offset
+        for member in item.parameter:
+            parameter_type = indexer.parameter_types.get(member.parameter_type)
+            size = (
+                type_size_in_bit(parameter_type.choice)
+                if parameter_type is not None
+                else None
+            )
+            found[member.id] = (
+                storage.code_segment,
+                base + (member.offset or 0) * 8 + (member.bit_offset or 0),
+                size or None,
+            )
+    _MEMORY_UNION_BITS.insert(0, (program, found))
+    del _MEMORY_UNION_BITS[4:]
+    return found
+
+
+# The union members in memory of the last few programs (see _memory_union_bits).
+_MEMORY_UNION_BITS: list[tuple[object, Mapping[str, tuple[str, int, int | None]]]] = []
 
 
 def _later_members_read(
@@ -3683,6 +3848,98 @@ def _infer_unstored(
             clash = clashes({"found": found, "trial": trial})
             if clash["trial"] < clash["found"]:
                 found = trial
+    if found:
+        return found
+    # Linked objects behind nested chooses on several such settings, each shown on its own (a
+    # choose in a choose in a choose): none of them alone shows the objects, nor any other
+    # setting, only all of them together. The first _LOOK_AHEAD_TRIES such changes at most.
+    fewest = 0
+    tries = 0
+    for trial in _nested_values_to_try(
+        ui, shown_settings, values, known, linked - base
+    ):
+        if tries == _LOOK_AHEAD_TRIES:
+            break
+        key = (_JOINT, repr(sorted(trial.items())))
+        if dead is not None and key in dead:
+            continue
+        _check(cancel)
+        tries += 1
+        try:
+            objects, unlinked, _reveals = shown(trial)
+        except AllocatorOverflow:
+            objects, unlinked = set[int](), 0
+        count = len(objects)
+        if count > found_count or (
+            count == found_count and found and unlinked < fewest
+        ):
+            found, found_count, fewest = trial, count, unlinked
+        elif count <= len(base) and dead is not None:
+            dead.add(key)
+    return found
+
+
+# The first part of the ``dead`` entry of settings changed together (see _infer_unstored):
+# no param-ref has this id.
+_JOINT = ""
+
+
+def _nested_values_to_try(
+    ui: DynamicUI,
+    shown: Mapping[str, UiParameter],
+    values: Mapping[str, str],
+    known: Collection[str],
+    missing: Collection[int],
+) -> list[_ValueMap]:
+    """For the group objects ``missing`` that several selectors on the way to them decide, each
+    a shown setting the device keeps no copy of (not in ``values`` or ``known``), those
+    selectors changed together: every combination of their values (the values their chooses
+    test first) that changes at least two of them, of each set of selectors once."""
+    from itertools import islice, product
+
+    from xknxeditor.prod.parser_v2.activation import values_to_try
+
+    if not missing:
+        return []
+    objects_of = _objects_by_number(ui)
+    seen: set[tuple[str, ...]] = set()
+    found: list[_ValueMap] = []
+    for number in sorted(missing):
+        for ref_id in objects_of.get(number, ()):
+            gates = tuple(
+                sorted(
+                    gate
+                    for gate in _gates_of(ui, ref_id, ui.object_gates)
+                    if gate in shown
+                    and gate not in values
+                    and gate not in known
+                    and ui.local_ref_id(gate) in ui.object_param_refs
+                    and _inferable(ui, gate, shown[gate])
+                )
+            )
+            if len(gates) < 2 or gates in seen:
+                continue
+            seen.add(gates)
+            options: list[list[str]] = []
+            for gate in gates:
+                current = ui.get_value(gate) or shown[gate].default_value
+                options.append(
+                    [
+                        current,
+                        *values_to_try(shown[gate], current, ui.tested_values(gate)),
+                    ]
+                )
+            # The first combination is the values there are now.
+            for combination in islice(product(*options), 1, _NESTED_COMBINATIONS):
+                trial = {
+                    gate: value
+                    for gate, value, own in zip(
+                        gates, combination, options, strict=True
+                    )
+                    if value != own[0]
+                }
+                if len(trial) > 1:
+                    found.append(trial)
     return found
 
 
