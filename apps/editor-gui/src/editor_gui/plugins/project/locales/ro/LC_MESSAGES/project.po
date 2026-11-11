@@ -3357,3 +3357,36 @@ msgstr "Nu este în memorie"
 
 msgid "Not checked"
 msgstr "Neverificat"
+
+msgid "{value} (scaled, raw {raw})"
+msgstr "{value} (scalat, brut {raw})"
+
+msgid "Show settings for modules not fitted"
+msgstr "Afișează setările modulelor nemontate"
+
+msgid "{title} (module not fitted)"
+msgstr "{title} (modul nemontat)"
+
+msgid "Module not fitted"
+msgstr "Modul nemontat"
+
+msgid "Settings of modules not fitted: {count}"
+msgstr "Setările modulelor nemontate: {count}"
+
+msgid "Compare With"
+msgstr "Compară cu"
+
+msgid "No comparison"
+msgstr "Fără comparație"
+
+msgid "Settings that differ from {device}: {count}"
+msgstr "Setări diferite de {device}: {count}"
+
+msgid "Only differences"
+msgstr "Doar diferențele"
+
+msgid "Value on {device}"
+msgstr "Valoare pe {device}"
+
+msgid "Not shown"
+msgstr "Neafișat"

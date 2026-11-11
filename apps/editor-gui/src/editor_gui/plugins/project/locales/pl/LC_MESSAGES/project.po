@@ -3330,3 +3330,36 @@ msgstr "Nie w pamięci"
 
 msgid "Not checked"
 msgstr "Niesprawdzone"
+
+msgid "{value} (scaled, raw {raw})"
+msgstr "{value} (przeskalowane, surowa {raw})"
+
+msgid "Show settings for modules not fitted"
+msgstr "Pokaż ustawienia niezamontowanych modułów"
+
+msgid "{title} (module not fitted)"
+msgstr "{title} (moduł niezamontowany)"
+
+msgid "Module not fitted"
+msgstr "Moduł niezamontowany"
+
+msgid "Settings of modules not fitted: {count}"
+msgstr "Ustawienia niezamontowanych modułów: {count}"
+
+msgid "Compare With"
+msgstr "Porównaj z"
+
+msgid "No comparison"
+msgstr "Bez porównania"
+
+msgid "Settings that differ from {device}: {count}"
+msgstr "Ustawienia różne od {device}: {count}"
+
+msgid "Only differences"
+msgstr "Tylko różnice"
+
+msgid "Value on {device}"
+msgstr "Wartość w {device}"
+
+msgid "Not shown"
+msgstr "Nie pokazano"

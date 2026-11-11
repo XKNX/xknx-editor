@@ -3305,3 +3305,36 @@ msgstr "Ekki í minni"
 
 msgid "Not checked"
 msgstr "Ekki athugað"
+
+msgid "{value} (scaled, raw {raw})"
+msgstr "{value} (kvarðað, hrágildi {raw})"
+
+msgid "Show settings for modules not fitted"
+msgstr "Sýna stillingar eininga sem eru ekki uppsettar"
+
+msgid "{title} (module not fitted)"
+msgstr "{title} (eining ekki uppsett)"
+
+msgid "Module not fitted"
+msgstr "Eining ekki uppsett"
+
+msgid "Settings of modules not fitted: {count}"
+msgstr "Stillingar eininga sem eru ekki uppsettar: {count}"
+
+msgid "Compare With"
+msgstr "Bera saman við"
+
+msgid "No comparison"
+msgstr "Enginn samanburður"
+
+msgid "Settings that differ from {device}: {count}"
+msgstr "Stillingar sem eru frábrugðnar {device}: {count}"
+
+msgid "Only differences"
+msgstr "Aðeins mismunur"
+
+msgid "Value on {device}"
+msgstr "Gildi á {device}"
+
+msgid "Not shown"
+msgstr "Ekki sýnt"

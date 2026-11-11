@@ -3253,3 +3253,36 @@ msgstr "Nincs a memóriában"
 
 msgid "Not checked"
 msgstr "Nincs ellenőrizve"
+
+msgid "{value} (scaled, raw {raw})"
+msgstr "{value} (skálázott, nyers {raw})"
+
+msgid "Show settings for modules not fitted"
+msgstr "Nem beépített modulok beállításainak megjelenítése"
+
+msgid "{title} (module not fitted)"
+msgstr "{title} (a modul nincs beépítve)"
+
+msgid "Module not fitted"
+msgstr "A modul nincs beépítve"
+
+msgid "Settings of modules not fitted: {count}"
+msgstr "Nem beépített modulok beállításai: {count}"
+
+msgid "Compare With"
+msgstr "Összehasonlítás ezzel"
+
+msgid "No comparison"
+msgstr "Nincs összehasonlítás"
+
+msgid "Settings that differ from {device}: {count}"
+msgstr "{device} eszköztől eltérő beállítások: {count}"
+
+msgid "Only differences"
+msgstr "Csak az eltérések"
+
+msgid "Value on {device}"
+msgstr "Érték itt: {device}"
+
+msgid "Not shown"
+msgstr "Nincs megjelenítve"

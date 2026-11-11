@@ -3409,3 +3409,36 @@ msgstr "Ni v pomnilniku"
 
 msgid "Not checked"
 msgstr "Ni preverjeno"
+
+msgid "{value} (scaled, raw {raw})"
+msgstr "{value} (preračunano, surova {raw})"
+
+msgid "Show settings for modules not fitted"
+msgstr "Prikaži nastavitve nevgrajenih modulov"
+
+msgid "{title} (module not fitted)"
+msgstr "{title} (modul ni vgrajen)"
+
+msgid "Module not fitted"
+msgstr "Modul ni vgrajen"
+
+msgid "Settings of modules not fitted: {count}"
+msgstr "Nastavitve nevgrajenih modulov: {count}"
+
+msgid "Compare With"
+msgstr "Primerjaj z"
+
+msgid "No comparison"
+msgstr "Brez primerjave"
+
+msgid "Settings that differ from {device}: {count}"
+msgstr "Nastavitve, ki se razlikujejo od {device}: {count}"
+
+msgid "Only differences"
+msgstr "Samo razlike"
+
+msgid "Value on {device}"
+msgstr "Vrednost na {device}"
+
+msgid "Not shown"
+msgstr "Ni prikazano"

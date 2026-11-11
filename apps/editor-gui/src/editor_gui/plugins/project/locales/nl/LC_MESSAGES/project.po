@@ -3311,3 +3311,36 @@ msgstr "Niet in geheugen"
 
 msgid "Not checked"
 msgstr "Niet gecontroleerd"
+
+msgid "{value} (scaled, raw {raw})"
+msgstr "{value} (geschaald, ruw {raw})"
+
+msgid "Show settings for modules not fitted"
+msgstr "Instellingen van niet-geplaatste modules tonen"
+
+msgid "{title} (module not fitted)"
+msgstr "{title} (module niet geplaatst)"
+
+msgid "Module not fitted"
+msgstr "Module niet geplaatst"
+
+msgid "Settings of modules not fitted: {count}"
+msgstr "Instellingen van niet-geplaatste modules: {count}"
+
+msgid "Compare With"
+msgstr "Vergelijken met"
+
+msgid "No comparison"
+msgstr "Geen vergelijking"
+
+msgid "Settings that differ from {device}: {count}"
+msgstr "Instellingen die afwijken van {device}: {count}"
+
+msgid "Only differences"
+msgstr "Alleen verschillen"
+
+msgid "Value on {device}"
+msgstr "Waarde op {device}"
+
+msgid "Not shown"
+msgstr "Niet getoond"

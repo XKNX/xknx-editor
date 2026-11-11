@@ -443,20 +443,26 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         device_address: str | None = None,
         search: str | None = None,
         only_mismatches: bool = False,
+        show_unfitted: bool = False,
     ) -> dict[str, Any]:
         """The settings the Siemens ETS3 Generic Plug-in stored for a device, as its read-only
         Generic Plug-in tab shows them (devices whose product data carries the plug-in's XML
         description, e.g. the N 512/11 switching actuator). Identify the device by node_id OR
         device_address; ``search`` keeps the pages or rows whose title, label or value contains
-        it; ``only_mismatches`` keeps the rows whose value the stored memory image does not hold.
+        it; ``only_mismatches`` keeps the rows whose value the stored memory image does not hold;
+        ``show_unfitted`` adds the settings of extension modules that are not fitted (as the
+        tab's "Show settings for modules not fitted" tick box; never checked against the image).
         Returns {application, stored_application, application_matches, last_download,
-        has_image, image_layout_known, counts: {match, mismatch, not_in_memory, unchecked},
-        pages}: each page has {title (empty for settings outside a block), channel (0 for
-        channel-independent pages), parameters}; each parameter has {ref_id, parameter, label,
-        value (symbolic), value_text, default_value, stored (false: the default), assigned (set
-        by a rule of the description), memory ("match", "mismatch", "not_in_memory" or
-        "unchecked"), address?, memory_value?, memory_value_text?}; a separator line has
-        {separator: true, label}. Read only: nothing can be changed or downloaded."""
+        has_image, image_layout_known, counts: {match, mismatch, not_in_memory, unchecked} (of
+        fitted modules), unfitted_count, pages}: each page has {title (empty for settings
+        outside a block), channel (0 for channel-independent pages), fitted (false: a module
+        not fitted), parameters}; each parameter has {ref_id, parameter, label, value
+        (symbolic; the raw number for a "Percent" setting), value_text (the meaning; a
+        "Percent" setting scaled to its full scale, e.g. "40 %"), scaled (true for those),
+        default_value, stored (false: the default), assigned (set by a rule of the
+        description), fitted, memory ("match", "mismatch", "not_in_memory" or "unchecked"),
+        address?, memory_value?, memory_value_text?}; a separator line has {separator: true,
+        label}. Read only: nothing can be changed or downloaded."""
         require_project(ctx)
         plugin = _plugin()
 
@@ -464,7 +470,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             from editor_gui.plugin_blob_readers.siemens_generic import MemoryCheck
 
             device = require_device(project, node_id, device_address)
-            view = plugin.generic_plugin_view(device)
+            view = plugin.generic_plugin_view(device, show_unfitted=show_unfitted)
             if view is None:
                 raise ToolError(
                     f"device {device.node_id} has no Generic Plug-in settings the editor "
@@ -496,8 +502,10 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                         "value": row.value,
                         "value_text": row.value_text,
                         "default_value": row.default_value,
+                        "scaled": row.scaled,
                         "stored": row.stored,
                         "assigned": row.assigned,
+                        "fitted": row.fitted,
                         "memory": row.memory.value,
                     }
                     if row.address is not None:
@@ -511,6 +519,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                         {
                             "title": page.title,
                             "channel": page.channel,
+                            "fitted": page.fitted,
                             "parameters": rows,
                         }
                     )
@@ -522,6 +531,104 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                 "has_image": view.has_image,
                 "image_layout_known": view.image_layout_known,
                 "counts": {check.value: view.count(check) for check in MemoryCheck},
+                "unfitted_count": view.unfitted_count,
+                "pages": pages,
+            }
+
+        return ctx.run_locked(_read)
+
+    @tool("read")
+    def project_generic_plugin_compare(
+        node_id: int | None = None,
+        device_address: str | None = None,
+        compare_node_id: int | None = None,
+        compare_device_address: str | None = None,
+        only_differences: bool = True,
+        show_unfitted: bool = False,
+    ) -> dict[str, Any]:
+        """Two devices' Siemens ETS3 Generic Plug-in settings side by side, as the Generic
+        Plug-in tab shows them with "Compare With" (both devices must have the same
+        application). Identify the first device by node_id OR device_address and the second by
+        compare_node_id OR compare_device_address. ``only_differences`` (default true) keeps
+        the settings whose values differ; ``show_unfitted`` includes the settings of extension
+        modules that are not fitted. Returns {first, second (individual addresses),
+        differences (count), compared (settings compared), pages}: each page has {title,
+        channel, fitted, parameters}; each parameter has {ref_id, label, differs, first,
+        second}, where first/second are {value, value_text, scaled, stored, memory} or null when
+        that device does not show the setting (another branch is active there). Read only."""
+        require_project(ctx)
+        plugin = _plugin()
+
+        def _read() -> dict[str, Any]:
+            from editor_gui.plugin_blob_readers.siemens_generic import (
+                GenericView,
+                Row,
+                compare_views,
+            )
+
+            first = require_device(project, node_id, device_address)
+            if compare_node_id is None and compare_device_address is None:
+                raise ToolError(
+                    "pass the second device as compare_node_id or compare_device_address"
+                )
+            second = require_device(project, compare_node_id, compare_device_address)
+            if first.node_id == second.node_id:
+                raise ToolError("the two devices are the same device")
+            views: list[GenericView] = []
+            for device in (first, second):
+                view = plugin.generic_plugin_view(device, show_unfitted=show_unfitted)
+                if view is None:
+                    raise ToolError(
+                        f"device {device.node_id} has no Generic Plug-in settings the editor "
+                        "can show"
+                    )
+                views.append(view)
+            comparison = compare_views(views[0], views[1])
+            if not comparison.same_application:
+                raise ToolError("the two devices have different applications")
+
+            def side(row: Row | None) -> dict[str, Any] | None:
+                if row is None:
+                    return None
+                return {
+                    "value": row.value,
+                    "value_text": row.value_text,
+                    "scaled": row.scaled,
+                    "stored": row.stored,
+                    "memory": row.memory.value,
+                }
+
+            pages: list[dict[str, Any]] = []
+            compared = 0
+            for page in comparison.pages:
+                rows: list[dict[str, Any]] = []
+                for entry in page.rows:
+                    compared += 1
+                    if only_differences and not entry.differs:
+                        continue
+                    rows.append(
+                        {
+                            "ref_id": entry.row.ref_id,
+                            "label": entry.row.label,
+                            "differs": entry.differs,
+                            "first": side(entry.first),
+                            "second": side(entry.second),
+                        }
+                    )
+                if rows:
+                    pages.append(
+                        {
+                            "title": page.title,
+                            "channel": page.channel,
+                            "fitted": page.fitted,
+                            "parameters": rows,
+                        }
+                    )
+            return {
+                "first": first.individual_address,
+                "second": second.individual_address,
+                "differences": comparison.differences,
+                "compared": compared,
                 "pages": pages,
             }
 

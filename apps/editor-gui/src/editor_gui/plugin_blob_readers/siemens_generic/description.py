@@ -54,6 +54,17 @@ class ParameterType:
     little_endian: bool = False
     signed: bool = False
     enumerations: tuple[Enumeration, ...] = ()
+    maximum: int | None = None  # maxInclusive of a number type
+
+    @property
+    def full_scale(self) -> int | None:
+        """The raw value that stands for 100 % of a "Percent" number: its maxInclusive, else
+        the largest number its size holds."""
+        if self.maximum is not None and self.maximum > 0:
+            return self.maximum
+        if 0 < self.size_bits <= 32:
+            return (1 << self.size_bits) - 1
+        return None
 
     def enum_by_name(self, name: str) -> Enumeration | None:
         return next((e for e in self.enumerations if e.name == name), None)
@@ -262,6 +273,7 @@ def _parse_type(e: ET.Element) -> ParameterType:
         little_endian=body.get("IntelOrderSwap") == "true",
         signed=body.get("Type") == "signed",
         enumerations=tuple(enums),
+        maximum=_int(body.get("maxInclusive")),
     )
 
 

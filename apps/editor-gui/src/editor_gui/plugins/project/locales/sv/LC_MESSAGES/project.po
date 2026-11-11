@@ -3278,3 +3278,36 @@ msgstr "Inte i minnet"
 
 msgid "Not checked"
 msgstr "Inte kontrollerad"
+
+msgid "{value} (scaled, raw {raw})"
+msgstr "{value} (skalat, rå {raw})"
+
+msgid "Show settings for modules not fitted"
+msgstr "Visa inställningar för moduler som inte är monterade"
+
+msgid "{title} (module not fitted)"
+msgstr "{title} (modul inte monterad)"
+
+msgid "Module not fitted"
+msgstr "Modul inte monterad"
+
+msgid "Settings of modules not fitted: {count}"
+msgstr "Inställningar för moduler som inte är monterade: {count}"
+
+msgid "Compare With"
+msgstr "Jämför med"
+
+msgid "No comparison"
+msgstr "Ingen jämförelse"
+
+msgid "Settings that differ from {device}: {count}"
+msgstr "Inställningar som skiljer sig från {device}: {count}"
+
+msgid "Only differences"
+msgstr "Endast skillnader"
+
+msgid "Value on {device}"
+msgstr "Värde på {device}"
+
+msgid "Not shown"
+msgstr "Visas inte"

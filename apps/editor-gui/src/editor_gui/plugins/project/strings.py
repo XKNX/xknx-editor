@@ -2270,6 +2270,50 @@ class ProjectStrings:
         return _("General")
 
     @property
+    def GENERIC_PLUGIN_SCALED(self) -> str:
+        return _("{value} (scaled, raw {raw})")
+
+    @property
+    def GENERIC_PLUGIN_SHOW_UNFITTED(self) -> str:
+        return _("Show settings for modules not fitted")
+
+    @property
+    def GENERIC_PLUGIN_UNFITTED_PAGE(self) -> str:
+        return _("{title} (module not fitted)")
+
+    @property
+    def GENERIC_PLUGIN_NOT_FITTED(self) -> str:
+        return _("Module not fitted")
+
+    @property
+    def GENERIC_PLUGIN_UNFITTED_COUNT(self) -> str:
+        return _("Settings of modules not fitted: {count}")
+
+    @property
+    def GENERIC_PLUGIN_COMPARE_WITH(self) -> str:
+        return _("Compare With")
+
+    @property
+    def GENERIC_PLUGIN_COMPARE_NONE(self) -> str:
+        return _("No comparison")
+
+    @property
+    def GENERIC_PLUGIN_COMPARE_DIFFERENCES(self) -> str:
+        return _("Settings that differ from {device}: {count}")
+
+    @property
+    def GENERIC_PLUGIN_ONLY_DIFFERENCES(self) -> str:
+        return _("Only differences")
+
+    @property
+    def GENERIC_PLUGIN_COL_OTHER(self) -> str:
+        return _("Value on {device}")
+
+    @property
+    def GENERIC_PLUGIN_NOT_SHOWN(self) -> str:
+        return _("Not shown")
+
+    @property
     def PLUGIN_PARAMS_NO_MAPPING(self) -> str:
         return _(
             "No plugin mapping is available for this device yet. The vendor plugin's "

@@ -7,16 +7,29 @@ walk repeats until those settle. Every parameter in an active branch becomes a r
 name, symbolic value and text. Each row is then checked against the stored memory image of the
 last download: the value is encoded with the description's own type and offset and compared
 byte for byte. Nothing here writes anything.
+
+Settings of extension modules that are not fitted (branches switched off by a "number of
+submodules" parameter) can be shown too, marked as not fitted and not checked: the plug-in fills
+their memory with values of its own. ``compare_views`` lines up two devices' views setting by
+setting. "Percent" numbers are shown scaled (raw / full scale x 100) with the raw value kept.
 """
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass, field
 from enum import Enum
 
 from .blob import PluginSettings
 from .codec import byte_size, decode, encode
-from .description import Description, Node, NodeKind, ParameterType, TypeKind
+from .description import (
+    Description,
+    Node,
+    NodeKind,
+    Parameter,
+    ParameterType,
+    TypeKind,
+)
 
 # How often the walk is repeated at most for Assign values to settle.
 _MAX_PASSES = 8
@@ -24,6 +37,11 @@ _MAX_PASSES = 8
 # assumed, and no row is marked.
 _MIN_LAYOUT_MATCH = 0.5
 _MIN_LAYOUT_CHECKED = 10
+# A choose on a parameter with such a name or text switches the settings of extension modules
+# (e.g. the N 512/11's "parMaxSlaveNum", "Number of connected submodules").
+_MODULE_SWITCH = re.compile(
+    r"slave|sub.?module|extension.?module|erweiterungsmodul|zusatzmodul", re.IGNORECASE
+)
 
 
 class MemoryCheck(Enum):
@@ -52,6 +70,8 @@ class Row:
     memory_value_text: str = ""
     address: int | None = None
     separator: bool = False
+    scaled: bool = False  # value_text is a "Percent" number scaled from the raw value
+    fitted: bool = True  # False: a setting of an extension module that is not fitted
 
 
 @dataclass(slots=True)
@@ -64,6 +84,7 @@ class Page:
         int  # 0 for channel-independent pages, else the channel's position (1-based)
     )
     rows: list[Row] = field(default_factory=list[Row])
+    fitted: bool = True  # False: a page of an extension module that is not fitted
 
 
 @dataclass(slots=True)
@@ -76,13 +97,22 @@ class GenericView:
     image_layout_known: bool
     modified: str
     last_download: str
+    show_unfitted: bool = False  # the view includes settings of modules not fitted
 
     def count(self, check: MemoryCheck) -> int:
+        """The shown settings (of fitted modules) with memory check ``check``."""
         return sum(
             1
             for p in self.pages
             for r in p.rows
-            if r.memory is check and not r.separator
+            if r.memory is check and not r.separator and r.fitted
+        )
+
+    @property
+    def unfitted_count(self) -> int:
+        """The settings of modules not fitted the view holds (0 unless ``show_unfitted``)."""
+        return sum(
+            1 for p in self.pages for r in p.rows if not r.fitted and not r.separator
         )
 
     @property
@@ -100,7 +130,10 @@ class _Walk:
     """State of one pass over the Dynamic tree."""
 
     pages: list[Page] = field(default_factory=list[Page])
-    shown: list[tuple[Page, str]] = field(default_factory=list["tuple[Page, str]"])
+    # (page, ref id or "\0" + separator id, fitted)
+    shown: list[tuple[Page, str, bool]] = field(
+        default_factory=list["tuple[Page, str, bool]"]
+    )
     active_by_parameter: dict[str, str] = field(default_factory=dict[str, str])
     assigned: dict[str, str] = field(default_factory=dict[str, str])
     channels: int = 0
@@ -113,7 +146,9 @@ class _Builder:
         settings: PluginSettings,
         texts: dict[str, str],
         globals_: dict[str, str],
+        show_unfitted: bool = False,
     ) -> None:
+        self.show_unfitted = show_unfitted
         self.d = description
         self.s = settings
         self.texts = texts
@@ -158,6 +193,7 @@ class _Builder:
 
     def run(self) -> _Walk:
         walk = _Walk()
+        show_unfitted, self.show_unfitted = self.show_unfitted, False
         for _ in range(_MAX_PASSES):
             walk = _Walk()
             self._visit(self.d.dynamic, walk, None, 0)
@@ -166,33 +202,63 @@ class _Builder:
             self.previous_active = dict(walk.active_by_parameter)
             if settled:
                 break
+        if show_unfitted:
+            # One more pass on the settled values that also walks the branches of modules
+            # not fitted; nothing in them assigns or activates anything.
+            self.show_unfitted = True
+            walk = _Walk()
+            self._visit(self.d.dynamic, walk, None, 0)
         return walk
 
-    def _page(self, walk: _Walk, page: Page | None, channel: int) -> Page:
-        if page is not None:
+    def is_module_switch(self, node: Node) -> bool:
+        """Whether the choose ``node`` switches the settings of extension modules."""
+        ref = self.d.refs.get(node.id)
+        param = self.d.parameters.get(ref.parameter_id) if ref is not None else None
+        if param is None:
+            return False
+        return bool(_MODULE_SWITCH.search(f"{param.name} {param.text}"))
+
+    def _page(
+        self, walk: _Walk, page: Page | None, channel: int, fitted: bool = True
+    ) -> Page:
+        if page is not None and page.fitted == fitted:
             return page
-        loose = Page(id="", title="", channel=channel)
+        if page is not None:
+            # Settings of a module not fitted inside a block: a page of their own, titled
+            # like the block.
+            loose = Page(
+                id=page.id + "~", title=page.title, channel=channel, fitted=fitted
+            )
+            walk.pages.append(loose)
+            return loose
+        loose = Page(id="", title="", channel=channel, fitted=fitted)
         walk.pages.append(loose)
         return loose
 
     def _visit(
-        self, nodes: list[Node], walk: _Walk, page: Page | None, channel: int
+        self,
+        nodes: list[Node],
+        walk: _Walk,
+        page: Page | None,
+        channel: int,
+        fitted: bool = True,
     ) -> Page | None:
         for node in nodes:
             kind = node.kind
             if kind is NodeKind.CHANNEL:
                 walk.channels += 1
-                self._visit(node.children, walk, None, walk.channels)
+                self._visit(node.children, walk, None, walk.channels, fitted)
             elif kind is NodeKind.INDEPENDENT:
-                self._visit(node.children, walk, None, 0)
+                self._visit(node.children, walk, None, 0, fitted)
             elif kind is NodeKind.BLOCK:
                 block = Page(
                     id=node.id,
                     title=self.texts.get(node.id) or node.text,
                     channel=channel,
+                    fitted=fitted,
                 )
                 walk.pages.append(block)
-                self._visit(node.children, walk, block, channel)
+                self._visit(node.children, walk, block, channel, fitted)
             elif kind is NodeKind.CHOOSE:
                 value = self.choose_value(node, walk)
                 whens = [c for c in node.children if c.kind is NodeKind.WHEN]
@@ -200,19 +266,28 @@ class _Builder:
                 if not active:
                     active = [w for w in whens if w.default]
                 for when in active:
-                    page = self._visit(when.children, walk, page, channel)
+                    page = self._visit(when.children, walk, page, channel, fitted)
+                if self.show_unfitted and fitted and self.is_module_switch(node):
+                    unfitted_page = page
+                    for when in whens:
+                        if when not in active:
+                            unfitted_page = self._visit(
+                                when.children, walk, unfitted_page, channel, False
+                            )
             elif kind is NodeKind.WHEN:
-                page = self._visit(node.children, walk, page, channel)
+                page = self._visit(node.children, walk, page, channel, fitted)
             elif kind is NodeKind.PARAMETER:
-                page = self._page(walk, page, channel)
-                walk.shown.append((page, node.id))
+                page = self._page(walk, page, channel, fitted)
+                if not fitted and any(r == node.id and f for _p, r, f in walk.shown):
+                    continue  # already shown for a fitted module
+                walk.shown.append((page, node.id, fitted))
                 ref = self.d.refs.get(node.id)
-                if ref is not None:
+                if ref is not None and fitted:
                     walk.active_by_parameter[ref.parameter_id] = node.id
             elif kind is NodeKind.SEPARATOR:
-                page = self._page(walk, page, channel)
-                walk.shown.append((page, "\0" + node.id))
-            elif kind is NodeKind.ASSIGN and node.target:
+                page = self._page(walk, page, channel, fitted)
+                walk.shown.append((page, "\0" + node.id, fitted))
+            elif kind is NodeKind.ASSIGN and node.target and fitted:
                 if node.value is not None:
                     walk.assigned[node.target] = node.value
                 elif node.source:
@@ -236,9 +311,17 @@ class _Builder:
             candidates += [self.texts.get(param.id), param.text, param.name]
         return next((c for c in candidates if c), ref_id)
 
-    def value_text(self, value: str, ptype: ParameterType | None) -> str:
+    def value_text(
+        self,
+        value: str,
+        ptype: ParameterType | None,
+        param: Parameter | None = None,
+    ) -> str:
         if ptype is None:
             return value
+        scaled = percent_text(value, ptype, param)
+        if scaled is not None:
+            return scaled
         if ptype.kind is TypeKind.ENUM:
             enum = ptype.enum_by_name(value)
             if enum is None:
@@ -250,7 +333,7 @@ class _Builder:
             return f"{value} ms"
         return value
 
-    def row(self, ref_id: str, walk: _Walk) -> Row:
+    def row(self, ref_id: str, walk: _Walk, fitted: bool = True) -> Row:
         ref = self.d.refs.get(ref_id)
         param = self.d.parameters.get(ref.parameter_id) if ref is not None else None
         ptype = self.d.types.get(param.type_id) if param is not None else None
@@ -262,6 +345,8 @@ class _Builder:
         base = self.d.memory_base
         if param is not None and param.offset is None:
             memory = MemoryCheck.NOT_IN_MEMORY
+        elif not fitted:
+            memory = MemoryCheck.UNCHECKED
         elif (
             ptype is not None
             and address is not None
@@ -287,17 +372,37 @@ class _Builder:
             parameter=param.name if param is not None else "",
             label=self.label(ref_id),
             value=value,
-            value_text=self.value_text(value, ptype),
+            value_text=self.value_text(value, ptype, param),
             default_value=self.default(ref_id),
             stored=ref_id in self.s.values,
             assigned=ref_id in walk.assigned,
             memory=memory,
             memory_value=memory_value,
-            memory_value_text=self.value_text(memory_value, ptype)
+            memory_value_text=self.value_text(memory_value, ptype, param)
             if memory_value
             else "",
             address=address,
+            scaled=percent_text(value, ptype, param) is not None,
+            fitted=fitted,
         )
+
+
+def percent_text(
+    value: str, ptype: ParameterType | None, param: Parameter | None
+) -> str | None:
+    """A "Percent" number as a percentage of its full scale ("40 %" for 102 of 255), None for
+    any other setting or a value that is not a number."""
+    if param is None or ptype is None or param.format.lower() != "percent":
+        return None
+    if ptype.kind is not TypeKind.NUMBER or ptype.full_scale is None:
+        return None
+    try:
+        raw = int(value)
+    except ValueError:
+        return None
+    share = round(raw * 100 / ptype.full_scale, 1)
+    text = f"{share:.1f}".removesuffix(".0")
+    return f"{text} %"
 
 
 def build_view(
@@ -305,15 +410,20 @@ def build_view(
     settings: PluginSettings,
     texts: dict[str, str] | None = None,
     globals_: dict[str, str] | None = None,
+    show_unfitted: bool = False,
 ) -> GenericView:
     """The read-only view of ``settings`` under ``description``.
 
     ``texts`` are the translated texts by id (from :func:`parse_translations`), ``globals_`` the
     values of global variables such as ``DeviceOrderNumber`` (else the description's defaults).
+    ``show_unfitted`` adds the settings of extension modules that are not fitted (pages and rows
+    marked ``fitted=False``, never checked against the memory image).
     """
-    builder = _Builder(description, settings, texts or {}, globals_ or {})
+    builder = _Builder(
+        description, settings, texts or {}, globals_ or {}, show_unfitted
+    )
     walk = builder.run()
-    for page, ref_id in walk.shown:
+    for page, ref_id, fitted in walk.shown:
         if ref_id.startswith("\0"):
             sid = ref_id[1:]
             page.rows.append(
@@ -328,10 +438,11 @@ def build_view(
                     assigned=False,
                     memory=MemoryCheck.NOT_IN_MEMORY,
                     separator=True,
+                    fitted=fitted,
                 )
             )
         else:
-            page.rows.append(builder.row(ref_id, walk))
+            page.rows.append(builder.row(ref_id, walk, fitted))
     pages = [p for p in walk.pages if p.rows]
     rows = [r for p in pages for r in p.rows]
     checked = [r for r in rows if r.memory in (MemoryCheck.MATCH, MemoryCheck.MISMATCH)]
@@ -355,6 +466,7 @@ def build_view(
         image_layout_known=layout_known,
         modified=settings.modified,
         last_download=settings.last_download,
+        show_unfitted=show_unfitted,
     )
 
 
@@ -385,4 +497,100 @@ def _unchecked(row: Row) -> Row:
         memory=MemoryCheck.UNCHECKED,
         address=row.address,
         separator=row.separator,
+        scaled=row.scaled,
+        fitted=row.fitted,
+    )
+
+
+# --- comparing two devices -------------------------------------------------------------------
+
+
+@dataclass(frozen=True, slots=True)
+class CompareRow:
+    """One setting of two devices side by side; ``first``/``second`` is None where that
+    device does not show the setting (another branch is active there)."""
+
+    first: Row | None
+    second: Row | None
+
+    @property
+    def row(self) -> Row:
+        row = self.first or self.second
+        assert row is not None
+        return row
+
+    @property
+    def differs(self) -> bool:
+        if self.first is None or self.second is None:
+            return True
+        return self.first.value != self.second.value
+
+
+@dataclass(slots=True)
+class ComparePage:
+    id: str
+    title: str
+    channel: int
+    fitted: bool
+    rows: list[CompareRow] = field(default_factory=list[CompareRow])
+
+
+@dataclass(slots=True)
+class ViewComparison:
+    pages: list[ComparePage]
+    same_application: bool  # both views come from the same description
+
+    @property
+    def differences(self) -> int:
+        return sum(1 for p in self.pages for r in p.rows if r.differs)
+
+
+def _page_keys(view: GenericView) -> list[tuple[str, int, bool]]:
+    """A key per page of ``view`` that the same page of another device's view shares: the
+    block id, or for settings outside a block the title and how often it came before."""
+    seen: dict[tuple[str, int, bool], int] = {}
+    keys: list[tuple[str, int, bool]] = []
+    for page in view.pages:
+        base = (page.id or "#" + page.title, page.channel, page.fitted)
+        n = seen.get(base, 0)
+        seen[base] = n + 1
+        keys.append((f"{base[0]}#{n}", page.channel, page.fitted))
+    return keys
+
+
+def compare_views(first: GenericView, second: GenericView) -> ViewComparison:
+    """``first`` and ``second`` setting by setting, in ``first``'s order (pages and settings
+    only ``second`` shows follow). Separators are left out; settings are matched by page and
+    parameter ref, and differ when their symbolic values do."""
+    pages: dict[tuple[str, int, bool], ComparePage] = {}
+    seconds: dict[tuple[tuple[str, int, bool], str], Row] = {}
+    first_keys, second_keys = _page_keys(first), _page_keys(second)
+    for page, key in zip(second.pages, second_keys, strict=True):
+        for row in page.rows:
+            if not row.separator:
+                seconds[(key, row.ref_id)] = row
+    used: set[tuple[tuple[str, int, bool], str]] = set()
+    for page, key in zip(first.pages, first_keys, strict=True):
+        out = pages.setdefault(
+            key, ComparePage(page.id, page.title, page.channel, page.fitted)
+        )
+        for row in page.rows:
+            if row.separator:
+                continue
+            other = seconds.get((key, row.ref_id))
+            if other is not None:
+                used.add((key, row.ref_id))
+            out.rows.append(CompareRow(row, other))
+    for page, key in zip(second.pages, second_keys, strict=True):
+        for row in page.rows:
+            if row.separator or (key, row.ref_id) in used:
+                continue
+            out = pages.setdefault(
+                key, ComparePage(page.id, page.title, page.channel, page.fitted)
+            )
+            out.rows.append(CompareRow(None, row))
+    return ViewComparison(
+        pages=[p for p in pages.values() if p.rows],
+        same_application=_bare_id(first.application_id)
+        == _bare_id(second.application_id),
     )

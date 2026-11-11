@@ -3278,3 +3278,36 @@ msgstr "Jo në kujtesë"
 
 msgid "Not checked"
 msgstr "E pakontrolluar"
+
+msgid "{value} (scaled, raw {raw})"
+msgstr "{value} (e shkallëzuar, e papërpunuar {raw})"
+
+msgid "Show settings for modules not fitted"
+msgstr "Shfaq cilësimet e moduleve të pamontuara"
+
+msgid "{title} (module not fitted)"
+msgstr "{title} (moduli nuk është montuar)"
+
+msgid "Module not fitted"
+msgstr "Moduli nuk është montuar"
+
+msgid "Settings of modules not fitted: {count}"
+msgstr "Cilësimet e moduleve të pamontuara: {count}"
+
+msgid "Compare With"
+msgstr "Krahaso me"
+
+msgid "No comparison"
+msgstr "Pa krahasim"
+
+msgid "Settings that differ from {device}: {count}"
+msgstr "Cilësimet që ndryshojnë nga {device}: {count}"
+
+msgid "Only differences"
+msgstr "Vetëm ndryshimet"
+
+msgid "Value on {device}"
+msgstr "Vlera në {device}"
+
+msgid "Not shown"
+msgstr "Nuk shfaqet"

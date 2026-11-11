@@ -3226,3 +3226,36 @@ msgstr "メモリにありません"
 
 msgid "Not checked"
 msgstr "未確認"
+
+msgid "{value} (scaled, raw {raw})"
+msgstr "{value}（換算値、生の値 {raw}）"
+
+msgid "Show settings for modules not fitted"
+msgstr "未装着モジュールの設定を表示"
+
+msgid "{title} (module not fitted)"
+msgstr "{title}（モジュール未装着）"
+
+msgid "Module not fitted"
+msgstr "モジュール未装着"
+
+msgid "Settings of modules not fitted: {count}"
+msgstr "未装着モジュールの設定: {count}"
+
+msgid "Compare With"
+msgstr "比較対象"
+
+msgid "No comparison"
+msgstr "比較しない"
+
+msgid "Settings that differ from {device}: {count}"
+msgstr "{device} と異なる設定: {count}"
+
+msgid "Only differences"
+msgstr "違いのみ"
+
+msgid "Value on {device}"
+msgstr "{device} の値"
+
+msgid "Not shown"
+msgstr "表示されません"

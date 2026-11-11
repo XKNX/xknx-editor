@@ -3278,3 +3278,36 @@ msgstr "Όχι στη μνήμη"
 
 msgid "Not checked"
 msgstr "Χωρίς έλεγχο"
+
+msgid "{value} (scaled, raw {raw})"
+msgstr "{value} (κλιμακωμένη, ακατέργαστη {raw})"
+
+msgid "Show settings for modules not fitted"
+msgstr "Εμφάνιση ρυθμίσεων για μη τοποθετημένες μονάδες"
+
+msgid "{title} (module not fitted)"
+msgstr "{title} (η μονάδα δεν έχει τοποθετηθεί)"
+
+msgid "Module not fitted"
+msgstr "Η μονάδα δεν έχει τοποθετηθεί"
+
+msgid "Settings of modules not fitted: {count}"
+msgstr "Ρυθμίσεις μη τοποθετημένων μονάδων: {count}"
+
+msgid "Compare With"
+msgstr "Σύγκριση με"
+
+msgid "No comparison"
+msgstr "Χωρίς σύγκριση"
+
+msgid "Settings that differ from {device}: {count}"
+msgstr "Ρυθμίσεις που διαφέρουν από {device}: {count}"
+
+msgid "Only differences"
+msgstr "Μόνο διαφορές"
+
+msgid "Value on {device}"
+msgstr "Τιμή σε {device}"
+
+msgid "Not shown"
+msgstr "Δεν εμφανίζεται"

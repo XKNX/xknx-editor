@@ -3278,3 +3278,36 @@ msgstr "Ei muistissa"
 
 msgid "Not checked"
 msgstr "Ei tarkistettu"
+
+msgid "{value} (scaled, raw {raw})"
+msgstr "{value} (skaalattu, raaka-arvo {raw})"
+
+msgid "Show settings for modules not fitted"
+msgstr "Näytä asentamattomien moduulien asetukset"
+
+msgid "{title} (module not fitted)"
+msgstr "{title} (moduulia ei asennettu)"
+
+msgid "Module not fitted"
+msgstr "Moduulia ei asennettu"
+
+msgid "Settings of modules not fitted: {count}"
+msgstr "Asentamattomien moduulien asetukset: {count}"
+
+msgid "Compare With"
+msgstr "Vertaa"
+
+msgid "No comparison"
+msgstr "Ei vertailua"
+
+msgid "Settings that differ from {device}: {count}"
+msgstr "Asetukset, jotka poikkeavat laitteesta {device}: {count}"
+
+msgid "Only differences"
+msgstr "Vain erot"
+
+msgid "Value on {device}"
+msgstr "Arvo laitteessa {device}"
+
+msgid "Not shown"
+msgstr "Ei näytetä"

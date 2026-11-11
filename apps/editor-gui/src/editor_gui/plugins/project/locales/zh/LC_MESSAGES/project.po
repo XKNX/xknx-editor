@@ -3226,3 +3226,36 @@ msgstr "不在存储器中"
 
 msgid "Not checked"
 msgstr "未检查"
+
+msgid "{value} (scaled, raw {raw})"
+msgstr "{value}（已换算，原始值 {raw}）"
+
+msgid "Show settings for modules not fitted"
+msgstr "显示未安装模块的设置"
+
+msgid "{title} (module not fitted)"
+msgstr "{title}（模块未安装）"
+
+msgid "Module not fitted"
+msgstr "模块未安装"
+
+msgid "Settings of modules not fitted: {count}"
+msgstr "未安装模块的设置：{count}"
+
+msgid "Compare With"
+msgstr "比较对象"
+
+msgid "No comparison"
+msgstr "不比较"
+
+msgid "Settings that differ from {device}: {count}"
+msgstr "与 {device} 不同的设置：{count}"
+
+msgid "Only differences"
+msgstr "仅显示差异"
+
+msgid "Value on {device}"
+msgstr "{device} 上的值"
+
+msgid "Not shown"
+msgstr "未显示"

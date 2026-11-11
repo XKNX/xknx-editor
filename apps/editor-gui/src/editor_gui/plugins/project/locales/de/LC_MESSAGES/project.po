@@ -3418,3 +3418,36 @@ msgstr "Nicht im Speicher"
 
 msgid "Not checked"
 msgstr "Nicht geprüft"
+
+msgid "{value} (scaled, raw {raw})"
+msgstr "{value} (skaliert, Rohwert {raw})"
+
+msgid "Show settings for modules not fitted"
+msgstr "Einstellungen nicht bestückter Module anzeigen"
+
+msgid "{title} (module not fitted)"
+msgstr "{title} (Modul nicht bestückt)"
+
+msgid "Module not fitted"
+msgstr "Modul nicht bestückt"
+
+msgid "Settings of modules not fitted: {count}"
+msgstr "Einstellungen nicht bestückter Module: {count}"
+
+msgid "Compare With"
+msgstr "Vergleichen mit"
+
+msgid "No comparison"
+msgstr "Kein Vergleich"
+
+msgid "Settings that differ from {device}: {count}"
+msgstr "Abweichende Einstellungen gegenüber {device}: {count}"
+
+msgid "Only differences"
+msgstr "Nur Unterschiede"
+
+msgid "Value on {device}"
+msgstr "Wert auf {device}"
+
+msgid "Not shown"
+msgstr "Nicht angezeigt"

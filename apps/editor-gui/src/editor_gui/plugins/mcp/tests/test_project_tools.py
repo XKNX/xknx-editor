@@ -330,7 +330,7 @@ async def test_generic_plugin_parameters(
         )
 
         monkeypatch.setattr(
-            ProjectPlugin, "generic_plugin_view", lambda _self, _device: view
+            ProjectPlugin, "generic_plugin_view", lambda _self, _device, **_kw: view
         )
         listed = await _data(
             client, "project_generic_plugin_parameters", device_address="1.1.20"
@@ -373,6 +373,123 @@ async def test_generic_plugin_parameters(
             search="channel",
         )
         assert len(titled["pages"][0]["parameters"]) == 3
+        assert listed["unfitted_count"] == 0
+        assert first["fitted"] is True
+        assert first["parameters"][0]["fitted"] is True
+        assert first["parameters"][0]["scaled"] is False
+
+
+async def test_generic_plugin_compare(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from editor_gui.plugin_blob_readers.siemens_generic import (
+        GenericView,
+        MemoryCheck,
+        Page,
+        Row,
+    )
+
+    def row(ref_id: str, value: str, **kw: Any) -> Row:
+        fields: dict[str, Any] = {
+            "ref_id": ref_id,
+            "parameter": f"Demo{ref_id}",
+            "label": f"Demo {ref_id}",
+            "value": value,
+            "value_text": value,
+            "default_value": "0",
+            "stored": True,
+            "assigned": False,
+            "memory": MemoryCheck.MATCH,
+        } | kw
+        return Row(**fields)
+
+    def view(fb: str, extra: bool = False) -> GenericView:
+        rows = [row("fb", fb), row("lvl", "102", value_text="40 %", scaled=True)]
+        if extra:
+            rows.append(row("m2", "1"))
+        return GenericView(
+            application_id="id-DEMO",
+            application_matches=True,
+            stored_application_id="id-DEMO",
+            pages=[Page(id="b1", title="Output 1", channel=1, rows=rows)],
+            has_image=True,
+            image_layout_known=True,
+            modified="",
+            last_download="",
+        )
+
+    views = {"1.1.20": view("dm_Yes"), "1.1.21": view("dm_No", extra=True)}
+    flags: list[bool] = []
+    mcp, _project = _server(tmp_path)
+    async with Client(mcp) as client:
+        await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
+        first = await _device(client, "1.1.20")
+        await _device(client, "1.1.21")
+        await _error(
+            client,
+            "project_generic_plugin_compare",
+            "no Generic Plug-in settings",
+            node_id=first,
+            compare_device_address="1.1.21",
+        )
+
+        def fake(_self: Any, device: Any, show_unfitted: bool = False) -> GenericView:
+            flags.append(show_unfitted)
+            return views[device.individual_address]
+
+        monkeypatch.setattr(ProjectPlugin, "generic_plugin_view", fake)
+        await _error(
+            client,
+            "project_generic_plugin_compare",
+            "compare_node_id or compare_device_address",
+            node_id=first,
+        )
+        await _error(
+            client,
+            "project_generic_plugin_compare",
+            "same device",
+            node_id=first,
+            compare_device_address="1.1.20",
+        )
+        result = await _data(
+            client,
+            "project_generic_plugin_compare",
+            device_address="1.1.20",
+            compare_device_address="1.1.21",
+            show_unfitted=True,
+        )
+        assert flags[-1] is True
+        assert (result["first"], result["second"]) == ("1.1.20", "1.1.21")
+        assert (result["differences"], result["compared"]) == (2, 3)
+        params = result["pages"][0]["parameters"]
+        assert [p["ref_id"] for p in params] == ["fb", "m2"]
+        assert params[0]["first"]["value"] == "dm_Yes"
+        assert params[0]["second"]["value"] == "dm_No"
+        assert params[1]["first"] is None
+        everything = await _data(
+            client,
+            "project_generic_plugin_compare",
+            device_address="1.1.20",
+            compare_device_address="1.1.21",
+            only_differences=False,
+        )
+        level = everything["pages"][0]["parameters"][1]
+        assert level["differs"] is False
+        assert level["first"] == {
+            "value": "102",
+            "value_text": "40 %",
+            "scaled": True,
+            "stored": True,
+            "memory": "match",
+        }
+        views["1.1.21"].application_id = "id-OTHER"
+        await _error(
+            client,
+            "project_generic_plugin_compare",
+            "different applications",
+            device_address="1.1.20",
+            compare_device_address="1.1.21",
+        )
 
 
 async def test_plugin_parameters(

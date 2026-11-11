@@ -4,7 +4,8 @@ Works for any device whose application names the plug-in in its ``<Extension>`` 
 data carries the plug-in's plain-XML application description as baggage (e.g. the N 512/11
 switching actuator). It reads only XML baggages (the description and its translation files) and
 the settings the plug-in stored in the device's BinaryData; other baggages (the plug-in installer)
-are never opened. There is no editing and no download path.
+are never opened. There is no editing and no download path. Two devices of the same application
+can be compared setting by setting (:func:`compare_views`).
 """
 
 from __future__ import annotations
@@ -14,9 +15,21 @@ from dataclasses import dataclass
 
 from .blob import PluginSettings, parse_settings
 from .description import Description, parse_description, parse_translations
-from .view import GenericView, MemoryCheck, Page, Row, build_view
+from .view import (
+    ComparePage,
+    CompareRow,
+    GenericView,
+    MemoryCheck,
+    Page,
+    Row,
+    ViewComparison,
+    build_view,
+    compare_views,
+)
 
 __all__ = [
+    "ComparePage",
+    "CompareRow",
     "Description",
     "GenericView",
     "MemoryCheck",
@@ -24,7 +37,9 @@ __all__ = [
     "PluginSettings",
     "Row",
     "Sources",
+    "ViewComparison",
     "build_view",
+    "compare_views",
     "find_sources",
     "is_xml_baggage",
     "parse_description",
@@ -96,10 +111,11 @@ def read_view(
     blob: bytes,
     language: str = "en-US",
     globals_: dict[str, str] | None = None,
+    show_unfitted: bool = False,
 ) -> GenericView | None:
     """The view of a device's BinaryData ``blob``; None when it holds no plug-in settings."""
     settings = parse_settings(blob)
     if settings is None:
         return None
     texts = pick_language(sources.translations, language)
-    return build_view(sources.description, settings, texts, globals_)
+    return build_view(sources.description, settings, texts, globals_, show_unfitted)

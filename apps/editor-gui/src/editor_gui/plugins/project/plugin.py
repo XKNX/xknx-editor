@@ -441,12 +441,14 @@ class ProjectPlugin:
             _on_export_prj=self._handle_export_prj,
             _detect_display_type=self._detect_triton_type,
         )
-        self._generic_plugin_panel = GenericPluginPanel(self.generic_plugin_view)
+        self._generic_plugin_panel = GenericPluginPanel(
+            self.generic_plugin_view, self.generic_plugin_compare_candidates
+        )
         # Generic Plug-in sources per application id and views per device, see
         # generic_plugin_view.
         self._generic_sources: dict[str, Sources | None] = {}
         self._generic_views: dict[
-            int, tuple[tuple[object, ...], GenericView | None]
+            tuple[int, bool], tuple[tuple[object, ...], GenericView | None]
         ] = {}
         # Pending triton LCD ".prj" import: the open dialog and the device it was started for.
         self._triton_prj_dialog: file_dialogs.OpenFileDialog | None = None
@@ -1329,11 +1331,14 @@ class ProjectPlugin:
     def _has_generic_plugin(self, device: "Device") -> bool:
         return self.generic_plugin_view(device) is not None
 
-    def generic_plugin_view(self, device: "Device") -> GenericView | None:
+    def generic_plugin_view(
+        self, device: "Device", show_unfitted: bool = False
+    ) -> GenericView | None:
         """The read-only view of the settings the Siemens ETS3 Generic Plug-in stored for
         ``device``, or None when its application names no Generic Plug-in description among its
-        XML baggages or the device stores no plug-in settings. Cached per device and product
-        language; only XML baggages are read."""
+        XML baggages or the device stores no plug-in settings. ``show_unfitted`` adds the
+        settings of extension modules that are not fitted. Cached per device, product language
+        and that choice; only XML baggages are read."""
         if device.app is None or not device.app.loaded:
             return None
         static = getattr(device.app.program, "static", None)
@@ -1356,7 +1361,7 @@ class ProjectPlugin:
             language,
             tuple((len(b), hash(b)) for b in blobs),
         )
-        cached = self._generic_views.get(device.node_id)
+        cached = self._generic_views.get((device.node_id, show_unfitted))
         if cached is not None and cached[0] == key:
             return cached[1]
         sources = self._generic_plugin_sources(device, baggage_ids)
@@ -1367,7 +1372,9 @@ class ProjectPlugin:
             globals_ = {"DeviceOrderNumber": order} if order else {}
             for blob in blobs:
                 try:
-                    view = read_generic_view(sources, blob, language, globals_)
+                    view = read_generic_view(
+                        sources, blob, language, globals_, show_unfitted
+                    )
                 except Exception as exc:  # a damaged blob must not break the tab bar
                     self._api.log.warning(
                         "generic plug-in settings unreadable",
@@ -1377,8 +1384,25 @@ class ProjectPlugin:
                     view = None
                 if view is not None:
                     break
-        self._generic_views[device.node_id] = (key, view)
+        self._generic_views[(device.node_id, show_unfitted)] = (key, view)
         return view
+
+    def generic_plugin_compare_candidates(self, device: "Device") -> list["Device"]:
+        """The other devices of the project with the same application as ``device`` whose
+        Generic Plug-in settings can be shown, in address order: the devices its tab can be
+        compared with."""
+        if device.app is None:
+            return []
+        app_id = device.app.id
+        out = [
+            other
+            for other in self._api.project.devices
+            if other.node_id != device.node_id
+            and other.app is not None
+            and other.app.id == app_id
+            and self.generic_plugin_view(other) is not None
+        ]
+        return sorted(out, key=lambda d: _address_key(d.individual_address))
 
     def _generic_plugin_sources(
         self, device: "Device", baggage_ids: list[str]
@@ -3628,3 +3652,8 @@ class ProjectPlugin:
 
     def on_unload(self) -> None:
         pass
+
+
+def _address_key(address: str) -> tuple[int, ...]:
+    """Sort key of an individual address "1.2.3" (unparsable parts sort first)."""
+    return tuple(int(p) if p.isdigit() else -1 for p in address.split("."))

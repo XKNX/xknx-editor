@@ -3278,3 +3278,36 @@ msgstr "Ikke i hukommelsen"
 
 msgid "Not checked"
 msgstr "Ikke kontrolleret"
+
+msgid "{value} (scaled, raw {raw})"
+msgstr "{value} (skaleret, rå {raw})"
+
+msgid "Show settings for modules not fitted"
+msgstr "Vis indstillinger for moduler, der ikke er monteret"
+
+msgid "{title} (module not fitted)"
+msgstr "{title} (modul ikke monteret)"
+
+msgid "Module not fitted"
+msgstr "Modul ikke monteret"
+
+msgid "Settings of modules not fitted: {count}"
+msgstr "Indstillinger for moduler, der ikke er monteret: {count}"
+
+msgid "Compare With"
+msgstr "Sammenlign med"
+
+msgid "No comparison"
+msgstr "Ingen sammenligning"
+
+msgid "Settings that differ from {device}: {count}"
+msgstr "Indstillinger, der afviger fra {device}: {count}"
+
+msgid "Only differences"
+msgstr "Kun forskelle"
+
+msgid "Value on {device}"
+msgstr "Værdi på {device}"
+
+msgid "Not shown"
+msgstr "Ikke vist"

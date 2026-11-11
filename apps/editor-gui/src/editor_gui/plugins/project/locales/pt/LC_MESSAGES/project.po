@@ -3278,3 +3278,36 @@ msgstr "Não está na memória"
 
 msgid "Not checked"
 msgstr "Não verificado"
+
+msgid "{value} (scaled, raw {raw})"
+msgstr "{value} (escalado, bruto {raw})"
+
+msgid "Show settings for modules not fitted"
+msgstr "Mostrar definições de módulos não instalados"
+
+msgid "{title} (module not fitted)"
+msgstr "{title} (módulo não instalado)"
+
+msgid "Module not fitted"
+msgstr "Módulo não instalado"
+
+msgid "Settings of modules not fitted: {count}"
+msgstr "Definições de módulos não instalados: {count}"
+
+msgid "Compare With"
+msgstr "Comparar com"
+
+msgid "No comparison"
+msgstr "Sem comparação"
+
+msgid "Settings that differ from {device}: {count}"
+msgstr "Definições diferentes de {device}: {count}"
+
+msgid "Only differences"
+msgstr "Apenas diferenças"
+
+msgid "Value on {device}"
+msgstr "Valor em {device}"
+
+msgid "Not shown"
+msgstr "Não mostrado"

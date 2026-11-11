@@ -3226,3 +3226,36 @@ msgstr "Bellekte değil"
 
 msgid "Not checked"
 msgstr "Denetlenmedi"
+
+msgid "{value} (scaled, raw {raw})"
+msgstr "{value} (ölçeklenmiş, ham {raw})"
+
+msgid "Show settings for modules not fitted"
+msgstr "Takılı olmayan modüllerin ayarlarını göster"
+
+msgid "{title} (module not fitted)"
+msgstr "{title} (modül takılı değil)"
+
+msgid "Module not fitted"
+msgstr "Modül takılı değil"
+
+msgid "Settings of modules not fitted: {count}"
+msgstr "Takılı olmayan modüllerin ayarları: {count}"
+
+msgid "Compare With"
+msgstr "Şununla karşılaştır"
+
+msgid "No comparison"
+msgstr "Karşılaştırma yok"
+
+msgid "Settings that differ from {device}: {count}"
+msgstr "{device} cihazından farklı ayarlar: {count}"
+
+msgid "Only differences"
+msgstr "Yalnızca farklar"
+
+msgid "Value on {device}"
+msgstr "{device} üzerindeki değer"
+
+msgid "Not shown"
+msgstr "Gösterilmiyor"

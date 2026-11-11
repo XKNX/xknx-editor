@@ -3330,3 +3330,36 @@ msgstr "Немає в пам'яті"
 
 msgid "Not checked"
 msgstr "Не перевірено"
+
+msgid "{value} (scaled, raw {raw})"
+msgstr "{value} (масштабовано, вихідне {raw})"
+
+msgid "Show settings for modules not fitted"
+msgstr "Показати параметри невстановлених модулів"
+
+msgid "{title} (module not fitted)"
+msgstr "{title} (модуль не встановлено)"
+
+msgid "Module not fitted"
+msgstr "Модуль не встановлено"
+
+msgid "Settings of modules not fitted: {count}"
+msgstr "Параметри невстановлених модулів: {count}"
+
+msgid "Compare With"
+msgstr "Порівняти з"
+
+msgid "No comparison"
+msgstr "Без порівняння"
+
+msgid "Settings that differ from {device}: {count}"
+msgstr "Параметри, що відрізняються від {device}: {count}"
+
+msgid "Only differences"
+msgstr "Лише відмінності"
+
+msgid "Value on {device}"
+msgstr "Значення на {device}"
+
+msgid "Not shown"
+msgstr "Не показано"

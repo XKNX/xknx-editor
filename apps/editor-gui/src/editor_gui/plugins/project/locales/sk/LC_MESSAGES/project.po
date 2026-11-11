@@ -3357,3 +3357,36 @@ msgstr "Nie je v pamäti"
 
 msgid "Not checked"
 msgstr "Nekontrolované"
+
+msgid "{value} (scaled, raw {raw})"
+msgstr "{value} (prepočítané, surová hodnota {raw})"
+
+msgid "Show settings for modules not fitted"
+msgstr "Zobraziť nastavenia neosadených modulov"
+
+msgid "{title} (module not fitted)"
+msgstr "{title} (modul nie je osadený)"
+
+msgid "Module not fitted"
+msgstr "Modul nie je osadený"
+
+msgid "Settings of modules not fitted: {count}"
+msgstr "Nastavenia neosadených modulov: {count}"
+
+msgid "Compare With"
+msgstr "Porovnať s"
+
+msgid "No comparison"
+msgstr "Bez porovnania"
+
+msgid "Settings that differ from {device}: {count}"
+msgstr "Nastavenia odlišné od {device}: {count}"
+
+msgid "Only differences"
+msgstr "Iba rozdiely"
+
+msgid "Value on {device}"
+msgstr "Hodnota na {device}"
+
+msgid "Not shown"
+msgstr "Nezobrazené"
