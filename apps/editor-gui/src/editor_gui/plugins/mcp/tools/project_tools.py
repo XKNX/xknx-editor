@@ -458,7 +458,9 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         outside a block), channel (0 for channel-independent pages), fitted (false: a module
         not fitted), parameters}; each parameter has {ref_id, parameter, label, value
         (symbolic; the raw number for a "Percent" setting), value_text (the meaning; a
-        "Percent" setting scaled to its full scale, e.g. "40 %"), scaled (true for those),
+        "Percent" setting scaled to its full scale, e.g. "40 %"; a time whose name gives its
+        format in that format with the raw time, e.g. "15:00 (900 s)"), scaled (true for the
+        percentages), clock (true for those times),
         default_value, stored (false: the default), assigned (set by a rule of the
         description), fitted, memory ("match", "mismatch", "not_in_memory" or "unchecked"),
         address?, memory_value?, memory_value_text?}; a separator line has {separator: true,
@@ -503,6 +505,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                         "value_text": row.value_text,
                         "default_value": row.default_value,
                         "scaled": row.scaled,
+                        "clock": row.clock,
                         "stored": row.stored,
                         "assigned": row.assigned,
                         "fitted": row.fitted,
@@ -554,7 +557,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         modules that are not fitted. Returns {first, second (individual addresses),
         differences (count), compared (settings compared), pages}: each page has {title,
         channel, fitted, parameters}; each parameter has {ref_id, label, differs, first,
-        second}, where first/second are {value, value_text, scaled, stored, memory} or null when
+        second}, where first/second are {value, value_text, scaled, clock, stored, memory} or null when
         that device does not show the setting (another branch is active there). Read only."""
         require_project(ctx)
         plugin = _plugin()
@@ -594,6 +597,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                     "value": row.value,
                     "value_text": row.value_text,
                     "scaled": row.scaled,
+                    "clock": row.clock,
                     "stored": row.stored,
                     "memory": row.memory.value,
                 }

@@ -39,6 +39,8 @@ _MIN_LAYOUT_MATCH = 0.5
 _MIN_LAYOUT_CHECKED = 10
 # A choose on a parameter with such a name or text switches the settings of extension modules
 # (e.g. the N 512/11's "parMaxSlaveNum", "Number of connected submodules").
+# A time setting whose name gives its format ("On-delay in hh:mm:ss") is shown in it.
+_CLOCK_FORMAT = re.compile(r"\b(hh:mm:ss|hh:mm|mm:ss)\b", re.IGNORECASE)
 _MODULE_SWITCH = re.compile(
     r"slave|sub.?module|extension.?module|erweiterungsmodul|zusatzmodul", re.IGNORECASE
 )
@@ -71,6 +73,9 @@ class Row:
     address: int | None = None
     separator: bool = False
     scaled: bool = False  # value_text is a "Percent" number scaled from the raw value
+    clock: bool = (
+        False  # value_text is a time in the format its name gives, with the raw time
+    )
     fitted: bool = True  # False: a setting of an extension module that is not fitted
 
 
@@ -316,12 +321,16 @@ class _Builder:
         value: str,
         ptype: ParameterType | None,
         param: Parameter | None = None,
+        label: str = "",
     ) -> str:
         if ptype is None:
             return value
         scaled = percent_text(value, ptype, param)
         if scaled is not None:
             return scaled
+        clock = clock_text(value, ptype, label)
+        if clock is not None:
+            return clock
         if ptype.kind is TypeKind.ENUM:
             enum = ptype.enum_by_name(value)
             if enum is None:
@@ -367,24 +376,57 @@ class _Builder:
                 else:
                     memory = MemoryCheck.MISMATCH
                     memory_value = decode(held, ptype) or held.hex()
+        label = self.label(ref_id)
         return Row(
             ref_id=ref_id,
             parameter=param.name if param is not None else "",
-            label=self.label(ref_id),
+            label=label,
             value=value,
-            value_text=self.value_text(value, ptype, param),
+            value_text=self.value_text(value, ptype, param, label),
             default_value=self.default(ref_id),
             stored=ref_id in self.s.values,
             assigned=ref_id in walk.assigned,
             memory=memory,
             memory_value=memory_value,
-            memory_value_text=self.value_text(memory_value, ptype, param)
+            memory_value_text=self.value_text(memory_value, ptype, param, label)
             if memory_value
             else "",
             address=address,
             scaled=percent_text(value, ptype, param) is not None,
+            clock=clock_text(value, ptype, label) is not None,
             fitted=fitted,
         )
+
+
+def clock_text(value: str, ptype: ParameterType | None, label: str) -> str | None:
+    """A time setting in the format its name gives ("mm:ss", "hh:mm:ss" or "hh:mm"), followed
+    by the raw time: "15:00 (900 s)", "00:00:01.5 (1500 ms)". None for any other setting, a
+    name without a format or a value that is not a number."""
+    if ptype is None or ptype.kind not in (TypeKind.TIME_S, TypeKind.TIME_MS):
+        return None
+    found = _CLOCK_FORMAT.search(label)
+    if found is None:
+        return None
+    try:
+        raw = int(value)
+    except ValueError:
+        return None
+    millis = raw if ptype.kind is TypeKind.TIME_MS else raw * 1000
+    unit = "ms" if ptype.kind is TypeKind.TIME_MS else "s"
+    sign = "-" if millis < 0 else ""
+    millis = abs(millis)
+    seconds, fraction = divmod(millis, 1000)
+    hours, rest = divmod(seconds, 3600)
+    minutes, secs = divmod(rest, 60)
+    tail = f".{fraction:03d}".rstrip("0") if fraction else ""
+    shape = found.group(1).lower()
+    if shape == "mm:ss":
+        text = f"{hours * 60 + minutes:02d}:{secs:02d}{tail}"
+    elif shape == "hh:mm" and not secs and not tail:
+        text = f"{hours:02d}:{minutes:02d}"
+    else:
+        text = f"{hours:02d}:{minutes:02d}:{secs:02d}{tail}"
+    return f"{sign}{text} ({raw} {unit})"
 
 
 def percent_text(
@@ -498,6 +540,7 @@ def _unchecked(row: Row) -> Row:
         address=row.address,
         separator=row.separator,
         scaled=row.scaled,
+        clock=row.clock,
         fitted=row.fitted,
     )
 

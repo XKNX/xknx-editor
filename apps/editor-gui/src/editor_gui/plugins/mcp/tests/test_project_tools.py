@@ -377,6 +377,7 @@ async def test_generic_plugin_parameters(
         assert first["fitted"] is True
         assert first["parameters"][0]["fitted"] is True
         assert first["parameters"][0]["scaled"] is False
+        assert first["parameters"][0]["clock"] is False
 
 
 async def test_generic_plugin_compare(
@@ -479,6 +480,7 @@ async def test_generic_plugin_compare(
             "value": "102",
             "value_text": "40 %",
             "scaled": True,
+            "clock": False,
             "stored": True,
             "memory": "match",
         }

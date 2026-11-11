@@ -259,3 +259,17 @@ def test_render_comparison_headless(
     _frames(panel, device)
     no_twins = GenericPluginPanel(view_for, lambda _d: [])
     _frames(no_twins, device, 1)
+
+
+def test_clock_texts() -> None:
+    timed = _row(
+        "t",
+        MemoryCheck.MISMATCH,
+        value="900",
+        value_text="15:00 (900 s)",
+        memory_value="300",
+        memory_value_text="05:00 (300 s)",
+        clock=True,
+    )
+    assert value_text(timed) == "15:00 (900 s)"
+    assert memory_text(timed) == S.GENERIC_PLUGIN_MISMATCH.format(value="05:00 (300 s)")

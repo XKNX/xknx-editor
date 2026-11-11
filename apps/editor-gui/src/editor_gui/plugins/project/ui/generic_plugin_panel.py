@@ -59,7 +59,9 @@ def memory_text(row: Row) -> str:
     if row.memory is MemoryCheck.MISMATCH:
         held = row.memory_value_text or row.memory_value
         if row.memory_value_text and row.memory_value_text != row.memory_value:
-            if row.scaled:
+            if row.clock:
+                held = row.memory_value_text
+            elif row.scaled:
                 held = S.GENERIC_PLUGIN_SCALED.format(
                     value=row.memory_value_text, raw=row.memory_value
                 )
@@ -78,6 +80,8 @@ def value_text(row: Row | None) -> str:
         return S.GENERIC_PLUGIN_NOT_SHOWN
     if row.scaled:
         return S.GENERIC_PLUGIN_SCALED.format(value=row.value_text, raw=row.value)
+    if row.clock:
+        return row.value_text  # the time already carries its raw value
     if row.value_text and row.value_text != row.value:
         return f"{row.value_text} ({row.value})"
     return row.value

@@ -22,7 +22,7 @@ from editor_gui.plugin_blob_readers.siemens_generic.description import (
     ParameterType,
     TypeKind,
 )
-from editor_gui.plugin_blob_readers.siemens_generic.view import percent_text
+from editor_gui.plugin_blob_readers.siemens_generic.view import clock_text, percent_text
 
 _BASE = 0x5000
 
@@ -257,3 +257,30 @@ def test_compare_other_application() -> None:
     second = _view()
     second.application_id = "id-OTHER"
     assert not compare_views(first, second).same_application
+
+
+# --- times in the format their name gives -------------------------------------------------------
+
+
+def test_times_are_shown_in_the_format_their_name_gives() -> None:
+    seconds = ParameterType(id="s", kind=TypeKind.TIME_S, size_bits=16)
+    millis = ParameterType(id="m", kind=TypeKind.TIME_MS, size_bits=32)
+    on_time = "On-time direct mode in mm:ss (00:00...30:00; 00:00 = unlimited)"
+    assert clock_text("900", seconds, on_time) == "15:00 (900 s)"
+    assert clock_text("0", seconds, on_time) == "00:00 (0 s)"
+    # Minutes past an hour stay minutes in mm:ss.
+    assert clock_text("3725", seconds, on_time) == "62:05 (3725 s)"
+    delay = "On-delay in hh:mm:ss (00:00:00...23:59:59)"
+    assert clock_text("0", millis, delay) == "00:00:00 (0 ms)"
+    assert clock_text("1500", millis, delay) == "00:00:01.5 (1500 ms)"
+    assert clock_text("3723045", millis, delay) == "01:02:03.045 (3723045 ms)"
+    assert clock_text("5400", seconds, "Run time in HH:MM") == "01:30 (5400 s)"
+    # hh:mm cannot show seconds: the seconds are added.
+    assert clock_text("61", seconds, "Run time in hh:mm") == "00:01:01 (61 s)"
+    assert clock_text("-60", seconds, on_time) == "-01:00 (-60 s)"
+    # No format in the name, not a number, not a time: unchanged.
+    assert clock_text("900", seconds, "Blocking period in seconds") is None
+    assert clock_text("x", seconds, on_time) is None
+    number = ParameterType(id="n", kind=TypeKind.NUMBER, size_bits=8)
+    assert clock_text("900", number, on_time) is None
+    assert clock_text("900", None, on_time) is None
