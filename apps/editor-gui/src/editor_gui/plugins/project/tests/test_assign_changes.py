@@ -243,3 +243,18 @@ def test_a_jump_in_the_history_calculates_the_device_anew(
     assert _value(proj, node_id, MODE) == "2"
     proj.take_calculated_values()
     assert _row_values(proj, node_id)[MODE] == "2"
+
+
+def test_an_undo_over_several_devices_calculates_those_in_use_at_once(
+    proj: ProjectService, app: Application
+) -> None:
+    # Both devices were used: the undo of one step over both stores what their Assigns write
+    # at once, without either being shown again.
+    nodes = [_mode_set_directly(proj, app) for _ in range(2)]
+    with proj.one_undo_step():
+        for node_id in nodes:
+            _set(proj, node_id, f"{APP}_P-4_R-4", "1")
+    assert [_row_values(proj, n)[MODE] for n in nodes] == ["1", "1"]
+    assert proj.undo()
+    assert [_row_values(proj, n)[MODE] for n in nodes] == ["2", "2"]
+    assert [_value(proj, n, MODE) for n in nodes] == ["2", "2"]

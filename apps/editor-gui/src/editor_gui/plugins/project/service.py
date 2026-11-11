@@ -2171,17 +2171,21 @@ class ProjectService:
             device.calculate_anew = device.node_id not in self._calculated_anew
         device.calculated_anew = calculated
 
-    def _calculate_anew(self, node_ids: Collection[int], *, now: bool) -> None:
+    def _calculate_anew(self, node_ids: Collection[int], *, now: bool = False) -> None:
         """Calculate the devices ``node_ids`` anew, as after an undo or redo of their
-        parameters: ``now`` at once (their values stored), else at their next evaluation."""
+        parameters: those in use (evaluated since the project opened; with ``now`` all) at
+        once, their values stored, the others at their first use. Called once the step's
+        changes are applied (after a structural one, the devices are built again here)."""
         with self._calculated_lock:
+            in_use = {n for n in node_ids if n in self._calculated_anew}
             self._calculated_anew.difference_update(node_ids)
-        for device in self._devices_cache or []:
+        at_once = set(node_ids) if now else in_use
+        for device in self.devices if at_once else self._devices_cache or []:
             if device.node_id in node_ids:
                 device.calculate_anew = True
-                if now:
+                if device.node_id in at_once:
                     device.dynamic_ui  # noqa: B018 - evaluates it
-        if now:
+        if at_once:
             self._store_calculated()
 
     def _store_calculated(
@@ -8317,8 +8321,8 @@ class ProjectService:
         re-parsing every device's dynamic UI. Anything else falls back to a full structural rebuild.
 
         A device whose parameter values the step sets is calculated anew from them (every Assign
-        that applies writes its target, see Device.calculate_anew): one device at once, several
-        at their next evaluation."""
+        that applies writes its target, see Device.calculate_anew): at once when it is the only
+        one or in use, else at its first use."""
         if peek is None:
             self._bump(structural=True)
             return
@@ -8351,13 +8355,14 @@ class ProjectService:
                 "SyncDeviceComObjects",
             ) and not _changes_structure(data):
                 node_id = _history_device_id(data)
-                if node_id is not None:
+                # The parameters of several devices: each of them is built again (below).
+                if node_id is not None and calculated <= {node_id}:
                     self._refresh_device(node_id)  # rebuild only this device (not all)
-                    self._calculate_anew(calculated, now=len(calculated) == 1)
+                    self._calculate_anew(calculated, now=True)
                     self._bump(structural=False)
                     return
-        self._calculate_anew(calculated, now=False)
         self._bump(structural=True)
+        self._calculate_anew(calculated)
 
     @io_guarded(lambda: False)
     def can_undo(self) -> bool:
@@ -8569,7 +8574,8 @@ class ProjectService:
 
     def jump_to(self, event_id: int) -> None:
         """Undo or redo the steps up to ``event_id``; each device whose parameters they set is
-        calculated anew at its next evaluation, as after an undo or redo."""
+        calculated anew as after an undo or redo: at once when it is in use, else at its first
+        use."""
         if self._pid is None:
             return
         self._store_calculated()
@@ -8580,8 +8586,8 @@ class ProjectService:
                 calculated |= _parameter_devices(entry.event_type, entry.data)
         self._svc.jump_to(self._pid, event_id)
         self._read_code_page()
-        self._calculate_anew(calculated, now=False)
         self._bump()
+        self._calculate_anew(calculated)
 
     @io_guarded(list)
     @revision_cached
