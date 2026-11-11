@@ -1657,7 +1657,7 @@ msgstr[0] "U importua {count} version produkti nga {name}:"
 msgstr[1] "U importuan {count} versione produktesh nga {name}:"
 
 msgid "Monitor"
-msgstr "Monitor"
+msgstr "Monitori"
 
 msgid "File Dialog Unavailable"
 msgstr "Dialogu i skedarëve nuk është i disponueshëm"
@@ -1669,7 +1669,7 @@ msgid "No Signing Key"
 msgstr "Nuk ka çelës nënshkrimi"
 
 msgid "No valid signing key is set, so the exported .knxproj will not have a valid signature and ETS will reject it on import. Set a signing key under the Signing menu, or export without a valid signature."
-msgstr "Nuk është caktuar një çelës nënshkrimi i vlefshëm, prandaj .knxproj i eksportuar nuk do të ketë nënshkrim të vlefshëm dhe ETS do ta refuzojë gjatë importimit. Cakto një çelës nënshkrimi te menyja Nënshkrimi, ose eksporto pa një nënshkrim të vlefshëm."
+msgstr "Nuk është caktuar një çelës nënshkrimi i vlefshëm, prandaj skedari .knxproj i eksportuar nuk do të ketë nënshkrim të vlefshëm dhe ETS-ja do ta refuzojë gjatë importimit. Vendosni një çelës nënshkrimi të vlefshëm te Cilësimet > “Çelësi i nënshkrimit për .knxproj…”, ose eksportoni pa një nënshkrim të vlefshëm."
 
 msgid "Export Anyway"
 msgstr "Eksporto gjithsesi"
