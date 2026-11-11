@@ -3236,3 +3236,45 @@ msgstr "Selecione outro passo na lista para repor o projeto nesse ponto"
 
 msgid "Current state of the project"
 msgstr "Estado atual do projeto"
+
+msgid "Generic Plug-in"
+msgstr "Generic Plug-in"
+
+msgid "Read-only view of the settings the Siemens Generic Plug-in stored for this device, with the texts of its product data. Each value is checked against the memory image of the last download. Nothing can be changed or downloaded from here."
+msgstr "Vista só de leitura das definições que o Generic Plug-in da Siemens guardou para este dispositivo, com os textos dos seus dados de produto. Cada valor é comparado com a imagem de memória da última transferência. Aqui não é possível alterar nem transferir nada."
+
+msgid "No Generic Plug-in description or stored settings were found for this device."
+msgstr "Não foi encontrada nenhuma descrição do Generic Plug-in nem definições guardadas para este dispositivo."
+
+msgid "Matching: {match} · Not matching: {mismatch} · Not checked: {unchecked}"
+msgstr "Coincidem: {match} · Não coincidem: {mismatch} · Não verificados: {unchecked}"
+
+msgid "Last download: {date}"
+msgstr "Última transferência: {date}"
+
+msgid "No memory image is stored, so the values are not checked."
+msgstr "Não está guardada nenhuma imagem de memória, por isso os valores não são verificados."
+
+msgid "The memory image does not fit the layout of the description, so the values are not checked."
+msgstr "A imagem de memória não corresponde à estrutura da descrição, por isso os valores não são verificados."
+
+msgid "The stored settings name another application ({stored})."
+msgstr "As definições guardadas indicam outra aplicação ({stored})."
+
+msgid "Only values that differ from the memory image"
+msgstr "Apenas valores diferentes da imagem de memória"
+
+msgid "Memory Image"
+msgstr "Imagem de Memória"
+
+msgid "Matches"
+msgstr "Coincide"
+
+msgid "Image holds {value}"
+msgstr "A imagem contém {value}"
+
+msgid "Not in memory"
+msgstr "Não está na memória"
+
+msgid "Not checked"
+msgstr "Não verificado"

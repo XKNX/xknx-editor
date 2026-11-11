@@ -437,6 +437,96 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         return ctx.run_locked(_read)
 
+    @tool("read")
+    def project_generic_plugin_parameters(
+        node_id: int | None = None,
+        device_address: str | None = None,
+        search: str | None = None,
+        only_mismatches: bool = False,
+    ) -> dict[str, Any]:
+        """The settings the Siemens ETS3 Generic Plug-in stored for a device, as its read-only
+        Generic Plug-in tab shows them (devices whose product data carries the plug-in's XML
+        description, e.g. the N 512/11 switching actuator). Identify the device by node_id OR
+        device_address; ``search`` keeps the pages or rows whose title, label or value contains
+        it; ``only_mismatches`` keeps the rows whose value the stored memory image does not hold.
+        Returns {application, stored_application, application_matches, last_download,
+        has_image, image_layout_known, counts: {match, mismatch, not_in_memory, unchecked},
+        pages}: each page has {title (empty for settings outside a block), channel (0 for
+        channel-independent pages), parameters}; each parameter has {ref_id, parameter, label,
+        value (symbolic), value_text, default_value, stored (false: the default), assigned (set
+        by a rule of the description), memory ("match", "mismatch", "not_in_memory" or
+        "unchecked"), address?, memory_value?, memory_value_text?}; a separator line has
+        {separator: true, label}. Read only: nothing can be changed or downloaded."""
+        require_project(ctx)
+        plugin = _plugin()
+
+        def _read() -> dict[str, Any]:
+            from editor_gui.plugin_blob_readers.siemens_generic import MemoryCheck
+
+            device = require_device(project, node_id, device_address)
+            view = plugin.generic_plugin_view(device)
+            if view is None:
+                raise ToolError(
+                    f"device {device.node_id} has no Generic Plug-in settings the editor "
+                    "can show"
+                )
+            needle = (search or "").lower().strip()
+            pages: list[dict[str, Any]] = []
+            for page in view.pages:
+                title_hit = bool(needle) and needle in page.title.lower()
+                rows: list[dict[str, Any]] = []
+                for row in page.rows:
+                    if only_mismatches and row.memory is not MemoryCheck.MISMATCH:
+                        continue
+                    if (
+                        needle
+                        and not title_hit
+                        and needle not in row.label.lower()
+                        and needle not in row.value_text.lower()
+                        and needle not in row.value.lower()
+                    ):
+                        continue
+                    if row.separator:
+                        rows.append({"separator": True, "label": row.label})
+                        continue
+                    data: dict[str, Any] = {
+                        "ref_id": row.ref_id,
+                        "parameter": row.parameter,
+                        "label": row.label,
+                        "value": row.value,
+                        "value_text": row.value_text,
+                        "default_value": row.default_value,
+                        "stored": row.stored,
+                        "assigned": row.assigned,
+                        "memory": row.memory.value,
+                    }
+                    if row.address is not None:
+                        data["address"] = row.address
+                    if row.memory_value:
+                        data["memory_value"] = row.memory_value
+                        data["memory_value_text"] = row.memory_value_text
+                    rows.append(data)
+                if any("ref_id" in r for r in rows):
+                    pages.append(
+                        {
+                            "title": page.title,
+                            "channel": page.channel,
+                            "parameters": rows,
+                        }
+                    )
+            return {
+                "application": view.application_id,
+                "stored_application": view.stored_application_id,
+                "application_matches": view.application_matches,
+                "last_download": view.last_download,
+                "has_image": view.has_image,
+                "image_layout_known": view.image_layout_known,
+                "counts": {check.value: view.count(check) for check in MemoryCheck},
+                "pages": pages,
+            }
+
+        return ctx.run_locked(_read)
+
     def _find_section(device: Any, section_name: str) -> Any:
         _mapping, sections = _plugin_sections(device)
         found = next((s for s in sections if s.section == section_name), None)

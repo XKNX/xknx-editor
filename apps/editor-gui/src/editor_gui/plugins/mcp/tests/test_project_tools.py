@@ -262,6 +262,119 @@ async def test_compare_projects(tmp_path: Path) -> None:
         assert same == {"devices": [], "group_addresses": []}
 
 
+async def test_generic_plugin_parameters(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from editor_gui.plugin_blob_readers.siemens_generic import (
+        GenericView,
+        MemoryCheck,
+        Page,
+        Row,
+    )
+
+    def row(ref_id: str, memory: MemoryCheck, **kw: Any) -> Row:
+        fields: dict[str, Any] = {
+            "ref_id": ref_id,
+            "parameter": f"Demo{ref_id}",
+            "label": f"Demo {ref_id}",
+            "value": "dm_Yes",
+            "value_text": "Yes",
+            "default_value": "dm_No",
+            "stored": True,
+            "assigned": False,
+            "memory": memory,
+            "address": 0x4000,
+        } | kw
+        return Row(**fields)
+
+    view = GenericView(
+        application_id="id-DEMO",
+        application_matches=True,
+        stored_application_id="id-DEMO",
+        pages=[
+            Page(
+                id="b1",
+                title="Channel 1",
+                channel=1,
+                rows=[
+                    row("a", MemoryCheck.MATCH),
+                    row("s", MemoryCheck.NOT_IN_MEMORY, label="Timing", separator=True),
+                    row(
+                        "b",
+                        MemoryCheck.MISMATCH,
+                        value="600",
+                        value_text="600",
+                        memory_value="300",
+                        memory_value_text="300",
+                    ),
+                ],
+            ),
+            Page(
+                id="b2", title="General", channel=0, rows=[row("c", MemoryCheck.MATCH)]
+            ),
+        ],
+        has_image=True,
+        image_layout_known=True,
+        modified="",
+        last_download="2025-01-02T03:04:05",
+    )
+    mcp, _project = _server(tmp_path)
+    async with Client(mcp) as client:
+        await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
+        node_id = await _device(client, "1.1.20")
+        await _error(
+            client,
+            "project_generic_plugin_parameters",
+            "no Generic Plug-in settings",
+            node_id=node_id,
+        )
+
+        monkeypatch.setattr(
+            ProjectPlugin, "generic_plugin_view", lambda _self, _device: view
+        )
+        listed = await _data(
+            client, "project_generic_plugin_parameters", device_address="1.1.20"
+        )
+        assert listed["counts"] == {
+            "match": 2,
+            "mismatch": 1,
+            "not_in_memory": 0,
+            "unchecked": 0,
+        }
+        assert listed["last_download"] == "2025-01-02T03:04:05"
+        first = listed["pages"][0]
+        assert (first["title"], first["channel"]) == ("Channel 1", 1)
+        assert first["parameters"][1] == {"separator": True, "label": "Timing"}
+        mismatch = first["parameters"][2]
+        assert (mismatch["memory"], mismatch["memory_value"]) == ("mismatch", "300")
+        assert first["parameters"][0]["address"] == 0x4000
+        assert "memory_value" not in first["parameters"][0]
+
+        only = await _data(
+            client,
+            "project_generic_plugin_parameters",
+            node_id=node_id,
+            only_mismatches=True,
+        )
+        assert [p["ref_id"] for page in only["pages"] for p in page["parameters"]] == [
+            "b"
+        ]
+        found = await _data(
+            client,
+            "project_generic_plugin_parameters",
+            node_id=node_id,
+            search="demo c",
+        )
+        assert [page["title"] for page in found["pages"]] == ["General"]
+        titled = await _data(
+            client,
+            "project_generic_plugin_parameters",
+            node_id=node_id,
+            search="channel",
+        )
+        assert len(titled["pages"][0]["parameters"]) == 3
+
+
 async def test_plugin_parameters(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:

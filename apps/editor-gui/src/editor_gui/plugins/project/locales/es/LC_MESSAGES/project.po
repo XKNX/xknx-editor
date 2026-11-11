@@ -3236,3 +3236,45 @@ msgstr "Seleccione otro paso de la lista para devolver el proyecto a él"
 
 msgid "Current state of the project"
 msgstr "Estado actual del proyecto"
+
+msgid "Generic Plug-in"
+msgstr "Generic Plug-in"
+
+msgid "Read-only view of the settings the Siemens Generic Plug-in stored for this device, with the texts of its product data. Each value is checked against the memory image of the last download. Nothing can be changed or downloaded from here."
+msgstr "Vista de solo lectura de los ajustes que el Generic Plug-in de Siemens guardó para este dispositivo, con los textos de sus datos de producto. Cada valor se compara con la imagen de memoria de la última descarga. Aquí no se puede cambiar ni descargar nada."
+
+msgid "No Generic Plug-in description or stored settings were found for this device."
+msgstr "No se encontró ninguna descripción del Generic Plug-in ni ajustes guardados para este dispositivo."
+
+msgid "Matching: {match} · Not matching: {mismatch} · Not checked: {unchecked}"
+msgstr "Coinciden: {match} · No coinciden: {mismatch} · Sin comprobar: {unchecked}"
+
+msgid "Last download: {date}"
+msgstr "Última descarga: {date}"
+
+msgid "No memory image is stored, so the values are not checked."
+msgstr "No hay ninguna imagen de memoria guardada, así que los valores no se comprueban."
+
+msgid "The memory image does not fit the layout of the description, so the values are not checked."
+msgstr "La imagen de memoria no encaja con la estructura de la descripción, así que los valores no se comprueban."
+
+msgid "The stored settings name another application ({stored})."
+msgstr "Los ajustes guardados indican otra aplicación ({stored})."
+
+msgid "Only values that differ from the memory image"
+msgstr "Solo valores que difieren de la imagen de memoria"
+
+msgid "Memory Image"
+msgstr "Imagen de memoria"
+
+msgid "Matches"
+msgstr "Coincide"
+
+msgid "Image holds {value}"
+msgstr "La imagen contiene {value}"
+
+msgid "Not in memory"
+msgstr "No está en memoria"
+
+msgid "Not checked"
+msgstr "Sin comprobar"

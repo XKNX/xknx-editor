@@ -3236,3 +3236,45 @@ msgstr "Välj ett annat steg i listan för att återställa projektet till det"
 
 msgid "Current state of the project"
 msgstr "Projektets nuvarande tillstånd"
+
+msgid "Generic Plug-in"
+msgstr "Generic Plug-in"
+
+msgid "Read-only view of the settings the Siemens Generic Plug-in stored for this device, with the texts of its product data. Each value is checked against the memory image of the last download. Nothing can be changed or downloaded from here."
+msgstr "Skrivskyddad vy över inställningarna som Siemens Generic Plug-in har sparat för den här enheten, med texterna från dess produktdata. Varje värde jämförs med minnesavbilden från den senaste nedladdningen. Inget kan ändras eller laddas ned härifrån."
+
+msgid "No Generic Plug-in description or stored settings were found for this device."
+msgstr "Ingen Generic Plug-in-beskrivning eller sparade inställningar hittades för den här enheten."
+
+msgid "Matching: {match} · Not matching: {mismatch} · Not checked: {unchecked}"
+msgstr "Stämmer: {match} · Stämmer inte: {mismatch} · Inte kontrollerade: {unchecked}"
+
+msgid "Last download: {date}"
+msgstr "Senaste nedladdning: {date}"
+
+msgid "No memory image is stored, so the values are not checked."
+msgstr "Ingen minnesavbild är sparad, så värdena kontrolleras inte."
+
+msgid "The memory image does not fit the layout of the description, so the values are not checked."
+msgstr "Minnesavbilden passar inte beskrivningens uppbyggnad, så värdena kontrolleras inte."
+
+msgid "The stored settings name another application ({stored})."
+msgstr "De sparade inställningarna anger ett annat program ({stored})."
+
+msgid "Only values that differ from the memory image"
+msgstr "Endast värden som skiljer sig från minnesavbilden"
+
+msgid "Memory Image"
+msgstr "Minnesavbild"
+
+msgid "Matches"
+msgstr "Stämmer"
+
+msgid "Image holds {value}"
+msgstr "Avbilden innehåller {value}"
+
+msgid "Not in memory"
+msgstr "Inte i minnet"
+
+msgid "Not checked"
+msgstr "Inte kontrollerad"

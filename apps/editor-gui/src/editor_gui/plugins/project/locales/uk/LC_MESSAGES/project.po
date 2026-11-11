@@ -3288,3 +3288,45 @@ msgstr "Виберіть у списку інший крок, щоб повер�
 
 msgid "Current state of the project"
 msgstr "Поточний стан проєкту"
+
+msgid "Generic Plug-in"
+msgstr "Generic Plug-in"
+
+msgid "Read-only view of the settings the Siemens Generic Plug-in stored for this device, with the texts of its product data. Each value is checked against the memory image of the last download. Nothing can be changed or downloaded from here."
+msgstr "Перегляд лише для читання налаштувань, які Siemens Generic Plug-in зберіг для цього пристрою, з текстами з його даних продукту. Кожне значення звіряється з образом пам'яті останнього завантаження. Тут нічого не можна змінити чи завантажити."
+
+msgid "No Generic Plug-in description or stored settings were found for this device."
+msgstr "Для цього пристрою не знайдено опису Generic Plug-in або збережених налаштувань."
+
+msgid "Matching: {match} · Not matching: {mismatch} · Not checked: {unchecked}"
+msgstr "Збігаються: {match} · Не збігаються: {mismatch} · Не перевірено: {unchecked}"
+
+msgid "Last download: {date}"
+msgstr "Останнє завантаження: {date}"
+
+msgid "No memory image is stored, so the values are not checked."
+msgstr "Образ пам'яті не збережено, тому значення не перевіряються."
+
+msgid "The memory image does not fit the layout of the description, so the values are not checked."
+msgstr "Образ пам'яті не відповідає структурі опису, тому значення не перевіряються."
+
+msgid "The stored settings name another application ({stored})."
+msgstr "Збережені налаштування вказують іншу програму ({stored})."
+
+msgid "Only values that differ from the memory image"
+msgstr "Лише значення, що відрізняються від образу пам'яті"
+
+msgid "Memory Image"
+msgstr "Образ пам'яті"
+
+msgid "Matches"
+msgstr "Збігається"
+
+msgid "Image holds {value}"
+msgstr "В образі {value}"
+
+msgid "Not in memory"
+msgstr "Немає в пам'яті"
+
+msgid "Not checked"
+msgstr "Не перевірено"

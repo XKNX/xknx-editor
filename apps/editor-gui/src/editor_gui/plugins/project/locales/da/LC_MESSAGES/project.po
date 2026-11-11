@@ -3236,3 +3236,45 @@ msgstr "Vælg et andet trin på listen for at bringe projektet tilbage til det"
 
 msgid "Current state of the project"
 msgstr "Projektets aktuelle tilstand"
+
+msgid "Generic Plug-in"
+msgstr "Generic Plug-in"
+
+msgid "Read-only view of the settings the Siemens Generic Plug-in stored for this device, with the texts of its product data. Each value is checked against the memory image of the last download. Nothing can be changed or downloaded from here."
+msgstr "Skrivebeskyttet visning af de indstillinger, som Siemens Generic Plug-in har gemt for denne enhed, med teksterne fra dens produktdata. Hver værdi sammenlignes med hukommelsesbilledet fra den seneste download. Intet kan ændres eller downloades herfra."
+
+msgid "No Generic Plug-in description or stored settings were found for this device."
+msgstr "Der blev ikke fundet nogen Generic Plug-in-beskrivelse eller gemte indstillinger for denne enhed."
+
+msgid "Matching: {match} · Not matching: {mismatch} · Not checked: {unchecked}"
+msgstr "Ens: {match} · Forskellige: {mismatch} · Ikke kontrolleret: {unchecked}"
+
+msgid "Last download: {date}"
+msgstr "Seneste download: {date}"
+
+msgid "No memory image is stored, so the values are not checked."
+msgstr "Der er ikke gemt noget hukommelsesbillede, så værdierne kontrolleres ikke."
+
+msgid "The memory image does not fit the layout of the description, so the values are not checked."
+msgstr "Hukommelsesbilledet passer ikke til beskrivelsens opbygning, så værdierne kontrolleres ikke."
+
+msgid "The stored settings name another application ({stored})."
+msgstr "De gemte indstillinger angiver en anden applikation ({stored})."
+
+msgid "Only values that differ from the memory image"
+msgstr "Kun værdier, der afviger fra hukommelsesbilledet"
+
+msgid "Memory Image"
+msgstr "Hukommelsesbillede"
+
+msgid "Matches"
+msgstr "Stemmer"
+
+msgid "Image holds {value}"
+msgstr "Billedet indeholder {value}"
+
+msgid "Not in memory"
+msgstr "Ikke i hukommelsen"
+
+msgid "Not checked"
+msgstr "Ikke kontrolleret"

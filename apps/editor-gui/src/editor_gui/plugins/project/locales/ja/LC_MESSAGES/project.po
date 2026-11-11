@@ -3184,3 +3184,45 @@ msgstr "プロジェクトを戻すには、一覧で別のステップを選択
 
 msgid "Current state of the project"
 msgstr "プロジェクトの現在の状態"
+
+msgid "Generic Plug-in"
+msgstr "汎用プラグイン"
+
+msgid "Read-only view of the settings the Siemens Generic Plug-in stored for this device, with the texts of its product data. Each value is checked against the memory image of the last download. Nothing can be changed or downloaded from here."
+msgstr "Siemens Generic Plug-in がこのデバイスに保存した設定を、製品データのテキストで表示する読み取り専用ビューです。各値は前回のダウンロードのメモリイメージと照合されます。ここでは何も変更・ダウンロードできません。"
+
+msgid "No Generic Plug-in description or stored settings were found for this device."
+msgstr "このデバイスの Generic Plug-in の説明または保存された設定が見つかりません。"
+
+msgid "Matching: {match} · Not matching: {mismatch} · Not checked: {unchecked}"
+msgstr "一致: {match} · 不一致: {mismatch} · 未確認: {unchecked}"
+
+msgid "Last download: {date}"
+msgstr "前回のダウンロード: {date}"
+
+msgid "No memory image is stored, so the values are not checked."
+msgstr "メモリイメージが保存されていないため、値は確認されません。"
+
+msgid "The memory image does not fit the layout of the description, so the values are not checked."
+msgstr "メモリイメージが説明のレイアウトと合わないため、値は確認されません。"
+
+msgid "The stored settings name another application ({stored})."
+msgstr "保存された設定は別のアプリケーション ({stored}) を示しています。"
+
+msgid "Only values that differ from the memory image"
+msgstr "メモリイメージと異なる値のみ"
+
+msgid "Memory Image"
+msgstr "メモリイメージ"
+
+msgid "Matches"
+msgstr "一致"
+
+msgid "Image holds {value}"
+msgstr "イメージの値: {value}"
+
+msgid "Not in memory"
+msgstr "メモリにありません"
+
+msgid "Not checked"
+msgstr "未確認"

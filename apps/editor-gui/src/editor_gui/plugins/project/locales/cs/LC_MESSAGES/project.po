@@ -3288,3 +3288,45 @@ msgstr "Vyberte v seznamu jiný krok, ke kterému se má projekt vrátit"
 
 msgid "Current state of the project"
 msgstr "Aktuální stav projektu"
+
+msgid "Generic Plug-in"
+msgstr "Generic Plug-in"
+
+msgid "Read-only view of the settings the Siemens Generic Plug-in stored for this device, with the texts of its product data. Each value is checked against the memory image of the last download. Nothing can be changed or downloaded from here."
+msgstr "Zobrazení pouze pro čtení s nastaveními, která Siemens Generic Plug-in uložil pro toto zařízení, s texty z jeho produktových dat. Každá hodnota se porovná s obrazem paměti z posledního nahrání. Zde nelze nic změnit ani nahrát."
+
+msgid "No Generic Plug-in description or stored settings were found for this device."
+msgstr "Pro toto zařízení nebyl nalezen popis Generic Plug-in ani uložená nastavení."
+
+msgid "Matching: {match} · Not matching: {mismatch} · Not checked: {unchecked}"
+msgstr "Shodných: {match} · Neshodných: {mismatch} · Nekontrolováno: {unchecked}"
+
+msgid "Last download: {date}"
+msgstr "Poslední nahrání: {date}"
+
+msgid "No memory image is stored, so the values are not checked."
+msgstr "Není uložen žádný obraz paměti, proto se hodnoty nekontrolují."
+
+msgid "The memory image does not fit the layout of the description, so the values are not checked."
+msgstr "Obraz paměti neodpovídá struktuře popisu, proto se hodnoty nekontrolují."
+
+msgid "The stored settings name another application ({stored})."
+msgstr "Uložená nastavení uvádějí jinou aplikaci ({stored})."
+
+msgid "Only values that differ from the memory image"
+msgstr "Jen hodnoty, které se liší od obrazu paměti"
+
+msgid "Memory Image"
+msgstr "Obraz paměti"
+
+msgid "Matches"
+msgstr "Shoduje se"
+
+msgid "Image holds {value}"
+msgstr "Obraz obsahuje {value}"
+
+msgid "Not in memory"
+msgstr "Není v paměti"
+
+msgid "Not checked"
+msgstr "Nekontrolováno"

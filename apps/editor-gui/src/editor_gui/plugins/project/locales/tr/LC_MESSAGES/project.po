@@ -3184,3 +3184,45 @@ msgstr "Projeyi geri getirmek için listeden başka bir adım seçin"
 
 msgid "Current state of the project"
 msgstr "Projenin mevcut durumu"
+
+msgid "Generic Plug-in"
+msgstr "Generic Plug-in"
+
+msgid "Read-only view of the settings the Siemens Generic Plug-in stored for this device, with the texts of its product data. Each value is checked against the memory image of the last download. Nothing can be changed or downloaded from here."
+msgstr "Siemens Generic Plug-in'in bu cihaz için kaydettiği ayarların, ürün verilerinin metinleriyle salt okunur görünümü. Her değer son indirmenin bellek görüntüsüyle karşılaştırılır. Buradan hiçbir şey değiştirilemez veya indirilemez."
+
+msgid "No Generic Plug-in description or stored settings were found for this device."
+msgstr "Bu cihaz için Generic Plug-in açıklaması veya kayıtlı ayar bulunamadı."
+
+msgid "Matching: {match} · Not matching: {mismatch} · Not checked: {unchecked}"
+msgstr "Eşleşen: {match} · Eşleşmeyen: {mismatch} · Denetlenmeyen: {unchecked}"
+
+msgid "Last download: {date}"
+msgstr "Son indirme: {date}"
+
+msgid "No memory image is stored, so the values are not checked."
+msgstr "Kayıtlı bellek görüntüsü yok, bu nedenle değerler denetlenmiyor."
+
+msgid "The memory image does not fit the layout of the description, so the values are not checked."
+msgstr "Bellek görüntüsü açıklamanın yapısına uymuyor, bu nedenle değerler denetlenmiyor."
+
+msgid "The stored settings name another application ({stored})."
+msgstr "Kayıtlı ayarlar başka bir uygulamayı belirtiyor ({stored})."
+
+msgid "Only values that differ from the memory image"
+msgstr "Yalnızca bellek görüntüsünden farklı olan değerler"
+
+msgid "Memory Image"
+msgstr "Bellek Görüntüsü"
+
+msgid "Matches"
+msgstr "Eşleşiyor"
+
+msgid "Image holds {value}"
+msgstr "Görüntüdeki değer: {value}"
+
+msgid "Not in memory"
+msgstr "Bellekte değil"
+
+msgid "Not checked"
+msgstr "Denetlenmedi"

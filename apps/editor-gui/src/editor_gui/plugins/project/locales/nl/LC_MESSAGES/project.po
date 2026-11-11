@@ -3269,3 +3269,45 @@ msgstr "Selecteer een andere stap in de lijst om het project daarnaar terug te z
 
 msgid "Current state of the project"
 msgstr "Huidige toestand van het project"
+
+msgid "Generic Plug-in"
+msgstr "Generic Plug-in"
+
+msgid "Read-only view of the settings the Siemens Generic Plug-in stored for this device, with the texts of its product data. Each value is checked against the memory image of the last download. Nothing can be changed or downloaded from here."
+msgstr "Alleen-lezen weergave van de instellingen die de Siemens Generic Plug-in voor dit apparaat heeft opgeslagen, met de teksten uit de productgegevens. Elke waarde wordt vergeleken met het geheugenbeeld van de laatste download. Hier kan niets worden gewijzigd of gedownload."
+
+msgid "No Generic Plug-in description or stored settings were found for this device."
+msgstr "Voor dit apparaat is geen Generic Plug-in-beschrijving of opgeslagen instelling gevonden."
+
+msgid "Matching: {match} · Not matching: {mismatch} · Not checked: {unchecked}"
+msgstr "Overeenkomend: {match} · Afwijkend: {mismatch} · Niet gecontroleerd: {unchecked}"
+
+msgid "Last download: {date}"
+msgstr "Laatste download: {date}"
+
+msgid "No memory image is stored, so the values are not checked."
+msgstr "Er is geen geheugenbeeld opgeslagen, dus de waarden worden niet gecontroleerd."
+
+msgid "The memory image does not fit the layout of the description, so the values are not checked."
+msgstr "Het geheugenbeeld past niet bij de indeling van de beschrijving, dus de waarden worden niet gecontroleerd."
+
+msgid "The stored settings name another application ({stored})."
+msgstr "De opgeslagen instellingen noemen een andere applicatie ({stored})."
+
+msgid "Only values that differ from the memory image"
+msgstr "Alleen waarden die afwijken van het geheugenbeeld"
+
+msgid "Memory Image"
+msgstr "Geheugenbeeld"
+
+msgid "Matches"
+msgstr "Komt overeen"
+
+msgid "Image holds {value}"
+msgstr "Beeld bevat {value}"
+
+msgid "Not in memory"
+msgstr "Niet in geheugen"
+
+msgid "Not checked"
+msgstr "Niet gecontroleerd"

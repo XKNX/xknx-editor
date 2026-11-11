@@ -3367,3 +3367,45 @@ msgstr "Na seznamu izberite drug korak, da projekt vrnete nanj"
 
 msgid "Current state of the project"
 msgstr "Trenutno stanje projekta"
+
+msgid "Generic Plug-in"
+msgstr "Generic Plug-in"
+
+msgid "Read-only view of the settings the Siemens Generic Plug-in stored for this device, with the texts of its product data. Each value is checked against the memory image of the last download. Nothing can be changed or downloaded from here."
+msgstr "Pogled samo za branje nastavitev, ki jih je Siemens Generic Plug-in shranil za to napravo, z besedili iz njenih podatkov o izdelku. Vsaka vrednost se primerja s pomnilniško sliko zadnjega prenosa. Tu ni mogoče ničesar spremeniti ali prenesti."
+
+msgid "No Generic Plug-in description or stored settings were found for this device."
+msgstr "Za to napravo ni bilo najdenega opisa Generic Plug-in ali shranjenih nastavitev."
+
+msgid "Matching: {match} · Not matching: {mismatch} · Not checked: {unchecked}"
+msgstr "Ujemajo se: {match} · Se ne ujemajo: {mismatch} · Ni preverjeno: {unchecked}"
+
+msgid "Last download: {date}"
+msgstr "Zadnji prenos: {date}"
+
+msgid "No memory image is stored, so the values are not checked."
+msgstr "Pomnilniška slika ni shranjena, zato vrednosti niso preverjene."
+
+msgid "The memory image does not fit the layout of the description, so the values are not checked."
+msgstr "Pomnilniška slika se ne ujema z zgradbo opisa, zato vrednosti niso preverjene."
+
+msgid "The stored settings name another application ({stored})."
+msgstr "Shranjene nastavitve navajajo drugo aplikacijo ({stored})."
+
+msgid "Only values that differ from the memory image"
+msgstr "Samo vrednosti, ki se razlikujejo od pomnilniške slike"
+
+msgid "Memory Image"
+msgstr "Pomnilniška Slika"
+
+msgid "Matches"
+msgstr "Se ujema"
+
+msgid "Image holds {value}"
+msgstr "Slika vsebuje {value}"
+
+msgid "Not in memory"
+msgstr "Ni v pomnilniku"
+
+msgid "Not checked"
+msgstr "Ni preverjeno"

@@ -2199,6 +2199,77 @@ class ProjectStrings:
         return _("Plugin Config")
 
     @property
+    def EDITOR_TAB_GENERIC_PLUGIN(self) -> str:
+        return _("Generic Plug-in")
+
+    @property
+    def GENERIC_PLUGIN_NOTE(self) -> str:
+        return _(
+            "Read-only view of the settings the Siemens Generic Plug-in stored for this device, "
+            "with the texts of its product data. Each value is checked against the memory image "
+            "of the last download. Nothing can be changed or downloaded from here."
+        )
+
+    @property
+    def GENERIC_PLUGIN_NONE(self) -> str:
+        return _(
+            "No Generic Plug-in description or stored settings were found for this device."
+        )
+
+    @property
+    def GENERIC_PLUGIN_SUMMARY(self) -> str:
+        return _(
+            "Matching: {match} · Not matching: {mismatch} · Not checked: {unchecked}"
+        )
+
+    @property
+    def GENERIC_PLUGIN_LAST_DOWNLOAD(self) -> str:
+        return _("Last download: {date}")
+
+    @property
+    def GENERIC_PLUGIN_NO_IMAGE(self) -> str:
+        return _("No memory image is stored, so the values are not checked.")
+
+    @property
+    def GENERIC_PLUGIN_LAYOUT_UNKNOWN(self) -> str:
+        return _(
+            "The memory image does not fit the layout of the description, so the values are "
+            "not checked."
+        )
+
+    @property
+    def GENERIC_PLUGIN_OTHER_APPLICATION(self) -> str:
+        return _("The stored settings name another application ({stored}).")
+
+    @property
+    def GENERIC_PLUGIN_ONLY_MISMATCHES(self) -> str:
+        return _("Only values that differ from the memory image")
+
+    @property
+    def GENERIC_PLUGIN_COL_MEMORY(self) -> str:
+        return _("Memory Image")
+
+    @property
+    def GENERIC_PLUGIN_MATCH(self) -> str:
+        return _("Matches")
+
+    @property
+    def GENERIC_PLUGIN_MISMATCH(self) -> str:
+        return _("Image holds {value}")
+
+    @property
+    def GENERIC_PLUGIN_NOT_IN_MEMORY(self) -> str:
+        return _("Not in memory")
+
+    @property
+    def GENERIC_PLUGIN_UNCHECKED(self) -> str:
+        return _("Not checked")
+
+    @property
+    def GENERIC_PLUGIN_GENERAL(self) -> str:
+        return _("General")
+
+    @property
     def PLUGIN_PARAMS_NO_MAPPING(self) -> str:
         return _(
             "No plugin mapping is available for this device yet. The vendor plugin's "

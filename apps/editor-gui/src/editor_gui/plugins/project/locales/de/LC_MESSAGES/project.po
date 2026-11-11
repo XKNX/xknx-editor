@@ -3376,3 +3376,45 @@ msgstr "Wählen Sie einen anderen Schritt in der Liste, um das Projekt auf diese
 
 msgid "Current state of the project"
 msgstr "Aktueller Stand des Projekts"
+
+msgid "Generic Plug-in"
+msgstr "Generic Plug-in"
+
+msgid "Read-only view of the settings the Siemens Generic Plug-in stored for this device, with the texts of its product data. Each value is checked against the memory image of the last download. Nothing can be changed or downloaded from here."
+msgstr "Nur-Lese-Ansicht der Einstellungen, die das Siemens Generic Plug-in für dieses Gerät gespeichert hat, mit den Texten seiner Produktdaten. Jeder Wert wird mit dem Speicherabbild des letzten Downloads verglichen. Hier kann nichts geändert oder heruntergeladen werden."
+
+msgid "No Generic Plug-in description or stored settings were found for this device."
+msgstr "Für dieses Gerät wurde keine Generic-Plug-in-Beschreibung oder keine gespeicherte Einstellung gefunden."
+
+msgid "Matching: {match} · Not matching: {mismatch} · Not checked: {unchecked}"
+msgstr "Übereinstimmend: {match} · Abweichend: {mismatch} · Nicht geprüft: {unchecked}"
+
+msgid "Last download: {date}"
+msgstr "Letzter Download: {date}"
+
+msgid "No memory image is stored, so the values are not checked."
+msgstr "Es ist kein Speicherabbild gespeichert, daher werden die Werte nicht geprüft."
+
+msgid "The memory image does not fit the layout of the description, so the values are not checked."
+msgstr "Das Speicherabbild passt nicht zum Aufbau der Beschreibung, daher werden die Werte nicht geprüft."
+
+msgid "The stored settings name another application ({stored})."
+msgstr "Die gespeicherten Einstellungen nennen eine andere Applikation ({stored})."
+
+msgid "Only values that differ from the memory image"
+msgstr "Nur Werte, die vom Speicherabbild abweichen"
+
+msgid "Memory Image"
+msgstr "Speicherabbild"
+
+msgid "Matches"
+msgstr "Stimmt überein"
+
+msgid "Image holds {value}"
+msgstr "Abbild enthält {value}"
+
+msgid "Not in memory"
+msgstr "Nicht im Speicher"
+
+msgid "Not checked"
+msgstr "Nicht geprüft"

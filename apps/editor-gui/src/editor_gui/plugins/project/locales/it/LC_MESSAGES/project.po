@@ -3236,3 +3236,45 @@ msgstr "Seleziona un altro passaggio nell'elenco per riportare il progetto a que
 
 msgid "Current state of the project"
 msgstr "Stato attuale del progetto"
+
+msgid "Generic Plug-in"
+msgstr "Generic Plug-in"
+
+msgid "Read-only view of the settings the Siemens Generic Plug-in stored for this device, with the texts of its product data. Each value is checked against the memory image of the last download. Nothing can be changed or downloaded from here."
+msgstr "Vista di sola lettura delle impostazioni che il Generic Plug-in di Siemens ha salvato per questo dispositivo, con i testi dei suoi dati di prodotto. Ogni valore viene confrontato con l'immagine di memoria dell'ultimo download. Qui non si può modificare né scaricare nulla."
+
+msgid "No Generic Plug-in description or stored settings were found for this device."
+msgstr "Non è stata trovata alcuna descrizione del Generic Plug-in né impostazioni salvate per questo dispositivo."
+
+msgid "Matching: {match} · Not matching: {mismatch} · Not checked: {unchecked}"
+msgstr "Corrispondenti: {match} · Non corrispondenti: {mismatch} · Non verificati: {unchecked}"
+
+msgid "Last download: {date}"
+msgstr "Ultimo download: {date}"
+
+msgid "No memory image is stored, so the values are not checked."
+msgstr "Non è salvata alcuna immagine di memoria, quindi i valori non vengono verificati."
+
+msgid "The memory image does not fit the layout of the description, so the values are not checked."
+msgstr "L'immagine di memoria non corrisponde alla struttura della descrizione, quindi i valori non vengono verificati."
+
+msgid "The stored settings name another application ({stored})."
+msgstr "Le impostazioni salvate indicano un'altra applicazione ({stored})."
+
+msgid "Only values that differ from the memory image"
+msgstr "Solo i valori diversi dall'immagine di memoria"
+
+msgid "Memory Image"
+msgstr "Immagine di memoria"
+
+msgid "Matches"
+msgstr "Corrisponde"
+
+msgid "Image holds {value}"
+msgstr "L'immagine contiene {value}"
+
+msgid "Not in memory"
+msgstr "Non in memoria"
+
+msgid "Not checked"
+msgstr "Non verificato"

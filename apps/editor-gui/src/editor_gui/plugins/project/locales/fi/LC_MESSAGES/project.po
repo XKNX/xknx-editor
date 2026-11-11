@@ -3236,3 +3236,45 @@ msgstr "Valitse luettelosta toinen vaihe palauttaaksesi projektin siihen"
 
 msgid "Current state of the project"
 msgstr "Projektin nykyinen tila"
+
+msgid "Generic Plug-in"
+msgstr "Generic Plug-in"
+
+msgid "Read-only view of the settings the Siemens Generic Plug-in stored for this device, with the texts of its product data. Each value is checked against the memory image of the last download. Nothing can be changed or downloaded from here."
+msgstr "Vain luku -näkymä asetuksista, jotka Siemens Generic Plug-in on tallentanut tälle laitteelle, sen tuotetietojen teksteillä. Jokaista arvoa verrataan viimeisimmän latauksen muistikuvaan. Täällä ei voi muuttaa eikä ladata mitään."
+
+msgid "No Generic Plug-in description or stored settings were found for this device."
+msgstr "Tälle laitteelle ei löytynyt Generic Plug-in -kuvausta tai tallennettuja asetuksia."
+
+msgid "Matching: {match} · Not matching: {mismatch} · Not checked: {unchecked}"
+msgstr "Täsmää: {match} · Ei täsmää: {mismatch} · Ei tarkistettu: {unchecked}"
+
+msgid "Last download: {date}"
+msgstr "Viimeisin lataus: {date}"
+
+msgid "No memory image is stored, so the values are not checked."
+msgstr "Muistikuvaa ei ole tallennettu, joten arvoja ei tarkisteta."
+
+msgid "The memory image does not fit the layout of the description, so the values are not checked."
+msgstr "Muistikuva ei sovi kuvauksen rakenteeseen, joten arvoja ei tarkisteta."
+
+msgid "The stored settings name another application ({stored})."
+msgstr "Tallennetut asetukset viittaavat toiseen sovellukseen ({stored})."
+
+msgid "Only values that differ from the memory image"
+msgstr "Vain muistikuvasta poikkeavat arvot"
+
+msgid "Memory Image"
+msgstr "Muistikuva"
+
+msgid "Matches"
+msgstr "Täsmää"
+
+msgid "Image holds {value}"
+msgstr "Muistikuvassa {value}"
+
+msgid "Not in memory"
+msgstr "Ei muistissa"
+
+msgid "Not checked"
+msgstr "Ei tarkistettu"

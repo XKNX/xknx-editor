@@ -19,6 +19,18 @@ from editor_gui.device_info import (
     serial_to_project,
 )
 from editor_gui.dpt_formats import cached_master_formats, cached_master_names
+from editor_gui.languages import product_language
+from editor_gui.plugin_blob_readers.siemens_generic import (
+    GenericView,
+    Sources,
+    is_xml_baggage,
+)
+from editor_gui.plugin_blob_readers.siemens_generic import (
+    find_sources as find_generic_sources,
+)
+from editor_gui.plugin_blob_readers.siemens_generic import (
+    read_view as read_generic_view,
+)
 from editor_gui.plugins.base import Logger, PanelDefinition, PluginAPI
 from editor_gui.plugins.connection.strings import S as CONNECTION_S
 from editor_gui.plugins.project.button_runner import ButtonOutcome, ButtonRunner
@@ -70,6 +82,7 @@ from editor_gui.plugins.project.ui.device_certificate import (
 )
 from editor_gui.plugins.project.ui.device_compare import DeviceComparePanel
 from editor_gui.plugins.project.ui.element_details import ElementDetailsPanel
+from editor_gui.plugins.project.ui.generic_plugin_panel import GenericPluginPanel
 from editor_gui.plugins.project.ui.group_value import GroupValueActions
 from editor_gui.plugins.project.ui.memory_preview import MemoryPreviewWindow
 from editor_gui.plugins.project.ui.paste_special import PasteSpecialDialog
@@ -367,6 +380,8 @@ class ProjectPlugin:
             render_dali=self._render_dali_tab,
             render_siemens_dali=self._render_siemens_dali_tab,
             render_plugin_params=self._render_plugin_params_tab,
+            render_generic_plugin=self._render_generic_plugin_tab,
+            has_generic_plugin=self._has_generic_plugin,
             on_navigate_ga=self._navigate_to_group_address,
             on_paste_links=self._paste_com_object_links,
             ga_menu=self._group_object_ga_menu,
@@ -426,6 +441,13 @@ class ProjectPlugin:
             _on_export_prj=self._handle_export_prj,
             _detect_display_type=self._detect_triton_type,
         )
+        self._generic_plugin_panel = GenericPluginPanel(self.generic_plugin_view)
+        # Generic Plug-in sources per application id and views per device, see
+        # generic_plugin_view.
+        self._generic_sources: dict[str, Sources | None] = {}
+        self._generic_views: dict[
+            int, tuple[tuple[object, ...], GenericView | None]
+        ] = {}
         # Pending triton LCD ".prj" import: the open dialog and the device it was started for.
         self._triton_prj_dialog: file_dialogs.OpenFileDialog | None = None
         self._triton_prj_device: Device | None = None
@@ -1299,6 +1321,75 @@ class ProjectPlugin:
             device, self._api.project, self._api.connection.master
         )
         self._plugin_params_panel.render(device)
+
+    def _render_generic_plugin_tab(self, device: "Device") -> None:
+        """Render the read-only Generic Plug-in tab of ``device``."""
+        self._generic_plugin_panel.render(device)
+
+    def _has_generic_plugin(self, device: "Device") -> bool:
+        return self.generic_plugin_view(device) is not None
+
+    def generic_plugin_view(self, device: "Device") -> GenericView | None:
+        """The read-only view of the settings the Siemens ETS3 Generic Plug-in stored for
+        ``device``, or None when its application names no Generic Plug-in description among its
+        XML baggages or the device stores no plug-in settings. Cached per device and product
+        language; only XML baggages are read."""
+        if device.app is None or not device.app.loaded:
+            return None
+        static = getattr(device.app.program, "static", None)
+        extension = getattr(static, "extension", None)
+        baggage_ids: list[str] = []
+        for b in cast("list[Any]", getattr(extension, "baggage", None) or []):
+            ref_id = str(getattr(b, "ref_id", None) or "")
+            if ref_id and is_xml_baggage(ref_id):
+                baggage_ids.append(ref_id)
+        blobs: list[bytes] = []
+        for entry in cast("list[Any]", getattr(device, "binary_data", None) or []):
+            data = getattr(entry, "data", None)
+            if data:
+                blobs.append(bytes(cast("bytes", data)))
+        if not baggage_ids or not blobs:
+            return None
+        language = product_language()
+        key: tuple[object, ...] = (
+            device.app.id,
+            language,
+            tuple((len(b), hash(b)) for b in blobs),
+        )
+        cached = self._generic_views.get(device.node_id)
+        if cached is not None and cached[0] == key:
+            return cached[1]
+        sources = self._generic_plugin_sources(device, baggage_ids)
+        view: GenericView | None = None
+        if sources is not None:
+            info = self._api.project.get_device_info(device.node_id)
+            order = str(getattr(info, "order_number", "") or "") if info else ""
+            globals_ = {"DeviceOrderNumber": order} if order else {}
+            for blob in blobs:
+                try:
+                    view = read_generic_view(sources, blob, language, globals_)
+                except Exception as exc:  # a damaged blob must not break the tab bar
+                    self._api.log.warning(
+                        "generic plug-in settings unreadable",
+                        plugin="project",
+                        error=str(exc),
+                    )
+                    view = None
+                if view is not None:
+                    break
+        self._generic_views[device.node_id] = (key, view)
+        return view
+
+    def _generic_plugin_sources(
+        self, device: "Device", baggage_ids: list[str]
+    ) -> Sources | None:
+        app_id = device.app.id if device.app is not None else ""
+        if app_id in self._generic_sources:
+            return self._generic_sources[app_id]
+        baggages = self._device_baggages(device)
+        sources = find_generic_sources(baggage_ids, baggages.file) if baggages else None
+        self._generic_sources[app_id] = sources
+        return sources
 
     def _detect_triton_type(self, device: "Device") -> str | None:
         """The auto-detected triton LCD display type as its enum value string, or None."""

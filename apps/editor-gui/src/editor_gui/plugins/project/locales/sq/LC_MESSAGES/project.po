@@ -3236,3 +3236,45 @@ msgstr "Zgjidhni një hap tjetër në listë për ta kthyer projektin në të"
 
 msgid "Current state of the project"
 msgstr "Gjendja aktuale e projektit"
+
+msgid "Generic Plug-in"
+msgstr "Generic Plug-in"
+
+msgid "Read-only view of the settings the Siemens Generic Plug-in stored for this device, with the texts of its product data. Each value is checked against the memory image of the last download. Nothing can be changed or downloaded from here."
+msgstr "Pamje vetëm për lexim e cilësimeve që Siemens Generic Plug-in ruajti për këtë pajisje, me tekstet e të dhënave të produktit. Çdo vlerë krahasohet me imazhin e kujtesës së shkarkimit të fundit. Këtu nuk mund të ndryshohet apo shkarkohet asgjë."
+
+msgid "No Generic Plug-in description or stored settings were found for this device."
+msgstr "Nuk u gjet asnjë përshkrim i Generic Plug-in apo cilësime të ruajtura për këtë pajisje."
+
+msgid "Matching: {match} · Not matching: {mismatch} · Not checked: {unchecked}"
+msgstr "Përputhen: {match} · Nuk përputhen: {mismatch} · Të pakontrolluara: {unchecked}"
+
+msgid "Last download: {date}"
+msgstr "Shkarkimi i fundit: {date}"
+
+msgid "No memory image is stored, so the values are not checked."
+msgstr "Nuk është ruajtur asnjë imazh i kujtesës, prandaj vlerat nuk kontrollohen."
+
+msgid "The memory image does not fit the layout of the description, so the values are not checked."
+msgstr "Imazhi i kujtesës nuk përshtatet me strukturën e përshkrimit, prandaj vlerat nuk kontrollohen."
+
+msgid "The stored settings name another application ({stored})."
+msgstr "Cilësimet e ruajtura tregojnë një aplikacion tjetër ({stored})."
+
+msgid "Only values that differ from the memory image"
+msgstr "Vetëm vlerat që ndryshojnë nga imazhi i kujtesës"
+
+msgid "Memory Image"
+msgstr "Imazhi i Kujtesës"
+
+msgid "Matches"
+msgstr "Përputhet"
+
+msgid "Image holds {value}"
+msgstr "Imazhi përmban {value}"
+
+msgid "Not in memory"
+msgstr "Jo në kujtesë"
+
+msgid "Not checked"
+msgstr "E pakontrolluar"

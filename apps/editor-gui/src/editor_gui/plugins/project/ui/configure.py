@@ -330,6 +330,8 @@ class ConfigurePanel:
         render_dali: Callable[[Device], None] | None = None,
         render_siemens_dali: Callable[[Device], None] | None = None,
         render_plugin_params: Callable[[Device], None] | None = None,
+        render_generic_plugin: Callable[[Device], None] | None = None,
+        has_generic_plugin: Callable[[Device], bool] | None = None,
         on_navigate_ga: Callable[[int], None] | None = None,
         on_paste_links: Callable[[int, list[tuple[int, bool]], bool], None]
         | None = None,
@@ -512,6 +514,9 @@ class ConfigurePanel:
         )
         self._render_siemens_dali = render_siemens_dali
         self._render_plugin_params = render_plugin_params
+        # Read-only "Generic Plug-in" tab (Siemens ETS3 Generic Plug-in devices only).
+        self._render_generic_plugin = render_generic_plugin
+        self._has_generic_plugin = has_generic_plugin
         self._param_filter: str = ""
         self._module_filter: str = ""  # "Channels" tab (module-instance table) filter
         self._lv_seq: int = 0  # per-frame counter for unique _render_label_value ids
@@ -1322,6 +1327,19 @@ class ConfigurePanel:
                 )[0]
             ):
                 self._render_plugin_params(device)
+                imgui.end_tab_item()
+
+            # "Generic Plug-in" tab: read-only view of the settings the Siemens Generic Plug-in
+            # stored in the device's BinaryData, from the plug-in's XML description.
+            if (
+                self._render_generic_plugin is not None
+                and self._has_generic_plugin is not None
+                and self._has_generic_plugin(device)
+                and imgui.begin_tab_item(
+                    f"{S.EDITOR_TAB_GENERIC_PLUGIN}###editor_tab_generic_plugin"
+                )[0]
+            ):
+                self._render_generic_plugin(device)
                 imgui.end_tab_item()
 
             imgui.end_tab_bar()

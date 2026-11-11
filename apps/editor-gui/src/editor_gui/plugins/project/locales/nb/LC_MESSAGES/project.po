@@ -3236,3 +3236,45 @@ msgstr "Velg et annet trinn i listen for å føre prosjektet tilbake til det"
 
 msgid "Current state of the project"
 msgstr "Prosjektets nåværende tilstand"
+
+msgid "Generic Plug-in"
+msgstr "Generic Plug-in"
+
+msgid "Read-only view of the settings the Siemens Generic Plug-in stored for this device, with the texts of its product data. Each value is checked against the memory image of the last download. Nothing can be changed or downloaded from here."
+msgstr "Skrivebeskyttet visning av innstillingene som Siemens Generic Plug-in har lagret for denne enheten, med tekstene fra produktdataene. Hver verdi sammenlignes med minnebildet fra siste nedlasting. Ingenting kan endres eller lastes ned herfra."
+
+msgid "No Generic Plug-in description or stored settings were found for this device."
+msgstr "Fant ingen Generic Plug-in-beskrivelse eller lagrede innstillinger for denne enheten."
+
+msgid "Matching: {match} · Not matching: {mismatch} · Not checked: {unchecked}"
+msgstr "Like: {match} · Ulike: {mismatch} · Ikke kontrollert: {unchecked}"
+
+msgid "Last download: {date}"
+msgstr "Siste nedlasting: {date}"
+
+msgid "No memory image is stored, so the values are not checked."
+msgstr "Det er ikke lagret noe minnebilde, så verdiene kontrolleres ikke."
+
+msgid "The memory image does not fit the layout of the description, so the values are not checked."
+msgstr "Minnebildet passer ikke til oppbygningen av beskrivelsen, så verdiene kontrolleres ikke."
+
+msgid "The stored settings name another application ({stored})."
+msgstr "De lagrede innstillingene angir et annet program ({stored})."
+
+msgid "Only values that differ from the memory image"
+msgstr "Bare verdier som avviker fra minnebildet"
+
+msgid "Memory Image"
+msgstr "Minnebilde"
+
+msgid "Matches"
+msgstr "Stemmer"
+
+msgid "Image holds {value}"
+msgstr "Bildet inneholder {value}"
+
+msgid "Not in memory"
+msgstr "Ikke i minnet"
+
+msgid "Not checked"
+msgstr "Ikke kontrollert"

@@ -3184,3 +3184,45 @@ msgstr "在列表中选择另一个步骤，将项目恢复到该步骤"
 
 msgid "Current state of the project"
 msgstr "项目的当前状态"
+
+msgid "Generic Plug-in"
+msgstr "通用插件"
+
+msgid "Read-only view of the settings the Siemens Generic Plug-in stored for this device, with the texts of its product data. Each value is checked against the memory image of the last download. Nothing can be changed or downloaded from here."
+msgstr "只读显示 Siemens 通用插件（Generic Plug-in）为此设备保存的设置，使用其产品数据中的文本。每个值都会与上次下载的存储器映像进行比较。此处无法更改或下载任何内容。"
+
+msgid "No Generic Plug-in description or stored settings were found for this device."
+msgstr "未找到此设备的通用插件说明或已保存的设置。"
+
+msgid "Matching: {match} · Not matching: {mismatch} · Not checked: {unchecked}"
+msgstr "一致：{match} · 不一致：{mismatch} · 未检查：{unchecked}"
+
+msgid "Last download: {date}"
+msgstr "上次下载：{date}"
+
+msgid "No memory image is stored, so the values are not checked."
+msgstr "未保存存储器映像，因此不检查这些值。"
+
+msgid "The memory image does not fit the layout of the description, so the values are not checked."
+msgstr "存储器映像与说明的布局不符，因此不检查这些值。"
+
+msgid "The stored settings name another application ({stored})."
+msgstr "已保存的设置指向另一个应用程序（{stored}）。"
+
+msgid "Only values that differ from the memory image"
+msgstr "仅显示与存储器映像不同的值"
+
+msgid "Memory Image"
+msgstr "存储器映像"
+
+msgid "Matches"
+msgstr "一致"
+
+msgid "Image holds {value}"
+msgstr "映像中为 {value}"
+
+msgid "Not in memory"
+msgstr "不在存储器中"
+
+msgid "Not checked"
+msgstr "未检查"

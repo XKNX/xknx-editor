@@ -3236,3 +3236,45 @@ msgstr "Sélectionnez une autre étape dans la liste pour y ramener le projet"
 
 msgid "Current state of the project"
 msgstr "État actuel du projet"
+
+msgid "Generic Plug-in"
+msgstr "Generic Plug-in"
+
+msgid "Read-only view of the settings the Siemens Generic Plug-in stored for this device, with the texts of its product data. Each value is checked against the memory image of the last download. Nothing can be changed or downloaded from here."
+msgstr "Vue en lecture seule des réglages que le Generic Plug-in de Siemens a enregistrés pour cet appareil, avec les textes de ses données produit. Chaque valeur est comparée à l'image mémoire du dernier téléchargement. Rien ne peut être modifié ni téléchargé ici."
+
+msgid "No Generic Plug-in description or stored settings were found for this device."
+msgstr "Aucune description du Generic Plug-in ni aucun réglage enregistré n'a été trouvé pour cet appareil."
+
+msgid "Matching: {match} · Not matching: {mismatch} · Not checked: {unchecked}"
+msgstr "Concordants : {match} · Non concordants : {mismatch} · Non vérifiés : {unchecked}"
+
+msgid "Last download: {date}"
+msgstr "Dernier téléchargement : {date}"
+
+msgid "No memory image is stored, so the values are not checked."
+msgstr "Aucune image mémoire n'est enregistrée, les valeurs ne sont donc pas vérifiées."
+
+msgid "The memory image does not fit the layout of the description, so the values are not checked."
+msgstr "L'image mémoire ne correspond pas à la structure de la description, les valeurs ne sont donc pas vérifiées."
+
+msgid "The stored settings name another application ({stored})."
+msgstr "Les réglages enregistrés indiquent une autre application ({stored})."
+
+msgid "Only values that differ from the memory image"
+msgstr "Seulement les valeurs qui diffèrent de l'image mémoire"
+
+msgid "Memory Image"
+msgstr "Image mémoire"
+
+msgid "Matches"
+msgstr "Concorde"
+
+msgid "Image holds {value}"
+msgstr "L'image contient {value}"
+
+msgid "Not in memory"
+msgstr "Pas en mémoire"
+
+msgid "Not checked"
+msgstr "Non vérifié"

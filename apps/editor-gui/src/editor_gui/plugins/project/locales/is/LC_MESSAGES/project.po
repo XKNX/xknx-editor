@@ -3263,3 +3263,45 @@ msgstr "Veldu annað skref á listanum til að færa verkefnið aftur á það"
 
 msgid "Current state of the project"
 msgstr "Núverandi staða verkefnisins"
+
+msgid "Generic Plug-in"
+msgstr "Generic Plug-in"
+
+msgid "Read-only view of the settings the Siemens Generic Plug-in stored for this device, with the texts of its product data. Each value is checked against the memory image of the last download. Nothing can be changed or downloaded from here."
+msgstr "Lesaðgangssýn yfir stillingarnar sem Siemens Generic Plug-in vistaði fyrir þetta tæki, með textunum úr vörugögnum þess. Hvert gildi er borið saman við minnismynd síðustu niðurhalningar. Hér er ekki hægt að breyta neinu eða hlaða niður."
+
+msgid "No Generic Plug-in description or stored settings were found for this device."
+msgstr "Engin Generic Plug-in lýsing eða vistaðar stillingar fundust fyrir þetta tæki."
+
+msgid "Matching: {match} · Not matching: {mismatch} · Not checked: {unchecked}"
+msgstr "Passa: {match} · Passa ekki: {mismatch} · Ekki athugað: {unchecked}"
+
+msgid "Last download: {date}"
+msgstr "Síðasta niðurhal: {date}"
+
+msgid "No memory image is stored, so the values are not checked."
+msgstr "Engin minnismynd er vistuð, svo gildin eru ekki athuguð."
+
+msgid "The memory image does not fit the layout of the description, so the values are not checked."
+msgstr "Minnismyndin passar ekki við uppbyggingu lýsingarinnar, svo gildin eru ekki athuguð."
+
+msgid "The stored settings name another application ({stored})."
+msgstr "Vistuðu stillingarnar vísa á annað forrit ({stored})."
+
+msgid "Only values that differ from the memory image"
+msgstr "Aðeins gildi sem eru frábrugðin minnismyndinni"
+
+msgid "Memory Image"
+msgstr "Minnismynd"
+
+msgid "Matches"
+msgstr "Passar"
+
+msgid "Image holds {value}"
+msgstr "Myndin geymir {value}"
+
+msgid "Not in memory"
+msgstr "Ekki í minni"
+
+msgid "Not checked"
+msgstr "Ekki athugað"

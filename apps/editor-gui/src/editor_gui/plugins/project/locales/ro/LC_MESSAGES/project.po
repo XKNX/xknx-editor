@@ -3315,3 +3315,45 @@ msgstr "Selectați alt pas din listă pentru a readuce proiectul la acesta"
 
 msgid "Current state of the project"
 msgstr "Starea curentă a proiectului"
+
+msgid "Generic Plug-in"
+msgstr "Generic Plug-in"
+
+msgid "Read-only view of the settings the Siemens Generic Plug-in stored for this device, with the texts of its product data. Each value is checked against the memory image of the last download. Nothing can be changed or downloaded from here."
+msgstr "Vizualizare doar pentru citire a setărilor pe care Siemens Generic Plug-in le-a salvat pentru acest dispozitiv, cu textele din datele sale de produs. Fiecare valoare este comparată cu imaginea de memorie a ultimei descărcări. Aici nu se poate modifica sau descărca nimic."
+
+msgid "No Generic Plug-in description or stored settings were found for this device."
+msgstr "Nu s-a găsit nicio descriere Generic Plug-in și nicio setare salvată pentru acest dispozitiv."
+
+msgid "Matching: {match} · Not matching: {mismatch} · Not checked: {unchecked}"
+msgstr "Corespund: {match} · Nu corespund: {mismatch} · Neverificate: {unchecked}"
+
+msgid "Last download: {date}"
+msgstr "Ultima descărcare: {date}"
+
+msgid "No memory image is stored, so the values are not checked."
+msgstr "Nu este salvată nicio imagine de memorie, deci valorile nu sunt verificate."
+
+msgid "The memory image does not fit the layout of the description, so the values are not checked."
+msgstr "Imaginea de memorie nu se potrivește cu structura descrierii, deci valorile nu sunt verificate."
+
+msgid "The stored settings name another application ({stored})."
+msgstr "Setările salvate indică o altă aplicație ({stored})."
+
+msgid "Only values that differ from the memory image"
+msgstr "Doar valorile care diferă de imaginea de memorie"
+
+msgid "Memory Image"
+msgstr "Imagine de Memorie"
+
+msgid "Matches"
+msgstr "Corespunde"
+
+msgid "Image holds {value}"
+msgstr "Imaginea conține {value}"
+
+msgid "Not in memory"
+msgstr "Nu este în memorie"
+
+msgid "Not checked"
+msgstr "Neverificat"
