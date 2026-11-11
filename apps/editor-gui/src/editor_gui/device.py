@@ -309,6 +309,15 @@ class Device:
     )
     # Changed in place since it was built, so it no longer mirrors the data it was built from.
     edited_in_place: bool = field(default=False, repr=False, compare=False, init=False)
+    # The next evaluation of its parameters calculates the device anew (see
+    # ``DynamicUI.calculate_anew``): its first one after the project opened and the one after
+    # an undo or redo of its parameters. Every other evaluation goes on from its stored values.
+    calculate_anew: bool = field(default=False, repr=False, compare=False, init=False)
+    # Told the device, the values such a calculation changed (none, too) and the
+    # parameter-driven group objects active before it, to store what it changed.
+    calculated_anew: Callable[[Device, ChangeSet, set[str]], None] | None = field(
+        default=None, repr=False, compare=False, init=False
+    )
     # The hardware must only be programmed with the manufacturer's plugin (NoDownloadWithoutPlugin).
     download_plugin_required: bool = field(
         default=False, repr=False, compare=False, init=False
@@ -391,7 +400,8 @@ class Device:
             # Program and tree as one pair: an unused application may have been reloaded.
             program, tree_builder = self.app.resolved()
             # The stored values are what the device's evaluation left (it is built again after
-            # each edit and after a release): an Assign target set directly keeps its value.
+            # each edit and after a release): an Assign target set directly keeps its value,
+            # unless the device is calculated anew (see calculate_anew).
             self._dynamic_ui = _DynamicUI(
                 program,
                 parameter_instance_refs=self.parameter_instance_refs or None,
@@ -403,6 +413,20 @@ class Device:
         if self._dynamic_ui is not None and self.project_code_page is not None:
             # Read every time: the project's code page can change (and be undone) any time.
             self._dynamic_ui.project_code_page = self.project_code_page()
+        if self._dynamic_ui is not None and self.calculate_anew:
+            self.calculate_anew = False
+            dyn = self._dynamic_ui
+            before = (
+                dyn.active_parameter_driven_com_object_ref_ids()
+                if dyn.has_assigns
+                else set[str]()
+            )
+            changes = dyn.calculate_anew()
+            if changes:
+                # Not in the stored values until they are stored: kept resident till then.
+                self._touched()
+            if self.calculated_anew is not None:
+                self.calculated_anew(self, changes, before)
         return self._dynamic_ui
 
     def release_dynamic_ui(self) -> None:

@@ -427,6 +427,18 @@ class ParameterState:
         for child in self._children.values():
             child.mark_seeded()
 
+    def restart_assigns(self) -> None:
+        """Take every Assign of this scope and the module scopes below as not applying, so that
+        each one the next evaluation reaches starts applying and writes its target (see
+        :meth:`run_assign`), as in the first evaluation of a device calculated from its values
+        anew."""
+        self._assign_seen = {}
+        self._assigns_now = {}
+        self._assigns_gated = False
+        self._seeded = None
+        for child in (*self._children.values(), *self._dormant_children.values()):
+            child.restart_assigns()
+
     def note_assign(self, key: int) -> None:
         """The current pass reached the Assign ``key`` (the id of its element) in this scope:
         it applies, whatever it writes."""

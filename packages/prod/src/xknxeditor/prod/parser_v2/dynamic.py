@@ -1980,6 +1980,37 @@ class DynamicUI:
             raise
         return journal.changes()
 
+    def calculate_anew(self) -> ChangeSet:
+        """Calculate the device anew from the values it has, as a device built without
+        ``keep_assigned`` is: every Assign that applies starts applying and writes its target
+        once (a target that has the value already does not change), which runs the target's
+        calculations as an edit of it does. A target no Assign writes any more keeps its value.
+        Returns the values that changed. Values that leave an allocator too few numbers leave
+        the device as it was: no change."""
+        if not self._has_assigns:
+            return {}
+        journal = self._journal()
+        self.ui()
+        before = copy.deepcopy(self._state)
+        try:
+            self._state.restart_assigns()
+            self._invalidate()
+            self._build_ui(capture_active=True)
+            calculated: dict[str, str | None] = {}
+            for _ in range(_MAX_GATE_PASSES):
+                self._note_assigned(journal, before)
+                if not self._calculate_assigned(
+                    journal, self._state.assign_targets(), calculated, before
+                ):
+                    break
+                self._build_ui(capture_active=True)
+            self._note_assigned(journal, before)
+        except AllocatorOverflow:
+            self._state = before
+            self._invalidate()
+            return {}
+        return journal.changes()
+
     def _store_assigns(
         self, journal: Journal, before: ParameterState, edited: Iterable[str]
     ) -> None:

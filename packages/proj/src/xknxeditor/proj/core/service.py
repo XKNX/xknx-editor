@@ -28,6 +28,7 @@ from sqlalchemy.dialects.sqlite import insert as sqlite_insert
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session, selectinload
 
+from xknxeditor.namespaces.ids import unpadded_id
 from xknxeditor.namespaces.intermediate.text_encoding_t import TextEncoding
 from xknxeditor.proj.core import ip_secure
 from xknxeditor.proj.core.addressing import (
@@ -200,6 +201,7 @@ from xknxeditor.proj.core.medium import (
     new_domain_address,
     sub_segment_media,
 )
+from xknxeditor.proj.core.modified import project_timestamp
 from xknxeditor.proj.core.paste import Allocation, place_range
 from xknxeditor.proj.core.product_data import (
     Row,
@@ -1478,6 +1480,63 @@ class ProjectService:
         self._state(project_id).store.append(
             SetParameter(device_id=device_id, ref_id=ref_id, value=value)
         )
+
+    def store_calculated_parameters(
+        self,
+        project_id: str,
+        device_id: int,
+        changes: Sequence[tuple[str, str | None, str]],
+        com_object_target: list[tuple[str, str | None]] | None = None,
+        app_program_id: str = "",
+        module_instances: Sequence[tuple[str, str]] | None = None,
+        removed_module_instances: Sequence[str] | None = None,
+    ) -> list[str]:
+        """Store the values a calculation of the device wrote, ``(ref_id, old, new)``, not as
+        an undo step: an undo or redo later sets the values its step holds. A value is stored
+        only where the device still has ``old`` (or no value): one changed since stays. A
+        changed value marks the device's parameters not loaded, which stamps its "Last
+        Modified" when they were loaded. When a value is stored, the module instances and the
+        group objects are made what the calculation left, as with :meth:`set_parameters`.
+        Returns the refs stored."""
+        state = self._state(project_id)
+        session = state.session
+        stored: list[str] = []
+        try:
+            for ref_id, old, new in changes:
+                query = session.query(Parameter).filter_by(device_id=device_id)
+                param = query.filter_by(ref_id=ref_id).first()
+                if param is None and (unpadded := unpadded_id(ref_id)) != ref_id:
+                    param = query.filter_by(ref_id=unpadded).first()
+                if param is None:
+                    session.add(
+                        Parameter(device_id=device_id, ref_id=ref_id, value=new)
+                    )
+                elif param.value == old and param.value != new:
+                    param.value = new
+                else:
+                    continue
+                stored.append(ref_id)
+            device = session.get(Device, device_id)
+            if stored and device is not None and device.parameters_loaded:
+                device.parameters_loaded = False
+                device.last_modified = project_timestamp()
+            if stored and (module_instances or removed_module_instances):
+                SyncDeviceModuleInstances(
+                    device_id=device_id,
+                    instances=[[i, r] for i, r in module_instances or ()],
+                    remove=list(removed_module_instances or ()),
+                ).apply(session)
+            if stored and com_object_target is not None:
+                SyncDeviceComObjects(
+                    device_id=device_id,
+                    target=[[r, c] for r, c in com_object_target],
+                    app_program_id=app_program_id,
+                ).apply(session)
+            session.commit()
+        except Exception:
+            session.rollback()
+            raise
+        return stored
 
     def create_group_address(
         self, project_id: str, installation: int, address: int, name: str

@@ -202,3 +202,32 @@ def test_a_directly_set_target_stays_a_target() -> None:
     ui.edit_parameters([(_COPY, "7")])
     assert _COPY in ui.assign_targets()
     assert ui.edit_parameters([(_ENABLE, "0")])[_COPY] == ("7", "0")
+
+
+def test_a_continued_ui_calculated_anew_writes_the_targets() -> None:
+    # As a device first used after its project opened, or after an undo: every Assign that
+    # applies writes once; the changes are what is stored then.
+    ui = _ui({_ENABLE: "1", _SOURCE: "4", _COPY: "7", _FIXED: "2"}, keep=True)
+    assert ui.calculate_anew() == {_COPY: ("7", "4"), _FIXED: ("2", "5")}
+    assert _values(ui) == ("4", "5")
+    # Calculated anew again, nothing changes; a later edit keeps them.
+    assert ui.calculate_anew() == {}
+    ui.edit_parameters([(_OTHER, "1")])
+    assert _values(ui) == ("4", "5")
+
+
+def test_a_target_set_directly_is_written_when_calculated_anew() -> None:
+    ui = _enabled()
+    ui.edit_parameters([(_COPY, "7")])
+    assert ui.calculate_anew() == {_COPY: ("7", "3")}
+    # An Assign that does not apply writes nothing.
+    ui.edit_parameters([(_ENABLE, "0")])
+    ui.apply_parameter_values({_COPY: "8"})
+    assert ui.calculate_anew() == {}
+    assert ui.get_value(_COPY) == "8"
+
+
+def test_a_module_instance_calculated_anew_writes_its_target() -> None:
+    ui = _ui({_CHANNEL: "1", _LEVEL: "2"}, keep=True)
+    assert ui.calculate_anew() == {_LEVEL: ("2", "6")}
+    assert ui.get_value(_LEVEL) == "6"
