@@ -163,6 +163,9 @@ msgstr "Ekki tókst að flytja út {name}: {error}"
 msgid "No stored archive for {name}"
 msgstr "Engin vistuð safnskrá fyrir {name}"
 
+msgid "The product data of {name} comes from a project without a catalog (Catalog.xml), so it cannot be exported as a .knxprod"
+msgstr "Vörugögn {name} koma úr verkefni án vörulista (Catalog.xml) og því er ekki hægt að flytja þau út sem .knxprod"
+
 msgid "Market:"
 msgstr "Markaður:"
 

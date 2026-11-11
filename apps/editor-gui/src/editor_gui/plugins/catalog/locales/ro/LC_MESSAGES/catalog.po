@@ -163,6 +163,9 @@ msgstr "{name} nu a putut fi exportat: {error}"
 msgid "No stored archive for {name}"
 msgstr "Nicio arhivă salvată pentru {name}"
 
+msgid "The product data of {name} comes from a project without a catalog (Catalog.xml), so it cannot be exported as a .knxprod"
+msgstr "Datele de produs pentru {name} provin dintr-un proiect fără catalog (Catalog.xml), deci nu pot fi exportate ca .knxprod"
+
 msgid "Market:"
 msgstr "Piață:"
 

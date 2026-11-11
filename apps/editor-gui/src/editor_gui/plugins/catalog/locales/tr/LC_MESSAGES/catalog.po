@@ -154,6 +154,9 @@ msgstr "{name} dışa aktarılamadı: {error}"
 msgid "No stored archive for {name}"
 msgstr "Kayıtlı arşiv yok: {name}"
 
+msgid "The product data of {name} comes from a project without a catalog (Catalog.xml), so it cannot be exported as a .knxprod"
+msgstr "{name} ürün verileri katalogsuz (Catalog.xml) bir projeden geliyor, bu nedenle .knxprod olarak dışa aktarılamaz"
+
 msgid "This device supports KNX Data Secure. Set a project password to commission it securely; without one it is added and commissioned in the clear."
 msgstr "Bu cihaz KNX Data Secure destekler. Cihazı güvenli şekilde devreye almak için bir proje parolası belirleyin; parola olmadan cihaz eklenir ve şifrelenmeden devreye alınır."
 

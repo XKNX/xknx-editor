@@ -10,6 +10,7 @@ from typing import Any
 import pytest
 from fastmcp import Client
 
+from editor_gui.plugins.catalog.strings import S as CatalogS
 from editor_gui.plugins.mcp.server import build_server
 
 from .test_server import _FIXTURE, _build, _data
@@ -439,6 +440,56 @@ async def test_catalog_product_details_and_export(tmp_path: Path) -> None:
             "no stored .knxprod archive",
             hardware2program_ref_id="M-0000_H-x_HP-0000-00-0000",
             dest=str(dest),
+        )
+
+
+@_needs_fixture
+async def test_catalog_export_leaves_out_the_project(tmp_path: Path) -> None:
+    import io
+    import zipfile
+
+    from .test_server import _build_ctx
+
+    def knxproj(*, catalog: bool) -> bytes:
+        buffer = io.BytesIO()
+        with (
+            zipfile.ZipFile(_FIXTURE) as src,
+            zipfile.ZipFile(buffer, "w") as out,
+        ):
+            for info in src.infolist():
+                if catalog or not info.filename.endswith("/Catalog.xml"):
+                    out.writestr(info, src.read(info))
+            out.writestr("P-0001/0.xml", b"project")
+        return buffer.getvalue()
+
+    ctx = _build_ctx(tmp_path)
+    ctx.api.catalog.import_project_archive(knxproj(catalog=True))
+    async with Client(build_server(ctx)) as client:
+        product = (await _data(client, "catalog_list_products"))["items"][0]
+        program = product["hardware2program_ref_id"]
+        dest = tmp_path / "export.knxprod"
+        await _data(
+            client,
+            "catalog_export_knxprod",
+            hardware2program_ref_id=program,
+            dest=str(dest),
+        )
+        with zipfile.ZipFile(dest) as exported, zipfile.ZipFile(_FIXTURE) as fixture:
+            assert set(exported.namelist()) == set(fixture.namelist())
+
+    # Product data from a project without Catalog.xml is no .knxprod: the editor's message.
+    (tmp_path / "other").mkdir()
+    other = _build_ctx(tmp_path / "other")
+    other.api.catalog.import_project_archive(knxproj(catalog=False))
+    async with Client(build_server(other)) as client:
+        result = await client.call_tool(
+            "catalog_export_knxprod",
+            {"hardware2program_ref_id": program, "dest": str(tmp_path / "o.knxprod")},
+            raise_on_error=False,
+        )
+        assert result.is_error
+        assert result.content[0].text == CatalogS.EXPORT_KNXPROD_NO_CATALOG.format(  # type: ignore[union-attr]
+            name=program
         )
 
 

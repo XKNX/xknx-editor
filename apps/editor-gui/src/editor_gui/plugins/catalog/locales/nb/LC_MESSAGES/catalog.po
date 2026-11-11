@@ -154,6 +154,9 @@ msgstr "Kunne ikke eksportere {name}: {error}"
 msgid "No stored archive for {name}"
 msgstr "Ingen lagret arkivfil for {name}"
 
+msgid "The product data of {name} comes from a project without a catalog (Catalog.xml), so it cannot be exported as a .knxprod"
+msgstr "Produktdataene for {name} kommer fra et prosjekt uten katalog (Catalog.xml), så de kan ikke eksporteres som .knxprod"
+
 msgid "This device supports KNX Data Secure. Set a project password to commission it securely; without one it is added and commissioned in the clear."
 msgstr "Denne enheten støtter KNX Data Secure. Angi et prosjektpassord for å sette den sikkert i drift; uten passord blir den lagt til og satt i drift ukryptert."
 

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable
+from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 from editor_gui.plugins.base import Logger, PanelDefinition, PluginAPI
@@ -231,20 +232,22 @@ class CatalogPlugin:
         self._notify(S.DELETE_OK.format(name=product.name or ref))
 
     def _export_product(self, product: ProductSummary, dest: str) -> None:
-        """Copy a local product's original ``.knxprod`` archive to ``dest`` (it is kept verbatim on
-        disk). The archive is the one that was imported, so a manufacturer bundle exports whole."""
-        import shutil
+        """Write the product data of a local product to ``dest`` as a ``.knxprod``: the archive the
+        catalog reads it from, with only the manufacturer of the product and that of its
+        application program, never a project it came with."""
+        from xknxeditor.catalog.core.product_members import NoCatalogError
+        from xknxeditor.prod.errors import ArchiveError
 
         name = product.name or product.product_ref_id
-        source = self._api.catalog.get_program_source(product.hardware2program_ref_id)
-        if source is None:
-            self._log.warning("no stored archive for product", product=name)
-            self._api.tell_refused(S.EXPORT_KNXPROD_UNAVAILABLE.format(name=name))
-            return
-        knxprod_path, _manufacturer = source
         try:
-            shutil.copyfile(knxprod_path, dest)
-        except OSError as exc:
+            data = self._api.catalog.product_archive(product.hardware2program_ref_id)
+            if data is not None:
+                Path(dest).write_bytes(data)
+        except NoCatalogError as exc:
+            self._log.warning("knxprod export refused", product=name, error=str(exc))
+            self._api.tell_refused(S.EXPORT_KNXPROD_NO_CATALOG.format(name=name))
+            return
+        except (OSError, ArchiveError) as exc:
             self._log.error(
                 "knxprod export failed",
                 product=name,
@@ -253,6 +256,10 @@ class CatalogPlugin:
             self._api.tell_refused(
                 S.EXPORT_KNXPROD_FAILED.format(name=name, error=str(exc))
             )
+            return
+        if data is None:
+            self._log.warning("no stored archive for product", product=name)
+            self._api.tell_refused(S.EXPORT_KNXPROD_UNAVAILABLE.format(name=name))
             return
         self._log.info("exported knxprod", product=name, dest=dest)
         self._notify(S.EXPORT_KNXPROD_OK.format(name=name))

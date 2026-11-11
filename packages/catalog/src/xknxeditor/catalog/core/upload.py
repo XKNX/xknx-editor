@@ -2,18 +2,31 @@
 
 from __future__ import annotations
 
+import contextlib
 import datetime
 import hashlib
 import logging
+import os
+import time
+import zipfile
 from collections.abc import Callable
+from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+from sqlalchemy import select, update
+from sqlalchemy.dialects.sqlite import insert as sqlite_insert
 from sqlalchemy.engine import Engine
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
+from xknxeditor.catalog.core.product_members import (
+    has_other_members,
+    product_members,
+)
 from xknxeditor.catalog.models import (
     Application,
+    CatalogMarker,
     CatalogSection,
     CatalogSectionProduct,
     Hardware,
@@ -23,7 +36,7 @@ from xknxeditor.catalog.models import (
     Manufacturer,
 )
 from xknxeditor.prod import DeviceProgram, Registry, load
-from xknxeditor.prod.errors import check_cancelled
+from xknxeditor.prod.errors import ArchiveError, check_cancelled
 
 if TYPE_CHECKING:
     import threading
@@ -185,6 +198,42 @@ def _ingest_catalog(session: Session, reg: Registry) -> None:
                     )
 
 
+def _stored_path(dest_dir: Path, content: bytes) -> Path:
+    """Where the store keeps ``content``: named by its content hash."""
+    return dest_dir / f"{hashlib.sha3_256(content).hexdigest()}.knxprod"
+
+
+def _referenced(session: Session, path: Path) -> bool:
+    """Whether a hardware program reads its product data from ``path``."""
+    return (
+        session.scalar(
+            select(HardwareProgram.id)
+            .where(HardwareProgram.knxprod_path == str(path))
+            .limit(1)
+        )
+        is not None
+    )
+
+
+def write_stored(path: Path, content: bytes) -> None:
+    """Store ``content`` at ``path`` unless it is there already.
+
+    Written to ``<name>.<pid>.tmp`` and renamed, so the file under its name is always complete. A
+    file of the name with another size (cut short by an older version that wrote it in place) is
+    written again: the name is the content's hash, so its size is known. A file that is there
+    already is dated now, so the store's tidying (which removes unreferenced files by their age)
+    does not remove it while the import that uses it is not committed yet."""
+    with contextlib.suppress(FileNotFoundError):
+        if path.stat().st_size == len(content):
+            with contextlib.suppress(OSError):
+                os.utime(path)
+            return
+    path.parent.mkdir(parents=True, exist_ok=True)
+    partial = path.with_name(f"{path.name}.{os.getpid()}.tmp")
+    partial.write_bytes(content)
+    partial.replace(path)
+
+
 def upload_knxprod(
     content: bytes,
     dest_dir: Path,
@@ -195,7 +244,8 @@ def upload_knxprod(
     cancel: threading.Event | None = None,
     progress: Callable[[int, int], None] | None = None,
 ) -> Path:
-    """Ingest .knxprod bytes into the database behind ``engine``. Returns the path where the file was saved.
+    """Ingest .knxprod bytes into the database behind ``engine``. Returns the path the content is
+    stored at, or would be: an archive no hardware program refers to is not stored.
 
     Setting ``cancel`` stops the ingest with :class:`ImportCancelled` up to the moment it writes;
     nothing is stored then. ``progress`` hears the application programs parsed, out of how many.
@@ -209,8 +259,12 @@ def upload_knxprod(
     keeps the store file and the DB in sync — e.g. if the catalog DB was deleted/rebuilt while the
     file cache remained, re-importing repopulates the DB instead of wrongly skipping. The stored
     file is (re)written whenever it is missing, since resolution reads it at runtime by path.
+
+    Only the product data is stored (see :func:`product_members`): a ``.knxproj`` is stored without
+    its project, and the content hash is that of what is stored.
     """
-    path = dest_dir / f"{hashlib.sha3_256(content).hexdigest()}.knxprod"
+    content = product_members(content)
+    path = _stored_path(dest_dir, content)
     with Session(engine) as session:
         in_db = (
             session.query(HardwareProgram).filter_by(knxprod_path=str(path)).first()
@@ -240,15 +294,158 @@ def upload_knxprod(
             check_cancelled(cancel)
             # Write the file BEFORE committing so a committed row never references a missing
             # archive (resolution reads it by path). A stray file from a failed commit is
-            # harmless: dedup is DB-driven, so the next import re-ingests it.
-            if not path.exists():
-                path.parent.mkdir(parents=True, exist_ok=True)
-                path.write_bytes(content)
+            # harmless: dedup is DB-driven, so the next import re-ingests it, and the store's
+            # tidying removes it once it is old (see tidy_store). Only the hardware programs read
+            # the file: when none refers to it (a project whose programs the catalog has already),
+            # it is not stored at all.
+            session.flush()
+            if _referenced(session, path):
+                write_stored(path, content)
             session.commit()
             logger.debug("catalog import committed: %s", path.name)
-        elif not path.exists():
-            path.parent.mkdir(parents=True, exist_ok=True)
-            path.write_bytes(content)
         else:
-            logger.debug("catalog import: already in db, skipping ingest")
+            write_stored(path, content)
     return path
+
+
+STORE_REWRITTEN = "store-without-projects"
+# A file this young may be another editor's import that has not committed yet (see tidy_store).
+_UNREFERENCED_AGE = datetime.timedelta(hours=1)
+
+
+@dataclass(frozen=True)
+class StoreTidying:
+    """What :func:`tidy_store` changed: archives rewritten without a project, files removed."""
+
+    rewritten: int = 0
+    removed: int = 0
+
+
+def tidy_store(
+    engine: Engine, dest_dir: Path, now: float | None = None
+) -> StoreTidying:
+    """Keep the store to the archives the catalog reads, with product data only.
+
+    Once per catalog (marked in the database): each archive the hardware programs refer to that
+    holds more than product data (stored whole from a ``.knxproj`` by an older version) is written
+    again with its product data only, under the hash of the result, and its hardware programs are
+    pointed at it. The old file is not removed then but dated now: an editor that is running
+    already may still read it, and the removal of unreferenced files below takes it at a later
+    start. Only files in ``dest_dir`` are ever removed.
+
+    At every call: files in ``dest_dir`` no hardware program refers to, and leftover ``.tmp``
+    files, are removed when they are older than an hour (``now``: the time to measure from, as
+    :func:`time.time`). A younger one may be the import of another editor using this catalog that
+    has written its file and not committed yet.
+
+    An archive or file that cannot be read, written or removed is left as it is (and logged). Each
+    step can run twice, so another editor tidying the same catalog at the same time does no harm;
+    a database it holds locked postpones the tidying to the next start."""
+    rewritten = 0
+    with Session(engine) as session:
+        try:
+            if session.get(CatalogMarker, STORE_REWRITTEN) is None:
+                rewritten, complete = _rewrite_archives(session, dest_dir)
+                if complete:
+                    # Another editor on this catalog may have marked it at the same moment.
+                    session.execute(
+                        sqlite_insert(CatalogMarker)
+                        .values(name=STORE_REWRITTEN)
+                        .on_conflict_do_nothing()
+                    )
+                    session.commit()
+            referenced = {
+                Path(p).name
+                for p in session.scalars(
+                    select(HardwareProgram.knxprod_path).distinct()
+                )
+            }
+        except SQLAlchemyError as exc:
+            # E.g. the database locked by another editor: try again at the next start, and
+            # remove nothing without knowing what is referenced.
+            session.rollback()
+            logger.warning("catalog store not tidied: %s", exc)
+            return StoreTidying(rewritten=rewritten)
+    removed = _remove_unreferenced(dest_dir, referenced, now)
+    return StoreTidying(rewritten=rewritten, removed=removed)
+
+
+def _rewrite_archives(session: Session, dest_dir: Path) -> tuple[int, bool]:
+    """Rewrite the referenced archives that hold a project; how many, and whether the rewrite is
+    complete (else the next start tries again). A missing or broken archive has nothing to rewrite
+    and does not keep it from completing; one that could not be written or committed does."""
+    rewritten = 0
+    complete = True
+    stored = session.scalars(select(HardwareProgram.knxprod_path).distinct()).all()
+    for old in sorted(stored):
+        old_path = Path(old)
+        try:
+            if not has_other_members(old):
+                continue
+            content = product_members(old_path.read_bytes())
+        except (FileNotFoundError, zipfile.BadZipFile, ArchiveError) as exc:
+            logger.warning("stored archive not readable: %s: %s", old_path.name, exc)
+            continue
+        except OSError as exc:  # e.g. no permission: may work at the next start
+            logger.warning("stored archive not read: %s: %s", old_path.name, exc)
+            complete = False
+            continue
+        except Exception as exc:  # broken in another way (a name that is no UTF-8, …)
+            logger.warning("stored archive not readable: %s: %s", old_path.name, exc)
+            continue
+        new_path = _stored_path(dest_dir, content)
+        try:
+            # The steps keep every state in between consistent: the new file is complete before
+            # the programs point to it, and the old one goes only after they do (by its age).
+            write_stored(new_path, content)
+            session.execute(
+                update(HardwareProgram)
+                .where(HardwareProgram.knxprod_path == old)
+                .values(knxprod_path=str(new_path))
+            )
+            session.commit()
+        except (OSError, SQLAlchemyError) as exc:
+            session.rollback()
+            logger.warning("stored archive not rewritten: %s: %s", old_path.name, exc)
+            complete = False
+            continue
+        with contextlib.suppress(OSError):
+            os.utime(old_path)
+        rewritten += 1
+        logger.info(
+            "stored archive rewritten without project data: %s -> %s",
+            old_path.name,
+            new_path.name,
+        )
+    return rewritten, complete
+
+
+def _remove_unreferenced(
+    dest_dir: Path, referenced: set[str], now: float | None
+) -> int:
+    """Remove the files of ``dest_dir`` not named in ``referenced`` that are old enough."""
+    if not dest_dir.is_dir():
+        return 0
+    limit = (time.time() if now is None else now) - _UNREFERENCED_AGE.total_seconds()
+    removed = 0
+    try:
+        files = list(dest_dir.iterdir())
+    except OSError as exc:
+        logger.warning("catalog store not listed: %s", exc)
+        return 0
+    for file in files:
+        unused = file.suffix == ".tmp" or (
+            file.suffix == ".knxprod" and file.name not in referenced
+        )
+        if not unused:
+            continue
+        try:
+            if file.stat().st_mtime > limit:
+                continue
+            file.unlink()
+        except OSError as exc:
+            logger.warning("store file not removed: %s: %s", file.name, exc)
+            continue
+        removed += 1
+        logger.info("unreferenced store file removed: %s", file.name)
+    return removed
