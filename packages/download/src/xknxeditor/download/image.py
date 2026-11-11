@@ -1452,6 +1452,20 @@ _GROUP_ADDRESSES = _ADDRESS_TABLE + 3
 _CHECKSUM_SEGMENT = 0x80
 
 
+def _with_sending_link(links: Sequence[GroupObjectLink]) -> list[GroupObjectLink]:
+    """``links`` with the first link of each object that has links but no sending one marked
+    as its sending link: a linked group object always sends on one of its group addresses,
+    which takes the object's own slot in the association list."""
+    sending = {link.com_object_ref_id for link in links if link.sending}
+    out: list[GroupObjectLink] = []
+    for link in links:
+        if link.com_object_ref_id not in sending:
+            sending.add(link.com_object_ref_id)
+            link = replace(link, sending=True)
+        out.append(link)
+    return out
+
+
 def _bcu_group_tables(
     application: Application,
     base_addresses: Mapping[str, int],
@@ -1487,7 +1501,9 @@ def _bcu_group_tables(
             number_of[link.com_object_ref_id],
             sending=link.sending,
         )
-        for link in sorted(links, key=lambda link: number_of[link.com_object_ref_id])
+        for link in _with_sending_link(
+            sorted(links, key=lambda link: number_of[link.com_object_ref_id])
+        )
     ]
     if system1 or not easy:
         associations = association_slots(associations, object_count)

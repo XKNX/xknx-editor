@@ -677,6 +677,33 @@ def test_bcu2_tables_stay_where_the_product_declares_them() -> None:
     assert _association_pointer(segments) == 0x3B
 
 
+def test_an_object_linked_without_a_sending_link_sends_on_its_first_one() -> None:
+    """Links none of which is marked sending (e.g. made through MCP): each linked object
+    still has its first link in its own slot, not the first unused slots of other
+    objects. A further link takes an unused slot, as in any list longer than the slots."""
+    links = (
+        GroupObjectLink(com_object_ref_id="O-2_R", group_address=0x0901, sending=False),
+        GroupObjectLink(com_object_ref_id="O-2_R", group_address=0x0902, sending=False),
+        GroupObjectLink(com_object_ref_id="O-1_R", group_address=0x0903, sending=False),
+    )
+    segments = _group_communication_segments(
+        _application("MV-0020"),  # type: ignore[arg-type]
+        _UI(
+            [
+                _com_object(n, read=True, write=True, transmit=True, update=True)
+                for n in range(3)
+            ]
+        ),  # type: ignore[arg-type]
+        {_SEGMENT: _BASE},
+        {_SEGMENT: (_seed(), bytes(256))},
+        GroupCommunication(device_address=0x1133, links=links),
+    )
+    association = next(segment for segment in segments if segment.address == 0x013B)
+    # Slots: object 0's unused slot takes object 2's second link on 0902h (index 2),
+    # object 1 sends on 0903h (index 3), object 2 on 0901h (index 1).
+    assert association.data == bytes.fromhex("03020203010102")
+
+
 def test_bcu2_association_table_past_the_memory_is_refused() -> None:
     """A declared association table that runs past the end of the device's memory (the
     code segment and the mask's 880 octets from 0100h: up to 046Fh) is refused, not cut:
