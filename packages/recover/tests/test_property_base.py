@@ -1,13 +1,19 @@
 """A setting stored in a property that is hidden: a download writes the property's base there
 (zeros, as the device has no factory contents), not the setting's default. A device holding
 zeros there fits a result that hides the setting; one holding another value than zeros or the
-default still tells the setting was shown.
+default still tells the setting was shown. With the factory image of the product, the base is
+its contents of the property: a device holding them there fits as well.
 """
 
 from __future__ import annotations
 
 import pytest
 
+from xknxeditor.download.factory_image import (
+    FactoryImage,
+    FactoryLocation,
+    FactorySegment,
+)
 from xknxeditor.prod.application import Application, parse_application_xml
 from xknxeditor.prod.parser_v2.encode import TypedPropertyKey
 from xknxeditor.recover.parameters import recover_parameters
@@ -180,3 +186,57 @@ def test_the_lowest_bit_at_its_default_leaves_the_flag_hidden(
     assert recovered.complete
     assert recovered.values[_LEVEL] == "20"
     assert recovered.values.get(_SHOW, "0") == "0"
+
+
+def _factory(data: bytes) -> FactoryImage:
+    """A factory image holding ``data`` in the property of ``_KEY`` (object 6 is the first
+    application object after the five system objects of the mask)."""
+    return FactoryImage(
+        segments=(
+            FactorySegment(
+                location=FactoryLocation.APP_PROPERTY,
+                object_ref=1,
+                property_id=_KEY[2],
+                address=0,
+                size=len(data),
+                data=data,
+                mask=None,
+            ),
+        )
+    )
+
+
+def test_the_factory_contents_where_a_hidden_setting_is_stored_fit(
+    application: Application,
+) -> None:
+    # The download writes the factory contents as the property's base where no shown setting
+    # is stored: the delay the device holds there is no shown one.
+    recovered = recover_parameters(
+        application, {}, {_KEY: bytes([0, 7])}, factory_image=_factory(bytes([0, 7]))
+    )
+    assert recovered.complete
+    assert recovered.differing_bytes == 0
+    assert recovered.values.get(_CHANNEL, "0") == "0"
+
+
+def test_other_factory_contents_do_not_make_a_value_fit(
+    application: Application,
+) -> None:
+    # Neither the factory contents, the base nor the default: the setting was shown.
+    recovered = recover_parameters(
+        application, {}, {_KEY: bytes([0, 7])}, factory_image=_factory(bytes([0, 9]))
+    )
+    assert not recovered.complete
+    assert recovered.differing_bytes == 1
+
+
+def test_a_shown_setting_is_read_over_the_factory_contents(
+    application: Application,
+) -> None:
+    device = _device(application, {_CHANNEL: "1", _DELAY: "7"})
+    recovered = recover_parameters(
+        application, {}, {_KEY: device}, factory_image=_factory(bytes([0, 9]))
+    )
+    assert recovered.complete
+    assert recovered.values[_CHANNEL] == "1"
+    assert recovered.values[_DELAY] == "7"

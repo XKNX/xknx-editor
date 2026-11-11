@@ -447,8 +447,12 @@ async def read_parameter_memory(
     the download image's segments (the user memory's included).
     """
     base_addresses, sizes = _segment_layout(application)
-    memory_mapped = _is_memory_mapped(application)
     code = application.program.static.code
+    # An application without a group address table (a line coupler) and without a relative
+    # segment keeps its parameters at the fixed addresses of its absolute segments too.
+    memory_mapped = _is_memory_mapped(application) or (
+        code is not None and not code.relative_segment and bool(code.absolute_segment)
+    )
     result: dict[str, bytes] = {}
     # A single unreadable segment (a realisation whose memory map we do not fully
     # model, or a transient timeout) is skipped, not fatal: the device still

@@ -35,6 +35,7 @@ from xknxeditor.prod.script.errors import ScriptAborted
 from xknxeditor.prod.script.sandbox import AbortToken
 
 if TYPE_CHECKING:
+    from xknxeditor.download.factory_image import FactoryImage
     from xknxeditor.download.image import PropertyTarget
     from xknxeditor.prod import Application, MasterData
     from xknxeditor.prod.parser_v2.application_indexer import ApplicationIndexer
@@ -199,10 +200,16 @@ class _SearchCache:
     EXPLORED = 4
 
     def __init__(
-        self, application: Application, master: MasterData | None = None
+        self,
+        application: Application,
+        master: MasterData | None = None,
+        factory_image: FactoryImage | None = None,
     ) -> None:
         self.application = application
         self.master = master
+        self.factory_image = factory_image
+        # The factory contents of each property asked for (``None``: the image holds none).
+        self.factory_properties: dict[TypedPropertyKey, bytes | None] = {}
         self.uis: OrderedDict[tuple[object, ...], DynamicUI | None] = OrderedDict()
         self.calculated: OrderedDict[tuple[object, ...], _ValueMap] = OrderedDict()
         # The explore layouts of UIs explored, with the places found (the last used first).
@@ -219,6 +226,8 @@ class _SearchCache:
         # The octet a full download fills each relative segment with (``None``: not resolved
         # yet, empty when the procedure does not resolve).
         self.fills: dict[str, int] | None = None
+        # The fixed bytes of the absolute segments (``None``: not resolved yet).
+        self.fixed: dict[str, dict[int, int]] | None = None
         # The bits the group tables of a download write in the code segments, by the objects
         # a UI shows and the ones it instantiates (see :meth:`table_bits`).
         self.tables: OrderedDict[
@@ -291,6 +300,50 @@ class _SearchCache:
             except (DownloadError, ValueError):
                 self.fills = {}
         return self.fills
+
+    def fixed_bytes(self) -> dict[str, dict[int, int]]:
+        """The bytes a full download writes with a fixed value into the absolute segments of
+        the application where no setting writes them (a line coupler's, see
+        :func:`~xknxeditor.download.image.coupler_bytes`), by segment id and offset."""
+        if self.fixed is None:
+            from xknxeditor.download.image import coupler_bytes
+            from xknxeditor.download.merge import device_mask_version
+
+            code = self.application.program.static.code
+            mask_version = device_mask_version(self.application)
+            self.fixed = {}
+            for segment in code.absolute_segment if code is not None else ():
+                if segment.user_memory or self.in_tables(segment.id):
+                    continue
+                fixed = coupler_bytes(mask_version, segment.address, segment.size or 0)
+                if fixed:
+                    self.fixed[segment.id] = fixed
+        return self.fixed
+
+    def factory_property(self, key: TypedPropertyKey) -> bytes | None:
+        """The contents the device leaves the factory with of the property ``key`` (from
+        element 1 on), or ``None`` when the factory image holds none of it (or there is
+        none)."""
+        if self.factory_image is None:
+            return None
+        if key not in self.factory_properties:
+            from xknxeditor.download.merge import device_mask_version
+            from xknxeditor.download.resources import bundled_mask_resources
+            from xknxeditor.namespaces.intermediate.hawk_configuration_data_t_features_feature_name import (
+                HawkConfigurationDataFeaturesFeatureName as MaskFeature,
+            )
+
+            resources = bundled_mask_resources(device_mask_version(self.application))
+            first_app_object = (
+                resources.feature(MaskFeature.FIRST_APP_OBJECT_IDX)
+                if resources is not None
+                else None
+            )
+            index, object_type, pid, occurrence = key
+            self.factory_properties[key] = self.factory_image.property_data(
+                index, object_type, occurrence, pid, first_app_object
+            )
+        return self.factory_properties[key]
 
     def unwritten(self, ui: DynamicUI, key: TypedPropertyKey) -> bool:
         """Whether no control of the load procedure a download of ``ui`` runs writes the
@@ -469,6 +522,7 @@ def recover_parameters(
     cancel: Callable[[], bool] | None = None,
     *,
     master: MasterData | None = None,
+    factory_image: FactoryImage | None = None,
 ) -> RecoveredParameters:
     """Recover parameter reference values from a device's memory and properties.
 
@@ -490,6 +544,9 @@ def recover_parameters(
     with: a property no control of it writes keeps the device's own value whatever the
     configuration, so its bytes only tell apart results alike otherwise, and do not count
     as differing. Without it, a merged procedure does not resolve, and every property counts.
+    ``factory_image`` is the image the product's devices leave the factory with: a property
+    holds its contents where no active parameter writes it (see
+    :func:`_differing_property_cells`).
     """
     if cancel is not None:
         requested = cancel
@@ -503,7 +560,7 @@ def recover_parameters(
         cancel = latched_cancel
 
     previous = getattr(_SEARCH, "cache", None)
-    _SEARCH.cache = _SearchCache(application, master)
+    _SEARCH.cache = _SearchCache(application, master, factory_image)
     try:
         return _search(
             application,
@@ -887,7 +944,11 @@ def _differing_property_cells(
     it, so another value there is one a configuration that writes it gave (a setting shown
     behind a switch the device keeps no copy of). A byte only inactive parameters cover is
     written with the property's base, zeros (or the factory contents, which the defaults
-    stand for here): zeros there fit too. An object addressed by index is one object whatever
+    stand for without a factory image): zeros there fit too. Where the search knows the
+    contents the device leaves the factory with (see :meth:`_SearchCache.factory_property`),
+    those fit the bits no active parameter writes as well: a download writes them as the
+    property's base, and a device that was never written holds them. An object addressed by
+    index is one object whatever
     the occurrence (as :func:`~xknxeditor.prod.parser_v2.encode.property_data` reads it).
     ``None`` when ``ui`` cannot be encoded."""
     from xknxeditor.prod.errors import EncodingError
@@ -897,6 +958,7 @@ def _differing_property_cells(
     except (EncodingError, ValueError):
         return None
     layout, offsets, _owners = _property_layout(ui)
+    cache: _SearchCache | None = getattr(_SEARCH, "cache", None)
     by_index: dict[tuple[int | None, int | None, int], bytes] = {}
     for (index, object_type, pid, _occurrence), value in properties.items():
         if index is not None:
@@ -910,6 +972,7 @@ def _differing_property_cells(
             continue
         mine = written.get(key)
         default = layout.defaults.get(key)
+        factory = cache.factory_property(key) if cache is not None else None
         for offset in stored:
             if offset >= len(device):
                 continue
@@ -929,6 +992,12 @@ def _differing_property_cells(
             if default is None or offset >= len(default.mask):
                 continue
             rest = default.mask[offset] & ~ours
+            if (
+                factory is not None
+                and offset < len(factory)
+                and not (factory[offset] ^ held) & rest
+            ):
+                continue
             if (default.data[offset] ^ held) & rest and not (base and not held & rest):
                 differing.add(_property_cell(key, offset))
     return differing
@@ -986,7 +1055,9 @@ def _differing_cells(
     record the product places a parameter in, which the download writes from the links), and
     no result writes them otherwise. One a module instance's setting is stored at as well
     counts as a whole. A byte no active setting writes in a relative segment a full download
-    fills when it allocates it holds the fill (see :meth:`_SearchCache.segment_fills`). The
+    fills when it allocates it holds the fill (see :meth:`_SearchCache.segment_fills`), and
+    one of an absolute segment the download writes a fixed value into where no setting
+    writes it holds that value (see :meth:`_SearchCache.fixed_bytes`). The
     bits the group communication tables write from the objects and the links (see
     :meth:`_SearchCache.table_bits`) hold the tables, not what a setting stored there
     encodes: they do not count either."""
@@ -998,6 +1069,7 @@ def _differing_cells(
         return None
     cache: _SearchCache | None = getattr(_SEARCH, "cache", None)
     fills = cache.segment_fills() if cache is not None else {}
+    fixed_bytes = cache.fixed_bytes() if cache is not None else {}
     tables: dict[_Cell, int] | None = None
     bits: dict[str, bytes] | None = None
     written: dict[str, bytes] | None = None
@@ -1005,18 +1077,20 @@ def _differing_cells(
     differing: set[_Cell] = set()
     for segment_id, device in parameter_segments.items():
         fill = fills.get(segment_id, 0)
+        fixed = fixed_bytes.get(segment_id, {})
         for offset, (mine, theirs) in enumerate(
             zip(encoded.get(segment_id, b""), device, strict=False)
         ):
             if mine == theirs:
                 continue
-            if fill:
+            if fill or offset in fixed:
                 if written is None:
                     written = ui.written_bit_mask()
                 mask = written.get(segment_id, b"")
                 if not (mask[offset] if offset < len(mask) else 0):
-                    # No active setting writes the byte: the download leaves the fill.
-                    mine = fill
+                    # No active setting writes the byte: the download leaves the fill, or
+                    # writes the byte's fixed value.
+                    mine = fixed.get(offset, fill)
                     if mine == theirs:
                         continue
             diff = mine ^ theirs

@@ -33,6 +33,7 @@ from xknxeditor.recover.recover import com_object_ref_by_number, seed_dynamic_ui
 
 if TYPE_CHECKING:
     from editor_gui.plugins.base import Logger, PluginAPI
+    from xknxeditor.download.factory_image import FactoryImage
     from xknxeditor.prod import Application
     from xknxeditor.recover import LinkWarning, RecoveredDevice
 
@@ -360,6 +361,7 @@ class RecoverService:
                     effort=self.effort,
                     cancel=self._cancelled,
                     master=self._api.connection.master,
+                    factory_image=self._factory_image(entry),
                 )
                 entry.state = _recovered_state(entry.recovered)
                 if self._log is not None:
@@ -659,6 +661,22 @@ class RecoverService:
         recovered = [e.recovered for e in self.chosen() if e.recovered is not None]
         return snapshots_json(recovered)
 
+    def _factory_image(self, entry: RecoverEntry) -> FactoryImage | None:
+        """The image devices of the product ``entry`` was matched with leave the factory
+        with (its ``LoadedImage``), or ``None`` when it has none or it cannot be read."""
+        from xknxeditor.download.factory_image import (
+            FactoryImageError,
+            parse_factory_image,
+        )
+
+        if entry.hardware2program_ref_id is None:
+            return None
+        data = self._api.catalog.factory_image(entry.hardware2program_ref_id)
+        try:
+            return parse_factory_image(data.image if data is not None else None)
+        except FactoryImageError:
+            return None
+
     def import_snapshot(self, text: str, name: str) -> int:
         """Take the devices of a snapshot (see ``snapshot_text``) as read: each is matched
         against the catalog as a scanned one, and replaces a device of the same address in the
@@ -689,6 +707,8 @@ class RecoverService:
                         application,
                         seed_dynamic_ui(application, device.parameters.values),
                     ),
+                    # A search again compares the properties with the factory contents too.
+                    factory_image=self._factory_image(entry),
                 )
                 entry.recovered = device
                 entry.state = _recovered_state(device)

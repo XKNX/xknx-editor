@@ -87,6 +87,7 @@ def _device_reports_55(monkeypatch: pytest.MonkeyPatch) -> list[int]:
         effort=None,
         cancel=None,
         master=None,
+        factory_image=None,
     ):
         used.append(programmer.max_apdu_length)
         if len(used) == 1:
@@ -182,3 +183,59 @@ async def test_the_connection_is_closed_before_the_decoding(
         negotiate_apdu=False,
     )
     assert events == ["connect", "read", "read", "read", "read", "disconnect", "decode"]
+
+
+async def test_the_factory_image_is_searched_with_and_kept_to_search_again(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from xknxeditor.download.factory_image import FactoryImage
+    from xknxeditor.recover.recover import search_again
+
+    class Management:
+        async def connect(self, address: IndividualAddress) -> object:
+            return object()
+
+        async def disconnect(self, address: IndividualAddress) -> None:
+            pass
+
+    class Xknx:
+        management = Management()
+
+    async def read(*_args: Any) -> Any:
+        return SimpleNamespace(
+            device_address=None, group_addresses=[], links=[], group_objects={}
+        )
+
+    async def read_properties(*_args: Any) -> dict[Any, bytes]:
+        return {}
+
+    async def descriptor(_self: DeviceProgrammer) -> int:
+        return 0x07B0
+
+    searched: list[object] = []
+
+    def decode(*args: Any) -> tuple[Any, dict[int, str]]:
+        searched.append(args[-1])
+        return SimpleNamespace(values={}, unknown=[]), {}
+
+    monkeypatch.setattr(DeviceProgrammer, "read_device_descriptor", descriptor)
+    for name in (
+        "read_dossier",
+        "read_group_communication",
+        "read_parameter_memory",
+    ):
+        monkeypatch.setattr(recover_mod, name, read)
+    monkeypatch.setattr(recover_mod, "read_property_values", read_properties)
+    monkeypatch.setattr(recover_mod, "_decode_configuration", decode)
+    image = FactoryImage(segments=())
+    application: Any = SimpleNamespace(id="M-0083_A-008A-28-7B00")
+    device = await recover_device_at(
+        Xknx(),  # type: ignore[arg-type]
+        "1.1.41",
+        application,
+        negotiate_apdu=False,
+        factory_image=image,
+    )
+    assert device.factory_image is image
+    search_again(device, application, recover_mod.RecoveryEffort.FAST)
+    assert searched == [image, image]

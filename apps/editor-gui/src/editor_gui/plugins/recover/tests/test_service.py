@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import contextlib
 import dataclasses
+import struct
+import zlib
 from collections.abc import Iterator
 from pathlib import Path
 from types import SimpleNamespace
@@ -600,6 +602,7 @@ def test_a_snapshot_is_imported_as_read(application) -> None:  # type: ignore[no
     catalog = SimpleNamespace(
         find_products_for_application=lambda **_kwargs: [product],
         get_application=lambda _id: application,
+        factory_image=lambda _id: None,
     )
     api = _FakeAPI(_FakeProject(refs=[]))
     api.catalog = catalog  # type: ignore[attr-defined]
@@ -622,3 +625,49 @@ def test_a_snapshot_is_imported_as_read(application) -> None:  # type: ignore[no
     assert service.import_snapshot("{}", "other.json") == 0
     assert service.entries == [entry]
     assert service.apply_error.startswith(S.SNAPSHOT_UNREADABLE.split("%")[0])
+
+
+def _loaded_image() -> bytes:
+    """A ``LoadedImage`` holding two octets of one property."""
+    raw = struct.pack("<Ii", 0x00010001, 1)
+    raw += struct.pack("<IHHIIB", 4, 1, 60, 0, 2, 1) + bytes([0x12, 0x34])
+    deflate = zlib.compressobj(wbits=-15)
+    return deflate.compress(raw) + deflate.flush()
+
+
+async def test_a_device_is_read_with_its_products_factory_image(
+    application, monkeypatch: pytest.MonkeyPatch
+) -> None:  # type: ignore[no-untyped-def]
+    from editor_gui.plugins.recover import service as service_module
+    from xknxeditor.catalog.core.hardware import FactoryData
+
+    passed: list[object] = []
+
+    async def recover_device_at(
+        _xknx: object, _address: str, _application: object, **kwargs: object
+    ) -> RecoveredDevice:
+        passed.append(kwargs["factory_image"])
+        entry = _rf_entry(application)
+        assert entry.recovered is not None
+        return entry.recovered
+
+    monkeypatch.setattr(service_module, "recover_device_at", recover_device_at)
+    monkeypatch.setattr(service_module, "_SETTLE_SECONDS", 0)
+    images = {"HP-rf": FactoryData(_loaded_image()), "HP-bad": FactoryData(b"none")}
+    api = _FakeAPI(_FakeProject(refs=[]))
+    api.connection = SimpleNamespace(
+        master=None, xknx=object(), interface_max_apdu_length=None
+    )
+    api.catalog = SimpleNamespace(factory_image=images.get)  # type: ignore[attr-defined]
+    service = RecoverService(api)  # type: ignore[arg-type]
+    entries = [_rf_entry(application) for _ in range(3)]
+    entries[1].hardware2program_ref_id = "HP-none"
+    # A factory image that cannot be read is left out, as one the product does not have.
+    entries[2].hardware2program_ref_id = "HP-bad"
+    await service._recover(entries)
+
+    image, none, bad = passed
+    assert image is not None
+    assert image.segments[0].data == bytes([0x12, 0x34])  # type: ignore[attr-defined]
+    assert none is None
+    assert bad is None

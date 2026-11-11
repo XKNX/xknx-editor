@@ -104,24 +104,34 @@ _COUPLER_BYTES = {
 }
 
 
-def _coupler_bytes(
-    mask_version: str, base: int, data: bytes, mask: bytes, initialized: bytes
-) -> tuple[bytes, bytes]:
-    """``data`` and ``initialized`` with the fixed line coupler bytes, for a segment
-    that covers them; bytes a parameter writes (``mask``) keep its value."""
+def coupler_bytes(mask_version: str, base: int, size: int) -> dict[int, int]:
+    """The fixed line coupler bytes an absolute segment at ``base`` of ``size`` octets gets
+    with its data, by offset in the segment, where no parameter writes them; empty unless
+    the device is a TP1 line coupler and the segment covers them."""
     version = mask_number(mask_version)
     if (
         version is None
         or version & 0xFFE0 != 0x0900
         or base > 0x010D
-        or base + len(data) <= 0x011C
+        or base + size <= 0x011C
     ):
+        return {}
+    return {address - base: value for address, value in _COUPLER_BYTES.items()}
+
+
+def _coupler_bytes(
+    mask_version: str, base: int, data: bytes, mask: bytes, initialized: bytes
+) -> tuple[bytes, bytes]:
+    """``data`` and ``initialized`` with the fixed line coupler bytes, for a segment
+    that covers them; bytes a parameter writes (``mask``) keep its value."""
+    fixed = coupler_bytes(mask_version, base, len(data))
+    if not fixed:
         return data, initialized
     patched, valid = bytearray(data), bytearray(initialized)
-    for address, value in _COUPLER_BYTES.items():
-        if not mask[address - base]:
-            patched[address - base] = value
-        valid[address - base] = 0xFF
+    for offset, value in fixed.items():
+        if not mask[offset]:
+            patched[offset] = value
+        valid[offset] = 0xFF
     return bytes(patched), bytes(valid)
 
 
