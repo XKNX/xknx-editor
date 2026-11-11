@@ -22,6 +22,18 @@ msgstr "Yhdistä käynnistettäessä"
 msgid "At start, the editor looks for KNX interfaces and connects to the one used last. Turned off, it connects only when you choose."
 msgstr "Käynnistyessään editori etsii KNX-liitäntöjä ja yhdistää viimeksi käytettyyn. Pois päältä se yhdistää vain, kun itse valitset."
 
+msgid "Block Bus Writes"
+msgstr "Estä kirjoitukset väylälle"
+
+msgid "Reads only: nothing that would change something on the bus is sent, such as downloads, address changes, restarts or group writes. This holds for MCP clients too, which can turn it on but not off. Reads of KNX Data Secure devices are blocked as well."
+msgstr "Vain luku: mitään, mikä muuttaisi jotain väylällä, ei lähetetä, kuten latauksia, osoitemuutoksia, uudelleenkäynnistyksiä tai ryhmäkirjoituksia. Tämä koskee myös MCP-asiakkaita, jotka voivat ottaa sen käyttöön mutta eivät poistaa sitä. Myös KNX Data Secure -laitteiden lukeminen estetään."
+
+msgid "Bus writes blocked"
+msgstr "Kirjoitukset väylälle estetty"
+
+msgid "Block Bus Writes is on: the editor reads from the bus but changes nothing there. Click to change it in the settings."
+msgstr "Kirjoitusten esto on päällä: editori lukee väylältä mutta ei muuta siellä mitään. Napsauta muuttaaksesi asetuksissa."
+
 msgid "Use Serial Number for Downloads"
 msgstr "Käytä sarjanumeroa latauksissa"
 

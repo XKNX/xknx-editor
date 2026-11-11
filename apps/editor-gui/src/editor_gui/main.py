@@ -289,6 +289,12 @@ def startup_file(argv: list[str]) -> str | None:
     return None
 
 
+def no_bus_writes(argv: list[str]) -> bool:
+    """Whether ``--no-bus-writes`` keeps Block Bus Writes on for this start, whatever the
+    setting says."""
+    return "--no-bus-writes" in argv[1:]
+
+
 def no_connect(argv: list[str]) -> bool:
     """Whether ``--no-connect`` asks this start to connect to no KNX interface, whatever the
     setting Connect at Startup says."""
@@ -1070,6 +1076,10 @@ class KnxGuiApp:
         # With other editors running, the user is asked first (_render_running_editors_modal).
         if not self.running_editors:
             self._start_session()
+
+    def block_bus_writes_this_start(self) -> None:
+        """``--no-bus-writes``: nothing is written to the bus until the editor ends."""
+        self._connection_plugin.block_bus_writes_this_start()
 
     def _start_session(self) -> None:
         """What a start does besides showing the app: connect, restart the MCP server, and open the
@@ -7738,6 +7748,8 @@ def _main() -> None:
     app.startup_file = startup_file(sys.argv)
     app.startup_password_file = startup_password_file(sys.argv)
     app.no_connect = no_connect(sys.argv)
+    if no_bus_writes(sys.argv):
+        app.block_bus_writes_this_start()
     # Editors running already are offered first; --new-instance starts another without asking.
     if "--new-instance" not in sys.argv:
         app.running_editors = others()

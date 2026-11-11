@@ -38,11 +38,15 @@ def _plugin() -> Any:
     plugin._connection_type = ConnectionType.TUNNELING
     plugin._preferred_gateway_ip = None
     plugin._connect_at_startup = True
+    plugin._block_bus_writes_setting = False
+    plugin._block_bus_writes_forced = False
     plugin.skip_startup_connect = False
     plugin._state = ConnectionState.DISCONNECTED
     plugin._log = _Logger()
     plugin._api = SimpleNamespace(
-        connection=SimpleNamespace(use_serial_number=True, busmonitor_active=False)
+        connection=SimpleNamespace(
+            use_serial_number=True, busmonitor_active=False, block_bus_writes=False
+        )
     )
     plugin.scans = []
     plugin.scan = lambda auto_connect=False: plugin.scans.append(auto_connect)

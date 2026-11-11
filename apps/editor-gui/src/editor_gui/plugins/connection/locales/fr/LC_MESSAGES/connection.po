@@ -22,6 +22,18 @@ msgstr "Se connecter au démarrage"
 msgid "At start, the editor looks for KNX interfaces and connects to the one used last. Turned off, it connects only when you choose."
 msgstr "Au démarrage, l'éditeur recherche les interfaces KNX et se connecte à la dernière utilisée. Désactivé, il ne se connecte que lorsque vous le choisissez."
 
+msgid "Block Bus Writes"
+msgstr "Bloquer les écritures sur le bus"
+
+msgid "Reads only: nothing that would change something on the bus is sent, such as downloads, address changes, restarts or group writes. This holds for MCP clients too, which can turn it on but not off. Reads of KNX Data Secure devices are blocked as well."
+msgstr "Lecture seule : rien de ce qui modifierait quelque chose sur le bus n'est envoyé, comme les téléchargements, les changements d'adresse, les redémarrages ou les écritures de groupe. Cela vaut aussi pour les clients MCP, qui peuvent l'activer mais pas le désactiver. Les lectures des appareils KNX Data Secure sont également bloquées."
+
+msgid "Bus writes blocked"
+msgstr "Écritures sur le bus bloquées"
+
+msgid "Block Bus Writes is on: the editor reads from the bus but changes nothing there. Click to change it in the settings."
+msgstr "Bloquer les écritures sur le bus est activé : l'éditeur lit le bus mais n'y modifie rien. Cliquez pour le changer dans les paramètres."
+
 msgid "Use Serial Number for Downloads"
 msgstr "Utiliser le numéro de série pour les téléchargements"
 
