@@ -310,9 +310,10 @@ class _SearchCache:
             from xknxeditor.download.merge import device_mask_version
 
             code = self.application.program.static.code
-            mask_version = device_mask_version(self.application)
+            segments = code.absolute_segment if code is not None else []
+            mask_version = device_mask_version(self.application) if segments else ""
             self.fixed = {}
-            for segment in code.absolute_segment if code is not None else ():
+            for segment in segments:
                 if segment.user_memory or self.in_tables(segment.id):
                     continue
                 fixed = coupler_bytes(mask_version, segment.address, segment.size or 0)
