@@ -809,7 +809,7 @@ class LoadProcedureRunner:
             self._position = None
             await self._close()
         return PreflightReport(
-            segments=tuple(segments),
+            segments=tuple(_final_memory_steps(segments)),
             properties=tuple(properties),
             device_written=frozenset(self._device_written),
         )
@@ -3804,6 +3804,27 @@ def _memory_procedure_steps(controls: Sequence[object]) -> set[tuple[bool, int, 
             key = (_user_memory(control), control.address, control.size)
             values.setdefault(key, set()).add(control.inline_data)
     return {key for key, data in values.items() if len(data) > 1}
+
+
+def _final_memory_steps(segments: Sequence[SegmentDiff]) -> list[SegmentDiff]:
+    """``segments`` with each step of the procedure planned as the procedure leaves the memory:
+    a byte that a later step writes again is planned with that later value, so a device holding
+    what the last write leaves (e.g. 00 written at the start, FF at the end) shows no change."""
+    final: dict[int, int] = {}
+    out: list[SegmentDiff] = []
+    for segment in reversed(segments):
+        if segment.procedure_step:
+            planned = bytes(
+                final.get(segment.memory_key(offset), value)
+                for offset, value in enumerate(segment.planned)
+            )
+            for offset, value in enumerate(segment.planned):
+                final.setdefault(segment.memory_key(offset), value)
+            if planned != segment.planned:
+                segment = replace(segment, planned=planned)
+        out.append(segment)
+    out.reverse()
+    return out
 
 
 def _user_memory(
