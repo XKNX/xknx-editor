@@ -230,7 +230,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             ref,
             co,
             ga_id,
-            p.get("is_sending", False),
+            p.get("is_sending"),
             hidden=com_object_hidden(device, ref),
         )
         if result is None:
@@ -495,7 +495,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         - rename_function: function_id, name -> {function_id}.
         - set_group_address_dpt: ga [dpt; omitted/null clears] -> {group_address_id}.
         - remove_group_address: ga -> {group_address_id}.
-        - link_com_object: device, com_object_ref_id, ga [is_sending=false] ->
+        - link_com_object: device, com_object_ref_id, ga [is_sending] ->
           {link_id, node_id, com_object_ref_id, com_object_db_id, group_address_id, is_sending,
           already_linked, dpt_mismatch?, other_sending_group_address_ids?, hidden?} (same feedback
           as the standalone tool; idempotent).
@@ -517,8 +517,8 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         id from project_spaces as function_id; use area id from project_topology as area_id. For
         assignment_id, use id
         from project_get_ga_assignments, assignment_id from project_get_com_object_links or a returned
-        link_id. Linkable objects are required for linking; set is_sending=true for a transmitting
-        link. flag is communication/read/write/transmit/update/read_on_init.
+        link_id. Linkable objects are required for linking; is_sending as for project_link_com_object
+        (left out: the object's first link sends). flag is communication/read/write/transmit/update/read_on_init.
 
         dry_run=true checks only operation names, required params and flag names, without applying
         edits or validating referenced entities/values. Returns {dry_run, valid, results}; each result

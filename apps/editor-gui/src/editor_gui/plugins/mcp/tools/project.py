@@ -762,7 +762,7 @@ def perform_link(
     com_object_ref_id: str,
     co: Any,
     group_address_id: int,
-    is_sending: bool,
+    is_sending: bool | None,
     *,
     hidden: bool = False,
 ) -> dict[str, Any] | None:
@@ -770,10 +770,13 @@ def perform_link(
     (``already_linked``, no duplicate row), ``dpt_mismatch`` and ``other_sending_group_address_ids``
     (see :func:`_link_annotations`), and ``hidden: true`` when the device's parameters hide the
     com-object (see :func:`com_object_hidden`). ``co`` is the resolved com-object (``db_id`` set).
-    Returns None when the service refuses the link (unknown GA / security), so the caller raises its
-    own error. Shared by project_link_com_object and the batch link op so both give the same
-    feedback."""
+    ``is_sending`` None makes the link sending when the object has no sending link yet, as a
+    link made in the editor. Returns None when the service refuses the link (unknown GA /
+    security), so the caller raises its own error. Shared by project_link_com_object and the batch
+    link op so both give the same feedback."""
     existing = list(project.get_links_for_com_object(co.db_id))
+    if is_sending is None:
+        is_sending = not any(link.is_sending for link in existing)
     co_dpt = getattr(co, "dpt", None)
     ga_before = project.get_group_address(group_address_id)
     ga_dpt_before = ga_before.datapoint_type if ga_before else None
@@ -4403,7 +4406,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         device_address: str | None = None,
         group_address_id: int | None = None,
         group_address: str | None = None,
-        is_sending: bool = False,
+        is_sending: bool | None = None,
     ) -> dict[str, Any]:
         """Create an undoable project link between a device com-object and a group address. The
         device is identified by ``node_id`` (from project_list_devices) OR ``device_address`` (an
@@ -4412,11 +4415,14 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         project's style). Pass exactly one of each pair. ``com_object_ref_id`` is the object's
         ``ref_id`` from project_list_com_objects (linkable=true).
 
-        ``is_sending`` (default False) marks which group address an object with SEVERAL links sends to
-        (it orders the associations, sending GA first); it does NOT change the object's flags, and for
-        a single link it has no byte effect — the send/receive direction comes from the object's own
-        flags. For a transmitting object (push-button/sensor output) linked to several GAs, mark its
-        intended sending GA; keep one sending GA per object. Returns {link_id, node_id,
+        ``is_sending`` marks the group address an object sends on. Leave it out to do as the
+        editor does: the object's first link is its sending one (true when the object has no
+        sending link yet, else false). Every linked object sends on exactly one of its group
+        addresses; it does NOT change the object's flags (the send/receive direction comes from
+        them), but it decides which link takes the object's own slot in the association table of
+        BCU1/BCU2 devices, so a link of an object without one is downloaded as its sending link
+        anyway. Pass true to move the sending address to another link; keep one sending GA per
+        object. Returns {link_id, node_id,
         com_object_ref_id, com_object_db_id, group_address_id, is_sending, already_linked} plus, when
         relevant, ``dpt_mismatch`` ({com_object, group_address} — the GA keeps its own DPT, so the
         DPT metadata differs; verify compatibility) and ``other_sending_group_address_ids`` (the

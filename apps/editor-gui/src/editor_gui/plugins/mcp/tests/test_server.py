@@ -1062,6 +1062,63 @@ async def test_link_feedback_dedup_dpt_and_sending(tmp_path: Path) -> None:
 
 
 @pytest.mark.skipif(not _FIXTURE.exists(), reason="knxprod fixture missing")
+async def test_an_objects_first_link_sends_unless_told_otherwise(
+    tmp_path: Path,
+) -> None:
+    """Without is_sending, a link sends when the object has no sending link yet, as a link
+    made in the editor; the next one does not. Explicit values are kept. The batch op does
+    the same."""
+    mcp, _project = _build(tmp_path)
+    async with Client(mcp) as client:
+        await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
+        await _data(client, "catalog_import_product", path=str(_FIXTURE))
+        product_ref = (await _data(client, "catalog_list_products"))["items"][0][
+            "product_ref_id"
+        ]
+        node_id = (
+            await _data(client, "project_add_device", product_ref_id=product_ref)
+        )["node_id"]
+        cos = (await _data(client, "project_list_com_objects", node_id=node_id))[
+            "items"
+        ]
+        first, second = [c for c in cos if c["linkable"]][:2]
+        gas = [
+            (await _data(client, "project_create_group_address"))["group_address_id"]
+            for _ in range(4)
+        ]
+
+        async def link(co: dict[str, Any], ga: int, **extra: Any) -> bool:
+            result = await _data(
+                client,
+                "project_link_com_object",
+                node_id=node_id,
+                com_object_ref_id=co["ref_id"],
+                group_address_id=ga,
+                **extra,
+            )
+            return bool(result["is_sending"])
+
+        assert await link(first, gas[0]) is True
+        assert await link(first, gas[1]) is False
+        assert await link(first, gas[2], is_sending=True) is True
+        batch = await _data(
+            client,
+            "project_batch",
+            operations=[
+                {
+                    "op": "link_com_object",
+                    "params": {
+                        "node_id": node_id,
+                        "com_object_ref_id": second["ref_id"],
+                        "group_address_id": gas[3],
+                    },
+                }
+            ],
+        )
+        assert batch["results"][0]["result"]["is_sending"] is True
+
+
+@pytest.mark.skipif(not _FIXTURE.exists(), reason="knxprod fixture missing")
 async def test_project_tools_require_open_project(tmp_path: Path) -> None:
     mcp, _project = _build(tmp_path)
     async with Client(mcp) as client:
