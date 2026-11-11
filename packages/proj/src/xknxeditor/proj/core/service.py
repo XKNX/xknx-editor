@@ -14,7 +14,9 @@ import contextlib
 import datetime
 import io
 import ipaddress
+import re
 import secrets
+import unicodedata
 import zipfile
 from collections.abc import Callable, Collection, Iterable, Mapping, Sequence
 from dataclasses import dataclass, field, replace
@@ -744,6 +746,51 @@ def _free_number(used: set[int], count: int, wanted: int | None) -> int | None:
 def _main_segment(line: Line) -> Segment:
     """A line's main segment: its lowest numbered one."""
     return min(line.segments, key=lambda s: (s.number, s.id))
+
+
+_SPACE_SORT_TRANSLATION = str.maketrans(
+    {
+        char: base
+        for base, letters in {
+            "a": "àáâãäåāăą",
+            "ae": "æ",
+            "c": "çćĉċč",
+            "d": "ðďđ",
+            "e": "èéêëēĕėęě",
+            "g": "ĝğġģ",
+            "h": "ĥħ",
+            "i": "ìíîïĩīĭįıİ",
+            "ij": "ĳ",
+            "j": "ĵ",
+            "k": "ķ",
+            "l": "ĺļľŀł",
+            "n": "ñńņňŋ",
+            "o": "òóôõöøōŏő",
+            "oe": "œ",
+            "r": "ŕŗř",
+            "s": "śŝşšș",
+            "t": "ţťŧț",
+            "th": "þ",
+            "u": "ùúûüũūŭůűų",
+            "w": "ŵ",
+            "y": "ýÿŷ",
+            "z": "źżž",
+        }.items()
+        for char in letters + letters.upper()
+    }
+)
+
+
+def _space_order(space: Space) -> tuple[tuple[str | int, ...], int, int]:
+    name = (
+        unicodedata.normalize("NFC", space.name)
+        .translate(_SPACE_SORT_TRANSLATION)
+        .casefold()
+    )
+    parts = tuple(
+        int(part) if part.isdecimal() else part for part in re.split(r"(\d+)", name)
+    )
+    return parts, space.order, space.id
 
 
 def _address_order(device: Device) -> tuple[int, int, int, int, int]:
@@ -5119,17 +5166,17 @@ class ProjectService:
 
     def space_tree(self, project_id: str, installation: int) -> list[SpaceInfo]:
         """The installation's building/location tree (roots → children), with devices and functions
-        resolved for display."""
+        resolved for display. Spaces use natural name order, ignoring case and folding common Latin accents;
+        the stored sibling order is unchanged."""
         state = self._state(project_id)
         style = self._style(state)
         inst = self._installation(state, installation)
         roots = (
             state.session.query(Space)
             .filter(Space.installation_id == inst.id, Space.parent_id.is_(None))
-            .order_by(Space.order, Space.id)
             .all()
         )
-        return [self._space_info(s, style) for s in roots]
+        return [self._space_info(s, style) for s in sorted(roots, key=_space_order)]
 
     def unassigned_devices(
         self, project_id: str, installation: int
@@ -5417,7 +5464,7 @@ class ProjectService:
             description=space.description,
             children=[
                 self._space_info(child, style)
-                for child in sorted(space.children, key=lambda c: (c.order, c.id))
+                for child in sorted(space.children, key=_space_order)
             ],
             devices=[
                 self._space_device_info(device)

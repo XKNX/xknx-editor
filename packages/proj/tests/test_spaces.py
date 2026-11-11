@@ -3,6 +3,7 @@ to spaces, each an event with a working undo/redo round-trip, and the rules of w
 part goes where. Everything is driven through the public service methods (the same paths the GUI
 uses)."""
 
+import unicodedata
 from pathlib import Path
 
 import pytest
@@ -92,13 +93,12 @@ def test_create_and_rename_with_undo(tmp_path: Path) -> None:
     building = svc.create_space(pid, 0, "Building", "Haus")
     floor = svc.create_space(pid, 0, "Floor", "OG", parent_id=building)
     tree = _tree(svc, pid)
-    # index 0 is the seeded default building (named after the "p.xknx" file); "Haus" follows it
     assert [(s.name, s.space_type) for s in tree] == [
-        ("p", "Building"),
         ("Haus", "Building"),
+        ("p", "Building"),
     ]
-    assert tree[1].id == building
-    assert [(c.id, c.name, c.space_type) for c in tree[1].children] == [
+    assert tree[0].id == building
+    assert [(c.id, c.name, c.space_type) for c in tree[0].children] == [
         (floor, "OG", "Floor")
     ]
     for parent, space_type in ((None, "Floor"), (floor, "Floor"), (floor, "Stairway")):
@@ -251,3 +251,93 @@ def test_set_number_and_description_with_undo(tmp_path: Path) -> None:
     svc.redo(pid)
     node = _find(_tree(svc, pid), floor)
     assert (node.number, node.description) == ("1.OG", "Bedrooms and bath")
+
+
+def test_space_name_order_at_every_level(tmp_path: Path) -> None:
+    svc, pid = _new(tmp_path)
+    building = _building(svc, pid)
+    svc.rename_space(pid, building, "Building 10")
+    svc.create_space(pid, 0, "Building", "building 9")
+    for name in ("Floor 10", "floor 9"):
+        svc.create_space(pid, 0, "Floor", name, parent_id=building)
+    floor = _find(_tree(svc, pid), building).children[0].id
+    for name in (
+        "14 Diele",
+        "13 WC",
+        "16 Arbeit",
+        "17 Küche",
+        "18 Essen",
+        "19 Wohnen",
+        "11 Technik",
+    ):
+        svc.create_space(pid, 0, "Room", name, parent_id=floor)
+    room = _find(_tree(svc, pid), floor).children[0].id
+    for name in ("UV 10", "uv 9"):
+        svc.create_space(pid, 0, "DistributionBoard", name, parent_id=room)
+
+    tree = _tree(svc, pid)
+    assert [s.name for s in tree] == ["building 9", "Building 10"]
+    assert [s.name for s in _find(tree, building).children] == ["floor 9", "Floor 10"]
+    assert [s.name for s in _find(tree, floor).children] == [
+        "11 Technik",
+        "13 WC",
+        "14 Diele",
+        "16 Arbeit",
+        "17 Küche",
+        "18 Essen",
+        "19 Wohnen",
+    ]
+    assert [s.name for s in _find(tree, room).children] == ["uv 9", "UV 10"]
+
+
+def test_space_names_ignore_case_and_fold_umlauts(tmp_path: Path) -> None:
+    svc, pid = _new(tmp_path)
+    building = _building(svc, pid)
+    names = ["Zebra", "Über", "Öl", "Äpfel", "Straße 10", "STRASSE 9", "ÄPFEL", ""]
+    ids = [svc.create_space(pid, 0, "Room", name, parent_id=building) for name in names]
+    assert [s.id for s in _tree(svc, pid)[0].children] == [
+        ids[i] for i in (7, 3, 6, 2, 5, 4, 1, 0)
+    ]
+
+    svc.rename_space(pid, ids[0], "Abstellraum")
+    assert [s.name for s in _tree(svc, pid)[0].children][:2] == ["", "Abstellraum"]
+    svc.undo(pid)
+    assert _tree(svc, pid)[0].children[-1].name == "Zebra"
+    svc.redo(pid)
+    assert _tree(svc, pid)[0].children[1].name == "Abstellraum"
+
+
+@pytest.mark.parametrize(
+    ("accented", "plain"),
+    [
+        ("École à côté", "ecole a cote"),
+        ("Niño pequeño", "nino pequeno"),
+        ("Coração", "coracao"),
+        ("Łódź", "lodz"),
+        ("Český pokoj", "cesky pokoj"),
+        ("Școală Țară", "scoala tara"),
+        ("Görüş İÇİN", "gorus icin"),
+        ("Őrült tűz", "orult tuz"),
+        ("Smørrebrød", "smorrebrod"),
+        ("Ångström", "angstrom"),
+        ("Þórður", "thordur"),
+        ("Æsir Œuvre Ĳssel", "aesir oeuvre ijssel"),
+        ("Ģērbtuve", "gerbtuve"),
+        ("Ħażna", "hazna"),
+    ],
+)
+def test_space_names_fold_other_latin_accents(
+    tmp_path: Path, accented: str, plain: str
+) -> None:
+    svc, pid = _new(tmp_path)
+    building = _building(svc, pid)
+    names = [
+        f"{plain} 10",
+        f"{accented} 9",
+        f"{accented.upper()} 8",
+        f"{unicodedata.normalize('NFD', accented)} 7",
+    ]
+    for name in names:
+        svc.create_space(pid, 0, "Room", name, parent_id=building)
+    assert [s.name for s in _tree(svc, pid)[0].children] == names[::-1]
+    svc.close(pid)

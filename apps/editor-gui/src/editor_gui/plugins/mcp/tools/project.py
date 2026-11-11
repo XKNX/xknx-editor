@@ -2751,7 +2751,10 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
     def project_spaces() -> dict[str, Any]:
         """Read the building/location tree (building -> floor -> room), each with its placed devices
         and functions. Use this to find a room's devices when device names are empty — the space names
-        carry the location. Returns {items, count, unassigned_devices}; count counts top-level nodes.
+        carry the location. Sibling spaces use natural name order, ignoring case and folding
+        common Latin accents (e.g. ä/é/ñ/ø/ł to a/e/n/o/l, æ/œ to ae/oe).
+        Devices use individual-address order, unaddressed devices last.
+        Returns {items, count, unassigned_devices}; count counts top-level nodes.
         Each space has {id, name, space_type, number, usage_text, description, devices, functions,
         children}; a device has {node_id, name, individual_address, description, product_name,
         manufacturer_name} (pass node_id to device tools). unassigned_devices lists devices placed in

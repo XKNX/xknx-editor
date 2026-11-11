@@ -48,6 +48,7 @@ UV monorepo: `packages/` holds eight core libraries; `apps/` holds applications.
 
 - Pyright strict mode; all public APIs must be fully typed
 - Ruff rules: E, W, F, I, UP, B, SIM, RUF — double quotes, 2-space indent, LF line endings
+- For display sorting, prefer standard-library natural sorting and a small character mapping. Do not add a collation dependency for perfect locale matching unless explicitly required.
 
 ## Tests
 

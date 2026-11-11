@@ -143,10 +143,11 @@ def test_the_add_dialog_adds_building_parts(
     _rows(panel).append(AddRow(name="Garage"))
     clicks.button = S.BTN_OK
     _frames(panel)
-    assert [s.name for s in project.get_space_tree()][1:] == [
-        "New building",
-        "New building",
+    assert [s.name for s in project.get_space_tree()] == [
         "Garage",
+        "New building",
+        "New building",
+        "p",
     ]
     assert project.history()[1].display_text == (
         S.HISTORY_EV_ADDED_BUILDING_PARTS(2).format(
@@ -203,8 +204,8 @@ def test_building_parts_move_and_are_deleted(
     _choose(
         clicks, panel, f"##spctx{room}", S.SPACES_MOVE_TO, f"  EG##mv{room}_{floor}"
     )
-    assert _names(project)[0] == ("p", [("EG", [("Kitchen", [], [])], [])], [])
-    assert [s.name for s in project.get_space_tree()] == ["p", "Garage"]
+    assert _names(project)[1] == ("p", [("EG", [("Kitchen", [], [])], [])], [])
+    assert [s.name for s in project.get_space_tree()] == ["Garage", "p"]
     # Deleting asks first.
     _choose(clicks, panel, f"##spctx{other}", S.SPACES_DELETE)
     clicks.button = S.SPACES_DELETE

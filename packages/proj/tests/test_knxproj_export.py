@@ -34,6 +34,44 @@ from xknxeditor.proj.models import (
 _REAL = Path(__file__).parent / "fixtures" / "xknx_test_project_no_password.knxproj"
 
 
+def test_space_display_sort_keeps_export_order(tmp_path: Path) -> None:
+    src = tmp_path / "src.xknx"
+    svc = ProjectService()
+    pid = svc.create(src, "P-SORT")
+    building = svc.space_tree(pid, 0)[0].id
+    svc.rename_space(pid, building, "Building 10")
+    svc.create_space(pid, 0, "Building", "Building 9")
+    room_names = ["14 Diele", "13 WC", "11 Technik"]
+    for name in room_names:
+        room = svc.create_space(pid, 0, "Room", name, parent_id=building)
+        if name == "11 Technik":
+            svc.create_space(
+                pid, 0, "DistributionBoard", "Verteiler EG", parent_id=room
+            )
+    assert [s.name for s in svc.space_tree(pid, 0)] == ["Building 9", "Building 10"]
+    svc.close(pid)
+
+    for index in range(2):
+        out = tmp_path / f"out{index}.knxproj"
+        export_knxproj(src, out)
+        with zipfile.ZipFile(out) as archive:
+            zero = next(n for n in archive.namelist() if n.endswith("/0.xml"))
+            root = ET.fromstring(archive.read(zero))
+        buildings = root.findall(".//{*}Locations/{*}Space")
+        assert [s.get("Name") for s in buildings] == ["Building 10", "Building 9"]
+        rooms = buildings[0].findall("{*}Space")
+        assert [s.get("Name") for s in rooms] == room_names
+        assert rooms[-1].find("{*}Space").get("Name") == "Verteiler EG"
+        if index == 0:
+            src = tmp_path / "round.xknx"
+            imported_pid = import_knxproj(out, src)
+            svc.open(src)
+            tree = svc.space_tree(imported_pid, 0)
+            assert [s.name for s in tree] == ["Building 9", "Building 10"]
+            assert [s.name for s in tree[1].children] == sorted(room_names)
+            svc.close(imported_pid)
+
+
 def test_export_import_round_trip(tmp_path: Path) -> None:
     src = tmp_path / "src.xknx"
     svc = ProjectService()
