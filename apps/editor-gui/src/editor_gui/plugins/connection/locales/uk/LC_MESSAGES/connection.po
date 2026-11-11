@@ -16,6 +16,12 @@ msgstr "Під'єднатися"
 msgid "Disconnect"
 msgstr "Від'єднати"
 
+msgid "Connect at Startup"
+msgstr "Підключатися під час запуску"
+
+msgid "At start, the editor looks for KNX interfaces and connects to the one used last. Turned off, it connects only when you choose."
+msgstr "Під час запуску редактор шукає інтерфейси KNX і підключається до останнього використаного. Якщо вимкнено, підключається лише за вашим вибором."
+
 msgid "Use Serial Number for Downloads"
 msgstr "Використовувати серійний номер для завантажень"
 

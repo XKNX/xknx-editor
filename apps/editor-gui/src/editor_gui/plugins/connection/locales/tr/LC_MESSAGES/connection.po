@@ -16,6 +16,12 @@ msgstr "Bağlan"
 msgid "Disconnect"
 msgstr "Bağlantıyı kes"
 
+msgid "Connect at Startup"
+msgstr "Başlangıçta Bağlan"
+
+msgid "At start, the editor looks for KNX interfaces and connects to the one used last. Turned off, it connects only when you choose."
+msgstr "Başlangıçta düzenleyici KNX arayüzlerini arar ve en son kullanılana bağlanır. Kapalıyken yalnızca siz seçtiğinizde bağlanır."
+
 msgid "Use Serial Number for Downloads"
 msgstr "Yüklemelerde Seri Numarasını Kullan"
 

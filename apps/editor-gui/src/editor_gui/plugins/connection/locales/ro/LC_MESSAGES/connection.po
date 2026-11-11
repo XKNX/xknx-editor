@@ -61,6 +61,12 @@ msgstr "Grup multicast"
 msgid "Apply"
 msgstr "Aplicare"
 
+msgid "Connect at Startup"
+msgstr "Conectare la pornire"
+
+msgid "At start, the editor looks for KNX interfaces and connects to the one used last. Turned off, it connects only when you choose."
+msgstr "La pornire, editorul caută interfețe KNX și se conectează la cea folosită ultima dată. Dezactivat, se conectează doar când alegeți dumneavoastră."
+
 msgid "Use Serial Number for Downloads"
 msgstr "Se utilizează numărul de serie la programare"
 

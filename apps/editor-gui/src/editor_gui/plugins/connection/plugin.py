@@ -296,6 +296,11 @@ class ConnectionPlugin:
         self._preferred_gateway_ip: str | None = None
         # The KNX USB interface connected through instead of a gateway (None: a gateway).
         self._usb_target: UsbTarget | None = None
+        # Whether the editor looks for interfaces at start and connects to one (Settings >
+        # Connection); off, it connects only when the user asks.
+        self._connect_at_startup = True
+        # This start only (``--no-connect``): no connection at start, whatever the setting says.
+        self.skip_startup_connect = False
         self._panels: list[PanelDefinition] = []
         self._load_saved_settings()
 
@@ -521,6 +526,7 @@ class ConnectionPlugin:
         self._api.connection.use_serial_number = bool(
             data.get("serial_number_downloads", True)
         )
+        self._connect_at_startup = bool(data.get("connect_at_startup", True))
 
     def _save_current_settings(self) -> None:
         save_settings(
@@ -536,6 +542,7 @@ class ConnectionPlugin:
                     else None
                 ),
                 "serial_number_downloads": self._api.connection.use_serial_number,
+                "connect_at_startup": self._connect_at_startup,
             },
         )
 
@@ -1483,7 +1490,15 @@ class ConnectionPlugin:
         self._run_async(self._scan_async(auto_connect))
 
     def autostart(self) -> None:
-        """Discover gateways at startup and connect to the preferred (last-used) or first one."""
+        """Discover gateways at startup and connect to the preferred (last-used) or first one,
+        unless the connection at startup is turned off (the setting, or ``--no-connect``): then
+        nothing is searched or connected until the user asks."""
+        if not self._connect_at_startup or self.skip_startup_connect:
+            self._log.info(
+                "no connection at startup",
+                reason="command line" if self.skip_startup_connect else "setting",
+            )
+            return
         if self._state != ConnectionState.DISCONNECTED or self.busmonitor_active:
             return
         self._log.info("auto-discovering gateways")
@@ -1977,6 +1992,14 @@ class ConnectionPlugin:
                 set=self._set_controller_ip,
             ),
             Setting(
+                "connect_at_startup",
+                lambda: S.SETTING_CONNECT_AT_STARTUP,
+                "bool",
+                get=lambda: self._connect_at_startup,
+                set=self._set_connect_at_startup,
+                hint=lambda: S.SETTING_CONNECT_AT_STARTUP_HINT,
+            ),
+            Setting(
                 "use_serial_number",
                 lambda: S.SETTING_USE_SERIAL_NUMBER,
                 "bool",
@@ -1996,6 +2019,10 @@ class ConnectionPlugin:
 
     def _set_controller_ip(self, value: object) -> None:
         self._controller_ip = str(value).strip() or self._controller_ip
+        self._save_current_settings()
+
+    def _set_connect_at_startup(self, value: object) -> None:
+        self._connect_at_startup = bool(value)
         self._save_current_settings()
 
     def _set_use_serial_number(self, value: object) -> None:

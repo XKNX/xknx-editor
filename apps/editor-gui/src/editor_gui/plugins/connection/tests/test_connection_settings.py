@@ -27,6 +27,7 @@ def _plugin() -> Any:
     plugin._multicast_group = "224.0.23.12"
     plugin._connection_type = ConnectionType.TUNNELING
     plugin._preferred_gateway_ip = None
+    plugin._connect_at_startup = True
     plugin._api = SimpleNamespace(connection=SimpleNamespace(use_serial_number=True))
     return plugin
 

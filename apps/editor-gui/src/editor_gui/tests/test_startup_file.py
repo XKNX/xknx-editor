@@ -124,6 +124,7 @@ def test_the_start_opens_with_the_password_of_the_environment(
     monkeypatch.setattr(main, "load_settings", lambda _name: {})
     stub = SimpleNamespace(
         _connection_plugin=SimpleNamespace(autostart=lambda: None),
+        no_connect=False,
         startup_file="Haus.xknx",
         startup_password_file=None,
         _do_open_project=lambda path, **options: calls.append(

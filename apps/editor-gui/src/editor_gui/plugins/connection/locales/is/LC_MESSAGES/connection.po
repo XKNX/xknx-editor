@@ -61,6 +61,12 @@ msgstr "Margvarpshópur"
 msgid "Apply"
 msgstr "Nota"
 
+msgid "Connect at Startup"
+msgstr "Tengjast við ræsingu"
+
+msgid "At start, the editor looks for KNX interfaces and connects to the one used last. Turned off, it connects only when you choose."
+msgstr "Við ræsingu leitar ritillinn að KNX-tengjum og tengist því sem síðast var notað. Ef slökkt er á þessu tengist hann aðeins þegar þú velur það."
+
 msgid "Use Serial Number for Downloads"
 msgstr "Nota raðnúmer við niðurhleðslu"
 

@@ -16,6 +16,12 @@ msgstr "Připojit"
 msgid "Disconnect"
 msgstr "Odpojit"
 
+msgid "Connect at Startup"
+msgstr "Připojit při spuštění"
+
+msgid "At start, the editor looks for KNX interfaces and connects to the one used last. Turned off, it connects only when you choose."
+msgstr "Při spuštění editor vyhledá rozhraní KNX a připojí se k naposledy použitému. Je-li vypnuto, připojí se jen tehdy, když to zvolíte."
+
 msgid "Use Serial Number for Downloads"
 msgstr "Použít sériové číslo pro nahrávání"
 

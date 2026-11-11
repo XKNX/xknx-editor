@@ -61,6 +61,12 @@ msgstr "Skupina multicast"
 msgid "Apply"
 msgstr "Uporabi"
 
+msgid "Connect at Startup"
+msgstr "Poveži ob zagonu"
+
+msgid "At start, the editor looks for KNX interfaces and connects to the one used last. Turned off, it connects only when you choose."
+msgstr "Ob zagonu urejevalnik poišče vmesnike KNX in se poveže z nazadnje uporabljenim. Če je izklopljeno, se poveže le, ko to izberete."
+
 msgid "Use Serial Number for Downloads"
 msgstr "Pri programiranju uporabi serijsko številko"
 

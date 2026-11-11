@@ -22,6 +22,10 @@ _GENERAL = (
         "Password of the project file given from the first line of FILE (or "
         "XKNX_PROJECT_PASSWORD) instead of asking for it.",
     ),
+    (
+        "--no-connect",
+        "Connect to no KNX interface at start, whatever the setting Connect at Startup says.",
+    ),
     ("--profile", "Print where the time went when the editor ends (for developers)."),
 )
 _WEB = (
