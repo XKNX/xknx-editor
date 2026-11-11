@@ -92,6 +92,10 @@ _AUTOSTART_RETRY_SECONDS = 30.0
 _DEFAULT_CONTROLLER_IP = "192.168.1.1"
 # Seconds between the attempts to reopen a lost connection.
 _REOPEN_SECONDS = 5.0
+# How long a lost connection is left to xknx's own in-place auto-reconnect before a full
+# teardown and reconnect is forced (the recovery a manual disconnect/connect does). xknx retries
+# every few seconds; a wedged tunnel (e.g. after a heartbeat timeout) never recovers on its own.
+_RECONNECT_GRACE_SECONDS = 20.0
 # How often an interface that was just downloaded is asked what connection it requires.
 _REOPEN_ATTEMPTS = 12
 # Seconds between the checks whether the credentials an interface requires are available now.
@@ -319,6 +323,9 @@ class ConnectionPlugin:
         self._config: ConnectionConfig | None = None
         self._link_up = False
         self._watching_lost = False
+        # When the link first went down in the current outage (reset on reconnect), so the grace
+        # before a forced reconnect is measured per outage, not from the first ever loss.
+        self._lost_since: float | None = None
         # The interface a connection failed to for missing credentials, and the next check.
         self._awaiting_credentials: GatewayDescriptor | None = None
         self._retry_on_credentials = False
@@ -1251,9 +1258,14 @@ class ConnectionPlugin:
     def _on_link_state(self, state: XknxConnectionState) -> None:
         if state is XknxConnectionState.CONNECTED:
             self._link_up = True
+            self._lost_since = (
+                None  # the outage ended; the next loss starts a fresh grace
+            )
             self._api.connection.dispatch_link_state(True)
         elif state is XknxConnectionState.DISCONNECTED:
             self._link_up = False
+            if self._lost_since is None:
+                self._lost_since = time.monotonic()
             self._api.connection.dispatch_link_state(False)
             self._run_async(self._reopen_while_lost(self._session))
 
@@ -1304,9 +1316,10 @@ class ConnectionPlugin:
         return self._config if session == self._session else None
 
     async def _reopen_while_lost(self, session: int) -> None:
-        """While the connection is lost, check whether the interface now requires another one.
-        The connection reconnects by itself with the configuration it has; one the interface no
-        longer accepts is replaced."""
+        """While the connection is lost, let xknx's own auto-reconnect restore it; replace a
+        connection the interface no longer accepts. When xknx has not recovered the link within
+        the grace period (a wedged tunnel after a heartbeat timeout never does), force a full
+        teardown and reconnect, the same recovery a manual disconnect/connect performs."""
         if self._watching_lost:
             return
         self._watching_lost = True
@@ -1317,6 +1330,22 @@ class ConnectionPlugin:
                 and self._config is not None
             ):
                 await self._reopen_if_changed(session)
+                # Re-check after the await: the link may be back, the session may have moved on,
+                # or the config may be gone (a failed credentialed reopen, or bus monitor mode
+                # taking over the connection) — in any case stop rather than force a reconnect.
+                if self._link_up or self._open_config(session) is None:
+                    break
+                if (
+                    self._usb_target is None
+                    and self._lost_since is not None
+                    and time.monotonic() - self._lost_since >= _RECONNECT_GRACE_SECONDS
+                ):
+                    self._log.info(
+                        "connection still lost, forcing a reconnect",
+                        target=self._connection_target,
+                    )
+                    await self._reopen(session)
+                    return
                 await asyncio.sleep(_REOPEN_SECONDS)
         finally:
             self._watching_lost = False
