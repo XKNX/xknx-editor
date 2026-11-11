@@ -128,12 +128,6 @@ Modules dropdown shows the product's channel and group-object folder hierarchy a
 several groups together. Selecting a parent includes its subgroups. Select All modules to clear
 the filter, or Without module for ungrouped objects. Bulk actions use only the selected, shown objects.
 
-Buildings and their sub-spaces are sorted by name, with numbers in natural order (Room 9 before
-Room 10), ignoring case and folding common Latin accents (e.g. ä/é/ñ/ø/ł to a/e/n/o/l,
-æ/œ to ae/oe). The browser UI, building diagram and MCP use the same order. Devices remain
-sorted by individual address, with unaddressed devices last.
-This only changes the display; the stored order of spaces is kept for project exports.
-
 ![Project editor](docs/images/editor.png)
 
 The same in the light theme:
