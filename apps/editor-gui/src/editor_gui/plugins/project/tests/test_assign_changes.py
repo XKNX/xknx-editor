@@ -107,3 +107,32 @@ def test_an_undo_keeps_the_stored_values(
     assert proj.undo()
     assert _stored(proj, node_id) == {ENABLED: "1", TYPE: "2", MODE: "2"}
     assert _value(proj, node_id, TYPE) == "2"
+
+
+def test_a_target_set_directly_keeps_its_value_after_the_rebuild(
+    proj: ProjectService, app: Application
+) -> None:
+    # The device is built again from the stored values after each edit: the Assign of Type 1
+    # writes Mode only when it starts applying again, not at each rebuild.
+    node_id = proj.add_device("P-1", "HP-1", "Fan Coil", app)
+    assert node_id is not None
+    device = proj.find_device_by_node_id(node_id)
+    assert device is not None
+    proj.set_param(device, ENABLED, "1")
+    device = proj.find_device_by_node_id(node_id)
+    assert device is not None
+    proj.set_param(device, MODE, "1")
+    assert _stored(proj, node_id)[MODE] == "1"
+    assert _value(proj, node_id, MODE) == "1"
+    assert "O-3" not in _objects(proj, node_id)
+    device = proj.find_device_by_node_id(node_id)
+    assert device is not None
+    proj.set_param(device, f"{APP}_P-4_R-4", "1")
+    assert _value(proj, node_id, MODE) == "1"
+    # Off and on again: the Assign starts applying and writes Mode.
+    for enabled in ("0", "1"):
+        device = proj.find_device_by_node_id(node_id)
+        assert device is not None
+        proj.set_param(device, ENABLED, enabled)
+    assert _value(proj, node_id, MODE) == "2"
+    assert "O-3" in _objects(proj, node_id)

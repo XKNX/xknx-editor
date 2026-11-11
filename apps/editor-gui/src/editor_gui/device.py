@@ -390,12 +390,15 @@ class Device:
 
             # Program and tree as one pair: an unused application may have been reloaded.
             program, tree_builder = self.app.resolved()
+            # The stored values are what the device's evaluation left (it is built again after
+            # each edit and after a release): an Assign target set directly keeps its value.
             self._dynamic_ui = _DynamicUI(
                 program,
                 parameter_instance_refs=self.parameter_instance_refs or None,
                 module_instances=self.module_instances or None,
                 com_object_instance_refs=self.com_object_instance_refs or None,
                 tree_builder=tree_builder,
+                keep_assigned=True,
             )
         if self._dynamic_ui is not None and self.project_code_page is not None:
             # Read every time: the project's code page can change (and be undone) any time.

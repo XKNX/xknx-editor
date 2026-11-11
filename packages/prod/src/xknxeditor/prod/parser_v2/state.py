@@ -223,8 +223,12 @@ class ParameterState:
         "_active_module_keys",
         "_active_param_refs",
         "_alloc_positions",
+        "_assign_seen",
         "_assign_targets",
+        "_assign_written",
         "_assigned_from",
+        "_assigns_gated",
+        "_assigns_now",
         "_children",
         "_com_obj_instance_refs",
         "_discovered_active_param_refs",
@@ -235,6 +239,7 @@ class ParameterState:
         "_parent",
         "_pass_texts",
         "_pass_values",
+        "_seeded",
         "_text",
         "_ungated_writes",
         "param_ref_id_to_value",
@@ -300,12 +305,26 @@ class ParameterState:
         # The param-refs the Assigns of the current pass wrote from another one: target ->
         # source (local ids of this scope).
         self._assigned_from: dict[str, str] = {}
-        # The param-refs an Assign of the current pass wrote (local ids of this scope): the
-        # targets of the Assigns that apply.
+        # The targets of the Assigns of the current pass that apply with a value (local ids of
+        # this scope), whether they wrote it in the pass or not.
         self._assign_targets: set[str] = set()
+        # The targets the Assigns of the current pass wrote (see run_assign).
+        self._assign_written: set[str] = set()
         # The Assigns the current pass reached in this scope (see note_assign): those that
         # apply.
         self._active_assigns: set[int] = set()
+        # The Assigns that applied after the last pass with gates (the last pass of the last
+        # evaluation, see commit_assigns), each with the value of its source then (None for
+        # one with a fixed value): an Assign writes when it starts applying or its source
+        # changed (see run_assign).
+        self._assign_seen: dict[int, str | None] = {}
+        # The same of the current pass, and whether it has gates (only a pass with gates
+        # tells which Assigns apply).
+        self._assigns_now: dict[int, str | None] = {}
+        self._assigns_gated = False
+        # The param-refs whose values this scope takes as what its Assigns wrote (see
+        # mark_seeded) until its first evaluation ends; None otherwise.
+        self._seeded: frozenset[str] | None = None
         # The values the targets of the Assigns of a pass without gates (see
         # undo_ungated_assigns) had before (the known value, and the value of the map).
         self._ungated_writes: dict[str, tuple[str | None, str | None]] = {}
@@ -354,16 +373,59 @@ class ParameterState:
         self.param_ref_id_to_value[ref_id] = value
         self._known_param_ref_values[ref_id] = value
 
-    def assign(self, ref_id: str, value: str) -> None:
-        """An Assign of the current pass writes ``value`` into ``ref_id``: it is stored like
-        any other value and stays when the Assign no longer applies."""
-        if self._gate_param_refs is None and ref_id not in self._ungated_writes:
-            self._ungated_writes[ref_id] = (
-                self._known_param_ref_values.get(ref_id),
-                self.param_ref_id_to_value.get(ref_id),
+    def run_assign(
+        self,
+        key: int,
+        target: str,
+        value: str | None,
+        *,
+        from_source: bool,
+        always: bool = False,
+    ) -> None:
+        """The Assign ``key`` (the id of its element) of the current pass applies: its value is
+        ``value``, the value of its source (``from_source``) or its fixed one. It writes it into
+        ``target`` when it starts applying (it did not apply after the last pass with gates) and
+        whenever its source has another value than then; else the target keeps the value it
+        has, also one set directly meanwhile. The first evaluation of a scope is the start of
+        every Assign it reaches, except in a scope that takes its values as what its Assigns
+        wrote (see :meth:`mark_seeded`): an Assign that applies then writes only a target
+        without such a value. ``always`` writes it in any case.
+
+        The value is stored like any other value and stays when the Assign no longer applies.
+        Nothing is written while the source has no value."""
+        if key in self._assign_seen:
+            write = from_source and self._assign_seen[key] != value
+        else:
+            write = self._seeded is None or target not in self._seeded
+        self._assigns_now[key] = value if from_source else None
+        if value is None:
+            return
+        self._assign_targets.add(target)
+        if not (write or always):
+            return
+        if self._gate_param_refs is None and target not in self._ungated_writes:
+            self._ungated_writes[target] = (
+                self._known_param_ref_values.get(target),
+                self.param_ref_id_to_value.get(target),
             )
-        self.set(ref_id, value)
-        self._assign_targets.add(ref_id)
+        self.set(target, value)
+        self._assign_written.add(target)
+
+    def commit_assigns(self) -> None:
+        """An evaluation ended (this scope and the module scopes below): the Assigns of its
+        last pass are those that apply, with the values of their sources then (see
+        :meth:`run_assign`), and the scope's seeding is over."""
+        self._assign_seen = dict(self._assigns_now)
+        self._seeded = None
+        for child in self._children.values():
+            child.commit_assigns()
+
+    def mark_seeded(self) -> None:
+        """Take the values this scope and the module scopes below hold now as what their
+        Assigns wrote, until their first evaluation ends (see :meth:`run_assign`)."""
+        self._seeded = frozenset(self._known_param_ref_values)
+        for child in self._children.values():
+            child.mark_seeded()
 
     def note_assign(self, key: int) -> None:
         """The current pass reached the Assign ``key`` (the id of its element) in this scope:
@@ -384,11 +446,13 @@ class ParameterState:
         before it wrote that no Assign of this pass writes (this scope and the module scopes
         below). A pass without gates (the first, no parameter known active yet) selects a branch
         of every Choose, also of one whose parameter is not active, which selects none: its
-        Assigns do not apply, and leave the values as they were. A value given back counts as
+        Assigns do not apply, and leave the values as they were. The pass with gates writes
+        again what an Assign that starts applying wrote in it (a pass without gates does not
+        tell which Assigns apply, see :meth:`reset_active`). A value given back counts as
         changed by the pass."""
         if self._gate_param_refs is not None and self._ungated_writes:
             for ref_id, (known, value) in self._ungated_writes.items():
-                if ref_id in self._assign_targets:
+                if ref_id in self._assign_written:
                     continue
                 if ref_id not in self._pass_values:
                     self._pass_values[ref_id] = self._known_param_ref_values.get(ref_id)
@@ -405,8 +469,8 @@ class ParameterState:
             child.undo_ungated_assigns()
 
     def assign_targets(self) -> set[str]:
-        """The (instance-qualified) param-refs the Assigns of the last pass wrote, in this
-        scope and the module scopes below."""
+        """The (instance-qualified) targets of the Assigns that apply with a value in the last
+        pass (written in it or before), in this scope and the module scopes below."""
         result = {self.qualify(ref) for ref in self._assign_targets}
         for child in self._children.values():
             result |= child.assign_targets()
@@ -532,7 +596,14 @@ class ParameterState:
         self._pass_texts.clear()
         self._assigned_from.clear()
         self._assign_targets.clear()
+        self._assign_written.clear()
         self._active_assigns.clear()
+        # The Assigns a pass with gates reaches are those that apply; a pass without gates
+        # also reaches Assigns that do not.
+        if self._assigns_gated:
+            self._assign_seen = self._assigns_now
+        self._assigns_now = {}
+        self._assigns_gated = self._gate_param_refs is not None
         for child in self._children.values():
             child.reset_active()
 
@@ -906,8 +977,8 @@ class ParameterState:
         return result
 
     def relative_param_values_assigned(self) -> list[tuple[str, str, bool]]:
-        """As :meth:`relative_param_values`, each with whether an Assign of the last pass
-        wrote it."""
+        """As :meth:`relative_param_values`, each with whether it is the target of an Assign
+        that applies in the last pass."""
         result = [
             (ref, value, ref in self._assign_targets)
             for ref, value in self.param_ref_id_to_value.items()

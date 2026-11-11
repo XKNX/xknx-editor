@@ -9,6 +9,7 @@ the value most of them hold is taken.
 from __future__ import annotations
 
 from xknxeditor.prod.application import Application, parse_application_xml
+from xknxeditor.prod.parser_v2.dynamic import DynamicUI
 from xknxeditor.recover.parameters import recover_parameters
 
 _APP = "M-00FA_A-00F2-01-0000"
@@ -153,7 +154,18 @@ def test_a_copy_written_over_by_a_fixed_value_is_not_recorded() -> None:
 
 def test_a_copy_written_over_by_a_fixed_value_does_not_count() -> None:
     application = _overwritten_application()
-    segments = _device(application, **{_SHOWN: "7", _MODE: "1"})
+    # Calculated from its values anew, every Assign writes in turn: the fixed values come last.
+    # (Edited one value after the other, a change of "Shown" writes only its copies.)
+    program, tree_builder = application.resolved()
+    ui = DynamicUI(
+        program,
+        tree_builder=tree_builder,
+        parameter_values={_SHOWN: "7", _MODE: "1"},
+    )
+    segments = ui.encode_to_memory()
     assert segments[_SEGMENT] == b"\x09\x09\x01\x07"
+    assert _device(application, **{_SHOWN: "7", _MODE: "1"})[_SEGMENT] == (
+        b"\x07\x09\x01\x07"
+    )
     recovered = recover_parameters(application, segments)
     assert recovered.values[_SHOWN] == "7"

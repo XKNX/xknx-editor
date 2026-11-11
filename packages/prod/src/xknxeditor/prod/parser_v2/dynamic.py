@@ -1124,9 +1124,19 @@ class DynamicUI:
         tree_builder: DynamicTreeBuilder | None = None,
         project_code_page: str | None = None,
         parameter_values: Mapping[str, str] | None = None,
+        *,
+        keep_assigned: bool = False,
     ) -> None:
         """``parameter_values``: values by ref id, as ``parameter_instance_refs`` give them
-        (after them; see :meth:`GlobalState.from_project`)."""
+        (after them; see :meth:`GlobalState.from_project`).
+
+        An Assign writes its target when it starts applying and whenever its source changes;
+        in between the target keeps its value, also one set directly. The first evaluation
+        starts every Assign that applies: each writes its target, as when a device is
+        calculated from its stored values anew. With ``keep_assigned`` the values are those an
+        earlier evaluation of the device left (a device built again after an edit): an
+        Assign that applies keeps a given value of its target and writes only a target
+        without one, as if that evaluation went on."""
         # The builder (indexer + node tree) is a pure function of the app program and is read-only
         # during eval, so callers share one across all devices of the same app (see
         # Application.tree_builder) instead of rebuilding it per device.
@@ -1156,6 +1166,8 @@ class DynamicUI:
             padded_ref_ids=self._idx.padded_ref_ids,
             parameter_values=parameter_values,
         )
+        if keep_assigned:
+            self._state.mark_seeded()
         self._ui: list[UiNode] | None = None
         # The parameter-driven active com-object set, snapshotted from the same settle that builds
         # ``_ui`` (before the inactive-channel prune, matching the standalone derivation). Lets a
@@ -1232,8 +1244,13 @@ class DynamicUI:
 
         A pass that changed no value or text, after which each Choose it reached would select
         what it selected (its parameter as active, or as inactive, as before), is what the next
-        pass would do again: that pass would settle, and is left out."""
+        pass would do again: that pass would settle, and is left out.
+
+        The Assigns of the last pass are those that apply from then on: one writes its target
+        again only when it starts applying or its source changes (see
+        :meth:`ParameterState.run_assign`)."""
         tree: list[UiNode] = []
+        settled = False
         for n in range(_MAX_GATE_PASSES):
             self._state.reset_active()
             ctx = make_ctx()
@@ -1244,14 +1261,17 @@ class DynamicUI:
             gate_changed = self._state.update_gate_active()
             if self._state.pass_changed_state():
                 continue
-            if not gate_changed:
-                return tree, True
-            if n + 1 < _MAX_GATE_PASSES and all(
-                scope.is_gate_active(ref_id) is active
-                for scope, ref_id, active in checks
+            if not gate_changed or (
+                n + 1 < _MAX_GATE_PASSES
+                and all(
+                    scope.is_gate_active(ref_id) is active
+                    for scope, ref_id, active in checks
+                )
             ):
-                return tree, True
-        return tree, False
+                settled = True
+                break
+        self._state.commit_assigns()
+        return tree, settled
 
     def _eval_settled(
         self, capture: Callable[[], EvalCapture] | None = None

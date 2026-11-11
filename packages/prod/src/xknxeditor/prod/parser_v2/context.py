@@ -340,9 +340,18 @@ class EvalContext:
     def set(self, ref_id: str, value: str) -> None:
         self._scope.set(ref_id, value)
 
-    def assign(self, ref_id: str, value: str) -> None:
-        """An Assign writes ``value`` into ``ref_id`` (see :meth:`ParameterState.assign`)."""
-        self._scope.assign(ref_id, value)
+    def run_assign(
+        self, key: int, target: str, value: str | None, *, from_source: bool
+    ) -> None:
+        """The Assign ``key`` that applies writes ``value`` into ``target`` when it is its time
+        (see :meth:`ParameterState.run_assign`). An explore pass writes it every time."""
+        self._scope.run_assign(
+            key,
+            target,
+            value,
+            from_source=from_source,
+            always=self._explore is not None,
+        )
 
     def note_assign(self, key: int) -> None:
         """The pass reached an Assign (see :meth:`ParameterState.note_assign`)."""
