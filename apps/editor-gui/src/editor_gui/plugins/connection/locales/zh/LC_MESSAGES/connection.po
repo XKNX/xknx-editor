@@ -16,6 +16,12 @@ msgstr "连接"
 msgid "Disconnect"
 msgstr "断开"
 
+msgid "Connect at Startup"
+msgstr "启动时连接"
+
+msgid "At start, the editor looks for KNX interfaces and connects to the one used last. Turned off, it connects only when you choose."
+msgstr "启动时，编辑器会搜索 KNX 接口并连接到上次使用的接口。关闭后，只有在您选择时才会连接。"
+
 msgid "Use Serial Number for Downloads"
 msgstr "下载时使用系列号"
 

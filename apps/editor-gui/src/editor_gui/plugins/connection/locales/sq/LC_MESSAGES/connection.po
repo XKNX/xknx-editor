@@ -16,6 +16,12 @@ msgstr "Lidhu"
 msgid "Disconnect"
 msgstr "Shkëputu"
 
+msgid "Connect at Startup"
+msgstr "Lidhu në nisje"
+
+msgid "At start, the editor looks for KNX interfaces and connects to the one used last. Turned off, it connects only when you choose."
+msgstr "Në nisje, redaktori kërkon ndërfaqe KNX dhe lidhet me atë të përdorur së fundi. I fikur, lidhet vetëm kur ta zgjidhni ju."
+
 msgid "Use Serial Number for Downloads"
 msgstr "Përdor numrin serial për programim"
 

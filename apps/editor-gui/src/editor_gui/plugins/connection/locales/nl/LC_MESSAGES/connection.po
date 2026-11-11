@@ -22,6 +22,12 @@ msgstr "Verbonden met {ip}"
 msgid "Disconnected"
 msgstr "Niet verbonden"
 
+msgid "Connect at Startup"
+msgstr "Verbinden bij opstarten"
+
+msgid "At start, the editor looks for KNX interfaces and connects to the one used last. Turned off, it connects only when you choose."
+msgstr "Bij het starten zoekt de editor naar KNX-interfaces en verbindt met de laatst gebruikte. Uitgeschakeld verbindt hij alleen wanneer u dat kiest."
+
 msgid "Use Serial Number for Downloads"
 msgstr "Serienummer gebruiken voor downloads"
 

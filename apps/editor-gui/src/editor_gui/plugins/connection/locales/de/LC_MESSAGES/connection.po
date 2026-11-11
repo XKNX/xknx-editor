@@ -61,6 +61,12 @@ msgstr "Multicast-Gruppe"
 msgid "Apply"
 msgstr "Übernehmen"
 
+msgid "Connect at Startup"
+msgstr "Beim Start verbinden"
+
+msgid "At start, the editor looks for KNX interfaces and connects to the one used last. Turned off, it connects only when you choose."
+msgstr "Beim Start sucht der Editor nach KNX-Schnittstellen und verbindet sich mit der zuletzt verwendeten. Ausgeschaltet verbindet er sich nur, wenn Sie es wählen."
+
 msgid "Use Serial Number for Downloads"
 msgstr "Seriennummer für Downloads verwenden"
 

@@ -61,6 +61,12 @@ msgstr "Multicast csoport"
 msgid "Apply"
 msgstr "Alkalmaz"
 
+msgid "Connect at Startup"
+msgstr "Csatlakozás indításkor"
+
+msgid "At start, the editor looks for KNX interfaces and connects to the one used last. Turned off, it connects only when you choose."
+msgstr "Indításkor a szerkesztő KNX interfészeket keres, és a legutóbb használthoz csatlakozik. Kikapcsolva csak akkor csatlakozik, amikor Ön kéri."
+
 msgid "Use Serial Number for Downloads"
 msgstr "Sorozatszám használata programozáshoz"
 

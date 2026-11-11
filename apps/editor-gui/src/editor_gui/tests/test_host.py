@@ -141,6 +141,7 @@ def test_session_starts_the_managed_mcp_server(
     started: list[bool] = []
     stub = SimpleNamespace(
         _connection_plugin=SimpleNamespace(autostart=lambda: None),
+        no_connect=False,
         _start_mcp=lambda *, save: started.append(save),
         startup_file=None,
     )

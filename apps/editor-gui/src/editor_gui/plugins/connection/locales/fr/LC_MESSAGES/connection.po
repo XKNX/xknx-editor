@@ -16,6 +16,12 @@ msgstr "Connecter"
 msgid "Disconnect"
 msgstr "Déconnecter"
 
+msgid "Connect at Startup"
+msgstr "Se connecter au démarrage"
+
+msgid "At start, the editor looks for KNX interfaces and connects to the one used last. Turned off, it connects only when you choose."
+msgstr "Au démarrage, l'éditeur recherche les interfaces KNX et se connecte à la dernière utilisée. Désactivé, il ne se connecte que lorsque vous le choisissez."
+
 msgid "Use Serial Number for Downloads"
 msgstr "Utiliser le numéro de série pour les téléchargements"
 

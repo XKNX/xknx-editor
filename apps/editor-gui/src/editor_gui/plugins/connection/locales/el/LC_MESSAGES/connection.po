@@ -16,6 +16,12 @@ msgstr "Σύνδεση"
 msgid "Disconnect"
 msgstr "Αποσύνδεση"
 
+msgid "Connect at Startup"
+msgstr "Σύνδεση κατά την Εκκίνηση"
+
+msgid "At start, the editor looks for KNX interfaces and connects to the one used last. Turned off, it connects only when you choose."
+msgstr "Κατά την εκκίνηση, ο επεξεργαστής αναζητά διεπαφές KNX και συνδέεται με αυτή που χρησιμοποιήθηκε τελευταία. Αν απενεργοποιηθεί, συνδέεται μόνο όταν το επιλέξετε."
+
 msgid "Use Serial Number for Downloads"
 msgstr "Χρήση Σειριακού Αριθμού για Φορτίσεις"
 

@@ -36,6 +36,17 @@ class ConnectionStrings:
         return _("Gateway IP")
 
     @property
+    def SETTING_CONNECT_AT_STARTUP(self) -> str:
+        return _("Connect at Startup")
+
+    @property
+    def SETTING_CONNECT_AT_STARTUP_HINT(self) -> str:
+        return _(
+            "At start, the editor looks for KNX interfaces and connects to the one used last. "
+            "Turned off, it connects only when you choose."
+        )
+
+    @property
     def SETTING_USE_SERIAL_NUMBER_HINT(self) -> str:
         return _(
             "A device whose serial number is known gets its individual address without "

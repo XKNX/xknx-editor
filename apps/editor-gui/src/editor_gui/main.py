@@ -286,6 +286,12 @@ def startup_file(argv: list[str]) -> str | None:
     return None
 
 
+def no_connect(argv: list[str]) -> bool:
+    """Whether ``--no-connect`` asks this start to connect to no KNX interface, whatever the
+    setting Connect at Startup says."""
+    return "--no-connect" in argv[1:]
+
+
 # The password of the project given on the command line, without --password-file.
 PROJECT_PASSWORD_ENV = "XKNX_PROJECT_PASSWORD"
 
@@ -811,6 +817,8 @@ class KnxGuiApp:
         # its password (--password-file).
         self.startup_file: str | None = None
         self.startup_password_file: str | None = None
+        # --no-connect: this start connects to no KNX interface, whatever the setting says.
+        self.no_connect = False
         # Other editors running when this one started: asked about first (see instances.py).
         self.running_editors: list[Instance] = []
         # This editor's entry for the others, and their requests (handled on the UI thread).
@@ -1051,7 +1059,9 @@ class KnxGuiApp:
     def _start_session(self) -> None:
         """What a start does besides showing the app: connect, restart the MCP server, and open the
         project given on the command line."""
-        # Discover KNX gateways at startup and auto-connect to the last-used (or first) one.
+        # Discover KNX gateways at startup and auto-connect to the last-used (or first) one,
+        # unless Connect at Startup is off or --no-connect was given.
+        self._connection_plugin.skip_startup_connect = self.no_connect
         self._connection_plugin.autostart()
         # The MCP server set up by the program that started the editor, else the one that was
         # running at the last exit.
@@ -7649,6 +7659,7 @@ def _main() -> None:
     app = KnxGuiApp(catalog_path)
     app.startup_file = startup_file(sys.argv)
     app.startup_password_file = startup_password_file(sys.argv)
+    app.no_connect = no_connect(sys.argv)
     # Editors running already are offered first; --new-instance starts another without asking.
     if "--new-instance" not in sys.argv:
         app.running_editors = others()
