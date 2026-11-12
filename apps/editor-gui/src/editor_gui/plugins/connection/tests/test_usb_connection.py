@@ -1044,3 +1044,48 @@ class TestConnectionTypeSetting:
         assert interface.read_only()
         interface.set(UsbTarget.of(_DEVICE).key)
         assert plugin._usb_target == UsbTarget.of(other) and plugin.saved == [True]
+
+
+def test_a_discovered_gateway_offers_its_types_side_by_side(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Gateway menu > Discovered Gateways: the connection types in one row."""
+    from xknx.io.gateway_scanner import GatewayDescriptor
+
+    plugin = _plugin()
+    plugin._preferred_gateway_ip = "192.168.16.103"
+    plugin._connection_type = ConnectionType.TUNNELING_TCP
+    gateway = GatewayDescriptor(
+        "192.168.16.103",
+        3671,
+        name="IP-Interface",
+        supports_routing=True,
+        supports_tunnelling=True,
+        supports_tunnelling_tcp=True,
+    )
+    rows: dict[str, float] = {}
+    real_radio = plugin_module.radio_button
+
+    def radio(label: str, active: bool) -> bool:
+        rows[label.split("##")[0]] = imgui.get_cursor_screen_pos().y
+        return bool(real_radio(label, active))
+
+    monkeypatch.setattr(plugin_module, "radio_button", radio)
+    ctx = imgui.create_context()
+    io = imgui.get_io()
+    io.display_size = imgui.ImVec2(800, 600)
+    io.backend_flags |= imgui.BackendFlags_.renderer_has_textures
+    try:
+        imgui.new_frame()
+        imgui.begin("Gateway")
+        plugin._render_gateway_option(gateway)
+        imgui.end()
+        imgui.end_frame()
+    finally:
+        imgui.destroy_context(ctx)
+    assert list(rows) == [
+        S.CONN_TYPE_TCP_TUNNELING,
+        S.CONN_TYPE_TUNNELING,
+        S.CONN_TYPE_ROUTING,
+    ]
+    assert len(set(rows.values())) == 1

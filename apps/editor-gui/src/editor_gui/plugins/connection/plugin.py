@@ -2573,9 +2573,10 @@ class ConnectionPlugin:
         return self._gateway_info
 
     def _render_gateway_option(self, gw: GatewayDescriptor) -> None:
-        """A discovered gateway: its name, then a radio for each connection type it offers.
-        Picking one connects to the gateway over that type (the picker shows only while not
-        connected, so a pick always starts a fresh connection)."""
+        """A discovered gateway: its name, then a radio for each connection type it offers, side
+        by side as in the manual connection. Picking one connects to the gateway over that type
+        (the picker shows only while not connected, so a pick always starts a fresh
+        connection)."""
         imgui.text_disabled(f"{gw.name}  ({gw.ip_addr})")
         transports: list[tuple[ConnectionType, str]] = []
         if gw.supports_tunnelling_tcp:
@@ -2586,7 +2587,9 @@ class ConnectionPlugin:
             transports.append((ConnectionType.ROUTING, S.CONN_TYPE_ROUTING))
         preferred = gw.ip_addr == self._preferred_gateway_ip
         imgui.indent()
-        for ctype, label in transports:
+        for index, (ctype, label) in enumerate(transports):
+            if index:
+                imgui.same_line()
             if radio_button(
                 f"{label}##gw_{gw.ip_addr}_{ctype.name}",
                 preferred and self._connection_type == ctype,
