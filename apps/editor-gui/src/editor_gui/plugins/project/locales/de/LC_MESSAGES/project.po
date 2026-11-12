@@ -291,8 +291,8 @@ msgstr ""
 msgid "Export…"
 msgstr "Exportieren…"
 
-msgid "Export Path:"
-msgstr "Exportpfad:"
+msgid "Text Files"
+msgstr "Textdateien"
 
 msgid "Memory {address}"
 msgstr "Speicher {address}"

@@ -1069,8 +1069,8 @@ msgstr "Bu bayt komşu bir parametre için yazılır; farklı olan bit hiçbir e
 msgid "Export…"
 msgstr "Dışa Aktar…"
 
-msgid "Export Path:"
-msgstr "Dışa Aktarma Yolu:"
+msgid "Text Files"
+msgstr "Metin Dosyaları"
 
 msgid "Export Programming Test Result"
 msgstr "Programlama Testi Sonucunu Dışa Aktar"

@@ -1069,8 +1069,8 @@ msgstr "Ten bajt jest zapisywany ze względu na sąsiedni parametr; różniący 
 msgid "Export…"
 msgstr "Eksportuj…"
 
-msgid "Export Path:"
-msgstr "Ścieżka eksportu:"
+msgid "Text Files"
+msgstr "Pliki tekstowe"
 
 msgid "Export Programming Test Result"
 msgstr "Eksport wyniku testu programowania"

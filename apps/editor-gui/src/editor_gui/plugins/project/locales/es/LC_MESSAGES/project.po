@@ -1069,8 +1069,8 @@ msgstr "Este byte se escribe para un parámetro vecino; el bit distinto no lo co
 msgid "Export…"
 msgstr "Exportar…"
 
-msgid "Export Path:"
-msgstr "Ruta de Exportación:"
+msgid "Text Files"
+msgstr "Archivos de texto"
 
 msgid "Export Programming Test Result"
 msgstr "Exportar Resultado de la Prueba de Programación"

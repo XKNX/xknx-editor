@@ -262,8 +262,8 @@ msgstr "Ta bajt se zapiše zaradi sosednjega parametra; različnega bita ne krmi
 msgid "Export…"
 msgstr "Izvozi…"
 
-msgid "Export Path:"
-msgstr "Pot izvoza:"
+msgid "Text Files"
+msgstr "Besedilne datoteke"
 
 msgid "Memory {address}"
 msgstr "Pomnilnik {address}"

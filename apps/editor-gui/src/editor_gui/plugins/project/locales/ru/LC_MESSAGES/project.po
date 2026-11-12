@@ -1069,8 +1069,8 @@ msgstr "Этот байт записывается из-за соседнего 
 msgid "Export…"
 msgstr "Экспорт…"
 
-msgid "Export Path:"
-msgstr "Путь экспорта:"
+msgid "Text Files"
+msgstr "Текстовые файлы"
 
 msgid "Export Programming Test Result"
 msgstr "Экспорт результата тестового программирования"

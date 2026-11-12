@@ -1069,8 +1069,8 @@ msgstr "Tämä tavu kirjoitetaan viereisen parametrin vuoksi; poikkeavaa bittiä
 msgid "Export…"
 msgstr "Vie…"
 
-msgid "Export Path:"
-msgstr "Vientipolku:"
+msgid "Text Files"
+msgstr "Tekstitiedostot"
 
 msgid "Export Programming Test Result"
 msgstr "Vie ohjelmointitestin tulos"

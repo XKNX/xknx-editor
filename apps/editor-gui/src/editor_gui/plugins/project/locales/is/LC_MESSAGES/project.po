@@ -262,8 +262,8 @@ msgstr "Þetta bæti er skrifað vegna aðliggjandi færibreytu; bitinn sem er f
 msgid "Export…"
 msgstr "Flytja út…"
 
-msgid "Export Path:"
-msgstr "Útflutningsslóð:"
+msgid "Text Files"
+msgstr "Textaskrár"
 
 msgid "Memory {address}"
 msgstr "Minni {address}"

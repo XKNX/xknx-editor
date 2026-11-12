@@ -1069,8 +1069,8 @@ msgstr "Tento bajt se zapisuje kvůli sousednímu parametru; odlišný bit neovl
 msgid "Export…"
 msgstr "Exportovat…"
 
-msgid "Export Path:"
-msgstr "Cesta exportu:"
+msgid "Text Files"
+msgstr "Textové soubory"
 
 msgid "Export Programming Test Result"
 msgstr "Exportovat výsledek testu programování"

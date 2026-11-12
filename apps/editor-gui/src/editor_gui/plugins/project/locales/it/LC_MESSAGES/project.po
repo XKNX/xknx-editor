@@ -1069,8 +1069,8 @@ msgstr "Questo byte viene scritto per un parametro adiacente; il bit diverso non
 msgid "Export…"
 msgstr "Esporta…"
 
-msgid "Export Path:"
-msgstr "Percorso di esportazione:"
+msgid "Text Files"
+msgstr "File di testo"
 
 msgid "Export Programming Test Result"
 msgstr "Esporta risultato della prova di programmazione"

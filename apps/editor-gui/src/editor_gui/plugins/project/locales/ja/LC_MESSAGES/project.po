@@ -1069,8 +1069,8 @@ msgstr "このバイトは隣接するパラメータのために書き込まれ
 msgid "Export…"
 msgstr "エクスポート…"
 
-msgid "Export Path:"
-msgstr "エクスポート・パス："
+msgid "Text Files"
+msgstr "テキストファイル"
 
 msgid "Export Programming Test Result"
 msgstr "プログラミング・テストの結果をエクスポート"

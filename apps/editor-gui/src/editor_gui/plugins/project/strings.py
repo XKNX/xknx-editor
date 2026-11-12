@@ -3030,8 +3030,12 @@ class ProjectStrings:
         return _("Export…")
 
     @property
-    def PREFLIGHT_EXPORT_PATH(self) -> str:
-        return _("Export Path:")
+    def PREFLIGHT_TEXT_FILES(self) -> str:
+        return _("Text Files")
+
+    @property
+    def PREFLIGHT_ALL_FILES(self) -> str:
+        return _("All Files")
 
     @property
     def PREFLIGHT_EXPORT_TITLE(self) -> str:

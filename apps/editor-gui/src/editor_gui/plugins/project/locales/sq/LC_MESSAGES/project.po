@@ -1069,8 +1069,8 @@ msgstr "Ky bajt shkruhet për një parametër fqinj; biti që ndryshon nuk drejt
 msgid "Export…"
 msgstr "Eksporto…"
 
-msgid "Export Path:"
-msgstr "Shtegu i eksportit:"
+msgid "Text Files"
+msgstr "Skedarë teksti"
 
 msgid "Export Programming Test Result"
 msgstr "Eksporto rezultatin e testit të programimit"

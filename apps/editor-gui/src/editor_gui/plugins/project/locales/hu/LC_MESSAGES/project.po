@@ -262,8 +262,8 @@ msgstr "Ez a bájt egy szomszédos paraméter miatt íródik; az eltérő bitet 
 msgid "Export…"
 msgstr "Exportálás…"
 
-msgid "Export Path:"
-msgstr "Exportálás helye:"
+msgid "Text Files"
+msgstr "Szövegfájlok"
 
 msgid "Memory {address}"
 msgstr "Memória: {address}"

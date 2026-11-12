@@ -1069,8 +1069,8 @@ msgstr "Cet octet est écrit pour un paramètre voisin ; le bit divergent n'est
 msgid "Export…"
 msgstr "Exporter…"
 
-msgid "Export Path:"
-msgstr "Chemin d'exportation :"
+msgid "Text Files"
+msgstr "Fichiers texte"
 
 msgid "Export Programming Test Result"
 msgstr "Exporter le résultat du test de programmation"

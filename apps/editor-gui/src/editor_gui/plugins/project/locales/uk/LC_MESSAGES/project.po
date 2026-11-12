@@ -1069,8 +1069,8 @@ msgstr "Цей байт записується через сусідній па�
 msgid "Export…"
 msgstr "Експорт…"
 
-msgid "Export Path:"
-msgstr "Шлях експорту:"
+msgid "Text Files"
+msgstr "Текстові файли"
 
 msgid "Export Programming Test Result"
 msgstr "Експорт результату перевірки програмування"

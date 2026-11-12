@@ -1069,8 +1069,8 @@ msgstr "Denne byten skrives på grunn av en naboparameter; den avvikende biten s
 msgid "Export…"
 msgstr "Eksporter…"
 
-msgid "Export Path:"
-msgstr "Eksportbane:"
+msgid "Text Files"
+msgstr "Tekstfiler"
 
 msgid "Export Programming Test Result"
 msgstr "Eksporter resultat av programmeringstest"

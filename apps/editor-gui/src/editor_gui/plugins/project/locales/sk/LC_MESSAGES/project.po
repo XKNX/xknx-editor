@@ -262,8 +262,8 @@ msgstr "Tento bajt sa zapisuje kvôli susednému parametru; odlišný bit neovl�
 msgid "Export…"
 msgstr "Exportovať…"
 
-msgid "Export Path:"
-msgstr "Cesta exportu:"
+msgid "Text Files"
+msgstr "Textové súbory"
 
 msgid "Memory {address}"
 msgstr "Pamäť {address}"

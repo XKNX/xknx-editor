@@ -928,8 +928,8 @@ msgstr "HTML exporteren…"
 msgid "Export…"
 msgstr "Exporteren…"
 
-msgid "Export Path:"
-msgstr "Exportpad:"
+msgid "Text Files"
+msgstr "Tekstbestanden"
 
 msgid "Extract from Knx.Ets.Common.dll…"
 msgstr "Extraheren uit Knx.Ets.Common.dll…"

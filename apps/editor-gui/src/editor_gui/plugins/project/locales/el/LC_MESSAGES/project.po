@@ -1069,8 +1069,8 @@ msgstr "Αυτό το byte γράφεται λόγω μιας γειτονική
 msgid "Export…"
 msgstr "Εξαγωγή…"
 
-msgid "Export Path:"
-msgstr "Διαδρομή Εξαγωγής:"
+msgid "Text Files"
+msgstr "Αρχεία κειμένου"
 
 msgid "Export Programming Test Result"
 msgstr "Εξαγωγή Αποτελέσματος Δοκιμής Προγραμματισμού"

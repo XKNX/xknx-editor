@@ -305,3 +305,43 @@ def test_copied_and_exported_texts_name_device_scope_and_bytes() -> None:
     lines = w._export_text(report).splitlines()
     assert "device   : 01" in lines
     assert "generated: 02" in lines
+
+
+def test_export_saves_where_the_file_dialog_says(tmp_path, monkeypatch) -> None:
+    from editor_gui import file_dialogs
+    from editor_gui.plugins.project.strings import S
+
+    asked: list[tuple[str, str, list[str]]] = []
+    target = tmp_path / "result"
+
+    class Dialog:
+        def ready(self, timeout: int = 0) -> bool:
+            return True
+
+        def kill(self) -> bool:
+            return True
+
+        def result(self) -> str:
+            return str(target)
+
+    def save_file(title: str, default_path: str = "", filters=None, *_args):
+        asked.append((title, default_path, list(filters or [])))
+        return Dialog()
+
+    # The dialog every export uses: the system's, or in the browser UI the server file + download.
+    monkeypatch.setattr(file_dialogs, "save_file", save_file)
+    w = PreflightResultWindow()
+    w._label = "1.1.5  Dimmer: Kitchen"
+    report = PreflightReport(
+        segments=(SegmentDiff(address=0x100, current=b"", planned=b""),),
+        properties=(),
+    )
+    w._start_export(report)
+    ((title, default, filters),) = asked
+    assert title == S.PREFLIGHT_EXPORT_TITLE
+    assert default.startswith("1.1.5_Dimmer_Kitchen-") and default.endswith(".txt")
+    assert filters == [S.PREFLIGHT_TEXT_FILES, "*.txt", S.PREFLIGHT_ALL_FILES, "*"]
+    w._poll_export()
+    # Saved with the text suffix, and the dialog is done.
+    assert "generated: 01" in (tmp_path / "result.txt").read_text(encoding="utf-8")
+    assert w._save_dialog is None and w._export_error is None

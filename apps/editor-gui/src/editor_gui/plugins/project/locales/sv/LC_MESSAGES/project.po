@@ -1069,8 +1069,8 @@ msgstr "Den här byten skrivs för en angränsande parameter; den avvikande bite
 msgid "Export…"
 msgstr "Exportera…"
 
-msgid "Export Path:"
-msgstr "Exportsökväg:"
+msgid "Text Files"
+msgstr "Textfiler"
 
 msgid "Export Programming Test Result"
 msgstr "Exportera resultat av programmeringstest"

@@ -262,8 +262,8 @@ msgstr "Acest octet este scris din cauza unui parametru vecin; bitul diferit nu 
 msgid "Export…"
 msgstr "Exportă…"
 
-msgid "Export Path:"
-msgstr "Cale export:"
+msgid "Text Files"
+msgstr "Fișiere text"
 
 msgid "Memory {address}"
 msgstr "Memorie {address}"
