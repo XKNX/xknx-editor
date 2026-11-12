@@ -102,7 +102,7 @@ async def probe_and_identify(
     try:
         programmer = DeviceProgrammer(connection)
         mask_version = await programmer.read_device_descriptor()
-        app_id = await read_application_id(programmer)
+        app_id = await read_application_id(programmer, mask_version=mask_version)
     except _PROBE_ERRORS:
         return None, None
     finally:

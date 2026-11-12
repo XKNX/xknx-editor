@@ -299,7 +299,9 @@ async def read_device_info(
         info.programming_mode = bool(progmode[0] & 0x01) if progmode else None
         error = await _property(programmer, 0, ResourceGenericPropertyId.PID_ERROR_CODE)
         info.error_code = error[0] if error else None
-        info.application = await read_application_id(programmer)
+        info.application = await read_application_id(
+            programmer, mask_version=info.mask_version
+        )
         info.application_load_state = await _load_state(
             programmer, ResourceObjectType.OBJECT_APPLICATION_PROGRAM
         )

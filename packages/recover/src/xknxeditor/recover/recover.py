@@ -28,7 +28,7 @@ from xknxeditor.download.errors import MemoryReadNotAnswered
 from xknxeditor.download.session import connect
 
 from .dossier import DeviceDossier, read_dossier
-from .identify import AppId, read_application_id
+from .identify import AppId, is_bcu1_mask, read_application_id
 from .parameters import RecoveredParameters, RecoveryEffort, recover_parameters
 from .read_config import (
     read_group_communication,
@@ -227,7 +227,13 @@ async def recover_device(
     Read-only.
     """
     mask_version = await programmer.read_device_descriptor()
-    dossier = await read_dossier(programmer)
+    # A BCU 1 has no Device Object: waiting for its missing answers outlasts the
+    # connection, which the device then closes.
+    dossier = (
+        DeviceDossier()
+        if is_bcu1_mask(mask_version)
+        else await read_dossier(programmer)
+    )
     if progress is not None:
         progress(STAGE_GROUP_COMMUNICATION)
     group_communication = await read_group_communication(programmer, application)
@@ -338,6 +344,18 @@ def _decode_configuration(
     return parameters, com_object_ref_by_number(application, seeded_ui)
 
 
+def _application_for_bcu1(application: Application) -> bool:
+    """Whether ``application`` is one for a BCU 1 (mask 001xh)."""
+    program = getattr(application, "program", None)
+    mask_version = getattr(program, "mask_version", None)
+    if not isinstance(mask_version, str):
+        return False
+    try:
+        return is_bcu1_mask(int(mask_version.removeprefix("MV-")[:4], 16))
+    except ValueError:
+        return False
+
+
 async def identify_device_at(
     xknx: XKNX, address: IndividualAddressableType
 ) -> AppId | None:
@@ -349,7 +367,10 @@ async def identify_device_at(
     target = IndividualAddress(address)
     connection = await connect(xknx, target)
     try:
-        return await read_application_id(DeviceProgrammer(connection))
+        programmer = DeviceProgrammer(connection)
+        # The mask version picks the way the id is read: a BCU 1 has no properties.
+        mask_version = await programmer.read_device_descriptor()
+        return await read_application_id(programmer, mask_version=mask_version)
     finally:
         with contextlib.suppress(ManagementConnectionError, XKNXException):
             await xknx.management.disconnect(target)
@@ -406,7 +427,9 @@ async def recover_device_at(
             connection = await connect(xknx, target)
             connected = True
             programmer = DeviceProgrammer(connection)
-            if negotiate_apdu:
+            # A BCU 1 has no property to negotiate with and the classic 15 octets only:
+            # waiting for its missing answer outlasts the connection.
+            if negotiate_apdu and not _application_for_bcu1(application):
                 if attempt == 0:
                     with contextlib.suppress(XKNXException):
                         device_max = await programmer.read_max_apdu_length()

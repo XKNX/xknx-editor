@@ -59,6 +59,7 @@ def _entry(service: RecoverService, entry: RecoverEntry) -> dict[str, Any]:
         "manufacturer_id": app_id.manufacturer_id if app_id is not None else None,
         "application_number": app_id.application_number if app_id else None,
         "application_version": app_id.application_version if app_id else None,
+        "application_version_text": app_id.version_text if app_id else None,
         "product_ref_id": entry.product_ref_id,
         "product_name": entry.product_name,
         "status": _status_code(entry.state),
@@ -212,7 +213,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         {devices, group_addresses, links, unknown}, link_warnings [{group_address, kind
         (no_sender | multiple_senders), senders, receivers}], entries}. Each entry has
         {address, mask_version, manufacturer_id, application_number, application_version,
-        product_ref_id, product_name, status (found | ambiguous | no_application | unprogrammed
+        application_version_text (major.minor, 0x2A is 2.10), product_ref_id, product_name, status (found | ambiguous | no_application | unprogrammed
         | recovered | exists | error), state (the window's text), selected, recoverable,
         ambiguous (more than one product, or another version's: check before selecting),
         candidates, recovered ({group_addresses, links, parameters, unknown_parameters,

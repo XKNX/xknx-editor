@@ -6,6 +6,11 @@ holds the 5 octets ``[manufacturer:2][application number:2][version:1]`` - the
 same id :mod:`xknxeditor.download` writes during a download. Reading it back and
 matching manufacturer + application number (+ version) against the catalog yields
 the product refs a project device needs.
+
+A BCU 1 (mask 001xh) has no interface objects and does not answer
+A_PropertyValue_Read. It keeps the same id in its EEPROM header instead: one octet
+manufacturer at 0104h, two octets device type (the application number) at 0105h
+and one octet version at 0107h, read with A_Memory_Read.
 """
 
 from __future__ import annotations
@@ -27,6 +32,17 @@ OBJECT_TYPE_APPLICATION_PROGRAM = ResourceObjectType.OBJECT_APPLICATION_PROGRAM
 # 5 octets [manufacturer:2][app number:2][version:1].
 PID_PROGRAM_VERSION = ResourceGenericPropertyId.PID_PROGRAM_VERSION
 
+# BCU 1 masks (001xh) have no interface objects to read the application id from.
+_BCU1_MASK = 0x0010
+# EEPROM header of a BCU 1: [manufacturer:1][device type:2][version:1].
+BCU1_APPLICATION_ID_ADDRESS = 0x0104
+_BCU1_APPLICATION_ID_SIZE = 4
+
+
+def is_bcu1_mask(mask_version: int | None) -> bool:
+    """Whether ``mask_version`` is a BCU 1, which has no property services."""
+    return mask_version is not None and mask_version & 0xFFF0 == _BCU1_MASK
+
 
 @dataclass(frozen=True, slots=True)
 class AppId:
@@ -35,6 +51,11 @@ class AppId:
     manufacturer_id: str
     application_number: int
     application_version: int
+
+    @property
+    def version_text(self) -> str:
+        """The application version as ``major.minor`` (``0x2A`` -> ``2.10``)."""
+        return f"{self.application_version >> 4}.{self.application_version & 0x0F}"
 
 
 class ProductLookup(Protocol):
@@ -70,12 +91,65 @@ def parse_application_id(data: bytes) -> AppId | None:
     )
 
 
+def parse_bcu1_application_id(data: bytes) -> AppId | None:
+    """Decode the BCU 1 EEPROM header octets at 0104h into an :class:`AppId`, or ``None``.
+
+    Returns ``None`` for short data and for an erased (all FFh) or empty (all 00h)
+    header, which is what a BCU 1 without an application holds.
+    """
+    if len(data) < _BCU1_APPLICATION_ID_SIZE:
+        return None
+    header = data[:_BCU1_APPLICATION_ID_SIZE]
+    if all(octet == 0xFF for octet in header) or not any(header):
+        return None
+    return AppId(
+        manufacturer_id=f"M-{header[0]:04X}",
+        application_number=int.from_bytes(header[1:3], "big"),
+        application_version=header[3],
+    )
+
+
+async def _read_bcu1_application_id(
+    programmer: DeviceProgrammer, *, attempts: int, retry_delay: float
+) -> AppId | None:
+    """Read the application id of a BCU 1 from its EEPROM header, or ``None``.
+
+    Read twice and retried like the property read in :func:`read_application_id`.
+    """
+    for attempt in range(max(attempts, 1)):
+        try:
+            data = await programmer.read_memory(
+                BCU1_APPLICATION_ID_ADDRESS, _BCU1_APPLICATION_ID_SIZE
+            )
+            confirm = await programmer.read_memory(
+                BCU1_APPLICATION_ID_ADDRESS, _BCU1_APPLICATION_ID_SIZE
+            )
+        except (LoadStateError, DownloadError, XKNXException):
+            if attempt + 1 < attempts:
+                await asyncio.sleep(retry_delay)
+            continue
+        if data != confirm:
+            if attempt + 1 < attempts:
+                await asyncio.sleep(retry_delay)
+            continue
+        return parse_bcu1_application_id(data)
+    return None
+
+
 async def read_application_id(
-    programmer: DeviceProgrammer, *, attempts: int = 3, retry_delay: float = 0.1
+    programmer: DeviceProgrammer,
+    *,
+    attempts: int = 3,
+    retry_delay: float = 0.1,
+    mask_version: int | None = None,
 ) -> AppId | None:
     """Read the installed application program id from a device, or ``None``.
 
-    Locates the Application Program object by type and reads PID_PROGRAM_VERSION.
+    With the ``mask_version`` of a BCU 1 the id is read from the EEPROM header with
+    A_Memory_Read, as such a device has no interface objects and leaves a property
+    read unanswered. Otherwise (and without a mask version) it
+
+    locates the Application Program object by type and reads PID_PROGRAM_VERSION.
     A clean read that yields no id (an unprogrammed device whose object exists but
     whose version is empty) returns ``None`` immediately. A *failed* read - the
     object walk or property read raising, e.g. a telegram lost on the tunnel - is
@@ -83,6 +157,10 @@ async def read_application_id(
     more fragile than the single-telegram descriptor probe and a transient miss
     would otherwise mark a programmed device as unprogrammed.
     """
+    if is_bcu1_mask(mask_version):
+        return await _read_bcu1_application_id(
+            programmer, attempts=attempts, retry_delay=retry_delay
+        )
     for attempt in range(max(attempts, 1)):
         try:
             index = await programmer.locate_object(OBJECT_TYPE_APPLICATION_PROGRAM)

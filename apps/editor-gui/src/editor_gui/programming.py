@@ -178,7 +178,7 @@ async def read_device_overview(xknx: XKNX, address: str) -> DeviceOverview:
     try:
         programmer = DeviceProgrammer(XknxBusConnection(connection))
         mask = await programmer.read_device_descriptor()
-        app = await read_application_id(programmer)
+        app = await read_application_id(programmer, mask_version=mask)
         dossier = await read_dossier(programmer)
         error_raw = await _prop(programmer, _PID_ERROR_CODE)
         progmode_raw = await _prop(programmer, _PID_PROGMODE)

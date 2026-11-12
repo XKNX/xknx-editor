@@ -83,3 +83,15 @@ async def test_scan_bus_collects_only_responders_with_progress() -> None:
         DiscoveredDevice(address="1.1.3", mask_version=0x07B0),
     ]
     assert seen == [(1, 3), (2, 3), (3, 3)]
+
+
+async def test_probe_and_identify_bcu1_reads_the_id_from_memory() -> None:
+    connection = FakeConnection(
+        descriptor=0x0013,
+        property_services=False,
+        memory={0x0104: bytes([0x02, 0xA0, 0x1E, 0x10])},
+    )
+    xknx = FakeXknx({"1.1.3": connection})
+    device, app_id = await probe_and_identify(xknx, IndividualAddress("1.1.3"))
+    assert device == DiscoveredDevice(address="1.1.3", mask_version=0x0013)
+    assert app_id == AppId("M-0002", 0xA01E, 0x10)

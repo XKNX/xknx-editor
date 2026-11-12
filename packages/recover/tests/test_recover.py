@@ -239,3 +239,20 @@ async def test_the_factory_image_is_searched_with_and_kept_to_search_again(
     assert device.factory_image is image
     search_again(device, application, recover_mod.RecoveryEffort.FAST)
     assert searched == [image, image]
+
+
+def test_application_for_bcu1() -> None:
+    from types import SimpleNamespace
+
+    from xknxeditor.recover.recover import (
+        _application_for_bcu1,  # pyright: ignore[reportPrivateUsage]
+    )
+
+    def application(mask_version: object) -> object:
+        return SimpleNamespace(program=SimpleNamespace(mask_version=mask_version))
+
+    assert _application_for_bcu1(application("MV-0012"))  # type: ignore[arg-type]
+    assert not _application_for_bcu1(application("MV-0701"))  # type: ignore[arg-type]
+    assert not _application_for_bcu1(application("MV-xyz"))  # type: ignore[arg-type]
+    assert not _application_for_bcu1(application(None))  # type: ignore[arg-type]
+    assert not _application_for_bcu1(object())  # type: ignore[arg-type]
