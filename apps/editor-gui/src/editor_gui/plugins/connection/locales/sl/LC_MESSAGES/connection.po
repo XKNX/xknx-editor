@@ -290,8 +290,5 @@ msgstr "Nastavljanje fizičnega naslova…"
 msgid "Checking the individual address on the bus…"
 msgstr "Preverjanje fizičnega naslova na vodilu…"
 
-msgid "A changed address is set on the interface (Enter), which keeps it."
-msgstr "Spremenjeni naslov se nastavi v vmesniku (Enter), ki ga obdrži."
-
-msgid "A changed address is set on the interface (Enter). This interface forgets it when unplugged, so it is set again on every connect."
-msgstr "Spremenjeni naslov se nastavi v vmesniku (Enter). Ta vmesnik ga ob odklopu pozabi, zato se nastavi znova ob vsaki povezavi."
+msgid "This interface forgets its individual address when unplugged, so it is set again on every connect."
+msgstr "Ta vmesnik ob odklopu pozabi svoj fizični naslov, zato se nastavi znova ob vsaki povezavi."

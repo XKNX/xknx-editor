@@ -287,8 +287,5 @@ msgstr "正在设置物理地址…"
 msgid "Checking the individual address on the bus…"
 msgstr "正在总线上检查物理地址…"
 
-msgid "A changed address is set on the interface (Enter), which keeps it."
-msgstr "更改后的地址会设置到接口中 (Enter),接口会保留该地址。"
-
-msgid "A changed address is set on the interface (Enter). This interface forgets it when unplugged, so it is set again on every connect."
-msgstr "更改后的地址会设置到接口中 (Enter)。此接口拔出后会忘记该地址,因此每次连接时都会重新设置。"
+msgid "This interface forgets its individual address when unplugged, so it is set again on every connect."
+msgstr "此接口拔出后会忘记其物理地址，因此每次连接时都会重新设置。"

@@ -235,6 +235,18 @@ def parse_connection_type(name: str) -> ConnectionType | None:
     return _CONNECTION_TYPE_NAMES.get(name.strip().lower())
 
 
+def _row_button(label: str) -> bool:
+    """A button beside the previous item, or below it where the row has no room (a narrow
+    screen); returns whether it was clicked."""
+    width = imgui.calc_text_size(label.split("##")[0]).x + 2 * (
+        imgui.get_style().frame_padding.x
+    )
+    imgui.same_line()
+    if imgui.get_content_region_avail().x < width:
+        imgui.new_line()
+    return bool(imgui.button(label))
+
+
 def gateway_label(gateway: GatewayDescriptor) -> str:
     """A discovered gateway as the lists show it: its name, else its individual address (a
     gateway may answer the search without a name), then its IP address."""
@@ -1985,8 +1997,8 @@ class ConnectionPlugin:
 
     def _render_usb_interface(self) -> None:
         """The "USB Interface" dialog: what the connected USB interface reported, and its
-        individual address, set on the interface when it is changed (Enter or leaving the field),
-        with a check whether a device on the bus uses an address."""
+        individual address, set on the interface with Apply (or Enter in the field), with a check
+        whether a device on the bus uses an address."""
         title = f"{S.USB_INTERFACE_TITLE}###usb_interface"
         if self._usb_interface_open and not self._usb_interface_shown:
             imgui.open_popup(title)
@@ -2026,19 +2038,27 @@ class ConnectionPlugin:
         imgui.text(S.USB_ADDRESS_LABEL)
         imgui.same_line()
         imgui.set_next_item_width(px(110))
-        _, self._usb_address_text = imgui.input_text(
-            "##usb_address", self._usb_address_text
+        entered, self._usb_address_text = imgui.input_text(
+            "##usb_address",
+            self._usb_address_text,
+            imgui.InputTextFlags_.enter_returns_true,
         )
-        if imgui.is_item_deactivated_after_edit():
+        current = (
+            str(info.individual_address)
+            if info is not None and info.individual_address is not None
+            else ""
+        )
+        # The address the interface has: nothing to apply, and the interface uses it (a check
+        # could be answered by the interface itself).
+        changed = self._usb_address_text.strip() != current
+        imgui.begin_disabled(not changed)
+        applied = _row_button(f"{S.USB_ADDRESS_APPLY}##usb_address_apply")
+        checked = _row_button(f"{S.USB_ADDRESS_FREE}##usb_address_free")
+        imgui.end_disabled()
+        # Enter in the field applies it too
+        if applied or (entered and changed):
             self._start_usb_address(self.set_usb_interface_address)
-        # beside the field, or below it where the row has no room (a narrow screen)
-        button = imgui.calc_text_size(S.USB_ADDRESS_FREE).x + 2 * (
-            imgui.get_style().frame_padding.x
-        )
-        imgui.same_line()
-        if imgui.get_content_region_avail().x < button:
-            imgui.new_line()
-        if imgui.button(f"{S.USB_ADDRESS_FREE}##usb_address_free"):
+        if checked:
             self._start_usb_address(self.check_usb_interface_address)
         imgui.end_disabled()
         if busy or (self._state == ConnectionState.CONNECTING):
@@ -2064,14 +2084,13 @@ class ConnectionPlugin:
                 )
             )
             imgui.pop_style_color()
-        # wrapped: a line of its own would widen the dialog past a narrow screen
-        imgui.push_style_color(
-            imgui.Col_.text, imgui.get_style().color_(imgui.Col_.text_disabled)
-        )
-        imgui.text_wrapped(
-            S.USB_ADDRESS_HINT if target.keeps_address else S.USB_ADDRESS_HINT_VOLATILE
-        )
-        imgui.pop_style_color()
+        if not target.keeps_address:
+            # wrapped: a line of its own would widen the dialog past a narrow screen
+            imgui.push_style_color(
+                imgui.Col_.text, imgui.get_style().color_(imgui.Col_.text_disabled)
+            )
+            imgui.text_wrapped(S.USB_ADDRESS_HINT_VOLATILE)
+            imgui.pop_style_color()
         if dialog_buttons(S.USB_INTERFACE_CLOSE) == 0:
             self._usb_interface_open = False
             imgui.close_current_popup()

@@ -225,6 +225,11 @@ class ConnectionStrings:
         return _("Individual Address")
 
     @property
+    def USB_ADDRESS_APPLY(self) -> str:
+        # sets the individual address in the field on the interface
+        return _("Apply")
+
+    @property
     def USB_ADDRESS_FREE(self) -> str:
         return _("Address Free?")
 
@@ -267,14 +272,10 @@ class ConnectionStrings:
         return _("Checking the individual address on the bus…")
 
     @property
-    def USB_ADDRESS_HINT(self) -> str:
-        return _("A changed address is set on the interface (Enter), which keeps it.")
-
-    @property
     def USB_ADDRESS_HINT_VOLATILE(self) -> str:
         return _(
-            "A changed address is set on the interface (Enter). This interface forgets it "
-            "when unplugged, so it is set again on every connect."
+            "This interface forgets its individual address when unplugged, so it is set "
+            "again on every connect."
         )
 
     @property

@@ -288,8 +288,5 @@ msgstr "Physikalische Adresse wird gesetzt…"
 msgid "Checking the individual address on the bus…"
 msgstr "Physikalische Adresse wird am Bus geprüft…"
 
-msgid "A changed address is set on the interface (Enter), which keeps it."
-msgstr "Eine geänderte Adresse wird in der Schnittstelle gesetzt (Eingabetaste), die sie behält."
-
-msgid "A changed address is set on the interface (Enter). This interface forgets it when unplugged, so it is set again on every connect."
-msgstr "Eine geänderte Adresse wird in der Schnittstelle gesetzt (Eingabetaste). Diese Schnittstelle vergisst sie beim Abstecken, daher wird sie bei jedem Verbinden erneut gesetzt."
+msgid "This interface forgets its individual address when unplugged, so it is set again on every connect."
+msgstr "Diese Schnittstelle vergisst ihre physikalische Adresse beim Abstecken, daher wird sie bei jedem Verbinden erneut gesetzt."

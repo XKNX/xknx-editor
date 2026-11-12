@@ -287,8 +287,5 @@ msgstr "個別アドレスを設定しています…"
 msgid "Checking the individual address on the bus…"
 msgstr "バス上で個別アドレスを確認しています…"
 
-msgid "A changed address is set on the interface (Enter), which keeps it."
-msgstr "変更したアドレスはインターフェイスに設定され (Enter)、インターフェイスに保持されます。"
-
-msgid "A changed address is set on the interface (Enter). This interface forgets it when unplugged, so it is set again on every connect."
-msgstr "変更したアドレスはインターフェイスに設定されます (Enter)。このインターフェイスは取り外すとアドレスを忘れるため、接続するたびに再設定されます。"
+msgid "This interface forgets its individual address when unplugged, so it is set again on every connect."
+msgstr "このインターフェイスは取り外すと個別アドレスを忘れるため、接続するたびに再設定されます。"

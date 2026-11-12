@@ -288,8 +288,5 @@ msgstr "Ορισμός της ατομικής διεύθυνσης…"
 msgid "Checking the individual address on the bus…"
 msgstr "Έλεγχος της ατομικής διεύθυνσης στον δίαυλο…"
 
-msgid "A changed address is set on the interface (Enter), which keeps it."
-msgstr "Μια αλλαγμένη διεύθυνση ορίζεται στη διεπαφή (Enter), η οποία τη διατηρεί."
-
-msgid "A changed address is set on the interface (Enter). This interface forgets it when unplugged, so it is set again on every connect."
-msgstr "Μια αλλαγμένη διεύθυνση ορίζεται στη διεπαφή (Enter). Αυτή η διεπαφή την ξεχνά όταν αποσυνδέεται, γι' αυτό ορίζεται ξανά σε κάθε σύνδεση."
+msgid "This interface forgets its individual address when unplugged, so it is set again on every connect."
+msgstr "Αυτή η διεπαφή ξεχνά την ατομική της διεύθυνση όταν αποσυνδέεται, γι' αυτό ορίζεται ξανά σε κάθε σύνδεση."

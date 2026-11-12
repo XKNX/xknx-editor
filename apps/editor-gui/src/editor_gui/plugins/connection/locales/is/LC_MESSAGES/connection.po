@@ -288,8 +288,5 @@ msgstr "Stilli einstaklingsvistfangið…"
 msgid "Checking the individual address on the bus…"
 msgstr "Athuga einstaklingsvistfangið á tengibrautinni…"
 
-msgid "A changed address is set on the interface (Enter), which keeps it."
-msgstr "Breytt vistfang er stillt í tenginu (Enter), sem heldur því."
-
-msgid "A changed address is set on the interface (Enter). This interface forgets it when unplugged, so it is set again on every connect."
-msgstr "Breytt vistfang er stillt í tenginu (Enter). Þetta tengi gleymir því þegar það er tekið úr sambandi, svo það er stillt aftur við hverja tengingu."
+msgid "This interface forgets its individual address when unplugged, so it is set again on every connect."
+msgstr "Þetta tengi gleymir einstaklingsvistfangi sínu þegar það er tekið úr sambandi, svo það er stillt aftur við hverja tengingu."

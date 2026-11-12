@@ -289,8 +289,5 @@ msgstr "Nastavuje sa individuálna adresa…"
 msgid "Checking the individual address on the bus…"
 msgstr "Kontroluje sa individuálna adresa na zbernici…"
 
-msgid "A changed address is set on the interface (Enter), which keeps it."
-msgstr "Zmenená adresa sa nastaví v rozhraní (Enter), ktoré si ju ponechá."
-
-msgid "A changed address is set on the interface (Enter). This interface forgets it when unplugged, so it is set again on every connect."
-msgstr "Zmenená adresa sa nastaví v rozhraní (Enter). Toto rozhranie ju po odpojení zabudne, preto sa nastaví znova pri každom pripojení."
+msgid "This interface forgets its individual address when unplugged, so it is set again on every connect."
+msgstr "Toto rozhranie po odpojení zabudne svoju individuálnu adresu, preto sa nastaví znova pri každom pripojení."

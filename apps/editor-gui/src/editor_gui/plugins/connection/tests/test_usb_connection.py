@@ -667,22 +667,29 @@ class TestInterfaceSettingsDialog:
         io.display_size = imgui.ImVec2(800, 600)
         io.backend_flags |= imgui.BackendFlags_.renderer_has_textures
         clicks = Clicks(monkeypatch, plugin_module)
-        edited: list[bool] = []
+        entered: list[bool] = []
         pressed: set[str] = set()
-        real_button = imgui.button
-        monkeypatch.setattr(
-            imgui,
-            "is_item_deactivated_after_edit",
-            lambda: bool(edited) and edited.pop(),
-        )
+        real_button, real_input = imgui.button, imgui.input_text
 
         def button(label: str, *args: Any) -> bool:
-            if label in pressed:
+            disabled = bool(
+                imgui.get_current_context().current_item_flags
+                & imgui.ItemFlags_.disabled
+            )
+            if label in pressed and not disabled:
                 pressed.discard(label)
                 return True
             return bool(real_button(label, *args))
 
+        def input_text(label: str, text: str, *args: Any) -> tuple[bool, str]:
+            # Enter pressed in the address field
+            if label == "##usb_address" and entered:
+                entered.pop()
+                return True, text
+            return real_input(label, text, *args)
+
         monkeypatch.setattr(imgui, "button", button)
+        monkeypatch.setattr(imgui, "input_text", input_text)
 
         def frames(count: int = 2) -> None:
             for _ in range(count):
@@ -695,12 +702,29 @@ class TestInterfaceSettingsDialog:
             plugin.open_usb_interface()
             assert plugin._usb_address_text == "1.0.2"
             frames()
+            # the address it has: nothing to apply, and no check (the interface uses it)
+            pressed.update(
+                ("Apply##usb_address_apply", "Address Free?##usb_address_free")
+            )
+            frames()
+            assert started == []
+            pressed.clear()
+            # changed in the field, but neither applied nor entered: nothing is set
             plugin._usb_address_text = "1.0.12"
-            edited.append(True)
+            frames()
+            assert started == []
+            pressed.add("Apply##usb_address_apply")
+            frames()
+            # Enter in the field applies it as well
+            entered.append(True)
             frames()
             pressed.add("Address Free?##usb_address_free")
             frames()
-            assert started == [("set", "1.0.12"), ("check", "1.0.12")]
+            assert started == [
+                ("set", "1.0.12"),
+                ("set", "1.0.12"),
+                ("check", "1.0.12"),
+            ]
             # what the dialog shows: a check's outcome, an error, a running change
             for free in (True, False):
                 plugin._usb_address_free = ("1.0.12", free)
@@ -717,7 +741,7 @@ class TestInterfaceSettingsDialog:
                 ConnectionPlugin.set_usb_interface_address.__get__(plugin)
             )
             plugin._usb_address_text = "nonsense"
-            edited.append(True)
+            pressed.add("Apply##usb_address_apply")
             frames()
             assert "is not an individual address" in plugin._usb_address_error
             clicks.button = "Close"

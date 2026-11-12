@@ -287,8 +287,5 @@ msgstr "A fizikai cím beállítása…"
 msgid "Checking the individual address on the bus…"
 msgstr "A fizikai cím ellenőrzése a buszon…"
 
-msgid "A changed address is set on the interface (Enter), which keeps it."
-msgstr "A módosított címet az interfész kapja meg (Enter), és meg is tartja."
-
-msgid "A changed address is set on the interface (Enter). This interface forgets it when unplugged, so it is set again on every connect."
-msgstr "A módosított címet az interfész kapja meg (Enter). Ez az interfész kihúzáskor elfelejti, ezért minden csatlakozáskor újra beállításra kerül."
+msgid "This interface forgets its individual address when unplugged, so it is set again on every connect."
+msgstr "Ez az interfész kihúzáskor elfelejti a fizikai címét, ezért minden csatlakozáskor újra beállításra kerül."

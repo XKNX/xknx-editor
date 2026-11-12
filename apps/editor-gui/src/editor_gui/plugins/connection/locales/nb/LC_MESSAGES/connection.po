@@ -288,8 +288,5 @@ msgstr "Setter den individuelle adressen…"
 msgid "Checking the individual address on the bus…"
 msgstr "Kontrollerer den individuelle adressen på bussen…"
 
-msgid "A changed address is set on the interface (Enter), which keeps it."
-msgstr "En endret adresse settes i grensesnittet (Enter), som beholder den."
-
-msgid "A changed address is set on the interface (Enter). This interface forgets it when unplugged, so it is set again on every connect."
-msgstr "En endret adresse settes i grensesnittet (Enter). Dette grensesnittet glemmer den når det kobles fra, så den settes på nytt ved hver tilkobling."
+msgid "This interface forgets its individual address when unplugged, so it is set again on every connect."
+msgstr "Dette grensesnittet glemmer sin individuelle adresse når det kobles fra, så den settes på nytt ved hver tilkobling."

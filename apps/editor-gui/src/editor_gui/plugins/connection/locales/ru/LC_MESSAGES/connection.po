@@ -289,8 +289,5 @@ msgstr "Установка индивидуального адреса…"
 msgid "Checking the individual address on the bus…"
 msgstr "Проверка индивидуального адреса на шине…"
 
-msgid "A changed address is set on the interface (Enter), which keeps it."
-msgstr "Изменённый адрес устанавливается в интерфейсе (Enter), который его сохраняет."
-
-msgid "A changed address is set on the interface (Enter). This interface forgets it when unplugged, so it is set again on every connect."
-msgstr "Изменённый адрес устанавливается в интерфейсе (Enter). Этот интерфейс забывает его при отключении, поэтому адрес устанавливается заново при каждом подключении."
+msgid "This interface forgets its individual address when unplugged, so it is set again on every connect."
+msgstr "Этот интерфейс забывает свой индивидуальный адрес при отключении, поэтому адрес устанавливается заново при каждом подключении."

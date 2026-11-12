@@ -288,8 +288,5 @@ msgstr "Impostazione dell'indirizzo individuale…"
 msgid "Checking the individual address on the bus…"
 msgstr "Verifica dell'indirizzo individuale sul bus…"
 
-msgid "A changed address is set on the interface (Enter), which keeps it."
-msgstr "Un indirizzo modificato viene impostato nell'interfaccia (Invio), che lo conserva."
-
-msgid "A changed address is set on the interface (Enter). This interface forgets it when unplugged, so it is set again on every connect."
-msgstr "Un indirizzo modificato viene impostato nell'interfaccia (Invio). Questa interfaccia lo dimentica quando viene scollegata, quindi viene reimpostato a ogni connessione."
+msgid "This interface forgets its individual address when unplugged, so it is set again on every connect."
+msgstr "Questa interfaccia dimentica il proprio indirizzo individuale quando viene scollegata, quindi viene reimpostato a ogni connessione."

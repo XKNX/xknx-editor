@@ -288,8 +288,5 @@ msgstr "Asetetaan yksilöllistä osoitetta…"
 msgid "Checking the individual address on the bus…"
 msgstr "Tarkistetaan yksilöllistä osoitetta väylällä…"
 
-msgid "A changed address is set on the interface (Enter), which keeps it."
-msgstr "Muutettu osoite asetetaan liitäntään (Enter), joka säilyttää sen."
-
-msgid "A changed address is set on the interface (Enter). This interface forgets it when unplugged, so it is set again on every connect."
-msgstr "Muutettu osoite asetetaan liitäntään (Enter). Tämä liitäntä unohtaa sen, kun se irrotetaan, joten se asetetaan uudelleen jokaisella yhdistämiskerralla."
+msgid "This interface forgets its individual address when unplugged, so it is set again on every connect."
+msgstr "Tämä liitäntä unohtaa yksilöllisen osoitteensa, kun se irrotetaan, joten osoite asetetaan uudelleen jokaisella yhdistämiskerralla."

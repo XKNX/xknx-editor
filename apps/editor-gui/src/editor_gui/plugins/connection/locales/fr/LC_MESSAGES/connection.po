@@ -288,8 +288,5 @@ msgstr "Définition de l'adresse individuelle…"
 msgid "Checking the individual address on the bus…"
 msgstr "Vérification de l'adresse individuelle sur le bus…"
 
-msgid "A changed address is set on the interface (Enter), which keeps it."
-msgstr "Une adresse modifiée est définie dans l'interface (Entrée), qui la conserve."
-
-msgid "A changed address is set on the interface (Enter). This interface forgets it when unplugged, so it is set again on every connect."
-msgstr "Une adresse modifiée est définie dans l'interface (Entrée). Cette interface l'oublie lorsqu'elle est débranchée, elle est donc redéfinie à chaque connexion."
+msgid "This interface forgets its individual address when unplugged, so it is set again on every connect."
+msgstr "Cette interface oublie son adresse individuelle lorsqu'elle est débranchée, elle est donc redéfinie à chaque connexion."

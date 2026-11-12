@@ -287,8 +287,5 @@ msgstr "Bireysel adres ayarlanıyor…"
 msgid "Checking the individual address on the bus…"
 msgstr "Bireysel adres veri yolunda denetleniyor…"
 
-msgid "A changed address is set on the interface (Enter), which keeps it."
-msgstr "Değiştirilen adres arayüzde ayarlanır (Enter) ve arayüz onu korur."
-
-msgid "A changed address is set on the interface (Enter). This interface forgets it when unplugged, so it is set again on every connect."
-msgstr "Değiştirilen adres arayüzde ayarlanır (Enter). Bu arayüz çıkarıldığında adresi unutur, bu nedenle her bağlantıda yeniden ayarlanır."
+msgid "This interface forgets its individual address when unplugged, so it is set again on every connect."
+msgstr "Bu arayüz çıkarıldığında bireysel adresini unutur, bu nedenle her bağlantıda yeniden ayarlanır."
