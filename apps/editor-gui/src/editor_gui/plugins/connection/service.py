@@ -744,6 +744,21 @@ class ConnectionService:
 
         return self.run_async(program_individual_address(self._connected_xknx, address))
 
+    def individual_address_occupied(self, address: str) -> Future[Any] | None:
+        """Whether a device on the bus answers at ``address`` (NM_IndividualAddress_Check: a
+        connection and a device descriptor read), over the open connection; the future's result
+        is a bool. ``None`` when no connection is open."""
+        if self.not_connected("individual_address_occupied"):
+            return None
+        from xknx.management.procedures.network.nm_individual_address_check import (
+            nm_individual_address_check,
+        )
+
+        self._log.debug("Checking individual address", address=address)
+        return self.run_async(
+            nm_individual_address_check(self._connected_xknx, address)
+        )
+
     def assign_individual_address_for_device(
         self, device: Device
     ) -> Future[Any] | None:

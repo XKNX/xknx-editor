@@ -1,7 +1,9 @@
-"""KNX USB interfaces over MCP: found by the scan, connected through, shown in the status."""
+"""KNX USB interfaces over MCP: found by the scan, connected through, shown in the status, their
+individual address set and checked."""
 
 from __future__ import annotations
 
+from concurrent.futures import Future
 from pathlib import Path
 from typing import Any
 
@@ -101,6 +103,7 @@ async def test_connecting_through_a_usb_interface(tmp_path: Path) -> None:
         "serial_number": "00C501053FB2",
         "vendor_id": 0x16DE,
         "product_id": 0x008E,
+        "keeps_address": True,
         "individual_address": "1.0.2",
         "max_apdu_length": 55,
         "bus_connected": True,
@@ -141,4 +144,89 @@ async def test_an_unknown_usb_interface_is_refused(tmp_path: Path) -> None:
         "serial_number": "00C501053FB2",
         "vendor_id": 0x16DE,
         "product_id": 0x008E,
+        "keeps_address": True,
     }
+
+
+class _AddressConnection(_UsbConnection):
+    """A connected USB interface whose address changes and checks end as given."""
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.connect_to_usb_by_serial("")
+        self.outcome: Future[Any] = Future()
+        self.requests: list[tuple[str, str]] = []
+
+    def set_usb_interface_address(self, text: str) -> Future[Any]:
+        self.requests.append(("set", text))
+        if text == "x":
+            raise ValueError("x is not an individual address (area.line.device).")
+        return self.outcome
+
+    def check_usb_interface_address(self, text: str) -> Future[Any]:
+        self.requests.append(("check", text))
+        if text == "x":
+            raise ValueError("x is not an individual address (area.line.device).")
+        return self.outcome
+
+
+async def test_setting_the_interface_address(tmp_path: Path) -> None:
+    conn = _AddressConnection()
+    conn.outcome.set_result(None)
+    async with Client(_server(tmp_path, conn)) as client:
+        result = await _data(
+            client, "connection_set_usb_interface_address", individual_address="1.0.2 "
+        )
+        with pytest.raises(Exception, match="x is not an individual address"):
+            await client.call_tool(
+                "connection_set_usb_interface_address", {"individual_address": "x"}
+            )
+        conn.outcome = Future()
+        conn.outcome.set_exception(
+            ConnectionError("The individual address could not be set: refused")
+        )
+        with pytest.raises(Exception, match="could not be set: refused"):
+            await client.call_tool(
+                "connection_set_usb_interface_address", {"individual_address": "1.0.9"}
+            )
+        conn.outcome = Future()
+        with pytest.raises(Exception, match=r"was not set within 0\.1 s"):
+            await client.call_tool(
+                "connection_set_usb_interface_address",
+                {"individual_address": "1.0.9", "timeout": 0.1},
+            )
+    assert result["individual_address"] == "1.0.2"
+    assert result["usb_interface"]["individual_address"] == "1.0.2"
+    assert conn.requests[0] == ("set", "1.0.2 ")
+
+
+async def test_checking_an_individual_address(tmp_path: Path) -> None:
+    conn = _AddressConnection()
+    async with Client(_server(tmp_path, conn)) as client:
+        conn.outcome.set_result(True)
+        used = await _data(
+            client, "connection_check_individual_address", individual_address="1.1.9"
+        )
+        conn.outcome = Future()
+        conn.outcome.set_result(False)
+        free = await _data(
+            client, "connection_check_individual_address", individual_address="1.1.9"
+        )
+        with pytest.raises(Exception, match="x is not an individual address"):
+            await client.call_tool(
+                "connection_check_individual_address", {"individual_address": "x"}
+            )
+        conn.outcome = Future()
+        conn.outcome.set_exception(OSError("bus gone"))
+        with pytest.raises(Exception, match="the check failed: bus gone"):
+            await client.call_tool(
+                "connection_check_individual_address", {"individual_address": "1.1.9"}
+            )
+        conn.outcome = Future()
+        with pytest.raises(Exception, match=r"no result within 0\.1 s"):
+            await client.call_tool(
+                "connection_check_individual_address",
+                {"individual_address": "1.1.9", "timeout": 0.1},
+            )
+    assert used == {"individual_address": "1.1.9", "free": False}
+    assert free == {"individual_address": "1.1.9", "free": True}

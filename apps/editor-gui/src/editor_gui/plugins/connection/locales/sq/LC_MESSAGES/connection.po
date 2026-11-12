@@ -230,3 +230,54 @@ msgid "{count} device in programming mode"
 msgid_plural "{count} devices in programming mode"
 msgstr[0] "{count} pajisje në modalitetin e programimit"
 msgstr[1] "{count} pajisje në modalitetin e programimit"
+
+msgid "USB Interface Settings…"
+msgstr "Cilësimet e Ndërfaqes USB…"
+
+msgid "USB Interface Settings"
+msgstr "Cilësimet e Ndërfaqes USB"
+
+msgid "Close"
+msgstr "Mbyll"
+
+msgid "Maximum Telegram Length (APDU): {length}"
+msgstr "Gjatësia Maksimale e Telegramit (APDU): {length}"
+
+msgid "Individual Address"
+msgstr "Adresa individuale"
+
+msgid "Address Free?"
+msgstr "Adresa e Lirë?"
+
+msgid "The individual address {address} is not used by another device."
+msgstr "Adresa individuale {address} nuk përdoret nga asnjë pajisje tjetër."
+
+msgid "The individual address {address} is already in use by another device on the bus."
+msgstr "Adresa individuale {address} përdoret tashmë nga një pajisje tjetër në bus."
+
+msgid "{address} is not an individual address (area.line.device)."
+msgstr "{address} nuk është adresë individuale (zona.linja.pajisja)."
+
+msgid "The individual address of the interface is being set or checked."
+msgstr "Adresa individuale e ndërfaqes po vendoset ose po kontrollohet."
+
+msgid "Not connected through a USB interface."
+msgstr "Nuk ka lidhje përmes një ndërfaqeje USB."
+
+msgid "The individual address could not be set: {error}"
+msgstr "Adresa individuale nuk mund të vendosej: {error}"
+
+msgid "The individual address could not be checked: {error}"
+msgstr "Adresa individuale nuk mund të kontrollohej: {error}"
+
+msgid "Setting the individual address…"
+msgstr "Po vendoset adresa individuale…"
+
+msgid "Checking the individual address on the bus…"
+msgstr "Po kontrollohet adresa individuale në bus…"
+
+msgid "A changed address is set on the interface (Enter), which keeps it."
+msgstr "Një adresë e ndryshuar vendoset në ndërfaqe (Enter), e cila e ruan."
+
+msgid "A changed address is set on the interface (Enter). This interface forgets it when unplugged, so it is set again on every connect."
+msgstr "Një adresë e ndryshuar vendoset në ndërfaqe (Enter). Kjo ndërfaqe e harron kur shkëputet, prandaj vendoset sërish në çdo lidhje."

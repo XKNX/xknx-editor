@@ -32,6 +32,11 @@ _RECONNECT_SECONDS = 3
 # known ones: Weinzierl Engineering, Insta, Tapko Technologies, ise.
 KNX_USB_VENDOR_IDS = (0x0E77, 0x135E, 0x28C2, 0x2A07)
 
+# USB interfaces (vendor id, product id) that forget their individual address when unplugged: the
+# Siemens Interface OCI700 USB. The editor keeps the address such an interface had when it was
+# closed and sets it again on connect.
+VOLATILE_ADDRESS_USB_INTERFACES = frozenset({(0x0681, 0x0014)})
+
 
 def usb_device_name(device: USBDeviceInfo) -> str:
     """The name an interface is shown with: its USB product name."""
@@ -86,6 +91,18 @@ class UsbTarget:
     def label(self) -> str:
         """The interface as the connection target is shown, e.g. ``KNX-USB Interface (USB)``."""
         return f"{self.name} (USB)"
+
+    @property
+    def keeps_address(self) -> bool:
+        """Whether the interface keeps its individual address when it is unplugged (see
+        ``VOLATILE_ADDRESS_USB_INTERFACES``)."""
+        return (self.vendor_id, self.product_id) not in VOLATILE_ADDRESS_USB_INTERFACES
+
+    @property
+    def key(self) -> str:
+        """The interface as its kept individual address is stored: vendor and product id and
+        serial number, e.g. ``0681:0014:00FD12345678``."""
+        return f"{self.vendor_id:04X}:{self.product_id:04X}:{self.serial_number}"
 
     def matches(self, device: USBDeviceInfo) -> bool:
         """Whether ``device`` is this interface (on any port)."""
@@ -157,7 +174,7 @@ async def search_usb_interfaces(
 class ObservableUSBInterfaceThreaded(ObservableKNXIPInterfaceThreaded):
     """A connection through a KNX USB interface, observable as the KNXnet/IP ones are."""
 
-    __slots__ = ("_data_secure", "_target")
+    __slots__ = ("_data_secure", "_individual_address", "_target")
 
     def __init__(
         self,
@@ -166,10 +183,12 @@ class ObservableUSBInterfaceThreaded(ObservableKNXIPInterfaceThreaded):
         raw_cemi_callback: Callable[[bytes], None] | None = None,
         sent_cemi_callback: Callable[[bytes], None] | None = None,
         data_secure: DataSecure | None = None,
+        individual_address: IndividualAddress | None = None,
     ) -> None:
         """``data_secure`` is in place while the interface is set up, so an interface Data Secure
         can't work with (unknown individual address, EMI1/EMI2 only) is noticed on connect as
-        after its reset or a reconnect."""
+        after its reset or a reconnect. With ``individual_address`` the interface's own address is
+        set to it on connect when it has another one; the connect fails when that can't be done."""
         super().__init__(
             xknx,
             ConnectionConfig(threaded=True),
@@ -178,6 +197,7 @@ class ObservableUSBInterfaceThreaded(ObservableKNXIPInterfaceThreaded):
         )
         self._target = target
         self._data_secure = data_secure
+        self._individual_address = individual_address
 
     async def _start(self) -> None:
         """Open the interface (in the connection thread)."""
@@ -192,6 +212,7 @@ class ObservableUSBInterfaceThreaded(ObservableKNXIPInterfaceThreaded):
             serial_number=self._target.serial_number or None,
             auto_reconnect=True,
             auto_reconnect_wait=_RECONNECT_SECONDS,
+            individual_address=self._individual_address,
         )
         await self._interface.connect()
 

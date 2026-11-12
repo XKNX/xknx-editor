@@ -230,3 +230,54 @@ msgid "{count} device in programming mode"
 msgid_plural "{count} devices in programming mode"
 msgstr[0] "{count} tæki í forritunarham"
 msgstr[1] "{count} tæki í forritunarham"
+
+msgid "USB Interface Settings…"
+msgstr "Stillingar USB-tengis…"
+
+msgid "USB Interface Settings"
+msgstr "Stillingar USB-tengis"
+
+msgid "Close"
+msgstr "Loka"
+
+msgid "Maximum Telegram Length (APDU): {length}"
+msgstr "Hámarkslengd skeytis (APDU): {length}"
+
+msgid "Individual Address"
+msgstr "Einstaklingsvistfang"
+
+msgid "Address Free?"
+msgstr "Vistfang laust?"
+
+msgid "The individual address {address} is not used by another device."
+msgstr "Ekkert annað tæki notar einstaklingsvistfangið {address}."
+
+msgid "The individual address {address} is already in use by another device on the bus."
+msgstr "Annað tæki á tengibrautinni notar þegar einstaklingsvistfangið {address}."
+
+msgid "{address} is not an individual address (area.line.device)."
+msgstr "{address} er ekki einstaklingsvistfang (svæði.lína.tæki)."
+
+msgid "The individual address of the interface is being set or checked."
+msgstr "Verið er að stilla eða athuga einstaklingsvistfang tengisins."
+
+msgid "Not connected through a USB interface."
+msgstr "Ekki tengt um USB-tengi."
+
+msgid "The individual address could not be set: {error}"
+msgstr "Ekki tókst að stilla einstaklingsvistfangið: {error}"
+
+msgid "The individual address could not be checked: {error}"
+msgstr "Ekki tókst að athuga einstaklingsvistfangið: {error}"
+
+msgid "Setting the individual address…"
+msgstr "Stilli einstaklingsvistfangið…"
+
+msgid "Checking the individual address on the bus…"
+msgstr "Athuga einstaklingsvistfangið á tengibrautinni…"
+
+msgid "A changed address is set on the interface (Enter), which keeps it."
+msgstr "Breytt vistfang er stillt í tenginu (Enter), sem heldur því."
+
+msgid "A changed address is set on the interface (Enter). This interface forgets it when unplugged, so it is set again on every connect."
+msgstr "Breytt vistfang er stillt í tenginu (Enter). Þetta tengi gleymir því þegar það er tekið úr sambandi, svo það er stillt aftur við hverja tengingu."

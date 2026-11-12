@@ -231,3 +231,54 @@ msgid_plural "{count} devices in programming mode"
 msgstr[0] "{count} пристрій у режимі програмування"
 msgstr[1] "{count} пристрої у режимі програмування"
 msgstr[2] "{count} пристроїв у режимі програмування"
+
+msgid "USB Interface Settings…"
+msgstr "Налаштування USB-інтерфейсу…"
+
+msgid "USB Interface Settings"
+msgstr "Налаштування USB-інтерфейсу"
+
+msgid "Close"
+msgstr "Закрити"
+
+msgid "Maximum Telegram Length (APDU): {length}"
+msgstr "Максимальна довжина телеграми (APDU): {length}"
+
+msgid "Individual Address"
+msgstr "Індивідуальна адреса"
+
+msgid "Address Free?"
+msgstr "Адреса вільна?"
+
+msgid "The individual address {address} is not used by another device."
+msgstr "Індивідуальна адреса {address} не використовується іншим пристроєм."
+
+msgid "The individual address {address} is already in use by another device on the bus."
+msgstr "Індивідуальна адреса {address} вже використовується іншим пристроєм на шині."
+
+msgid "{address} is not an individual address (area.line.device)."
+msgstr "{address} не є індивідуальною адресою (область.лінія.пристрій)."
+
+msgid "The individual address of the interface is being set or checked."
+msgstr "Індивідуальна адреса інтерфейсу встановлюється або перевіряється."
+
+msgid "Not connected through a USB interface."
+msgstr "Немає підключення через USB-інтерфейс."
+
+msgid "The individual address could not be set: {error}"
+msgstr "Не вдалося встановити індивідуальну адресу: {error}"
+
+msgid "The individual address could not be checked: {error}"
+msgstr "Не вдалося перевірити індивідуальну адресу: {error}"
+
+msgid "Setting the individual address…"
+msgstr "Встановлення індивідуальної адреси…"
+
+msgid "Checking the individual address on the bus…"
+msgstr "Перевірка індивідуальної адреси на шині…"
+
+msgid "A changed address is set on the interface (Enter), which keeps it."
+msgstr "Змінена адреса встановлюється в інтерфейсі (Enter), який її зберігає."
+
+msgid "A changed address is set on the interface (Enter). This interface forgets it when unplugged, so it is set again on every connect."
+msgstr "Змінена адреса встановлюється в інтерфейсі (Enter). Цей інтерфейс забуває її після від'єднання, тому вона встановлюється знову під час кожного підключення."

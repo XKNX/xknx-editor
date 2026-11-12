@@ -331,10 +331,12 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         as the Gateway menu shows it: ``gateway`` {name, individual_address, core_version,
         services, transports} (``transports``: the connection types it offers, see
         connection_switch_type). ``connection_type`` is "usb" for a KNX USB interface; then
-        ``usb_interface`` {name, serial_number, vendor_id, product_id} names it, and while
-        connected also has {individual_address, max_apdu_length, bus_connected}
-        (``individual_address`` null when the interface's could not be read; while
-        ``bus_connected`` is false nothing can be sent)."""
+        ``usb_interface`` {name, serial_number, vendor_id, product_id, keeps_address} names it
+        (``keeps_address`` false for an interface that forgets its individual address when
+        unplugged: the editor sets it again on connect), and while connected also has
+        {individual_address, max_apdu_length, bus_connected} (``individual_address`` null when
+        the interface's could not be read, see connection_set_usb_interface_address to set it;
+        while ``bus_connected`` is false nothing can be sent)."""
         from editor_gui.plugins.connection.plugin import (
             connection_type_name,
             gateway_services,
@@ -368,6 +370,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                 "serial_number": target.serial_number,
                 "vendor_id": target.vendor_id,
                 "product_id": target.product_id,
+                "keeps_address": target.keeps_address,
             }
             info = conn.usb_info if conn.connected else None
             if info is not None:
@@ -505,6 +508,56 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                 + "; run connection_scan first"
             )
         return _await_connect(timeout)
+
+    @tool("write", open_world=True)
+    def connection_set_usb_interface_address(
+        individual_address: str, timeout: float = 30.0
+    ) -> dict[str, Any]:
+        """Set the individual address (e.g. "1.1.250") of the connected KNX USB interface, as
+        Gateway menu > USB Interface Settings… does: the connection is opened again and sets it
+        on the interface, which keeps it (an interface that forgets it when unplugged gets it
+        again on every connect). Nothing is written when the interface has that address already.
+        Waits for the result and returns ``{individual_address, usb_interface}``, the latter as
+        in connection_status. Fails with the reason when it is no individual address, no USB
+        interface is connected, or the interface did not take it (then it is connected again
+        with its address as it was)."""
+        try:
+            future = conn.set_usb_interface_address(individual_address)
+        except ValueError as err:
+            raise ToolError(str(err)) from err
+        try:
+            future.result(timeout)
+        except TimeoutError as err:
+            raise ToolError(
+                f"the individual address was not set within {timeout:g} s"
+            ) from err
+        except ConnectionError as err:
+            raise ToolError(str(err)) from err
+        return {
+            "individual_address": individual_address.strip(),
+            "usb_interface": connection_status().get("usb_interface"),
+        }
+
+    @tool("read", open_world=True)
+    def connection_check_individual_address(
+        individual_address: str, timeout: float = 15.0
+    ) -> dict[str, Any]:
+        """Check over the open connection whether a device on the bus uses the individual
+        address ``individual_address`` (e.g. "1.1.250"), as the "Address Free?" button of
+        Gateway menu > USB Interface Settings… does: a connection and a device descriptor read
+        to it (NM_IndividualAddress_Check). Returns ``{individual_address, free}``; ``free`` is
+        true when no device answered."""
+        try:
+            future = conn.check_usb_interface_address(individual_address)
+        except ValueError as err:
+            raise ToolError(str(err)) from err
+        try:
+            occupied = bool(future.result(timeout))
+        except TimeoutError as err:
+            raise ToolError(f"no result within {timeout:g} s") from err
+        except Exception as err:
+            raise ToolError(f"the check failed: {err}") from err
+        return {"individual_address": individual_address.strip(), "free": not occupied}
 
     @tool("write", open_world=True)
     def connection_switch_type(

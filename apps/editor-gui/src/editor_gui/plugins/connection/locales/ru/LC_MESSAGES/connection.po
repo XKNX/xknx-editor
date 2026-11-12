@@ -231,3 +231,54 @@ msgid_plural "{count} devices in programming mode"
 msgstr[0] "{count} устройство в режиме программирования"
 msgstr[1] "{count} устройства в режиме программирования"
 msgstr[2] "{count} устройств в режиме программирования"
+
+msgid "USB Interface Settings…"
+msgstr "Настройки USB-интерфейса…"
+
+msgid "USB Interface Settings"
+msgstr "Настройки USB-интерфейса"
+
+msgid "Close"
+msgstr "Закрыть"
+
+msgid "Maximum Telegram Length (APDU): {length}"
+msgstr "Максимальная длина телеграммы (APDU): {length}"
+
+msgid "Individual Address"
+msgstr "Индивидуальный адрес"
+
+msgid "Address Free?"
+msgstr "Адрес свободен?"
+
+msgid "The individual address {address} is not used by another device."
+msgstr "Индивидуальный адрес {address} не используется другим устройством."
+
+msgid "The individual address {address} is already in use by another device on the bus."
+msgstr "Индивидуальный адрес {address} уже используется другим устройством на шине."
+
+msgid "{address} is not an individual address (area.line.device)."
+msgstr "{address} не является индивидуальным адресом (область.линия.устройство)."
+
+msgid "The individual address of the interface is being set or checked."
+msgstr "Индивидуальный адрес интерфейса устанавливается или проверяется."
+
+msgid "Not connected through a USB interface."
+msgstr "Нет подключения через USB-интерфейс."
+
+msgid "The individual address could not be set: {error}"
+msgstr "Не удалось установить индивидуальный адрес: {error}"
+
+msgid "The individual address could not be checked: {error}"
+msgstr "Не удалось проверить индивидуальный адрес: {error}"
+
+msgid "Setting the individual address…"
+msgstr "Установка индивидуального адреса…"
+
+msgid "Checking the individual address on the bus…"
+msgstr "Проверка индивидуального адреса на шине…"
+
+msgid "A changed address is set on the interface (Enter), which keeps it."
+msgstr "Изменённый адрес устанавливается в интерфейсе (Enter), который его сохраняет."
+
+msgid "A changed address is set on the interface (Enter). This interface forgets it when unplugged, so it is set again on every connect."
+msgstr "Изменённый адрес устанавливается в интерфейсе (Enter). Этот интерфейс забывает его при отключении, поэтому адрес устанавливается заново при каждом подключении."

@@ -230,3 +230,54 @@ msgid "{count} device in programming mode"
 msgid_plural "{count} devices in programming mode"
 msgstr[0] "{count} enhet i programmeringsmodus"
 msgstr[1] "{count} enheter i programmeringsmodus"
+
+msgid "USB Interface Settings…"
+msgstr "Innstillinger for USB-grensesnitt…"
+
+msgid "USB Interface Settings"
+msgstr "Innstillinger for USB-grensesnitt"
+
+msgid "Close"
+msgstr "Lukk"
+
+msgid "Maximum Telegram Length (APDU): {length}"
+msgstr "Maksimal telegramlengde (APDU): {length}"
+
+msgid "Individual Address"
+msgstr "Individuell adresse"
+
+msgid "Address Free?"
+msgstr "Adresse ledig?"
+
+msgid "The individual address {address} is not used by another device."
+msgstr "Den individuelle adressen {address} brukes ikke av en annen enhet."
+
+msgid "The individual address {address} is already in use by another device on the bus."
+msgstr "Den individuelle adressen {address} brukes allerede av en annen enhet på bussen."
+
+msgid "{address} is not an individual address (area.line.device)."
+msgstr "{address} er ikke en individuell adresse (område.linje.enhet)."
+
+msgid "The individual address of the interface is being set or checked."
+msgstr "Grensesnittets individuelle adresse blir satt eller kontrollert."
+
+msgid "Not connected through a USB interface."
+msgstr "Ikke tilkoblet via et USB-grensesnitt."
+
+msgid "The individual address could not be set: {error}"
+msgstr "Den individuelle adressen kunne ikke settes: {error}"
+
+msgid "The individual address could not be checked: {error}"
+msgstr "Den individuelle adressen kunne ikke kontrolleres: {error}"
+
+msgid "Setting the individual address…"
+msgstr "Setter den individuelle adressen…"
+
+msgid "Checking the individual address on the bus…"
+msgstr "Kontrollerer den individuelle adressen på bussen…"
+
+msgid "A changed address is set on the interface (Enter), which keeps it."
+msgstr "En endret adresse settes i grensesnittet (Enter), som beholder den."
+
+msgid "A changed address is set on the interface (Enter). This interface forgets it when unplugged, so it is set again on every connect."
+msgstr "En endret adresse settes i grensesnittet (Enter). Dette grensesnittet glemmer den når det kobles fra, så den settes på nytt ved hver tilkobling."

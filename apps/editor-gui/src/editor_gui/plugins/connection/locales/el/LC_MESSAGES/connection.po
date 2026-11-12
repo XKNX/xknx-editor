@@ -230,3 +230,54 @@ msgid "{count} device in programming mode"
 msgid_plural "{count} devices in programming mode"
 msgstr[0] "{count} συσκευή σε κατάσταση προγραμματισμού"
 msgstr[1] "{count} συσκευές σε κατάσταση προγραμματισμού"
+
+msgid "USB Interface Settings…"
+msgstr "Ρυθμίσεις Διεπαφής USB…"
+
+msgid "USB Interface Settings"
+msgstr "Ρυθμίσεις Διεπαφής USB"
+
+msgid "Close"
+msgstr "Κλείσιμο"
+
+msgid "Maximum Telegram Length (APDU): {length}"
+msgstr "Μέγιστο Μήκος Τηλεγραφήματος (APDU): {length}"
+
+msgid "Individual Address"
+msgstr "Ατομική Διεύθυνση"
+
+msgid "Address Free?"
+msgstr "Ελεύθερη Διεύθυνση;"
+
+msgid "The individual address {address} is not used by another device."
+msgstr "Η ατομική διεύθυνση {address} δεν χρησιμοποιείται από άλλη συσκευή."
+
+msgid "The individual address {address} is already in use by another device on the bus."
+msgstr "Η ατομική διεύθυνση {address} χρησιμοποιείται ήδη από άλλη συσκευή στον δίαυλο."
+
+msgid "{address} is not an individual address (area.line.device)."
+msgstr "Η {address} δεν είναι ατομική διεύθυνση (περιοχή.γραμμή.συσκευή)."
+
+msgid "The individual address of the interface is being set or checked."
+msgstr "Η ατομική διεύθυνση της διεπαφής ορίζεται ή ελέγχεται."
+
+msgid "Not connected through a USB interface."
+msgstr "Δεν υπάρχει σύνδεση μέσω διεπαφής USB."
+
+msgid "The individual address could not be set: {error}"
+msgstr "Δεν ήταν δυνατός ο ορισμός της ατομικής διεύθυνσης: {error}"
+
+msgid "The individual address could not be checked: {error}"
+msgstr "Δεν ήταν δυνατός ο έλεγχος της ατομικής διεύθυνσης: {error}"
+
+msgid "Setting the individual address…"
+msgstr "Ορισμός της ατομικής διεύθυνσης…"
+
+msgid "Checking the individual address on the bus…"
+msgstr "Έλεγχος της ατομικής διεύθυνσης στον δίαυλο…"
+
+msgid "A changed address is set on the interface (Enter), which keeps it."
+msgstr "Μια αλλαγμένη διεύθυνση ορίζεται στη διεπαφή (Enter), η οποία τη διατηρεί."
+
+msgid "A changed address is set on the interface (Enter). This interface forgets it when unplugged, so it is set again on every connect."
+msgstr "Μια αλλαγμένη διεύθυνση ορίζεται στη διεπαφή (Enter). Αυτή η διεπαφή την ξεχνά όταν αποσυνδέεται, γι' αυτό ορίζεται ξανά σε κάθε σύνδεση."

@@ -22,6 +22,7 @@ def _plugin(*, usb: bool = False) -> Any:
     plugin._lost_since = 0.0  # the outage started at t=0 on the fake clock
     plugin._config = object()
     plugin._usb_target = object() if usb else None
+    plugin._usb_addresses = {}
     plugin._connection_type = ConnectionType.TUNNELING
     plugin._multicast_group = "224.0.23.12"
     plugin._controller_ip = "192.0.2.1"

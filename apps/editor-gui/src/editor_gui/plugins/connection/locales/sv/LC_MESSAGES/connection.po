@@ -230,3 +230,54 @@ msgid "{count} device in programming mode"
 msgid_plural "{count} devices in programming mode"
 msgstr[0] "{count} apparat i programmeringsläge"
 msgstr[1] "{count} apparater i programmeringsläge"
+
+msgid "USB Interface Settings…"
+msgstr "Inställningar för USB-gränssnitt…"
+
+msgid "USB Interface Settings"
+msgstr "Inställningar för USB-gränssnitt"
+
+msgid "Close"
+msgstr "Stäng"
+
+msgid "Maximum Telegram Length (APDU): {length}"
+msgstr "Maximal telegramlängd (APDU): {length}"
+
+msgid "Individual Address"
+msgstr "Individuell adress"
+
+msgid "Address Free?"
+msgstr "Adress ledig?"
+
+msgid "The individual address {address} is not used by another device."
+msgstr "Den individuella adressen {address} används inte av någon annan enhet."
+
+msgid "The individual address {address} is already in use by another device on the bus."
+msgstr "Den individuella adressen {address} används redan av en annan enhet på bussen."
+
+msgid "{address} is not an individual address (area.line.device)."
+msgstr "{address} är ingen individuell adress (område.linje.enhet)."
+
+msgid "The individual address of the interface is being set or checked."
+msgstr "Gränssnittets individuella adress håller på att ställas in eller kontrolleras."
+
+msgid "Not connected through a USB interface."
+msgstr "Inte ansluten via ett USB-gränssnitt."
+
+msgid "The individual address could not be set: {error}"
+msgstr "Den individuella adressen kunde inte ställas in: {error}"
+
+msgid "The individual address could not be checked: {error}"
+msgstr "Den individuella adressen kunde inte kontrolleras: {error}"
+
+msgid "Setting the individual address…"
+msgstr "Ställer in den individuella adressen…"
+
+msgid "Checking the individual address on the bus…"
+msgstr "Kontrollerar den individuella adressen på bussen…"
+
+msgid "A changed address is set on the interface (Enter), which keeps it."
+msgstr "En ändrad adress ställs in i gränssnittet (Enter), som behåller den."
+
+msgid "A changed address is set on the interface (Enter). This interface forgets it when unplugged, so it is set again on every connect."
+msgstr "En ändrad adress ställs in i gränssnittet (Enter). Detta gränssnitt glömmer den när det kopplas ur, så den ställs in igen vid varje anslutning."

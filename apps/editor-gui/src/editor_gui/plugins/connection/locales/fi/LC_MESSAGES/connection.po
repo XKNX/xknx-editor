@@ -230,3 +230,54 @@ msgid "{count} device in programming mode"
 msgid_plural "{count} devices in programming mode"
 msgstr[0] "{count} laite ohjelmointitilassa"
 msgstr[1] "{count} laitetta ohjelmointitilassa"
+
+msgid "USB Interface Settings…"
+msgstr "USB-liitännän asetukset…"
+
+msgid "USB Interface Settings"
+msgstr "USB-liitännän asetukset"
+
+msgid "Close"
+msgstr "Sulje"
+
+msgid "Maximum Telegram Length (APDU): {length}"
+msgstr "Sähkeen enimmäispituus (APDU): {length}"
+
+msgid "Individual Address"
+msgstr "Yksilöllinen osoite"
+
+msgid "Address Free?"
+msgstr "Onko osoite vapaa?"
+
+msgid "The individual address {address} is not used by another device."
+msgstr "Mikään muu laite ei käytä yksilöllistä osoitetta {address}."
+
+msgid "The individual address {address} is already in use by another device on the bus."
+msgstr "Toinen väylän laite käyttää jo yksilöllistä osoitetta {address}."
+
+msgid "{address} is not an individual address (area.line.device)."
+msgstr "{address} ei ole yksilöllinen osoite (alue.linja.laite)."
+
+msgid "The individual address of the interface is being set or checked."
+msgstr "Liitännän yksilöllistä osoitetta asetetaan tai tarkistetaan."
+
+msgid "Not connected through a USB interface."
+msgstr "Ei yhteyttä USB-liitännän kautta."
+
+msgid "The individual address could not be set: {error}"
+msgstr "Yksilöllistä osoitetta ei voitu asettaa: {error}"
+
+msgid "The individual address could not be checked: {error}"
+msgstr "Yksilöllistä osoitetta ei voitu tarkistaa: {error}"
+
+msgid "Setting the individual address…"
+msgstr "Asetetaan yksilöllistä osoitetta…"
+
+msgid "Checking the individual address on the bus…"
+msgstr "Tarkistetaan yksilöllistä osoitetta väylällä…"
+
+msgid "A changed address is set on the interface (Enter), which keeps it."
+msgstr "Muutettu osoite asetetaan liitäntään (Enter), joka säilyttää sen."
+
+msgid "A changed address is set on the interface (Enter). This interface forgets it when unplugged, so it is set again on every connect."
+msgstr "Muutettu osoite asetetaan liitäntään (Enter). Tämä liitäntä unohtaa sen, kun se irrotetaan, joten se asetetaan uudelleen jokaisella yhdistämiskerralla."

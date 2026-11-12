@@ -183,6 +183,7 @@ def test_the_connection_goes_to_the_port_of_the_interface() -> None:
 def _plugin(bus: tuple[str, str] | None) -> Any:
     plugin = cast(Any, object.__new__(ConnectionPlugin))
     plugin._usb_target = None
+    plugin._usb_addresses = {}
     plugin._usb_info = None
     plugin._usb_devices = []
     log = SimpleNamespace(info=lambda *_a, **_k: None, error=lambda *_a, **_k: None)
