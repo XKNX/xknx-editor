@@ -1089,3 +1089,40 @@ def test_a_discovered_gateway_offers_its_types_side_by_side(
         S.CONN_TYPE_ROUTING,
     ]
     assert len(set(rows.values())) == 1
+
+
+@pytest.mark.parametrize(("tcp_support", "shown"), [(None, 2), (False, 1)])
+def test_manual_connection_offers_tcp_first(
+    monkeypatch: pytest.MonkeyPatch, tcp_support: bool | None, shown: int
+) -> None:
+    """Gateway menu > Manual Connection: TCP before UDP tunneling, as a discovered gateway."""
+    plugin = _plugin()
+    plugin._scanning = True
+    plugin._gateways = []
+    plugin._controller_ip = "192.168.16.103"
+    plugin._connection_type = ConnectionType.TUNNELING
+    plugin._maybe_probe_manual = lambda editing: None
+    plugin._manual_tcp_support = lambda: tcp_support
+    rows: dict[str, float] = {}
+    real_radio = plugin_module.radio_button
+
+    def radio(label: str, active: bool) -> bool:
+        if "##manual_" in label:
+            rows[label.split("##")[0]] = imgui.get_cursor_screen_pos().y
+        return bool(real_radio(label, active))
+
+    monkeypatch.setattr(plugin_module, "radio_button", radio)
+    ctx = imgui.create_context()
+    io = imgui.get_io()
+    io.display_size = imgui.ImVec2(800, 600)
+    io.backend_flags |= imgui.BackendFlags_.renderer_has_textures
+    try:
+        imgui.new_frame()
+        imgui.begin("Gateway")
+        plugin._render_gateway_picker(retry_label="Connect")
+        imgui.end()
+        imgui.end_frame()
+    finally:
+        imgui.destroy_context(ctx)
+    assert list(rows) == [S.CONN_TYPE_TCP_TUNNELING, S.CONN_TYPE_TUNNELING][-shown:]
+    assert len(set(rows.values())) == 1

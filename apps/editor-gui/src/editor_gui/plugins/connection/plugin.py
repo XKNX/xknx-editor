@@ -2472,19 +2472,20 @@ class ConnectionPlugin:
         )
         if tcp_support is False and manual_type == ConnectionType.TUNNELING_TCP:
             manual_type = ConnectionType.TUNNELING
-        if radio_button(
-            f"{S.CONN_TYPE_TUNNELING}##manual_udp",
-            manual_type == ConnectionType.TUNNELING,
-        ):
-            self._connection_type = ConnectionType.TUNNELING
-        # Offer TCP unless the interface is known not to support it (a KNXnet/IP v1 device).
+        # TCP first, as a discovered gateway offers it; unless the interface is known not to
+        # support it (a KNXnet/IP v1 device).
         if tcp_support is not False:
-            imgui.same_line()
             if radio_button(
                 f"{S.CONN_TYPE_TCP_TUNNELING}##manual_tcp",
                 manual_type == ConnectionType.TUNNELING_TCP,
             ):
                 self._connection_type = ConnectionType.TUNNELING_TCP
+            imgui.same_line()
+        if radio_button(
+            f"{S.CONN_TYPE_TUNNELING}##manual_udp",
+            manual_type == ConnectionType.TUNNELING,
+        ):
+            self._connection_type = ConnectionType.TUNNELING
         if imgui.menu_item(retry_label, "", False)[0]:
             self.connect(connection_type=manual_type)
 
