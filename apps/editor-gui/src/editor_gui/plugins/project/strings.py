@@ -2898,16 +2898,16 @@ class ProjectStrings:
     @property
     def PREFLIGHT_NO_CHANGES_MADE(self) -> str:
         return _(
-            "Read-only test: checks that the download function generates the same image "
-            "as what is already programmed on the device. Nothing is written to the device."
+            "Read-only test: compares what a download would write with what is on the "
+            "device. Nothing is written to the device."
         )
 
     @property
     def PREFLIGHT_PROJECT_MODIFIED(self) -> str:
         return _(
-            "Cannot run: the project was changed since it was opened. This test compares the "
-            "generated image against the device's programmed state, which only matches the "
-            "project as it was opened. Undo your changes in this session to test."
+            "Cannot run: the project was changed since it was opened and may no "
+            "longer match the device. Undo the changes of this session, or save and "
+            "reopen the project."
         )
 
     @property
@@ -2920,12 +2920,12 @@ class ProjectStrings:
 
     @property
     def PREFLIGHT_MATCH(self) -> str:
-        return _("Match: the generated image is identical to what is on the device")
+        return _("Match: the generated image is identical to what is on the device.")
 
     @property
     def PREFLIGHT_WOULD_CHANGE(self) -> str:
         # {bytes}: PREFLIGHT_BYTES_DIFFER, {locations}: PREFLIGHT_LOCATIONS.
-        return _("Mismatch: {bytes} from the device in {locations}")
+        return _("Mismatch: {bytes} from the device in {locations}.")
 
     def PREFLIGHT_BYTES_DIFFER(self, count: int) -> str:
         return _.plural("{count} byte differs", "{count} bytes differ", count)
@@ -2940,18 +2940,17 @@ class ProjectStrings:
     @property
     def PREFLIGHT_ETS6_NOTE(self) -> str:
         return _(
-            "Only for ETS 6 devices: this test compares the device against an image "
-            "generated the ETS 6 way. A device last programmed with ETS 5 uses a "
-            "different byte layout and will show large false differences - the result "
-            "is only meaningful for a device last programmed with ETS 6."
+            "Only meaningful for a device last programmed with ETS 6: one programmed "
+            "with ETS 5 stores its data in another layout and shows large false "
+            "differences."
         )
 
     @property
     def PREFLIGHT_ETS5_HINT(self) -> str:
         return _(
-            "Structural differences (whole tables differ) can mean the device was "
-            "last programmed with ETS 5, whose byte layout differs. Differences in "
-            "values only usually mean the device holds a different configuration."
+            "If whole tables differ, the device was possibly last programmed with ETS "
+            "5 (another layout). If only values differ, it holds another "
+            "configuration."
         )
 
     @property
@@ -2972,15 +2971,15 @@ class ProjectStrings:
 
     @property
     def PREFLIGHT_STATUS_MATCH(self) -> str:
-        return _("match")
+        return _("Match")
 
     @property
     def PREFLIGHT_STATUS_CHANGE(self) -> str:
-        return _("would change")
+        return _("Would change")
 
     @property
     def PREFLIGHT_STATUS_RUNTIME(self) -> str:
-        return _("device-managed")
+        return _("Device-managed")
 
     @property
     def PREFLIGHT_RUNTIME_TOOLTIP(self) -> str:
@@ -2992,8 +2991,8 @@ class ProjectStrings:
 
     def PREFLIGHT_RUNTIME_NOTE(self, bytes: int) -> str:
         return _.plural(
-            "plus {bytes} device-managed runtime byte (expected, benign)",
-            "plus {bytes} device-managed runtime bytes (expected, benign)",
+            "Plus {bytes} device-managed runtime byte (expected, benign)",
+            "Plus {bytes} device-managed runtime bytes (expected, benign)",
             bytes,
         )
 
@@ -3006,7 +3005,7 @@ class ProjectStrings:
 
     @property
     def PREFLIGHT_STATUS_DEFAULT(self) -> str:
-        return _("sets default")
+        return _("Sets default")
 
     @property
     def PREFLIGHT_DEFAULT_TOOLTIP(self) -> str:
@@ -3019,20 +3018,24 @@ class ProjectStrings:
 
     def PREFLIGHT_DEFAULT_NOTE(self, bytes: int) -> str:
         return _.plural(
-            "plus {bytes} byte reset to the application default (the device holds an "
+            "Plus {bytes} byte reset to the application default (the device holds an "
             "older value; benign, will be normalised on programming)",
-            "plus {bytes} bytes reset to the application default (the device holds an "
+            "Plus {bytes} bytes reset to the application default (the device holds an "
             "older value; benign, will be normalised on programming)",
             bytes,
         )
 
     @property
     def PREFLIGHT_EXPORT(self) -> str:
-        return _("Export Ist/Soll…")
+        return _("Export…")
 
     @property
-    def PREFLIGHT_EXPORT_PATH(self) -> str:
-        return _("Export Path:")
+    def PREFLIGHT_TEXT_FILES(self) -> str:
+        return _("Text Files")
+
+    @property
+    def PREFLIGHT_ALL_FILES(self) -> str:
+        return _("All Files")
 
     @property
     def PREFLIGHT_EXPORT_TITLE(self) -> str:

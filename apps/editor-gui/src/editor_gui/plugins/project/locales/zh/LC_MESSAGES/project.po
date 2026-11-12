@@ -1015,26 +1015,26 @@ msgstr "编程测试结果"
 msgid "Evaluation failed"
 msgstr "评估失败"
 
-msgid "Read-only test: checks that the download function generates the same image as what is already programmed on the device. Nothing is written to the device."
-msgstr "只读测试：检查下载功能生成的映像是否与设备上已编程的内容相同。不会向设备写入任何内容。"
+msgid "Read-only test: compares what a download would write with what is on the device. Nothing is written to the device."
+msgstr "只读测试：将下载会写入的内容与设备上的内容进行比较。不会向设备写入任何内容。"
 
-msgid "Cannot run: the project was changed since it was opened. This test compares the generated image against the device's programmed state, which only matches the project as it was opened. Undo your changes in this session to test."
-msgstr "无法运行：项目自打开以来已被更改。此测试将生成的映像与设备的已编程状态进行比较，而该状态只与打开时的项目相符。请撤消本次会话中的更改后再测试。"
+msgid "Cannot run: the project was changed since it was opened and may no longer match the device. Undo the changes of this session, or save and reopen the project."
+msgstr "无法运行：项目自打开以来已被更改，可能不再与设备一致。请撤消本次会话中的更改，或保存后重新打开项目。"
 
 msgid "Cannot run: no KNX connection. Connect to a gateway ({menu} menu) and make sure the device is reachable at its individual address."
 msgstr "无法运行：没有 KNX 连接。请连接到网关（“{menu}”菜单），并确保设备可通过其物理地址访问。"
 
-msgid "Match: the generated image is identical to what is on the device"
-msgstr "匹配：生成的映像与设备上的内容完全相同"
+msgid "Match: the generated image is identical to what is on the device."
+msgstr "匹配：生成的映像与设备上的内容完全相同。"
 
 msgid "{matched} matched, {changed} would change"
 msgstr "{matched} 个匹配，{changed} 个将更改"
 
-msgid "Only for ETS 6 devices: this test compares the device against an image generated the ETS 6 way. A device last programmed with ETS 5 uses a different byte layout and will show large false differences - the result is only meaningful for a device last programmed with ETS 6."
-msgstr "仅适用于 ETS 6 设备：此测试将设备与按 ETS 6 方式生成的映像进行比较。最后用 ETS 5 编程的设备使用不同的字节布局，会显示大量错误的差异——结果仅对最后用 ETS 6 编程的设备有意义。"
+msgid "Only meaningful for a device last programmed with ETS 6: one programmed with ETS 5 stores its data in another layout and shows large false differences."
+msgstr "仅对最后用 ETS 6 编程的设备有意义：用 ETS 5 编程的设备以另一种布局存储数据，会显示大量错误的差异。"
 
-msgid "Structural differences (whole tables differ) can mean the device was last programmed with ETS 5, whose byte layout differs. Differences in values only usually mean the device holds a different configuration."
-msgstr "结构性差异（整个表不同）可能表示设备最后是用 ETS 5 编程的，其字节布局不同。仅值的差异通常表示设备保存的是不同的配置。"
+msgid "If whole tables differ, the device was possibly last programmed with ETS 5 (another layout). If only values differ, it holds another configuration."
+msgstr "如果整个表不同，设备可能最后是用 ETS 5 编程的（布局不同）。如果只有值不同，则设备具有另一种配置。"
 
 msgid "Location"
 msgstr "位置"
@@ -1045,13 +1045,13 @@ msgstr "大小"
 msgid "Changed"
 msgstr "已更改"
 
-msgid "match"
+msgid "Match"
 msgstr "匹配"
 
-msgid "would change"
+msgid "Would change"
 msgstr "将更改"
 
-msgid "device-managed"
+msgid "Device-managed"
 msgstr "由设备管理"
 
 msgid "System byte the device sets itself at runtime (e.g. a download detection byte reset by the application after a download). A difference here is expected and does not indicate a bad download."
@@ -1060,17 +1060,17 @@ msgstr "由设备在运行时自行设置的系统字节（例如应用在下载
 msgid "No configured differences: the device already carries this configuration. The differences below are benign (see notes)."
 msgstr "没有配置差异：设备已具有此配置。下面的差异无害（见说明）。"
 
-msgid "sets default"
+msgid "Sets default"
 msgstr "设为默认值"
 
 msgid "This byte is written for a neighbouring parameter; the differing bit is not driven by any active parameter and is only reset to the application default. The device holds an older value (e.g. from a previous configuration or mode) that programming will normalise. Benign."
 msgstr "此字节因相邻参数而被写入；不同的位不受任何有效参数控制，仅被复位为应用默认值。设备保存的是较旧的值（例如来自先前的配置或模式），编程时将予以规范化。无害。"
 
-msgid "Export Ist/Soll…"
-msgstr "导出实际/目标…"
+msgid "Export…"
+msgstr "导出…"
 
-msgid "Export Path:"
-msgstr "导出路径："
+msgid "Text Files"
+msgstr "文本文件"
 
 msgid "Export Programming Test Result"
 msgstr "导出编程测试结果"
@@ -3084,8 +3084,8 @@ msgid "{count} byte"
 msgid_plural "{count} bytes"
 msgstr[0] "{count} 字节"
 
-msgid "Mismatch: {bytes} from the device in {locations}"
-msgstr "不匹配：有 {bytes}在 {locations}与设备不同"
+msgid "Mismatch: {bytes} from the device in {locations}."
+msgstr "不匹配：有 {bytes}在 {locations}与设备不同。"
 
 msgid "{count} byte differs"
 msgid_plural "{count} bytes differ"
@@ -3095,12 +3095,12 @@ msgid "{count} location"
 msgid_plural "{count} locations"
 msgstr[0] "{count} 个位置"
 
-msgid "plus {bytes} device-managed runtime byte (expected, benign)"
-msgid_plural "plus {bytes} device-managed runtime bytes (expected, benign)"
+msgid "Plus {bytes} device-managed runtime byte (expected, benign)"
+msgid_plural "Plus {bytes} device-managed runtime bytes (expected, benign)"
 msgstr[0] "另有 {bytes} 个设备管理的运行时字节（预期，无害）"
 
-msgid "plus {bytes} byte reset to the application default (the device holds an older value; benign, will be normalised on programming)"
-msgid_plural "plus {bytes} bytes reset to the application default (the device holds an older value; benign, will be normalised on programming)"
+msgid "Plus {bytes} byte reset to the application default (the device holds an older value; benign, will be normalised on programming)"
+msgid_plural "Plus {bytes} bytes reset to the application default (the device holds an older value; benign, will be normalised on programming)"
 msgstr[0] "另有 {bytes} 个字节复位为应用默认值（设备保存的是较旧的值；无害，编程时将予以规范化）"
 
 msgid "Paste configuration onto {count} selected device:"

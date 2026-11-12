@@ -8,7 +8,7 @@ window can export the current (Ist) and planned (Soll) bytes of every location t
 
 from __future__ import annotations
 
-import contextlib
+import re
 import threading
 from datetime import datetime
 from pathlib import Path
@@ -16,6 +16,7 @@ from typing import TYPE_CHECKING
 
 from imgui_bundle import imgui
 
+from editor_gui import file_dialogs
 from editor_gui.plugins.project.strings import S
 from editor_gui.programming import (
     PREFLIGHT_CONFIG,
@@ -26,16 +27,12 @@ from editor_gui.programming import (
     preflight_segment_category,
 )
 from editor_gui.theme import status_color
-from editor_gui.widgets.dialog import (
-    begin_dialog,
-    begin_tool_window,
-    dialog_buttons,
-    end_dialog,
-)
+from editor_gui.widgets.dialog import begin_tool_window
 from editor_gui.widgets.dpi import px
 from editor_gui.widgets.tables import begin_data_table, data_table_headers
 
 if TYPE_CHECKING:
+    from editor_gui.file_dialogs import SaveFileDialog
     from xknxeditor.download.preflight import PreflightReport, PropertyDiff, SegmentDiff
 
 # Classification of a changed location. The config/default/runtime categories come from
@@ -74,7 +71,10 @@ class PreflightResultWindow:
         # (the device holds an older value), which is benign, not a configured change.
         self._driven: dict[int, int] = {}
         self._show = False
-        self._save_path_buf = "preflight.txt"
+        # The export's file dialog while it is open, and the report it saves.
+        self._save_dialog: SaveFileDialog | None = None
+        self._save_report: PreflightReport | None = None
+        self._export_error: str | None = None
 
     # -- worker thread: no imgui here -------------------------------------
     def submit_result(
@@ -103,6 +103,7 @@ class PreflightResultWindow:
 
     # -- UI thread --------------------------------------------------------
     def render(self) -> None:
+        self._poll_export()
         with self._lock:
             if self._pending is not None:
                 (
@@ -127,10 +128,18 @@ class PreflightResultWindow:
         imgui.end()
 
     def _render_body(self) -> None:
-        imgui.text_disabled(
-            f"{self._label}    {S.PREFLIGHT_SCOPE.format(scope=self._scope)}"
-        )
-        imgui.same_line()
+        # The device as the device lists show it, then the scope: its label dimmed, its value not.
+        imgui.text(self._label)
+        before, _, after = S.PREFLIGHT_SCOPE.partition("{scope}")
+        imgui.same_line(spacing=px(24))
+        if before.strip():
+            imgui.text_disabled(before.strip())
+            imgui.same_line()
+        imgui.text(self._scope)
+        if after.strip():
+            imgui.same_line()
+            imgui.text_disabled(after.strip())
+        imgui.same_line(spacing=px(24))
         # Text is plain (not selectable), so offer explicit copy-to-clipboard.
         if imgui.small_button(S.COPY_LOG):
             imgui.set_clipboard_text(self._clipboard_text())
@@ -216,9 +225,14 @@ class PreflightResultWindow:
             S.PREFLIGHT_SUMMARY_COUNTS.format(matched=matched, changed=config_locations)
         )
 
+        imgui.begin_disabled(self._save_dialog is not None)
         if imgui.button(S.PREFLIGHT_EXPORT):
-            imgui.open_popup(S.PREFLIGHT_EXPORT_TITLE)
-        self._render_export_modal(report)
+            self._start_export(report)
+        imgui.end_disabled()
+        if self._export_error is not None:
+            imgui.push_style_color(imgui.Col_.text, status_color("error"))
+            imgui.text_wrapped(self._export_error)
+            imgui.pop_style_color()
         imgui.separator()
         self._render_table(report)
 
@@ -329,25 +343,37 @@ class PreflightResultWindow:
         if tooltip is not None and imgui.is_item_hovered():
             imgui.set_tooltip(tooltip)
 
-    def _render_export_modal(self, report: PreflightReport) -> None:
-        if not begin_dialog(S.PREFLIGHT_EXPORT_TITLE, width=520):
+    def _start_export(self, report: PreflightReport) -> None:
+        """Ask where to save the report, with the file dialog every export uses (in the browser UI
+        a file of the server, downloaded to the browser if wanted)."""
+        stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+        name = re.sub(r'[<>:"/\\|?*\s]+', "_", self._label).strip("_") or "device"
+        self._save_report = report
+        self._export_error = None
+        self._save_dialog = file_dialogs.save_file(
+            S.PREFLIGHT_EXPORT_TITLE,
+            f"{name}-{stamp}.txt",
+            [S.PREFLIGHT_TEXT_FILES, "*.txt", S.PREFLIGHT_ALL_FILES, "*"],
+        )
+
+    def _poll_export(self) -> None:
+        dialog, report = self._save_dialog, self._save_report
+        if dialog is None or not dialog.ready():
             return
-        imgui.text(S.PREFLIGHT_EXPORT_PATH)
-        imgui.set_next_item_width(-1)
-        _, self._save_path_buf = imgui.input_text("##pf_path", self._save_path_buf)
-        clicked = dialog_buttons(S.BTN_SAVE, S.BTN_CANCEL)
-        if clicked == 0:
-            with contextlib.suppress(OSError):
-                Path(self._save_path_buf).write_text(
-                    self._export_text(report), encoding="utf-8"
-                )
-            imgui.close_current_popup()
-        elif clicked == 1:
-            imgui.close_current_popup()
-        end_dialog()
+        self._save_dialog = self._save_report = None
+        result = dialog.result()
+        if not result or report is None:
+            return
+        path = Path(result)
+        if not path.suffix:
+            path = path.with_suffix(".txt")
+        try:
+            path.write_text(self._export_text(report), encoding="utf-8")
+        except OSError as exc:
+            self._export_error = S.MEMORY_FILE_FAILED.format(error=exc)
 
     def _clipboard_text(self) -> str:
-        header = f"{self._label} scope={self._scope}"
+        header = f"{self._label}  {S.PREFLIGHT_SCOPE.format(scope=self._scope)}"
         if self._error is not None:
             return f"{header}\n{S.PREFLIGHT_FAILED}: {self._error}"
         if self._report is not None:
@@ -367,13 +393,13 @@ class PreflightResultWindow:
                 f"## {space} {segment.address:#06x} ({len(segment.planned)}B) "
                 f"changed={segment.changed_bytes}"
             )
-            lines.append(f"ist : {segment.current.hex()}")
-            lines.append(f"soll: {segment.planned.hex()}")
+            lines.append(f"device   : {segment.current.hex()}")
+            lines.append(f"generated: {segment.planned.hex()}")
         for prop in report.properties:
             lines.append(
                 f"## object {prop.object_label} property {prop.property_id} "
                 f"changed={prop.changed_bytes}"
             )
-            lines.append(f"ist : {prop.current.hex()}")
-            lines.append(f"soll: {prop.planned.hex()}")
+            lines.append(f"device   : {prop.current.hex()}")
+            lines.append(f"generated: {prop.planned.hex()}")
         return "\n".join(lines) + "\n"

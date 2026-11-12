@@ -1,0 +1,244 @@
+# Pre-flight 1.0.27  OpenKNX: LED-Dimmer (AB-SmartHouse) PRODUKTIV scope=Partial: Parameters generated=2026-11-12T19:33:21
+Pre-flight: 0 byte(s) would change (0 memory segment(s), 0 property write(s)).
+  (80 unchanged location(s) omitted)
+
+## memory 0x0054 (5B) changed=0
+device   : 0001012c0e
+generated: 0001012c0e
+## memory 0x0099 (8B) changed=0
+device   : 42487625410af0b3
+generated: 42487625410af0b3
+## memory 0x00a2 (1B) changed=0
+device   : 60
+generated: 60
+## memory 0x00a4 (7B) changed=0
+device   : 00000000000000
+generated: 00000000000000
+## memory 0x00c2 (2B) changed=0
+device   : 7f80
+generated: 7f80
+## memory 0x00c6 (12B) changed=0
+device   : 504001280000800501f40000
+generated: 504001280000800501f40000
+## memory 0x00d8 (1B) changed=0
+device   : 00
+generated: 00
+## memory 0x00e3 (1B) changed=0
+device   : 00
+generated: 00
+## memory 0x00e9 (2B) changed=0
+device   : 0201
+generated: 0201
+## memory 0x00ec (1B) changed=0
+device   : 40
+generated: 40
+## memory 0x00f6 (2B) changed=0
+device   : 0201
+generated: 0201
+## memory 0x00f9 (1B) changed=0
+device   : 20
+generated: 20
+## memory 0x0103 (2B) changed=0
+device   : 0202
+generated: 0202
+## memory 0x0106 (1B) changed=0
+device   : 40
+generated: 40
+## memory 0x0110 (2B) changed=0
+device   : 0202
+generated: 0202
+## memory 0x0113 (1B) changed=0
+device   : 20
+generated: 20
+## memory 0x011d (2B) changed=0
+device   : 0203
+generated: 0203
+## memory 0x0120 (1B) changed=0
+device   : 40
+generated: 40
+## memory 0x012a (2B) changed=0
+device   : 0203
+generated: 0203
+## memory 0x012d (1B) changed=0
+device   : 20
+generated: 20
+## memory 0x0769 (27B) changed=0
+device   : 03e803e80bb80bb8271000640120e0000005010000050064000000
+generated: 03e803e80bb80bb8271000640120e0000005010000050064000000
+## memory 0x0786 (10B) changed=0
+device   : 16440a8c0fa00fa00000
+generated: 16440a8c0fa00fa00000
+## memory 0x07b8 (1B) changed=0
+device   : 4c
+generated: 4c
+## memory 0x07c3 (4B) changed=0
+device   : 040a001e
+generated: 040a001e
+## memory 0x07d1 (15B) changed=0
+device   : 03e803e80bb80bb827100064012000
+generated: 03e803e80bb80bb827100064012000
+## memory 0x07eb (1B) changed=0
+device   : 00
+generated: 00
+## memory 0x07ee (10B) changed=0
+device   : 16440a8c0fa00fa00000
+generated: 16440a8c0fa00fa00000
+## memory 0x0820 (1B) changed=0
+device   : 4c
+generated: 4c
+## memory 0x082b (4B) changed=0
+device   : 040a001e
+generated: 040a001e
+## memory 0x0839 (15B) changed=0
+device   : 03e803e80bb80bb827100064012000
+generated: 03e803e80bb80bb827100064012000
+## memory 0x0853 (1B) changed=0
+device   : 00
+generated: 00
+## memory 0x0856 (10B) changed=0
+device   : 16440a8c0fa00fa00000
+generated: 16440a8c0fa00fa00000
+## memory 0x0888 (1B) changed=0
+device   : 4c
+generated: 4c
+## memory 0x0893 (4B) changed=0
+device   : 040a001e
+generated: 040a001e
+## memory 0x1019 (2B) changed=0
+device   : 01f0
+generated: 01f0
+## memory 0x102c (1B) changed=0
+device   : 00
+generated: 00
+## memory 0x1076 (1B) changed=0
+device   : 00
+generated: 00
+## memory 0x107a (1B) changed=0
+device   : 00
+generated: 00
+## memory 0x107e (1B) changed=0
+device   : 00
+generated: 00
+## memory 0x1082 (1B) changed=0
+device   : 00
+generated: 00
+## memory 0x1086 (5B) changed=0
+device   : 0404100400
+generated: 0404100400
+## memory 0x10bf (1B) changed=0
+device   : 00
+generated: 00
+## memory 0x10f4 (1B) changed=0
+device   : 00
+generated: 00
+## memory 0x1129 (1B) changed=0
+device   : 00
+generated: 00
+## memory 0x12f2 (4B) changed=0
+device   : 00000000
+generated: 00000000
+## memory 0x12f9 (7B) changed=0
+device   : 0300c0ff283c00
+generated: 0300c0ff283c00
+## memory 0x1363 (1B) changed=0
+device   : 00
+generated: 00
+## memory 0x13c7 (1B) changed=0
+device   : 00
+generated: 00
+## memory 0x142b (1B) changed=0
+device   : 00
+generated: 00
+## memory 0x148f (1B) changed=0
+device   : 00
+generated: 00
+## memory 0x14f3 (1B) changed=0
+device   : 00
+generated: 00
+## memory 0x1557 (1B) changed=0
+device   : 00
+generated: 00
+## memory 0x15bb (1B) changed=0
+device   : 00
+generated: 00
+## memory 0x161f (1B) changed=0
+device   : 00
+generated: 00
+## memory 0x1683 (1B) changed=0
+device   : 00
+generated: 00
+## memory 0x16e7 (1B) changed=0
+device   : 00
+generated: 00
+## memory 0x174b (1B) changed=0
+device   : 00
+generated: 00
+## memory 0x17af (1B) changed=0
+device   : 00
+generated: 00
+## memory 0x1813 (1B) changed=0
+device   : 00
+generated: 00
+## memory 0x1877 (1B) changed=0
+device   : 00
+generated: 00
+## memory 0x18db (1B) changed=0
+device   : 00
+generated: 00
+## memory 0x193f (1B) changed=0
+device   : 00
+generated: 00
+## memory 0x19a3 (1B) changed=0
+device   : 00
+generated: 00
+## memory 0x1a07 (1B) changed=0
+device   : 00
+generated: 00
+## memory 0x1a6b (1B) changed=0
+device   : 00
+generated: 00
+## memory 0x1acf (1B) changed=0
+device   : 00
+generated: 00
+## memory 0x1b33 (1B) changed=0
+device   : 00
+generated: 00
+## memory 0x1b97 (1B) changed=0
+device   : 00
+generated: 00
+## memory 0x1bfb (1B) changed=0
+device   : 00
+generated: 00
+## memory 0x1c5f (1B) changed=0
+device   : 00
+generated: 00
+## memory 0x1cc3 (1B) changed=0
+device   : 00
+generated: 00
+## memory 0x1d27 (1B) changed=0
+device   : 00
+generated: 00
+## memory 0x1d8b (1B) changed=0
+device   : 00
+generated: 00
+## memory 0x1def (1B) changed=0
+device   : 00
+generated: 00
+## memory 0x1e53 (1B) changed=0
+device   : 00
+generated: 00
+## memory 0x1eb7 (5B) changed=0
+device   : 0000010000
+generated: 0000010000
+## memory 0x1f11 (4B) changed=0
+device   : 00010000
+generated: 00010000
+## memory 0x1f6a (4B) changed=0
+device   : 00010000
+generated: 00010000
+## memory 0x4123 (2B) changed=0
+device   : 0000
+generated: 0000
+## object 4 property 13 changed=0
+device   : 00faa6070d
+generated: 00faa6070d

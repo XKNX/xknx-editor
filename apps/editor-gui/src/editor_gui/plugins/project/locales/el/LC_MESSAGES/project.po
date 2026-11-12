@@ -1015,26 +1015,26 @@ msgstr "Αποτέλεσμα Δοκιμής Προγραμματισμού"
 msgid "Evaluation failed"
 msgstr "Η αξιολόγηση απέτυχε"
 
-msgid "Read-only test: checks that the download function generates the same image as what is already programmed on the device. Nothing is written to the device."
-msgstr "Δοκιμή μόνο για ανάγνωση: ελέγχει ότι η λειτουργία φόρτισης δημιουργεί την ίδια εικόνα με αυτή που είναι ήδη προγραμματισμένη στη συσκευή. Δεν γράφεται τίποτα στη συσκευή."
+msgid "Read-only test: compares what a download would write with what is on the device. Nothing is written to the device."
+msgstr "Δοκιμή μόνο ανάγνωσης: συγκρίνει ό,τι θα έγραφε μια λήψη με ό,τι υπάρχει στη συσκευή. Δεν γράφεται τίποτα στη συσκευή."
 
-msgid "Cannot run: the project was changed since it was opened. This test compares the generated image against the device's programmed state, which only matches the project as it was opened. Undo your changes in this session to test."
-msgstr "Δεν είναι δυνατή η εκτέλεση: το έργο άλλαξε από τη στιγμή που άνοιξε. Αυτή η δοκιμή συγκρίνει την παραγόμενη εικόνα με την προγραμματισμένη κατάσταση της συσκευής, η οποία αντιστοιχεί μόνο στο έργο όπως άνοιξε. Αναιρέστε τις αλλαγές σας σε αυτήν τη συνεδρία για να εκτελέσετε τη δοκιμή."
+msgid "Cannot run: the project was changed since it was opened and may no longer match the device. Undo the changes of this session, or save and reopen the project."
+msgstr "Δεν είναι δυνατή η εκτέλεση: το έργο άλλαξε από τότε που άνοιξε και ίσως δεν ταιριάζει πλέον με τη συσκευή. Αναιρέστε τις αλλαγές αυτής της συνεδρίας ή αποθηκεύστε και ανοίξτε ξανά το έργο."
 
 msgid "Cannot run: no KNX connection. Connect to a gateway ({menu} menu) and make sure the device is reachable at its individual address."
 msgstr "Δεν είναι δυνατή η εκτέλεση: δεν υπάρχει σύνδεση KNX. Συνδεθείτε σε ένα gateway (μενού {menu}) και βεβαιωθείτε ότι η συσκευή είναι προσβάσιμη στην ατομική της διεύθυνση."
 
-msgid "Match: the generated image is identical to what is on the device"
-msgstr "Ταύτιση: η παραγόμενη εικόνα είναι ίδια με αυτή στη συσκευή"
+msgid "Match: the generated image is identical to what is on the device."
+msgstr "Ταύτιση: η παραγόμενη εικόνα είναι ίδια με αυτή στη συσκευή."
 
 msgid "{matched} matched, {changed} would change"
 msgstr "{matched} ταυτίζονται, {changed} θα άλλαζαν"
 
-msgid "Only for ETS 6 devices: this test compares the device against an image generated the ETS 6 way. A device last programmed with ETS 5 uses a different byte layout and will show large false differences - the result is only meaningful for a device last programmed with ETS 6."
-msgstr "Μόνο για συσκευές ETS 6: αυτή η δοκιμή συγκρίνει τη συσκευή με μια εικόνα που δημιουργείται με τον τρόπο του ETS 6. Μια συσκευή που προγραμματίστηκε τελευταία με ETS 5 χρησιμοποιεί διαφορετική διάταξη byte και θα εμφανίσει μεγάλες ψευδείς διαφορές - το αποτέλεσμα έχει νόημα μόνο για συσκευή που προγραμματίστηκε τελευταία με ETS 6."
+msgid "Only meaningful for a device last programmed with ETS 6: one programmed with ETS 5 stores its data in another layout and shows large false differences."
+msgstr "Έχει νόημα μόνο για συσκευή που προγραμματίστηκε τελευταία με ETS 6: μια συσκευή προγραμματισμένη με ETS 5 αποθηκεύει τα δεδομένα της σε άλλη διάταξη και δείχνει μεγάλες ψευδείς διαφορές."
 
-msgid "Structural differences (whole tables differ) can mean the device was last programmed with ETS 5, whose byte layout differs. Differences in values only usually mean the device holds a different configuration."
-msgstr "Δομικές διαφορές (διαφέρουν ολόκληροι πίνακες) μπορεί να σημαίνουν ότι η συσκευή προγραμματίστηκε τελευταία με ETS 5, του οποίου η διάταξη byte διαφέρει. Διαφορές μόνο σε τιμές συνήθως σημαίνουν ότι η συσκευή έχει διαφορετική διαμόρφωση."
+msgid "If whole tables differ, the device was possibly last programmed with ETS 5 (another layout). If only values differ, it holds another configuration."
+msgstr "Αν διαφέρουν ολόκληροι πίνακες, η συσκευή ίσως προγραμματίστηκε τελευταία με ETS 5 (άλλη διάταξη). Αν διαφέρουν μόνο τιμές, έχει άλλη διαμόρφωση."
 
 msgid "Location"
 msgstr "Θέση"
@@ -1045,14 +1045,14 @@ msgstr "Μέγεθος"
 msgid "Changed"
 msgstr "Αλλαγμένο"
 
-msgid "match"
-msgstr "ταύτιση"
+msgid "Match"
+msgstr "Ταύτιση"
 
-msgid "would change"
-msgstr "θα άλλαζε"
+msgid "Would change"
+msgstr "Θα άλλαζε"
 
-msgid "device-managed"
-msgstr "διαχείριση από τη συσκευή"
+msgid "Device-managed"
+msgstr "Διαχείριση από τη συσκευή"
 
 msgid "System byte the device sets itself at runtime (e.g. a download detection byte reset by the application after a download). A difference here is expected and does not indicate a bad download."
 msgstr "Byte συστήματος που ορίζει η ίδια η συσκευή κατά τη λειτουργία (π.χ. ένα byte ανίχνευσης φόρτισης που επαναφέρει η εφαρμογή μετά από μια φόρτιση). Μια διαφορά εδώ είναι αναμενόμενη και δεν υποδηλώνει εσφαλμένη φόρτιση."
@@ -1060,17 +1060,17 @@ msgstr "Byte συστήματος που ορίζει η ίδια η συσκε�
 msgid "No configured differences: the device already carries this configuration. The differences below are benign (see notes)."
 msgstr "Δεν υπάρχουν διαφορές διαμόρφωσης: η συσκευή έχει ήδη αυτήν τη διαμόρφωση. Οι παρακάτω διαφορές είναι ακίνδυνες (δείτε τις σημειώσεις)."
 
-msgid "sets default"
-msgstr "ορίζει προεπιλογή"
+msgid "Sets default"
+msgstr "Ορίζει προεπιλογή"
 
 msgid "This byte is written for a neighbouring parameter; the differing bit is not driven by any active parameter and is only reset to the application default. The device holds an older value (e.g. from a previous configuration or mode) that programming will normalise. Benign."
 msgstr "Αυτό το byte γράφεται λόγω μιας γειτονικής παραμέτρου· το διαφορετικό bit δεν ελέγχεται από καμία ενεργή παράμετρο και απλώς επαναφέρεται στην προεπιλογή της εφαρμογής. Η συσκευή έχει μια παλαιότερη τιμή (π.χ. από προηγούμενη διαμόρφωση ή λειτουργία), την οποία ο προγραμματισμός θα κανονικοποιήσει. Ακίνδυνο."
 
-msgid "Export Ist/Soll…"
-msgstr "Εξαγωγή Ist/Soll…"
+msgid "Export…"
+msgstr "Εξαγωγή…"
 
-msgid "Export Path:"
-msgstr "Διαδρομή Εξαγωγής:"
+msgid "Text Files"
+msgstr "Αρχεία κειμένου"
 
 msgid "Export Programming Test Result"
 msgstr "Εξαγωγή Αποτελέσματος Δοκιμής Προγραμματισμού"
@@ -3125,8 +3125,8 @@ msgid_plural "{count} bytes"
 msgstr[0] "{count} byte"
 msgstr[1] "{count} bytes"
 
-msgid "Mismatch: {bytes} from the device in {locations}"
-msgstr "Απόκλιση: {bytes} από τη συσκευή σε {locations}"
+msgid "Mismatch: {bytes} from the device in {locations}."
+msgstr "Απόκλιση: {bytes} από τη συσκευή σε {locations}."
 
 msgid "{count} byte differs"
 msgid_plural "{count} bytes differ"
@@ -3138,15 +3138,15 @@ msgid_plural "{count} locations"
 msgstr[0] "{count} θέση"
 msgstr[1] "{count} θέσεις"
 
-msgid "plus {bytes} device-managed runtime byte (expected, benign)"
-msgid_plural "plus {bytes} device-managed runtime bytes (expected, benign)"
-msgstr[0] "συν {bytes} byte λειτουργίας υπό διαχείριση της συσκευής (αναμενόμενο, ακίνδυνο)"
-msgstr[1] "συν {bytes} byte λειτουργίας υπό διαχείριση της συσκευής (αναμενόμενο, ακίνδυνο)"
+msgid "Plus {bytes} device-managed runtime byte (expected, benign)"
+msgid_plural "Plus {bytes} device-managed runtime bytes (expected, benign)"
+msgstr[0] "Συν {bytes} byte λειτουργίας υπό διαχείριση της συσκευής (αναμενόμενο, ακίνδυνο)"
+msgstr[1] "Συν {bytes} byte λειτουργίας υπό διαχείριση της συσκευής (αναμενόμενο, ακίνδυνο)"
 
-msgid "plus {bytes} byte reset to the application default (the device holds an older value; benign, will be normalised on programming)"
-msgid_plural "plus {bytes} bytes reset to the application default (the device holds an older value; benign, will be normalised on programming)"
-msgstr[0] "συν {bytes} byte που επαναφέρεται στην προεπιλογή της εφαρμογής (η συσκευή έχει παλαιότερη τιμή· ακίνδυνο, θα κανονικοποιηθεί κατά τον προγραμματισμό)"
-msgstr[1] "συν {bytes} byte που επαναφέρονται στην προεπιλογή της εφαρμογής (η συσκευή έχει παλαιότερη τιμή· ακίνδυνο, θα κανονικοποιηθεί κατά τον προγραμματισμό)"
+msgid "Plus {bytes} byte reset to the application default (the device holds an older value; benign, will be normalised on programming)"
+msgid_plural "Plus {bytes} bytes reset to the application default (the device holds an older value; benign, will be normalised on programming)"
+msgstr[0] "Συν {bytes} byte που επαναφέρεται στην προεπιλογή της εφαρμογής (η συσκευή έχει παλαιότερη τιμή· ακίνδυνο, θα κανονικοποιηθεί κατά τον προγραμματισμό)"
+msgstr[1] "Συν {bytes} byte που επαναφέρονται στην προεπιλογή της εφαρμογής (η συσκευή έχει παλαιότερη τιμή· ακίνδυνο, θα κανονικοποιηθεί κατά τον προγραμματισμό)"
 
 msgid "Paste configuration onto {count} selected device:"
 msgid_plural "Paste configuration onto {count} selected devices:"

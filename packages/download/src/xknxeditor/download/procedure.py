@@ -113,6 +113,7 @@ from .errors import (
     PropertyAccessRejected,
     UnsupportedProcedureError,
     VerificationError,
+    product_message,
 )
 from .factory_image import FactoryLocation, FactorySegment, FactoryStamp, PropertyStamp
 from .group_communication import materialize_group_communication_controls
@@ -714,13 +715,16 @@ class LoadProcedureRunner:
                     else None
                 )
                 if message is not None:
+                    # The product's own text, in the language its data has, marked as such
+                    # beside the editor's details.
+                    quoted = product_message(message)
                     if isinstance(error, PropertyAccessRejected):
                         raise PropertyAccessRejected(
-                            message, error_code=error.error_code
+                            quoted, error_code=error.error_code
                         ) from error
                     details = error.details
                     raise error.with_message(
-                        f"{message} {details}" if details else message
+                        f"{quoted} {details}" if details else quoted
                     ) from error
                 return False
             logger.info(

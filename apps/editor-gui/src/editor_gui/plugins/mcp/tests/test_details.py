@@ -539,3 +539,32 @@ async def test_a_product_without_application_is_added(tmp_path: Path) -> None:
             device = project.find_device_by_node_id(node_id)
             assert device is not None and device.individual_address
         assert added["name"] == "Supply"
+
+
+@_needs_fixture
+async def test_imported_products_resolve_the_project_devices(tmp_path: Path) -> None:
+    import base64
+
+    from .test_server import _build_ctx
+
+    ctx = _build_ctx(tmp_path)
+    project = ctx.api.project
+    refreshed: list[bool] = []
+    refresh = project.refresh_catalog_resolution
+
+    def spy(**kwargs: Any) -> bool:
+        refreshed.append(True)
+        return refresh(**kwargs)
+
+    project.refresh_catalog_resolution = spy  # type: ignore[method-assign]
+    async with Client(build_server(ctx)) as client:
+        await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
+        await _data(client, "catalog_import_product", path=str(_FIXTURE))
+        await _data(
+            client,
+            "catalog_import_product_bytes",
+            filename=_FIXTURE.name,
+            data_base64=base64.b64encode(_FIXTURE.read_bytes()).decode(),
+        )
+    # As an import in the GUI: devices waiting for these products resolve through them.
+    assert refreshed == [True, True]

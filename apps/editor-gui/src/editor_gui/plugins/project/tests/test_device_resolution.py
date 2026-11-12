@@ -98,6 +98,38 @@ def test_device_without_application_stays_listed(tmp_path: Path) -> None:
     proj.close()
 
 
+def test_missing_products_are_looked_up_once_per_revision(tmp_path: Path) -> None:
+    path, _device_id, program = _project_with_device(tmp_path)
+    with sqlite3.connect(path) as db:
+        db.execute("UPDATE projects SET imported_product_members = NULL")
+        db.execute("DELETE FROM product_data")
+    cat = CatalogService(tmp_path / "empty.xknxcatalog")
+    proj = _open(cat, path)
+    lookups: list[str] = []
+    lookup = cat.get_program_application_id
+
+    def counted(ref: str) -> str | None:
+        lookups.append(ref)
+        return lookup(ref)
+
+    cat.get_program_application_id = counted  # type: ignore[method-assign]
+    # Polled every frame: the catalog is asked once until the next revision.
+    assert proj.missing_program_refs() == [program]
+    assert proj.missing_program_refs() == [program]
+    assert lookups == [program]
+
+    # A copy can be changed without changing what the next poll returns.
+    proj.missing_program_refs().clear()
+    assert proj.missing_program_refs() == [program]
+
+    # The product imported: refreshing the resolution (as every import does) finds it.
+    cat.import_knxprod(_fixture())
+    proj.refresh_catalog_resolution()
+    assert proj.missing_program_refs() == []
+    assert proj.unloaded_devices == []
+    proj.close()
+
+
 def test_product_without_application_is_a_device(tmp_path: Path) -> None:
     path, device_id, program = _project_with_device(tmp_path)
     # A product whose Hardware2Program loads no application, as a power supply's.

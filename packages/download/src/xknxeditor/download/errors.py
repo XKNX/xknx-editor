@@ -131,6 +131,12 @@ class CompareMismatch(VerificationError):
         )
 
 
+def product_message(text: str) -> str:
+    """A message of the product data (the manufacturer's text) as an error shows it: marked as the
+    product's and quoted, so it stands apart from the editor's own text around it."""
+    return f'Product message: "{text.strip().rstrip(".")}".'
+
+
 _PID_PROGRAM_VERSION = 13
 # Device object (index 0) properties a load procedure compares to identify a device.
 _PROPERTY_NAMES = {11: "serial number", 12: "manufacturer ID", 78: "hardware type"}

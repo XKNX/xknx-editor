@@ -40,7 +40,7 @@ def test_sentence_from_parts() -> None:
         bytes=project_strings.PREFLIGHT_BYTES_DIFFER(1).format(count=1),
         locations=project_strings.PREFLIGHT_LOCATIONS(2).format(count=2),
     )
-    assert text == "Mismatch: 1 byte differs from the device in 2 locations"
+    assert text == "Mismatch: 1 byte differs from the device in 2 locations."
 
 
 @pytest.mark.parametrize(

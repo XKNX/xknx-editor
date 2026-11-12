@@ -1015,26 +1015,26 @@ msgstr "Ohjelmointitestin tulos"
 msgid "Evaluation failed"
 msgstr "Arviointi epäonnistui"
 
-msgid "Read-only test: checks that the download function generates the same image as what is already programmed on the device. Nothing is written to the device."
-msgstr "Vain luku -testi: tarkistaa, että lataustoiminto muodostaa saman kuvan kuin laitteeseen on jo ohjelmoitu. Laitteeseen ei kirjoiteta mitään."
+msgid "Read-only test: compares what a download would write with what is on the device. Nothing is written to the device."
+msgstr "Vain luku -testi: vertaa sitä, mitä lataus kirjoittaisi, laitteen nykyiseen sisältöön. Laitteeseen ei kirjoiteta mitään."
 
-msgid "Cannot run: the project was changed since it was opened. This test compares the generated image against the device's programmed state, which only matches the project as it was opened. Undo your changes in this session to test."
-msgstr "Ei voi suorittaa: projektia on muutettu sen avaamisen jälkeen. Tämä testi vertaa muodostettua kuvaa laitteen ohjelmoituun tilaan, joka vastaa vain projektia sellaisena kuin se avattiin. Kumoa tämän istunnon muutokset testataksesi."
+msgid "Cannot run: the project was changed since it was opened and may no longer match the device. Undo the changes of this session, or save and reopen the project."
+msgstr "Ei voi suorittaa: projektia on muutettu avaamisen jälkeen, eikä se ehkä enää vastaa laitetta. Kumoa tämän istunnon muutokset tai tallenna projekti ja avaa se uudelleen."
 
 msgid "Cannot run: no KNX connection. Connect to a gateway ({menu} menu) and make sure the device is reachable at its individual address."
 msgstr "Ei voi suorittaa: ei KNX-yhteyttä. Yhdistä yhdyskäytävään ({menu}-valikko) ja varmista, että laite on tavoitettavissa yksilöllisessä osoitteessaan."
 
-msgid "Match: the generated image is identical to what is on the device"
-msgstr "Vastaa: muodostettu kuva on identtinen laitteessa olevan kanssa"
+msgid "Match: the generated image is identical to what is on the device."
+msgstr "Vastaa: muodostettu kuva on identtinen laitteessa olevan kanssa."
 
 msgid "{matched} matched, {changed} would change"
 msgstr "{matched} vastaa, {changed} muuttuisi"
 
-msgid "Only for ETS 6 devices: this test compares the device against an image generated the ETS 6 way. A device last programmed with ETS 5 uses a different byte layout and will show large false differences - the result is only meaningful for a device last programmed with ETS 6."
-msgstr "Vain ETS 6 -laitteille: tämä testi vertaa laitetta kuvaan, joka on muodostettu ETS 6:n tavalla. Viimeksi ETS 5:llä ohjelmoidussa laitteessa on erilainen tavujärjestely, ja se näyttää suuria virheellisiä eroja - tulos on merkityksellinen vain viimeksi ETS 6:lla ohjelmoidulle laitteelle."
+msgid "Only meaningful for a device last programmed with ETS 6: one programmed with ETS 5 stores its data in another layout and shows large false differences."
+msgstr "Merkityksellinen vain laitteelle, joka on viimeksi ohjelmoitu ETS 6:lla: ETS 5:llä ohjelmoitu laite tallentaa tietonsa eri asetteluun ja näyttää suuria vääriä eroja."
 
-msgid "Structural differences (whole tables differ) can mean the device was last programmed with ETS 5, whose byte layout differs. Differences in values only usually mean the device holds a different configuration."
-msgstr "Rakenteelliset erot (kokonaiset taulukot eroavat) voivat tarkoittaa, että laite on viimeksi ohjelmoitu ETS 5:llä, jonka tavujärjestely on erilainen. Pelkät arvoerot tarkoittavat yleensä, että laitteessa on eri konfiguraatio."
+msgid "If whole tables differ, the device was possibly last programmed with ETS 5 (another layout). If only values differ, it holds another configuration."
+msgstr "Jos kokonaiset taulukot eroavat, laite on ehkä viimeksi ohjelmoitu ETS 5:llä (eri asettelu). Jos vain arvot eroavat, laitteessa on eri konfiguraatio."
 
 msgid "Location"
 msgstr "Sijainti"
@@ -1045,14 +1045,14 @@ msgstr "Koko"
 msgid "Changed"
 msgstr "Muuttunut"
 
-msgid "match"
-msgstr "vastaa"
+msgid "Match"
+msgstr "Vastaa"
 
-msgid "would change"
-msgstr "muuttuisi"
+msgid "Would change"
+msgstr "Muuttuisi"
 
-msgid "device-managed"
-msgstr "laitteen hallitsema"
+msgid "Device-managed"
+msgstr "Laitteen hallitsema"
 
 msgid "System byte the device sets itself at runtime (e.g. a download detection byte reset by the application after a download). A difference here is expected and does not indicate a bad download."
 msgstr "Järjestelmätavu, jonka laite asettaa itse ajon aikana (esim. lataustunnistustavu, jonka sovellus nollaa latauksen jälkeen). Ero tässä on odotettu eikä viittaa epäonnistuneeseen lataukseen."
@@ -1060,17 +1060,17 @@ msgstr "Järjestelmätavu, jonka laite asettaa itse ajon aikana (esim. lataustun
 msgid "No configured differences: the device already carries this configuration. The differences below are benign (see notes)."
 msgstr "Ei määritettyjä eroja: laitteessa on jo tämä konfiguraatio. Alla olevat erot ovat vaarattomia (katso huomautukset)."
 
-msgid "sets default"
-msgstr "asettaa oletusarvon"
+msgid "Sets default"
+msgstr "Asettaa oletusarvon"
 
 msgid "This byte is written for a neighbouring parameter; the differing bit is not driven by any active parameter and is only reset to the application default. The device holds an older value (e.g. from a previous configuration or mode) that programming will normalise. Benign."
 msgstr "Tämä tavu kirjoitetaan viereisen parametrin vuoksi; poikkeavaa bittiä ei ohjaa mikään aktiivinen parametri, ja se vain palautetaan sovelluksen oletusarvoon. Laitteessa on vanhempi arvo (esim. aiemmasta konfiguraatiosta tai tilasta), jonka ohjelmointi normalisoi. Vaaraton."
 
-msgid "Export Ist/Soll…"
-msgstr "Vie tosi/tavoite…"
+msgid "Export…"
+msgstr "Vie…"
 
-msgid "Export Path:"
-msgstr "Vientipolku:"
+msgid "Text Files"
+msgstr "Tekstitiedostot"
 
 msgid "Export Programming Test Result"
 msgstr "Vie ohjelmointitestin tulos"
@@ -3125,8 +3125,8 @@ msgid_plural "{count} bytes"
 msgstr[0] "{count} tavu"
 msgstr[1] "{count} tavua"
 
-msgid "Mismatch: {bytes} from the device in {locations}"
-msgstr "Poikkeama: {bytes} laitteesta {locations}"
+msgid "Mismatch: {bytes} from the device in {locations}."
+msgstr "Poikkeama: {bytes} laitteesta {locations}."
 
 msgid "{count} byte differs"
 msgid_plural "{count} bytes differ"
@@ -3138,15 +3138,15 @@ msgid_plural "{count} locations"
 msgstr[0] "{count} kohdassa"
 msgstr[1] "{count} kohdassa"
 
-msgid "plus {bytes} device-managed runtime byte (expected, benign)"
-msgid_plural "plus {bytes} device-managed runtime bytes (expected, benign)"
-msgstr[0] "lisäksi {bytes} laitteen hallitsema ajonaikainen tavu (odotettu, vaaraton)"
-msgstr[1] "lisäksi {bytes} laitteen hallitsemaa ajonaikaista tavua (odotettu, vaaraton)"
+msgid "Plus {bytes} device-managed runtime byte (expected, benign)"
+msgid_plural "Plus {bytes} device-managed runtime bytes (expected, benign)"
+msgstr[0] "Lisäksi {bytes} laitteen hallitsema ajonaikainen tavu (odotettu, vaaraton)"
+msgstr[1] "Lisäksi {bytes} laitteen hallitsemaa ajonaikaista tavua (odotettu, vaaraton)"
 
-msgid "plus {bytes} byte reset to the application default (the device holds an older value; benign, will be normalised on programming)"
-msgid_plural "plus {bytes} bytes reset to the application default (the device holds an older value; benign, will be normalised on programming)"
-msgstr[0] "lisäksi {bytes} tavu palautetaan sovelluksen oletusarvoon (laitteessa on vanhempi arvo; vaaraton, normalisoidaan ohjelmoitaessa)"
-msgstr[1] "lisäksi {bytes} tavua palautetaan sovelluksen oletusarvoon (laitteessa on vanhempi arvo; vaaraton, normalisoidaan ohjelmoitaessa)"
+msgid "Plus {bytes} byte reset to the application default (the device holds an older value; benign, will be normalised on programming)"
+msgid_plural "Plus {bytes} bytes reset to the application default (the device holds an older value; benign, will be normalised on programming)"
+msgstr[0] "Lisäksi {bytes} tavu palautetaan sovelluksen oletusarvoon (laitteessa on vanhempi arvo; vaaraton, normalisoidaan ohjelmoitaessa)"
+msgstr[1] "Lisäksi {bytes} tavua palautetaan sovelluksen oletusarvoon (laitteessa on vanhempi arvo; vaaraton, normalisoidaan ohjelmoitaessa)"
 
 msgid "Paste configuration onto {count} selected device:"
 msgid_plural "Paste configuration onto {count} selected devices:"
