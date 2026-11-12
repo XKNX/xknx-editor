@@ -231,3 +231,72 @@ def test_a_module_instance_calculated_anew_writes_its_target() -> None:
     ui = _ui({_CHANNEL: "1", _LEVEL: "2"}, keep=True)
     assert ui.calculate_anew() == {_LEVEL: ("2", "6")}
     assert ui.get_value(_LEVEL) == "6"
+
+
+def test_a_stored_module_instance_that_appears_later_writes_its_target() -> None:
+    # Stored with the project but not shown when it opened, the instance is set aside; when it
+    # appears, its Assign starts applying and writes.
+    ui = _ui({_CHANNEL: "0", _LEVEL: "2"}, keep=True)
+    ui.edit_parameters([(_CHANNEL, "1")])
+    assert ui.get_value(_LEVEL) == "6"
+
+
+_CHAIN = "M-00FA_A-0012-01-0000"
+
+
+def _chain_ref(number: int) -> str:
+    return f"{_CHAIN}_P-{number}_R-{number}"
+
+
+_CHAIN_XML = f"""<KNX xmlns="http://knx.org/xml/project/20" CreatedBy="test" ToolVersion="1">
+<ManufacturerData><Manufacturer RefId="M-00FA"><ApplicationPrograms>
+<ApplicationProgram Id="{_CHAIN}" ApplicationNumber="18" ApplicationVersion="1"
+    ProgramType="ApplicationProgram" MaskVersion="MV-07B0" Name="Assign chain"
+    LoadProcedureStyle="MergedProcedure" PeiType="0" DefaultLanguage="en-US"
+    DynamicTableManagement="false" Linkable="false" MinEtsVersion="5.0">
+<Static>
+<ParameterTypes>
+<ParameterType Id="{_CHAIN}_PT-N" Name="N">
+<TypeNumber SizeInBit="8" Type="unsignedInt" minInclusive="0" maxInclusive="9" /></ParameterType>
+</ParameterTypes>
+<Parameters>
+<Parameter Id="{_CHAIN}_P-1" Name="Hidden" ParameterType="{_CHAIN}_PT-N" Text="Hidden" Value="1" />
+<Parameter Id="{_CHAIN}_P-2" Name="First" ParameterType="{_CHAIN}_PT-N" Text="First" Value="0" />
+<Parameter Id="{_CHAIN}_P-3" Name="Second" ParameterType="{_CHAIN}_PT-N" Text="Second" Value="0" />
+<Parameter Id="{_CHAIN}_P-4" Name="Show" ParameterType="{_CHAIN}_PT-N" Text="Show" Value="0" />
+</Parameters>
+<ParameterRefs>
+<ParameterRef Id="{_chain_ref(1)}" RefId="{_CHAIN}_P-1" />
+<ParameterRef Id="{_chain_ref(2)}" RefId="{_CHAIN}_P-2" />
+<ParameterRef Id="{_chain_ref(3)}" RefId="{_CHAIN}_P-3" />
+<ParameterRef Id="{_chain_ref(4)}" RefId="{_CHAIN}_P-4" />
+</ParameterRefs>
+</Static>
+<Dynamic><ChannelIndependentBlock><ParameterBlock Id="{_CHAIN}_PB-1" Text="General">
+<ParameterRefRef RefId="{_chain_ref(4)}" />
+<ParameterRefRef RefId="{_chain_ref(2)}" />
+<ParameterRefRef RefId="{_chain_ref(3)}" />
+<choose ParamRefId="{_chain_ref(4)}"><when test="1">
+<ParameterRefRef RefId="{_chain_ref(1)}" /></when></choose>
+<choose ParamRefId="{_chain_ref(1)}"><when test="1">
+<Assign TargetParamRefRef="{_chain_ref(2)}" Value="1" /></when></choose>
+<choose ParamRefId="{_chain_ref(2)}"><when test="1">
+<Assign TargetParamRefRef="{_chain_ref(3)}" Value="7" /></when></choose>
+</ParameterBlock></ChannelIndependentBlock></Dynamic>
+</ApplicationProgram></ApplicationPrograms></Manufacturer></ManufacturerData></KNX>"""
+
+
+def test_an_assign_reached_only_through_one_that_does_not_apply_writes_nothing() -> (
+    None
+):
+    # The first pass of an evaluation selects a branch of every choose, also of one on a
+    # parameter that is not shown: the Assign it reaches there does not apply, and neither does
+    # one reached only through the value it wrote.
+    program = parse_application_xml(_CHAIN_XML.encode(), "M-00FA")[0].program
+    ui = DynamicUI(program)
+    ui.ui()
+    assert (ui.get_value(_chain_ref(2)), ui.get_value(_chain_ref(3))) == ("0", "0")
+    assert not ui.active_assigns()
+    # Shown, the hidden parameter switches both on.
+    ui.edit_parameters([(_chain_ref(4), "1")])
+    assert (ui.get_value(_chain_ref(2)), ui.get_value(_chain_ref(3))) == ("1", "7")

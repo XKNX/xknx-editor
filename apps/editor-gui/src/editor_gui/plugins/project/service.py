@@ -603,8 +603,13 @@ _STRUCTURAL_EVENTS = frozenset(
 
 def _parameter_devices(event_type: str, data: dict[str, Any]) -> set[int]:
     """The ids of the devices whose parameter values (or the module instances they make) an
-    undone/redone event sets."""
-    if event_type in ("SetParameter", "SyncDeviceModuleInstances"):
+    undone/redone event sets: also those whose application it updates or changes."""
+    if event_type in (
+        "SetParameter",
+        "SyncDeviceModuleInstances",
+        "UpdateDeviceApplication",
+        "ChangeDeviceApplication",
+    ):
         try:
             return {int(data["device_id"])}
         except (KeyError, TypeError, ValueError):
@@ -2203,15 +2208,14 @@ class ProjectService:
             pending, self._calculated_pending = self._calculated_pending, {}
         stored_any = False
         rebuild: list[int] = []
+        rows = {r.id: r for r in self._svc.devices(self._pid)} if pending else {}
         for node_id, (device, changes, active_before) in pending.items():
             values = [
                 (ref, old, new)
                 for ref, (old, new) in changes.items()
                 if new is not None and new != old
             ]
-            row = next(
-                (r for r in self._svc.devices(self._pid) if r.id == node_id), None
-            )
+            row = rows.get(node_id)
             if not values or device.app is None or row is None:
                 continue
             app_id = device.app.program.id

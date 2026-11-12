@@ -13,7 +13,10 @@ import pytest
 from editor_gui.plugins.base import Logger
 from editor_gui.plugins.catalog.service import CatalogService
 from editor_gui.plugins.logger.service import LogService
-from editor_gui.plugins.project.service import ProjectService
+from editor_gui.plugins.project.service import (
+    ProjectService,
+    _parameter_devices,  # pyright: ignore[reportPrivateUsage]
+)
 from xknxeditor.prod import Application
 from xknxeditor.prod.application import parse_application_xml
 
@@ -258,3 +261,12 @@ def test_an_undo_over_several_devices_calculates_those_in_use_at_once(
     assert proj.undo()
     assert [_row_values(proj, n)[MODE] for n in nodes] == ["2", "2"]
     assert [_value(proj, n, MODE) for n in nodes] == ["2", "2"]
+
+
+def test_an_undone_application_update_or_change_calculates_the_device_anew() -> None:
+    # Both set the device's parameter values, also inside a composite step.
+    for event_type in ("UpdateDeviceApplication", "ChangeDeviceApplication"):
+        assert _parameter_devices(event_type, {"device_id": 7}) == {7}
+        step = {"events": [{"type": event_type, "data": {"device_id": 8}}]}
+        assert _parameter_devices("Composite", step) == {8}
+    assert _parameter_devices("SetComment", {"device_id": 7}) == set()

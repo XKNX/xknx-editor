@@ -10,9 +10,11 @@ setting.
 
 from __future__ import annotations
 
+import xknxeditor.recover.parameters as parameters
 from xknxeditor.download import relative_segment_fills
 from xknxeditor.prod.application import Application, parse_application_xml
 from xknxeditor.recover.parameters import recover_parameters
+from xknxeditor.recover.recover import seed_dynamic_ui
 
 _APP = "M-00FA_A-00F8-01-0000"
 _SEGMENT = f"{_APP}_RS-04-00000"
@@ -118,3 +120,25 @@ def test_without_fill_the_hidden_setting_fits_zeros_only() -> None:
     application = _application(kept)
     assert recover_parameters(application, {_SEGMENT: b"\x00\x00\x00\x00"}).complete
     assert not recover_parameters(application, {_SEGMENT: b"\x00\xff\xff\xff"}).complete
+
+
+def test_the_seed_value_where_the_fill_belongs_still_differs() -> None:
+    # The encoding leaves the hidden setting's byte at 0, as the device holds it: the full
+    # download fills it, so a device holding 0 there was not downloaded with it hidden.
+    recovered = recover_parameters(_application(), {_SEGMENT: b"\x00\x00\xff\xff"})
+    assert not recovered.complete
+
+
+def test_the_bits_of_a_byte_the_fill_belongs_in_count_against_the_fill() -> None:
+    # The hidden setting's byte holds 0x7F: one bit off the fill the download leaves there,
+    # not seven off the 0 the encoding has.
+    application = _application()
+    ui = seed_dynamic_ui(application, {_CHANNEL: "0"})
+    assert ui is not None
+    device = {_SEGMENT: bytes([0x00, 0x7F, 0xFF, 0xFF])}
+    previous = getattr(parameters._SEARCH, "cache", None)  # pyright: ignore[reportPrivateUsage]
+    parameters._SEARCH.cache = parameters._SearchCache(application)  # pyright: ignore[reportPrivateUsage]
+    try:
+        assert parameters._differing_bits(ui, device, [(_SEGMENT, 1)]) == 1  # pyright: ignore[reportPrivateUsage]
+    finally:
+        parameters._SEARCH.cache = previous  # pyright: ignore[reportPrivateUsage]

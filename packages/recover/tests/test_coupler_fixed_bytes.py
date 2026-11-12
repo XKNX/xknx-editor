@@ -133,3 +133,15 @@ async def test_a_coupler_without_an_address_table_has_its_segment_read(
         application,
     )
     assert read == device
+
+
+def test_the_value_the_encoding_leaves_there_still_differs(
+    application: Application,
+) -> None:
+    # The device holds there what the encoding of the hidden setting leaves (0), not the fixed
+    # byte the download writes: the byte differs as well.
+    device = _device(application, {_MODE: "0"})
+    device[_SEGMENT] = device[_SEGMENT][:0x12] + bytes([0]) + device[_SEGMENT][0x13:]
+    recovered = recover_parameters(application, device)
+    assert not recovered.complete
+    assert recovered.differing_bytes == 1

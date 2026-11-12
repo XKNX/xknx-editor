@@ -1126,7 +1126,18 @@ def _differing_cells(
         fill = fills.get(segment_id, 0)
         fixed = fixed_bytes.get(segment_id, {})
         own_bytes = encoded.get(segment_id, b"")
-        for offset in _offsets_differing(device, own_bytes):
+        offsets = _offsets_differing(device, own_bytes)
+        if fill or fixed:
+            # A byte the encoding leaves as the device holds it still differs where the
+            # download writes the fill or a fixed value into it.
+            size = min(len(device), len(own_bytes))
+            unwritten = {offset for offset in fixed if offset < size}
+            if fill:
+                unwritten.update(_offsets_differing(device, bytes((fill,)) * size))
+            unwritten.difference_update(offsets)
+            if unwritten:
+                offsets = sorted({*offsets, *unwritten})
+        for offset in offsets:
             mine, theirs = own_bytes[offset], device[offset]
             if fill or offset in fixed:
                 if written is None:
@@ -1136,8 +1147,8 @@ def _differing_cells(
                     # No active setting writes the byte: the download leaves the fill, or
                     # writes the byte's fixed value.
                     mine = fixed.get(offset, fill)
-                    if mine == theirs:
-                        continue
+                if mine == theirs:
+                    continue
             diff = mine ^ theirs
             if cache is not None and cache.in_tables(segment_id):
                 if tables is None:
@@ -4266,7 +4277,8 @@ def _differing_bits(
 ) -> int:
     """How many bits of the bytes ``cells`` the device holds otherwise than ``ui`` writes them,
     leaving out those the group communication tables write (see
-    :meth:`_SearchCache.table_bits`)."""
+    :meth:`_SearchCache.table_bits`). A byte no active setting writes holds the fill or the
+    fixed value the download writes there (see :func:`_differing_cells`)."""
     from xknxeditor.prod.errors import EncodingError
 
     if not cells:
@@ -4282,14 +4294,24 @@ def _differing_bits(
         and any(cache.in_tables(segment_id) for segment_id, _offset in cells)
         else {}
     )
+    fills = cache.segment_fills() if cache is not None else {}
+    fixed_bytes = cache.fixed_bytes() if cache is not None else {}
+    written: dict[str, bytes] | None = None
     count = 0
     for segment_id, offset in cells:
         device = parameter_segments.get(segment_id, b"")
         mine = encoded.get(segment_id, b"")
         if offset < min(len(device), len(mine)):
-            diff = (device[offset] ^ mine[offset]) & ~tables.get(
-                (segment_id, offset), 0
-            )
+            own = mine[offset]
+            fill = fills.get(segment_id, 0)
+            fixed = fixed_bytes.get(segment_id, {})
+            if fill or offset in fixed:
+                if written is None:
+                    written = ui.written_bit_mask()
+                mask = written.get(segment_id, b"")
+                if not (mask[offset] if offset < len(mask) else 0):
+                    own = fixed.get(offset, fill)
+            diff = (device[offset] ^ own) & ~tables.get((segment_id, offset), 0)
             count += diff.bit_count()
     return count
 

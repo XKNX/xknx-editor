@@ -190,13 +190,18 @@ def _plain_settle(
     """A settle that evaluates the next pass also when it would repeat the last one."""
     state = self._state  # pyright: ignore[reportPrivateUsage]
     tree: list[UiNode] = []
+    settled = False
     for _ in range(_MAX_GATE_PASSES):
         state.reset_active()
         tree = self._tree.eval(make_ctx())  # pyright: ignore[reportPrivateUsage]
+        state.undo_ungated_assigns()
+        state.give_back_lapsed_assigns()
         gate_changed = state.update_gate_active()
         if not gate_changed and not state.pass_changed_state():
-            return tree, True
-    return tree, False
+            settled = True
+            break
+    state.commit_assigns()
+    return tree, settled
 
 
 def _evaluations(program: object) -> list[tuple[object, ...]]:

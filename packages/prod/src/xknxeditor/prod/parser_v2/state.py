@@ -233,6 +233,7 @@ class ParameterState:
         "_com_obj_instance_refs",
         "_discovered_active_param_refs",
         "_dormant_children",
+        "_evaluation_writes",
         "_gate_param_refs",
         "_known_param_ref_values",
         "_param_ref_defaults",
@@ -328,6 +329,9 @@ class ParameterState:
         # The values the targets of the Assigns of a pass without gates (see
         # undo_ungated_assigns) had before (the known value, and the value of the map).
         self._ungated_writes: dict[str, tuple[str | None, str | None]] = {}
+        # The values the targets the Assigns of the current evaluation wrote had before its
+        # first such write (as _ungated_writes; see give_back_lapsed_assigns).
+        self._evaluation_writes: dict[str, tuple[str | None, str | None]] = {}
         self._pass_texts: dict[str, str | None] = {}
 
     def get(self, ref_id: str) -> str | None:
@@ -403,11 +407,13 @@ class ParameterState:
         self._assign_targets.add(target)
         if not (write or always):
             return
-        if self._gate_param_refs is None and target not in self._ungated_writes:
-            self._ungated_writes[target] = (
-                self._known_param_ref_values.get(target),
-                self.param_ref_id_to_value.get(target),
-            )
+        before = (
+            self._known_param_ref_values.get(target),
+            self.param_ref_id_to_value.get(target),
+        )
+        if self._gate_param_refs is None:
+            self._ungated_writes.setdefault(target, before)
+        self._evaluation_writes.setdefault(target, before)
         self.set(target, value)
         self._assign_written.add(target)
 
@@ -417,8 +423,13 @@ class ParameterState:
         :meth:`run_assign`), and the scope's seeding is over."""
         self._assign_seen = dict(self._assigns_now)
         self._seeded = None
+        self._evaluation_writes.clear()
         for child in self._children.values():
             child.commit_assigns()
+        # The Assigns of an instance set aside do not apply: each starts applying again when
+        # the instance comes back.
+        for child in self._dormant_children.values():
+            child.restart_assigns()
 
     def mark_seeded(self) -> None:
         """Take the values this scope and the module scopes below hold now as what their
@@ -479,6 +490,31 @@ class ParameterState:
             self._ungated_writes.clear()
         for child in self._children.values():
             child.undo_ungated_assigns()
+
+    def give_back_lapsed_assigns(self) -> None:
+        """After a pass with gates, give back the values Assigns wrote in an earlier pass of the
+        evaluation into targets no Assign of this pass applies to (this scope and the module
+        scopes below). Such an Assign applied only while the evaluation had not settled (a
+        value read before a later write, or one written by an Assign that does not apply
+        either): the value it wrote is no value of the device. A value given back counts as
+        changed by the pass."""
+        if self._gate_param_refs is not None and self._evaluation_writes:
+            for ref_id in [
+                r for r in self._evaluation_writes if r not in self._assign_targets
+            ]:
+                known, value = self._evaluation_writes.pop(ref_id)
+                if ref_id not in self._pass_values:
+                    self._pass_values[ref_id] = self._known_param_ref_values.get(ref_id)
+                if known is None:
+                    self._known_param_ref_values.pop(ref_id, None)
+                else:
+                    self._known_param_ref_values[ref_id] = known
+                if value is None:
+                    self.param_ref_id_to_value.pop(ref_id, None)
+                else:
+                    self.param_ref_id_to_value[ref_id] = value
+        for child in self._children.values():
+            child.give_back_lapsed_assigns()
 
     def assign_targets(self) -> set[str]:
         """The (instance-qualified) targets of the Assigns that apply with a value in the last
@@ -643,6 +679,7 @@ class ParameterState:
         """Stop gating Chooses (this scope and its children) until the next update."""
         self._gate_param_refs = None
         self._ungated_writes.clear()
+        self._evaluation_writes.clear()
         for child in self._children.values():
             child.clear_gate()
 
