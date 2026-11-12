@@ -126,3 +126,26 @@ def test_nothing_of_an_application_is_kept_once_it_is_gone() -> None:
     gc.collect()
     objects = gc.get_objects()
     assert not any(watched.get(id(o)) is type(o) and o is not objects for o in objects)
+
+
+def _ui_with_two_instances() -> DynamicUI:
+    """The application with a second instance two bytes on, where its union shares the byte of
+    the application's own parameter."""
+    second = (
+        f'<Module Id="{_MD}_M-2" RefId="{_MD}" Name="Channel 2">'
+        f'<NumericArg RefId="{_MD}_A-1" Value="2" /></Module>'
+    )
+    xml = _XML.replace("</Module>", "</Module>" + second, 1)
+    return DynamicUI(parse_application_xml(xml.encode(), "M-00FA")[0].program)
+
+
+def test_each_instance_adds_its_refs_where_its_arguments_place_them() -> None:
+    ui = _ui_with_two_instances()
+    other = f"{_MD}_M-2_MI-1_"
+    for _ in range(2):
+        cells = ui.stored_parameter_cells()
+        assert cells[(_SEGMENT, 0)] == {_FIRST, _SECOND}
+        assert cells[(_SEGMENT, 1)] == {_SWITCH}
+        assert cells[(_SEGMENT, 2)] == {_OWN, f"{other}UP-2_R-2", f"{other}UP-3_R-3"}
+        assert cells[(_SEGMENT, 3)] == {f"{other}P-1_R-1"}
+        assert all(isinstance(refs, frozenset) for refs in cells.values())

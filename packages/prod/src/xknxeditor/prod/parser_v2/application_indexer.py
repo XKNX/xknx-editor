@@ -49,6 +49,7 @@ class ApplicationIndexer:
         "code_segments",
         "com_object_refs",
         "com_objects",
+        "instance_cells",
         "item_parameters",
         "local_ids",
         "messages",
@@ -112,6 +113,11 @@ class ApplicationIndexer:
         ] = {}
         self.scope_writes: dict[
             tuple[object, ...], tuple[tuple[MemWrite, ...], tuple[PropWrite, ...]]
+        ] = {}
+        # The bytes the parameters of a module instance are stored at, with their qualified
+        # param-refs, by what they depend on (see stored_parameter_cells).
+        self.instance_cells: dict[
+            tuple[object, ...], dict[tuple[str, int], frozenset[str]]
         ] = {}
         self.scope_decoded: dict[
             tuple[object, ...],

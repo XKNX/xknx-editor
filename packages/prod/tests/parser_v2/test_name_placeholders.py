@@ -8,6 +8,8 @@ template renderer at runtime.
 
 from __future__ import annotations
 
+from collections.abc import Iterator, Mapping
+
 from xknxeditor.prod.parser_v2._name import apply_text_args, fill_name
 
 
@@ -89,3 +91,30 @@ def test_a_text_is_filled_with_the_arguments_it_is_given_each_time() -> None:
     assert apply_text_args(text, {"Number": "1", "Name": ""}) == "Channel 1 (none)"
     assert apply_text_args(text, {"Number": "1"}) == "Channel 1 ({{Name:none}})"
     assert apply_text_args(text, {"Number": "1", "Name": "A"}) == "Channel 1 (A)"
+
+
+class _Counted(Mapping[str, str]):
+    """Arguments that count how often each is looked up."""
+
+    def __init__(self, values: dict[str, str]) -> None:
+        self.values = values
+        self.lookups: dict[str, int] = {}
+
+    def __getitem__(self, key: str) -> str:
+        self.lookups[key] = self.lookups.get(key, 0) + 1
+        return self.values[key]
+
+    def __iter__(self) -> Iterator[str]:
+        return iter(self.values)
+
+    def __len__(self) -> int:
+        return len(self.values)
+
+
+def test_each_argument_is_looked_up_once_per_text() -> None:
+    # A module scope's arguments work a value out on each lookup.
+    text = "Button {{Key}} of {{Row:none}}"
+    for _ in range(2):
+        arguments = _Counted({"Key": "4"})
+        assert apply_text_args(text, arguments) == "Button 4 of {{Row:none}}"
+        assert arguments.lookups == {"Key": 1, "Row": 1}

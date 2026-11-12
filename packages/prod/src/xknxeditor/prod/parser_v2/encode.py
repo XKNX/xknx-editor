@@ -1586,34 +1586,66 @@ def stored_parameter_cells(
     # touch panel is a megabit), so they are shared; what module instances add to a cell is
     # gathered apart and joined with it at the end.
     cells = dict(own)
-    added: dict[tuple[str, int], set[str]] = {}
-
-    def add(writes: Writes, qualify: Callable[[str], str]) -> None:
-        for w, refs, cell_range in _stored_writes(idx, writes, refs_of):
-            qualified = {qualify(r) for r in refs}
-            for offset in cell_range:
-                added.setdefault((w.seg_id, offset), set()).update(qualified)
 
     def walk(ms: ModuleState) -> None:
-        md = idx.module_defs.get(ms.ref_id) if ms.ref_id is not None else None
-        if md is not None and md.static.parameters is not None:
-            writes = Writes()
-            for item in md.static.parameters.choice:
-                if isinstance(item, ModuleDefStaticParametersParameter):
-                    _collect_param(item, {}, ms, writes)
-                else:
-                    _collect_union(
-                        item, {up.id: up.value for up in item.parameter}, ms, writes
-                    )
-            add(writes, ms.qualify)
+        stored = _instance_cells(idx, ms, refs_of)
+        if cells.keys().isdisjoint(stored):
+            cells.update(stored)
+        else:
+            for cell, refs in stored.items():
+                known = cells.get(cell)
+                cells[cell] = refs if known is None else known | refs
         for child in ms.module_children():
             walk(child)
 
     for ms in state.module_children():
         walk(ms)
-    for key, refs in added.items():
-        cells[key] = own.get(key, frozenset[str]()) | refs
     return cells
+
+
+# Module instances whose stored bytes are kept at most (see _instance_cells).
+_INSTANCE_CELLS = 1 << 12
+
+
+def _instance_cells(
+    idx: ApplicationIndexer, ms: ModuleState, refs_of: Mapping[str, list[str]]
+) -> dict[tuple[str, int], frozenset[str]]:
+    """The param-refs of the module instance ``ms`` (qualified with it) stored at each byte, of
+    every parameter and union member of its definition, active or not. They depend on the
+    definition, the instance's id (which qualifies the refs) and its numeric arguments (which
+    place the parameters) alone: an instance with the same ones is not worked out again. The
+    dict is shared; it cannot be changed."""
+    md = idx.module_defs.get(ms.ref_id) if ms.ref_id is not None else None
+    if md is None or md.static.parameters is None:
+        return {}
+    key: tuple[object, ...] = (
+        ms.ref_id,
+        ms.module_instance_id,
+        tuple(
+            (name, arg.value if isinstance(arg, ModuleNumericArg) else None)
+            for name, arg in ms.arguments.items()
+        ),
+    )
+    cached = idx.instance_cells.get(key)
+    if cached is not None:
+        return cached
+    writes = Writes()
+    for item in md.static.parameters.choice:
+        if isinstance(item, ModuleDefStaticParametersParameter):
+            _collect_param(item, {}, ms, writes)
+        else:
+            _collect_union(item, {up.id: up.value for up in item.parameter}, ms, writes)
+    found: dict[tuple[str, int], set[str]] = {}
+    for w, refs, cell_range in _stored_writes(idx, writes, refs_of):
+        qualified = {ms.qualify(r) for r in refs}
+        for offset in cell_range:
+            found.setdefault((w.seg_id, offset), set()).update(qualified)
+    if len(idx.instance_cells) >= _INSTANCE_CELLS:
+        idx.instance_cells.clear()
+    cached = idx.instance_cells[key] = {
+        cell: frozenset(refs) for cell, refs in found.items()
+    }
+    return cached
 
 
 def stored_bit_mask(

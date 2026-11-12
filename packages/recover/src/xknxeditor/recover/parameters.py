@@ -34,6 +34,8 @@ from xknxeditor.prod.parser_v2.allocator import AllocatorOverflow
 from xknxeditor.prod.script.errors import ScriptAborted
 from xknxeditor.prod.script.sandbox import AbortToken
 
+from .object_choices import ShownObjects
+
 if TYPE_CHECKING:
     from xknxeditor.download.factory_image import FactoryImage
     from xknxeditor.download.image import PropertyTarget
@@ -42,7 +44,7 @@ if TYPE_CHECKING:
     from xknxeditor.prod.parser_v2.context import Gate
     from xknxeditor.prod.parser_v2.dynamic import DynamicUI
     from xknxeditor.prod.parser_v2.encode import PropertyLayout, TypedPropertyKey
-    from xknxeditor.prod.parser_v2.ui import UiParameter
+    from xknxeditor.prod.parser_v2.ui import UiNode, UiParameter
 
 
 class RecoveryEffort(Enum):
@@ -198,6 +200,10 @@ class _SearchCache:
     CALCULATED = 128
     # Explore passes kept at most (see _explored): their layouts compare, they do not hash.
     EXPLORED = 4
+    # Values tried for the memory kept at most (see memory_trials).
+    MEMORY_TRIALS = 96
+    # UIs whose group objects are kept at most (see objects_of).
+    OBJECTS = 16
 
     def __init__(
         self,
@@ -236,6 +242,44 @@ class _SearchCache:
         # The code segments the group communication tables are in (``None``: not resolved
         # yet).
         self.table_segments: frozenset[str] | None = None
+        # The UIs values of module instances' settings were tried in for the memory (see
+        # _infer_from_memory), by the values they were tried with (see
+        # _InstanceValues.kept_key): an inference after another (a correction tried) tries
+        # many of them again (the last used ones).
+        self.memory_trials: OrderedDict[tuple[object, ...], _Evaluated] = OrderedDict()
+        # The group objects of the last UIs asked for (see objects_of).
+        self.objects: OrderedDict[int, tuple[list[UiNode], list[tuple[int, str]]]] = (
+            OrderedDict()
+        )
+
+    def objects_of(self, nodes: list[UiNode]) -> list[tuple[int, str]]:
+        """The number and the size of each group object the evaluated UI ``nodes`` (a UI's
+        :meth:`~xknxeditor.prod.parser_v2.dynamic.DynamicUI.ui`) show: a search asks for those
+        of the same UI again and again. Kept with the nodes, so no other list has their id
+        meanwhile (the last ones asked for)."""
+        entry = self.objects.get(id(nodes))
+        if entry is None or entry[0] is not nodes:
+            entry = (nodes, _objects_of(nodes))
+            self.objects[id(nodes)] = entry
+            if len(self.objects) > self.OBJECTS:
+                self.objects.popitem(last=False)
+        self.objects.move_to_end(id(nodes))
+        return entry[1]
+
+    def memory_trial(self, key: tuple[object, ...]) -> _Evaluated | None:
+        """The UI a value was tried in for the memory before, by ``key`` (see
+        :attr:`memory_trials`)."""
+        entry = self.memory_trials.get(key)
+        if entry is not None:
+            self.memory_trials.move_to_end(key)
+        return entry
+
+    def keep_memory_trial(self, key: tuple[object, ...], entry: _Evaluated) -> None:
+        """Keep the UI ``entry`` a value was tried in for the memory (see
+        :attr:`memory_trials`)."""
+        self.memory_trials[key] = entry
+        if len(self.memory_trials) > self.MEMORY_TRIALS:
+            self.memory_trials.popitem(last=False)
 
     def in_tables(self, segment_id: str) -> bool:
         """Whether a group communication table of the application is in the code segment
@@ -852,21 +896,23 @@ def _infer_rounds(
     return values, unknown, inferred
 
 
-def _written_cells(ui: DynamicUI) -> set[_Cell]:
-    """The bytes the active parameters of ``ui`` write, those of module instances too."""
-    return {
-        (segment_id, offset)
-        for segment_id, cells in ui.memory_param_map().items()
-        for offset in cells
-    }
-
-
 def _compared(ui: DynamicUI, cells: set[_Cell]) -> set[_Cell]:
     """Of the differing bytes ``cells``, those that tell the device apart: of the memory where
     a parameter is stored or ``ui`` writes (a device can keep other data in its segments, which
     changes at run time), and of the properties."""
-    stored = ui.stored_parameter_cells().keys() | _written_cells(ui)
-    return {cell for cell in cells if cell in stored or _is_property_cell(cell)}
+    stored = ui.stored_parameter_cells()
+    found: set[_Cell] = set()
+    rest: list[_Cell] = []
+    for cell in cells:
+        if cell in stored or _is_property_cell(cell):
+            found.add(cell)
+        else:
+            rest.append(cell)
+    # What the UI writes is worked out only for the bytes no parameter is stored at.
+    if rest:
+        written = ui.memory_param_map()
+        found.update(cell for cell in rest if cell[1] in written.get(cell[0], {}))
+    return found
 
 
 # A byte of a property in place of one of a code segment: the key of the property spelled out
@@ -1079,11 +1125,9 @@ def _differing_cells(
     for segment_id, device in parameter_segments.items():
         fill = fills.get(segment_id, 0)
         fixed = fixed_bytes.get(segment_id, {})
-        for offset, (mine, theirs) in enumerate(
-            zip(encoded.get(segment_id, b""), device, strict=False)
-        ):
-            if mine == theirs:
-                continue
+        own_bytes = encoded.get(segment_id, b"")
+        for offset in _offsets_differing(device, own_bytes):
+            mine, theirs = own_bytes[offset], device[offset]
             if fill or offset in fixed:
                 if written is None:
                     written = ui.written_bit_mask()
@@ -3051,19 +3095,32 @@ def _shown_objects(ui: DynamicUI, sizes: Mapping[int, str] | None = None) -> set
     """The numbers of the group objects a UI shows; with ``sizes`` (number -> object size the
     device's table gives) not those of another size (the same object with another datapoint
     type)."""
+    nodes = ui.ui()
+    cache: _SearchCache | None = getattr(_SEARCH, "cache", None)
+    shown = cache.objects_of(nodes) if cache is not None else _objects_of(nodes)
+    if not sizes:
+        return {number for number, _ in shown}
+    numbers: set[int] = set()
+    for number, object_size in shown:
+        size = sizes.get(number)
+        if size is None or object_size == size:
+            numbers.add(number)
+    return numbers
+
+
+def _objects_of(nodes: Sequence[object]) -> list[tuple[int, str]]:
+    """The number and the size of each group object the UI nodes ``nodes`` show."""
     from xknxeditor.prod.parser_v2.ui import UiComObject, UiParameterBlock, UiTab
 
-    numbers: set[int] = set()
-    stack: list[object] = list(ui.ui())
+    found: list[tuple[int, str]] = []
+    stack: list[object] = list(nodes)
     while stack:
         node = stack.pop()
         if isinstance(node, UiComObject):
-            size = sizes.get(node.number) if sizes else None
-            if size is None or node.object_size == size:
-                numbers.add(node.number)
+            found.append((node.number, node.object_size))
         elif isinstance(node, UiTab | UiParameterBlock):
             stack.extend(node.children)
-    return numbers
+    return found
 
 
 def _shown_objects_split(
@@ -3114,13 +3171,15 @@ class _InstanceValues:
     """Values split into those of each module instance the application places itself (with
     its instances' values) and the others (the application's scope), as a UI seeded with
     them makes the module instances ``instances``. Drops what ``evaluated`` holds that was
-    seeded with other instances or other values of the application's scope."""
+    seeded with other instances or other values of the application's scope. With ``kept``,
+    the values tried in the search before (see :meth:`kept_key`)."""
 
     def __init__(
         self,
         values: Mapping[str, str],
         instances: Sequence[tuple[str, str]],
         evaluated: dict[tuple[str, str], _Evaluated],
+        kept: _SearchCache | None = None,
     ) -> None:
         self.instances = frozenset(instances)
         self.ids = {instance_id for instance_id, _ in self.instances}
@@ -3138,6 +3197,8 @@ class _InstanceValues:
             for instance_id in self.ids
             if (top := _top_instance(instance_id, self.ids)) not in (None, instance_id)
         }
+        self.kept = kept
+        self._scope: frozenset[tuple[str, str]] | None = None
         alike: dict[int, bool] = {}
         for key, entry in list(evaluated.items()):
             same = alike.get(id(entry.shared))
@@ -3147,6 +3208,19 @@ class _InstanceValues:
                 evaluated[key] = entry._replace(shared=self.shared)
             else:
                 del evaluated[key]
+
+    def kept_key(
+        self, own: Mapping[str, str], ref_id: str
+    ) -> tuple[object, ...] | None:
+        """What the evaluation of a module instance with its values ``own`` (a value of its
+        setting ``ref_id`` tried among them) depends on: those values, the instances and the
+        values of the application's scope. Two UIs alike in it evaluate the instance alike
+        (see :func:`_infer_from_memory`). None without ``kept``."""
+        if self.kept is None:
+            return None
+        if self._scope is None:
+            self._scope = frozenset(self.shared.items())
+        return (ref_id, frozenset(own.items()), self.instances, self._scope)
 
     def instance(self, ref_id: str) -> str | None:
         """The module instance the setting ``ref_id`` belongs to, when the application places
@@ -4304,10 +4378,18 @@ def _infer_unstored(
     # A trial value only adds settings of the instances it makes, which have no values yet:
     # seeding with the instances there are now is enough.
     instances = ui.get_module_instances()
+    # A setting whose chooses hold group objects only: what another of its values shows is
+    # told from the UI, once an evaluation of one of its values showed it alike.
+    told = ShownObjects(application, ui, sizes, linked)
 
     def shown(trial: Mapping[str, str]) -> tuple[set[int], int, bool]:
         """The linked objects ``values`` with ``trial`` show, how many others, and whether
         they show such settings that are not shown now."""
+        alone = next(iter(trial.items())) if len(trial) == 1 else None
+        if alone is not None:
+            guess = told.guess(*alone)
+            if guess is not None:
+                return guess
         seeded = _seeded(
             application,
             {**values, **trial},
@@ -4323,7 +4405,10 @@ def _infer_unstored(
             and _inferable(seeded, ref_id, parameter)
             for ref_id, parameter in shown_parameters(seeded.ui()).items()
         )
-        return objects & linked, len(objects - linked), reveals
+        result = objects & linked, len(objects - linked), reveals
+        if alone is not None:
+            told.learn(*alone, seeded, result)
+        return result
 
     def clashes(trials: Mapping[str, Mapping[str, str]]) -> dict[str, int]:
         """For trials that show the same objects, how many bytes of the hidden settings with a
@@ -4597,7 +4682,8 @@ def _infer_from_memory(
     ``evaluated`` keeps the UIs a value of a module instance's setting is tried in, from one
     call to the next: a value tried before with the same values of the application's scope
     and of its own instance is not evaluated again (only the values of other instances
-    differ, whose evaluation it does not change).
+    differ, whose evaluation it does not change). Within a search, those an inference before
+    tried with the same values of the application's scope are taken alike.
 
     The values of other module instances doing as well as the chosen one are taken with it
     where they fit together as they do alone (see :func:`_with_alike_values`).
@@ -4636,7 +4722,12 @@ def _infer_from_memory(
     split = (
         None
         if evaluated is None
-        else _InstanceValues(values, ui.get_module_instances(), evaluated)
+        else _InstanceValues(
+            values,
+            ui.get_module_instances(),
+            evaluated,
+            _search_cache(application),
+        )
     )
     # The values doing better than none, each with the union members it leaves with no value
     # of their type.
@@ -4645,9 +4736,14 @@ def _infer_from_memory(
         _check(cancel)
         instance = None if split is None else split.instance(ref_id)
         own: _ValueMap = {}
+        kept_key: tuple[object, ...] | None = None
         if split is not None and instance is not None:
             own = {**split.own[instance], ref_id: candidate}
+            kept_key = split.kept_key(own, ref_id)
         before = evaluated.get((ref_id, candidate)) if evaluated is not None else None
+        if (before is None or before.own != own) and kept_key is not None:
+            assert split is not None and split.kept is not None
+            before = split.kept.memory_trial(kept_key)
         if (
             split is not None
             and instance is not None
@@ -4679,9 +4775,10 @@ def _infer_from_memory(
                     and instance is not None
                     and frozenset(seeded.get_module_instances()) == split.instances
                 ):
-                    evaluated[(ref_id, candidate)] = _Evaluated(
-                        split.instances, split.shared, own, seeded
-                    )
+                    entry = _Evaluated(split.instances, split.shared, own, seeded)
+                    evaluated[(ref_id, candidate)] = entry
+                    if kept_key is not None and split.kept is not None:
+                        split.kept.keep_memory_trial(kept_key, entry)
                 if not base <= shown:
                     continue
                 trial_fitting, trial_misfits = _union_fit(
@@ -4872,22 +4969,13 @@ def _infer_from_fixed(
     except (EncodingError, ValueError, AllocatorOverflow):
         return {}
     held = _held_values(application, ui, parameter_segments, property_values)
-    cells_of: dict[str, set[_Cell]] = {}
     stored = ui.stored_parameter_cells()
-    for cell, owners in stored.items():
-        for owner in owners:
-            cells_of.setdefault(owner, set()).add(cell)
-
-    def differs(cell: _Cell) -> bool:
-        device = parameter_segments.get(cell[0], b"")
-        mine = written.get(cell[0], b"")
-        offset = cell[1]
-        return offset < min(len(device), len(mine)) and device[offset] != mine[offset]
-
-    if not any(
-        differs(cell) and any(ui.local_ref_id(owner) in fixed for owner in owners)
-        for cell, owners in stored.items()
-    ):
+    # The settings stored at a byte the device holds otherwise than the UI writes it.
+    owning: set[str] = set()
+    for segment_id, mine in written.items():
+        for offset in _offsets_differing(parameter_segments.get(segment_id, b""), mine):
+            owning.update(stored.get((segment_id, offset), ()))
+    if not any(ui.local_ref_id(owner) in fixed for owner in owning):
         # No byte of a hidden setting with a fixed value differs: no selector has a branch
         # to correct (the placements below are not looked for).
         return {}
@@ -4897,7 +4985,14 @@ def _infer_from_fixed(
     # held and how many another; and the selectors whose branches' bytes differ.
     evidence: dict[str, dict[str, list[int]]] = {}
     differing: set[str] = set()
+    # A qualified ref keeps the tail of its local one: only a ref with the tail of a hidden
+    # setting with a fixed value is looked up (a large application places tens of thousands).
+    tails: set[str] | None = {_ref_tail(local) for local in fixed}
+    if any(tail in fixed for tail in tails or ()):
+        tails = None  # a ref without a parameter's part in its id
     for ref_id, gates in _explored(application, ui, cancel):
+        if not gates or (tails is not None and _ref_tail(ref_id) not in tails):
+            continue
         local = ui.local_ref_id(ref_id)
         own = fixed.get(local)
         if own is None or not gates:
@@ -4916,7 +5011,7 @@ def _infer_from_fixed(
         )
         if value is None:
             continue
-        if any(differs(cell) for cell in cells_of.get(ref_id, ())):
+        if ref_id in owning:
             differing.add(inner.param)
         current = ui.get_value(inner.param) or parameter.default_value
         # The values to try and the value now (counted too: one that fits as well is kept).
@@ -4978,6 +5073,21 @@ def _infer_from_fixed(
         # More than the product has room for: no configuration of the device.
         return {}
     return chosen if after < before else {}
+
+
+def _offsets_differing(device: bytes, mine: bytes) -> list[int]:
+    """The offsets of the bytes both ``device`` and ``mine`` have that differ."""
+    size = min(len(device), len(mine))
+    found: list[int] = []
+    for start in range(0, size, _COMPARED_AT_ONCE):
+        end = min(start + _COMPARED_AT_ONCE, size)
+        if device[start:end] != mine[start:end]:
+            found.extend(n for n in range(start, end) if device[n] != mine[n])
+    return found
+
+
+# Bytes compared in one go before they are compared one by one (see _offsets_differing).
+_COMPARED_AT_ONCE = 256
 
 
 def _explored(

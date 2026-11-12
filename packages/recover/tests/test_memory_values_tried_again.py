@@ -242,3 +242,51 @@ def test_a_value_is_evaluated_anew_once_the_application_scope_differs(
     assert again == first
     assert not taken_again
     assert all(entry.shared[_GENERAL] == "2" for entry in evaluated.values())
+
+
+@pytest.mark.usefixtures("one_by_one")
+def test_an_inference_takes_the_values_one_before_tried_alike(
+    application: Application, taken_again: list[str]
+) -> None:
+    # Within a search, an inference after another (a correction tried) starts with values
+    # tried before with the same values of the application's scope: each is taken again, and
+    # the inference ends as the first did.
+    values, unknown = parameters._decode(  # pyright: ignore[reportPrivateUsage]
+        application, _SEGMENTS, None, None, {}, fixed={}
+    )
+    previous = getattr(parameters._SEARCH, "cache", None)  # pyright: ignore[reportPrivateUsage]
+    parameters._SEARCH.cache = parameters._SearchCache(application)  # pyright: ignore[reportPrivateUsage]
+    try:
+        first = parameters._infer_from_memory(  # pyright: ignore[reportPrivateUsage]
+            application, _SEGMENTS, None, None, values, unknown, set(), {}, None, {}
+        )
+        assert not taken_again
+        again = parameters._infer_from_memory(  # pyright: ignore[reportPrivateUsage]
+            application, _SEGMENTS, None, None, values, unknown, set(), {}, None, {}
+        )
+        assert again == first == {_kind(1): "1"}
+        assert taken_again
+        # Another value of the application's own setting: nothing is taken again.
+        taken_again.clear()
+        other = {**values, _GENERAL: "2"}
+        parameters._infer_from_memory(  # pyright: ignore[reportPrivateUsage]
+            application, _SEGMENTS, None, None, other, unknown, set(), {}, None, {}
+        )
+        assert not taken_again
+    finally:
+        parameters._SEARCH.cache = previous  # pyright: ignore[reportPrivateUsage]
+
+
+def test_the_values_tried_kept_are_the_last_used(application: Application) -> None:
+    cache = parameters._SearchCache(application)  # pyright: ignore[reportPrivateUsage]
+    entry = parameters._Evaluated(frozenset(), {}, {}, application.dynamic_ui())  # pyright: ignore[reportPrivateUsage, reportArgumentType]
+    cache.keep_memory_trial(("first",), entry)
+    assert cache.memory_trial(("first",)) is entry
+    for n in range(cache.MEMORY_TRIALS - 1):
+        cache.keep_memory_trial((n,), entry)
+    # The first one was used last but one: the next one pushes out the oldest other.
+    assert cache.memory_trial(("first",)) is entry
+    cache.keep_memory_trial(("last",), entry)
+    assert cache.memory_trial((0,)) is None
+    assert cache.memory_trial(("first",)) is entry
+    assert len(cache.memory_trials) == cache.MEMORY_TRIALS

@@ -37,7 +37,7 @@ def apply_text_args(text: str, text_args: Mapping[str, str]) -> str:
     known = _APPLIED.get(text)
     if known is not None:
         for names, results in known.items():
-            result = results.get(tuple(_argument(text_args, name) for name in names))
+            result = results.get(tuple([_argument(text_args, name) for name in names]))
             if result is not None:
                 return result
     looked: dict[str, tuple[bool, str | None]] = {}
@@ -94,10 +94,16 @@ def apply_text_args(text: str, text_args: Mapping[str, str]) -> str:
 
 
 def _argument(text_args: Mapping[str, str], name: str) -> tuple[bool, str | None]:
-    """Whether ``text_args`` has ``name``, and its value."""
-    if name not in text_args:
+    """Whether ``text_args`` has ``name``, and its value (looked up once: a module scope's
+    arguments work a value out on each lookup)."""
+    value = text_args.get(name, _ABSENT)
+    if value is _ABSENT:
         return False, None
-    return True, text_args[name]
+    return True, value
+
+
+# What ``_argument`` looks a missing name up as.
+_ABSENT: str = cast(str, object())
 
 
 # What texts with placeholders gave: by the names of the arguments looked up, and what each

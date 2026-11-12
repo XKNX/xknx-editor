@@ -205,3 +205,29 @@ def test_a_decode_with_fixed_values_decodes_with_the_first_build(
         == decoded
     )
     assert builds[0] == reused + 1
+
+
+def test_the_objects_of_a_ui_are_gathered_once(
+    application: Application, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    ui = seed_dynamic_ui(application, {_SWITCH: "1"}, evaluated=True)
+    assert ui is not None
+    plain = parameters._shown_objects(ui)  # pyright: ignore[reportPrivateUsage]
+    gather = parameters._objects_of  # pyright: ignore[reportPrivateUsage]
+    gathered: list[object] = []
+
+    def counted(nodes: list[object]) -> list[tuple[int, str]]:
+        gathered.append(nodes)
+        return gather(nodes)
+
+    monkeypatch.setattr(parameters, "_objects_of", counted)
+    previous = getattr(parameters._SEARCH, "cache", None)  # pyright: ignore[reportPrivateUsage]
+    parameters._SEARCH.cache = parameters._SearchCache(application)  # pyright: ignore[reportPrivateUsage]
+    try:
+        sizes = dict.fromkeys(plain, "1 Bit")
+        assert parameters._shown_objects(ui) == plain  # pyright: ignore[reportPrivateUsage]
+        assert parameters._shown_objects(ui, sizes) == plain  # pyright: ignore[reportPrivateUsage]
+        assert parameters._shown_objects(ui, {n: "1 Byte" for n in plain}) == set()  # pyright: ignore[reportPrivateUsage]
+    finally:
+        parameters._SEARCH.cache = previous  # pyright: ignore[reportPrivateUsage]
+    assert gathered == [ui.ui()]
