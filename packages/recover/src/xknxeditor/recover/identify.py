@@ -52,6 +52,11 @@ class AppId:
     application_number: int
     application_version: int
 
+    @property
+    def version_text(self) -> str:
+        """The application version as ``major.minor`` (``0x2A`` -> ``2.10``)."""
+        return f"{self.application_version >> 4}.{self.application_version & 0x0F}"
+
 
 class ProductLookup(Protocol):
     """The catalog lookup :func:`match_application` needs (CatalogService fits)."""

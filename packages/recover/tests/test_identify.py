@@ -30,6 +30,11 @@ def test_parse_application_id() -> None:
     )
 
 
+def test_application_version_text() -> None:
+    assert AppId("M-0002", 0x6326, 0x21).version_text == "2.1"
+    assert AppId("M-0002", 0x6326, 0x2A).version_text == "2.10"
+
+
 def test_parse_application_id_short_returns_none() -> None:
     assert parse_application_id(b"\x00\x83\x00") is None
 
