@@ -84,6 +84,7 @@ from .errors import (
     PropertyAccessRejected,
     VerificationError,
 )
+from .function_property import EmptyFunctionPropertyStateResponse
 
 logger = logging.getLogger(__name__)
 
@@ -1459,8 +1460,7 @@ class DeviceProgrammer:
     async def function_property_raw(
         self, object_index: int, property_id: int, data: bytes, *, command: bool
     ) -> bytes:
-        """A Function Property command or state read returning the response's return code
-        octet followed by its state data, without judging it."""
+        """Return the result octets unchanged, including an empty response."""
         request: APCI = (
             FunctionPropertyCommand(
                 object_index=object_index, property_id=property_id, data=data
@@ -1477,6 +1477,8 @@ class DeviceProgrammer:
                 f"no function property response for object {object_index} "
                 f"property {property_id}"
             )
+        if isinstance(payload, EmptyFunctionPropertyStateResponse):
+            return b""
         return bytes([payload.return_code]) + payload.data
 
     async def read_user_memory(self, address: int, size: int) -> bytes:
@@ -1500,6 +1502,11 @@ class DeviceProgrammer:
         if not isinstance(payload, FunctionPropertyStateResponse):
             raise VerificationError(
                 f"no function property response for object {object_index} "
+                f"property {property_id}"
+            )
+        if isinstance(payload, EmptyFunctionPropertyStateResponse):
+            raise VerificationError(
+                f"no function property return code for object {object_index} "
                 f"property {property_id}"
             )
         if payload.return_code != 0:

@@ -18,6 +18,9 @@ from xknx.telegram.apci import (
     APCI,
     DeviceDescriptorRead,
     DeviceDescriptorResponse,
+    FunctionPropertyCommand,
+    FunctionPropertyStateRead,
+    FunctionPropertyStateResponse,
     PropertyValueRead,
 )
 from xknx.telegram.tpci import TConnect, TDataIndividual
@@ -206,6 +209,27 @@ def test_function_property_keeps_status_byte(
     assert host.invoke_function_property(160, 3, [7, 8]) == [2, 7, 8]
     assert host.read_device_descriptor0() == 0x07B0
     host.disconnect()
+    assert (manager.opened, manager.closed) == (1, 1)
+
+
+class _ScanDevice(FakeDevice):
+    def _function_property_response(
+        self, payload: FunctionPropertyCommand | FunctionPropertyStateRead
+    ) -> FunctionPropertyStateResponse:
+        result = b"" if isinstance(payload, FunctionPropertyCommand) else b"\x01"
+        return FunctionPropertyStateResponse.from_knx(b"\x02\xc9\xa0\x01" + result)
+
+
+def test_scan_script_can_poll_after_empty_command_response(
+    loop: asyncio.AbstractEventLoop, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    host, manager = _host(loop, monkeypatch, _ScanDevice(descriptor=0x07B0))
+    host.connect()
+    try:
+        assert host.invoke_function_property(160, 1, [3, 1, 0, 0, 0]) == []
+        assert host.read_function_property(160, 1, [3]) == [1]
+    finally:
+        host.disconnect()
     assert (manager.opened, manager.closed) == (1, 1)
 
 

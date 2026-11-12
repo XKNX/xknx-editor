@@ -34,6 +34,7 @@ from .filter_table import (
     is_coupler_address,
     routed_group_addresses,
 )
+from .function_property import install as _install_function_property
 from .image import (
     DownloadImage,
     GroupCommunication,
@@ -84,6 +85,7 @@ from .tables import (
 # Every point-to-point connection of the editor takes only the response that answers a
 # request, also the ones xknx's own procedures open.
 _install_response_matching()
+_install_function_property()
 
 __version__ = "0.1.0"
 
