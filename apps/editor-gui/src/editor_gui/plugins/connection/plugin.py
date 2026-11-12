@@ -752,7 +752,9 @@ class ConnectionPlugin:
                 occupied = bool(done.result())
             except Exception as err:
                 self._log.warning(
-                    "individual address check failed", address=str(address), error=str(err)
+                    "individual address check failed",
+                    address=str(address),
+                    error=str(err),
                 )
                 self._usb_address_error = S.USB_ADDRESS_CHECK_FAILED.format(error=err)
                 return
@@ -1988,7 +1990,13 @@ class ConnectionPlugin:
         )
         if imgui.is_item_deactivated_after_edit():
             self._start_usb_address(self.set_usb_interface_address)
+        # beside the field, or below it where the row has no room (a narrow screen)
+        button = imgui.calc_text_size(S.USB_ADDRESS_FREE).x + 2 * (
+            imgui.get_style().frame_padding.x
+        )
         imgui.same_line()
+        if imgui.get_content_region_avail().x < button:
+            imgui.new_line()
         if imgui.button(f"{S.USB_ADDRESS_FREE}##usb_address_free"):
             self._start_usb_address(self.check_usb_interface_address)
         imgui.end_disabled()
@@ -2015,9 +2023,14 @@ class ConnectionPlugin:
                 )
             )
             imgui.pop_style_color()
-        imgui.text_disabled(
+        # wrapped: a line of its own would widen the dialog past a narrow screen
+        imgui.push_style_color(
+            imgui.Col_.text, imgui.get_style().color_(imgui.Col_.text_disabled)
+        )
+        imgui.text_wrapped(
             S.USB_ADDRESS_HINT if target.keeps_address else S.USB_ADDRESS_HINT_VOLATILE
         )
+        imgui.pop_style_color()
         if dialog_buttons(S.USB_SETTINGS_CLOSE) == 0:
             self._usb_settings_open = False
             imgui.close_current_popup()
