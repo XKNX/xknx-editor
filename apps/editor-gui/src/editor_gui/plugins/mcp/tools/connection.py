@@ -332,7 +332,9 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         services, transports} (``transports``: the connection types it offers, see
         connection_switch_type). ``connection_type`` is "usb" for a KNX USB interface; then
         ``usb_interface`` {name, serial_number, vendor_id, product_id} names it, and while
-        connected also has {individual_address, max_apdu_length, bus_connected}."""
+        connected also has {individual_address, max_apdu_length, bus_connected}
+        (``individual_address`` null when the interface's could not be read; while
+        ``bus_connected`` is false nothing can be sent)."""
         from editor_gui.plugins.connection.plugin import (
             connection_type_name,
             gateway_services,
@@ -369,7 +371,11 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             }
             info = conn.usb_info if conn.connected else None
             if info is not None:
-                usb["individual_address"] = str(info.individual_address)
+                usb["individual_address"] = (
+                    str(info.individual_address)
+                    if info.individual_address is not None
+                    else None
+                )
                 usb["max_apdu_length"] = info.max_apdu_length
                 usb["bus_connected"] = info.bus_connected
             status["usb_interface"] = usb

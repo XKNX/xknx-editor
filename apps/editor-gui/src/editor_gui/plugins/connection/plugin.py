@@ -692,6 +692,9 @@ class ConnectionPlugin:
                     usb,
                     raw_cemi_callback=self._api.connection.dispatch_raw_cemi,
                     sent_cemi_callback=self._api.connection.dispatch_sent_cemi,
+                    data_secure=await self._on_main_thread(
+                        self._api.connection.data_secure
+                    ),
                 )
                 self._interface = usb_interface
                 config = usb_interface.connection_config
@@ -759,9 +762,14 @@ class ConnectionPlugin:
             )
             self._api.connection.set_connection(self._xknx, asyncio.get_running_loop())
             self._api.connection.link_info = self._link_info()
-            interface_address = (
+            usb_address = (
                 self._usb_info.individual_address
-                if self._usb_info is not None and self._usb_info.individual_address.raw
+                if self._usb_info is not None
+                else None
+            )
+            interface_address = (
+                usb_address
+                if usb_address is not None
                 else gateway.individual_address
                 if gateway is not None
                 else None
@@ -779,6 +787,14 @@ class ConnectionPlugin:
                 self._api.connection.dispatch_link_state(True)
             else:
                 self._api.connection.dispatch_connected()
+            if (
+                usb is not None
+                and self._xknx.connection_manager.state
+                is not XknxConnectionState.CONNECTED
+            ):
+                # The interface is open but reports no bus connection: the link is down until
+                # the bus is back.
+                self._on_link_state(XknxConnectionState.DISCONNECTED)
             self._startup_connect = False
             self._log.info(
                 "connected",
@@ -788,7 +804,7 @@ class ConnectionPlugin:
             if self._usb_info is not None:
                 self._log.info(
                     "USB interface info",
-                    knx_address=str(self._usb_info.individual_address),
+                    knx_address=str(usb_address) if usb_address is not None else "",
                     max_apdu_length=self._usb_info.max_apdu_length,
                     bus_connected=self._usb_info.bus_connected,
                     serial_number=self._usb_info.device.serial_number,
@@ -1978,7 +1994,7 @@ class ConnectionPlugin:
         a USB interface its individual address, serial number and bus connection."""
         usb = self.usb_info
         if usb is not None:
-            if usb.individual_address.raw:
+            if usb.individual_address is not None:
                 imgui.text(S.GATEWAY_ADDRESS.format(address=usb.individual_address))
             if usb.device.serial_number:
                 imgui.text(S.USB_SERIAL_NUMBER.format(serial=usb.device.serial_number))

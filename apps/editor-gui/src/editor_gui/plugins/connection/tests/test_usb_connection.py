@@ -9,8 +9,10 @@ from types import SimpleNamespace
 from typing import Any, cast
 
 import pytest
+from xknx import XKNX
 from xknx.io.connection import ConnectionType
-from xknx.telegram import IndividualAddress
+from xknx.secure.data_secure import DataSecure
+from xknx.telegram import GroupAddress, IndividualAddress
 
 from editor_gui import settings as app_settings
 from editor_gui.plugins.connection import plugin as plugin_module
@@ -25,8 +27,13 @@ from editor_gui.plugins.connection.usb import (
 )
 from editor_gui.plugins.connection.xknx_usb import USBDeviceInfo, find_usb_interfaces
 from editor_gui.plugins.connection.xknx_usb import tunnel as usb_tunnel
+from editor_gui.plugins.connection.xknx_usb.const import (
+    DeviceFeature,
+    DeviceFeatureService,
+)
+from editor_gui.plugins.connection.xknx_usb.frame import device_feature_frame
 
-from .conftest import FakeHIDModule
+from .conftest import SPACELOGIC_ENUMERATION, FakeHIDModule
 
 _DEVICE = USBDeviceInfo(
     vendor_id=0x16DE,
@@ -42,6 +49,13 @@ _DEVICE = USBDeviceInfo(
 def short_timeouts(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(usb_tunnel, "DEVICE_FEATURE_GET_TIMEOUT", 0.2)
     monkeypatch.setattr(usb_tunnel, "LOCAL_MANAGEMENT_TIMEOUT", 0.2)
+
+
+def _data_secure() -> DataSecure:
+    return DataSecure(
+        group_key_table={GroupAddress("1/2/3"): bytes(16)},
+        individual_address_table={IndividualAddress("1.0.4"): 0},
+    )
 
 
 async def _until(condition: Any, timeout: float = 2.0) -> None:
@@ -82,6 +96,9 @@ def _plugin() -> Any:
     plugin._credentials_error = None
     plugin._operation_restore = None
     plugin._busmonitor = None
+    plugin._lost_since = None
+    # waiting for a lost link to come back is not part of these tests
+    plugin._run_async = lambda coro: coro.close()
     sent: list[bytes] = []
     received: list[bytes] = []
     events: list[str] = []
@@ -301,14 +318,6 @@ class TestConnecting:
             info = plugin.usb_info
             assert info is not None and info.bus_connected
             # the bus connection as it is now
-            from editor_gui.plugins.connection.xknx_usb.const import (
-                DeviceFeature,
-                DeviceFeatureService,
-            )
-            from editor_gui.plugins.connection.xknx_usb.frame import (
-                device_feature_frame,
-            )
-
             fake_hid.interface.send_frame(
                 device_feature_frame(
                     DeviceFeatureService.INFO,
@@ -317,6 +326,18 @@ class TestConnecting:
                 )
             )
             await _until(lambda: not plugin.usb_info.bus_connected)
+            # without a bus connection the link is down
+            await _until(lambda: plugin.test_events[-1] == "link False")
+            assert not plugin._link_up
+            fake_hid.interface.send_frame(
+                device_feature_frame(
+                    DeviceFeatureService.INFO,
+                    DeviceFeature.BUS_CONNECTION_STATUS,
+                    b"\x01",
+                )
+            )
+            await _until(lambda: plugin.test_events[-1] == "link True")
+            assert plugin._link_up
             # frames from the bus reach the monitor
             fake_hid.interface.send_cemi(bytes.fromhex("2900bce0102f0012030080346a"))
             await _until(lambda: plugin.test_received)
@@ -338,16 +359,72 @@ class TestConnecting:
         assert plugin._interface is None and plugin.usb_info is None
 
     async def test_the_interface_class(self, fake_hid: FakeHIDModule) -> None:
-        from xknx import XKNX
-
-        interface = ObservableUSBInterfaceThreaded(XKNX(), UsbTarget.of(_DEVICE))
+        data_secure = _data_secure()
+        interface = ObservableUSBInterfaceThreaded(
+            XKNX(), UsbTarget.of(_DEVICE), data_secure=data_secure
+        )
         assert interface.usb_info() is None
         assert await interface.read_max_apdu_length() is None
         await interface.start()
         try:
             assert await interface.read_max_apdu_length() == 55
+            # in place from the interface's setup on
+            assert interface.xknx.cemi_handler.data_secure is data_secure
         finally:
             await interface.stop()
+
+    async def test_connect_without_bus(self, fake_hid: FakeHIDModule) -> None:
+        fake_hid.interface.features[DeviceFeature.BUS_CONNECTION_STATUS] = b"\x00"
+        plugin = _plugin()
+        plugin._usb_target = UsbTarget.of(_DEVICE)
+        await plugin._connect_async()
+        try:
+            assert plugin._state is ConnectionState.CONNECTED, plugin._error_message
+            # open, but the link is down until the interface reports the bus
+            assert plugin.test_events == ["connection", "connected", "link False"]
+            assert not plugin._link_up
+            assert not plugin.usb_info.bus_connected
+            fake_hid.interface.send_frame(
+                device_feature_frame(
+                    DeviceFeatureService.INFO,
+                    DeviceFeature.BUS_CONNECTION_STATUS,
+                    b"\x01",
+                )
+            )
+            await _until(lambda: plugin._link_up)
+            assert plugin.test_events[-1] == "link True"
+            assert plugin.usb_info.bus_connected
+        finally:
+            await plugin._disconnect_async()
+
+    async def test_unknown_individual_address(self, fake_hid: FakeHIDModule) -> None:
+        del fake_hid.interface.properties[(0, 57)]  # PID_SUBNET_ADDR
+        plugin = _plugin()
+        plugin._usb_target = UsbTarget.of(_DEVICE)
+        await plugin._connect_async()
+        try:
+            assert plugin._state is ConnectionState.CONNECTED, plugin._error_message
+            assert plugin.usb_info.individual_address is None
+            # nothing shown for the interface's address
+            assert plugin._api.connection.interface_address is None
+            assert plugin._xknx.current_address == IndividualAddress(0)
+        finally:
+            await plugin._disconnect_async()
+
+    async def test_data_secure_needs_the_individual_address(
+        self, fake_hid: FakeHIDModule
+    ) -> None:
+        del fake_hid.interface.properties[(0, 57)]  # PID_SUBNET_ADDR
+        plugin = _plugin()
+        plugin._report_failure = lambda error, startup: None
+        plugin._api.connection.data_secure = _data_secure
+        plugin._usb_target = UsbTarget.of(_DEVICE)
+        await plugin._connect_async()
+        # as it would be after the interface's reset or a reconnect
+        assert plugin._state is ConnectionState.ERROR
+        assert "Data Secure needs it" in plugin._error_message
+        assert plugin._interface is None
+        assert fake_hid.closed == 1
 
 
 class TestBusmonitor:
@@ -372,6 +449,28 @@ class TestBusmonitor:
         await monitor.disconnect()
         assert not monitor.connected
 
+    async def test_without_bus(self, fake_hid: FakeHIDModule) -> None:
+        fake_hid.interface.features[DeviceFeature.BUS_CONNECTION_STATUS] = b"\x00"
+        states: list[bool] = []
+        monitor = UsbBusmonitorConnection(
+            UsbTarget.of(_DEVICE), on_frame=lambda _f: None, on_state=states.append
+        )
+        await monitor.connect()
+        try:
+            # open, but the link is down until the interface reports the bus
+            assert monitor.connected
+            assert states == [False]
+            fake_hid.interface.send_frame(
+                device_feature_frame(
+                    DeviceFeatureService.INFO,
+                    DeviceFeature.BUS_CONNECTION_STATUS,
+                    b"\x01",
+                )
+            )
+            await _until(lambda: states == [False, True])
+        finally:
+            await monitor.disconnect()
+
     async def test_without_state_callback(self, fake_hid: FakeHIDModule) -> None:
         from xknx.core.connection_state import XknxConnectionState
 
@@ -394,3 +493,27 @@ async def test_search(fake_hid: FakeHIDModule, monkeypatch: pytest.MonkeyPatch) 
     monkeypatch.setitem(sys.modules, "hid", None)
     assert await search_usb_interfaces(errors.append) == []
     assert len(errors) == 1
+
+
+async def test_search_offers_any_interface_of_a_knx_usb_vendor(
+    fake_hid: FakeHIDModule,
+) -> None:
+    def device(path: bytes, vendor_id: int, product_id: int) -> dict[str, Any]:
+        return {
+            **SPACELOGIC_ENUMERATION,
+            "path": path,
+            "vendor_id": vendor_id,
+            "product_id": product_id,
+        }
+
+    fake_hid.enumeration += [
+        device(b"weinzierl-unlisted", 0x0E77, 0x4711),
+        device(b"insta-known", 0x135E, 0x0020),
+        device(b"other-vendor", 0x1234, 0x0001),
+    ]
+    # the known ones first, each once; another vendor's HID device is no interface
+    assert [d.path for d in await search_usb_interfaces()] == [
+        b"usb-path-1",
+        b"insta-known",
+        b"weinzierl-unlisted",
+    ]
