@@ -29,6 +29,12 @@ logger = logging.getLogger("xknx.management")
 _RECONNECT_DELAY = 2.5
 _FAILED_AT: dict[tuple[XKNX, int], float] = {}
 _PENDING_SEQUENCE: dict[int, int] = {}
+# Connections closed here after a failed exchange (T_Disconnect sent), by id until they are
+# closed (P2PConnection has slots without weak references): closing them again ends them quietly.
+# xknx's disconnect() raises for a closed connection, which suits a peer that disconnected, but
+# would turn every unanswered NM_IndividualAddress_Check (a timeout: the address is free) into
+# "occupied", as that procedure takes a refusal on closing for an answer.
+_CLOSED_HERE: dict[int, P2PConnection] = {}
 
 
 def _expire_failure(key: tuple[XKNX, int], failed_at: float) -> None:
@@ -50,6 +56,7 @@ class _TransportP2PConnection(P2PConnection):
 
     xknx_process = P2PConnection.process
     xknx_connect = P2PConnection.connect
+    xknx_disconnect = P2PConnection.disconnect
 
     async def delayed_connect(self: P2PConnection) -> None:
         """Let traffic from a failed exchange drain before reconnecting to that peer."""
@@ -184,6 +191,7 @@ class _TransportP2PConnection(P2PConnection):
             if self._connected:
                 _mark_failed(self)
                 self._connected = False
+                _CLOSED_HERE[id(self)] = self
                 with contextlib.suppress(ConfirmationError, CommunicationError):
                     await self.xknx.cemi_handler.send_telegram(
                         Telegram(
@@ -194,6 +202,15 @@ class _TransportP2PConnection(P2PConnection):
                     )
             raise
 
+    async def guarded_disconnect(self: P2PConnection) -> None:
+        """End a connection closed here after a failed exchange without another T_Disconnect
+        and without raising (see ``_CLOSED_HERE``); otherwise as xknx does."""
+        if _CLOSED_HERE.get(id(self)) is self:
+            del _CLOSED_HERE[id(self)]
+            self.disconnect_hook()
+            return
+        await _TransportP2PConnection.xknx_disconnect(self)
+
 
 def install() -> None:
     """Install transport guards independently of upstream response matching."""
@@ -202,3 +219,4 @@ def install() -> None:
     P2PConnection.process = _TransportP2PConnection.guarded_process  # type: ignore[method-assign]
     P2PConnection.send_data = _TransportP2PConnection.guarded_send_data  # type: ignore[method-assign]
     P2PConnection.connect = _TransportP2PConnection.delayed_connect  # type: ignore[method-assign]
+    P2PConnection.disconnect = _TransportP2PConnection.guarded_disconnect  # type: ignore[method-assign]

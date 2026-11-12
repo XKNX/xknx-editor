@@ -751,8 +751,14 @@ class ConnectionPlugin:
             try:
                 occupied = bool(done.result())
             except Exception as err:
+                self._log.warning(
+                    "individual address check failed", address=str(address), error=str(err)
+                )
                 self._usb_address_error = S.USB_ADDRESS_CHECK_FAILED.format(error=err)
                 return
+            self._log.info(
+                "individual address checked", address=str(address), used=occupied
+            )
             self._usb_address_free = (str(address), not occupied)
 
         future.add_done_callback(checked)
