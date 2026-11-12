@@ -35,11 +35,13 @@
      where the page may not read the clipboard. */
   #textmenu { position: fixed; z-index: 35; display: flex; gap: 2px; padding: 3px; }
   #textmenu button { min-width: 0; padding: 8px 12px; }
-  #pastebox { position: fixed; left: 50%; top: 18%; transform: translateX(-50%); z-index: 35; padding: 10px;
+  #pastebox, #copybox { position: fixed; left: 50%; top: 18%; transform: translateX(-50%); z-index: 35; padding: 10px;
               display: flex; flex-direction: column; gap: 8px; width: min(90vw, 420px); }
-  #pastebox textarea { font: inherit; color: var(--text); background: var(--frame); border: 1px solid var(--border);
+  #pastebox textarea, #copybox textarea { font: inherit; color: var(--text); background: var(--frame); border: 1px solid var(--border);
                        height: 4em; resize: none; }
   #pastebox .close { align-self: flex-end; }
+  #copybox textarea { height: min(40vh, 16em); }
+  #copybox .actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; }
   [hidden] { display: none !important; }
   body.dragging::after { content: ""; position: fixed; inset: 6px; border: 2px dashed var(--muted);
                          pointer-events: none; }
@@ -54,6 +56,7 @@
 <div id="zoom" class="box" hidden></div>
 <div id="textmenu" class="box" hidden><button data-op="cut"></button><button data-op="copy"></button><button data-op="paste"></button><button data-op="all"></button></div>
 <div id="pastebox" class="box" hidden><span></span><textarea autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea><button class="close"></button></div>
+<div id="copybox" class="box" role="dialog" aria-labelledby="copy-title" hidden><span id="copy-title"></span><textarea readonly aria-labelledby="copy-title" spellcheck="false"></textarea><div class="actions"><button class="copy"></button><button class="close"></button></div></div>
 <script src="client.js"></script>
 </body>
 </html>

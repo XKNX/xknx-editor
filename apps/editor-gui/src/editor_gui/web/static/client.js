@@ -294,12 +294,7 @@
       stats.textures += 1;
       await onTexture(body);
     } else if (bytes[0] === KIND_CLIPBOARD) {
-      const text = new TextDecoder().decode(body);
-      if (navigator.clipboard && window.isSecureContext) {
-        navigator.clipboard.writeText(text).catch(() => copyTheOldWay(text));
-      } else {
-        copyTheOldWay(text);
-      }
+      copyFromApp(new TextDecoder().decode(body));
     } else if (bytes[0] === KIND_EVENT) {
       stats.events += 1;
       onEvent(JSON.parse(new TextDecoder().decode(body)));
@@ -838,6 +833,7 @@
     canvas.setPointerCapture(e.pointerId);
     hideTextMenu();
     if (pasteBoxOpen) closePasteBox();
+    closeCopyBox();
     if (e.pointerType === "touch") {
       keys.focus({ preventScroll: true });
       touchDown(e);
@@ -947,6 +943,9 @@
   const pasteBox = document.getElementById("pastebox");
   const pasteArea = pasteBox.querySelector("textarea");
   let pasteBoxOpen = false;
+  const copyBox = document.getElementById("copybox");
+  const copyArea = copyBox.querySelector("textarea");
+  let copyRequest = 0;
 
   function onTypedLine(clientX, clientY) {
     if (!caret || !textInput) return false;
@@ -1023,6 +1022,7 @@
   }
 
   function openPasteBox() {
+    closeCopyBox();
     pasteBox.querySelector("span").textContent = T.WEB_PASTE_HINT;
     pasteBox.querySelector(".close").textContent = T.BTN_CLOSE;
     pasteArea.value = "";
@@ -1045,13 +1045,64 @@
     field.style.cssText = "position: fixed; left: 0; top: 0; opacity: 0;";
     document.body.append(field);
     const back = document.activeElement;
+    let copied = false;
     quietly(() => {
+      field.focus({ preventScroll: true });
       field.select();
-      try { document.execCommand("copy"); } catch (e) { /* not copied */ }
+      try { copied = document.execCommand("copy"); } catch (e) { /* use the copy box */ }
       field.remove();
       if (back && back.focus) back.focus({ preventScroll: true });
     });
+    return copied;
   }
+
+  async function writeClipboard(text) {
+    if (navigator.clipboard && window.isSecureContext) {
+      try {
+        await navigator.clipboard.writeText(text);
+        return true;
+      } catch (e) { /* try copying the selected text */ }
+    }
+    return copyTheOldWay(text);
+  }
+
+  function closeCopyBox() {
+    copyRequest++;
+    if (copyBox.hidden) return;
+    copyBox.hidden = true;
+    copyArea.value = "";
+    quietly(() => keys.focus({ preventScroll: true }));
+  }
+
+  async function copyFromApp(text) {
+    closeCopyBox();
+    const request = copyRequest;
+    if (await writeClipboard(text) || request !== copyRequest) return;
+    // The server's reply can arrive after the browser stops allowing the original click to copy.
+    hideTextMenu();
+    closePasteBox();
+    copyBox.querySelector("span").textContent = T.WEB_COPY;
+    copyBox.querySelector(".copy").textContent = T.WEB_COPY;
+    copyBox.querySelector(".close").textContent = T.BTN_CLOSE;
+    copyArea.value = text;
+    copyBox.hidden = false;
+    quietly(() => {
+      copyArea.focus({ preventScroll: true });
+      copyArea.select();
+    });
+  }
+
+  copyBox.querySelector(".copy").addEventListener("click", async () => {
+    const request = copyRequest;
+    const copied = await writeClipboard(copyArea.value);
+    if (request !== copyRequest || copyBox.hidden) return;
+    if (copied) closeCopyBox();
+    else quietly(() => { copyArea.focus({ preventScroll: true }); copyArea.select(); });
+  });
+  copyBox.querySelector(".close").addEventListener("click", closeCopyBox);
+  copyBox.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") { e.preventDefault(); closeCopyBox(); }
+  });
 
   for (const button of textMenu.querySelectorAll("button")) {
     // The text field keeps the focus.
@@ -1116,10 +1167,10 @@
     send({ t: "key", code: "KeyV", d: false });
   });
   keys.addEventListener("focus", () => {
-    if (!refocusing && !pasteBoxOpen) send({ t: "focus", f: true });
+    if (!refocusing && !pasteBoxOpen && copyBox.hidden) send({ t: "focus", f: true });
   });
   keys.addEventListener("blur", () => {
-    if (refocusing || pasteBoxOpen) return;
+    if (refocusing || pasteBoxOpen || !copyBox.hidden) return;
     send({ t: "mods", c: false, s: false, a: false, m: false });
     send({ t: "focus", f: false });
   });

@@ -818,6 +818,39 @@ def _browser(client: TestClient, session: str) -> Any:
     return _ws(client, {"cookie": f"xknx_web_session={session}"})
 
 
+def test_copied_log_reaches_only_the_controlling_browser(hub: WebHub) -> None:
+    text = "14:26:09 WARNING [xknx] CEMI Frame failed to parse\nGeräte: äöü\n" * 1000
+    with (
+        TestClient(hub.app(), base_url="http://localhost") as client,
+        _browser(client, "controller") as controller,
+        _browser(client, "viewer") as viewer,
+    ):
+        _controls(controller, True)
+        _controls(viewer, False)
+        hub.publish_clipboard(text)
+        copied = _receive_until(controller, lambda m: m[0] == frames.KIND_CLIPBOARD)[-1]
+        assert _body(copied) == (frames.KIND_CLIPBOARD, text.encode("utf-8"))
+        assert hub.clipboard == text
+        # A later control event marks the end of the viewer's earlier messages.
+        viewer.send_text(json.dumps([{"t": "take"}]))
+        messages = _receive_until(viewer, _is_event("control"))
+        assert not any(m[0] == frames.KIND_CLIPBOARD for m in messages)
+        assert _event(messages[-1])["control"] is True
+
+
+def test_empty_clipboard_is_delivered(hub: WebHub) -> None:
+    with (
+        TestClient(hub.app(), base_url="http://localhost") as client,
+        _ws(client) as socket,
+    ):
+        _controls(socket, True)
+        hub.clipboard = "previous text"
+        hub.publish_clipboard("")
+        copied = _receive_until(socket, lambda m: m[0] == frames.KIND_CLIPBOARD)[-1]
+        assert _body(copied) == (frames.KIND_CLIPBOARD, b"")
+        assert hub.clipboard == ""
+
+
 def test_one_browser_controls(hub: WebHub) -> None:
     with (
         TestClient(hub.app(), base_url="http://localhost") as client,
