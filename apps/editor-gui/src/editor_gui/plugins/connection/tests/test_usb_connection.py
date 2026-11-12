@@ -35,6 +35,7 @@ from editor_gui.plugins.connection.xknx_usb.const import (
     DeviceFeatureService,
 )
 from editor_gui.plugins.connection.xknx_usb.frame import device_feature_frame
+from editor_gui.plugins.logger.service import LogService
 from editor_gui.plugins.project.tests._clicks import Clicks
 
 from .conftest import SPACELOGIC_ENUMERATION, FakeHIDModule
@@ -311,6 +312,32 @@ class TestPlugin:
 
 
 class TestConnecting:
+    async def test_receive_failure_has_diagnostics_after_connect(
+        self, fake_hid: FakeHIDModule
+    ) -> None:
+        log = LogService()
+        plugin = _plugin()
+        plugin._usb_target = UsbTarget.of(_DEVICE)
+        await plugin._connect_async()
+        try:
+            assert plugin._state is ConnectionState.CONNECTED, plugin._error_message
+            raw = bytes.fromhex("2e000100101f1233098281")
+            fake_hid.interface.send_cemi(raw)
+            await _until(
+                lambda: any(
+                    r.payload.get("cemi_raw") == raw.hex() for r in log.get_records()
+                )
+            )
+            (record,) = [
+                r for r in log.get_records() if r.payload.get("cemi_raw") == raw.hex()
+            ]
+            assert record.payload["connection_mode"] == "usb"
+            assert record.payload["connection_target"] == "KNX-USB Interface (USB)"
+            assert record.payload["cemi_service"] == "L_DATA_CON"
+            assert record.payload["cemi_confirm_error"] == "True"
+        finally:
+            await plugin._disconnect_async()
+
     async def test_connect_and_disconnect(self, fake_hid: FakeHIDModule) -> None:
         plugin = _plugin()
         plugin._usb_target = UsbTarget.of(_DEVICE)

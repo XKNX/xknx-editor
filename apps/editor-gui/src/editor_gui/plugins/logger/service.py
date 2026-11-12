@@ -10,6 +10,7 @@ from typing import Any
 
 import structlog
 
+from editor_gui.cemi_diagnostics import cemi_error_details
 from editor_gui.log_file import PlainTextFile, session_log
 
 _MAX_RECORDS = 10_000
@@ -197,6 +198,10 @@ class LogService:
             for k, v in record.__dict__.items()
             if k not in _STDLIB_RECORD_ATTRS
         }
+        if record.levelno >= logging.WARNING and (
+            record.name == "xknx" or record.name.startswith("xknx.")
+        ):
+            payload = cemi_error_details() | payload
         level = record.levelname.lower()
         event = record.getMessage()
         self._store(

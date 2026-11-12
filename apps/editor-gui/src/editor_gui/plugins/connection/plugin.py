@@ -22,6 +22,7 @@ from xknx.io.gateway_scanner import GatewayDescriptor, GatewayScanner
 from xknx.io.self_description import request_description
 from xknx.telegram import IndividualAddress
 
+from editor_gui.cemi_diagnostics import DiagnosticCEMIHandler
 from editor_gui.color import color_u32
 from editor_gui.device_info import application_version_text
 from editor_gui.plugins.base import Logger, PanelDefinition, PluginAPI
@@ -862,6 +863,11 @@ class ConnectionPlugin:
                     raw_cemi_callback=self._api.connection.dispatch_raw_cemi,
                     sent_cemi_callback=self._api.connection.dispatch_sent_cemi,
                 )
+            self._xknx.cemi_handler = DiagnosticCEMIHandler(
+                self._xknx,
+                mode="usb" if usb is not None else config.connection_type.name.lower(),
+                target=self._connection_target,
+            )
             # Replace the inert default interface so all internal send paths use ours.
             self._xknx.knxip_interface = self._interface
             await self._interface.start()
