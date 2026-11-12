@@ -163,6 +163,9 @@ msgstr "{name} sa nepodarilo exportovať: {error}"
 msgid "No stored archive for {name}"
 msgstr "Pre {name} nie je uložený žiadny archív"
 
+msgid "The product data of {name} comes from a project without a catalog (Catalog.xml), so it cannot be exported as a .knxprod"
+msgstr "Produktové údaje {name} pochádzajú z projektu bez katalógu (Catalog.xml), preto ich nemožno exportovať ako .knxprod"
+
 msgid "Market:"
 msgstr "Trh:"
 

@@ -163,6 +163,9 @@ msgstr "Nem sikerült exportálni: {name}. Hiba: {error}"
 msgid "No stored archive for {name}"
 msgstr "Nincs tárolt archívum: {name}"
 
+msgid "The product data of {name} comes from a project without a catalog (Catalog.xml), so it cannot be exported as a .knxprod"
+msgstr "A(z) {name} termékadatai katalógus (Catalog.xml) nélküli projektből származnak, ezért nem exportálhatók .knxprod fájlként"
+
 msgid "Market:"
 msgstr "Piac:"
 

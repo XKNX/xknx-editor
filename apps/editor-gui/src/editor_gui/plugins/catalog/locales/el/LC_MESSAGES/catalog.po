@@ -154,6 +154,9 @@ msgstr "Δεν ήταν δυνατή η εξαγωγή του {name}: {error}"
 msgid "No stored archive for {name}"
 msgstr "Δεν υπάρχει αποθηκευμένη αρχειοθήκη για το {name}"
 
+msgid "The product data of {name} comes from a project without a catalog (Catalog.xml), so it cannot be exported as a .knxprod"
+msgstr "Τα δεδομένα προϊόντος του {name} προέρχονται από έργο χωρίς κατάλογο (Catalog.xml), επομένως δεν μπορούν να εξαχθούν ως .knxprod"
+
 msgid "This device supports KNX Data Secure. Set a project password to commission it securely; without one it is added and commissioned in the clear."
 msgstr "Αυτή η συσκευή υποστηρίζει KNX Data Secure. Ορίστε κωδικό έργου για ασφαλή θέση σε λειτουργία· χωρίς κωδικό προστίθεται και τίθεται σε λειτουργία χωρίς κρυπτογράφηση."
 

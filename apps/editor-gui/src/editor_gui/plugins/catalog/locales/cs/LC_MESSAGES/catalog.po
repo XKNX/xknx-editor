@@ -154,6 +154,9 @@ msgstr "{name} nelze exportovat: {error}"
 msgid "No stored archive for {name}"
 msgstr "Pro {name} není uložen žádný archiv"
 
+msgid "The product data of {name} comes from a project without a catalog (Catalog.xml), so it cannot be exported as a .knxprod"
+msgstr "Produktová data {name} pocházejí z projektu bez katalogu (Catalog.xml), proto je nelze exportovat jako .knxprod"
+
 msgid "This device supports KNX Data Secure. Set a project password to commission it securely; without one it is added and commissioned in the clear."
 msgstr "Toto zařízení podporuje KNX Data Secure. Pro jeho zabezpečené uvedení do provozu nastavte heslo projektu; bez hesla bude přidáno a uvedeno do provozu nešifrovaně."
 

@@ -153,3 +153,11 @@ class CatalogSectionProduct(Base):
     )
     product_ref_id: Mapped[str | None] = mapped_column(String, index=True)
     name: Mapped[str | None] = mapped_column(Text)
+
+
+class CatalogMarker(Base):
+    """A one-time change of the catalog that is done, by name (e.g. its store rewritten)."""
+
+    __tablename__ = "catalog_markers"
+
+    name: Mapped[str] = mapped_column(String, primary_key=True)

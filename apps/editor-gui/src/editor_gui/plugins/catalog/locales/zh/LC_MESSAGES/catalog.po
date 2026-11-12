@@ -154,6 +154,9 @@ msgstr "无法导出 {name}：{error}"
 msgid "No stored archive for {name}"
 msgstr "没有 {name} 的已存储归档"
 
+msgid "The product data of {name} comes from a project without a catalog (Catalog.xml), so it cannot be exported as a .knxprod"
+msgstr "{name} 的产品数据来自没有目录 (Catalog.xml) 的项目，因此无法导出为 .knxprod"
+
 msgid "This device supports KNX Data Secure. Set a project password to commission it securely; without one it is added and commissioned in the clear."
 msgstr "此设备支持 KNX Data Secure。请设置项目密码以进行安全调试；如不设置，设备将以非加密方式添加和调试。"
 

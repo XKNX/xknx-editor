@@ -425,6 +425,12 @@ class CatalogStrings:
         return _("No stored archive for {name}")
 
     @property
+    def EXPORT_KNXPROD_NO_CATALOG(self) -> str:
+        return _(
+            "The product data of {name} comes from a project without a catalog (Catalog.xml), so it cannot be exported as a .knxprod"
+        )
+
+    @property
     def CATALOG_ADD_SECURE_PASSWORD(self) -> str:
         return _(
             "This device supports KNX Data Secure. Set a project password to commission it securely; without one it is added and commissioned in the clear."

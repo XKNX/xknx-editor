@@ -129,6 +129,9 @@ class CatalogService:
         from xknxeditor.catalog import CatalogService as _CatalogService
 
         self._service = _CatalogService(catalog_path, parse_cache_dir)
+        # Older versions stored a project's product data with the whole project: rewrite those
+        # archives (once), and remove store files nothing refers to.
+        self._service.tidy_store()
         self._products: list[ProductSummary] | None = None
         self._product_index: dict[str, ProductSummary] | None = None
         self._programs: dict[str, list[ProgramSummary]] = {}
@@ -612,6 +615,15 @@ class CatalogService:
         if program_id not in self._sources:
             self._sources[program_id] = self._service.get_program_source(program_id)
         return self._sources[program_id]
+
+    @io_guarded(lambda: None)
+    def product_archive(self, program_id: str) -> bytes | None:
+        """A ``.knxprod`` with the product data of a hardware program (its manufacturer's and its
+        application program's), ``None`` for an unknown program. Raises :class:`OSError` or
+        :class:`~xknxeditor.prod.errors.ArchiveError` when none can be made, a
+        :class:`~xknxeditor.catalog.core.product_members.NoCatalogError` when the product data
+        comes from a project without ``Catalog.xml``."""
+        return self._service.product_archive(program_id)
 
     def refresh(self) -> None:
         self._forget_products()

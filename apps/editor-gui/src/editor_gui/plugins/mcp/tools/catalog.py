@@ -677,21 +677,44 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
     def catalog_export_knxprod(
         hardware2program_ref_id: str, dest: str
     ) -> dict[str, Any]:
-        """Save the .knxprod archive a local catalog product version was imported from to the
-        file ``dest`` (a path on the editor's machine), using hardware2program_ref_id from
-        catalog_list_products. The archive is copied as imported, so a manufacturer bundle is
-        exported whole. Returns {hardware2program_ref_id, dest}."""
-        import shutil
+        """Save a local catalog product version as a .knxprod to the file ``dest`` (a path on the
+        editor's machine), using hardware2program_ref_id from catalog_list_products. The archive is
+        the one the catalog reads the product from, with only the manufacturer of the product and
+        that of its application program (a product imported from a project comes without the
+        project). Product data from a project without a Catalog.xml cannot be exported: the error
+        then says so, as the editor does. Returns {hardware2program_ref_id, dest}."""
+        from editor_gui.plugins.catalog.strings import S as CatalogS
+        from xknxeditor.catalog.core.product_members import NoCatalogError
+        from xknxeditor.prod.errors import ArchiveError
 
-        source = ctx.run_locked(
-            lambda: catalog.get_program_source(hardware2program_ref_id)
-        )
-        if source is None:
+        def _archive() -> bytes | None:
+            try:
+                return catalog.product_archive(hardware2program_ref_id)
+            except NoCatalogError:
+                name = next(
+                    (
+                        p.name or p.product_ref_id
+                        for p in catalog.get_products()
+                        if p.hardware2program_ref_id == hardware2program_ref_id
+                    ),
+                    hardware2program_ref_id,
+                )
+                raise ToolError(
+                    CatalogS.EXPORT_KNXPROD_NO_CATALOG.format(name=name)
+                ) from None
+
+        try:
+            data = ctx.run_locked(_archive)
+        except (OSError, ArchiveError) as exc:
+            raise ToolError(
+                f"cannot export product version {hardware2program_ref_id!r}: {exc}"
+            ) from exc
+        if data is None:
             raise ToolError(
                 f"no stored .knxprod archive for product version {hardware2program_ref_id!r}"
             )
         try:
-            shutil.copyfile(source[0], dest)
+            Path(dest).write_bytes(data)
         except OSError as exc:
             raise ToolError(f"cannot save {dest!r}: {exc}") from exc
         return {"hardware2program_ref_id": hardware2program_ref_id, "dest": dest}

@@ -46,6 +46,7 @@ from xknxeditor.catalog.core.hardware import (
     list_hardware_programs,
 )
 from xknxeditor.catalog.core.manufacturers import get_manufacturer, list_manufacturers
+from xknxeditor.catalog.core.product_members import NoCatalogError, product_members
 from xknxeditor.catalog.core.products import (
     ProductFacts,
     ProductSummary,
@@ -54,7 +55,7 @@ from xknxeditor.catalog.core.products import (
     product_facts,
     products_for_path,
 )
-from xknxeditor.catalog.core.upload import upload_knxprod
+from xknxeditor.catalog.core.upload import StoreTidying, tidy_store, upload_knxprod
 from xknxeditor.catalog.db import knxprod_dir_for, make_engine
 from xknxeditor.catalog.models import (
     CatalogSection,
@@ -114,6 +115,12 @@ class CatalogService:
             cancel=cancel,
             progress=progress,
         )
+
+    def tidy_store(self, now: float | None = None) -> StoreTidying:
+        """Rewrite stored archives that still hold a project (once per catalog) and remove store
+        files nothing refers to that are older than an hour (see
+        :func:`~xknxeditor.catalog.core.upload.tidy_store`)."""
+        return tidy_store(self._engine, self._knxprod_dir, now)
 
     def delete_product(
         self, product_ref_id: str, hardware_program_id: str | None = None
@@ -304,6 +311,37 @@ class CatalogService:
         """Return ``(knxprod_path, manufacturer_id)`` for a program id, or ``None``."""
         with Session(self._engine) as db:
             return get_program_source(db, program_id)
+
+    def product_archive(self, program_id: str) -> bytes | None:
+        """A ``.knxprod`` with the product data of hardware program ``program_id``: its stored
+        archive with only the manufacturer of its hardware and that of its application program.
+        ``None`` when the program is unknown.
+
+        Raises :class:`OSError` when the stored archive cannot be read,
+        :class:`~xknxeditor.catalog.core.product_members.NoCatalogError` when its manufacturer has
+        no ``Catalog.xml`` there (product data from a project without one), and
+        :class:`~xknxeditor.prod.errors.ArchiveError` when the result is otherwise no ``.knxprod``
+        that can be imported again."""
+        from xknxeditor.prod.archive import Archive
+
+        with Session(self._engine) as db:
+            source = get_program_source(db, program_id)
+            application_id = get_program_application_id(db, program_id)
+        if source is None:
+            return None
+        path, manufacturer_id = source
+        manufacturers = {manufacturer_id}
+        if application_id is not None:
+            manufacturers.add(application_id.split("_", 1)[0])
+        content = product_members(Path(path).read_bytes(), manufacturers)
+        with Archive(content, require_catalog=False) as archive:
+            for manufacturer in archive.manufacturer_ids:
+                if archive.has_hardware(manufacturer) and not archive.has_catalog(
+                    manufacturer
+                ):
+                    raise NoCatalogError(manufacturer)
+        Archive(content).close()  # what a .knxprod import checks
+        return content
 
     def get_factory_image(self, program_id: str) -> FactoryData | None:
         """The image devices of a hardware program leave the factory with (its

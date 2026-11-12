@@ -160,6 +160,9 @@ msgstr "Kan {name} niet exporteren: {error}"
 msgid "No stored archive for {name}"
 msgstr "Geen opgeslagen archief voor {name}"
 
+msgid "The product data of {name} comes from a project without a catalog (Catalog.xml), so it cannot be exported as a .knxprod"
+msgstr "De productgegevens van {name} komen uit een project zonder catalogus (Catalog.xml) en kunnen daarom niet als .knxprod worden geëxporteerd"
+
 msgid "Market:"
 msgstr "Markt:"
 

@@ -154,6 +154,9 @@ msgstr "Kohteen {name} vienti epäonnistui: {error}"
 msgid "No stored archive for {name}"
 msgstr "Ei tallennettua arkistoa: {name}"
 
+msgid "The product data of {name} comes from a project without a catalog (Catalog.xml), so it cannot be exported as a .knxprod"
+msgstr "Tuotteen {name} tuotetiedot ovat peräisin projektista, jossa ei ole luetteloa (Catalog.xml), joten niitä ei voi viedä .knxprod-tiedostona"
+
 msgid "This device supports KNX Data Secure. Set a project password to commission it securely; without one it is added and commissioned in the clear."
 msgstr "Tämä laite tukee KNX Data Secure -suojausta. Aseta projektille salasana, jotta laite voidaan ottaa käyttöön suojatusti; ilman salasanaa se lisätään ja otetaan käyttöön salaamattomana."
 

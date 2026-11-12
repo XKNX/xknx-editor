@@ -163,6 +163,9 @@ msgstr "{name} ni bilo mogoče izvoziti: {error}"
 msgid "No stored archive for {name}"
 msgstr "Ni shranjenega arhiva za {name}"
 
+msgid "The product data of {name} comes from a project without a catalog (Catalog.xml), so it cannot be exported as a .knxprod"
+msgstr "Podatki o izdelku {name} izvirajo iz projekta brez kataloga (Catalog.xml), zato jih ni mogoče izvoziti kot .knxprod"
+
 msgid "Market:"
 msgstr "Trg:"
 
