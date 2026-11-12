@@ -1832,8 +1832,10 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         # ETS 6 is preferred (cloud or dongle); fall back to ETS 5 (dongle only).
         if ets_local_available():
             sign_local = ets_local_sign
+            schema = "23"
         elif ets5_local_available():
             sign_local = ets5_local_sign
+            schema = "20"
         else:
             raise ToolError(
                 "no local ETS export available here (needs Windows with an ETS installation)"
@@ -1853,6 +1855,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             export_knxproj(
                 source,
                 staged,
+                schema=schema,
                 password=project.project_password,
                 extra_files=bundle.extra_files,
                 master_xml=bundle.master_xml,
