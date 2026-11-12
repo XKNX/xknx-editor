@@ -11,6 +11,7 @@ from typing import TYPE_CHECKING, Any, cast
 from xknx.telegram.apci import GroupValueRead, GroupValueWrite
 
 from editor_gui import file_dialogs
+from editor_gui.device import device_label
 from editor_gui.device_info import (
     same_application,
     serial_from_project,
@@ -74,7 +75,7 @@ from editor_gui.plugins.project.ui.memory_preview import MemoryPreviewWindow
 from editor_gui.plugins.project.ui.paste_special import PasteSpecialDialog
 from editor_gui.plugins.project.ui.plugin_params_panel import PluginParamsPanel
 from editor_gui.plugins.project.ui.preflight_result import PreflightResultWindow
-from editor_gui.plugins.project.ui.program_queue import ProgramQueuePanel
+from editor_gui.plugins.project.ui.program_queue import ProgramQueuePanel, scope_label
 from editor_gui.plugins.project.ui.project_diff import (
     DiffCanceled,
     DiffJob,
@@ -3247,13 +3248,13 @@ class ProjectPlugin:
         future.add_done_callback(found)
 
     def _eval_device(self, device: "Device", scope: "DownloadScope") -> None:
-        label = device.name or device.individual_address or "device"
+        label = device_label(device)
         # The test reads the live device, so it needs a bus connection; without one (and none
         # to open for it) there is nothing to compare against.
         if not self._api.connection.can_reach_bus():
             self._preflight_result.submit_error(
                 label,
-                scope.name,
+                scope_label(scope),
                 S.PREFLIGHT_NO_CONNECTION.format(menu=CONNECTION_S.MENU_GATEWAY),
             )
             return
@@ -3262,7 +3263,7 @@ class ProjectPlugin:
         # previously-edited (saved) project is fine; only edits made in this session block the test.
         if self._api.project.edited_since_open():
             self._preflight_result.submit_error(
-                label, scope.name, S.PREFLIGHT_PROJECT_MODIFIED
+                label, scope_label(scope), S.PREFLIGHT_PROJECT_MODIFIED
             )
             return
         # Like a programming it waits in the operations queue while the bus is busy.
@@ -3286,7 +3287,7 @@ class ProjectPlugin:
         device = self._api.project.find_device_by_node_id(item.node_id)
         if device is None or item.scope is None:
             return None
-        label = device.name or device.individual_address or "device"
+        label = device_label(device)
         runtime = self._runtime_managed_addresses(device)
         driven = self._parameter_driven_bits(device)
         future = self._api.connection.evaluate_device(
@@ -3302,7 +3303,7 @@ class ProjectPlugin:
                 item.message = S.SCRIPT_NOT_CONNECTED
             return None
         if item.origin is None:
-            scope_name = item.scope.name
+            scope_name = scope_label(item.scope)
 
             def done(f: "Future[Any]") -> None:
                 if not item.canceled_by_user:
@@ -3344,9 +3345,9 @@ class ProjectPlugin:
             return
         exc = future.exception()
         if exc is not None:
-            self._preflight_result.submit_error(
-                label, scope_name, f"{type(exc).__name__}: {exc}"
-            )
+            # As the operations list words it.
+            text = self._program_error_text(exc) or str(exc) or type(exc).__name__
+            self._preflight_result.submit_error(label, scope_name, text)
             return
         self._preflight_result.submit_result(
             label, scope_name, future.result(), runtime, driven

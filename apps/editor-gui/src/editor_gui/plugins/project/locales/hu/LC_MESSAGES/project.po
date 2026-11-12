@@ -214,14 +214,14 @@ msgstr "A programozási teszt eredménye"
 msgid "Evaluation failed"
 msgstr "A kiértékelés nem sikerült"
 
-msgid "Read-only test: checks that the download function generates the same image as what is already programmed on the device. Nothing is written to the device."
-msgstr "Csak olvasó teszt: ellenőrzi, hogy a programozási funkció ugyanazt a memóriaképet állítja-e elő, mint ami már a készülékbe van programozva. A készülékre semmi sem íródik."
+msgid "Read-only test: compares what a download would write with what is on the device. Nothing is written to the device."
+msgstr "Csak olvasó teszt: összeveti, amit egy letöltés írna, azzal, ami az eszközön van. Az eszközre semmi nem kerül írásra."
 
 msgid "Cannot run: no KNX connection. Connect to a gateway ({menu} menu) and make sure the device is reachable at its individual address."
 msgstr "Nem futtatható: nincs KNX-kapcsolat. Csatlakozzon egy átjáróhoz ({menu} menü), és győződjön meg róla, hogy a készülék elérhető a fizikai címén."
 
-msgid "Match: the generated image is identical to what is on the device"
-msgstr "Egyezés: az előállított memóriakép megegyezik a készüléken lévővel"
+msgid "Match: the generated image is identical to what is on the device."
+msgstr "Egyezés: az előállított memóriakép megegyezik a készüléken lévővel."
 
 msgid "{matched} matched, {changed} would change"
 msgstr "Egyező: {matched}, változna: {changed}"
@@ -238,14 +238,14 @@ msgstr "Állapot"
 msgid "Changed"
 msgstr "Változott"
 
-msgid "match"
-msgstr "egyezik"
+msgid "Match"
+msgstr "Egyezik"
 
-msgid "would change"
-msgstr "változna"
+msgid "Would change"
+msgstr "Változna"
 
-msgid "device-managed"
-msgstr "készülék kezeli"
+msgid "Device-managed"
+msgstr "Készülék kezeli"
 
 msgid "System byte the device sets itself at runtime (e.g. a download detection byte reset by the application after a download). A difference here is expected and does not indicate a bad download."
 msgstr "Rendszerbájt, amelyet a készülék futás közben maga állít be (pl. programozásérzékelő bájt, amelyet az alkalmazás a programozás után visszaállít). Az itteni eltérés várható, és nem hibás programozásra utal."
@@ -253,14 +253,14 @@ msgstr "Rendszerbájt, amelyet a készülék futás közben maga állít be (pl.
 msgid "No configured differences: the device already carries this configuration. The differences below are benign (see notes)."
 msgstr "Nincsenek konfigurált eltérések: a készülék már ezt a konfigurációt tartalmazza. Az alábbi eltérések ártalmatlanok (lásd a megjegyzéseket)."
 
-msgid "sets default"
-msgstr "alapértéket állít be"
+msgid "Sets default"
+msgstr "Alapértéket állít be"
 
 msgid "This byte is written for a neighbouring parameter; the differing bit is not driven by any active parameter and is only reset to the application default. The device holds an older value (e.g. from a previous configuration or mode) that programming will normalise. Benign."
 msgstr "Ez a bájt egy szomszédos paraméter miatt íródik; az eltérő bitet egyetlen aktív paraméter sem vezérli, csak visszaáll az alkalmazás alapértékére. A készülékben egy régebbi érték van (pl. egy korábbi konfigurációból vagy üzemmódból), amelyet a programozás rendbe tesz. Ártalmatlan."
 
-msgid "Export Ist/Soll…"
-msgstr "Ist/Soll exportálása…"
+msgid "Export…"
+msgstr "Exportálás…"
 
 msgid "Export Path:"
 msgstr "Exportálás helye:"
@@ -379,8 +379,8 @@ msgstr "Vonal eltávolítva: {number}"
 msgid "Line: {old} -> {new}"
 msgstr "Vonal: {old} -> {new}"
 
-msgid "Cannot run: the project was changed since it was opened. This test compares the generated image against the device's programmed state, which only matches the project as it was opened. Undo your changes in this session to test."
-msgstr "Nem futtatható: a projekt a megnyitása óta megváltozott. A teszt az előállított memóriaképet a készülék programozott állapotával hasonlítja össze, amely csak a megnyitáskori projekttel egyezik. A teszthez vonja vissza az ebben a munkamenetben végzett módosításait."
+msgid "Cannot run: the project was changed since it was opened and may no longer match the device. Undo the changes of this session, or save and reopen the project."
+msgstr "Nem futtatható: a projekt a megnyitása óta megváltozott, és lehet, hogy már nem egyezik az eszközzel. Vonja vissza a munkamenet módosításait, vagy mentse és nyissa meg újra a projektet."
 
 msgid "Duplicate"
 msgstr "Duplikálás"
@@ -634,11 +634,11 @@ msgstr "Kész: {ready} · kétértelmű: {amb} · inkompatibilis: {bad} · páro
 msgid "Only Problems"
 msgstr "Csak a problémák"
 
-msgid "Only for ETS 6 devices: this test compares the device against an image generated the ETS 6 way. A device last programmed with ETS 5 uses a different byte layout and will show large false differences - the result is only meaningful for a device last programmed with ETS 6."
-msgstr "Csak ETS 6-os készülékekhez: a teszt a készüléket az ETS 6 módján előállított memóriaképpel hasonlítja össze. Az utoljára ETS 5-tel programozott készülék más bájtelrendezést használ, és nagy, téves eltéréseket mutat – az eredmény csak utoljára ETS 6-tal programozott készüléknél értelmezhető."
+msgid "Only meaningful for a device last programmed with ETS 6: one programmed with ETS 5 stores its data in another layout and shows large false differences."
+msgstr "Csak az utoljára ETS 6-tal programozott eszköznél mérvadó: az ETS 5-tel programozott eszköz más elrendezésben tárolja adatait, és nagy, hamis eltéréseket mutat."
 
-msgid "Structural differences (whole tables differ) can mean the device was last programmed with ETS 5, whose byte layout differs. Differences in values only usually mean the device holds a different configuration."
-msgstr "A szerkezeti eltérések (teljes táblák térnek el) arra utalhatnak, hogy a készüléket utoljára ETS 5-tel programozták, amelynek eltér a bájtelrendezése. A csak értékbeli eltérések általában azt jelentik, hogy a készülékben más konfiguráció van."
+msgid "If whole tables differ, the device was possibly last programmed with ETS 5 (another layout). If only values differ, it holds another configuration."
+msgstr "Ha teljes táblák térnek el, az eszközt talán utoljára ETS 5-tel programozták (más elrendezés). Ha csak értékek térnek el, más a konfigurációja."
 
 msgid "Test/Program mirror an ETS 6 programming. If a test reports whole tables as different, the device was likely last programmed with ETS 5 (different byte layout)."
 msgstr "A tesztelés/programozás az ETS 6-os programozást követi. Ha egy teszt teljes táblákat jelez eltérőnek, a készüléket valószínűleg utoljára ETS 5-tel programozták (eltérő bájtelrendezés)."
@@ -3111,8 +3111,8 @@ msgid "{count} byte"
 msgid_plural "{count} bytes"
 msgstr[0] "{count} bájt"
 
-msgid "Mismatch: {bytes} from the device in {locations}"
-msgstr "Eltérés: {bytes} a készüléktől {locations}"
+msgid "Mismatch: {bytes} from the device in {locations}."
+msgstr "Eltérés: {bytes} a készüléktől {locations}."
 
 msgid "{count} byte differs"
 msgid_plural "{count} bytes differ"
@@ -3122,13 +3122,13 @@ msgid "{count} location"
 msgid_plural "{count} locations"
 msgstr[0] "{count} helyen"
 
-msgid "plus {bytes} device-managed runtime byte (expected, benign)"
-msgid_plural "plus {bytes} device-managed runtime bytes (expected, benign)"
-msgstr[0] "továbbá {bytes} a készülék által kezelt futásidejű bájt (várható, ártalmatlan)"
+msgid "Plus {bytes} device-managed runtime byte (expected, benign)"
+msgid_plural "Plus {bytes} device-managed runtime bytes (expected, benign)"
+msgstr[0] "Továbbá {bytes} a készülék által kezelt futásidejű bájt (várható, ártalmatlan)"
 
-msgid "plus {bytes} byte reset to the application default (the device holds an older value; benign, will be normalised on programming)"
-msgid_plural "plus {bytes} bytes reset to the application default (the device holds an older value; benign, will be normalised on programming)"
-msgstr[0] "továbbá {bytes} bájt visszaáll az alkalmazás alapértékére (a készülékben régebbi érték van; ártalmatlan, a programozás rendbe teszi)"
+msgid "Plus {bytes} byte reset to the application default (the device holds an older value; benign, will be normalised on programming)"
+msgid_plural "Plus {bytes} bytes reset to the application default (the device holds an older value; benign, will be normalised on programming)"
+msgstr[0] "Továbbá {bytes} bájt visszaáll az alkalmazás alapértékére (a készülékben régebbi érték van; ártalmatlan, a programozás rendbe teszi)"
 
 msgid "Paste configuration onto {count} selected device:"
 msgid_plural "Paste configuration onto {count} selected devices:"

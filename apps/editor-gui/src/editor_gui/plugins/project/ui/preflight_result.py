@@ -127,10 +127,18 @@ class PreflightResultWindow:
         imgui.end()
 
     def _render_body(self) -> None:
-        imgui.text_disabled(
-            f"{self._label}    {S.PREFLIGHT_SCOPE.format(scope=self._scope)}"
-        )
-        imgui.same_line()
+        # The device as the device lists show it, then the scope: its label dimmed, its value not.
+        imgui.text(self._label)
+        before, _, after = S.PREFLIGHT_SCOPE.partition("{scope}")
+        imgui.same_line(spacing=px(24))
+        if before.strip():
+            imgui.text_disabled(before.strip())
+            imgui.same_line()
+        imgui.text(self._scope)
+        if after.strip():
+            imgui.same_line()
+            imgui.text_disabled(after.strip())
+        imgui.same_line(spacing=px(24))
         # Text is plain (not selectable), so offer explicit copy-to-clipboard.
         if imgui.small_button(S.COPY_LOG):
             imgui.set_clipboard_text(self._clipboard_text())
@@ -347,7 +355,7 @@ class PreflightResultWindow:
         end_dialog()
 
     def _clipboard_text(self) -> str:
-        header = f"{self._label} scope={self._scope}"
+        header = f"{self._label}  {S.PREFLIGHT_SCOPE.format(scope=self._scope)}"
         if self._error is not None:
             return f"{header}\n{S.PREFLIGHT_FAILED}: {self._error}"
         if self._report is not None:
@@ -367,13 +375,13 @@ class PreflightResultWindow:
                 f"## {space} {segment.address:#06x} ({len(segment.planned)}B) "
                 f"changed={segment.changed_bytes}"
             )
-            lines.append(f"ist : {segment.current.hex()}")
-            lines.append(f"soll: {segment.planned.hex()}")
+            lines.append(f"device   : {segment.current.hex()}")
+            lines.append(f"generated: {segment.planned.hex()}")
         for prop in report.properties:
             lines.append(
                 f"## object {prop.object_label} property {prop.property_id} "
                 f"changed={prop.changed_bytes}"
             )
-            lines.append(f"ist : {prop.current.hex()}")
-            lines.append(f"soll: {prop.planned.hex()}")
+            lines.append(f"device   : {prop.current.hex()}")
+            lines.append(f"generated: {prop.planned.hex()}")
         return "\n".join(lines) + "\n"

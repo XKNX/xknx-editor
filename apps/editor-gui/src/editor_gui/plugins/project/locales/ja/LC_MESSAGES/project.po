@@ -1015,26 +1015,26 @@ msgstr "プログラミング・テストの結果"
 msgid "Evaluation failed"
 msgstr "評価に失敗しました"
 
-msgid "Read-only test: checks that the download function generates the same image as what is already programmed on the device. Nothing is written to the device."
-msgstr "読み取り専用テスト：ダウンロード機能が、デバイスにすでにプログラムされているものと同じイメージを生成するかを確認します。デバイスには何も書き込まれません。"
+msgid "Read-only test: compares what a download would write with what is on the device. Nothing is written to the device."
+msgstr "読み取り専用テスト：ダウンロードで書き込まれる内容とデバイス上の内容を比較します。デバイスには何も書き込まれません。"
 
-msgid "Cannot run: the project was changed since it was opened. This test compares the generated image against the device's programmed state, which only matches the project as it was opened. Undo your changes in this session to test."
-msgstr "実行できません：プロジェクトは開いた後に変更されています。このテストは生成されたイメージをデバイスのプログラム状態と比較しますが、それが一致するのは開いた時点のプロジェクトだけです。テストするには、このセッションでの変更を元に戻してください。"
+msgid "Cannot run: the project was changed since it was opened and may no longer match the device. Undo the changes of this session, or save and reopen the project."
+msgstr "実行できません：プロジェクトは開いた後に変更されているため、デバイスと一致しない可能性があります。このセッションの変更を元に戻すか、プロジェクトを保存して開き直してください。"
 
 msgid "Cannot run: no KNX connection. Connect to a gateway ({menu} menu) and make sure the device is reachable at its individual address."
 msgstr "実行できません：KNX 接続がありません。ゲートウェイに接続し（［{menu}］メニュー）、デバイスがその個別アドレスで到達可能であることを確認してください。"
 
-msgid "Match: the generated image is identical to what is on the device"
-msgstr "一致：生成されたイメージはデバイス上のものと同一です"
+msgid "Match: the generated image is identical to what is on the device."
+msgstr "一致：生成されたイメージはデバイス上のものと同一です。"
 
 msgid "{matched} matched, {changed} would change"
 msgstr "一致 {matched}、変更予定 {changed}"
 
-msgid "Only for ETS 6 devices: this test compares the device against an image generated the ETS 6 way. A device last programmed with ETS 5 uses a different byte layout and will show large false differences - the result is only meaningful for a device last programmed with ETS 6."
-msgstr "ETS 6 デバイス専用：このテストは、ETS 6 方式で生成したイメージとデバイスを比較します。最後に ETS 5 でプログラムされたデバイスはバイト配置が異なるため、大きな誤った差異が表示されます。結果に意味があるのは、最後に ETS 6 でプログラムされたデバイスだけです。"
+msgid "Only meaningful for a device last programmed with ETS 6: one programmed with ETS 5 stores its data in another layout and shows large false differences."
+msgstr "ETS 6 で最後にプログラムされたデバイスでのみ有効です。ETS 5 でプログラムされたデバイスはデータの配置が異なり、大きな誤った差異が表示されます。"
 
-msgid "Structural differences (whole tables differ) can mean the device was last programmed with ETS 5, whose byte layout differs. Differences in values only usually mean the device holds a different configuration."
-msgstr "構造的な差異（テーブル全体が異なる）は、デバイスが最後に ETS 5 でプログラムされたことを意味する場合があります（バイト配置が異なります）。値のみの差異は通常、デバイスが別の構成を保持していることを意味します。"
+msgid "If whole tables differ, the device was possibly last programmed with ETS 5 (another layout). If only values differ, it holds another configuration."
+msgstr "テーブル全体が異なる場合、デバイスは最後に ETS 5 でプログラムされた可能性があります（配置が異なる）。値だけが異なる場合は、別の設定を持っています。"
 
 msgid "Location"
 msgstr "場所"
@@ -1045,13 +1045,13 @@ msgstr "サイズ"
 msgid "Changed"
 msgstr "変更済み"
 
-msgid "match"
+msgid "Match"
 msgstr "一致"
 
-msgid "would change"
+msgid "Would change"
 msgstr "変更予定"
 
-msgid "device-managed"
+msgid "Device-managed"
 msgstr "デバイスが管理"
 
 msgid "System byte the device sets itself at runtime (e.g. a download detection byte reset by the application after a download). A difference here is expected and does not indicate a bad download."
@@ -1060,14 +1060,14 @@ msgstr "デバイスが実行時に自ら設定するシステム・バイトで
 msgid "No configured differences: the device already carries this configuration. The differences below are benign (see notes)."
 msgstr "構成上の差異はありません：デバイスはすでにこの構成を保持しています。以下の差異は問題ありません（注記を参照）。"
 
-msgid "sets default"
+msgid "Sets default"
 msgstr "デフォルトを設定"
 
 msgid "This byte is written for a neighbouring parameter; the differing bit is not driven by any active parameter and is only reset to the application default. The device holds an older value (e.g. from a previous configuration or mode) that programming will normalise. Benign."
 msgstr "このバイトは隣接するパラメータのために書き込まれます。異なるビットはどの有効なパラメータにも制御されておらず、アプリケーションのデフォルトにリセットされるだけです。デバイスは古い値（例：以前の構成やモードのもの）を保持しており、プログラミングによって正規化されます。問題ありません。"
 
-msgid "Export Ist/Soll…"
-msgstr "現状／目標をエクスポート…"
+msgid "Export…"
+msgstr "エクスポート…"
 
 msgid "Export Path:"
 msgstr "エクスポート・パス："
@@ -3084,8 +3084,8 @@ msgid "{count} byte"
 msgid_plural "{count} bytes"
 msgstr[0] "{count} バイト"
 
-msgid "Mismatch: {bytes} from the device in {locations}"
-msgstr "不一致：{locations}で {bytes}"
+msgid "Mismatch: {bytes} from the device in {locations}."
+msgstr "不一致：{locations}で {bytes}。"
 
 msgid "{count} byte differs"
 msgid_plural "{count} bytes differ"
@@ -3095,12 +3095,12 @@ msgid "{count} location"
 msgid_plural "{count} locations"
 msgstr[0] "{count} か所"
 
-msgid "plus {bytes} device-managed runtime byte (expected, benign)"
-msgid_plural "plus {bytes} device-managed runtime bytes (expected, benign)"
+msgid "Plus {bytes} device-managed runtime byte (expected, benign)"
+msgid_plural "Plus {bytes} device-managed runtime bytes (expected, benign)"
 msgstr[0] "さらに、デバイス管理の実行時バイト {bytes} 個（想定どおり、問題なし）"
 
-msgid "plus {bytes} byte reset to the application default (the device holds an older value; benign, will be normalised on programming)"
-msgid_plural "plus {bytes} bytes reset to the application default (the device holds an older value; benign, will be normalised on programming)"
+msgid "Plus {bytes} byte reset to the application default (the device holds an older value; benign, will be normalised on programming)"
+msgid_plural "Plus {bytes} bytes reset to the application default (the device holds an older value; benign, will be normalised on programming)"
 msgstr[0] "さらに、アプリケーションのデフォルトにリセットされるバイト {bytes} 個（デバイスは古い値を保持しています。問題なし、プログラミング時に正規化されます）"
 
 msgid "Paste configuration onto {count} selected device:"

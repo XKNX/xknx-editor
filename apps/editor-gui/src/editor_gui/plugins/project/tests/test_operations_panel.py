@@ -201,7 +201,9 @@ def _test_plugin(
 ) -> ProjectPlugin:
     from editor_gui.plugins.project.program_queue import ProgramQueue
 
-    device = SimpleNamespace(node_id=1, name="Dimmer", individual_address="1.1.5")
+    device = SimpleNamespace(
+        node_id=1, name="Dimmer", display_name="Dimmer", individual_address="1.1.5"
+    )
 
     def evaluate_device(*_args: object) -> Future[object]:
         future: Future[object] = Future()
@@ -236,6 +238,21 @@ def _test_plugin(
     return plugin
 
 
+def test_a_failed_test_shows_the_error_as_the_operations_list() -> None:
+    from xknxeditor.download.errors import CompareMismatch, product_message
+    from xknxeditor.download.scope import DownloadScope
+
+    busy, evaluations, shown = [False], [], []
+    plugin = _test_plugin(busy, evaluations, shown)
+    device: Any = plugin._api.project.find_device_by_node_id(1)  # pyright: ignore[reportPrivateUsage]
+    plugin._eval_device(device, DownloadScope.FULL)  # pyright: ignore[reportPrivateUsage]
+    plugin.program_queue.tick()
+    message = product_message("Firmware passt nicht")
+    evaluations[0].set_exception(CompareMismatch(message))
+    # Its text without the exception's class name in front.
+    assert shown == [("error", "1.1.5  Dimmer", S.SCOPE_FULL, message)]
+
+
 def test_test_programming_waits_in_the_queue_while_the_bus_is_busy() -> None:
     from editor_gui.plugins.project.program_queue import OperationState
     from xknxeditor.download.scope import DownloadScope
@@ -255,7 +272,9 @@ def test_test_programming_waits_in_the_queue_while_the_bus_is_busy() -> None:
     assert len(evaluations) == 1
     evaluations[0].set_result("report")
     # The report shows in the result window, and the entry ends as finished.
-    assert shown == [("result", "Dimmer", "PARAMETERS", "report", set(), {})]
+    assert shown == [
+        ("result", "1.1.5  Dimmer", S.SCOPE_PARAMETERS, "report", set(), {})
+    ]
     assert queue.history[0].state is OperationState.FINISHED
 
 
@@ -282,7 +301,12 @@ def test_test_programming_without_a_bus_connection_is_not_queued() -> None:
     plugin._eval_device(device, DownloadScope.FULL)  # pyright: ignore[reportPrivateUsage]
     # The hint names the menu with its label, in every language.
     assert shown == [
-        ("error", "Dimmer", "FULL", S.PREFLIGHT_NO_CONNECTION.format(menu="Gateway"))
+        (
+            "error",
+            "1.1.5  Dimmer",
+            S.SCOPE_FULL,
+            S.PREFLIGHT_NO_CONNECTION.format(menu="Gateway"),
+        )
     ]
     assert "(Gateway menu)" in shown[0][3]
     assert plugin.program_queue.active == [] and evaluations == []
@@ -360,7 +384,9 @@ def test_a_partial_download_queues_what_the_device_needs() -> None:
     from xknxeditor.download.scope import DownloadScope
 
     queued: list[QueueItem] = []
-    device = SimpleNamespace(node_id=1, name="Dimmer", individual_address="1.1.5")
+    device = SimpleNamespace(
+        node_id=1, name="Dimmer", display_name="Dimmer", individual_address="1.1.5"
+    )
     plugin = ProjectPlugin.__new__(ProjectPlugin)
     plugin._api = SimpleNamespace(  # pyright: ignore[reportPrivateUsage, reportAttributeAccessIssue]
         connection=SimpleNamespace(use_serial_number=False),

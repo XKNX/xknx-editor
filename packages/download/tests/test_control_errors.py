@@ -14,6 +14,7 @@ from xknxeditor.download.errors import (
     CompareMismatch,
     PropertyAccessRejected,
     VerificationError,
+    product_message,
 )
 from xknxeditor.download.image import DownloadImage
 from xknxeditor.download.procedure import LoadProcedureRunner
@@ -184,8 +185,8 @@ async def test_message_ref_replaces_message_preserving_failure(message_exists):
     assert error.value.error_code == 0xC0042B09
     if message_exists:
         assert str(error.value) == (
-            "Application is incompatible The device reports application version 79, "
-            "the application expects 78."
+            'Product message: "Application is incompatible". The device reports '
+            "application version 79, the application expects 78."
         )
         assert isinstance(error.value.__cause__, CompareMismatch)
     else:
@@ -213,3 +214,14 @@ async def test_compare_mismatch_reports_the_masked_hardware_type():
         "The device reports hardware type 00 00 00 14 00 01, "
         "the application expects 00 00 00 25 xx xx."
     )
+
+
+def test_product_message_is_marked_and_quoted():
+    # The product's own sentence keeps its words; its full stop moves after the quote.
+    assert product_message(
+        "Diese Applikation und die installierte Firmware passen nicht zusammen. "
+    ) == (
+        'Product message: "Diese Applikation und die installierte Firmware passen nicht '
+        'zusammen".'
+    )
+    assert product_message("Not loaded") == 'Product message: "Not loaded".'

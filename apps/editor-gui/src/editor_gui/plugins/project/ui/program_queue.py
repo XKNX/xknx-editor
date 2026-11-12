@@ -350,10 +350,10 @@ def operation_text(item: QueueItem) -> str:
     if item.device_info is not None:
         return S.DEVICE_INFO_GROUPS if item.device_info else S.DEVICE_INFO
     if item.test:
-        return f"{S.BTN_EVAL_DEVICE} ({_scope_label(item.scope)})"
+        return f"{S.BTN_EVAL_DEVICE} ({scope_label(item.scope)})"
     if item.scope is DownloadScope.INDIVIDUAL_ADDRESS and item.serial_number:
         return f"{S.OPERATION_DOWNLOAD} ({S.SCOPE_INDIVIDUAL_ADDRESS_SERIAL})"
-    return f"{S.OPERATION_DOWNLOAD} ({_scope_label(item.scope)})"
+    return f"{S.OPERATION_DOWNLOAD} ({scope_label(item.scope)})"
 
 
 def state_text(item: QueueItem, connecting: bool = False) -> str:
@@ -386,7 +386,8 @@ def state_text(item: QueueItem, connecting: bool = False) -> str:
             return S.OPERATION_FAILED
 
 
-def _scope_label(scope: DownloadScope | None) -> str:
+def scope_label(scope: DownloadScope | None) -> str:
+    """The scope as the operations list shows it, e.g. "Parameters"."""
     match scope:
         case DownloadScope.PARTIAL:
             return S.SCOPE_PARTIAL

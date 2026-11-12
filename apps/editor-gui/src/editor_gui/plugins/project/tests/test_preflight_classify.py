@@ -283,3 +283,25 @@ def test_a_user_memory_segment_is_labelled_apart_from_standard_memory() -> None:
     exported = w._export_text(report)
     assert "## memory 0x0100 (1B) changed=1" in exported
     assert "## user memory 0x0100 (1B) changed=1" in exported
+
+
+def test_copied_and_exported_texts_name_device_scope_and_bytes() -> None:
+    from editor_gui.plugins.project.strings import S
+
+    w = PreflightResultWindow()
+    report = PreflightReport(
+        segments=(SegmentDiff(address=0x100, current=b"", planned=b""),),
+        properties=(),
+    )
+    w.submit_result("1.1.5  Dimmer", S.SCOPE_PARAMETERS, report)
+    with w._lock:
+        assert w._pending is not None
+        w._label, w._scope, w._report = w._pending[:3]
+    first = w._clipboard_text().splitlines()[0]
+    assert (
+        first == f"1.1.5  Dimmer  {S.PREFLIGHT_SCOPE.format(scope=S.SCOPE_PARAMETERS)}"
+    )
+    # English labels for what the device holds and what a download would write.
+    lines = w._export_text(report).splitlines()
+    assert "device   : 01" in lines
+    assert "generated: 02" in lines
