@@ -14,6 +14,7 @@ import hashlib
 import io
 import json
 import re
+from collections.abc import Callable
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 from urllib.parse import quote_plus, urlparse
@@ -301,6 +302,17 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
     tool = make_tool(mcp, ctx)
     catalog = ctx.api.catalog
 
+    def imported(load: Callable[[], list[ProductSummary]]) -> list[ProductSummary]:
+        """Run a catalog import on the UI thread, then let the open project's devices resolve
+        through the new products (as an import in the GUI does)."""
+
+        def run() -> list[ProductSummary]:
+            added = load()
+            ctx.api.project.refresh_catalog_resolution()
+            return added
+
+        return ctx.run_locked(run, timeout=_SLOW)
+
     @tool("read")
     def catalog_list_products(
         name_contains: str | None = None, manufacturer_contains: str | None = None
@@ -573,7 +585,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         devices."""
         # Converted here, not on the UI thread the import runs on.
         data = catalog.knxprod_bytes(Path(path).read_bytes())
-        added = ctx.run_locked(lambda: catalog.import_knxprod_data(data), timeout=_SLOW)
+        added = imported(lambda: catalog.import_knxprod_data(data))
         return added_products(added)
 
     @tool("write")
@@ -605,7 +617,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             safe += ".knxprod"
         # Converted here, not on the UI thread the import runs on.
         data = catalog.knxprod_bytes(raw)
-        added = ctx.run_locked(lambda: catalog.import_knxprod_data(data), timeout=_SLOW)
+        added = imported(lambda: catalog.import_knxprod_data(data))
         return {**added_products(added), "filename": safe, "size_bytes": len(raw)}
 
     @tool("destructive")
@@ -755,8 +767,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         project_add_device. The import is outside project_undo history and does not program devices."""
         if not catalog_item_ids:
             raise ToolError("catalog_item_ids must not be empty")
-        added = ctx.run_locked(
-            lambda: catalog.download_online_products(catalog_item_ids, language_ids),
-            timeout=_SLOW,
+        added = imported(
+            lambda: catalog.download_online_products(catalog_item_ids, language_ids)
         )
         return added_products(added)

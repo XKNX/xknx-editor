@@ -1269,6 +1269,9 @@ class ProjectService:
         self._log: Logger
         self._listeners: dict[str, list[Callable[..., Any]]] = {}
         self._app_cache: dict[str, Application] = {}
+        # missing_program_refs() of a revision: it is polled every frame, and every device without
+        # an application would otherwise be looked up in the catalog (and logged) again each time.
+        self._missing_refs: tuple[int, list[str]] | None = None
         self._plugin_cache: dict[str, bool] = {}
         self._configuration_app_cache: tuple[str, list[ConfigurationApp]] | None = None
         # Signature of the non-reverted events at open — the baseline the read-only pre-flight
@@ -2067,6 +2070,7 @@ class ProjectService:
         self._selected_node_ids = set()
         self._dynui_lru.clear()
         self._app_cache.clear()
+        self._missing_refs = None
         self._snapshots = None
         self._new_snapshots.clear()
         self._source_cache.clear()
@@ -5024,9 +5028,13 @@ class ProjectService:
 
         These are the devices dropped from the view with "application not found"; the refs can be
         fetched from the online catalog (they are a prefix of the online catalog item id).
-        Guarded because it is polled every frame and also read from the fetch worker."""
+        Guarded because it is polled every frame and also read from the fetch worker. Kept until
+        the next revision: the catalog lookups change only with one (an import or a deleted
+        product calls refresh_catalog_resolution / forget_deleted_product, which advance it)."""
         if self._pid is None:
             return []
+        if self._missing_refs is not None and self._missing_refs[0] == self._version:
+            return list(self._missing_refs[1])
         missing: list[str] = []
         for row in self._svc.devices(self._pid):
             ref = row.hardware2program_ref_id
@@ -5037,7 +5045,8 @@ class ProjectService:
                 and not self._without_application(ref)
             ):
                 missing.append(ref)
-        return missing
+        self._missing_refs = (self._version, missing)
+        return list(missing)
 
     def refresh_catalog_resolution(
         self,
