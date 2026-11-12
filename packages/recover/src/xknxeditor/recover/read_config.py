@@ -23,7 +23,9 @@ from xknx.profile.const import ResourceObjectType
 from xknxeditor.download.errors import LoadStateError, VerificationError
 from xknxeditor.download.merge import device_mask_version
 from xknxeditor.download.resources import (
+    bcu1_association_table,
     bcu1_group_object_table,
+    bcu2_association_table,
     bcu2_group_object_table,
     bundled_mask_resources,
     mask_number,
@@ -634,7 +636,13 @@ async def _read_memory_mapped(
         assoc_bytes = await _read_count_table(
             programmer, assoc_address, count_width=1, entry_width=2
         )
-        links = decode_association_table(assoc_bytes, group_addresses)
+        mask_version = device_mask_version(application)
+        links = decode_association_table(
+            assoc_bytes,
+            group_addresses,
+            reserved_slots=bcu1_association_table(mask_version)
+            or bcu2_association_table(mask_version),
+        )
 
     group_objects: dict[int, DecodedGroupObject] = {}
     com_object_table = static.com_object_table

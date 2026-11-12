@@ -252,3 +252,57 @@ def test_memory_object_size_name_of_an_ambiguous_or_unknown_type() -> None:
     # 15 is both LegacyVarData and 5 Bytes; 57 and above are no size.
     assert memory_object_size_name(15) is None
     assert memory_object_size_name(57) is None
+
+
+def test_a_bcu_association_sends_on_the_one_in_its_own_slot() -> None:
+    # A BCU1 list as a device holds it: slot i belongs to group object i, and an unused
+    # slot holds a receiving association of another object (object 11 in slot 8, object 9
+    # in slot 4, object 13 in slot 10, object 15 in slot 14); slot 16 is free.
+    data = bytes.fromhex(
+        "13"
+        "0e00 0a01 0902 0803 0709 0c05 0b06 0d07 050b 0409"
+        "060d 020b 030c 010d 100f 0f0f fe10 1211 1112"
+    )
+    gas = [0x0800 + n for n in range(1, 19)]
+    links = decode_association_table(data, gas, reserved_slots=True)
+    sending = {
+        link.group_object_number: link.group_address for link in links if link.sending
+    }
+    assert sending[11] == gas[2 - 1]
+    assert sending[9] == gas[4 - 1]
+    assert sending[13] == gas[1 - 1]
+    assert sending[15] == gas[0x0F - 1]
+    assert 16 not in sending
+    # Each object sends on one association at most.
+    assert len([link for link in links if link.sending]) == len(sending)
+    # Without the slots, the receiving association of object 11 would send: it comes
+    # first in table order.
+    in_order = decode_association_table(data, gas)
+    assert {
+        (link.group_address, link.group_object_number)
+        for link in in_order
+        if link.sending
+    } >= {(gas[5 - 1], 11)}
+
+
+def test_bcu_association_slots_round_trip() -> None:
+    from xknxeditor.download.tables import association_slots, build_association_list
+
+    gas = [0x0B00, 0x0B01, 0x0B02, 0x0B03]
+    associations = [
+        Association(1, group_object_number=0, sending=True),
+        Association(2, group_object_number=2, sending=True),
+        Association(3, group_object_number=2, sending=False),
+        Association(4, group_object_number=2, sending=False),
+    ]
+    # Object 1 sends on nothing: its slot takes a receiving association of object 2.
+    data = build_association_list(association_slots(associations, 3))
+    links = decode_association_table(data, gas, reserved_slots=True)
+    assert {
+        (link.group_address, link.group_object_number, link.sending) for link in links
+    } == {
+        (0x0B00, 0, True),
+        (0x0B01, 2, True),
+        (0x0B02, 2, False),
+        (0x0B03, 2, False),
+    }
