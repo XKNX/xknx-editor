@@ -6,16 +6,21 @@ import time
 from collections.abc import Awaitable, Callable, Coroutine, Iterable
 from concurrent.futures import Future
 from enum import Enum
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 from imgui_bundle import imgui
 from xknx import XKNX
 from xknx.core.connection_state import XknxConnectionState
-from xknx.exceptions import ConfirmationError, RequestResponseError
+from xknx.exceptions import (
+    ConfirmationError,
+    CouldNotParseAddress,
+    RequestResponseError,
+)
 from xknx.io.connection import ConnectionConfig, ConnectionType
 from xknx.io.const import DEFAULT_MCAST_GRP
 from xknx.io.gateway_scanner import GatewayDescriptor, GatewayScanner
 from xknx.io.self_description import request_description
+from xknx.telegram import IndividualAddress
 
 from editor_gui.color import color_u32
 from editor_gui.device_info import application_version_text
@@ -300,6 +305,20 @@ class ConnectionPlugin:
         self._preferred_gateway_ip: str | None = None
         # The KNX USB interface connected through instead of a gateway (None: a gateway).
         self._usb_target: UsbTarget | None = None
+        # The individual addresses of the USB interfaces that forget theirs when unplugged
+        # (UsbTarget.keeps_address), by UsbTarget.key: set again on connect.
+        self._usb_addresses: dict[str, str] = {}
+        # The USB Interface Settings dialog: whether it is open, the address in its field, the
+        # address the next connect writes (set_usb_interface_address), whether that or an address
+        # check runs, and the outcome of the last one.
+        self._usb_settings_open = False
+        self._usb_settings_shown = False
+        self._usb_address_text = ""
+        self._usb_address_write: IndividualAddress | None = None
+        self._usb_address_busy = False
+        self._usb_address_checking = False
+        self._usb_address_error: str | None = None
+        self._usb_address_free: tuple[str, bool] | None = None
         # Whether the editor looks for interfaces at start and connects to one (Settings >
         # Connection); off, it connects only when the user asks.
         self._connect_at_startup = True
@@ -530,6 +549,12 @@ class ConnectionPlugin:
         if isinstance(pref, str) and pref:
             self._preferred_gateway_ip = pref
         self._usb_target = UsbTarget.from_settings(data.get("usb_interface"))
+        addresses = data.get("usb_interface_addresses")
+        if isinstance(addresses, dict):
+            self._usb_addresses = {
+                str(key): str(value)
+                for key, value in cast(dict[object, object], addresses).items()
+            }
         self._api.connection.use_serial_number = bool(
             data.get("serial_number_downloads", True)
         )
@@ -548,6 +573,7 @@ class ConnectionPlugin:
                     if self._usb_target is not None
                     else None
                 ),
+                "usb_interface_addresses": dict(self._usb_addresses),
                 "serial_number_downloads": self._api.connection.use_serial_number,
                 "connect_at_startup": self._connect_at_startup,
             },
@@ -648,6 +674,127 @@ class ConnectionPlugin:
         self.connect_to_usb(device)
         return True
 
+    @property
+    def usb_address_busy(self) -> bool:
+        """Whether the connected USB interface's individual address is being set."""
+        return self._usb_address_busy
+
+    def set_usb_interface_address(self, text: str) -> Future[None]:
+        """Set the individual address of the connected KNX USB interface to ``text``: the
+        connection is opened again and sets it on the interface, which keeps it. Nothing is written
+        when the interface has that address already. Raises ``ValueError`` with the reason when it
+        can't start; the future fails with the reason when the address could not be set, and the
+        interface is then connected again as it is."""
+        address = _parse_individual_address(text)
+        if not self.connected or self._usb_target is None:
+            raise ValueError(S.USB_NOT_CONNECTED_HERE)
+        if self._usb_address_busy or self._usb_address_checking:
+            raise ValueError(S.USB_ADDRESS_BUSY)
+        self._usb_address_error = None
+        self._usb_address_free = None
+        info = self.usb_info
+        if info is not None and info.individual_address == address:
+            unchanged: Future[None] = Future()
+            unchanged.set_result(None)
+            return unchanged
+        self._usb_address_busy = True
+        return asyncio.run_coroutine_threadsafe(
+            self._write_usb_address(self._session, address), self._ensure_async_loop()
+        )
+
+    async def _write_usb_address(
+        self, session: int, address: IndividualAddress
+    ) -> None:
+        """Open the USB connection again with ``address`` set on the interface (see
+        ``_usb_address_to_set``); when that fails, open it again without."""
+        try:
+            await self._disconnect_async(reopen=True)
+            self._api.connection.dispatch_link_state(False)
+            self._state = ConnectionState.CONNECTING
+            self._error_message = None
+            self._usb_address_write = address
+            try:
+                await self._connect_async(reopen=True)
+            finally:
+                self._usb_address_write = None
+            if self.connected:
+                self._log.info(
+                    "USB interface individual address set", address=str(address)
+                )
+                return
+            self._usb_address_error = S.USB_ADDRESS_FAILED.format(
+                error=self._error_message or ""
+            )
+            if session == self._session:
+                # The interface as it is, without the address.
+                self._run_async(self._reopen(session))
+            raise ConnectionError(self._usb_address_error)
+        finally:
+            self._usb_address_busy = False
+
+    def check_usb_interface_address(self, text: str) -> Future[Any]:
+        """Check whether a device on the bus answers at the individual address ``text`` (the
+        "Address Free?" button), over the open connection; the future's result is whether one
+        does. Raises ``ValueError`` with the reason when it can't start."""
+        address = _parse_individual_address(text)
+        if self._usb_address_busy or self._usb_address_checking:
+            raise ValueError(S.USB_ADDRESS_BUSY)
+        future = self._api.connection.individual_address_occupied(str(address))
+        if future is None:
+            raise ValueError(S.USB_NOT_CONNECTED_HERE)
+        self._usb_address_checking = True
+        self._usb_address_error = None
+        self._usb_address_free = None
+
+        def checked(done: Future[Any]) -> None:
+            self._usb_address_checking = False
+            try:
+                occupied = bool(done.result())
+            except Exception as err:
+                self._log.warning(
+                    "individual address check failed",
+                    address=str(address),
+                    error=str(err),
+                )
+                self._usb_address_error = S.USB_ADDRESS_CHECK_FAILED.format(error=err)
+                return
+            self._log.info(
+                "individual address checked", address=str(address), used=occupied
+            )
+            self._usb_address_free = (str(address), not occupied)
+
+        future.add_done_callback(checked)
+        return future
+
+    def _usb_address_to_set(self, usb: UsbTarget) -> IndividualAddress | None:
+        """The individual address the next connect sets on ``usb``: the one being set, else for an
+        interface that forgets its address the one it had (``None``: only read it)."""
+        if self._usb_address_write is not None:
+            return self._usb_address_write
+        kept = None if usb.keeps_address else self._usb_addresses.get(usb.key)
+        if kept is None:
+            return None
+        try:
+            return IndividualAddress(kept)
+        except CouldNotParseAddress:
+            return None
+
+    def _keep_usb_address(self) -> None:
+        """Keep the individual address of a connected USB interface that forgets it when
+        unplugged, to set it again on the next connect."""
+        usb, info = self._usb_target, self.usb_info
+        if (
+            usb is None
+            or usb.keeps_address
+            or info is None
+            or info.individual_address is None
+        ):
+            return
+        address = str(info.individual_address)
+        if self._usb_addresses.get(usb.key) != address:
+            self._usb_addresses[usb.key] = address
+            self._save_current_settings()
+
     def switch_connection_type(self, connection_type: ConnectionType) -> None:
         """Reconnect the live connection over a different type (same gateway/IP). No-op when not
         connected or already on it."""
@@ -695,6 +842,7 @@ class ConnectionPlugin:
                     data_secure=await self._on_main_thread(
                         self._api.connection.data_secure
                     ),
+                    individual_address=self._usb_address_to_set(usb),
                 )
                 self._interface = usb_interface
                 config = usb_interface.connection_config
@@ -809,6 +957,7 @@ class ConnectionPlugin:
                     bus_connected=self._usb_info.bus_connected,
                     serial_number=self._usb_info.device.serial_number,
                 )
+                self._keep_usb_address()
             if self._gateway_info:
                 services = [
                     s
@@ -1255,6 +1404,7 @@ class ConnectionPlugin:
             self._unregister_link_state()
             self._unregister_link_state = None
         was_connected = self._xknx is not None
+        self._keep_usb_address()
         try:
             if self._interface is not None:
                 await self._interface.stop()
@@ -1782,6 +1932,7 @@ class ConnectionPlugin:
         """The 'Devices in programming mode' window and the "Select Connection" dialog; called
         from the overlay pass."""
         self._render_select_connection()
+        self._render_usb_settings()
         if not self._progmode_open:
             return
         expanded, open_state = begin_tool_window(
@@ -1791,6 +1942,106 @@ class ConnectionPlugin:
         if expanded:
             self._render_progmode_contents()
         imgui.end()
+
+    def open_usb_settings(self) -> None:
+        """Open the USB Interface Settings dialog of the connected USB interface."""
+        info = self.usb_info
+        address = info.individual_address if info is not None else None
+        self._usb_address_text = str(address) if address is not None else ""
+        self._usb_address_error = None
+        self._usb_address_free = None
+        self._usb_settings_open = True
+
+    def _render_usb_settings(self) -> None:
+        """The "USB Interface Settings" dialog: what the connected USB interface reported, and its
+        individual address, set on the interface when it is changed (Enter or leaving the field),
+        with a check whether a device on the bus uses an address."""
+        title = f"{S.USB_SETTINGS_TITLE}###usb_settings"
+        if self._usb_settings_open and not self._usb_settings_shown:
+            imgui.open_popup(title)
+            self._usb_settings_shown = True
+        if not self._usb_settings_shown:
+            return
+        if not begin_dialog(title, width=440.0):
+            self._usb_settings_shown = False
+            self._usb_settings_open = False
+            return
+        target = self._usb_target
+        if not self._usb_settings_open or target is None:
+            self._usb_settings_open = False
+            imgui.close_current_popup()
+            end_dialog()
+            return
+        info = self.usb_info
+        imgui.text(S.GATEWAY_NAME.format(name=target.name))
+        if target.serial_number:
+            imgui.text(S.USB_SERIAL_NUMBER.format(serial=target.serial_number))
+        if info is not None:
+            imgui.text(S.USB_MAX_APDU_LENGTH.format(length=info.max_apdu_length))
+        imgui.separator()
+        busy = self._usb_address_busy or self._usb_address_checking
+        imgui.begin_disabled(busy or not self.connected)
+        imgui.align_text_to_frame_padding()
+        imgui.text(S.USB_ADDRESS_LABEL)
+        imgui.same_line()
+        imgui.set_next_item_width(px(110))
+        _, self._usb_address_text = imgui.input_text(
+            "##usb_address", self._usb_address_text
+        )
+        if imgui.is_item_deactivated_after_edit():
+            self._start_usb_address(self.set_usb_interface_address)
+        # beside the field, or below it where the row has no room (a narrow screen)
+        button = imgui.calc_text_size(S.USB_ADDRESS_FREE).x + 2 * (
+            imgui.get_style().frame_padding.x
+        )
+        imgui.same_line()
+        if imgui.get_content_region_avail().x < button:
+            imgui.new_line()
+        if imgui.button(f"{S.USB_ADDRESS_FREE}##usb_address_free"):
+            self._start_usb_address(self.check_usb_interface_address)
+        imgui.end_disabled()
+        if busy or (self._state == ConnectionState.CONNECTING):
+            spinner("##usb_address_spinner")
+            imgui.same_line()
+            imgui.text_disabled(
+                S.USB_ADDRESS_CHECKING
+                if self._usb_address_checking
+                else S.USB_ADDRESS_SETTING
+            )
+        elif self._usb_address_error:
+            imgui.push_style_color(imgui.Col_.text, status_color("error"))
+            imgui.text_wrapped(self._usb_address_error)
+            imgui.pop_style_color()
+        elif self._usb_address_free is not None:
+            address, free = self._usb_address_free
+            imgui.push_style_color(
+                imgui.Col_.text, status_color("success" if free else "warning")
+            )
+            imgui.text_wrapped(
+                (S.USB_ADDRESS_IS_FREE if free else S.USB_ADDRESS_NOT_FREE).format(
+                    address=address
+                )
+            )
+            imgui.pop_style_color()
+        # wrapped: a line of its own would widen the dialog past a narrow screen
+        imgui.push_style_color(
+            imgui.Col_.text, imgui.get_style().color_(imgui.Col_.text_disabled)
+        )
+        imgui.text_wrapped(
+            S.USB_ADDRESS_HINT if target.keeps_address else S.USB_ADDRESS_HINT_VOLATILE
+        )
+        imgui.pop_style_color()
+        if dialog_buttons(S.USB_SETTINGS_CLOSE) == 0:
+            self._usb_settings_open = False
+            imgui.close_current_popup()
+        end_dialog()
+
+    def _start_usb_address(self, start: Callable[[str], Future[Any]]) -> None:
+        """Set or check the address in the dialog's field; a reason it can't is shown there."""
+        try:
+            start(self._usb_address_text)
+        except ValueError as err:
+            self._usb_address_error = str(err)
 
     def _render_progmode_contents(self) -> None:
         imgui.begin_disabled(self._progmode_scanning)
@@ -1966,6 +2217,8 @@ class ConnectionPlugin:
             self._render_connected_transport()
             imgui.unindent(px(_DETAILS_INDENT))
             imgui.separator()
+            if self.is_usb and imgui.menu_item(S.MENU_USB_SETTINGS, "", False)[0]:
+                self.open_usb_settings()
             if imgui.menu_item(S.MENU_READ_PROGMODE, "", self._progmode_open)[0]:
                 self._open_progmode_window()
             imgui.separator()
@@ -2257,3 +2510,12 @@ def _config_key(config: ConnectionConfig) -> tuple[object, ...]:
             secure.backbone_key,
         ),
     )
+
+
+def _parse_individual_address(text: str) -> IndividualAddress:
+    """``text`` as an individual address (area.line.device). Raises ``ValueError`` with the
+    message shown when it is none."""
+    try:
+        return IndividualAddress(text.strip())
+    except CouldNotParseAddress:
+        raise ValueError(S.USB_ADDRESS_INVALID.format(address=text.strip())) from None

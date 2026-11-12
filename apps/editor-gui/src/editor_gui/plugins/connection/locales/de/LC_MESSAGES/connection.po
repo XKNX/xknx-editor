@@ -230,3 +230,54 @@ msgid "{count} device in programming mode"
 msgid_plural "{count} devices in programming mode"
 msgstr[0] "{count} Gerät im Programmiermodus"
 msgstr[1] "{count} Geräte im Programmiermodus"
+
+msgid "USB Interface Settings…"
+msgstr "USB-Schnittstelleneinstellungen…"
+
+msgid "USB Interface Settings"
+msgstr "USB-Schnittstelleneinstellungen"
+
+msgid "Close"
+msgstr "Schließen"
+
+msgid "Maximum Telegram Length (APDU): {length}"
+msgstr "Maximale Telegrammlänge (APDU): {length}"
+
+msgid "Individual Address"
+msgstr "Physikalische Adresse"
+
+msgid "Address Free?"
+msgstr "Adresse frei?"
+
+msgid "The individual address {address} is not used by another device."
+msgstr "Die physikalische Adresse {address} wird nicht von einem anderen Gerät verwendet."
+
+msgid "The individual address {address} is already in use by another device on the bus."
+msgstr "Die physikalische Adresse {address} wird bereits von einem anderen Gerät am Bus verwendet."
+
+msgid "{address} is not an individual address (area.line.device)."
+msgstr "{address} ist keine physikalische Adresse (Bereich.Linie.Gerät)."
+
+msgid "The individual address of the interface is being set or checked."
+msgstr "Die physikalische Adresse der Schnittstelle wird gerade gesetzt oder geprüft."
+
+msgid "Not connected through a USB interface."
+msgstr "Nicht über eine USB-Schnittstelle verbunden."
+
+msgid "The individual address could not be set: {error}"
+msgstr "Die physikalische Adresse konnte nicht gesetzt werden: {error}"
+
+msgid "The individual address could not be checked: {error}"
+msgstr "Die physikalische Adresse konnte nicht geprüft werden: {error}"
+
+msgid "Setting the individual address…"
+msgstr "Physikalische Adresse wird gesetzt…"
+
+msgid "Checking the individual address on the bus…"
+msgstr "Physikalische Adresse wird am Bus geprüft…"
+
+msgid "A changed address is set on the interface (Enter), which keeps it."
+msgstr "Eine geänderte Adresse wird in der Schnittstelle gesetzt (Eingabetaste), die sie behält."
+
+msgid "A changed address is set on the interface (Enter). This interface forgets it when unplugged, so it is set again on every connect."
+msgstr "Eine geänderte Adresse wird in der Schnittstelle gesetzt (Eingabetaste). Diese Schnittstelle vergisst sie beim Abstecken, daher wird sie bei jedem Verbinden erneut gesetzt."

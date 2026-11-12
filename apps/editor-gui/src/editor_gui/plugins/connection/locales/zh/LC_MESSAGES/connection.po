@@ -229,3 +229,54 @@ msgstr "系列号：{serial}"
 msgid "{count} device in programming mode"
 msgid_plural "{count} devices in programming mode"
 msgstr[0] "{count} 个设备处于编程模式"
+
+msgid "USB Interface Settings…"
+msgstr "USB 接口设置…"
+
+msgid "USB Interface Settings"
+msgstr "USB 接口设置"
+
+msgid "Close"
+msgstr "关闭"
+
+msgid "Maximum Telegram Length (APDU): {length}"
+msgstr "最大报文长度 (APDU): {length}"
+
+msgid "Individual Address"
+msgstr "物理地址"
+
+msgid "Address Free?"
+msgstr "地址是否空闲?"
+
+msgid "The individual address {address} is not used by another device."
+msgstr "物理地址 {address} 未被其他设备使用。"
+
+msgid "The individual address {address} is already in use by another device on the bus."
+msgstr "物理地址 {address} 已被总线上的其他设备使用。"
+
+msgid "{address} is not an individual address (area.line.device)."
+msgstr "{address} 不是物理地址 (区域.线路.设备)。"
+
+msgid "The individual address of the interface is being set or checked."
+msgstr "正在设置或检查接口的物理地址。"
+
+msgid "Not connected through a USB interface."
+msgstr "未通过 USB 接口连接。"
+
+msgid "The individual address could not be set: {error}"
+msgstr "无法设置物理地址: {error}"
+
+msgid "The individual address could not be checked: {error}"
+msgstr "无法检查物理地址: {error}"
+
+msgid "Setting the individual address…"
+msgstr "正在设置物理地址…"
+
+msgid "Checking the individual address on the bus…"
+msgstr "正在总线上检查物理地址…"
+
+msgid "A changed address is set on the interface (Enter), which keeps it."
+msgstr "更改后的地址会设置到接口中 (Enter),接口会保留该地址。"
+
+msgid "A changed address is set on the interface (Enter). This interface forgets it when unplugged, so it is set again on every connect."
+msgstr "更改后的地址会设置到接口中 (Enter)。此接口拔出后会忘记该地址,因此每次连接时都会重新设置。"

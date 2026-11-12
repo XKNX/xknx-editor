@@ -63,6 +63,7 @@ def test_the_gateways_found_from_all_addresses_are_merged(
     )
     plugin = cast(Any, object.__new__(ConnectionPlugin))
     plugin._usb_target = None
+    plugin._usb_addresses = {}
     plugin._usb_info = None
     plugin._usb_devices = []
     log = SimpleNamespace(

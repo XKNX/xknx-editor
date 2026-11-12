@@ -230,3 +230,54 @@ msgid "{count} device in programming mode"
 msgid_plural "{count} devices in programming mode"
 msgstr[0] "{count} apparaat in programmeermodus"
 msgstr[1] "{count} apparaten in programmeermodus"
+
+msgid "USB Interface Settings…"
+msgstr "Instellingen USB-interface…"
+
+msgid "USB Interface Settings"
+msgstr "Instellingen USB-interface"
+
+msgid "Close"
+msgstr "Sluiten"
+
+msgid "Maximum Telegram Length (APDU): {length}"
+msgstr "Maximale telegramlengte (APDU): {length}"
+
+msgid "Individual Address"
+msgstr "Individueel Adres"
+
+msgid "Address Free?"
+msgstr "Adres vrij?"
+
+msgid "The individual address {address} is not used by another device."
+msgstr "Het individuele adres {address} wordt niet door een ander apparaat gebruikt."
+
+msgid "The individual address {address} is already in use by another device on the bus."
+msgstr "Het individuele adres {address} wordt al door een ander apparaat op de bus gebruikt."
+
+msgid "{address} is not an individual address (area.line.device)."
+msgstr "{address} is geen individueel adres (bereik.lijn.apparaat)."
+
+msgid "The individual address of the interface is being set or checked."
+msgstr "Het individuele adres van de interface wordt ingesteld of gecontroleerd."
+
+msgid "Not connected through a USB interface."
+msgstr "Niet verbonden via een USB-interface."
+
+msgid "The individual address could not be set: {error}"
+msgstr "Het individuele adres kon niet worden ingesteld: {error}"
+
+msgid "The individual address could not be checked: {error}"
+msgstr "Het individuele adres kon niet worden gecontroleerd: {error}"
+
+msgid "Setting the individual address…"
+msgstr "Individueel adres wordt ingesteld…"
+
+msgid "Checking the individual address on the bus…"
+msgstr "Individueel adres wordt op de bus gecontroleerd…"
+
+msgid "A changed address is set on the interface (Enter), which keeps it."
+msgstr "Een gewijzigd adres wordt in de interface ingesteld (Enter), die het onthoudt."
+
+msgid "A changed address is set on the interface (Enter). This interface forgets it when unplugged, so it is set again on every connect."
+msgstr "Een gewijzigd adres wordt in de interface ingesteld (Enter). Deze interface vergeet het bij het loskoppelen, daarom wordt het bij elke verbinding opnieuw ingesteld."

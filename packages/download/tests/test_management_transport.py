@@ -75,13 +75,21 @@ class _Peer:
         ]
 
 
-async def _assert_closed(peer: _Peer, connection: P2PConnection) -> None:
+async def _assert_closed(
+    peer: _Peer, connection: P2PConnection, *, by_peer: bool = False
+) -> None:
     before = len(peer.sent)
     with pytest.raises(ManagementConnectionRefused):
         await connection.send_data(_WRITE)
     assert len(peer.sent) == before
-    with pytest.raises(ManagementConnectionRefused):
+    if by_peer:
+        # as xknx: closing a connection the peer closed is refused
+        with pytest.raises(ManagementConnectionRefused):
+            await peer.xknx.management.disconnect(_ADDRESS)
+    else:
+        # closed here already: closing it ends it quietly, without another T_Disconnect
         await peer.xknx.management.disconnect(_ADDRESS)
+    assert len(peer.sent) == before
     fresh = await peer.connect()
     peer.on_data = peer.ack
     await fresh.send_data(_WRITE)
@@ -246,7 +254,37 @@ async def test_peer_disconnect_stops_pending_send_even_with_completed_waiters(
     with pytest.raises(ManagementConnectionRefused):
         await connection.request(_WRITE)
     assert peer.sequences == [0]
-    await _assert_closed(peer, connection)
+    await _assert_closed(peer, connection, by_peer=True)
+
+
+@pytest.mark.parametrize("answers", [False, True])
+async def test_individual_address_check(answers: bool) -> None:
+    """NM_IndividualAddress_Check: an address nothing answers at is free, also after the
+    connection was closed here for the missing ACKs."""
+    from xknx.management.procedures.network.nm_individual_address_check import (
+        nm_individual_address_check,
+    )
+
+    peer = _Peer()
+
+    def respond(telegram: Telegram) -> None:
+        if not answers:
+            return
+        peer.ack(telegram)
+        peer.receive(
+            tpci.TDataConnected(0),
+            apci.DeviceDescriptorResponse(descriptor=0, value=0x07B0),
+        )
+
+    peer.on_data = respond
+    assert await nm_individual_address_check(peer.xknx, _ADDRESS) is answers
+    disconnects = [t for t in peer.sent if isinstance(t.tpci, tpci.TDisconnect)]
+    assert len(disconnects) == 1
+    # its connection is forgotten once it is closed
+    assert not any(
+        connection.xknx is peer.xknx
+        for connection in management_transport._CLOSED_HERE.values()
+    )
 
 
 async def test_duplicate_ack_does_not_break_the_request() -> None:

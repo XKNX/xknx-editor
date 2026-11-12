@@ -56,6 +56,7 @@ def test_data_secure_from_the_project() -> None:
 def _plugin(gateway: Any, *, routing: bool = False, **connection: Any) -> Any:
     plugin = cast(Any, object.__new__(ConnectionPlugin))
     plugin._usb_target = None
+    plugin._usb_addresses = {}
     plugin._usb_info = None
     plugin._usb_devices = []
     plugin._connection_type = (

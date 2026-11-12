@@ -229,3 +229,54 @@ msgstr "Sorozatszám: {serial}"
 msgid "{count} device in programming mode"
 msgid_plural "{count} devices in programming mode"
 msgstr[0] "{count} készülék programozási módban"
+
+msgid "USB Interface Settings…"
+msgstr "USB Interfész Beállításai…"
+
+msgid "USB Interface Settings"
+msgstr "USB Interfész Beállításai"
+
+msgid "Close"
+msgstr "Bezárás"
+
+msgid "Maximum Telegram Length (APDU): {length}"
+msgstr "Maximális Távirathossz (APDU): {length}"
+
+msgid "Individual Address"
+msgstr "Fizikai cím"
+
+msgid "Address Free?"
+msgstr "Szabad a Cím?"
+
+msgid "The individual address {address} is not used by another device."
+msgstr "A(z) {address} fizikai címet nem használja más eszköz."
+
+msgid "The individual address {address} is already in use by another device on the bus."
+msgstr "A(z) {address} fizikai címet már használja egy másik eszköz a buszon."
+
+msgid "{address} is not an individual address (area.line.device)."
+msgstr "A(z) {address} nem fizikai cím (terület.vonal.eszköz)."
+
+msgid "The individual address of the interface is being set or checked."
+msgstr "Az interfész fizikai címének beállítása vagy ellenőrzése folyamatban van."
+
+msgid "Not connected through a USB interface."
+msgstr "Nincs kapcsolat USB interfészen keresztül."
+
+msgid "The individual address could not be set: {error}"
+msgstr "A fizikai cím nem állítható be: {error}"
+
+msgid "The individual address could not be checked: {error}"
+msgstr "A fizikai cím nem ellenőrizhető: {error}"
+
+msgid "Setting the individual address…"
+msgstr "A fizikai cím beállítása…"
+
+msgid "Checking the individual address on the bus…"
+msgstr "A fizikai cím ellenőrzése a buszon…"
+
+msgid "A changed address is set on the interface (Enter), which keeps it."
+msgstr "A módosított címet az interfész kapja meg (Enter), és meg is tartja."
+
+msgid "A changed address is set on the interface (Enter). This interface forgets it when unplugged, so it is set again on every connect."
+msgstr "A módosított címet az interfész kapja meg (Enter). Ez az interfész kihúzáskor elfelejti, ezért minden csatlakozáskor újra beállításra kerül."

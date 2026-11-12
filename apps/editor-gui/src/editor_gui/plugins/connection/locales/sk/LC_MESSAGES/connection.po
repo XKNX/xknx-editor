@@ -231,3 +231,54 @@ msgid_plural "{count} devices in programming mode"
 msgstr[0] "{count} zariadenie v programovacom režime"
 msgstr[1] "{count} zariadenia v programovacom režime"
 msgstr[2] "{count} zariadení v programovacom režime"
+
+msgid "USB Interface Settings…"
+msgstr "Nastavenia USB Rozhrania…"
+
+msgid "USB Interface Settings"
+msgstr "Nastavenia USB Rozhrania"
+
+msgid "Close"
+msgstr "Zavrieť"
+
+msgid "Maximum Telegram Length (APDU): {length}"
+msgstr "Maximálna Dĺžka Telegramu (APDU): {length}"
+
+msgid "Individual Address"
+msgstr "Individuálna adresa"
+
+msgid "Address Free?"
+msgstr "Adresa Voľná?"
+
+msgid "The individual address {address} is not used by another device."
+msgstr "Individuálnu adresu {address} nepoužíva žiadne iné zariadenie."
+
+msgid "The individual address {address} is already in use by another device on the bus."
+msgstr "Individuálnu adresu {address} už používa iné zariadenie na zbernici."
+
+msgid "{address} is not an individual address (area.line.device)."
+msgstr "{address} nie je individuálna adresa (oblasť.linka.zariadenie)."
+
+msgid "The individual address of the interface is being set or checked."
+msgstr "Individuálna adresa rozhrania sa práve nastavuje alebo kontroluje."
+
+msgid "Not connected through a USB interface."
+msgstr "Nie je pripojené cez rozhranie USB."
+
+msgid "The individual address could not be set: {error}"
+msgstr "Individuálnu adresu sa nepodarilo nastaviť: {error}"
+
+msgid "The individual address could not be checked: {error}"
+msgstr "Individuálnu adresu sa nepodarilo skontrolovať: {error}"
+
+msgid "Setting the individual address…"
+msgstr "Nastavuje sa individuálna adresa…"
+
+msgid "Checking the individual address on the bus…"
+msgstr "Kontroluje sa individuálna adresa na zbernici…"
+
+msgid "A changed address is set on the interface (Enter), which keeps it."
+msgstr "Zmenená adresa sa nastaví v rozhraní (Enter), ktoré si ju ponechá."
+
+msgid "A changed address is set on the interface (Enter). This interface forgets it when unplugged, so it is set again on every connect."
+msgstr "Zmenená adresa sa nastaví v rozhraní (Enter). Toto rozhranie ju po odpojení zabudne, preto sa nastaví znova pri každom pripojení."

@@ -230,3 +230,54 @@ msgid "{count} device in programming mode"
 msgid_plural "{count} devices in programming mode"
 msgstr[0] "{count} participant en mode programmation"
 msgstr[1] "{count} participants en mode programmation"
+
+msgid "USB Interface Settings…"
+msgstr "Paramètres de l'interface USB…"
+
+msgid "USB Interface Settings"
+msgstr "Paramètres de l'interface USB"
+
+msgid "Close"
+msgstr "Fermer"
+
+msgid "Maximum Telegram Length (APDU): {length}"
+msgstr "Longueur Maximale des Télégrammes (APDU) : {length}"
+
+msgid "Individual Address"
+msgstr "Adresse Individuelle"
+
+msgid "Address Free?"
+msgstr "Adresse Libre ?"
+
+msgid "The individual address {address} is not used by another device."
+msgstr "L'adresse individuelle {address} n'est utilisée par aucun autre appareil."
+
+msgid "The individual address {address} is already in use by another device on the bus."
+msgstr "L'adresse individuelle {address} est déjà utilisée par un autre appareil sur le bus."
+
+msgid "{address} is not an individual address (area.line.device)."
+msgstr "{address} n'est pas une adresse individuelle (zone.ligne.appareil)."
+
+msgid "The individual address of the interface is being set or checked."
+msgstr "L'adresse individuelle de l'interface est en cours de définition ou de vérification."
+
+msgid "Not connected through a USB interface."
+msgstr "Pas de connexion via une interface USB."
+
+msgid "The individual address could not be set: {error}"
+msgstr "Impossible de définir l'adresse individuelle : {error}"
+
+msgid "The individual address could not be checked: {error}"
+msgstr "Impossible de vérifier l'adresse individuelle : {error}"
+
+msgid "Setting the individual address…"
+msgstr "Définition de l'adresse individuelle…"
+
+msgid "Checking the individual address on the bus…"
+msgstr "Vérification de l'adresse individuelle sur le bus…"
+
+msgid "A changed address is set on the interface (Enter), which keeps it."
+msgstr "Une adresse modifiée est définie dans l'interface (Entrée), qui la conserve."
+
+msgid "A changed address is set on the interface (Enter). This interface forgets it when unplugged, so it is set again on every connect."
+msgstr "Une adresse modifiée est définie dans l'interface (Entrée). Cette interface l'oublie lorsqu'elle est débranchée, elle est donc redéfinie à chaque connexion."

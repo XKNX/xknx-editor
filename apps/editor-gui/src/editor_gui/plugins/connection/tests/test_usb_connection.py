@@ -4,11 +4,14 @@ KNXnet/IP ones, and the bus monitor on them (against the simulated interface of 
 from __future__ import annotations
 
 import asyncio
+import logging
+from concurrent.futures import Future
 from pathlib import Path
 from types import SimpleNamespace
 from typing import Any, cast
 
 import pytest
+from imgui_bundle import imgui
 from xknx import XKNX
 from xknx.io.connection import ConnectionType
 from xknx.secure.data_secure import DataSecure
@@ -32,6 +35,7 @@ from editor_gui.plugins.connection.xknx_usb.const import (
     DeviceFeatureService,
 )
 from editor_gui.plugins.connection.xknx_usb.frame import device_feature_frame
+from editor_gui.plugins.project.tests._clicks import Clicks
 
 from .conftest import SPACELOGIC_ENUMERATION, FakeHIDModule
 
@@ -78,6 +82,15 @@ def _plugin() -> Any:
     plugin._usb_target = None
     plugin._usb_info = None
     plugin._usb_devices = []
+    plugin._usb_addresses = {}
+    plugin._usb_settings_open = False
+    plugin._usb_settings_shown = False
+    plugin._usb_address_text = ""
+    plugin._usb_address_write = None
+    plugin._usb_address_busy = False
+    plugin._usb_address_checking = False
+    plugin._usb_address_error = None
+    plugin._usb_address_free = None
     plugin._controller_ip = "192.168.1.10"
     plugin._multicast_group = "224.0.23.12"
     plugin._connection_type = ConnectionType.TUNNELING_TCP
@@ -411,20 +424,307 @@ class TestConnecting:
         finally:
             await plugin._disconnect_async()
 
-    async def test_data_secure_needs_the_individual_address(
-        self, fake_hid: FakeHIDModule
+    async def test_data_secure_with_an_unknown_individual_address(
+        self, fake_hid: FakeHIDModule, caplog: pytest.LogCaptureFixture
     ) -> None:
         del fake_hid.interface.properties[(0, 57)]  # PID_SUBNET_ADDR
         plugin = _plugin()
-        plugin._report_failure = lambda error, startup: None
         plugin._api.connection.data_secure = _data_secure
         plugin._usb_target = UsbTarget.of(_DEVICE)
+        with caplog.at_level(logging.WARNING, logger="xknx.log"):
+            await plugin._connect_async()
+        try:
+            # connected; Data Secure telegrams wait until the address is known (set up as
+            # it would be after the interface's reset or a reconnect)
+            assert plugin._state is ConnectionState.CONNECTED, plugin._error_message
+            assert "Data Secure telegrams are not sent until it is known" in caplog.text
+        finally:
+            await plugin._disconnect_async()
+
+
+def _property_writes(fake_hid: FakeHIDModule) -> list[str]:
+    """The M_PropWrite.req the editor sent to the interface, in hex."""
+    return [cemi.hex() for cemi in fake_hid.interface.written_cemi() if cemi[0] == 0xF6]
+
+
+async def _connected(fake_hid: FakeHIDModule, target: UsbTarget | None = None) -> Any:
+    """A plugin connected through the simulated interface; its address changes run on the
+    test's loop."""
+    plugin = _plugin()
+    plugin._usb_target = target or UsbTarget.of(_DEVICE)
+    plugin._ensure_async_loop = asyncio.get_running_loop
+    plugin._save_current_settings = lambda: None
+    await plugin._connect_async()
+    assert plugin._state is ConnectionState.CONNECTED, plugin._error_message
+    return plugin
+
+
+class TestInterfaceAddress:
+    """The individual address of the connected USB interface: set and checked."""
+
+    async def test_set(self, fake_hid: FakeHIDModule) -> None:
+        plugin = await _connected(fake_hid)
+        try:
+            fake_hid.interface.written.clear()
+            plugin.test_events.clear()
+            future = plugin.set_usb_interface_address(" 1.0.12 ")
+            assert plugin.usb_address_busy
+            await asyncio.wrap_future(future)
+            assert not plugin.usb_address_busy
+            # the connection was opened again and set it on the interface (Device Object)
+            assert _property_writes(fake_hid) == [
+                "f600080134100100",  # PID_COMM_MODE
+                "f600000139100110",  # PID_SUBNET_ADDR
+                "f60000013a10010c",  # PID_DEVICE_ADDR
+            ]
+            assert plugin._state is ConnectionState.CONNECTED
+            assert plugin.usb_info.individual_address == IndividualAddress("1.0.12")
+            assert plugin._api.connection.interface_address == "1.0.12"
+            # the recordings go on
+            assert "link False" in plugin.test_events
+            assert "disconnected" not in plugin.test_events
+            # connected again later: only read
+            assert plugin._usb_address_to_set(plugin._usb_target) is None
+        finally:
+            await plugin._disconnect_async()
+
+    async def test_the_same_address_writes_nothing(
+        self, fake_hid: FakeHIDModule
+    ) -> None:
+        plugin = await _connected(fake_hid)
+        try:
+            fake_hid.interface.written.clear()
+            future = plugin.set_usb_interface_address("1.0.2")
+            assert future.done() and future.result() is None
+            assert not fake_hid.interface.written
+            assert not plugin.usb_address_busy
+        finally:
+            await plugin._disconnect_async()
+
+    async def test_refused(self, fake_hid: FakeHIDModule) -> None:
+        plugin = await _connected(fake_hid)
+        reopened: list[str] = []
+        plugin._run_async = lambda coro: (
+            reopened.append(coro.cr_code.co_name),
+            coro.close(),
+        )
+        # an interface in Security Mode: access denied
+        fake_hid.interface.refused_writes[(0, 57)] = 0x0B
+        try:
+            with pytest.raises(ConnectionError, match="could not be set"):
+                await asyncio.wrap_future(plugin.set_usb_interface_address("1.0.12"))
+            assert not plugin.usb_address_busy
+            assert (
+                "Writing property PID_SUBNET_ADDR failed" in plugin._usb_address_error
+            )
+            # connected again with the address as it was
+            assert reopened == ["_reopen"]
+            assert fake_hid.interface.properties[(0, 58)] == b"\x02"
+        finally:
+            await plugin._disconnect_async()
+
+    async def test_refused_before_it_starts(self, fake_hid: FakeHIDModule) -> None:
+        plugin = _plugin()
+        with pytest.raises(ValueError, match="not an individual address"):
+            plugin.set_usb_interface_address("1.0")
+        with pytest.raises(ValueError, match="Not connected through a USB interface"):
+            plugin.set_usb_interface_address("1.0.12")
+        plugin = await _connected(fake_hid)
+        try:
+            plugin._usb_address_busy = True
+            with pytest.raises(ValueError, match="being set or checked"):
+                plugin.set_usb_interface_address("1.0.12")
+            with pytest.raises(ValueError, match="being set or checked"):
+                plugin.check_usb_interface_address("1.0.12")
+        finally:
+            plugin._usb_address_busy = False
+            await plugin._disconnect_async()
+
+    def test_check(self) -> None:
+        plugin = _plugin()
+        answers: list[Future[Any]] = []
+
+        def occupied(address: str) -> Future[Any]:
+            assert address == "1.1.9"
+            answers.append(Future())
+            return answers[-1]
+
+        plugin._api.connection.individual_address_occupied = occupied
+        plugin.check_usb_interface_address("1.1.9")
+        assert plugin._usb_address_checking
+        answers[-1].set_result(True)
+        assert not plugin._usb_address_checking
+        assert plugin._usb_address_free == ("1.1.9", False)
+        plugin.check_usb_interface_address("1.1.9")
+        answers[-1].set_result(False)
+        assert plugin._usb_address_free == ("1.1.9", True)
+        plugin.check_usb_interface_address("1.1.9")
+        answers[-1].set_exception(TimeoutError("no answer"))
+        assert plugin._usb_address_free is None
+        assert plugin._usb_address_error == (
+            "The individual address could not be checked: no answer"
+        )
+        # without a connection
+        plugin._api.connection.individual_address_occupied = lambda address: None
+        with pytest.raises(ValueError, match="Not connected through a USB interface"):
+            plugin.check_usb_interface_address("1.1.9")
+
+    async def test_an_interface_that_forgets_its_address(
+        self, fake_hid: FakeHIDModule
+    ) -> None:
+        enumeration = fake_hid.enumeration[0]
+        enumeration["vendor_id"], enumeration["product_id"] = 0x0681, 0x0014
+        target = UsbTarget(0x0681, 0x0014, "00C501053FB2", "OCI700")
+        assert not target.keeps_address and UsbTarget.of(_DEVICE).keeps_address
+        plugin = await _connected(fake_hid, target)
+        saved: list[dict[str, str]] = []
+        plugin._save_current_settings = lambda: saved.append(
+            dict(plugin._usb_addresses)
+        )
+        try:
+            await asyncio.wrap_future(plugin.set_usb_interface_address("1.0.12"))
+            # kept when it was set
+            assert saved[-1] == {"0681:0014:00C501053FB2": "1.0.12"}
+        finally:
+            await plugin._disconnect_async()
+        # unplugged: forgotten
+        fake_hid.interface.properties[(0, 57)] = b"\xff"
+        fake_hid.interface.properties[(0, 58)] = b"\xff"
+        fake_hid.interface.written.clear()
         await plugin._connect_async()
-        # as it would be after the interface's reset or a reconnect
-        assert plugin._state is ConnectionState.ERROR
-        assert "Data Secure needs it" in plugin._error_message
-        assert plugin._interface is None
-        assert fake_hid.closed == 1
+        try:
+            # set again on connect
+            assert _property_writes(fake_hid)[1:] == [
+                "f600000139100110",
+                "f60000013a10010c",
+            ]
+            assert plugin.usb_info.individual_address == IndividualAddress("1.0.12")
+        finally:
+            await plugin._disconnect_async()
+        # an unreadable kept address is not set
+        plugin._usb_addresses = {target.key: "nonsense"}
+        assert plugin._usb_address_to_set(target) is None
+
+    def test_kept_in_the_settings(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        monkeypatch.setattr(app_settings, "config_dir", lambda: tmp_path)
+        plugin = _plugin()
+        plugin._usb_addresses = {"0681:0014:": "1.1.250"}
+        ConnectionPlugin._save_current_settings(plugin)
+        plugin._usb_addresses = {}
+        plugin._load_saved_settings()
+        assert plugin._usb_addresses == {"0681:0014:": "1.1.250"}
+
+
+class TestInterfaceSettingsDialog:
+    """Gateway menu > USB Interface Settings…"""
+
+    async def test_set_and_check_in_the_dialog(
+        self, fake_hid: FakeHIDModule, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        plugin = await _connected(fake_hid)
+        started: list[tuple[str, str]] = []
+        plugin.set_usb_interface_address = lambda text: started.append(("set", text))
+        plugin.check_usb_interface_address = lambda text: started.append(
+            ("check", text)
+        )
+        ctx = imgui.create_context()
+        io = imgui.get_io()
+        io.display_size = imgui.ImVec2(800, 600)
+        io.backend_flags |= imgui.BackendFlags_.renderer_has_textures
+        clicks = Clicks(monkeypatch, plugin_module)
+        edited: list[bool] = []
+        pressed: set[str] = set()
+        real_button = imgui.button
+        monkeypatch.setattr(
+            imgui,
+            "is_item_deactivated_after_edit",
+            lambda: bool(edited) and edited.pop(),
+        )
+
+        def button(label: str, *args: Any) -> bool:
+            if label in pressed:
+                pressed.discard(label)
+                return True
+            return bool(real_button(label, *args))
+
+        monkeypatch.setattr(imgui, "button", button)
+
+        def frames(count: int = 2) -> None:
+            for _ in range(count):
+                imgui.new_frame()
+                plugin.render_window()
+                imgui.end_frame()
+
+        plugin._select_open = plugin._select_shown = plugin._progmode_open = False
+        try:
+            plugin.open_usb_settings()
+            assert plugin._usb_address_text == "1.0.2"
+            frames()
+            plugin._usb_address_text = "1.0.12"
+            edited.append(True)
+            frames()
+            pressed.add("Address Free?##usb_address_free")
+            frames()
+            assert started == [("set", "1.0.12"), ("check", "1.0.12")]
+            # what the dialog shows: a check's outcome, an error, a running change
+            for free in (True, False):
+                plugin._usb_address_free = ("1.0.12", free)
+                frames()
+            plugin._usb_address_error = "The individual address could not be set: x"
+            frames()
+            plugin._usb_address_busy = True
+            frames()
+            plugin._usb_address_busy = False
+            plugin._usb_target = UsbTarget(0x0681, 0x0014, "", "OCI700")
+            frames()
+            # a reason it can't start is shown in the dialog
+            plugin.set_usb_interface_address = (
+                ConnectionPlugin.set_usb_interface_address.__get__(plugin)
+            )
+            plugin._usb_address_text = "nonsense"
+            edited.append(True)
+            frames()
+            assert "is not an individual address" in plugin._usb_address_error
+            clicks.button = "Close"
+            frames()
+            assert not plugin._usb_settings_open
+            frames()
+            assert not plugin._usb_settings_shown
+            # the connection no longer goes through a USB interface: it closes
+            plugin.open_usb_settings()
+            frames()
+            plugin._usb_target = None
+            frames()
+            assert not plugin._usb_settings_open and not plugin._usb_settings_shown
+        finally:
+            imgui.destroy_context(ctx)
+            await plugin._disconnect_async()
+
+    def test_the_menu_entry_opens_it(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        plugin = _plugin()
+        plugin._state = ConnectionState.CONNECTED
+        plugin._usb_target = UsbTarget.of(_DEVICE)
+        plugin._gateway_info = None
+        plugin._progmode_open = False
+        plugin.open_settings = None
+        plugin.offered_transports = lambda: []
+        ctx = imgui.create_context()
+        io = imgui.get_io()
+        io.display_size = imgui.ImVec2(800, 600)
+        io.backend_flags |= imgui.BackendFlags_.renderer_has_textures
+        clicks = Clicks(monkeypatch, plugin_module)
+        try:
+            clicks.items.add("USB Interface Settings…")
+            imgui.new_frame()
+            imgui.begin("menu")
+            plugin.render_menu()
+            imgui.end()
+            imgui.end_frame()
+            assert plugin._usb_settings_open
+        finally:
+            imgui.destroy_context(ctx)
 
 
 class TestBusmonitor:
@@ -517,3 +817,40 @@ async def test_search_offers_any_interface_of_a_knx_usb_vendor(
         b"insta-known",
         b"weinzierl-unlisted",
     ]
+
+
+def test_the_service_checks_an_individual_address(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import importlib
+    from unittest.mock import MagicMock
+
+    from editor_gui.plugins.connection.service import ConnectionService
+
+    # the module: its package exports the function under the module's name
+    procedure = importlib.import_module(
+        "xknx.management.procedures.network.nm_individual_address_check"
+    )
+
+    service = ConnectionService()
+    service.set_logger(MagicMock())
+    # without a connection
+    assert service.individual_address_occupied("1.1.9") is None
+    checked: list[tuple[Any, str]] = []
+
+    async def check(xknx: Any, address: str) -> bool:
+        checked.append((xknx, address))
+        return True
+
+    def run_now(coro: Any) -> Future[Any]:
+        future: Future[Any] = Future()
+        future.set_result(asyncio.run(coro))
+        return future
+
+    monkeypatch.setattr(procedure, "nm_individual_address_check", check)
+    xknx = MagicMock()
+    service._xknx = xknx  # pyright: ignore[reportPrivateUsage]
+    monkeypatch.setattr(service, "run_async", run_now)
+    future = service.individual_address_occupied("1.1.9")
+    assert future is not None and future.result() is True
+    assert checked == [(xknx, "1.1.9")]

@@ -229,3 +229,54 @@ msgstr "シリアル番号：{serial}"
 msgid "{count} device in programming mode"
 msgid_plural "{count} devices in programming mode"
 msgstr[0] "プログラミング・モードのデバイス：{count} 台"
+
+msgid "USB Interface Settings…"
+msgstr "USB インターフェイス設定…"
+
+msgid "USB Interface Settings"
+msgstr "USB インターフェイス設定"
+
+msgid "Close"
+msgstr "閉じる"
+
+msgid "Maximum Telegram Length (APDU): {length}"
+msgstr "最大テレグラム長 (APDU): {length}"
+
+msgid "Individual Address"
+msgstr "個別アドレス"
+
+msgid "Address Free?"
+msgstr "アドレスは空いていますか?"
+
+msgid "The individual address {address} is not used by another device."
+msgstr "個別アドレス {address} は他のデバイスで使用されていません。"
+
+msgid "The individual address {address} is already in use by another device on the bus."
+msgstr "個別アドレス {address} はバス上の他のデバイスで既に使用されています。"
+
+msgid "{address} is not an individual address (area.line.device)."
+msgstr "{address} は個別アドレスではありません (エリア.ライン.デバイス)。"
+
+msgid "The individual address of the interface is being set or checked."
+msgstr "インターフェイスの個別アドレスを設定または確認しています。"
+
+msgid "Not connected through a USB interface."
+msgstr "USB インターフェイス経由で接続されていません。"
+
+msgid "The individual address could not be set: {error}"
+msgstr "個別アドレスを設定できませんでした: {error}"
+
+msgid "The individual address could not be checked: {error}"
+msgstr "個別アドレスを確認できませんでした: {error}"
+
+msgid "Setting the individual address…"
+msgstr "個別アドレスを設定しています…"
+
+msgid "Checking the individual address on the bus…"
+msgstr "バス上で個別アドレスを確認しています…"
+
+msgid "A changed address is set on the interface (Enter), which keeps it."
+msgstr "変更したアドレスはインターフェイスに設定され (Enter)、インターフェイスに保持されます。"
+
+msgid "A changed address is set on the interface (Enter). This interface forgets it when unplugged, so it is set again on every connect."
+msgstr "変更したアドレスはインターフェイスに設定されます (Enter)。このインターフェイスは取り外すとアドレスを忘れるため、接続するたびに再設定されます。"

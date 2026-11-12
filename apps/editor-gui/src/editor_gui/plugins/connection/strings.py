@@ -186,6 +186,79 @@ class ConnectionStrings:
         return _("Serial Number: {serial}")
 
     @property
+    def MENU_USB_SETTINGS(self) -> str:
+        return _("USB Interface Settings…")
+
+    @property
+    def USB_SETTINGS_TITLE(self) -> str:
+        return _("USB Interface Settings")
+
+    @property
+    def USB_SETTINGS_CLOSE(self) -> str:
+        return _("Close")
+
+    @property
+    def USB_MAX_APDU_LENGTH(self) -> str:
+        return _("Maximum Telegram Length (APDU): {length}")
+
+    @property
+    def USB_ADDRESS_LABEL(self) -> str:
+        return _("Individual Address")
+
+    @property
+    def USB_ADDRESS_FREE(self) -> str:
+        return _("Address Free?")
+
+    @property
+    def USB_ADDRESS_IS_FREE(self) -> str:
+        return _("The individual address {address} is not used by another device.")
+
+    @property
+    def USB_ADDRESS_NOT_FREE(self) -> str:
+        return _(
+            "The individual address {address} is already in use by another device on the bus."
+        )
+
+    @property
+    def USB_ADDRESS_INVALID(self) -> str:
+        return _("{address} is not an individual address (area.line.device).")
+
+    @property
+    def USB_ADDRESS_BUSY(self) -> str:
+        return _("The individual address of the interface is being set or checked.")
+
+    @property
+    def USB_NOT_CONNECTED_HERE(self) -> str:
+        return _("Not connected through a USB interface.")
+
+    @property
+    def USB_ADDRESS_FAILED(self) -> str:
+        return _("The individual address could not be set: {error}")
+
+    @property
+    def USB_ADDRESS_CHECK_FAILED(self) -> str:
+        return _("The individual address could not be checked: {error}")
+
+    @property
+    def USB_ADDRESS_SETTING(self) -> str:
+        return _("Setting the individual address…")
+
+    @property
+    def USB_ADDRESS_CHECKING(self) -> str:
+        return _("Checking the individual address on the bus…")
+
+    @property
+    def USB_ADDRESS_HINT(self) -> str:
+        return _("A changed address is set on the interface (Enter), which keeps it.")
+
+    @property
+    def USB_ADDRESS_HINT_VOLATILE(self) -> str:
+        return _(
+            "A changed address is set on the interface (Enter). This interface forgets it "
+            "when unplugged, so it is set again on every connect."
+        )
+
+    @property
     def SECTION_MANUAL(self) -> str:
         return _("Manual Connection")
 
