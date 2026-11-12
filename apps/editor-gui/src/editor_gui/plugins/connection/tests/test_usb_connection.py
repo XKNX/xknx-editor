@@ -4,6 +4,7 @@ KNXnet/IP ones, and the bus monitor on them (against the simulated interface of 
 from __future__ import annotations
 
 import asyncio
+import logging
 from pathlib import Path
 from types import SimpleNamespace
 from typing import Any, cast
@@ -411,20 +412,22 @@ class TestConnecting:
         finally:
             await plugin._disconnect_async()
 
-    async def test_data_secure_needs_the_individual_address(
-        self, fake_hid: FakeHIDModule
+    async def test_data_secure_with_an_unknown_individual_address(
+        self, fake_hid: FakeHIDModule, caplog: pytest.LogCaptureFixture
     ) -> None:
         del fake_hid.interface.properties[(0, 57)]  # PID_SUBNET_ADDR
         plugin = _plugin()
-        plugin._report_failure = lambda error, startup: None
         plugin._api.connection.data_secure = _data_secure
         plugin._usb_target = UsbTarget.of(_DEVICE)
-        await plugin._connect_async()
-        # as it would be after the interface's reset or a reconnect
-        assert plugin._state is ConnectionState.ERROR
-        assert "Data Secure needs it" in plugin._error_message
-        assert plugin._interface is None
-        assert fake_hid.closed == 1
+        with caplog.at_level(logging.WARNING, logger="xknx.log"):
+            await plugin._connect_async()
+        try:
+            # connected; Data Secure telegrams wait until the address is known (set up as
+            # it would be after the interface's reset or a reconnect)
+            assert plugin._state is ConnectionState.CONNECTED, plugin._error_message
+            assert "Data Secure telegrams are not sent until it is known" in caplog.text
+        finally:
+            await plugin._disconnect_async()
 
 
 class TestBusmonitor:

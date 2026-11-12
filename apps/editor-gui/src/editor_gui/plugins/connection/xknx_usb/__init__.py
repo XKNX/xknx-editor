@@ -6,7 +6,12 @@ and what xknx 4.1.1 lacks (in ``compat``), so it can be dropped for ``xknx.io.us
 editor requires an xknx release with it.
 """
 
-from .hid_device import USBDeviceInfo, find_usb_interfaces, is_knx_usb_interface
+from .hid_device import (
+    USBDeviceInfo,
+    find_usb_interfaces,
+    import_hidapi_backends,
+    is_knx_usb_interface,
+)
 from .tunnel import USBInterfaceInfo, USBTunnel
 
 __all__ = [
@@ -14,5 +19,6 @@ __all__ = [
     "USBInterfaceInfo",
     "USBTunnel",
     "find_usb_interfaces",
+    "import_hidapi_backends",
     "is_knx_usb_interface",
 ]
