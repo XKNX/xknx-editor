@@ -235,6 +235,15 @@ def parse_connection_type(name: str) -> ConnectionType | None:
     return _CONNECTION_TYPE_NAMES.get(name.strip().lower())
 
 
+def gateway_label(gateway: GatewayDescriptor) -> str:
+    """A discovered gateway as the lists show it: its name, else its individual address (a
+    gateway may answer the search without a name), then its IP address."""
+    primary = gateway.name.strip() or (
+        str(gateway.individual_address) if gateway.individual_address else ""
+    )
+    return f"{primary}  ({gateway.ip_addr})" if primary else gateway.ip_addr
+
+
 def _usb_target_label(target: UsbTarget) -> str:
     """A KNX USB interface in the USB Interface setting: its name, and its serial number to tell
     identical interfaces apart."""
@@ -1373,7 +1382,7 @@ class ConnectionPlugin:
             imgui.same_line()
             spinner("##select-spinner")
         for gateway in self._gateways:
-            label = f"{gateway.name}  ({gateway.ip_addr})"
+            label = gateway_label(gateway)
             if imgui.selectable(f"{label}##select_{gateway.ip_addr}", False)[0]:
                 self._connect_for_operation(
                     label, join_endpoint(gateway.ip_addr, gateway.port), gateway
@@ -2578,7 +2587,7 @@ class ConnectionPlugin:
         by side as in the manual connection. Picking one connects to the gateway over that type
         (the picker shows only while not connected, so a pick always starts a fresh
         connection)."""
-        imgui.text_disabled(f"{gw.name}  ({gw.ip_addr})")
+        imgui.text_disabled(gateway_label(gw))
         transports: list[tuple[ConnectionType, str]] = []
         if gw.supports_tunnelling_tcp:
             transports.append((ConnectionType.TUNNELING_TCP, S.CONN_TYPE_TCP_TUNNELING))

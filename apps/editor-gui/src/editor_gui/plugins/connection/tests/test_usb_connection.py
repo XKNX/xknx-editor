@@ -1126,3 +1126,25 @@ def test_manual_connection_offers_tcp_first(
         imgui.destroy_context(ctx)
     assert list(rows) == [S.CONN_TYPE_TCP_TUNNELING, S.CONN_TYPE_TUNNELING][-shown:]
     assert len(set(rows.values())) == 1
+
+
+def test_a_gateway_without_a_name_shows_its_address() -> None:
+    from xknx.io.gateway_scanner import GatewayDescriptor
+
+    from editor_gui.plugins.connection.plugin import gateway_label
+
+    named = GatewayDescriptor(
+        "192.168.16.103",
+        3671,
+        name=" IP-Interface ",
+        individual_address=IndividualAddress("1.0.3"),
+    )
+    assert gateway_label(named) == "IP-Interface  (192.168.16.103)"
+    # it answered the search without a name
+    unnamed = GatewayDescriptor(
+        "192.168.16.103", 3671, name="", individual_address=IndividualAddress("1.0.3")
+    )
+    assert gateway_label(unnamed) == "1.0.3  (192.168.16.103)"
+    assert gateway_label(GatewayDescriptor("192.168.16.103", 3671, name="")) == (
+        "192.168.16.103"
+    )
