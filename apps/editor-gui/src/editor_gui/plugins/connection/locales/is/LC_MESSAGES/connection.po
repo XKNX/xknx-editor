@@ -205,6 +205,9 @@ msgstr "TCP tunneling"
 msgid "Routing"
 msgstr "Routing"
 
+msgid "USB"
+msgstr "USB"
+
 msgid "A device whose serial number is known gets its individual address without pressing its programming button."
 msgstr "Tæki með þekkt raðnúmer fær einstaklingsvistfang sitt án þess að ýtt sé á forritunarhnapp þess."
 
@@ -242,6 +245,15 @@ msgstr "Loka"
 
 msgid "Maximum Telegram Length (APDU): {length}"
 msgstr "Hámarkslengd skeytis (APDU): {length}"
+
+msgid "EMI Type: {emi}"
+msgstr "EMI-gerð: {emi}"
+
+msgid "Supported EMI Types: {types}"
+msgstr "Studdar EMI-gerðir: {types}"
+
+msgid "Mask Version: {mask}"
+msgstr "Grímuútgáfa: {mask}"
 
 msgid "Individual Address"
 msgstr "Einstaklingsvistfang"

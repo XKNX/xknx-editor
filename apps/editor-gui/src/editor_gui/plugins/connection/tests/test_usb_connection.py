@@ -21,18 +21,24 @@ from editor_gui import settings as app_settings
 from editor_gui.plugins.connection import plugin as plugin_module
 from editor_gui.plugins.connection.plugin import ConnectionPlugin, ConnectionState
 from editor_gui.plugins.connection.service import LinkInfo
+from editor_gui.plugins.connection.strings import S
 from editor_gui.plugins.connection.usb import (
     ObservableUSBInterfaceThreaded,
     UsbBusmonitorConnection,
     UsbTarget,
+    emi_type_name,
+    mask_version_text,
     search_usb_interfaces,
+    supported_emi_type_names,
     usb_device_name,
 )
 from editor_gui.plugins.connection.xknx_usb import USBDeviceInfo, find_usb_interfaces
 from editor_gui.plugins.connection.xknx_usb import tunnel as usb_tunnel
 from editor_gui.plugins.connection.xknx_usb.const import (
+    EMIID,
     DeviceFeature,
     DeviceFeatureService,
+    SupportedEMIType,
 )
 from editor_gui.plugins.connection.xknx_usb.frame import device_feature_frame
 from editor_gui.plugins.logger.service import LogService
@@ -881,3 +887,126 @@ def test_the_service_checks_an_individual_address(
     future = service.individual_address_occupied("1.1.9")
     assert future is not None and future.result() is True
     assert checked == [(xknx, "1.1.9")]
+
+
+def test_emi_type_names() -> None:
+    assert emi_type_name(EMIID.CEMI) == "cEMI"
+    assert emi_type_name(EMIID.EMI1) == "EMI1"
+    # in the order the connection prefers them
+    assert supported_emi_type_names(
+        SupportedEMIType.EMI1 | SupportedEMIType.CEMI | SupportedEMIType.EMI2
+    ) == ["cEMI", "EMI2", "EMI1"]
+    assert supported_emi_type_names(SupportedEMIType(0)) == []
+    assert mask_version_text(0x07B0) == "07B0"
+    assert mask_version_text(0x0012) == "0012"
+    assert mask_version_text(None) == ""
+
+
+async def test_the_emi_type_is_logged_and_shown(
+    fake_hid: FakeHIDModule, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The EMI type, the supported ones and the mask version: in the log and the dialog."""
+    logged: list[tuple[str, dict[str, Any]]] = []
+    plugin = _plugin()
+    plugin._log.info = lambda event, **fields: logged.append((event, fields))
+    plugin._usb_target = UsbTarget.of(_DEVICE)
+    plugin._ensure_async_loop = asyncio.get_running_loop
+    plugin._save_current_settings = lambda: None
+    await plugin._connect_async()
+    ctx = imgui.create_context()
+    try:
+        info = plugin.usb_info
+        details = dict(logged)["USB interface info"]
+        assert details["emi_type"] == emi_type_name(info.emi_type) == "cEMI"
+        assert details["supported_emi_types"] == supported_emi_type_names(
+            info.supported_emi_types
+        )
+        assert details["mask_version"] == mask_version_text(info.mask_version)
+        io = imgui.get_io()
+        io.display_size = imgui.ImVec2(800, 600)
+        io.backend_flags |= imgui.BackendFlags_.renderer_has_textures
+        shown: list[str] = []
+        real_text = imgui.text
+
+        def text(value: str, *args: Any) -> None:
+            shown.append(value)
+            real_text(value, *args)
+
+        monkeypatch.setattr(imgui, "text", text)
+        plugin._select_open = plugin._select_shown = plugin._progmode_open = False
+        plugin.open_usb_settings()
+        for _ in range(2):
+            imgui.new_frame()
+            plugin.render_window()
+            imgui.end_frame()
+        assert S.USB_EMI_TYPE.format(emi="cEMI") in shown
+        assert (
+            S.USB_SUPPORTED_EMI_TYPES.format(
+                types=", ".join(supported_emi_type_names(info.supported_emi_types))
+            )
+            in shown
+        )
+        if info.mask_version is not None:
+            assert (
+                S.USB_MASK_VERSION.format(mask=mask_version_text(info.mask_version))
+                in shown
+            )
+    finally:
+        imgui.destroy_context(ctx)
+        await plugin._disconnect_async()
+
+
+class TestConnectionTypeSetting:
+    """Settings > Connection > Connection Type with KNX USB interfaces."""
+
+    @staticmethod
+    def _setting(plugin: Any) -> Any:
+        plugin._connection_type = ConnectionType.TUNNELING
+        plugin._api = SimpleNamespace(
+            connection=SimpleNamespace(use_serial_number=True)
+        )
+        saved: list[bool] = []
+        plugin._save_current_settings = lambda: saved.append(True)
+        plugin.saved = saved
+        return next(s for s in plugin.settings() if s.key == "connection_type")
+
+    def test_usb_is_a_choice_when_an_interface_is_known(self) -> None:
+        plugin = _plugin()
+        setting = self._setting(plugin)
+        assert "usb" not in dict(setting.choices())
+        plugin._usb_devices = [_DEVICE]
+        assert dict(setting.choices())["usb"] == S.CONN_TYPE_USB == "USB"
+        # picking it stores the interface found, for the next connect
+        setting.set("usb")
+        assert plugin._usb_target == UsbTarget.of(_DEVICE)
+        assert setting.get() == "usb" and plugin.saved == [True]
+        # an IP connection type instead of the interface
+        setting.set("tunneling_tcp")
+        assert plugin._usb_target is None
+        assert plugin._connection_type is ConnectionType.TUNNELING_TCP
+        assert setting.get() == "tunneling_tcp"
+
+    def test_locked_while_connected_through_usb(self) -> None:
+        plugin = _plugin()
+        plugin._usb_target = UsbTarget.of(_DEVICE)
+        setting = self._setting(plugin)
+        plugin._state = ConnectionState.CONNECTED
+        assert setting.read_only()
+        assert setting.get() == "usb" and "usb" in dict(setting.choices())
+        setting.set("routing")
+        assert plugin._usb_target == UsbTarget.of(_DEVICE) and plugin.saved == []
+        plugin._state = ConnectionState.DISCONNECTED
+        assert not setting.read_only()
+
+    def test_no_usb_while_a_gateway_is_connected(self) -> None:
+        plugin = _plugin()
+        plugin._usb_devices = [_DEVICE]
+        setting = self._setting(plugin)
+        plugin._state = ConnectionState.CONNECTED
+        assert not setting.read_only()
+        assert "usb" not in dict(setting.choices())
+        setting.set("usb")
+        assert plugin._usb_target is None
+        # another IP type applies on the next connect, as before
+        setting.set("routing")
+        assert plugin._connection_type is ConnectionType.ROUTING

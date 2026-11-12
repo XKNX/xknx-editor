@@ -202,6 +202,21 @@ class ConnectionStrings:
         return _("Maximum Telegram Length (APDU): {length}")
 
     @property
+    def USB_EMI_TYPE(self) -> str:
+        # {emi}: cEMI, EMI2 or EMI1, the message format used with the interface
+        return _("EMI Type: {emi}")
+
+    @property
+    def USB_SUPPORTED_EMI_TYPES(self) -> str:
+        # {types}: e.g. "cEMI, EMI2"
+        return _("Supported EMI Types: {types}")
+
+    @property
+    def USB_MASK_VERSION(self) -> str:
+        # {mask}: four hexadecimal digits, e.g. 07B0
+        return _("Mask Version: {mask}")
+
+    @property
     def USB_ADDRESS_LABEL(self) -> str:
         return _("Individual Address")
 
@@ -273,6 +288,11 @@ class ConnectionStrings:
     @property
     def CONN_TYPE_ROUTING(self) -> str:
         return _("Routing")
+
+    @property
+    def CONN_TYPE_USB(self) -> str:
+        # a KNX USB interface, as the Connection Type setting names it
+        return _("USB")
 
     @property
     def STATUS_CONNECTED(self) -> str:

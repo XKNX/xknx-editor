@@ -205,6 +205,9 @@ msgstr "TCP-Tunneling"
 msgid "Routing"
 msgstr "Routing"
 
+msgid "USB"
+msgstr "USB"
+
 msgid "A device whose serial number is known gets its individual address without pressing its programming button."
 msgstr "Ein Gerät mit bekannter Seriennummer erhält seine physikalische Adresse, ohne dass seine Programmiertaste gedrückt wird."
 
@@ -242,6 +245,15 @@ msgstr "Schließen"
 
 msgid "Maximum Telegram Length (APDU): {length}"
 msgstr "Maximale Telegrammlänge (APDU): {length}"
+
+msgid "EMI Type: {emi}"
+msgstr "EMI-Typ: {emi}"
+
+msgid "Supported EMI Types: {types}"
+msgstr "Unterstützte EMI-Typen: {types}"
+
+msgid "Mask Version: {mask}"
+msgstr "Maskenversion: {mask}"
 
 msgid "Individual Address"
 msgstr "Physikalische Adresse"

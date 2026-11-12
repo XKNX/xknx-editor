@@ -42,7 +42,10 @@ from editor_gui.plugins.connection.usb import (
     UsbBusmonitorConnection,
     UsbTarget,
     cancel_hidapi_atexit,
+    emi_type_name,
+    mask_version_text,
     search_usb_interfaces,
+    supported_emi_type_names,
     usb_device_name,
 )
 from editor_gui.plugins.connection.xknx_usb import USBDeviceInfo, USBInterfaceInfo
@@ -962,6 +965,11 @@ class ConnectionPlugin:
                     max_apdu_length=self._usb_info.max_apdu_length,
                     bus_connected=self._usb_info.bus_connected,
                     serial_number=self._usb_info.device.serial_number,
+                    emi_type=emi_type_name(self._usb_info.emi_type),
+                    supported_emi_types=supported_emi_type_names(
+                        self._usb_info.supported_emi_types
+                    ),
+                    mask_version=mask_version_text(self._usb_info.mask_version),
                 )
                 self._keep_usb_address()
             if self._gateway_info:
@@ -1984,6 +1992,16 @@ class ConnectionPlugin:
             imgui.text(S.USB_SERIAL_NUMBER.format(serial=target.serial_number))
         if info is not None:
             imgui.text(S.USB_MAX_APDU_LENGTH.format(length=info.max_apdu_length))
+            imgui.text(S.USB_EMI_TYPE.format(emi=emi_type_name(info.emi_type)))
+            imgui.text(
+                S.USB_SUPPORTED_EMI_TYPES.format(
+                    types=", ".join(supported_emi_type_names(info.supported_emi_types))
+                )
+            )
+            if info.mask_version is not None:
+                imgui.text(
+                    S.USB_MASK_VERSION.format(mask=mask_version_text(info.mask_version))
+                )
         imgui.separator()
         busy = self._usb_address_busy or self._usb_address_checking
         imgui.begin_disabled(busy or not self.connected)
@@ -2281,12 +2299,12 @@ class ConnectionPlugin:
                 "choice",
                 get=lambda: self.connection_type,
                 set=self._set_connection_type_name,
-                choices=lambda: [
-                    ("tunneling", S.CONN_TYPE_TUNNELING),
-                    ("tunneling_tcp", S.CONN_TYPE_TCP_TUNNELING),
-                    ("routing", S.CONN_TYPE_ROUTING),
-                ],
+                choices=self._connection_type_choices,
                 hint=lambda: S.SETTING_CONNECTION_TYPE_HINT,
+                # the connection open through the USB interface is no gateway to switch to
+                read_only=lambda: (
+                    self._usb_target is not None and self._connection_open
+                ),
             ),
             Setting(
                 "gateway_ip",
@@ -2313,13 +2331,49 @@ class ConnectionPlugin:
             ),
         ]
 
+    @property
+    def _connection_open(self) -> bool:
+        return self._state in (ConnectionState.CONNECTING, ConnectionState.CONNECTED)
+
+    def _connection_type_choices(self) -> list[tuple[str, str]]:
+        """The transports the Connection Type setting offers: the gateway's, and "USB" while a
+        KNX USB interface is stored or was found (not while a gateway connection is open, which
+        would then go through another interface)."""
+        choices = [
+            ("tunneling", S.CONN_TYPE_TUNNELING),
+            ("tunneling_tcp", S.CONN_TYPE_TCP_TUNNELING),
+            ("routing", S.CONN_TYPE_ROUTING),
+        ]
+        usb_known = self._usb_target is not None or bool(self._usb_devices)
+        if usb_known and not (self._connection_open and self._usb_target is None):
+            choices.append(("usb", S.CONN_TYPE_USB))
+        return choices
+
     def _set_connection_type_name(self, value: object) -> None:
-        """Set the stored transport from an MCP name ("tunneling"/"tunneling_tcp"/"routing");
-        takes effect on the next connect, like the Gateway menu's radio."""
-        connection_type = parse_connection_type(str(value))
-        if connection_type is not None and connection_type != self._connection_type:
-            self._connection_type = connection_type
+        """Set the stored transport from an MCP name ("tunneling"/"tunneling_tcp"/"routing" or
+        "usb": the stored KNX USB interface, else the first one found); takes effect on the next
+        connect, like the Gateway menu's choice. Nothing changes while the connection is open
+        through another kind of interface."""
+        name = str(value).strip().lower()
+        if name == "usb":
+            if self._usb_target is not None or self._connection_open:
+                return
+            if not self._usb_devices:
+                return
+            self._usb_target = UsbTarget.of(self._usb_devices[0])
             self._save_current_settings()
+            return
+        connection_type = parse_connection_type(name)
+        if connection_type is None:
+            return
+        if self._usb_target is not None:
+            if self._connection_open:
+                return
+            self._usb_target = None
+        elif connection_type == self._connection_type:
+            return
+        self._connection_type = connection_type
+        self._save_current_settings()
 
     def _set_controller_ip(self, value: object) -> None:
         self._controller_ip = str(value).strip() or self._controller_ip

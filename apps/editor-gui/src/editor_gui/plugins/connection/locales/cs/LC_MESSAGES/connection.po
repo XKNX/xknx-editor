@@ -205,6 +205,9 @@ msgstr "TCP tunneling"
 msgid "Routing"
 msgstr "Routing"
 
+msgid "USB"
+msgstr "USB"
+
 msgid "A device whose serial number is known gets its individual address without pressing its programming button."
 msgstr "Zařízení se známým sériovým číslem dostane individuální adresu bez stisknutí programovacího tlačítka."
 
@@ -243,6 +246,15 @@ msgstr "Zavřít"
 
 msgid "Maximum Telegram Length (APDU): {length}"
 msgstr "Maximální Délka Telegramu (APDU): {length}"
+
+msgid "EMI Type: {emi}"
+msgstr "Typ EMI: {emi}"
+
+msgid "Supported EMI Types: {types}"
+msgstr "Podporované typy EMI: {types}"
+
+msgid "Mask Version: {mask}"
+msgstr "Verze masky: {mask}"
 
 msgid "Individual Address"
 msgstr "Individuální adresa"

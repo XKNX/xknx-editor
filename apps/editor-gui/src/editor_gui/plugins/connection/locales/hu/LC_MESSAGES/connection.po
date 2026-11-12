@@ -205,6 +205,9 @@ msgstr "TCP tunneling"
 msgid "Routing"
 msgstr "Routing"
 
+msgid "USB"
+msgstr "USB"
+
 msgid "A device whose serial number is known gets its individual address without pressing its programming button."
 msgstr "Az ismert sorozatszámú eszköz a programozógombja megnyomása nélkül kapja meg a fizikai címét."
 
@@ -241,6 +244,15 @@ msgstr "Bezárás"
 
 msgid "Maximum Telegram Length (APDU): {length}"
 msgstr "Maximális Távirathossz (APDU): {length}"
+
+msgid "EMI Type: {emi}"
+msgstr "EMI-típus: {emi}"
+
+msgid "Supported EMI Types: {types}"
+msgstr "Támogatott EMI-típusok: {types}"
+
+msgid "Mask Version: {mask}"
+msgstr "Maszkverzió: {mask}"
 
 msgid "Individual Address"
 msgstr "Fizikai cím"
