@@ -236,11 +236,11 @@ msgstr[1] "{count} napravi v načinu programiranja"
 msgstr[2] "{count} naprave v načinu programiranja"
 msgstr[3] "{count} naprav v načinu programiranja"
 
-msgid "USB Interface Settings…"
-msgstr "Nastavitve Vmesnika USB…"
+msgid "USB Interface…"
+msgstr "Vmesnik USB…"
 
-msgid "USB Interface Settings"
-msgstr "Nastavitve Vmesnika USB"
+msgid "USB Interface"
+msgstr "Vmesnik USB"
 
 msgid "Close"
 msgstr "Zapri"

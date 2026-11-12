@@ -527,7 +527,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         individual_address: str, timeout: float = 30.0
     ) -> dict[str, Any]:
         """Set the individual address (e.g. "1.1.250") of the connected KNX USB interface, as
-        Gateway menu > USB Interface Settings… does: the connection is opened again and sets it
+        Gateway menu > USB Interface… does: the connection is opened again and sets it
         on the interface, which keeps it (an interface that forgets it when unplugged gets it
         again on every connect). Nothing is written when the interface has that address already.
         Waits for the result and returns ``{individual_address, usb_interface}``, the latter as
@@ -557,7 +557,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
     ) -> dict[str, Any]:
         """Check over the open connection whether a device on the bus uses the individual
         address ``individual_address`` (e.g. "1.1.250"), as the "Address Free?" button of
-        Gateway menu > USB Interface Settings… does: a connection and a device descriptor read
+        Gateway menu > USB Interface… does: a connection and a device descriptor read
         to it (NM_IndividualAddress_Check). Returns ``{individual_address, free}``; ``free`` is
         true when no device answered."""
         try:

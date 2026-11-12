@@ -235,11 +235,11 @@ msgstr[0] "{count} dispozitiv în modul de programare"
 msgstr[1] "{count} dispozitive în modul de programare"
 msgstr[2] "{count} de dispozitive în modul de programare"
 
-msgid "USB Interface Settings…"
-msgstr "Setări Interfață USB…"
+msgid "USB Interface…"
+msgstr "Interfață USB…"
 
-msgid "USB Interface Settings"
-msgstr "Setări Interfață USB"
+msgid "USB Interface"
+msgstr "Interfață USB"
 
 msgid "Close"
 msgstr "Închidere"

@@ -234,11 +234,11 @@ msgid_plural "{count} devices in programming mode"
 msgstr[0] "{count} laite ohjelmointitilassa"
 msgstr[1] "{count} laitetta ohjelmointitilassa"
 
-msgid "USB Interface Settings…"
-msgstr "USB-liitännän asetukset…"
+msgid "USB Interface…"
+msgstr "USB-liitäntä…"
 
-msgid "USB Interface Settings"
-msgstr "USB-liitännän asetukset"
+msgid "USB Interface"
+msgstr "USB-liitäntä"
 
 msgid "Close"
 msgstr "Sulje"

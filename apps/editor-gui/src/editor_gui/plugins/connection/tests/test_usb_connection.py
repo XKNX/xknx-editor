@@ -90,8 +90,8 @@ def _plugin() -> Any:
     plugin._usb_info = None
     plugin._usb_devices = []
     plugin._usb_addresses = {}
-    plugin._usb_settings_open = False
-    plugin._usb_settings_shown = False
+    plugin._usb_interface_open = False
+    plugin._usb_interface_shown = False
     plugin._usb_address_text = ""
     plugin._usb_address_write = None
     plugin._usb_address_busy = False
@@ -651,7 +651,7 @@ class TestInterfaceAddress:
 
 
 class TestInterfaceSettingsDialog:
-    """Gateway menu > USB Interface Settings…"""
+    """Gateway menu > USB Interface…"""
 
     async def test_set_and_check_in_the_dialog(
         self, fake_hid: FakeHIDModule, monkeypatch: pytest.MonkeyPatch
@@ -692,7 +692,7 @@ class TestInterfaceSettingsDialog:
 
         plugin._select_open = plugin._select_shown = plugin._progmode_open = False
         try:
-            plugin.open_usb_settings()
+            plugin.open_usb_interface()
             assert plugin._usb_address_text == "1.0.2"
             frames()
             plugin._usb_address_text = "1.0.12"
@@ -722,15 +722,15 @@ class TestInterfaceSettingsDialog:
             assert "is not an individual address" in plugin._usb_address_error
             clicks.button = "Close"
             frames()
-            assert not plugin._usb_settings_open
+            assert not plugin._usb_interface_open
             frames()
-            assert not plugin._usb_settings_shown
+            assert not plugin._usb_interface_shown
             # the connection no longer goes through a USB interface: it closes
-            plugin.open_usb_settings()
+            plugin.open_usb_interface()
             frames()
             plugin._usb_target = None
             frames()
-            assert not plugin._usb_settings_open and not plugin._usb_settings_shown
+            assert not plugin._usb_interface_open and not plugin._usb_interface_shown
         finally:
             imgui.destroy_context(ctx)
             await plugin._disconnect_async()
@@ -749,13 +749,13 @@ class TestInterfaceSettingsDialog:
         io.backend_flags |= imgui.BackendFlags_.renderer_has_textures
         clicks = Clicks(monkeypatch, plugin_module)
         try:
-            clicks.items.add("USB Interface Settings…")
+            clicks.items.add("USB Interface…")
             imgui.new_frame()
             imgui.begin("menu")
             plugin.render_menu()
             imgui.end()
             imgui.end_frame()
-            assert plugin._usb_settings_open
+            assert plugin._usb_interface_open
         finally:
             imgui.destroy_context(ctx)
 
@@ -934,7 +934,7 @@ async def test_the_emi_type_is_logged_and_shown(
 
         monkeypatch.setattr(imgui, "text", text)
         plugin._select_open = plugin._select_shown = plugin._progmode_open = False
-        plugin.open_usb_settings()
+        plugin.open_usb_interface()
         for _ in range(2):
             imgui.new_frame()
             plugin.render_window()
@@ -1010,3 +1010,37 @@ class TestConnectionTypeSetting:
         # another IP type applies on the next connect, as before
         setting.set("routing")
         assert plugin._connection_type is ConnectionType.ROUTING
+
+    def test_the_usb_interface_setting(self) -> None:
+        plugin = _plugin()
+        self._setting(plugin)
+        settings = {s.key: s for s in plugin.settings()}
+        interface, gateway_ip = settings["usb_interface"], settings["gateway_ip"]
+        # a gateway connection: its address, no interface
+        assert gateway_ip.shown() and not interface.shown()
+        other = USBDeviceInfo(
+            0x16DE,
+            0x008E,
+            b"q",
+            "00C5010540AA",
+            "KNX Manufacturer",
+            "KNX-USB Interface",
+        )
+        plugin._usb_target = UsbTarget.of(_DEVICE)
+        plugin._usb_devices = [_DEVICE, other]
+        assert interface.shown() and not gateway_ip.shown()
+        # the stored interface, then the others found, told apart by the serial number
+        assert interface.choices() == [
+            (UsbTarget.of(_DEVICE).key, "KNX-USB Interface (00C501053FB2)"),
+            (UsbTarget.of(other).key, "KNX-USB Interface (00C5010540AA)"),
+        ]
+        assert interface.get() == UsbTarget.of(_DEVICE).key
+        interface.set(UsbTarget.of(other).key)
+        assert plugin._usb_target == UsbTarget.of(other) and plugin.saved == [True]
+        interface.set("0000:0000:unknown")
+        assert plugin._usb_target == UsbTarget.of(other)
+        # not while a connection is open
+        plugin._state = ConnectionState.CONNECTED
+        assert interface.read_only()
+        interface.set(UsbTarget.of(_DEVICE).key)
+        assert plugin._usb_target == UsbTarget.of(other) and plugin.saved == [True]

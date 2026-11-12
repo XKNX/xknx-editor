@@ -235,6 +235,14 @@ def parse_connection_type(name: str) -> ConnectionType | None:
     return _CONNECTION_TYPE_NAMES.get(name.strip().lower())
 
 
+def _usb_target_label(target: UsbTarget) -> str:
+    """A KNX USB interface in the USB Interface setting: its name, and its serial number to tell
+    identical interfaces apart."""
+    if target.serial_number:
+        return f"{target.name} ({target.serial_number})"
+    return target.name
+
+
 def connection_type_name(connection_type: ConnectionType) -> str:
     """The MCP name of a ``ConnectionType`` (the secure variants map to their plain transport)."""
     if connection_type in (ConnectionType.ROUTING, ConnectionType.ROUTING_SECURE):
@@ -312,11 +320,11 @@ class ConnectionPlugin:
         # The individual addresses of the USB interfaces that forget theirs when unplugged
         # (UsbTarget.keeps_address), by UsbTarget.key: set again on connect.
         self._usb_addresses: dict[str, str] = {}
-        # The USB Interface Settings dialog: whether it is open, the address in its field, the
+        # The USB Interface dialog: whether it is open, the address in its field, the
         # address the next connect writes (set_usb_interface_address), whether that or an address
         # check runs, and the outcome of the last one.
-        self._usb_settings_open = False
-        self._usb_settings_shown = False
+        self._usb_interface_open = False
+        self._usb_interface_shown = False
         self._usb_address_text = ""
         self._usb_address_write: IndividualAddress | None = None
         self._usb_address_busy = False
@@ -1946,7 +1954,7 @@ class ConnectionPlugin:
         """The 'Devices in programming mode' window and the "Select Connection" dialog; called
         from the overlay pass."""
         self._render_select_connection()
-        self._render_usb_settings()
+        self._render_usb_interface()
         if not self._progmode_open:
             return
         expanded, open_state = begin_tool_window(
@@ -1957,32 +1965,32 @@ class ConnectionPlugin:
             self._render_progmode_contents()
         imgui.end()
 
-    def open_usb_settings(self) -> None:
-        """Open the USB Interface Settings dialog of the connected USB interface."""
+    def open_usb_interface(self) -> None:
+        """Open the USB Interface dialog of the connected USB interface."""
         info = self.usb_info
         address = info.individual_address if info is not None else None
         self._usb_address_text = str(address) if address is not None else ""
         self._usb_address_error = None
         self._usb_address_free = None
-        self._usb_settings_open = True
+        self._usb_interface_open = True
 
-    def _render_usb_settings(self) -> None:
-        """The "USB Interface Settings" dialog: what the connected USB interface reported, and its
+    def _render_usb_interface(self) -> None:
+        """The "USB Interface" dialog: what the connected USB interface reported, and its
         individual address, set on the interface when it is changed (Enter or leaving the field),
         with a check whether a device on the bus uses an address."""
-        title = f"{S.USB_SETTINGS_TITLE}###usb_settings"
-        if self._usb_settings_open and not self._usb_settings_shown:
+        title = f"{S.USB_INTERFACE_TITLE}###usb_interface"
+        if self._usb_interface_open and not self._usb_interface_shown:
             imgui.open_popup(title)
-            self._usb_settings_shown = True
-        if not self._usb_settings_shown:
+            self._usb_interface_shown = True
+        if not self._usb_interface_shown:
             return
         if not begin_dialog(title, width=440.0):
-            self._usb_settings_shown = False
-            self._usb_settings_open = False
+            self._usb_interface_shown = False
+            self._usb_interface_open = False
             return
         target = self._usb_target
-        if not self._usb_settings_open or target is None:
-            self._usb_settings_open = False
+        if not self._usb_interface_open or target is None:
+            self._usb_interface_open = False
             imgui.close_current_popup()
             end_dialog()
             return
@@ -2055,8 +2063,8 @@ class ConnectionPlugin:
             S.USB_ADDRESS_HINT if target.keeps_address else S.USB_ADDRESS_HINT_VOLATILE
         )
         imgui.pop_style_color()
-        if dialog_buttons(S.USB_SETTINGS_CLOSE) == 0:
-            self._usb_settings_open = False
+        if dialog_buttons(S.USB_INTERFACE_CLOSE) == 0:
+            self._usb_interface_open = False
             imgui.close_current_popup()
         end_dialog()
 
@@ -2241,8 +2249,8 @@ class ConnectionPlugin:
             self._render_connected_transport()
             imgui.unindent(px(_DETAILS_INDENT))
             imgui.separator()
-            if self.is_usb and imgui.menu_item(S.MENU_USB_SETTINGS, "", False)[0]:
-                self.open_usb_settings()
+            if self.is_usb and imgui.menu_item(S.MENU_USB_INTERFACE, "", False)[0]:
+                self.open_usb_interface()
             if imgui.menu_item(S.MENU_READ_PROGMODE, "", self._progmode_open)[0]:
                 self._open_progmode_window()
             imgui.separator()
@@ -2307,11 +2315,27 @@ class ConnectionPlugin:
                 ),
             ),
             Setting(
+                "usb_interface",
+                lambda: S.SETTING_USB_INTERFACE,
+                "choice",
+                get=lambda: (
+                    self._usb_target.key if self._usb_target is not None else ""
+                ),
+                set=self._set_usb_interface_key,
+                choices=lambda: [
+                    (target.key, _usb_target_label(target))
+                    for target in self._usb_interface_targets()
+                ],
+                shown=lambda: self._usb_target is not None,
+                read_only=lambda: self._connection_open,
+            ),
+            Setting(
                 "gateway_ip",
                 lambda: S.SETTING_GATEWAY_IP,
                 "text",
                 get=lambda: self._controller_ip,
                 set=self._set_controller_ip,
+                shown=lambda: self._usb_target is None,
             ),
             Setting(
                 "connect_at_startup",
@@ -2374,6 +2398,32 @@ class ConnectionPlugin:
             return
         self._connection_type = connection_type
         self._save_current_settings()
+
+    def _usb_interface_targets(self) -> list[UsbTarget]:
+        """The KNX USB interfaces the USB Interface setting offers: the stored one, then those the
+        last scan found."""
+        targets: list[UsbTarget] = []
+        if self._usb_target is not None:
+            targets.append(self._usb_target)
+        for device in self._usb_devices:
+            target = UsbTarget.of(device)
+            if all(target.key != known.key for known in targets):
+                targets.append(target)
+        return targets
+
+    def _set_usb_interface_key(self, value: object) -> None:
+        """Store the KNX USB interface with the key ``value`` (see ``UsbTarget.key``) for the
+        next connect; nothing changes while a connection is open."""
+        if self._connection_open:
+            return
+        key = str(value).strip()
+        target = next(
+            (t for t in self._usb_interface_targets() if t.key == key),
+            None,
+        )
+        if target is not None and target != self._usb_target:
+            self._usb_target = target
+            self._save_current_settings()
 
     def _set_controller_ip(self, value: object) -> None:
         self._controller_ip = str(value).strip() or self._controller_ip

@@ -234,11 +234,11 @@ msgid_plural "{count} devices in programming mode"
 msgstr[0] "{count} tæki í forritunarham"
 msgstr[1] "{count} tæki í forritunarham"
 
-msgid "USB Interface Settings…"
-msgstr "Stillingar USB-tengis…"
+msgid "USB Interface…"
+msgstr "USB-tengi…"
 
-msgid "USB Interface Settings"
-msgstr "Stillingar USB-tengis"
+msgid "USB Interface"
+msgstr "USB-tengi"
 
 msgid "Close"
 msgstr "Loka"

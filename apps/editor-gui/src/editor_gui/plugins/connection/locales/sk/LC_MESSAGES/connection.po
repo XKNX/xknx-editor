@@ -235,11 +235,11 @@ msgstr[0] "{count} zariadenie v programovacom režime"
 msgstr[1] "{count} zariadenia v programovacom režime"
 msgstr[2] "{count} zariadení v programovacom režime"
 
-msgid "USB Interface Settings…"
-msgstr "Nastavenia USB Rozhrania…"
+msgid "USB Interface…"
+msgstr "USB Rozhranie…"
 
-msgid "USB Interface Settings"
-msgstr "Nastavenia USB Rozhrania"
+msgid "USB Interface"
+msgstr "USB Rozhranie"
 
 msgid "Close"
 msgstr "Zavrieť"

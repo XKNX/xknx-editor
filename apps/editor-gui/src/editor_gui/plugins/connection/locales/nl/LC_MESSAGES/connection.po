@@ -234,11 +234,11 @@ msgid_plural "{count} devices in programming mode"
 msgstr[0] "{count} apparaat in programmeermodus"
 msgstr[1] "{count} apparaten in programmeermodus"
 
-msgid "USB Interface Settings…"
-msgstr "Instellingen USB-interface…"
+msgid "USB Interface…"
+msgstr "USB-interface…"
 
-msgid "USB Interface Settings"
-msgstr "Instellingen USB-interface"
+msgid "USB Interface"
+msgstr "USB-interface"
 
 msgid "Close"
 msgstr "Sluiten"

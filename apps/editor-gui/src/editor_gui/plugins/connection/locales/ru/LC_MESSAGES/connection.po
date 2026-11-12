@@ -235,11 +235,11 @@ msgstr[0] "{count} устройство в режиме программиров
 msgstr[1] "{count} устройства в режиме программирования"
 msgstr[2] "{count} устройств в режиме программирования"
 
-msgid "USB Interface Settings…"
-msgstr "Настройки USB-интерфейса…"
+msgid "USB Interface…"
+msgstr "USB-интерфейс…"
 
-msgid "USB Interface Settings"
-msgstr "Настройки USB-интерфейса"
+msgid "USB Interface"
+msgstr "USB-интерфейс"
 
 msgid "Close"
 msgstr "Закрыть"

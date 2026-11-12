@@ -233,11 +233,11 @@ msgid "{count} device in programming mode"
 msgid_plural "{count} devices in programming mode"
 msgstr[0] "プログラミング・モードのデバイス：{count} 台"
 
-msgid "USB Interface Settings…"
-msgstr "USB インターフェイス設定…"
+msgid "USB Interface…"
+msgstr "USB インターフェイス…"
 
-msgid "USB Interface Settings"
-msgstr "USB インターフェイス設定"
+msgid "USB Interface"
+msgstr "USB インターフェイス"
 
 msgid "Close"
 msgstr "閉じる"

@@ -233,11 +233,11 @@ msgid "{count} device in programming mode"
 msgid_plural "{count} devices in programming mode"
 msgstr[0] "{count} 个设备处于编程模式"
 
-msgid "USB Interface Settings…"
-msgstr "USB 接口设置…"
+msgid "USB Interface…"
+msgstr "USB 接口…"
 
-msgid "USB Interface Settings"
-msgstr "USB 接口设置"
+msgid "USB Interface"
+msgstr "USB 接口"
 
 msgid "Close"
 msgstr "关闭"

@@ -36,6 +36,10 @@ class ConnectionStrings:
         return _("Gateway IP")
 
     @property
+    def SETTING_USB_INTERFACE(self) -> str:
+        return _("USB Interface")
+
+    @property
     def SETTING_CONNECT_AT_STARTUP(self) -> str:
         return _("Connect at Startup")
 
@@ -186,15 +190,15 @@ class ConnectionStrings:
         return _("Serial Number: {serial}")
 
     @property
-    def MENU_USB_SETTINGS(self) -> str:
-        return _("USB Interface Settings…")
+    def MENU_USB_INTERFACE(self) -> str:
+        return _("USB Interface…")
 
     @property
-    def USB_SETTINGS_TITLE(self) -> str:
-        return _("USB Interface Settings")
+    def USB_INTERFACE_TITLE(self) -> str:
+        return _("USB Interface")
 
     @property
-    def USB_SETTINGS_CLOSE(self) -> str:
+    def USB_INTERFACE_CLOSE(self) -> str:
         return _("Close")
 
     @property

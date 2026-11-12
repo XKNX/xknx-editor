@@ -234,11 +234,11 @@ msgid_plural "{count} devices in programming mode"
 msgstr[0] "{count} συσκευή σε κατάσταση προγραμματισμού"
 msgstr[1] "{count} συσκευές σε κατάσταση προγραμματισμού"
 
-msgid "USB Interface Settings…"
-msgstr "Ρυθμίσεις Διεπαφής USB…"
+msgid "USB Interface…"
+msgstr "Διεπαφή USB…"
 
-msgid "USB Interface Settings"
-msgstr "Ρυθμίσεις Διεπαφής USB"
+msgid "USB Interface"
+msgstr "Διεπαφή USB"
 
 msgid "Close"
 msgstr "Κλείσιμο"
