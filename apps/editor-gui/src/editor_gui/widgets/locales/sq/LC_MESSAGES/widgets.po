@@ -305,7 +305,7 @@ msgid "Modules"
 msgstr "Modulet"
 
 msgid "All Modules Selected"
-msgstr "Të gjitha modulet të zgjedhura"
+msgstr "Janë zgjedhur të gjitha modulet"
 
 msgid "No Modules Selected"
 msgstr "Asnjë modul i zgjedhur"

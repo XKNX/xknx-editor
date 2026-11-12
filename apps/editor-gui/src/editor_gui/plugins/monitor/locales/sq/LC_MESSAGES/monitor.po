@@ -406,40 +406,40 @@ msgstr[0] "Ridërgimi u anulua: {count} telegram u dërgua"
 msgstr[1] "Ridërgimi u anulua: {count} telegrame u dërguan"
 
 msgid "Persist"
-msgstr "Persist"
+msgstr "Mbaj telegramet"
 
 msgid "Keep this project's group telegrams across restarts"
-msgstr "Keep this project's group telegrams across restarts"
+msgstr "Mbaj telegramet e grupit të këtij projekti edhe pas rinisjes"
 
 msgid "Persist Group Monitor Telegrams"
-msgstr "Persist Group Monitor Telegrams"
+msgstr "Mbaj telegramet e Monitorit të grupeve"
 
 msgid "Save the group monitor's telegrams per project and reload them on the next start."
-msgstr "Save the group monitor's telegrams per project and reload them on the next start."
+msgstr "Ruan telegramet e Monitorit të grupeve për çdo projekt dhe i ngarkon sërish në nisjen e radhës."
 
 msgid "Maximum Telegram File (MB)"
-msgstr "Maximum Telegram File (MB)"
+msgstr "Madhësia maksimale e skedarit të telegrameve (MB)"
 
 msgid "The oldest telegrams are dropped to keep the saved file under this size. 0 = no limit."
-msgstr "The oldest telegrams are dropped to keep the saved file under this size. 0 = no limit."
+msgstr "Telegramet më të vjetra hiqen që skedari i ruajtur të mos e tejkalojë këtë madhësi. 0 = pa kufi."
 
 msgid "Unlimited Recording"
-msgstr "Unlimited Recording"
+msgstr "Regjistrim pa kufi"
 
 msgid "Without a count limit the telegrams can use a lot of memory, and disk while persisting. Continue?"
-msgstr "Without a count limit the telegrams can use a lot of memory, and disk while persisting. Continue?"
+msgstr "Pa kufizim të numrit të telegrameve, ato mund të zënë shumë memorie dhe hapësirë në disk kur ruhen. Të vazhdohet?"
 
 msgid "0 = unlimited"
-msgstr "0 = unlimited"
+msgstr "0 = pa kufi"
 
 msgid "Maximum Telegrams"
-msgstr "Maximum Telegrams"
+msgstr "Numri maksimal i telegrameve"
 
 msgid "How many telegrams the Group Monitor keeps before dropping the oldest. 0 = unlimited."
-msgstr "How many telegrams the Group Monitor keeps before dropping the oldest. 0 = unlimited."
+msgstr "Sa telegrame ruan Monitori i grupeve përpara se të heqë telegramet më të vjetra. 0 = pa kufi."
 
 msgid "Open Monitor Folder"
-msgstr "Open Monitor Folder"
+msgstr "Hap dosjen e monitorit"
 
 msgid "Statistics"
 msgstr "Statistika"
@@ -451,7 +451,7 @@ msgid "{rate}/min"
 msgstr "{rate}/min"
 
 msgid "over {span}"
-msgstr "në {span}"
+msgstr "gjatë {span}"
 
 msgid "{hours}h {minutes}m"
 msgstr "{hours}h {minutes}m"
@@ -469,7 +469,7 @@ msgid "Top Destinations"
 msgstr "Destinacionet kryesore"
 
 msgid "Description"
-msgstr "Përshkrim"
+msgstr "Përshkrimi"
 
 msgid "Telegrams"
 msgstr "Telegrame"

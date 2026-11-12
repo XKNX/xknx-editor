@@ -50,5 +50,5 @@ msgstr[1] "{device}: {count} objekte grupi pa lidhje"
 
 msgid "{address} {name}: {count} transmit-capable group object; check assignment"
 msgid_plural "{address} {name}: {count} transmit-capable group objects; check assignment"
-msgstr[0] "{address} {name}: {count} objekt grupi me aftësi transmetimi; kontrolloni caktimin"
-msgstr[1] "{address} {name}: {count} objekte grupi me aftësi transmetimi; kontrolloni caktimin"
+msgstr[0] "{address} {name}: {count} objekt grupi me aftësi transmetimi; kontrolloni lidhjet"
+msgstr[1] "{address} {name}: {count} objekte grupi me aftësi transmetimi; kontrolloni lidhjet"
