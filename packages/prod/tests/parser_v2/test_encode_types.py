@@ -231,9 +231,53 @@ def test_ipaddress_v4() -> None:
     assert _encode_value("192.168.1.1", 32, _ipaddress()) == 0xC0A80101
 
 
-def test_ipaddress_invalid() -> None:
-    assert _encode_value("192.168.1", 32, _ipaddress()) is None
-    assert _encode_value("1.2.3.999", 32, _ipaddress()) is None
+@pytest.mark.parametrize(
+    ("text", "value"),
+    [
+        # A product default of a single number: the whole address.
+        ("0", 0),
+        ("3232235777", 0xC0A80101),
+        # The last part fills the octets the others leave.
+        ("192.168.1", 0xC0A80001),
+        ("10.1", 0x0A000001),
+        # Octal and hexadecimal parts.
+        ("0300.0250.01.01", 0xC0A80101),
+        ("0xc0.0xA8.1.1", 0xC0A80101),
+    ],
+)
+def test_ipaddress_v4_short_forms(text: str, value: int) -> None:
+    assert _encode_value(text, 32, _ipaddress()) == value
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "1.2.3.999",
+        "1.2.3.4.5",
+        "1..2",
+        "1.2.",
+        "",
+        "08.1.1.1",
+        "0x.1.1.1",
+        "256.1",
+        "1.16777216",
+        "4294967296",
+        "1.2.3.4/24",
+    ],
+)
+def test_ipaddress_invalid(text: str) -> None:
+    assert _encode_value(text, 32, _ipaddress()) is None
+
+
+def test_ipaddress_v6_takes_no_v4_address() -> None:
+    assert (
+        _encode_value("0", 128, _ipaddress(ParameterTypeTypeIpaddressVersion.IPV6))
+        is None
+    )
+    assert (
+        _encode_value("::1", 128, _ipaddress(ParameterTypeTypeIpaddressVersion.IPV6))
+        == 1
+    )
 
 
 def test_color_rgb() -> None:

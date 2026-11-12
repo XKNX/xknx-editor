@@ -1075,11 +1075,14 @@ msgstr "Ruta de Exportación:"
 msgid "Export Programming Test Result"
 msgstr "Exportar Resultado de la Prueba de Programación"
 
-msgid "memory {address}"
-msgstr "memoria {address}"
+msgid "Memory {address}"
+msgstr "Memoria {address}"
 
-msgid "object {object} property {property}"
-msgstr "objeto {object} propiedad {property}"
+msgid "User memory {address}"
+msgstr "Memoria de usuario {address}"
+
+msgid "Object {object} property {property}"
+msgstr "Objeto {object} propiedad {property}"
 
 msgid "Filter devices (name, address)…"
 msgstr "Filtrar dispositivos (nombre, dirección)…"

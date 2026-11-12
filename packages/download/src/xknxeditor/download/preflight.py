@@ -49,6 +49,19 @@ def _changed_ranges(current: bytes, planned: bytes) -> tuple[ByteRange, ...]:
     return tuple(ranges)
 
 
+# The user memory is an address space of its own (A_UserMemory services, 20-bit addresses):
+# where memory addresses of both spaces are kept by address (``device_written``, the runtime
+# and parameter maps of a preflight's view), a user memory address is kept above every address
+# of the standard memory (24 bits at most), so the two never meet.
+USER_MEMORY_KEY = 1 << 24
+
+
+def memory_key(address: int, *, user: bool = False) -> int:
+    """The key of ``address`` (of the user memory with ``user``) among memory addresses of
+    both spaces (see ``USER_MEMORY_KEY``)."""
+    return address + USER_MEMORY_KEY if user else address
+
+
 @dataclass(frozen=True, slots=True)
 class SegmentDiff:
     """The current versus planned bytes for one memory write."""
@@ -66,6 +79,12 @@ class SegmentDiff:
     # Offsets of octets a full download writes from the product data and a partial download
     # from the application (a group object table's object count): no setting changes them.
     corrected_bytes: frozenset[int] = frozenset()
+    # A write in the user memory (``AddressSpace="User"``), not in the standard memory.
+    user_memory: bool = False
+
+    def memory_key(self, offset: int) -> int:
+        """The key (see :func:`memory_key`) of the byte at ``offset`` from ``address``."""
+        return memory_key(self.address + offset, user=self.user_memory)
 
     @property
     def changed_ranges(self) -> tuple[ByteRange, ...]:
@@ -130,7 +149,8 @@ class PreflightReport:
     properties: tuple[PropertyDiff, ...]
     # Absolute memory addresses whose device value changed between two reads during the
     # preview, i.e. the firmware is writing them itself at runtime. A difference there is
-    # not a real configuration change and should be classified as device-managed.
+    # not a real configuration change and should be classified as device-managed. A user
+    # memory address is kept by its :func:`memory_key`.
     device_written: frozenset[int] = frozenset()
 
     @property
@@ -170,8 +190,9 @@ class PreflightReport:
             f"{len(changed_properties)} property write(s))."
         ]
         for segment in changed_segments:
+            space = "user memory" if segment.user_memory else "memory"
             lines.append(
-                f"  memory {segment.address:#06x}: "
+                f"  {space} {segment.address:#06x}: "
                 f"{segment.changed_bytes}/{len(segment.planned)} changed"
                 + (" (procedure step)" if segment.procedure_step else "")
             )

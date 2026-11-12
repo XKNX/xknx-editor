@@ -27,8 +27,9 @@ def _flag(ref_val: Enable | None, base_val: Enable | None) -> bool:
 
 def _known(value: Enum | str | None, what: str, ref_id: str) -> str:
     """The text of a value of the schema's enumeration, "" without one. Product data with a
-    value the schema does not have (an object size "Variable") cannot be used: building the
-    group object stops with what is wrong, not somewhere later."""
+    value the schema does not have cannot be used: building the group object stops with what
+    is wrong, not somewhere later. (An object size "Variable" is read as "LegacyVarData"
+    before, see :mod:`xknxeditor.prod.heal`.)"""
     if value is None:
         return ""
     if isinstance(value, Enum):

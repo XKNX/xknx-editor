@@ -3040,11 +3040,15 @@ class ProjectStrings:
 
     @property
     def PREFLIGHT_MEM_LABEL(self) -> str:
-        return _("memory {address}")
+        return _("Memory {address}")
+
+    @property
+    def PREFLIGHT_USER_MEM_LABEL(self) -> str:
+        return _("User memory {address}")
 
     @property
     def PREFLIGHT_PROP_LABEL(self) -> str:
-        return _("object {object} property {property}")
+        return _("Object {object} property {property}")
 
     @property
     def DEVICE_FILTER_HINT(self) -> str:

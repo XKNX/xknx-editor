@@ -1075,11 +1075,14 @@ msgstr "Eksportsti:"
 msgid "Export Programming Test Result"
 msgstr "Eksporter resultat af programmeringstest"
 
-msgid "memory {address}"
-msgstr "hukommelse {address}"
+msgid "Memory {address}"
+msgstr "Hukommelse {address}"
 
-msgid "object {object} property {property}"
-msgstr "objekt {object} egenskab {property}"
+msgid "User memory {address}"
+msgstr "Brugerhukommelse {address}"
+
+msgid "Object {object} property {property}"
+msgstr "Objekt {object} egenskab {property}"
 
 msgid "Filter devices (name, address)…"
 msgstr "Filtrer enheder (navn, adresse)…"

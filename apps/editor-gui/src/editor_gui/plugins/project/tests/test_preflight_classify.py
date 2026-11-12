@@ -9,6 +9,10 @@ the MCP evaluate tool; these tests exercise it directly (no imgui context needed
 
 from __future__ import annotations
 
+from types import SimpleNamespace
+from typing import TYPE_CHECKING, cast
+from unittest.mock import patch
+
 from editor_gui.plugins.project.ui.preflight_result import (
     _CAT_CONFIG,
     _CAT_DEFAULT,
@@ -16,8 +20,21 @@ from editor_gui.plugins.project.ui.preflight_result import (
     _CAT_RUNTIME,
     PreflightResultWindow,
 )
-from editor_gui.programming import classify_preflight, preflight_segment_counts
-from xknxeditor.download.preflight import PreflightReport, PropertyDiff, SegmentDiff
+from editor_gui.programming import (
+    classify_preflight,
+    parameter_driven_bits,
+    preflight_segment_counts,
+    runtime_managed_addresses,
+)
+from xknxeditor.download.preflight import (
+    PreflightReport,
+    PropertyDiff,
+    SegmentDiff,
+    memory_key,
+)
+
+if TYPE_CHECKING:
+    from editor_gui.device import Device
 
 
 def _window(runtime: set[int] | None = None, driven: dict[int, int] | None = None):
@@ -188,3 +205,81 @@ def test_an_octet_the_download_corrects_is_device_managed() -> None:
         corrected_bytes=frozenset({0}),
     )
     assert preflight_segment_counts(seg, w._runtime, w._driven) == (1, 0, 1)
+
+
+def test_a_user_memory_byte_takes_the_user_memory_maps() -> None:
+    # The user memory is an address space of its own: what a parameter drives or the device
+    # writes at 0x100 of the standard memory says nothing about 0x100 of the user memory.
+    seg = SegmentDiff(
+        address=0x100, current=b"\x00\x00", planned=b"\x40\xff", user_memory=True
+    )
+    assert preflight_segment_counts(seg, {0x101}, {0x100: 0x40}) == (0, 2, 0)
+    runtime = {memory_key(0x101, user=True)}
+    driven = {memory_key(0x100, user=True): 0x40}
+    assert preflight_segment_counts(seg, runtime, driven) == (1, 0, 1)
+
+
+def test_the_parameter_maps_key_a_user_memory_segment_apart() -> None:
+    def written_bit_mask() -> dict[str, bytes]:
+        return {"AS-0100": b"\x40", "AS-U0100": b"\x01"}
+
+    def memory_param_map() -> dict[str, dict[int, tuple[str, int]]]:
+        return {"AS-0100": {0: ("P-1", 0)}, "AS-U0100": {0: ("P-2", 0)}}
+
+    def segment_base_addrs() -> dict[str, int]:
+        return {"AS-0100": 0x100, "AS-U0100": 0x100}
+
+    code = SimpleNamespace(
+        absolute_segment=[
+            SimpleNamespace(id="AS-0100", user_memory=False),
+            SimpleNamespace(id="AS-U0100", user_memory=True),
+        ]
+    )
+    device = cast(
+        "Device",
+        SimpleNamespace(
+            dynamic_ui=SimpleNamespace(
+                written_bit_mask=written_bit_mask,
+                memory_param_map=memory_param_map,
+                segment_base_addrs=segment_base_addrs,
+            ),
+            app=SimpleNamespace(
+                program=SimpleNamespace(static=SimpleNamespace(code=code))
+            ),
+        ),
+    )
+    assert parameter_driven_bits(device) == {
+        0x100: 0x40,
+        memory_key(0x100, user=True): 0x01,
+    }
+    with patch(
+        "xknxeditor.prod.parser_v2.application_indexer.ApplicationIndexer",
+        lambda _program: SimpleNamespace(
+            parameters={
+                "P-1": SimpleNamespace(access=SimpleNamespace(name="NONE")),
+                "P-2": SimpleNamespace(access=SimpleNamespace(name="NONE")),
+            }
+        ),
+    ):
+        assert runtime_managed_addresses(device) == {
+            0x100,
+            memory_key(0x100, user=True),
+        }
+
+
+def test_a_user_memory_segment_is_labelled_apart_from_standard_memory() -> None:
+    standard = SegmentDiff(address=0x100, current=b"\x00", planned=b"\x01")
+    user = SegmentDiff(
+        address=0x100, current=b"\x00", planned=b"\x01", user_memory=True
+    )
+    assert PreflightResultWindow._segment_location(standard) == "Memory 0x0100"
+    assert PreflightResultWindow._segment_location(user) == "User memory 0x0100"
+    report = PreflightReport(segments=(standard, user), properties=())
+    assert "  memory 0x0100: 1/1 changed" in report.summary()
+    assert "  user memory 0x0100: 1/1 changed" in report.summary()
+    w = _window()
+    w._label = "1.1.1"
+    w._scope = "all"
+    exported = w._export_text(report)
+    assert "## memory 0x0100 (1B) changed=1" in exported
+    assert "## user memory 0x0100 (1B) changed=1" in exported

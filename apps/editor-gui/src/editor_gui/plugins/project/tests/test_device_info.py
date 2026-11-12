@@ -5,6 +5,7 @@ from __future__ import annotations
 from concurrent.futures import Future
 from typing import Any
 
+from editor_gui.device import object_size_text
 from editor_gui.device_info import (
     DeviceInfo,
     GroupObjectInfo,
@@ -52,6 +53,15 @@ def test_value_formats() -> None:
     assert size_text("1 Bit") == "1 bit"
     assert size_text("2 Bytes") == "2 Byte"
     assert size_text("1 Byte") == "1 Byte"
+    assert size_text("LegacyVarData") == "Variable"
+    assert size_text(None) is None
+
+
+def test_object_size_text_of_the_group_object_lists() -> None:
+    assert object_size_text("1 Bit") == "1 Bit"
+    assert object_size_text("14 Bytes") == "14 Bytes"
+    assert object_size_text("LegacyVarData") == "Variable"
+    assert object_size_text("") == ""
 
 
 def test_flags_in_read_write_communication_transmit_update_init_order() -> None:

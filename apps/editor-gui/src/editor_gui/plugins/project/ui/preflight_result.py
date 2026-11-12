@@ -250,7 +250,7 @@ class PreflightResultWindow:
 
         for segment in report.segments:
             self._render_row(
-                S.PREFLIGHT_MEM_LABEL.format(address=f"{segment.address:#06x}"),
+                self._segment_location(segment),
                 len(segment.planned),
                 segment.changed,
                 segment.changed_bytes,
@@ -267,6 +267,14 @@ class PreflightResultWindow:
                 category=self._property_category(prop),
             )
         imgui.end_table()
+
+    @staticmethod
+    def _segment_location(segment: SegmentDiff) -> str:
+        """The segment's location column: its address, marked when in the user memory."""
+        label = (
+            S.PREFLIGHT_USER_MEM_LABEL if segment.user_memory else S.PREFLIGHT_MEM_LABEL
+        )
+        return label.format(address=f"{segment.address:#06x}")
 
     @staticmethod
     def _property_category(prop: PropertyDiff) -> str:
@@ -354,8 +362,9 @@ class PreflightResultWindow:
             "",
         ]
         for segment in report.segments:
+            space = "user memory" if segment.user_memory else "memory"
             lines.append(
-                f"## memory {segment.address:#06x} ({len(segment.planned)}B) "
+                f"## {space} {segment.address:#06x} ({len(segment.planned)}B) "
                 f"changed={segment.changed_bytes}"
             )
             lines.append(f"ist : {segment.current.hex()}")

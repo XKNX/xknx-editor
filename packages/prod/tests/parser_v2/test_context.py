@@ -113,9 +113,18 @@ class TestEvalContext:
 
     def test_repeat_ctx_sets_instance_idx_for_module(self):
         state = GlobalState()
-        mctx = EvalContext(state).repeat_ctx(3).module_ctx(_MODULE_ID)
+        mctx = EvalContext(state).repeat_ctx(3, 4).module_ctx(_MODULE_ID)
         mctx.set(_LOCAL_REF, "5")
         expected_ref = f"{_BASE}_MD-1_M-C8_MI-3_P-96_R-F3"
+        assert state.parameter_instance_refs() == {expected_ref: "5"}
+
+    def test_nested_repeat_ctx_numbers_through_all_repeats(self):
+        # The second iteration of a Repeat of 3 in the second iteration of another: the
+        # fifth instance.
+        state = GlobalState()
+        ctx = EvalContext(state).repeat_ctx(2, 2).repeat_ctx(2, 3)
+        ctx.module_ctx(_MODULE_ID).set(_LOCAL_REF, "5")
+        expected_ref = f"{_BASE}_MD-1_M-C8_MI-5_P-96_R-F3"
         assert state.parameter_instance_refs() == {expected_ref: "5"}
 
     def test_module_ctx_reads_initial_value(self):

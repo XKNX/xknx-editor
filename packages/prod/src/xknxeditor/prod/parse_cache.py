@@ -43,8 +43,9 @@ type XmlSource = tuple[int, Callable[[], bytes]]
 _CANCEL_POLL = 0.2
 
 # Bump when the IR shape, the conversion into it or pickle compatibility changes, to abandon old
-# cache entries (2: a v10/v11 colour text is a TypeColor).
-CACHE_VERSION = "2"
+# cache entries (2: a v10/v11 colour text is a TypeColor; 3: an object size "Variable" is
+# "LegacyVarData").
+CACHE_VERSION = "3"
 # The cache folders whose entries of other cache versions this process removed.
 _SWEPT: set[Path] = set()
 

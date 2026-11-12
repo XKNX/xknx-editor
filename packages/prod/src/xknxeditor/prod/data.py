@@ -17,10 +17,22 @@ if TYPE_CHECKING:
 
 def to_ir(xml_bytes: bytes, version: str) -> Knx:
     """Read `xml_bytes` via the per-version model and convert to IR."""
+    from xsdata.exceptions import ParserError
+
     from xknxeditor.namespaces.intermediate.knx import Knx as _Knx
 
-    from .heal import heal_application_xml
+    from .heal import drop_channel_when_items, heal_application_xml
 
     # Non-conformant legacy products can omit attributes the binding requires; heal before binding.
-    model = load_xml(heal_application_xml(xml_bytes), version)
+    healed = heal_application_xml(xml_bytes)
+    try:
+        model = load_xml(healed, version)
+    except ParserError as exc:
+        # Items in a when of a channel's choose, where no schema allows them, are left out.
+        kept = (
+            drop_channel_when_items(healed) if "ChannelChooseWhen" in str(exc) else None
+        )
+        if kept is None:
+            raise
+        model = load_xml(kept, version)
     return convert(Context(version=version), model, _Knx)

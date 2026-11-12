@@ -265,11 +265,14 @@ msgstr "Export Ist/Soll…"
 msgid "Export Path:"
 msgstr "Cale export:"
 
-msgid "memory {address}"
-msgstr "memorie {address}"
+msgid "Memory {address}"
+msgstr "Memorie {address}"
 
-msgid "object {object} property {property}"
-msgstr "obiect {object} proprietate {property}"
+msgid "User memory {address}"
+msgstr "Memorie utilizator {address}"
+
+msgid "Object {object} property {property}"
+msgstr "Obiect {object} proprietate {property}"
 
 msgid "Filter devices (name, address)…"
 msgstr "Filtrare dispozitive (nume, adresă)…"

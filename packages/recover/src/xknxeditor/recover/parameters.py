@@ -23,23 +23,28 @@ from __future__ import annotations
 import contextlib
 import threading
 from collections import Counter, OrderedDict
-from collections.abc import Callable, Collection, Mapping, Sequence
+from collections.abc import Callable, Collection, Iterator, Mapping, Sequence
 from dataclasses import dataclass, field, replace
 from enum import Enum
+from functools import partial
 from itertools import count
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, NamedTuple, cast
 
 from xknxeditor.prod.parser_v2.allocator import AllocatorOverflow
 from xknxeditor.prod.script.errors import ScriptAborted
 from xknxeditor.prod.script.sandbox import AbortToken
 
+from .object_choices import ShownObjects
+
 if TYPE_CHECKING:
-    from xknxeditor.prod import Application
+    from xknxeditor.download.factory_image import FactoryImage
+    from xknxeditor.download.image import PropertyTarget
+    from xknxeditor.prod import Application, MasterData
     from xknxeditor.prod.parser_v2.application_indexer import ApplicationIndexer
     from xknxeditor.prod.parser_v2.context import Gate
     from xknxeditor.prod.parser_v2.dynamic import DynamicUI
     from xknxeditor.prod.parser_v2.encode import PropertyLayout, TypedPropertyKey
-    from xknxeditor.prod.parser_v2.ui import UiParameter
+    from xknxeditor.prod.parser_v2.ui import UiNode, UiParameter
 
 
 class RecoveryEffort(Enum):
@@ -62,8 +67,8 @@ class RecoveredParameters:
     values: dict[str, str]
     # parameter ids whose value could not be reconstructed from bytes.
     unknown: list[str]
-    # Bytes that differ (of the memory and of the properties), and missing linked objects or
-    # shown objects with a different size.
+    # Bytes that differ (of the memory and of the properties a download writes), and missing
+    # linked objects or shown objects with a different size.
     differing_bytes: int = 0
     differing_objects: int = 0
     # The search stopped at the limit of its effort, or was cancelled, with values left to try:
@@ -100,12 +105,16 @@ class RecoveredParameters:
 # button); the decoding ends when nothing changes, or when it comes back to what it read before.
 _DECODE_ROUNDS = 256
 # Inference rounds at most: each one can only show settings nested one level deeper (a
-# channel first, then the settings inside it), or take one setting from the memory.
+# channel first, then the settings inside it), or take one setting from the memory (the
+# same setting of several channels at once where each does as well, see _with_alike_values).
 _INFER_ROUNDS = 16
 # Values tried for the memory per round at most, and values tried together with the
 # settings they show.
 _MEMORY_TRIES = 24
 _LOOK_AHEAD_TRIES = 12
+# Combinations of the values of the selectors on the way to a group object looked at at most
+# (see _nested_values_to_try).
+_NESTED_COMBINATIONS = 64
 # Corrections of the result at most, the values tried for one (each with the whole inference
 # behind it), and how far up the selectors are followed from a byte or group object that differs.
 _REFINE_ROUNDS = 4
@@ -120,8 +129,6 @@ _DEEP_STARTS = 2
 _DEEP_ROUNDS = 1
 # A linked group object a result does not show weighs as many differing bytes.
 _OBJECT_WEIGHT = 3
-# As many group objects a result shows that are not linked weigh one differing byte.
-_UNLINKED_PER_BYTE = 4
 # How many times the corrections, the values tried for one and the deeper starts each effort
 # allows (``None``: no limit).
 _EFFORT_SCALE: dict[RecoveryEffort, int | None] = {
@@ -158,11 +165,14 @@ def _check(cancel: Callable[[], bool] | None) -> None:
 _Cell = tuple[str, int]
 # How far a result is from the device: first the linked objects it does not show and the objects
 # it shows with another size than the device's (the device's tables hold them: no number of
-# objects shown without a link outweighs one), then the differing bytes, those objects (each
-# weighing _OBJECT_WEIGHT bytes) and objects it shows that are not linked (each weighing
-# 1 / _UNLINKED_PER_BYTE byte), counted in such fractions; then only what contradicts the
-# device, the bytes and the linked objects.
-_Score = tuple[int, int, int]
+# objects shown without a link outweighs one), then what contradicts the device, the differing
+# bytes and those objects (each weighing _OBJECT_WEIGHT bytes: the memory read holds the
+# settings, no number of objects shown without a link outweighs a byte either), then the bytes
+# that differ of properties no download writes (the device keeps its own value there, such as
+# its hardware type: no result may match both, but the one that does tells the variant), then
+# the objects it shows that are not linked, which only tell apart results that contradict the
+# device alike (a device can have channels on whose objects it links to nothing).
+_Score = tuple[int, int, int, int]
 # How far a result is from the device, with the bytes it writes otherwise and the group objects
 # it shows otherwise.
 _Fit = tuple[_Score, set[_Cell], set[int]]
@@ -188,11 +198,224 @@ class _SearchCache:
     # values (a UI megabytes).
     UIS = 8
     CALCULATED = 128
+    # Explore passes kept at most (see _explored): their layouts compare, they do not hash.
+    EXPLORED = 4
+    # Values tried for the memory kept at most (see memory_trials).
+    MEMORY_TRIALS = 96
+    # UIs whose group objects are kept at most (see objects_of).
+    OBJECTS = 16
 
-    def __init__(self, application: Application) -> None:
+    def __init__(
+        self,
+        application: Application,
+        master: MasterData | None = None,
+        factory_image: FactoryImage | None = None,
+    ) -> None:
         self.application = application
+        self.master = master
+        self.factory_image = factory_image
+        # The factory contents of each property asked for (``None``: the image holds none).
+        self.factory_properties: dict[TypedPropertyKey, bytes | None] = {}
         self.uis: OrderedDict[tuple[object, ...], DynamicUI | None] = OrderedDict()
         self.calculated: OrderedDict[tuple[object, ...], _ValueMap] = OrderedDict()
+        # The explore layouts of UIs explored, with the places found (the last used first).
+        self.explored: list[
+            tuple[tuple[object, ...], list[tuple[str, tuple[Gate, ...]]]]
+        ] = []
+        # The properties every download writes (``None``: not resolved yet, empty when the
+        # procedure does not resolve), and those the download of each of the last UIs writes.
+        self.always_written: frozenset[PropertyTarget] | None = None
+        self.resolves = True
+        self.written: OrderedDict[int, tuple[DynamicUI, frozenset[PropertyTarget]]] = (
+            OrderedDict()
+        )
+        # The octet a full download fills each relative segment with (``None``: not resolved
+        # yet, empty when the procedure does not resolve).
+        self.fills: dict[str, int] | None = None
+        # The fixed bytes of the absolute segments (``None``: not resolved yet).
+        self.fixed: dict[str, dict[int, int]] | None = None
+        # The bits the group tables of a download write in the code segments, by the objects
+        # a UI shows and the ones it instantiates (see :meth:`table_bits`).
+        self.tables: OrderedDict[
+            tuple[frozenset[int], frozenset[str]], dict[_Cell, int]
+        ] = OrderedDict()
+        # The code segments the group communication tables are in (``None``: not resolved
+        # yet).
+        self.table_segments: frozenset[str] | None = None
+        # The UIs values of module instances' settings were tried in for the memory (see
+        # _infer_from_memory), by the values they were tried with (see
+        # _InstanceValues.kept_key): an inference after another (a correction tried) tries
+        # many of them again (the last used ones).
+        self.memory_trials: OrderedDict[tuple[object, ...], _Evaluated] = OrderedDict()
+        # The group objects of the last UIs asked for (see objects_of).
+        self.objects: OrderedDict[int, tuple[list[UiNode], list[tuple[int, str]]]] = (
+            OrderedDict()
+        )
+
+    def objects_of(self, nodes: list[UiNode]) -> list[tuple[int, str]]:
+        """The number and the size of each group object the evaluated UI ``nodes`` (a UI's
+        :meth:`~xknxeditor.prod.parser_v2.dynamic.DynamicUI.ui`) show: a search asks for those
+        of the same UI again and again. Kept with the nodes, so no other list has their id
+        meanwhile (the last ones asked for)."""
+        entry = self.objects.get(id(nodes))
+        if entry is None or entry[0] is not nodes:
+            entry = (nodes, _objects_of(nodes))
+            self.objects[id(nodes)] = entry
+            if len(self.objects) > self.OBJECTS:
+                self.objects.popitem(last=False)
+        self.objects.move_to_end(id(nodes))
+        return entry[1]
+
+    def memory_trial(self, key: tuple[object, ...]) -> _Evaluated | None:
+        """The UI a value was tried in for the memory before, by ``key`` (see
+        :attr:`memory_trials`)."""
+        entry = self.memory_trials.get(key)
+        if entry is not None:
+            self.memory_trials.move_to_end(key)
+        return entry
+
+    def keep_memory_trial(self, key: tuple[object, ...], entry: _Evaluated) -> None:
+        """Keep the UI ``entry`` a value was tried in for the memory (see
+        :attr:`memory_trials`)."""
+        self.memory_trials[key] = entry
+        if len(self.memory_trials) > self.MEMORY_TRIALS:
+            self.memory_trials.popitem(last=False)
+
+    def in_tables(self, segment_id: str) -> bool:
+        """Whether a group communication table of the application is in the code segment
+        ``segment_id``."""
+        if self.table_segments is None:
+            static = self.application.program.static
+            self.table_segments = frozenset(
+                table.code_segment
+                for table in (
+                    static.address_table,
+                    static.association_table,
+                    static.com_object_table,
+                )
+                if table is not None and table.code_segment is not None
+            )
+        return segment_id in self.table_segments
+
+    def table_bits(self, ui: DynamicUI) -> dict[_Cell, int]:
+        """The bits of the bytes of the code segments that the group communication tables
+        of a full download of ``ui`` write from the objects and the links (see
+        :func:`~xknxeditor.download.group_table_bits`), by cell: what a setting stored
+        there encodes never reaches the device. They depend on the UI only by the objects
+        it shows and instantiates (which records get their object's size)."""
+        from xknxeditor.download import group_table_bits
+
+        key = (
+            frozenset(_shown_objects(ui)),
+            frozenset(ui.instantiated_com_object_ref_ids()),
+        )
+        cells = self.tables.get(key)
+        if cells is None:
+            bits = group_table_bits(self.application, ui)
+            cells = {}
+            if bits:
+                code = self.application.program.static.code
+                bases, sizes = ui.segment_base_addrs(), ui.segment_sizes()
+                for segment in code.absolute_segment if code is not None else ():
+                    base = bases.get(segment.id)
+                    # The user memory is an address space of its own.
+                    if segment.user_memory or base is None:
+                        continue
+                    for offset in range(sizes.get(segment.id, 0)):
+                        own = bits.get(base + offset)
+                        if own:
+                            cells[(segment.id, offset)] = own
+            self.tables[key] = cells
+            if len(self.tables) > self.CALCULATED:
+                self.tables.popitem(last=False)
+        self.tables.move_to_end(key)
+        return cells
+
+    def segment_fills(self) -> dict[str, int]:
+        """The octet a full download fills each relative segment of the application with, by
+        segment id (see :func:`~xknxeditor.download.relative_segment_fills`); empty when the
+        procedure does not resolve."""
+        from xknxeditor.download import relative_segment_fills
+        from xknxeditor.download.errors import DownloadError
+
+        if self.fills is None:
+            try:
+                self.fills = relative_segment_fills(self.application, self.master)
+            except (DownloadError, ValueError):
+                self.fills = {}
+        return self.fills
+
+    def fixed_bytes(self) -> dict[str, dict[int, int]]:
+        """The bytes a full download writes with a fixed value into the absolute segments of
+        the application where no setting writes them (a line coupler's, see
+        :func:`~xknxeditor.download.image.coupler_bytes`), by segment id and offset."""
+        if self.fixed is None:
+            from xknxeditor.download.image import coupler_bytes
+            from xknxeditor.download.merge import device_mask_version
+
+            code = self.application.program.static.code
+            segments = code.absolute_segment if code is not None else []
+            mask_version = device_mask_version(self.application) if segments else ""
+            self.fixed = {}
+            for segment in segments:
+                if segment.user_memory or self.in_tables(segment.id):
+                    continue
+                fixed = coupler_bytes(mask_version, segment.address, segment.size or 0)
+                if fixed:
+                    self.fixed[segment.id] = fixed
+        return self.fixed
+
+    def factory_property(self, key: TypedPropertyKey) -> bytes | None:
+        """The contents the device leaves the factory with of the property ``key`` (from
+        element 1 on), or ``None`` when the factory image holds none of it (or there is
+        none)."""
+        if self.factory_image is None:
+            return None
+        if key not in self.factory_properties:
+            from xknxeditor.download.merge import device_mask_version
+            from xknxeditor.download.resources import bundled_mask_resources
+            from xknxeditor.namespaces.intermediate.hawk_configuration_data_t_features_feature_name import (
+                HawkConfigurationDataFeaturesFeatureName as MaskFeature,
+            )
+
+            resources = bundled_mask_resources(device_mask_version(self.application))
+            first_app_object = (
+                resources.feature(MaskFeature.FIRST_APP_OBJECT_IDX)
+                if resources is not None
+                else None
+            )
+            index, object_type, pid, occurrence = key
+            self.factory_properties[key] = self.factory_image.property_data(
+                index, object_type, occurrence, pid, first_app_object
+            )
+        return self.factory_properties[key]
+
+    def unwritten(self, ui: DynamicUI, key: TypedPropertyKey) -> bool:
+        """Whether no control of the load procedure a download of ``ui`` runs writes the
+        property ``key`` (see :func:`~xknxeditor.download.written_properties`); false for
+        every property when the procedure does not resolve."""
+        from xknxeditor.download import written_properties
+        from xknxeditor.download.errors import DownloadError
+
+        if self.always_written is None:
+            try:
+                self.always_written = written_properties(self.application, self.master)
+            except (DownloadError, ValueError):
+                self.always_written, self.resolves = frozenset(), False
+        if not self.resolves or _addresses(self.always_written, key):
+            return False
+        # By the UI itself (kept with its entry, so no other object has its id meanwhile).
+        entry = self.written.get(id(ui))
+        if entry is None or entry[0] is not ui:
+            try:
+                entry = (ui, written_properties(self.application, self.master, ui))
+            except (DownloadError, ValueError):
+                return False
+            self.written[id(ui)] = entry
+            if len(self.written) > self.UIS:
+                self.written.popitem(last=False)
+        self.written.move_to_end(id(ui))
+        return not _addresses(entry[1], key)
 
     @staticmethod
     def get[V](store: OrderedDict[tuple[object, ...], V], key: tuple[object, ...]) -> V:
@@ -261,6 +484,36 @@ def _seeded(
     return ui
 
 
+def _seeded_for_lookups(
+    application: Application, values: Mapping[str, str], project_code_page: str | None
+) -> tuple[DynamicUI | None, DynamicUI | None]:
+    """:func:`~xknxeditor.recover.recover.seed_dynamic_ui` of ``values`` as it comes back
+    without ``evaluated`` (to look settings up in before it is evaluated), and a UI evaluated
+    alike when the seeding comes back evaluated with it (see :func:`_seeded`, which hands it
+    out within a search)."""
+    from .recover import seed_dynamic_ui
+
+    first = seed_dynamic_ui(application, values, project_code_page, evaluated=True)
+    if first is None or not first.evaluated:
+        return first, None
+    instances = first.get_module_instances()
+    cache = _search_cache(application)
+    if cache is not None:
+        cache.put(
+            cache.uis,
+            (frozenset(values.items()), project_code_page, None),
+            first,
+            cache.UIS,
+        )
+    if not instances:
+        # Without module instances the seeding is the first build itself.
+        return first, first
+    plain = seed_dynamic_ui(
+        application, values, project_code_page, module_instances=instances
+    )
+    return plain, first
+
+
 def _parameter_to_refs(application: Application) -> Mapping[str, list[str]]:
     """Map each parameter id to the reference ids that point at it (of the last few programs:
     every decode asks for it)."""
@@ -312,6 +565,9 @@ def recover_parameters(
     object_sizes: Mapping[int, str] | None = None,
     effort: RecoveryEffort = RecoveryEffort.MEDIUM,
     cancel: Callable[[], bool] | None = None,
+    *,
+    master: MasterData | None = None,
+    factory_image: FactoryImage | None = None,
 ) -> RecoveredParameters:
     """Recover parameter reference values from a device's memory and properties.
 
@@ -329,7 +585,13 @@ def recover_parameters(
     ``effort`` allows (see :func:`_refine`), until ``cancel`` returns true. Returns the recovered value for every
     parameter reference whose type is reconstructable, the parameter ids whose
     value is unknown (lossy types / absent data), and how far the result still differs from
-    the device.
+    the device. ``master`` is the master data a download resolves the device's load procedure
+    with: a property no control of it writes keeps the device's own value whatever the
+    configuration, so its bytes only tell apart results alike otherwise, and do not count
+    as differing. Without it, a merged procedure does not resolve, and every property counts.
+    ``factory_image`` is the image the product's devices leave the factory with: a property
+    holds its contents where no active parameter writes it (see
+    :func:`_differing_property_cells`).
     """
     if cancel is not None:
         requested = cancel
@@ -343,7 +605,7 @@ def recover_parameters(
         cancel = latched_cancel
 
     previous = getattr(_SEARCH, "cache", None)
-    _SEARCH.cache = _SearchCache(application)
+    _SEARCH.cache = _SearchCache(application, master, factory_image)
     try:
         return _search(
             application,
@@ -571,6 +833,10 @@ def _infer_rounds(
     inferred: _ValueMap,
 ) -> tuple[dict[str, str], list[str], _ValueMap]:
     """The inference rounds of :func:`_infer_all` from the values decoded first."""
+    # The values tried for the memory in a round before, each with its UI: one round takes one
+    # setting of one module instance, so most values of the next are tried again where only
+    # that instance differs (see _infer_from_memory).
+    evaluated: dict[tuple[str, str], _Evaluated] = {}
     for _ in range(_INFER_ROUNDS):
         _check(cancel)
         # The memory names the branch of a selector through a hidden setting with a fixed
@@ -611,6 +877,7 @@ def _infer_rounds(
             linked,
             sizes,
             cancel,
+            evaluated,
         )
         if not chosen:
             break
@@ -629,21 +896,23 @@ def _infer_rounds(
     return values, unknown, inferred
 
 
-def _written_cells(ui: DynamicUI) -> set[_Cell]:
-    """The bytes the active parameters of ``ui`` write, those of module instances too."""
-    return {
-        (segment_id, offset)
-        for segment_id, cells in ui.memory_param_map().items()
-        for offset in cells
-    }
-
-
 def _compared(ui: DynamicUI, cells: set[_Cell]) -> set[_Cell]:
     """Of the differing bytes ``cells``, those that tell the device apart: of the memory where
     a parameter is stored or ``ui`` writes (a device can keep other data in its segments, which
     changes at run time), and of the properties."""
-    stored = ui.stored_parameter_cells().keys() | _written_cells(ui)
-    return {cell for cell in cells if cell in stored or _is_property_cell(cell)}
+    stored = ui.stored_parameter_cells()
+    found: set[_Cell] = set()
+    rest: list[_Cell] = []
+    for cell in cells:
+        if cell in stored or _is_property_cell(cell):
+            found.add(cell)
+        else:
+            rest.append(cell)
+    # What the UI writes is worked out only for the bytes no parameter is stored at.
+    if rest:
+        written = ui.memory_param_map()
+        found.update(cell for cell in rest if cell[1] in written.get(cell[0], {}))
+    return found
 
 
 # A byte of a property in place of one of a code segment: the key of the property spelled out
@@ -717,12 +986,18 @@ def _differing_property_cells(
 ) -> set[_Cell] | None:
     """The bytes of the ``properties`` read off the device that ``ui`` does not give back, as
     cells (see :func:`_property_cell`), where a parameter is stored: the bits its active
-    parameters write, otherwise those the parameters there (no member of a union) write with
-    their default values. A property holds its parameter's default until a download writes
+    parameters write, and the other bits of the byte as the parameters there (no member of a
+    union) write them with their default values. A property holds its parameter's default until a download writes
     it, so another value there is one a configuration that writes it gave (a setting shown
-    behind a switch the device keeps no copy of). An object addressed by index is one object
-    whatever the occurrence (as :func:`~xknxeditor.prod.parser_v2.encode.property_data` reads
-    it). ``None`` when ``ui`` cannot be encoded."""
+    behind a switch the device keeps no copy of). A byte only inactive parameters cover is
+    written with the property's base, zeros (or the factory contents, which the defaults
+    stand for without a factory image): zeros there fit too. Where the search knows the
+    contents the device leaves the factory with (see :meth:`_SearchCache.factory_property`),
+    those fit the bits no active parameter writes as well: a download writes them as the
+    property's base, and a device that was never written holds them. An object addressed by
+    index is one object whatever
+    the occurrence (as :func:`~xknxeditor.prod.parser_v2.encode.property_data` reads it).
+    ``None`` when ``ui`` cannot be encoded."""
     from xknxeditor.prod.errors import EncodingError
 
     try:
@@ -730,6 +1005,7 @@ def _differing_property_cells(
     except (EncodingError, ValueError):
         return None
     layout, offsets, _owners = _property_layout(ui)
+    cache: _SearchCache | None = getattr(_SEARCH, "cache", None)
     by_index: dict[tuple[int | None, int | None, int], bytes] = {}
     for (index, object_type, pid, _occurrence), value in properties.items():
         if index is not None:
@@ -743,41 +1019,156 @@ def _differing_property_cells(
             continue
         mine = written.get(key)
         default = layout.defaults.get(key)
+        factory = cache.factory_property(key) if cache is not None else None
         for offset in stored:
             if offset >= len(device):
                 continue
-            own = mine
-            if own is None or offset >= len(own.mask) or not own.mask[offset]:
-                # Not written, or kept as the device holds it (an inactive parameter
-                # downloaded in the background): the default, unless a configuration wrote
-                # another value.
-                own = default
-                if own is None or offset >= len(own.mask):
+            held = device[offset]
+            ours = 0
+            base = False
+            if mine is not None and offset < len(mine.mask):
+                ours = mine.mask[offset]
+                if (mine.data[offset] ^ held) & ours:
+                    differing.add(_property_cell(key, offset))
                     continue
-            if (own.data[offset] ^ device[offset]) & own.mask[offset]:
+                # Covered (by an inactive parameter downloaded in the background, or beside
+                # an active one), the download writes the base where no value is.
+                base = mine.covered[offset] != 0
+            # The bits no active parameter writes: the default, unless a configuration wrote
+            # another value.
+            if default is None or offset >= len(default.mask):
+                continue
+            rest = default.mask[offset] & ~ours
+            if (
+                factory is not None
+                and offset < len(factory)
+                and not (factory[offset] ^ held) & rest
+            ):
+                continue
+            if (default.data[offset] ^ held) & rest and not (base and not held & rest):
                 differing.add(_property_cell(key, offset))
     return differing
+
+
+def _addresses(targets: Collection[PropertyTarget], key: TypedPropertyKey) -> bool:
+    """Whether one of the load controls' ``targets`` (see
+    :func:`~xknxeditor.download.written_properties`) is the property ``key``: the same index,
+    or the same object type and occurrence. One addressed by index and the other by type may
+    be the same object, and counts."""
+    index, object_type, pid, occurrence = key
+    for target_index, target_type, target_occurrence, target_pid in targets:
+        if target_pid != pid:
+            continue
+        if index is not None and target_index is not None:
+            if index == target_index:
+                return True
+        elif object_type is not None and target_type is not None:
+            if object_type == target_type and (occurrence or 0) == target_occurrence:
+                return True
+        else:
+            return True
+    return False
+
+
+def _unwritten_property_cells(ui: DynamicUI, cells: Collection[_Cell]) -> set[_Cell]:
+    """Of ``cells``, the bytes of properties no control of the load procedure a download of
+    ``ui`` runs writes (see :meth:`_SearchCache.unwritten`): the device keeps its own value
+    there whatever a download writes (a hardware type), so they only tell apart results that
+    fit the device alike otherwise. None outside a search."""
+    names = {cell[0] for cell in cells if _is_property_cell(cell)}
+    cache: _SearchCache | None = getattr(_SEARCH, "cache", None)
+    if not names or cache is None:
+        return set()
+    _layout, offsets, _owners = _property_layout(ui)
+    keys = {_property_cell(key, 0)[0]: key for key in offsets}
+    unwritten = {
+        name for name in names if name in keys and cache.unwritten(ui, keys[name])
+    }
+    return {cell for cell in cells if cell[0] in unwritten}
+
+
+def _nothing_differs(score: _Score) -> bool:
+    """Whether a result with ``score`` contradicts no byte or object of the device, not even
+    one of a property no download writes (only objects it shows without a link)."""
+    return not score[1] and not score[2]
 
 
 def _differing_cells(
     ui: DynamicUI, parameter_segments: Mapping[str, bytes]
 ) -> set[_Cell] | None:
     """The bytes ``ui`` writes otherwise than the device holds them; ``None`` when it cannot be
-    encoded."""
+    encoded. A byte a parameter of the application is stored at differs only in the bits a
+    setting is stored at: its other bits are no setting's (the flags of a group object table
+    record the product places a parameter in, which the download writes from the links), and
+    no result writes them otherwise. One a module instance's setting is stored at as well
+    counts as a whole. A byte no active setting writes in a relative segment a full download
+    fills when it allocates it holds the fill (see :meth:`_SearchCache.segment_fills`), and
+    one of an absolute segment the download writes a fixed value into where no setting
+    writes it holds that value (see :meth:`_SearchCache.fixed_bytes`). The
+    bits the group communication tables write from the objects and the links (see
+    :meth:`_SearchCache.table_bits`) hold the tables, not what a setting stored there
+    encodes: they do not count either."""
     from xknxeditor.prod.errors import EncodingError
 
     try:
         encoded = ui.encode_to_memory()
     except (EncodingError, ValueError):
         return None
-    return {
-        (segment_id, offset)
-        for segment_id, device in parameter_segments.items()
-        for offset, (mine, theirs) in enumerate(
-            zip(encoded.get(segment_id, b""), device, strict=False)
-        )
-        if mine != theirs
-    }
+    cache: _SearchCache | None = getattr(_SEARCH, "cache", None)
+    fills = cache.segment_fills() if cache is not None else {}
+    fixed_bytes = cache.fixed_bytes() if cache is not None else {}
+    tables: dict[_Cell, int] | None = None
+    bits: dict[str, bytes] | None = None
+    written: dict[str, bytes] | None = None
+    cells: dict[_Cell, frozenset[str]] | None = None
+    differing: set[_Cell] = set()
+    for segment_id, device in parameter_segments.items():
+        fill = fills.get(segment_id, 0)
+        fixed = fixed_bytes.get(segment_id, {})
+        own_bytes = encoded.get(segment_id, b"")
+        offsets = _offsets_differing(device, own_bytes)
+        if fill or fixed:
+            # A byte the encoding leaves as the device holds it still differs where the
+            # download writes the fill or a fixed value into it.
+            size = min(len(device), len(own_bytes))
+            unwritten = {offset for offset in fixed if offset < size}
+            if fill:
+                unwritten.update(_offsets_differing(device, bytes((fill,)) * size))
+            unwritten.difference_update(offsets)
+            if unwritten:
+                offsets = sorted({*offsets, *unwritten})
+        for offset in offsets:
+            mine, theirs = own_bytes[offset], device[offset]
+            if fill or offset in fixed:
+                if written is None:
+                    written = ui.written_bit_mask()
+                mask = written.get(segment_id, b"")
+                if not (mask[offset] if offset < len(mask) else 0):
+                    # No active setting writes the byte: the download leaves the fill, or
+                    # writes the byte's fixed value.
+                    mine = fixed.get(offset, fill)
+                if mine == theirs:
+                    continue
+            diff = mine ^ theirs
+            if cache is not None and cache.in_tables(segment_id):
+                if tables is None:
+                    tables = cache.table_bits(ui)
+                diff &= ~tables.get((segment_id, offset), 0)
+                if not diff:
+                    continue
+            if bits is None:
+                bits = ui.stored_bit_mask()
+            stored = bits.get(segment_id, b"")
+            own = stored[offset] if offset < len(stored) else 0
+            if own and not diff & own:
+                if cells is None:
+                    cells = ui.stored_parameter_cells()
+                if not any(
+                    "_MI-" in ref for ref in cells.get((segment_id, offset), ())
+                ):
+                    continue
+            differing.add((segment_id, offset))
+    return differing
 
 
 def _gates_of(
@@ -1072,12 +1463,15 @@ def _count_selectors(
     gates: Collection[str],
     shown: Collection[str],
     weight: Counter[str],
+    beyond: Counter[str] | None = None,
 ) -> None:
     """Count the selectors ``gates`` in ``weight``, and for one not ``shown`` those on its own way,
     ``_REFINE_DEPTH`` selectors up; for one a parameter calculation sets, the parameters it is
     calculated from, and for one an Assign copies from another param-ref, that one (shown or
     not: the selector follows them; a module's hidden copy of an application setting is decided
-    by that setting)."""
+    by that setting). With ``beyond``, for a shown one the device keeps a copy of, those right
+    on its way in ``beyond``: it has the value read, what shows it decides too (a channel switch
+    above a stored mode whose choose places modules beside the switch)."""
     frontier = set(gates)
     for _depth in range(_REFINE_DEPTH):
         above: set[str] = set()
@@ -1086,6 +1480,9 @@ def _count_selectors(
             weight[gate] += 1
             if gate not in shown:
                 above |= _gates_of(ui, gate)
+            elif beyond is not None and not _is_unstored(ui, gate):
+                for outside in sorted(_gates_of(ui, gate)):
+                    beyond[outside] += 1
             above |= _calculation_inputs(ui, gate)
             source = ui.assigned_source(gate)
             if source is not None:
@@ -1115,9 +1512,9 @@ def _refine(
     A setting deep in a channel only shows once the selector of the channel has the right value,
     and that value alone fits worse until the channel's own settings are inferred too. So each
     value tried is followed by the whole inference behind it, and taken when the result fits
-    better (each linked group object it does not show weighing ``_OBJECT_WEIGHT`` differing
-    bytes, ``_UNLINKED_PER_BYTE`` it shows that are not linked one; the search ends once no byte
-    differs and every linked object shows). The
+    better (see ``_Score``: each linked group object it does not show weighing ``_OBJECT_WEIGHT``
+    differing bytes, the objects it shows that are not linked only telling apart results alike
+    otherwise; the search ends once no byte differs and every linked object shows). The
     values tried are those of the selectors on the way to the parameters stored at
     the differing bytes (of module instances too) and to the group objects shown otherwise
     (``_REFINE_DEPTH`` selectors up),
@@ -1155,7 +1552,7 @@ def _refine(
         return _with_misfit(values, unknown, fit, seeded, limited=limited)
 
     first = misfit(ui)
-    if first is None or not first[0][2]:
+    if first is None or _nothing_differs(first[0]):
         return finish(first, ui, values, unknown, limited=False)
     tries = None if scale is None else _REFINE_TRIES * scale
     rounds = None if scale is None else _REFINE_ROUNDS * scale
@@ -1178,6 +1575,9 @@ def _refine(
         limited = False
         for _ in count() if rounds is None else range(rounds):
             score, differing, wrong = current
+            # The settings a trial of a calculated selector changes together (see
+            # :func:`_joint_values_to_try`).
+            joint: dict[tuple[str, str], _ValueMap] = {}
             try:
                 trials = [
                     trial
@@ -1187,6 +1587,9 @@ def _refine(
                         wrong,
                         cancel,
                         hidden=_hidden_fixed_values(application.program, ui),
+                        joint=joint,
+                        beyond_stored=True,
+                        application=application,
                     )
                     if trial[0] != locked and trial not in tried
                 ]
@@ -1217,7 +1620,7 @@ def _refine(
                         linked,
                         sizes,
                         fixed,
-                        {**inferred, gate: value},
+                        {**inferred, **joint.get((gate, value), {gate: value})},
                         set(dead),
                         cancel,
                     )
@@ -1244,11 +1647,11 @@ def _refine(
                     current, values, unknown, inferred, ui = trial
                     score = result[0]
                     corrected.add(scope)
-                    if not score[2]:
+                    if _nothing_differs(score):
                         break
                 elif worse is not None:
                     worse.append((result[0], gate, trial))
-            if not corrected or not current[0][2]:
+            if not corrected or _nothing_differs(current[0]):
                 break
         else:
             # Every correction was taken, and the result still differs.
@@ -1259,7 +1662,7 @@ def _refine(
     while True:
         worse: list[tuple[_Score, str, _State]] = []
         state, limited, stopped = descend(state, worse)
-        if stopped or not state[0][0][2]:
+        if stopped or _nothing_differs(state[0][0]):
             break
         # A selector whose value alone fits worse, as a channel that only fits once its own
         # settings are corrected too: the corrections behind the values that fit worse (the
@@ -1306,10 +1709,13 @@ def _misfit(
         return None
     if differing:
         differing = _compared(seeded, differing)
+    unwritten: set[_Cell] = set()
     if properties:
         in_properties = _differing_property_cells(seeded, properties)
         if in_properties is None:
             return None
+        # Kept with the others, so the search tries the selectors behind them too.
+        unwritten = _unwritten_property_cells(seeded, in_properties)
         differing |= in_properties
     objects: set[int] = _shown_objects(seeded) if linked or sizes else set()
     matching = _shown_objects(seeded, sizes) if sizes else objects
@@ -1317,13 +1723,13 @@ def _misfit(
     wrong = (linked ^ objects) | conflicts if linked else conflicts
     # Missing linked objects and size conflicts contradict the device, and count first: a
     # channel whose linked objects show is on, however many objects it shows without a link.
-    # Extra unlinked objects carry a smaller penalty to avoid enabling channels for a few
-    # matching bytes.
+    # The differing bytes count next: a channel whose settings the memory holds is on, however
+    # many objects it shows without a link. Those only tell apart results alike otherwise, after
+    # the bytes of properties no download writes.
     contradicted = len((linked - objects) | conflicts)
-    contradiction = _OBJECT_WEIGHT * contradicted + len(differing)
+    contradiction = _OBJECT_WEIGHT * contradicted + len(differing) - len(unwritten)
     unlinked = len(objects - linked) if linked else 0
-    cost = _UNLINKED_PER_BYTE * contradiction + unlinked
-    return (contradicted, cost, contradiction), differing, wrong
+    return (contradicted, contradiction, len(unwritten), unlinked), differing, wrong
 
 
 def _refinement_trials(
@@ -1333,19 +1739,34 @@ def _refinement_trials(
     cancel: Callable[[], bool] | None = None,
     *,
     hidden: Mapping[str, str] | None = None,
+    joint: dict[tuple[str, str], _ValueMap] | None = None,
+    beyond_stored: bool = False,
+    application: Application | None = None,
 ) -> list[tuple[str, str]]:
     """Candidate selectors, ordered by how many mismatching cells and objects they gate; with
     ``hidden`` (local param-ref -> fixed value, see :func:`_hidden_fixed_values`) a hidden
-    selector's fixed value too. Raises :class:`_Cancelled` once ``cancel`` says so."""
+    selector's fixed value too. With ``joint``, a hidden selector a calculation computes from
+    several shown settings the device keeps no copy of is tried with those changed together
+    (see :func:`_joint_values_to_try`), after the other trials: the trial
+    ``(selector, value)`` stands for the settings ``joint`` maps it to. With
+    ``beyond_stored``, the selectors right on the way to a shown selector the device keeps a
+    copy of (see :func:`_count_selectors`) are tried after all the others. With
+    ``application``, a shown selector with a range too large to try every value first tries
+    the values of the branches that place the settings stored at the mismatching cells (see
+    :func:`_branch_values`). Raises :class:`_Cancelled` once ``cancel`` says so."""
     from xknxeditor.prod.parser_v2.activation import shown_parameters, values_to_try
 
     shown = shown_parameters(ui.ui())
     weight: Counter[str] = Counter()
     # The selectors that decide whether a module instance is there, tried after the others.
     outer: Counter[str] = Counter()
+    # The selectors above the stored ones, tried after both (see _count_selectors).
+    beyond: Counter[str] | None = Counter() if beyond_stored else None
     cells = ui.stored_parameter_cells()
     active_refs: frozenset[str] | None = None
     unowned = False
+    # The settings stored at the mismatching cells.
+    owning: set[str] = set()
     for cell in sorted(differing):
         _check(cancel)
         owners = (
@@ -1353,9 +1774,10 @@ def _refinement_trials(
             if _is_property_cell(cell)
             else cells.get(cell, ())
         )
+        owning.update(owners)
         for ref_id in sorted(owners):
-            _count_selectors(ui, _gates_of(ui, ref_id), shown, weight)
-            _count_selectors(ui, _outer_gates(ui, ref_id), shown, outer)
+            _count_selectors(ui, _gates_of(ui, ref_id), shown, weight, beyond)
+            _count_selectors(ui, _outer_gates(ui, ref_id), shown, outer, beyond)
         if not unowned and not _is_property_cell(cell):
             if active_refs is None:
                 active_refs = ui.active_parameter_ref_ids()
@@ -1364,14 +1786,18 @@ def _refinement_trials(
         # A byte no active setting writes (only settings shown otherwise are stored there): a
         # module instance the tree does not make can own it (a submodule another function of
         # a button places), whose settings are not known before it is there.
-        _count_selectors(ui, _absent_module_gates(ui, objects=False), shown, outer)
+        _count_selectors(
+            ui, _absent_module_gates(ui, objects=False), shown, outer, beyond
+        )
     objects_of = _objects_by_number(ui) if wrong else {}
     for number in sorted(wrong):
         _check(cancel)
         for ref_id in objects_of.get(number, ()):
-            _count_selectors(ui, _gates_of(ui, ref_id, ui.object_gates), shown, weight)
             _count_selectors(
-                ui, _outer_gates(ui, ref_id, ui.object_gates), shown, outer
+                ui, _gates_of(ui, ref_id, ui.object_gates), shown, weight, beyond
+            )
+            _count_selectors(
+                ui, _outer_gates(ui, ref_id, ui.object_gates), shown, outer, beyond
             )
     if any(number not in objects_of for number in wrong):
         # A linked object no reference of the instances there are now has (its number is one
@@ -1382,13 +1808,20 @@ def _refinement_trials(
         # objects.
         for instance in ui.get_module_instances():
             _check(cancel)
-            _count_selectors(ui, _module_gates_of(ui, instance), shown, outer)
-        _count_selectors(ui, _absent_module_gates(ui), shown, outer)
+            _count_selectors(ui, _module_gates_of(ui, instance), shown, outer, beyond)
+        _count_selectors(ui, _absent_module_gates(ui), shown, outer, beyond)
     trials: list[tuple[str, str]] = []
+    together: list[tuple[str, str]] = []
     actives: frozenset[str] | None = None
+    branches: dict[str, list[str]] | None = None
     ranked = [
         *weight.most_common(),
         *((gate, n) for gate, n in outer.most_common() if gate not in weight),
+        *(
+            (gate, n)
+            for gate, n in (beyond.most_common() if beyond is not None else [])
+            if gate not in weight and gate not in outer
+        ),
     ]
     for gate, _count in ranked:
         parameter = shown.get(gate)
@@ -1399,9 +1832,12 @@ def _refinement_trials(
             if value is not None and ui.get_value(gate) != value:
                 trials.append((gate, value))
             elif value is None:
-                trials.extend(
-                    (gate, kept) for kept in _kept_values_to_try(ui, gate, shown)
-                )
+                kept = _kept_values_to_try(ui, gate, shown)
+                trials.extend((gate, other) for other in kept)
+                if not kept and joint is not None:
+                    for other, change in _joint_values_to_try(ui, gate, shown):
+                        joint[(gate, other)] = change
+                        together.append((gate, other))
             continue
         if actives is None:
             actives = ui.active_parameter_ref_ids()
@@ -1411,8 +1847,42 @@ def _refinement_trials(
             _editable(parameter) and _written_over_in_part(ui, gate, actives)
         ):
             now = ui.get_value(gate) or parameter.default_value
-            trials.extend((gate, value) for value in values_to_try(parameter, now))
-    return trials
+            tried = values_to_try(parameter, now)
+            if application is not None and not set(
+                values_to_try(parameter, now, ui.tested_values(gate))
+            ) <= set(tried):
+                # A range too large to try every value (a channel number choosing which
+                # channel's settings show): the values of the branches the settings at the
+                # mismatching cells are placed in first.
+                if branches is None:
+                    branches = _branch_values(application, ui, owning, cancel)
+                tried = values_to_try(parameter, now, branches.get(gate, ()))
+            trials.extend((gate, value) for value in tried)
+    # The settings changed together after every one alone: those decide more often.
+    return trials + together
+
+
+def _branch_values(
+    application: Application,
+    ui: DynamicUI,
+    refs: Collection[str],
+    cancel: Callable[[], bool] | None = None,
+) -> dict[str, list[str]]:
+    """Per selector, the values its ``when`` tests name on the way to the places of the
+    param-refs ``refs`` (see :func:`_explored`), in the order of those places: the values that
+    show them. Raises :class:`_Cancelled` once ``cancel`` says so."""
+    from xknxeditor.prod.parser_v2.nodes.choose import tested_values
+
+    found: dict[str, list[str]] = {}
+    if not refs:
+        return found
+    for ref_id, gates in _explored(application, ui, cancel):
+        if ref_id not in refs:
+            continue
+        for gate in gates:
+            if gate.when is not None:
+                found.setdefault(gate.param, []).extend(tested_values(gate.when))
+    return {gate: list(dict.fromkeys(values)) for gate, values in found.items()}
 
 
 def _kept_values_to_try(
@@ -1424,14 +1894,28 @@ def _kept_values_to_try(
     setting keeps the value computed before (a "show the lead objects" switch computed from
     functions a configuration no longer shows), which only the objects it shows tell. Empty for
     any other setting: the values read decide it, or a shown input the device keeps no copy of,
-    whose values are tried instead."""
+    whose values are tried instead.
+
+    The same for a hidden setting only Assigns of constants set, none of which is in effect:
+    it keeps the value the last one assigned (a "show the total objects" switch the Assigns of
+    functions a configuration no longer shows set): the values the Assigns give it."""
     from xknxeditor.prod.parser_v2.activation import values_to_try
     from xknxeditor.prod.parser_v2.ui.parameter import UiParameter, resolve_widget
 
     local = ui.local_ref_id(ref_id)
     indexer = ui.indexer
     calculations = indexer.calculations_for_r(local)
-    if not calculations or not _is_unstored(ui, ref_id):
+    if not calculations:
+        assigned = _assigned_constants(ui).get(local)
+        if (
+            not assigned
+            or not _is_unstored(ui, ref_id)
+            or ref_id in ui.assign_targets()
+        ):
+            return []
+        now = ui.get_value(ref_id) or indexer.default_value(local) or ""
+        return sorted(value for value in assigned if not _same_value(value, now))
+    if not _is_unstored(ui, ref_id):
         return []
     instance = _instance_of(ref_id, local)
     inputs = _qualified(
@@ -1465,6 +1949,101 @@ def _kept_values_to_try(
     return values_to_try(parameter, parameter.value, ui.tested_values(ref_id))
 
 
+# The constants the Assigns write into each local param-ref, per indexer of the last few
+# applications searched (see _assigned_constants).
+_ASSIGNED_CONSTANTS: list[tuple[object, dict[str, frozenset[str]]]] = []
+
+
+def _assigned_constants(ui: DynamicUI) -> dict[str, frozenset[str]]:
+    """The values the Assigns of the application and its module definitions write into each
+    param-ref (local to its application or module definition), of those only Assigns of
+    constants write: one an Assign copies another setting into takes that one's value."""
+    from xknxeditor.namespaces.intermediate import Assign
+
+    indexer = ui.indexer
+    for seen, known in _ASSIGNED_CONSTANTS:
+        if seen is indexer:
+            return known
+    constants: dict[str, set[str]] = {}
+    copied: set[str] = set()
+    stack: list[object] = [
+        getattr(getattr(ui, "_app", None), "dynamic", None),
+        *(definition.dynamic for definition in indexer.module_defs.values()),
+    ]
+    while stack:
+        element = stack.pop()
+        if element is None:
+            continue
+        if isinstance(element, Assign):
+            if element.source_param_ref_ref is not None or element.value is None:
+                copied.add(element.target_param_ref_ref)
+            else:
+                constants.setdefault(element.target_param_ref_ref, set()).add(
+                    element.value
+                )
+            continue
+        stack.extend(getattr(element, "when", None) or [])
+        stack.extend(getattr(element, "choice", None) or [])
+    known = {
+        target: frozenset(values)
+        for target, values in constants.items()
+        if target not in copied
+    }
+    _ASSIGNED_CONSTANTS.insert(0, (indexer, known))
+    del _ASSIGNED_CONSTANTS[4:]
+    return known
+
+
+def _joint_values_to_try(
+    ui: DynamicUI, ref_id: str, shown: Mapping[str, UiParameter]
+) -> list[tuple[str, _ValueMap]]:
+    """For a hidden setting a parameter calculation computes from several shown settings of
+    one type the device keeps no copy of (a channel shown while any of its groups is switched
+    on), those settings changed together: for each value of the type, every one of them that
+    has another one set to it (all groups switched off), as ``(value, settings)``. Each of
+    them changed alone can leave the calculated setting as it is, and with it what the device
+    holds. Empty when fewer than two such settings change."""
+    from xknxeditor.prod.parser_v2.activation import values_to_try
+
+    local = ui.local_ref_id(ref_id)
+    indexer = ui.indexer
+    inputs = _qualified(
+        {
+            ref.ref_id
+            for calculation in indexer.calculations_for_r(local)
+            for ref in calculation.lparameters.parameter_ref_ref
+        },
+        _instance_of(ref_id, local),
+    )
+    by_type: dict[str, list[str]] = {}
+    for ref in sorted(inputs):
+        if ref not in shown or not _inferable(ui, ref, shown[ref]):
+            continue
+        parameter_ref = indexer.parameter_refs.get(ui.local_ref_id(ref))
+        parameter = (
+            indexer.parameters.get(parameter_ref.ref_id)
+            if parameter_ref is not None
+            else None
+        )
+        if parameter is not None:
+            by_type.setdefault(parameter.parameter_type, []).append(ref)
+    found: list[tuple[str, _ValueMap]] = []
+    for refs in by_type.values():
+        if len(refs) < 2:
+            continue
+        others = {
+            ref: values_to_try(
+                shown[ref], ui.get_value(ref) or shown[ref].default_value
+            )
+            for ref in refs
+        }
+        for value in dict.fromkeys(value for ref in refs for value in others[ref]):
+            change = {ref: value for ref in refs if value in others[ref]}
+            if len(change) > 1:
+                found.append((value, change))
+    return found
+
+
 def _guessed(ui: DynamicUI, values: Mapping[str, str]) -> _ValueMap:
     """The values of ``values`` the memory does not decide alone: those of settings the device
     keeps no copy of (see :func:`_is_unstored`) and of union members a later active member
@@ -1477,10 +2056,31 @@ def _guessed(ui: DynamicUI, values: Mapping[str, str]) -> _ValueMap:
     }
 
 
+def _computed_hidden(ui: DynamicUI, ref_id: str) -> bool:
+    """Whether a parameter calculation computes the param-ref ``ref_id`` (it is on the right
+    side of one) and the user cannot change it (no edit ever sets it otherwise)."""
+    from xknxeditor.namespaces.intermediate.access_t import Access
+
+    local = ui.local_ref_id(ref_id)
+    indexer = ui.indexer
+    if not indexer.calculations_for_r(local):
+        return False
+    ref = indexer.parameter_refs.get(local)
+    parameter = indexer.parameters.get(ref.ref_id) if ref is not None else None
+    access = getattr(ref, "access", None) or getattr(parameter, "access", None)
+    return access is not None and access is not Access.READ_WRITE
+
+
 def _written_over_in_part(ui: DynamicUI, ref_id: str, actives: Collection[str]) -> bool:
     """Whether later active members of ``ref_id``'s union write over some of its bits, but not
     all (see :meth:`DynamicUI.later_union_members`)."""
-    later = ui.later_union_members(ref_id) & set(actives)
+    later = ui.later_union_members(ref_id)
+    if not later:
+        # No member of a union (most settings): nothing to compare the active ones with.
+        return False
+    later = later & (
+        actives if isinstance(actives, set | frozenset) else frozenset(actives)
+    )
     return bool(later) and not ui.union_member_covered(ref_id, later)
 
 
@@ -1521,14 +2121,16 @@ def _refine_pairs(
     ui: DynamicUI | None = _seeded(application, recovered.values, project_code_page)
     if ui is None:
         return recovered
-    current = _misfit(ui, parameter_segments, linked, sizes, property_values)
+    current: _Fit | None = _misfit(
+        ui, parameter_segments, linked, sizes, property_values
+    )
     if current is None:
         return recovered
     values: dict[str, str] = recovered.values
     unknown: list[str] = recovered.unknown
     if fixed is None:
         fixed = _fixed_values(application, ui)
-    inferred = _guessed(ui, values)
+    inferred: _ValueMap = _guessed(ui, values)
     limited = recovered.limited
     budget = None if scale is None else _PAIR_TRIES * scale
 
@@ -1551,8 +2153,12 @@ def _refine_pairs(
             _check(cancel)
             evaluated = 0
             improved = False
+            # Selectors whose value alone leaves as many bytes differing, in fewer bits, with
+            # its fewest bits and that value: tried together after the others.
+            partial: dict[str, tuple[int, str]] = {}
+            current_bits: int | None = None
             for gate, value in _refinement_trials(
-                ui, current[1], _contradicting_objects(ui, linked, sizes)
+                ui, current[1], _contradicting_objects(ui, linked, sizes), cancel
             ):
                 if _calculated_from_reads(ui, gate) and not alike(gate, value):
                     continue
@@ -1568,6 +2174,7 @@ def _refine_pairs(
                     property_values,
                     project_code_page,
                     chosen,
+                    cancel,
                     fixed=fixed,
                 )
                 first = _seeded(application, first_values, project_code_page)
@@ -1584,6 +2191,16 @@ def _refine_pairs(
                     )
                     improved = True
                     break
+                if fit is not None and fit[0][:2] == current[0][:2]:
+                    if current_bits is None:
+                        current_bits = _differing_bits(
+                            ui, parameter_segments, current[1]
+                        )
+                    bits = _differing_bits(first, parameter_segments, fit[1])
+                    if bits < current_bits and (
+                        gate not in partial or bits < partial[gate][0]
+                    ):
+                        partial[gate] = (bits, value)
                 # The settings the value shows, corrected one after the other: one that
                 # brings the result closer to the device (with as many bytes differing, in
                 # fewer bits) stays behind the value while the next is tried, and the
@@ -1629,6 +2246,7 @@ def _refine_pairs(
                                 property_values,
                                 project_code_page,
                                 chosen,
+                                cancel,
                                 fixed=fixed,
                             )
                             seeded = _seeded(
@@ -1660,7 +2278,7 @@ def _refine_pairs(
                             # it shows that is not linked: two settings behind settings of
                             # their own share a byte, the first one shown and read alone
                             # leaves the byte differing, in fewer bits.
-                            if fit[0][0] == base[0][0] and fit[0][2] == base[0][2]:
+                            if fit[0][:2] == base[0][:2]:
                                 if base_bits is None:
                                     base_bits = _differing_bits(
                                         base_ui, parameter_segments, base[1]
@@ -1695,6 +2313,53 @@ def _refine_pairs(
                         break
                 if improved:
                     break
+            if not improved and len(partial) > 1:
+                # Selectors each of which alone fits only some bits of the bytes that
+                # differ (the switches of several channels whose settings share bytes, a
+                # few bits each): taken one after the other, each that fits fewer bits
+                # with those before it stays.
+                stacked: _ValueMap = dict(inferred)
+                stacked_bits: int | None = current_bits
+                for gate, (_bits, value) in partial.items():
+                    _check(cancel)
+                    if evaluated == budget:
+                        limited = True
+                        return finish()
+                    evaluated += 1
+                    together: _ValueMap = {**stacked, gate: value}
+                    stack_values, stack_unknown = _decode(
+                        application,
+                        parameter_segments,
+                        property_values,
+                        project_code_page,
+                        together,
+                        cancel,
+                        fixed=fixed,
+                    )
+                    stack_ui = _seeded(application, stack_values, project_code_page)
+                    if stack_ui is None:
+                        continue
+                    stack_fit = _misfit(
+                        stack_ui, parameter_segments, linked, sizes, property_values
+                    )
+                    if stack_fit is None:
+                        continue
+                    if stack_fit[0] < current[0]:
+                        current, ui, values, unknown, inferred = (
+                            stack_fit,
+                            stack_ui,
+                            stack_values,
+                            stack_unknown,
+                            together,
+                        )
+                        improved = True
+                        break
+                    if stack_fit[0][:2] == current[0][:2]:
+                        bits = _differing_bits(
+                            stack_ui, parameter_segments, stack_fit[1]
+                        )
+                        if stacked_bits is None or bits < stacked_bits:
+                            stacked, stacked_bits = together, bits
             if not improved or finish().complete:
                 return finish()
         limited = True
@@ -1728,7 +2393,18 @@ def _refine_fixed(
     ui = _seeded(application, recovered.values, project_code_page)
     if ui is None:
         return recovered
-    inferred = _guessed(ui, recovered.values)
+    # A hidden setting a calculation computes is computed again from each value tried (a
+    # channel's function decides which of its settings show), not kept as the result has it;
+    # unless it keeps the value computed before from settings now hidden, which only the
+    # objects it shows tell (see :func:`_kept_values_to_try`).
+    from xknxeditor.prod.parser_v2.activation import shown_parameters
+
+    shown = shown_parameters(ui.ui())
+    inferred = {
+        key: value
+        for key, value in _guessed(ui, recovered.values).items()
+        if not _computed_hidden(ui, key) or _kept_values_to_try(ui, key, shown)
+    }
     decoded: tuple[_ValueMap, list[str]] | None = None
     if cancel is None or not cancel():
         with contextlib.suppress(_Cancelled):
@@ -1793,6 +2469,7 @@ def _refine_fixed(
             property_values,
             project_code_page,
             chosen,
+            cancel,
             fixed=fixed,
         )
         seeded = _seeded(application, trial_values, project_code_page)
@@ -1836,21 +2513,33 @@ def _refine_fixed(
     try:
         for _ in rounds:
             _check(cancel)
-            if not current[0][2]:
+            if _nothing_differs(current[0]):
                 break
-            differing = current[1] & _fixed_cells(ui, fixed)
+            differing = current[1] & _fixed_cells(
+                ui,
+                fixed,
+                properties=any(_is_property_cell(cell) for cell in current[1]),
+            )
             improved = False
             exhausted = False
             evaluated = 0
-            trials = _refinement_trials(ui, differing, set())
+            # The settings a trial of a calculated selector changes together (see
+            # :func:`_joint_values_to_try`): what they compute is no guess of the selector.
+            joint: dict[tuple[str, str], _ValueMap] = {}
+            trials = _refinement_trials(ui, differing, set(), cancel, joint=joint)
             # The values alone first. When none fits better, each with the settings it shows
             # inferred behind it, taken when it fits better: a value that fits worse alone (a
             # channel's function without the settings that show its linked objects) can fit
             # with them.
             for wide in (False, True):
                 for gate, value in trials:
-                    if _calculated_from_reads(ui, gate) and not _alike_for_reads(
-                        application, values, project_code_page, gate, value
+                    change = joint.get((gate, value))
+                    if (
+                        change is None
+                        and _calculated_from_reads(ui, gate)
+                        and not _alike_for_reads(
+                            application, values, project_code_page, gate, value
+                        )
                     ):
                         continue
                     _check(cancel)
@@ -1858,7 +2547,7 @@ def _refine_fixed(
                         exhausted = True
                         break
                     evaluated += 1
-                    chosen = {**inferred, gate: value}
+                    chosen = {**inferred, **(change or {gate: value})}
                     if wide:
                         wider = behind(chosen)
                         if wider is None or wider == chosen:
@@ -1916,6 +2605,8 @@ def _with_misfit(
     if misfit is None:
         return RecoveredParameters(values=values, unknown=unknown, lossy=lossy)
     _score, differing, wrong = misfit
+    # The bytes of properties no download writes are the device's own: no result has to match.
+    differing = differing - _unwritten_property_cells(seeded, differing)
     return RecoveredParameters(
         values=values,
         unknown=unknown,
@@ -1962,16 +2653,16 @@ def _decode(
     """Decode the memory and properties against a UI seeded with ``inferred``, returning the
     values (``inferred`` included) and the parameters left unknown. Raises :class:`_Cancelled`
     between rounds once ``cancel`` says so."""
-    from .recover import seed_dynamic_ui
-
     # The settings with a fixed value are looked up in the UI as it is seeded, before it is
-    # evaluated (which drops the module instances it does not show): a UI of its own then.
-    seed = seed_dynamic_ui if fixed is None or fixed else _seeded
-    ui = (
-        seed(application, inferred, project_code_page)
-        if inferred
-        else application.dynamic_ui()
-    )
+    # evaluated (which drops the module instances it does not show): a UI of its own then,
+    # and one evaluated alike, if there is one, to decode with.
+    alike: DynamicUI | None = None
+    if not inferred:
+        ui = application.dynamic_ui()
+    elif fixed is None or fixed:
+        ui, alike = _seeded_for_lookups(application, inferred, project_code_page)
+    else:
+        ui = _seeded(application, inferred, project_code_page)
     assert ui is not None
     ui.project_code_page = project_code_page
     if fixed is None:
@@ -1986,6 +2677,10 @@ def _decode(
             inferred = clean
             ui = _seeded(application, inferred, project_code_page)
             assert ui is not None
+        elif alike is not None:
+            ui = alike
+    elif alike is not None:
+        ui = alike
     parameter_to_refs = _parameter_to_refs(application)
     values: _ValueMap = {}
     unknown: list[str] = []
@@ -2047,6 +2742,7 @@ def _decode(
             unknown,
             project_code_page,
             property_values or {},
+            cancel,
         )
         if written_over:
             read.update(written_over)
@@ -2112,6 +2808,11 @@ def _decode(
                 unknown.append(ref_id)
             else:
                 module_read[ref_id] = value
+        # The settings of the instances the device keeps no copy of that an Assign copies
+        # into their stored settings, as for the application's above; and those of the
+        # application an Assign of an instance copies into the instance's stored settings
+        # (one the values read give already is left as it is).
+        module_read.update(_assigned_from(seeded, {**values, **module_read}, inferred))
         # Seeding again changes nothing unless a value the UI was seeded with otherwise
         # decides what it shows.
         if module_read == module_values or not any(
@@ -2223,10 +2924,12 @@ def _calculate(
         stored |= ui.active_parameter_ref_ids() & values.keys()
         if refs is not None and len(stored) == before:
             return result
+        written: set[str] = set()
         try:
             changes = ui.recalculate(
                 _copies_first(ui, list(values) if refs is None else refs),
                 stored=True,
+                written=written,
             )
         except ScriptAborted:
             raise _Cancelled from None
@@ -2234,6 +2937,8 @@ def _calculate(
             if new is not None and ref_id not in values:
                 result[ref_id] = new
         indexer = ui.indexer
+        if _shows_no_more(ui, written, values.keys() - stored):
+            return result
         shown = (ui.active_parameter_ref_ids() & values.keys()) - stored
         again = {
             id(calculation)
@@ -2252,6 +2957,103 @@ def _calculate(
         ]
 
 
+def _shows_no_more(
+    ui: DynamicUI, written: Collection[str], others: Collection[str]
+) -> bool:
+    """Whether the calculations that wrote ``written`` in ``ui`` cannot show a setting of
+    ``others`` (the values not active before) that a calculation computes from: they wrote no
+    selector (the same parameters are active), or none of ``others`` is such a setting. The
+    evaluation that would tell is then left out."""
+    kinds = _ref_kinds(ui)
+    return not any(kinds.selector(ref_id) for ref_id in written) or not any(
+        kinds.computed_from(ref_id) for ref_id in others
+    )
+
+
+def _ref_tail(ref_id: str) -> str:
+    """The part of a param-ref id that a module instance's qualified id of it keeps: from its
+    parameter (``_P-5_R-5`` of ``..._MD-1_M-2_MI-3_P-5_R-5`` and of ``..._MD-1_P-5_R-5``)."""
+    start = max(ref_id.rfind("_P-"), ref_id.rfind("_UP-"))
+    return ref_id if start < 0 else ref_id[start:]
+
+
+@dataclass(frozen=True, slots=True)
+class _RefKinds:
+    """Which param-refs of an application can decide which parameters are active (a selector:
+    the parameter of a choose or the count of a repeat, the source or the target of an assign),
+    and which can be on the right side of a parameter calculation (what it computes from) or on
+    its left side, told by :func:`_ref_tail`: of a module instance, the tail of its definition's
+    ref, whatever the instances there are."""
+
+    selectors: frozenset[str]
+    computed: frozenset[str]
+    # Those on the left side of a calculation (what it computes).
+    left: frozenset[str] = frozenset()
+
+    def selector(self, ref_id: str) -> bool:
+        return _ref_tail(ref_id) in self.selectors
+
+    def computed_from(self, ref_id: str) -> bool:
+        return _ref_tail(ref_id) in self.computed
+
+    def computing(self, ref_id: str) -> bool:
+        return _ref_tail(ref_id) in self.left
+
+
+def _ref_kinds(ui: DynamicUI) -> _RefKinds:
+    """The :class:`_RefKinds` of the application of ``ui`` (of the last few)."""
+    from xknxeditor.namespaces.intermediate import Assign, Repeat
+
+    indexer = ui.indexer
+    for seen, kinds in _REF_KINDS:
+        if seen is indexer:
+            return kinds
+    selectors = set(ui.selector_param_refs)
+    stack: list[object] = [
+        getattr(getattr(ui, "_app", None), "dynamic", None),
+        *(definition.dynamic for definition in indexer.module_defs.values()),
+    ]
+    while stack:
+        element = stack.pop()
+        if element is None:
+            continue
+        if isinstance(element, Assign):
+            selectors.add(element.target_param_ref_ref)
+            if element.source_param_ref_ref is not None:
+                selectors.add(element.source_param_ref_ref)
+            continue
+        if isinstance(element, Repeat) and element.parameter_ref_id:
+            selectors.add(element.parameter_ref_id)
+        when = getattr(element, "when", None)
+        if when:
+            # A choose: its parameter, and the content of each branch.
+            choose = getattr(element, "param_ref_id", None)
+            if choose:
+                selectors.add(choose)
+            stack.extend(when)
+        stack.extend(getattr(element, "choice", None) or [])
+    kinds = _RefKinds(
+        frozenset(_ref_tail(ref) for ref in selectors),
+        frozenset(
+            _ref_tail(ref)
+            for ref in indexer.parameter_refs
+            if indexer.calculations_for_r(ref)
+        ),
+        frozenset(
+            _ref_tail(ref)
+            for ref in indexer.parameter_refs
+            if indexer.calculations_for_l(ref)
+        ),
+    )
+    _REF_KINDS.insert(0, (indexer, kinds))
+    del _REF_KINDS[4:]
+    return kinds
+
+
+# The kinds of param-refs of the last few applications (see _ref_kinds).
+_REF_KINDS: list[tuple[object, _RefKinds]] = []
+
+
 def _guessed_sources(
     ui: DynamicUI, values: Mapping[str, str]
 ) -> tuple[list[str], set[str]]:
@@ -2259,9 +3061,13 @@ def _guessed_sources(
     calculation with settings on its right side the device keeps no copy of either and that
     ``values`` does not give, and those settings: what they are computed from."""
     indexer = ui.indexer
+    kinds = _ref_kinds(ui)
     sources: list[str] = []
     targets: set[str] = set()
     for ref_id in values:
+        if not kinds.computing(ref_id):
+            # On the left side of no calculation (most settings).
+            continue
         local = ui.local_ref_id(ref_id)
         calculations = indexer.calculations_for_l(local)
         if not calculations or not _is_unstored(ui, ref_id):
@@ -2300,19 +3106,143 @@ def _shown_objects(ui: DynamicUI, sizes: Mapping[int, str] | None = None) -> set
     """The numbers of the group objects a UI shows; with ``sizes`` (number -> object size the
     device's table gives) not those of another size (the same object with another datapoint
     type)."""
+    nodes = ui.ui()
+    cache: _SearchCache | None = getattr(_SEARCH, "cache", None)
+    shown = cache.objects_of(nodes) if cache is not None else _objects_of(nodes)
+    if not sizes:
+        return {number for number, _ in shown}
+    numbers: set[int] = set()
+    for number, object_size in shown:
+        size = sizes.get(number)
+        if size is None or object_size == size:
+            numbers.add(number)
+    return numbers
+
+
+def _objects_of(nodes: Sequence[object]) -> list[tuple[int, str]]:
+    """The number and the size of each group object the UI nodes ``nodes`` show."""
     from xknxeditor.prod.parser_v2.ui import UiComObject, UiParameterBlock, UiTab
 
-    numbers: set[int] = set()
+    found: list[tuple[int, str]] = []
+    stack: list[object] = list(nodes)
+    while stack:
+        node = stack.pop()
+        if isinstance(node, UiComObject):
+            found.append((node.number, node.object_size))
+        elif isinstance(node, UiTab | UiParameterBlock):
+            stack.extend(node.children)
+    return found
+
+
+def _shown_objects_split(
+    ui: DynamicUI, sizes: Mapping[int, str], instance: str
+) -> tuple[set[int], set[int]]:
+    """:func:`_shown_objects` of ``ui`` with ``sizes``, those of other module instances and the
+    application's apart from those of the module instance ``instance``."""
+    from xknxeditor.prod.parser_v2.ui import UiComObject, UiParameterBlock, UiTab
+
+    outside: set[int] = set()
+    inside: set[int] = set()
+    prefix = instance + "_"
     stack: list[object] = list(ui.ui())
     while stack:
         node = stack.pop()
         if isinstance(node, UiComObject):
             size = sizes.get(node.number) if sizes else None
             if size is None or node.object_size == size:
-                numbers.add(node.number)
+                (inside if node.ref_id.startswith(prefix) else outside).add(node.number)
         elif isinstance(node, UiTab | UiParameterBlock):
             stack.extend(node.children)
-    return numbers
+    return outside, inside
+
+
+class _Evaluated(NamedTuple):
+    """A UI a value of a module instance's setting was tried in for the memory (see
+    :func:`_infer_from_memory`), with what it was seeded with: its module instances, the
+    values of the application's scope and those of the value's instance."""
+
+    instances: frozenset[tuple[str, str]]
+    shared: Mapping[str, str]
+    own: Mapping[str, str]
+    ui: DynamicUI
+
+
+def _top_instance(key: str, ids: Collection[str]) -> str | None:
+    """The module instance of ``ids`` the application places itself that the (qualified) id
+    ``key`` belongs to, or is; None when it belongs to none of them."""
+    start = key.find("_MI-")
+    if start < 0:
+        return None
+    end = key.find("_", start + 1)
+    prefix = key if end < 0 else key[:end]
+    return prefix if prefix in ids else None
+
+
+class _InstanceValues:
+    """Values split into those of each module instance the application places itself (with
+    its instances' values) and the others (the application's scope), as a UI seeded with
+    them makes the module instances ``instances``. Drops what ``evaluated`` holds that was
+    seeded with other instances or other values of the application's scope. With ``kept``,
+    the values tried in the search before (see :meth:`kept_key`)."""
+
+    def __init__(
+        self,
+        values: Mapping[str, str],
+        instances: Sequence[tuple[str, str]],
+        evaluated: dict[tuple[str, str], _Evaluated],
+        kept: _SearchCache | None = None,
+    ) -> None:
+        self.instances = frozenset(instances)
+        self.ids = {instance_id for instance_id, _ in self.instances}
+        self.shared: _ValueMap = {}
+        self.own: dict[str, _ValueMap] = {}
+        for key, value in values.items():
+            instance = _top_instance(key, self.ids)
+            if instance is None:
+                self.shared[key] = value
+            else:
+                self.own.setdefault(instance, {})[key] = value
+        # The instances with instances of their own.
+        self.nested = {
+            top
+            for instance_id in self.ids
+            if (top := _top_instance(instance_id, self.ids)) not in (None, instance_id)
+        }
+        self.kept = kept
+        self._scope: frozenset[tuple[str, str]] | None = None
+        alike: dict[int, bool] = {}
+        for key, entry in list(evaluated.items()):
+            same = alike.get(id(entry.shared))
+            if same is None:
+                same = alike[id(entry.shared)] = entry.shared == self.shared
+            if same and entry.instances == self.instances:
+                evaluated[key] = entry._replace(shared=self.shared)
+            else:
+                del evaluated[key]
+
+    def kept_key(
+        self, own: Mapping[str, str], ref_id: str
+    ) -> tuple[object, ...] | None:
+        """What the evaluation of a module instance with its values ``own`` (a value of its
+        setting ``ref_id`` tried among them) depends on: those values, the instances and the
+        values of the application's scope. Two UIs alike in it evaluate the instance alike
+        (see :func:`_infer_from_memory`). None without ``kept``."""
+        if self.kept is None:
+            return None
+        if self._scope is None:
+            self._scope = frozenset(self.shared.items())
+        return (ref_id, frozenset(own.items()), self.instances, self._scope)
+
+    def instance(self, ref_id: str) -> str | None:
+        """The module instance the setting ``ref_id`` belongs to, when the application places
+        it itself, it has no instances of its own and values of it are given; None otherwise.
+        A UI seeded with the values places the instances with values in the order the values
+        give them first, then those it makes: with a value of such an instance added, it
+        places them as it does without."""
+        instance = _top_instance(ref_id, self.ids)
+        if instance is None or instance in self.nested or instance not in self.own:
+            return None
+        return instance
 
 
 def _contradicting_objects(
@@ -2368,24 +3298,26 @@ def _shadowed(ui: DynamicUI, ref_id: str) -> bool:
     from xknxeditor.prod.parser_v2.encode import parameter_ref_order
 
     indexer = ui.indexer
+    program = getattr(ui, "_app", None)
+    hidden: frozenset[str] = (
+        _hidden_fixed(program, ui) if program is not None else frozenset()
+    )
+    actives = ui.active_parameter_ref_ids()
     by_parameter: dict[str, list[tuple[tuple[int, int], str]]] = {}
-    for active in ui.active_parameter_ref_ids():
+    # Only the refs that can be shadowed at all (a parameter with a hidden ref with a fixed
+    # value among others, a union member with later ones): of thousands of active refs, few.
+    for active in actives & _shadow_candidates(ui, hidden):
         ref = indexer.parameter_refs.get(active)
         if ref is not None and ref.ref_id:
             by_parameter.setdefault(ref.ref_id, []).append(
                 (parameter_ref_order(active, ref.tag), active)
             )
-    program = getattr(ui, "_app", None)
-    hidden: frozenset[str] = (
-        _hidden_fixed(program, ui) if program is not None else frozenset()
-    )
     found: set[str] = set()
     for refs in by_parameter.values():
         ordered = [active for _order, active in sorted(refs)]
         for n, active in enumerate(ordered):
             if any(later in hidden for later in ordered[n + 1 :]):
                 found.add(active)
-    actives = ui.active_parameter_ref_ids()
     for refs in by_parameter.values():
         for _order, active in refs:
             # Bits no later member writes still hold this one's.
@@ -2397,12 +3329,44 @@ def _shadowed(ui: DynamicUI, ref_id: str) -> bool:
     return ref_id in found
 
 
+def _shadow_candidates(ui: DynamicUI, hidden: frozenset[str]) -> frozenset[str]:
+    """The param-refs of the application of ``ui`` that :func:`_shadowed` can find: of a
+    parameter with several refs, one of them in ``hidden``, and union members with later
+    members (of the last few applications)."""
+    indexer = ui.indexer
+    for seen, seen_hidden, candidates in _SHADOW_CANDIDATES:
+        if seen is indexer and seen_hidden is hidden:
+            return candidates
+    refs_of: dict[str, list[str]] = {}
+    for ref_id, ref in indexer.parameter_refs.items():
+        if ref.ref_id:
+            refs_of.setdefault(ref.ref_id, []).append(ref_id)
+    found: set[str] = set()
+    for refs in refs_of.values():
+        if len(refs) > 1 and any(ref_id in hidden for ref_id in refs):
+            found.update(refs)
+    found.update(
+        ref_id for ref_id in indexer.parameter_refs if ui.later_union_members(ref_id)
+    )
+    candidates = frozenset(found)
+    _SHADOW_CANDIDATES.insert(0, (indexer, hidden, candidates))
+    del _SHADOW_CANDIDATES[4:]
+    return candidates
+
+
+# The refs _shadowed can find, of the last few applications (see _shadow_candidates).
+_SHADOW_CANDIDATES: list[tuple[object, frozenset[str], frozenset[str]]] = []
+
+
 def _assigned_from(
     ui: DynamicUI, read: Mapping[str, str], inferred: Mapping[str, str]
 ) -> _ValueMap:
     """The values of the settings the device keeps no copy of that an Assign of ``ui`` copies
     into stored settings read (a "virtual" setting shown in their place): the value read, for
-    a source of the same type. Where the targets of a source were read with different values
+    a source of the same type. A union member the active members written after it write over
+    in full (see :func:`_shadowed`) keeps no copy either: an Assign that copies it into one of
+    those gives it the value read when its own type has that value (a member with fewer
+    choices for the same bits). Where the targets of a source were read with different values
     (one of them assigned in another branch on the device), the value most of them hold."""
     indexer = ui.indexer
     votes: dict[str, Counter[str]] = {}
@@ -2410,15 +3374,21 @@ def _assigned_from(
         value = read.get(target)
         if value is None or source in read or source in inferred:
             continue
-        target_ref = indexer.parameter_refs.get(target)
-        source_ref = indexer.parameter_refs.get(source)
+        # A module instance's are qualified with the instance: the indexer knows them by
+        # their local ids.
+        target_ref = indexer.parameter_refs.get(ui.local_ref_id(target))
+        source_ref = indexer.parameter_refs.get(ui.local_ref_id(source))
         if target_ref is None or source_ref is None:
             continue
         target_parameter = indexer.parameters.get(target_ref.ref_id)
         source_parameter = indexer.parameters.get(source_ref.ref_id)
-        if _keeps_no_copy(source_parameter) and getattr(
-            source_parameter, "parameter_type", None
-        ) == getattr(target_parameter, "parameter_type", None):
+        alike = getattr(source_parameter, "parameter_type", None) == getattr(
+            target_parameter, "parameter_type", None
+        )
+        if (_keeps_no_copy(source_parameter) and alike) or (
+            _shadowed(ui, source)
+            and (alike or _type_has_value(indexer, source_parameter, value))
+        ):
             votes.setdefault(source, Counter())[value] += 1
     found: _ValueMap = {}
     for source, counted in votes.items():
@@ -2426,6 +3396,30 @@ def _assigned_from(
         if len(ranked) == 1 or ranked[0][1] > ranked[1][1]:
             found[source] = ranked[0][0]
     return found
+
+
+def _type_has_value(indexer: ApplicationIndexer, parameter: object, value: str) -> bool:
+    """Whether the type of ``parameter`` has the value ``value``: one of its choices, or a
+    number in its range."""
+    from xknxeditor.namespaces.intermediate.parameter_type_t_type_number import (
+        ParameterTypeTypeNumber,
+    )
+    from xknxeditor.namespaces.intermediate.parameter_type_t_type_restriction import (
+        ParameterTypeTypeRestriction,
+    )
+
+    type_id = getattr(parameter, "parameter_type", None)
+    parameter_type = indexer.parameter_types.get(type_id) if type_id else None
+    kind = parameter_type.choice if parameter_type is not None else None
+    if isinstance(kind, ParameterTypeTypeRestriction):
+        return any(str(entry.value) == value for entry in kind.enumeration)
+    if isinstance(kind, ParameterTypeTypeNumber):
+        try:
+            number = int(value)
+        except ValueError:
+            return False
+        return kind.min_inclusive <= number <= kind.max_inclusive
+    return False
 
 
 def _written_over_values(
@@ -2436,13 +3430,17 @@ def _written_over_values(
     unknown: Collection[str],
     project_code_page: str | None,
     properties: Mapping[TypedPropertyKey, bytes],
+    cancel: Callable[[], bool] | None = None,
 ) -> _ValueMap:
     """The values of the active shown union members that a later active member writes over
     in part (see :meth:`DynamicUI.later_union_members`), read as no value of theirs: the
     value whose bytes, written in ``ui`` with ``values``, are those of ``segments`` (memory)
     and ``properties`` (property members). A later member the value itself shows (a switch
     whose "yes" shows an option stored in one of its bits) is written with the value the
-    memory holds for it. A member with no byte the device was read at stays unknown."""
+    memory holds for it; so a member whose bytes hold a later member's value, with no later
+    member active, takes the value that shows one whose value they are (a "role" whose
+    "slave" shows the slave's type on the same bits). A member with no byte the device was
+    read at stays unknown. Raises :class:`_Cancelled` once ``cancel`` says so."""
     if not unknown:
         return {}
     from xknxeditor.prod.parser_v2.activation import shown_parameters, values_to_try
@@ -2458,8 +3456,19 @@ def _written_over_values(
         if ref is None or ref.ref_id not in lost:
             continue
         later = ui.later_union_members(ref_id)
-        if not later or ui.union_member_covered(ref_id, later):
+        if not later:
             continue
+        # A member the active later ones write over in full keeps no bit of its own (see
+        # _shadowed). With none active, of one later ones can write over in full only a
+        # value a choose on it tests can show one.
+        tested: tuple[str, ...] | None = None
+        if later & actives:
+            if ui.union_member_covered(ref_id, later & actives):
+                continue
+        elif ui.union_member_covered(ref_id, later):
+            tested = ui.tested_values(ref_id)
+            if not tested:
+                continue
         if shown is None:
             shown = shown_parameters(ui.ui())
             cells = ui.stored_parameter_cells()
@@ -2480,19 +3489,46 @@ def _written_over_values(
         if not own and not own_properties:
             # Nothing the device was read at holds a bit of it: no value can be told.
             continue
+        if tested is not None and not _later_member_can_hold(
+            application,
+            ui,
+            ref_id,
+            ref.ref_id,
+            later,
+            segments,
+            values,
+            project_code_page,
+            own,
+        ):
+            # No later member that a value shows can hold the bits read: none fits.
+            continue
         # Several values may fit the bits left; the one already given (a search's trial)
         # stays when it fits.
         given = values.get(ref_id)
         candidates = values_to_try(parameter, "")
+        if tested is not None:
+            candidates = [value for value in candidates if value in tested]
         if given is not None:
             candidates = [given, *(value for value in candidates if value != given)]
-        for value in candidates:
+
+        # Of a wide range only some values are tried: then those the bits the later members
+        # leave give, with each setting of the bits they write.
+        readings = (
+            partial(
+                _readings_under, application, ui, ref.ref_id, later & actives, segments
+            )
+            if tested is None
+            else None
+        )
+        for value in _then_read(candidates, readings):
+            _check(cancel)
             trial = {**values, ref_id: value}
             seeded = _seeded(application, trial, project_code_page)
             if seeded is None:
                 continue
-            if not _written_over_in_part(
-                seeded, ref_id, seeded.active_parameter_ref_ids()
+            if (
+                not seeded.later_union_members(ref_id)
+                & seeded.active_parameter_ref_ids()
             ):
                 continue
             behind = _later_members_read(seeded, ref_id, segments, trial)
@@ -2516,6 +3552,541 @@ def _written_over_values(
     return found
 
 
+def _then_read(
+    candidates: list[str], readings: Callable[[], list[str]] | None
+) -> Iterator[str]:
+    """``candidates``, then (computed only when they are used up) the values ``readings``
+    gives that are not among them."""
+    yield from candidates
+    if readings is not None:
+        yield from (value for value in readings() if value not in candidates)
+
+
+# The bits of a union member a later member writes over that are tried with each setting at most
+# (see _readings_under).
+_COVERED_BITS = 4
+
+
+def _readings_under(
+    application: Application,
+    ui: DynamicUI,
+    parameter_id: str,
+    later: Collection[str],
+    segments: Mapping[str, bytes],
+) -> list[str]:
+    """The values of the application's union member ``parameter_id`` in memory that ``ui``
+    decodes from ``segments`` with the bits of it the members of the param-refs ``later``
+    write set each way (``_COVERED_BITS`` of them at most): what it held before they were
+    written over it."""
+    layout = _memory_union_bits(application, ui.indexer)
+    own = layout.get(parameter_id)
+    if own is None:
+        return []
+    segment, start, size = own
+    data = segments.get(segment)
+    if data is None or size is None:
+        return []
+    covered: set[int] = set()
+    for ref in later:
+        local = ui.indexer.parameter_refs.get(ui.local_ref_id(ref))
+        other = layout.get(local.ref_id) if local is not None else None
+        if other is None or other[0] != segment:
+            continue
+        _segment, other_start, other_size = other
+        if other_size is None:
+            return []
+        covered.update(
+            range(max(start, other_start), min(start + size, other_start + other_size))
+        )
+    bits = sorted(covered)
+    if not bits or len(bits) > _COVERED_BITS or bits[-1] // 8 >= len(data):
+        return []
+    found: list[str] = []
+    for setting in range(1 << len(bits)):
+        variant = bytearray(data)
+        for n, bit in enumerate(bits):
+            # The first bit of a byte is its most significant one.
+            mask = 0x80 >> (bit % 8)
+            if setting >> n & 1:
+                variant[bit // 8] |= mask
+            else:
+                variant[bit // 8] &= ~mask & 0xFF
+        value = ui.decode_stored_parameters(
+            {**segments, segment: bytes(variant)}, {}
+        ).get(parameter_id)
+        if value is not None and value not in found:
+            found.append(value)
+    return found
+
+
+def _memory_union_bits(
+    application: Application, indexer: ApplicationIndexer
+) -> Mapping[str, tuple[str, int, int | None]]:
+    """For each member of the application's unions in memory, its code segment, its first bit
+    in it (eight per byte, the most significant first) and its width in bits (``None``:
+    unknown); of the last few applications."""
+    from xknxeditor.namespaces.intermediate.application_program_static_t_parameters_union import (
+        ApplicationProgramStaticParametersUnion,
+    )
+    from xknxeditor.namespaces.intermediate.memory_union_t import MemoryUnion
+    from xknxeditor.prod.parser_v2.encode import type_size_in_bit
+
+    program = application.program
+    for seen, layout in _MEMORY_UNION_BITS:
+        if seen is program:
+            return layout
+    found: dict[str, tuple[str, int, int | None]] = {}
+    parameters = program.static.parameters
+    for item in parameters.choice if parameters is not None else []:
+        if not isinstance(item, ApplicationProgramStaticParametersUnion):
+            continue
+        storage = item.choice
+        if not isinstance(storage, MemoryUnion):
+            continue
+        base = storage.offset * 8 + storage.bit_offset
+        for member in item.parameter:
+            parameter_type = indexer.parameter_types.get(member.parameter_type)
+            size = (
+                type_size_in_bit(parameter_type.choice)
+                if parameter_type is not None
+                else None
+            )
+            found[member.id] = (
+                storage.code_segment,
+                base + (member.offset or 0) * 8 + (member.bit_offset or 0),
+                size or None,
+            )
+    _MEMORY_UNION_BITS.insert(0, (program, found))
+    del _MEMORY_UNION_BITS[4:]
+    return found
+
+
+# The union members in memory of the last few programs (see _memory_union_bits).
+_MEMORY_UNION_BITS: list[tuple[object, Mapping[str, tuple[str, int, int | None]]]] = []
+
+
+def _later_member_can_hold(
+    application: Application,
+    ui: DynamicUI,
+    ref_id: str,
+    parameter_id: str,
+    later: Collection[str],
+    segments: Mapping[str, bytes],
+    values: Mapping[str, str],
+    project_code_page: str | None,
+    own: Collection[tuple[str, int]],
+) -> bool:
+    """Whether a value of the application's union member ``parameter_id`` (of the param-ref
+    ``ref_id``) can show one of the members of the param-refs ``later`` (written after it over
+    all of its bits) whose bits hold those of ``segments``, the bytes ``own`` of it compared,
+    with ``values``. False only when that cannot be:
+
+    - no other parameter writes its bits (no module, no parameter outside the union), and each
+      later member writes all of them;
+    - the value of a member comes from ``values`` or its default alone (no Assign in the
+      application, no calculation of it or of ``ref_id``);
+    - each later member either has a restricted type whose choices (from ``values`` and its
+      default too) have other bits there, with any setting of its bits around them (see
+      :func:`_choice_with_bits`); or it is not active with ``values``, and ``ref_id`` decides
+      nothing on the way to it (see :func:`_deciding`).
+
+    Whatever its value, the last later member active writes all of the bits then, with other
+    bits than those read: the bytes differ."""
+    indexer = ui.indexer
+    if ui.has_assigns or indexer.module_defs:
+        return True
+    local = ui.local_ref_id(ref_id)
+    if indexer.calculations_for_l(local) or indexer.calculations_for_r(local):
+        return True
+    layout = _memory_union_bits(application, indexer)
+    mine = layout.get(parameter_id)
+    if mine is None:
+        return True
+    segment, start, size = mine
+    data = segments.get(segment)
+    if size is None or data is None or (start + size + 7) // 8 > len(data):
+        return True
+    compared = set(own)
+    if any(
+        (segment, byte) not in compared
+        for byte in range(start // 8, (start + size + 7) // 8)
+    ):
+        return True
+    if _memory_writers_over(application, indexer, segment, start, size) != frozenset(
+        {_union_of(application, parameter_id)}
+    ):
+        return True
+    raw = _bits_of(data, start, size)
+    holding: list[str] = []
+    for other_ref in sorted(later):
+        ref = indexer.parameter_refs.get(ui.local_ref_id(other_ref))
+        parameter = indexer.parameters.get(ref.ref_id) if ref is not None else None
+        other = layout.get(ref.ref_id) if ref is not None else None
+        if ref is None or parameter is None or other is None:
+            return True
+        other_segment, other_start, other_size = other
+        if (
+            other_size is None
+            or other_segment != segment
+            or other_start > start
+            or other_start + other_size < start + size
+        ):
+            return True
+        if indexer.calculations_for_l(ref.id) or indexer.calculations_for_r(ref.id):
+            return True
+        if _member_can_hold(
+            application,
+            indexer,
+            parameter,
+            (ref.value, values.get(other_ref)),
+            other_size,
+            start - other_start,
+            size,
+            raw,
+        ):
+            holding.append(ref.id)
+    if not holding:
+        return False
+    try:
+        seeded = _seeded(application, values, project_code_page)
+    except AllocatorOverflow:
+        return True
+    if seeded is None:
+        return True
+    actives = seeded.active_parameter_ref_ids()
+    for member in holding:
+        deciding = _deciding(application, ui, member)
+        if member in actives or deciding is None or local in deciding:
+            return True
+    return False
+
+
+def _member_can_hold(
+    application: Application,
+    indexer: ApplicationIndexer,
+    parameter: object,
+    given: tuple[object, ...],
+    type_size: int,
+    at: int,
+    size: int,
+    raw: int,
+) -> bool:
+    """Whether the union member ``parameter`` (``type_size`` bits) can write the bits ``raw``
+    (``size`` of them) from its bit ``at`` on: a type other than a restricted one, a value of
+    ``given`` (those of its param-ref) or its default that is none of its choices, or a choice
+    with those bits (see :func:`_choice_with_bits`)."""
+    from xknxeditor.namespaces.intermediate.parameter_type_t_type_restriction import (
+        ParameterTypeTypeRestriction,
+    )
+
+    type_id = getattr(parameter, "parameter_type", None)
+    parameter_type = indexer.parameter_types.get(type_id) if type_id else None
+    if type_id is None or parameter_type is None:
+        return True
+    if not isinstance(parameter_type.choice, ParameterTypeTypeRestriction):
+        return True
+    for value in (*given, getattr(parameter, "value", None)):
+        if value is not None and not _type_has_value(indexer, parameter, str(value)):
+            return True
+    return _choice_with_bits(application, indexer, type_id, type_size, at, size, raw)
+
+
+def _deciding(
+    application: Application, ui: DynamicUI, local_ref_id: str
+) -> frozenset[str] | None:
+    """The param-refs (local) whose values can decide whether the application's param-ref
+    ``local_ref_id`` is active: the selectors on the way to its placements, and what decides
+    whether those are active (a choose selects nothing while its parameter is not active),
+    with the siblings of a union member among them (a choose on a member renders nothing
+    while a sibling is the one reached). ``None`` when a block heading is among them (active
+    wherever its block is shown, which the selectors do not tell). Of the last few
+    applications."""
+    indexer = ui.indexer
+    known = next((cache for seen, cache in _DECIDING if seen is indexer), None)
+    if known is None:
+        known = dict[str, frozenset[str] | None]()
+        _DECIDING.insert(0, (indexer, known))
+        del _DECIDING[4:]
+    if local_ref_id in known:
+        return known[local_ref_id]
+    siblings = _union_sibling_refs(application, indexer)
+    headings = _block_headings(application)
+    seen: set[str] = set()
+    pending = list(ui.parameter_gates(local_ref_id))
+    found: frozenset[str] | None = None
+    if local_ref_id not in headings:
+        while pending:
+            gate = pending.pop()
+            if gate in seen:
+                continue
+            if gate in headings:
+                break
+            seen.add(gate)
+            pending.extend(ui.parameter_gates(gate))
+            pending.extend(siblings.get(gate, ()))
+        else:
+            found = frozenset(seen)
+    known[local_ref_id] = found
+    return found
+
+
+# What decides whether a param-ref is active, per indexer, of the last few (see _deciding).
+_DECIDING: list[tuple[object, dict[str, frozenset[str] | None]]] = []
+
+
+def _block_headings(application: Application) -> frozenset[str]:
+    """The param-refs that head a parameter block of the application (its ``ParamRefId``):
+    active while the block is shown. Of the last few applications."""
+    from xknxeditor.namespaces.intermediate import ComObjectParameterBlock
+
+    program = application.program
+    for seen, known in _BLOCK_HEADINGS:
+        if seen is program:
+            return known
+    found: set[str] = set()
+    pending: list[object] = [program.dynamic]
+    while pending:
+        elem = pending.pop()
+        if isinstance(elem, ComObjectParameterBlock) and elem.param_ref_id:
+            found.add(elem.param_ref_id)
+        for name in ("choice", "when"):
+            children = getattr(elem, name, None)
+            if isinstance(children, list):
+                pending.extend(cast("list[object]", children))
+    headings = frozenset(found)
+    _BLOCK_HEADINGS.insert(0, (program, headings))
+    del _BLOCK_HEADINGS[4:]
+    return headings
+
+
+# The block headings of the last few programs (see _block_headings).
+_BLOCK_HEADINGS: list[tuple[object, frozenset[str]]] = []
+
+
+def _union_sibling_refs(
+    application: Application, indexer: ApplicationIndexer
+) -> Mapping[str, frozenset[str]]:
+    """For each param-ref of a member of one of the application's unions (in memory or in a
+    property), the param-refs of the other members of its union. Of the last few
+    applications."""
+    from xknxeditor.namespaces.intermediate.application_program_static_t_parameters_union import (
+        ApplicationProgramStaticParametersUnion,
+    )
+
+    for seen, known in _UNION_SIBLING_REFS:
+        if seen is indexer:
+            return known
+    refs_of: dict[str, list[str]] = {}
+    for ref in indexer.parameter_refs.values():
+        refs_of.setdefault(ref.ref_id, []).append(ref.id)
+    found: dict[str, frozenset[str]] = {}
+    parameters = application.program.static.parameters
+    for item in parameters.choice if parameters is not None else []:
+        if not isinstance(item, ApplicationProgramStaticParametersUnion):
+            continue
+        members = frozenset(
+            ref for member in item.parameter for ref in refs_of.get(member.id, ())
+        )
+        for ref in members:
+            found[ref] = members - {ref}
+    _UNION_SIBLING_REFS.insert(0, (indexer, found))
+    del _UNION_SIBLING_REFS[4:]
+    return found
+
+
+# The union siblings of the param-refs of the last few applications (see _union_sibling_refs).
+_UNION_SIBLING_REFS: list[tuple[object, Mapping[str, frozenset[str]]]] = []
+
+
+def _bits_of(data: bytes, start: int, size: int) -> int:
+    """The ``size`` bits of ``data`` from bit ``start`` on (eight per byte, the most
+    significant first)."""
+    first, last = start // 8, (start + size + 7) // 8
+    return (int.from_bytes(data[first:last], "big") >> (last * 8 - start - size)) & (
+        (1 << size) - 1
+    )
+
+
+# The bits of a member around those compared that are tried with each setting at most (see
+# _choice_with_bits).
+_AROUND_BITS = 8
+
+
+def _choice_with_bits(
+    application: Application,
+    indexer: ApplicationIndexer,
+    type_id: str,
+    type_size: int,
+    at: int,
+    size: int,
+    raw: int,
+) -> bool:
+    """Whether a choice of the parameter type ``type_id`` (``type_size`` bits) has the bits
+    ``raw`` (``size`` of them) from its bit ``at`` on; also when that cannot be told (more
+    than ``_AROUND_BITS`` bits around them, a type that cannot be decoded). Of the last few
+    programs."""
+    from xknxeditor.prod.parser_v2.encode import (
+        MemWrite,
+        Writes,
+        decode_memory_parameters,
+    )
+
+    program = application.program
+    known = next((cache for seen, cache in _CHOICE_BITS if seen is program), None)
+    if known is None:
+        known = dict[tuple[str, int, int, int, int], bool]()
+        _CHOICE_BITS.insert(0, (program, known))
+        del _CHOICE_BITS[4:]
+    key = (type_id, type_size, at, size, raw)
+    found = known.get(key)
+    if found is not None:
+        return found
+    around = type_size - size
+    found = True
+    if around <= _AROUND_BITS:
+        # Each setting of the bits around in a field of its own, all decoded at once (the
+        # decode keys them by the id given).
+        width = (type_size + 7) // 8
+        settings = 1 << around
+        window = bytearray(width * settings)
+        writes = Writes()
+        for setting in range(settings):
+            low = setting & ((1 << (type_size - at - size)) - 1)
+            high = setting >> (type_size - at - size)
+            field = (
+                high << (type_size - at) | raw << (type_size - at - size) | low
+            ) << (width * 8 - type_size)
+            window[setting * width : (setting + 1) * width] = field.to_bytes(
+                width, "big"
+            )
+            writes.mem.append(
+                MemWrite("", setting * width, 0, str(setting), type_id, "")
+            )
+        try:
+            decoded = decode_memory_parameters(
+                program, indexer, {"": bytes(window)}, writes=writes
+            )
+        except Exception:
+            decoded = None
+        found = decoded is None or any(
+            decoded.get(str(setting)) is not None for setting in range(settings)
+        )
+    known[key] = found
+    return found
+
+
+# Whether a choice of a type has some bits, per program, of the last few (see
+# _choice_with_bits).
+_CHOICE_BITS: list[tuple[object, dict[tuple[str, int, int, int, int], bool]]] = []
+
+
+def _union_of(application: Application, parameter_id: str) -> int | None:
+    """The position of the union in memory holding the parameter ``parameter_id`` among the
+    application's parameters (``None``: none)."""
+    return _memory_fields(application).unions.get(parameter_id)
+
+
+def _memory_writers_over(
+    application: Application,
+    indexer: ApplicationIndexer,
+    segment: str,
+    start: int,
+    size: int,
+) -> frozenset[int | None]:
+    """What writes any of the ``size`` bits from bit ``start`` on of the code segment
+    ``segment``: the position of each union in memory (see :func:`_union_of`), ``None`` for
+    a parameter outside a union or one of unknown size."""
+    from xknxeditor.prod.parser_v2.encode import type_size_in_bit
+
+    fields = _memory_fields(application)
+    key = (segment, start, size)
+    known = fields.writers.get(key)
+    if known is not None:
+        return known
+    found: set[int | None] = set()
+    for field_segment, field_start, type_id, union in fields.fields:
+        if field_segment != segment:
+            continue
+        parameter_type = indexer.parameter_types.get(type_id)
+        field_size = (
+            type_size_in_bit(parameter_type.choice)
+            if parameter_type is not None
+            else None
+        )
+        if not field_size:
+            found.add(None)
+        elif field_start < start + size and start < field_start + field_size:
+            found.add(union)
+    known = frozenset(found)
+    fields.writers[key] = known
+    return known
+
+
+class _MemoryFields(NamedTuple):
+    """The parameters of a program in memory: code segment, first bit, type and the union
+    each is in (``None``: none), the union of each union member, and what writes the bits
+    asked for so far (see :func:`_memory_writers_over`)."""
+
+    fields: list[tuple[str, int, str, int | None]]
+    unions: dict[str, int]
+    writers: dict[tuple[str, int, int], frozenset[int | None]]
+
+
+def _memory_fields(application: Application) -> _MemoryFields:
+    """The parameters of the application in memory (see :class:`_MemoryFields`); of the last
+    few applications."""
+    from xknxeditor.namespaces.intermediate.application_program_static_t_parameters_union import (
+        ApplicationProgramStaticParametersUnion,
+    )
+    from xknxeditor.namespaces.intermediate.memory_parameter_t import MemoryParameter
+    from xknxeditor.namespaces.intermediate.memory_union_t import MemoryUnion
+
+    program = application.program
+    for seen, known in _MEMORY_FIELDS:
+        if seen is program:
+            return known
+    fields: list[tuple[str, int, str, int | None]] = []
+    unions: dict[str, int] = {}
+    parameters = program.static.parameters
+    for position, item in enumerate(
+        parameters.choice if parameters is not None else []
+    ):
+        if isinstance(item, ApplicationProgramStaticParametersUnion):
+            storage = item.choice
+            if not isinstance(storage, MemoryUnion):
+                continue
+            base = storage.offset * 8 + storage.bit_offset
+            for member in item.parameter:
+                unions[member.id] = position
+                fields.append(
+                    (
+                        storage.code_segment,
+                        base + (member.offset or 0) * 8 + (member.bit_offset or 0),
+                        member.parameter_type,
+                        position,
+                    )
+                )
+        else:
+            storage = item.choice
+            if isinstance(storage, MemoryParameter):
+                fields.append(
+                    (
+                        storage.code_segment,
+                        storage.offset * 8 + storage.bit_offset,
+                        item.parameter_type,
+                        None,
+                    )
+                )
+    known = _MemoryFields(fields, unions, {})
+    _MEMORY_FIELDS.insert(0, (program, known))
+    del _MEMORY_FIELDS[4:]
+    return known
+
+
+# The parameters in memory of the last few programs (see _memory_fields).
+_MEMORY_FIELDS: list[tuple[object, _MemoryFields]] = []
+
+
 def _later_members_read(
     ui: DynamicUI, ref_id: str, segments: Mapping[str, bytes], values: Mapping[str, str]
 ) -> _ValueMap:
@@ -2536,22 +4107,39 @@ def _later_members_read(
 
 
 def _keeps_no_copy(parameter: object) -> bool:
-    """Whether a parameter has no memory, no property and is no member of a union."""
-    from xknxeditor.namespaces.intermediate.application_program_static_t_parameters_parameter import (
-        ApplicationProgramStaticParametersParameter,
-    )
-    from xknxeditor.namespaces.intermediate.module_def_static_t_parameters_parameter import (
-        ModuleDefStaticParametersParameter,
+    """Whether a parameter has no memory, no property and is no member of a union. One
+    kept as an IoT point has neither: a memory and property read does not give it."""
+    from xknxeditor.namespaces.intermediate.io_tpoint_parameter_t import (
+        IoPointParameter,
     )
 
-    return (
-        isinstance(
-            parameter,
-            ApplicationProgramStaticParametersParameter
-            | ModuleDefStaticParametersParameter,
-        )
-        and parameter.choice is None
+    storage = getattr(parameter, "choice", None)
+    return isinstance(parameter, _plain_parameter_types()) and (
+        storage is None or isinstance(storage, IoPointParameter)
     )
+
+
+def _plain_parameter_types() -> tuple[type, ...]:
+    """The types of a parameter that is no member of a union (asked for again and again: the
+    imports looked up once)."""
+    if not _PLAIN_PARAMETER_TYPES:
+        from xknxeditor.namespaces.intermediate.application_program_static_t_parameters_parameter import (
+            ApplicationProgramStaticParametersParameter,
+        )
+        from xknxeditor.namespaces.intermediate.module_def_static_t_parameters_parameter import (
+            ModuleDefStaticParametersParameter,
+        )
+
+        _PLAIN_PARAMETER_TYPES.extend(
+            (
+                ApplicationProgramStaticParametersParameter,
+                ModuleDefStaticParametersParameter,
+            )
+        )
+    return tuple(_PLAIN_PARAMETER_TYPES)
+
+
+_PLAIN_PARAMETER_TYPES: list[type] = []
 
 
 def _fixed_values(application: Application, ui: DynamicUI) -> _ValueMap:
@@ -2622,9 +4210,12 @@ def _hidden_fixed_values(program: object, ui: DynamicUI) -> Mapping[str, str]:
     return values
 
 
-def _fixed_cells(ui: DynamicUI, fixed: _ValueMap) -> set[_Cell]:
+def _fixed_cells(
+    ui: DynamicUI, fixed: _ValueMap, *, properties: bool = False
+) -> set[_Cell]:
     """The bytes the active hidden settings with a fixed value (see :func:`_fixed_values`) take
-    in ``ui``, also the ones they share with other settings (a few bits of a byte each)."""
+    in ``ui``, also the ones they share with other settings (a few bits of a byte each); with
+    ``properties`` those of properties too."""
     indexer = ui.indexer
     active_refs = ui.active_parameter_ref_ids()
     active = {ui.local_ref_id(ref_id) for ref_id in active_refs}
@@ -2643,9 +4234,15 @@ def _fixed_cells(ui: DynamicUI, fixed: _ValueMap) -> set[_Cell]:
         if (local := ui.local_ref_id(ref_id)) in fixed
         and indexer.parameter_refs[local].ref_id in parameters
     }
-    return {
+    cells = {
         cell for cell, owners in ui.stored_parameter_cells().items() if owners & refs
     }
+    if properties:
+        # Those stored in a property, as cells of their own (see _property_cell).
+        cells |= {
+            cell for cell, owners in _property_owners(ui).items() if owners & refs
+        }
+    return cells
 
 
 def _mismatches(
@@ -2678,7 +4275,10 @@ def _mismatches(
 def _differing_bits(
     ui: DynamicUI, parameter_segments: Mapping[str, bytes], cells: Collection[_Cell]
 ) -> int:
-    """How many bits of the bytes ``cells`` the device holds otherwise than ``ui`` writes them."""
+    """How many bits of the bytes ``cells`` the device holds otherwise than ``ui`` writes them,
+    leaving out those the group communication tables write (see
+    :meth:`_SearchCache.table_bits`). A byte no active setting writes holds the fill or the
+    fixed value the download writes there (see :func:`_differing_cells`)."""
     from xknxeditor.prod.errors import EncodingError
 
     if not cells:
@@ -2687,12 +4287,32 @@ def _differing_bits(
         encoded = ui.encode_to_memory()
     except (EncodingError, ValueError):
         return 8 * len(cells)
+    cache: _SearchCache | None = getattr(_SEARCH, "cache", None)
+    tables = (
+        cache.table_bits(ui)
+        if cache is not None
+        and any(cache.in_tables(segment_id) for segment_id, _offset in cells)
+        else {}
+    )
+    fills = cache.segment_fills() if cache is not None else {}
+    fixed_bytes = cache.fixed_bytes() if cache is not None else {}
+    written: dict[str, bytes] | None = None
     count = 0
     for segment_id, offset in cells:
         device = parameter_segments.get(segment_id, b"")
         mine = encoded.get(segment_id, b"")
         if offset < min(len(device), len(mine)):
-            count += (device[offset] ^ mine[offset]).bit_count()
+            own = mine[offset]
+            fill = fills.get(segment_id, 0)
+            fixed = fixed_bytes.get(segment_id, {})
+            if fill or offset in fixed:
+                if written is None:
+                    written = ui.written_bit_mask()
+                mask = written.get(segment_id, b"")
+                if not (mask[offset] if offset < len(mask) else 0):
+                    own = fixed.get(offset, fill)
+            diff = (device[offset] ^ own) & ~tables.get((segment_id, offset), 0)
+            count += diff.bit_count()
     return count
 
 
@@ -2780,10 +4400,18 @@ def _infer_unstored(
     # A trial value only adds settings of the instances it makes, which have no values yet:
     # seeding with the instances there are now is enough.
     instances = ui.get_module_instances()
+    # A setting whose chooses hold group objects only: what another of its values shows is
+    # told from the UI, once an evaluation of one of its values showed it alike.
+    told = ShownObjects(application, ui, sizes, linked)
 
     def shown(trial: Mapping[str, str]) -> tuple[set[int], int, bool]:
         """The linked objects ``values`` with ``trial`` show, how many others, and whether
         they show such settings that are not shown now."""
+        alone = next(iter(trial.items())) if len(trial) == 1 else None
+        if alone is not None:
+            guess = told.guess(*alone)
+            if guess is not None:
+                return guess
         seeded = _seeded(
             application,
             {**values, **trial},
@@ -2799,7 +4427,10 @@ def _infer_unstored(
             and _inferable(seeded, ref_id, parameter)
             for ref_id, parameter in shown_parameters(seeded.ui()).items()
         )
-        return objects & linked, len(objects - linked), reveals
+        result = objects & linked, len(objects - linked), reveals
+        if alone is not None:
+            told.learn(*alone, seeded, result)
+        return result
 
     def clashes(trials: Mapping[str, Mapping[str, str]]) -> dict[str, int]:
         """For trials that show the same objects, how many bytes of the hidden settings with a
@@ -2807,6 +4438,7 @@ def _infer_unstored(
         assert fixed is not None and segments is not None
         uis: dict[str, DynamicUI] = {}
         for key, trial in trials.items():
+            _check(cancel)
             seeded = _seeded(
                 application,
                 {**values, **trial},
@@ -2870,6 +4502,7 @@ def _infer_unstored(
         chosen: _ValueMap = {first_ref: first_value}
         covered = len(base) + gain
         for _, ref_id, value in best[1:]:
+            _check(cancel)
             count = len(shown({**chosen, ref_id: value})[0])
             if count > covered:
                 chosen[ref_id] = value
@@ -2882,6 +4515,7 @@ def _infer_unstored(
     found: _ValueMap = {}
     found_count = len(base)
     for ref_id, candidate in neutral[:_LOOK_AHEAD_TRIES]:
+        _check(cancel)
         nested = _infer_unstored(
             application,
             {**values, ref_id: candidate},
@@ -2909,6 +4543,98 @@ def _infer_unstored(
             clash = clashes({"found": found, "trial": trial})
             if clash["trial"] < clash["found"]:
                 found = trial
+    if found:
+        return found
+    # Linked objects behind nested chooses on several such settings, each shown on its own (a
+    # choose in a choose in a choose): none of them alone shows the objects, nor any other
+    # setting, only all of them together. The first _LOOK_AHEAD_TRIES such changes at most.
+    fewest = 0
+    tries = 0
+    for trial in _nested_values_to_try(
+        ui, shown_settings, values, known, linked - base
+    ):
+        if tries == _LOOK_AHEAD_TRIES:
+            break
+        key = (_JOINT, repr(sorted(trial.items())))
+        if dead is not None and key in dead:
+            continue
+        _check(cancel)
+        tries += 1
+        try:
+            objects, unlinked, _reveals = shown(trial)
+        except AllocatorOverflow:
+            objects, unlinked = set[int](), 0
+        count = len(objects)
+        if count > found_count or (
+            count == found_count and found and unlinked < fewest
+        ):
+            found, found_count, fewest = trial, count, unlinked
+        elif count <= len(base) and dead is not None:
+            dead.add(key)
+    return found
+
+
+# The first part of the ``dead`` entry of settings changed together (see _infer_unstored):
+# no param-ref has this id.
+_JOINT = ""
+
+
+def _nested_values_to_try(
+    ui: DynamicUI,
+    shown: Mapping[str, UiParameter],
+    values: Mapping[str, str],
+    known: Collection[str],
+    missing: Collection[int],
+) -> list[_ValueMap]:
+    """For the group objects ``missing`` that several selectors on the way to them decide, each
+    a shown setting the device keeps no copy of (not in ``values`` or ``known``), those
+    selectors changed together: every combination of their values (the values their chooses
+    test first) that changes at least two of them, of each set of selectors once."""
+    from itertools import islice, product
+
+    from xknxeditor.prod.parser_v2.activation import values_to_try
+
+    if not missing:
+        return []
+    objects_of = _objects_by_number(ui)
+    seen: set[tuple[str, ...]] = set()
+    found: list[_ValueMap] = []
+    for number in sorted(missing):
+        for ref_id in objects_of.get(number, ()):
+            gates = tuple(
+                sorted(
+                    gate
+                    for gate in _gates_of(ui, ref_id, ui.object_gates)
+                    if gate in shown
+                    and gate not in values
+                    and gate not in known
+                    and ui.local_ref_id(gate) in ui.object_param_refs
+                    and _inferable(ui, gate, shown[gate])
+                )
+            )
+            if len(gates) < 2 or gates in seen:
+                continue
+            seen.add(gates)
+            options: list[list[str]] = []
+            for gate in gates:
+                current = ui.get_value(gate) or shown[gate].default_value
+                options.append(
+                    [
+                        current,
+                        *values_to_try(shown[gate], current, ui.tested_values(gate)),
+                    ]
+                )
+            # The first combination is the values there are now.
+            for combination in islice(product(*options), 1, _NESTED_COMBINATIONS):
+                trial = {
+                    gate: value
+                    for gate, value, own in zip(
+                        gates, combination, options, strict=True
+                    )
+                    if value != own[0]
+                }
+                if len(trial) > 1:
+                    found.append(trial)
     return found
 
 
@@ -2966,6 +4692,7 @@ def _infer_from_memory(
     linked: set[int],
     sizes: Mapping[int, str],
     cancel: Callable[[], bool] | None = None,
+    evaluated: dict[tuple[str, str], _Evaluated] | None = None,
 ) -> _ValueMap:
     """A value for a shown setting the device keeps no copy of that leads to a member of a
     union whose bytes are no value of its type, chosen so fewer union members do so (and no
@@ -2973,6 +4700,15 @@ def _infer_from_memory(
     holds what an inactive channel writes, is not taken for an active one. The settings that
     lead to the most such members are tried first, ``_MEMORY_TRIES`` values at most. Empty
     when no value does better, or when every union member's bytes fit.
+
+    ``evaluated`` keeps the UIs a value of a module instance's setting is tried in, from one
+    call to the next: a value tried before with the same values of the application's scope
+    and of its own instance is not evaluated again (only the values of other instances
+    differ, whose evaluation it does not change). Within a search, those an inference before
+    tried with the same values of the application's scope are taken alike.
+
+    The values of other module instances doing as well as the chosen one are taken with it
+    where they fit together as they do alone (see :func:`_with_alike_values`).
     """
     from xknxeditor.prod.parser_v2.activation import shown_parameters, values_to_try
 
@@ -3005,25 +4741,168 @@ def _infer_from_memory(
     best: _ValueMap = {}
     fewest = len(misfits)
     share = fitting / (fitting + fewest)
+    split = (
+        None
+        if evaluated is None
+        else _InstanceValues(
+            values,
+            ui.get_module_instances(),
+            evaluated,
+            _search_cache(application),
+        )
+    )
+    # The values doing better than none, each with the union members it leaves with no value
+    # of their type.
+    doing_better: list[tuple[str, str, int]] = []
     for _, ref_id, candidate in candidates[:_MEMORY_TRIES]:
         _check(cancel)
-        seeded = _seeded(application, {**values, ref_id: candidate}, project_code_page)
-        assert seeded is not None
-        try:
-            if not base <= _shown_objects(seeded, sizes):
+        instance = None if split is None else split.instance(ref_id)
+        own: _ValueMap = {}
+        kept_key: tuple[object, ...] | None = None
+        if split is not None and instance is not None:
+            own = {**split.own[instance], ref_id: candidate}
+            kept_key = split.kept_key(own, ref_id)
+        before = evaluated.get((ref_id, candidate)) if evaluated is not None else None
+        if (before is None or before.own != own) and kept_key is not None:
+            assert split is not None and split.kept is not None
+            before = split.kept.memory_trial(kept_key)
+        if (
+            split is not None
+            and instance is not None
+            and before is not None
+            and before.own == own
+        ):
+            # Tried in a round before, seeded alike but for other instances' values: that
+            # UI's instance in this round's UI is what seeding this round's values with the
+            # value evaluates to (see DynamicUI.decode_parameters_with_instance).
+            outside, _ = _shown_objects_split(ui, sizes, instance)
+            _, inside = _shown_objects_split(before.ui, sizes, instance)
+            if not base <= outside | inside:
                 continue
-            trial_fitting, trial_misfits = _union_fit(
-                seeded, _decode_once(seeded, parameter_segments, property_values)
+            decoded = ui.decode_parameters_with_instance(
+                parameter_segments, property_values or {}, instance, before.ui
             )
-        except AllocatorOverflow:
-            # More than the product has room for: no configuration of the device.
-            continue
+            assert decoded is not None
+            trial_fitting, trial_misfits = _union_fit(ui, decoded)
+        else:
+            seeded = _seeded(
+                application, {**values, ref_id: candidate}, project_code_page
+            )
+            assert seeded is not None
+            try:
+                shown = _shown_objects(seeded, sizes)
+                if (
+                    split is not None
+                    and evaluated is not None
+                    and instance is not None
+                    and frozenset(seeded.get_module_instances()) == split.instances
+                ):
+                    entry = _Evaluated(split.instances, split.shared, own, seeded)
+                    evaluated[(ref_id, candidate)] = entry
+                    if kept_key is not None and split.kept is not None:
+                        split.kept.keep_memory_trial(kept_key, entry)
+                if not base <= shown:
+                    continue
+                trial_fitting, trial_misfits = _union_fit(
+                    seeded, _decode_once(seeded, parameter_segments, property_values)
+                )
+            except AllocatorOverflow:
+                # More than the product has room for: no configuration of the device.
+                continue
         total = trial_fitting + len(trial_misfits)
+        if len(trial_misfits) < len(misfits) and (
+            not total or trial_fitting / total >= share
+        ):
+            doing_better.append((ref_id, candidate, len(trial_misfits)))
         if len(trial_misfits) < fewest and (
             not total or trial_fitting / total >= share
         ):
             best, fewest = {ref_id: candidate}, len(trial_misfits)
-    return best
+            if not fewest:
+                # Every union member fits: no value after it can do better.
+                break
+    return _with_alike_values(
+        application,
+        parameter_segments,
+        property_values,
+        project_code_page,
+        values,
+        ui,
+        best,
+        doing_better,
+        _AlikeFit(len(misfits), fewest, share, base),
+        sizes,
+        cancel,
+    )
+
+
+class _AlikeFit(NamedTuple):
+    """How a round of :func:`_infer_from_memory` fits: the union members whose bytes are no
+    value of their type before it, after its best value, the share of union members fitting
+    before it and the linked objects shown before it."""
+
+    misfits: int
+    fewest: int
+    share: float
+    linked: set[int]
+
+
+def _with_alike_values(
+    application: Application,
+    parameter_segments: Mapping[str, bytes],
+    property_values: Mapping[TypedPropertyKey, bytes] | None,
+    project_code_page: str | None,
+    values: Mapping[str, str],
+    ui: DynamicUI,
+    best: _ValueMap,
+    tried: Sequence[tuple[str, str, int]],
+    fit: _AlikeFit,
+    sizes: Mapping[int, str],
+    cancel: Callable[[], bool] | None,
+) -> _ValueMap:
+    """The best value of a round of :func:`_infer_from_memory` together with the values of
+    other module instances that do as well alone (the first of each instance in the order
+    ``tried`` gives them, each with the union members it leaves with no value of their type),
+    when they do so together too: as many members fewer as each makes alone, no smaller share
+    fitting and no linked object hidden. Otherwise the best value alone: the next rounds take
+    the others one by one, and a value that only fits alone is not taken with another.
+
+    One round so takes the same setting of every channel the memory shows it in, where one
+    round per channel would take the same values one after another."""
+    if len(best) != 1 or not fit.fewest:
+        return best
+    ids = {instance_id for instance_id, _ in ui.get_module_instances()}
+    ((best_ref, _),) = best.items()
+    first = _top_instance(best_ref, ids)
+    if first is None:
+        return best
+    taken = {first}
+    together = dict(best)
+    for ref_id, candidate, misfits in tried:
+        instance = _top_instance(ref_id, ids)
+        if misfits != fit.fewest or instance is None or instance in taken:
+            continue
+        taken.add(instance)
+        together[ref_id] = candidate
+    if len(together) == 1:
+        return best
+    _check(cancel)
+    try:
+        seeded = _seeded(application, {**values, **together}, project_code_page)
+        if seeded is None or not fit.linked <= _shown_objects(seeded, sizes):
+            return best
+        fitting, left = _union_fit(
+            seeded, _decode_once(seeded, parameter_segments, property_values)
+        )
+    except AllocatorOverflow:
+        return best
+    total = fitting + len(left)
+    each = fit.misfits - fit.fewest
+    if len(left) > fit.misfits - each * len(together) or (
+        total and fitting / total < fit.share
+    ):
+        return best
+    return together
 
 
 def _same_value(a: str, b: str) -> bool:
@@ -3112,28 +4991,32 @@ def _infer_from_fixed(
     except (EncodingError, ValueError, AllocatorOverflow):
         return {}
     held = _held_values(application, ui, parameter_segments, property_values)
-    cells_of: dict[str, set[_Cell]] = {}
-    for cell, owners in ui.stored_parameter_cells().items():
-        for owner in owners:
-            cells_of.setdefault(owner, set()).add(cell)
-
-    def differs(cell: _Cell) -> bool:
-        device = parameter_segments.get(cell[0], b"")
-        mine = written.get(cell[0], b"")
-        offset = cell[1]
-        return offset < min(len(device), len(mine)) and device[offset] != mine[offset]
-
+    stored = ui.stored_parameter_cells()
+    # The settings stored at a byte the device holds otherwise than the UI writes it.
+    owning: set[str] = set()
+    for segment_id, mine in written.items():
+        for offset in _offsets_differing(parameter_segments.get(segment_id, b""), mine):
+            owning.update(stored.get((segment_id, offset), ()))
+    if not any(ui.local_ref_id(owner) in fixed for owner in owning):
+        # No byte of a hidden setting with a fixed value differs: no selector has a branch
+        # to correct (the placements below are not looked for).
+        return {}
     _check(cancel)
     active = ui.active_parameter_ref_ids()
     # Per selector and value, how many of the hidden settings its branch holds have the value
     # held and how many another; and the selectors whose branches' bytes differ.
     evidence: dict[str, dict[str, list[int]]] = {}
     differing: set[str] = set()
-    for placement in ui.explore_parameters():
-        ref_id = placement.parameter.ref_id
+    # A qualified ref keeps the tail of its local one: only a ref with the tail of a hidden
+    # setting with a fixed value is looked up (a large application places tens of thousands).
+    tails: set[str] | None = {_ref_tail(local) for local in fixed}
+    if any(tail in fixed for tail in tails or ()):
+        tails = None  # a ref without a parameter's part in its id
+    for ref_id, gates in _explored(application, ui, cancel):
+        if not gates or (tails is not None and _ref_tail(ref_id) not in tails):
+            continue
         local = ui.local_ref_id(ref_id)
         own = fixed.get(local)
-        gates = placement.gates
         if own is None or not gates:
             continue
         inner = gates[-1]
@@ -3150,7 +5033,7 @@ def _infer_from_fixed(
         )
         if value is None:
             continue
-        if any(differs(cell) for cell in cells_of.get(ref_id, ())):
+        if ref_id in owning:
             differing.add(inner.param)
         current = ui.get_value(inner.param) or parameter.default_value
         # The values to try and the value now (counted too: one that fits as well is kept).
@@ -3212,6 +5095,52 @@ def _infer_from_fixed(
         # More than the product has room for: no configuration of the device.
         return {}
     return chosen if after < before else {}
+
+
+def _offsets_differing(device: bytes, mine: bytes) -> list[int]:
+    """The offsets of the bytes both ``device`` and ``mine`` have that differ."""
+    size = min(len(device), len(mine))
+    found: list[int] = []
+    for start in range(0, size, _COMPARED_AT_ONCE):
+        end = min(start + _COMPARED_AT_ONCE, size)
+        if device[start:end] != mine[start:end]:
+            found.extend(n for n in range(start, end) if device[n] != mine[n])
+    return found
+
+
+# Bytes compared in one go before they are compared one by one (see _offsets_differing).
+_COMPARED_AT_ONCE = 256
+
+
+def _explored(
+    application: Application,
+    ui: DynamicUI,
+    cancel: Callable[[], bool] | None = None,
+) -> list[tuple[str, tuple[Gate, ...]]]:
+    """Every place of every parameter in ``ui``'s tree with the gates leading there (see
+    :meth:`DynamicUI.explore_parameters`): its ref id and the gates. Within a search, explored
+    once for the UIs explored alike (see :meth:`DynamicUI.explore_layout`): exploring a large
+    application takes far longer than evaluating it, and the values a search tries seldom
+    change where an explore pass goes. Raises :class:`_Cancelled` once ``cancel`` says so,
+    also while exploring."""
+    cache = _search_cache(application)
+    layout: tuple[object, ...] = ()
+    if cache is not None:
+        layout = ui.explore_layout()
+        for n, (seen, placements) in enumerate(cache.explored):
+            if seen == layout:
+                cache.explored.insert(0, cache.explored.pop(n))
+                return placements
+    placements = [
+        (placement.parameter.ref_id, placement.gates)
+        for placement in ui.explore_parameters(
+            None if cancel is None else lambda: _check(cancel)
+        )
+    ]
+    if cache is not None:
+        cache.explored.insert(0, (layout, placements))
+        del cache.explored[cache.EXPLORED :]
+    return placements
 
 
 # The stored settings of the last device read, decoded each on its own (see _held_values).

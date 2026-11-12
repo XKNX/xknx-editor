@@ -1075,11 +1075,14 @@ msgstr "Dışa Aktarma Yolu:"
 msgid "Export Programming Test Result"
 msgstr "Programlama Testi Sonucunu Dışa Aktar"
 
-msgid "memory {address}"
-msgstr "bellek {address}"
+msgid "Memory {address}"
+msgstr "Bellek {address}"
 
-msgid "object {object} property {property}"
-msgstr "nesne {object} özellik {property}"
+msgid "User memory {address}"
+msgstr "Kullanıcı belleği {address}"
+
+msgid "Object {object} property {property}"
+msgstr "Nesne {object} özellik {property}"
 
 msgid "Filter devices (name, address)…"
 msgstr "Cihazları filtrele (ad, adres)…"

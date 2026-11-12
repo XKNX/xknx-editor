@@ -78,3 +78,39 @@ def test_a_changed_group_object_priority_is_not_loaded(tmp_path: Path) -> None:
     # The same priority again changes nothing.
     svc.set_com_object_priority(pid, com_object, None)
     assert _loaded(svc, pid, device) == (True, True)
+
+
+def _values(svc: ProjectService, pid: str, device: int) -> dict[str, str]:
+    from xknxeditor.proj.models import Parameter
+
+    session = svc._state(pid).session  # type: ignore[attr-defined]
+    return {
+        p.ref_id: p.value
+        for p in session.query(Parameter).filter_by(device_id=device).all()
+    }
+
+
+def test_values_a_calculation_stores_are_no_undo_step(tmp_path: Path) -> None:
+    svc, pid, device, _ = _project(tmp_path)
+    history = len(svc.history(pid))
+    stamp = svc._state(pid).session.get(Device, device).last_modified  # type: ignore[attr-defined]
+    stored = svc.store_calculated_parameters(
+        pid, device, [("P-1_R-1", "1", "4"), ("P-1_R-2", None, "2")]
+    )
+    assert stored == ["P-1_R-1", "P-1_R-2"]
+    assert _values(svc, pid, device) == {"P-1_R-1": "4", "P-1_R-2": "2"}
+    assert len(svc.history(pid)) == history
+    # The parameters are not loaded any more, which is a modification of the device.
+    assert _loaded(svc, pid, device) == (False, True)
+    assert svc._state(pid).session.get(Device, device).last_modified != stamp  # type: ignore[attr-defined]
+
+
+def test_a_calculation_keeps_a_value_changed_since(tmp_path: Path) -> None:
+    svc, pid, device, _ = _project(tmp_path)
+    svc.set_parameter(pid, device, "P-1_R-1", "7")
+    assert svc.store_calculated_parameters(pid, device, [("P-1_R-1", "1", "4")]) == []
+    assert _values(svc, pid, device) == {"P-1_R-1": "7"}
+    # Nothing changed: the device stays as it is.
+    svc.set_device_commissioning(pid, device, parameters_loaded=True, download=True)
+    assert svc.store_calculated_parameters(pid, device, [("P-1_R-1", "7", "7")]) == []
+    assert _loaded(svc, pid, device) == (True, True)

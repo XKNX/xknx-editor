@@ -82,11 +82,33 @@ def test_a_seeding_starting_where_the_first_build_did_comes_back_evaluated(
     _same_ui(evaluated, plain)
 
 
-def test_a_seeding_starting_otherwise_is_evaluated_again(
+def test_instances_without_values_need_no_second_build(
     application: Application, builds: list[int]
 ) -> None:
-    # No value of a module instance: the first build makes the instances, the second starts
-    # with them.
+    # No value of a module instance: the first build makes the instances, the second would
+    # start with them holding nothing, which the evaluation makes alike where it reaches them.
+    seeded = seed_dynamic_ui(application, {_EXTRA: "1"}, evaluated=True)
+    assert seeded is not None
+    assert builds[0] == 1
+    seeded.ui()
+    assert builds[0] == 1
+    plain = seed_dynamic_ui(application, {_EXTRA: "1"})
+    assert plain is not None
+    plain.ui()
+    assert builds[0] == 3
+    _same_ui(seeded, plain)
+
+
+def test_a_seeding_starting_otherwise_is_evaluated_again(
+    application: Application,
+    builds: list[int],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # A second build that would not start alike (here: every layout told apart) evaluates
+    # the UI seeded with the instances the first build made.
+    monkeypatch.setattr(
+        DynamicUI, "layouts_alike", staticmethod(lambda _first, _second: False)
+    )
     seeded = seed_dynamic_ui(application, {_EXTRA: "1"}, evaluated=True)
     assert seeded is not None
     assert builds[0] == 1
@@ -150,3 +172,62 @@ def test_the_caches_do_not_change_the_result(
     cached = recover_parameters(application, segments, linked_objects=linked)
     monkeypatch.setattr(parameters, "_search_cache", lambda _application: None)
     assert recover_parameters(application, segments, linked_objects=linked) == cached
+
+
+def test_a_decode_with_fixed_values_decodes_with_the_first_build(
+    application: Application,
+    builds: list[int],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # The fixed values are looked up in the UI as seeded, not evaluated; the decode itself
+    # takes the first build, which evaluates alike, instead of evaluating that UI again.
+    segments = _segments(
+        application, **{_SWITCH: "1", _FIRST: "5", _SECOND: "7", _FIRST_2: "4"}
+    )
+    inferred = {_EXTRA: "1"}
+    fixed = {f"{_EXTRA}-none": "0"}
+    builds[0] = 0
+    decoded = parameters._decode(  # pyright: ignore[reportPrivateUsage]
+        application, segments, None, None, inferred, fixed=fixed
+    )
+    reused = builds[0]
+    seed_for_lookups = parameters._seeded_for_lookups  # pyright: ignore[reportPrivateUsage]
+
+    def without_alike(*args: object) -> tuple[object, None]:
+        return seed_for_lookups(*args)[0], None  # pyright: ignore[reportArgumentType]
+
+    monkeypatch.setattr(parameters, "_seeded_for_lookups", without_alike)
+    builds[0] = 0
+    assert (
+        parameters._decode(  # pyright: ignore[reportPrivateUsage]
+            application, segments, None, None, inferred, fixed=fixed
+        )
+        == decoded
+    )
+    assert builds[0] == reused + 1
+
+
+def test_the_objects_of_a_ui_are_gathered_once(
+    application: Application, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    ui = seed_dynamic_ui(application, {_SWITCH: "1"}, evaluated=True)
+    assert ui is not None
+    plain = parameters._shown_objects(ui)  # pyright: ignore[reportPrivateUsage]
+    gather = parameters._objects_of  # pyright: ignore[reportPrivateUsage]
+    gathered: list[object] = []
+
+    def counted(nodes: list[object]) -> list[tuple[int, str]]:
+        gathered.append(nodes)
+        return gather(nodes)
+
+    monkeypatch.setattr(parameters, "_objects_of", counted)
+    previous = getattr(parameters._SEARCH, "cache", None)  # pyright: ignore[reportPrivateUsage]
+    parameters._SEARCH.cache = parameters._SearchCache(application)  # pyright: ignore[reportPrivateUsage]
+    try:
+        sizes = dict.fromkeys(plain, "1 Bit")
+        assert parameters._shown_objects(ui) == plain  # pyright: ignore[reportPrivateUsage]
+        assert parameters._shown_objects(ui, sizes) == plain  # pyright: ignore[reportPrivateUsage]
+        assert parameters._shown_objects(ui, {n: "1 Byte" for n in plain}) == set()  # pyright: ignore[reportPrivateUsage]
+    finally:
+        parameters._SEARCH.cache = previous  # pyright: ignore[reportPrivateUsage]
+    assert gathered == [ui.ui()]

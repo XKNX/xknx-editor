@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from collections.abc import Collection, Iterable, Iterator, Mapping
+from collections.abc import Callable, Collection, Iterable, Iterator, Mapping
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
@@ -44,17 +44,30 @@ class Placement:
 class Explorer:
     """Records every parameter placement of a tree evaluated in explore mode: each choose
     evaluates all its branches and each repeat at least one pass, whatever the current values,
-    pushing the condition of the branch it is in (see :class:`Gate`)."""
+    pushing the condition of the branch it is in (see :class:`Gate`). ``check`` is called
+    every ``CHECK_EVERY`` branches and placements: an exception it raises ends the pass (the
+    pass of a large application takes long)."""
 
-    __slots__ = ("_gates", "_hidden", "_sections", "placements")
+    __slots__ = ("_check", "_gates", "_hidden", "_sections", "_steps", "placements")
 
-    def __init__(self) -> None:
+    CHECK_EVERY = 256
+
+    def __init__(self, check: Callable[[], None] | None = None) -> None:
         self._gates: list[Gate] = []
         self._sections: list[str] = []
         self._hidden = 0
+        self._check = check
+        self._steps = 0
         self.placements: list[Placement] = []
 
+    def _step(self) -> None:
+        if self._check is not None:
+            self._steps += 1
+            if self._steps % self.CHECK_EVERY == 0:
+                self._check()
+
     def push_gate(self, gate: Gate) -> None:
+        self._step()
         self._gates.append(gate)
 
     def pop_gate(self) -> None:
@@ -69,6 +82,7 @@ class Explorer:
         self._hidden -= hidden
 
     def record(self, parameter: UiParameter) -> None:
+        self._step()
         self.placements.append(
             Placement(
                 parameter,
@@ -200,6 +214,11 @@ class _TextArgs(Mapping[str, str]):
         return len(self._args)
 
 
+# The gate decisions a pass made (see :meth:`EvalContext.is_gate_active`): for each Choose
+# evaluated, its scope, its parameter and whether it could select a branch.
+GateChecks = list[tuple["ParameterState", str, bool]]
+
+
 class EvalContext:
     """Scope handle wrapping the active state node and the repeat index for the next module_child.
 
@@ -209,11 +228,12 @@ class EvalContext:
     __slots__ = (
         "_capture",
         "_explore",
+        "_gate_checks",
         "_handed",
         "_idx",
-        "_in_repeat",
         "_object_tree",
         "_repeat_idx",
+        "_repeat_path",
         "_scope",
         "_union_chooses",
         "_union_suppress",
@@ -228,14 +248,18 @@ class EvalContext:
         union_suppress: bool = True,
         explore: Explorer | None = None,
         object_tree: ObjectTreeCapture | None = None,
-        in_repeat: bool = False,
+        repeat_path: tuple[int, ...] = (),
         union_chooses: list[tuple[ParameterState, str, Collection[str]]] | None = None,
         handed: set[int] | None = None,
+        gate_checks: GateChecks | None = None,
     ) -> None:
         self._scope = scope
+        # The iteration of the Repeats of this scope it is in, counted through all of them
+        # (the third iteration of a Repeat of 2 in the second of another: 5); 1 outside one.
         self._repeat_idx = repeat_idx
-        # Whether ``repeat_idx`` is the iteration of a Repeat in this scope (it is 1 outside one).
-        self._in_repeat = in_repeat
+        # The iteration of each Repeat of this scope it is in, outermost first (empty outside
+        # one).
+        self._repeat_path = repeat_path
         self._idx = idx
         self._capture = capture
         # False during the union-discovery pass (render both overlapping members so the reached one
@@ -250,6 +274,8 @@ class EvalContext:
         # Set when the nodes may hand out what they made in an earlier pass again: the ids of
         # what this pass has handed out (none twice in one tree, see :attr:`handed`).
         self._handed = handed
+        # Set to record the gate decisions of the pass (see :meth:`record_gate_checks`).
+        self._gate_checks = gate_checks
 
     @property
     def capture(self) -> EvalCapture | None:
@@ -283,8 +309,18 @@ class EvalContext:
         if self._union_chooses is not None:
             self._union_chooses.append((self._scope, param_ref_id, siblings))
 
+    def record_gate_checks(self, checks: GateChecks) -> None:
+        """Record in ``checks`` each gate decision this pass makes (see :data:`GateChecks`), in
+        this context and those made from it."""
+        self._gate_checks = checks
+
     def is_gate_active(self, ref_id: str) -> bool:
-        return self._scope.is_gate_active(ref_id)
+        scope = self._scope
+        active = scope.is_gate_active(ref_id)
+        checks = self._gate_checks
+        if checks is not None:
+            checks.append((scope, ref_id, active))
+        return active
 
     def get(self, ref_id: str) -> str | None:
         return self._scope.get(ref_id)
@@ -304,9 +340,22 @@ class EvalContext:
     def set(self, ref_id: str, value: str) -> None:
         self._scope.set(ref_id, value)
 
-    def assign(self, ref_id: str, value: str) -> None:
-        """An Assign writes ``value`` into ``ref_id`` (see :meth:`ParameterState.assign`)."""
-        self._scope.assign(ref_id, value)
+    def run_assign(
+        self, key: int, target: str, value: str | None, *, from_source: bool
+    ) -> None:
+        """The Assign ``key`` that applies writes ``value`` into ``target`` when it is its time
+        (see :meth:`ParameterState.run_assign`). An explore pass writes it every time."""
+        self._scope.run_assign(
+            key,
+            target,
+            value,
+            from_source=from_source,
+            always=self._explore is not None,
+        )
+
+    def note_assign(self, key: int) -> None:
+        """The pass reached an Assign (see :meth:`ParameterState.note_assign`)."""
+        self._scope.note_assign(key)
 
     def set_text(self, ref_id: str, text: str) -> None:
         self._scope.set_text(ref_id, text)
@@ -369,18 +418,26 @@ class EvalContext:
     def repeat_idx(self) -> int:
         return self._repeat_idx
 
-    def repeat_ctx(self, repeat_idx: int) -> EvalContext:
+    def repeat_ctx(self, repeat_idx: int, count: int) -> EvalContext:
+        """The context of the iteration ``repeat_idx`` of a Repeat of ``count`` iterations
+        reached in this one."""
+        number = (
+            (self._repeat_idx - 1) * count + repeat_idx
+            if self._repeat_path
+            else repeat_idx
+        )
         return EvalContext(
             self._scope,
-            repeat_idx,
+            number,
             self._idx,
             self._capture,
             self._union_suppress,
             self._explore,
             self._object_tree,
-            in_repeat=True,
+            repeat_path=(*self._repeat_path, repeat_idx),
             union_chooses=self._union_chooses,
             handed=self._handed,
+            gate_checks=self._gate_checks,
         )
 
     def get_arg_value(self, ref_id: str) -> int:
@@ -434,7 +491,7 @@ class EvalContext:
             arg_defaults=arg_defaults,
             ref_id=ref_id,
             param_ref_bases=param_ref_bases,
-            in_repeat=self._in_repeat,
+            repeat_path=self._repeat_path,
         )
         return EvalContext(
             ms,
@@ -445,4 +502,5 @@ class EvalContext:
             object_tree=self._object_tree,
             union_chooses=self._union_chooses,
             handed=self._handed,
+            gate_checks=self._gate_checks,
         )

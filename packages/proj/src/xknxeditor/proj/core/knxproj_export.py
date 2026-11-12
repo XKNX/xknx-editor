@@ -409,8 +409,24 @@ def _fill_empty_parameter_types(data: bytes) -> bytes:
     return _PARAM_TYPE_EMPTY_PAIR.sub(rb"\1<TypeNone/></ParameterType>", data)
 
 
+# An ObjectSize attribute with the value "Variable", which no KNX schema lists.
+_VARIABLE_OBJECT_SIZE = re.compile(
+    rb"""(?P<head>\sObjectSize\s*=\s*)(?P<quote>["'])Variable(?P=quote)"""
+)
+
+
+def _schema_object_sizes(data: bytes) -> bytes:
+    """Write the object size "Variable" of product data as the schema's name of that
+    variable-length size, "LegacyVarData", so the archive is valid for its schema."""
+    if b"Variable" not in data:
+        return data
+    return _VARIABLE_OBJECT_SIZE.sub(rb"\g<head>\g<quote>LegacyVarData\g<quote>", data)
+
+
 def _heal_manufacturer_member(data: bytes, schema: str) -> bytes:
     """Heal one manufacturer XML member for the archive.
+
+    An object size "Variable" is written as "LegacyVarData" (see :func:`_schema_object_sizes`).
 
     A member of an older schema than the project's (a project/20 product inside a project/23
     archive, or a legacy project/<=14 one) is converted up to the project schema: namespace and
@@ -421,6 +437,7 @@ def _heal_manufacturer_member(data: bytes, schema: str) -> bytes:
     verbatim and reported (:func:`_schema_incompatible_folders`). A member already at the project
     schema has an unreleased tool identity restamped. Childless parameter types are always filled
     (ETS aborts the import with a NullReferenceException otherwise)."""
+    data = _schema_object_sizes(data)
     detected = _schema_from_knx_xml(data)
     if detected is not None and detected != schema:
         if detected.isdigit() and schema.isdigit() and int(detected) < int(schema):
@@ -1022,17 +1039,32 @@ def _module_instances_in(ref: str) -> list[str]:
     return [ref[: match.end()] for match in _INSTANCE_NUMBER.finditer(ref)]
 
 
-def _instance_order(instance_id: str) -> tuple[int, int, str, str]:
+def _instance_order(instance_id: str) -> tuple[int, int, int, str, str]:
     """The key of the order a project file lists its module instances in, for a relative
-    module instance id: by the number of the module definition and of the module, then by the
-    instance number as text, an instance's submodule instances after it. ``MD-1_M-10_MI-1`` comes
-    after ``MD-1_M-4_MI-1`` and before ``MD-2_M-5_MI-1``; ``MD-1_M-3_MI-10`` before
-    ``MD-1_M-3_MI-2``."""
+    module instance id: by the number of the module definition and of the module, the
+    submodule instances of the module's instances before the instances themselves (the
+    innermost first), then by the instance number as text. ``MD-1_M-10_MI-1`` comes after
+    ``MD-1_M-4_MI-1`` and before ``MD-2_M-5_MI-1``; ``MD-1_M-3_MI-10`` before ``MD-1_M-3_MI-2``;
+    ``MD-1_M-3_MI-2_SM-1_M-1_MI-2-1`` before ``MD-1_M-3_MI-1``. The importers take the first
+    instance a group object's id starts with as the one it is in, so a submodule instance has
+    to come before the instance it is in."""
     match = re.match(r"MD-(\d+)_M-(\d+)_MI-([^_]*)_?(.*)$", instance_id)
     if match is None:
-        return (0, 0, instance_id, "")
+        return (0, 0, 0, instance_id, "")
     definition, module, number, rest = match.groups()
-    return (int(definition), int(module), number, rest)
+    depth = len(_INSTANCE_NUMBER.findall(instance_id))
+    return (int(definition), int(module), -depth, number, rest)
+
+
+def _submodule_instances_first(instance_ids: Iterable[str]) -> bool:
+    """Whether each submodule instance of the relative module instance ids comes before the
+    instance it is in, as in a project file (see :func:`_instance_order`)."""
+    seen: set[str] = set()
+    for instance_id in instance_ids:
+        if any(outer in seen for outer in _module_instances_in(instance_id)[:-1]):
+            return False
+        seen.add(instance_id)
+    return True
 
 
 def _module_instance_of(ref: str) -> str | None:
@@ -1040,6 +1072,10 @@ def _module_instance_of(ref: str) -> str | None:
     one, see :func:`_module_instances_in`); ``None`` for one of the application itself."""
     instances = _module_instances_in(ref)
     return instances[-1] if instances else None
+
+
+# The iterations of a repeat counted at most (see module_repeat_indexes).
+_MAX_REPEAT_COUNT = 1024
 
 
 def module_repeat_indexes(app_xml: bytes) -> dict[str, str]:
@@ -1051,11 +1087,14 @@ def module_repeat_indexes(app_xml: bytes) -> dict[str, str]:
     the ``<Dynamic>`` itself (0). An instance's index is the place of its ``<Module>`` with
     ``x1``, after ``{place}x{iteration}`` of each ``<Repeat>`` it is in (outermost first,
     separated by spaces); ``MI-n`` is the n-th iteration: ``529x1``, or ``2x3 3x1`` for the third
-    instance of a module in a repeat.
+    instance of a module in a repeat (in nested repeats counted through all of them). A repeat
+    whose count a parameter gives has as many iterations as that parameter's type allows.
 
     A submodule instance (``MD-1_M-2_MI-3_SM-1_M-1_MI-3-1-2``, see the module state) follows
     the index of the instance it is in with the places in its module definition's
-    ``<Dynamic>``, counted the same way."""
+    ``<Dynamic>``, counted the same way; its id has the counters of the instance it is in, of
+    that instance's Module and of each repeat it is in (``MI-3-1-1-2`` in two nested
+    repeats)."""
     root = ET.fromstring(app_xml)
     program = next(
         (el for el in root.iter() if _tag(el) == "ApplicationProgram"),
@@ -1072,6 +1111,30 @@ def module_repeat_indexes(app_xml: bytes) -> dict[str, str]:
     definitions = {
         el.get("Id", ""): el for el in program.iter() if _tag(el) == "ModuleDef"
     }
+    # A Repeat without a Count repeats as often as its parameter says: as often as that
+    # parameter's type allows, at most.
+    ref_parameters: dict[str, str] = {}
+    parameter_types: dict[str, str] = {}
+    type_maxima: dict[str, int] = {}
+    for el in program.iter():
+        tag = _tag(el)
+        if tag == "ParameterRef":
+            ref_parameters[el.get("Id", "")] = el.get("RefId", "")
+        elif tag == "Parameter":
+            parameter_types[el.get("Id", "")] = el.get("ParameterType", "")
+        elif tag == "ParameterType":
+            for kind in el:
+                maximum = kind.get("maxInclusive")
+                if maximum is not None and maximum.lstrip("-").isdigit():
+                    type_maxima[el.get("Id", "")] = int(maximum)
+
+    def repeat_count(repeat: ET.Element) -> int:
+        count = repeat.get("Count") or ""
+        if count.isdigit() and int(count) > 0:
+            return int(count)
+        parameter = ref_parameters.get(repeat.get("ParameterRefId") or "", "")
+        maximum = type_maxima.get(parameter_types.get(parameter, ""), 1)
+        return min(max(maximum, 1), _MAX_REPEAT_COUNT)
 
     def iterations(repeats: list[tuple[int, int]]) -> list[list[int]]:
         result: list[list[int]] = [[]]
@@ -1096,8 +1159,7 @@ def module_repeat_indexes(app_xml: bytes) -> dict[str, str]:
             if tag == "Module" and element.get("Id"):
                 on_module(element, here, repeats)
             if tag == "Repeat":
-                count = int(element.get("Count") or "1")
-                repeats = [*repeats, (here, max(count, 1))]
+                repeats = [*repeats, (here, repeat_count(element))]
             for child in element:
                 visit(child, repeats)
 
@@ -2522,8 +2584,8 @@ class _Writer:
         ``<ModuleInstance>`` for every instance the application reaches, so a device saved before
         its module instances were stored, or with one missing, still has the values and group
         objects of each instance written with it, all instances in the order of a project file
-        (see :func:`_instance_order`); a device whose stored instances are complete is written
-        as stored."""
+        (see :func:`_instance_order`); a device whose stored instances are complete, each
+        submodule instance before the instance it is in, is written as stored."""
         instances: list[tuple[str, str, ModuleInstance | None]] = [
             (_relidref(mi.instance_id), mi.instance_id, mi)
             for mi in device.module_instances
@@ -2536,8 +2598,11 @@ class _Writer:
                 instances.append((relative, instance_id, None))
                 known.add(relative)
                 complete = False
-        if not complete:
-            # In the order of a project file (see _instance_order).
+        if not complete or not _submodule_instances_first(
+            instance_id for instance_id, _, _ in instances
+        ):
+            # In the order of a project file (see _instance_order); a device added in the
+            # editor stores its submodule instances after the instance they are in.
             instances.sort(key=lambda instance: _instance_order(instance[0]))
         return instances
 

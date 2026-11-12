@@ -40,6 +40,9 @@ from .image import (
     MemorySegment,
     PropertyValue,
     build_image,
+    group_table_bits,
+    relative_segment_fills,
+    written_properties,
 )
 from .ip_config import IpDeviceConfig
 from .ip_secure import IpSecureConfig
@@ -131,6 +134,7 @@ __all__ = [
     "download_individual_address",
     "group_address_table",
     "group_communication_from_device",
+    "group_table_bits",
     "is_coupler_address",
     "load_device_security",
     "module_instances_from_device",
@@ -139,7 +143,9 @@ __all__ = [
     "parameter_values_from_device",
     "preflight",
     "program_individual_address",
+    "relative_segment_fills",
     "resolve_download_controls",
     "routed_group_addresses",
     "switch_programming_mode",
+    "written_properties",
 ]

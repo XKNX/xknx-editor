@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<KNX xmlns="http://knx.org/xml/project/14" CreatedBy="test" ToolVersion="1">
+  <ManufacturerData>
+    <Manufacturer RefId="M-00FA">
+      <ApplicationPrograms>
+        <ApplicationProgram Id="M-00FA_A-0007-01-0000" ApplicationNumber="7" ApplicationVersion="1"
+            ProgramType="ApplicationProgram" MaskVersion="MV-0701" Name="Variable Sizes"
+            LoadProcedureStyle="ProductProcedure" PeiType="0" DefaultLanguage="en-US"
+            DynamicTableManagement="false" Linkable="false">
+          <Static>
+            <ComObjectTable>
+              <ComObject Id="M-00FA_A-0007-01-0000_O-1" Name="Event 1" Text="Event 1" Number="1" FunctionText="Event" ObjectSize="Variable" ReadFlag="Disabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" />
+              <ComObject Id="M-00FA_A-0007-01-0000_O-2" Name="Event 2" Text="Event 2" Number="2" FunctionText="Event" ObjectSize="1 Byte" ReadFlag="Disabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" />
+              <ComObject Id="M-00FA_A-0007-01-0000_O-3" Name="Value" Text="Value" Number="3" FunctionText="Value" ObjectSize="2 Bytes" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" />
+            </ComObjectTable>
+            <ComObjectRefs>
+              <ComObjectRef Id="M-00FA_A-0007-01-0000_O-1_R-1" RefId="M-00FA_A-0007-01-0000_O-1" />
+              <ComObjectRef Id="M-00FA_A-0007-01-0000_O-2_R-2" RefId="M-00FA_A-0007-01-0000_O-2" ObjectSize='Variable' />
+              <ComObjectRef Id="M-00FA_A-0007-01-0000_O-3_R-3" RefId="M-00FA_A-0007-01-0000_O-3" />
+            </ComObjectRefs>
+          </Static>
+          <Dynamic>
+            <ChannelIndependentBlock>
+              <ParameterBlock Id="M-00FA_A-0007-01-0000_PB-1" Text="General">
+                <ComObjectRefRef RefId="M-00FA_A-0007-01-0000_O-1_R-1" />
+                <ComObjectRefRef RefId="M-00FA_A-0007-01-0000_O-2_R-2" />
+                <ComObjectRefRef RefId="M-00FA_A-0007-01-0000_O-3_R-3" />
+              </ParameterBlock>
+            </ChannelIndependentBlock>
+          </Dynamic>
+        </ApplicationProgram>
+      </ApplicationPrograms>
+    </Manufacturer>
+  </ManufacturerData>
+</KNX>

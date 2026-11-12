@@ -11,6 +11,7 @@ from xknxeditor.download.tables_systemb import (
     build_group_object_table_b,
     group_address_index_b,
 )
+from xknxeditor.prod.application import parse_application_xml
 from xknxeditor.recover import read_group_communication
 
 _BASES = {1: 0x1000, 2: 0x2000, 9: 0x3000}  # object type -> table address
@@ -87,3 +88,44 @@ async def test_system_b_without_application_reads_only_linked_records() -> None:
     group_object_reads = [read for read in device.reads if read[0] >= 0x3000]
     # The count, then one record each, instead of all 400 records.
     assert group_object_reads == [(0x3000, 2), (0x3000, 2), (0x3028, 2), (0x3258, 2)]
+
+
+_APP = "M-00FA_A-00F1-01-0000"
+_RELATIVE_TABLES = f"""<?xml version="1.0" encoding="utf-8"?>
+<KNX xmlns="http://knx.org/xml/project/11" CreatedBy="test" ToolVersion="1">
+  <ManufacturerData><Manufacturer RefId="M-00FA"><ApplicationPrograms>
+    <ApplicationProgram Id="{_APP}" ApplicationNumber="241" ApplicationVersion="1"
+        ProgramType="ApplicationProgram" MaskVersion="MV-07B0" Name="Relative tables"
+        LoadProcedureStyle="MergedProcedure" PeiType="0" DefaultLanguage="en-US"
+        DynamicTableManagement="false" Linkable="false" MinEtsVersion="4.0">
+      <Static>
+        <Code>
+          <RelativeSegment Id="{_APP}_RS-01-00000" Offset="0" Size="65536" LoadStateMachine="1" />
+          <RelativeSegment Id="{_APP}_RS-02-00000" Offset="0" Size="65536" LoadStateMachine="2" />
+        </Code>
+        <AddressTable CodeSegment="{_APP}_RS-01-00000" Offset="0" MaxEntries="1023" />
+        <AssociationTable CodeSegment="{_APP}_RS-02-00000" Offset="0" MaxEntries="1023" />
+        <ComObjectTable>
+          <ComObject Id="{_APP}_O-20" Name="O20" Text="Object 20" Number="20" FunctionText=""
+              ObjectSize="1 Bit" Priority="Low" ReadFlag="Enabled" WriteFlag="Disabled"
+              CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Disabled"
+              ReadOnInitFlag="Disabled" />
+          <ComObject Id="{_APP}_O-300" Name="O300" Text="Object 300" Number="300"
+              FunctionText="" ObjectSize="1 Byte" Priority="Low" ReadFlag="Enabled"
+              WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled"
+              UpdateFlag="Disabled" ReadOnInitFlag="Disabled" />
+        </ComObjectTable>
+      </Static>
+    </ApplicationProgram>
+  </ApplicationPrograms></Manufacturer></ManufacturerData>
+</KNX>
+"""
+
+
+async def test_tables_in_relative_segments_are_read_from_relative_memory() -> None:
+    application = parse_application_xml(_RELATIVE_TABLES.encode(), "M-00FA")[0]
+    tables = await read_group_communication(cast(Any, _Device()), application)
+    assert tables.group_addresses == [0x0B02, 0x0C00]
+    assert {
+        (link.group_object_number, link.group_address) for link in tables.links
+    } == {(20, 0x0B02), (300, 0x0C00)}

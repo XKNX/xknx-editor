@@ -206,3 +206,53 @@ def test_the_full_procedure_of_a_partial_preview() -> None:
     # A merged procedure needs the master data: nothing to tell the steps from.
     merged = _styled_application(LoadProcedureStyle.MERGED_PROCEDURE)
     assert _full_procedure(cast(Any, merged), None, DownloadImage((), ()), None) is None
+
+
+def test_the_properties_a_download_writes_or_compares() -> None:
+    from xknxeditor.download import written_properties
+    from xknxeditor.namespaces.intermediate.ld_ctrl_compare_prop_t import (
+        LdCtrlCompareProp,
+    )
+
+    application = _application(
+        LdCtrlConnect(),
+        _handshake(b"\x01"),
+        _choose(
+            "P",
+            _when("1", LdCtrlWriteProp(obj_idx=0, prop_id=78, count=1, verify=False)),
+        ),
+        LdCtrlCompareProp(obj_type=9, occurrence=1, prop_id=79, inline_data=b"\x00"),
+        LdCtrlMerge(merge_id=7),
+        LdCtrlRestart(),
+    )
+    # Without a configuration: those of every download, no branch of a choose.
+    assert written_properties(application, None) == {(5, None, 0, 51), (None, 9, 1, 79)}
+    instance = LdCtrlWriteProp(obj_type=9, occurrence=2, prop_id=80, verify=False)
+    ui = SimpleNamespace(
+        active_parameter_ref_ids=lambda: frozenset({"P"}),
+        get_value={"P": "1"}.get,
+        module_load_controls=lambda: {7: [instance]},
+    )
+    # With one: the branch its value selects, and its module instances' controls.
+    assert written_properties(application, None, cast(Any, ui)) == {
+        (5, None, 0, 51),
+        (None, 9, 1, 79),
+        (0, None, 0, 78),
+        (None, 9, 2, 80),
+    }
+
+
+def test_the_written_properties_of_a_merged_procedure_need_the_master_data() -> None:
+    from xknxeditor.download import written_properties
+    from xknxeditor.download.errors import DownloadError
+
+    merged = _styled_application(
+        LoadProcedureStyle.MERGED_PROCEDURE,
+        LoadProceduresLoadProcedure(merge_id=4, choice=[_handshake(b"\x01")]),  # type: ignore[list-item]
+    )
+    with pytest.raises(DownloadError):
+        written_properties(cast(Any, merged), None)
+    master = _master_with_default(LdCtrlConnect(), LdCtrlMerge(merge_id=4))
+    assert written_properties(
+        cast(Any, merged), cast(Any, SimpleNamespace(raw=master))
+    ) == {(5, None, 0, 51)}

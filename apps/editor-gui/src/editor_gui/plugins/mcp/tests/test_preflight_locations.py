@@ -139,3 +139,20 @@ def test_a_procedure_step_is_runtime_throughout() -> None:
         (0, "runtime"),
         (2, "runtime"),
     ]
+
+
+def test_a_user_memory_location_says_so() -> None:
+    report = PreflightReport(
+        segments=(
+            SegmentDiff(
+                address=0x4400, current=b"\x00", planned=b"\x01", user_memory=True
+            ),
+        ),
+        properties=(),
+    )
+    # A parameter at 0x4400 of the standard memory does not make the user memory's octet
+    # a configured one.
+    [location] = preflight_locations(report, frozenset(), {0x4400: 0x01})
+    assert location["user_memory"] is True
+    assert location["memory"] == "0x4400"
+    assert location["category"] == "default"

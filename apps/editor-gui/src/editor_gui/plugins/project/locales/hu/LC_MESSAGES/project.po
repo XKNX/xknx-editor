@@ -265,11 +265,14 @@ msgstr "Ist/Soll exportálása…"
 msgid "Export Path:"
 msgstr "Exportálás helye:"
 
-msgid "memory {address}"
-msgstr "memória: {address}"
+msgid "Memory {address}"
+msgstr "Memória: {address}"
 
-msgid "object {object} property {property}"
-msgstr "objektum: {object}, tulajdonság: {property}"
+msgid "User memory {address}"
+msgstr "Felhasználói memória: {address}"
+
+msgid "Object {object} property {property}"
+msgstr "Objektum: {object}, tulajdonság: {property}"
 
 msgid "Filter devices (name, address)…"
 msgstr "Készülékek szűrése (név, cím)…"

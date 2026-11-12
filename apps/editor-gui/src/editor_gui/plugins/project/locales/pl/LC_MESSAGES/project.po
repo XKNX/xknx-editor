@@ -1075,11 +1075,14 @@ msgstr "Ścieżka eksportu:"
 msgid "Export Programming Test Result"
 msgstr "Eksport wyniku testu programowania"
 
-msgid "memory {address}"
-msgstr "pamięć {address}"
+msgid "Memory {address}"
+msgstr "Pamięć {address}"
 
-msgid "object {object} property {property}"
-msgstr "obiekt {object} właściwość {property}"
+msgid "User memory {address}"
+msgstr "Pamięć użytkownika {address}"
+
+msgid "Object {object} property {property}"
+msgstr "Obiekt {object} właściwość {property}"
 
 msgid "Filter devices (name, address)…"
 msgstr "Filtruj urządzenia (nazwa, adres)…"

@@ -23,7 +23,9 @@ from xknx.profile.const import ResourceObjectType
 from xknxeditor.download.errors import LoadStateError, VerificationError
 from xknxeditor.download.merge import device_mask_version
 from xknxeditor.download.resources import (
+    bcu1_association_table,
     bcu1_group_object_table,
+    bcu2_association_table,
     bcu2_group_object_table,
     bundled_mask_resources,
     mask_number,
@@ -110,9 +112,14 @@ _SYSTEM_300 = 0x0300
 
 
 def _is_memory_mapped(application: Application) -> bool:
-    """Whether the application uses fixed segment addresses (vs System B relative)."""
-    address_table = application.program.static.address_table
-    return address_table is not None and address_table.code_segment is not None
+    """Whether the application uses fixed segment addresses (vs System B relative). Tables in
+    a relative segment are in their objects' relative memory."""
+    static = application.program.static
+    address_table = static.address_table
+    if address_table is None or address_table.code_segment is None:
+        return False
+    relative = static.code.relative_segment if static.code is not None else ()
+    return all(segment.id != address_table.code_segment for segment in relative)
 
 
 def _has_com_objects(application: Application) -> bool:
@@ -181,9 +188,10 @@ async def read_property_values(
     An object addressed by type is the device's object of that type and occurrence. The
     properties module instances keep their parameters in, in objects addressed by type (one
     object per instance), are read from every object of that type the device has, as the
-    instances are only known once the parameters are decoded. Absent or unreadable
-    properties are skipped, and elements after the first that cannot be read are left out.
-    This is the raw material property parameter recovery decodes.
+    instances are only known once the parameters are decoded; a property the application
+    shares with them is read as far as theirs. Absent or unreadable properties are skipped,
+    and elements after the first that cannot be read are left out. This is the raw material
+    property parameter recovery decodes.
     """
     from xknxeditor.prod.parser_v2.application_indexer import ApplicationIndexer
     from xknxeditor.prod.parser_v2.encode import collect_writes
@@ -191,20 +199,31 @@ async def read_property_values(
     indexer = ApplicationIndexer(application.program)
     writes = collect_writes(application.program, indexer, {}, None)
     needed = _property_sizes(indexer, writes.prop)
-    cache: dict[_PropertyTarget, bytes] = {}
-    result: dict[TypedPropertyKey, bytes] = {}
+    module_sizes = _module_properties(indexer)
+    stored: list[tuple[_PropertyTarget, TypedPropertyKey]] = []
     for write in writes.prop:
         target = _property_target(write)
-        if target is None:
-            continue
-        if target not in cache:
-            cache[target] = await _read_target(
-                programmer, target, needed.get(target, 0)
-            )
-        if cache[target]:
+        if target is not None:
             key = (write.object_index, write.object_type, write.property_id)
-            result[(*key, write.occurrence)] = cache[target]
-    for (object_type, property_id), size in _module_properties(indexer).items():
+            stored.append((target, (*key, write.occurrence)))
+    # A union without a default member writes nothing without a configuration: its property
+    # is read as well, as far as the union goes.
+    for target, key, size in _union_properties(application):
+        needed[target] = max(needed.get(target, 0), size)
+        stored.append((target, key))
+    cache: dict[_PropertyTarget, bytes] = {}
+    result: dict[TypedPropertyKey, bytes] = {}
+    for target, key in stored:
+        if target not in cache:
+            size = needed.get(target, 0)
+            object_type = target[1]
+            if object_type is not None:
+                # Module instances keep parameters further on in the same property.
+                size = max(size, module_sizes.get((object_type, target[3]), 0))
+            cache[target] = await _read_target(programmer, target, size)
+        if cache[target]:
+            result[key] = cache[target]
+    for (object_type, property_id), size in module_sizes.items():
         for occurrence in range(_MAX_OCCURRENCES):
             try:
                 await programmer.locate_object(object_type, occurrence)
@@ -271,6 +290,52 @@ def _module_properties(indexer: ApplicationIndexer) -> dict[tuple[int, int], int
 # The property a parameter is stored in: (object index, object type, occurrence of an object
 # addressed by type, property id); an object addressed by index has no type and occurrence.
 _PropertyTarget = tuple[int | None, int | None, int, int]
+
+
+def _union_properties(
+    application: Application,
+) -> list[tuple[_PropertyTarget, TypedPropertyKey, int]]:
+    """The properties the application's unions are stored in, each with its key (as
+    :func:`~xknxeditor.prod.parser_v2.encode.encode_to_typed_properties` keys it) and the
+    octets the union takes of it from the first element on."""
+    from xknxeditor.namespaces.intermediate.application_program_static_t_parameters_union import (
+        ApplicationProgramStaticParametersUnion,
+    )
+    from xknxeditor.namespaces.intermediate.property_union_t import PropertyUnion
+
+    parameters = application.program.static.parameters
+    found: list[tuple[_PropertyTarget, TypedPropertyKey, int]] = []
+    for item in parameters.choice if parameters is not None else []:
+        if not isinstance(item, ApplicationProgramStaticParametersUnion):
+            continue
+        storage = item.choice
+        if not isinstance(storage, PropertyUnion):
+            continue
+        if storage.object_index is not None:
+            target: _PropertyTarget = (
+                storage.object_index,
+                None,
+                0,
+                storage.property_id,
+            )
+        elif storage.object_type is not None:
+            target = (
+                None,
+                storage.object_type,
+                storage.occurrence,
+                storage.property_id,
+            )
+        else:
+            continue
+        key = (
+            storage.object_index,
+            storage.object_type,
+            storage.property_id,
+            storage.occurrence,
+        )
+        size = (storage.offset * 8 + storage.bit_offset + item.size_in_bit + 7) // 8
+        found.append((target, key, size))
+    return found
 
 
 def _property_target(write: PropWrite) -> _PropertyTarget | None:
@@ -374,16 +439,22 @@ async def read_parameter_memory(
     Returns ``{segment_id: bytes}`` sized to the application's segment seeds. For
     the memory-mapped model each segment is read at its fixed base address; for
     System B a relative segment (id ``..._RS-<objidx>-...``) is read through that
-    object's table reference. Segments whose location cannot be resolved are
-    skipped, and so are the segments in the device's user memory: an address space of its
-    own, which a standard memory read at the same address does not reach (and the
-    download does not write), and the segments the application's own load procedure
-    writes nothing of (see :func:`_never_written`). This is the raw material parameter
-    recovery matches against.
+    object's table reference. A segment in the device's user memory, an address space of
+    its own which a standard memory read at the same address does not reach, is read with
+    the user memory services, and only where a step of the load procedure writes it in the
+    user memory (see :func:`_written_in_user_memory`): the download writes nothing else
+    there. Segments whose location cannot be resolved are skipped, and so are the segments
+    the application's own load procedure writes nothing of (see :func:`_never_written`).
+    This is the raw material parameter recovery matches against, keyed by segment id like
+    the download image's segments (the user memory's included).
     """
     base_addresses, sizes = _segment_layout(application)
-    memory_mapped = _is_memory_mapped(application)
     code = application.program.static.code
+    # An application without a group address table (a line coupler) and without a relative
+    # segment keeps its parameters at the fixed addresses of its absolute segments too.
+    memory_mapped = _is_memory_mapped(application) or (
+        code is not None and not code.relative_segment and bool(code.absolute_segment)
+    )
     result: dict[str, bytes] = {}
     # A single unreadable segment (a realisation whose memory map we do not fully
     # model, or a transient timeout) is skipped, not fatal: the device still
@@ -396,15 +467,17 @@ async def read_parameter_memory(
         }
         for segment_id, size in sizes.items():
             base = base_addresses.get(segment_id)
+            if not size or base is None:
+                continue
+            user = segment_id in user_memory
             if (
-                not size
-                or base is None
-                or segment_id in user_memory
-                or _never_written(application, base, size)
+                not _written_in_user_memory(application, base, size)
+                if user
+                else _never_written(application, base, size)
             ):
                 continue
             try:
-                result[segment_id] = await programmer.read_memory(base, size)
+                result[segment_id] = await programmer.read_memory(base, size, user=user)
             except ManagementConnectionError:
                 raise
             except (LoadStateError, VerificationError, XKNXException):
@@ -563,7 +636,13 @@ async def _read_memory_mapped(
         assoc_bytes = await _read_count_table(
             programmer, assoc_address, count_width=1, entry_width=2
         )
-        links = decode_association_table(assoc_bytes, group_addresses)
+        mask_version = device_mask_version(application)
+        links = decode_association_table(
+            assoc_bytes,
+            group_addresses,
+            reserved_slots=bcu1_association_table(mask_version)
+            or bcu2_association_table(mask_version),
+        )
 
     group_objects: dict[int, DecodedGroupObject] = {}
     com_object_table = static.com_object_table
@@ -688,11 +767,39 @@ def _never_written(application: Application, address: int, size: int) -> bool:
     for procedure in procedures.load_procedure if procedures is not None else ():
         for control in _memory_controls(procedure.choice):
             placing = True
-            start = int(getattr(control, "address", 0))
-            length = int(getattr(control, "size", 0))
-            if start < address + size and address < start + length:
+            # A step in the user memory writes another address space at the same address
+            # (see _written_in_user_memory).
+            if not _in_user_memory(control) and _overlaps(control, address, size):
                 return False
     return placing
+
+
+def _written_in_user_memory(application: Application, address: int, size: int) -> bool:
+    """Whether a step of the application's load procedures writes any of the ``size`` bytes
+    at ``address`` of the user memory (a WriteMem or LoadImageMem with
+    ``AddressSpace="User"``): the download writes a user memory segment there only."""
+    procedures = application.load_procedures
+    return any(
+        _in_user_memory(control) and _overlaps(control, address, size)
+        for procedure in (procedures.load_procedure if procedures is not None else ())
+        for control in _memory_controls(procedure.choice)
+    )
+
+
+def _in_user_memory(control: object) -> bool:
+    """Whether a memory control accesses the user memory (``AddressSpace="User"``)."""
+    from xknxeditor.namespaces.intermediate.ld_ctrl_mem_addr_space_t import (
+        LdCtrlMemAddrSpace,
+    )
+
+    return getattr(control, "address_space", None) is LdCtrlMemAddrSpace.USER
+
+
+def _overlaps(control: object, address: int, size: int) -> bool:
+    """Whether a memory control's range reaches any of the ``size`` bytes at ``address``."""
+    start = int(getattr(control, "address", 0))
+    length = int(getattr(control, "size", 0))
+    return start < address + size and address < start + length
 
 
 def _record_ranges(numbers: list[int], max_records: int) -> list[tuple[int, int]]:

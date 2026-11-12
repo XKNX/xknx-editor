@@ -18,7 +18,9 @@ class _Programmer:
     def __init__(self, error: Exception) -> None:
         self.error = error
 
-    async def read_memory(self, address: int, size: int) -> bytes:
+    async def read_memory(
+        self, address: int, size: int, *, user: bool = False
+    ) -> bytes:
         raise self.error
 
     async def read_table_reference(self, object_index: int) -> int:
@@ -49,8 +51,12 @@ async def test_memory_disconnect_propagates_but_unreadable_segment_is_skipped(
                     if relative
                     else SimpleNamespace(code_segment=segment),
                     code=SimpleNamespace(
-                        absolute_segment=[],
-                        relative_segment=[SimpleNamespace(id=segment, offset=0)],
+                        absolute_segment=[]
+                        if relative
+                        else [SimpleNamespace(id=segment, user_memory=False)],
+                        relative_segment=[SimpleNamespace(id=segment, offset=0)]
+                        if relative
+                        else [],
                     ),
                 )
             ),
@@ -93,7 +99,13 @@ async def test_property_disconnect_propagates(monkeypatch: pytest.MonkeyPatch) -
             ]
         ),
     )
-    application = cast(Any, SimpleNamespace(program=None))
+    # No unions, so only the property the stubbed writes name is read.
+    application = cast(
+        Any,
+        SimpleNamespace(
+            program=SimpleNamespace(static=SimpleNamespace(parameters=None))
+        ),
+    )
     with pytest.raises(ManagementConnectionError):
         await read_property_values(
             cast(Any, _Programmer(ManagementConnectionError("disconnected"))),

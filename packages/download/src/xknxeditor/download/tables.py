@@ -220,36 +220,43 @@ def com_object_flag_byte(
     return value
 
 
+_OCTETS = re.compile(r"(\d+) Bytes")
+
+
+def _code(object_size: str) -> int | None:
+    """The size code of a ``ComObjectSize``, the same in every group object table: the
+    variable-length ``LegacyVarData`` is 15 (as ``5 Bytes``), 15 to 50 octets are 21 to 56
+    (KNX Standard v3.0.2, 3/5/1 4.18.6.2.4), ``None`` for any other text."""
+    if object_size in _SIZE_CODE:
+        return _SIZE_CODE[object_size]
+    if object_size == "LegacyVarData":
+        return 15
+    octets = _OCTETS.fullmatch(object_size)
+    if octets is not None and 15 <= int(octets.group(1)) <= 50:
+        return int(octets.group(1)) + 6
+    return None
+
+
 def size_code(object_size: str) -> int:
     """Return the KNX size code for a ``ComObjectSize`` value string."""
-    try:
-        return _SIZE_CODE[object_size]
-    except KeyError as exc:
+    code = _code(object_size)
+    if code is None:
         raise ImageError(
             f"com object size {object_size!r} is not implemented; known sizes are "
-            f"{sorted(_SIZE_CODE)} (KNX Standard v3.0.0, 3/5/1 group object "
-            f"descriptor). Please file a bug report with the product data so this "
-            f"size can be added."
-        ) from exc
-
-
-_OCTETS = re.compile(r"(\d+) Bytes")
+            f"{sorted(_SIZE_CODE)}, LegacyVarData and 15 to 50 Bytes (KNX Standard "
+            f"v3.0.0, 3/5/1 group object descriptor). Please file a bug report with the "
+            f"product data so this size can be added."
+        )
+    return code
 
 
 def memory_size_code(object_size: str) -> int:
     """Return the type of a BCU1/BCU2 group object record for a ``ComObjectSize``.
 
-    ``LegacyVarData`` is 15, 15 to 50 octets are 21 to 56, and a size without a code
-    is 0.
+    The size code (see :func:`size_code`); a size without a code is 0.
     """
-    if object_size == "LegacyVarData":
-        return 15
-    if object_size in _SIZE_CODE:
-        return _SIZE_CODE[object_size]
-    octets = _OCTETS.fullmatch(object_size)
-    if octets is not None and 15 <= int(octets.group(1)) <= 50:
-        return int(octets.group(1)) + 6
-    return 0
+    code = _code(object_size)
+    return 0 if code is None else code
 
 
 # Inverse lookups, for decoding tables read back off a device.
@@ -263,7 +270,11 @@ def priority_from_bits(value: int) -> str:
 
 
 def object_size_name(size_code_value: int) -> str | None:
-    """Return the ``ComObjectSize`` string for a KNX size code, or ``None``."""
+    """Return the ``ComObjectSize`` string for a KNX size code, or ``None``.
+
+    15 is ``5 Bytes`` (``LegacyVarData`` gives it too)."""
+    if 21 <= size_code_value <= 56:
+        return f"{size_code_value - 6} Bytes"
     return _SIZE_NAME.get(size_code_value)
 
 
@@ -273,11 +284,9 @@ def memory_object_size_name(type_value: int) -> str | None:
     Inverse of :func:`memory_size_code`. ``None`` for a type no size gives, and for 15,
     which both ``LegacyVarData`` and ``5 Bytes`` give.
     """
-    if 21 <= type_value <= 56:
-        return f"{type_value - 6} Bytes"
     if type_value == 15:
         return None
-    return _SIZE_NAME.get(type_value)
+    return object_size_name(type_value)
 
 
 @dataclass(frozen=True, slots=True)

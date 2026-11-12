@@ -301,10 +301,13 @@ msgstr "Export Ist/Soll…"
 msgid "Export Path:"
 msgstr "Exportpfad:"
 
-msgid "memory {address}"
+msgid "Memory {address}"
 msgstr "Speicher {address}"
 
-msgid "object {object} property {property}"
+msgid "User memory {address}"
+msgstr "Benutzerspeicher {address}"
+
+msgid "Object {object} property {property}"
 msgstr "Objekt {object} Eigenschaft {property}"
 
 msgid "Filter devices (name, address)…"

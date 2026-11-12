@@ -249,6 +249,7 @@ async def test_an_incomplete_device_is_searched_again(
             effort: RecoveryEffort,
             _cp: object,
             cancel: object = None,
+            master: object = None,
         ) -> RecoveredDevice:
             return dataclasses.replace(
                 device,

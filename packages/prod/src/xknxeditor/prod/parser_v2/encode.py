@@ -8,7 +8,7 @@ import logging
 import math
 import re
 import struct
-from collections.abc import Callable, Container, Iterable, Iterator, Mapping, Sequence
+from collections.abc import Callable, Container, Iterable, Iterator, Mapping
 from functools import lru_cache
 from typing import NamedTuple
 
@@ -85,6 +85,7 @@ from xknxeditor.namespaces.intermediate.union_parameter_t import UnionParameter
 
 from ..errors import EncodingError
 from .application_indexer import ApplicationIndexer
+from .ip_text import parse_ip_address
 from .state import GlobalState, ModuleState
 from .text_encoding import text_parameter_encoding
 
@@ -380,11 +381,17 @@ def _encode_number(str_value: str, size_in_bit: int) -> int | None:
     return v & ((1 << size_in_bit) - 1)
 
 
-def validate_parameter_value(value: str, tc: object) -> str:
-    """Validate integer domains and resolve restriction labels to numeric values."""
+def validate_parameter_value(
+    value: str, tc: object, *, check_range: bool = True
+) -> str:
+    """Validate integer domains and resolve restriction labels to numeric values.
+
+    ``check_range=False`` accepts a whole number outside its type's range (it still has to
+    be a number).
+    """
     if isinstance(tc, ParameterTypeTypeNumber):
         number = int(value, 16) if value[:2].lower() == "0x" else int(value)
-        if not tc.min_inclusive <= number <= tc.max_inclusive:
+        if check_range and not tc.min_inclusive <= number <= tc.max_inclusive:
             raise ValueError(
                 f"value {value!r} outside {tc.min_inclusive}..{tc.max_inclusive}"
             )
@@ -503,11 +510,12 @@ def _encode_ipaddress(str_value: str, tc: ParameterTypeTypeIpaddress) -> int | N
     """An IP address to its network-order octets: 4 for IPv4, 16 for IPv6.
 
     The address family must match the type's declared ``version`` (a v4 literal in a
-    v6 field, or vice versa, does not encode).
+    v6 field, or vice versa, does not encode). The text is read as
+    :func:`~xknxeditor.prod.parser_v2.ip_text.parse_ip_address` reads it (``0`` is
+    ``0.0.0.0``).
     """
-    try:
-        addr = ipaddress.ip_address(str_value.strip())
-    except ValueError:
+    addr = parse_ip_address(str_value)
+    if addr is None:
         return None
     want = 16 if tc.version == ParameterTypeTypeIpaddressVersion.IPV6 else 4
     packed = addr.packed
@@ -1039,16 +1047,16 @@ def _collect_scope_writes(
                     if value is not None:
                         instance_overrides[ref.ref_id] = value
         key: tuple[object, ...] = (
-            id(md),
+            ms.ref_id,
             None,
             False,
             tuple(instance_overrides.items()),
             frozenset(ranks.items()),
             arguments,
         )
-        cached = _SCOPE_WRITES.get(key)
-        if cached is not None and cached[0] is md:
-            return _added(out, cached[1], cached[2])
+        cached = idx.scope_writes.get(key)
+        if cached is not None:
+            return _added(out, *cached)
         own = Writes()
         for item in md.static.parameters.choice:
             if isinstance(item, ModuleDefStaticParametersParameter):
@@ -1056,8 +1064,8 @@ def _collect_scope_writes(
             else:
                 assert isinstance(item, ModuleDefStaticParametersUnion)
                 _collect_union(item, instance_overrides, ms, own, ranks=ranks)
-        return _added(out, *_keep_scope_writes(key, md, own))
-    referenced = _referenced_by(md)
+        return _added(out, *_keep_scope_writes(idx, key, own))
+    referenced = _referenced_by(idx, ms.ref_id, md)
     # A parameter with several active refs: the download writes each in turn, the last in
     # parameter_ref_order sets the value (as for the application's own parameters).
     values: dict[str, str] = {}
@@ -1069,38 +1077,45 @@ def _collect_scope_writes(
             if value is not None:
                 values[ref.ref_id] = value
     key = (
-        id(md),
+        ms.ref_id,
         behavior,
         keep,
         tuple(values.items()),
         frozenset(ranks.items()),
         arguments,
     )
-    cached = _SCOPE_WRITES.get(key)
-    if cached is not None and cached[0] is md:
-        return _added(out, cached[1], cached[2])
+    cached = idx.scope_writes.get(key)
+    if cached is not None:
+        return _added(out, *cached)
     own = Writes()
-    active_params = set(values)
-    items = _active_first(md.static.parameters.choice, active_params)
+    first, rest = _split_active(idx, md.static.parameters.choice, set(values))
     defaults = behavior is DownloadBehavior.DEFAULT_VALUE
-    for item in items:
+
+    def collect(item: object, target: Writes) -> None:
         if isinstance(item, ModuleDefStaticParametersParameter):
             if item.id in values:
-                _collect_param(item, values, ms, own)
+                _collect_param(item, values, ms, target)
             elif item.id in referenced and defaults:
-                _collect_param(item, {}, ms, own)
+                _collect_param(item, {}, ms, target)
             elif item.id in referenced and keep:
-                _collect_kept(item, ms, own)
-            continue
+                _collect_kept(item, ms, target)
+            return
         assert isinstance(item, ModuleDefStaticParametersUnion)
         members = [up for up in item.parameter if up.id in referenced]
         if any(up.id in values for up in item.parameter):
-            _collect_union(item, values, ms, own, gated=True, ranks=ranks)
+            _collect_union(item, values, ms, target, gated=True, ranks=ranks)
         elif members and defaults:
-            _collect_union(item, {}, ms, own)
+            _collect_union(item, {}, ms, target)
         elif members and keep:
-            _collect_kept(item, ms, own, members)
-    return _added(out, *_keep_scope_writes(key, md, own))
+            _collect_kept(item, ms, target, members)
+
+    active = Writes()
+    for item in first:
+        collect(item, active)
+    _extend_in_ref_order(own, active, ranks)
+    for item in rest:
+        collect(item, own)
+    return _added(out, *_keep_scope_writes(idx, key, own))
 
 
 def _added(
@@ -1113,39 +1128,28 @@ def _added(
 
 
 def _keep_scope_writes(
-    key: tuple[object, ...], md: object, own: Writes
+    idx: ApplicationIndexer, key: tuple[object, ...], own: Writes
 ) -> tuple[tuple[MemWrite, ...], tuple[PropWrite, ...]]:
-    """The writes ``own`` of a module scope, kept for scopes that write alike (``key``)."""
+    """The writes ``own`` of a module scope, kept for scopes that write alike (``key``: the
+    module definition and what the writes depend on)."""
     mem, prop = tuple(own.mem), tuple(own.prop)
-    if len(_SCOPE_WRITES) >= 1024:
-        _SCOPE_WRITES.clear()
-    _SCOPE_WRITES[key] = (md, mem, prop)
+    if len(idx.scope_writes) >= 1024:
+        idx.scope_writes.clear()
+    idx.scope_writes[key] = (mem, prop)
     return mem, prop
 
 
-# The writes of module scopes (see _collect_scope_writes), by the identity of the module
-# definition (held, so the identity stays its) and what the writes depend on.
-_SCOPE_WRITES: dict[
-    tuple[object, ...], tuple[object, tuple[MemWrite, ...], tuple[PropWrite, ...]]
-] = {}
-
-
-def _referenced_by(md: ModuleDef) -> frozenset[str]:
-    """The parameters the ParameterRefs of the module definition ``md`` refer to."""
-    found = _MODULE_REFERENCED.get(id(md))
-    if found is None or found[0] is not md:
+def _referenced_by(
+    idx: ApplicationIndexer, md_id: str, md: ModuleDef
+) -> frozenset[str]:
+    """The parameters the ParameterRefs of the module definition ``md`` (``md_id``) refer
+    to."""
+    found = idx.module_referenced.get(md_id)
+    if found is None:
         container = md.static.parameter_refs
         refs = container.parameter_ref if container is not None else []
-        if len(_MODULE_REFERENCED) >= 1024:
-            _MODULE_REFERENCED.clear()
-        found = _MODULE_REFERENCED[id(md)] = (
-            md,
-            frozenset(ref.ref_id for ref in refs),
-        )
-    return found[1]
-
-
-_MODULE_REFERENCED: dict[int, tuple[ModuleDef, frozenset[str]]] = {}
+        found = idx.module_referenced[md_id] = frozenset(ref.ref_id for ref in refs)
+    return found
 
 
 def _collect_kept(
@@ -1219,24 +1223,15 @@ def collect_writes(
         else None
     )
     if s.parameters is not None:
-        items = s.parameters.choice
-        if state is not None:
-            # Values of active ParameterRefs come first and the defaults of inactive
-            # parameters after them, so a default wins where the two share bits.
-            active_params = {
-                idx.parameter_refs[ref].ref_id
-                for ref in active_refs
-                if ref in idx.parameter_refs
-            }
-            items = _active_first(items, active_params)
-        for item in items:
+
+        def collect(item: object, target: Writes) -> None:
             if isinstance(item, ApplicationProgramStaticParametersParameter):
                 if active_ids is not None and item.id not in active_ids:
                     if keep and item.id in referenced:
-                        _collect_kept(item, None, out)
-                    continue
-                _collect_param(item, overrides, None, out)
-                continue
+                        _collect_kept(item, None, target)
+                    return
+                _collect_param(item, overrides, None, target)
+                return
             assert isinstance(item, ApplicationProgramStaticParametersUnion)
             members = [up for up in item.parameter if up.id in referenced]
             if (
@@ -1245,11 +1240,35 @@ def collect_writes(
                 and members
                 and not any(up.id in overrides for up in item.parameter)
             ):
-                _collect_kept(item, None, out, members)
-                continue
+                _collect_kept(item, None, target, members)
+                return
             _collect_union(
-                item, overrides, None, out, gated=active_ids is not None, ranks=ranks
+                item,
+                overrides,
+                None,
+                target,
+                gated=active_ids is not None,
+                ranks=ranks,
             )
+
+        if state is None or ranks is None:
+            for item in s.parameters.choice:
+                collect(item, out)
+        else:
+            # Values of active ParameterRefs come first and the defaults of inactive
+            # parameters after them, so a default wins where the two share bits.
+            active_params = {
+                idx.parameter_refs[ref].ref_id
+                for ref in active_refs
+                if ref in idx.parameter_refs
+            }
+            first, rest = _split_active(idx, s.parameters.choice, active_params)
+            active = Writes()
+            for item in first:
+                collect(item, active)
+            _extend_in_ref_order(out, active, ranks)
+            for item in rest:
+                collect(item, out)
     if state is not None:
         for ms in state.module_children():
             _collect_module_writes(ms, idx, out, behavior, keep)
@@ -1257,30 +1276,26 @@ def collect_writes(
 
 
 def _referenced_parameters(idx: ApplicationIndexer) -> frozenset[str]:
-    """The parameters some ParameterRef of the application refers to (of the last few
-    indexers: every encoding and decoding asks)."""
-    for n, (seen, found) in enumerate(_REFERENCED):
-        if seen is idx:
-            _REFERENCED.insert(0, _REFERENCED.pop(n))
-            return found
-    found = frozenset(ref.ref_id for ref in idx.parameter_refs.values())
-    _REFERENCED.insert(0, (idx, found))
-    del _REFERENCED[4:]
+    """The parameters some ParameterRef of the application refers to (made once per indexer:
+    every encoding and decoding asks)."""
+    found = idx.referenced_parameters
+    if found is None:
+        found = idx.referenced_parameters = frozenset(
+            ref.ref_id for ref in idx.parameter_refs.values()
+        )
     return found
 
 
-_REFERENCED: list[tuple[ApplicationIndexer, frozenset[str]]] = []
-
-
-def _active_first[T](items: list[T], active_params: set[str]) -> list[T]:
-    """The parameters and unions ``items`` of a static section, those with a parameter in
-    ``active_params`` first (a union with one of its members there), each part in its order:
-    what a stable sort by that gives, with the parameters of each item looked up once."""
-    cached = _ITEM_PARAMETERS.get(id(items))
+def _split_active[T](
+    idx: ApplicationIndexer, items: list[T], active_params: set[str]
+) -> tuple[list[T], list[T]]:
+    """The parameters and unions ``items`` of a static section of the application of
+    ``idx`` split in those with a parameter in ``active_params`` (a union with one of its
+    members there) and the others, each part in its order, with the parameters of each item
+    looked up once per indexer."""
+    cached = idx.item_parameters.get(id(items))
     if cached is None or cached[0] is not items:
-        if len(_ITEM_PARAMETERS) >= 64:
-            _ITEM_PARAMETERS.clear()
-        cached = _ITEM_PARAMETERS[id(items)] = (
+        cached = idx.item_parameters[id(items)] = (
             items,
             tuple(frozenset(_item_parameters(item)) for item in items),
         )
@@ -1288,7 +1303,23 @@ def _active_first[T](items: list[T], active_params: set[str]) -> list[T]:
     rest: list[T] = []
     for item, own in zip(items, cached[1], strict=True):
         (rest if active_params.isdisjoint(own) else first).append(item)
-    return first + rest
+    return first, rest
+
+
+def _extend_in_ref_order(
+    out: Writes, writes: Writes, ranks: Mapping[str, tuple[int, int]]
+) -> None:
+    """Add the writes of active parameters to ``out`` in the order a download applies the
+    ParameterRefs: each at the place of its parameter's last active ref (see
+    :func:`last_active_ref_ranks`), a write without one first, equal places in their order.
+    Where parameters share bits, also members of different unions, the later one holds
+    them."""
+
+    def key(write: MemWrite | PropWrite) -> tuple[int, int]:
+        return ranks.get(write.param_id, (-1, -1))
+
+    out.mem.extend(sorted(writes.mem, key=key))
+    out.prop.extend(sorted(writes.prop, key=key))
 
 
 def _item_parameters(item: object) -> tuple[str, ...]:
@@ -1300,10 +1331,6 @@ def _item_parameters(item: object) -> tuple[str, ...]:
     ):
         return (item.id,)
     return tuple(up.id for up in getattr(item, "parameter", []))
-
-
-# The parameters of the items of the last static sections sorted (see _active_first).
-_ITEM_PARAMETERS: dict[int, tuple[Sequence[object], tuple[frozenset[str], ...]]] = {}
 
 
 def _written_width_in_bit(tc: object, value: str) -> int | None:
@@ -1534,17 +1561,17 @@ def _stored_writes(
 
 def stored_parameter_cells(
     app: ApplicationProgram, idx: ApplicationIndexer, state: GlobalState
-) -> dict[tuple[str, int], set[str]]:
+) -> dict[tuple[str, int], frozenset[str]]:
     """The param-refs stored at each byte ``(segment id, offset)``: of every parameter and union
     member of the application and of the module instances ``state`` makes, active or not, those of
     a module instance qualified with it. A layout of where settings live in memory, whatever is
-    shown now (what a device's memory can be compared against setting by setting)."""
-    cached = idx.stored_cells
-    if cached is None:
-        refs_of: dict[str, list[str]] = {}
-        for ref_id, ref in idx.parameter_refs.items():
-            refs_of.setdefault(ref.ref_id, []).append(ref_id)
-        own: dict[tuple[str, int], set[str]] = {}
+    shown now (what a device's memory can be compared against setting by setting). The dict is
+    the caller's; its sets cannot be changed (those of the application's own cells are shared
+    by every result)."""
+    refs_of = _refs_of_parameters(idx)
+    own = idx.stored_cells
+    if own is None:
+        found: dict[tuple[str, int], set[str]] = {}
         # Without a state every parameter is written, and a union member whenever it has a
         # value.
         for w, refs, cell_range in _stored_writes(
@@ -1553,42 +1580,99 @@ def stored_parameter_cells(
             refs_of,
         ):
             for offset in cell_range:
-                own.setdefault((w.seg_id, offset), set()).update(refs)
-        cached = idx.stored_cells = (refs_of, own)
-    refs_of, own = cached
+                found.setdefault((w.seg_id, offset), set()).update(refs)
+        own = idx.stored_cells = {key: frozenset(refs) for key, refs in found.items()}
     # The application's own cells are the same for every state (and large: a picture of a
-    # touch panel is a megabit), so they are shared; a cell a module instance adds to is copied.
+    # touch panel is a megabit), so they are shared; what module instances add to a cell is
+    # gathered apart and joined with it at the end.
     cells = dict(own)
 
-    def add(writes: Writes, qualify: Callable[[str], str]) -> None:
-        for w, refs, cell_range in _stored_writes(idx, writes, refs_of):
-            qualified = {qualify(r) for r in refs}
-            for offset in cell_range:
-                key = (w.seg_id, offset)
-                current = cells.get(key)
-                if current is None or current is own.get(key):
-                    cells[key] = qualified | current if current else set(qualified)
-                else:
-                    current.update(qualified)
-
     def walk(ms: ModuleState) -> None:
-        md = idx.module_defs.get(ms.ref_id) if ms.ref_id is not None else None
-        if md is not None and md.static.parameters is not None:
-            writes = Writes()
-            for item in md.static.parameters.choice:
-                if isinstance(item, ModuleDefStaticParametersParameter):
-                    _collect_param(item, {}, ms, writes)
-                else:
-                    _collect_union(
-                        item, {up.id: up.value for up in item.parameter}, ms, writes
-                    )
-            add(writes, ms.qualify)
+        stored = _instance_cells(idx, ms, refs_of)
+        if cells.keys().isdisjoint(stored):
+            cells.update(stored)
+        else:
+            for cell, refs in stored.items():
+                known = cells.get(cell)
+                cells[cell] = refs if known is None else known | refs
         for child in ms.module_children():
             walk(child)
 
     for ms in state.module_children():
         walk(ms)
     return cells
+
+
+# Module instances whose stored bytes are kept at most (see _instance_cells).
+_INSTANCE_CELLS = 1 << 12
+
+
+def _instance_cells(
+    idx: ApplicationIndexer, ms: ModuleState, refs_of: Mapping[str, list[str]]
+) -> dict[tuple[str, int], frozenset[str]]:
+    """The param-refs of the module instance ``ms`` (qualified with it) stored at each byte, of
+    every parameter and union member of its definition, active or not. They depend on the
+    definition, the instance's id (which qualifies the refs) and its numeric arguments (which
+    place the parameters) alone: an instance with the same ones is not worked out again. The
+    dict is shared; it cannot be changed."""
+    md = idx.module_defs.get(ms.ref_id) if ms.ref_id is not None else None
+    if md is None or md.static.parameters is None:
+        return {}
+    key: tuple[object, ...] = (
+        ms.ref_id,
+        ms.module_instance_id,
+        tuple(
+            (name, arg.value if isinstance(arg, ModuleNumericArg) else None)
+            for name, arg in ms.arguments.items()
+        ),
+    )
+    cached = idx.instance_cells.get(key)
+    if cached is not None:
+        return cached
+    writes = Writes()
+    for item in md.static.parameters.choice:
+        if isinstance(item, ModuleDefStaticParametersParameter):
+            _collect_param(item, {}, ms, writes)
+        else:
+            _collect_union(item, {up.id: up.value for up in item.parameter}, ms, writes)
+    found: dict[tuple[str, int], set[str]] = {}
+    for w, refs, cell_range in _stored_writes(idx, writes, refs_of):
+        qualified = {ms.qualify(r) for r in refs}
+        for offset in cell_range:
+            found.setdefault((w.seg_id, offset), set()).update(qualified)
+    if len(idx.instance_cells) >= _INSTANCE_CELLS:
+        idx.instance_cells.clear()
+    cached = idx.instance_cells[key] = {
+        cell: frozenset(refs) for cell, refs in found.items()
+    }
+    return cached
+
+
+def stored_bit_mask(
+    app: ApplicationProgram, idx: ApplicationIndexer
+) -> dict[str, bytes]:
+    """``{seg_id: bit_mask}`` of the bits the application's own parameters and union members
+    are stored at, active or not (the bit-granular part of :func:`stored_parameter_cells`
+    without module instances), MSB first as in :func:`written_bit_mask`. The same for every
+    state, so it is worked out once per application; the dict and its masks are shared."""
+    own = idx.stored_bits
+    if own is None:
+        masks: dict[str, bytearray] = {}
+        # Without a state every parameter is written, and a union member whenever it has a
+        # value (as stored_parameter_cells gathers them).
+        writes = collect_writes(app, idx, dict.fromkeys(idx.parameters, "0"), None)
+        for w in writes.mem:
+            pt = idx.parameter_types.get(w.parameter_type)
+            size = (type_size_in_bit(pt.choice) if pt is not None else None) or 0
+            start = w.offset * 8 + w.bit_offset
+            mask = masks.setdefault(w.seg_id, bytearray())
+            end = (start + size + 7) // 8
+            if len(mask) < end:
+                mask.extend(bytes(end - len(mask)))
+            for pos in range(start, start + size):
+                mask[pos // 8] |= 1 << (7 - pos % 8)
+        own = idx.stored_bits = {seg_id: bytes(mask) for seg_id, mask in masks.items()}
+    return own
 
 
 class PropertyLayout(NamedTuple):
@@ -1627,21 +1711,18 @@ def stored_property_layout(
     def key_of(w: PropWrite) -> TypedPropertyKey:
         return (w.object_index, w.object_type, w.property_id, w.occurrence)
 
-    # The application's own part is the same for every state: made once per indexer, shared
-    # (a cell a module instance adds to is copied).
-    own = next(
-        ((cells, writes) for seen, cells, writes in _OWN_PROPERTIES if seen is idx),
-        None,
-    )
+    # The application's own part is the same for every state: made once per indexer; each
+    # result has sets of its own (properties hold few bytes).
+    own = idx.own_properties
     if own is None:
-        own_cells: dict[tuple[TypedPropertyKey, int], set[str]] = {}
+        found: dict[tuple[TypedPropertyKey, int], set[str]] = {}
         # Without a state every parameter is written, and a union member whenever it has a
         # value.
         for w, cell_range in stored(
             collect_writes(app, idx, dict.fromkeys(idx.parameters, "0"), None)
         ):
             for offset in cell_range:
-                own_cells.setdefault((key_of(w), offset), set()).update(
+                found.setdefault((key_of(w), offset), set()).update(
                     refs_of.get(w.param_id, [])
                 )
         own_plain = [
@@ -1652,23 +1733,19 @@ def stored_property_layout(
                 ApplicationProgramStaticParametersParameter,
             )
         ]
-        own = (own_cells, own_plain)
-        _OWN_PROPERTIES.insert(0, (idx, own_cells, own_plain))
-        del _OWN_PROPERTIES[4:]
+        own = idx.own_properties = (
+            {key: frozenset(refs) for key, refs in found.items()},
+            own_plain,
+        )
     own_cells, own_plain = own
-    cells = dict(own_cells)
+    cells = {key: set(refs) for key, refs in own_cells.items()}
     plain: list[PropWrite] = list(own_plain)
 
     def add(writes: Writes, qualify: Callable[[str], str]) -> None:
         for w, cell_range in stored(writes):
             qualified = {qualify(r) for r in refs_of.get(w.param_id, [])}
             for offset in cell_range:
-                key = (key_of(w), offset)
-                current = cells.get(key)
-                if current is None or current is own_cells.get(key):
-                    cells[key] = qualified | current if current else qualified
-                else:
-                    current.update(qualified)
+                cells.setdefault((key_of(w), offset), set()).update(qualified)
 
     def walk(ms: ModuleState) -> None:
         md = idx.module_defs.get(ms.ref_id) if ms.ref_id is not None else None
@@ -1694,17 +1771,6 @@ def stored_property_layout(
         cells,
         _masked_property_writes(app, idx, plain, key_of, text_encoding, strict=False),
     )
-
-
-# The application's own part of the property layout (see stored_property_layout) of the last
-# few indexers: the param-refs of each byte, and the writes of the parameters' defaults.
-_OWN_PROPERTIES: list[
-    tuple[
-        ApplicationIndexer,
-        dict[tuple[TypedPropertyKey, int], set[str]],
-        list[PropWrite],
-    ]
-] = []
 
 
 def written_bit_mask(
@@ -2135,21 +2201,14 @@ def _decode_field(
 
 
 def _refs_of_parameters(idx: ApplicationIndexer) -> Mapping[str, list[str]]:
-    """The ParameterRef ids of each parameter id, in the indexer's order (of the last few
-    indexers: a recovery decodes the module instances again and again)."""
-    for n, (seen, refs) in enumerate(_PARAMETER_REFS):
-        if seen is idx:
-            _PARAMETER_REFS.insert(0, _PARAMETER_REFS.pop(n))
-            return refs
-    found: dict[str, list[str]] = {}
-    for ref_id, ref in idx.parameter_refs.items():
-        found.setdefault(ref.ref_id, []).append(ref_id)
-    _PARAMETER_REFS.insert(0, (idx, found))
-    del _PARAMETER_REFS[4:]
+    """The ParameterRef ids of each parameter id, in the indexer's order (made once per
+    indexer: a recovery decodes the module instances again and again)."""
+    found = idx.refs_of_parameters
+    if found is None:
+        found = idx.refs_of_parameters = {}
+        for ref_id, ref in idx.parameter_refs.items():
+            found.setdefault(ref.ref_id, []).append(ref_id)
     return found
-
-
-_PARAMETER_REFS: list[tuple[ApplicationIndexer, Mapping[str, list[str]]]] = []
 
 
 def decode_module_parameters(
@@ -2191,14 +2250,14 @@ def decode_module_parameters(
                 little_endian,
                 text_encoding,
             )
-            cached = _SCOPE_DECODED.get(key)
+            cached = idx.scope_decoded.get(key)
             if cached is not None and cached[0] is mem and cached[1] is prop:
                 result.update(cached[3])
             else:
                 decoded = decode_scope(scope, mem, prop)
-                if len(_SCOPE_DECODED) >= 1024:
-                    _SCOPE_DECODED.clear()
-                _SCOPE_DECODED[key] = (mem, prop, read[1], decoded)
+                if len(idx.scope_decoded) >= 1024:
+                    idx.scope_decoded.clear()
+                idx.scope_decoded[key] = (mem, prop, read[1], decoded)
                 result.update(decoded)
         for child in scope.module_children():
             visit(child)
@@ -2258,19 +2317,6 @@ def _identities(
         ),
         values,
     )
-
-
-# What the module instances decoded (see decode_module_parameters), by the identity of their
-# writes and of the bytes they read (all held, so the identities stay theirs).
-_SCOPE_DECODED: dict[
-    tuple[object, ...],
-    tuple[
-        tuple[MemWrite, ...],
-        tuple[PropWrite, ...],
-        tuple[bytes, ...],
-        dict[str, str | None],
-    ],
-] = {}
 
 
 def encode_to_properties(

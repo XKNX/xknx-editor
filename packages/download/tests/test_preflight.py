@@ -141,7 +141,8 @@ async def test_preflight_reports_no_change_when_matching() -> None:
 
 async def test_preflight_marks_memory_written_with_different_values_as_a_step() -> None:
     # A download handshake flag: 01 at the start, 02 at the end; a value written once is a
-    # setting.
+    # setting. Every step is planned with what the procedure leaves, so a device holding 02
+    # shows no change there.
     image = DownloadImage(segments=(), properties=())
     application = _application(
         LdCtrlWriteMem(address=0x80, size=1, verify=False, inline_data=b"\x01"),
@@ -154,9 +155,31 @@ async def test_preflight_marks_memory_written_with_different_values_as_a_step() 
     report = await runner.preflight()
 
     assert [(s.address, s.planned, s.procedure_step) for s in report.segments] == [
-        (0x80, b"\x01", True),
+        (0x80, b"\x02", True),
         (0x90, b"\x05", False),
         (0x80, b"\x02", True),
+    ]
+    assert [s.changed for s in report.segments] == [False, True, False]
+
+
+async def test_a_memory_step_left_otherwise_by_the_procedure_shows_its_last_value() -> (
+    None
+):
+    """A device holding the start value of a step (00) changes to the value the procedure
+    leaves (FF): both writes show that change, none plans 00."""
+    image = DownloadImage(segments=(), properties=())
+    application = _application(
+        LdCtrlWriteMem(address=0x10D, size=1, verify=False, inline_data=b"\x00"),
+        LdCtrlWriteMem(address=0x10D, size=1, verify=False, inline_data=b"\xff"),
+    )
+    runner, device = _runner(application, image)
+    device.memory.update({0x10D: 0x00})
+
+    report = await runner.preflight()
+
+    assert [(s.planned, s.changed) for s in report.segments] == [
+        (b"\xff", True),
+        (b"\xff", True),
     ]
 
 

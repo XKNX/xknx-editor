@@ -14,7 +14,7 @@ import threading
 import time
 import xml.etree.ElementTree as ET
 import zipfile
-from collections.abc import Callable, Collection, Generator
+from collections.abc import Callable, Collection, Generator, Iterable
 from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal, cast
@@ -309,11 +309,12 @@ def _instance_refs(
 
 
 def _module_instance_changes(
-    device: Device, app_program_id: str
+    device: Device, app_program_id: str, saved_ids: Iterable[str] | None = None
 ) -> tuple[list[tuple[str, str]], list[str]]:
     """The device's module instances its saved list lacks (created by a parameter change), and the
     saved ones it no longer has (ended by one), as saved. Saved ids may be relative to the
-    application (as an import keeps them), so both are compared qualified."""
+    application (as an import keeps them), so both are compared qualified. ``saved_ids``: the
+    ids the project has saved now (default: those the device was built with)."""
 
     def qualified(element_id: str) -> str:
         if element_id.startswith(f"{app_program_id}_"):
@@ -321,7 +322,9 @@ def _module_instance_changes(
         return f"{app_program_id}_{element_id}"
 
     current = device.get_module_instances()
-    saved = {qualified(mi.id): mi.id for mi in device.module_instances if mi.id}
+    if saved_ids is None:
+        saved_ids = [mi.id for mi in device.module_instances if mi.id]
+    saved = {qualified(saved_id): saved_id for saved_id in saved_ids}
     active = {qualified(instance_id) for instance_id, _ in current}
     new = [(i, r) for i, r in current if qualified(i) not in saved]
     ended = [saved_id for key, saved_id in saved.items() if key not in active]
@@ -341,14 +344,17 @@ def _without_objects_of(
     target: set[str] | None,
     ended_instances: Collection[str],
     app_program_id: str,
+    current: set[str] | None = None,
 ) -> set[str] | None:
     """The com-object set ``target`` (``None``: the device's objects stay as they are) without
     the objects of the module instances a change ended, and of their submodule instances: no
     object of an instance the device no longer has may stay. ``None`` when that leaves the
-    device's objects as they are."""
+    device's objects as they are. ``current``: the objects the project has now (default: those
+    the device was built with)."""
     if not ended_instances:
         return target
-    current = {co.id for co in device.com_objects}
+    if current is None:
+        current = {co.id for co in device.com_objects}
     prefixes = tuple(
         f"{i if i.startswith(f'{app_program_id}_') else f'{app_program_id}_{i}'}_"
         for i in ended_instances
@@ -593,6 +599,25 @@ def _history_device_id(data: dict[str, Any]) -> int | None:
 _STRUCTURAL_EVENTS = frozenset(
     ("AddDevice", "ChangeDeviceApplication", "MoveDevice", "UpdateDeviceApplication")
 )
+
+
+def _parameter_devices(event_type: str, data: dict[str, Any]) -> set[int]:
+    """The ids of the devices whose parameter values (or the module instances they make) an
+    undone/redone event sets: also those whose application it updates or changes."""
+    if event_type in (
+        "SetParameter",
+        "SyncDeviceModuleInstances",
+        "UpdateDeviceApplication",
+        "ChangeDeviceApplication",
+    ):
+        try:
+            return {int(data["device_id"])}
+        except (KeyError, TypeError, ValueError):
+            return set()
+    devices: set[int] = set()
+    for sub in data.get("events", []):
+        devices |= _parameter_devices(str(sub.get("type", "")), sub.get("data", {}))
+    return devices
 
 
 def _changes_structure(data: dict[str, Any]) -> bool:
@@ -1297,6 +1322,14 @@ class ProjectService:
         self._recheck_queue: dict[int, _Recheck] = {}
         self._rechecked: list[tuple[_Recheck, Device]] = []
         self._recheck_generation = -1
+        # The devices calculated anew since the project opened (see Device.calculate_anew), and
+        # the values those calculations changed, to be stored (any thread evaluates a device,
+        # the project is written where it is written anyway, see _store_calculated); how many
+        # values were stored so.
+        self._calculated_lock = threading.Lock()
+        self._calculated_anew: set[int] = set()
+        self._calculated_pending: dict[int, tuple[Device, ChangeSet, set[str]]] = {}
+        self._calculated_stored = 0
         # Whether the user works in the app just now (set by the app): the evaluation in the
         # background waits for a pause, its Python code would slow every frame down.
         self.ui_busy: Callable[[], bool] = lambda: False
@@ -1596,6 +1629,7 @@ class ProjectService:
             mirroring=working is not None and home is not None and working != home,
         )
         self._finish_product_data()
+        self._store_calculated(refresh=False)
         self._emit("closing")
         self._svc.close(self._pid)
         if working is not None:
@@ -1972,6 +2006,9 @@ class ProjectService:
             if not entry.reverted:
                 digest.update(repr((entry.id, entry.event_type, entry.data)).encode())
         digest.update((self._svc.project(self._pid).password_check or "").encode())
+        if self._calculated_stored:
+            # Values stored by calculations anew are no undo step.
+            digest.update(f"calculated {self._calculated_stored}".encode())
         key = digest.hexdigest()
         self._state_key = (at, key)
         return key
@@ -2042,6 +2079,10 @@ class ProjectService:
         with self._recheck_lock:
             self._recheck_queue.clear()
             self._rechecked.clear()
+        with self._calculated_lock:
+            self._calculated_anew.clear()
+            self._calculated_pending.clear()
+        self._calculated_stored = 0
         self._handled_failures.clear()
         self._read_code_page()
 
@@ -2090,6 +2131,8 @@ class ProjectService:
         bumps the revision."""
         if self._pid is None or self._devices_cache is None:
             return
+        # Built from the stored values: those a calculation anew changed are stored first.
+        self._store_calculated(rebuilt=node_id)
         row = next((r for r in self._svc.devices(self._pid) if r.id == node_id), None)
         if row is None:
             return
@@ -2101,6 +2144,134 @@ class ProjectService:
             if d.node_id == node_id:
                 self._devices_cache[i] = rebuilt
                 return
+
+    def _prepare_calculation(self, device: Device) -> None:
+        """Have the device calculated anew by its first evaluation since the project opened (or
+        since an undo or redo of its parameters, see _calculate_anew), as each evaluation of
+        a device whose calculation is not current is, and the values that changes stored."""
+        generation = self._load_generation
+
+        def calculated(
+            device: Device, changes: "ChangeSet", active_before: set[str]
+        ) -> None:
+            with self._calculated_lock:
+                if generation != self._load_generation:
+                    return
+                self._calculated_anew.add(device.node_id)
+                if not changes:
+                    return
+                if device.node_id in self._calculated_pending:
+                    _, pending, active_before = self._calculated_pending[device.node_id]
+                    for ref, (old, new) in changes.items():
+                        pending[ref] = (pending[ref][0] if ref in pending else old, new)
+                else:
+                    pending = dict(changes)
+                self._calculated_pending[device.node_id] = (
+                    device,
+                    pending,
+                    active_before,
+                )
+
+        with self._calculated_lock:
+            device.calculate_anew = device.node_id not in self._calculated_anew
+        device.calculated_anew = calculated
+
+    def _calculate_anew(self, node_ids: Collection[int], *, now: bool = False) -> None:
+        """Calculate the devices ``node_ids`` anew, as after an undo or redo of their
+        parameters: those in use (evaluated since the project opened; with ``now`` all) at
+        once, their values stored, the others at their first use. Called once the step's
+        changes are applied (after a structural one, the devices are built again here)."""
+        with self._calculated_lock:
+            in_use = {n for n in node_ids if n in self._calculated_anew}
+            self._calculated_anew.difference_update(node_ids)
+        at_once = set(node_ids) if now else in_use
+        for device in self.devices if at_once else self._devices_cache or []:
+            if device.node_id in node_ids:
+                device.calculate_anew = True
+                if device.node_id in at_once:
+                    device.dynamic_ui  # noqa: B018 - evaluates it
+        if at_once:
+            self._store_calculated()
+
+    def _store_calculated(
+        self, *, rebuilt: int | None = None, refresh: bool = True
+    ) -> None:
+        """Store the values that calculations anew changed (see Device.calculate_anew), as a
+        calculation stores what it writes: not as an undo step. With them, as with an edit,
+        the module instances they make or end, and the group objects they activate or
+        deactivate; such a device is built again (with ``refresh``, except ``rebuilt``, which its
+        caller builds again). Compared with what the project has now: edits may have come
+        since."""
+        if self._pid is None:
+            return
+        with self._calculated_lock:
+            pending, self._calculated_pending = self._calculated_pending, {}
+        stored_any = False
+        rebuild: list[int] = []
+        rows = {r.id: r for r in self._svc.devices(self._pid)} if pending else {}
+        for node_id, (device, changes, active_before) in pending.items():
+            values = [
+                (ref, old, new)
+                for ref, (old, new) in changes.items()
+                if new is not None and new != old
+            ]
+            row = rows.get(node_id)
+            if not values or device.app is None or row is None:
+                continue
+            app_id = device.app.program.id
+            current = {_qualified_com_object_ref(co, app_id) for co in row.com_objects}
+            new_instances, ended_instances = _module_instance_changes(
+                device, app_id, [mi.instance_id for mi in row.module_instances]
+            )
+            target = _without_objects_of(
+                device,
+                self._com_object_target(device, active_before, current),
+                ended_instances,
+                app_id,
+                current,
+            )
+            try:
+                stored = self._svc.store_calculated_parameters(
+                    self._pid,
+                    node_id,
+                    values,
+                    com_object_target=None
+                    if target is None
+                    else [(r, None) for r in sorted(target)],
+                    app_program_id=app_id,
+                    module_instances=new_instances,
+                    removed_module_instances=ended_instances,
+                )
+            except Exception as e:
+                self._log.warning(
+                    "calculated values not stored",
+                    device_id=node_id,
+                    error=f"{type(e).__name__}: {e}",
+                )
+                continue
+            if stored:
+                self._log.info(
+                    "device calculated anew", device_id=node_id, values=stored
+                )
+                self._calculated_stored += len(stored)
+                stored_any = True
+                if (
+                    refresh
+                    and node_id != rebuilt
+                    and (target is not None or new_instances or ended_instances)
+                ):
+                    rebuild.append(node_id)
+        for node_id in rebuild:
+            self._refresh_device(node_id)
+        if stored_any:
+            self._bump(structural=False)
+
+    @io_guarded(lambda: None)
+    def take_calculated_values(self) -> None:
+        """Store the values that calculations anew changed meanwhile (main thread, every
+        frame)."""
+        if self._calculated_pending:
+            self._store_calculated()
 
     @property
     def revision(self) -> int:
@@ -2208,6 +2379,7 @@ class ProjectService:
         restored = self._restore_device(row, content)
         if restored is not None:
             self._build_keys[row.id] = content
+            self._prepare_calculation(restored)
             return restored
         device = self._evaluate_device(row)
         if device is not None:
@@ -2221,6 +2393,8 @@ class ProjectService:
                         device.app, device.com_objects, device.get_visible_com_objects()
                     ),
                 )
+        if device is not None:
+            self._prepare_calculation(device)
         return device
 
     def _application_source(self, application_id: str) -> str | None:
@@ -2421,6 +2595,7 @@ class ProjectService:
                     device_id=node_id,
                     address=device.individual_address,
                 )
+                self._prepare_calculation(device)
                 cache[index] = device
                 replaced = True
         self._store_snapshots()
@@ -2581,6 +2756,8 @@ class ProjectService:
     @io_guarded(list)
     def devices(self) -> list[Device]:
         if self._devices_cache is None or self._devices_cache_version != self._version:
+            # Built from the stored values: those a calculation anew changed are stored first.
+            self._store_calculated(refresh=False)
             previous = {d.node_id: d for d in self._devices_cache or []}
             devices: list[Device] = []
             unloaded: list[UnloadedDevice] = []
@@ -5272,13 +5449,21 @@ class ProjectService:
 
     def _update_application(self, device: Device) -> UpdateApplicationResult | None:
         """Update ``device`` to the local application version that replaces its own ("Update
-        Application Program Version"). Parameter values are carried over by ParameterRef number,
-        group objects of the same size by ComObjectRef number with their flags, priority,
-        datapoint type and links. Returns the outcome, or ``None`` when there is no such version
-        or it cannot be resolved."""
+        Application Program Version"). Every parameter of the old device is matched by
+        ParameterRef number and set on the new one in the old application's order, its value or,
+        without one, its old default, as an edit sets it (see ``carry_values``): a value the new
+        version refuses is left out and logged, one whose calculations fail is kept and logged.
+        Group objects of the same size carry over by ComObjectRef number with their flags,
+        priority, datapoint type and links. Returns the outcome, or ``None`` when there is no
+        such version or it cannot be resolved."""
         from editor_gui.plugins.project.application_update import (
             carry_com_objects,
             carry_parameters,
+            carry_values,
+            in_application_order,
+            module_instances,
+            unstored_defaults,
+            with_argument_values,
         )
         from xknxeditor.prod.parser_v2.application_indexer import ApplicationIndexer
 
@@ -5297,15 +5482,75 @@ class ProjectService:
         )
         if new_app is None or row is None:
             return None
-        parameters = carry_parameters(
-            [(p.ref_id, p.value) for p in row.parameters],
-            device.app.id,
-            new_app.id,
-            ApplicationIndexer(new_app.program),
+        indexer = ApplicationIndexer(new_app.program)
+        old_ui = device.dynamic_ui
+        old_indexer = (
+            old_ui.indexer
+            if old_ui is not None
+            else ApplicationIndexer(device.app.program)
         )
-        module_instances, new_objects = self._initial_rows(
-            device.name, new_app, parameters.values
+        stored_rows = in_application_order(
+            [(p.ref_id, p.value) for p in row.parameters], old_indexer
         )
+        parameters = carry_parameters(stored_rows, device.app.id, new_app.id, indexer)
+        values = parameters.values
+        stored = {ref for ref, _ in values}
+        # Every parameter of the old device in the old application's order: its values and
+        # the defaults of the parameters it holds none for, each as the parameter has it (a
+        # module parameter that takes the value of an argument has the argument's).
+        old_refs = (
+            old_ui.parameter_ref_ids()
+            if old_ui is not None
+            else [
+                ref
+                for ref in old_indexer.parameter_refs
+                if old_indexer.ref_owner.get(ref) is None
+            ]
+        )
+        defaults = unstored_defaults(
+            old_refs, (ref for ref, _ in stored_rows), device.app.id, old_indexer
+        )
+        old_values = in_application_order([*stored_rows, *defaults], old_indexer)
+        if old_ui is not None:
+            old_values = with_argument_values(old_values, old_ui)
+        everything = carry_parameters(
+            old_values, device.app.id, new_app.id, indexer
+        ).values
+        not_taken = 0
+        probe = self._initial_device(device.name, new_app, [])
+        ui = probe.dynamic_ui
+        if ui is not None:
+
+            def refused(ref: str, value: str, message: str) -> None:
+                self._log.warning(
+                    "application update: value not taken over",
+                    device=device.node_id,
+                    parameter=ref,
+                    value=value,
+                    reason=message,
+                )
+
+            def failed(ref: str, value: str, message: str) -> None:
+                self._log.warning(
+                    "application update: calculation of a value taken over failed",
+                    device=device.node_id,
+                    parameter=ref,
+                    value=value,
+                    reason=message,
+                )
+
+            carried = carry_values(
+                ui,
+                everything,
+                stored,
+                module_instances(old_refs, device.app.id, new_app.id),
+                refused,
+                failed,
+            )
+            values = carried.values
+            not_taken = len(stored & carried.not_taken)
+        probe.release_dynamic_ui()
+        instances, new_objects = self._initial_rows(device.name, new_app, values)
         objects = carry_com_objects(
             row.com_objects,
             {co.id: co.object_size for co in device.com_objects},
@@ -5319,20 +5564,16 @@ class ProjectService:
             hardware2program_ref_id=target.id,
             new_app_id=new_app.id,
             com_objects=[(co.id, None) for co in new_objects],
-            module_instances=module_instances or None,
-            parameters=parameters.values,
+            module_instances=instances or None,
+            parameters=values,
             com_object_data=objects.data,
             additional_addresses=new_app.program.additional_addresses_count or 0,
         )
         self._app_cache[target.id] = new_app
         self._bump()
-        updated = self.find_device_by_node_id(device.node_id)
-        if updated is not None:
-            self.recalculate_params(
-                updated.node_id, [p.ref_id for p in updated.parameter_instance_refs]
-            )
-        kept = len(parameters.values) + objects.kept
-        dropped = parameters.dropped + objects.dropped
+        # The values the device held that the new one took, and those it did not.
+        kept = len(stored) - not_taken + objects.kept
+        dropped = parameters.dropped + not_taken + objects.dropped
         self._log.info(
             "application updated",
             device=device.node_id,
@@ -5473,6 +5714,16 @@ class ProjectService:
     ) -> tuple[list[tuple[str, str]], list[ComObject]]:
         """The module instances and active group objects of a new device of ``app`` with
         ``parameters``."""
+        init_device = self._initial_device(name, app, parameters)
+        module_instances = init_device.get_module_instances()
+        com_objects = list(init_device.com_objects)
+        init_device.release_dynamic_ui()
+        return module_instances, com_objects
+
+    def _initial_device(
+        self, name: str, app: Application, parameters: list[tuple[str, str]] | None
+    ) -> Device:
+        """A new device of ``app`` with ``parameters``, its module instances materialized."""
         pirs = _parameter_instance_refs(parameters)
         # A module-scoped parameter override (…_M-100_MI-1_P-…) only routes into its module scope
         # once that scope has been materialized — building with parameter_instance_refs alone leaves
@@ -5508,12 +5759,8 @@ class ProjectService:
                     for instance_id, ref_id in module_instances
                 ],
             )
-            module_instances = init_device.get_module_instances()
-        else:
-            init_device = probe
-        com_objects = list(init_device.com_objects)
-        init_device.release_dynamic_ui()
-        return module_instances, com_objects
+            return init_device
+        return probe
 
     def add_device(
         self,
@@ -5896,7 +6143,7 @@ class ProjectService:
         )
 
     def _com_object_target(
-        self, device: Device, old_active: set[str]
+        self, device: Device, old_active: set[str], current: set[str] | None = None
     ) -> set[str] | None:
         """The com-object set after a parameter change, or ``None`` when it is unchanged.
 
@@ -5904,11 +6151,13 @@ class ProjectService:
         never the absolute set: ADD objects that became active (``(new_active - old_active) -
         current``), REMOVE objects that became inactive (``(old_active - new_active) & current``).
         Using the delta cancels any pre-existing mismatch between the configured set and the parser's
-        derivation, so an unrelated edit touches nothing."""
+        derivation, so an unrelated edit touches nothing. ``current``: the objects the project has
+        now (default: those the device was built with)."""
         if not self._co_reconcile_enabled:
             return None
         new_active = device.active_parameter_driven_com_object_ref_ids()
-        current = {co.id for co in device.com_objects}
+        if current is None:
+            current = {co.id for co in device.com_objects}
         add = (new_active - old_active) - current
         remove = (old_active - new_active) & current
         target = (current - remove) | add
@@ -8047,6 +8296,8 @@ class ProjectService:
     def undo(self) -> bool:
         if self._pid is None:
             return False
+        # Before the step's values are set back: what a calculation anew wrote is stored.
+        self._store_calculated()
         peek = self._svc.peek_undo(self._pid)
         result = self._svc.undo(self._pid)
         if result:
@@ -8057,6 +8308,7 @@ class ProjectService:
     def redo(self) -> bool:
         if self._pid is None:
             return False
+        self._store_calculated()
         peek = self._svc.peek_redo(self._pid)
         result = self._svc.redo(self._pid)
         if result:
@@ -8070,9 +8322,17 @@ class ProjectService:
         """Refresh views after an undo/redo. A plain parameter change is applied *in place* on the
         affected device (like a live edit); a composite param+com-object change rebuilds only that one
         device (its com-object rows changed in the DB) — both instant, instead of discarding and
-        re-parsing every device's dynamic UI. Anything else falls back to a full structural rebuild."""
-        if peek is not None and self._devices_cache is not None:
-            event_type, data = peek
+        re-parsing every device's dynamic UI. Anything else falls back to a full structural rebuild.
+
+        A device whose parameter values the step sets is calculated anew from them (every Assign
+        that applies writes its target, see Device.calculate_anew): at once when it is the only
+        one or in use, else at its first use."""
+        if peek is None:
+            self._bump(structural=True)
+            return
+        event_type, data = peek
+        calculated = _parameter_devices(event_type, data)
+        if self._devices_cache is not None:
             if event_type == "SetParameter":
                 value = data.get("old_value") if undo else data.get("value")
                 device = self.find_device_by_node_id(int(data["device_id"]))
@@ -8080,6 +8340,7 @@ class ProjectService:
                     device.apply_param_values(
                         {str(data["ref_id"]): None if value is None else str(value)}
                     )
+                    self._calculate_anew(calculated, now=True)
                     self._bump(structural=False)
                     return
             elif event_type in (
@@ -8098,11 +8359,14 @@ class ProjectService:
                 "SyncDeviceComObjects",
             ) and not _changes_structure(data):
                 node_id = _history_device_id(data)
-                if node_id is not None:
+                # The parameters of several devices: each of them is built again (below).
+                if node_id is not None and calculated <= {node_id}:
                     self._refresh_device(node_id)  # rebuild only this device (not all)
+                    self._calculate_anew(calculated, now=True)
                     self._bump(structural=False)
                     return
         self._bump(structural=True)
+        self._calculate_anew(calculated)
 
     @io_guarded(lambda: False)
     def can_undo(self) -> bool:
@@ -8313,11 +8577,21 @@ class ProjectService:
         )
 
     def jump_to(self, event_id: int) -> None:
+        """Undo or redo the steps up to ``event_id``; each device whose parameters they set is
+        calculated anew as after an undo or redo: at once when it is in use, else at its first
+        use."""
         if self._pid is None:
             return
+        self._store_calculated()
+        low, high = sorted((self._svc.cursor(self._pid), event_id))
+        calculated: set[int] = set()
+        for entry in self._svc.history(self._pid):
+            if low < entry.id <= high:
+                calculated |= _parameter_devices(entry.event_type, entry.data)
         self._svc.jump_to(self._pid, event_id)
         self._read_code_page()
         self._bump()
+        self._calculate_anew(calculated)
 
     @io_guarded(list)
     @revision_cached

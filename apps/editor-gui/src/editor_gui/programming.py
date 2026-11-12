@@ -21,7 +21,7 @@ from editor_gui.device import address_order
 from xknxeditor.download import route
 from xknxeditor.download.download import download, preflight
 from xknxeditor.download.image import build_image
-from xknxeditor.download.preflight import ByteRange
+from xknxeditor.download.preflight import ByteRange, memory_key
 from xknxeditor.download.scope import DownloadScope
 
 if TYPE_CHECKING:
@@ -252,13 +252,22 @@ async def scan_programming_mode_devices(
     return results
 
 
+def _user_memory_segments(device: Device) -> frozenset[str]:
+    """The ids of the device's code segments in the user memory (``UserMemory``)."""
+    code = device.app.program.static.code if device.app is not None else None
+    if code is None:
+        return frozenset()
+    return frozenset(s.id for s in code.absolute_segment if s.user_memory)
+
+
 def runtime_managed_addresses(device: Device) -> set[int]:
     """Absolute memory addresses of system parameters the device sets at runtime.
 
     These are parameters with access "None" (not user configurable), e.g. a
     download-detection byte the application firmware overwrites after a download.
     A pre-flight difference at such an address is expected and benign, so the
-    result view can annotate it instead of flagging a real change.
+    result view can annotate it instead of flagging a real change. An address in the
+    user memory is kept by its ``memory_key``.
     """
     ui = device.dynamic_ui
     if ui is None or device.app is None:
@@ -267,6 +276,7 @@ def runtime_managed_addresses(device: Device) -> set[int]:
 
     indexer = ApplicationIndexer(device.app.program)
     base_addresses = ui.segment_base_addrs()
+    user = _user_memory_segments(device)
     addresses: set[int] = set()
     for segment_id, offset_map in ui.memory_param_map().items():
         base = base_addresses.get(segment_id)
@@ -276,7 +286,7 @@ def runtime_managed_addresses(device: Device) -> set[int]:
             parameter = indexer.parameters.get(parameter_id)
             access = getattr(parameter, "access", None)
             if access is not None and access.name == "NONE":
-                addresses.add(base + offset)
+                addresses.add(memory_key(base + offset, user=segment_id in user))
     return addresses
 
 
@@ -289,12 +299,14 @@ def parameter_driven_bits(device: Device) -> dict[int, int]:
     seed / application default). This map lets the result view separate, within a
     changed byte, the bits carrying a real configured value (in the mask) from the
     bits merely reset to the default (not in the mask, so a difference there means
-    the device holds an older/stale value programming will normalise).
+    the device holds an older/stale value programming will normalise). An address in
+    the user memory is kept by its ``memory_key``.
     """
     ui = device.dynamic_ui
     if ui is None:
         return {}
     base_addresses = ui.segment_base_addrs()
+    user = _user_memory_segments(device)
     driven: dict[int, int] = {}
     for segment_id, mask in ui.written_bit_mask().items():
         base = base_addresses.get(segment_id)
@@ -302,7 +314,8 @@ def parameter_driven_bits(device: Device) -> dict[int, int]:
             continue
         for offset, bits in enumerate(mask):
             if bits:
-                driven[base + offset] = driven.get(base + offset, 0) | bits
+                key = memory_key(base + offset, user=segment_id in user)
+                driven[key] = driven.get(key, 0) | bits
     return driven
 
 
@@ -361,7 +374,7 @@ def preflight_segment_ranges(
                 else PREFLIGHT_CONFIG
                 if offset in segment.table_bytes
                 else preflight_byte_category(
-                    segment.address + offset,
+                    segment.memory_key(offset),
                     _segment_changed_bits(segment, offset),
                     runtime_addresses,
                     driven_bits,

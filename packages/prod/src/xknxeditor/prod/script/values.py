@@ -3,7 +3,6 @@ from __future__ import annotations
 import base64
 import binascii
 import datetime
-import ipaddress
 import math
 import re
 from typing import cast
@@ -38,6 +37,8 @@ from xknxeditor.namespaces.intermediate.parameter_type_t_type_text import (
 from xknxeditor.namespaces.intermediate.parameter_type_t_type_time import (
     ParameterTypeTypeTime,
 )
+
+from ..parser_v2.ip_text import parse_ip_address
 
 JsValue = int | float | str | bool | None
 
@@ -302,10 +303,9 @@ def check_value(value: str, tc: object, *, text_encoding: str = "latin-1") -> st
             raise ValueError(f"value {value!r} is not a date") from exc
         return value
     if isinstance(tc, ParameterTypeTypeIpaddress):
-        try:
-            addr = ipaddress.ip_address(value.strip())
-        except ValueError as exc:
-            raise ValueError(f"value {value!r} is not an IP address") from exc
+        addr = parse_ip_address(value)
+        if addr is None:
+            raise ValueError(f"value {value!r} is not an IP address")
         want = 6 if tc.version == ParameterTypeTypeIpaddressVersion.IPV6 else 4
         if addr.version != want:
             raise ValueError(f"value {value!r} is not an IPv{want} address")

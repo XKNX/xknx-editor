@@ -623,6 +623,39 @@ def test_export_fills_empty_parameter_type(tmp_path: Path) -> None:
     )
 
 
+def test_export_writes_the_variable_object_size_by_its_schema_name(
+    tmp_path: Path,
+) -> None:
+    """The object size "Variable" of product data, which no schema lists, goes into the archive
+    as the schema's "LegacyVarData"; other sizes and other "Variable" texts stay."""
+    src = tmp_path / "src.xknx"
+    svc = ProjectService()
+    pid = svc.create(src, "P-VS")
+    svc.close(pid)
+
+    member = (
+        b'<?xml version="1.0" encoding="utf-8"?>\n'
+        b'<KNX xmlns="http://knx.org/xml/project/14"><ManufacturerData><Static>'
+        b"<ComObjectTable>"
+        b'<ComObject Id="O-1" Name="Variable" ObjectSize="Variable" />'
+        b"<ComObject Id='O-2' ObjectSize='Variable' />"
+        b'<ComObject Id="O-3" ObjectSize="1 Bit" />'
+        b"</ComObjectTable>"
+        b'<ComObjectRefs><ComObjectRef Id="O-1_R-1" ObjectSize="Variable" /></ComObjectRefs>'
+        b"</Static></ManufacturerData></KNX>"
+    )
+    out = tmp_path / "out.knxproj"
+    export_knxproj(src, out, extra_files={"M-0001_A-800A/800A.xml": member})
+
+    with zipfile.ZipFile(out) as zf:
+        rewritten = zf.read("M-0001_A-800A/800A.xml")
+    assert b'ObjectSize="Variable"' not in rewritten
+    assert rewritten.count(b'ObjectSize="LegacyVarData"') == 2
+    assert b"ObjectSize='LegacyVarData'" in rewritten
+    assert b'Name="Variable"' in rewritten
+    assert b'ObjectSize="1 Bit"' in rewritten
+
+
 _LEGACY_HARDWARE = (
     b'<?xml version="1.0" encoding="utf-8"?>\n'
     b'<KNX xmlns="http://knx.org/xml/project/11" CreatedBy="MT" ToolVersion="4.1.1207.40711">'

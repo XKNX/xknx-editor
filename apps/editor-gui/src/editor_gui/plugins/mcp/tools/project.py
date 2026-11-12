@@ -26,6 +26,7 @@ from editor_gui.device import (
 )
 from editor_gui.device import (
     com_object_display_name,
+    object_size_text,
 )
 from editor_gui.device_plugins import parameters_in_plugin
 from editor_gui.plugins.mcp.context import McpContext, make_tool, require_project
@@ -93,7 +94,8 @@ def com_object_dict(co: ComObject) -> dict[str, Any]:
         "number": co.number,
         "dpt": co.dpt.code,
         "dpt_name": co.dpt.name,
-        "object_size": co.object_size,
+        # As the group object lists show it: the variable-length size as "Variable".
+        "object_size": object_size_text(co.object_size),
         "flags": _flags_dict(co),
         "description": co.description,
         "priority": co.priority,
@@ -760,7 +762,7 @@ def perform_link(
     com_object_ref_id: str,
     co: Any,
     group_address_id: int,
-    is_sending: bool,
+    is_sending: bool | None,
     *,
     hidden: bool = False,
 ) -> dict[str, Any] | None:
@@ -768,10 +770,13 @@ def perform_link(
     (``already_linked``, no duplicate row), ``dpt_mismatch`` and ``other_sending_group_address_ids``
     (see :func:`_link_annotations`), and ``hidden: true`` when the device's parameters hide the
     com-object (see :func:`com_object_hidden`). ``co`` is the resolved com-object (``db_id`` set).
-    Returns None when the service refuses the link (unknown GA / security), so the caller raises its
-    own error. Shared by project_link_com_object and the batch link op so both give the same
-    feedback."""
+    ``is_sending`` None makes the link sending when the object has no sending link yet, as a
+    link made in the editor. Returns None when the service refuses the link (unknown GA /
+    security), so the caller raises its own error. Shared by project_link_com_object and the batch
+    link op so both give the same feedback."""
     existing = list(project.get_links_for_com_object(co.db_id))
+    if is_sending is None:
+        is_sending = not any(link.is_sending for link in existing)
     co_dpt = getattr(co, "dpt", None)
     ga_before = project.get_group_address(group_address_id)
     ga_dpt_before = ga_before.datapoint_type if ga_before else None
@@ -977,8 +982,9 @@ def hidden_parameter_rows(
         ):
             continue
         seen.add(ref_id)
+        value = ui.get_value(ref_id)
         parameter = replace(
-            parameter, value=ui.get_value(ref_id) or parameter.default_value
+            parameter, value=parameter.default_value if value is None else value
         )
         if modified_only and parameter.value == parameter.default_value:
             continue
@@ -1311,8 +1317,16 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         """Update a device to the local catalog version of the SAME application program that
         replaces the current one ("Update Application Program Version"). Identify the device by
         ``node_id`` OR ``device_address`` (an individual address like "1.0.30"); pass exactly one.
-        Parameter values carry over by ParameterRef number, group objects of the same size by
-        ComObjectRef number with their flags, priority, datapoint type and group-address links.
+        Parameter values carry over by ParameterRef number in the old application's order, each
+        checked by the new parameter type and its validations and running its own calculations;
+        a value the new version refuses is dropped (and logged); a value whose calculation fails
+        is kept with what the calculation wrote before the failure (logged). A parameter without
+        a value keeps the old version's default where the new version has another one (also one
+        with no access); a module parameter that takes the value of a module argument carries the
+        old argument's value. The values are set again (at most three times) while the last
+        change after setting one (the value, or an output of its calculations) stopped an Assign
+        applying. Group objects of the same size carry over by ComObjectRef number with their
+        flags, priority, datapoint type and group-address links.
 
         This is an undoable project edit (project_undo). To apply it on the bus, program the device
         afterwards with connection_program_device and scope="FULL". Returns {node_id, new_version,
@@ -2094,10 +2108,11 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         Group Objects tab shows them. Identify the device by ``node_id`` OR ``device_address`` (an
         individual address like "1.0.30"); pass exactly one.
         Returns {items, count}; each item has {ref_id, db_id, linkable, name, number, dpt, dpt_name,
-        object_size, flags, description, priority, links}. flags contains communication, read,
-        write, transmit, update, read_on_init. links are the object's group-address links as
-        project_get_com_object_links returns them ({assignment_id, group_address_id, address, name,
-        is_sending}); empty when it has none: one call shows which group address is on which
+        object_size, flags, description, priority, links}. object_size is the text the tab shows
+        ("1 Bit", "2 Bytes", "Variable" for a variable-length object). flags contains
+        communication, read, write, transmit, update, read_on_init. links are the object's
+        group-address links as project_get_com_object_links returns them ({assignment_id,
+        group_address_id, address, name, is_sending}); empty when it has none: one call shows which group address is on which
         object, and gives the assignment_id project_unlink_com_object takes.
         ``search`` keeps the objects whose name (with its function), description, or a linked
         group address (its address or name) contains it, case-insensitive. ``linked_only`` keeps
@@ -2148,6 +2163,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         ``device_address`` (an individual address like "1.0.30"); pass exactly one.
 
         Returns {items, count}; each item has {ref_id, number, name, function_text, dpt, object_size}
+        (object_size as the Group Objects tab shows it, "Variable" for a variable-length object)
         from the STATIC declaration: names/function texts are templates (no parameter or module
         substitution) and ``number`` is the base (a module instance offsets it). This is NOT a
         reachability proof — a declared object may never be activatable in a given configuration, and
@@ -2159,7 +2175,10 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             dyn = device.dynamic_ui
             if dyn is None:
                 raise ToolError(f"device {device.node_id} has no application loaded")
-            return dyn.declared_com_objects()
+            return [
+                {**item, "object_size": object_size_text(str(item["object_size"]))}
+                for item in dyn.declared_com_objects()
+            ]
 
         return _items(ctx.run_locked(_read))
 
@@ -4390,7 +4409,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         device_address: str | None = None,
         group_address_id: int | None = None,
         group_address: str | None = None,
-        is_sending: bool = False,
+        is_sending: bool | None = None,
     ) -> dict[str, Any]:
         """Create an undoable project link between a device com-object and a group address. The
         device is identified by ``node_id`` (from project_list_devices) OR ``device_address`` (an
@@ -4399,11 +4418,14 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         project's style). Pass exactly one of each pair. ``com_object_ref_id`` is the object's
         ``ref_id`` from project_list_com_objects (linkable=true).
 
-        ``is_sending`` (default False) marks which group address an object with SEVERAL links sends to
-        (it orders the associations, sending GA first); it does NOT change the object's flags, and for
-        a single link it has no byte effect — the send/receive direction comes from the object's own
-        flags. For a transmitting object (push-button/sensor output) linked to several GAs, mark its
-        intended sending GA; keep one sending GA per object. Returns {link_id, node_id,
+        ``is_sending`` marks the group address an object sends on. Leave it out to do as the
+        editor does: the object's first link is its sending one (true when the object has no
+        sending link yet, else false). Every linked object sends on exactly one of its group
+        addresses; it does NOT change the object's flags (the send/receive direction comes from
+        them), but it decides which link takes the object's own slot in the association table of
+        BCU1/BCU2 devices, so a link of an object without one is downloaded as its sending link
+        anyway. Pass true to move the sending address to another link; keep one sending GA per
+        object. Returns {link_id, node_id,
         com_object_ref_id, com_object_db_id, group_address_id, is_sending, already_linked} plus, when
         relevant, ``dpt_mismatch`` ({com_object, group_address} — the GA keeps its own DPT, so the
         DPT metadata differs; verify compatibility) and ``other_sending_group_address_ids`` (the

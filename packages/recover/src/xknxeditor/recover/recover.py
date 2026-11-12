@@ -41,7 +41,8 @@ if TYPE_CHECKING:
     from xknx import XKNX
     from xknx.telegram.address import IndividualAddressableType
 
-    from xknxeditor.prod import Application
+    from xknxeditor.download.factory_image import FactoryImage
+    from xknxeditor.prod import Application, MasterData
     from xknxeditor.prod.parser_v2.dynamic import DynamicUI
     from xknxeditor.prod.parser_v2.encode import TypedPropertyKey
 
@@ -73,6 +74,8 @@ class RecoveredDevice:
     property_values: dict[TypedPropertyKey, bytes] | None = None
     # The effort the parameters were searched with.
     effort: RecoveryEffort = RecoveryEffort.MEDIUM
+    # The image the product's devices leave the factory with, kept to search again.
+    factory_image: FactoryImage | None = None
 
 
 def seed_dynamic_ui(
@@ -104,8 +107,9 @@ def seed_dynamic_ui(
 
     With ``evaluated`` the UI may come back evaluated already: when seeding with the module
     instances the first build found gives the state the first build started from (each value
-    in the scope it was in), the second build would evaluate it alike, and the first one is
-    returned instead.
+    in the scope it was in; an instance it lists that holds no value is made by the evaluation
+    that reaches it, and the root's instances are found by their ids, not their order), the
+    second build would evaluate it alike, and the first one is returned instead.
     """
     from xknxeditor.namespaces.intermediate.module_instance_t import ModuleInstance
     from xknxeditor.prod.parser_v2.dynamic import DynamicUI
@@ -135,7 +139,9 @@ def seed_dynamic_ui(
             ],
             project_code_page=project_code_page,
         )
-        if layout is not None and layout == seeded.state_layout():
+        if layout is not None and DynamicUI.layouts_alike(
+            layout, seeded.state_layout()
+        ):
             return probe
         return seeded
     return DynamicUI(
@@ -203,6 +209,8 @@ async def recover_device(
     reads_done: Callable[[], Awaitable[None]] | None = None,
     effort: RecoveryEffort = RecoveryEffort.MEDIUM,
     cancel: Callable[[], bool] | None = None,
+    master: MasterData | None = None,
+    factory_image: FactoryImage | None = None,
 ) -> RecoveredDevice:
     """Read and decode one device's configuration over an open connection.
 
@@ -214,8 +222,9 @@ async def recover_device(
     :func:`~xknxeditor.recover.parameters.recover_parameters`. ``reads_done`` is awaited
     once everything is read, before the decoding (which takes seconds for a large
     application): the connection can be closed there, before the device closes it for
-    being idle. ``effort`` and ``cancel`` as for
-    :func:`~xknxeditor.recover.parameters.recover_parameters`. Read-only.
+    being idle. ``effort``, ``cancel``, ``master`` and ``factory_image`` (the product's
+    factory image) as for :func:`~xknxeditor.recover.parameters.recover_parameters`.
+    Read-only.
     """
     mask_version = await programmer.read_device_descriptor()
     dossier = await read_dossier(programmer)
@@ -240,6 +249,8 @@ async def recover_device(
         project_code_page,
         effort,
         cancel,
+        master,
+        factory_image,
     )
     return RecoveredDevice(
         address=address,
@@ -255,6 +266,7 @@ async def recover_device(
         com_object_refs=com_object_refs,
         property_values=dict(property_values),
         effort=effort,
+        factory_image=factory_image,
     )
 
 
@@ -264,12 +276,14 @@ def search_again(
     effort: RecoveryEffort,
     project_code_page: str | None = None,
     cancel: Callable[[], bool] | None = None,
+    master: MasterData | None = None,
 ) -> RecoveredDevice:
     """``device`` with its parameters searched again in what was read off it, with
     ``effort`` (e.g. more for a device whose result still differs from it, see
     :attr:`~xknxeditor.recover.parameters.RecoveredParameters.complete`). Needs no bus;
-    takes as long as the effort allows. ``project_code_page`` and ``cancel`` as for
-    :func:`~xknxeditor.recover.parameters.recover_parameters`."""
+    takes as long as the effort allows. ``project_code_page``, ``cancel`` and ``master``
+    as for :func:`~xknxeditor.recover.parameters.recover_parameters`; the factory image is
+    the one ``device`` was read with."""
     parameters, com_object_refs = _decode_configuration(
         application,
         device.links,
@@ -279,6 +293,8 @@ def search_again(
         project_code_page,
         effort,
         cancel,
+        master,
+        device.factory_image,
     )
     return replace(
         device, parameters=parameters, com_object_refs=com_object_refs, effort=effort
@@ -294,6 +310,8 @@ def _decode_configuration(
     project_code_page: str | None,
     effort: RecoveryEffort,
     cancel: Callable[[], bool] | None = None,
+    master: MasterData | None = None,
+    factory_image: FactoryImage | None = None,
 ) -> tuple[RecoveredParameters, dict[int, str]]:
     """The parameters read off a device, and the reference of each group object number."""
     linked = {link.group_object_number for link in links}
@@ -310,6 +328,8 @@ def _decode_configuration(
         },
         effort=effort,
         cancel=cancel,
+        master=master,
+        factory_image=factory_image,
     )
     # Resolve com object numbers against a UI seeded with the recovered parameters,
     # so module instances (and their runtime numbers) match the device rather than
@@ -348,6 +368,8 @@ async def recover_device_at(
     project_code_page: str | None = None,
     effort: RecoveryEffort = RecoveryEffort.MEDIUM,
     cancel: Callable[[], bool] | None = None,
+    master: MasterData | None = None,
+    factory_image: FactoryImage | None = None,
 ) -> RecoveredDevice:
     """Open a connection to ``address``, recover the device, and close it again.
 
@@ -356,7 +378,7 @@ async def recover_device_at(
     ``interface_max_apdu_length`` (the connecting interface's maximum): a device behind
     a tunnelling-v1 interface may advertise longer frames than the interface can carry,
     and those frames are dropped. ``progress`` reports the current read stage.
-    ``project_code_page``, ``effort`` and ``cancel`` as for
+    ``project_code_page``, ``effort``, ``cancel``, ``master`` and ``factory_image`` as for
     :func:`~xknxeditor.recover.parameters.recover_parameters`. Read-only.
 
     A transient transport failure (the KNXnet/IP tunnel dropping the point-to-point
@@ -409,6 +431,8 @@ async def recover_device_at(
                 reads_done=disconnect,
                 effort=effort,
                 cancel=cancel,
+                master=master,
+                factory_image=factory_image,
             )
         except (ManagementConnectionError, XKNXException, MemoryReadNotAnswered) as exc:
             # Transport hiccup, or a long read the interface dropped (raised as

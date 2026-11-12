@@ -265,11 +265,14 @@ msgstr "Export Ist/Soll…"
 msgid "Export Path:"
 msgstr "Cesta exportu:"
 
-msgid "memory {address}"
-msgstr "pamäť {address}"
+msgid "Memory {address}"
+msgstr "Pamäť {address}"
 
-msgid "object {object} property {property}"
-msgstr "objekt {object} vlastnosť {property}"
+msgid "User memory {address}"
+msgstr "Používateľská pamäť {address}"
+
+msgid "Object {object} property {property}"
+msgstr "Objekt {object} vlastnosť {property}"
 
 msgid "Filter devices (name, address)…"
 msgstr "Filtrovať zariadenia (názov, adresa)…"

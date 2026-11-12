@@ -5386,6 +5386,7 @@ class KnxGuiApp:
         self._handle_editor_requests()
         self._settle_tab_order()
         self._project_service.take_rechecked_devices()
+        self._project_service.take_calculated_values()
         self._project_service.take_product_data()
         self._sync_device_section()
         self._sync_project_log()

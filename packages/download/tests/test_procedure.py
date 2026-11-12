@@ -402,11 +402,47 @@ async def test_write_rel_mem_of_no_octets_writes_nothing() -> None:
     runner = LoadProcedureRunner(_application(write), image, DeviceProgrammer(device))
     report = await runner.preflight()
     assert not report.segments
-    # With octets to write, missing data is still an error.
-    sized = LdCtrlWriteRelMem(obj_type=3, occurrence=0, offset=0, size=2, verify=True)
-    runner = LoadProcedureRunner(_application(sized), image, DeviceProgrammer(device))
-    with pytest.raises(ImageError, match="no image data for relative range"):
-        await runner.run()
+
+
+async def test_write_rel_mem_without_image_data_writes_nothing() -> None:
+    # An application without parameter memory whose procedure allocates four octets of its
+    # application object and writes them: no image segment holds them, so nothing is
+    # written and the allocation keeps its fill; the preview has nothing to compare.
+    allocate = LdCtrlRelSegment(lsm_idx=4, size=4, mode=0, fill=0)
+    write = LdCtrlWriteRelMem(obj_idx=4, offset=0, size=4, verify=True)
+    image = DownloadImage(segments=(), properties=())
+    device = _device({0: 0x0000, 4: 3})
+    device.table_references[4] = 0x4000
+    runner = LoadProcedureRunner(
+        _application(allocate, write), image, DeviceProgrammer(device)
+    )
+    await runner.run()
+    assert not [p for p in device.sent if isinstance(p, MemoryWrite)]
+    runner = LoadProcedureRunner(
+        _application(allocate, write), image, DeviceProgrammer(device)
+    )
+    report = await runner.preflight()
+    assert not report.segments
+
+
+@pytest.mark.parametrize("preview", [False, True])
+async def test_a_router_object_without_its_filter_table_fails_before_any_write(
+    preview: bool,
+) -> None:
+    # A coupler's procedure writes the filter table into its Router object; without one
+    # for its address the download fails before it writes anything.
+    app = _application(
+        LdCtrlConnect(),
+        LdCtrlWriteRelMem(obj_type=6, occurrence=0, offset=0, size=8192, verify=True),
+        LdCtrlDisconnect(),
+    )
+    device = _device({0: 0x0000, 1: _ADDRESS_TABLE_TYPE, 2: 6})
+    runner = LoadProcedureRunner(
+        app, DownloadImage(segments=(), properties=()), DeviceProgrammer(device)
+    )
+    with pytest.raises(ImageError, match="coupler address"):
+        await (runner.preflight() if preview else runner.run())
+    assert not [p for p in device.sent if isinstance(p, MemoryWrite)]
 
 
 async def test_write_rel_mem_image_backed_uses_relative_lookup() -> None:

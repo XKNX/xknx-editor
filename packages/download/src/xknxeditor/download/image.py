@@ -23,6 +23,9 @@ from xknxeditor.namespaces.intermediate.application_program_static_t_code_relati
 from xknxeditor.namespaces.intermediate.com_object_t import ComObject
 from xknxeditor.namespaces.intermediate.enable_t import Enable
 from xknxeditor.namespaces.intermediate.ld_ctrl_abs_segment_t import LdCtrlAbsSegment
+from xknxeditor.namespaces.intermediate.ld_ctrl_compare_prop_t import LdCtrlCompareProp
+from xknxeditor.namespaces.intermediate.ld_ctrl_rel_segment_t import LdCtrlRelSegment
+from xknxeditor.namespaces.intermediate.ld_ctrl_write_prop_t import LdCtrlWriteProp
 from xknxeditor.namespaces.intermediate.resource_addr_space_t import ResourceAddrSpace
 from xknxeditor.namespaces.intermediate.resource_name_t import ResourceName
 from xknxeditor.prod import Application
@@ -30,7 +33,12 @@ from xknxeditor.prod.errors import EncodingError
 
 from .errors import ImageError
 from .factory_image import FactoryImage, FactoryLocation
-from .merge import device_mask_version, iter_load_controls, procedure_parameter_refs
+from .merge import (
+    device_mask_version,
+    iter_load_controls,
+    procedure_parameter_refs,
+    resolve_download_controls,
+)
 from .project_data import (
     GroupObjectLink,
     SeedDevice,
@@ -96,24 +104,34 @@ _COUPLER_BYTES = {
 }
 
 
-def _coupler_bytes(
-    mask_version: str, base: int, data: bytes, mask: bytes, initialized: bytes
-) -> tuple[bytes, bytes]:
-    """``data`` and ``initialized`` with the fixed line coupler bytes, for a segment
-    that covers them; bytes a parameter writes (``mask``) keep its value."""
+def coupler_bytes(mask_version: str, base: int, size: int) -> dict[int, int]:
+    """The fixed line coupler bytes an absolute segment at ``base`` of ``size`` octets gets
+    with its data, by offset in the segment, where no parameter writes them; empty unless
+    the device is a TP1 line coupler and the segment covers them."""
     version = mask_number(mask_version)
     if (
         version is None
         or version & 0xFFE0 != 0x0900
         or base > 0x010D
-        or base + len(data) <= 0x011C
+        or base + size <= 0x011C
     ):
+        return {}
+    return {address - base: value for address, value in _COUPLER_BYTES.items()}
+
+
+def _coupler_bytes(
+    mask_version: str, base: int, data: bytes, mask: bytes, initialized: bytes
+) -> tuple[bytes, bytes]:
+    """``data`` and ``initialized`` with the fixed line coupler bytes, for a segment
+    that covers them; bytes a parameter writes (``mask``) keep its value."""
+    fixed = coupler_bytes(mask_version, base, len(data))
+    if not fixed:
         return data, initialized
     patched, valid = bytearray(data), bytearray(initialized)
-    for address, value in _COUPLER_BYTES.items():
-        if not mask[address - base]:
-            patched[address - base] = value
-        valid[address - base] = 0xFF
+    for offset, value in fixed.items():
+        if not mask[offset]:
+            patched[offset] = value
+        valid[offset] = 0xFF
     return bytes(patched), bytes(valid)
 
 
@@ -121,6 +139,7 @@ if TYPE_CHECKING:
     from xknxeditor.namespaces.intermediate.application_program_static_t_code_absolute_segment import (
         ApplicationProgramStaticCodeAbsoluteSegment,
     )
+    from xknxeditor.prod import MasterData
     from xknxeditor.prod.parser_v2.dynamic import DynamicUI
 
 
@@ -541,8 +560,10 @@ class DownloadImage:
         *,
         include_initialized: bool = False,
         partial: bool = False,
+        user: bool = False,
     ) -> list[tuple[int, bytes]] | None:
-        """Return the ``(address, data)`` runs to write within ``[address, size)``.
+        """Return the ``(address, data)`` runs to write within ``[address, size)``, in the
+        user memory (``user_segments``) with ``user``.
 
         Collects the masked runs of every segment that *overlaps* the range,
         clipped to it (see :meth:`MemorySegment.masked_runs`; ``partial`` for a
@@ -573,7 +594,8 @@ class DownloadImage:
         data = bytearray(size)
         written = bytearray(size)
         covered = False
-        for segment in sorted(self.segments, key=lambda s: s.address):
+        source = self.user_segments if user else self.segments
+        for segment in sorted(source, key=lambda s: s.address):
             if segment.address >= end or segment.end <= address:
                 continue  # no overlap with the requested range
             covered = True
@@ -587,9 +609,13 @@ class DownloadImage:
                         lo - run_address : hi - run_address
                     ]
                     written[lo - address : hi - address] = b"\xff" * (hi - lo)
-        if not covered and any(
-            start <= address and end <= start + length
-            for start, length in self.mask_memory
+        if (
+            not covered
+            and not user
+            and any(
+                start <= address and end <= start + length
+                for start, length in self.mask_memory
+            )
         ):
             # The mask's own memory is part of every image, with nothing to write.
             covered = True
@@ -742,9 +768,15 @@ def build_image(
     table_memory: list[tuple[int, int]] = []
     if group_communication is not None:
         static = application.program.static
+        # Tables in a relative segment live in their objects' relative memory, as without
+        # a code segment.
         memory_mapped = (
             static.address_table is not None
             and static.address_table.code_segment is not None
+            and not isinstance(
+                declarations.get(static.address_table.code_segment),
+                ApplicationProgramStaticCodeRelativeSegment,
+            )
         )
         mask_version = device_mask_version(application)
         if property_group_tables(mask_version):
@@ -943,6 +975,127 @@ def _procedure_parameters(application: Application, ui: DynamicUI) -> dict[str, 
         if value is not None:
             values[ref] = value
     return values
+
+
+# A property as a load control addresses it: object index, object type, occurrence and PID.
+PropertyTarget = tuple[int | None, int | None, int, int]
+
+
+def written_properties(
+    application: Application,
+    master: MasterData | None,
+    ui: DynamicUI | None = None,
+) -> frozenset[PropertyTarget]:
+    """The properties a full download of ``application`` writes (``LdCtrlWriteProp``) or
+    compares with what it would write (``LdCtrlCompareProp``), each as a load control of its
+    procedure addresses it: the Load procedure resolved and merged as a download resolves it,
+    for the configuration ``ui`` (the values its ``choose`` tests, the controls of its module
+    instances). Without ``ui``, the properties every configuration's download writes: a
+    ``choose`` selects nothing then, and no module instance adds controls. Raises
+    :class:`~xknxeditor.download.errors.DownloadError` when the procedure does not resolve
+    (a merged procedure without ``master``)."""
+    controls = resolve_download_controls(
+        application,
+        master.raw if master is not None else None,
+        parameter_values=_procedure_parameters(application, ui) if ui else None,
+        module_controls={
+            merge_id: tuple(controls)
+            for merge_id, controls in ui.module_load_controls().items()
+        }
+        if ui
+        else None,
+    )
+    return frozenset(
+        (control.obj_idx, control.obj_type, control.occurrence, control.prop_id)
+        for control in controls
+        if isinstance(control, LdCtrlWriteProp | LdCtrlCompareProp)
+    )
+
+
+def relative_segment_fills(
+    application: Application, master: MasterData | None
+) -> dict[str, int]:
+    """The octet a full download of ``application`` fills each of its relative segments with
+    when it allocates the segment (``LdCtrlRelSegment`` of the segment's load state machine
+    with mode bit 0 set), by segment id: what the device holds there where no parameter is
+    written (an inactive parameter under ``DownloadInvisibleParameters="None"``). Left out
+    are segments filled with zeros, those not filled, and those with data of their own (the
+    download writes that data). Raises :class:`~xknxeditor.download.errors.DownloadError`
+    when the procedure does not resolve."""
+    code = application.program.static.code
+    if code is None or not code.relative_segment:
+        return {}
+    controls = resolve_download_controls(
+        application, master.raw if master is not None else None
+    )
+    fills: dict[int, int] = {}
+    for control in controls:
+        if isinstance(control, LdCtrlRelSegment) and control.lsm_idx is not None:
+            fills[control.lsm_idx] = control.fill if control.mode & 1 else 0
+    return {
+        segment.id: fills[segment.load_state_machine]
+        for segment in code.relative_segment
+        if segment.data is None and fills.get(segment.load_state_machine)
+    }
+
+
+def group_table_bits(application: Application, ui: DynamicUI) -> dict[int, int]:
+    """The bits of each octet (by absolute address) that the group communication tables of
+    a full download of ``ui`` write from the objects and the links, whatever the parameters
+    stored there encode: the flags of a group object table record, the slots of an
+    association table. What a parameter stored in those bits encodes never reaches the
+    device. Bits a table writes from the code segment's own data (a record's value pointer,
+    bit 5 of its flag byte) are the parameters' and are left out. Built without links: a
+    download with links writes longer tables, never shorter ones. Empty where the tables
+    are not in memory at absolute addresses (System B, System 300, properties) or the image
+    does not build."""
+    mask_version = device_mask_version(application)
+    static = application.program.static
+    code = static.code
+    relative: set[str] = (
+        {segment.id for segment in code.relative_segment} if code else set()
+    )
+    address_table = static.address_table
+    if (
+        property_group_tables(mask_version)
+        or mask_number(mask_version) == _SYSTEM_300
+        or address_table is None
+        or address_table.code_segment is None
+        or address_table.code_segment in relative
+    ):
+        return {}
+    try:
+        encoded = ui.encode_to_memory_masked()
+    except (EncodingError, ValueError):
+        return {}
+    base_addresses = ui.segment_base_addrs()
+    communication = GroupCommunication(device_address=0, links=())
+    # The tables built over the parameters' encoding and over its inverse: a bit the same
+    # in both is the tables' own.
+    octets: list[dict[int, int]] = []
+    for flip in (0x00, 0xFF):
+        seeds = {
+            segment_id: (bytes(value ^ flip for value in data), mask)
+            for segment_id, (data, mask) in encoded.items()
+        }
+        try:
+            tables = _group_communication_segments(
+                application, ui, base_addresses, seeds, communication
+            )
+        except (ImageError, EncodingError, ValueError):
+            return {}
+        written: dict[int, int] = {}
+        for segment in sorted(tables.segments, key=lambda s: s.address):
+            for address, data in segment.masked_runs(include_initialized=True):
+                for offset, value in enumerate(data):
+                    written[address + offset] = value
+        octets.append(written)
+    plain, inverse = octets
+    return {
+        address: bits
+        for address, value in plain.items()
+        if address in inverse and (bits := ~(value ^ inverse[address]) & 0xFF)
+    }
 
 
 def _security_tables(
@@ -1309,6 +1462,20 @@ _GROUP_ADDRESSES = _ADDRESS_TABLE + 3
 _CHECKSUM_SEGMENT = 0x80
 
 
+def _with_sending_link(links: Sequence[GroupObjectLink]) -> list[GroupObjectLink]:
+    """``links`` with the first link of each object that has links but no sending one marked
+    as its sending link: a linked group object always sends on one of its group addresses,
+    which takes the object's own slot in the association list."""
+    sending = {link.com_object_ref_id for link in links if link.sending}
+    out: list[GroupObjectLink] = []
+    for link in links:
+        if link.com_object_ref_id not in sending:
+            sending.add(link.com_object_ref_id)
+            link = replace(link, sending=True)
+        out.append(link)
+    return out
+
+
 def _bcu_group_tables(
     application: Application,
     base_addresses: Mapping[str, int],
@@ -1344,7 +1511,9 @@ def _bcu_group_tables(
             number_of[link.com_object_ref_id],
             sending=link.sending,
         )
-        for link in sorted(links, key=lambda link: number_of[link.com_object_ref_id])
+        for link in _with_sending_link(
+            sorted(links, key=lambda link: number_of[link.com_object_ref_id])
+        )
     ]
     if system1 or not easy:
         associations = association_slots(associations, object_count)

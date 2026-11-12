@@ -213,6 +213,28 @@ def parse_factory_image(raw: bytes | None) -> FactoryImage | None:
     return FactoryImage(tuple(segments))
 
 
+def _object_stamps(raw: bytes, count: int, wide: bool) -> tuple[ObjectStamp, ...]:
+    """The ``count`` object entries of a CRC stamp from octet 12 on, five octets per CRC when
+    ``wide``, else three."""
+    pos = 12
+    objects: list[ObjectStamp] = []
+    for _ in range(count):
+        index = raw[pos]
+        (segment_count,) = struct.unpack_from("<i", raw, pos + 1)
+        if segment_count < 0:
+            raise IndexError("negative number of segments")
+        pos += 5
+        crcs: list[tuple[bool, int]] = []
+        for _ in range(segment_count):
+            (crc,) = struct.unpack_from("<H", raw, pos + 1)
+            crcs.append((raw[pos] != 0, crc))
+            pos += 5 if wide else 3
+            if pos > len(raw):
+                raise IndexError("CRC past the end of the stamp")
+        objects.append(ObjectStamp(index, tuple(crcs)))
+    return tuple(objects)
+
+
 def parse_factory_stamp(raw: bytes | None) -> FactoryStamp | None:
     """The stamp of a ``CheckSums`` attribute (its base64 decoded), or ``None`` for an empty one
     or a flavour this engine does not check."""
@@ -226,21 +248,17 @@ def parse_factory_stamp(raw: bytes | None) -> FactoryStamp | None:
         pos = 12
         if flavour == _STAMP_OBJECT_CRCS:
             # The older layout adds two octets to every CRC: told apart by the length, the
-            # three-octet layout first.
+            # three-octet layout first. A length that fits both layouts is read with three
+            # octets, and again with five when the three-octet reading runs past the end.
             rest = len(raw) - 12 - count * 5
             wide = rest % 3 != 0 and rest % 5 == 0
-            objects: list[ObjectStamp] = []
-            for _ in range(count):
-                index = raw[pos]
-                (segment_count,) = struct.unpack_from("<i", raw, pos + 1)
-                pos += 5
-                crcs: list[tuple[bool, int]] = []
-                for _ in range(segment_count):
-                    (crc,) = struct.unpack_from("<H", raw, pos + 1)
-                    crcs.append((raw[pos] != 0, crc))
-                    pos += 5 if wide else 3
-                objects.append(ObjectStamp(index, tuple(crcs)))
-            stamp = FactoryStamp(objects=tuple(objects))
+            try:
+                objects = _object_stamps(raw, count, wide)
+            except (struct.error, IndexError):
+                if wide or rest % 3 != 0 or rest % 5 != 0:
+                    raise
+                objects = _object_stamps(raw, count, True)
+            stamp = FactoryStamp(objects=objects)
         elif flavour == _STAMP_PROPERTY_VALUES:
             properties: list[PropertyStamp] = []
             for _ in range(count):

@@ -1075,11 +1075,14 @@ msgstr "Vientipolku:"
 msgid "Export Programming Test Result"
 msgstr "Vie ohjelmointitestin tulos"
 
-msgid "memory {address}"
-msgstr "muisti {address}"
+msgid "Memory {address}"
+msgstr "Muisti {address}"
 
-msgid "object {object} property {property}"
-msgstr "objekti {object} ominaisuus {property}"
+msgid "User memory {address}"
+msgstr "Käyttäjämuisti {address}"
+
+msgid "Object {object} property {property}"
+msgstr "Objekti {object} ominaisuus {property}"
 
 msgid "Filter devices (name, address)…"
 msgstr "Suodata laitteita (nimi, osoite)…"

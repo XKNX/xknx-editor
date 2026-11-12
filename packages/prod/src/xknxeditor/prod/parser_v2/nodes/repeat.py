@@ -43,8 +43,9 @@ class RepeatNode(DynamicNode):
         """At least one pass; a pass of a parameter-driven count needs the count to reach it."""
         count_param = self._elem.parameter_ref_id if self._elem.count == 0 else None
         result: list[UiNode] = []
-        for i in range(1, max(self._count(ctx), 1) + 1):
-            rctx = ctx.repeat_ctx(i)
+        count = max(self._count(ctx), 1)
+        for i in range(1, count + 1):
+            rctx = ctx.repeat_ctx(i, count)
             if count_param:
                 explorer.push_gate(
                     Gate(ctx.qualify_local(count_param), f">={i}", needs_active=False)
@@ -74,8 +75,9 @@ class RepeatNode(DynamicNode):
             # instance-qualified, ancestor/app param -> unqualified. Identity at global scope.
             capture.push(ctx.qualify_local(count_param))  # type: ignore[union-attr]
         try:
-            for i in range(1, self._count(ctx) + 1):
-                rctx = ctx.repeat_ctx(i)
+            count = self._count(ctx)
+            for i in range(1, count + 1):
+                rctx = ctx.repeat_ctx(i, count)
                 for c in self._active():
                     result.extend(c.eval(rctx))
         finally:

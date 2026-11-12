@@ -265,11 +265,14 @@ msgstr "Izvozi dejansko/želeno…"
 msgid "Export Path:"
 msgstr "Pot izvoza:"
 
-msgid "memory {address}"
-msgstr "pomnilnik {address}"
+msgid "Memory {address}"
+msgstr "Pomnilnik {address}"
 
-msgid "object {object} property {property}"
-msgstr "objekt {object} lastnost {property}"
+msgid "User memory {address}"
+msgstr "Uporabniški pomnilnik {address}"
+
+msgid "Object {object} property {property}"
+msgstr "Objekt {object} lastnost {property}"
 
 msgid "Filter devices (name, address)…"
 msgstr "Filtriraj naprave (ime, naslov)…"

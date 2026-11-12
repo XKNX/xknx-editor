@@ -145,13 +145,20 @@ def decode_group_address_table(data: bytes) -> tuple[int, list[int]]:
 
 
 def decode_association_table(
-    data: bytes, group_addresses: list[int]
+    data: bytes, group_addresses: list[int], *, reserved_slots: bool = False
 ) -> list[DecodedLink]:
     """Decode a memory-mapped association table into links.
 
     Layout ``[count:1]`` then ``[group address index:1][group object number:1]``
     per entry, where index ``i`` references ``group_addresses[i-1]`` (index 0 is
     the device address). Entries referencing an out-of-range index are skipped.
+
+    With ``reserved_slots`` (a BCU1/BCU2 association list, see
+    :func:`xknxeditor.download.tables.association_slots`) entry *i* is the slot of
+    group object *i*: the association there of that object is its sending one, and
+    every other association is a receiving one, also one that comes first (an unused
+    slot holds a receiving association of another object). Else the first
+    association of each object in table order is its sending one.
     """
     if len(data) < 1:
         raise TableDecodeError("empty association table")
@@ -161,12 +168,23 @@ def decode_association_table(
             f"association table too short for count {count}: {len(data)} octets"
         )
     pairs: list[tuple[int, int]] = []
+    slots: list[bool] = []
     for i in range(count):
         index = data[1 + 2 * i]
         number = data[2 + 2 * i]
         if 1 <= index <= len(group_addresses):
             pairs.append((group_addresses[index - 1], number))
-    return _apply_sending(pairs)
+            slots.append(number == i)
+    if not reserved_slots:
+        return _apply_sending(pairs)
+    return [
+        DecodedLink(
+            group_address=group_address,
+            group_object_number=number,
+            sending=own_slot,
+        )
+        for (group_address, number), own_slot in zip(pairs, slots, strict=True)
+    ]
 
 
 def decode_com_object_table(

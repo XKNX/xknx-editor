@@ -74,11 +74,15 @@ class Journal:
     before: dict[str, tuple[str | None, str | None]] = field(
         default_factory=dict[str, tuple[str | None, str | None]]
     )
+    # Told the ref of each value set, once it is written.
+    on_set: Callable[[str], None] | None = None
 
     def set(self, ref_id: str, value: str) -> None:
         if ref_id not in self.before:
             self.before[ref_id] = (self.read(ref_id), self.explicit(ref_id))
         self.write(ref_id, value)
+        if self.on_set is not None:
+            self.on_set(ref_id)
 
     def note(self, ref_id: str, old: str | None, explicit: str | None) -> None:
         """Record a value the change wrote without the journal (an Assign), with its value
@@ -420,17 +424,17 @@ def _write_outputs(
     strict: bool = True,
     report: bool = True,
 ) -> None:
-    """Coerce the computed outputs to their parameter types and write the changed ones.
+    """Coerce the computed outputs to their parameter types and write the changed ones, one
+    after another in the order the calculation lists them.
 
-    ``strict``: an output its parameter does not take fails the calculation before anything is
-    written. Otherwise that output is left out (logged with ``report``), and the others are
-    written."""
+    ``strict``: an output its parameter does not take fails the calculation; the outputs listed
+    before it are written. Otherwise that output is left out (logged with ``report``), and the
+    others are written."""
     values = _coerced_outputs(idx, calc, direction, computed, scope)
-    errors = [v for v in values.values() if isinstance(v, CalculationError)]
-    if strict and errors:
-        raise errors[0]
     for ref_id, value in values.items():
         if isinstance(value, CalculationError):
+            if strict:
+                raise value
             if report:
                 _log_failure(calc.id, value)
         elif value != scope.get(ref_id):

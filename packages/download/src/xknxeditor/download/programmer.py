@@ -568,22 +568,23 @@ class DeviceProgrammer:
             raise VerificationError("no key response received")
         return payload.level
 
-    def _block_count(self, address: int, remaining: int) -> int:
+    def _block_count(self, address: int, remaining: int, *, user: bool = False) -> int:
         """Octets to transfer next: the APDU chunk, clamped to the 64 KiB boundary.
 
         A single A_Memory_/A_UserMemory_ transfer must not straddle the 64 KiB
         boundary (the address space and APCI change there), so a block that would
-        cross it is cut at the boundary.
+        cross it is cut at the boundary. The user memory (``user``) takes the
+        A_UserMemory services at every address, so it has no such boundary.
         """
         limit = (
             self._payload_budget(
                 4, min(_MAX_USER_MEMORY_CHUNK, self.max_memory_service_count)
             )
-            if address >= _USER_MEMORY_BOUNDARY
+            if user or address >= _USER_MEMORY_BOUNDARY
             else self.memory_chunk_size
         )
         count = min(limit, remaining)
-        if address < _USER_MEMORY_BOUNDARY < address + count:
+        if not user and address < _USER_MEMORY_BOUNDARY < address + count:
             count = _USER_MEMORY_BOUNDARY - address
         return count
 
@@ -617,10 +618,16 @@ class DeviceProgrammer:
             self.extended_memory = False
             return await standard()
 
-    async def read_memory(self, address: int, size: int) -> bytes:
+    async def read_memory(
+        self, address: int, size: int, *, user: bool = False
+    ) -> bytes:
         """Read ``size`` octets starting at ``address``, chunked to the APDU length, with
         A_MemoryExtended_Read when the device takes it (see ``_reads_extended``), else with
-        A_Memory_Read below 64 KiB and A_UserMemory_Read above."""
+        A_Memory_Read below 64 KiB and A_UserMemory_Read above. The user memory (``user``,
+        an address space of its own) is read with A_UserMemory_Read at every address
+        (KNX 3/3/7 3.5.6.2)."""
+        if user:
+            return await self._read_standard(address, size, user=True)
         if self._reads_extended(address, size):
             return await self._with_fallback(
                 lambda: self._read_extended(address, size),
@@ -687,7 +694,12 @@ class DeviceProgrammer:
         )
 
     async def _read_standard(
-        self, address: int, size: int, *, until_refused: bool = False
+        self,
+        address: int,
+        size: int,
+        *,
+        until_refused: bool = False,
+        user: bool = False,
     ) -> bytes:
         """Read with A_Memory_Read / A_UserMemory_Read.
 
@@ -705,10 +717,10 @@ class DeviceProgrammer:
         logger.debug("read_memory: addr=%#06x size=%d", address, size)
         while offset < size:
             block_address = address + offset
-            count = self._block_count(block_address, size - offset)
+            count = self._block_count(block_address, size - offset, user=user)
             if self._memory_read_cap is not None:
                 count = min(count, self._memory_read_cap)
-            data = await self._read_block(block_address, count)
+            data = await self._read_block(block_address, count, user=user)
             if not data:
                 # Some devices (observed on BIM M112 / mask 0701) answer certain A_Memory_Read
                 # counts with a zero-length reply while serving smaller counts fine. Back the block
@@ -717,7 +729,7 @@ class DeviceProgrammer:
                 while not data and count > 1:
                     count = max(1, count // 2)
                     self._memory_read_cap = count
-                    data = await self._read_block(block_address, count)
+                    data = await self._read_block(block_address, count, user=user)
                 if not data:
                     # The end of what the device holds: the short replies before it were
                     # that end too, not a block size the device cannot serve.
@@ -735,14 +747,17 @@ class DeviceProgrammer:
             offset += len(data)
         return bytes(result)
 
-    async def _read_block(self, address: int, count: int) -> bytes:
-        """Read one block via A_Memory_Read or A_UserMemory_Read by address.
+    async def _read_block(
+        self, address: int, count: int, *, user: bool = False
+    ) -> bytes:
+        """Read one block via A_Memory_Read or A_UserMemory_Read by address, always via
+        A_UserMemory_Read in the user memory (``user``).
 
         Returns the response octets, which may be fewer than ``count`` (a valid
         short reply); the caller handles that. Only more octets than requested is
         a protocol violation.
         """
-        if address >= _USER_MEMORY_BOUNDARY:
+        if user or address >= _USER_MEMORY_BOUNDARY:
             request: APCI = UserMemoryRead(address=address, count=count)
             expected: type[APCI] = UserMemoryResponse
         else:
@@ -777,11 +792,15 @@ class DeviceProgrammer:
         return payload.data
 
     async def write_memory(
-        self, address: int, data: bytes, *, verify: bool = False
+        self, address: int, data: bytes, *, verify: bool = False, user: bool = False
     ) -> None:
         """Write ``data`` starting at ``address``, chunked to the APDU length, with
         A_MemoryExtended_Write when the device takes it, else with A_Memory_Write below
-        64 KiB and A_UserMemory_Write above."""
+        64 KiB and A_UserMemory_Write above. The user memory (``user``, an address space of
+        its own) is written with A_UserMemory_Write at every address (KNX 3/3/7 3.5.6.3)."""
+        if user:
+            await self._write_standard(address, data, verify=verify, user=True)
+            return
         if self.extended_memory:
             await self._with_fallback(
                 lambda: self._write_extended(address, data, verify=verify),
@@ -790,8 +809,10 @@ class DeviceProgrammer:
             return
         await self._write_standard(address, data, verify=verify)
 
-    def _optimistic_block(self, address: int) -> int:
+    def _optimistic_block(self, address: int, *, user: bool = False) -> int:
         """Octets an optimistic write compares per read (see :meth:`write_memory_optimistic`)."""
+        if user:
+            return _OPTIMISTIC_USER_MEMORY_BLOCK
         if self.extended_memory:
             return max(1, self.max_apdu_length - _EXTENDED_MEMORY_OVERHEAD)
         if address >= _USER_MEMORY_BOUNDARY:
@@ -801,21 +822,24 @@ class DeviceProgrammer:
             max(DEFAULT_MAX_APDU_LENGTH, self.max_apdu_length) - MEMORY_OVERHEAD,
         )
 
-    async def write_memory_optimistic(self, address: int, data: bytes) -> bool:
+    async def write_memory_optimistic(
+        self, address: int, data: bytes, *, user: bool = False
+    ) -> bool:
         """Write ``data`` at ``address`` only where the device differs, verified.
 
         The memory is read block by block; a block that differs is written from its first
         to its last differing octet, a block that matches is not written. Once at least 32
         octets were compared and more than a third of them differed, or four blocks in a row
         differed, the rest is written as a whole. Returns whether the write stayed
-        optimistic to the end (``False`` once the rest was written as a whole)."""
-        block = self._optimistic_block(address)
+        optimistic to the end (``False`` once the rest was written as a whole). ``user``: in
+        the user memory (see :meth:`write_memory`)."""
+        block = self._optimistic_block(address, user=user)
         matched = mismatched = different_blocks = 0
         offset = 0
         while offset < len(data):
             size = min(block, len(data) - offset)
             planned = data[offset : offset + size]
-            current = await self.read_memory(address + offset, size)
+            current = await self.read_memory(address + offset, size, user=user)
             differs = [current[i] != planned[i] for i in range(size)]
             mismatched += sum(differs)
             matched += size - sum(differs)
@@ -823,7 +847,10 @@ class DeviceProgrammer:
                 first = differs.index(True)
                 last = size - differs[::-1].index(True)
                 await self.write_memory(
-                    address + offset + first, planned[first:last], verify=True
+                    address + offset + first,
+                    planned[first:last],
+                    verify=True,
+                    user=user,
                 )
                 different_blocks += 1
             else:
@@ -843,7 +870,9 @@ class DeviceProgrammer:
                     matched + mismatched,
                     self.diagnostic_context,
                 )
-                await self.write_memory(address + offset, data[offset:], verify=True)
+                await self.write_memory(
+                    address + offset, data[offset:], verify=True, user=user
+                )
                 return False
         return True
 
@@ -909,16 +938,17 @@ class DeviceProgrammer:
                 )
 
     async def _write_standard(
-        self, address: int, data: bytes, *, verify: bool = False
+        self, address: int, data: bytes, *, verify: bool = False, user: bool = False
     ) -> None:
-        """Write with A_Memory_Write / A_UserMemory_Write.
+        """Write with A_Memory_Write / A_UserMemory_Write (only the latter in the user
+        memory, ``user``).
 
         With memory auto-verify enabled, consume and validate every write echo.
         Otherwise ``verify`` reads each block back and compares it immediately.
         """
         self._validate_memory_range(address, len(data))
         if data:
-            self._block_count(address, len(data))
+            self._block_count(address, len(data), user=user)
             if not self._memory_verify_known:
                 await self.read_property(0, 14)
         offset = 0
@@ -927,11 +957,13 @@ class DeviceProgrammer:
         )
         while offset < len(data):
             block_address = address + offset
-            count = self._block_count(block_address, len(data) - offset)
+            count = self._block_count(block_address, len(data) - offset, user=user)
             block = data[offset : offset + count]
-            await self._write_block(block_address, block)
+            await self._write_block(block_address, block, user=user)
             if verify and not self.memory_auto_verify:
-                read_back = await self._read_standard(block_address, len(block))
+                read_back = await self._read_standard(
+                    block_address, len(block), user=user
+                )
                 if read_back != block:
                     raise CompareMismatch(
                         f"memory verification failed at {block_address:#06x}: "
@@ -992,22 +1024,22 @@ class DeviceProgrammer:
                 await asyncio.sleep(_TRANSIENT_RETRY_DELAY)
         raise AssertionError("unreachable")
 
-    async def _write_block(self, address: int, block: bytes) -> None:
-        """Write one block via A_Memory_Write or A_UserMemory_Write by address."""
+    async def _write_block(
+        self, address: int, block: bytes, *, user: bool = False
+    ) -> None:
+        """Write one block via A_Memory_Write or A_UserMemory_Write by address, always via
+        A_UserMemory_Write in the user memory (``user``)."""
+        user = user or address >= _USER_MEMORY_BOUNDARY
         request = (
             UserMemoryWrite(address=address, data=block)
-            if address >= _USER_MEMORY_BOUNDARY
+            if user
             else MemoryWrite(address=address, data=block)
         )
         try:
             if not self.memory_auto_verify:
                 await self._retry_transient(lambda: self.connection.send_data(request))
                 return
-            expected = (
-                UserMemoryResponse
-                if address >= _USER_MEMORY_BOUNDARY
-                else MemoryResponse
-            )
+            expected = UserMemoryResponse if user else MemoryResponse
             telegram = await self._retry_transient(
                 lambda: self.connection.request(request, expected)
             )
@@ -1447,45 +1479,17 @@ class DeviceProgrammer:
             )
         return bytes([payload.return_code]) + payload.data
 
-    def _user_memory_chunk(self) -> int:
-        return max(
-            1,
-            min(_MAX_USER_MEMORY_CHUNK, self.max_apdu_length - self.apdu_overhead - 5),
-        )
-
     async def read_user_memory(self, address: int, size: int) -> bytes:
-        """Read ``size`` octets with A_UserMemory_Read, whatever the address."""
-        result = bytearray()
-        while len(result) < size:
-            block = address + len(result)
-            count = min(self._user_memory_chunk(), size - len(result))
-            telegram = await self.connection.request(
-                UserMemoryRead(address=block, count=count), UserMemoryResponse
-            )
-            payload = telegram.payload
-            if not isinstance(payload, UserMemoryResponse) or not payload.data:
-                raise VerificationError(f"no user memory response at {block:#07x}")
-            result.extend(payload.data[: size - len(result)])
-        return bytes(result)
+        """Read ``size`` octets of the user memory with A_UserMemory_Read, whatever the
+        address (see :meth:`read_memory`)."""
+        return await self.read_memory(address, size, user=True)
 
     async def write_user_memory(
         self, address: int, data: bytes, *, verify: bool = False
     ) -> None:
-        """Write ``data`` with A_UserMemory_Write, whatever the address."""
-        offset = 0
-        while offset < len(data):
-            block = data[offset : offset + self._user_memory_chunk()]
-            await self.connection.send_data(
-                UserMemoryWrite(address=address + offset, data=block)
-            )
-            if (
-                verify
-                and await self.read_user_memory(address + offset, len(block)) != block
-            ):
-                raise CompareMismatch(
-                    f"user memory verification failed at {address + offset:#07x}"
-                )
-            offset += len(block)
+        """Write ``data`` to the user memory with A_UserMemory_Write, whatever the address
+        (see :meth:`write_memory`)."""
+        await self.write_memory(address, data, verify=verify, user=True)
 
     @staticmethod
     def _function_property_result(

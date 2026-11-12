@@ -20,7 +20,10 @@ class _Programmer:
     def __init__(self) -> None:
         self.reads: list[tuple[int, int]] = []
 
-    async def read_memory(self, address: int, size: int) -> bytes:
+    async def read_memory(
+        self, address: int, size: int, *, user: bool = False
+    ) -> bytes:
+        assert not user
         self.reads.append((address, size))
         return bytes(size)
 
@@ -37,7 +40,9 @@ def _segment(address: int, size: int) -> LdCtrlAbsSegment:
     )
 
 
-def _application(style: LoadProcedureStyle, *controls: object) -> Any:
+def _application(
+    style: LoadProcedureStyle, *controls: object, address_table: str | None = "AS-4000"
+) -> Any:
     return cast(
         Any,
         SimpleNamespace(
@@ -52,7 +57,9 @@ def _application(style: LoadProcedureStyle, *controls: object) -> Any:
             else None,
             program=SimpleNamespace(
                 static=SimpleNamespace(
-                    address_table=SimpleNamespace(code_segment="AS-4000"),
+                    address_table=None
+                    if address_table is None
+                    else SimpleNamespace(code_segment=address_table),
                     code=SimpleNamespace(
                         absolute_segment=[
                             SimpleNamespace(id="AS-4000", user_memory=False),
@@ -100,3 +107,15 @@ async def test_every_segment_is_read_without_a_procedure_that_places_them() -> N
     ):
         segments, _reads = await _read(application)
         assert segments == {"AS-4000", "AS-4700"}
+
+
+async def test_the_segments_of_an_application_without_an_address_table_are_read() -> (
+    None
+):
+    # A line coupler has no group address table: its parameters still lie at the fixed
+    # addresses of its absolute segments.
+    application = _application(LoadProcedureStyle.DEFAULT_PROCEDURE, address_table=None)
+    assert await _read(application) == (
+        {"AS-4000", "AS-4700"},
+        [(0x4000, 0x10), (0x4700, 8)],
+    )

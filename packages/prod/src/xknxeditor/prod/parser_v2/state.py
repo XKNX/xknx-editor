@@ -4,7 +4,7 @@ import copy
 import re
 from collections.abc import Iterable, Mapping
 from functools import lru_cache
-from typing import Any, ClassVar, Self
+from typing import Any, ClassVar, Self, cast
 
 from xknxeditor.namespaces.ids import unpadded_id
 from xknxeditor.namespaces.intermediate import (
@@ -107,6 +107,11 @@ def _submodule_definition(instance_id: str) -> tuple[str, str] | None:
 def _instance_length(scope: ParameterState) -> int:
     """The length of the id of the module instance ``scope`` is (0 for the application)."""
     return len(scope.module_instance_id) if isinstance(scope, ModuleState) else 0
+
+
+def _counters(path: tuple[int, ...]) -> str:
+    """The counters of a repeat path as a submodule instance's id ends with them (``1-1-2``)."""
+    return "-".join(str(n) for n in path)
 
 
 @lru_cache(maxsize=1 << 16)
@@ -213,23 +218,31 @@ class ParameterState:
     """
 
     __slots__ = (
+        "_active_assigns",
         "_active_com_object_refs",
         "_active_module_keys",
         "_active_param_refs",
         "_alloc_positions",
+        "_assign_seen",
         "_assign_targets",
+        "_assign_written",
         "_assigned_from",
+        "_assigns_gated",
+        "_assigns_now",
         "_children",
         "_com_obj_instance_refs",
         "_discovered_active_param_refs",
         "_dormant_children",
+        "_evaluation_writes",
         "_gate_param_refs",
         "_known_param_ref_values",
         "_param_ref_defaults",
         "_parent",
         "_pass_texts",
         "_pass_values",
+        "_seeded",
         "_text",
+        "_ungated_writes",
         "param_ref_id_to_value",
     )
 
@@ -293,9 +306,32 @@ class ParameterState:
         # The param-refs the Assigns of the current pass wrote from another one: target ->
         # source (local ids of this scope).
         self._assigned_from: dict[str, str] = {}
-        # The param-refs an Assign of the current pass wrote (local ids of this scope): the
-        # targets of the Assigns that apply.
+        # The targets of the Assigns of the current pass that apply with a value (local ids of
+        # this scope), whether they wrote it in the pass or not.
         self._assign_targets: set[str] = set()
+        # The targets the Assigns of the current pass wrote (see run_assign).
+        self._assign_written: set[str] = set()
+        # The Assigns the current pass reached in this scope (see note_assign): those that
+        # apply.
+        self._active_assigns: set[int] = set()
+        # The Assigns that applied after the last pass with gates (the last pass of the last
+        # evaluation, see commit_assigns), each with the value of its source then (None for
+        # one with a fixed value): an Assign writes when it starts applying or its source
+        # changed (see run_assign).
+        self._assign_seen: dict[int, str | None] = {}
+        # The same of the current pass, and whether it has gates (only a pass with gates
+        # tells which Assigns apply).
+        self._assigns_now: dict[int, str | None] = {}
+        self._assigns_gated = False
+        # The param-refs whose values this scope takes as what its Assigns wrote (see
+        # mark_seeded) until its first evaluation ends; None otherwise.
+        self._seeded: frozenset[str] | None = None
+        # The values the targets of the Assigns of a pass without gates (see
+        # undo_ungated_assigns) had before (the known value, and the value of the map).
+        self._ungated_writes: dict[str, tuple[str | None, str | None]] = {}
+        # The values the targets the Assigns of the current evaluation wrote had before its
+        # first such write (as _ungated_writes; see give_back_lapsed_assigns).
+        self._evaluation_writes: dict[str, tuple[str | None, str | None]] = {}
         self._pass_texts: dict[str, str | None] = {}
 
     def get(self, ref_id: str) -> str | None:
@@ -341,15 +377,148 @@ class ParameterState:
         self.param_ref_id_to_value[ref_id] = value
         self._known_param_ref_values[ref_id] = value
 
-    def assign(self, ref_id: str, value: str) -> None:
-        """An Assign of the current pass writes ``value`` into ``ref_id``: it is stored like
-        any other value and stays when the Assign no longer applies."""
-        self.set(ref_id, value)
-        self._assign_targets.add(ref_id)
+    def run_assign(
+        self,
+        key: int,
+        target: str,
+        value: str | None,
+        *,
+        from_source: bool,
+        always: bool = False,
+    ) -> None:
+        """The Assign ``key`` (the id of its element) of the current pass applies: its value is
+        ``value``, the value of its source (``from_source``) or its fixed one. It writes it into
+        ``target`` when it starts applying (it did not apply after the last pass with gates) and
+        whenever its source has another value than then; else the target keeps the value it
+        has, also one set directly meanwhile. The first evaluation of a scope is the start of
+        every Assign it reaches, except in a scope that takes its values as what its Assigns
+        wrote (see :meth:`mark_seeded`): an Assign that applies then writes only a target
+        without such a value. ``always`` writes it in any case.
+
+        The value is stored like any other value and stays when the Assign no longer applies.
+        Nothing is written while the source has no value."""
+        if key in self._assign_seen:
+            write = from_source and self._assign_seen[key] != value
+        else:
+            write = self._seeded is None or target not in self._seeded
+        self._assigns_now[key] = value if from_source else None
+        if value is None:
+            return
+        self._assign_targets.add(target)
+        if not (write or always):
+            return
+        before = (
+            self._known_param_ref_values.get(target),
+            self.param_ref_id_to_value.get(target),
+        )
+        if self._gate_param_refs is None:
+            self._ungated_writes.setdefault(target, before)
+        self._evaluation_writes.setdefault(target, before)
+        self.set(target, value)
+        self._assign_written.add(target)
+
+    def commit_assigns(self) -> None:
+        """An evaluation ended (this scope and the module scopes below): the Assigns of its
+        last pass are those that apply, with the values of their sources then (see
+        :meth:`run_assign`), and the scope's seeding is over."""
+        self._assign_seen = dict(self._assigns_now)
+        self._seeded = None
+        self._evaluation_writes.clear()
+        for child in self._children.values():
+            child.commit_assigns()
+        # The Assigns of an instance set aside do not apply: each starts applying again when
+        # the instance comes back.
+        for child in self._dormant_children.values():
+            child.restart_assigns()
+
+    def mark_seeded(self) -> None:
+        """Take the values this scope and the module scopes below hold now as what their
+        Assigns wrote, until their first evaluation ends (see :meth:`run_assign`)."""
+        self._seeded = frozenset(self._known_param_ref_values)
+        for child in self._children.values():
+            child.mark_seeded()
+
+    def restart_assigns(self) -> None:
+        """Take every Assign of this scope and the module scopes below as not applying, so that
+        each one the next evaluation reaches starts applying and writes its target (see
+        :meth:`run_assign`), as in the first evaluation of a device calculated from its values
+        anew."""
+        self._assign_seen = {}
+        self._assigns_now = {}
+        self._assigns_gated = False
+        self._seeded = None
+        for child in (*self._children.values(), *self._dormant_children.values()):
+            child.restart_assigns()
+
+    def note_assign(self, key: int) -> None:
+        """The current pass reached the Assign ``key`` (the id of its element) in this scope:
+        it applies, whatever it writes."""
+        self._active_assigns.add(key)
+
+    def active_assigns(self) -> set[tuple[str, int]]:
+        """The Assigns the last pass reached, in this scope and the module scopes below, each
+        as the id of the module instance it is in (empty for the application) with its key."""
+        instance = getattr(self, "module_instance_id", "")
+        result = {(instance, key) for key in self._active_assigns}
+        for child in self._children.values():
+            result |= child.active_assigns()
+        return result
+
+    def undo_ungated_assigns(self) -> None:
+        """After a pass with gates, give back the values the Assigns of the pass without gates
+        before it wrote that no Assign of this pass writes (this scope and the module scopes
+        below). A pass without gates (the first, no parameter known active yet) selects a branch
+        of every Choose, also of one whose parameter is not active, which selects none: its
+        Assigns do not apply, and leave the values as they were. The pass with gates writes
+        again what an Assign that starts applying wrote in it (a pass without gates does not
+        tell which Assigns apply, see :meth:`reset_active`). A value given back counts as
+        changed by the pass."""
+        if self._gate_param_refs is not None and self._ungated_writes:
+            for ref_id, (known, value) in self._ungated_writes.items():
+                if ref_id in self._assign_written:
+                    continue
+                if ref_id not in self._pass_values:
+                    self._pass_values[ref_id] = self._known_param_ref_values.get(ref_id)
+                if known is None:
+                    self._known_param_ref_values.pop(ref_id, None)
+                else:
+                    self._known_param_ref_values[ref_id] = known
+                if value is None:
+                    self.param_ref_id_to_value.pop(ref_id, None)
+                else:
+                    self.param_ref_id_to_value[ref_id] = value
+            self._ungated_writes.clear()
+        for child in self._children.values():
+            child.undo_ungated_assigns()
+
+    def give_back_lapsed_assigns(self) -> None:
+        """After a pass with gates, give back the values Assigns wrote in an earlier pass of the
+        evaluation into targets no Assign of this pass applies to (this scope and the module
+        scopes below). Such an Assign applied only while the evaluation had not settled (a
+        value read before a later write, or one written by an Assign that does not apply
+        either): the value it wrote is no value of the device. A value given back counts as
+        changed by the pass."""
+        if self._gate_param_refs is not None and self._evaluation_writes:
+            for ref_id in [
+                r for r in self._evaluation_writes if r not in self._assign_targets
+            ]:
+                known, value = self._evaluation_writes.pop(ref_id)
+                if ref_id not in self._pass_values:
+                    self._pass_values[ref_id] = self._known_param_ref_values.get(ref_id)
+                if known is None:
+                    self._known_param_ref_values.pop(ref_id, None)
+                else:
+                    self._known_param_ref_values[ref_id] = known
+                if value is None:
+                    self.param_ref_id_to_value.pop(ref_id, None)
+                else:
+                    self.param_ref_id_to_value[ref_id] = value
+        for child in self._children.values():
+            child.give_back_lapsed_assigns()
 
     def assign_targets(self) -> set[str]:
-        """The (instance-qualified) param-refs the Assigns of the last pass wrote, in this
-        scope and the module scopes below."""
+        """The (instance-qualified) targets of the Assigns that apply with a value in the last
+        pass (written in it or before), in this scope and the module scopes below."""
         result = {self.qualify(ref) for ref in self._assign_targets}
         for child in self._children.values():
             result |= child.assign_targets()
@@ -475,6 +644,14 @@ class ParameterState:
         self._pass_texts.clear()
         self._assigned_from.clear()
         self._assign_targets.clear()
+        self._assign_written.clear()
+        self._active_assigns.clear()
+        # The Assigns a pass with gates reaches are those that apply; a pass without gates
+        # also reaches Assigns that do not.
+        if self._assigns_gated:
+            self._assign_seen = self._assigns_now
+        self._assigns_now = {}
+        self._assigns_gated = self._gate_param_refs is not None
         for child in self._children.values():
             child.reset_active()
 
@@ -501,6 +678,8 @@ class ParameterState:
     def clear_gate(self) -> None:
         """Stop gating Chooses (this scope and its children) until the next update."""
         self._gate_param_refs = None
+        self._ungated_writes.clear()
+        self._evaluation_writes.clear()
         for child in self._children.values():
             child.clear_gate()
 
@@ -617,6 +796,11 @@ class ParameterState:
         """The value explicitly set in this scope, ignoring parents and defaults."""
         return self._known_param_ref_values.get(ref_id)
 
+    def own_value(self, ref_id: str) -> str | None:
+        """The value of ``ref_id`` as :meth:`get` gives it, but never that of a module argument
+        the parameter takes its value from: its own, set or default."""
+        return ParameterState.get(self, ref_id)
+
     def set_instance_ref(self, ref_id: str, value: str) -> None:
         found = self.find_scope_for_qualified(ref_id)
         if found is not None:
@@ -644,17 +828,26 @@ class ParameterState:
         arg_defaults: dict[str, str] | None = None,
         ref_id: str | None = None,
         param_ref_bases: dict[str, str] | None = None,
-        in_repeat: bool = False,
+        repeat_path: tuple[int, ...] = (),
     ) -> ModuleState:
         """Fetch or create the module instance state, linked into the tree.
 
-        ``repeat_idx`` is the iteration of the ``Repeat`` the ``Module`` is reached in
-        (``in_repeat``), 1 outside one."""
-        key, path = self._instance_key(module_id, repeat_idx, in_repeat)
+        ``repeat_path`` holds the iteration of each ``Repeat`` of this scope the ``Module`` is
+        reached in, outermost first (empty outside one), ``repeat_idx`` the iteration counted
+        through all of them (1 outside one)."""
+        key, path, earlier = self._instance_key(module_id, repeat_idx, repeat_path)
         self._active_module_keys[key] = None
         if key not in self._children:
             stored = self._stored_at_root(key)
-            legacy = self._stored_legacy(module_id, repeat_idx)
+            legacy = None
+            if self._parent is not None and "_SM-" in module_id:
+                if earlier[0] != key:
+                    legacy = self._stored_legacy(earlier[0])
+                if legacy is None:
+                    # The innermost iteration: what an instance was numbered by before.
+                    legacy = self._stored_legacy(
+                        f"{module_id}_MI-{repeat_path[-1] if repeat_path else 1}"
+                    )
             if legacy is not None:
                 if stored is None:
                     # A copy for each enclosing instance; the stored one is dropped with the
@@ -676,6 +869,7 @@ class ParameterState:
             )
             child._parent = self
             child.repeat_path = path
+            child.earlier = earlier
             dormant = self._dormant_children.pop(key, None)
             if dormant is not None:
                 # The instance comes back with the values it had (its submodule instances
@@ -688,6 +882,7 @@ class ParameterState:
             child = self._children[key]
             child._parent = self
             child.repeat_path = path
+            child.earlier = earlier
             if ref_id is not None:
                 child.ref_id = ref_id
             if arguments is not None:
@@ -701,25 +896,32 @@ class ParameterState:
         return self._children[key]
 
     def _instance_key(
-        self, module_id: str, repeat_idx: int, in_repeat: bool
-    ) -> tuple[str, tuple[int, ...]]:
-        """The id of the instance of ``module_id`` reached here, and its repeat path (the
+        self, module_id: str, repeat_idx: int, repeat_path: tuple[int, ...]
+    ) -> tuple[str, tuple[int, ...], tuple[str, tuple[int, ...]]]:
+        """The id of the instance of ``module_id`` reached here, its repeat path (the
         counters of the ``Repeat`` and ``Module`` elements it is nested in, outermost
-        first). A module instance of the application is ``<Module>_MI-<iteration>``."""
-        return f"{module_id}_MI-{repeat_idx}", (repeat_idx,) if in_repeat else ()
+        first), and both as they were before each of several nested Repeats had a counter of
+        its own (only the innermost one counted). A module instance of the application is
+        ``<Module>_MI-<iteration>``, the iteration counted through all its Repeats."""
+        return (
+            f"{module_id}_MI-{repeat_idx}",
+            repeat_path,
+            (
+                f"{module_id}_MI-{repeat_path[-1] if repeat_path else 1}",
+                repeat_path[-1:],
+            ),
+        )
 
-    def _stored_legacy(self, module_id: str, repeat_idx: int) -> ModuleState | None:
-        """The state a project stored at the root for an instance of the submodule
-        ``module_id`` under the id without its enclosing instance
-        (``..._MD-1_SM-1_M-1_MI-1``), left there: that id stood for the submodule instance of
-        every instance of the enclosing module, so each of them reads it. ``None`` for a
-        module of the application, or when there is none."""
-        if self._parent is None or "_SM-" not in module_id:
-            return None
+    def _stored_legacy(self, legacy: str) -> ModuleState | None:
+        """The state a project stored at the root for a submodule instance under an earlier
+        id ``legacy``, left there: an id without the enclosing instance
+        (``..._MD-1_SM-1_M-1_MI-1``), or with only the innermost of several nested Repeats
+        counted (``..._MI-1_SM-1_M-1_MI-1-1-2`` for ``..._MI-1_SM-1_M-1_MI-1-1-1-2``). Such
+        an id stood for the submodule instance of several instances, so each of them reads
+        it. ``None`` when there is none."""
         root: ParameterState = self
         while root._parent is not None:
             root = root._parent
-        legacy = f"{module_id}_MI-{repeat_idx}"
         if legacy in root._active_module_keys:
             return None
         # Set aside when the first evaluation did not reach it (see trim_to_active).
@@ -758,6 +960,40 @@ class ParameterState:
     def module_children(self) -> list[ModuleState]:
         return list(self._children.values())
 
+    def with_module_child_of(
+        self, other: ParameterState, instance_id: str
+    ) -> Self | None:
+        """This state with the module instance ``instance_id`` (one of this scope's own) as
+        ``other`` holds it, under the same key and in the same place among the instances: the
+        instance's scope is ``other``'s, everything else this state's, both shared, not copied.
+        ``None`` when either state has no such instance under that key. Only to be read: an
+        evaluation of it would change both states."""
+        key = next(
+            (
+                key
+                for key, child in self._children.items()
+                if child.module_instance_id == instance_id
+            ),
+            None,
+        )
+        theirs = other._children.get(key) if key is not None else None
+        if theirs is None or theirs.module_instance_id != instance_id:
+            return None
+        cls = type(self)
+        new = cls.__new__(cls)
+        for name in (
+            n for klass in cls.__mro__ for n in getattr(klass, "__slots__", ())
+        ):
+            if hasattr(self, name):
+                setattr(new, name, getattr(self, name))
+        for name, value in getattr(self, "__dict__", {}).items():
+            setattr(new, name, value)
+        new._children = {
+            own_key: theirs if own_key == key else child
+            for own_key, child in self._children.items()
+        }
+        return new
+
     def reached_module_children(self) -> list[ModuleState]:
         """The module instances of this scope the last pass reached, in the order it reached
         them: the order of the ``Dynamic`` and of the iterations of a ``Repeat``."""
@@ -787,6 +1023,17 @@ class ParameterState:
         result = list(self.param_ref_id_to_value.items())
         for child in self._children.values():
             result.extend(child.relative_param_values())
+        return result
+
+    def relative_param_values_assigned(self) -> list[tuple[str, str, bool]]:
+        """As :meth:`relative_param_values`, each with whether it is the target of an Assign
+        that applies in the last pass."""
+        result = [
+            (ref, value, ref in self._assign_targets)
+            for ref, value in self.param_ref_id_to_value.items()
+        ]
+        for child in self._children.values():
+            result.extend(child.relative_param_values_assigned())
         return result
 
     def module_instances(self) -> list[tuple[str, str, dict[str, ModuleArg]]]:
@@ -824,6 +1071,107 @@ class ParameterState:
     def _own_layout(self) -> tuple[object, ...]:
         """The part of :meth:`layout` of a kind of scope."""
         return ()
+
+    def explore_layout(self, refs: frozenset[str]) -> tuple[object, ...]:
+        """What an explore pass from this root state (every branch of every choose evaluated,
+        see :class:`~xknxeditor.prod.parser_v2.context.Explorer`) reads to know where it goes:
+        per module instance (by its path of instance ids) the values of ``refs`` it reads there
+        (the counts of repeats and the sources of the assigns that write them, local ids). Two
+        root states of one program with the same explore layout are explored alike: the same
+        repeats pass as often, so the same instances are made and the same places found,
+        whatever their other values.
+
+        An instance reached last (and its instances) is taken again as it is, with its
+        allocators at their start; one set aside comes back with the values it keeps for good
+        (and its own instances set aside too). A submodule instance stored at the root is taken
+        as it is, with its allocators where they stood, unless the last pass reached its id at
+        the root."""
+        entries: list[
+            tuple[
+                tuple[str, ...],
+                tuple[tuple[str, str], ...],
+                tuple[tuple[str, int], ...],
+            ]
+        ] = []
+
+        def picked(values: dict[str, str]) -> dict[str, str]:
+            if len(values) <= len(refs):
+                return {key: value for key, value in values.items() if key in refs}
+            return {key: values[key] for key in refs if key in values}
+
+        def visit(
+            scope: ParameterState, path: tuple[str, ...], revived: bool, stale: bool
+        ) -> None:
+            values = picked(scope._known_param_ref_values)
+            if not revived:
+                values = {**picked(scope.param_ref_id_to_value), **values}
+            positions = scope._alloc_positions if stale else {}
+            if values or positions:
+                # An instance without either is explored as one made anew.
+                entries.append(
+                    (
+                        path,
+                        tuple(sorted(values.items())),
+                        tuple(sorted(positions.items())),
+                    )
+                )
+            for key, child in scope._children.items():
+                visit(child, (*path, key), revived, stale)
+            for key, child in scope._dormant_children.items():
+                stored = scope is self and "_SM-" in key
+                visit(child, (*path, key), not stored, stored)
+
+        visit(self, (), False, False)
+        return (
+            tuple(key for key in self._active_module_keys if "_SM-" in key),
+            tuple(sorted(entries, key=lambda entry: entry[0])),
+        )
+
+
+def layouts_alike(first: tuple[object, ...], second: tuple[object, ...]) -> bool:
+    """Whether two root states of one program with the layouts ``first`` and ``second`` (see
+    :meth:`ParameterState.layout`), neither evaluated yet, evaluate alike: the same layouts but
+    for the order of the module instances at the root, and for instances only one of them has
+    that hold nothing but their ids. An evaluation reads no instance it does not reach, and one
+    it reaches it makes so when it is not there (an evaluation that reaches it in the other
+    state too); the root's instances are looked up by their ids, never in their order."""
+    if first[:-1] != second[:-1]:
+        return False
+
+    def children(layout: tuple[object, ...]) -> dict[object, object]:
+        return dict(cast("tuple[tuple[object, object], ...]", layout[-1]))
+
+    ours, theirs = children(first), children(second)
+    for key in ours.keys() | theirs.keys():
+        mine, other = ours.get(key), theirs.get(key)
+        if mine == other:
+            continue
+        if mine is not None and other is not None:
+            return False
+        held = mine if mine is not None else other
+        if not _holds_nothing(held):
+            return False
+    return True
+
+
+def _holds_nothing(layout: object) -> bool:
+    """Whether a module instance's layout (see :meth:`ParameterState.layout`) is that of an
+    instance made with its ids alone (as :meth:`GlobalState.from_project` makes one for a
+    listed instance without values)."""
+    if not isinstance(layout, tuple):
+        return False
+    parts = cast("tuple[object, ...]", layout)
+    if len(parts) < 2 or parts[0] != "ModuleState" or not isinstance(parts[1], tuple):
+        return False
+    own = cast("tuple[object, ...]", parts[1])
+    if len(own) < 2:
+        return False
+    instance_id, ref_id = own[0], own[1]
+    if not isinstance(instance_id, str) or not (
+        ref_id is None or isinstance(ref_id, str)
+    ):
+        return False
+    return parts == ModuleState(instance_id, ref_id=ref_id).layout()
 
 
 class GlobalState(ParameterState):
@@ -939,6 +1287,7 @@ class ModuleState(ParameterState):
     __slots__ = (
         "_arg_defaults",
         "arguments",
+        "earlier",
         "module_instance_id",
         "param_ref_bases",
         "ref_id",
@@ -971,20 +1320,31 @@ class ModuleState(ParameterState):
         # The counters of the Repeat and Module elements the instance is nested in, outermost
         # first (see ``RepeatIndex`` of a project's ModuleInstance): set when it is evaluated.
         self.repeat_path: tuple[int, ...] = ()
+        # The id and the repeat path as they were before each of several nested Repeats had
+        # a counter of its own (the same unless the instance is in such Repeats): the earlier
+        # ids of its submodule instances are made of them.
+        self.earlier: tuple[str, tuple[int, ...]] = (module_instance_id, ())
 
     def _instance_key(
-        self, module_id: str, repeat_idx: int, in_repeat: bool
-    ) -> tuple[str, tuple[int, ...]]:
+        self, module_id: str, repeat_idx: int, repeat_path: tuple[int, ...]
+    ) -> tuple[str, tuple[int, ...], tuple[str, tuple[int, ...]]]:
         """A submodule instance is named after its enclosing instance, as a project stores it:
         ``MD-4_M-15_MI-1`` + ``_SM-1_M-1_MI-<counters>``, the counters being those of every
         Repeat and Module it is nested in (``1-1-2``: the first iteration of the enclosing
-        instance, its Module, the second iteration of the submodule's Repeat)."""
+        instance, its Module, the second iteration of the submodule's Repeat; in two nested
+        Repeats one counter for each, ``1-1-2-1``)."""
         at = module_id.rfind("_SM-")
         if at == -1:
-            return super()._instance_key(module_id, repeat_idx, in_repeat)
-        path = (*self.repeat_path, 1, *((repeat_idx,) if in_repeat else ()))
-        counters = "-".join(str(n) for n in path)
-        return f"{self.module_instance_id}_{module_id[at + 1 :]}_MI-{counters}", path
+            return super()._instance_key(module_id, repeat_idx, repeat_path)
+        module = module_id[at + 1 :]
+        path = (*self.repeat_path, 1, *repeat_path)
+        earlier_id, earlier_outer = self.earlier
+        earlier_path = (*earlier_outer, 1, *repeat_path[-1:])
+        return (
+            f"{self.module_instance_id}_{module}_MI-{_counters(path)}",
+            path,
+            (f"{earlier_id}_{module}_MI-{_counters(earlier_path)}", earlier_path),
+        )
 
     def _local_base(self) -> str | None:
         """The id the local ids of this instance's parameters and objects start with: its
