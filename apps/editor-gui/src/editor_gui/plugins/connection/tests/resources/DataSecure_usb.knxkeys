@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Keyring xmlns="http://knx.org/xml/keyring/1" Project="DataSecure_only" Created="2023-02-07T15:07:21" CreatedBy="xknx-editor tests" Signature="oWatQF5Gl/MFYJWXj5v3Sw==">
+  <Interface Type="USB" IndividualAddress="1.0.12">
+    <Group Address="65535" Senders="1.0.4" TxRfReady="false"/>
+  </Interface>
+  <GroupAddresses>
+    <Group Address="65535" Key="71Mp7thP+Wac9vmynVke8Q=="/>
+  </GroupAddresses>
+</Keyring>

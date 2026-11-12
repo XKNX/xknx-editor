@@ -107,6 +107,23 @@ async def test_connecting_through_a_usb_interface(tmp_path: Path) -> None:
     }
 
 
+async def test_an_unknown_address_and_no_bus(tmp_path: Path) -> None:
+    conn = _UsbConnection()
+    conn.connect_to_usb_by_serial("")
+    conn.usb_info = USBInterfaceInfo(
+        device=_DEVICE,
+        individual_address=None,
+        max_apdu_length=15,
+        supported_emi_types=SupportedEMIType.CEMI,
+        bus_connected=False,
+    )
+    async with Client(_server(tmp_path, conn)) as client:
+        status = await _data(client, "connection_status")
+    usb = status["usb_interface"]
+    assert usb["individual_address"] is None
+    assert usb["bus_connected"] is False
+
+
 async def test_an_unknown_usb_interface_is_refused(tmp_path: Path) -> None:
     conn = _UsbConnection()
     async with Client(_server(tmp_path, conn)) as client:

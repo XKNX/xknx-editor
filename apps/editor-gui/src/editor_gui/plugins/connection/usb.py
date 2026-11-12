@@ -13,6 +13,7 @@ from xknx import XKNX
 from xknx.core.connection_state import XknxConnectionState
 from xknx.exceptions import CommunicationError
 from xknx.io.connection import ConnectionConfig
+from xknx.secure.data_secure import DataSecure
 from xknx.telegram import IndividualAddress
 
 from editor_gui.plugins.connection.interface import ObservableKNXIPInterfaceThreaded
@@ -25,6 +26,11 @@ from editor_gui.plugins.connection.xknx_usb import (
 
 # Seconds between the attempts to open an unplugged interface again.
 _RECONNECT_SECONDS = 3
+
+# USB vendors whose HID devices the scan offers whatever their product id, as the KNX USB
+# interfaces of these vendors (and the manufacturers using their ids) are not all among the
+# known ones: Weinzierl Engineering, Insta, Tapko Technologies, ise.
+KNX_USB_VENDOR_IDS = (0x0E77, 0x135E, 0x28C2, 0x2A07)
 
 
 def usb_device_name(device: USBDeviceInfo) -> str:
@@ -117,13 +123,26 @@ class UsbTarget:
         )
 
 
+def _find_usb_interfaces() -> list[USBDeviceInfo]:
+    """The known KNX USB interfaces plugged in, and every HID device of a KNX USB vendor, so an
+    interface missing from the known ones is offered too. Blocks while USB is enumerated."""
+    devices = find_usb_interfaces()
+    paths = {device.path for device in devices}
+    for vendor_id in KNX_USB_VENDOR_IDS:
+        for device in find_usb_interfaces(vendor_id):
+            if device.path not in paths:
+                paths.add(device.path)
+                devices.append(device)
+    return devices
+
+
 async def search_usb_interfaces(
     on_error: Callable[[BaseException], None] | None = None,
 ) -> list[USBDeviceInfo]:
     """The KNX USB interfaces plugged into this computer; none when they cannot be listed."""
     try:
         devices = await asyncio.get_running_loop().run_in_executor(
-            None, find_usb_interfaces
+            None, _find_usb_interfaces
         )
     except (CommunicationError, OSError) as err:
         if on_error is not None:
@@ -138,7 +157,7 @@ async def search_usb_interfaces(
 class ObservableUSBInterfaceThreaded(ObservableKNXIPInterfaceThreaded):
     """A connection through a KNX USB interface, observable as the KNXnet/IP ones are."""
 
-    __slots__ = ("_target",)
+    __slots__ = ("_data_secure", "_target")
 
     def __init__(
         self,
@@ -146,7 +165,11 @@ class ObservableUSBInterfaceThreaded(ObservableKNXIPInterfaceThreaded):
         target: UsbTarget,
         raw_cemi_callback: Callable[[bytes], None] | None = None,
         sent_cemi_callback: Callable[[bytes], None] | None = None,
+        data_secure: DataSecure | None = None,
     ) -> None:
+        """``data_secure`` is in place while the interface is set up, so an interface Data Secure
+        can't work with (unknown individual address, EMI1/EMI2 only) is noticed on connect as
+        after its reset or a reconnect."""
         super().__init__(
             xknx,
             ConnectionConfig(threaded=True),
@@ -154,10 +177,13 @@ class ObservableUSBInterfaceThreaded(ObservableKNXIPInterfaceThreaded):
             sent_cemi_callback=sent_cemi_callback,
         )
         self._target = target
+        self._data_secure = data_secure
 
     async def _start(self) -> None:
         """Open the interface (in the connection thread)."""
-        self.xknx.cemi_handler.data_secure_init(keyring=None)
+        # Data Secure comes from the project or the editor's keyring, not from an xknx keyring,
+        # so the tunnel gets none to check its individual address against.
+        self.xknx.cemi_handler.data_secure = self._data_secure
         self._interface = USBTunnel(
             self.xknx,
             cemi_received_callback=self.cemi_received,
@@ -230,6 +256,9 @@ class UsbBusmonitorConnection:
                     self._state_changed
                 )
             )
+            # opened without a bus connection: the link is down until the bus is back
+            if self._xknx.connection_manager.state is not XknxConnectionState.CONNECTED:
+                self._on_state(False)
 
     def _state_changed(self, state: XknxConnectionState) -> None:
         if self._on_state is None:

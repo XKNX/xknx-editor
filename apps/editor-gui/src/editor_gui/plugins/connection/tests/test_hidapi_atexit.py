@@ -65,7 +65,8 @@ def test_scan_cancels_the_finalizer_without_shutdown(monkeypatch) -> None:
     monkeypatch.setitem(sys.modules, "hid", fake_hid)
     finalizer = weakref.finalize(fake_hid, lambda: None)
 
-    def fake_find():  # stands in for find_usb_interfaces importing hidapi
+    # stands in for find_usb_interfaces importing hidapi
+    def fake_find(*_args, **_kwargs):
         return []
 
     monkeypatch.setattr(usb_mod, "find_usb_interfaces", fake_find)
