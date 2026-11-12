@@ -1049,7 +1049,8 @@ class TestConnectionTypeSetting:
 def test_a_discovered_gateway_offers_its_types_side_by_side(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """Gateway menu > Discovered Gateways: the connection types in one row."""
+    """Gateway menu > Discovered Gateways: the gateway in normal text, its connection types in
+    one row below it, not indented."""
     from xknx.io.gateway_scanner import GatewayDescriptor
 
     plugin = _plugin()
@@ -1064,13 +1065,22 @@ def test_a_discovered_gateway_offers_its_types_side_by_side(
         supports_tunnelling_tcp=True,
     )
     rows: dict[str, float] = {}
-    real_radio = plugin_module.radio_button
+    starts: list[float] = []
+    texts: list[tuple[str, float]] = []
+    real_radio, real_text = plugin_module.radio_button, imgui.text
 
     def radio(label: str, active: bool) -> bool:
-        rows[label.split("##")[0]] = imgui.get_cursor_screen_pos().y
+        position = imgui.get_cursor_screen_pos()
+        rows[label.split("##")[0]] = position.y
+        starts.append(position.x)
         return bool(real_radio(label, active))
 
+    def text(value: str, *args: Any) -> None:
+        texts.append((value, imgui.get_cursor_screen_pos().x))
+        real_text(value, *args)
+
     monkeypatch.setattr(plugin_module, "radio_button", radio)
+    monkeypatch.setattr(imgui, "text", text)
     ctx = imgui.create_context()
     io = imgui.get_io()
     io.display_size = imgui.ImVec2(800, 600)
@@ -1089,6 +1099,10 @@ def test_a_discovered_gateway_offers_its_types_side_by_side(
         S.CONN_TYPE_ROUTING,
     ]
     assert len(set(rows.values())) == 1
+    # the gateway in normal text, the first radio starting where it starts
+    (shown,) = texts
+    assert shown[0] == "IP-Interface  (192.168.16.103)"
+    assert starts[0] == shown[1]
 
 
 @pytest.mark.parametrize(("tcp_support", "shown"), [(None, 2), (False, 1)])
