@@ -21,18 +21,24 @@ from editor_gui import settings as app_settings
 from editor_gui.plugins.connection import plugin as plugin_module
 from editor_gui.plugins.connection.plugin import ConnectionPlugin, ConnectionState
 from editor_gui.plugins.connection.service import LinkInfo
+from editor_gui.plugins.connection.strings import S
 from editor_gui.plugins.connection.usb import (
     ObservableUSBInterfaceThreaded,
     UsbBusmonitorConnection,
     UsbTarget,
+    emi_type_name,
+    mask_version_text,
     search_usb_interfaces,
+    supported_emi_type_names,
     usb_device_name,
 )
 from editor_gui.plugins.connection.xknx_usb import USBDeviceInfo, find_usb_interfaces
 from editor_gui.plugins.connection.xknx_usb import tunnel as usb_tunnel
 from editor_gui.plugins.connection.xknx_usb.const import (
+    EMIID,
     DeviceFeature,
     DeviceFeatureService,
+    SupportedEMIType,
 )
 from editor_gui.plugins.connection.xknx_usb.frame import device_feature_frame
 from editor_gui.plugins.logger.service import LogService
@@ -84,8 +90,8 @@ def _plugin() -> Any:
     plugin._usb_info = None
     plugin._usb_devices = []
     plugin._usb_addresses = {}
-    plugin._usb_settings_open = False
-    plugin._usb_settings_shown = False
+    plugin._usb_interface_open = False
+    plugin._usb_interface_shown = False
     plugin._usb_address_text = ""
     plugin._usb_address_write = None
     plugin._usb_address_busy = False
@@ -645,7 +651,7 @@ class TestInterfaceAddress:
 
 
 class TestInterfaceSettingsDialog:
-    """Gateway menu > USB Interface Settings…"""
+    """Gateway menu > USB Interface…"""
 
     async def test_set_and_check_in_the_dialog(
         self, fake_hid: FakeHIDModule, monkeypatch: pytest.MonkeyPatch
@@ -661,22 +667,29 @@ class TestInterfaceSettingsDialog:
         io.display_size = imgui.ImVec2(800, 600)
         io.backend_flags |= imgui.BackendFlags_.renderer_has_textures
         clicks = Clicks(monkeypatch, plugin_module)
-        edited: list[bool] = []
+        entered: list[bool] = []
         pressed: set[str] = set()
-        real_button = imgui.button
-        monkeypatch.setattr(
-            imgui,
-            "is_item_deactivated_after_edit",
-            lambda: bool(edited) and edited.pop(),
-        )
+        real_button, real_input = imgui.button, imgui.input_text
 
         def button(label: str, *args: Any) -> bool:
-            if label in pressed:
+            disabled = bool(
+                imgui.get_current_context().current_item_flags
+                & imgui.ItemFlags_.disabled
+            )
+            if label in pressed and not disabled:
                 pressed.discard(label)
                 return True
             return bool(real_button(label, *args))
 
+        def input_text(label: str, text: str, *args: Any) -> tuple[bool, str]:
+            # Enter pressed in the address field
+            if label == "##usb_address" and entered:
+                entered.pop()
+                return True, text
+            return real_input(label, text, *args)
+
         monkeypatch.setattr(imgui, "button", button)
+        monkeypatch.setattr(imgui, "input_text", input_text)
 
         def frames(count: int = 2) -> None:
             for _ in range(count):
@@ -686,15 +699,32 @@ class TestInterfaceSettingsDialog:
 
         plugin._select_open = plugin._select_shown = plugin._progmode_open = False
         try:
-            plugin.open_usb_settings()
+            plugin.open_usb_interface()
             assert plugin._usb_address_text == "1.0.2"
             frames()
+            # the address it has: nothing to apply, and no check (the interface uses it)
+            pressed.update(
+                ("Apply##usb_address_apply", "Address Free?##usb_address_free")
+            )
+            frames()
+            assert started == []
+            pressed.clear()
+            # changed in the field, but neither applied nor entered: nothing is set
             plugin._usb_address_text = "1.0.12"
-            edited.append(True)
+            frames()
+            assert started == []
+            pressed.add("Apply##usb_address_apply")
+            frames()
+            # Enter in the field applies it as well
+            entered.append(True)
             frames()
             pressed.add("Address Free?##usb_address_free")
             frames()
-            assert started == [("set", "1.0.12"), ("check", "1.0.12")]
+            assert started == [
+                ("set", "1.0.12"),
+                ("set", "1.0.12"),
+                ("check", "1.0.12"),
+            ]
             # what the dialog shows: a check's outcome, an error, a running change
             for free in (True, False):
                 plugin._usb_address_free = ("1.0.12", free)
@@ -711,20 +741,20 @@ class TestInterfaceSettingsDialog:
                 ConnectionPlugin.set_usb_interface_address.__get__(plugin)
             )
             plugin._usb_address_text = "nonsense"
-            edited.append(True)
+            pressed.add("Apply##usb_address_apply")
             frames()
             assert "is not an individual address" in plugin._usb_address_error
             clicks.button = "Close"
             frames()
-            assert not plugin._usb_settings_open
+            assert not plugin._usb_interface_open
             frames()
-            assert not plugin._usb_settings_shown
+            assert not plugin._usb_interface_shown
             # the connection no longer goes through a USB interface: it closes
-            plugin.open_usb_settings()
+            plugin.open_usb_interface()
             frames()
             plugin._usb_target = None
             frames()
-            assert not plugin._usb_settings_open and not plugin._usb_settings_shown
+            assert not plugin._usb_interface_open and not plugin._usb_interface_shown
         finally:
             imgui.destroy_context(ctx)
             await plugin._disconnect_async()
@@ -743,13 +773,13 @@ class TestInterfaceSettingsDialog:
         io.backend_flags |= imgui.BackendFlags_.renderer_has_textures
         clicks = Clicks(monkeypatch, plugin_module)
         try:
-            clicks.items.add("USB Interface Settings…")
+            clicks.items.add("USB Interface…")
             imgui.new_frame()
             imgui.begin("menu")
             plugin.render_menu()
             imgui.end()
             imgui.end_frame()
-            assert plugin._usb_settings_open
+            assert plugin._usb_interface_open
         finally:
             imgui.destroy_context(ctx)
 
@@ -881,3 +911,278 @@ def test_the_service_checks_an_individual_address(
     future = service.individual_address_occupied("1.1.9")
     assert future is not None and future.result() is True
     assert checked == [(xknx, "1.1.9")]
+
+
+def test_emi_type_names() -> None:
+    assert emi_type_name(EMIID.CEMI) == "cEMI"
+    assert emi_type_name(EMIID.EMI1) == "EMI1"
+    # in the order the connection prefers them
+    assert supported_emi_type_names(
+        SupportedEMIType.EMI1 | SupportedEMIType.CEMI | SupportedEMIType.EMI2
+    ) == ["cEMI", "EMI2", "EMI1"]
+    assert supported_emi_type_names(SupportedEMIType(0)) == []
+    assert mask_version_text(0x07B0) == "07B0"
+    assert mask_version_text(0x0012) == "0012"
+    assert mask_version_text(None) == ""
+
+
+async def test_the_emi_type_is_logged_and_shown(
+    fake_hid: FakeHIDModule, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The EMI type, the supported ones and the mask version: in the log and the dialog."""
+    logged: list[tuple[str, dict[str, Any]]] = []
+    plugin = _plugin()
+    plugin._log.info = lambda event, **fields: logged.append((event, fields))
+    plugin._usb_target = UsbTarget.of(_DEVICE)
+    plugin._ensure_async_loop = asyncio.get_running_loop
+    plugin._save_current_settings = lambda: None
+    await plugin._connect_async()
+    ctx = imgui.create_context()
+    try:
+        info = plugin.usb_info
+        details = dict(logged)["USB interface info"]
+        assert details["emi_type"] == emi_type_name(info.emi_type) == "cEMI"
+        assert details["supported_emi_types"] == supported_emi_type_names(
+            info.supported_emi_types
+        )
+        assert details["mask_version"] == mask_version_text(info.mask_version)
+        io = imgui.get_io()
+        io.display_size = imgui.ImVec2(800, 600)
+        io.backend_flags |= imgui.BackendFlags_.renderer_has_textures
+        shown: list[str] = []
+        real_text = imgui.text
+
+        def text(value: str, *args: Any) -> None:
+            shown.append(value)
+            real_text(value, *args)
+
+        monkeypatch.setattr(imgui, "text", text)
+        plugin._select_open = plugin._select_shown = plugin._progmode_open = False
+        plugin.open_usb_interface()
+        for _ in range(2):
+            imgui.new_frame()
+            plugin.render_window()
+            imgui.end_frame()
+        assert S.USB_EMI_TYPE.format(emi="cEMI") in shown
+        assert (
+            S.USB_SUPPORTED_EMI_TYPES.format(
+                types=", ".join(supported_emi_type_names(info.supported_emi_types))
+            )
+            in shown
+        )
+        if info.mask_version is not None:
+            assert (
+                S.USB_MASK_VERSION.format(mask=mask_version_text(info.mask_version))
+                in shown
+            )
+    finally:
+        imgui.destroy_context(ctx)
+        await plugin._disconnect_async()
+
+
+class TestConnectionTypeSetting:
+    """Settings > Connection > Connection Type with KNX USB interfaces."""
+
+    @staticmethod
+    def _setting(plugin: Any) -> Any:
+        plugin._connection_type = ConnectionType.TUNNELING
+        plugin._api = SimpleNamespace(
+            connection=SimpleNamespace(use_serial_number=True)
+        )
+        saved: list[bool] = []
+        plugin._save_current_settings = lambda: saved.append(True)
+        plugin.saved = saved
+        return next(s for s in plugin.settings() if s.key == "connection_type")
+
+    def test_usb_is_a_choice_when_an_interface_is_known(self) -> None:
+        plugin = _plugin()
+        setting = self._setting(plugin)
+        assert "usb" not in dict(setting.choices())
+        plugin._usb_devices = [_DEVICE]
+        assert dict(setting.choices())["usb"] == S.CONN_TYPE_USB == "USB"
+        # picking it stores the interface found, for the next connect
+        setting.set("usb")
+        assert plugin._usb_target == UsbTarget.of(_DEVICE)
+        assert setting.get() == "usb" and plugin.saved == [True]
+        # an IP connection type instead of the interface
+        setting.set("tunneling_tcp")
+        assert plugin._usb_target is None
+        assert plugin._connection_type is ConnectionType.TUNNELING_TCP
+        assert setting.get() == "tunneling_tcp"
+
+    def test_locked_while_connected_through_usb(self) -> None:
+        plugin = _plugin()
+        plugin._usb_target = UsbTarget.of(_DEVICE)
+        setting = self._setting(plugin)
+        plugin._state = ConnectionState.CONNECTED
+        assert setting.read_only()
+        assert setting.get() == "usb" and "usb" in dict(setting.choices())
+        setting.set("routing")
+        assert plugin._usb_target == UsbTarget.of(_DEVICE) and plugin.saved == []
+        plugin._state = ConnectionState.DISCONNECTED
+        assert not setting.read_only()
+
+    def test_no_usb_while_a_gateway_is_connected(self) -> None:
+        plugin = _plugin()
+        plugin._usb_devices = [_DEVICE]
+        setting = self._setting(plugin)
+        plugin._state = ConnectionState.CONNECTED
+        assert not setting.read_only()
+        assert "usb" not in dict(setting.choices())
+        setting.set("usb")
+        assert plugin._usb_target is None
+        # another IP type applies on the next connect, as before
+        setting.set("routing")
+        assert plugin._connection_type is ConnectionType.ROUTING
+
+    def test_the_usb_interface_setting(self) -> None:
+        plugin = _plugin()
+        self._setting(plugin)
+        settings = {s.key: s for s in plugin.settings()}
+        interface, gateway_ip = settings["usb_interface"], settings["gateway_ip"]
+        # a gateway connection: its address, no interface
+        assert gateway_ip.shown() and not interface.shown()
+        other = USBDeviceInfo(
+            0x16DE,
+            0x008E,
+            b"q",
+            "00C5010540AA",
+            "KNX Manufacturer",
+            "KNX-USB Interface",
+        )
+        plugin._usb_target = UsbTarget.of(_DEVICE)
+        plugin._usb_devices = [_DEVICE, other]
+        assert interface.shown() and not gateway_ip.shown()
+        # the stored interface, then the others found, told apart by the serial number
+        assert interface.choices() == [
+            (UsbTarget.of(_DEVICE).key, "KNX-USB Interface (00C501053FB2)"),
+            (UsbTarget.of(other).key, "KNX-USB Interface (00C5010540AA)"),
+        ]
+        assert interface.get() == UsbTarget.of(_DEVICE).key
+        interface.set(UsbTarget.of(other).key)
+        assert plugin._usb_target == UsbTarget.of(other) and plugin.saved == [True]
+        interface.set("0000:0000:unknown")
+        assert plugin._usb_target == UsbTarget.of(other)
+        # not while a connection is open
+        plugin._state = ConnectionState.CONNECTED
+        assert interface.read_only()
+        interface.set(UsbTarget.of(_DEVICE).key)
+        assert plugin._usb_target == UsbTarget.of(other) and plugin.saved == [True]
+
+
+def test_a_discovered_gateway_offers_its_types_side_by_side(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Gateway menu > Discovered Gateways: the gateway in normal text, its connection types in
+    one row below it, not indented."""
+    from xknx.io.gateway_scanner import GatewayDescriptor
+
+    plugin = _plugin()
+    plugin._preferred_gateway_ip = "192.168.16.103"
+    plugin._connection_type = ConnectionType.TUNNELING_TCP
+    gateway = GatewayDescriptor(
+        "192.168.16.103",
+        3671,
+        name="IP-Interface",
+        supports_routing=True,
+        supports_tunnelling=True,
+        supports_tunnelling_tcp=True,
+    )
+    rows: dict[str, float] = {}
+    starts: list[float] = []
+    texts: list[tuple[str, float]] = []
+    real_radio, real_text = plugin_module.radio_button, imgui.text
+
+    def radio(label: str, active: bool) -> bool:
+        position = imgui.get_cursor_screen_pos()
+        rows[label.split("##")[0]] = position.y
+        starts.append(position.x)
+        return bool(real_radio(label, active))
+
+    def text(value: str, *args: Any) -> None:
+        texts.append((value, imgui.get_cursor_screen_pos().x))
+        real_text(value, *args)
+
+    monkeypatch.setattr(plugin_module, "radio_button", radio)
+    monkeypatch.setattr(imgui, "text", text)
+    ctx = imgui.create_context()
+    io = imgui.get_io()
+    io.display_size = imgui.ImVec2(800, 600)
+    io.backend_flags |= imgui.BackendFlags_.renderer_has_textures
+    try:
+        imgui.new_frame()
+        imgui.begin("Gateway")
+        plugin._render_gateway_option(gateway)
+        imgui.end()
+        imgui.end_frame()
+    finally:
+        imgui.destroy_context(ctx)
+    assert list(rows) == [
+        S.CONN_TYPE_TCP_TUNNELING,
+        S.CONN_TYPE_TUNNELING,
+        S.CONN_TYPE_ROUTING,
+    ]
+    assert len(set(rows.values())) == 1
+    # the gateway in normal text, the first radio starting where it starts
+    (shown,) = texts
+    assert shown[0] == "IP-Interface  (192.168.16.103)"
+    assert starts[0] == shown[1]
+
+
+@pytest.mark.parametrize(("tcp_support", "shown"), [(None, 2), (False, 1)])
+def test_manual_connection_offers_tcp_first(
+    monkeypatch: pytest.MonkeyPatch, tcp_support: bool | None, shown: int
+) -> None:
+    """Gateway menu > Manual Connection: TCP before UDP tunneling, as a discovered gateway."""
+    plugin = _plugin()
+    plugin._scanning = True
+    plugin._gateways = []
+    plugin._controller_ip = "192.168.16.103"
+    plugin._connection_type = ConnectionType.TUNNELING
+    plugin._maybe_probe_manual = lambda editing: None
+    plugin._manual_tcp_support = lambda: tcp_support
+    rows: dict[str, float] = {}
+    real_radio = plugin_module.radio_button
+
+    def radio(label: str, active: bool) -> bool:
+        if "##manual_" in label:
+            rows[label.split("##")[0]] = imgui.get_cursor_screen_pos().y
+        return bool(real_radio(label, active))
+
+    monkeypatch.setattr(plugin_module, "radio_button", radio)
+    ctx = imgui.create_context()
+    io = imgui.get_io()
+    io.display_size = imgui.ImVec2(800, 600)
+    io.backend_flags |= imgui.BackendFlags_.renderer_has_textures
+    try:
+        imgui.new_frame()
+        imgui.begin("Gateway")
+        plugin._render_gateway_picker(retry_label="Connect")
+        imgui.end()
+        imgui.end_frame()
+    finally:
+        imgui.destroy_context(ctx)
+    assert list(rows) == [S.CONN_TYPE_TCP_TUNNELING, S.CONN_TYPE_TUNNELING][-shown:]
+    assert len(set(rows.values())) == 1
+
+
+def test_a_gateway_without_a_name_shows_its_address() -> None:
+    from xknx.io.gateway_scanner import GatewayDescriptor
+
+    from editor_gui.plugins.connection.plugin import gateway_label
+
+    named = GatewayDescriptor(
+        "192.168.16.103",
+        3671,
+        name=" IP-Interface ",
+        individual_address=IndividualAddress("1.0.3"),
+    )
+    assert gateway_label(named) == "IP-Interface  (192.168.16.103)"
+    # it answered the search without a name
+    unnamed = GatewayDescriptor(
+        "192.168.16.103", 3671, name="", individual_address=IndividualAddress("1.0.3")
+    )
+    assert gateway_label(unnamed) == "1.0.3  (192.168.16.103)"
+    assert gateway_label(GatewayDescriptor("192.168.16.103", 3671, name="")) == (
+        "192.168.16.103"
+    )

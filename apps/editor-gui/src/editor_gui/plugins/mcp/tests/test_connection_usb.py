@@ -14,7 +14,7 @@ from xknx.telegram import IndividualAddress
 from editor_gui.plugins.connection.plugin import ConnectionState
 from editor_gui.plugins.connection.usb import UsbTarget
 from editor_gui.plugins.connection.xknx_usb import USBDeviceInfo, USBInterfaceInfo
-from editor_gui.plugins.connection.xknx_usb.const import SupportedEMIType
+from editor_gui.plugins.connection.xknx_usb.const import EMIID, SupportedEMIType
 from editor_gui.plugins.mcp.server import build_server
 
 from .test_server import _build_ctx, _data
@@ -107,6 +107,9 @@ async def test_connecting_through_a_usb_interface(tmp_path: Path) -> None:
         "individual_address": "1.0.2",
         "max_apdu_length": 55,
         "bus_connected": True,
+        "emi_type": "cEMI",
+        "supported_emi_types": ["cEMI"],
+        "mask_version": None,
     }
 
 
@@ -125,6 +128,26 @@ async def test_an_unknown_address_and_no_bus(tmp_path: Path) -> None:
     usb = status["usb_interface"]
     assert usb["individual_address"] is None
     assert usb["bus_connected"] is False
+
+
+async def test_an_emi1_interface(tmp_path: Path) -> None:
+    conn = _UsbConnection()
+    conn.connect_to_usb_by_serial("")
+    conn.usb_info = USBInterfaceInfo(
+        device=_DEVICE,
+        individual_address=IndividualAddress("1.0.200"),
+        max_apdu_length=15,
+        supported_emi_types=SupportedEMIType.EMI1,
+        bus_connected=True,
+        mask_version=0x0012,
+        emi_type=EMIID.EMI1,
+    )
+    async with Client(_server(tmp_path, conn)) as client:
+        status = await _data(client, "connection_status")
+    usb = status["usb_interface"]
+    assert usb["emi_type"] == "EMI1"
+    assert usb["supported_emi_types"] == ["EMI1"]
+    assert usb["mask_version"] == "0012"
 
 
 async def test_an_unknown_usb_interface_is_refused(tmp_path: Path) -> None:

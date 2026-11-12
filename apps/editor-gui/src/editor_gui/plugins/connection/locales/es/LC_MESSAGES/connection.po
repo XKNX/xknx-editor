@@ -205,6 +205,9 @@ msgstr "TCP tunneling"
 msgid "Routing"
 msgstr "Routing"
 
+msgid "USB"
+msgstr "USB"
+
 msgid "A device whose serial number is known gets its individual address without pressing its programming button."
 msgstr "Un dispositivo cuyo número de serie se conoce recibe su dirección individual sin pulsar su botón de programación."
 
@@ -231,17 +234,26 @@ msgid_plural "{count} devices in programming mode"
 msgstr[0] "{count} dispositivo en modo programación"
 msgstr[1] "{count} dispositivos en modo programación"
 
-msgid "USB Interface Settings…"
-msgstr "Ajustes de la Interfaz USB…"
+msgid "USB Interface…"
+msgstr "Interfaz USB…"
 
-msgid "USB Interface Settings"
-msgstr "Ajustes de la Interfaz USB"
+msgid "USB Interface"
+msgstr "Interfaz USB"
 
 msgid "Close"
 msgstr "Cerrar"
 
 msgid "Maximum Telegram Length (APDU): {length}"
 msgstr "Longitud Máxima de Telegrama (APDU): {length}"
+
+msgid "EMI Type: {emi}"
+msgstr "Tipo de EMI: {emi}"
+
+msgid "Supported EMI Types: {types}"
+msgstr "Tipos de EMI admitidos: {types}"
+
+msgid "Mask Version: {mask}"
+msgstr "Versión de máscara: {mask}"
 
 msgid "Individual Address"
 msgstr "Dirección Individual"
@@ -276,8 +288,5 @@ msgstr "Estableciendo la dirección individual…"
 msgid "Checking the individual address on the bus…"
 msgstr "Comprobando la dirección individual en el bus…"
 
-msgid "A changed address is set on the interface (Enter), which keeps it."
-msgstr "Una dirección modificada se establece en la interfaz (Intro), que la conserva."
-
-msgid "A changed address is set on the interface (Enter). This interface forgets it when unplugged, so it is set again on every connect."
-msgstr "Una dirección modificada se establece en la interfaz (Intro). Esta interfaz la olvida al desconectarla, por lo que se vuelve a establecer en cada conexión."
+msgid "This interface forgets its individual address when unplugged, so it is set again on every connect."
+msgstr "Esta interfaz olvida su dirección individual al desconectarla, por lo que se vuelve a establecer en cada conexión."

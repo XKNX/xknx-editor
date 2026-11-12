@@ -42,7 +42,10 @@ from editor_gui.plugins.connection.usb import (
     UsbBusmonitorConnection,
     UsbTarget,
     cancel_hidapi_atexit,
+    emi_type_name,
+    mask_version_text,
     search_usb_interfaces,
+    supported_emi_type_names,
     usb_device_name,
 )
 from editor_gui.plugins.connection.xknx_usb import USBDeviceInfo, USBInterfaceInfo
@@ -232,6 +235,35 @@ def parse_connection_type(name: str) -> ConnectionType | None:
     return _CONNECTION_TYPE_NAMES.get(name.strip().lower())
 
 
+def _row_button(label: str) -> bool:
+    """A button beside the previous item, or below it where the row has no room (a narrow
+    screen); returns whether it was clicked."""
+    width = imgui.calc_text_size(label.split("##")[0]).x + 2 * (
+        imgui.get_style().frame_padding.x
+    )
+    imgui.same_line()
+    if imgui.get_content_region_avail().x < width:
+        imgui.new_line()
+    return bool(imgui.button(label))
+
+
+def gateway_label(gateway: GatewayDescriptor) -> str:
+    """A discovered gateway as the lists show it: its name, else its individual address (a
+    gateway may answer the search without a name), then its IP address."""
+    primary = gateway.name.strip() or (
+        str(gateway.individual_address) if gateway.individual_address else ""
+    )
+    return f"{primary}  ({gateway.ip_addr})" if primary else gateway.ip_addr
+
+
+def _usb_target_label(target: UsbTarget) -> str:
+    """A KNX USB interface in the USB Interface setting: its name, and its serial number to tell
+    identical interfaces apart."""
+    if target.serial_number:
+        return f"{target.name} ({target.serial_number})"
+    return target.name
+
+
 def connection_type_name(connection_type: ConnectionType) -> str:
     """The MCP name of a ``ConnectionType`` (the secure variants map to their plain transport)."""
     if connection_type in (ConnectionType.ROUTING, ConnectionType.ROUTING_SECURE):
@@ -309,11 +341,11 @@ class ConnectionPlugin:
         # The individual addresses of the USB interfaces that forget theirs when unplugged
         # (UsbTarget.keeps_address), by UsbTarget.key: set again on connect.
         self._usb_addresses: dict[str, str] = {}
-        # The USB Interface Settings dialog: whether it is open, the address in its field, the
+        # The USB Interface dialog: whether it is open, the address in its field, the
         # address the next connect writes (set_usb_interface_address), whether that or an address
         # check runs, and the outcome of the last one.
-        self._usb_settings_open = False
-        self._usb_settings_shown = False
+        self._usb_interface_open = False
+        self._usb_interface_shown = False
         self._usb_address_text = ""
         self._usb_address_write: IndividualAddress | None = None
         self._usb_address_busy = False
@@ -962,6 +994,11 @@ class ConnectionPlugin:
                     max_apdu_length=self._usb_info.max_apdu_length,
                     bus_connected=self._usb_info.bus_connected,
                     serial_number=self._usb_info.device.serial_number,
+                    emi_type=emi_type_name(self._usb_info.emi_type),
+                    supported_emi_types=supported_emi_type_names(
+                        self._usb_info.supported_emi_types
+                    ),
+                    mask_version=mask_version_text(self._usb_info.mask_version),
                 )
                 self._keep_usb_address()
             if self._gateway_info:
@@ -1357,7 +1394,7 @@ class ConnectionPlugin:
             imgui.same_line()
             spinner("##select-spinner")
         for gateway in self._gateways:
-            label = f"{gateway.name}  ({gateway.ip_addr})"
+            label = gateway_label(gateway)
             if imgui.selectable(f"{label}##select_{gateway.ip_addr}", False)[0]:
                 self._connect_for_operation(
                     label, join_endpoint(gateway.ip_addr, gateway.port), gateway
@@ -1938,7 +1975,7 @@ class ConnectionPlugin:
         """The 'Devices in programming mode' window and the "Select Connection" dialog; called
         from the overlay pass."""
         self._render_select_connection()
-        self._render_usb_settings()
+        self._render_usb_interface()
         if not self._progmode_open:
             return
         expanded, open_state = begin_tool_window(
@@ -1949,32 +1986,32 @@ class ConnectionPlugin:
             self._render_progmode_contents()
         imgui.end()
 
-    def open_usb_settings(self) -> None:
-        """Open the USB Interface Settings dialog of the connected USB interface."""
+    def open_usb_interface(self) -> None:
+        """Open the USB Interface dialog of the connected USB interface."""
         info = self.usb_info
         address = info.individual_address if info is not None else None
         self._usb_address_text = str(address) if address is not None else ""
         self._usb_address_error = None
         self._usb_address_free = None
-        self._usb_settings_open = True
+        self._usb_interface_open = True
 
-    def _render_usb_settings(self) -> None:
-        """The "USB Interface Settings" dialog: what the connected USB interface reported, and its
-        individual address, set on the interface when it is changed (Enter or leaving the field),
-        with a check whether a device on the bus uses an address."""
-        title = f"{S.USB_SETTINGS_TITLE}###usb_settings"
-        if self._usb_settings_open and not self._usb_settings_shown:
+    def _render_usb_interface(self) -> None:
+        """The "USB Interface" dialog: what the connected USB interface reported, and its
+        individual address, set on the interface with Apply (or Enter in the field), with a check
+        whether a device on the bus uses an address."""
+        title = f"{S.USB_INTERFACE_TITLE}###usb_interface"
+        if self._usb_interface_open and not self._usb_interface_shown:
             imgui.open_popup(title)
-            self._usb_settings_shown = True
-        if not self._usb_settings_shown:
+            self._usb_interface_shown = True
+        if not self._usb_interface_shown:
             return
         if not begin_dialog(title, width=440.0):
-            self._usb_settings_shown = False
-            self._usb_settings_open = False
+            self._usb_interface_shown = False
+            self._usb_interface_open = False
             return
         target = self._usb_target
-        if not self._usb_settings_open or target is None:
-            self._usb_settings_open = False
+        if not self._usb_interface_open or target is None:
+            self._usb_interface_open = False
             imgui.close_current_popup()
             end_dialog()
             return
@@ -1984,6 +2021,16 @@ class ConnectionPlugin:
             imgui.text(S.USB_SERIAL_NUMBER.format(serial=target.serial_number))
         if info is not None:
             imgui.text(S.USB_MAX_APDU_LENGTH.format(length=info.max_apdu_length))
+            imgui.text(S.USB_EMI_TYPE.format(emi=emi_type_name(info.emi_type)))
+            imgui.text(
+                S.USB_SUPPORTED_EMI_TYPES.format(
+                    types=", ".join(supported_emi_type_names(info.supported_emi_types))
+                )
+            )
+            if info.mask_version is not None:
+                imgui.text(
+                    S.USB_MASK_VERSION.format(mask=mask_version_text(info.mask_version))
+                )
         imgui.separator()
         busy = self._usb_address_busy or self._usb_address_checking
         imgui.begin_disabled(busy or not self.connected)
@@ -1991,19 +2038,27 @@ class ConnectionPlugin:
         imgui.text(S.USB_ADDRESS_LABEL)
         imgui.same_line()
         imgui.set_next_item_width(px(110))
-        _, self._usb_address_text = imgui.input_text(
-            "##usb_address", self._usb_address_text
+        entered, self._usb_address_text = imgui.input_text(
+            "##usb_address",
+            self._usb_address_text,
+            imgui.InputTextFlags_.enter_returns_true,
         )
-        if imgui.is_item_deactivated_after_edit():
+        current = (
+            str(info.individual_address)
+            if info is not None and info.individual_address is not None
+            else ""
+        )
+        # The address the interface has: nothing to apply, and the interface uses it (a check
+        # could be answered by the interface itself).
+        changed = self._usb_address_text.strip() != current
+        imgui.begin_disabled(not changed)
+        applied = _row_button(f"{S.USB_ADDRESS_APPLY}##usb_address_apply")
+        checked = _row_button(f"{S.USB_ADDRESS_FREE}##usb_address_free")
+        imgui.end_disabled()
+        # Enter in the field applies it too
+        if applied or (entered and changed):
             self._start_usb_address(self.set_usb_interface_address)
-        # beside the field, or below it where the row has no room (a narrow screen)
-        button = imgui.calc_text_size(S.USB_ADDRESS_FREE).x + 2 * (
-            imgui.get_style().frame_padding.x
-        )
-        imgui.same_line()
-        if imgui.get_content_region_avail().x < button:
-            imgui.new_line()
-        if imgui.button(f"{S.USB_ADDRESS_FREE}##usb_address_free"):
+        if checked:
             self._start_usb_address(self.check_usb_interface_address)
         imgui.end_disabled()
         if busy or (self._state == ConnectionState.CONNECTING):
@@ -2029,16 +2084,15 @@ class ConnectionPlugin:
                 )
             )
             imgui.pop_style_color()
-        # wrapped: a line of its own would widen the dialog past a narrow screen
-        imgui.push_style_color(
-            imgui.Col_.text, imgui.get_style().color_(imgui.Col_.text_disabled)
-        )
-        imgui.text_wrapped(
-            S.USB_ADDRESS_HINT if target.keeps_address else S.USB_ADDRESS_HINT_VOLATILE
-        )
-        imgui.pop_style_color()
-        if dialog_buttons(S.USB_SETTINGS_CLOSE) == 0:
-            self._usb_settings_open = False
+        if not target.keeps_address:
+            # wrapped: a line of its own would widen the dialog past a narrow screen
+            imgui.push_style_color(
+                imgui.Col_.text, imgui.get_style().color_(imgui.Col_.text_disabled)
+            )
+            imgui.text_wrapped(S.USB_ADDRESS_HINT_VOLATILE)
+            imgui.pop_style_color()
+        if dialog_buttons(S.USB_INTERFACE_CLOSE) == 0:
+            self._usb_interface_open = False
             imgui.close_current_popup()
         end_dialog()
 
@@ -2223,8 +2277,8 @@ class ConnectionPlugin:
             self._render_connected_transport()
             imgui.unindent(px(_DETAILS_INDENT))
             imgui.separator()
-            if self.is_usb and imgui.menu_item(S.MENU_USB_SETTINGS, "", False)[0]:
-                self.open_usb_settings()
+            if self.is_usb and imgui.menu_item(S.MENU_USB_INTERFACE, "", False)[0]:
+                self.open_usb_interface()
             if imgui.menu_item(S.MENU_READ_PROGMODE, "", self._progmode_open)[0]:
                 self._open_progmode_window()
             imgui.separator()
@@ -2281,12 +2335,27 @@ class ConnectionPlugin:
                 "choice",
                 get=lambda: self.connection_type,
                 set=self._set_connection_type_name,
-                choices=lambda: [
-                    ("tunneling", S.CONN_TYPE_TUNNELING),
-                    ("tunneling_tcp", S.CONN_TYPE_TCP_TUNNELING),
-                    ("routing", S.CONN_TYPE_ROUTING),
-                ],
+                choices=self._connection_type_choices,
                 hint=lambda: S.SETTING_CONNECTION_TYPE_HINT,
+                # the connection open through the USB interface is no gateway to switch to
+                read_only=lambda: (
+                    self._usb_target is not None and self._connection_open
+                ),
+            ),
+            Setting(
+                "usb_interface",
+                lambda: S.SETTING_USB_INTERFACE,
+                "choice",
+                get=lambda: (
+                    self._usb_target.key if self._usb_target is not None else ""
+                ),
+                set=self._set_usb_interface_key,
+                choices=lambda: [
+                    (target.key, _usb_target_label(target))
+                    for target in self._usb_interface_targets()
+                ],
+                shown=lambda: self._usb_target is not None,
+                read_only=lambda: self._connection_open,
             ),
             Setting(
                 "gateway_ip",
@@ -2294,6 +2363,7 @@ class ConnectionPlugin:
                 "text",
                 get=lambda: self._controller_ip,
                 set=self._set_controller_ip,
+                shown=lambda: self._usb_target is None,
             ),
             Setting(
                 "connect_at_startup",
@@ -2313,12 +2383,74 @@ class ConnectionPlugin:
             ),
         ]
 
+    @property
+    def _connection_open(self) -> bool:
+        return self._state in (ConnectionState.CONNECTING, ConnectionState.CONNECTED)
+
+    def _connection_type_choices(self) -> list[tuple[str, str]]:
+        """The transports the Connection Type setting offers: the gateway's, and "USB" while a
+        KNX USB interface is stored or was found (not while a gateway connection is open, which
+        would then go through another interface)."""
+        choices = [
+            ("tunneling", S.CONN_TYPE_TUNNELING),
+            ("tunneling_tcp", S.CONN_TYPE_TCP_TUNNELING),
+            ("routing", S.CONN_TYPE_ROUTING),
+        ]
+        usb_known = self._usb_target is not None or bool(self._usb_devices)
+        if usb_known and not (self._connection_open and self._usb_target is None):
+            choices.append(("usb", S.CONN_TYPE_USB))
+        return choices
+
     def _set_connection_type_name(self, value: object) -> None:
-        """Set the stored transport from an MCP name ("tunneling"/"tunneling_tcp"/"routing");
-        takes effect on the next connect, like the Gateway menu's radio."""
-        connection_type = parse_connection_type(str(value))
-        if connection_type is not None and connection_type != self._connection_type:
-            self._connection_type = connection_type
+        """Set the stored transport from an MCP name ("tunneling"/"tunneling_tcp"/"routing" or
+        "usb": the stored KNX USB interface, else the first one found); takes effect on the next
+        connect, like the Gateway menu's choice. Nothing changes while the connection is open
+        through another kind of interface."""
+        name = str(value).strip().lower()
+        if name == "usb":
+            if self._usb_target is not None or self._connection_open:
+                return
+            if not self._usb_devices:
+                return
+            self._usb_target = UsbTarget.of(self._usb_devices[0])
+            self._save_current_settings()
+            return
+        connection_type = parse_connection_type(name)
+        if connection_type is None:
+            return
+        if self._usb_target is not None:
+            if self._connection_open:
+                return
+            self._usb_target = None
+        elif connection_type == self._connection_type:
+            return
+        self._connection_type = connection_type
+        self._save_current_settings()
+
+    def _usb_interface_targets(self) -> list[UsbTarget]:
+        """The KNX USB interfaces the USB Interface setting offers: the stored one, then those the
+        last scan found."""
+        targets: list[UsbTarget] = []
+        if self._usb_target is not None:
+            targets.append(self._usb_target)
+        for device in self._usb_devices:
+            target = UsbTarget.of(device)
+            if all(target.key != known.key for known in targets):
+                targets.append(target)
+        return targets
+
+    def _set_usb_interface_key(self, value: object) -> None:
+        """Store the KNX USB interface with the key ``value`` (see ``UsbTarget.key``) for the
+        next connect; nothing changes while a connection is open."""
+        if self._connection_open:
+            return
+        key = str(value).strip()
+        target = next(
+            (t for t in self._usb_interface_targets() if t.key == key),
+            None,
+        )
+        if target is not None and target != self._usb_target:
+            self._usb_target = target
             self._save_current_settings()
 
     def _set_controller_ip(self, value: object) -> None:
@@ -2368,19 +2500,20 @@ class ConnectionPlugin:
         )
         if tcp_support is False and manual_type == ConnectionType.TUNNELING_TCP:
             manual_type = ConnectionType.TUNNELING
-        if radio_button(
-            f"{S.CONN_TYPE_TUNNELING}##manual_udp",
-            manual_type == ConnectionType.TUNNELING,
-        ):
-            self._connection_type = ConnectionType.TUNNELING
-        # Offer TCP unless the interface is known not to support it (a KNXnet/IP v1 device).
+        # TCP first, as a discovered gateway offers it; unless the interface is known not to
+        # support it (a KNXnet/IP v1 device).
         if tcp_support is not False:
-            imgui.same_line()
             if radio_button(
                 f"{S.CONN_TYPE_TCP_TUNNELING}##manual_tcp",
                 manual_type == ConnectionType.TUNNELING_TCP,
             ):
                 self._connection_type = ConnectionType.TUNNELING_TCP
+            imgui.same_line()
+        if radio_button(
+            f"{S.CONN_TYPE_TUNNELING}##manual_udp",
+            manual_type == ConnectionType.TUNNELING,
+        ):
+            self._connection_type = ConnectionType.TUNNELING
         if imgui.menu_item(retry_label, "", False)[0]:
             self.connect(connection_type=manual_type)
 
@@ -2469,10 +2602,11 @@ class ConnectionPlugin:
         return self._gateway_info
 
     def _render_gateway_option(self, gw: GatewayDescriptor) -> None:
-        """A discovered gateway: its name, then a radio for each connection type it offers.
-        Picking one connects to the gateway over that type (the picker shows only while not
-        connected, so a pick always starts a fresh connection)."""
-        imgui.text_disabled(f"{gw.name}  ({gw.ip_addr})")
+        """A discovered gateway: its name, then below it a radio for each connection type it
+        offers, side by side and not indented, as in the manual connection. Picking one connects
+        to the gateway over that type (the picker shows only while not connected, so a pick
+        always starts a fresh connection)."""
+        imgui.text(gateway_label(gw))
         transports: list[tuple[ConnectionType, str]] = []
         if gw.supports_tunnelling_tcp:
             transports.append((ConnectionType.TUNNELING_TCP, S.CONN_TYPE_TCP_TUNNELING))
@@ -2481,14 +2615,14 @@ class ConnectionPlugin:
         if gw.supports_routing:
             transports.append((ConnectionType.ROUTING, S.CONN_TYPE_ROUTING))
         preferred = gw.ip_addr == self._preferred_gateway_ip
-        imgui.indent()
-        for ctype, label in transports:
+        for index, (ctype, label) in enumerate(transports):
+            if index:
+                imgui.same_line()
             if radio_button(
                 f"{label}##gw_{gw.ip_addr}_{ctype.name}",
                 preferred and self._connection_type == ctype,
             ):
                 self.connect_to_gateway(gw, connection_type=ctype)
-        imgui.unindent()
 
     @property
     def panels(self) -> list[PanelDefinition]:

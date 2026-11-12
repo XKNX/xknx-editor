@@ -205,6 +205,9 @@ msgstr "TCP tunneling"
 msgid "Routing"
 msgstr "Routing"
 
+msgid "USB"
+msgstr "USB"
+
 msgid "A device whose serial number is known gets its individual address without pressing its programming button."
 msgstr "Laite, jonka sarjanumero tunnetaan, saa yksilöllisen osoitteensa ilman ohjelmointipainikkeen painamista."
 
@@ -231,17 +234,26 @@ msgid_plural "{count} devices in programming mode"
 msgstr[0] "{count} laite ohjelmointitilassa"
 msgstr[1] "{count} laitetta ohjelmointitilassa"
 
-msgid "USB Interface Settings…"
-msgstr "USB-liitännän asetukset…"
+msgid "USB Interface…"
+msgstr "USB-liitäntä…"
 
-msgid "USB Interface Settings"
-msgstr "USB-liitännän asetukset"
+msgid "USB Interface"
+msgstr "USB-liitäntä"
 
 msgid "Close"
 msgstr "Sulje"
 
 msgid "Maximum Telegram Length (APDU): {length}"
 msgstr "Sähkeen enimmäispituus (APDU): {length}"
+
+msgid "EMI Type: {emi}"
+msgstr "EMI-tyyppi: {emi}"
+
+msgid "Supported EMI Types: {types}"
+msgstr "Tuetut EMI-tyypit: {types}"
+
+msgid "Mask Version: {mask}"
+msgstr "Maskiversio: {mask}"
 
 msgid "Individual Address"
 msgstr "Yksilöllinen osoite"
@@ -276,8 +288,5 @@ msgstr "Asetetaan yksilöllistä osoitetta…"
 msgid "Checking the individual address on the bus…"
 msgstr "Tarkistetaan yksilöllistä osoitetta väylällä…"
 
-msgid "A changed address is set on the interface (Enter), which keeps it."
-msgstr "Muutettu osoite asetetaan liitäntään (Enter), joka säilyttää sen."
-
-msgid "A changed address is set on the interface (Enter). This interface forgets it when unplugged, so it is set again on every connect."
-msgstr "Muutettu osoite asetetaan liitäntään (Enter). Tämä liitäntä unohtaa sen, kun se irrotetaan, joten se asetetaan uudelleen jokaisella yhdistämiskerralla."
+msgid "This interface forgets its individual address when unplugged, so it is set again on every connect."
+msgstr "Tämä liitäntä unohtaa yksilöllisen osoitteensa, kun se irrotetaan, joten osoite asetetaan uudelleen jokaisella yhdistämiskerralla."

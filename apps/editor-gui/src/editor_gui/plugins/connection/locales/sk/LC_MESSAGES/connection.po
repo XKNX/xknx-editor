@@ -205,6 +205,9 @@ msgstr "TCP tunneling"
 msgid "Routing"
 msgstr "Routing"
 
+msgid "USB"
+msgstr "USB"
+
 msgid "A device whose serial number is known gets its individual address without pressing its programming button."
 msgstr "Zariadenie so známym sériovým číslom dostane individuálnu adresu bez stlačenia programovacieho tlačidla."
 
@@ -232,17 +235,26 @@ msgstr[0] "{count} zariadenie v programovacom režime"
 msgstr[1] "{count} zariadenia v programovacom režime"
 msgstr[2] "{count} zariadení v programovacom režime"
 
-msgid "USB Interface Settings…"
-msgstr "Nastavenia USB Rozhrania…"
+msgid "USB Interface…"
+msgstr "USB Rozhranie…"
 
-msgid "USB Interface Settings"
-msgstr "Nastavenia USB Rozhrania"
+msgid "USB Interface"
+msgstr "USB Rozhranie"
 
 msgid "Close"
 msgstr "Zavrieť"
 
 msgid "Maximum Telegram Length (APDU): {length}"
 msgstr "Maximálna Dĺžka Telegramu (APDU): {length}"
+
+msgid "EMI Type: {emi}"
+msgstr "Typ EMI: {emi}"
+
+msgid "Supported EMI Types: {types}"
+msgstr "Podporované typy EMI: {types}"
+
+msgid "Mask Version: {mask}"
+msgstr "Verzia masky: {mask}"
 
 msgid "Individual Address"
 msgstr "Individuálna adresa"
@@ -277,8 +289,5 @@ msgstr "Nastavuje sa individuálna adresa…"
 msgid "Checking the individual address on the bus…"
 msgstr "Kontroluje sa individuálna adresa na zbernici…"
 
-msgid "A changed address is set on the interface (Enter), which keeps it."
-msgstr "Zmenená adresa sa nastaví v rozhraní (Enter), ktoré si ju ponechá."
-
-msgid "A changed address is set on the interface (Enter). This interface forgets it when unplugged, so it is set again on every connect."
-msgstr "Zmenená adresa sa nastaví v rozhraní (Enter). Toto rozhranie ju po odpojení zabudne, preto sa nastaví znova pri každom pripojení."
+msgid "This interface forgets its individual address when unplugged, so it is set again on every connect."
+msgstr "Toto rozhranie po odpojení zabudne svoju individuálnu adresu, preto sa nastaví znova pri každom pripojení."

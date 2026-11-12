@@ -205,6 +205,9 @@ msgstr "TCP tunneling"
 msgid "Routing"
 msgstr "Routing"
 
+msgid "USB"
+msgstr "USB"
+
 msgid "A device whose serial number is known gets its individual address without pressing its programming button."
 msgstr "Az ismert sorozatszámú eszköz a programozógombja megnyomása nélkül kapja meg a fizikai címét."
 
@@ -230,17 +233,26 @@ msgid "{count} device in programming mode"
 msgid_plural "{count} devices in programming mode"
 msgstr[0] "{count} készülék programozási módban"
 
-msgid "USB Interface Settings…"
-msgstr "USB Interfész Beállításai…"
+msgid "USB Interface…"
+msgstr "USB Interfész…"
 
-msgid "USB Interface Settings"
-msgstr "USB Interfész Beállításai"
+msgid "USB Interface"
+msgstr "USB Interfész"
 
 msgid "Close"
 msgstr "Bezárás"
 
 msgid "Maximum Telegram Length (APDU): {length}"
 msgstr "Maximális Távirathossz (APDU): {length}"
+
+msgid "EMI Type: {emi}"
+msgstr "EMI-típus: {emi}"
+
+msgid "Supported EMI Types: {types}"
+msgstr "Támogatott EMI-típusok: {types}"
+
+msgid "Mask Version: {mask}"
+msgstr "Maszkverzió: {mask}"
 
 msgid "Individual Address"
 msgstr "Fizikai cím"
@@ -275,8 +287,5 @@ msgstr "A fizikai cím beállítása…"
 msgid "Checking the individual address on the bus…"
 msgstr "A fizikai cím ellenőrzése a buszon…"
 
-msgid "A changed address is set on the interface (Enter), which keeps it."
-msgstr "A módosított címet az interfész kapja meg (Enter), és meg is tartja."
-
-msgid "A changed address is set on the interface (Enter). This interface forgets it when unplugged, so it is set again on every connect."
-msgstr "A módosított címet az interfész kapja meg (Enter). Ez az interfész kihúzáskor elfelejti, ezért minden csatlakozáskor újra beállításra kerül."
+msgid "This interface forgets its individual address when unplugged, so it is set again on every connect."
+msgstr "Ez az interfész kihúzáskor elfelejti a fizikai címét, ezért minden csatlakozáskor újra beállításra kerül."

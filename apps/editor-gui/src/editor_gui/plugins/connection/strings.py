@@ -36,6 +36,10 @@ class ConnectionStrings:
         return _("Gateway IP")
 
     @property
+    def SETTING_USB_INTERFACE(self) -> str:
+        return _("USB Interface")
+
+    @property
     def SETTING_CONNECT_AT_STARTUP(self) -> str:
         return _("Connect at Startup")
 
@@ -186,15 +190,15 @@ class ConnectionStrings:
         return _("Serial Number: {serial}")
 
     @property
-    def MENU_USB_SETTINGS(self) -> str:
-        return _("USB Interface Settings…")
+    def MENU_USB_INTERFACE(self) -> str:
+        return _("USB Interface…")
 
     @property
-    def USB_SETTINGS_TITLE(self) -> str:
-        return _("USB Interface Settings")
+    def USB_INTERFACE_TITLE(self) -> str:
+        return _("USB Interface")
 
     @property
-    def USB_SETTINGS_CLOSE(self) -> str:
+    def USB_INTERFACE_CLOSE(self) -> str:
         return _("Close")
 
     @property
@@ -202,8 +206,28 @@ class ConnectionStrings:
         return _("Maximum Telegram Length (APDU): {length}")
 
     @property
+    def USB_EMI_TYPE(self) -> str:
+        # {emi}: cEMI, EMI2 or EMI1, the message format used with the interface
+        return _("EMI Type: {emi}")
+
+    @property
+    def USB_SUPPORTED_EMI_TYPES(self) -> str:
+        # {types}: e.g. "cEMI, EMI2"
+        return _("Supported EMI Types: {types}")
+
+    @property
+    def USB_MASK_VERSION(self) -> str:
+        # {mask}: four hexadecimal digits, e.g. 07B0
+        return _("Mask Version: {mask}")
+
+    @property
     def USB_ADDRESS_LABEL(self) -> str:
         return _("Individual Address")
+
+    @property
+    def USB_ADDRESS_APPLY(self) -> str:
+        # sets the individual address in the field on the interface
+        return _("Apply")
 
     @property
     def USB_ADDRESS_FREE(self) -> str:
@@ -248,14 +272,10 @@ class ConnectionStrings:
         return _("Checking the individual address on the bus…")
 
     @property
-    def USB_ADDRESS_HINT(self) -> str:
-        return _("A changed address is set on the interface (Enter), which keeps it.")
-
-    @property
     def USB_ADDRESS_HINT_VOLATILE(self) -> str:
         return _(
-            "A changed address is set on the interface (Enter). This interface forgets it "
-            "when unplugged, so it is set again on every connect."
+            "This interface forgets its individual address when unplugged, so it is set "
+            "again on every connect."
         )
 
     @property
@@ -273,6 +293,11 @@ class ConnectionStrings:
     @property
     def CONN_TYPE_ROUTING(self) -> str:
         return _("Routing")
+
+    @property
+    def CONN_TYPE_USB(self) -> str:
+        # a KNX USB interface, as the Connection Type setting names it
+        return _("USB")
 
     @property
     def STATUS_CONNECTED(self) -> str:

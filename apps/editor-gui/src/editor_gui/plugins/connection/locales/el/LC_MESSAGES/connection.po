@@ -205,6 +205,9 @@ msgstr "TCP tunneling"
 msgid "Routing"
 msgstr "Routing"
 
+msgid "USB"
+msgstr "USB"
+
 msgid "A device whose serial number is known gets its individual address without pressing its programming button."
 msgstr "Μια συσκευή με γνωστό σειριακό αριθμό λαμβάνει την ατομική της διεύθυνση χωρίς να πατηθεί το κουμπί προγραμματισμού της."
 
@@ -231,17 +234,26 @@ msgid_plural "{count} devices in programming mode"
 msgstr[0] "{count} συσκευή σε κατάσταση προγραμματισμού"
 msgstr[1] "{count} συσκευές σε κατάσταση προγραμματισμού"
 
-msgid "USB Interface Settings…"
-msgstr "Ρυθμίσεις Διεπαφής USB…"
+msgid "USB Interface…"
+msgstr "Διεπαφή USB…"
 
-msgid "USB Interface Settings"
-msgstr "Ρυθμίσεις Διεπαφής USB"
+msgid "USB Interface"
+msgstr "Διεπαφή USB"
 
 msgid "Close"
 msgstr "Κλείσιμο"
 
 msgid "Maximum Telegram Length (APDU): {length}"
 msgstr "Μέγιστο Μήκος Τηλεγραφήματος (APDU): {length}"
+
+msgid "EMI Type: {emi}"
+msgstr "Τύπος EMI: {emi}"
+
+msgid "Supported EMI Types: {types}"
+msgstr "Υποστηριζόμενοι τύποι EMI: {types}"
+
+msgid "Mask Version: {mask}"
+msgstr "Έκδοση μάσκας: {mask}"
 
 msgid "Individual Address"
 msgstr "Ατομική Διεύθυνση"
@@ -276,8 +288,5 @@ msgstr "Ορισμός της ατομικής διεύθυνσης…"
 msgid "Checking the individual address on the bus…"
 msgstr "Έλεγχος της ατομικής διεύθυνσης στον δίαυλο…"
 
-msgid "A changed address is set on the interface (Enter), which keeps it."
-msgstr "Μια αλλαγμένη διεύθυνση ορίζεται στη διεπαφή (Enter), η οποία τη διατηρεί."
-
-msgid "A changed address is set on the interface (Enter). This interface forgets it when unplugged, so it is set again on every connect."
-msgstr "Μια αλλαγμένη διεύθυνση ορίζεται στη διεπαφή (Enter). Αυτή η διεπαφή την ξεχνά όταν αποσυνδέεται, γι' αυτό ορίζεται ξανά σε κάθε σύνδεση."
+msgid "This interface forgets its individual address when unplugged, so it is set again on every connect."
+msgstr "Αυτή η διεπαφή ξεχνά την ατομική της διεύθυνση όταν αποσυνδέεται, γι' αυτό ορίζεται ξανά σε κάθε σύνδεση."

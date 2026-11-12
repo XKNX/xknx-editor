@@ -205,6 +205,9 @@ msgstr "TCP tunneling"
 msgid "Routing"
 msgstr "Routing"
 
+msgid "USB"
+msgstr "USB"
+
 msgid "A device whose serial number is known gets its individual address without pressing its programming button."
 msgstr "Un appareil dont le numéro de série est connu reçoit son adresse individuelle sans appuyer sur son bouton de programmation."
 
@@ -231,17 +234,26 @@ msgid_plural "{count} devices in programming mode"
 msgstr[0] "{count} participant en mode programmation"
 msgstr[1] "{count} participants en mode programmation"
 
-msgid "USB Interface Settings…"
-msgstr "Paramètres de l'interface USB…"
+msgid "USB Interface…"
+msgstr "Interface USB…"
 
-msgid "USB Interface Settings"
-msgstr "Paramètres de l'interface USB"
+msgid "USB Interface"
+msgstr "Interface USB"
 
 msgid "Close"
 msgstr "Fermer"
 
 msgid "Maximum Telegram Length (APDU): {length}"
 msgstr "Longueur Maximale des Télégrammes (APDU) : {length}"
+
+msgid "EMI Type: {emi}"
+msgstr "Type d'EMI : {emi}"
+
+msgid "Supported EMI Types: {types}"
+msgstr "Types d'EMI pris en charge : {types}"
+
+msgid "Mask Version: {mask}"
+msgstr "Version du masque : {mask}"
 
 msgid "Individual Address"
 msgstr "Adresse Individuelle"
@@ -276,8 +288,5 @@ msgstr "Définition de l'adresse individuelle…"
 msgid "Checking the individual address on the bus…"
 msgstr "Vérification de l'adresse individuelle sur le bus…"
 
-msgid "A changed address is set on the interface (Enter), which keeps it."
-msgstr "Une adresse modifiée est définie dans l'interface (Entrée), qui la conserve."
-
-msgid "A changed address is set on the interface (Enter). This interface forgets it when unplugged, so it is set again on every connect."
-msgstr "Une adresse modifiée est définie dans l'interface (Entrée). Cette interface l'oublie lorsqu'elle est débranchée, elle est donc redéfinie à chaque connexion."
+msgid "This interface forgets its individual address when unplugged, so it is set again on every connect."
+msgstr "Cette interface oublie son adresse individuelle lorsqu'elle est débranchée, elle est donc redéfinie à chaque connexion."

@@ -205,6 +205,9 @@ msgstr "TCP tunneling"
 msgid "Routing"
 msgstr "Routing"
 
+msgid "USB"
+msgstr "USB"
+
 msgid "A device whose serial number is known gets its individual address without pressing its programming button."
 msgstr "已知序列号的设备无需按下编程按钮即可获得其物理地址。"
 
@@ -230,17 +233,26 @@ msgid "{count} device in programming mode"
 msgid_plural "{count} devices in programming mode"
 msgstr[0] "{count} 个设备处于编程模式"
 
-msgid "USB Interface Settings…"
-msgstr "USB 接口设置…"
+msgid "USB Interface…"
+msgstr "USB 接口…"
 
-msgid "USB Interface Settings"
-msgstr "USB 接口设置"
+msgid "USB Interface"
+msgstr "USB 接口"
 
 msgid "Close"
 msgstr "关闭"
 
 msgid "Maximum Telegram Length (APDU): {length}"
 msgstr "最大报文长度 (APDU): {length}"
+
+msgid "EMI Type: {emi}"
+msgstr "EMI 类型：{emi}"
+
+msgid "Supported EMI Types: {types}"
+msgstr "支持的 EMI 类型：{types}"
+
+msgid "Mask Version: {mask}"
+msgstr "掩码版本：{mask}"
 
 msgid "Individual Address"
 msgstr "物理地址"
@@ -275,8 +287,5 @@ msgstr "正在设置物理地址…"
 msgid "Checking the individual address on the bus…"
 msgstr "正在总线上检查物理地址…"
 
-msgid "A changed address is set on the interface (Enter), which keeps it."
-msgstr "更改后的地址会设置到接口中 (Enter),接口会保留该地址。"
-
-msgid "A changed address is set on the interface (Enter). This interface forgets it when unplugged, so it is set again on every connect."
-msgstr "更改后的地址会设置到接口中 (Enter)。此接口拔出后会忘记该地址,因此每次连接时都会重新设置。"
+msgid "This interface forgets its individual address when unplugged, so it is set again on every connect."
+msgstr "此接口拔出后会忘记其物理地址，因此每次连接时都会重新设置。"

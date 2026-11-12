@@ -205,6 +205,9 @@ msgstr "TCP tunneling"
 msgid "Routing"
 msgstr "Routing"
 
+msgid "USB"
+msgstr "USB"
+
 msgid "A device whose serial number is known gets its individual address without pressing its programming button."
 msgstr "Urządzenie o znanym numerze seryjnym otrzymuje adres indywidualny bez naciskania przycisku programowania."
 
@@ -232,17 +235,26 @@ msgstr[0] "{count} urządzenie w trybie programowania"
 msgstr[1] "{count} urządzenia w trybie programowania"
 msgstr[2] "{count} urządzeń w trybie programowania"
 
-msgid "USB Interface Settings…"
-msgstr "Ustawienia Interfejsu USB…"
+msgid "USB Interface…"
+msgstr "Interfejs USB…"
 
-msgid "USB Interface Settings"
-msgstr "Ustawienia Interfejsu USB"
+msgid "USB Interface"
+msgstr "Interfejs USB"
 
 msgid "Close"
 msgstr "Zamknij"
 
 msgid "Maximum Telegram Length (APDU): {length}"
 msgstr "Maksymalna Długość Telegramu (APDU): {length}"
+
+msgid "EMI Type: {emi}"
+msgstr "Typ EMI: {emi}"
+
+msgid "Supported EMI Types: {types}"
+msgstr "Obsługiwane typy EMI: {types}"
+
+msgid "Mask Version: {mask}"
+msgstr "Wersja maski: {mask}"
 
 msgid "Individual Address"
 msgstr "Adres indywidualny"
@@ -277,8 +289,5 @@ msgstr "Ustawianie adresu indywidualnego…"
 msgid "Checking the individual address on the bus…"
 msgstr "Sprawdzanie adresu indywidualnego na magistrali…"
 
-msgid "A changed address is set on the interface (Enter), which keeps it."
-msgstr "Zmieniony adres jest ustawiany w interfejsie (Enter), który go zachowuje."
-
-msgid "A changed address is set on the interface (Enter). This interface forgets it when unplugged, so it is set again on every connect."
-msgstr "Zmieniony adres jest ustawiany w interfejsie (Enter). Ten interfejs zapomina go po odłączeniu, dlatego jest on ustawiany ponownie przy każdym połączeniu."
+msgid "This interface forgets its individual address when unplugged, so it is set again on every connect."
+msgstr "Ten interfejs zapomina swój adres indywidualny po odłączeniu, dlatego jest on ustawiany ponownie przy każdym połączeniu."

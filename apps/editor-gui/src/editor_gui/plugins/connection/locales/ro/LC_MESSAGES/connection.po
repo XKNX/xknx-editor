@@ -205,6 +205,9 @@ msgstr "TCP tunneling"
 msgid "Routing"
 msgstr "Routing"
 
+msgid "USB"
+msgstr "USB"
+
 msgid "A device whose serial number is known gets its individual address without pressing its programming button."
 msgstr "Un dispozitiv al cărui număr de serie este cunoscut primește adresa fizică fără apăsarea butonului de programare."
 
@@ -232,17 +235,26 @@ msgstr[0] "{count} dispozitiv în modul de programare"
 msgstr[1] "{count} dispozitive în modul de programare"
 msgstr[2] "{count} de dispozitive în modul de programare"
 
-msgid "USB Interface Settings…"
-msgstr "Setări Interfață USB…"
+msgid "USB Interface…"
+msgstr "Interfață USB…"
 
-msgid "USB Interface Settings"
-msgstr "Setări Interfață USB"
+msgid "USB Interface"
+msgstr "Interfață USB"
 
 msgid "Close"
 msgstr "Închidere"
 
 msgid "Maximum Telegram Length (APDU): {length}"
 msgstr "Lungime Maximă a Telegramei (APDU): {length}"
+
+msgid "EMI Type: {emi}"
+msgstr "Tip EMI: {emi}"
+
+msgid "Supported EMI Types: {types}"
+msgstr "Tipuri EMI acceptate: {types}"
+
+msgid "Mask Version: {mask}"
+msgstr "Versiune mască: {mask}"
 
 msgid "Individual Address"
 msgstr "Adresă fizică"
@@ -277,8 +289,5 @@ msgstr "Se setează adresa fizică…"
 msgid "Checking the individual address on the bus…"
 msgstr "Se verifică adresa fizică pe magistrală…"
 
-msgid "A changed address is set on the interface (Enter), which keeps it."
-msgstr "O adresă modificată este setată în interfață (Enter), care o păstrează."
-
-msgid "A changed address is set on the interface (Enter). This interface forgets it when unplugged, so it is set again on every connect."
-msgstr "O adresă modificată este setată în interfață (Enter). Această interfață o uită când este deconectată, așa că este setată din nou la fiecare conectare."
+msgid "This interface forgets its individual address when unplugged, so it is set again on every connect."
+msgstr "Această interfață își uită adresa fizică când este deconectată, așa că este setată din nou la fiecare conectare."

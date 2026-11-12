@@ -23,6 +23,7 @@ from editor_gui.plugins.connection.xknx_usb import (
     USBTunnel,
     find_usb_interfaces,
 )
+from editor_gui.plugins.connection.xknx_usb.const import EMIID, SupportedEMIType
 
 # Seconds between the attempts to open an unplugged interface again.
 _RECONNECT_SECONDS = 3
@@ -41,6 +42,30 @@ VOLATILE_ADDRESS_USB_INTERFACES = frozenset({(0x0681, 0x0014)})
 def usb_device_name(device: USBDeviceInfo) -> str:
     """The name an interface is shown with: its USB product name."""
     return device.product.strip() or "KNX USB Interface"
+
+
+# The EMI types by their names in the KNX specification, in the order the connection prefers them.
+_EMI_NAMES = ((EMIID.CEMI, "cEMI"), (EMIID.EMI2, "EMI2"), (EMIID.EMI1, "EMI1"))
+_SUPPORTED_EMI = {
+    EMIID.CEMI: SupportedEMIType.CEMI,
+    EMIID.EMI2: SupportedEMIType.EMI2,
+    EMIID.EMI1: SupportedEMIType.EMI1,
+}
+
+
+def emi_type_name(emi: EMIID) -> str:
+    """The name of the EMI type a connection uses with an interface: cEMI, EMI2 or EMI1."""
+    return dict(_EMI_NAMES)[emi]
+
+
+def supported_emi_type_names(supported: SupportedEMIType) -> list[str]:
+    """The names of the EMI types an interface supports, in the order the connection prefers."""
+    return [name for emi, name in _EMI_NAMES if supported & _SUPPORTED_EMI[emi]]
+
+
+def mask_version_text(mask_version: int | None) -> str:
+    """A mask version as four hexadecimal digits (``07B0``); empty when it is unknown."""
+    return "" if mask_version is None else f"{mask_version:04X}"
 
 
 def cancel_hidapi_atexit() -> None:

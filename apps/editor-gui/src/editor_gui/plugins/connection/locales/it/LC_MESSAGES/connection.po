@@ -205,6 +205,9 @@ msgstr "TCP tunneling"
 msgid "Routing"
 msgstr "Routing"
 
+msgid "USB"
+msgstr "USB"
+
 msgid "A device whose serial number is known gets its individual address without pressing its programming button."
 msgstr "Un dispositivo con numero di serie noto riceve il proprio indirizzo individuale senza premere il suo tasto di programmazione."
 
@@ -231,17 +234,26 @@ msgid_plural "{count} devices in programming mode"
 msgstr[0] "{count} dispositivo in modalità di programmazione"
 msgstr[1] "{count} dispositivi in modalità di programmazione"
 
-msgid "USB Interface Settings…"
-msgstr "Impostazioni dell'interfaccia USB…"
+msgid "USB Interface…"
+msgstr "Interfaccia USB…"
 
-msgid "USB Interface Settings"
-msgstr "Impostazioni dell'interfaccia USB"
+msgid "USB Interface"
+msgstr "Interfaccia USB"
 
 msgid "Close"
 msgstr "Chiudi"
 
 msgid "Maximum Telegram Length (APDU): {length}"
 msgstr "Lunghezza massima del telegramma (APDU): {length}"
+
+msgid "EMI Type: {emi}"
+msgstr "Tipo EMI: {emi}"
+
+msgid "Supported EMI Types: {types}"
+msgstr "Tipi EMI supportati: {types}"
+
+msgid "Mask Version: {mask}"
+msgstr "Versione maschera: {mask}"
 
 msgid "Individual Address"
 msgstr "Indirizzo individuale"
@@ -276,8 +288,5 @@ msgstr "Impostazione dell'indirizzo individuale…"
 msgid "Checking the individual address on the bus…"
 msgstr "Verifica dell'indirizzo individuale sul bus…"
 
-msgid "A changed address is set on the interface (Enter), which keeps it."
-msgstr "Un indirizzo modificato viene impostato nell'interfaccia (Invio), che lo conserva."
-
-msgid "A changed address is set on the interface (Enter). This interface forgets it when unplugged, so it is set again on every connect."
-msgstr "Un indirizzo modificato viene impostato nell'interfaccia (Invio). Questa interfaccia lo dimentica quando viene scollegata, quindi viene reimpostato a ogni connessione."
+msgid "This interface forgets its individual address when unplugged, so it is set again on every connect."
+msgstr "Questa interfaccia dimentica il proprio indirizzo individuale quando viene scollegata, quindi viene reimpostato a ogni connessione."

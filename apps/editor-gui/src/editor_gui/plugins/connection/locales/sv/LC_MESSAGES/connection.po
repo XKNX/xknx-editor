@@ -205,6 +205,9 @@ msgstr "TCP tunneling"
 msgid "Routing"
 msgstr "Routing"
 
+msgid "USB"
+msgstr "USB"
+
 msgid "A device whose serial number is known gets its individual address without pressing its programming button."
 msgstr "En enhet med känt serienummer får sin individuella adress utan att programmeringsknappen trycks."
 
@@ -231,17 +234,26 @@ msgid_plural "{count} devices in programming mode"
 msgstr[0] "{count} apparat i programmeringsläge"
 msgstr[1] "{count} apparater i programmeringsläge"
 
-msgid "USB Interface Settings…"
-msgstr "Inställningar för USB-gränssnitt…"
+msgid "USB Interface…"
+msgstr "USB-gränssnitt…"
 
-msgid "USB Interface Settings"
-msgstr "Inställningar för USB-gränssnitt"
+msgid "USB Interface"
+msgstr "USB-gränssnitt"
 
 msgid "Close"
 msgstr "Stäng"
 
 msgid "Maximum Telegram Length (APDU): {length}"
 msgstr "Maximal telegramlängd (APDU): {length}"
+
+msgid "EMI Type: {emi}"
+msgstr "EMI-typ: {emi}"
+
+msgid "Supported EMI Types: {types}"
+msgstr "EMI-typer som stöds: {types}"
+
+msgid "Mask Version: {mask}"
+msgstr "Maskversion: {mask}"
 
 msgid "Individual Address"
 msgstr "Individuell adress"
@@ -276,8 +288,5 @@ msgstr "Ställer in den individuella adressen…"
 msgid "Checking the individual address on the bus…"
 msgstr "Kontrollerar den individuella adressen på bussen…"
 
-msgid "A changed address is set on the interface (Enter), which keeps it."
-msgstr "En ändrad adress ställs in i gränssnittet (Enter), som behåller den."
-
-msgid "A changed address is set on the interface (Enter). This interface forgets it when unplugged, so it is set again on every connect."
-msgstr "En ändrad adress ställs in i gränssnittet (Enter). Detta gränssnitt glömmer den när det kopplas ur, så den ställs in igen vid varje anslutning."
+msgid "This interface forgets its individual address when unplugged, so it is set again on every connect."
+msgstr "Detta gränssnitt glömmer sin individuella adress när det kopplas ur, så den ställs in igen vid varje anslutning."

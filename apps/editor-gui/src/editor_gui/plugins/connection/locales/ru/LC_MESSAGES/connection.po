@@ -205,6 +205,9 @@ msgstr "TCP tunneling"
 msgid "Routing"
 msgstr "Routing"
 
+msgid "USB"
+msgstr "USB"
+
 msgid "A device whose serial number is known gets its individual address without pressing its programming button."
 msgstr "Устройство с известным серийным номером получает индивидуальный адрес без нажатия кнопки программирования."
 
@@ -232,17 +235,26 @@ msgstr[0] "{count} устройство в режиме программиров
 msgstr[1] "{count} устройства в режиме программирования"
 msgstr[2] "{count} устройств в режиме программирования"
 
-msgid "USB Interface Settings…"
-msgstr "Настройки USB-интерфейса…"
+msgid "USB Interface…"
+msgstr "USB-интерфейс…"
 
-msgid "USB Interface Settings"
-msgstr "Настройки USB-интерфейса"
+msgid "USB Interface"
+msgstr "USB-интерфейс"
 
 msgid "Close"
 msgstr "Закрыть"
 
 msgid "Maximum Telegram Length (APDU): {length}"
 msgstr "Максимальная длина телеграммы (APDU): {length}"
+
+msgid "EMI Type: {emi}"
+msgstr "Тип EMI: {emi}"
+
+msgid "Supported EMI Types: {types}"
+msgstr "Поддерживаемые типы EMI: {types}"
+
+msgid "Mask Version: {mask}"
+msgstr "Версия маски: {mask}"
 
 msgid "Individual Address"
 msgstr "Индивидуальный адрес"
@@ -277,8 +289,5 @@ msgstr "Установка индивидуального адреса…"
 msgid "Checking the individual address on the bus…"
 msgstr "Проверка индивидуального адреса на шине…"
 
-msgid "A changed address is set on the interface (Enter), which keeps it."
-msgstr "Изменённый адрес устанавливается в интерфейсе (Enter), который его сохраняет."
-
-msgid "A changed address is set on the interface (Enter). This interface forgets it when unplugged, so it is set again on every connect."
-msgstr "Изменённый адрес устанавливается в интерфейсе (Enter). Этот интерфейс забывает его при отключении, поэтому адрес устанавливается заново при каждом подключении."
+msgid "This interface forgets its individual address when unplugged, so it is set again on every connect."
+msgstr "Этот интерфейс забывает свой индивидуальный адрес при отключении, поэтому адрес устанавливается заново при каждом подключении."
