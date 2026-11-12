@@ -349,7 +349,10 @@ async def identify_device_at(
     target = IndividualAddress(address)
     connection = await connect(xknx, target)
     try:
-        return await read_application_id(DeviceProgrammer(connection))
+        programmer = DeviceProgrammer(connection)
+        # The mask version picks the way the id is read: a BCU 1 has no properties.
+        mask_version = await programmer.read_device_descriptor()
+        return await read_application_id(programmer, mask_version=mask_version)
     finally:
         with contextlib.suppress(ManagementConnectionError, XKNXException):
             await xknx.management.disconnect(target)

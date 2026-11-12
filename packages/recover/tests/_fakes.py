@@ -8,6 +8,8 @@ from xknx.telegram.apci import (
     APCI,
     DeviceDescriptorRead,
     DeviceDescriptorResponse,
+    MemoryRead,
+    MemoryResponse,
     PropertyValueRead,
     PropertyValueResponse,
 )
@@ -22,7 +24,9 @@ class FakeConnection:
 
     Answers A_DeviceDescriptor_Read from ``descriptor`` and A_PropertyValue_Read
     from ``object_types`` (PID_OBJECT_TYPE, for object location) and ``properties``
-    (a ``(object_index, property_id) -> bytes`` map).
+    (a ``(object_index, property_id) -> bytes`` map). A_Memory_Read is answered from
+    ``memory`` (an ``address -> octets`` map of memory ranges). With ``property_services``
+    off it leaves A_PropertyValue_Read unanswered, as a BCU 1 does.
     """
 
     def __init__(
@@ -31,10 +35,15 @@ class FakeConnection:
         descriptor: int = 0x0705,
         object_types: dict[int, int] | None = None,
         properties: dict[tuple[int, int], bytes] | None = None,
+        memory: dict[int, bytes] | None = None,
+        property_services: bool = True,
     ) -> None:
         self.descriptor = descriptor
         self.object_types = object_types or {}
         self.properties = properties or {}
+        self.memory = memory or {}
+        self.property_services = property_services
+        self.requests: list[APCI] = []
 
     async def send_data(self, payload: APCI, wait_for_ack: bool = True) -> None:
         raise AssertionError(f"unexpected send_data: {payload}")
@@ -42,13 +51,28 @@ class FakeConnection:
     async def request(
         self, payload: APCI, expected: type[APCI] | None = None
     ) -> Telegram:
+        self.requests.append(payload)
         if isinstance(payload, DeviceDescriptorRead):
             return _telegram(
                 DeviceDescriptorResponse(descriptor=0, value=self.descriptor)
             )
         if isinstance(payload, PropertyValueRead):
+            if not self.property_services:
+                raise ManagementConnectionError("no PropertyValueResponse received")
             return _telegram(self._read_property(payload))
+        if isinstance(payload, MemoryRead):
+            return _telegram(self._read_memory(payload))
         raise AssertionError(f"unexpected request: {payload}")
+
+    def _read_memory(self, payload: MemoryRead) -> MemoryResponse:
+        for start, octets in self.memory.items():
+            offset = payload.address - start
+            if 0 <= offset < len(octets):
+                data = octets[offset : offset + payload.count]
+                return MemoryResponse(
+                    address=payload.address, count=len(data), data=data
+                )
+        raise ManagementConnectionError("no MemoryResponse received")
 
     def _read_property(self, payload: PropertyValueRead) -> PropertyValueResponse:
         if payload.property_id == PID_OBJECT_TYPE:

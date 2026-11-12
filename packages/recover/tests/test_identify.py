@@ -6,14 +6,18 @@ from dataclasses import dataclass
 
 from _fakes import FakeConnection
 from xknx.exceptions import XKNXException
+from xknx.telegram.apci import MemoryRead, PropertyValueRead
 
 from xknxeditor.download import DeviceProgrammer
 from xknxeditor.recover.identify import (
+    BCU1_APPLICATION_ID_ADDRESS,
     OBJECT_TYPE_APPLICATION_PROGRAM,
     PID_PROGRAM_VERSION,
     AppId,
+    is_bcu1_mask,
     match_application,
     parse_application_id,
+    parse_bcu1_application_id,
     read_application_id,
 )
 
@@ -128,3 +132,71 @@ def test_match_application_falls_back_to_number_only() -> None:
     result = match_application(catalog, app_id)  # type: ignore[arg-type]
     assert [p.product_ref_id for p in result] == ["P-2"]
     assert catalog.calls == [0x99, None]
+
+
+def test_is_bcu1_mask() -> None:
+    assert is_bcu1_mask(0x0010)
+    assert is_bcu1_mask(0x0013)
+    assert not is_bcu1_mask(0x0021)
+    assert not is_bcu1_mask(0x0701)
+    assert not is_bcu1_mask(None)
+
+
+def test_parse_bcu1_application_id() -> None:
+    # Manufacturer 02h, device type A01Eh, version 10h.
+    assert parse_bcu1_application_id(bytes([0x02, 0xA0, 0x1E, 0x10])) == AppId(
+        manufacturer_id="M-0002", application_number=0xA01E, application_version=0x10
+    )
+
+
+def test_parse_bcu1_application_id_without_application_returns_none() -> None:
+    assert parse_bcu1_application_id(b"\xff\xff\xff\xff") is None
+    assert parse_bcu1_application_id(b"\x00\x00\x00\x00") is None
+    assert parse_bcu1_application_id(b"\x02\xa0") is None
+
+
+async def test_read_application_id_of_bcu1_reads_memory() -> None:
+    # A BCU 1 leaves a property read unanswered; its id is in the EEPROM header.
+    connection = FakeConnection(
+        descriptor=0x0013,
+        property_services=False,
+        memory={BCU1_APPLICATION_ID_ADDRESS: bytes([0x02, 0xA0, 0x1E, 0x10])},
+    )
+    programmer = DeviceProgrammer(connection)
+    app_id = await read_application_id(programmer, mask_version=0x0013)
+    assert app_id == AppId("M-0002", 0xA01E, 0x10)
+    assert all(isinstance(request, MemoryRead) for request in connection.requests)
+
+
+async def test_read_application_id_of_bcu1_without_mask_finds_nothing() -> None:
+    # Without the mask version the property path is taken, which a BCU 1 does not answer.
+    connection = FakeConnection(
+        descriptor=0x0013,
+        property_services=False,
+        memory={BCU1_APPLICATION_ID_ADDRESS: bytes([0x02, 0xA0, 0x1E, 0x10])},
+    )
+    programmer = DeviceProgrammer(connection)
+    assert await read_application_id(programmer, retry_delay=0.0) is None
+    assert all(
+        isinstance(request, PropertyValueRead) for request in connection.requests
+    )
+
+
+async def test_read_application_id_of_erased_bcu1_returns_none() -> None:
+    connection = FakeConnection(
+        descriptor=0x0012,
+        property_services=False,
+        memory={BCU1_APPLICATION_ID_ADDRESS: b"\xff\xff\xff\xff"},
+    )
+    programmer = DeviceProgrammer(connection)
+    assert await read_application_id(programmer, mask_version=0x0012) is None
+
+
+async def test_read_application_id_of_bcu1_retries_unanswered_read() -> None:
+    connection = FakeConnection(descriptor=0x0013, property_services=False)
+    programmer = DeviceProgrammer(connection)
+    app_id = await read_application_id(
+        programmer, mask_version=0x0013, attempts=2, retry_delay=0.0
+    )
+    assert app_id is None
+    assert len(connection.requests) >= 2
