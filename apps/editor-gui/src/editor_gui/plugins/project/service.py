@@ -43,6 +43,7 @@ from editor_gui.device_snapshot import (
 )
 from editor_gui.dpt import dpt_from_token, lookup_or_make_dpt
 from editor_gui.hardware_text import current_text
+from editor_gui.plugin_providers import native_blob_names
 from editor_gui.plugins.project.code_page import code_page_text
 from editor_gui.plugins.project.commissioning import LOADED_PARTS, pending_download_text
 from editor_gui.plugins.project.element_status import status_label, usage_label
@@ -108,6 +109,7 @@ from xknxeditor.proj.core.service import DEFAULT_MULTICAST_ADDRESS
 from xknxeditor.proj.core.space_rules import SpaceRuleError, holds_devices
 
 if TYPE_CHECKING:
+    from editor_gui.plugin_providers import NativeConfiguration, PluginProvider
     from editor_gui.plugins.base import Logger
     from editor_gui.plugins.catalog.service import CatalogService
     from editor_gui.plugins.connection.service import SecureTunnel
@@ -122,8 +124,10 @@ if TYPE_CHECKING:
     from xknxeditor.download.image import GroupCommunication
     from xknxeditor.download.ip_config import IpDeviceConfig
     from xknxeditor.download.ip_secure import IpSecureConfig
+    from xknxeditor.download.prepared import PreparedDownload
     from xknxeditor.download.scope import DownloadScope, PartialDownload
     from xknxeditor.download.secure_config import GroupSecurity
+    from xknxeditor.prod import MasterData
     from xknxeditor.prod.parser_v2.calculation import ChangeSet
     from xknxeditor.proj.core.compact import CompactResult
     from xknxeditor.proj.core.fdsk import Fdsk
@@ -375,6 +379,11 @@ def _device_source_key(row: Any) -> tuple[Any, ...]:
         tuple(_row_values(p) for p in row.parameters),
         tuple(_row_values(mi) for mi in row.module_instances),
         tuple(_row_values(co) for co in row.com_objects),
+        tuple(
+            (r.name, bytes(r.data or b""))
+            for r in getattr(row, "binary_data", ())
+            if r.name in native_blob_names()
+        ),
     )
 
 
@@ -445,10 +454,10 @@ def _compute_device(inputs: _DeviceInputs, app: Application) -> Device:
         module_instances=inputs.module_instances,
         com_object_instance_refs=inputs.com_object_instance_refs,
         binary_data=list(inputs.binary_data),
+        second_application=inputs.second_application,
     )
     device.download_plugin_required = inputs.download_plugin_required
     device.factory_image = inputs.factory_image
-    device.second_application = inputs.second_application
     device.project_code_page = inputs.project_code_page
     device.configuration_app = inputs.configuration_app
     for row in inputs.com_objects:
@@ -691,6 +700,7 @@ _HISTORY_LABELS: dict[str, Callable[[dict[str, Any]], str]] = {
     "ChangeDeviceApplication": lambda d: S.HISTORY_EV_CHANGE_APP,
     "SetDeviceIpConfig": lambda d: str(d.get("label") or ""),
     "SyncDeviceComObjects": lambda d: S.HISTORY_EV_SYNC_COM_OBJECTS,
+    "RebindDeviceComObjects": lambda d: S.HISTORY_EV_SYNC_COM_OBJECTS,
     "SyncDeviceModuleInstances": lambda d: S.HISTORY_EV_SYNC_MODULES,
     "SetGroupAddressSecurity": lambda d: S.HISTORY_EV_SET_GA_SECURITY,
     "SetGroupRangeSecurity": lambda d: S.HISTORY_EV_SET_GROUP_SECURITY,
@@ -2153,6 +2163,8 @@ class ProjectService:
         """Have the device calculated anew by its first evaluation since the project opened (or
         since an undo or redo of its parameters, see _calculate_anew), as each evaluation of
         a device whose calculation is not current is, and the values that changes stored."""
+        if device.native_objects is not None:
+            return
         generation = self._load_generation
 
         def calculated(
@@ -2434,6 +2446,8 @@ class ProjectService:
     def _restore_device(self, row: Any, content: tuple[Any, ...]) -> Device | None:
         """The device of ``row`` from its stored snapshot, without loading its application;
         ``None`` when it has none that matches what the device is now built from."""
+        if any(r.name in native_blob_names() for r in row.binary_data):
+            return None
         stored = self._stored_snapshot(row.id)
         program_ref = row.hardware2program_ref_id
         if stored is None or program_ref is None:
@@ -2489,13 +2503,13 @@ class ProjectService:
                 com_object_instance_refs=coirs,
                 binary_data=list(getattr(row, "binary_data", []) or []),
                 visible=snapshot.visible,
+                second_application=self._second_application_source(program_ref),
             )
         except (IndexError, ValueError) as e:
             self._log.debug("device snapshot unusable", device_id=row.id, error=str(e))
             return None
         device.download_plugin_required = self._requires_download_plugin(program_ref)
         device.factory_image = self._factory_image_source(program_ref)
-        device.second_application = self._second_application_source(program_ref)
         device.project_code_page = self.project_code_page
         device.configuration_app = next(
             (a.name for a in self._configuration_apps() if a.applies_to(app.id)),
@@ -3261,6 +3275,9 @@ class ProjectService:
         if device_address is None:
             return None
         links: list[GroupObjectLink] = []
+        domain_address, repeater_present, speakers = self._powerline_communication(
+            device
+        )
         for com_object in device.com_objects:
             if com_object.db_id is None:
                 continue
@@ -3276,6 +3293,7 @@ class ProjectService:
                         com_object_ref_id=com_object.id,
                         group_address=address,
                         sending=assignment.is_sending,
+                        group_speaker=(com_object.id, address) in speakers,
                     )
                 )
         # A line/backbone coupler (address x.y.0) also carries a group-address filter table computed
@@ -3303,7 +3321,79 @@ class ProjectService:
             links=links,
             filter_table=filter_table,
             security=self._group_security(device),
+            domain_address=domain_address,
+            repeater_present=repeater_present,
         )
+
+    def _powerline_communication(
+        self, device: Device
+    ) -> tuple[int | None, bool, set[tuple[str, int]]]:
+        if (
+            self._pid is None
+            or device.app is None
+            or str(device.app.program.mask_version).upper().removeprefix("MV-")
+            != "17B0"
+        ):
+            return None, False, set()
+        rows = self._svc.devices(self._pid)
+        row = next((r for r in rows if r.id == device.node_id), None)
+        if row is None or row.segment is None or row.segment.domain_address is None:
+            raise ValueError("Set a Powerline domain address on the device's segment")
+        domain = row.segment.domain_address
+        repeater = any(
+            self._catalog.hardware_is_powerline_repeater(r.hardware2program_ref_id)
+            for r in rows
+            if r.segment is not None
+            and r.segment.medium_type == "MT-1"
+            and r.segment.domain_address == domain
+            and r.hardware2program_ref_id
+        )
+        speakers: set[tuple[str, int]] = set()
+        from xknxeditor.proj.core.acknowledgements import acknowledges
+
+        for co in row.com_objects:
+            for link in co.links:
+                ga = link.group_address
+                if acknowledges(co, ga):
+                    speakers.add(
+                        (_qualified_com_object_ref(co, device.app.id), ga.address)
+                    )
+        return domain, repeater, speakers
+
+    def com_object_acknowledges(
+        self, com_object_id: int, group_address_id: int
+    ) -> bool | None:
+        """Return the link's Powerline acknowledgement, or None for other media."""
+        from xknxeditor.proj.core.acknowledgements import acknowledges
+        from xknxeditor.proj.models import ComObject as StoredComObject
+        from xknxeditor.proj.models import GroupAddress
+
+        if self._pid is None:
+            return None
+        co = self._svc.row(self._pid, StoredComObject, com_object_id)
+        ga = self._svc.row(self._pid, GroupAddress, group_address_id)
+        if (
+            co is None
+            or ga is None
+            or co.device.segment is None
+            or co.device.segment.medium_type != "MT-1"
+        ):
+            return None
+        return acknowledges(co, ga)
+
+    def set_com_object_acknowledgement(
+        self, com_object_id: int, group_address_id: int, enabled: bool
+    ) -> None:
+        """Change the acknowledging object on a Powerline device, with undo."""
+        if (
+            self._pid is None
+            or self.com_object_acknowledges(com_object_id, group_address_id) is None
+        ):
+            raise ValueError("Acknowledgement requires a Powerline group-address link")
+        self._svc.set_com_object_acknowledgement(
+            self._pid, com_object_id, group_address_id, enabled
+        )
+        self._bump(structural=False)
 
     def _group_security(self, device: Device) -> "GroupSecurity | None":
         """The keys of the device's secured group addresses and their senders, for a device whose
@@ -3937,6 +4027,168 @@ class ProjectService:
             if getattr(row, "name", None) == name:
                 return bytes(getattr(row, "data", b"") or b"")
         return None
+
+    def setup_plugin(self, device: Device) -> list[dict[str, Any]]:
+        """Explicitly initialize the mapped native provider in one undo step."""
+        from editor_gui.plugin_providers import require_provider
+
+        with self._io_lock:
+            current = self.find_device_by_node_id(device.node_id) or device
+            provider = require_provider(current)
+            return self._configure_plugin(current, provider, provider.setup(current))
+
+    def edit_plugin_parameter(
+        self, device: Device, ref_id: str, value: str
+    ) -> list[dict[str, Any]]:
+        """Edit one native parameter through its mapped provider."""
+        from editor_gui.plugin_providers import require_provider
+
+        with self._io_lock:
+            current = self.find_device_by_node_id(device.node_id) or device
+            provider = require_provider(current)
+            config = provider.edit(current, ref_id, value)
+            if provider.read(current).data == config.data:
+                return []
+            return self._configure_plugin(current, provider, config)
+
+    def import_plugin_config(self, device: Device, data: bytes) -> list[dict[str, Any]]:
+        """Validate and persist a provider's configuration in one undo step."""
+        from editor_gui.plugin_providers import require_provider
+
+        with self._io_lock:
+            current = self.find_device_by_node_id(device.node_id) or device
+            provider = require_provider(current)
+            return self._configure_plugin(
+                current, provider, provider.decode(current, data)
+            )
+
+    def export_plugin_config(self, device: Device) -> bytes:
+        """Return the mapped provider's current validated configuration."""
+        from editor_gui.plugin_providers import require_provider
+
+        with self._io_lock:
+            current = self.find_device_by_node_id(device.node_id) or device
+            return require_provider(current).read(current).data
+
+    def import_stored_plugin_config(self, device: Device) -> list[dict[str, Any]]:
+        """Explicitly convert the provider's supported stored blob as one undo step."""
+        from editor_gui.plugin_providers import require_provider
+
+        with self._io_lock:
+            current = self.find_device_by_node_id(device.node_id) or device
+            provider = require_provider(current)
+            name = provider.capabilities(current).importable_blob
+            if name is None:
+                raise ValueError(
+                    "No verified conversion for this stored plugin configuration"
+                )
+            data = self.device_binary_data(current, name)
+            if data is None:
+                raise ValueError("Stored plugin configuration is missing")
+            return self._configure_plugin(
+                current, provider, provider.decode(current, data)
+            )
+
+    def _configure_plugin(
+        self, device: Device, provider: "PluginProvider", config: "NativeConfiguration"
+    ) -> list[dict[str, Any]]:
+        from xknx.telegram import GroupAddress
+
+        if self._pid is None:
+            raise ValueError("No project open")
+        current = self.find_device_by_node_id(device.node_id) or device
+        previous = self.device_binary_data(current, provider.blob_name)
+        if previous == config.data:
+            return []
+        try:
+            old_roles = (
+                {r.key: r for r in provider.read(current).objects}
+                if previous is not None
+                else {}
+            )
+        except ValueError:
+            old_roles = {}
+        row = next(r for r in self._svc.devices(self._pid) if r.id == current.node_id)
+        rows = {co.ref_id: co for co in row.com_objects}
+        targets: list[dict[str, Any]] = []
+        preserved: set[int] = set()
+        for role in config.objects:
+            old = old_roles.get(role.key)
+            source = rows.get(old.reference) if old is not None else None
+            compatible = (
+                old is not None
+                and old.size == role.size
+                and old.dpt == role.dpt
+                and source is not None
+                and (
+                    not source.datapoint_type_override
+                    or normalize_datapoint_type(source.datapoint_type_override)
+                    == normalize_datapoint_type(role.dpt)
+                )
+            )
+            fields_: dict[str, Any] = {
+                "ref_id": role.reference,
+                "instance_ref_id": "",
+                "channel_id": None,
+            }
+            if compatible:
+                assert source is not None
+                preserved.add(source.id)
+            else:
+                fields_["datapoint_type_override"] = normalize_datapoint_type(role.dpt)
+                for name, value in role.flags.items():
+                    fields_[name + "_flag"] = value
+                    fields_[name + "_flag_override"] = value
+            targets.append(
+                {
+                    "source_id": source.id if compatible and source else None,
+                    "fields": fields_,
+                }
+            )
+        lost = [
+            {
+                "com_object_ref_id": co.ref_id,
+                "group_address_id": link.group_address_id,
+                "address": str(GroupAddress(link.group_address.address)),
+            }
+            for co in row.com_objects
+            if co.id not in preserved
+            for link in co.links
+        ]
+        self._svc.configure_native_device(
+            self._pid,
+            current.node_id,
+            provider.blob_name,
+            config.data,
+            config.parameters,
+            targets,
+        )
+        self._refresh_device(current.node_id)
+        self._bump(structural=False)
+        updated = self.find_device_by_node_id(current.node_id)
+        if updated is not None:
+            updated.last_lost_links = lost
+        device.last_lost_links = lost
+        return lost
+
+    def prepared_download(self, device: Device) -> "PreparedDownload | None":
+        """Build the mapped provider's complete image for preview and preflight."""
+        from editor_gui.plugin_providers import prepared_for
+
+        current = self.find_device_by_node_id(device.node_id) or device
+        return prepared_for(current, self.group_communication_for(current))
+
+    def preview_plugin(
+        self, device: Device, master: "MasterData | None" = None
+    ) -> dict[str, Any]:
+        """Return the same complete plan used for read-only preflight."""
+        from editor_gui.plugin_providers import preview
+
+        current = self.find_device_by_node_id(device.node_id) or device
+        prepared = self.prepared_download(current)
+        if prepared is None:
+            raise ValueError("Device has no native image provider")
+        return preview(current, prepared, master)
 
     def triton_device_type(self, device: Device) -> "TritonDeviceType | None":
         """Guess the triton LCD display type from the device's app id, else its naming."""

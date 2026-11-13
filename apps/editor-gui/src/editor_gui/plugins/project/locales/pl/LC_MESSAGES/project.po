@@ -3240,3 +3240,45 @@ msgstr "Oczekuje na programowanie: {parts}"
 
 msgid "Medium Configuration"
 msgstr "Konfiguracja medium"
+
+msgid "The standard download would overwrite the configuration this device keeps only in the manufacturer's plugin (its application was converted from pre-ETS4 data), so the device would lose its settings. Program it with the manufacturer's plugin instead."
+msgstr "The standard download would overwrite the configuration this device keeps only in the manufacturer's plugin (its application was converted from pre-ETS4 data), so the device would lose its settings. Program it with the manufacturer's plugin instead."
+
+msgid "Set Up Plugin"
+msgstr "Skonfiguruj Plugin"
+
+msgid "The change removed these group address links:"
+msgstr "Zmiana usunęła te powiązania adresów grupowych:"
+
+msgid "Import Plugin Configuration…"
+msgstr "Importuj konfigurację Plugin…"
+
+msgid "Export Plugin Configuration…"
+msgstr "Eksportuj konfigurację Plugin…"
+
+msgid "Plugin Image and Load Plan"
+msgstr "Obraz i plan ładowania Plugin"
+
+msgid "Use Stored Plugin Configuration"
+msgstr "Użyj zapisanej konfiguracji wtyczki"
+
+msgid "Database"
+msgstr "Baza danych"
+
+msgid "Database Version"
+msgstr "Wersja bazy danych"
+
+msgid "Product Type"
+msgstr "Typ produktu"
+
+msgid "Database Code"
+msgstr "Kod bazy danych"
+
+msgid "Metadata Verified"
+msgstr "Metadane zweryfikowane"
+
+msgid "Internal Values"
+msgstr "Wartości wewnętrzne"
+
+msgid "Acknowledge Group Address"
+msgstr "Potwierdzaj Adres Grupowy"

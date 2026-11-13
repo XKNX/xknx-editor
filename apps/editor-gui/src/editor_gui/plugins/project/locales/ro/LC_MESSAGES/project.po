@@ -3267,3 +3267,45 @@ msgstr "Programare în așteptare: {parts}"
 
 msgid "Medium Configuration"
 msgstr "Configurarea mediului"
+
+msgid "The standard download would overwrite the configuration this device keeps only in the manufacturer's plugin (its application was converted from pre-ETS4 data), so the device would lose its settings. Program it with the manufacturer's plugin instead."
+msgstr "The standard download would overwrite the configuration this device keeps only in the manufacturer's plugin (its application was converted from pre-ETS4 data), so the device would lose its settings. Program it with the manufacturer's plugin instead."
+
+msgid "Set Up Plugin"
+msgstr "Configurare Plugin"
+
+msgid "The change removed these group address links:"
+msgstr "Modificarea a eliminat aceste legături de adrese de grup:"
+
+msgid "Import Plugin Configuration…"
+msgstr "Importare configurație Plugin…"
+
+msgid "Export Plugin Configuration…"
+msgstr "Exportare configurație Plugin…"
+
+msgid "Plugin Image and Load Plan"
+msgstr "Imagine și plan de încărcare Plugin"
+
+msgid "Use Stored Plugin Configuration"
+msgstr "Utilizează configurația salvată a extensiei"
+
+msgid "Database"
+msgstr "Bază de date"
+
+msgid "Database Version"
+msgstr "Versiunea bazei de date"
+
+msgid "Product Type"
+msgstr "Tipul produsului"
+
+msgid "Database Code"
+msgstr "Codul bazei de date"
+
+msgid "Metadata Verified"
+msgstr "Metadate verificate"
+
+msgid "Internal Values"
+msgstr "Valori interne"
+
+msgid "Acknowledge Group Address"
+msgstr "Confirmă Adresa de Grup"

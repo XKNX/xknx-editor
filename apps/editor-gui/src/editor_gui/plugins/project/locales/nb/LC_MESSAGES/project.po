@@ -3188,3 +3188,45 @@ msgstr "Venter på programmering: {parts}"
 
 msgid "Medium Configuration"
 msgstr "Mediekonfigurasjon"
+
+msgid "The standard download would overwrite the configuration this device keeps only in the manufacturer's plugin (its application was converted from pre-ETS4 data), so the device would lose its settings. Program it with the manufacturer's plugin instead."
+msgstr "The standard download would overwrite the configuration this device keeps only in the manufacturer's plugin (its application was converted from pre-ETS4 data), so the device would lose its settings. Program it with the manufacturer's plugin instead."
+
+msgid "Set Up Plugin"
+msgstr "Konfigurer Plugin"
+
+msgid "The change removed these group address links:"
+msgstr "Endringen fjernet disse gruppeadressekoblingene:"
+
+msgid "Import Plugin Configuration…"
+msgstr "Importer Plugin-konfigurasjon…"
+
+msgid "Export Plugin Configuration…"
+msgstr "Eksporter Plugin-konfigurasjon…"
+
+msgid "Plugin Image and Load Plan"
+msgstr "Plugin-image og innlastingsplan"
+
+msgid "Use Stored Plugin Configuration"
+msgstr "Bruk lagret programtilleggskonfigurasjon"
+
+msgid "Database"
+msgstr "Database"
+
+msgid "Database Version"
+msgstr "Databaseversjon"
+
+msgid "Product Type"
+msgstr "Produkttype"
+
+msgid "Database Code"
+msgstr "Databasekode"
+
+msgid "Metadata Verified"
+msgstr "Metadata verifisert"
+
+msgid "Internal Values"
+msgstr "Interne verdier"
+
+msgid "Acknowledge Group Address"
+msgstr "Bekreft Gruppeadresse"

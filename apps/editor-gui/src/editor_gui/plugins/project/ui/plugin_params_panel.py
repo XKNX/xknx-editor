@@ -1,19 +1,14 @@
 """Generic sectioned view of a device's raw application parameters.
 
-Reads the device's static parameter list and groups it with a vendor mapping file loaded by
-``plugin_params.mapping_for``. The alternative to porting the vendor's full WPF plug-in: a flat
-hierarchical browser that at least surfaces every parameter the application program defines, so
-the user knows what the plug-in would otherwise set.
-
-Edits route through the standard parameter change handler the project plugin injects, so a
-normal download transfers the edited values to the device.
+Shows catalog parameters, blob fields or native provider sections selected by
+``plugin_params.mapping_for_device``. Edits use the project plugin's shared handler.
 """
 
 from __future__ import annotations
 
 import re
 from collections.abc import Callable
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from typing import TYPE_CHECKING
 
 from imgui_bundle import imgui
@@ -23,11 +18,12 @@ from editor_gui.plugin_params import (
     PluginMapping,
     PluginSectionView,
     collect_from_device,
-    mapping_for,
+    mapping_for_device,
 )
 from editor_gui.plugins.project.strings import S
 from editor_gui.theme import status_color
 from editor_gui.widgets.dpi import px
+from editor_gui.widgets.filter_box import filter_box
 from xknxeditor.vendor.triton import DeviceType
 
 if TYPE_CHECKING:
@@ -71,6 +67,7 @@ DetectDisplayType = Callable[["Device"], "str | None"]
 # Fallback extractor for a row's displayable item id, in case the row label is "#N: ..." or
 # a plain scalar.
 _ROW_ID_RE = re.compile(r"^#(\S+?):")
+_VISIBLE_PARAMETER_ROWS = 12
 
 
 @dataclass
@@ -88,6 +85,7 @@ class PluginParamsPanel:
     _detect_display_type: DetectDisplayType | None = None
     _filter: str = ""
     _closed_sections: dict[str, set[str]] = field(default_factory=dict[str, "set[str]"])
+    _seen_sections: dict[str, set[str]] = field(default_factory=dict[str, "set[str]"])
     # Per-ref edit buffer; cleared when the device commits a value back to the DOM.
     _edit_buffers: dict[str, str] = field(default_factory=dict[str, str])
     # Collect-from-device is expensive on large applications (iterating 30-80k parameter refs);
@@ -107,13 +105,18 @@ class PluginParamsPanel:
     _setup_type_idx: dict[str, int] = field(default_factory=dict[str, int])
 
     def render(self, device: Device) -> None:
-        app_id = device.app.id if device.app is not None else None
-        mapping = mapping_for(app_id)
+        mapping = mapping_for_device(device)
         if mapping is None:
             imgui.text_disabled(S.PLUGIN_PARAMS_NO_MAPPING)
             return
-        sections = self._cached_sections(device, mapping)
+        try:
+            sections = self._cached_sections(device, mapping)
+        except ValueError as exc:
+            imgui.text_colored(status_color("error"), str(exc))
+            return
         if not sections:
+            if mapping.provider:
+                return
             if (
                 mapping.blob_reader == "triton_lcd"
                 and self._on_setup_display is not None
@@ -123,7 +126,8 @@ class PluginParamsPanel:
             imgui.text_disabled(S.PLUGIN_PARAMS_EMPTY)
             return
         imgui.text_colored(status_color("info"), mapping.title)
-        imgui.text_wrapped(S.PLUGIN_PARAMS_EDIT_NOTE)
+        if not mapping.provider:
+            imgui.text_wrapped(S.PLUGIN_PARAMS_EDIT_NOTE)
         if mapping.blob_reader == "triton_lcd":
             self._render_triton_actions(device)
         # "Program DCA" shortcut: visible when the project plugin exposes the handler and
@@ -136,9 +140,8 @@ class PluginParamsPanel:
                 self._on_program_dca(device)
             imgui.same_line()
             imgui.text_disabled(S.PLUGIN_PARAMS_PROGRAM_DCA_HINT)
-        imgui.set_next_item_width(px(320.0))
-        _, self._filter = imgui.input_text(
-            S.PLUGIN_PARAMS_FILTER, self._filter, imgui.InputTextFlags_.none
+        self._filter = filter_box(
+            "##plugin_params_filter", S.CONFIGURE_PARAM_FILTER_HINT, self._filter
         )
         needle = self._filter.lower().strip()
         total_rows = 0
@@ -153,8 +156,14 @@ class PluginParamsPanel:
             if not rows:
                 continue
             total_rows += len(rows)
-            self._render_section(device, section.section, rows, filtering=bool(needle))
-        if total_rows == 0:
+            self._render_section(
+                device,
+                section.section,
+                rows,
+                filtering=bool(needle),
+                collapsed=section.collapsed,
+            )
+        if total_rows == 0 and needle:
             imgui.text_disabled(S.PLUGIN_PARAMS_FILTER_EMPTY)
 
     def _render_triton_setup(self, device: Device) -> None:
@@ -229,9 +238,15 @@ class PluginParamsPanel:
         rows: list[_SectionRow],
         *,
         filtering: bool = False,
+        collapsed: bool = False,
     ) -> None:
         device_key = device.individual_address
         closed = self._closed_sections.setdefault(device_key, set())
+        seen = self._seen_sections.setdefault(device_key, set())
+        if section_label not in seen:
+            seen.add(section_label)
+            if collapsed:
+                closed.add(section_label)
         if filtering:
             # While a filter is active, force every matching section open so the matches are
             # visible, without touching the user's remembered collapse state (it is restored the
@@ -240,9 +255,7 @@ class PluginParamsPanel:
             if imgui.collapsing_header(f"{section_label}  ({len(rows)})"):
                 self._render_standard_table(device, section_label, rows, filtering=True)
             return
-        is_open = section_label not in closed
-        if is_open:
-            imgui.set_next_item_open(True, imgui.Cond_.appearing)
+        imgui.set_next_item_open(section_label not in closed)
         shown = imgui.collapsing_header(f"{section_label}  ({len(rows)})")
         if not shown:
             closed.add(section_label)
@@ -357,10 +370,6 @@ class PluginParamsPanel:
         *,
         filtering: bool = False,
     ) -> None:
-        # Grouped rows (BLOB sections: scenes, groups, ECGs, templates) nest under a collapsible
-        # tree node per item, so a 170-row section is a short list of items the user expands one
-        # at a time instead of one endless flat table. Flat sections (KNX parameters) keep the
-        # clipped fixed-height table so a huge application stays O(viewport) to scroll.
         if any(r.group for r in rows):
             self._render_grouped_table(device, section_label, rows, filtering=filtering)
             return
@@ -368,31 +377,33 @@ class PluginParamsPanel:
             imgui.TableFlags_.borders
             | imgui.TableFlags_.row_bg
             | imgui.TableFlags_.resizable
-            | imgui.TableFlags_.scroll_y
         )
-        # Fixed table height so a very long section (hundreds of rows) does not blow up the
-        # outer scroll area; combined with the clipper below each frame renders only the
-        # visible rows + a small margin, so scrolling stays O(viewport) rather than O(section).
-        row_height = max(imgui.get_text_line_height_with_spacing(), 1.0)
-        max_table_h = min(
-            float(len(rows)) * row_height + px(32.0),
-            px(360.0),
-        )
+        scrolling = len(rows) > _VISIBLE_PARAMETER_ROWS
+        row_height = imgui.get_frame_height() + 2 * imgui.get_style().cell_padding.y
+        height = 0.0
+        if scrolling:
+            flags |= imgui.TableFlags_.scroll_y
+            header_height = (
+                imgui.get_text_line_height() + 2 * imgui.get_style().cell_padding.y
+            )
+            height = header_height + _VISIBLE_PARAMETER_ROWS * row_height
         if not imgui.begin_table(
-            f"##plugin_params_{section_label}",
-            3,
-            flags,
-            imgui.ImVec2(0.0, max_table_h),
+            f"##plugin_params_{section_label}", 3, flags, imgui.ImVec2(0.0, height)
         ):
             return
         self._setup_param_columns()
-        imgui.table_setup_scroll_freeze(0, 1)
+        if scrolling:
+            imgui.table_setup_scroll_freeze(0, 1)
         imgui.table_headers_row()
-        clipper = imgui.ListClipper()
-        clipper.begin(len(rows))
-        while clipper.step():
-            for idx in range(clipper.display_start, clipper.display_end):
-                self._render_row(device, rows[idx])
+        if scrolling:
+            clipper = imgui.ListClipper()
+            clipper.begin(len(rows), row_height)
+            while clipper.step():
+                for idx in range(clipper.display_start, clipper.display_end):
+                    self._render_row(device, rows[idx], min_height=row_height)
+        else:
+            for row in rows:
+                self._render_row(device, row)
         imgui.end_table()
 
     def _render_grouped_table(
@@ -403,50 +414,27 @@ class PluginParamsPanel:
         *,
         filtering: bool = False,
     ) -> None:
-        """Render rows carrying a ``group`` key as a tree: one collapsible node per group.
-
-        The table auto-sizes (no scroll_y / clipper) because collapsed nodes render nothing, so a
-        section with 16 groups shows just 16 node rows until the user expands one. Rows arrive
-        pre-sorted by the reader, so same-group rows are contiguous and keep their order. While
-        ``filtering``, every node is forced open so the matches a search left in it are visible.
-        """
-        flags = (
-            imgui.TableFlags_.borders
-            | imgui.TableFlags_.row_bg
-            | imgui.TableFlags_.resizable
-        )
-        if not imgui.begin_table(f"##plugin_params_{section_label}", 3, flags):
-            return
-        self._setup_param_columns()
-        imgui.table_headers_row()
+        """Keep parameter pages collapsible and bound scrolling to long pages."""
         idx = 0
-        n = len(rows)
-        while idx < n:
-            group = rows[idx].group
-            end = idx
-            while end < n and rows[end].group == group:
+        while idx < len(rows):
+            first = rows[idx]
+            key = first.group_key or first.group
+            end = idx + 1
+            while end < len(rows) and (rows[end].group_key or rows[end].group) == key:
                 end += 1
-            run = rows[idx:end]
-            if not group:
-                for row in run:
-                    self._render_row(device, row)
+            page = [replace(row, group="", group_key="") for row in rows[idx:end]]
+            if not first.group:
+                self._render_standard_table(device, section_label + ":ungrouped", page)
             else:
-                imgui.table_next_row()
-                imgui.table_next_column()
-                # Key the node's imgui id off the stable group_key (falling back to the display
-                # text) so renaming an item does not change the id and collapse its open node.
-                node_id = run[0].group_key or group
                 if filtering:
                     imgui.set_next_item_open(True)
-                node_open = imgui.tree_node_ex(
-                    f"{group}##grp_{node_id}", imgui.TreeNodeFlags_.span_full_width
-                )
-                if node_open:
-                    for row in run:
-                        self._render_row(device, row)
+                if imgui.tree_node_ex(
+                    f"{first.group}##{section_label}:{key}",
+                    imgui.TreeNodeFlags_.span_avail_width,
+                ):
+                    self._render_standard_table(device, section_label + ":" + key, page)
                     imgui.tree_pop()
             idx = end
-        imgui.end_table()
 
     def _setup_param_columns(self) -> None:
         imgui.table_setup_column(
@@ -459,10 +447,14 @@ class PluginParamsPanel:
             S.PLUGIN_PARAMS_COL_DEFAULT, imgui.TableColumnFlags_.width_stretch, 0.15
         )
 
-    def _render_row(self, device: Device, row: _SectionRow) -> None:
-        imgui.table_next_row()
+    def _render_row(
+        self, device: Device, row: _SectionRow, *, min_height: float = 0.0
+    ) -> None:
+        imgui.table_next_row(min_row_height=min_height)
         imgui.table_next_column()
         imgui.text(row.label)
+        if row.raw_value is not None and imgui.is_item_hovered():
+            imgui.set_tooltip(f"{row.ref_id}\n{row.raw_value}")
         imgui.table_next_column()
         if not row.writable:
             # Read-only rows (BLOB-sourced sections). When the schema provides a choice list
@@ -543,6 +535,7 @@ class _SectionRow:
     choices: tuple[tuple[str, str], ...] = ()
     group: str = ""
     group_key: str = ""
+    raw_value: str | None = None
 
 
 def _default_label(row: _SectionRow) -> str:
@@ -586,6 +579,7 @@ def _filter_rows(section: PluginSectionView, needle: str) -> list[_SectionRow]:
                 choices=p.choices,
                 group=p.group,
                 group_key=p.group_key,
+                raw_value=p.raw_value,
             )
         )
     return out

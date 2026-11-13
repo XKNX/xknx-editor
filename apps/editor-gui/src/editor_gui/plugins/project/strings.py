@@ -8,6 +8,40 @@ _ = create_translator("project", _locale_dir)
 
 class ProjectStrings:
     @property
+    def PLUGIN_ORIGINAL_FIELDS(self) -> dict[str, str]:
+        return {
+            "database": _("Database"),
+            "database_version": _("Database Version"),
+            "product_type": _("Product Type"),
+            "database_code": _("Database Code"),
+            "metadata_verified": _("Metadata Verified"),
+        }
+
+    @property
+    def PLUGIN_INTERNAL_VALUES(self) -> str:
+        return _("Internal Values")
+
+    @property
+    def PLUGIN_NATIVE_IMPORT(self) -> str:
+        return _("Import Plugin Configuration…")
+
+    @property
+    def PLUGIN_NATIVE_EXPORT(self) -> str:
+        return _("Export Plugin Configuration…")
+
+    @property
+    def PLUGIN_NATIVE_PLAN(self) -> str:
+        return _("Plugin Image and Load Plan")
+
+    @property
+    def PLUGIN_NATIVE_SETUP(self) -> str:
+        return _("Set Up Plugin")
+
+    @property
+    def PLUGIN_NATIVE_LOST_LINKS(self) -> str:
+        return _("The change removed these group address links:")
+
+    @property
     def PANEL_DEVICE(self) -> str:
         return _("Device")
 
@@ -2191,10 +2225,6 @@ class ProjectStrings:
         )
 
     @property
-    def PLUGIN_PARAMS_FILTER(self) -> str:
-        return _("##plugin_params_filter")
-
-    @property
     def PLUGIN_PARAMS_FILTER_EMPTY(self) -> str:
         return _("No parameter matches the filter.")
 
@@ -3845,6 +3875,14 @@ class ProjectStrings:
         )
 
     @property
+    def PLUGIN_DOWNLOAD_OVERWRITES(self) -> str:
+        return _(
+            "The standard download would overwrite the configuration this device keeps only in the "
+            "manufacturer's plugin (its application was converted from pre-ETS4 data), so the device "
+            "would lose its settings. Program it with the manufacturer's plugin instead."
+        )
+
+    @property
     def PLUGIN_DATA_HANDLER(self) -> str:
         return _(
             "The manufacturer keeps part of this device's data with its own plugin, which is not available here."
@@ -4771,6 +4809,10 @@ class ProjectStrings:
     @property
     def HISTORY_EV_SET_SENDING(self) -> str:
         return _("Set sending group address")
+
+    @property
+    def GA_ACKNOWLEDGE(self) -> str:
+        return _("Acknowledge Group Address")
 
     @property
     def HISTORY_EV_ADD_INSTALLATION(self) -> str:

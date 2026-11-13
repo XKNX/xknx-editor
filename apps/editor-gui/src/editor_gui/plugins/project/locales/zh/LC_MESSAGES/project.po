@@ -3136,3 +3136,45 @@ msgstr "等待编程：{parts}"
 
 msgid "Medium Configuration"
 msgstr "介质配置"
+
+msgid "The standard download would overwrite the configuration this device keeps only in the manufacturer's plugin (its application was converted from pre-ETS4 data), so the device would lose its settings. Program it with the manufacturer's plugin instead."
+msgstr "The standard download would overwrite the configuration this device keeps only in the manufacturer's plugin (its application was converted from pre-ETS4 data), so the device would lose its settings. Program it with the manufacturer's plugin instead."
+
+msgid "Set Up Plugin"
+msgstr "设置Plugin"
+
+msgid "The change removed these group address links:"
+msgstr "此更改移除了以下组地址链接："
+
+msgid "Import Plugin Configuration…"
+msgstr "导入Plugin配置…"
+
+msgid "Export Plugin Configuration…"
+msgstr "导出Plugin配置…"
+
+msgid "Plugin Image and Load Plan"
+msgstr "Plugin映像和加载计划"
+
+msgid "Use Stored Plugin Configuration"
+msgstr "使用已保存的插件配置"
+
+msgid "Database"
+msgstr "数据库"
+
+msgid "Database Version"
+msgstr "数据库版本"
+
+msgid "Product Type"
+msgstr "产品类型"
+
+msgid "Database Code"
+msgstr "数据库代码"
+
+msgid "Metadata Verified"
+msgstr "元数据已验证"
+
+msgid "Internal Values"
+msgstr "内部值"
+
+msgid "Acknowledge Group Address"
+msgstr "确认组地址"

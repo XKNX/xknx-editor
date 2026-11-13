@@ -3328,3 +3328,45 @@ msgstr "Programmierung ausstehend: {parts}"
 
 msgid "Medium Configuration"
 msgstr "Medienkonfiguration"
+
+msgid "The standard download would overwrite the configuration this device keeps only in the manufacturer's plugin (its application was converted from pre-ETS4 data), so the device would lose its settings. Program it with the manufacturer's plugin instead."
+msgstr "Der Standard-Download würde die Konfiguration überschreiben, die dieses Gerät nur im Plugin des Herstellers hält (seine Applikation wurde aus Pre-ETS4-Daten konvertiert); das Gerät würde seine Einstellungen verlieren. Programmiere es stattdessen mit dem Plugin des Herstellers."
+
+msgid "Set Up Plugin"
+msgstr "Plugin einrichten"
+
+msgid "The change removed these group address links:"
+msgstr "Die Änderung hat diese Gruppenadressverknüpfungen entfernt:"
+
+msgid "Import Plugin Configuration…"
+msgstr "Plugin-Konfiguration importieren…"
+
+msgid "Export Plugin Configuration…"
+msgstr "Plugin-Konfiguration exportieren…"
+
+msgid "Plugin Image and Load Plan"
+msgstr "Plugin-Image und Ladeplan"
+
+msgid "Use Stored Plugin Configuration"
+msgstr "Gespeicherte Plugin-Konfiguration übernehmen"
+
+msgid "Database"
+msgstr "Datenbank"
+
+msgid "Database Version"
+msgstr "Datenbankversion"
+
+msgid "Product Type"
+msgstr "Produkttyp"
+
+msgid "Database Code"
+msgstr "Datenbankcode"
+
+msgid "Metadata Verified"
+msgstr "Metadaten verifiziert"
+
+msgid "Internal Values"
+msgstr "Interne Werte"
+
+msgid "Acknowledge Group Address"
+msgstr "Gruppenadresse quittieren"

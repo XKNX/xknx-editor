@@ -570,6 +570,22 @@ class CatalogService:
         hardware = self._service.get_hardware(hardware_id)
         return bool(hardware is not None and hardware.is_ip_enabled)
 
+    def hardware_is_powerline_repeater(self, hardware2program_id: str) -> bool:
+        """Read the repeater capability from the program's original hardware data."""
+        from xknxeditor.prod import parse_hardware_xml
+        from xknxeditor.prod.archive import Archive
+
+        source = self.get_program_source(hardware2program_id)
+        if source is None:
+            raise ValueError("Powerline hardware data is missing")
+        path, manufacturer = source
+        with Archive(path, require_catalog=False) as archive:
+            hardware = parse_hardware_xml(archive.get_hardware_xml(manufacturer))
+        for hardware_id, programs in hardware.hardware_to_program.items():
+            if hardware2program_id in programs:
+                return hardware.hardware[hardware_id].raw.is_power_line_repeater
+        raise ValueError("Powerline hardware program is missing")
+
     @io_guarded(lambda: None)
     def ip_config(self, hardware2program_id: str) -> str | None:
         """Who sets the IP configuration of a product's application: "Tool" or "Custom"

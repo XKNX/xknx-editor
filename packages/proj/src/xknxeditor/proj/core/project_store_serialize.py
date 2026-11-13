@@ -31,6 +31,7 @@ from uuid import uuid4
 
 from sqlalchemy.orm import object_session
 
+from xknxeditor.proj.core.acknowledgements import exported_acknowledgements
 from xknxeditor.proj.core.dpt import normalize_datapoint_type
 from xknxeditor.proj.core.ga_security import secured_group_addresses
 from xknxeditor.proj.core.knxproj_export import (
@@ -580,7 +581,7 @@ class _StoreBuilder:
                 Description=co.description_override or None,
                 Priority=co.priority or None,
                 DatapointType=co.datapoint_type_override or None,
-                Acknowledges=co.acknowledges or None,
+                Acknowledges=exported_acknowledgements(co, self._ga_link_id),
                 Links=links or None,
                 ReadFlag=enable(co.read_flag_override),
                 WriteFlag=enable(co.write_flag_override),

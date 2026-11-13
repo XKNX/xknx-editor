@@ -96,6 +96,39 @@ def parameters_in_plugin(device: Device) -> bool:
     return plugins.download or plugins.data_handler or plugins.download_required
 
 
+def download_overwrites_plugin_config(device: Device) -> bool:
+    """Whether a standard download would overwrite configuration that lives only in the
+    manufacturer's plugin, destroying the device's settings.
+
+    True for an application converted from the pre-ETS4 format (``ConvertedFromPreEts4Data``) that
+    has a download or data-handler plugin: its parameters have no memory location, so the standard
+    download carries no real configuration, yet its load procedures still rewrite the memory the
+    plugin owns (e.g. the Busch-Jaeger 6108 writes the application segment with zeros). Unlike the
+    hardware's ``NoDownloadWithoutPlugin`` flag, the product data does not mark this, so the
+    download would otherwise run unannounced."""
+    app = getattr(device, "app", None)
+    program = app.program if app is not None else None
+    if program is None or not getattr(program, "converted_from_pre_ets4_data", False):
+        return False
+    plugins = device_plugins(device)
+    return plugins.download or plugins.data_handler
+
+
+def download_needs_plugin_confirmation(device: Device) -> bool:
+    """Whether a standard download of `device` must be confirmed first: either the hardware refuses
+    it without the plugin (``NoDownloadWithoutPlugin``), or it would overwrite plugin-owned
+    configuration (:func:`download_overwrites_plugin_config`). An individual-address write is never
+    gated by this."""
+    from editor_gui.plugin_providers import provider_for
+
+    provider = provider_for(device)
+    if provider is not None:
+        capabilities = provider.capabilities(device)
+        if capabilities.preflight and capabilities.programming_error is None:
+            return False
+    return device.download_plugin_required or download_overwrites_plugin_config(device)
+
+
 def device_plugins(device: Device) -> DevicePlugins:
     """The manufacturer plugins `device`'s product data names."""
     program = device.app.program if device.app is not None else None

@@ -29,11 +29,11 @@ def test_every_mapping_file_loads() -> None:
     assert files, "no mapping files"
     for path in files:
         mapping = _load_mapping(str(path))
-        assert mapping.app_id_prefixes
+        assert mapping.app_id_prefixes or mapping.plugin_ids
         assert mapping.title
         # A mapping either groups the device's parameters (patterns) or only surfaces a vendor
         # blob (blob_reader); at least one must be present to be useful.
-        assert mapping.patterns or mapping.blob_reader, (
+        assert mapping.patterns or mapping.blob_reader or mapping.provider, (
             f"{path.name} has neither section patterns nor a blob reader"
         )
         for pattern in mapping.patterns:

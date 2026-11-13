@@ -3163,3 +3163,45 @@ msgstr "Programozásra vár: {parts}"
 
 msgid "Medium Configuration"
 msgstr "Közegkonfiguráció"
+
+msgid "The standard download would overwrite the configuration this device keeps only in the manufacturer's plugin (its application was converted from pre-ETS4 data), so the device would lose its settings. Program it with the manufacturer's plugin instead."
+msgstr "The standard download would overwrite the configuration this device keeps only in the manufacturer's plugin (its application was converted from pre-ETS4 data), so the device would lose its settings. Program it with the manufacturer's plugin instead."
+
+msgid "Set Up Plugin"
+msgstr "Plugin beállítása"
+
+msgid "The change removed these group address links:"
+msgstr "A módosítás eltávolította ezeket a csoportcím-kapcsolatokat:"
+
+msgid "Import Plugin Configuration…"
+msgstr "Plugin-konfiguráció importálása…"
+
+msgid "Export Plugin Configuration…"
+msgstr "Plugin-konfiguráció exportálása…"
+
+msgid "Plugin Image and Load Plan"
+msgstr "Plugin-kép és betöltési terv"
+
+msgid "Use Stored Plugin Configuration"
+msgstr "Mentett bővítménykonfiguráció használata"
+
+msgid "Database"
+msgstr "Adatbázis"
+
+msgid "Database Version"
+msgstr "Adatbázis-verzió"
+
+msgid "Product Type"
+msgstr "Terméktípus"
+
+msgid "Database Code"
+msgstr "Adatbáziskód"
+
+msgid "Metadata Verified"
+msgstr "Ellenőrzött metaadatok"
+
+msgid "Internal Values"
+msgstr "Belső értékek"
+
+msgid "Acknowledge Group Address"
+msgstr "Csoportcím Nyugtázása"

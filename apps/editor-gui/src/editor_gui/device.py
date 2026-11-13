@@ -330,7 +330,7 @@ class Device:
     # Gives the product's second application program (its PEI program), which a download loads
     # with the application; read when a download needs it.
     second_application: Callable[[], Application | None] | None = field(
-        default=None, repr=False, compare=False, init=False
+        default=None, repr=False, compare=False
     )
     # Name of a device configuration app the project carries for this device's application.
     configuration_app: str | None = field(
@@ -361,6 +361,11 @@ class Device:
     )
     # The group objects as a snapshot of an earlier evaluation, restored with ``visible`` (their
     # positions in ``com_objects``): the application is then only loaded when it is used.
+    native_objects: list[ComObject] | None = field(default=None, repr=False, init=False)
+    native_modules: list[ComObjectModule] = field(
+        default_factory=list[ComObjectModule], repr=False, init=False
+    )
+    native_error: str | None = field(default=None, init=False)
     visible: InitVar[list[int] | None] = None
 
     @property
@@ -379,6 +384,11 @@ class Device:
         return self.app is not None
 
     def __post_init__(self, visible: list[int] | None) -> None:
+        from editor_gui.plugin_providers import install_view
+
+        install_view(self)
+        if self.native_objects is not None:
+            return
         if visible is not None:
             self._cached_visible_cos = [self.com_objects[i] for i in visible]
             return
@@ -532,6 +542,8 @@ class Device:
         return dyn.ui()
 
     def get_visible_com_objects(self) -> list[ComObject]:
+        if self.native_objects is not None:
+            return self.native_objects
         if self._cached_visible_cos is not None:
             return self._cached_visible_cos
         dyn = self._ensure_dynamic_ui()
@@ -574,6 +586,8 @@ class Device:
         return {group.id: group.parent_id for group in self._com_object_modules()}
 
     def _com_object_modules(self) -> list[ComObjectModule]:
+        if self.native_objects is not None:
+            return self.native_modules
         if self._cached_modules is None:
             from xknxeditor.prod.parser_v2.context import ObjectTreeNode
 

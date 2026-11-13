@@ -13,14 +13,21 @@ from editor_gui.device_plugins import (
     DevicePlugins,
     configuration_apps,
     device_plugins,
+    download_needs_plugin_confirmation,
+    download_overwrites_plugin_config,
     parameters_in_plugin,
 )
 from editor_gui.plugins.catalog.service import CatalogService
 from editor_gui.plugins.connection.service import ConnectionService
 
 
-def _device(extension: object | None, *, required: bool = False) -> Any:
-    program = SimpleNamespace(static=SimpleNamespace(extension=extension))
+def _device(
+    extension: object | None, *, required: bool = False, converted: bool = False
+) -> Any:
+    program = SimpleNamespace(
+        static=SimpleNamespace(extension=extension),
+        converted_from_pre_ets4_data=converted,
+    )
     return SimpleNamespace(
         app=SimpleNamespace(program=program),
         download_plugin_required=required,
@@ -153,3 +160,64 @@ def test_parameters_in_the_manufacturer_plugin() -> None:
     )
     assert parameters_in_plugin(_device(data_handler))
     assert parameters_in_plugin(_device(None, required=True))
+
+
+def _download_plugin(
+    download: bool = True, data_handler: bool = False
+) -> SimpleNamespace:
+    return SimpleNamespace(
+        ets_ui_plugin=None,
+        ets_download_plugin="{A}" if download else None,
+        ets_data_handler="{B}" if data_handler else None,
+        requires_external_software=False,
+    )
+
+
+def test_download_overwrites_plugin_config_only_for_converted_plugin_device() -> None:
+    # The 6108 case: a download/data-handler plugin AND ConvertedFromPreEts4Data -> the standard
+    # download would overwrite the plugin-owned config.
+    assert download_overwrites_plugin_config(
+        _device(_download_plugin(), converted=True)
+    )
+    assert download_overwrites_plugin_config(
+        _device(_download_plugin(download=False, data_handler=True), converted=True)
+    )
+    # A converted app without a writing plugin, or a plugin app that is not converted, is fine.
+    assert not download_overwrites_plugin_config(_device(None, converted=True))
+    assert not download_overwrites_plugin_config(
+        _device(_download_plugin(), converted=False)
+    )
+    # A UI-only plugin writes the standard DOM, so even when converted it is not overwritten.
+    ui_only = SimpleNamespace(
+        ets_ui_plugin="{X}",
+        ets_download_plugin=None,
+        ets_data_handler=None,
+        requires_external_software=False,
+    )
+    assert not download_overwrites_plugin_config(_device(ui_only, converted=True))
+
+
+def test_download_needs_plugin_confirmation_covers_both_cases() -> None:
+    # Hardware flag OR the overwrite case both require confirmation.
+    assert download_needs_plugin_confirmation(_device(None, required=True))
+    assert download_needs_plugin_confirmation(
+        _device(_download_plugin(), converted=True)
+    )
+    # Neither: a plain device, or a non-converted download-plugin device (e.g. BJ 6131/31).
+    assert not download_needs_plugin_confirmation(_device(None))
+    assert not download_needs_plugin_confirmation(
+        _device(_download_plugin(), converted=False)
+    )
+
+
+def test_program_device_refuses_converted_plugin_device_without_confirmation() -> None:
+    service = ConnectionService()
+    service._xknx = MagicMock()  # pyright: ignore[reportPrivateUsage]
+    log = MagicMock()
+    service.set_logger(log)
+    device = _device(_download_plugin(), converted=True)  # hardware flag NOT set
+    assert service.program_device(device) is None
+    assert service.busy_operation is None
+    log.error.assert_any_call(
+        "Device must be programmed with the manufacturer's plugin", device="Dev"
+    )
