@@ -150,6 +150,14 @@ def test_two_programs_with_procedures_of_their_own() -> None:
     # These applications' controls are taken as they are.
     plain = _m112(_M112_APPLICATION, "M-0001_A-8018-04-1234")
     assert "Load4" in _steps(resolve_download_controls(plain, master))
+    # A PEI program without a procedure of its own (DefaultProcedure) adds none: the
+    # application's procedure stays as without one, its Unload of the PEI program's LSM too.
+    default_pei = _m112(_M112_PEI, "M-0008_A-C001-F1-EC24")
+    default_pei.load_procedure_style = LoadProcedureStyle.DEFAULT_PROCEDURE  # type: ignore[misc]
+    default_pei.load_procedures = None  # type: ignore[misc]
+    assert _steps(
+        resolve_download_controls(app, master, application2=default_pei)
+    ) == _steps(resolve_download_controls(app, master))
 
 
 def test_the_image_holds_the_second_programs_segments() -> None:
