@@ -863,6 +863,50 @@ async def test_write_prop_image_backed() -> None:
     assert device.properties[(5, 0x33)] == b"\xca\xfe"
 
 
+@pytest.mark.parametrize(
+    ("scope", "held"),
+    [
+        (DownloadScope.PARAMETERS, b"\xca\xfe"),
+        (DownloadScope.PARAMETERS_AND_GROUP_COMMUNICATION, b"\xca\xfe"),
+        (DownloadScope.GROUP_COMMUNICATION, b"\x12\x34"),
+    ],
+)
+async def test_a_group_communication_download_writes_no_parameter_property(
+    scope: DownloadScope, held: bytes
+) -> None:
+    """The parameters are applied only for a download that loads them: one of the group
+    communication alone leaves a parameter property as the device holds it."""
+    image = DownloadImage(
+        segments=(),
+        properties=(
+            PropertyValue(
+                object_index=5, property_id=0x33, occurrence=0, data=b"\xca\xfe"
+            ),
+        ),
+    )
+    control = LdCtrlWriteProp(
+        obj_idx=5,
+        prop_id=0x33,
+        start_element=1,
+        count=1,
+        verify=False,
+        inline_data=None,
+    )
+    device = _device()
+    device.properties[(5, 0x33)] = b"\x12\x34"
+    runner = LoadProcedureRunner(
+        _application(control),
+        image,
+        DeviceProgrammer(device),
+        controls=[control],
+        scope=scope,
+    )
+
+    await runner.run()
+
+    assert device.properties[(5, 0x33)] == held
+
+
 async def test_compare_prop_tolerates_trailing_padding() -> None:
     from xknxeditor.namespaces.intermediate.ld_ctrl_compare_prop_t import (
         LdCtrlCompareProp,
@@ -1952,12 +1996,21 @@ async def test_the_object_count_of_a_partial_download_is_the_number_of_objects(
 
 
 @pytest.mark.parametrize("memory_mapped", [True, False])
-async def test_a_parameters_download_writes_the_parameters_beside_a_group_object_table(
-    memory_mapped: bool,
+@pytest.mark.parametrize(
+    ("scope", "written"),
+    [
+        (DownloadScope.PARAMETERS, {0x4B23: 0x42}),
+        (DownloadScope.GROUP_COMMUNICATION, {0x4B20: 0xCB, 0x4B21: 0x20, 0x4B22: 0x20}),
+    ],
+)
+async def test_a_partial_download_writes_its_part_of_a_segment_shared_by_parameters_and_table(
+    memory_mapped: bool, scope: DownloadScope, written: dict[int, int]
 ) -> None:
     """The group object table shares its code segment with the parameters: a download
     of the parameters alone writes the parameter octets of the segment and none of the
-    table, also when its count differs from the product's."""
+    table, also when its count differs from the product's; one of the group
+    communication alone writes the table (the count as the number of objects) and no
+    parameter."""
     control = _abs_segment_control()
     application = _m112_application(control) if memory_mapped else _application(control)
     image = DownloadImage(
@@ -1985,13 +2038,13 @@ async def test_a_parameters_download_writes_the_parameters_beside_a_group_object
         image,
         DeviceProgrammer(device),
         controls=[control],
-        scope=DownloadScope.PARAMETERS,
+        scope=scope,
         object_types=_APPLICATION_OBJECT,
     )
 
     await runner.run()
 
-    assert device.memory == {0x4B23: 0x42}
+    assert device.memory == written
 
 
 @pytest.mark.parametrize("memory_mapped", [True, False])

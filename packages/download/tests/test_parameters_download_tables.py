@@ -1,10 +1,12 @@
-"""A download of the parameters alone writes no group communication table in memory.
+"""A partial download writes its part only: the parameters or the group communication.
 
 The tables are formatted only for a download that loads the group communication: one of
 the parameters alone leaves them as the device holds them, the object count of the group
 object table too, which a full download writes from the product data and a download of
 the group communication as the number of objects (issue #283: Eelectron BCU2 devices
-whose product data counts more records than the application has objects).
+whose product data counts more records than the application has objects). The
+parameters are applied only for a download that loads them: one of the group
+communication alone writes no parameter octet.
 """
 
 from __future__ import annotations
@@ -157,21 +159,23 @@ def test_the_group_object_table_is_a_group_table() -> None:
 
 
 @pytest.mark.parametrize(
-    ("scope", "count"),
+    ("scope", "count", "parameter"),
     [
-        (DownloadScope.FULL, _PRODUCT_COUNT),
-        (DownloadScope.APPLICATION, _PRODUCT_COUNT),
-        (DownloadScope.GROUP_COMMUNICATION, _OBJECTS),
-        (DownloadScope.PARAMETERS_AND_GROUP_COMMUNICATION, _OBJECTS),
+        (DownloadScope.FULL, _PRODUCT_COUNT, True),
+        (DownloadScope.APPLICATION, _PRODUCT_COUNT, True),
+        (DownloadScope.GROUP_COMMUNICATION, _OBJECTS, False),
+        (DownloadScope.PARAMETERS_AND_GROUP_COMMUNICATION, _OBJECTS, True),
     ],
 )
 def test_a_download_with_the_group_communication_writes_the_table(
-    scope: DownloadScope, count: int
+    scope: DownloadScope, count: int, parameter: bool
 ) -> None:
+    # A download of the group communication alone writes no parameter.
     written = _written(scope)
     assert written[_TABLE] == count
     # Object 1 is linked: its flag byte has the communication bit.
     assert written[_TABLE + 2 + 3 + 1] & 0x04
+    assert (_PARAMETER in written) is parameter
 
 
 def test_a_parameters_download_writes_the_parameters_only() -> None:

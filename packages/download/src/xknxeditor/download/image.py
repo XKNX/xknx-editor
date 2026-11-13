@@ -345,8 +345,8 @@ class MemorySegment:
     # download of the parameters alone writes no group table at all, see ``group_table``).
     partial_octets: tuple[tuple[int, int], ...] = ()
     # A group communication table (group address, association or group object table) in
-    # memory: a download of the parameters alone does not write it (see
-    # ``DownloadImage.masked_writes``).
+    # memory: a download of the parameters alone does not write it, one of the group
+    # communication alone writes only these (see ``DownloadImage.masked_writes``).
     group_table: bool = False
 
     def __post_init__(self) -> None:
@@ -569,6 +569,7 @@ class DownloadImage:
         partial: bool = False,
         user: bool = False,
         group_tables: bool = True,
+        parameters: bool = True,
     ) -> list[tuple[int, bytes]] | None:
         """Return the ``(address, data)`` runs to write within ``[address, size)``, in the
         user memory (``user_segments``) with ``user``.
@@ -578,7 +579,9 @@ class DownloadImage:
         partial download), in ascending address order. Without ``group_tables`` the
         group communication tables (``MemorySegment.group_table``) write nothing: a
         download of the parameters alone leaves them as the device holds them, the
-        object count of a group object table too. Returns ``None`` only when
+        object count of a group object table too. Without ``parameters`` only they write:
+        a download of the group communication alone leaves the parameters (the code
+        segments) as the device holds them. Returns ``None`` only when
         no segment overlaps the range at all (as :meth:`read_optional` reports
         missing data), and an empty list when overlapping segments write nothing
         within it.
@@ -610,7 +613,7 @@ class DownloadImage:
             if segment.address >= end or segment.end <= address:
                 continue  # no overlap with the requested range
             covered = True
-            if segment.group_table and not group_tables:
+            if not (group_tables if segment.group_table else parameters):
                 continue
             for run_address, run_data in segment.masked_runs(
                 include_initialized=include_initialized, partial=partial
@@ -1945,21 +1948,16 @@ def _system300_memory_tables(
     if count > 0xFF:
         raise ImageError(f"group address table has too many entries: {count - 1}")
     result: list[MemorySegment] = []
-    placed = False
     for segment in segments:
-        if not placed and segment.address <= address < segment.end:
-            at = address - segment.address
-            data, mask = bytearray(segment.data), bytearray(segment.mask or b"")
-            data[at] = count
-            if mask:
-                mask[at] = 0xFF
-            segment = replace(
-                segment, data=bytes(data), mask=bytes(mask) if mask else None
-            )
-            placed = True
+        if segment.address <= address < segment.end:
+            # The segment's own data holds the count too (a write of its seed).
+            data = bytearray(segment.data)
+            data[address - segment.address] = count
+            segment = replace(segment, data=bytes(data))
         result.append(segment)
-    if not placed:
-        result.append(MemorySegment(address, bytes([count]), b"\xff"))
+    # The count is written as a group table of its own: by a download of the group
+    # communication, not by one of the parameters alone.
+    result.append(MemorySegment(address, bytes([count]), b"\xff", group_table=True))
     return result
 
 
