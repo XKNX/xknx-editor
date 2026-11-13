@@ -2003,8 +2003,14 @@ class LoadProcedureRunner:
 
         Image elements are laid over inline data. Every
         download, a full one too, writes only the bits the inline data, captured elements and
-        parameters cover, and the device keeps the rest.
+        parameters cover, and the device keeps the rest. A download of the group
+        communication alone writes nothing of a property the parameters set, its inline data
+        neither (the inline data is the base the parameters are laid over): the device keeps
+        its parameters.
         """
+        if not self._writes_parameters() and self._parameter_property(index, control):
+            size = 2 * control.count if control.start_element == 0 else control.count
+            return bytes(size), bytes(size)
         if control.start_element == 0:
             # Element 0 of an array property is its number of valid elements, 2 octets; writing
             # 0 clears the array.
@@ -2494,6 +2500,22 @@ class LoadProcedureRunner:
             if segment.id == table.code_segment and segment.address is not None:
                 return segment.address + (table.offset or 0)
         return None
+
+    def _parameter_property(self, index: int, control: LdCtrlWriteProp) -> bool:
+        """Whether the image's parameters set the property ``control`` writes (a group
+        communication table's property is the table's, not a parameter's)."""
+        object_type = (
+            control.obj_type
+            if control.obj_idx is None and control.obj_type is not None
+            else self._object_types.get(index)
+        )
+        if object_type in GROUP_COMMUNICATION_OBJECTS:
+            return False
+        return any(
+            prop.property_id == control.prop_id
+            and self._image_property_applies(prop, index, control)
+            for prop in self.image.properties
+        )
 
     def _image_property_applies(
         self,

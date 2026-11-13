@@ -907,6 +907,68 @@ async def test_a_group_communication_download_writes_no_parameter_property(
     assert device.properties[(5, 0x33)] == held
 
 
+@pytest.mark.parametrize(
+    ("scope", "writes"),
+    [
+        (DownloadScope.PARAMETERS, [(0, b"\x00\x00"), (1, b"\xca\xfe")]),
+        (DownloadScope.GROUP_COMMUNICATION, []),
+    ],
+)
+async def test_a_group_communication_download_keeps_a_parameter_property_with_inline_data(
+    scope: DownloadScope, writes: list[tuple[int, bytes]]
+) -> None:
+    """Inline data that fills the write is the base the parameters are laid over (a
+    Siemens System B room unit writes its parameter properties with zeros as inline data):
+    a download of the group communication alone writes neither, so the device keeps its
+    parameters instead of getting the zeros."""
+    image = DownloadImage(
+        segments=(),
+        properties=(
+            PropertyValue(
+                object_index=5, property_id=0x33, occurrence=0, data=b"\xca\xfe"
+            ),
+        ),
+    )
+    controls = [
+        # Element 0 of the array: its number of elements, cleared first.
+        LdCtrlWriteProp(
+            obj_idx=5,
+            prop_id=0x33,
+            start_element=0,
+            count=1,
+            verify=False,
+            inline_data=b"\x00\x00",
+        ),
+        LdCtrlWriteProp(
+            obj_idx=5,
+            prop_id=0x33,
+            start_element=1,
+            count=1,
+            verify=False,
+            inline_data=b"\x00\x00",
+        ),
+    ]
+    device = _device()
+    device.properties[(5, 0x33)] = b"\x12\x34"
+    runner = LoadProcedureRunner(
+        _application(*controls),
+        image,
+        DeviceProgrammer(device),
+        controls=controls,
+        scope=scope,
+    )
+
+    await runner.run()
+
+    assert [
+        (p.start_index, p.data)
+        for p in device.sent
+        if isinstance(p, PropertyValueWrite) and p.property_id == 0x33
+    ] == writes
+    if not writes:
+        assert device.properties[(5, 0x33)] == b"\x12\x34"
+
+
 async def test_compare_prop_tolerates_trailing_padding() -> None:
     from xknxeditor.namespaces.intermediate.ld_ctrl_compare_prop_t import (
         LdCtrlCompareProp,
