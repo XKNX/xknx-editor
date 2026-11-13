@@ -1905,15 +1905,18 @@ async def test_a_parameters_download_writes_the_application_segment_of_a_memory_
     [
         (DownloadScope.FULL, False, 0xFE),
         (DownloadScope.FULL, True, 0x05),
-        (DownloadScope.PARAMETERS, False, 0x05),
         (DownloadScope.GROUP_COMMUNICATION, False, 0x05),
+        (DownloadScope.PARAMETERS_AND_GROUP_COMMUNICATION, False, 0x05),
+        (DownloadScope.PARAMETERS, False, None),
     ],
 )
 async def test_the_object_count_of_a_partial_download_is_the_number_of_objects(
-    scope: DownloadScope, application_loaded: bool, count: int
+    scope: DownloadScope, application_loaded: bool, count: int | None
 ) -> None:
     """A full download writes the product's count octet of the group object table; a
-    download without the code seed writes the number of objects in its place."""
+    download of the group communication without the code seed writes the number of
+    objects in its place. A download of the parameters alone writes no octet of the
+    table: the device keeps its count, its flags and its pointers."""
     application = _m112_application(_abs_segment_control())
     image = DownloadImage(
         segments=(
@@ -1923,6 +1926,7 @@ async def test_the_object_count_of_a_partial_download_is_the_number_of_objects(
                 mask=b"\xff\xff\xff\x00",
                 initialized_mask=b"\xff\xff\xff\xff",
                 partial_octets=((0, 0x05),),
+                group_table=True,
             ),
         ),
         properties=(),
@@ -1940,8 +1944,54 @@ async def test_the_object_count_of_a_partial_download_is_the_number_of_objects(
 
     await runner.run()
 
-    assert device.memory[0x4B20] == count
-    assert (device.memory[0x4B21], device.memory[0x4B22]) == (0x20, 0x20)
+    if count is None:
+        assert not {0x4B20, 0x4B21, 0x4B22} & device.memory.keys()
+    else:
+        assert device.memory[0x4B20] == count
+        assert (device.memory[0x4B21], device.memory[0x4B22]) == (0x20, 0x20)
+
+
+@pytest.mark.parametrize("memory_mapped", [True, False])
+async def test_a_parameters_download_writes_the_parameters_beside_a_group_object_table(
+    memory_mapped: bool,
+) -> None:
+    """The group object table shares its code segment with the parameters: a download
+    of the parameters alone writes the parameter octets of the segment and none of the
+    table, also when its count differs from the product's."""
+    control = _abs_segment_control()
+    application = _m112_application(control) if memory_mapped else _application(control)
+    image = DownloadImage(
+        segments=(
+            # The code segment: the parameter at 0x4B23.
+            MemorySegment(
+                address=0x4B20,
+                data=b"\x00\x00\x00\x42",
+                mask=b"\x00\x00\x00\xff",
+            ),
+            # The table over it: the count (product 0xCD, application 0xCB), flags.
+            MemorySegment(
+                address=0x4B20,
+                data=b"\xcd\x20\x20\x00",
+                mask=b"\xff\xff\xff\x00",
+                partial_octets=((0, 0xCB),),
+                group_table=True,
+            ),
+        ),
+        properties=(),
+    )
+    device = _device()
+    runner = LoadProcedureRunner(
+        application,
+        image,
+        DeviceProgrammer(device),
+        controls=[control],
+        scope=DownloadScope.PARAMETERS,
+        object_types=_APPLICATION_OBJECT,
+    )
+
+    await runner.run()
+
+    assert device.memory == {0x4B23: 0x42}
 
 
 @pytest.mark.parametrize("memory_mapped", [True, False])

@@ -838,6 +838,9 @@ class LoadProcedureRunner:
             include_initialized=include_initialized,
             partial=not self._writes_seed(),
             user=space is LdCtrlMemAddrSpace.USER,
+            group_tables=self._writes_group_tables(
+                include_initialized=include_initialized
+            ),
         )
         if (
             space is LdCtrlMemAddrSpace.LC_FILTER
@@ -1230,6 +1233,17 @@ class LoadProcedureRunner:
         if segment and self._memory_mapped_mask():
             return True
         return self.scope in (DownloadScope.FULL, DownloadScope.APPLICATION)
+
+    def _writes_group_tables(self, *, include_initialized: bool) -> bool:
+        """Whether memory writes carry the group communication tables in memory.
+
+        A download of the parameters alone leaves them as the device holds them, the
+        object count of a group object table too: the tables are formatted only for a
+        download that loads the group communication. A write that carries the code seed
+        (``include_initialized``, e.g. a BIM M112 segment allocated again) writes them
+        over the seed, or the seed's own table would be written.
+        """
+        return include_initialized or self.scope is not DownloadScope.PARAMETERS
 
     def _memory_lsm(self, index: int) -> tuple[int, int | None] | None:
         """Return ``(control_address, status_address)`` for a memory-mapped LSM.
@@ -1892,6 +1906,9 @@ class LoadProcedureRunner:
             control.size,
             include_initialized=self._writes_seed(),
             partial=not self._writes_seed(),
+            group_tables=self._writes_group_tables(
+                include_initialized=self._writes_seed()
+            ),
         )
         return self._overlay_memory_capture(index, control.offset, control.size, runs)
 

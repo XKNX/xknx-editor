@@ -341,8 +341,13 @@ class MemorySegment:
     mask: bytes | None = None
     initialized_mask: bytes | None = None
     # ``(offset, value)`` octets a partial download writes in place of ``data``: the object
-    # count of a group object table, where a full download keeps the product's octet.
+    # count of a group object table, where a full download keeps the product's octet (a
+    # download of the parameters alone writes no group table at all, see ``group_table``).
     partial_octets: tuple[tuple[int, int], ...] = ()
+    # A group communication table (group address, association or group object table) in
+    # memory: a download of the parameters alone does not write it (see
+    # ``DownloadImage.masked_writes``).
+    group_table: bool = False
 
     def __post_init__(self) -> None:
         for mask in (self.mask, self.initialized_mask):
@@ -563,13 +568,17 @@ class DownloadImage:
         include_initialized: bool = False,
         partial: bool = False,
         user: bool = False,
+        group_tables: bool = True,
     ) -> list[tuple[int, bytes]] | None:
         """Return the ``(address, data)`` runs to write within ``[address, size)``, in the
         user memory (``user_segments``) with ``user``.
 
         Collects the masked runs of every segment that *overlaps* the range,
         clipped to it (see :meth:`MemorySegment.masked_runs`; ``partial`` for a
-        partial download), in ascending address order. Returns ``None`` only when
+        partial download), in ascending address order. Without ``group_tables`` the
+        group communication tables (``MemorySegment.group_table``) write nothing: a
+        download of the parameters alone leaves them as the device holds them, the
+        object count of a group object table too. Returns ``None`` only when
         no segment overlaps the range at all (as :meth:`read_optional` reports
         missing data), and an empty list when overlapping segments write nothing
         within it.
@@ -601,6 +610,8 @@ class DownloadImage:
             if segment.address >= end or segment.end <= address:
                 continue  # no overlap with the requested range
             covered = True
+            if segment.group_table and not group_tables:
+                continue
             for run_address, run_data in segment.masked_runs(
                 include_initialized=include_initialized, partial=partial
             ):
@@ -798,7 +809,9 @@ def build_image(
                 group_communication,
                 factory_image,
             )
-            segments.extend(group_tables.segments)
+            segments.extend(
+                replace(segment, group_table=True) for segment in group_tables.segments
+            )
             table_memory.extend(table_ranges(group_tables.segments))
             moved = group_tables.moved
         else:
@@ -2290,7 +2303,9 @@ def _object_count(
     """Mark the object count at ``at`` for writing, and return the partial octets for it.
 
     The count is the number of records. A full download keeps the product's octet when it
-    differs (the product data is inconsistent then); a partial download writes the count.
+    differs (the product data is inconsistent then); a partial download of the group
+    communication writes the count, one of the parameters alone neither (the table is not
+    written then, see ``MemorySegment.group_table``).
     """
     if at >= len(data):
         return ()
