@@ -6,6 +6,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+import pytest
 from xknx.telegram.apci import PropertyValueWrite
 
 from xknxeditor.download.group_communication import (
@@ -332,3 +333,31 @@ async def test_a_memory_configuration_writes_only_its_eeprom_segment() -> None:
     # The RAM segment of the table is only allocated; LSM 5 is not announced.
     assert device.load_states[1] == LoadState.LOADED
     assert 5 not in device.load_states
+
+
+@pytest.mark.parametrize(
+    ("scope", "count"),
+    [
+        (DownloadScope.FULL, True),
+        (DownloadScope.GROUP_COMMUNICATION, True),
+        (DownloadScope.PARAMETERS_AND_GROUP_COMMUNICATION, True),
+        (DownloadScope.PARAMETERS, False),
+    ],
+)
+def test_the_group_address_count_in_memory_is_a_group_table(
+    scope: DownloadScope, count: bool
+) -> None:
+    """The count of the group address table in the EEPROM segment is written by a download
+    of the group communication, not by one of the parameters alone."""
+    app = parse_application_xml(_LEGACY_XML.encode(), "M-00FD")[0]
+    links = [GroupObjectLink(f"{_LEGACY}_O-1_R-1", _GA_HIGH, sending=True)]
+    image = build_image(app, group_communication=GroupCommunication(0x1105, links))
+    runner = LoadProcedureRunner(
+        app, image, DeviceProgrammer(FakeDevice(descriptor=0x0300)), scope=scope
+    )
+    written = {
+        address + i: value
+        for address, data in runner._memory_runs(256, 23) or []
+        for i, value in enumerate(data)
+    }
+    assert (written.get(278) == 2) is count

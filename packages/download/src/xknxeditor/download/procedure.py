@@ -841,6 +841,7 @@ class LoadProcedureRunner:
             group_tables=self._writes_group_tables(
                 include_initialized=include_initialized
             ),
+            parameters=self._writes_parameters(include_initialized=include_initialized),
         )
         if (
             space is LdCtrlMemAddrSpace.LC_FILTER
@@ -1244,6 +1245,20 @@ class LoadProcedureRunner:
         over the seed, or the seed's own table would be written.
         """
         return include_initialized or self.scope is not DownloadScope.PARAMETERS
+
+    def _writes_parameters(self, *, include_initialized: bool = False) -> bool:
+        """Whether writes carry the parameters: memory, an object's relative memory and
+        properties.
+
+        A download of the group communication alone leaves them as the device holds them:
+        the parameters are applied only for a download that loads them. Inline data of the
+        procedure is written all the same. A write that carries the code seed
+        (``include_initialized``) writes the parameters over it, or the seed's defaults would
+        be written.
+        """
+        return (
+            include_initialized or self.scope is not DownloadScope.GROUP_COMMUNICATION
+        )
 
     def _memory_lsm(self, index: int) -> tuple[int, int | None] | None:
         """Return ``(control_address, status_address)`` for a memory-mapped LSM.
@@ -1851,6 +1866,9 @@ class LoadProcedureRunner:
                 control.offset,
                 control.size,
                 include_initialized=self._writes_seed(),
+                parameters=self._writes_parameters(
+                    include_initialized=self._writes_seed()
+                ),
             )
             return self._overlay_memory_capture(
                 index, control.offset, control.size, runs
@@ -1909,6 +1927,7 @@ class LoadProcedureRunner:
             group_tables=self._writes_group_tables(
                 include_initialized=self._writes_seed()
             ),
+            parameters=self._writes_parameters(include_initialized=self._writes_seed()),
         )
         return self._overlay_memory_capture(index, control.offset, control.size, runs)
 
@@ -2076,7 +2095,9 @@ class LoadProcedureRunner:
                     raise ImageError("captured property element width mismatch")
                 data[n * width : (n + 1) * width] = captured
                 covered[n * width : (n + 1) * width] = b"\xff" * width
-        for prop in self.image.properties:
+        # A download of the group communication alone writes no parameter: nothing of the
+        # image's parameters covers the property then.
+        for prop in self.image.properties if self._writes_parameters() else ():
             if prop.property_id == control.prop_id and self._image_property_applies(
                 prop, index, control
             ):
