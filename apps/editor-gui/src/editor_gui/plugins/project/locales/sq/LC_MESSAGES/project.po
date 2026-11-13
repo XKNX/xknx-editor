@@ -3190,25 +3190,25 @@ msgid "Medium Configuration"
 msgstr "Konfigurimi i mediumit"
 
 msgid "The standard download would overwrite the configuration this device keeps only in the manufacturer's plugin (its application was converted from pre-ETS4 data), so the device would lose its settings. Program it with the manufacturer's plugin instead."
-msgstr "The standard download would overwrite the configuration this device keeps only in the manufacturer's plugin (its application was converted from pre-ETS4 data), so the device would lose its settings. Program it with the manufacturer's plugin instead."
+msgstr "Programimi standard do të mbishkruante konfigurimin që kjo pajisje e ruan vetëm në plugin-in e prodhuesit (programi i saj aplikativ është konvertuar nga të dhëna të krijuara përpara ETS4), prandaj pajisja do t'i humbiste cilësimet. Programojeni me plugin-in e prodhuesit."
 
 msgid "Set Up Plugin"
-msgstr "Konfiguro Plugin"
+msgstr "Konfiguro plugin-in"
 
 msgid "The change removed these group address links:"
-msgstr "Ndryshimi hoqi këto lidhje të adresave të grupit:"
+msgstr "Ndryshimi hoqi këto lidhje të adresave të grupeve:"
 
 msgid "Import Plugin Configuration…"
-msgstr "Importo konfigurimin Plugin…"
+msgstr "Importo konfigurimin e plugin-it…"
 
 msgid "Export Plugin Configuration…"
-msgstr "Eksporto konfigurimin Plugin…"
+msgstr "Eksporto konfigurimin e plugin-it…"
 
 msgid "Plugin Image and Load Plan"
-msgstr "Imazhi dhe plani i ngarkimit Plugin"
+msgstr "Imazhi i plugin-it dhe plani i ngarkimit"
 
 msgid "Use Stored Plugin Configuration"
-msgstr "Përdor konfigurimin e ruajtur të shtojcës"
+msgstr "Përdor konfigurimin e ruajtur të plugin-it"
 
 msgid "Database"
 msgstr "Baza e të dhënave"
@@ -3223,10 +3223,10 @@ msgid "Database Code"
 msgstr "Kodi i bazës së të dhënave"
 
 msgid "Metadata Verified"
-msgstr "Metadatat e verifikuara"
+msgstr "Verifikimi i metadatave"
 
 msgid "Internal Values"
-msgstr "Vlera të brendshme"
+msgstr "Vlerat e brendshme"
 
 msgid "Acknowledge Group Address"
-msgstr "Konfirmo Adresën e Grupit"
+msgstr "Konfirmo adresën e grupit"
