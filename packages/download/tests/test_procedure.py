@@ -1877,6 +1877,41 @@ async def test_m112_code_only_segment_is_not_allocated() -> None:
     ]
 
 
+async def test_m112_code_only_segment_is_not_previewed() -> None:
+    """The preview leaves the segment as the download does: the device keeps its octets,
+    so a preview right after a download finds nothing to change there (a Siemens
+    5WG1 342-1AB01 segment at 0x5E5D, 20 octets of defaults, no checksum)."""
+    image = DownloadImage(
+        segments=(
+            MemorySegment(
+                address=0x5E5D,
+                data=b"\x02" * 4,
+                mask=b"\x00" * 4,
+                initialized_mask=b"\xff" * 4,
+            ),
+        ),
+        properties=(),
+    )
+    application = _m112_application(
+        LdCtrlAbsSegment(
+            lsm_idx=3,
+            occurrence=0,
+            seg_type=0,
+            address=0x5E5D,
+            size=4,
+            access=0xFF,
+            mem_type=3,
+            seg_flags=0,
+        )
+    )
+    runner, device = _runner(application, image)
+    device.load_states[3] = LoadState.LOADED
+
+    report = await runner.preflight()
+
+    assert not any(segment.changed for segment in report.segments)
+
+
 async def test_m112_checksummed_code_seed_is_still_allocated() -> None:
     """Checksum bit 7 still allocates, so the seed is written into that range."""
     image = DownloadImage(

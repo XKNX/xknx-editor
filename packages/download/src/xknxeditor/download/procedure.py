@@ -3257,18 +3257,7 @@ class LoadProcedureRunner:
         segment_type = load_state.SegmentType(control.seg_type)
         index = await self._resolve_index(control)
         address, size = self._segment_placement(control)
-        # A checksum-less segment whose image holds only the code seed has no
-        # parameter bytes. ETS does not allocate it (the Merten 5701 segment at
-        # 0x5100 is 25856 bytes, and the device does not ACK that record). The
-        # seed stays as it already is on the device. A checksummed segment still
-        # allocates, so the code seed is written into the range the device checks.
-        if (
-            self._memory_lsm(index) is not None
-            and self._enable_segment_write
-            and not ((control.seg_flags or 0) & 0x80)
-            and self._memory_runs(address, size, include_initialized=False) == []
-            and self._memory_runs(address, size, include_initialized=True)
-        ):
+        if self._skips_code_only_segment(control, index, address, size):
             logger.info(
                 "skipping code-only segment without checksum: %s address=%#06x size=%d",
                 self._diagnostic_context(),
@@ -3311,6 +3300,24 @@ class LoadProcedureRunner:
         if runs:
             programmer = await self._memory_programmer()
             await self._write_memory_runs(programmer, runs, verify=True)
+
+    def _skips_code_only_segment(
+        self, control: LdCtrlAbsSegment, index: int, address: int, size: int
+    ) -> bool:
+        """Whether a download leaves the segment ``control`` allocates as the device holds it.
+
+        A checksum-less segment of a memory-mapped LSM whose image holds only the code seed
+        has no parameter bytes, and is not allocated (the Merten 5701 segment at 0x5100 is
+        25856 bytes, and the device does not ACK that record). The seed stays as it already is
+        on the device. A checksummed segment still allocates, so the code seed is written into
+        the range the device checks. The download and its preview decide alike."""
+        return bool(
+            self._memory_lsm(index) is not None
+            and self._enable_segment_write
+            and not ((control.seg_flags or 0) & 0x80)
+            and self._memory_runs(address, size, include_initialized=False) == []
+            and self._memory_runs(address, size, include_initialized=True)
+        )
 
     def _writes_segment_data(self, control: LdCtrlAbsSegment) -> bool:
         """Whether the image data of an allocated segment is written: only into EEPROM (memory
@@ -3444,6 +3451,10 @@ class LoadProcedureRunner:
             # by _abs_segment, so it is a clean allocate-only preview here too, not an error.
             if self._writes_segment_data(control):
                 address, size = self._segment_placement(control)
+                index = await self._resolve_index(control)
+                if self._skips_code_only_segment(control, index, address, size):
+                    # The download leaves it as the device holds it (see _abs_segment).
+                    return
                 await self._diff_masked(
                     address,
                     size,
