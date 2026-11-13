@@ -18,6 +18,7 @@ from xknxeditor.download.preflight import (
 )
 from xknxeditor.download.procedure import LoadProcedureRunner
 from xknxeditor.download.programmer import DeviceProgrammer
+from xknxeditor.download.scope import DownloadScope
 from xknxeditor.namespaces.intermediate.ld_ctrl_abs_segment_t import LdCtrlAbsSegment
 from xknxeditor.namespaces.intermediate.ld_ctrl_compare_prop_t import LdCtrlCompareProp
 from xknxeditor.namespaces.intermediate.ld_ctrl_write_mem_t import LdCtrlWriteMem
@@ -602,6 +603,50 @@ async def test_preflight_marks_the_octets_only_a_partial_download_writes(
     assert segment.planned[1] == (0x7D if application_loaded else 0xC8)
     assert segment.changed_bytes == 1
     assert segment.corrected_bytes == frozenset({1})
+
+
+@pytest.mark.parametrize(
+    ("scope", "planned"),
+    [
+        (DownloadScope.PARAMETERS, None),
+        (DownloadScope.GROUP_COMMUNICATION, 0x7D),
+        (DownloadScope.FULL, 0xC8),
+    ],
+)
+async def test_a_parameters_preview_plans_no_group_table_octet(
+    scope: DownloadScope, planned: int | None
+) -> None:
+    # The device holds the product's count 0xC8 (a full download wrote it), the application
+    # counts 0x7D. A download of the parameters alone leaves the table: its preview plans no
+    # octet of it, and the device's count is no difference.
+    image = DownloadImage(
+        segments=(
+            MemorySegment(
+                address=0x4000,
+                data=bytes.fromhex("00c80102"),
+                mask=bytes.fromhex("00ffffff"),
+                partial_octets=((1, 0x7D),),
+                group_table=True,
+            ),
+        ),
+        properties=(),
+    )
+    application = _application(
+        LdCtrlWriteMem(address=0x4000, size=4, verify=False, inline_data=None)
+    )
+    device = FakeDevice(object_types={0: 0x0000, 1: _ADDRESS_TABLE_TYPE})
+    runner = LoadProcedureRunner(
+        application, image, DeviceProgrammer(device), scope=scope
+    )
+    device.memory.update(enumerate(bytes.fromhex("00c80000"), start=0x4000))
+
+    segments = (await runner.preflight()).segments
+
+    if planned is None:
+        assert not any(segment.changed for segment in segments)
+    else:
+        (segment,) = segments
+        assert segment.planned[0x4001 - segment.address] == planned
 
 
 def test_a_product_mask_over_part_of_an_octet_splits_whole_from_partial() -> None:
