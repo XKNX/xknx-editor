@@ -808,7 +808,7 @@ class TestUSBTunnel:
             USBTunnel, "connect", AsyncMock(side_effect=RuntimeError("boom"))
         ) as connect:
             fake_hid.interface.unplugged.set()
-            await _until(lambda: connect.await_count >= 2)
+            await _until(lambda: connect.await_count >= 2, timeout=6.0)
             # disconnecting ends the reconnect
             await tunnel.disconnect()
             count = connect.await_count
