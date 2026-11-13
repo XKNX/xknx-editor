@@ -3240,3 +3240,45 @@ msgstr "Čeká na naprogramování: {parts}"
 
 msgid "Medium Configuration"
 msgstr "Konfigurace média"
+
+msgid "The standard download would overwrite the configuration this device keeps only in the manufacturer's plugin (its application was converted from pre-ETS4 data), so the device would lose its settings. Program it with the manufacturer's plugin instead."
+msgstr "The standard download would overwrite the configuration this device keeps only in the manufacturer's plugin (its application was converted from pre-ETS4 data), so the device would lose its settings. Program it with the manufacturer's plugin instead."
+
+msgid "Set Up Plugin"
+msgstr "Nastavit Plugin"
+
+msgid "The change removed these group address links:"
+msgstr "Změna odstranila tato propojení skupinových adres:"
+
+msgid "Import Plugin Configuration…"
+msgstr "Importovat konfiguraci Plugin…"
+
+msgid "Export Plugin Configuration…"
+msgstr "Exportovat konfiguraci Plugin…"
+
+msgid "Plugin Image and Load Plan"
+msgstr "Obraz a plán načítání Plugin"
+
+msgid "Use Stored Plugin Configuration"
+msgstr "Použít uloženou konfiguraci pluginu"
+
+msgid "Database"
+msgstr "Databáze"
+
+msgid "Database Version"
+msgstr "Verze databáze"
+
+msgid "Product Type"
+msgstr "Typ produktu"
+
+msgid "Database Code"
+msgstr "Kód databáze"
+
+msgid "Metadata Verified"
+msgstr "Metadata ověřena"
+
+msgid "Internal Values"
+msgstr "Interní hodnoty"
+
+msgid "Acknowledge Group Address"
+msgstr "Potvrzovat Skupinovou Adresu"

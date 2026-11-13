@@ -144,6 +144,25 @@ def _connects[F: Callable[..., Any]](op: str) -> Callable[[F], F]:
     def decorate(method: F) -> F:
         @functools.wraps(method)
         def run(self: ConnectionService, *args: Any, **kwargs: Any) -> Any:
+            target = args[0] if args else kwargs.get("device")
+            scope = args[1] if len(args) > 1 else kwargs.get("scope")
+            if (
+                op == "program_device"
+                and target is not None
+                and not (scope is not None and scope.individual_address_only)
+            ):
+                from editor_gui.plugin_providers import prepared_for, programming_error
+
+                if reason := programming_error(target):
+                    raise ValueError(reason)
+                communication = (
+                    args[2] if len(args) > 2 else kwargs.get("group_communication")
+                )
+                prepared = prepared_for(target, communication)
+                if prepared is not None:
+                    from xknxeditor.download.scope import DownloadScope
+
+                    prepared.check_scope(scope or DownloadScope.FULL, writing=True)
             connector = self.operation_connector
             if (
                 connector is not None
@@ -1074,10 +1093,12 @@ class ConnectionService:
                 waiting,
                 None if overwrite else serial_number,
             )
-        if device.download_plugin_required:
+        from editor_gui.device_plugins import download_needs_plugin_confirmation
+
+        if download_needs_plugin_confirmation(device):
             if not without_plugin:
                 self._log.error(
-                    "Device can only be programmed with the manufacturer's plugin",
+                    "Device must be programmed with the manufacturer's plugin",
                     device=device.name,
                 )
                 return None

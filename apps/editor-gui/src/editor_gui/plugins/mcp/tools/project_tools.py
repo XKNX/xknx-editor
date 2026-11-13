@@ -329,14 +329,17 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
     # --- plugin parameters ------------------------------------------------------
 
     def _plugin_sections(device: Any) -> tuple[Any, list[Any]]:
-        from editor_gui.plugin_params import collect_from_device, mapping_for
+        from editor_gui.plugin_params import collect_from_device, mapping_for_device
 
-        mapping = mapping_for(device.app.id if device.app is not None else None)
+        mapping = mapping_for_device(device)
         if mapping is None:
             raise ToolError(
                 f"device {device.node_id} has no plugin parameters the editor can show"
             )
-        return mapping, collect_from_device(device, mapping)
+        try:
+            return mapping, collect_from_device(device, mapping)
+        except ValueError as exc:
+            raise ToolError(str(exc)) from exc
 
     def _parameter_dict(parameter: Any, in_collection: bool) -> dict[str, Any]:
         from editor_gui.plugins.project.ui.plugin_params_panel import (
@@ -355,6 +358,8 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         # by its item name.
         if parameter.group:
             data["group"] = parameter.group
+        if parameter.raw_value is not None:
+            data["raw_value"] = parameter.raw_value
         if parameter.choices:
             data["choices"] = [
                 {"value": value, "label": label} for value, label in parameter.choices
@@ -380,6 +385,8 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                 ],
                 "needs_name": binding.needs_name,
             }
+        if section.collapsed:
+            data["collapsed"] = True
         return data
 
     @tool("read")
@@ -392,10 +399,12 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         shows them (devices with such a tab only, e.g. the Siemens KNX/DALI Gateway plus
         N 141/03). Identify the device by node_id OR device_address; ``search`` keeps the
         sections or parameters whose name or item name contains it. Returns {title, sections}:
-        each section has {section, parameters} and, for a list the user can add items to,
+        each section has {section, parameters, collapsed?} and, for a list the user can add items to,
         {collection: {label, item_types, needs_name}}; each parameter has {ref_id, label, value,
-        default_value, writable, group?, choices?, item_id?} (group: the item the row belongs to,
-        e.g. "[2] Group 'Sauna'"; item_id: for project_remove_plugin_item)."""
+        default_value, writable, group?, choices?, item_id?, raw_value?} (group: the item the row belongs to,
+        e.g. "[2] Group 'Sauna'"; item_id: for project_remove_plugin_item).
+        Saved configurations are selected automatically when supported. Internal values remain
+        available in initially collapsed sections. Reading never persists a conversion."""
         require_project(ctx)
 
         def _read() -> dict[str, Any]:
@@ -407,10 +416,19 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                 data = _section_dict(section)
                 if needle and needle not in section.section.lower():
                     data["parameters"] = [
-                        p
-                        for p in data["parameters"]
-                        if needle in p["label"].lower()
-                        or needle in p.get("group", "").lower()
+                        value
+                        for parameter, value in zip(
+                            section.parameters, data["parameters"], strict=True
+                        )
+                        if any(
+                            needle in text.lower()
+                            for text in (
+                                parameter.name,
+                                parameter.label,
+                                parameter.value,
+                                parameter.group,
+                            )
+                        )
                     ]
                     if not data["parameters"] and "collection" not in data:
                         continue
@@ -438,7 +456,6 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         Identify the device by node_id OR device_address. Returns {ref_id, value, changed}:
         value as the device holds it afterwards."""
         require_project(ctx)
-        plugin = _plugin()
 
         def _set() -> dict[str, Any]:
             device = require_device(project, node_id, device_address)
@@ -452,6 +469,32 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                 )
             if not parameter.writable:
                 raise ToolError(f"plugin parameter {ref_id!r} cannot be changed")
+            from editor_gui.plugin_providers import handles_parameter
+
+            if handles_parameter(device, ref_id):
+                try:
+                    lost = project.edit_plugin_parameter(device, ref_id, value)
+                except ValueError as exc:
+                    raise ToolError(str(exc)) from exc
+                _mapping, after = _plugin_sections(
+                    require_device(project, device.node_id)
+                )
+                now = next(
+                    (
+                        p.value
+                        for s in after
+                        for p in s.parameters
+                        if p.ref_id == ref_id
+                    ),
+                    parameter.value,
+                )
+                return {
+                    "ref_id": ref_id,
+                    "value": now,
+                    "changed": now != parameter.value,
+                    "lost_links": lost,
+                }
+            plugin = _plugin()
             if ref_id.startswith("triton_lcd:"):
                 try:
                     plugin.handle_param_change(
@@ -470,6 +513,136 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             return {"ref_id": ref_id, "value": now, "changed": now != parameter.value}
 
         return ctx.run_locked(_set)
+
+    @tool("read")
+    def project_plugin_capabilities(
+        node_id: int | None = None, device_address: str | None = None
+    ) -> dict[str, Any]:
+        """Return the mapped native provider, setup state, supported-profile status,
+        read-only preflight availability, allowed download_scopes and programming error
+        (null when programming is available). readable identifies
+        configurations the parameter view can inspect; stored_configuration means the original
+        saved blob is selected without a persisted native conversion. Identification
+        of a plugin family does not imply that its device profile is supported.
+        """
+        from dataclasses import asdict
+
+        from editor_gui.plugin_providers import require_provider
+
+        require_project(ctx)
+
+        def run() -> dict[str, Any]:
+            device = require_device(project, node_id, device_address)
+            try:
+                provider = require_provider(device)
+                capabilities = provider.capabilities(device)
+                return {
+                    "provider": provider.id,
+                    **asdict(capabilities),
+                    "download_scopes": [s.name for s in capabilities.download_scopes],
+                }
+            except ValueError as exc:
+                raise ToolError(str(exc)) from exc
+
+        return ctx.run_locked(run)
+
+    @tool("write")
+    def project_setup_plugin(
+        node_id: int | None = None, device_address: str | None = None
+    ) -> dict[str, Any]:
+        """Explicitly initialize the device's mapped native configuration as one undo step.
+        Requires a supported product profile. Original blobs remain unchanged. Links
+        without proven native roles are removed and returned as lost_links.
+        """
+        require_project(ctx)
+
+        def run() -> dict[str, Any]:
+            device = require_device(project, node_id, device_address)
+            try:
+                return {"lost_links": project.setup_plugin(device)}
+            except ValueError as exc:
+                raise ToolError(str(exc)) from exc
+
+        return ctx.run_locked(run)
+
+    @tool("write")
+    def project_import_stored_plugin_config(
+        node_id: int | None = None, device_address: str | None = None
+    ) -> dict[str, Any]:
+        """Convert the original plugin blob already stored on this device to native parameters.
+        Requires importable_blob in project_plugin_capabilities. Preserves original bytes;
+        applies configuration and object roles in one undo step. Unproven group links are
+        removed and reported as lost_links. Never programs a device.
+        """
+        require_project(ctx)
+
+        def run() -> dict[str, Any]:
+            device = require_device(project, node_id, device_address)
+            try:
+                return {"lost_links": project.import_stored_plugin_config(device)}
+            except ValueError as exc:
+                raise ToolError(str(exc)) from exc
+
+        return ctx.run_locked(run)
+
+    @tool("write")
+    def project_import_plugin_config(
+        config_json: str, node_id: int | None = None, device_address: str | None = None
+    ) -> dict[str, Any]:
+        """Import configuration JSON using the device's mapped provider. Configuration,
+        object bindings, compatible links and download status change in one undo step.
+        Returns lost_links for incompatible or removed roles, with group addresses.
+        """
+        require_project(ctx)
+
+        def run() -> dict[str, Any]:
+            device = require_device(project, node_id, device_address)
+            try:
+                return {
+                    "lost_links": project.import_plugin_config(
+                        device, config_json.encode()
+                    )
+                }
+            except ValueError as exc:
+                raise ToolError(str(exc)) from exc
+
+        return ctx.run_locked(run)
+
+    @tool("read")
+    def project_export_plugin_config(
+        node_id: int | None = None, device_address: str | None = None
+    ) -> dict[str, Any]:
+        """Return config_json from the device's mapped native provider, including
+        validated object bindings. Does not modify the original manufacturer blob.
+        """
+        require_project(ctx)
+
+        def run() -> dict[str, Any]:
+            device = require_device(project, node_id, device_address)
+            try:
+                return {"config_json": project.export_plugin_config(device).decode()}
+            except ValueError as exc:
+                raise ToolError(str(exc)) from exc
+
+        return ctx.run_locked(run)
+
+    @tool("read")
+    def project_preview_plugin(
+        node_id: int | None = None, device_address: str | None = None
+    ) -> dict[str, Any]:
+        """Return the provider's complete offline load plan: resource bytes/masks,
+        properties, controls, allowed scopes and programming gate. No bus access.
+        """
+        require_project(ctx)
+
+        def run() -> dict[str, Any]:
+            device = require_device(project, node_id, device_address)
+            try:
+                return project.preview_plugin(device, ctx.api.connection.master)
+            except ValueError as exc:
+                raise ToolError(str(exc)) from exc
+
+        return ctx.run_locked(run)
 
     @tool("write")
     def project_setup_triton_display(

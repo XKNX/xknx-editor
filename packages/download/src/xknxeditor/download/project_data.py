@@ -97,6 +97,7 @@ class GroupObjectLink:
     com_object_ref_id: str
     group_address: int
     sending: bool
+    group_speaker: bool = False
 
 
 def parameter_values_from_device(device: _Device) -> dict[str, str]:

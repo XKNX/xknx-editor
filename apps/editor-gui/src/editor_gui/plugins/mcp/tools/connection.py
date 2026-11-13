@@ -666,9 +666,15 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         and in its history, it waits behind operations already queued, and the user can cancel it
         (the call then fails with the cancel message). Returns {status, node_id, scope}: the scope
         that ran (for PARTIAL the one it resolved to)."""
+        from editor_gui.plugin_providers import programming_error
+
+        requested = _resolve_scope(scope)
+        if not requested.individual_address_only and (
+            reason := programming_error(_device(node_id, device_address))
+        ):
+            raise ToolError(reason)
         device, group_communication = _programmable_device(node_id, device_address)
         nid = device.node_id
-        requested = _resolve_scope(scope)
         parts = ctx.run_locked(lambda: ctx.api.project.download_parts(nid, requested))
         resolved = parts.scope
         if resolved.name == "OVERWRITE_INDIVIDUAL_ADDRESS" and not current_address:
@@ -685,15 +691,26 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                     f"device {nid} has no serial number; set one with "
                     "project_set_serial_number"
                 )
+        from editor_gui.device_plugins import (
+            download_needs_plugin_confirmation,
+            download_overwrites_plugin_config,
+        )
+
         if (
-            device.download_plugin_required
+            download_needs_plugin_confirmation(device)
             and not without_plugin
             and not resolved.individual_address_only
         ):
+            reason = (
+                "the standard download would overwrite the configuration this device keeps only "
+                "in the manufacturer's plugin (its application was converted from pre-ETS4 data), "
+                "so the device would lose its settings"
+                if download_overwrites_plugin_config(device)
+                else "its hardware is marked NoDownloadWithoutPlugin"
+            )
             raise ToolError(
-                f"device {nid} can only be programmed with the manufacturer's plugin "
-                "(its hardware is marked NoDownloadWithoutPlugin); pass without_plugin=true only "
-                "if the user explicitly confirmed programming it anyway"
+                f"device {nid} must be programmed with the manufacturer's plugin ({reason}); "
+                "pass without_plugin=true only if the user explicitly confirmed programming it anyway"
             )
         from editor_gui.plugins.connection.service import DeviceCertificateRequired
         from xknxeditor.proj import ProjectPasswordRequired

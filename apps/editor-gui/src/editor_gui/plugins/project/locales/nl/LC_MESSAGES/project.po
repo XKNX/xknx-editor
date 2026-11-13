@@ -3221,3 +3221,45 @@ msgstr "Programmering vereist: {parts}"
 
 msgid "Medium Configuration"
 msgstr "Mediaconfiguratie"
+
+msgid "The standard download would overwrite the configuration this device keeps only in the manufacturer's plugin (its application was converted from pre-ETS4 data), so the device would lose its settings. Program it with the manufacturer's plugin instead."
+msgstr "The standard download would overwrite the configuration this device keeps only in the manufacturer's plugin (its application was converted from pre-ETS4 data), so the device would lose its settings. Program it with the manufacturer's plugin instead."
+
+msgid "Set Up Plugin"
+msgstr "Plugin instellen"
+
+msgid "The change removed these group address links:"
+msgstr "De wijziging heeft deze groepsadreskoppelingen verwijderd:"
+
+msgid "Import Plugin Configuration…"
+msgstr "Plugin-configuratie importeren…"
+
+msgid "Export Plugin Configuration…"
+msgstr "Plugin-configuratie exporteren…"
+
+msgid "Plugin Image and Load Plan"
+msgstr "Plugin-image en laadplan"
+
+msgid "Use Stored Plugin Configuration"
+msgstr "Opgeslagen pluginconfiguratie gebruiken"
+
+msgid "Database"
+msgstr "Database"
+
+msgid "Database Version"
+msgstr "Databaseversie"
+
+msgid "Product Type"
+msgstr "Producttype"
+
+msgid "Database Code"
+msgstr "Databasecode"
+
+msgid "Metadata Verified"
+msgstr "Metagegevens geverifieerd"
+
+msgid "Internal Values"
+msgstr "Interne waarden"
+
+msgid "Acknowledge Group Address"
+msgstr "Groepsadres Bevestigen"

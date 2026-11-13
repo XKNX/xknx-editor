@@ -3188,3 +3188,45 @@ msgstr "Programação pendente: {parts}"
 
 msgid "Medium Configuration"
 msgstr "Configuração do meio"
+
+msgid "The standard download would overwrite the configuration this device keeps only in the manufacturer's plugin (its application was converted from pre-ETS4 data), so the device would lose its settings. Program it with the manufacturer's plugin instead."
+msgstr "The standard download would overwrite the configuration this device keeps only in the manufacturer's plugin (its application was converted from pre-ETS4 data), so the device would lose its settings. Program it with the manufacturer's plugin instead."
+
+msgid "Set Up Plugin"
+msgstr "Configurar Plugin"
+
+msgid "The change removed these group address links:"
+msgstr "A alteração removeu estas ligações de endereços de grupo:"
+
+msgid "Import Plugin Configuration…"
+msgstr "Importar configuração Plugin…"
+
+msgid "Export Plugin Configuration…"
+msgstr "Exportar configuração Plugin…"
+
+msgid "Plugin Image and Load Plan"
+msgstr "Imagem e plano de carregamento Plugin"
+
+msgid "Use Stored Plugin Configuration"
+msgstr "Usar a configuração guardada do plugin"
+
+msgid "Database"
+msgstr "Base de dados"
+
+msgid "Database Version"
+msgstr "Versão da base de dados"
+
+msgid "Product Type"
+msgstr "Tipo de produto"
+
+msgid "Database Code"
+msgstr "Código da base de dados"
+
+msgid "Metadata Verified"
+msgstr "Metadados verificados"
+
+msgid "Internal Values"
+msgstr "Valores internos"
+
+msgid "Acknowledge Group Address"
+msgstr "Confirmar Endereço de Grupo"

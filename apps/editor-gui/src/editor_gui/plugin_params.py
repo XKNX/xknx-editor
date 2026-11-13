@@ -48,6 +48,9 @@ class PluginMapping:
     # the panel appends sections produced from ``device_binary_data`` (vendor plug-in state kept
     # outside the standard parameter DOM, e.g. the Siemens classic DCA sensor/presence config).
     blob_reader: str = ""
+    provider: str = ""
+    plugin_ids: tuple[str, ...] = ()
+    blob_names: tuple[str, ...] = ()
 
     def match(self, parameter_name: str) -> tuple[str, int] | None:
         """Return (section_label, prefix_end_offset) for ``parameter_name``, or ``None`` if no
@@ -91,6 +94,7 @@ class PluginParameter:
     # the tree node's imgui id off this so editing an item's name (which changes ``group``) does
     # not collapse its expanded node. Falls back to ``group`` when empty.
     group_key: str = ""
+    raw_value: str | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -120,6 +124,7 @@ class PluginSectionView:
     # Optional: a Collection this section represents, used by the generic panel to render
     # Add/Remove controls without a Siemens-specific regex.
     collection: CollectionBinding | None = None
+    collapsed: bool = False
 
 
 @lru_cache(maxsize=32)
@@ -133,15 +138,18 @@ def _load_mapping(path_str: str) -> PluginMapping:
     # ``app_id_prefixes`` list for OEM chassis that reuses the same plug-in.
     prefixes_raw = data.get("app_id_prefixes")
     if prefixes_raw is None:
-        prefixes_raw = [data["app_id_prefix"]]
+        prefixes_raw = [data.get("app_id_prefix", "")]
     prefixes = tuple(str(p) for p in prefixes_raw if p)
-    if not prefixes:
+    if not prefixes and not data.get("plugin_ids"):
         raise KeyError("app_id_prefix(es) missing")
     return PluginMapping(
         app_id_prefixes=prefixes,
         title=data.get("title", ""),
         patterns=patterns,
         blob_reader=str(data.get("blob_reader", "")),
+        provider=str(data.get("provider", "")),
+        plugin_ids=tuple(str(value).upper() for value in data.get("plugin_ids", [])),
+        blob_names=tuple(str(value) for value in data.get("blob_names", [])),
     )
 
 
@@ -158,6 +166,33 @@ def mapping_for(app_id: str | None) -> PluginMapping | None:
         for prefix in mapping.app_id_prefixes:
             if needle.startswith(prefix.upper()):
                 return mapping
+    return None
+
+
+def mapping_for_device(device: Device) -> PluginMapping | None:
+    app = getattr(device, "app", None)
+    if app is None:
+        return None
+    mapping = mapping_for(getattr(app, "id", None))
+    if mapping is not None:
+        return mapping
+    extension = getattr(
+        getattr(getattr(app, "program", None), "static", None), "extension", None
+    )
+    identifiers = {
+        str(getattr(extension, field, "")).upper()
+        for field in ("ets_download_plugin", "ets_ui_plugin", "ets_data_handler")
+    }
+    blob_names = {row.name for row in getattr(device, "binary_data", ())}
+    for path in sorted(_MAPPINGS_DIR.glob("*.json")):
+        try:
+            candidate = _load_mapping(str(path))
+        except (OSError, json.JSONDecodeError, KeyError):
+            continue
+        if identifiers.intersection(candidate.plugin_ids) or blob_names.intersection(
+            candidate.blob_names
+        ):
+            return candidate
     return None
 
 
@@ -361,6 +396,10 @@ def collect_from_device(
     Returns an empty list when the application has no static parameters (e.g. ETS3-only entries
     that never carry a parameter section) or when the device has not resolved its program yet.
     """
+    if mapping.provider:
+        from editor_gui.plugin_providers import provider_named
+
+        return provider_named(mapping.provider).sections(device)
     program = device.app.program if device.app is not None else None
     static = getattr(program, "static", None) if program is not None else None
     if static is None:

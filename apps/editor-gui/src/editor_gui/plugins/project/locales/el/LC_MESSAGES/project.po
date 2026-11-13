@@ -3188,3 +3188,45 @@ msgstr "Εκκρεμεί προγραμματισμός: {parts}"
 
 msgid "Medium Configuration"
 msgstr "Διαμόρφωση μέσου"
+
+msgid "The standard download would overwrite the configuration this device keeps only in the manufacturer's plugin (its application was converted from pre-ETS4 data), so the device would lose its settings. Program it with the manufacturer's plugin instead."
+msgstr "The standard download would overwrite the configuration this device keeps only in the manufacturer's plugin (its application was converted from pre-ETS4 data), so the device would lose its settings. Program it with the manufacturer's plugin instead."
+
+msgid "Set Up Plugin"
+msgstr "Ρύθμιση Plugin"
+
+msgid "The change removed these group address links:"
+msgstr "Η αλλαγή αφαίρεσε αυτές τις συνδέσεις διευθύνσεων ομάδων:"
+
+msgid "Import Plugin Configuration…"
+msgstr "Εισαγωγή διαμόρφωσης Plugin…"
+
+msgid "Export Plugin Configuration…"
+msgstr "Εξαγωγή διαμόρφωσης Plugin…"
+
+msgid "Plugin Image and Load Plan"
+msgstr "Εικόνα και σχέδιο φόρτωσης Plugin"
+
+msgid "Use Stored Plugin Configuration"
+msgstr "Χρήση αποθηκευμένης διαμόρφωσης πρόσθετου"
+
+msgid "Database"
+msgstr "Βάση δεδομένων"
+
+msgid "Database Version"
+msgstr "Έκδοση βάσης δεδομένων"
+
+msgid "Product Type"
+msgstr "Τύπος προϊόντος"
+
+msgid "Database Code"
+msgstr "Κωδικός βάσης δεδομένων"
+
+msgid "Metadata Verified"
+msgstr "Επαληθευμένα μεταδεδομένα"
+
+msgid "Internal Values"
+msgstr "Εσωτερικές τιμές"
+
+msgid "Acknowledge Group Address"
+msgstr "Επιβεβαίωση Ομαδικής Διεύθυνσης"

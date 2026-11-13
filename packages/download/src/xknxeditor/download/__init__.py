@@ -55,6 +55,7 @@ from .preflight import (
     PropertyDiff,
     SegmentDiff,
 )
+from .prepared import PreparedDownload
 from .procedure import LoadProcedureRunner
 from .programmer import (
     DEFAULT_MAX_APDU_LENGTH,
@@ -115,6 +116,7 @@ __all__ = [
     "LoadStateError",
     "MemorySegment",
     "PreflightReport",
+    "PreparedDownload",
     "ProgrammingModeError",
     "PropertyDiff",
     "PropertyValue",

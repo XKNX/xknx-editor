@@ -519,6 +519,37 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         return ctx.run_locked(_set)
 
     @tool("write")
+    def project_set_com_object_acknowledgement(
+        com_object_ref_id: str,
+        enabled: bool,
+        node_id: int | None = None,
+        device_address: str | None = None,
+        group_address_id: int | None = None,
+        group_address: str | None = None,
+    ) -> dict[str, Any]:
+        """Set a linked Powerline group's acknowledging object. Identify device and
+        group by id or address. Selecting it clears another acknowledging object for
+        this group on the same device. Central groups cannot acknowledge. Changes
+        are one undo step, including the pending download status. Returns
+        {node_id, group_address_id, acknowledges}; never accesses the bus."""
+        require_project(ctx)
+
+        def _set() -> dict[str, Any]:
+            device = require_device(project, node_id, device_address)
+            ga_id = require_group_address_id(project, group_address_id, group_address)
+            co = device.find_com_object(com_object_ref_id)
+            if co is None or co.db_id is None:
+                raise ToolError("Group object is not instantiated")
+            project.set_com_object_acknowledgement(co.db_id, ga_id, enabled)
+            return {
+                "node_id": device.node_id,
+                "group_address_id": ga_id,
+                "acknowledges": enabled,
+            }
+
+        return ctx.run_locked(_set)
+
+    @tool("write")
     def project_set_com_object_properties(
         com_object_ref_id: str,
         node_id: int | None = None,

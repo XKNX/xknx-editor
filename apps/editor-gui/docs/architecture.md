@@ -129,6 +129,35 @@ def load_device(project_service, catalog_service, device_row):
     return device
 ```
 
+## Native Plugin Providers
+
+Native manufacturer configurations use the same Plugin Parameters view as mapped
+catalog parameters and blob readers. A family mapping in `plugin_mappings/` selects
+a registered `plugin_providers.PluginProvider` by application prefix or product
+plugin identifier. The provider validates the actual product profile, supplies
+parameter sections and object roles, and compiles a complete `PreparedDownload`.
+The PowerTool family implements all 77 captured profiles from 13 databases with one
+shared declarative schema. Actual catalog identities and Main/PEI relationships qualify
+the profile; finite diagnostic captures do not prove every hardware pairing.
+
+GUI and MCP use `ProjectService.setup_plugin`, `edit_plugin_parameter`,
+`import_plugin_config`, `export_plugin_config` and `preview_plugin`. A configuration
+edit stores the native blob, control parameters, role bindings and removed links
+in one undo step. Compatible roles retain their object rows and links. An invalid
+prior configuration provides no trusted roles; an explicit valid import reports
+and removes its old links. Original manufacturer blobs remain unchanged.
+The runtime `Device` restores the provider's native objects and channel groups
+after lazy rebuild. Unknown providers and invalid profiles cannot fall back to
+a catalog placeholder image. Preflight and programming have separate gates;
+PowerTool preflight and full programming are available for valid native configurations.
+Configuration and scope checks precede connection or route access.
+
+A verified original plugin blob supplies the native parameter form automatically when
+no native configuration exists. Reading/exporting this form is side-effect free; the
+first edit persists and binds the native configuration atomically. Original links
+remain unverified until this conversion, so preparation rejects them. Profiles without an implemented encoder show saved parameter pages and collapsed
+internal values. Recognition alone cannot supply an image.
+
 ## Event Sourcing
 
 See `packages/proj/src/xknxeditor/proj/core/events.py` for the full list (`EVENT_TYPES`, about 90
@@ -141,3 +170,10 @@ and trades (`*Space`, `*Function`, `*Trade`), project metadata, the subtree dele
 and `Composite`, which groups several events into one undo step. `EventStore`
 (`core/event_store.py`) tracks a cursor over the `events` table; `undo`/`redo` flip each event's
 `reverted` flag and walk the cursor rather than deleting rows, so history survives a close/reopen.
+
+Powerline host data comes from the device segment's domain, the actual hardware
+repeater flags in that domain and persisted per-link acknowledgements. GUI and MCP
+change an acknowledgement through the same atomic service operation. The complete
+load plan retains the master procedure's final repeater-property write and uses byte
+elements for its acknowledgement table. The PID domain header is target metadata;
+initial domain commissioning is not part of the application load.

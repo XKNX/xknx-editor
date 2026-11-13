@@ -116,6 +116,9 @@ def com_object_links(project: ProjectService, co: ComObject) -> list[dict[str, A
                 "address": g.address if g else None,
                 "name": g.name if g else None,
                 "is_sending": a.is_sending,
+                "acknowledges": project.com_object_acknowledges(
+                    co.db_id, a.group_address_id
+                ),
             }
         )
     return links
@@ -2216,7 +2219,8 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         OR ``device_address`` (an individual address like "1.0.30"); pass exactly one. Pass ref_id
         from project_list_com_objects as com_object_ref_id.
         Returns {items, count}; each item has {assignment_id, group_address_id, address, name,
-        is_sending}. Pass assignment_id to project_unlink_com_object. items is empty when the object
+        is_sending, acknowledges}. acknowledges is a Powerline boolean, otherwise null.
+        Pass assignment_id to project_unlink_com_object. items is empty when the object
         is not instantiated or has no links; address and name are null if the group address is absent.
         These project links do not verify what is currently programmed on the bus."""
 

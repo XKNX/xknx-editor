@@ -3136,3 +3136,45 @@ msgstr "書き込み待ち: {parts}"
 
 msgid "Medium Configuration"
 msgstr "メディア設定"
+
+msgid "The standard download would overwrite the configuration this device keeps only in the manufacturer's plugin (its application was converted from pre-ETS4 data), so the device would lose its settings. Program it with the manufacturer's plugin instead."
+msgstr "The standard download would overwrite the configuration this device keeps only in the manufacturer's plugin (its application was converted from pre-ETS4 data), so the device would lose its settings. Program it with the manufacturer's plugin instead."
+
+msgid "Set Up Plugin"
+msgstr "Pluginを設定"
+
+msgid "The change removed these group address links:"
+msgstr "変更により次のグループアドレスリンクが削除されました："
+
+msgid "Import Plugin Configuration…"
+msgstr "Plugin設定をインポート…"
+
+msgid "Export Plugin Configuration…"
+msgstr "Plugin設定をエクスポート…"
+
+msgid "Plugin Image and Load Plan"
+msgstr "Pluginイメージとロード計画"
+
+msgid "Use Stored Plugin Configuration"
+msgstr "保存済みプラグイン設定を使用"
+
+msgid "Database"
+msgstr "データベース"
+
+msgid "Database Version"
+msgstr "データベースのバージョン"
+
+msgid "Product Type"
+msgstr "製品タイプ"
+
+msgid "Database Code"
+msgstr "データベースコード"
+
+msgid "Metadata Verified"
+msgstr "メタデータ検証済み"
+
+msgid "Internal Values"
+msgstr "内部値"
+
+msgid "Acknowledge Group Address"
+msgstr "グループアドレスを確認応答"

@@ -227,7 +227,8 @@ class ProjectPlugin:
         )
 
         self._memory_preview = MemoryPreviewWindow(
-            get_devices=lambda: api.project.devices
+            get_devices=lambda: api.project.devices,
+            prepared_image=api.project.prepared_download,
         )
         self._preflight_result = PreflightResultWindow()
         self._read_device_dialog = ReadDeviceDialog(self._request_device_info)
@@ -411,6 +412,9 @@ class ProjectPlugin:
         self._dali_panel = DaliCommissioningPanel(
             self._run_dali, self._persist_dali_backup, self._dali_channel_count
         )
+        from editor_gui.plugins.project.ui.native_plugin import NativePluginPanel
+
+        self._native_plugin_panel = NativePluginPanel()
         self._siemens_dali_panel = SiemensDaliPanel(self._run_siemens_dali)
         self._plugin_params_panel = PluginParamsPanel(
             self.handle_param_change,
@@ -1278,6 +1282,9 @@ class ProjectPlugin:
         """Render the generic sectioned view of the device's raw plugin parameters."""
         self._poll_triton_prj_dialog()
         self._poll_triton_prj_save()
+        self._native_plugin_panel.render(
+            device, self._api.project, self._api.connection.master
+        )
         self._plugin_params_panel.render(device)
 
     def _detect_triton_type(self, device: "Device") -> str | None:
@@ -1601,9 +1608,23 @@ class ProjectPlugin:
     def _group_object_ga_menu(self, ga_id: int, com_object: "ComObject") -> None:
         """Read/Write Value on a group address of a group object; a group address without a data
         type is written as the object's type."""
+        from imgui_bundle import imgui
+
         ga = self._api.project.get_group_address(ga_id)
         if ga is None:
             return
+        if com_object.db_id is not None:
+            acknowledged = self._api.project.com_object_acknowledges(
+                com_object.db_id, ga_id
+            )
+            if acknowledged is not None:
+                clicked, _ = imgui.menu_item(
+                    S.GA_ACKNOWLEDGE, "", acknowledged, not ga.central
+                )
+                if clicked:
+                    self._api.project.set_com_object_acknowledgement(
+                        com_object.db_id, ga_id, not acknowledged
+                    )
         self._object_group_value.render_menu_items(
             ga.address, ga.name, ga.datapoint_type or com_object.dpt.token
         )
@@ -2218,6 +2239,19 @@ class ProjectPlugin:
         # BLOB-backed rows (Siemens N141 DCA plug-in state) take a dedicated write path:
         # locate the DeviceBinaryData entry, call the vendor writer, replace the compressed
         # payload. The standard set_param only knows ParameterRef ids.
+        from editor_gui.plugin_providers import handles_parameter
+
+        if handles_parameter(device, param_id):
+            try:
+                self._api.project.edit_plugin_parameter(device, param_id, new_value)
+                self._plugin_params_panel.invalidate(device)
+            except ValueError as exc:
+                if raise_on_error:
+                    raise
+                self._api.log.warning(
+                    "native edit rejected", plugin="project", error=str(exc)
+                )
+            return
         if param_id.startswith("siemens_blob:"):
             self._apply_siemens_blob_edit(device, param_id, new_value)
             return
@@ -3115,8 +3149,17 @@ class ProjectPlugin:
                 self._ask_certificate(device, item)
             return None
         if future is None:
-            if device.download_plugin_required and not item.without_plugin:
-                item.message = S.PLUGIN_DOWNLOAD_REQUIRED
+            from editor_gui.device_plugins import (
+                download_needs_plugin_confirmation,
+                download_overwrites_plugin_config,
+            )
+
+            if download_needs_plugin_confirmation(device) and not item.without_plugin:
+                item.message = (
+                    S.PLUGIN_DOWNLOAD_OVERWRITES
+                    if download_overwrites_plugin_config(device)
+                    else S.PLUGIN_DOWNLOAD_REQUIRED
+                )
             elif self._api.connection.xknx is None:
                 item.message = S.SCRIPT_NOT_CONNECTED
             self._api.log.debug(

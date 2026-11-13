@@ -3215,3 +3215,45 @@ msgstr "Forritun í bið: {parts}"
 
 msgid "Medium Configuration"
 msgstr "Stillingar miðils"
+
+msgid "The standard download would overwrite the configuration this device keeps only in the manufacturer's plugin (its application was converted from pre-ETS4 data), so the device would lose its settings. Program it with the manufacturer's plugin instead."
+msgstr "The standard download would overwrite the configuration this device keeps only in the manufacturer's plugin (its application was converted from pre-ETS4 data), so the device would lose its settings. Program it with the manufacturer's plugin instead."
+
+msgid "Set Up Plugin"
+msgstr "Setja upp Plugin"
+
+msgid "The change removed these group address links:"
+msgstr "Breytingin fjarlægði þessar tengingar hópvistfanga:"
+
+msgid "Import Plugin Configuration…"
+msgstr "Flytja inn Plugin-stillingar…"
+
+msgid "Export Plugin Configuration…"
+msgstr "Flytja út Plugin-stillingar…"
+
+msgid "Plugin Image and Load Plan"
+msgstr "Plugin-mynd og hleðsluáætlun"
+
+msgid "Use Stored Plugin Configuration"
+msgstr "Nota vistaða stillingu viðbótar"
+
+msgid "Database"
+msgstr "Gagnagrunnur"
+
+msgid "Database Version"
+msgstr "Útgáfa gagnagrunns"
+
+msgid "Product Type"
+msgstr "Vörutegund"
+
+msgid "Database Code"
+msgstr "Gagnagrunnskóði"
+
+msgid "Metadata Verified"
+msgstr "Lýsigögn staðfest"
+
+msgid "Internal Values"
+msgstr "Innri gildi"
+
+msgid "Acknowledge Group Address"
+msgstr "Staðfesta Hópvistfang"

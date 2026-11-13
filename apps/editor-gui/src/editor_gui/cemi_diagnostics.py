@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable, Generator
+from contextlib import contextmanager
+from dataclasses import dataclass
 from threading import local
 from typing import TYPE_CHECKING
 
@@ -15,9 +18,74 @@ if TYPE_CHECKING:
 
 class _ReceiveContext(local):
     frame: tuple[bytes, str, str] | None = None
+    packet: KNXIPReceiveContext | None = None
 
 
 _received = _ReceiveContext()
+
+
+@dataclass(frozen=True, slots=True)
+class KNXIPReceiveContext:
+    """Original packet bytes and TCP framing information for one received frame."""
+
+    raw: bytes
+    frame_length: int
+    peer: str
+    chunk_length: int
+    buffered_length: int
+    frame_offset: int
+    trailing_length: int
+
+    def details(self) -> dict[str, str]:
+        raw = self.raw
+        details = {
+            "knxip_raw": raw.hex(),
+            "knxip_frame_length": str(self.frame_length),
+            "knxip_raw_truncated": str(len(raw) < self.frame_length),
+            "knxip_peer": self.peer,
+            "tcp_chunk_length": str(self.chunk_length),
+            "tcp_buffered_length": str(self.buffered_length),
+            "tcp_frame_offset": str(self.frame_offset),
+            "tcp_bytes_after_frame": str(self.trailing_length),
+        }
+        if len(raw) >= 6:
+            details.update(
+                knxip_header_length=str(raw[0]),
+                knxip_protocol_version=f"0x{raw[1]:02x}",
+                knxip_service=f"0x{raw[2:4].hex()}",
+                knxip_length_declared=str(int.from_bytes(raw[4:6], "big")),
+            )
+        if len(raw) >= 10 and raw[2:4] == b"\x04\x20":
+            details.update(
+                tunnel_header_length=str(raw[6]),
+                tunnel_channel=str(raw[7]),
+                tunnel_sequence=str(raw[8]),
+            )
+        return details
+
+
+def current_knxip_packet() -> KNXIPReceiveContext | None:
+    """Get the packet associated with the synchronous transport callback."""
+    return _received.packet
+
+
+@contextmanager
+def knxip_receive_context(packet: KNXIPReceiveContext | None) -> Generator[None]:
+    """Keep packet context local to the current synchronous callback."""
+    previous = _received.packet
+    _received.packet = packet
+    try:
+        yield
+    finally:
+        _received.packet = previous
+
+
+def handle_cemi_with_packet(
+    receive: Callable[[bytes], None], raw: bytes, packet: KNXIPReceiveContext | None
+) -> None:
+    """Carry packet context across the connection thread without leaking to tasks."""
+    with knxip_receive_context(packet):
+        receive(raw)
 
 
 class DiagnosticCEMIHandler(CEMIHandler):
@@ -50,6 +118,8 @@ def cemi_error_details() -> dict[str, str]:
         "cemi_raw": raw.hex(),
         "cemi_length": str(len(raw)),
     }
+    if _received.packet is not None:
+        details.update(_received.packet.details())
     if not raw:
         return details
     details["cemi_code"] = f"0x{raw[0]:02x}"

@@ -1902,6 +1902,53 @@ class ProjectService:
         """Set this link as the com-object's sender, clearing the bit on its siblings."""
         self._state(project_id).store.append(SetComObjectSending(link_id=link_id))
 
+    def set_com_object_acknowledgement(
+        self, project_id: str, com_object_id: int, group_address_id: int, enabled: bool
+    ) -> None:
+        """Select a group's acknowledging object on a device in one undo step."""
+        from xknxeditor.proj.core.acknowledgements import acknowledges
+
+        state = self._state(project_id)
+        co = state.session.get(ComObject, com_object_id)
+        ga = state.session.get(GroupAddress, group_address_id)
+        if (
+            co is None
+            or ga is None
+            or not any(link.group_address_id == group_address_id for link in co.links)
+        ):
+            raise ValueError("The group object is not linked to this address")
+        if type(enabled) is not bool:
+            raise ValueError("Acknowledgement must be a boolean")
+        if enabled and ga.central:
+            raise ValueError("Central group addresses cannot be acknowledged")
+        if acknowledges(co, ga) == enabled:
+            return
+        rows: list[list[Any]] = []
+        token = ga.source_id.rsplit("_", 1)[-1]
+        if not token:
+            used = {
+                address.source_id.rsplit("_", 1)[-1]
+                for address in state.session.query(GroupAddress)
+            }
+            number = 1
+            while f"GA-{number}" in used:
+                number += 1
+            token = f"GA-{number}"
+            rows.append(["group_address", ga.id, {"source_id": token}])
+        for obj in co.device.com_objects:
+            if obj is not co and not enabled:
+                continue
+            old = (obj.acknowledges or "").split()
+            values = [v for v in old if v.rsplit("_", 1)[-1] != token]
+            if obj is co and enabled:
+                values.append(token)
+            if values != old:
+                rows.append(
+                    ["com_object", obj.id, {"acknowledges": " ".join(values) or None}]
+                )
+        rows.append(["device", co.device_id, {"communication_part_loaded": False}])
+        self.set_fields(project_id, rows)
+
     def set_com_object_flag(
         self, project_id: str, com_object_id: int, flag: str, value: bool | None
     ) -> None:
@@ -4324,6 +4371,28 @@ class ProjectService:
             store.append(event)
         else:
             store.append(CompositeEvent(events=[event], label=label))
+
+    def configure_native_device(
+        self,
+        project_id: str,
+        device_id: int,
+        name: str,
+        data: bytes,
+        parameters: Mapping[str, str],
+        targets: list[dict[str, Any]],
+    ) -> None:
+        """Persist configuration, controls and an explicit object rebind atomically."""
+        from .events import RebindDeviceComObjects
+
+        events: list[Event] = [
+            RebindDeviceComObjects(device_id, targets),
+            *(
+                SetParameter(device_id=device_id, ref_id=ref, value=value)
+                for ref, value in parameters.items()
+            ),
+            UpsertDeviceBinaryData(device_id=device_id, name=name, data=data),
+        ]
+        self._state(project_id).store.append(CompositeEvent(events=events))
 
     def set_parameters(
         self,

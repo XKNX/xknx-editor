@@ -78,7 +78,7 @@ def test_the_button_shows_an_icon_and_names_itself_in_its_tooltip(
     device = _device(has_application=True)
     opened: list[Any] = []
     panel = _panel(device, opened)
-    monkeypatch.setattr(panel, "_render_scope_selector", lambda: None)
+    monkeypatch.setattr(panel, "_render_scope_selector", lambda *_: None)
     recorded = _Imgui(monkeypatch, clicked=MEMORY_PREVIEW_BUTTON)
 
     panel._render_programming(device)  # pyright: ignore[reportPrivateUsage]
@@ -96,7 +96,7 @@ def test_without_an_application_the_tooltip_says_why_it_is_disabled(
     device = _device(has_application=False)
     opened: list[Any] = []
     panel = _panel(device, opened)
-    monkeypatch.setattr(panel, "_render_scope_selector", lambda: None)
+    monkeypatch.setattr(panel, "_render_scope_selector", lambda *_: None)
     recorded = _Imgui(monkeypatch, clicked=None)
 
     panel._render_programming(device)  # pyright: ignore[reportPrivateUsage]

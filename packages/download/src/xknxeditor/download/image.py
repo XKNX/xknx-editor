@@ -322,6 +322,8 @@ class GroupCommunication:
     # The KNX Data Secure keys and accepted senders of a securely commissioned device; the download
     # writes the security tables (see :mod:`xknxeditor.download.secure_config`) from them.
     security: GroupSecurity | None = None
+    domain_address: int | None = None
+    repeater_present: bool = False
 
 
 @dataclass(frozen=True, slots=True)

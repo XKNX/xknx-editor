@@ -1,0 +1,551 @@
+<ns0:MaskVersion xmlns:ns0="http://knx.org/xml/project/20" Id="MV-07B0" MaskVersion="1968" Name="System B" ManagementModel="SystemB" MediumTypeRefId="MT-0">
+  <ns0:HawkConfigurationData>
+    <ns0:Features>
+      <ns0:Feature Name="FirstAppObjectIdx" Value="6" />
+      <ns0:Feature Name="AuthorizeLevels" Value="4" />
+      <ns0:Feature Name="VerifyMode" Value="1" />
+      <ns0:Feature Name="PropertyMappedLsms" Value="1" />
+      <ns0:Feature Name="MgmtConnTypes" Value="3" />
+      <ns0:Feature Name="DownloadStamp" Value="1" />
+    </ns0:Features>
+    <ns0:Resources>
+      <ns0:Resource Name="ManagementStyle" Access="remote local2">
+        <ns0:Location AddressSpace="Constant" StartAddress="2" />
+        <ns0:ResourceType Length="1" />
+        <ns0:AccessRights Read="Runtime" Write="None" />
+      </ns0:Resource>
+      <ns0:Resource Name="GroupAddressTableLoadControl" Access="remote local2">
+        <ns0:Location AddressSpace="SystemProperty" InterfaceObjectRef="1" PropertyID="5" StartAddress="0" />
+        <ns0:ResourceType Length="10" Flavour="LoadControl_Bcu2" />
+        <ns0:AccessRights Read="None" Write="Configuration" />
+      </ns0:Resource>
+      <ns0:Resource Name="GroupAddressTableLoadStatus" Access="remote local2">
+        <ns0:Location AddressSpace="SystemProperty" InterfaceObjectRef="1" PropertyID="5" StartAddress="0" />
+        <ns0:ResourceType Length="1" Flavour="LoadControl_Bcu2" />
+        <ns0:AccessRights Read="Runtime" Write="None" />
+      </ns0:Resource>
+      <ns0:Resource Name="GroupAddressTable" Access="remote local2">
+        <ns0:Location AddressSpace="RelativeMemory" InterfaceObjectRef="1" PropertyID="7" StartAddress="0" />
+        <ns0:ResourceType Length="2" Flavour="AddressTable_SystemB" />
+        <ns0:AccessRights Read="Runtime" Write="Configuration" />
+      </ns0:Resource>
+      <ns0:Resource Name="GroupAddressTablePtr" Access="remote local2">
+        <ns0:Location AddressSpace="SystemProperty" InterfaceObjectRef="1" PropertyID="7" StartAddress="0" />
+        <ns0:ResourceType Length="4" Flavour="Ptr_StandardMemory" />
+        <ns0:AccessRights Read="Runtime" Write="None" />
+      </ns0:Resource>
+      <ns0:Resource Name="GroupAddressTableStamp" Access="remote local2">
+        <ns0:Location AddressSpace="SystemProperty" InterfaceObjectRef="1" PropertyID="27" StartAddress="0" />
+        <ns0:ResourceType Length="8" Flavour="Stamp_SystemB" />
+        <ns0:AccessRights Read="Runtime" Write="None" />
+      </ns0:Resource>
+      <ns0:Resource Name="GroupAssociationTableLoadControl" Access="remote local2">
+        <ns0:Location AddressSpace="SystemProperty" InterfaceObjectRef="2" PropertyID="5" StartAddress="0" />
+        <ns0:ResourceType Length="10" Flavour="LoadControl_Bcu2" />
+        <ns0:AccessRights Read="None" Write="Configuration" />
+      </ns0:Resource>
+      <ns0:Resource Name="GroupAssociationTableLoadStatus" Access="remote local2">
+        <ns0:Location AddressSpace="SystemProperty" InterfaceObjectRef="2" PropertyID="5" StartAddress="0" />
+        <ns0:ResourceType Length="1" Flavour="LoadControl_Bcu2" />
+        <ns0:AccessRights Read="Runtime" Write="None" />
+      </ns0:Resource>
+      <ns0:Resource Name="GroupAssociationTable" Access="remote local2">
+        <ns0:Location AddressSpace="RelativeMemory" InterfaceObjectRef="2" PropertyID="7" StartAddress="0" />
+        <ns0:ResourceType Length="2" Flavour="AssociationTable_SystemB" />
+        <ns0:AccessRights Read="Runtime" Write="Configuration" />
+      </ns0:Resource>
+      <ns0:Resource Name="GroupAssociationTablePtr" Access="remote local2">
+        <ns0:Location AddressSpace="SystemProperty" InterfaceObjectRef="2" PropertyID="7" StartAddress="0" />
+        <ns0:ResourceType Length="4" Flavour="Ptr_StandardMemory" />
+        <ns0:AccessRights Read="Runtime" Write="None" />
+      </ns0:Resource>
+      <ns0:Resource Name="GroupAssociationTableStamp" Access="remote local2">
+        <ns0:Location AddressSpace="SystemProperty" InterfaceObjectRef="2" PropertyID="27" StartAddress="0" />
+        <ns0:ResourceType Length="8" Flavour="Stamp_SystemB" />
+        <ns0:AccessRights Read="Runtime" Write="None" />
+      </ns0:Resource>
+      <ns0:Resource Name="GroupObjectTableLoadControl" Access="remote local2">
+        <ns0:Location AddressSpace="SystemProperty" InterfaceObjectRef="3" PropertyID="5" StartAddress="0" />
+        <ns0:ResourceType Length="10" Flavour="LoadControl_Bcu2" />
+        <ns0:AccessRights Read="None" Write="Configuration" />
+      </ns0:Resource>
+      <ns0:Resource Name="GroupObjectTableLoadStatus" Access="remote local2">
+        <ns0:Location AddressSpace="SystemProperty" InterfaceObjectRef="3" PropertyID="5" StartAddress="0" />
+        <ns0:ResourceType Length="1" Flavour="LoadControl_Bcu2" />
+        <ns0:AccessRights Read="Runtime" Write="None" />
+      </ns0:Resource>
+      <ns0:Resource Name="GroupObjectTable" Access="remote local2">
+        <ns0:Location AddressSpace="RelativeMemory" InterfaceObjectRef="3" PropertyID="7" StartAddress="0" />
+        <ns0:ResourceType Length="2" Flavour="GroupObjectTable_SystemB" />
+        <ns0:AccessRights Read="Runtime" Write="Configuration" />
+      </ns0:Resource>
+      <ns0:Resource Name="GroupObjectTablePtr" Access="remote local2">
+        <ns0:Location AddressSpace="SystemProperty" InterfaceObjectRef="3" PropertyID="7" StartAddress="0" />
+        <ns0:ResourceType Length="4" Flavour="Ptr_StandardMemory" />
+        <ns0:AccessRights Read="Runtime" Write="None" />
+      </ns0:Resource>
+      <ns0:Resource Name="GroupObjectTableStamp" Access="remote local2">
+        <ns0:Location AddressSpace="SystemProperty" InterfaceObjectRef="3" PropertyID="27" StartAddress="0" />
+        <ns0:ResourceType Length="8" Flavour="Stamp_SystemB" />
+        <ns0:AccessRights Read="Runtime" Write="None" />
+      </ns0:Resource>
+      <ns0:Resource Name="ApplicationId" Access="remote local2">
+        <ns0:Location AddressSpace="SystemProperty" InterfaceObjectRef="4" PropertyID="13" StartAddress="0" />
+        <ns0:ResourceType Length="5" />
+        <ns0:AccessRights Read="Runtime" Write="Configuration" />
+      </ns0:Resource>
+      <ns0:Resource Name="ApplicationLoadControl" Access="remote local2">
+        <ns0:Location AddressSpace="SystemProperty" InterfaceObjectRef="4" PropertyID="5" StartAddress="0" />
+        <ns0:ResourceType Length="10" Flavour="LoadControl_Bcu2" />
+        <ns0:AccessRights Read="None" Write="Configuration" />
+      </ns0:Resource>
+      <ns0:Resource Name="ApplicationLoadStatus" Access="remote local2">
+        <ns0:Location AddressSpace="SystemProperty" InterfaceObjectRef="4" PropertyID="5" StartAddress="0" />
+        <ns0:ResourceType Length="1" Flavour="LoadControl_Bcu2" />
+        <ns0:AccessRights Read="Runtime" Write="None" />
+      </ns0:Resource>
+      <ns0:Resource Name="ApplicationRunControl" Access="remote local2">
+        <ns0:Location AddressSpace="SystemProperty" InterfaceObjectRef="4" PropertyID="6" StartAddress="0" />
+        <ns0:ResourceType Length="10" Flavour="LoadControl_Bcu2" />
+        <ns0:AccessRights Read="None" Write="Configuration" />
+      </ns0:Resource>
+      <ns0:Resource Name="ApplicationRunStatus" Access="remote local2">
+        <ns0:Location AddressSpace="SystemProperty" InterfaceObjectRef="4" PropertyID="6" StartAddress="0" />
+        <ns0:ResourceType Length="1" Flavour="LoadControl_Bcu2" />
+        <ns0:AccessRights Read="Runtime" Write="None" />
+      </ns0:Resource>
+      <ns0:Resource Name="ApplicationDataPtr" Access="remote local2">
+        <ns0:Location AddressSpace="SystemProperty" InterfaceObjectRef="4" PropertyID="7" StartAddress="0" />
+        <ns0:ResourceType Length="4" Flavour="Ptr_StandardMemory" />
+        <ns0:AccessRights Read="Runtime" Write="Configuration" />
+      </ns0:Resource>
+      <ns0:Resource Name="ApplicationStamp" Access="remote local2">
+        <ns0:Location AddressSpace="SystemProperty" InterfaceObjectRef="4" PropertyID="27" StartAddress="0" />
+        <ns0:ResourceType Length="8" Flavour="Stamp_SystemB" />
+        <ns0:AccessRights Read="Runtime" Write="None" />
+      </ns0:Resource>
+      <ns0:Resource Name="PeiprogId" Access="remote local2">
+        <ns0:Location AddressSpace="SystemProperty" InterfaceObjectRef="5" PropertyID="13" StartAddress="0" />
+        <ns0:ResourceType Length="5" />
+        <ns0:AccessRights Read="Runtime" Write="Configuration" />
+      </ns0:Resource>
+      <ns0:Resource Name="PeiprogLoadControl" Access="remote local2">
+        <ns0:Location AddressSpace="SystemProperty" InterfaceObjectRef="5" PropertyID="5" StartAddress="0" />
+        <ns0:ResourceType Length="10" Flavour="LoadControl_Bcu2" />
+        <ns0:AccessRights Read="None" Write="Configuration" />
+      </ns0:Resource>
+      <ns0:Resource Name="PeiprogLoadStatus" Access="remote local2">
+        <ns0:Location AddressSpace="SystemProperty" InterfaceObjectRef="5" PropertyID="5" StartAddress="0" />
+        <ns0:ResourceType Length="1" Flavour="LoadControl_Bcu2" />
+        <ns0:AccessRights Read="Runtime" Write="None" />
+      </ns0:Resource>
+      <ns0:Resource Name="PeiprogRunControl" Access="remote local2">
+        <ns0:Location AddressSpace="SystemProperty" InterfaceObjectRef="5" PropertyID="6" StartAddress="0" />
+        <ns0:ResourceType Length="10" Flavour="LoadControl_Bcu2" />
+        <ns0:AccessRights Read="None" Write="Configuration" />
+      </ns0:Resource>
+      <ns0:Resource Name="PeiprogRunStatus" Access="remote local2">
+        <ns0:Location AddressSpace="SystemProperty" InterfaceObjectRef="5" PropertyID="6" StartAddress="0" />
+        <ns0:ResourceType Length="1" Flavour="LoadControl_Bcu2" />
+        <ns0:AccessRights Read="Runtime" Write="None" />
+      </ns0:Resource>
+      <ns0:Resource Name="PeiprogDataPtr" Access="remote local2">
+        <ns0:Location AddressSpace="SystemProperty" InterfaceObjectRef="5" PropertyID="7" StartAddress="0" />
+        <ns0:ResourceType Length="4" Flavour="Ptr_StandardMemory" />
+        <ns0:AccessRights Read="Runtime" Write="Configuration" />
+      </ns0:Resource>
+      <ns0:Resource Name="PeiprogStamp" Access="remote local2">
+        <ns0:Location AddressSpace="SystemProperty" InterfaceObjectRef="5" PropertyID="27" StartAddress="0" />
+        <ns0:ResourceType Length="8" Flavour="Stamp_SystemB" />
+        <ns0:AccessRights Read="Runtime" Write="None" />
+      </ns0:Resource>
+      <ns0:Resource Name="DeviceManufacturerId" Access="remote local2">
+        <ns0:Location AddressSpace="SystemProperty" InterfaceObjectRef="0" PropertyID="12" StartAddress="0" />
+        <ns0:ResourceType Length="2" />
+        <ns0:AccessRights Read="Runtime" Write="Manufacturer" />
+      </ns0:Resource>
+      <ns0:Resource Name="DeviceOrderId" Access="remote local2">
+        <ns0:Location AddressSpace="SystemProperty" InterfaceObjectRef="0" PropertyID="15" StartAddress="0" />
+        <ns0:ResourceType Length="10" />
+        <ns0:AccessRights Read="Runtime" Write="Manufacturer" />
+      </ns0:Resource>
+      <ns0:Resource Name="DeviceSerialNumber" Access="remote local2">
+        <ns0:Location AddressSpace="SystemProperty" InterfaceObjectRef="0" PropertyID="11" StartAddress="0" />
+        <ns0:ResourceType Length="6" />
+        <ns0:AccessRights Read="Runtime" Write="Manufacturer" />
+      </ns0:Resource>
+      <ns0:Resource Name="HardwareType" Access="remote local2">
+        <ns0:Location AddressSpace="SystemProperty" InterfaceObjectRef="0" PropertyID="78" StartAddress="0" />
+        <ns0:ResourceType Length="6" />
+        <ns0:AccessRights Read="Runtime" Write="Manufacturer" />
+      </ns0:Resource>
+      <ns0:Resource Name="FirmwareVersion" Access="remote local2">
+        <ns0:Location AddressSpace="SystemProperty" InterfaceObjectRef="0" PropertyID="25" StartAddress="0" />
+        <ns0:ResourceType Length="2" />
+        <ns0:AccessRights Read="Runtime" Write="Manufacturer" />
+      </ns0:Resource>
+      <ns0:Resource Name="DeviceBusVoltage" Access="remote local2">
+        <ns0:Location AddressSpace="ADC" StartAddress="1" />
+        <ns0:ResourceType Length="2" Flavour="Voltage_Adc" />
+        <ns0:AccessRights Read="Runtime" Write="None" />
+      </ns0:Resource>
+      <ns0:Resource Name="ProgrammingMode" Access="remote local2">
+        <ns0:Location AddressSpace="SystemProperty" InterfaceObjectRef="0" PropertyID="54" StartAddress="0" />
+        <ns0:ResourceType Length="1" Flavour="ProgrammingMode_Prop" />
+        <ns0:AccessRights Read="Runtime" Write="Configuration" />
+      </ns0:Resource>
+      <ns0:Resource Name="HardwareConfig1" Access="remote local2">
+        <ns0:Location AddressSpace="SystemProperty" InterfaceObjectRef="0" PropertyID="25" StartAddress="0" />
+        <ns0:ResourceType Length="2" Flavour="HardwareConfig_Version" />
+        <ns0:AccessRights Read="Runtime" Write="Manufacturer" />
+      </ns0:Resource>
+      <ns0:Resource Name="HardwareConfig2" Access="remote local2">
+        <ns0:Location AddressSpace="SystemProperty" InterfaceObjectRef="0" PropertyID="78" StartAddress="0" />
+        <ns0:ResourceType Length="6" Flavour="HardwareConfig_Identical" />
+        <ns0:AccessRights Read="Runtime" Write="Manufacturer" />
+      </ns0:Resource>
+      <ns0:Resource Name="HardwareConfig3" Access="remote local2">
+        <ns0:Location AddressSpace="SystemProperty" InterfaceObjectRef="0" PropertyID="15" StartAddress="0" />
+        <ns0:ResourceType Length="10" Flavour="HardwareConfig_Identical" />
+        <ns0:AccessRights Read="Runtime" Write="Manufacturer" />
+      </ns0:Resource>
+    </ns0:Resources>
+    <ns0:Procedures>
+      <ns0:Procedure ProcedureType="Load" ProcedureSubType="ap1" Access="remote local2">
+        <ns0:LdCtrlConnect />
+        <ns0:LdCtrlMerge MergeId="1" />
+        <ns0:LdCtrlMapError OriginalError="3221498632" MappedError="0" />
+        <ns0:LdCtrlUnload LsmIdx="5" />
+        <ns0:LdCtrlMapError OriginalError="3221498632" MappedError="3221498632" />
+        <ns0:LdCtrlUnload LsmIdx="4" />
+        <ns0:LdCtrlUnload LsmIdx="3" />
+        <ns0:LdCtrlUnload LsmIdx="2" />
+        <ns0:LdCtrlUnload LsmIdx="1" />
+        <ns0:LdCtrlLoad LsmIdx="4" />
+        <ns0:LdCtrlMerge MergeId="2" />
+        <ns0:LdCtrlLoad LsmIdx="3" />
+        <ns0:LdCtrlRelSegment LsmIdx="3" Size="2" Mode="0" Fill="0" />
+        <ns0:LdCtrlLoad LsmIdx="1" />
+        <ns0:LdCtrlRelSegment LsmIdx="1" Size="2" Mode="0" Fill="0" />
+        <ns0:LdCtrlLoad LsmIdx="2" />
+        <ns0:LdCtrlRelSegment LsmIdx="2" Size="2" Mode="0" Fill="0" />
+        <ns0:LdCtrlMerge MergeId="4" />
+        <ns0:LdCtrlWriteRelMem ObjIdx="3" Offset="0" Size="1048576" Verify="true" />
+        <ns0:LdCtrlWriteRelMem ObjIdx="2" Offset="0" Size="1048576" Verify="true" />
+        <ns0:LdCtrlWriteRelMem ObjIdx="1" Offset="0" Size="1048576" Verify="true" />
+        <ns0:LdCtrlWriteProp ObjIdx="4" PropId="13" Verify="true" InlineData="0000000000" />
+        <ns0:LdCtrlLoadCompleted LsmIdx="4" />
+        <ns0:LdCtrlLoadCompleted LsmIdx="3" />
+        <ns0:LdCtrlLoadCompleted LsmIdx="2" />
+        <ns0:LdCtrlLoadCompleted LsmIdx="1" />
+        <ns0:LdCtrlMerge MergeId="6" />
+        <ns0:LdCtrlMerge MergeId="7" />
+        <ns0:LdCtrlRestart />
+      </ns0:Procedure>
+      <ns0:Procedure ProcedureType="Load" ProcedureSubType="all" Access="remote local2">
+        <ns0:LdCtrlConnect />
+        <ns0:LdCtrlMerge MergeId="1" />
+        <ns0:LdCtrlUnload LsmIdx="5" />
+        <ns0:LdCtrlUnload LsmIdx="4" />
+        <ns0:LdCtrlUnload LsmIdx="3" />
+        <ns0:LdCtrlUnload LsmIdx="2" />
+        <ns0:LdCtrlUnload LsmIdx="1" />
+        <ns0:LdCtrlLoad LsmIdx="5" />
+        <ns0:LdCtrlMerge MergeId="3" />
+        <ns0:LdCtrlLoad LsmIdx="4" />
+        <ns0:LdCtrlMerge MergeId="2" />
+        <ns0:LdCtrlLoad LsmIdx="3" />
+        <ns0:LdCtrlRelSegment LsmIdx="3" Size="2" Mode="0" Fill="0" />
+        <ns0:LdCtrlLoad LsmIdx="1" />
+        <ns0:LdCtrlRelSegment LsmIdx="1" Size="2" Mode="0" Fill="0" />
+        <ns0:LdCtrlLoad LsmIdx="2" />
+        <ns0:LdCtrlRelSegment LsmIdx="2" Size="2" Mode="0" Fill="0" />
+        <ns0:LdCtrlMerge MergeId="5" />
+        <ns0:LdCtrlMerge MergeId="4" />
+        <ns0:LdCtrlWriteRelMem ObjIdx="3" Offset="0" Size="1048576" Verify="true" />
+        <ns0:LdCtrlWriteRelMem ObjIdx="2" Offset="0" Size="1048576" Verify="true" />
+        <ns0:LdCtrlWriteRelMem ObjIdx="1" Offset="0" Size="1048576" Verify="true" />
+        <ns0:LdCtrlWriteProp ObjIdx="5" PropId="13" Verify="true" InlineData="0000000000" />
+        <ns0:LdCtrlWriteProp ObjIdx="4" PropId="13" Verify="true" InlineData="0000000000" />
+        <ns0:LdCtrlLoadCompleted LsmIdx="5" />
+        <ns0:LdCtrlLoadCompleted LsmIdx="4" />
+        <ns0:LdCtrlLoadCompleted LsmIdx="3" />
+        <ns0:LdCtrlLoadCompleted LsmIdx="2" />
+        <ns0:LdCtrlLoadCompleted LsmIdx="1" />
+        <ns0:LdCtrlMerge MergeId="6" />
+        <ns0:LdCtrlMerge MergeId="7" />
+        <ns0:LdCtrlRestart />
+      </ns0:Procedure>
+      <ns0:Procedure ProcedureType="Load" ProcedureSubType="grp" Access="remote local2">
+        <ns0:LdCtrlConnect />
+        <ns0:LdCtrlUnload LsmIdx="3" />
+        <ns0:LdCtrlUnload LsmIdx="2" />
+        <ns0:LdCtrlUnload LsmIdx="1" />
+        <ns0:LdCtrlLoad LsmIdx="3" />
+        <ns0:LdCtrlRelSegment LsmIdx="3" Size="2" Mode="0" Fill="0" />
+        <ns0:LdCtrlLoad LsmIdx="1" />
+        <ns0:LdCtrlRelSegment LsmIdx="1" Size="2" Mode="0" Fill="0" />
+        <ns0:LdCtrlLoad LsmIdx="2" />
+        <ns0:LdCtrlRelSegment LsmIdx="2" Size="2" Mode="0" Fill="0" />
+        <ns0:LdCtrlWriteRelMem ObjIdx="3" Offset="0" Size="1048576" Verify="true" />
+        <ns0:LdCtrlWriteRelMem ObjIdx="2" Offset="0" Size="1048576" Verify="true" />
+        <ns0:LdCtrlWriteRelMem ObjIdx="1" Offset="0" Size="1048576" Verify="true" />
+        <ns0:LdCtrlLoadCompleted LsmIdx="3" />
+        <ns0:LdCtrlLoadCompleted LsmIdx="2" />
+        <ns0:LdCtrlLoadCompleted LsmIdx="1" />
+        <ns0:LdCtrlMerge MergeId="7" />
+        <ns0:LdCtrlRestart />
+      </ns0:Procedure>
+      <ns0:Procedure ProcedureType="Load" ProcedureSubType="par" Access="remote local2">
+        <ns0:LdCtrlConnect />
+        <ns0:LdCtrlLoadImageProp ObjIdx="4" PropId="7" />
+        <ns0:LdCtrlLoadImageProp ObjIdx="5" PropId="7" />
+        <ns0:LdCtrlUnload LsmIdx="5" />
+        <ns0:LdCtrlUnload LsmIdx="4" />
+        <ns0:LdCtrlLoad LsmIdx="5" />
+        <ns0:LdCtrlMerge MergeId="3" />
+        <ns0:LdCtrlCompareProp ObjIdx="5" PropId="7" InlineData="00000000" />
+        <ns0:LdCtrlLoad LsmIdx="4" />
+        <ns0:LdCtrlMerge MergeId="2" />
+        <ns0:LdCtrlCompareProp ObjIdx="4" PropId="7" InlineData="00000000" />
+        <ns0:LdCtrlMerge MergeId="5" />
+        <ns0:LdCtrlMerge MergeId="4" />
+        <ns0:LdCtrlWriteProp ObjIdx="5" PropId="13" Verify="true" InlineData="0000000000" />
+        <ns0:LdCtrlWriteProp ObjIdx="4" PropId="13" Verify="true" InlineData="0000000000" />
+        <ns0:LdCtrlLoadCompleted LsmIdx="5" />
+        <ns0:LdCtrlLoadCompleted LsmIdx="4" />
+        <ns0:LdCtrlMerge MergeId="6" />
+        <ns0:LdCtrlMerge MergeId="7" />
+        <ns0:LdCtrlRestart />
+      </ns0:Procedure>
+      <ns0:Procedure ProcedureType="Load" ProcedureSubType="par,grp" Access="remote local2">
+        <ns0:LdCtrlConnect />
+        <ns0:LdCtrlLoadImageProp ObjIdx="4" PropId="7" />
+        <ns0:LdCtrlLoadImageProp ObjIdx="5" PropId="7" />
+        <ns0:LdCtrlUnload LsmIdx="5" />
+        <ns0:LdCtrlUnload LsmIdx="4" />
+        <ns0:LdCtrlUnload LsmIdx="3" />
+        <ns0:LdCtrlUnload LsmIdx="2" />
+        <ns0:LdCtrlUnload LsmIdx="1" />
+        <ns0:LdCtrlLoad LsmIdx="5" />
+        <ns0:LdCtrlMerge MergeId="3" />
+        <ns0:LdCtrlCompareProp ObjIdx="5" PropId="7" InlineData="00000000" />
+        <ns0:LdCtrlLoad LsmIdx="4" />
+        <ns0:LdCtrlMerge MergeId="2" />
+        <ns0:LdCtrlCompareProp ObjIdx="4" PropId="7" InlineData="00000000" />
+        <ns0:LdCtrlLoad LsmIdx="3" />
+        <ns0:LdCtrlRelSegment LsmIdx="3" Size="2" Mode="0" Fill="0" />
+        <ns0:LdCtrlLoad LsmIdx="1" />
+        <ns0:LdCtrlRelSegment LsmIdx="1" Size="2" Mode="0" Fill="0" />
+        <ns0:LdCtrlLoad LsmIdx="2" />
+        <ns0:LdCtrlRelSegment LsmIdx="2" Size="2" Mode="0" Fill="0" />
+        <ns0:LdCtrlMerge MergeId="5" />
+        <ns0:LdCtrlMerge MergeId="4" />
+        <ns0:LdCtrlWriteRelMem ObjIdx="3" Offset="0" Size="1048576" Verify="true" />
+        <ns0:LdCtrlWriteRelMem ObjIdx="2" Offset="0" Size="1048576" Verify="true" />
+        <ns0:LdCtrlWriteRelMem ObjIdx="1" Offset="0" Size="1048576" Verify="true" />
+        <ns0:LdCtrlWriteProp ObjIdx="5" PropId="13" Verify="true" InlineData="0000000000" />
+        <ns0:LdCtrlWriteProp ObjIdx="4" PropId="13" Verify="true" InlineData="0000000000" />
+        <ns0:LdCtrlLoadCompleted LsmIdx="5" />
+        <ns0:LdCtrlLoadCompleted LsmIdx="4" />
+        <ns0:LdCtrlLoadCompleted LsmIdx="3" />
+        <ns0:LdCtrlLoadCompleted LsmIdx="2" />
+        <ns0:LdCtrlLoadCompleted LsmIdx="1" />
+        <ns0:LdCtrlMerge MergeId="6" />
+        <ns0:LdCtrlMerge MergeId="7" />
+        <ns0:LdCtrlRestart />
+      </ns0:Procedure>
+      <ns0:Procedure ProcedureType="Load" ProcedureSubType="cfg" Access="remote local2">
+        <ns0:LdCtrlConnect />
+        <ns0:LdCtrlDisconnect />
+      </ns0:Procedure>
+      <ns0:Procedure ProcedureType="Unload" ProcedureSubType="all" Access="remote local2">
+        <ns0:LdCtrlConnect />
+        <ns0:LdCtrlUnload LsmIdx="1" />
+        <ns0:LdCtrlUnload LsmIdx="2" />
+        <ns0:LdCtrlUnload LsmIdx="3" />
+        <ns0:LdCtrlUnload LsmIdx="4" />
+        <ns0:LdCtrlMapError OriginalError="3221498632" MappedError="0" />
+        <ns0:LdCtrlUnload LsmIdx="5" />
+        <ns0:LdCtrlMapError OriginalError="3221498632" MappedError="3221498632" />
+        <ns0:LdCtrlDisconnect />
+      </ns0:Procedure>
+    </ns0:Procedures>
+    <ns0:InterfaceObjects>
+      <ns0:InterfaceObject Index="0" ObjectType="0">
+        <ns0:Property PropertyID="25" PropertyDataType="PDT_VERSION" />
+      </ns0:InterfaceObject>
+      <ns0:InterfaceObject Index="1" ObjectType="1">
+        <ns0:Property PropertyID="7" PropertyDataType="PDT_UNSIGNED_LONG" />
+        <ns0:Property PropertyID="27" PropertyDataType="PDT_GENERIC_08" />
+      </ns0:InterfaceObject>
+      <ns0:InterfaceObject Index="2" ObjectType="2">
+        <ns0:Property PropertyID="7" PropertyDataType="PDT_UNSIGNED_LONG" />
+        <ns0:Property PropertyID="27" PropertyDataType="PDT_GENERIC_08" />
+      </ns0:InterfaceObject>
+      <ns0:InterfaceObject Index="3" ObjectType="9">
+        <ns0:Property PropertyID="7" PropertyDataType="PDT_UNSIGNED_LONG" />
+        <ns0:Property PropertyID="27" PropertyDataType="PDT_GENERIC_08" />
+      </ns0:InterfaceObject>
+      <ns0:InterfaceObject Index="4" ObjectType="3">
+        <ns0:Property PropertyID="7" PropertyDataType="PDT_UNSIGNED_LONG" />
+        <ns0:Property PropertyID="27" PropertyDataType="PDT_GENERIC_08" />
+      </ns0:InterfaceObject>
+      <ns0:InterfaceObject Index="5" ObjectType="4">
+        <ns0:Property PropertyID="7" PropertyDataType="PDT_UNSIGNED_LONG" />
+        <ns0:Property PropertyID="27" PropertyDataType="PDT_GENERIC_08" />
+      </ns0:InterfaceObject>
+    </ns0:InterfaceObjects>
+  </ns0:HawkConfigurationData>
+  <ns0:HawkConfigurationData LegacyVersion="1">
+    <ns0:Features>
+      <ns0:Feature Name="FirstAppObjectIdx" Value="6" />
+      <ns0:Feature Name="AuthorizeLevels" Value="4" />
+      <ns0:Feature Name="PropertyMappedLsms" Value="0" />
+    </ns0:Features>
+    <ns0:Resources>
+      <ns0:Resource Name="ManagementStyle" Access="remote">
+        <ns0:Location AddressSpace="Constant" StartAddress="2" />
+        <ns0:ResourceType Length="1" />
+        <ns0:AccessRights Read="Runtime" Write="None" />
+      </ns0:Resource>
+      <ns0:Resource Name="ApplicationId" Access="remote">
+        <ns0:Location AddressSpace="SystemProperty" InterfaceObjectRef="4" PropertyID="13" StartAddress="0" />
+        <ns0:ResourceType Length="5" />
+        <ns0:AccessRights Read="Runtime" Write="Configuration" />
+      </ns0:Resource>
+      <ns0:Resource Name="PeiprogId" Access="remote">
+        <ns0:Location AddressSpace="SystemProperty" InterfaceObjectRef="5" PropertyID="13" StartAddress="0" />
+        <ns0:ResourceType Length="5" />
+        <ns0:AccessRights Read="Runtime" Write="Configuration" />
+      </ns0:Resource>
+      <ns0:Resource Name="GroupAddressTableLoadControl" Access="remote">
+        <ns0:Location AddressSpace="SystemProperty" InterfaceObjectRef="1" PropertyID="5" StartAddress="0" />
+        <ns0:ResourceType Length="10" Flavour="LoadControl_Bcu2" />
+        <ns0:AccessRights Read="None" Write="Configuration" />
+      </ns0:Resource>
+      <ns0:Resource Name="GroupAddressTableLoadStatus" Access="remote">
+        <ns0:Location AddressSpace="SystemProperty" InterfaceObjectRef="1" PropertyID="5" StartAddress="0" />
+        <ns0:ResourceType Length="1" Flavour="LoadControl_Bcu2" />
+        <ns0:AccessRights Read="Runtime" Write="None" />
+      </ns0:Resource>
+      <ns0:Resource Name="GroupAddressTable" Access="remote">
+        <ns0:Location AddressSpace="StandardMemory" StartAddress="16384" />
+        <ns0:ResourceType Length="1" Flavour="AddressTable_Bcu1" />
+        <ns0:AccessRights Read="Runtime" Write="Configuration" />
+      </ns0:Resource>
+      <ns0:Resource Name="GroupAssociationTableLoadControl" Access="remote">
+        <ns0:Location AddressSpace="SystemProperty" InterfaceObjectRef="2" PropertyID="5" StartAddress="0" />
+        <ns0:ResourceType Length="10" Flavour="LoadControl_Bcu2" />
+        <ns0:AccessRights Read="None" Write="Configuration" />
+      </ns0:Resource>
+      <ns0:Resource Name="GroupAssociationTableLoadStatus" Access="remote">
+        <ns0:Location AddressSpace="SystemProperty" InterfaceObjectRef="2" PropertyID="5" StartAddress="0" />
+        <ns0:ResourceType Length="1" Flavour="LoadControl_Bcu2" />
+        <ns0:AccessRights Read="Runtime" Write="None" />
+      </ns0:Resource>
+      <ns0:Resource Name="GroupAssociationTablePtr" Access="remote">
+        <ns0:Location AddressSpace="SystemProperty" InterfaceObjectRef="2" PropertyID="7" StartAddress="0" />
+        <ns0:ResourceType Length="2" Flavour="Ptr_StandardMemory" />
+        <ns0:AccessRights Read="Runtime" Write="None" />
+      </ns0:Resource>
+      <ns0:Resource Name="GroupAssociationTable" Access="remote">
+        <ns0:Location AddressSpace="Pointer" PtrResource="GroupAssociationTablePtr" />
+        <ns0:ResourceType Length="1" Flavour="AssociationTable_M112" />
+        <ns0:AccessRights Read="Runtime" Write="Configuration" />
+      </ns0:Resource>
+      <ns0:Resource Name="GroupObjectTable" Access="remote">
+        <ns0:Location AddressSpace="None" />
+        <ns0:ResourceType Length="1" Flavour="GroupObjectTable_M112" />
+        <ns0:AccessRights Read="Runtime" Write="Configuration" />
+      </ns0:Resource>
+      <ns0:Resource Name="ApplicationLoadControl" Access="remote">
+        <ns0:Location AddressSpace="SystemProperty" InterfaceObjectRef="4" PropertyID="5" StartAddress="0" />
+        <ns0:ImgLocation AddressSpace="SystemProperty" InterfaceObjectRef="3" PropertyID="5" StartAddress="0" />
+        <ns0:ResourceType Length="10" Flavour="LoadControl_Bcu2" />
+        <ns0:AccessRights Read="None" Write="Configuration" />
+      </ns0:Resource>
+      <ns0:Resource Name="ApplicationLoadStatus" Access="remote">
+        <ns0:Location AddressSpace="SystemProperty" InterfaceObjectRef="4" PropertyID="5" StartAddress="0" />
+        <ns0:ResourceType Length="1" Flavour="LoadControl_Bcu2" />
+        <ns0:AccessRights Read="Runtime" Write="None" />
+      </ns0:Resource>
+      <ns0:Resource Name="PeiprogLoadControl" Access="remote">
+        <ns0:Location AddressSpace="SystemProperty" InterfaceObjectRef="5" PropertyID="5" StartAddress="0" />
+        <ns0:ImgLocation AddressSpace="SystemProperty" InterfaceObjectRef="4" PropertyID="5" StartAddress="0" />
+        <ns0:ResourceType Length="10" Flavour="LoadControl_Bcu2" />
+        <ns0:AccessRights Read="None" Write="Configuration" />
+      </ns0:Resource>
+      <ns0:Resource Name="PeiprogLoadStatus" Access="remote">
+        <ns0:Location AddressSpace="SystemProperty" InterfaceObjectRef="5" PropertyID="5" StartAddress="0" />
+        <ns0:ResourceType Length="1" Flavour="LoadControl_Bcu2" />
+        <ns0:AccessRights Read="Runtime" Write="None" />
+      </ns0:Resource>
+      <ns0:Resource Name="ApplicationRunControl" Access="remote">
+        <ns0:Location AddressSpace="SystemProperty" InterfaceObjectRef="4" PropertyID="6" StartAddress="0" />
+        <ns0:ResourceType Length="10" Flavour="LoadControl_Bcu2" />
+        <ns0:AccessRights Read="None" Write="Configuration" />
+      </ns0:Resource>
+      <ns0:Resource Name="ApplicationRunStatus" Access="remote">
+        <ns0:Location AddressSpace="SystemProperty" InterfaceObjectRef="4" PropertyID="6" StartAddress="0" />
+        <ns0:ResourceType Length="1" Flavour="LoadControl_Bcu2" />
+        <ns0:AccessRights Read="Runtime" Write="None" />
+      </ns0:Resource>
+      <ns0:Resource Name="PeiprogRunControl" Access="remote">
+        <ns0:Location AddressSpace="SystemProperty" InterfaceObjectRef="5" PropertyID="6" StartAddress="0" />
+        <ns0:ResourceType Length="10" Flavour="LoadControl_Bcu2" />
+        <ns0:AccessRights Read="None" Write="Configuration" />
+      </ns0:Resource>
+      <ns0:Resource Name="PeiprogRunStatus" Access="remote">
+        <ns0:Location AddressSpace="SystemProperty" InterfaceObjectRef="5" PropertyID="6" StartAddress="0" />
+        <ns0:ResourceType Length="1" Flavour="LoadControl_Bcu2" />
+        <ns0:AccessRights Read="Runtime" Write="None" />
+      </ns0:Resource>
+      <ns0:Resource Name="DeviceBusVoltage" Access="remote">
+        <ns0:Location AddressSpace="ADC" StartAddress="1" />
+        <ns0:ResourceType Length="2" Flavour="Voltage_Adc" />
+        <ns0:AccessRights Read="Runtime" Write="None" />
+      </ns0:Resource>
+      <ns0:Resource Name="DeviceOrderId" Access="remote">
+        <ns0:Location AddressSpace="SystemProperty" InterfaceObjectRef="0" PropertyID="15" StartAddress="0" />
+        <ns0:ResourceType Length="10" />
+        <ns0:AccessRights Read="Runtime" Write="Manufacturer" />
+      </ns0:Resource>
+      <ns0:Resource Name="DeviceSerialNumber" Access="remote">
+        <ns0:Location AddressSpace="SystemProperty" InterfaceObjectRef="0" PropertyID="11" StartAddress="0" />
+        <ns0:ResourceType Length="6" />
+        <ns0:AccessRights Read="Runtime" Write="Manufacturer" />
+      </ns0:Resource>
+      <ns0:Resource Name="ProgrammingMode" Access="remote">
+        <ns0:Location AddressSpace="SystemProperty" InterfaceObjectRef="0" PropertyID="54" StartAddress="0" />
+        <ns0:ResourceType Length="1" Flavour="ProgrammingMode_Prop" />
+        <ns0:AccessRights Read="Runtime" Write="Configuration" />
+      </ns0:Resource>
+    </ns0:Resources>
+    <ns0:Procedures>
+      <ns0:Procedure ProcedureType="Unload" ProcedureSubType="all" Access="remote">
+        <ns0:LdCtrlConnect />
+        <ns0:LdCtrlUnload LsmIdx="1" />
+        <ns0:LdCtrlUnload LsmIdx="2" />
+        <ns0:LdCtrlUnload LsmIdx="3" />
+        <ns0:LdCtrlUnload LsmIdx="4" />
+        <ns0:LdCtrlDisconnect />
+      </ns0:Procedure>
+    </ns0:Procedures>
+    <ns0:MemorySegments>
+      <ns0:MemorySegment MemoryType="EEPROM" Length="8192">
+        <ns0:Location AddressSpace="StandardMemory" StartAddress="16384" />
+        <ns0:AccessRights Read="Configuration" Write="Configuration" />
+      </ns0:MemorySegment>
+      <ns0:MemorySegment MemoryType="EEPROM" Length="22016" Optional="true">
+        <ns0:Location AddressSpace="StandardMemory" StartAddress="24576" />
+        <ns0:AccessRights Read="Configuration" Write="Configuration" />
+      </ns0:MemorySegment>
+      <ns0:MemorySegment MemoryType="EEPROM" Length="2048" Optional="true">
+        <ns0:Location AddressSpace="StandardMemory" StartAddress="47104" />
+        <ns0:AccessRights Read="Configuration" Write="Configuration" />
+      </ns0:MemorySegment>
+    </ns0:MemorySegments>
+  </ns0:HawkConfigurationData>
+</ns0:MaskVersion>
+      

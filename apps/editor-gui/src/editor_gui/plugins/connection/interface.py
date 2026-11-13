@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
+import logging
 from collections.abc import Callable
 from typing import TYPE_CHECKING
 
@@ -27,6 +28,9 @@ from xknx.knxip import (
 from xknx.profile.const import ResourceDevicePropertyId, ResourceObjectType
 from xknx.telegram.apci import ReturnCode
 
+from editor_gui.cemi_diagnostics import current_knxip_packet, handle_cemi_with_packet
+from editor_gui.plugins.connection.diagnostic_transport import DiagnosticTCPTunnel
+
 # Seconds to wait for a tunnelling feature response.
 _FEATURE_TIMEOUT = 2.0
 # Seconds a device management connection may take to answer the read of the maximum APDU
@@ -35,6 +39,7 @@ _DEVICE_MANAGEMENT_TIMEOUT = 3.0
 # APDU length every KNX medium and interface has to carry (a standard frame). A tunnelling
 # server that does not report its maximum (e.g. knxd) is limited to it.
 STANDARD_FRAME_APDU_LENGTH = 15
+_knx_logger = logging.getLogger("xknx.log")
 
 if TYPE_CHECKING:
     from xknx import XKNX
@@ -47,7 +52,30 @@ def _notify_sent(callback: Callable[[bytes], None], cemi: CEMIFrame) -> None:
         callback(cemi.to_knx())
 
 
-class ObservableKNXIPInterface(KNXIPInterface):
+class _DiagnosticKNXIPInterface(KNXIPInterface):
+    async def _start_tunnelling_tcp(self, gateway_ip: str, gateway_port: int) -> None:
+        tunnel_address = self.connection_config.individual_address
+        _knx_logger.debug(
+            "Starting tunnel to %s:%s over TCP%s",
+            gateway_ip,
+            gateway_port,
+            f" requesting individual address {tunnel_address}"
+            if tunnel_address
+            else "",
+        )
+        self._interface = DiagnosticTCPTunnel(
+            self.xknx,
+            gateway_ip=gateway_ip,
+            gateway_port=gateway_port,
+            individual_address=tunnel_address,
+            cemi_received_callback=self.cemi_received,
+            auto_reconnect=self.connection_config.auto_reconnect,
+            auto_reconnect_wait=self.connection_config.auto_reconnect_wait,
+        )
+        await self._interface.connect()
+
+
+class ObservableKNXIPInterface(_DiagnosticKNXIPInterface):
     __slots__ = ("_raw_cemi_callback", "_sent_cemi_callback")
 
     def __init__(
@@ -73,7 +101,9 @@ class ObservableKNXIPInterface(KNXIPInterface):
         await super().send_cemi(cemi)
 
 
-class ObservableKNXIPInterfaceThreaded(KNXIPInterfaceThreaded):
+class ObservableKNXIPInterfaceThreaded(
+    KNXIPInterfaceThreaded, _DiagnosticKNXIPInterface
+):
     __slots__ = ("_raw_cemi_callback", "_sent_cemi_callback")
 
     def __init__(
@@ -90,7 +120,12 @@ class ObservableKNXIPInterfaceThreaded(KNXIPInterfaceThreaded):
     def cemi_received(self, raw_cemi: bytes) -> None:
         if self._raw_cemi_callback:
             self._raw_cemi_callback(raw_cemi)
-        super().cemi_received(raw_cemi)
+        self._main_loop.call_soon_threadsafe(
+            handle_cemi_with_packet,
+            super(KNXIPInterfaceThreaded, self).cemi_received,
+            raw_cemi,
+            current_knxip_packet(),
+        )
 
     async def send_cemi(self, cemi: CEMIFrame) -> None:
         # Every frame the app sends passes here, whichever code path built it.

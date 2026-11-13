@@ -71,6 +71,7 @@ from sqlalchemy.orm import Session, object_session
 
 from xknxeditor.proj.core import import_notes
 from xknxeditor.proj.core._dll_signer import sign_member_map
+from xknxeditor.proj.core.acknowledgements import exported_acknowledgements
 from xknxeditor.proj.core.compact import device_products, used_product_ids
 from xknxeditor.proj.core.dpt import normalize_datapoint_type
 from xknxeditor.proj.core.function_roles import function_roles
@@ -2319,7 +2320,7 @@ class _Writer:
                     Description=co.description_override or None,
                     Priority=co.priority or None,
                     DatapointType=co.datapoint_type_override or None,
-                    Acknowledges=co.acknowledges or None,
+                    Acknowledges=exported_acknowledgements(co, ga_link_id),
                     Links=links or None,
                     ReadFlag=_enable(co.read_flag_override),
                     WriteFlag=_enable(co.write_flag_override),

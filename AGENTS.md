@@ -49,12 +49,14 @@ UV monorepo: `packages/` holds eight core libraries; `apps/` holds applications.
 - Pyright strict mode; all public APIs must be fully typed
 - Ruff rules: E, W, F, I, UP, B, SIM, RUF — double quotes, 2-space indent, LF line endings
 - For display sorting, prefer standard-library natural sorting and a small character mapping. Do not add a collation dependency for perfect locale matching unless explicitly required.
-- Do not add README entries for minor behavior changes such as display sorting or accent folding unless explicitly requested.
+- Keep README changes brief and user-facing; omit minor behavior changes unless requested. Keep AGENTS.md limited to essential, lasting rules.
 
 ## Tests
 
 - Test coverage is measured in CI and should keep growing. Whenever you change code, check the code you touched and the code around it (the rest of the function, class or module) for behaviour no test covers, and add tests where they are useful — also when the change itself needed none.
 - Prefer tests of behaviour over tests of implementation details; GUI code can be tested headless with an imgui context (see `apps/editor-gui/src/editor_gui/widgets/tests/test_dialog_placement.py`) or by calling methods on a stub (see `apps/editor-gui/src/editor_gui/tests/test_exit.py`).
+
+- Keep large capture fixtures optional, Git-ignored and excluded from distributions.
 
 ## UI Texts
 

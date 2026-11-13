@@ -71,6 +71,9 @@ Plugins that need to interact (e.g. the Monitor listening to the CEMI frames of 
 - Local catalog search results must remain fully accessible in the GUI. Render only visible rows instead of imposing an arbitrary result limit; keep clipped table rows a uniform height.
 - ImGui collapsing headers do not create an ID scope. Give their contents a `push_id` scope when a button can have the same translated label as the header; test forms with all sections open.
 - Visibility (visible_com_objects, visible_parameters) computed at runtime, never baked into templates
+- Use one mapping and native provider per plugin family; keep profile and codec decisions in the provider.
+- Select saved plugin configurations automatically; reading them must not change original blobs or group links.
+- Validate native images before bus access, with no placeholder fallback. Keep preflight read-only and full programming enabled for valid, implemented profiles.
 
 ## Browser UI (`--web`)
 

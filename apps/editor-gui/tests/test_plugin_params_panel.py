@@ -166,6 +166,62 @@ def test_grouped_rows_render_without_error(context: None) -> None:
     _render(panel, flat)
 
 
+@pytest.mark.parametrize("count", [2, 8, 12, 13, 200])
+@pytest.mark.parametrize("scale", [1.0, 2.0])
+@pytest.mark.parametrize("mode", ["editable", "readonly", "mixed"])
+def test_short_sections_expand_and_long_sections_scroll(
+    context: None, monkeypatch: pytest.MonkeyPatch, count: int, scale: float, mode: str
+) -> None:
+    from imgui_bundle.imgui import internal
+
+    style = imgui.get_style()
+    style.scale_all_sizes(scale)
+    style.font_scale_main = scale
+    panel = PluginParamsPanel(_on_edit=lambda *_: None)
+    rows = [
+        _row(
+            ref_id=f"p{i}",
+            label=f"P{i}",
+            choices=(("0", "Off"), ("1", "On")),
+            writable=mode == "editable" or (mode == "mixed" and i % 2 == 1),
+        )
+        for i in range(count)
+    ]
+    tables: list[tuple[bool, float, float]] = []
+    end_table = imgui.end_table
+
+    def record_table() -> None:
+        table = internal.get_current_table()
+        scrolling = bool(table.flags & imgui.TableFlags_.scroll_y)
+        scroll_max = imgui.get_scroll_max_y()
+        end_table()
+        tables.append((scrolling, table.outer_rect.get_height(), scroll_max))
+
+    monkeypatch.setattr(imgui, "end_table", record_table)
+    row_height = 0.0
+    natural_height = 0.0
+    for _ in range(3):
+        imgui.new_frame()
+        imgui.set_next_window_size(imgui.ImVec2(900, 700))
+        imgui.begin("Sizing")
+        row_height = imgui.get_frame_height() + 2 * style.cell_padding.y
+        natural_height = sum(
+            (imgui.get_frame_height() if row.writable else imgui.get_text_line_height())
+            + 2 * style.cell_padding.y
+            for row in rows
+        )
+        panel._render_standard_table(_StubDevice(), "Section", rows)  # type: ignore[arg-type]
+        imgui.end()
+        imgui.end_frame()
+    scrolling, height, scroll_max = tables[-1]
+    assert scrolling is (count > 12)
+    if scrolling:
+        assert scroll_max > 0
+        assert height < count * row_height
+    else:
+        assert height >= natural_height
+
+
 def test_display_type_index_defaults_to_triton_6325() -> None:
     assert _display_type_index("6136UP") == 0
     assert _display_type_index("triton-6323") == 1
@@ -224,8 +280,10 @@ def test_render_shows_setup_only_without_sections(
     monkeypatch.setattr(
         panel, "_render_triton_setup", lambda device: calls.append(device)
     )
-    mapping = SimpleNamespace(blob_reader="triton_lcd", title="LCD Display")
-    monkeypatch.setattr(ppp, "mapping_for", lambda _app_id: mapping)
+    mapping = SimpleNamespace(
+        blob_reader="triton_lcd", title="LCD Display", provider=""
+    )
+    monkeypatch.setattr(ppp, "mapping_for_device", lambda _device: mapping)
     device = _TritonStub()
 
     monkeypatch.setattr(panel, "_cached_sections", lambda _d, _m: [])
@@ -253,6 +311,108 @@ def test_render_shows_setup_only_without_sections(
     assert calls == []
 
 
+def test_native_panel_omits_standard_download_hint(
+    context: None, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    panel = PluginParamsPanel(_on_edit=lambda *_: None)
+    mapping = ppp.PluginMapping((), "Native", (), provider="example")
+    monkeypatch.setattr(ppp, "mapping_for_device", lambda _: mapping)
+    monkeypatch.setattr(
+        panel, "_cached_sections", lambda *_: [PluginSectionView("Section")]
+    )
+    texts: list[str] = []
+    monkeypatch.setattr(imgui, "text_wrapped", texts.append)
+    monkeypatch.setattr(imgui, "text_disabled", texts.append)
+    _render_panel(panel, _TritonStub())
+    assert ppp.S.PLUGIN_PARAMS_EDIT_NOTE not in texts
+    assert ppp.S.PLUGIN_PARAMS_FILTER_EMPTY not in texts
+
+
+def test_parameter_filter_has_a_hint_and_can_be_cleared(
+    context: None, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import editor_gui.widgets.filter_box as filter_widget
+
+    panel = PluginParamsPanel(_on_edit=lambda *_: None)
+    mapping = ppp.PluginMapping((), "PowerTool", (), provider="powertool")
+    section = PluginSectionView(
+        "Parameters",
+        [
+            PluginParameter(
+                ref_id=name,
+                name=name,
+                label=name,
+                value="",
+                default_value="",
+                section="Parameters",
+                display_order=0,
+                writable=True,
+            )
+            for name in ["LED colour", "Switching"]
+        ],
+    )
+    monkeypatch.setattr(ppp, "mapping_for_device", lambda _: mapping)
+    monkeypatch.setattr(panel, "_cached_sections", lambda *_: [section])
+    hints: list[str] = []
+    rendered: list[list[str]] = []
+    input_text = imgui.input_text_with_hint
+    search = "LED"
+    clear = False
+
+    def type_search(widget_id: str, hint: str, text: str) -> tuple[bool, str]:
+        hints.append(hint)
+        input_text(widget_id, hint, text)
+        return True, search
+
+    monkeypatch.setattr(imgui, "input_text_with_hint", type_search)
+    monkeypatch.setattr(filter_widget, "x_button", lambda *_: clear)
+    monkeypatch.setattr(
+        panel,
+        "_render_section",
+        lambda _device, _section, rows, **_kwargs: rendered.append(
+            [r.label for r in rows]
+        ),
+    )
+    _render_panel(panel, _TritonStub())
+    assert hints and all(hint == ppp.S.CONFIGURE_PARAM_FILTER_HINT for hint in hints)
+    assert panel._filter == "LED"
+    assert rendered[-1] == ["LED colour"]
+    clear = True
+    _render_panel(panel, _TritonStub())
+    assert panel._filter == ""
+    assert rendered[-1] == ["LED colour", "Switching"]
+
+
+def test_native_setup_omits_static_parameter_empty_hint(
+    context: None, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    panel = PluginParamsPanel(_on_edit=lambda *_: None)
+    mapping = ppp.PluginMapping((), "Native", (), provider="example")
+    monkeypatch.setattr(ppp, "mapping_for_device", lambda _: mapping)
+    monkeypatch.setattr(panel, "_cached_sections", lambda *_: [])
+    texts: list[str] = []
+    monkeypatch.setattr(imgui, "text_disabled", texts.append)
+    _render_panel(panel, _TritonStub())
+    assert ppp.S.PLUGIN_PARAMS_EMPTY not in texts
+
+
+def test_missing_provider_shows_error_without_crashing(
+    context: None, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    panel = PluginParamsPanel(_on_edit=lambda *_: None)
+    mapping = ppp.PluginMapping((), "Unavailable", (), provider="missing")
+    monkeypatch.setattr(ppp, "mapping_for_device", lambda _: mapping)
+    monkeypatch.setattr(
+        panel,
+        "_cached_sections",
+        lambda device, mapping: ppp.collect_from_device(device, mapping),
+    )
+    texts: list[str] = []
+    monkeypatch.setattr(imgui, "text_colored", lambda _, text: texts.append(text))
+    _render_panel(panel, _TritonStub())
+    assert any("unavailable" in text for text in texts)
+
+
 def test_triton_actions_row_renders_import_and_export(context: None) -> None:
     # Above a configured display the import/export ".prj" actions stay reachable (the setup area
     # is gone once a config exists), and they render without error.
@@ -268,3 +428,41 @@ def test_triton_actions_row_renders_import_and_export(context: None) -> None:
             panel._render_triton_actions(device)  # type: ignore[arg-type]
         imgui.end()
         imgui.end_frame()
+
+
+def test_internal_sections_restore_collapse_after_search(context, monkeypatch):
+    panel = PluginParamsPanel(_on_edit=lambda *_: None)
+    opened = []
+    monkeypatch.setattr(imgui, "set_next_item_open", lambda value: opened.append(value))
+    monkeypatch.setattr(imgui, "collapsing_header", lambda *_: opened[-1])
+    monkeypatch.setattr(panel, "_render_standard_table", lambda *args, **kwargs: None)
+    device = _StubDevice()
+    panel._render_section(device, "Internal", [_row()], collapsed=True)
+    panel._render_section(device, "Internal", [_row()], collapsed=True, filtering=True)
+    panel._render_section(device, "Internal", [_row()], collapsed=True)
+    assert opened == [False, True, False]
+
+
+def test_group_identity_and_page_scrolling(context, monkeypatch):
+    panel = PluginParamsPanel(_on_edit=lambda *_: None)
+    rows = [
+        _row(ref_id=f"p{i}", group="Same Label", group_key="one" if i < 15 else "two")
+        for i in range(17)
+    ]
+    nodes = []
+    tables = []
+    monkeypatch.setattr(
+        imgui, "tree_node_ex", lambda label, flags: nodes.append(label) or True
+    )
+    monkeypatch.setattr(imgui, "tree_pop", lambda: None)
+    original = panel._render_standard_table
+
+    def record(device, label, page, **kwargs):
+        if all(not row.group for row in page):
+            tables.append(len(page))
+        return original(device, label, page, **kwargs)
+
+    monkeypatch.setattr(panel, "_render_standard_table", record)
+    _render(panel, rows, filtering=True)
+    assert set(tables) == {15, 2}
+    assert len(set(nodes)) == 2

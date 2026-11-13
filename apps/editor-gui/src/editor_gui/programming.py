@@ -63,12 +63,16 @@ def _image_for(
 ) -> DownloadImage:
     """The download image of ``device``; ``factory_image`` is its product's ``LoadedImage``
     and its stamp."""
+    from editor_gui.plugin_providers import prepared_for
     from xknxeditor.download.factory_image import (
         FactoryImageError,
         parse_factory_image,
         parse_factory_stamp,
     )
 
+    prepared = prepared_for(device, group_communication)
+    if prepared is not None:
+        return prepared.image
     application = _application(device)
     # An application without parameters (e.g. a USB interface) has no dynamic UI: the image
     # has nothing to encode, the procedure still loads it.
@@ -372,7 +376,7 @@ def preflight_segment_ranges(
                 PREFLIGHT_RUNTIME
                 if offset in segment.corrected_bytes
                 else PREFLIGHT_CONFIG
-                if offset in segment.table_bytes
+                if segment.configuration or offset in segment.table_bytes
                 else preflight_byte_category(
                     segment.memory_key(offset),
                     _segment_changed_bits(segment, offset),
@@ -525,6 +529,11 @@ async def eval_device(
     ``access_key`` the project's access key. ``route_couplers`` are the couplers between
     the interface and the device; the frames stay within what they pass.
     """
+    from editor_gui.plugin_providers import prepared_for
+
+    prepared = prepared_for(device, group_communication)
+    if prepared is not None:
+        prepared.check_scope(scope)
     interface_max_apdu_length = await _route_limited(
         xknx, route_couplers, interface_max_apdu_length
     )
@@ -533,7 +542,10 @@ async def eval_device(
         _address(device),
         _application(device),
         master=master,
-        image=_image_for(device, group_communication, factory_image),
+        image=prepared.image
+        if prepared is not None
+        else _image_for(device, group_communication, factory_image),
+        prepared=prepared,
         scope=scope,
         security=security,
         ip_config=ip_config,
@@ -598,6 +610,13 @@ async def download_device(
     :func:`xknxeditor.download.download`). ``route_couplers`` are the couplers between the
     interface and the device; the frames stay within what they pass.
     """
+    from editor_gui.plugin_providers import prepared_for, programming_error
+
+    if reason := programming_error(device):
+        raise DeviceProgrammingError(reason)
+    prepared = prepared_for(device, group_communication)
+    if prepared is not None:
+        prepared.check_scope(scope, writing=True)
     interface_max_apdu_length = await _route_limited(
         xknx, route_couplers, interface_max_apdu_length
     )
@@ -606,7 +625,10 @@ async def download_device(
         _address(device),
         _application(device),
         master=master,
-        image=_image_for(device, group_communication, factory_image),
+        image=prepared.image
+        if prepared is not None
+        else _image_for(device, group_communication, factory_image),
+        prepared=prepared,
         scope=scope,
         commission=True,
         commission_serial_number=serial_number,
