@@ -1663,11 +1663,32 @@ msgstr[0] "Należy usunąć odpowiednie urządzenie lub wyeksportować dla nowsz
 msgstr[1] "Należy usunąć odpowiednie urządzenia lub wyeksportować dla nowszej wersji ETS."
 msgstr[2] "Należy usunąć odpowiednie urządzenia lub wyeksportować dla nowszej wersji ETS."
 
-msgid "Imported {count} product version from {name}:"
-msgid_plural "Imported {count} product versions from {name}:"
-msgstr[0] "Zaimportowano {count} wersję produktu z {name}:"
-msgstr[1] "Zaimportowano {count} wersje produktów z {name}:"
-msgstr[2] "Zaimportowano {count} wersji produktów z {name}:"
+msgid "Imported {count} new product version from {name}:"
+msgid_plural "Imported {count} new product versions from {name}:"
+msgstr[0] "Zaimportowano {count} nową wersję produktu z {name}:"
+msgstr[1] "Zaimportowano {count} nowe wersje produktów z {name}:"
+msgstr[2] "Zaimportowano {count} nowych wersji produktów z {name}:"
+
+msgid "{count} product version from {name}, already in the catalog:"
+msgid_plural "{count} product versions from {name}, all already in the catalog:"
+msgstr[0] "{count} wersja produktu z {name}, już w katalogu:"
+msgstr[1] "{count} wersje produktów z {name}, wszystkie już w katalogu:"
+msgstr[2] "{count} wersji produktów z {name}, wszystkie już w katalogu:"
+
+msgid "Imported {versions} from {name}, {new}:"
+msgstr "Zaimportowano {versions} z {name}, {new}:"
+
+msgid "{count} product version"
+msgid_plural "{count} product versions"
+msgstr[0] "{count} wersję produktu"
+msgstr[1] "{count} wersje produktów"
+msgstr[2] "{count} wersji produktów"
+
+msgid "{count} of them new"
+msgid_plural "{count} of them new"
+msgstr[0] "w tym {count} nowa"
+msgstr[1] "w tym {count} nowe"
+msgstr[2] "w tym {count} nowych"
 
 msgid "Monitor"
 msgstr "Monitor"
