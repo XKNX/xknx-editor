@@ -1651,10 +1651,28 @@ msgid_plural "Remove the affected devices or export for the newer ETS."
 msgstr[0] "Fjern den berørte enheten, eller eksporter for den nyere ETS-en."
 msgstr[1] "Fjern de berørte enhetene, eller eksporter for den nyere ETS-en."
 
-msgid "Imported {count} product version from {name}:"
-msgid_plural "Imported {count} product versions from {name}:"
-msgstr[0] "Importerte {count} produktversjon fra {name}:"
-msgstr[1] "Importerte {count} produktversjoner fra {name}:"
+msgid "Imported {count} new product version from {name}:"
+msgid_plural "Imported {count} new product versions from {name}:"
+msgstr[0] "Importerte {count} ny produktversjon fra {name}:"
+msgstr[1] "Importerte {count} nye produktversjoner fra {name}:"
+
+msgid "{count} product version from {name}, already in the catalog:"
+msgid_plural "{count} product versions from {name}, all already in the catalog:"
+msgstr[0] "{count} produktversjon fra {name}, allerede i katalogen:"
+msgstr[1] "{count} produktversjoner fra {name}, alle allerede i katalogen:"
+
+msgid "Imported {versions} from {name}, {new}:"
+msgstr "Importerte {versions} fra {name}, {new}:"
+
+msgid "{count} product version"
+msgid_plural "{count} product versions"
+msgstr[0] "{count} produktversjon"
+msgstr[1] "{count} produktversjoner"
+
+msgid "{count} of them new"
+msgid_plural "{count} of them new"
+msgstr[0] "{count} av dem ny"
+msgstr[1] "{count} av dem nye"
 
 msgid "Monitor"
 msgstr "Monitor"

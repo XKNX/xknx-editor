@@ -1651,10 +1651,28 @@ msgid_plural "Remove the affected devices or export for the newer ETS."
 msgstr[0] "Hiqni pajisjen e prekur ose eksportoni për ETS-në më të re."
 msgstr[1] "Hiqni pajisjet e prekura ose eksportoni për ETS-në më të re."
 
-msgid "Imported {count} product version from {name}:"
-msgid_plural "Imported {count} product versions from {name}:"
-msgstr[0] "U importua {count} version produkti nga {name}:"
-msgstr[1] "U importuan {count} versione produktesh nga {name}:"
+msgid "Imported {count} new product version from {name}:"
+msgid_plural "Imported {count} new product versions from {name}:"
+msgstr[0] "U importua {count} version i ri produkti nga {name}:"
+msgstr[1] "U importuan {count} versione të reja produktesh nga {name}:"
+
+msgid "{count} product version from {name}, already in the catalog:"
+msgid_plural "{count} product versions from {name}, all already in the catalog:"
+msgstr[0] "{count} version produkti nga {name}, tashmë në katalog:"
+msgstr[1] "{count} versione produktesh nga {name}, të gjitha tashmë në katalog:"
+
+msgid "Imported {versions} from {name}, {new}:"
+msgstr "U importuan {versions} nga {name}, {new}:"
+
+msgid "{count} product version"
+msgid_plural "{count} product versions"
+msgstr[0] "{count} version produkti"
+msgstr[1] "{count} versione produktesh"
+
+msgid "{count} of them new"
+msgid_plural "{count} of them new"
+msgstr[0] "{count} prej tyre i ri"
+msgstr[1] "{count} prej tyre të reja"
 
 msgid "Monitor"
 msgstr "Monitori"

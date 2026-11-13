@@ -380,6 +380,19 @@ def _pick_release_asset(assets: list[dict[str, str]]) -> str:
     return candidates[0]["browser_download_url"]
 
 
+def _import_summary(count: int, new: int, name: str) -> str:
+    """The line above the imported product versions: how many there are and how many are new."""
+    if new == count:
+        return S.KNXPROD_IMPORT_ALL_NEW(count).format(count=count, name=name)
+    if new == 0:
+        return S.KNXPROD_IMPORT_NONE_NEW(count).format(count=count, name=name)
+    return S.KNXPROD_IMPORT_SOME_NEW.format(
+        versions=S.KNXPROD_IMPORT_VERSIONS(count).format(count=count),
+        name=name,
+        new=S.KNXPROD_IMPORT_NEW_OF_THEM(new).format(count=new),
+    )
+
+
 def _resolve_download_url(url: str, *, timeout: float = 30.0) -> str:
     """Resolve a GitHub release *page* URL to its asset download URL; pass any other URL through."""
     api_url = _github_release_api_url(url)
@@ -3059,7 +3072,7 @@ class KnxGuiApp:
                 data = _download_bytes(_resolve_download_url(url), cancel=cancel)
                 # The import holds the shared IO lock while it writes (per-frame catalog reads
                 # bail meanwhile), not while it converts; then device resolution is rebuilt.
-                added = self._catalog_service.import_product_source_contents(
+                imported = self._catalog_service.import_product_source_contents(
                     data, master, cancel=cancel, progress=self._conversion_progress
                 )
                 self._project_service.refresh_catalog_resolution(rebuild=True)
@@ -3073,12 +3086,12 @@ class KnxGuiApp:
                 )
                 self._knxprod_result = S.URL_IMPORT_FAILED.format(error=str(e))
                 return
-            self._log.info("loaded from url", url=url, added=len(added))
+            added = imported.products
+            new = sum(imported.is_new(product) for product in added)
+            self._log.info("loaded from url", url=url, versions=len(added), new=new)
             if added:
                 self._import_rows_result = (
-                    S.KNXPROD_IMPORT_SUMMARY(len(added)).format(
-                        count=len(added), name=url
-                    ),
+                    _import_summary(len(added), new, url),
                     self._product_import_rows(added),
                 )
             else:
@@ -3139,13 +3152,14 @@ class KnxGuiApp:
                         "internet once so it can be downloaded, then retry"
                     )
                 added_all: list[ProductSummary] = []
+                new_keys: set[tuple[str, str]] = set()
                 for path in candidates():
                     if cancel.is_set():
                         break
                     try:
                         data = path.read_bytes()
                         # Takes the IO lock to write, after converting (see _start_url_import).
-                        added = self._catalog_service.import_product_source_contents(
+                        imported = self._catalog_service.import_product_source_contents(
                             data,
                             master,
                             cancel=cancel,
@@ -3160,7 +3174,8 @@ class KnxGuiApp:
                             error=f"{type(e).__name__}: {e}",
                         )
                         continue
-                    added_all.extend(added)
+                    added_all.extend(imported.products)
+                    new_keys |= imported.new
                 # Two identical files map to the same stored archive, so drop repeats while keeping
                 # first-seen order.
                 seen: set[tuple[str, str]] = set()
@@ -3171,6 +3186,7 @@ class KnxGuiApp:
                         seen.add(key)
                         deduped.append(product)
                 added_all = deduped
+                new = len(seen & new_keys)
                 self._project_service.refresh_catalog_resolution(rebuild=True)
             except Exception as e:
                 self._log.error(
@@ -3180,12 +3196,12 @@ class KnxGuiApp:
                 )
                 self._knxprod_result = failed.format(error=str(e))
                 return
-            self._log.info("imported products", source=source, added=len(added_all))
+            self._log.info(
+                "imported products", source=source, versions=len(added_all), new=new
+            )
             if added_all:
                 self._import_rows_result = (
-                    S.KNXPROD_IMPORT_SUMMARY(len(added_all)).format(
-                        count=len(added_all), name=source
-                    ),
+                    _import_summary(len(added_all), new, source),
                     self._product_import_rows(added_all),
                 )
             else:
@@ -3899,16 +3915,17 @@ class KnxGuiApp:
             # (see io_guarded); a product database is converted before, without the lock.
             self._log.info("loading knxprod", path=path)
             try:
-                added = self._catalog_service.import_knxprod_contents(
+                imported = self._catalog_service.import_knxprod_contents(
                     Path(path), cancel=cancel, progress=self._conversion_progress
                 )
                 name = Path(path).name
-                if added:
-                    self._log.info("added applications to catalog", count=len(added))
+                if added := imported.products:
+                    new = sum(imported.is_new(product) for product in added)
+                    self._log.info(
+                        "added applications to catalog", count=len(added), new=new
+                    )
                     self._import_rows_result = (
-                        S.KNXPROD_IMPORT_SUMMARY(len(added)).format(
-                            count=len(added), name=name
-                        ),
+                        _import_summary(len(added), new, name),
                         self._product_import_rows(added),
                     )
                 else:

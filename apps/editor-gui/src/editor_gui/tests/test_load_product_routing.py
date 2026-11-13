@@ -18,7 +18,8 @@ from typing import Any
 
 import pytest
 
-from editor_gui.main import KnxGuiApp
+from editor_gui.main import KnxGuiApp, _import_summary
+from editor_gui.plugins.catalog.service import ImportedProducts
 from editor_gui.strings import S
 from xknxeditor.prod.errors import ImportCancelled
 
@@ -148,12 +149,13 @@ def test_files_import_stops_at_cancel(monkeypatch: pytest.MonkeyPatch) -> None:
 
     def import_contents(
         data: bytes, master: bytes, *, cancel: threading.Event, progress: object
-    ) -> list[object]:
+    ) -> ImportedProducts:
         imported.append(data)
         if data == b"second":
             cancel.set()
             raise ImportCancelled
-        return [SimpleNamespace(product_ref_id="P-1", hardware2program_ref_id="HP-1")]
+        product = SimpleNamespace(product_ref_id="P-1", hardware2program_ref_id="HP-1")
+        return ImportedProducts([product], frozenset({("P-1", "HP-1")}))  # type: ignore[list-item]
 
     stub._catalog_service = SimpleNamespace(
         import_product_source_contents=import_contents
@@ -170,7 +172,23 @@ def test_files_import_stops_at_cancel(monkeypatch: pytest.MonkeyPatch) -> None:
     worker()
     assert imported == [b"first", b"second"]
     assert stub._import_rows_result == (
-        S.KNXPROD_IMPORT_SUMMARY(1).format(count=1, name="folder"),
+        S.KNXPROD_IMPORT_ALL_NEW(1).format(count=1, name="folder"),
         ["row P-1"],
     )
     assert stub._knxprod_result is None
+
+
+@pytest.mark.parametrize(
+    ("count", "new", "text"),
+    [
+        (1, 1, "Imported 1 new product version from a.knxprod:"),
+        (12, 12, "Imported 12 new product versions from a.knxprod:"),
+        (1, 0, "1 product version from a.knxprod, already in the catalog:"),
+        (12, 0, "12 product versions from a.knxprod, all already in the catalog:"),
+        (12, 1, "Imported 12 product versions from a.knxprod, 1 of them new:"),
+        (12, 3, "Imported 12 product versions from a.knxprod, 3 of them new:"),
+    ],
+)
+def test_import_summary(count: int, new: int, text: str) -> None:
+    """The import tells how many of the listed product versions are new."""
+    assert _import_summary(count, new, "a.knxprod") == text

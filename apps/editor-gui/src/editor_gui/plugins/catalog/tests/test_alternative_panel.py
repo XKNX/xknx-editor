@@ -405,3 +405,29 @@ def test_registration_shows_only_its_own_text(
     assert panel._registration == status
     assert panel._message == ""
     client.close()
+
+
+@pytest.mark.parametrize(
+    ("count", "message"),
+    [
+        (2, "Imported 2 product versions. Find them in the Local tab."),
+        (0, "Nothing new imported (already in the catalog)"),
+    ],
+)
+def test_download_says_what_is_new(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, count: int, message: str
+) -> None:
+    """A downloaded product already in the catalog isn't reported as imported."""
+    monkeypatch.setattr("editor_gui.settings.config_dir", lambda: tmp_path)
+    client = AlternativeCatalogClient(
+        tmp_path,
+        settings=AlternativeSettings("https://catalog.example"),
+        transport=httpx.MockTransport(lambda r: httpx.Response(200, json=index())),
+    )
+    panel = AlternativeCatalogPanel(client, lambda _data: count)
+    done: Future[Any] = Future()
+    done.set_result(b"knxprod")
+    panel._future, panel._action = done, "download"
+    panel.poll()
+    assert panel._message == message
+    client.close()

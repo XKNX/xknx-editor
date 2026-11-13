@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import contextlib
 import threading
+from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -33,6 +34,24 @@ if TYPE_CHECKING:
     from xknxeditor.namespaces.intermediate.application_program_t import (
         ApplicationProgram,
     )
+
+
+def _version_key(product: ProductSummary) -> tuple[str, str]:
+    """What tells a product version apart: its product and its hardware program."""
+    return (product.product_ref_id, product.hardware2program_ref_id)
+
+
+@dataclass(frozen=True)
+class ImportedProducts:
+    """The product versions an imported file provides, and the ones that were new."""
+
+    products: list[ProductSummary]
+    # the version keys (product, hardware program) the catalog didn't have before
+    new: frozenset[tuple[str, str]]
+
+    def is_new(self, product: ProductSummary) -> bool:
+        """Whether ``product`` was added by the import."""
+        return _version_key(product) in self.new
 
 
 def _stored_strings(raw: object) -> list[str]:
@@ -301,17 +320,14 @@ class CatalogService:
         *,
         cancel: threading.Event | None = None,
         progress: Callable[[int, int], None] | None = None,
-    ) -> list[ProductSummary]:
+    ) -> ImportedProducts:
         """Import a ``.knxprod`` (or a ``.vd1``-``.vd5`` product database) and return every product
         version it provides, new or already in the catalog. Unlike :meth:`import_knxprod` (which
         returns only the newly added versions), this lets a re-import still list the file's products
         instead of dead-ending at "nothing new"."""
         # A product database is converted before the lock is taken: that takes long for a big one.
         data = _as_knxprod(path.read_bytes(), cancel=cancel, progress=progress)
-        with self._io_lock:
-            stored = self._service.import_knxprod(data, cancel=cancel)
-            self._forget_products()
-            return self._service.products_for_path(str(stored))
+        return self._import_contents(data, cancel=cancel)
 
     def import_product_source_contents(
         self,
@@ -320,7 +336,7 @@ class CatalogService:
         *,
         cancel: threading.Event | None = None,
         progress: Callable[[int, int], None] | None = None,
-    ) -> list[ProductSummary]:
+    ) -> ImportedProducts:
         """Like :meth:`import_product_source`, but returns every product version the source provides
         (new or already present), so a re-import still lists the file's products."""
         from xknxeditor.prod import knxprod_from_source
@@ -329,10 +345,20 @@ class CatalogService:
         knxprod = knxprod_from_source(
             data, master_xml, cancel=cancel, progress=progress
         )
+        return self._import_contents(knxprod, cancel=cancel)
+
+    def _import_contents(
+        self, data: bytes, *, cancel: threading.Event | None
+    ) -> ImportedProducts:
+        """Store ``.knxprod`` bytes; every product version they provide, and which are new."""
         with self._io_lock:
-            stored = self._service.import_knxprod(knxprod, cancel=cancel)
+            before = {_version_key(p) for p in self.get_products()}
+            stored = self._service.import_knxprod(data, cancel=cancel)
             self._forget_products()
-            return self._service.products_for_path(str(stored))
+            products = self._service.products_for_path(str(stored))
+        return ImportedProducts(
+            products, frozenset(_version_key(p) for p in products) - before
+        )
 
     def _import_knxprod_bytes(
         self,
@@ -343,17 +369,14 @@ class CatalogService:
         progress: Callable[[int, int], None] | None = None,
     ) -> list[ProductSummary]:
         """Each product version (product and hardware program) new in the catalog."""
-        before = {
-            (p.product_ref_id, p.hardware2program_ref_id) for p in self.get_products()
-        }
+        before = {_version_key(p) for p in self.get_products()}
         self._service.import_knxprod(
             data, require_catalog=require_catalog, cancel=cancel, progress=progress
         )
         self._forget_products()
         added: dict[tuple[str, str], ProductSummary] = {}
         for product in self.get_products():
-            key = (product.product_ref_id, product.hardware2program_ref_id)
-            if key not in before:
+            if (key := _version_key(product)) not in before:
                 added.setdefault(key, product)
         return [added[key] for key in sorted(added)]
 

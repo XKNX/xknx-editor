@@ -1663,11 +1663,32 @@ msgstr[0] "Удалите затронутое устройство или вы�
 msgstr[1] "Удалите затронутые устройства или выполните экспорт для более новой ETS."
 msgstr[2] "Удалите затронутые устройства или выполните экспорт для более новой ETS."
 
-msgid "Imported {count} product version from {name}:"
-msgid_plural "Imported {count} product versions from {name}:"
-msgstr[0] "Из {name} импортирована {count} версия продукта:"
-msgstr[1] "Из {name} импортированы {count} версии продуктов:"
-msgstr[2] "Из {name} импортировано {count} версий продуктов:"
+msgid "Imported {count} new product version from {name}:"
+msgid_plural "Imported {count} new product versions from {name}:"
+msgstr[0] "Из {name} импортирована {count} новая версия продукта:"
+msgstr[1] "Из {name} импортированы {count} новые версии продуктов:"
+msgstr[2] "Из {name} импортировано {count} новых версий продуктов:"
+
+msgid "{count} product version from {name}, already in the catalog:"
+msgid_plural "{count} product versions from {name}, all already in the catalog:"
+msgstr[0] "{count} версия продукта из {name}, уже в каталоге:"
+msgstr[1] "{count} версии продуктов из {name}, все уже в каталоге:"
+msgstr[2] "{count} версий продуктов из {name}, все уже в каталоге:"
+
+msgid "Imported {versions} from {name}, {new}:"
+msgstr "Импортировано из {name}: {versions}, {new}:"
+
+msgid "{count} product version"
+msgid_plural "{count} product versions"
+msgstr[0] "{count} версия продукта"
+msgstr[1] "{count} версии продуктов"
+msgstr[2] "{count} версий продуктов"
+
+msgid "{count} of them new"
+msgid_plural "{count} of them new"
+msgstr[0] "из них {count} новая"
+msgstr[1] "из них {count} новые"
+msgstr[2] "из них {count} новых"
 
 msgid "Monitor"
 msgstr "Monitor"

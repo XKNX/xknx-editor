@@ -1639,9 +1639,24 @@ msgid "Remove the affected device or export for the newer ETS."
 msgid_plural "Remove the affected devices or export for the newer ETS."
 msgstr[0] "Etkilenen cihazları kaldırın veya daha yeni ETS için dışa aktarın."
 
-msgid "Imported {count} product version from {name}:"
-msgid_plural "Imported {count} product versions from {name}:"
-msgstr[0] "{name} dosyasından {count} ürün sürümü içe aktarıldı:"
+msgid "Imported {count} new product version from {name}:"
+msgid_plural "Imported {count} new product versions from {name}:"
+msgstr[0] "{name} dosyasından {count} yeni ürün sürümü içe aktarıldı:"
+
+msgid "{count} product version from {name}, already in the catalog:"
+msgid_plural "{count} product versions from {name}, all already in the catalog:"
+msgstr[0] "{name} dosyasındaki {count} ürün sürümü zaten katalogda:"
+
+msgid "Imported {versions} from {name}, {new}:"
+msgstr "{name} dosyasından {versions} içe aktarıldı, {new}:"
+
+msgid "{count} product version"
+msgid_plural "{count} product versions"
+msgstr[0] "{count} ürün sürümü"
+
+msgid "{count} of them new"
+msgid_plural "{count} of them new"
+msgstr[0] "{count} tanesi yeni"
 
 msgid "Monitor"
 msgstr "Monitor"

@@ -67,6 +67,10 @@ def test_import_of_a_product_database_file(
     assert added and len(converted) == 1
     # Imported again through the contents path: the same versions, converted again.
     contents = cat.import_knxprod_contents(source)
-    assert {p.product_ref_id for p in contents} == {p.product_ref_id for p in added}
+    assert {p.product_ref_id for p in contents.products} == {
+        p.product_ref_id for p in added
+    }
+    assert contents.new == frozenset()
+    assert not any(contents.is_new(p) for p in contents.products)
     assert len(converted) == 2
     assert cat.import_knxprod_data(_fixture().read_bytes()) == []
