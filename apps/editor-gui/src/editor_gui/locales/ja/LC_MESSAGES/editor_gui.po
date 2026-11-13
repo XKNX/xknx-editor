@@ -1639,9 +1639,24 @@ msgid "Remove the affected device or export for the newer ETS."
 msgid_plural "Remove the affected devices or export for the newer ETS."
 msgstr[0] "該当するデバイスを削除するか、新しいETS用にエクスポートしてください。"
 
-msgid "Imported {count} product version from {name}:"
-msgid_plural "Imported {count} product versions from {name}:"
-msgstr[0] "{name}から{count}個の製品バージョンをインポートしました："
+msgid "Imported {count} new product version from {name}:"
+msgid_plural "Imported {count} new product versions from {name}:"
+msgstr[0] "{name}から{count}個の新しい製品バージョンをインポートしました："
+
+msgid "{count} product version from {name}, already in the catalog:"
+msgid_plural "{count} product versions from {name}, all already in the catalog:"
+msgstr[0] "{name}の製品バージョン{count}個は、すでにカタログにあります："
+
+msgid "Imported {versions} from {name}, {new}:"
+msgstr "{name}から{versions}をインポートしました（{new}）："
+
+msgid "{count} product version"
+msgid_plural "{count} product versions"
+msgstr[0] "{count}個の製品バージョン"
+
+msgid "{count} of them new"
+msgid_plural "{count} of them new"
+msgstr[0] "うち{count}個が新規"
 
 msgid "Monitor"
 msgstr "Monitor"

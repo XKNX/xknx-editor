@@ -1723,10 +1723,28 @@ msgid_plural "Remove the affected devices or export for the newer ETS."
 msgstr[0] "Fjarlægðu tækið sem um ræðir eða flyttu út fyrir nýrri ETS."
 msgstr[1] "Fjarlægðu tækin sem um ræðir eða flyttu út fyrir nýrri ETS."
 
-msgid "Imported {count} product version from {name}:"
-msgid_plural "Imported {count} product versions from {name}:"
-msgstr[0] "{count} vöruútgáfa flutt inn úr {name}:"
-msgstr[1] "{count} vöruútgáfur fluttar inn úr {name}:"
+msgid "Imported {count} new product version from {name}:"
+msgid_plural "Imported {count} new product versions from {name}:"
+msgstr[0] "{count} ný vöruútgáfa flutt inn úr {name}:"
+msgstr[1] "{count} nýjar vöruútgáfur fluttar inn úr {name}:"
+
+msgid "{count} product version from {name}, already in the catalog:"
+msgid_plural "{count} product versions from {name}, all already in the catalog:"
+msgstr[0] "{count} vöruútgáfa úr {name}, þegar í vörulistanum:"
+msgstr[1] "{count} vöruútgáfur úr {name}, allar þegar í vörulistanum:"
+
+msgid "Imported {versions} from {name}, {new}:"
+msgstr "{versions} fluttar inn úr {name}, {new}:"
+
+msgid "{count} product version"
+msgid_plural "{count} product versions"
+msgstr[0] "{count} vöruútgáfa"
+msgstr[1] "{count} vöruútgáfur"
+
+msgid "{count} of them new"
+msgid_plural "{count} of them new"
+msgstr[0] "þar af {count} ný"
+msgstr[1] "þar af {count} nýjar"
 
 msgid "Monitor"
 msgstr "Monitor"
