@@ -1877,6 +1877,33 @@ async def test_m112_code_only_segment_is_not_allocated() -> None:
     ]
 
 
+async def test_m112_load_status_octets_are_the_devices() -> None:
+    """A code segment over the BIM M112 system octets (ABB MV-0701 applications from 0x4400
+    to 0xD571): the device shows its load state at 0xB6EC whatever the segment holds, so the
+    preview counts that octet as the device's own."""
+    image = DownloadImage(
+        segments=(
+            MemorySegment(
+                address=0xB6EB,
+                data=b"\x00\x38\x00",
+                mask=b"\x00\xff\x00",
+            ),
+        ),
+        properties=(),
+    )
+    application = _m112_application(
+        LdCtrlWriteMem(address=0xB6EB, size=3, verify=False, inline_data=None)
+    )
+    runner, device = _runner(application, image)
+    device.memory.update({0xB6EB: 0x00, 0xB6EC: 0x01, 0xB6ED: 0x00})
+
+    report = await runner.preflight()
+
+    (segment,) = report.changed_segments
+    assert segment.address + segment.changed_ranges[0].start == 0xB6EC
+    assert 0xB6EC in report.device_written
+
+
 async def test_m112_code_only_segment_is_not_previewed() -> None:
     """The preview leaves the segment as the download does: the device keeps its octets,
     so a preview right after a download finds nothing to change there (a Siemens

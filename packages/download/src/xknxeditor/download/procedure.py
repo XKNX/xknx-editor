@@ -815,7 +815,24 @@ class LoadProcedureRunner:
         return PreflightReport(
             segments=tuple(_final_memory_steps(segments)),
             properties=tuple(properties),
-            device_written=frozenset(self._device_written),
+            device_written=frozenset(self._device_written)
+            | self._load_status_addresses(),
+        )
+
+    def _load_status_addresses(self) -> frozenset[int]:
+        """The memory where a memory-mapped mask shows the state of its load state machines
+        (BIM M112: 0xB6EA to 0xB6EC on MV-0701): the device keeps it itself, whatever a
+        download's code segment over it holds, so a preview's difference there is the
+        device's (device-managed), not a setting."""
+        if not self._memory_mapped_mask():
+            return frozenset()
+        resources = bundled_mask_resources(device_mask_version(self.application))
+        if resources is None:
+            return frozenset()
+        return frozenset(
+            address
+            for index in range(1, 6)
+            if (address := resources.memory_mapped_lsm_status(index)) is not None
         )
 
     def _in_scope(self, control: object) -> bool:
