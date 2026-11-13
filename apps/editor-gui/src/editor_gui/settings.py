@@ -60,6 +60,12 @@ def load_settings(name: str) -> dict[str, Any]:
     return cast(dict[str, Any], data) if isinstance(data, dict) else {}
 
 
+def export_schema() -> str:
+    """The .knxproj schema chosen as export format: "23" (the default) or "20"."""
+    schema = str(load_settings("app").get("export_schema") or "23")
+    return schema if schema in ("20", "23") else "23"
+
+
 def save_settings(name: str, data: dict[str, Any]) -> None:
     """Write ``data`` to ``<config_dir>/<name>.json``, readable only by the user.
 

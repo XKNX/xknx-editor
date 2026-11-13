@@ -50,3 +50,14 @@ def test_tightens_a_previously_world_readable_file(tmp_path: Path) -> None:
 def test_non_dict_json_returns_empty(tmp_path: Path) -> None:
     (tmp_path / "list.json").write_text("[1, 2, 3]", encoding="utf-8")
     assert settings.load_settings("list") == {}
+
+
+@pytest.mark.parametrize(
+    ("stored", "schema"),
+    [(None, "23"), ("23", "23"), ("20", "20"), ("21", "23"), (20, "20")],
+)
+def test_export_schema(stored: object, schema: str) -> None:
+    """The export format falls back to project/23 unless project/20 was chosen."""
+    if stored is not None:
+        settings.save_settings("app", {"export_schema": stored})
+    assert settings.export_schema() == schema
