@@ -116,7 +116,7 @@ from editor_gui.plugins.signing import SigningPlugin
 from editor_gui.plugins.timeline import TimelinePlugin
 from editor_gui.portal_save import PortalSaveDialog
 from editor_gui.ports import PortInUseError
-from editor_gui.settings import config_dir, load_settings, save_settings
+from editor_gui.settings import config_dir, export_schema, load_settings, save_settings
 from editor_gui.settings_window import Setting, SettingsPage, SettingsWindow, matches
 from editor_gui.strings import S, get_locale, set_locale
 from editor_gui.theme import (
@@ -835,8 +835,7 @@ class KnxGuiApp:
         self._update_check_open_requested = False
         # Target schema for .knxproj export. ETS 6 (project/23) is the default; ETS 5 is project/20.
         # Persisted so a chosen ETS version sticks across sessions.
-        _schema = str(load_settings("app").get("export_schema") or "23")
-        self._export_schema = _schema if _schema in ("20", "23") else "23"
+        self._export_schema = export_schema()
         # The export way (sign-dialog tab) to preselect: the last one used, or an explicit General
         # choice; empty = pick by availability. Applied once when the sign dialog opens.
         _method = str(load_settings("app").get("export_method") or "")

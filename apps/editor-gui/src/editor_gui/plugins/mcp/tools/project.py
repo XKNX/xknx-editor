@@ -37,7 +37,7 @@ from editor_gui.plugins.project.service import DeviceProduct
 from editor_gui.plugins.project.space_text import default_name, space_error_text
 from editor_gui.plugins.project.space_usages import SPACE_USAGES
 from editor_gui.plugins.project.strings import S as PROJECT_S
-from editor_gui.settings import config_dir
+from editor_gui.settings import config_dir, export_schema
 from xknxeditor.proj.core.medium import (
     MEDIUM_NAMES,
     MediumError,
@@ -1750,7 +1750,8 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     @tool("destructive")
     def project_export_knxproj(dest: str) -> dict[str, str]:
-        """Export the open project to a .knxproj archive at ``dest`` (with manufacturer bundle).
+        """Export the open project to a .knxproj archive at ``dest`` (with manufacturer bundle), in
+        the format of the ``export_format`` setting (project/23 by default, or project/20).
         Returns {status, dest} plus an optional ``warning``. ``status="incomplete"`` means
         manufacturer references are missing — ETS may reject the archive, so inspect the warning."""
         require_project(ctx)
@@ -1774,6 +1775,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             result = export_knxproj(
                 source,
                 Path(dest),
+                schema=export_schema(),
                 password=project.project_password,
                 extra_files=bundle.extra_files,
                 master_xml=bundle.master_xml,
@@ -1813,7 +1815,9 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         Only works on this same machine when it runs on Windows with an ETS installation; otherwise
         it returns an error. Set ``accept_untested=True`` to allow an ETS version that is not the
-        known-good one. Returns {status, dest, certificate, validation, license, devices}."""
+        known-good one. The project goes in the format of the ``export_format`` setting, or as
+        project/20 for version 5. Returns {status, dest, certificate, validation, license,
+        devices}."""
         require_project(ctx)
         import shutil
         import tempfile
@@ -1832,8 +1836,10 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         # ETS 6 is preferred (cloud or dongle); fall back to ETS 5 (dongle only).
         if ets_local_available():
             sign_local = ets_local_sign
+            schema = export_schema()
         elif ets5_local_available():
             sign_local = ets5_local_sign
+            schema = "20"
         else:
             raise ToolError(
                 "no local ETS export available here (needs Windows with an ETS installation)"
@@ -1853,6 +1859,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             export_knxproj(
                 source,
                 staged,
+                schema=schema,
                 password=project.project_password,
                 extra_files=bundle.extra_files,
                 master_xml=bundle.master_xml,
