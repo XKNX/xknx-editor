@@ -23,7 +23,7 @@ from imgui_bundle import imgui
 from editor_gui.regional import regional_format
 from editor_gui.settings import load_settings, save_settings
 from editor_gui.strings import S
-from editor_gui.web.files import Entry, matches, safe_name
+from editor_gui.web.files import Entry, FileInUseError, matches, safe_name
 from editor_gui.widgets.checkbox import checkbox
 from editor_gui.widgets.combo import combo
 from editor_gui.widgets.dialog import (
@@ -36,6 +36,7 @@ from editor_gui.widgets.dpi import px
 from editor_gui.widgets.tables import begin_data_table, data_table_headers
 from editor_gui.widgets.text_util import fit_text, human_size
 from editor_gui.widgets.value_pickers import format_date
+from editor_gui.widgets.x_button import small_x_size, x_button
 
 if TYPE_CHECKING:
     from editor_gui.web.server import WebHub
@@ -43,6 +44,8 @@ if TYPE_CHECKING:
 _ids = itertools.count(1)
 _WIDTH = 620.0
 _LIST_HEIGHT = 220.0
+# The width of the question before a file is deleted.
+_QUESTION_WIDTH = 420.0
 # How often an open dialog reads the file folder again (seconds).
 _REFRESH_SECONDS = 2.0
 
@@ -133,16 +136,19 @@ def _entries_table(
     sizes: bool = True,
     download: bool = False,
     on_download: Callable[[Entry], None] | None = None,
+    on_delete: Callable[[Entry], None] | None = None,
 ) -> tuple[Entry | None, bool, Entry | None]:
     """The files (or folders) of the file folder as a table: the clicked entry, whether it was a
-    double click, and the entry whose Download button was clicked."""
+    double click, and the entry whose Download button was clicked. With ``on_delete``, each file
+    has a button that asks to delete it."""
     clicked: Entry | None = None
     double = False
     fetch: Entry | None = None
     if not entries:
         imgui.text_unformatted(S.WEB_NO_FILES)
         return None, False, None
-    columns = 2 + int(sizes) + int(download)
+    delete = on_delete is not None
+    columns = 2 + int(sizes) + int(download) + int(delete)
     # Fixed columns as wide as their widest content (always computed, never a width saved from an
     # earlier list), the name gets the rest and long names end in "…".
     flags = (
@@ -180,13 +186,17 @@ def _entries_table(
             imgui.TableColumnFlags_.width_fixed,
             imgui.calc_text_size(S.WEB_DOWNLOAD).x + 2 * style.frame_padding.x,
         )
+    if delete:
+        imgui.table_setup_column(
+            "", imgui.TableColumnFlags_.width_fixed, small_x_size().x
+        )
     data_table_headers()
     for entry in entries:
         imgui.table_next_row()
         imgui.table_set_column_index(0)
         chosen = selected is not None and entry.name in selected
         row_flags = imgui.SelectableFlags_.allow_double_click
-        if not download:
+        if not download and not delete:
             row_flags |= imgui.SelectableFlags_.span_all_columns
         full = f"{entry.name}/" if entry.folder and entry.name != ".." else entry.name
         shown = fit_text(full, imgui.get_content_region_avail().x)
@@ -209,6 +219,13 @@ def _entries_table(
                     fetch = entry
                 if on_download is not None:
                     on_download(entry)
+        if on_delete is not None:
+            imgui.table_next_column()
+            if not entry.folder:
+                if x_button(f"delete_{entry.name}", small_x_size()):
+                    on_delete(entry)
+                if imgui.is_item_hovered():
+                    imgui.set_tooltip(S.WEB_DELETE_HINT)
     imgui.end_table()
     return clicked, double, fetch
 
@@ -242,6 +259,10 @@ class WebDialog(_Item):
         self._read_at = 0.0
         self._download_default = _download_default(self.filters)
         self._download = _download_wanted(title, self._download_default)
+        # The file whose deletion the user is asked to confirm.
+        self._deleting: str | None = None
+        # Whether its question dialog is still to be opened.
+        self._ask = False
         hub.open_dialog(self)
 
     def ready(self, timeout: int = 20) -> bool:
@@ -330,6 +351,47 @@ class WebDialog(_Item):
         imgui.spacing()
         _, self._download = checkbox(S.WEB_DOWNLOAD_AFTER, self._download)
 
+    def _ask_delete(self, entry: Entry) -> None:
+        """A row's delete button: the user confirms in a dialog of its own first."""
+        self._deleting = entry.name
+        self._ask = True
+        self._status = ""
+
+    def delete(self, name: str) -> None:
+        """Delete a file of the file folder; a file the app holds open stays, with a note."""
+        try:
+            self._hub.delete_file(name)
+        except FileInUseError:
+            self._status = S.WEB_FILE_IN_USE.format(name=name)
+            return
+        except OSError as exc:
+            self._status = S.WEB_DELETE_FAILED.format(name=name, error=exc)
+            return
+        self._selected.discard(name)
+        self._read_at = 0.0
+
+    def _delete_confirmation(self) -> None:
+        """While a file is to be deleted: a dialog over this one asks, with Delete and Cancel
+        (Escape cancels)."""
+        if self._deleting is None:
+            return
+        title = f"{S.WEB_DELETE_TITLE}###web-delete-{self.id}"
+        if self._ask:
+            imgui.open_popup(title)
+            self._ask = False
+        # Ended with end_popup, not end_dialog: the file dialogs are not drawn inside it again.
+        if not begin_dialog(title, width=_QUESTION_WIDTH):
+            self._deleting = None
+            return
+        imgui.text_wrapped(S.WEB_DELETE_QUESTION.format(name=self._deleting))
+        chosen = dialog_buttons(S.WEB_DELETE, S.BTN_CANCEL)
+        if chosen == 0:
+            self.delete(self._deleting)
+        if chosen is not None:
+            self._deleting = None
+            imgui.close_current_popup()
+        imgui.end_popup()
+
     def draw(self) -> None:
         if not begin_dialog(self.popup_id, width=_WIDTH):
             return
@@ -383,8 +445,12 @@ class WebOpenFile(WebDialog):
         self._file_type()
         imgui.text_disabled(S.WEB_SERVER_FILES)
         clicked, double, _ = _entries_table(
-            "##web_open", self._listed(), selected=self._selected
+            "##web_open",
+            self._listed(),
+            selected=self._selected,
+            on_delete=self._ask_delete,
         )
+        self._delete_confirmation()
         if clicked is not None:
             if not (self.multiselect and imgui.get_io().key_ctrl):
                 self._selected = set()
@@ -428,7 +494,12 @@ class WebSaveFile(WebDialog):
         entered = self._name_field(S.WEB_FILE_NAME)
         self._file_type()
         imgui.text_disabled(S.WEB_SERVER_FILES)
-        clicked, double, _ = _entries_table("##web_save", self._listed())
+        clicked, double, _ = _entries_table(
+            "##web_save", self._listed(), on_delete=self._ask_delete
+        )
+        self._delete_confirmation()
+        if self._status:
+            imgui.text_wrapped(self._status)
         if clicked is not None:
             self._name = clicked.name
         self._download_box()

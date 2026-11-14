@@ -1691,3 +1691,21 @@ msgstr "Der er ikke angivet en gyldig signeringsnøgle, så den eksporterede .kn
 
 msgid "Export Anyway"
 msgstr "Eksportér alligevel"
+
+msgid "Delete"
+msgstr "Slet"
+
+msgid "Delete from the server"
+msgstr "Slet fra serveren"
+
+msgid "Delete {name} from the server? This cannot be undone."
+msgstr "Slet {name} fra serveren? Det kan ikke fortrydes."
+
+msgid "{name} belongs to the open project and is not deleted."
+msgstr "{name} hører til det åbne projekt og slettes ikke."
+
+msgid "{name} could not be deleted: {error}"
+msgstr "{name} kunne ikke slettes: {error}"
+
+msgid "Delete File"
+msgstr "Slet fil"
