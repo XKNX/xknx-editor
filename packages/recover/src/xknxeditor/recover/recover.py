@@ -76,6 +76,7 @@ class RecoveredDevice:
     effort: RecoveryEffort = RecoveryEffort.MEDIUM
     # The image the product's devices leave the factory with, kept to search again.
     factory_image: FactoryImage | None = None
+    observed_app_id: AppId | None = None
 
 
 def seed_dynamic_ui(

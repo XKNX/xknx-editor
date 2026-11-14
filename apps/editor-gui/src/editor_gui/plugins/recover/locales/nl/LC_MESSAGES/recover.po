@@ -247,3 +247,18 @@ msgstr "Gegevens over maskercompatibiliteit ontbreken; alleen identieke maskers 
 
 msgid "The application version missing from the local catalog was found in the alternative catalog. A login is required to download it. Enter your username and password in Settings > Catalog."
 msgstr "De applicatieversie die ontbreekt in de lokale catalogus is gevonden in de alternatieve catalogus. Aanmelden is vereist om deze te downloaden. Voer uw gebruikersnaam en wachtwoord in onder Instellingen > Catalogus."
+
+msgid "Other Application Versions"
+msgstr "Andere applicatieversies"
+
+msgid "Other Versions…"
+msgstr "Andere versies…"
+
+msgid "The device runs application %(installed)s. These other versions are available in the online catalog. Loading product data does not change the device. Their suitability for recovery is unconfirmed; parameters and group objects may differ."
+msgstr "Het apparaat gebruikt applicatie %(installed)s. Deze andere versies zijn beschikbaar in de onlinecatalogus. Het laden van productgegevens wijzigt het apparaat niet. Hun geschiktheid voor herstel is niet bevestigd; parameters en groepsobjecten kunnen verschillen."
+
+msgid "Load Product Data for Version %(version)s"
+msgstr "Productgegevens voor versie %(version)s laden"
+
+msgid "Different application version: device %(installed)s, recovery %(used)s. Not added to the project automatically."
+msgstr "Afwijkende applicatieversie: apparaat %(installed)s, herstel %(used)s. Wordt niet automatisch aan het project toegevoegd."

@@ -255,3 +255,18 @@ msgstr "Данные о совместимости масок недоступн
 
 msgid "The application version missing from the local catalog was found in the alternative catalog. A login is required to download it. Enter your username and password in Settings > Catalog."
 msgstr "Версия приложения, отсутствующая в локальном каталоге, найдена в альтернативном каталоге. Для скачивания необходимо войти в учётную запись. Укажите имя пользователя и пароль в разделе Настройки > Каталог."
+
+msgid "Other Application Versions"
+msgstr "Другие версии приложения"
+
+msgid "Other Versions…"
+msgstr "Другие версии…"
+
+msgid "The device runs application %(installed)s. These other versions are available in the online catalog. Loading product data does not change the device. Their suitability for recovery is unconfirmed; parameters and group objects may differ."
+msgstr "Устройство использует приложение %(installed)s. Эти другие версии доступны в онлайн-каталоге. Загрузка данных продукта не изменяет устройство. Их пригодность для восстановления не подтверждена; параметры и групповые объекты могут отличаться."
+
+msgid "Load Product Data for Version %(version)s"
+msgstr "Загрузить данные продукта для версии %(version)s"
+
+msgid "Different application version: device %(installed)s, recovery %(used)s. Not added to the project automatically."
+msgstr "Другая версия приложения: устройство %(installed)s, восстановление %(used)s. Не добавляется в проект автоматически."

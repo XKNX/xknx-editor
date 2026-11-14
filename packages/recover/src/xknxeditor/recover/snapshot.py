@@ -15,6 +15,7 @@ from dataclasses import asdict
 from typing import TYPE_CHECKING, Any
 
 from .dossier import DeviceDossier
+from .identify import AppId
 from .parameters import RecoveredParameters, RecoveryEffort
 from .tables_decode import DecodedGroupObject, DecodedLink
 
@@ -30,6 +31,9 @@ def device_snapshot(device: RecoveredDevice) -> dict[str, Any]:
         "address": device.address,
         "mask_version": f"{device.mask_version:#06x}",
         "application_id": device.application_id,
+        "observed_app_id": asdict(device.observed_app_id)
+        if device.observed_app_id is not None
+        else None,
         "device_address": device.device_address,
         "dossier": asdict(device.dossier),
         "group_addresses": device.group_addresses,
@@ -99,6 +103,9 @@ def devices_from_snapshot(text: str) -> list[RecoveredDevice]:
                 RecoveredDevice(
                     address=str(record["address"]),
                     application_id=str(record["application_id"]),
+                    observed_app_id=AppId(**record["observed_app_id"])
+                    if record.get("observed_app_id") is not None
+                    else None,
                     device_address=record.get("device_address"),
                     group_addresses=[
                         int(ga) for ga in record.get("group_addresses", [])
