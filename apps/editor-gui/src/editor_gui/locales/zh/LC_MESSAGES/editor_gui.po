@@ -1713,3 +1713,9 @@ msgstr "新增"
 
 msgid "In catalog"
 msgstr "已在产品目录中"
+
+msgid "Open Last Project on Startup"
+msgstr "启动时打开上次的项目"
+
+msgid "When no project is given at the start, opens the project that was open last. A protected project asks for its password, unless --password-file gives it."
+msgstr "启动时未指定项目时，打开上次打开的项目。受保护的项目会询问其密码，除非 --password-file 已提供。"

@@ -164,3 +164,102 @@ def test_a_running_editor_gets_the_password_file_not_the_password(
     )
     KnxGuiApp._handle_editor_requests(stub)  # type: ignore[arg-type]
     assert opened == [("Haus.xknx", {"password_file": "pw.txt"})]
+
+
+def _reopening(
+    monkeypatch: pytest.MonkeyPatch, settings: dict[str, Any]
+) -> tuple[SimpleNamespace, list[dict[str, Any]]]:
+    """A start without a project given, with ``settings`` as the app settings."""
+    calls: list[dict[str, Any]] = []
+    monkeypatch.delenv(PROJECT_PASSWORD_ENV, raising=False)
+    monkeypatch.setattr(main, "load_settings", lambda _name: settings)
+    stub = SimpleNamespace(
+        _connection_plugin=SimpleNamespace(autostart=lambda: None),
+        _log=_Log(),
+        no_connect=False,
+        startup_file=None,
+        startup_password_file=None,
+        _do_open_project=lambda path, **options: calls.append(
+            {"path": path, **options}
+        ),
+    )
+    stub._open_last_project_enabled = lambda: KnxGuiApp._open_last_project_enabled(
+        stub  # type: ignore[arg-type]
+    )
+    stub._recent_files = lambda: KnxGuiApp._recent_files(stub)  # type: ignore[arg-type]
+    stub._last_project_to_reopen = lambda: KnxGuiApp._last_project_to_reopen(
+        stub  # type: ignore[arg-type]
+    )
+    return stub, calls
+
+
+def test_the_start_shows_the_welcome_by_default(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+):
+    project = tmp_path / "Haus.xknx"
+    project.write_bytes(b"")
+    stub, calls = _reopening(monkeypatch, {"recent_files": [str(project)]})
+    KnxGuiApp._start_session(stub)  # type: ignore[arg-type]
+    assert calls == []
+
+
+def test_the_start_opens_the_last_project_when_asked_to(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+):
+    last, older = tmp_path / "Haus.xknx", tmp_path / "Büro.xknx"
+    last.write_bytes(b"")
+    older.write_bytes(b"")
+    stub, calls = _reopening(
+        monkeypatch,
+        {"open_last_project": True, "recent_files": [str(last), str(older)]},
+    )
+    stub.startup_password_file = "pw.txt"
+    KnxGuiApp._start_session(stub)  # type: ignore[arg-type]
+    # Opened like a project given at the start: with --password-file, if given.
+    assert calls == [{"path": str(last), "password_file": "pw.txt", "password": None}]
+
+
+def test_a_project_given_at_the_start_wins_over_the_last_one(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+):
+    last = tmp_path / "Haus.xknx"
+    last.write_bytes(b"")
+    stub, calls = _reopening(
+        monkeypatch, {"open_last_project": True, "recent_files": [str(last)]}
+    )
+    stub.startup_file = "Other.xknx"
+    KnxGuiApp._start_session(stub)  # type: ignore[arg-type]
+    assert [call["path"] for call in calls] == ["Other.xknx"]
+
+
+def test_a_missing_last_project_is_not_opened_or_reported(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+):
+    settings: dict[str, Any] = {
+        "open_last_project": True,
+        "recent_files": [str(tmp_path / "gone.xknx")],
+    }
+    stub, calls = _reopening(monkeypatch, settings)
+    KnxGuiApp._start_session(stub)  # type: ignore[arg-type]
+    assert calls == []
+    assert stub._log.errors == []
+    # It stays in Open Recent until it is picked there.
+    assert settings["recent_files"] == [str(tmp_path / "gone.xknx")]
+    # Nothing recent: nothing to open.
+    stub, calls = _reopening(monkeypatch, {"open_last_project": True})
+    KnxGuiApp._start_session(stub)  # type: ignore[arg-type]
+    assert calls == []
+
+
+def test_the_setting_is_kept_in_the_app_settings(monkeypatch: pytest.MonkeyPatch):
+    stored: dict[str, dict[str, Any]] = {"app": {"recent_files": ["Haus.xknx"]}}
+    monkeypatch.setattr(main, "load_settings", lambda name: dict(stored.get(name, {})))
+    monkeypatch.setattr(
+        main, "save_settings", lambda name, data: stored.__setitem__(name, data)
+    )
+    stub = SimpleNamespace()
+    assert not KnxGuiApp._open_last_project_enabled(stub)  # type: ignore[arg-type]
+    KnxGuiApp._set_open_last_project_enabled(stub, True)  # type: ignore[arg-type]
+    assert KnxGuiApp._open_last_project_enabled(stub)  # type: ignore[arg-type]
+    # The other app settings stay.
+    assert stored["app"] == {"recent_files": ["Haus.xknx"], "open_last_project": True}
