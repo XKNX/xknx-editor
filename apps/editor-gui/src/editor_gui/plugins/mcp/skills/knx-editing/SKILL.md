@@ -1,4 +1,5 @@
 ---
+name: knx-editing
 description: Worked examples for the xknx-editor MCP tools — commissioning a new device, reconfiguring a push-button without losing its links, and finding out why a group address does not switch.
 ---
 

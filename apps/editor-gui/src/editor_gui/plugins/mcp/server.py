@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 from fastmcp import FastMCP
-from fastmcp.server.providers.skills import SkillsDirectoryProvider
+from fastmcp.skills.provider import SkillsDirectoryProvider
 
 from editor_gui.plugins.mcp.tools import (
     alternative_catalog,
@@ -211,5 +211,5 @@ def build_server(ctx: McpContext, auth: Any = None) -> FastMCP:
     ):
         module.register(mcp, ctx)
     if _SKILLS_DIR.is_dir():
-        mcp.add_provider(SkillsDirectoryProvider(roots=_SKILLS_DIR))
+        mcp.add_provider(SkillsDirectoryProvider([str(_SKILLS_DIR)]))
     return mcp
