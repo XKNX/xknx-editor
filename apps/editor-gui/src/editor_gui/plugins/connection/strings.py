@@ -51,6 +51,30 @@ class ConnectionStrings:
         )
 
     @property
+    def SETTING_BLOCK_BUS_WRITES(self) -> str:
+        return _("Block Bus Writes")
+
+    @property
+    def SETTING_BLOCK_BUS_WRITES_HINT(self) -> str:
+        return _(
+            "Reads only: nothing that would change something on the bus is sent, such as "
+            "downloads, address changes, restarts or group writes. This holds for MCP clients "
+            "too, which can turn it on but not off. Reads of KNX Data Secure devices are "
+            "blocked as well."
+        )
+
+    @property
+    def STATUS_WRITES_BLOCKED(self) -> str:
+        return _("Bus writes blocked")
+
+    @property
+    def STATUS_WRITES_BLOCKED_HINT(self) -> str:
+        return _(
+            "Block Bus Writes is on: the editor reads from the bus but changes nothing there. "
+            "Click to change it in the settings."
+        )
+
+    @property
     def SETTING_USE_SERIAL_NUMBER_HINT(self) -> str:
         return _(
             "A device whose serial number is known gets its individual address without "

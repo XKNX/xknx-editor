@@ -22,6 +22,18 @@ msgstr "Lidhu në nisje"
 msgid "At start, the editor looks for KNX interfaces and connects to the one used last. Turned off, it connects only when you choose."
 msgstr "Në nisje, editori kërkon ndërfaqe KNX dhe lidhet me atë që është përdorur së fundi. Kur ky opsion është i çaktivizuar, editori lidhet vetëm kur zgjidhni një ndërfaqe."
 
+msgid "Block Bus Writes"
+msgstr "Blloko shkrimet në bus"
+
+msgid "Reads only: nothing that would change something on the bus is sent, such as downloads, address changes, restarts or group writes. This holds for MCP clients too, which can turn it on but not off. Reads of KNX Data Secure devices are blocked as well."
+msgstr "Vetëm lexim: nuk dërgohet asgjë që do të ndryshonte diçka në bus, si programime, ndryshime adresash, rinisje ose shkrime grupi. Kjo vlen edhe për klientët MCP, që mund ta aktivizojnë por jo ta çaktivizojnë. Bllokohen edhe leximet e pajisjeve KNX Data Secure."
+
+msgid "Bus writes blocked"
+msgstr "Shkrimet në bus të bllokuara"
+
+msgid "Block Bus Writes is on: the editor reads from the bus but changes nothing there. Click to change it in the settings."
+msgstr "Bllokimi i shkrimeve në bus është aktiv: redaktori lexon nga busi, por nuk ndryshon asgjë atje. Klikoni për ta ndryshuar te cilësimet."
+
 msgid "Use Serial Number for Downloads"
 msgstr "Përdor numrin serial për programim"
 

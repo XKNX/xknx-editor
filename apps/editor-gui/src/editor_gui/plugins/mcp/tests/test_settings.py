@@ -187,3 +187,23 @@ async def test_the_cache_is_cleared(
         cleared = await _data(client, "cache_clear")
     assert cleared["freed"] == 100
     assert cache.cache_size() == 0
+
+
+async def test_a_setting_mcp_may_only_tighten_is_refused_the_other_way(
+    tmp_path: Path,
+) -> None:
+    values = _Values()
+    pages = [
+        SettingsPage(
+            "general",
+            lambda: "General",
+            [values.setting("flag", "bool", mcp_may_set=bool)],
+        )
+    ]
+    ctx = _build_ctx(tmp_path)
+    ctx.settings = SettingsWindow(lambda: pages)
+    async with Client(build_server(ctx)) as client:
+        await client.call_tool("settings_set", {"key": "flag", "value": True})
+        assert values.values["flag"] is True
+        await _error(client, "only the user can set 'flag'", key="flag", value=False)
+    assert values.values["flag"] is True

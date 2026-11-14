@@ -67,6 +67,18 @@ msgstr "Poveži ob zagonu"
 msgid "At start, the editor looks for KNX interfaces and connects to the one used last. Turned off, it connects only when you choose."
 msgstr "Ob zagonu urejevalnik poišče vmesnike KNX in se poveže z nazadnje uporabljenim. Če je izklopljeno, se poveže le, ko to izberete."
 
+msgid "Block Bus Writes"
+msgstr "Blokiraj pisanje na vodilo"
+
+msgid "Reads only: nothing that would change something on the bus is sent, such as downloads, address changes, restarts or group writes. This holds for MCP clients too, which can turn it on but not off. Reads of KNX Data Secure devices are blocked as well."
+msgstr "Samo branje: ne pošlje se nič, kar bi kaj spremenilo na vodilu, na primer programiranje, spremembe naslovov, ponovni zagoni ali skupinski zapisi. To velja tudi za odjemalce MCP, ki ga lahko vklopijo, ne pa izklopijo. Blokirano je tudi branje naprav KNX Data Secure."
+
+msgid "Bus writes blocked"
+msgstr "Pisanje na vodilo blokirano"
+
+msgid "Block Bus Writes is on: the editor reads from the bus but changes nothing there. Click to change it in the settings."
+msgstr "Blokiranje pisanja na vodilo je vklopljeno: urejevalnik bere z vodila, a na njem ničesar ne spremeni. Kliknite, da to spremenite v nastavitvah."
+
 msgid "Use Serial Number for Downloads"
 msgstr "Pri programiranju uporabi serijsko številko"
 

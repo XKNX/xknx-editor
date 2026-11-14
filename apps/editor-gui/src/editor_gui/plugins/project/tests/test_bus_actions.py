@@ -31,6 +31,7 @@ class _Connection:
         self.busy = False
         self.xknx: object | None = object()
         self.futures: list[Future[Any]] = []
+        self.dali_writes: list[bool] = []
 
     def _future(self) -> Future[Any]:
         self.futures.append(Future())
@@ -44,8 +45,11 @@ class _Connection:
         self.calls.append(("reset", device.node_id, erase_code))
         return self._future()
 
-    def run_dali(self, device: Any, op: Any, *, channel: int = 0) -> Future[Any]:
+    def run_dali(
+        self, device: Any, op: Any, *, channel: int = 0, writes: bool = True
+    ) -> Future[Any]:
         self.calls.append(("dali", device.node_id, channel))
+        self.dali_writes.append(writes)
         return self._future()
 
     def run_siemens_dali(self, device: Any, op: Any) -> Future[Any]:
@@ -152,9 +156,16 @@ def test_a_dali_run_is_named_by_its_button_and_tells_its_end() -> None:
     assert ended == [1] and connection.calls == []
     connection.busy = False
     plugin._run_dali(
-        SimpleNamespace(node_id=1), None, 0, S.DALI_SCAN, lambda: ended.append(2)
+        SimpleNamespace(node_id=1),
+        None,
+        0,
+        S.DALI_SCAN,
+        lambda: ended.append(2),
+        False,
     )
     assert connection.calls == [("dali", 1, 0)]
+    # A scan writes nothing: Block Bus Writes does not refuse it.
+    assert connection.dali_writes == [False]
     connection.futures[0].set_result(None)
     assert ended == [1, 2]
 

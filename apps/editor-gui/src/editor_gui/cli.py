@@ -23,6 +23,11 @@ _GENERAL = (
         "XKNX_PROJECT_PASSWORD) instead of asking for it.",
     ),
     (
+        "--no-bus-writes",
+        "Read from the bus only: Block Bus Writes stays on until the editor ends, whatever "
+        "the setting says.",
+    ),
+    (
         "--no-connect",
         "Connect to no KNX interface at start, whatever the setting Connect at Startup says.",
     ),

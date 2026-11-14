@@ -14,6 +14,7 @@ from xknx.telegram import GroupAddress, IndividualAddress
 
 if TYPE_CHECKING:
     from xknx import XKNX
+    from xknx.telegram import Telegram
 
 
 class _ReceiveContext(local):
@@ -91,12 +92,34 @@ def handle_cemi_with_packet(
 class DiagnosticCEMIHandler(CEMIHandler):
     """Add log context around the synchronous receive handler."""
 
-    __slots__ = ("_mode", "_target")
+    __slots__ = ("_mode", "_target", "_writes_blocked")
 
-    def __init__(self, xknx: XKNX, *, mode: str, target: str) -> None:
+    def __init__(
+        self,
+        xknx: XKNX,
+        *,
+        mode: str,
+        target: str,
+        writes_blocked: Callable[[], bool] | None = None,
+    ) -> None:
+        """``writes_blocked``: whether Block Bus Writes is on, asked for every telegram."""
         super().__init__(xknx)
         self._mode = mode
         self._target = target
+        self._writes_blocked = writes_blocked
+
+    async def send_telegram(self, telegram: Telegram) -> None:
+        # Block Bus Writes judges the plain telegram, before Data Secure encrypts it; the
+        # interface lets its frame through then. Imported here: the connection package
+        # imports this module.
+        from editor_gui.plugins.connection.write_guard import (
+            check_telegram,
+            checked_telegram,
+        )
+
+        check_telegram(self._writes_blocked, telegram)
+        with checked_telegram():
+            await super().send_telegram(telegram)
 
     def handle_raw_cemi(self, raw_cemi: bytes) -> None:
         previous = _received.frame

@@ -32,6 +32,10 @@ def _never() -> bool:
     return False
 
 
+def _any_value(_value: Any) -> bool:
+    return True
+
+
 @dataclass(frozen=True, slots=True)
 class Setting:
     """One setting: its name, how it is read and changed, and how the window shows it.
@@ -59,6 +63,8 @@ class Setting:
     wide: bool = False
     # A secret: MCP tells whether it is set, never the value.
     secret: bool = False
+    # The values MCP may set (``settings_set``); the rest only the user sets, in the window.
+    mcp_may_set: Callable[[Any], bool] = _any_value
 
 
 @dataclass(frozen=True, slots=True)

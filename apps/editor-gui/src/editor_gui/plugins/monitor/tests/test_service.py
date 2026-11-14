@@ -85,6 +85,9 @@ class FakeConnection:
         self.sent: list[bytes] = []
         self.busmonitor_requests: list[str] = []
 
+    def writes_refused(self, _op: str) -> bool:
+        return False
+
     def send_cemi(self, raw: bytes) -> None:
         self.sent.append(raw)
 

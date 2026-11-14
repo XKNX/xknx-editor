@@ -22,6 +22,18 @@ msgstr "Başlangıçta Bağlan"
 msgid "At start, the editor looks for KNX interfaces and connects to the one used last. Turned off, it connects only when you choose."
 msgstr "Başlangıçta düzenleyici KNX arayüzlerini arar ve en son kullanılana bağlanır. Kapalıyken yalnızca siz seçtiğinizde bağlanır."
 
+msgid "Block Bus Writes"
+msgstr "Hatta Yazmayı Engelle"
+
+msgid "Reads only: nothing that would change something on the bus is sent, such as downloads, address changes, restarts or group writes. This holds for MCP clients too, which can turn it on but not off. Reads of KNX Data Secure devices are blocked as well."
+msgstr "Yalnızca okuma: indirmeler, adres değişiklikleri, yeniden başlatmalar veya grup yazmaları gibi hatta bir şeyi değiştirecek hiçbir şey gönderilmez. Bu, açabilen ama kapatamayan MCP istemcileri için de geçerlidir. KNX Data Secure cihazlarının okunması da engellenir."
+
+msgid "Bus writes blocked"
+msgstr "Hatta yazma engellendi"
+
+msgid "Block Bus Writes is on: the editor reads from the bus but changes nothing there. Click to change it in the settings."
+msgstr "Hatta yazmayı engelle açık: düzenleyici hattan okur ama orada hiçbir şeyi değiştirmez. Ayarlarda değiştirmek için tıklayın."
+
 msgid "Use Serial Number for Downloads"
 msgstr "Yüklemelerde Seri Numarasını Kullan"
 

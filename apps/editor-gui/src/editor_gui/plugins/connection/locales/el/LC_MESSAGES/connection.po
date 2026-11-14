@@ -22,6 +22,18 @@ msgstr "Σύνδεση κατά την Εκκίνηση"
 msgid "At start, the editor looks for KNX interfaces and connects to the one used last. Turned off, it connects only when you choose."
 msgstr "Κατά την εκκίνηση, ο επεξεργαστής αναζητά διεπαφές KNX και συνδέεται με αυτή που χρησιμοποιήθηκε τελευταία. Αν απενεργοποιηθεί, συνδέεται μόνο όταν το επιλέξετε."
 
+msgid "Block Bus Writes"
+msgstr "Αποκλεισμός Εγγραφών στο Bus"
+
+msgid "Reads only: nothing that would change something on the bus is sent, such as downloads, address changes, restarts or group writes. This holds for MCP clients too, which can turn it on but not off. Reads of KNX Data Secure devices are blocked as well."
+msgstr "Μόνο ανάγνωση: δεν αποστέλλεται τίποτα που θα άλλαζε κάτι στο bus, όπως λήψεις, αλλαγές διευθύνσεων, επανεκκινήσεις ή εγγραφές ομάδων. Ισχύει και για πελάτες MCP, οι οποίοι μπορούν να το ενεργοποιήσουν αλλά όχι να το απενεργοποιήσουν. Αποκλείονται επίσης οι αναγνώσεις συσκευών KNX Data Secure."
+
+msgid "Bus writes blocked"
+msgstr "Οι εγγραφές στο bus αποκλείστηκαν"
+
+msgid "Block Bus Writes is on: the editor reads from the bus but changes nothing there. Click to change it in the settings."
+msgstr "Ο αποκλεισμός εγγραφών στο bus είναι ενεργός: ο επεξεργαστής διαβάζει από το bus αλλά δεν αλλάζει τίποτα εκεί. Κάντε κλικ για να το αλλάξετε στις ρυθμίσεις."
+
 msgid "Use Serial Number for Downloads"
 msgstr "Χρήση Σειριακού Αριθμού για Φορτίσεις"
 

@@ -103,6 +103,8 @@ def _plugin() -> Any:
     plugin._connection_type = ConnectionType.TUNNELING_TCP
     plugin._preferred_gateway_ip = None
     plugin._connect_at_startup = True
+    plugin._block_bus_writes_setting = False
+    plugin._block_bus_writes_forced = False
     plugin._selected_gateway = None
     plugin._gateway_info = None
     plugin._interface = None
@@ -126,6 +128,8 @@ def _plugin() -> Any:
         connection=SimpleNamespace(
             use_serial_number=True,
             busmonitor_active=False,
+            block_bus_writes=False,
+            writes_blocked=lambda: False,
             dispatch_raw_cemi=received.append,
             dispatch_sent_cemi=sent.append,
             data_secure=lambda: None,
