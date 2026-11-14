@@ -215,6 +215,11 @@ def _resolve_controls(
         _management_model(master_data, device_mask_version(application))
         is MaskVersionManagementModel.BIM_M112
     )
+    # A second program without a procedure of its own (DefaultProcedure, a Siemens MV-0700
+    # PEI program) adds no controls, and the application's procedure keeps its controls of
+    # the second program's load state machine, as without one.
+    if application2 is not None and application2.load_procedures is None:
+        application2 = None
     second = application2 is not None
     if load and style == LoadProcedureStyle.PRODUCT_PROCEDURE:
         controls = _program_controls(

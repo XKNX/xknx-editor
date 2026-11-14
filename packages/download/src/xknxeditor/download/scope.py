@@ -62,6 +62,8 @@ _EEPROM = 0x03
 _RELATIVE_WRITES = (LdCtrlWriteRelMem, LdCtrlLoadImageRelMem)
 _DEVICE_OBJECT = 0
 _ROUTER_OBJECT = 6
+# The BIM M112 whose objects have the type of their index (see mask_object_types).
+_MV_0700 = "MV-0700"
 
 
 class DownloadScope(Enum):
@@ -149,7 +151,12 @@ def mask_configuration(
 def mask_object_types(
     master_data: MasterData | None, mask_version_id: str
 ) -> dict[int, int]:
-    """Read the mask's explicit index-to-type mapping; never guess conventional indices."""
+    """Read the mask's explicit index-to-type mapping; never guess conventional indices.
+
+    The one exception the device profile knows itself: the BIM M112 MV-0700, whose master
+    data lists no interface objects, has the object type of its index for the indices up to 4
+    (the device object, the address table, the association table, the application and the
+    PEI program). An index the master data lists keeps the master data's type."""
     configuration = mask_configuration(master_data, mask_version_id)
     result: dict[int, int] = {}
     if configuration is not None and configuration.interface_objects is not None:
@@ -160,6 +167,9 @@ def mask_object_types(
                         f"conflicting object types for index {item.index}"
                     )
                 result[item.index] = item.object_type
+    if mask_version_id.upper() == _MV_0700:
+        for index in range(5):
+            result.setdefault(index, index)
     return result
 
 
