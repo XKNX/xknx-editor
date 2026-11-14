@@ -1829,12 +1829,30 @@ class MenuStrings:
     def IMPORT_CANCELLED(self) -> str:
         return _("Import cancelled, nothing was imported")
 
-    def KNXPROD_IMPORT_SUMMARY(self, count: int) -> str:
+    def KNXPROD_IMPORT_ALL_NEW(self, count: int) -> str:
         return _.plural(
-            "Imported {count} product version from {name}:",
-            "Imported {count} product versions from {name}:",
+            "Imported {count} new product version from {name}:",
+            "Imported {count} new product versions from {name}:",
             count,
         )
+
+    def KNXPROD_IMPORT_NONE_NEW(self, count: int) -> str:
+        return _.plural(
+            "{count} product version from {name}, already in the catalog:",
+            "{count} product versions from {name}, all already in the catalog:",
+            count,
+        )
+
+    @property
+    def KNXPROD_IMPORT_SOME_NEW(self) -> str:
+        """Put together from KNXPROD_IMPORT_VERSIONS and KNXPROD_IMPORT_NEW_OF_THEM."""
+        return _("Imported {versions} from {name}, {new}:")
+
+    def KNXPROD_IMPORT_VERSIONS(self, count: int) -> str:
+        return _.plural("{count} product version", "{count} product versions", count)
+
+    def KNXPROD_IMPORT_NEW_OF_THEM(self, count: int) -> str:
+        return _.plural("{count} of them new", "{count} of them new", count)
 
     @property
     def KNXPROD_DETAIL_SECURE(self) -> str:

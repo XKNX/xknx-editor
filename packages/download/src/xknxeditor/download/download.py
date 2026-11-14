@@ -21,6 +21,7 @@ from xknxeditor.namespaces.intermediate.resource_addr_space_t import ResourceAdd
 
 from .errors import (
     DownloadError,
+    ImageError,
     MemoryReadNotAnswered,
     MemoryWriteNotAcknowledged,
     PartialDownloadError,
@@ -46,6 +47,7 @@ from .merge import (
     resolve_download_controls,
     system300_mask_unresolved,
 )
+from .prepared import PreparedDownload
 from .procedure import LoadProcedureRunner, memory_services
 from .programmer import (
     DEFAULT_MAX_APDU_LENGTH,
@@ -422,6 +424,43 @@ async def _device_association_format(
     return image.with_association_table_format(wide)
 
 
+def prepared_controls(
+    application: Application,
+    prepared: PreparedDownload,
+    master: MasterData | None = None,
+    application2: Application | None = None,
+) -> list[object]:
+    """Materialize a complete offline plan using the download's procedure resolution."""
+    return prepared.materialize(
+        _resolve_controls(
+            application,
+            master,
+            prepared.image,
+            DownloadScope.FULL,
+            application2=application2,
+        ),
+        DownloadScope.FULL,
+    )
+
+
+async def _check_prepared_association_format(
+    xknx: XKNX,
+    address: IndividualAddress,
+    security: DeviceSecurity | None,
+    prepared: PreparedDownload,
+) -> None:
+    from .programmer import DeviceProgrammer
+
+    manager = _connection_manager(xknx, address, security)
+    try:
+        programmer = DeviceProgrammer(await manager.open())
+        wide = await programmer.read_association_table_wide()
+    finally:
+        await manager.close()
+    if wide is not None and wide != prepared.association_wide:
+        raise ImageError("device association format differs from the prepared image")
+
+
 def _object_types(
     application: Application, master: MasterData | None
 ) -> dict[int, int]:
@@ -633,6 +672,7 @@ async def download(
     master: MasterData | None = None,
     device: SeedDevice | None = None,
     image: DownloadImage | None = None,
+    prepared: PreparedDownload | None = None,
     group_communication: GroupCommunication | None = None,
     scope: DownloadScope = DownloadScope.FULL,
     parameter_values: Mapping[str, str] | None = None,
@@ -737,6 +777,28 @@ async def download(
         raise DownloadError(
             "switching a device to plain communication needs its key and no new Tool Key"
         )
+    prepared_steps: list[object] = []
+    if prepared is not None:
+        prepared.check_scope(scope, writing=True)
+        if (
+            any(
+                value is not None
+                for value in (security, tool_key, ip_secure, routing_blocking)
+            )
+            or disable_security
+        ):
+            raise UnsupportedProcedureError(
+                "prepared security configuration is unavailable"
+            )
+        if image is not None and image != prepared.image:
+            raise ImageError("image conflicts with prepared download")
+        image = prepared.image
+        prepared_steps = prepared.materialize(
+            _resolve_controls(
+                application, master, image, scope, ip_config, application2=application2
+            ),
+            scope,
+        )
     _reject_address_scope(scope)
     await _learn_device_mask(xknx, individual_address, security, application)
     if image is None:
@@ -749,9 +811,10 @@ async def download(
         )
     else:
         logger.debug("download: using pre-built image (scope=%s)", scope.name)
-    image = _with_second_program(
-        _with_mask_memory(image, application, master), application2
-    )
+    if prepared is None:
+        image = _with_second_program(
+            _with_mask_memory(image, application, master), application2
+        )
     controls = _resolve_controls(
         application,
         master,
@@ -765,6 +828,8 @@ async def download(
         routing_blocking if security is not None else None,
         application2,
     )
+    if prepared is not None:
+        controls = prepared_steps
     address = IndividualAddress(individual_address)
     if (
         commission
@@ -784,6 +849,8 @@ async def download(
         await program_individual_address(
             xknx, address, serial_number=commission_serial_number
         )
+    if prepared is not None:
+        await _check_prepared_association_format(xknx, address, security, prepared)
     master_reset = scope in _UNLOAD_SCOPES and unloads_by_master_reset(application)
     if scope is DownloadScope.UNLOAD_ALL and in_programming_mode and not master_reset:
         from .commissioning import wait_for_programming_mode
@@ -794,15 +861,19 @@ async def download(
             raise ProgrammingModeError(
                 f"Unexpected device in programming mode: {found} instead of {address}"
             )
-    checked = await _partial_scope(
-        xknx,
-        address,
-        security,
-        application,
-        master,
-        scope,
-        confirm_full_download,
-        application2,
+    checked = (
+        _ScopeCheck(scope)
+        if prepared is not None
+        else await _partial_scope(
+            xknx,
+            address,
+            security,
+            application,
+            master,
+            scope,
+            confirm_full_download,
+            application2,
+        )
     )
     application_loaded = checked.application_loaded
     if checked.scope is not scope:
@@ -820,7 +891,11 @@ async def download(
             routing_blocking if security is not None else None,
             application2,
         )
-    adapted = await _device_association_format(xknx, address, security, image, scope)
+    adapted = (
+        image
+        if prepared is not None
+        else await _device_association_format(xknx, address, security, image, scope)
+    )
     if adapted is not image:
         image = adapted
         controls = _resolve_controls(
@@ -973,6 +1048,7 @@ async def preflight(
     master: MasterData | None = None,
     device: SeedDevice | None = None,
     image: DownloadImage | None = None,
+    prepared: PreparedDownload | None = None,
     group_communication: GroupCommunication | None = None,
     scope: DownloadScope = DownloadScope.FULL,
     parameter_values: Mapping[str, str] | None = None,
@@ -997,6 +1073,18 @@ async def preflight(
     smaller blocks. ``xknx`` has to be started. ``application2`` is the product's second
     application program and ``access_key`` the project's access key, as for :func:`download`.
     """
+    prepared_steps: list[object] = []
+    if prepared is not None:
+        prepared.check_scope(scope, writing=False)
+        if image is not None and image != prepared.image:
+            raise ImageError("image conflicts with prepared download")
+        image = prepared.image
+        prepared_steps = prepared.materialize(
+            _resolve_controls(
+                application, master, image, scope, ip_config, application2=application2
+            ),
+            scope,
+        )
     _reject_address_scope(scope)
     await _learn_device_mask(xknx, individual_address, security, application)
     if image is None:
@@ -1006,20 +1094,26 @@ async def preflight(
             parameter_values=parameter_values,
             group_communication=group_communication,
         )
-    image = _with_second_program(
-        _with_mask_memory(image, application, master), application2
-    )
+    if prepared is None:
+        image = _with_second_program(
+            _with_mask_memory(image, application, master), application2
+        )
     address = IndividualAddress(individual_address)
     application_loaded = False
-    if scope not in _PARTIAL_SCOPES:
+    if prepared is None and scope not in _PARTIAL_SCOPES:
         # The scope a download would take (PreferPartialDownloadIfApplicationLoaded).
         scope, application_loaded = await _partial_scope(
             xknx, address, security, application, master, scope, None, application2
         )
-    image = await _device_association_format(xknx, address, security, image, scope)
+    if prepared is None:
+        image = await _device_association_format(xknx, address, security, image, scope)
+    else:
+        await _check_prepared_association_format(xknx, address, security, prepared)
     controls = _resolve_controls(
         application, master, image, scope, ip_config, application2=application2
     )
+    if prepared is not None:
+        controls = prepared_steps
     full_controls = (
         _full_procedure(application, master, image, application2)
         if scope is not DownloadScope.FULL
@@ -1051,7 +1145,15 @@ async def preflight(
             full_controls=full_controls,
         )
         try:
-            return await runner.preflight()
+            report = await runner.preflight()
+            if prepared is not None:
+                report = replace(
+                    report,
+                    segments=tuple(
+                        replace(s, configuration=True) for s in report.segments
+                    ),
+                )
+            return report
         except MemoryReadNotAnswered as exc:
             if attempt + 1 >= len(memory_caps):
                 raise

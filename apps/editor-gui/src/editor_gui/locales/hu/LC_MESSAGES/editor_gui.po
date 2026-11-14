@@ -1711,9 +1711,24 @@ msgid "Remove the affected device or export for the newer ETS."
 msgid_plural "Remove the affected devices or export for the newer ETS."
 msgstr[0] "Távolítsa el az érintett készülékeket, vagy exportáljon az újabb ETS-hez."
 
-msgid "Imported {count} product version from {name}:"
-msgid_plural "Imported {count} product versions from {name}:"
-msgstr[0] "{count} termékverzió importálva innen: {name}:"
+msgid "Imported {count} new product version from {name}:"
+msgid_plural "Imported {count} new product versions from {name}:"
+msgstr[0] "{count} új termékverzió importálva innen: {name}:"
+
+msgid "{count} product version from {name}, already in the catalog:"
+msgid_plural "{count} product versions from {name}, all already in the catalog:"
+msgstr[0] "{count} termékverzió innen: {name}, már a katalógusban:"
+
+msgid "Imported {versions} from {name}, {new}:"
+msgstr "{versions} importálva ({name}), {new}:"
+
+msgid "{count} product version"
+msgid_plural "{count} product versions"
+msgstr[0] "{count} termékverzió"
+
+msgid "{count} of them new"
+msgid_plural "{count} of them new"
+msgstr[0] "ebből {count} új"
 
 msgid "Monitor"
 msgstr "Monitor"

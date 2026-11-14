@@ -244,7 +244,7 @@ msgid "Close"
 msgstr "Mbyll"
 
 msgid "Maximum Telegram Length (APDU): {length}"
-msgstr "Gjatësia Maksimale e Telegramit (APDU): {length}"
+msgstr "Gjatësia maksimale e telegramit (APDU): {length}"
 
 msgid "EMI Type: {emi}"
 msgstr "Lloji EMI: {emi}"
@@ -259,7 +259,7 @@ msgid "Individual Address"
 msgstr "Adresa individuale"
 
 msgid "Address Free?"
-msgstr "Adresa e Lirë?"
+msgstr "A është e lirë?"
 
 msgid "The individual address {address} is not used by another device."
 msgstr "Adresa individuale {address} nuk përdoret nga asnjë pajisje tjetër."
@@ -277,10 +277,10 @@ msgid "Not connected through a USB interface."
 msgstr "Nuk ka lidhje përmes një ndërfaqeje USB."
 
 msgid "The individual address could not be set: {error}"
-msgstr "Adresa individuale nuk mund të vendosej: {error}"
+msgstr "Vendosja e adresës individuale dështoi: {error}"
 
 msgid "The individual address could not be checked: {error}"
-msgstr "Adresa individuale nuk mund të kontrollohej: {error}"
+msgstr "Kontrolli i adresës individuale dështoi: {error}"
 
 msgid "Setting the individual address…"
 msgstr "Po vendoset adresa individuale…"
@@ -289,4 +289,4 @@ msgid "Checking the individual address on the bus…"
 msgstr "Po kontrollohet adresa individuale në bus…"
 
 msgid "This interface forgets its individual address when unplugged, so it is set again on every connect."
-msgstr "Kjo ndërfaqe e harron adresën e saj individuale kur shkëputet, prandaj vendoset sërish në çdo lidhje."
+msgstr "Kjo ndërfaqe nuk e ruan adresën e saj individuale pas shkëputjes, prandaj adresa vendoset sërish në çdo lidhje."

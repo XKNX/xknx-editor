@@ -8,7 +8,8 @@
     "packages/namespaces/src",
     "packages/prod/src",
     "packages/proj/src",
-    "packages/recover/src"
+    "packages/recover/src",
+    "packages/vendor/src"
   ],
   "exclude": [
     "**/files",

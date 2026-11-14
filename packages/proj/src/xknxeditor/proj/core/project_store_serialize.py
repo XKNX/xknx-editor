@@ -12,7 +12,7 @@ is therefore reused from :mod:`knxproj_export` rather than duplicated.
 
 Scope of this writer (v1): topology, devices (parameter/com-object instances, module instances,
 the group-object tree), group addresses, buildings with their device assignments, and the project
-header. Building *functions* and per-device ``BinaryData`` are not emitted yet. A device's
+header and per-device binary attachments. Building *functions* are not emitted yet. A device's
 ``IPConfig`` and extra individual addresses are, under the store's short names ``IP`` and ``AA``.
 """
 
@@ -24,18 +24,20 @@ import shutil
 import xml.etree.ElementTree as ET
 import zipfile
 from collections.abc import Callable, Mapping
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from io import BytesIO
 from pathlib import Path, PurePosixPath
 from uuid import uuid4
 
 from sqlalchemy.orm import object_session
 
+from xknxeditor.proj.core.acknowledgements import exported_acknowledgements
 from xknxeditor.proj.core.dpt import normalize_datapoint_type
 from xknxeditor.proj.core.ga_security import secured_group_addresses
 from xknxeditor.proj.core.knxproj_export import (
     assign_ids,
     enable,
+    encode_binary_name,
     group_object_tree_instances,
     has_override,
     localname,
@@ -90,6 +92,7 @@ class StoreStreams:
     guid: str
     #: Stream name -> file bytes (incl. BOM), e.g. ``{"P": b"...", "P-0273-0_A-1": b"..."}``.
     streams: dict[str, bytes]
+    binary_data: dict[str, bytes] = field(default_factory=lambda: {})
 
 
 def _attr(parent: ET.Element, tag: str, **attrs: object) -> ET.Element:
@@ -124,12 +127,15 @@ class _StoreBuilder:
         name: str | None = None,
         store_format: StoreFormat = StoreFormat.ETS6,
         group_object_trees: Mapping[int, str] | None = None,
+        binary_data_transform: Callable[[Device], Mapping[str, bytes]] | None = None,
     ) -> None:
         self._project = project
         self._installation = installation
         self._pid = pid
         self._format = store_format
         self._group_object_trees = group_object_trees or {}
+        self._binary_data_transform = binary_data_transform
+        self.binary_data: dict[str, bytes] = {}
         self._name = name if name is not None else project.name
         # Persistent-unique-id per object, assigned in the order a genuine store does: the whole
         # topology skeleton, then spaces, then devices, then the group-address tree. Keyed by
@@ -523,6 +529,31 @@ class _StoreBuilder:
         self._build_group_object_tree(di, device)
         self._build_additional_addresses(di, device)
         self._build_ip_config(di, device)
+        self._build_binary_data(di, device)
+
+    def _build_binary_data(self, di: ET.Element, device: Device) -> None:
+        entries = {row.name: row for row in device.binary_data}
+        payloads = {name: row.data for name, row in entries.items()}
+        if self._binary_data_transform is not None:
+            payloads.update(self._binary_data_transform(device))
+        if not payloads:
+            return
+        container = _attr(di, "BD")
+        for name, data in payloads.items():
+            row = entries.get(name)
+            identity = f"{self._di_id[device.id]}_{encode_binary_name(name)}"
+            copy_attribute = (
+                "AutoCopy" if self._format is StoreFormat.ETS5 else "DoNotCopy"
+            )
+            _attr(
+                container,
+                "BD",
+                Id=identity,
+                Name=name,
+                RefId=row.ref_id or None if row else None,
+                **{copy_attribute: str(bool(row and row.do_not_copy)).lower()},
+            )
+            self.binary_data[identity + ".dat"] = data
 
     def _build_additional_addresses(self, di: ET.Element, device: Device) -> None:
         """Extra individual addresses a coupler or IP interface reserves.
@@ -580,7 +611,7 @@ class _StoreBuilder:
                 Description=co.description_override or None,
                 Priority=co.priority or None,
                 DatapointType=co.datapoint_type_override or None,
-                Acknowledges=co.acknowledges or None,
+                Acknowledges=exported_acknowledgements(co, self._ga_link_id),
                 Links=links or None,
                 ReadFlag=enable(co.read_flag_override),
                 WriteFlag=enable(co.write_flag_override),
@@ -687,6 +718,7 @@ def build_store_streams(
     name: str | None = None,
     store_format: StoreFormat = StoreFormat.ETS6,
     group_object_trees: Mapping[int, str] | None = None,
+    binary_data_transform: Callable[[Device], Mapping[str, bytes]] | None = None,
 ) -> StoreStreams:
     """Serialize ``project`` into the ETS store streams (no files written).
 
@@ -695,6 +727,8 @@ def build_store_streams(
     interchangeable, see :class:`xknxeditor.proj.core.project_store.StoreFormat`.
     ``group_object_trees`` are trees of devices whose stored one is out of date, as for the
     ``.knxproj`` export (:func:`xknxeditor.proj.core.knxproj_export.export_knxproj`).
+    ``binary_data_transform`` adds or replaces named attachment payloads in the returned
+    ``binary_data`` mapping; it does not change the source objects.
     """
     resolved_pid = pid or project.id
     builder = _StoreBuilder(
@@ -704,9 +738,15 @@ def build_store_streams(
         name=name,
         store_format=store_format,
         group_object_trees=group_object_trees,
+        binary_data_transform=binary_data_transform,
     )
     streams = builder.build()
-    return StoreStreams(pid=resolved_pid, guid=builder.guid, streams=streams)
+    return StoreStreams(
+        pid=resolved_pid,
+        guid=builder.guid,
+        streams=streams,
+        binary_data=builder.binary_data,
+    )
 
 
 def write_project_store(
@@ -722,6 +762,7 @@ def write_project_store(
     reveal: Callable[[bytes], bytes] | None = None,
     store_format: StoreFormat = StoreFormat.ETS6,
     group_object_trees: Mapping[int, str] | None = None,
+    binary_data_transform: Callable[[Device], Mapping[str, bytes]] | None = None,
 ) -> StoreStreams:
     """Write a complete ``P-XXXX`` store directory the target ETS can open.
 
@@ -731,8 +772,9 @@ def write_project_store(
     application refs resolve, each folder getting its own ``M-XXXX.store`` descriptor the same way
     the project folder does (see :func:`xknxeditor.proj.core.project_store.store_descriptor` -- verified
     against a genuine ProjectStore, a manufacturer folder without one is treated as missing/untrusted
-    even though its files and hashes are otherwise correct); empty ``BinaryData``/``UserFiles``/
-    ``AddinData`` folders complete the layout. ``dest_dir`` is the ``P-XXXX`` folder itself (use
+    even though its files and hashes are otherwise correct). Binary attachments receive raw
+    payload files and integrity sidecars; ``UserFiles``/``AddinData`` folders complete the layout.
+    ``dest_dir`` is the ``P-XXXX`` folder itself (use
     :func:`store_pid_exists` and :func:`next_free_pid` to decide the id and avoid clobbering an
     unrelated project).
 
@@ -751,6 +793,8 @@ def write_project_store(
     (see :meth:`ProjectService.reveal`). ``store_format`` must match the ETS generation owning
     ``dest_dir``: a store written for the other one opens but comes up empty.
     ``group_object_trees`` see :func:`build_store_streams`.
+    ``binary_data_transform`` updates or adds named binary attachments from each device.
+    Its exceptions abort serialization before any destination files are written.
     """
     built = build_store_streams(
         project,
@@ -759,6 +803,7 @@ def write_project_store(
         name=project_name,
         store_format=store_format,
         group_object_trees=group_object_trees,
+        binary_data_transform=binary_data_transform,
     )
     if reveal is not None:
         built.streams.update(
@@ -794,6 +839,10 @@ def write_project_store(
 
     for folder in ("BinaryData", "UserFiles", "AddinData"):
         (staging / folder).mkdir(exist_ok=True)
+    for name, data in built.binary_data.items():
+        write_store_stream(staging / "BinaryData", name, data, mask)
+        if not data:
+            (staging / "BinaryData" / name).write_bytes(b"")
 
     if dest_dir.exists():
         if not overwrite:

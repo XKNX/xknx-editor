@@ -4903,6 +4903,80 @@ def _decode_previous(previous: Any) -> dict[str, Any] | None:
     return out
 
 
+@_register
+@dataclass
+class RebindDeviceComObjects(Event):
+    """Replace an object view, preserving only explicitly matched rows and links."""
+
+    event_type: ClassVar[str] = "RebindDeviceComObjects"
+    device_id: int
+    targets: list[dict[str, Any]]
+    previous: list[dict[str, Any]] = field(default_factory=list[dict[str, Any]])
+    added_ids: list[int] = field(default_factory=list[int])
+    loaded: Any = None
+
+    def apply(self, session: Session) -> None:
+        device = session.get(Device, self.device_id)
+        if device is None:
+            raise ValueError("device no longer exists")
+        existing = {co.id: co for co in device.com_objects}
+        sources = [
+            t["source_id"] for t in self.targets if t.get("source_id") is not None
+        ]
+        if len(set(sources)) != len(sources) or set(sources) - set(existing):
+            raise ValueError("invalid object rebinding source")
+        snapshots = {key: _snapshot_subtree(co) for key, co in existing.items()}
+        self.previous = [row for rows in snapshots.values() for row in rows]
+        self.loaded = _clear_application_loaded(device)
+        for co in existing.values():
+            session.delete(co)
+        session.flush()
+        for target in self.targets:
+            source_id = target.get("source_id")
+            if source_id is not None:
+                rows = [dict(row) for row in snapshots[source_id]]
+                rows[0].update(target["fields"])
+                _restore_rows(session, rows)
+        restored: list[int] = []
+        for i, target in enumerate(self.targets):
+            source_id = target.get("source_id")
+            if source_id is not None:
+                restored.append(source_id)
+            else:
+                co = ComObject(device_id=self.device_id, **target["fields"])
+                if i < len(self.added_ids):
+                    co.id = self.added_ids[i]
+                session.add(co)
+                session.flush()
+                restored.append(co.id)
+        self.added_ids = restored
+        session.expire(device, ["com_objects"])
+
+    def revert(self, session: Session) -> None:
+        device = session.get(Device, self.device_id)
+        if device is None:
+            raise ValueError("device no longer exists")
+        for co in list(device.com_objects):
+            session.delete(co)
+        session.flush()
+        _restore_rows(session, self.previous)
+        _restore_application_loaded(device, self.loaded)
+        session.expire(device, ["com_objects"])
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "device_id": self.device_id,
+            "targets": self.targets,
+            "previous": self.previous,
+            "added_ids": self.added_ids,
+            "loaded": self.loaded,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> RebindDeviceComObjects:
+        return cls(**data)
+
+
 # The rows :class:`SetFields` writes to, by kind.
 _FIELD_ROWS: dict[str, type[Base]] = {
     "device": Device,

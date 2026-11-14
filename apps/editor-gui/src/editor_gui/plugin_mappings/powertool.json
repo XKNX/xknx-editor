@@ -1,0 +1,8 @@
+{
+  "app_id_prefixes": ["M-0007_A-6108-"],
+  "plugin_ids": ["{008C1C2B-2FA8-480C-B174-3F5CB660980E}", "{F7C734DF-C8BC-4A63-A2A0-C582E6806C0A}", "{53B5C672-E8F8-4C08-851B-0C256ADEF5FD}"],
+  "title": "PowerTool",
+  "provider": "powertool",
+  "blob_names": ["PT2EtsPlugin"],
+  "sections": []
+}

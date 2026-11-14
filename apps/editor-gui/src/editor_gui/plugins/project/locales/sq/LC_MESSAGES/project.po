@@ -1016,10 +1016,10 @@ msgid "Evaluation failed"
 msgstr "Testi dështoi"
 
 msgid "Read-only test: compares what a download would write with what is on the device. Nothing is written to the device."
-msgstr "Test vetëm për lexim: krahason atë që do të shkruante një shkarkim me atë që ndodhet në pajisje. Asgjë nuk shkruhet në pajisje."
+msgstr "Test vetëm për lexim: krahason të dhënat që do të shkruheshin në pajisje gjatë programimit me të dhënat që ndodhen aktualisht në të. Asgjë nuk shkruhet në pajisje."
 
 msgid "Cannot run: the project was changed since it was opened and may no longer match the device. Undo the changes of this session, or save and reopen the project."
-msgstr "Nuk mund të ekzekutohet: projekti është ndryshuar që kur u hap dhe mund të mos përputhet më me pajisjen. Zhbëni ndryshimet e këtij sesioni ose ruajeni dhe rihapeni projektin."
+msgstr "Nuk mund të ekzekutohet: projekti është ndryshuar që kur u hap dhe mund të mos përputhet më me pajisjen. Zhbëni ndryshimet e kësaj seance ose ruajeni dhe rihapeni projektin."
 
 msgid "Cannot run: no KNX connection. Connect to a gateway ({menu} menu) and make sure the device is reachable at its individual address."
 msgstr "Nuk mund të ekzekutohet: pa lidhje KNX. Lidhuni me një gateway (menyja {menu}) dhe sigurohuni që pajisja arrihet në adresën e saj individuale."
@@ -1031,10 +1031,10 @@ msgid "{matched} matched, {changed} would change"
 msgstr "{matched} përputhen, {changed} do të ndryshonin"
 
 msgid "Only meaningful for a device last programmed with ETS 6: one programmed with ETS 5 stores its data in another layout and shows large false differences."
-msgstr "Ka kuptim vetëm për një pajisje të programuar së fundi me ETS 6: një pajisje e programuar me ETS 5 i ruan të dhënat në një renditje tjetër dhe shfaq dallime të rreme të mëdha."
+msgstr "Ka kuptim vetëm për një pajisje të programuar për herë të fundit me ETS 6: një pajisje e programuar me ETS 5 i ruan të dhënat në një strukturë tjetër dhe shfaq ndryshime të mëdha që nuk janë reale."
 
 msgid "If whole tables differ, the device was possibly last programmed with ETS 5 (another layout). If only values differ, it holds another configuration."
-msgstr "Nëse ndryshojnë tabela të tëra, pajisja ndoshta është programuar së fundi me ETS 5 (renditje tjetër). Nëse ndryshojnë vetëm vlerat, ajo ka një konfigurim tjetër."
+msgstr "Nëse ndryshojnë tabela të tëra, pajisja mund të jetë programuar për herë të fundit me ETS 5 (me një strukturë tjetër të të dhënave). Nëse ndryshojnë vetëm vlerat, ajo ka një konfigurim tjetër."
 
 msgid "Location"
 msgstr "Vendndodhja"
@@ -3126,7 +3126,7 @@ msgstr[0] "{count} bajt"
 msgstr[1] "{count} bajte"
 
 msgid "Mismatch: {bytes} from the device in {locations}."
-msgstr "Mospërputhje: {bytes} nga pajisja në {locations}."
+msgstr "Mospërputhje me pajisjen: {bytes} në {locations}."
 
 msgid "{count} byte differs"
 msgid_plural "{count} bytes differ"
@@ -3140,8 +3140,8 @@ msgstr[1] "{count} vende"
 
 msgid "Plus {bytes} device-managed runtime byte (expected, benign)"
 msgid_plural "Plus {bytes} device-managed runtime bytes (expected, benign)"
-msgstr[0] "Dhe {bytes} bajt që e menaxhon vetë pajisja (i pritshëm, i padëmshëm)"
-msgstr[1] "Dhe {bytes} bajte që i menaxhon vetë pajisja (të pritshëm, të padëmshëm)"
+msgstr[0] "Dhe {bytes} bajt që menaxhohet nga vetë pajisja gjatë punës (i pritshëm, i padëmshëm)"
+msgstr[1] "Dhe {bytes} bajte që menaxhohen nga vetë pajisja gjatë punës (të pritshëm, të padëmshëm)"
 
 msgid "Plus {bytes} byte reset to the application default (the device holds an older value; benign, will be normalised on programming)"
 msgid_plural "Plus {bytes} bytes reset to the application default (the device holds an older value; benign, will be normalised on programming)"
@@ -3188,3 +3188,45 @@ msgstr "Programimi në pritje: {parts}"
 
 msgid "Medium Configuration"
 msgstr "Konfigurimi i mediumit"
+
+msgid "The standard download would overwrite the configuration this device keeps only in the manufacturer's plugin (its application was converted from pre-ETS4 data), so the device would lose its settings. Program it with the manufacturer's plugin instead."
+msgstr "The standard download would overwrite the configuration this device keeps only in the manufacturer's plugin (its application was converted from pre-ETS4 data), so the device would lose its settings. Program it with the manufacturer's plugin instead."
+
+msgid "Set Up Plugin"
+msgstr "Konfiguro Plugin"
+
+msgid "The change removed these group address links:"
+msgstr "Ndryshimi hoqi këto lidhje të adresave të grupit:"
+
+msgid "Import Plugin Configuration…"
+msgstr "Importo konfigurimin Plugin…"
+
+msgid "Export Plugin Configuration…"
+msgstr "Eksporto konfigurimin Plugin…"
+
+msgid "Plugin Image and Load Plan"
+msgstr "Imazhi dhe plani i ngarkimit Plugin"
+
+msgid "Use Stored Plugin Configuration"
+msgstr "Përdor konfigurimin e ruajtur të shtojcës"
+
+msgid "Database"
+msgstr "Baza e të dhënave"
+
+msgid "Database Version"
+msgstr "Versioni i bazës së të dhënave"
+
+msgid "Product Type"
+msgstr "Lloji i produktit"
+
+msgid "Database Code"
+msgstr "Kodi i bazës së të dhënave"
+
+msgid "Metadata Verified"
+msgstr "Metadatat e verifikuara"
+
+msgid "Internal Values"
+msgstr "Vlera të brendshme"
+
+msgid "Acknowledge Group Address"
+msgstr "Konfirmo Adresën e Grupit"

@@ -3188,3 +3188,45 @@ msgstr "Ohjelmointi odottaa: {parts}"
 
 msgid "Medium Configuration"
 msgstr "Siirtotien määritys"
+
+msgid "The standard download would overwrite the configuration this device keeps only in the manufacturer's plugin (its application was converted from pre-ETS4 data), so the device would lose its settings. Program it with the manufacturer's plugin instead."
+msgstr "The standard download would overwrite the configuration this device keeps only in the manufacturer's plugin (its application was converted from pre-ETS4 data), so the device would lose its settings. Program it with the manufacturer's plugin instead."
+
+msgid "Set Up Plugin"
+msgstr "Määritä Plugin"
+
+msgid "The change removed these group address links:"
+msgstr "Muutos poisti nämä ryhmäosoitelinkit:"
+
+msgid "Import Plugin Configuration…"
+msgstr "Tuo Plugin-määritys…"
+
+msgid "Export Plugin Configuration…"
+msgstr "Vie Plugin-määritys…"
+
+msgid "Plugin Image and Load Plan"
+msgstr "Plugin-kuva ja lataussuunnitelma"
+
+msgid "Use Stored Plugin Configuration"
+msgstr "Käytä tallennettua lisäosan määritystä"
+
+msgid "Database"
+msgstr "Tietokanta"
+
+msgid "Database Version"
+msgstr "Tietokannan versio"
+
+msgid "Product Type"
+msgstr "Tuotetyyppi"
+
+msgid "Database Code"
+msgstr "Tietokannan koodi"
+
+msgid "Metadata Verified"
+msgstr "Metatiedot vahvistettu"
+
+msgid "Internal Values"
+msgstr "Sisäiset arvot"
+
+msgid "Acknowledge Group Address"
+msgstr "Kuittaa Ryhmäosoite"

@@ -3136,3 +3136,45 @@ msgstr "Programlama bekliyor: {parts}"
 
 msgid "Medium Configuration"
 msgstr "Ortam yapılandırması"
+
+msgid "The standard download would overwrite the configuration this device keeps only in the manufacturer's plugin (its application was converted from pre-ETS4 data), so the device would lose its settings. Program it with the manufacturer's plugin instead."
+msgstr "The standard download would overwrite the configuration this device keeps only in the manufacturer's plugin (its application was converted from pre-ETS4 data), so the device would lose its settings. Program it with the manufacturer's plugin instead."
+
+msgid "Set Up Plugin"
+msgstr "Plugin Kurulumu"
+
+msgid "The change removed these group address links:"
+msgstr "Değişiklik şu grup adresi bağlantılarını kaldırdı:"
+
+msgid "Import Plugin Configuration…"
+msgstr "Plugin Yapılandırmasını İçe Aktar…"
+
+msgid "Export Plugin Configuration…"
+msgstr "Plugin Yapılandırmasını Dışa Aktar…"
+
+msgid "Plugin Image and Load Plan"
+msgstr "Plugin İmajı ve Yükleme Planı"
+
+msgid "Use Stored Plugin Configuration"
+msgstr "Kayıtlı eklenti yapılandırmasını kullan"
+
+msgid "Database"
+msgstr "Veritabanı"
+
+msgid "Database Version"
+msgstr "Veritabanı sürümü"
+
+msgid "Product Type"
+msgstr "Ürün türü"
+
+msgid "Database Code"
+msgstr "Veritabanı kodu"
+
+msgid "Metadata Verified"
+msgstr "Meta veriler doğrulandı"
+
+msgid "Internal Values"
+msgstr "Dahili değerler"
+
+msgid "Acknowledge Group Address"
+msgstr "Grup Adresini Onayla"

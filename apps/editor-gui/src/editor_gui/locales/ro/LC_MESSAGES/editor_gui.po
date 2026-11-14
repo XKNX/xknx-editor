@@ -1735,11 +1735,32 @@ msgstr[0] "Eliminați dispozitivul afectat sau exportați pentru ETS-ul mai nou.
 msgstr[1] "Eliminați dispozitivele afectate sau exportați pentru ETS-ul mai nou."
 msgstr[2] "Eliminați dispozitivele afectate sau exportați pentru ETS-ul mai nou."
 
-msgid "Imported {count} product version from {name}:"
-msgid_plural "Imported {count} product versions from {name}:"
-msgstr[0] "S-a importat {count} versiune de produs din {name}:"
-msgstr[1] "S-au importat {count} versiuni de produs din {name}:"
-msgstr[2] "S-au importat {count} de versiuni de produs din {name}:"
+msgid "Imported {count} new product version from {name}:"
+msgid_plural "Imported {count} new product versions from {name}:"
+msgstr[0] "S-a importat {count} versiune nouă de produs din {name}:"
+msgstr[1] "S-au importat {count} versiuni noi de produs din {name}:"
+msgstr[2] "S-au importat {count} de versiuni noi de produs din {name}:"
+
+msgid "{count} product version from {name}, already in the catalog:"
+msgid_plural "{count} product versions from {name}, all already in the catalog:"
+msgstr[0] "{count} versiune de produs din {name}, deja în catalog:"
+msgstr[1] "{count} versiuni de produs din {name}, toate deja în catalog:"
+msgstr[2] "{count} de versiuni de produs din {name}, toate deja în catalog:"
+
+msgid "Imported {versions} from {name}, {new}:"
+msgstr "S-au importat {versions} din {name}, {new}:"
+
+msgid "{count} product version"
+msgid_plural "{count} product versions"
+msgstr[0] "{count} versiune de produs"
+msgstr[1] "{count} versiuni de produs"
+msgstr[2] "{count} de versiuni de produs"
+
+msgid "{count} of them new"
+msgid_plural "{count} of them new"
+msgstr[0] "{count} dintre ele nouă"
+msgstr[1] "{count} dintre ele noi"
+msgstr[2] "{count} dintre ele noi"
 
 msgid "Monitor"
 msgstr "Monitor"

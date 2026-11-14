@@ -178,6 +178,11 @@ view, and, over the bus, scan, address and commission the connected control gear
 configuration in a blob instead of classic parameters. Configure them in the **Plugin Parameters**
 panel, choose the display type, and load or export the display's LVS project (`.prj`).
 
+**PowerTool**: configure supported Busch-Jaeger devices in **Plugin Parameters**, with
+import/export, undo/redo, preflight and full application programming through GUI and MCP.
+No PowerTool installation is needed; edits update the stored PowerTool configuration.
+Hardware behavior remains unverified; initial Powerline domain commissioning is not supported.
+
 **Cockpit and health checks** — a site-wide device table with live status, plus a panel that flags
 issues (missing or duplicate addresses, applications missing from the catalog, unlinked objects,
 group addresses without a type or sender); click a finding to jump to the device.

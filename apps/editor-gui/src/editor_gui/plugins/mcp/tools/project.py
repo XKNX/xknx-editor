@@ -33,11 +33,12 @@ from editor_gui.plugins.mcp.context import McpContext, make_tool, require_projec
 from editor_gui.plugins.project.code_page import code_page_text
 from editor_gui.plugins.project.element_status import usage_label, usage_options
 from editor_gui.plugins.project.paste import PasteTarget
+from editor_gui.plugins.project.plugin_export import binary_data_for_export
 from editor_gui.plugins.project.service import DeviceProduct
 from editor_gui.plugins.project.space_text import default_name, space_error_text
 from editor_gui.plugins.project.space_usages import SPACE_USAGES
 from editor_gui.plugins.project.strings import S as PROJECT_S
-from editor_gui.settings import config_dir
+from editor_gui.settings import config_dir, export_schema
 from xknxeditor.proj.core.medium import (
     MEDIUM_NAMES,
     MediumError,
@@ -116,6 +117,9 @@ def com_object_links(project: ProjectService, co: ComObject) -> list[dict[str, A
                 "address": g.address if g else None,
                 "name": g.name if g else None,
                 "is_sending": a.is_sending,
+                "acknowledges": project.com_object_acknowledges(
+                    co.db_id, a.group_address_id
+                ),
             }
         )
     return links
@@ -1750,8 +1754,11 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     @tool("destructive")
     def project_export_knxproj(dest: str) -> dict[str, str]:
-        """Export the open project to a .knxproj archive at ``dest`` (with manufacturer bundle).
-        Returns {status, dest} plus an optional ``warning``. ``status="incomplete"`` means
+        """Export the open project to a .knxproj archive at ``dest`` (with manufacturer bundle), in
+        the format of the ``export_format`` setting (project/23 by default, or project/20).
+        The current PowerTool plugin blob is included after consistency validation.
+        Returns {status, dest} plus an optional
+        ``warning``. ``status="incomplete"`` means
         manufacturer references are missing — ETS may reject the archive, so inspect the warning."""
         require_project(ctx)
         warnings: list[str] = []
@@ -1774,6 +1781,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             result = export_knxproj(
                 source,
                 Path(dest),
+                schema=export_schema(),
                 password=project.project_password,
                 extra_files=bundle.extra_files,
                 master_xml=bundle.master_xml,
@@ -1782,6 +1790,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                 master_cache_dir=config_dir(),
                 module_arguments=project.module_arguments(),
                 group_object_trees=project.group_object_trees(),
+                binary_data_transform=binary_data_for_export,
             )
             if result.unverifiable_folders:
                 warnings.append(
@@ -1813,7 +1822,9 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         Only works on this same machine when it runs on Windows with an ETS installation; otherwise
         it returns an error. Set ``accept_untested=True`` to allow an ETS version that is not the
-        known-good one. Returns {status, dest, certificate, validation, license, devices}."""
+        known-good one. The project goes in the format of the ``export_format`` setting, or as
+        project/20 for version 5. Returns {status, dest, certificate, validation, license,
+        devices}."""
         require_project(ctx)
         import shutil
         import tempfile
@@ -1832,7 +1843,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         # ETS 6 is preferred (cloud or dongle); fall back to ETS 5 (dongle only).
         if ets_local_available():
             sign_local = ets_local_sign
-            schema = "23"
+            schema = export_schema()
         elif ets5_local_available():
             sign_local = ets5_local_sign
             schema = "20"
@@ -1863,6 +1874,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                 master_cache_dir=config_dir(),
                 module_arguments=project.module_arguments(),
                 group_object_trees=project.group_object_trees(),
+                binary_data_transform=binary_data_for_export,
             )
             return project.project_password
 
@@ -2219,7 +2231,8 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         OR ``device_address`` (an individual address like "1.0.30"); pass exactly one. Pass ref_id
         from project_list_com_objects as com_object_ref_id.
         Returns {items, count}; each item has {assignment_id, group_address_id, address, name,
-        is_sending}. Pass assignment_id to project_unlink_com_object. items is empty when the object
+        is_sending, acknowledges}. acknowledges is a Powerline boolean, otherwise null.
+        Pass assignment_id to project_unlink_com_object. items is empty when the object
         is not instantiated or has no links; address and name are null if the group address is absent.
         These project links do not verify what is currently programmed on the bus."""
 

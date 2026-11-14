@@ -1,6 +1,12 @@
+from __future__ import annotations
+
 import re
 from collections.abc import Callable
 from pathlib import Path
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from xknxeditor.download.prepared import PreparedDownload
 
 from imgui_bundle import imgui
 
@@ -16,7 +22,12 @@ from xknxeditor.prod.errors import EncodingError
 
 
 class MemoryPreviewWindow:
-    def __init__(self, get_devices: Callable[[], list[Device]]) -> None:
+    def __init__(
+        self,
+        get_devices: Callable[[], list[Device]],
+        prepared_image: Callable[[Device], PreparedDownload | None] | None = None,
+    ) -> None:
+        self._prepared_image = prepared_image
         self._get_devices = get_devices
         self._device: Device | None = None
         self._show: bool = False
@@ -52,9 +63,17 @@ class MemoryPreviewWindow:
         # (see EncodingError). This preview runs every frame, so degrade to an inline
         # message instead of letting the exception tear down the render loop.
         try:
-            self._segments = device.encode_to_memory()
+            prepared = self._prepared_image(device) if self._prepared_image else None
+            self._segments = (
+                {
+                    f"Object {s.object_index}": s.memory.data
+                    for s in prepared.image.application_segments
+                }
+                if prepared is not None
+                else device.encode_to_memory()
+            )
             self._encode_error = None
-        except EncodingError as exc:
+        except (EncodingError, ValueError) as exc:
             self._segments = {}
             self._encode_error = str(exc)
         self._base_addrs = device.get_segment_base_addrs()

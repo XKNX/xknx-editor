@@ -322,6 +322,8 @@ class GroupCommunication:
     # The KNX Data Secure keys and accepted senders of a securely commissioned device; the download
     # writes the security tables (see :mod:`xknxeditor.download.secure_config`) from them.
     security: GroupSecurity | None = None
+    domain_address: int | None = None
+    repeater_present: bool = False
 
 
 @dataclass(frozen=True, slots=True)
@@ -339,8 +341,13 @@ class MemorySegment:
     mask: bytes | None = None
     initialized_mask: bytes | None = None
     # ``(offset, value)`` octets a partial download writes in place of ``data``: the object
-    # count of a group object table, where a full download keeps the product's octet.
+    # count of a group object table, where a full download keeps the product's octet (a
+    # download of the parameters alone writes no group table at all, see ``group_table``).
     partial_octets: tuple[tuple[int, int], ...] = ()
+    # A group communication table (group address, association or group object table) in
+    # memory: a download of the parameters alone does not write it, one of the group
+    # communication alone writes only these (see ``DownloadImage.masked_writes``).
+    group_table: bool = False
 
     def __post_init__(self) -> None:
         for mask in (self.mask, self.initialized_mask):
@@ -487,6 +494,19 @@ class DownloadImage:
     # segment that covers part of an octet): the download reads the octet first and writes
     # these bits only, keeping the others as the device holds them.
     bit_masks: Mapping[int, int] = MappingProxyType({})
+    allocation_sizes: Mapping[int, int] = MappingProxyType({})
+
+    def __post_init__(self) -> None:
+        sizes = dict(self.allocation_sizes)
+        if any(
+            type(index) is not int
+            or index not in self.object_segments
+            or type(size) is not int
+            or not len(self.object_segments[index]) <= size <= 0xFFFFFFFF
+            for index, size in sizes.items()
+        ):
+            raise ImageError("invalid image allocation size")
+        object.__setattr__(self, "allocation_sizes", MappingProxyType(sizes))
 
     def in_group_tables(self, address: int) -> bool:
         """Whether ``address`` lies in a group communication table at an absolute address."""
@@ -561,13 +581,20 @@ class DownloadImage:
         include_initialized: bool = False,
         partial: bool = False,
         user: bool = False,
+        group_tables: bool = True,
+        parameters: bool = True,
     ) -> list[tuple[int, bytes]] | None:
         """Return the ``(address, data)`` runs to write within ``[address, size)``, in the
         user memory (``user_segments``) with ``user``.
 
         Collects the masked runs of every segment that *overlaps* the range,
         clipped to it (see :meth:`MemorySegment.masked_runs`; ``partial`` for a
-        partial download), in ascending address order. Returns ``None`` only when
+        partial download), in ascending address order. Without ``group_tables`` the
+        group communication tables (``MemorySegment.group_table``) write nothing: a
+        download of the parameters alone leaves them as the device holds them, the
+        object count of a group object table too. Without ``parameters`` only they write:
+        a download of the group communication alone leaves the parameters (the code
+        segments) as the device holds them. Returns ``None`` only when
         no segment overlaps the range at all (as :meth:`read_optional` reports
         missing data), and an empty list when overlapping segments write nothing
         within it.
@@ -588,17 +615,22 @@ class DownloadImage:
         Segments that overlap each other (a BIM M112 group object table built on the
         code segment that also holds the parameters) are merged: every octet is written
         once, with the data of the last segment that writes it, so the device ends up
-        as if the runs had been written one after the other.
+        as if the runs had been written one after the other. The group communication
+        tables come last: they are laid over the code segments' seed, also over one that
+        starts after the table's own segment (a group object table at an offset of a RAM
+        segment that reaches into an EEPROM segment, MV-0700 applications of M-00FA).
         """
         end = address + size
         data = bytearray(size)
         written = bytearray(size)
         covered = False
         source = self.user_segments if user else self.segments
-        for segment in sorted(source, key=lambda s: s.address):
+        for segment in sorted(source, key=lambda s: (s.group_table, s.address)):
             if segment.address >= end or segment.end <= address:
                 continue  # no overlap with the requested range
             covered = True
+            if not (group_tables if segment.group_table else parameters):
+                continue
             for run_address, run_data in segment.masked_runs(
                 include_initialized=include_initialized, partial=partial
             ):
@@ -796,7 +828,9 @@ def build_image(
                 group_communication,
                 factory_image,
             )
-            segments.extend(group_tables.segments)
+            segments.extend(
+                replace(segment, group_table=True) for segment in group_tables.segments
+            )
             table_memory.extend(table_ranges(group_tables.segments))
             moved = group_tables.moved
         else:
@@ -1930,21 +1964,16 @@ def _system300_memory_tables(
     if count > 0xFF:
         raise ImageError(f"group address table has too many entries: {count - 1}")
     result: list[MemorySegment] = []
-    placed = False
     for segment in segments:
-        if not placed and segment.address <= address < segment.end:
-            at = address - segment.address
-            data, mask = bytearray(segment.data), bytearray(segment.mask or b"")
-            data[at] = count
-            if mask:
-                mask[at] = 0xFF
-            segment = replace(
-                segment, data=bytes(data), mask=bytes(mask) if mask else None
-            )
-            placed = True
+        if segment.address <= address < segment.end:
+            # The segment's own data holds the count too (a write of its seed).
+            data = bytearray(segment.data)
+            data[address - segment.address] = count
+            segment = replace(segment, data=bytes(data))
         result.append(segment)
-    if not placed:
-        result.append(MemorySegment(address, bytes([count]), b"\xff"))
+    # The count is written as a group table of its own: by a download of the group
+    # communication, not by one of the parameters alone.
+    result.append(MemorySegment(address, bytes([count]), b"\xff", group_table=True))
     return result
 
 
@@ -2288,7 +2317,9 @@ def _object_count(
     """Mark the object count at ``at`` for writing, and return the partial octets for it.
 
     The count is the number of records. A full download keeps the product's octet when it
-    differs (the product data is inconsistent then); a partial download writes the count.
+    differs (the product data is inconsistent then); a partial download of the group
+    communication writes the count, one of the parameters alone neither (the table is not
+    written then, see ``MemorySegment.group_table``).
     """
     if at >= len(data):
         return ()

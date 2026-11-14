@@ -309,6 +309,19 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         project.set_flag(device, p["com_object_ref_id"], p["flag"], p["value"])
         return {"node_id": device.node_id, "com_object_ref_id": p["com_object_ref_id"]}
 
+    def _op_set_com_object_acknowledgement(p: dict[str, Any]) -> dict[str, Any]:
+        device = _device(p)
+        co = device.find_com_object(p["com_object_ref_id"])
+        if co is None or co.db_id is None:
+            raise ValueError("Group object is not instantiated")
+        ga_id = _group_address_id(p)
+        project.set_com_object_acknowledgement(co.db_id, ga_id, p["enabled"])
+        return {
+            "node_id": device.node_id,
+            "group_address_id": ga_id,
+            "acknowledges": p["enabled"],
+        }
+
     def _op_create_group_address(p: dict[str, Any]) -> dict[str, Any]:
         address = p.get("address")
         ga_id = project.create_group_address(address, p.get("name", ""), p.get("dpt"))
@@ -321,6 +334,20 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
     # op name -> (required params, handler). Handlers raise ValueError on bad input. The device
     # identifier (node_id | device_address) is NOT in `required` because the op itself picks the
     # right form and errors clearly; same for group_address_id | group_address on link.
+    def _op_plugin(p: dict[str, Any], op: str) -> dict[str, Any]:
+        device = _device(p)
+        if op == "setup_plugin":
+            lost = project.setup_plugin(device)
+        elif op == "import_stored_plugin_config":
+            lost = project.import_stored_plugin_config(device)
+        elif op == "import_plugin_config":
+            lost = project.import_plugin_config(device, str(p["config_json"]).encode())
+        else:
+            lost = project.edit_plugin_parameter(
+                device, str(p["ref_id"]), str(p["value"])
+            )
+        return {"node_id": device.node_id, "lost_links": lost}
+
     handlers: dict[
         str, tuple[tuple[str, ...], Callable[[dict[str, Any]], dict[str, Any]]]
     ] = {
@@ -330,9 +357,26 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         "remove_device": ((), _op_remove_device),
         "set_individual_address": (("address",), _op_set_individual_address),
         "set_parameter": ((), _op_set_parameter),
+        "setup_plugin": ((), lambda p: _op_plugin(p, "setup_plugin")),
+        "import_stored_plugin_config": (
+            (),
+            lambda p: _op_plugin(p, "import_stored_plugin_config"),
+        ),
+        "import_plugin_config": (
+            ("config_json",),
+            lambda p: _op_plugin(p, "import_plugin_config"),
+        ),
+        "set_plugin_parameter": (
+            ("ref_id", "value"),
+            lambda p: _op_plugin(p, "set_plugin_parameter"),
+        ),
         "set_com_object_flag": (
             ("com_object_ref_id", "flag", "value"),
             _op_set_com_object_flag,
+        ),
+        "set_com_object_acknowledgement": (
+            ("com_object_ref_id", "enabled"),
+            _op_set_com_object_acknowledgement,
         ),
         "create_group_address": ((), _op_create_group_address),
         "rename_group_address": (
@@ -472,6 +516,10 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         - remove_device: device -> {node_id}; as project_remove_device (several devices in one
           batch, as "Delete" of a multi-selection does).
         - set_individual_address: device, address -> {node_id, address}.
+        - setup_plugin: device. Initialize the mapped native provider; returns lost_links.
+        - import_stored_plugin_config: device. Convert a verified stored plugin blob; returns lost_links.
+        - import_plugin_config: device, config_json. Atomic mapped-provider configuration import.
+        - set_plugin_parameter: device, ref_id, value. Mapped native provider field edit; returns lost_links.
         - set_parameter: device, (parameter_ref_id | parameter_id | label [subtree_id tree_token]
           [value_label]), value? -> {node_id, ref_id, requested, value, active, tree_token,
           changed?, lost_links?} (tree_token as for project_set_parameter: the tree after this op).
@@ -487,6 +535,8 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
           shown_parameters, hidden_parameters, shown_com_objects and hidden_com_objects (when not
           empty) are what the edit showed or hid, as for project_set_parameter.
         - set_com_object_flag: device, com_object_ref_id, flag, value -> {node_id, com_object_ref_id}.
+        - set_com_object_acknowledgement: device, com_object_ref_id, ga, enabled ->
+          {node_id, group_address_id, acknowledges}. Powerline links only, one undo step.
         - create_group_address: [address, name, dpt] -> {group_address_id}; dpt as for
           set_group_address_dpt, set in the same step.
         - rename_group_address: ga, name -> {group_address_id}.

@@ -125,8 +125,13 @@ class AlternativeCatalogPanel:
         try:
             result = self._future.result()
             if self._action == "download":
+                # The count is of the versions new in the catalog.
                 count = self._import_product(result)
-                self._message = S.ALTERNATIVE_IMPORTED(count).format(count=count)
+                self._message = (
+                    S.ALTERNATIVE_IMPORTED(count).format(count=count)
+                    if count
+                    else AppS.URL_IMPORT_EMPTY
+                )
             elif self._action == "registration":
                 self._registration = result["status"]
                 # The server's message is in its own language; a known state has a text of

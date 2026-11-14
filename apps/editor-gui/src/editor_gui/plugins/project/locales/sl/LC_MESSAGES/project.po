@@ -3319,3 +3319,45 @@ msgstr "Čaka na programiranje: {parts}"
 
 msgid "Medium Configuration"
 msgstr "Konfiguracija medija"
+
+msgid "The standard download would overwrite the configuration this device keeps only in the manufacturer's plugin (its application was converted from pre-ETS4 data), so the device would lose its settings. Program it with the manufacturer's plugin instead."
+msgstr "The standard download would overwrite the configuration this device keeps only in the manufacturer's plugin (its application was converted from pre-ETS4 data), so the device would lose its settings. Program it with the manufacturer's plugin instead."
+
+msgid "Set Up Plugin"
+msgstr "Nastavi Plugin"
+
+msgid "The change removed these group address links:"
+msgstr "Sprememba je odstranila te povezave skupinskih naslovov:"
+
+msgid "Import Plugin Configuration…"
+msgstr "Uvozi konfiguracijo Plugin…"
+
+msgid "Export Plugin Configuration…"
+msgstr "Izvozi konfiguracijo Plugin…"
+
+msgid "Plugin Image and Load Plan"
+msgstr "Slika in načrt nalaganja Plugin"
+
+msgid "Use Stored Plugin Configuration"
+msgstr "Uporabi shranjeno konfiguracijo vtičnika"
+
+msgid "Database"
+msgstr "Podatkovna zbirka"
+
+msgid "Database Version"
+msgstr "Različica podatkovne zbirke"
+
+msgid "Product Type"
+msgstr "Vrsta izdelka"
+
+msgid "Database Code"
+msgstr "Koda podatkovne zbirke"
+
+msgid "Metadata Verified"
+msgstr "Metapodatki preverjeni"
+
+msgid "Internal Values"
+msgstr "Notranje vrednosti"
+
+msgid "Acknowledge Group Address"
+msgstr "Potrdi Skupinski Naslov"

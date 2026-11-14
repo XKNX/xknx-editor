@@ -19,7 +19,12 @@ from editor_gui.device_info import (
     serial_from_project,
     serial_text,
 )
-from editor_gui.device_plugins import device_plugins, parameters_in_plugin
+from editor_gui.device_plugins import (
+    device_plugins,
+    download_needs_plugin_confirmation,
+    download_overwrites_plugin_config,
+    parameters_in_plugin,
+)
 from editor_gui.hardware_text import bus_current_text, rail_text
 from editor_gui.os_open import open_url
 from editor_gui.plugins.project.strings import S
@@ -48,7 +53,7 @@ if TYPE_CHECKING:
     from xknxeditor.catalog import ProductSummary, ProgramSummary
     from xknxeditor.proj.core.addressing import GroupAddressStyle
     from xknxeditor.proj.core.service import DeviceInfo
-from editor_gui.plugin_params import mapping_for
+from editor_gui.plugin_params import mapping_for_device
 from editor_gui.programming_dali import is_dali_dca_app, is_siemens_n141_03
 from editor_gui.settings import load_settings, save_settings
 from editor_gui.theme import status_color
@@ -454,6 +459,11 @@ class ConfigurePanel:
         self._confirm_program_open: bool = False
         # Confirmed to program a device whose hardware needs the manufacturer's plugin.
         self._program_without_plugin: bool = False
+        # Whether the device being confirmed needs the plugin at all, and (a subset) whether the
+        # standard download would overwrite plugin-owned config. Captured when the dialog opens so
+        # the per-frame render does not re-resolve the application.
+        self._program_plugin_required: bool = False
+        self._program_overwrites_plugin: bool = False
         # Devices whose plugin-dialog warning the user chose to override and edit anyway.
         self._edit_plugin_params_override: set[int] = set()
         self._overwrite_current_address = ""
@@ -660,7 +670,7 @@ class ConfigurePanel:
         self._render_programming(device)
 
     def _render_programming(self, device: Device) -> None:
-        self._render_scope_selector()
+        self._render_scope_selector(device)
         # Workflow order: dry run (preview changes) → program → preview memory image.
         if self._on_eval_device is not None:
             _same_line_if_fits(S.BTN_EVAL_DEVICE)
@@ -677,7 +687,16 @@ class ConfigurePanel:
 
         if self._on_program_device is not None:
             _same_line_if_fits(S.BTN_PROGRAM_DEVICE)
-            enabled = bool(device.individual_address) and device.has_application
+            from editor_gui.plugin_providers import programming_error
+
+            enabled = (
+                bool(device.individual_address)
+                and device.has_application
+                and (
+                    self._download_scope.individual_address_only
+                    or programming_error(device) is None
+                )
+            )
             imgui.begin_disabled(not enabled)
             if imgui.button(S.BTN_PROGRAM_DEVICE):
                 # Programming starts right away; the dialog only opens when it has to ask
@@ -690,6 +709,12 @@ class ConfigurePanel:
             imgui.end_disabled()
             _no_application_tooltip(device)
             if self._confirm_program_open:
+                self._program_plugin_required = download_needs_plugin_confirmation(
+                    device
+                )
+                self._program_overwrites_plugin = download_overwrites_plugin_config(
+                    device
+                )
                 title, _confirm = self._program_dialog(device)
                 imgui.open_popup(f"{title}{_PROGRAM_DIALOG_ID}")
                 self._confirm_program_open = False
@@ -715,6 +740,7 @@ class ConfigurePanel:
     def _render_plugin_notices(self, device: Device) -> None:
         """Notes on the manufacturer plugins the product data asks for, which are not available."""
         plugins = device_plugins(device)
+        overwrites = download_overwrites_plugin_config(device)
         # What the one unavailable plugin does: one sentence for a single point, else one note
         # listing them all.
         plugin_points = [
@@ -732,7 +758,7 @@ class ConfigurePanel:
                 ),
                 (
                     plugins.download and not plugins.download_required,
-                    S.PLUGIN_DOWNLOAD,
+                    S.PLUGIN_DOWNLOAD_OVERWRITES if overwrites else S.PLUGIN_DOWNLOAD,
                     S.PLUGIN_ITEM_DOWNLOAD,
                 ),
                 (
@@ -1289,7 +1315,7 @@ class ConfigurePanel:
             if (
                 self._render_plugin_params is not None
                 and device.app is not None
-                and mapping_for(device.app.id) is not None
+                and mapping_for_device(device) is not None
                 and imgui.begin_tab_item(
                     f"{S.EDITOR_TAB_PLUGIN_PARAMS}###editor_tab_plugin_params"
                 )[0]
@@ -2041,7 +2067,7 @@ class ConfigurePanel:
         )
         return direct_program_request(
             scope,
-            plugin_required=device.download_plugin_required,
+            plugin_required=download_needs_plugin_confirmation(device),
             use_serial_number=use_serial,
             serial_owner=owner,
         )
@@ -2056,7 +2082,7 @@ class ConfigurePanel:
             return S.SCOPE_UNLOAD_ALL, S.SCOPE_UNLOAD
         if scope is DownloadScope.OVERWRITE_INDIVIDUAL_ADDRESS:
             return S.SCOPE_OVERWRITE_INDIVIDUAL_ADDRESS, S.BTN_OVERWRITE_ADDRESS
-        if device.download_plugin_required and not scope.individual_address_only:
+        if self._program_plugin_required and not scope.individual_address_only:
             return S.PROGRAM_PLUGIN_TITLE, S.BTN_PROGRAM_DEVICE
         return S.PROGRAM_SERIAL_USED_TITLE, S.BTN_PROGRAM_DEVICE
 
@@ -2073,7 +2099,7 @@ class ConfigurePanel:
         )
         use_serial = serial is not None and self._program_use_serial
         plugin_required = (
-            device.download_plugin_required and not scope.individual_address_only
+            self._program_plugin_required and not scope.individual_address_only
         )
         imgui.push_text_wrap_pos(px(420.0))
         if scope is DownloadScope.UNLOAD:
@@ -2127,7 +2153,12 @@ class ConfigurePanel:
             imgui.spacing()
         if plugin_required:
             imgui.push_text_wrap_pos(px(420.0))
-            imgui.text_colored(status_color("warning"), S.PLUGIN_DOWNLOAD_WARNING)
+            warning = (
+                S.PLUGIN_DOWNLOAD_OVERWRITES
+                if self._program_overwrites_plugin
+                else S.PLUGIN_DOWNLOAD_WARNING
+            )
+            imgui.text_colored(status_color("warning"), warning)
             imgui.pop_text_wrap_pos()
             _, self._program_without_plugin = checkbox(
                 S.PLUGIN_DOWNLOAD_CONFIRM, self._program_without_plugin
@@ -2161,13 +2192,29 @@ class ConfigurePanel:
             + imgui.get_frame_height()
         )
 
-    def _render_scope_selector(self) -> None:
+    def _render_scope_selector(self, device: Device | None = None) -> None:
         """Select what a download/eval covers: full, parameters, or group comm."""
-        current = _SCOPE_ORDER.index(self._download_scope)
+        from editor_gui.plugin_providers import provider_for
+
+        scopes = _SCOPE_ORDER
+        if device is not None:
+            try:
+                provider = provider_for(device)
+                allowed = (
+                    provider.capabilities(device).download_scopes if provider else ()
+                )
+            except ValueError:
+                allowed = ()
+            if allowed:
+                scopes = [scope for scope in _SCOPE_ORDER if scope in allowed]
+        if self._download_scope not in scopes:
+            self._download_scope = scopes[0]
+        current = scopes.index(self._download_scope)
         imgui.align_text_to_frame_padding()
         imgui.text_disabled(S.CONFIGURE_DOWNLOAD_SCOPE)
         imgui.same_line()
         imgui.set_next_item_width(self._scope_combo_width())
-        changed, new_idx = combo("##download_scope", current, _scope_labels())
+        labels = [_scope_labels()[_SCOPE_ORDER.index(scope)] for scope in scopes]
+        changed, new_idx = combo("##download_scope", current, labels)
         if changed:
-            self._download_scope = _SCOPE_ORDER[new_idx]
+            self._download_scope = scopes[new_idx]
