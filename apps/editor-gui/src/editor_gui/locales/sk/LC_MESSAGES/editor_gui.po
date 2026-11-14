@@ -1779,3 +1779,18 @@ msgstr "Nie je nastavený platný podpisový kľúč, takže exportovaný .knxpr
 
 msgid "Export Anyway"
 msgstr "Napriek tomu exportovať"
+
+msgid "Delete"
+msgstr "Odstrániť"
+
+msgid "Delete from the server"
+msgstr "Odstrániť zo servera"
+
+msgid "Delete {name} from the server? This cannot be undone."
+msgstr "Odstrániť {name} zo servera? Túto akciu nie je možné vrátiť späť."
+
+msgid "{name} belongs to the open project and is not deleted."
+msgstr "{name} patrí k otvorenému projektu a neodstráni sa."
+
+msgid "{name} could not be deleted: {error}"
+msgstr "{name} sa nepodarilo odstrániť: {error}"

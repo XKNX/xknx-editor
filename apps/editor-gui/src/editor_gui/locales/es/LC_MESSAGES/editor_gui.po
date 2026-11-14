@@ -1691,3 +1691,18 @@ msgstr "No hay una clave de firma válida, por lo que el .knxproj exportado no t
 
 msgid "Export Anyway"
 msgstr "Exportar de todos modos"
+
+msgid "Delete"
+msgstr "Eliminar"
+
+msgid "Delete from the server"
+msgstr "Eliminar del servidor"
+
+msgid "Delete {name} from the server? This cannot be undone."
+msgstr "¿Eliminar {name} del servidor? No se puede deshacer."
+
+msgid "{name} belongs to the open project and is not deleted."
+msgstr "{name} pertenece al proyecto abierto y no se elimina."
+
+msgid "{name} could not be deleted: {error}"
+msgstr "No se pudo eliminar {name}: {error}"

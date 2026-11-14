@@ -1691,3 +1691,18 @@ msgstr "Ingen gyldig signeringsnøkkel er angitt, så den eksporterte .knxproj f
 
 msgid "Export Anyway"
 msgstr "Eksporter likevel"
+
+msgid "Delete"
+msgstr "Slett"
+
+msgid "Delete from the server"
+msgstr "Slett fra serveren"
+
+msgid "Delete {name} from the server? This cannot be undone."
+msgstr "Slette {name} fra serveren? Dette kan ikke angres."
+
+msgid "{name} belongs to the open project and is not deleted."
+msgstr "{name} hører til det åpne prosjektet og slettes ikke."
+
+msgid "{name} could not be deleted: {error}"
+msgstr "{name} kunne ikke slettes: {error}"

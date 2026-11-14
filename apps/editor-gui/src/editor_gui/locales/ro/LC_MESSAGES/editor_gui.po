@@ -1779,3 +1779,18 @@ msgstr "Nu este setată o cheie de semnare validă, așa că fișierul .knxproj 
 
 msgid "Export Anyway"
 msgstr "Exportă oricum"
+
+msgid "Delete"
+msgstr "Ștergere"
+
+msgid "Delete from the server"
+msgstr "Ștergere de pe server"
+
+msgid "Delete {name} from the server? This cannot be undone."
+msgstr "Ștergeți {name} de pe server? Acțiunea nu poate fi anulată."
+
+msgid "{name} belongs to the open project and is not deleted."
+msgstr "{name} aparține proiectului deschis și nu este șters."
+
+msgid "{name} could not be deleted: {error}"
+msgstr "{name} nu a putut fi șters: {error}"

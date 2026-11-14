@@ -1691,3 +1691,18 @@ msgstr "Ingen giltig signeringsnyckel är angiven, så den exporterade .knxproj 
 
 msgid "Export Anyway"
 msgstr "Exportera ändå"
+
+msgid "Delete"
+msgstr "Ta bort"
+
+msgid "Delete from the server"
+msgstr "Ta bort från servern"
+
+msgid "Delete {name} from the server? This cannot be undone."
+msgstr "Ta bort {name} från servern? Det går inte att ångra."
+
+msgid "{name} belongs to the open project and is not deleted."
+msgstr "{name} hör till det öppna projektet och tas inte bort."
+
+msgid "{name} could not be deleted: {error}"
+msgstr "{name} kunde inte tas bort: {error}"

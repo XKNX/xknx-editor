@@ -1691,3 +1691,18 @@ msgstr "Kelvollista allekirjoitusavainta ei ole asetettu, joten viedyllä .knxpr
 
 msgid "Export Anyway"
 msgstr "Vie silti"
+
+msgid "Delete"
+msgstr "Poista"
+
+msgid "Delete from the server"
+msgstr "Poista palvelimelta"
+
+msgid "Delete {name} from the server? This cannot be undone."
+msgstr "Poistetaanko {name} palvelimelta? Tätä ei voi kumota."
+
+msgid "{name} belongs to the open project and is not deleted."
+msgstr "{name} kuuluu avoimeen projektiin, eikä sitä poisteta."
+
+msgid "{name} could not be deleted: {error}"
+msgstr "Tiedostoa {name} ei voitu poistaa: {error}"

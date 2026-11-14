@@ -305,7 +305,8 @@ another watches and can take over with **Take Control** (or automatically after 
 
 Files go through the browser: **Open** uploads a file from your computer (or drop it on the page)
 or picks one already on the server; **Save** and **Export** write into the server's file folder and
-download the result to your computer when **Download to This Computer** is ticked.
+download the result to your computer when **Download to This Computer** is ticked. The **x** in a
+file's row deletes it from the server.
 
 ### Container and Unraid
 

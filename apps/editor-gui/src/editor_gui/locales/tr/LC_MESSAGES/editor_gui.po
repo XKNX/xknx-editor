@@ -1675,3 +1675,18 @@ msgstr "Geçerli bir imzalama anahtarı ayarlanmadı; bu nedenle dışa aktarıl
 
 msgid "Export Anyway"
 msgstr "Yine de dışa aktar"
+
+msgid "Delete"
+msgstr "Sil"
+
+msgid "Delete from the server"
+msgstr "Sunucudan sil"
+
+msgid "Delete {name} from the server? This cannot be undone."
+msgstr "{name} sunucudan silinsin mi? Bu işlem geri alınamaz."
+
+msgid "{name} belongs to the open project and is not deleted."
+msgstr "{name} açık projeye ait olduğundan silinmez."
+
+msgid "{name} could not be deleted: {error}"
+msgstr "{name} silinemedi: {error}"

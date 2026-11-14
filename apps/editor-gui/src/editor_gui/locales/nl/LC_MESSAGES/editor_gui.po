@@ -1751,3 +1751,18 @@ msgstr "Er is geen geldige ondertekeningssleutel ingesteld, dus de geëxporteerd
 
 msgid "Export Anyway"
 msgstr "Toch exporteren"
+
+msgid "Delete"
+msgstr "Verwijderen"
+
+msgid "Delete from the server"
+msgstr "Van de server verwijderen"
+
+msgid "Delete {name} from the server? This cannot be undone."
+msgstr "{name} van de server verwijderen? Dit kan niet ongedaan worden gemaakt."
+
+msgid "{name} belongs to the open project and is not deleted."
+msgstr "{name} hoort bij het geopende project en wordt niet verwijderd."
+
+msgid "{name} could not be deleted: {error}"
+msgstr "{name} kon niet worden verwijderd: {error}"

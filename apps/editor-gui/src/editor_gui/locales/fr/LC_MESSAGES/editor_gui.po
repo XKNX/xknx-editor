@@ -1691,3 +1691,18 @@ msgstr "Aucune clé de signature valide n'est définie ; le .knxproj exporté n'
 
 msgid "Export Anyway"
 msgstr "Exporter quand même"
+
+msgid "Delete"
+msgstr "Supprimer"
+
+msgid "Delete from the server"
+msgstr "Supprimer du serveur"
+
+msgid "Delete {name} from the server? This cannot be undone."
+msgstr "Supprimer {name} du serveur ? Cette action est irréversible."
+
+msgid "{name} belongs to the open project and is not deleted."
+msgstr "{name} appartient au projet ouvert et n'est pas supprimé."
+
+msgid "{name} could not be deleted: {error}"
+msgstr "Impossible de supprimer {name} : {error}"
