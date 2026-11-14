@@ -232,3 +232,12 @@ msgstr "Palautuksen tilannevedos (*.json)"
 
 msgid "All Files"
 msgstr "Kaikki tiedostot"
+
+msgid "Device mask: %(device)s; product mask: %(product)s"
+msgstr "Laitteen maski: %(device)s; tuotteen maski: %(product)s"
+
+msgid "Mask compatibility data unavailable; only exact masks checked"
+msgstr "Maskien yhteensopivuustietoja ei ole; vain samat maskit tarkistettu"
+
+msgid "The application version missing from the local catalog was found in the alternative catalog. A login is required to download it. Enter your username and password in Settings > Catalog."
+msgstr "Paikallisesta luettelosta puuttuva sovellusversio löytyi vaihtoehtoisesta luettelosta. Sen lataaminen edellyttää kirjautumista. Anna käyttäjänimi ja salasana kohdassa Asetukset > Luettelo."

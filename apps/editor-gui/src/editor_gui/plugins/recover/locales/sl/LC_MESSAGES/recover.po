@@ -266,3 +266,12 @@ msgstr "Posnetek stanja obnovitve (*.json)"
 
 msgid "All Files"
 msgstr "Vse datoteke"
+
+msgid "Device mask: %(device)s; product mask: %(product)s"
+msgstr "Maska naprave: %(device)s; maska izdelka: %(product)s"
+
+msgid "Mask compatibility data unavailable; only exact masks checked"
+msgstr "Podatki o združljivosti mask niso na voljo; preverjene so bile le enake maske"
+
+msgid "The application version missing from the local catalog was found in the alternative catalog. A login is required to download it. Enter your username and password in Settings > Catalog."
+msgstr "Različica aplikacije, ki manjka v lokalnem katalogu, je bila najdena v alternativnem katalogu. Za prenos je potrebna prijava. Vnesite uporabniško ime in geslo v Nastavitve > Katalog."

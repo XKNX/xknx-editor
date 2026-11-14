@@ -124,6 +124,14 @@ class RecoverStrings:
         return _("Loading missing products from online catalog: %(what)s")
 
     @property
+    def CATALOG_LOGIN_REQUIRED(self) -> str:
+        return _(
+            "The application version missing from the local catalog was found in the "
+            "alternative catalog. A login is required to download it. Enter your username "
+            "and password in Settings > Catalog."
+        )
+
+    @property
     def STATUS_RECOVERING(self) -> str:
         return _("Reading devices…")
 
@@ -203,6 +211,14 @@ class RecoverStrings:
     @property
     def STATE_FOUND(self) -> str:
         return _("Product found")
+
+    @property
+    def DETAIL_MASK(self) -> str:
+        return _("Device mask: %(device)s; product mask: %(product)s")
+
+    @property
+    def DETAIL_NO_MASTER(self) -> str:
+        return _("Mask compatibility data unavailable; only exact masks checked")
 
     @property
     def STATE_AMBIGUOUS(self) -> str:

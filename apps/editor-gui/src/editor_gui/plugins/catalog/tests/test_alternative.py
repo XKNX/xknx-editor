@@ -521,3 +521,26 @@ def test_refused_input_names_its_rule(tmp_path: Path, call: Any, code: str) -> N
         assert raised.value.code == code
     finally:
         c.close()
+
+
+def test_application_lookup_uses_one_program_and_hex_fields(tmp_path: Path) -> None:
+    raw = index()
+    c = client(tmp_path, lambda r: httpx.Response(200, json=raw))
+    c.refresh()
+    assert [e.id for e in c.find_application("M-0083", 0x1234, 0x03, ("MV-0701",))] == [
+        "one"
+    ]
+    assert not c.find_application("M-0083", 0x1234, 0x30, ("MV-0701",))
+    assert not c.find_application("M-0001", 0x1234, 0x03, ("MV-0701",))
+    assert not c.find_application("M-0083", 0x1234, 0x03, ("MV-0013",))
+    program = raw["entries"][0]["programs"][0]
+    program["version"] = "23"
+    c.refresh()
+    assert c.find_application("M-0083", 0x1234, 0x23, ("MV-0701",))
+    program["version"] = "bad version"
+    raw["entries"][0]["programs"].append(
+        {**program, "applicationNumber": "9999", "version": "03"}
+    )
+    c.refresh()
+    assert not c.find_application("M-0083", 0x1234, 0x03, ("MV-0701",))
+    c.close()

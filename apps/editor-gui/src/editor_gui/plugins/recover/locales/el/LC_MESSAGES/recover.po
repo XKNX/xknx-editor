@@ -232,3 +232,12 @@ msgstr "Στιγμιότυπο Ανάκτησης (*.json)"
 
 msgid "All Files"
 msgstr "Όλα τα αρχεία"
+
+msgid "Device mask: %(device)s; product mask: %(product)s"
+msgstr "Μάσκα συσκευής: %(device)s· μάσκα προϊόντος: %(product)s"
+
+msgid "Mask compatibility data unavailable; only exact masks checked"
+msgstr "Δεν υπάρχουν δεδομένα συμβατότητας μασκών· ελέγχθηκαν μόνο ίδιες μάσκες"
+
+msgid "The application version missing from the local catalog was found in the alternative catalog. A login is required to download it. Enter your username and password in Settings > Catalog."
+msgstr "Η έκδοση της εφαρμογής που λείπει από τον τοπικό κατάλογο βρέθηκε στον εναλλακτικό κατάλογο. Απαιτείται σύνδεση για τη λήψη της. Συμπληρώστε το όνομα χρήστη και τον κωδικό πρόσβασης στις Ρυθμίσεις > Κατάλογος."

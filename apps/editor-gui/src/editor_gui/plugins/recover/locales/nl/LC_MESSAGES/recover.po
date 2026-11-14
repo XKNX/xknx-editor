@@ -238,3 +238,12 @@ msgstr "Herstel-momentopname (*.json)"
 
 msgid "All Files"
 msgstr "Alle bestanden"
+
+msgid "Device mask: %(device)s; product mask: %(product)s"
+msgstr "Apparaatmasker: %(device)s; productmasker: %(product)s"
+
+msgid "Mask compatibility data unavailable; only exact masks checked"
+msgstr "Gegevens over maskercompatibiliteit ontbreken; alleen identieke maskers gecontroleerd"
+
+msgid "The application version missing from the local catalog was found in the alternative catalog. A login is required to download it. Enter your username and password in Settings > Catalog."
+msgstr "De applicatieversie die ontbreekt in de lokale catalogus is gevonden in de alternatieve catalogus. Aanmelden is vereist om deze te downloaden. Voer uw gebruikersnaam en wachtwoord in onder Instellingen > Catalogus."

@@ -590,6 +590,9 @@ def test_the_actions_work_on_the_selected_devices(application) -> None:  # type:
 
 
 def test_a_snapshot_is_imported_as_read(application) -> None:  # type: ignore[no-untyped-def]
+    import threading
+
+    from xknxeditor.catalog.core.products import ProductFacts
     from xknxeditor.recover import snapshots_json
 
     product = SimpleNamespace(
@@ -598,17 +601,27 @@ def test_a_snapshot_is_imported_as_read(application) -> None:  # type: ignore[no
         name="JU 1 S RF",
         order_number="",
         application_id=application.id,
+        application_version=application.program.application_version,
     )
     catalog = SimpleNamespace(
+        io_lock=threading.RLock(),
         find_products_for_application=lambda **_kwargs: [product],
         get_application=lambda _id: application,
         factory_image=lambda _id: None,
+        product_facts=lambda _id: ProductFacts(
+            application.program.mask_version, False, None, None, ()
+        ),
     )
     api = _FakeAPI(_FakeProject(refs=[]))
+    api.connection.master = None
     api.catalog = catalog  # type: ignore[attr-defined]
     service = RecoverService(api)  # type: ignore[arg-type]
     device = _rf_entry(application).recovered
     assert device is not None
+    device = dataclasses.replace(
+        device,
+        mask_version=int(application.program.mask_version.removeprefix("MV-"), 16),
+    )
     imported = service.import_snapshot(snapshots_json([device]), "site.json")
     assert imported == 1
     (entry,) = service.entries
