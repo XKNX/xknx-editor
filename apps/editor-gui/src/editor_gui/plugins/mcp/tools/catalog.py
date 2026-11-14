@@ -763,7 +763,9 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
     def catalog_online_items(manufacturer_id: int) -> dict[str, Any]:
         """List a manufacturer's online catalog products over the network. Pass id from
         catalog_refresh_online_manufacturers as manufacturer_id. Returns {items, count}; each item
-        has {id, name, order_number, downloadable}. Collect id values from downloadable items into
+        has {id, name, order_number, downloadable, application_manufacturer_id, application_number,
+        application_version}. Application fields are integers, or null when unknown; version is
+        the raw byte (0x10 = 1.0). Collect id values from downloadable items into
         catalog_item_ids for catalog_download_online_products."""
         items = [
             {
@@ -771,6 +773,9 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                 "name": item.name,
                 "order_number": item.order_number,
                 "downloadable": item.downloadable,
+                "application_manufacturer_id": item.application_manufacturer_id,
+                "application_number": item.application_number,
+                "application_version": item.application_version,
             }
             for item in catalog.online_catalog_items(manufacturer_id)
         ]

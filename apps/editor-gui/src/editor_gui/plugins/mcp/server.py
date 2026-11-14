@@ -12,9 +12,9 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 from fastmcp import FastMCP
-from fastmcp.server.providers.skills import SkillsDirectoryProvider
 from fastmcp.server.transforms import GetToolNext
 from fastmcp.server.transforms.search import BM25SearchTransform
+from fastmcp.skills.provider import SkillsDirectoryProvider
 from fastmcp.tools.base import Tool
 from fastmcp.utilities.versions import VersionSpec
 
@@ -39,6 +39,7 @@ from editor_gui.plugins.mcp.tools import (
     settings,
     status,
     structure,
+    web_files,
 )
 
 if TYPE_CHECKING:
@@ -247,8 +248,9 @@ def build_server(ctx: McpContext, auth: Any = None) -> FastMCP:
         settings,
         recover,
         home_assistant,
+        web_files,
     ):
         module.register(mcp, ctx)
     if _SKILLS_DIR.is_dir():
-        mcp.add_provider(SkillsDirectoryProvider(roots=_SKILLS_DIR))
+        mcp.add_provider(SkillsDirectoryProvider([str(_SKILLS_DIR)]))
     return mcp

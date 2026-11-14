@@ -247,3 +247,18 @@ msgstr "Gögn um samhæfni gríma vantar; aðeins eins grímur athugaðar"
 
 msgid "The application version missing from the local catalog was found in the alternative catalog. A login is required to download it. Enter your username and password in Settings > Catalog."
 msgstr "Útgáfa forritsins sem vantar í staðbundna vörulistann fannst í öðrum vörulista. Innskráning er nauðsynleg til að sækja hana. Sláðu inn notandanafn og lykilorð undir Stillingar > Vörulisti."
+
+msgid "Other Application Versions"
+msgstr "Aðrar útgáfur forrits"
+
+msgid "Other Versions…"
+msgstr "Aðrar útgáfur…"
+
+msgid "The device runs application %(installed)s. These other versions are available in the online catalog. Loading product data does not change the device. Their suitability for recovery is unconfirmed; parameters and group objects may differ."
+msgstr "Tækið notar forrit %(installed)s. Þessar aðrar útgáfur eru tiltækar í netvörulistanum. Að hlaða vörugögnum breytir ekki tækinu. Ekki hefur verið staðfest að þær henti til endurheimtar; færibreytur og hóphlutir geta verið ólíkir."
+
+msgid "Load Product Data for Version %(version)s"
+msgstr "Hlaða vörugögnum fyrir útgáfu %(version)s"
+
+msgid "Different application version: device %(installed)s, recovery %(used)s. Not added to the project automatically."
+msgstr "Önnur forritsútgáfa: tæki %(installed)s, endurheimt %(used)s. Ekki bætt sjálfkrafa við verkefnið."

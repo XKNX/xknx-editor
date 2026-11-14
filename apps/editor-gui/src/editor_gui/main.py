@@ -1062,6 +1062,13 @@ class KnxGuiApp:
             web.active_hub.report_error = lambda where, error: self._log.error(
                 "internal error", where=where, error=error
             )
+            # The open project's files are not deleted from the browser.
+            from editor_gui.web.files import held_open
+
+            web.active_hub.file_in_use = lambda path: held_open(
+                path,
+                [self._project_service.path, self._project_service.working_path],
+            )
         # Apply a previously extracted/saved signing key so exports are signed with it.
         if signing_key_store.apply_cached_key():
             self._log.info("signing key loaded")

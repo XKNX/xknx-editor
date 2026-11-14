@@ -1687,3 +1687,20 @@ msgstr "搜索"
 
 msgid "All tools lists every tool to the AI tool. Search lists only a search for the tools and one that calls them, for AI models whose context is too small for the whole list. An AI tool sees a change once it reconnects."
 msgstr "“所有工具”向 AI 工具列出每个工具。“搜索”只列出工具搜索和一个调用工具的工具，适用于上下文容不下完整列表的 AI 模型。AI 工具重新连接后才能看到更改。"
+msgid "Delete"
+msgstr "删除"
+
+msgid "Delete from the server"
+msgstr "从服务器删除"
+
+msgid "Delete {name} from the server? This cannot be undone."
+msgstr "要从服务器删除 {name} 吗？此操作无法撤销。"
+
+msgid "{name} belongs to the open project and is not deleted."
+msgstr "{name} 属于已打开的项目，不会被删除。"
+
+msgid "{name} could not be deleted: {error}"
+msgstr "无法删除 {name}：{error}"
+
+msgid "Delete File"
+msgstr "删除文件"

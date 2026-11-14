@@ -1703,3 +1703,20 @@ msgstr "Recherche"
 
 msgid "All tools lists every tool to the AI tool. Search lists only a search for the tools and one that calls them, for AI models whose context is too small for the whole list. An AI tool sees a change once it reconnects."
 msgstr "Tous les outils présente chaque outil à l’outil d’IA. Recherche ne présente qu’une recherche des outils et un outil qui les appelle, pour les modèles d’IA dont le contexte est trop petit pour la liste complète. Un outil d’IA voit le changement dès qu’il se reconnecte."
+msgid "Delete"
+msgstr "Supprimer"
+
+msgid "Delete from the server"
+msgstr "Supprimer du serveur"
+
+msgid "Delete {name} from the server? This cannot be undone."
+msgstr "Supprimer {name} du serveur ? Cette action est irréversible."
+
+msgid "{name} belongs to the open project and is not deleted."
+msgstr "{name} appartient au projet ouvert et n'est pas supprimé."
+
+msgid "{name} could not be deleted: {error}"
+msgstr "Impossible de supprimer {name} : {error}"
+
+msgid "Delete File"
+msgstr "Supprimer le fichier"

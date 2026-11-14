@@ -12,6 +12,14 @@ if TYPE_CHECKING:
 
 
 @dataclass(frozen=True)
+class OnlineVersion:
+    catalog_item_id: str
+    product_name: str
+    order_number: str
+    application_version: int
+
+
+@dataclass(frozen=True)
 class CatalogCandidate:
     product_ref_id: str
     hardware2program_ref_id: str
@@ -32,7 +40,12 @@ class CatalogCandidate:
 
 
 def catalog_candidates(
-    catalog: CatalogService, app_id: AppId, mask_id: str, master: MasterData | None
+    catalog: CatalogService,
+    app_id: AppId,
+    mask_id: str,
+    master: MasterData | None,
+    *,
+    application_id: str | None = None,
 ) -> list[CatalogCandidate]:
     """Return every candidate in the best tier, with exact versions preceding mask matches.
 
@@ -46,7 +59,9 @@ def catalog_candidates(
         manufacturer_id=app_id.manufacturer_id,
         application_number=app_id.application_number,
     ):
-        if product.application_id is None:
+        if product.application_id is None or (
+            application_id is not None and product.application_id != application_id
+        ):
             continue
         facts = catalog.product_facts(product.hardware2program_ref_id)
         if facts is None or facts.mask_version is None:

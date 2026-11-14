@@ -608,12 +608,38 @@ def test_keyring_material(tmp_path: Path) -> None:
 
 
 def test_senders_for_the_connection_and_tunnels(tmp_path: Path) -> None:
-    svc, pid, first, _second, _ = _project(tmp_path)
+    svc, pid, first, second, path = _project(tmp_path)
     # Every device that can send on a secured group address, with its last valid number.
     assert svc.secure_senders(pid) == {0x2105: 0, 0x2106: 4710}
-    # A tunnel assigned to a secured group address sends on it too.
-    _keys, senders = svc.group_security(pid, first, tunnel_senders={0x0801: [0x21FA]})
+    svc.close(pid)
+    from sqlalchemy.orm import Session as _Session
+
+    from xknxeditor.proj.db import make_engine, url_for
+    from xknxeditor.proj.models import GroupAddress as _GroupAddress
+
+    engine = make_engine(url_for(path))
+    try:
+        with _Session(engine) as session:
+            for ga in session.query(_GroupAddress):
+                ga.source_id = f"P-OLD-0_GA-{ga.address}"
+            device = session.get(_DeviceModel, second)
+            assert device is not None
+            device.extra_subtrees = {
+                **(device.extra_subtrees or {}),
+                "BusInterfaces": '<BusInterfaces><BusInterface RefId="M-1_A-1_BI-1">'
+                '<Connectors><Connector GroupAddressRefId="P-OLD-0_GA-2049" />'
+                "</Connectors></BusInterface></BusInterfaces>",
+            }
+            session.commit()
+    finally:
+        engine.dispose()
+    pid = svc.open(path, _PASSWORD)
+    # A tunnel of a secured bus interface the group address is assigned to sends on it too;
+    # one of a device whose interface it is not assigned to does not.
+    tunnels = {0x0801: [(0x21FA, second), (0x21FB, first)]}
+    _keys, senders = svc.group_security(pid, first, tunnel_senders=tunnels)
     assert (0x21FA, 0) in senders
+    assert all(address != 0x21FB for address, _number in senders)
     svc.close(pid)
 
 

@@ -126,7 +126,6 @@ class TestParse:
         assert parse_catalog_items(index.encode())[0].downloadable
 
     def test_catalog_items_captures_manufacturer_and_version(self) -> None:
-        # ApplicationIdentifier is the online index's list form: [_, mfr, _, appNo, version].
         index = json.dumps(
             {
                 "ManufacturerId": 131,
@@ -147,15 +146,8 @@ class TestParse:
         assert item.manufacturer_name == "MDT"
         assert item.application_version == 40
         assert item.application_number == 64
+        assert item.application_manufacturer_id == 131
         assert item.application_program_name == "Dimmen 4fach"
-
-    def test_app_version_from_list_and_string(self) -> None:
-        from editor_gui.plugins.catalog.online_catalog import _app_version
-
-        assert _app_version([0, 131, 0, 64, 40]) == 40  # online list form
-        assert _app_version("M-0083_A-0040-24-52B5") == 0x24  # string id (hex segment)
-        assert _app_version("bad") is None
-        assert _app_version(None) is None
 
     def test_catalog_items_keep_name_translations_for_localized_display(self) -> None:
         # Hager's TXA207C defaults to French; the English name rides along as a translation so the
@@ -503,13 +495,111 @@ class TestDownloadProductUnwrap:
         assert oc._unwrap_products_knxprod(b"not a zip") == b"not a zip"
 
 
-def test_application_number_from_the_identifier() -> None:
-    from editor_gui.plugins.catalog.online_catalog import (
-        _app_number,  # pyright: ignore[reportPrivateUsage]
-    )
+@pytest.mark.parametrize(
+    "value,expected",
+    [
+        ([0, 131, 0, 64, 40], (131, 0x40, 0x28)),
+        ("M-0083_A-0040-28-ABCD", (131, 0x40, 0x28)),
+        ([0, 2, 160, 30, 32], (2, 0xA01E, 0x20)),
+        ([1, 131, 18, 52, 40], (0x0183, 0x1234, 40)),
+        ("M-0002_A-A01E-20-BEEF", (2, 0xA01E, 0x20)),
+        ("m-0183_a-1234-2a", (0x0183, 0x1234, 0x2A)),
+        ([0, 7, 0, 0, 255], (7, 0, 255)),
+        (None, None),
+        ("bad", None),
+        ([0, 131], None),
+        ("M-0083_A-XYZ-28", None),
+        ([0, 2, 160, 30], None),
+        ([0, 2, 160, 30, 32, 0], None),
+        ([0, 2, 160, 30, True], None),
+        ([0, 2, 160, 30, 256], None),
+        ([0, 2, -1, 30, 32], None),
+        ([0, 2, 160, "30", 32], None),
+        ("M-0002_A-A01E-200-BEEF", None),
+    ],
+)
+def test_application_identifier(value: object, expected: object) -> None:
+    assert oc._application_identifier(value) == expected
 
-    assert _app_number([0, 131, 0, 64, 40]) == 64
-    assert _app_number("M-0083_A-0040-28-ABCD") == 0x40
-    assert _app_number([0, 131]) is None
-    assert _app_number("M-0083_A-XYZ-28") is None
-    assert _app_number(None) is None
+
+def test_application_identity_survives_index_cache(tmp_path, monkeypatch) -> None:
+    client = OnlineCatalogClient(tmp_path)
+    monkeypatch.setattr(
+        oc, "_http_get", lambda url: b"<Array><unsignedShort>2</unsignedShort></Array>"
+    )
+    monkeypatch.setattr(
+        client,
+        "download_index",
+        lambda mid: json.dumps(
+            {
+                "ManufacturerId": 2,
+                "Entries": [
+                    {"Id": "product", "ApplicationIdentifier": [0, 2, 160, 30, 32]}
+                ],
+            }
+        ).encode(),
+    )
+    client.refresh_index()
+    index = OnlineCatalogClient(tmp_path).cached_index()
+    assert index is not None
+    item = index[2][0]
+    assert (
+        item.application_manufacturer_id,
+        item.application_number,
+        item.application_version,
+    ) == (2, 0xA01E, 0x20)
+
+
+@pytest.mark.parametrize("cache_format", [6, 7])
+def test_old_application_identity_cache_is_rebuilt(
+    tmp_path, monkeypatch, cache_format
+) -> None:
+    (tmp_path / "online_catalog_index.json").write_text(
+        json.dumps(
+            {
+                "format": cache_format,
+                "fetched_at": "2026-11-01T10:00:00+00:00",
+                "index": {
+                    "2": [
+                        {
+                            "id": "product",
+                            "name": "Actuator",
+                            "dl": True,
+                            "mid": 2,
+                            "ver": 32,
+                            "app": 0x1E,
+                        }
+                    ]
+                },
+            }
+        )
+    )
+    client = OnlineCatalogClient(tmp_path)
+    assert client.cached_index() is None
+    monkeypatch.setattr(
+        oc, "_http_get", lambda url: b"<Array><unsignedShort>2</unsignedShort></Array>"
+    )
+    downloads = []
+
+    def download(mid):
+        downloads.append(mid)
+        return json.dumps(
+            {
+                "ManufacturerId": 2,
+                "Entries": [
+                    {"Id": "product", "ApplicationIdentifier": [0, 2, 160, 30, 32]}
+                ],
+            }
+        ).encode()
+
+    monkeypatch.setattr(client, "download_index", download)
+    client.refresh_index()
+    assert downloads == [2]
+    index = OnlineCatalogClient(tmp_path).cached_index()
+    assert index is not None
+    item = index[2][0]
+    assert (
+        item.application_manufacturer_id,
+        item.application_number,
+        item.application_version,
+    ) == (2, 0xA01E, 0x20)

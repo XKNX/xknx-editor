@@ -1719,3 +1719,20 @@ msgstr "Hledání"
 
 msgid "All tools lists every tool to the AI tool. Search lists only a search for the tools and one that calls them, for AI models whose context is too small for the whole list. An AI tool sees a change once it reconnects."
 msgstr "Všechny nástroje: nástroj AI dostane seznam všech nástrojů. Hledání: dostane jen vyhledávání nástrojů a nástroj, který je volá – pro modely AI, jejichž kontext je na celý seznam příliš malý. Nástroj AI uvidí změnu po opětovném připojení."
+msgid "Delete"
+msgstr "Smazat"
+
+msgid "Delete from the server"
+msgstr "Smazat ze serveru"
+
+msgid "Delete {name} from the server? This cannot be undone."
+msgstr "Smazat {name} ze serveru? Tuto akci nelze vrátit zpět."
+
+msgid "{name} belongs to the open project and is not deleted."
+msgstr "{name} patří k otevřenému projektu a nebude smazán."
+
+msgid "{name} could not be deleted: {error}"
+msgstr "{name} nelze smazat: {error}"
+
+msgid "Delete File"
+msgstr "Smazat soubor"

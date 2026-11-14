@@ -59,7 +59,12 @@ from .resources import (
     reserved_memory,
     segments_have_inline_checksum,
 )
-from .secure_config import GroupSecurity, SecurityTables, security_tables
+from .secure_config import (
+    PROXY_KEPT_MEMORY,
+    GroupSecurity,
+    SecurityTables,
+    security_tables,
+)
 from .tables import (
     SEGMENT_SELECTOR_BIT,
     Association,
@@ -904,6 +909,13 @@ def build_image(
         else:
             object_segments[index] = bytes(data)
 
+    if (
+        security is not None
+        and security.proxy is not None
+        and application.program.max_security_proxy_group_key_table_entries
+    ):
+        segments = _keep_proxy_memory(segments)
+
     return DownloadImage(
         segments=tuple(segments),
         properties=properties,
@@ -1158,6 +1170,29 @@ def _security_tables(
     return tables
 
 
+def _keep_proxy_memory(segments: Sequence[MemorySegment]) -> list[MemorySegment]:
+    """A coupler used as Security Proxy keeps the octets of its configuration memory as they
+    are (:data:`.secure_config.PROXY_KEPT_MEMORY`): the segments covering them leave them out."""
+    kept: list[MemorySegment] = []
+    for segment in segments:
+        end = segment.address + len(segment.data)
+        offsets = [
+            address - segment.address
+            for address in PROXY_KEPT_MEMORY
+            if segment.address <= address < end
+        ]
+        if not offsets:
+            kept.append(segment)
+            continue
+        mask = bytearray(
+            segment.mask if segment.mask is not None else b"\xff" * len(segment.data)
+        )
+        for offset in offsets:
+            mask[offset] = 0
+        kept.append(replace(segment, mask=bytes(mask)))
+    return kept
+
+
 def _validate_security_capacity(
     application: Application, tables: SecurityTables
 ) -> None:
@@ -1179,6 +1214,11 @@ def _validate_security_capacity(
             "Point-to-point Key Table",
             program.max_security_p2_pkey_table_entries,
             len(tables.p2p_keys),
+        ),
+        (
+            "Security Proxy Group Key Table",
+            program.max_security_proxy_group_key_table_entries,
+            len(tables.proxy or ()),
         ),
     ):
         if limit and count > limit:

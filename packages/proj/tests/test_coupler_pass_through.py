@@ -91,3 +91,60 @@ def test_additional_addresses_are_scoped_to_the_couplers_own_line(
 
     assert additional_a == [111]
     assert additional_b == [222]
+
+
+def test_additional_addresses_of_the_segment_the_coupler_feeds(
+    tmp_path: Path,
+) -> None:
+    svc, pid, src = _project(tmp_path)
+    area_id = svc.create_area(pid, 0, 2, "Area 2")
+    line_id = svc.create_line(pid, area_id, 1, "Line 1")
+    sub = svc.add_segment(pid, line_id)
+    svc.close(pid)
+
+    with Session(make_engine(url_for(src))) as s:
+        line = s.get(Line, line_id)
+        assert line is not None
+        line.additional_group_addresses = "100,200"  # the union kept on the line
+        for segment in line.segments:
+            segment.additional_group_addresses = "200" if segment.id == sub else "100"
+        s.commit()
+
+    svc2 = ProjectService()
+    pid2 = svc2.open(src)
+    # The line coupler feeds the main segment; a segment coupler its own segment.
+    _u, line_coupler = svc2.coupler_pass_through(pid2, (2 << 12) | (1 << 8))
+    _u2, segment_coupler = svc2.coupler_pass_through(
+        pid2, (2 << 12) | (1 << 8) | 100, sub
+    )
+    svc2.close(pid2)
+
+    assert line_coupler == [100]
+    assert segment_coupler == [200]
+
+
+def test_a_main_segment_without_additional_addresses_adds_none(
+    tmp_path: Path,
+) -> None:
+    svc, pid, src = _project(tmp_path)
+    area_id = svc.create_area(pid, 0, 2, "Area 2")
+    line_id = svc.create_line(pid, area_id, 1, "Line 1")
+    sub = svc.add_segment(pid, line_id)
+    svc.close(pid)
+
+    with Session(make_engine(url_for(src))) as s:
+        line = s.get(Line, line_id)
+        assert line is not None
+        line.additional_group_addresses = "200"
+        for segment in line.segments:
+            if segment.id == sub:
+                segment.additional_group_addresses = "200"
+        s.commit()
+
+    svc2 = ProjectService()
+    pid2 = svc2.open(src)
+    _u, additional = svc2.coupler_pass_through(pid2, (2 << 12) | (1 << 8))
+    svc2.close(pid2)
+
+    # Only the sub segment lists one: it belongs to that segment's coupler.
+    assert additional == []

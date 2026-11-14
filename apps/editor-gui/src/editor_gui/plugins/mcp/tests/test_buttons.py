@@ -47,6 +47,14 @@ def _fixture() -> Path:
     raise FileNotFoundError("calculations_application.xml not found")
 
 
+@pytest.fixture(autouse=True)
+def _offline_handlers_end_in_start(monkeypatch: pytest.MonkeyPatch) -> None:
+    """An offline handler that is not done within ``ButtonRunner.WAIT`` ends when the app's
+    frame loop polls the runner; there is no frame loop here, so the press waits until the
+    handler has ended (on a busy machine 0.2 s is not always enough)."""
+    monkeypatch.setattr(button_runner.ButtonRunner, "WAIT", 30.0)
+
+
 def _setup(tmp_path: Path) -> tuple[Any, ProjectPlugin, int]:
     ctx = _build_ctx(tmp_path)
     plugin = ProjectPlugin(ctx.api)
@@ -208,3 +216,23 @@ def test_a_script_run_keeps_the_value_before_the_run() -> None:
     run.record({"a": ("1", "2"), "b": (None, "5")})
     run.record({"a": ("2", "3")})
     assert run.changes == {"a": ("1", "3"), "b": (None, "5")}
+
+
+async def test_a_handler_slower_than_the_first_wait_finishes(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import time
+
+    ctx, _plugin, node_id = _setup(tmp_path)
+    real = button_runner.run_offline_button
+
+    def slow(*args: Any, **kwargs: Any) -> Any:
+        time.sleep(0.5)  # longer than the runner's own 0.2 s, as on a busy machine
+        return real(*args, **kwargs)
+
+    monkeypatch.setattr(button_runner, "run_offline_button", slow)
+    async with Client(build_server(ctx)) as client:
+        result = await _data(
+            client, "project_press_button", button_id=RUN, node_id=node_id, wait=10
+        )
+    assert result["state"] == "finished"

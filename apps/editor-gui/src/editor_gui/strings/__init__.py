@@ -2323,6 +2323,30 @@ class MenuStrings:
         return _("Download")
 
     @property
+    def WEB_DELETE(self) -> str:
+        return _("Delete")
+
+    @property
+    def WEB_DELETE_TITLE(self) -> str:
+        return _("Delete File")
+
+    @property
+    def WEB_DELETE_HINT(self) -> str:
+        return _("Delete from the server")
+
+    @property
+    def WEB_DELETE_QUESTION(self) -> str:
+        return _("Delete {name} from the server? This cannot be undone.")
+
+    @property
+    def WEB_FILE_IN_USE(self) -> str:
+        return _("{name} belongs to the open project and is not deleted.")
+
+    @property
+    def WEB_DELETE_FAILED(self) -> str:
+        return _("{name} could not be deleted: {error}")
+
+    @property
     def WEB_SHOW(self) -> str:
         return _("Show")
 

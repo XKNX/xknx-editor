@@ -1807,3 +1807,20 @@ msgstr "Iskanje"
 
 msgid "All tools lists every tool to the AI tool. Search lists only a search for the tools and one that calls them, for AI models whose context is too small for the whole list. An AI tool sees a change once it reconnects."
 msgstr "Vsa orodja orodju UI pokaže vsako orodje. Iskanje pokaže le iskanje orodij in orodje, ki jih kliče, za modele UI, katerih kontekst je za celoten seznam premajhen. Orodje UI vidi spremembo, ko se znova poveže."
+msgid "Delete"
+msgstr "Izbriši"
+
+msgid "Delete from the server"
+msgstr "Izbriši s strežnika"
+
+msgid "Delete {name} from the server? This cannot be undone."
+msgstr "Želite izbrisati {name} s strežnika? Tega ni mogoče razveljaviti."
+
+msgid "{name} belongs to the open project and is not deleted."
+msgstr "{name} pripada odprtemu projektu in se ne izbriše."
+
+msgid "{name} could not be deleted: {error}"
+msgstr "{name} ni bilo mogoče izbrisati: {error}"
+
+msgid "Delete File"
+msgstr "Izbriši datoteko"

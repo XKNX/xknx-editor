@@ -3,10 +3,12 @@
 from __future__ import annotations
 
 import json
+from dataclasses import replace
 
 import pytest
 
 from xknxeditor.recover import (
+    AppId,
     DeviceDossier,
     RecoveredDevice,
     RecoveredParameters,
@@ -60,6 +62,21 @@ def _device() -> RecoveredDevice:
 def test_a_snapshot_reads_back_into_the_same_device() -> None:
     device = _device()
     assert devices_from_snapshot(snapshots_json([device])) == [device]
+
+
+def test_observed_identity_survives_a_snapshot_with_another_layout_version() -> None:
+    observed = AppId("M-0083", 0x008A, 0x10)
+    device = replace(_device(), observed_app_id=observed)
+    assert devices_from_snapshot(snapshots_json([device])) == [device]
+    record = json.loads(snapshots_json([device]))["devices"][0]
+    assert record["application_id"] == device.application_id
+    assert record["observed_app_id"]["application_version"] == 0x10
+
+
+def test_legacy_snapshot_does_not_invent_an_observed_identity() -> None:
+    document = json.loads(snapshots_json([_device()]))
+    del document["devices"][0]["observed_app_id"]
+    assert devices_from_snapshot(json.dumps(document))[0].observed_app_id is None
 
 
 def test_a_snapshot_without_property_values_still_reads() -> None:

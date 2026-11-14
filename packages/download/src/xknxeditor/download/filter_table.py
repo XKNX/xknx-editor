@@ -89,7 +89,7 @@ def routed_group_addresses(
     return sorted(crossing | set(unfiltered) | set(additional))
 
 
-def _is_behind(device_ia: int, coupler_ia: int) -> bool:
+def is_behind(device_ia: int, coupler_ia: int) -> bool:
     """Whether ``device_ia`` sits behind the coupler at ``coupler_ia`` (a.l.0 / a.0.0).
 
     A line coupler (``a.l.0``, line != 0) is behind = same area and line. An area/backbone
@@ -120,7 +120,7 @@ def compute_coupler_filter_table(
     inside: set[int] = set()
     outside: set[int] = set()
     for device_ia, gas in device_group_addresses.items():
-        target = inside if _is_behind(device_ia, coupler_ia) else outside
+        target = inside if is_behind(device_ia, coupler_ia) else outside
         target.update(gas)
     routed = routed_group_addresses(
         inside, outside, unfiltered=unfiltered, additional=additional

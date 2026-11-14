@@ -241,3 +241,18 @@ msgstr "Maskien yhteensopivuustietoja ei ole; vain samat maskit tarkistettu"
 
 msgid "The application version missing from the local catalog was found in the alternative catalog. A login is required to download it. Enter your username and password in Settings > Catalog."
 msgstr "Paikallisesta luettelosta puuttuva sovellusversio löytyi vaihtoehtoisesta luettelosta. Sen lataaminen edellyttää kirjautumista. Anna käyttäjänimi ja salasana kohdassa Asetukset > Luettelo."
+
+msgid "Other Application Versions"
+msgstr "Muut sovellusversiot"
+
+msgid "Other Versions…"
+msgstr "Muut versiot…"
+
+msgid "The device runs application %(installed)s. These other versions are available in the online catalog. Loading product data does not change the device. Their suitability for recovery is unconfirmed; parameters and group objects may differ."
+msgstr "Laite käyttää sovellusta %(installed)s. Nämä muut versiot ovat saatavilla verkkoluettelossa. Tuotetietojen lataaminen ei muuta laitetta. Niiden soveltuvuutta palautukseen ei ole vahvistettu; parametrit ja ryhmäobjektit voivat poiketa toisistaan."
+
+msgid "Load Product Data for Version %(version)s"
+msgstr "Lataa tuotetiedot versiolle %(version)s"
+
+msgid "Different application version: device %(installed)s, recovery %(used)s. Not added to the project automatically."
+msgstr "Poikkeava sovellusversio: laite %(installed)s, palautus %(used)s. Ei lisätä projektiin automaattisesti."

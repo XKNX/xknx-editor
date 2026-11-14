@@ -1759,3 +1759,20 @@ msgstr "Keresés"
 
 msgid "All tools lists every tool to the AI tool. Search lists only a search for the tools and one that calls them, for AI models whose context is too small for the whole list. An AI tool sees a change once it reconnects."
 msgstr "A Minden eszköz az MI-eszköznek minden eszközt felsorol. A Keresés csak az eszközök keresését és egy őket meghívó eszközt sorol fel, olyan MI-modellekhez, amelyek kontextusa túl kicsi a teljes listához. Az MI-eszköz az újracsatlakozás után látja a változást."
+msgid "Delete"
+msgstr "Törlés"
+
+msgid "Delete from the server"
+msgstr "Törlés a szerverről"
+
+msgid "Delete {name} from the server? This cannot be undone."
+msgstr "Törli a(z) {name} fájlt a szerverről? Ez nem vonható vissza."
+
+msgid "{name} belongs to the open project and is not deleted."
+msgstr "A(z) {name} a megnyitott projekthez tartozik, ezért nem törlődik."
+
+msgid "{name} could not be deleted: {error}"
+msgstr "A(z) {name} nem törölhető: {error}"
+
+msgid "Delete File"
+msgstr "Fájl törlése"

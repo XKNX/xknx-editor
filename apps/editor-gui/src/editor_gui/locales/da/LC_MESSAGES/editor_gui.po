@@ -1703,3 +1703,20 @@ msgstr "Søgning"
 
 msgid "All tools lists every tool to the AI tool. Search lists only a search for the tools and one that calls them, for AI models whose context is too small for the whole list. An AI tool sees a change once it reconnects."
 msgstr "Alle værktøjer viser AI-værktøjet alle værktøjer. Søgning viser kun en søgning efter værktøjerne og ét, der kalder dem, til AI-modeller hvis kontekst er for lille til hele listen. Et AI-værktøj ser en ændring, når det forbinder igen."
+msgid "Delete"
+msgstr "Slet"
+
+msgid "Delete from the server"
+msgstr "Slet fra serveren"
+
+msgid "Delete {name} from the server? This cannot be undone."
+msgstr "Slet {name} fra serveren? Det kan ikke fortrydes."
+
+msgid "{name} belongs to the open project and is not deleted."
+msgstr "{name} hører til det åbne projekt og slettes ikke."
+
+msgid "{name} could not be deleted: {error}"
+msgstr "{name} kunne ikke slettes: {error}"
+
+msgid "Delete File"
+msgstr "Slet fil"

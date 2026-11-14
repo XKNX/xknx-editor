@@ -1703,3 +1703,20 @@ msgstr "Haku"
 
 msgid "All tools lists every tool to the AI tool. Search lists only a search for the tools and one that calls them, for AI models whose context is too small for the whole list. An AI tool sees a change once it reconnects."
 msgstr "Kaikki työkalut näyttää tekoälytyökalulle jokaisen työkalun. Haku näyttää vain työkalujen haun ja työkalun, joka kutsuu niitä, tekoälymalleille, joiden konteksti on liian pieni koko luettelolle. Tekoälytyökalu näkee muutoksen, kun se yhdistää uudelleen."
+msgid "Delete"
+msgstr "Poista"
+
+msgid "Delete from the server"
+msgstr "Poista palvelimelta"
+
+msgid "Delete {name} from the server? This cannot be undone."
+msgstr "Poistetaanko {name} palvelimelta? Tätä ei voi kumota."
+
+msgid "{name} belongs to the open project and is not deleted."
+msgstr "{name} kuuluu avoimeen projektiin, eikä sitä poisteta."
+
+msgid "{name} could not be deleted: {error}"
+msgstr "Tiedostoa {name} ei voitu poistaa: {error}"
+
+msgid "Delete File"
+msgstr "Poista tiedosto"

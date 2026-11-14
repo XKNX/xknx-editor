@@ -1,8 +1,9 @@
 """The files the browser exchanges with the app.
 
 In the browser UI the app's files live in one folder on the server (the *file folder*): uploads land
-there, a save writes there, and the browser can download what the app wrote. Only names inside that
-folder are accepted, and only files the app offered can be downloaded."""
+there, a save writes there, and the browser can download what the app wrote or delete what it no
+longer needs. Only names inside that folder are accepted, and only files the app offered can be
+downloaded."""
 
 from __future__ import annotations
 
@@ -14,13 +15,15 @@ import tempfile
 import threading
 import time
 import zipfile
-from collections.abc import Callable
+from collections.abc import Callable, Iterable
 from dataclasses import dataclass
 from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
 _FORBIDDEN = set('<>:"/\\|?*')
+# The files SQLite keeps beside an open database.
+_DATABASE_SIDE_FILES = ("-wal", "-shm", "-journal")
 # A written file counts as complete once its size and time stayed the same for this long.
 _STABLE_SECONDS = 1.0
 _WATCH_SECONDS = 3600.0
@@ -36,12 +39,34 @@ def safe_name(name: str) -> str:
     return cleaned or "file"
 
 
+def held_open(path: Path, open_files: Iterable[Path | None]) -> bool:
+    """Whether ``path`` is one of ``open_files`` or a file the database beside it keeps while
+    it is open (``-wal``, ``-shm``, ``-journal``)."""
+    for open_file in open_files:
+        if open_file is None:
+            continue
+        try:
+            same_folder = path.parent.resolve() == open_file.parent.resolve()
+        except OSError:
+            continue
+        if same_folder and (
+            path.name == open_file.name
+            or any(path.name == f"{open_file.name}{s}" for s in _DATABASE_SIDE_FILES)
+        ):
+            return True
+    return False
+
+
 def matches(name: str, patterns: list[str]) -> bool:
     """Whether ``name`` matches one of the dialog filter ``patterns`` (``*`` matches all)."""
     if not patterns:
         return True
     lowered = name.lower()
     return any(fnmatch.fnmatch(lowered, p.lower()) for p in patterns)
+
+
+class FileInUseError(Exception):
+    """A file of the file folder the app holds open (the open project) cannot be deleted."""
 
 
 @dataclass(frozen=True)
@@ -89,6 +114,18 @@ class FileFolder:
             out.append(Entry(child.name, stat.st_size, stat.st_mtime))
         out.sort(key=lambda e: e.modified, reverse=True)
         return out
+
+    def delete(self, name: str, in_use: Callable[[Path], bool] | None = None) -> None:
+        """Delete the file ``name``: only a file of the folder, by its plain name
+        (:class:`FileNotFoundError` for anything else), never one ``in_use`` says the app holds
+        open (:class:`FileInUseError`)."""
+        path = self.root / name
+        if safe_name(name) != name or not path.is_file():
+            raise FileNotFoundError(name)
+        if in_use is not None and in_use(path):
+            raise FileInUseError(name)
+        path.unlink()
+        logger.info("web file deleted: %s", path)
 
     def unique_name(self, name: str) -> str:
         """``name``, or ``name (2)`` etc. when a file of that name exists."""

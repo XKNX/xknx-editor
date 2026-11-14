@@ -227,3 +227,18 @@ msgstr "Maske uyumluluk verileri yok; yalnızca aynı maskeler kontrol edildi"
 
 msgid "The application version missing from the local catalog was found in the alternative catalog. A login is required to download it. Enter your username and password in Settings > Catalog."
 msgstr "Yerel katalogda eksik olan uygulama sürümü alternatif katalogda bulundu. İndirmek için oturum açılması gerekiyor. Ayarlar > Katalog bölümüne kullanıcı adınızı ve parolanızı girin."
+
+msgid "Other Application Versions"
+msgstr "Diğer Uygulama Sürümleri"
+
+msgid "Other Versions…"
+msgstr "Diğer Sürümler…"
+
+msgid "The device runs application %(installed)s. These other versions are available in the online catalog. Loading product data does not change the device. Their suitability for recovery is unconfirmed; parameters and group objects may differ."
+msgstr "Cihaz %(installed)s uygulamasını kullanıyor. Bu diğer sürümler çevrimiçi katalogda mevcut. Ürün verilerinin yüklenmesi cihazı değiştirmez. Kurtarma için uygunlukları doğrulanmamıştır; parametreler ve grup nesneleri farklı olabilir."
+
+msgid "Load Product Data for Version %(version)s"
+msgstr "%(version)s Sürümünün Ürün Verilerini Yükle"
+
+msgid "Different application version: device %(installed)s, recovery %(used)s. Not added to the project automatically."
+msgstr "Farklı uygulama sürümü: cihaz %(installed)s, kurtarma %(used)s. Projeye otomatik olarak eklenmez."

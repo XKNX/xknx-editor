@@ -233,3 +233,18 @@ msgstr "A maszkok kompatibilitási adatai nem érhetők el; csak az azonos maszk
 
 msgid "The application version missing from the local catalog was found in the alternative catalog. A login is required to download it. Enter your username and password in Settings > Catalog."
 msgstr "A helyi katalógusból hiányzó alkalmazásverzió megtalálható az alternatív katalógusban. A letöltéshez be kell jelentkezni. Adja meg felhasználónevét és jelszavát a Beállítások > Katalógus menüpontban."
+
+msgid "Other Application Versions"
+msgstr "Más alkalmazásverziók"
+
+msgid "Other Versions…"
+msgstr "Más verziók…"
+
+msgid "The device runs application %(installed)s. These other versions are available in the online catalog. Loading product data does not change the device. Their suitability for recovery is unconfirmed; parameters and group objects may differ."
+msgstr "Az eszköz a(z) %(installed)s alkalmazást használja. Ezek a más verziók elérhetők az online katalógusban. A termékadatok betöltése nem módosítja az eszközt. A helyreállításra való alkalmasságuk nem igazolt; a paraméterek és csoportobjektumok eltérhetnek."
+
+msgid "Load Product Data for Version %(version)s"
+msgstr "A(z) %(version)s verzió termékadatainak betöltése"
+
+msgid "Different application version: device %(installed)s, recovery %(used)s. Not added to the project automatically."
+msgstr "Eltérő alkalmazásverzió: eszköz %(installed)s, helyreállítás %(used)s. Nem kerül automatikusan a projektbe."

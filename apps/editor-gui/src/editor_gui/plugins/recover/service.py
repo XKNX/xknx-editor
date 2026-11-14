@@ -16,7 +16,11 @@ from concurrent.futures import Future
 from dataclasses import dataclass, field, replace
 from typing import TYPE_CHECKING, Any
 
-from editor_gui.plugins.recover.matching import CatalogCandidate, catalog_candidates
+from editor_gui.plugins.recover.matching import (
+    CatalogCandidate,
+    OnlineVersion,
+    catalog_candidates,
+)
 from xknxeditor.proj.core.medium import MediumError
 from xknxeditor.recover import (
     AppId,
@@ -65,6 +69,7 @@ class RecoverEntry:
     match_reason: str = ""
     product_mask_version: str | None = None
     compatibility_checked: bool = False
+    online_versions: tuple[OnlineVersion, ...] = ()
     # Read-only round-trip result: bytes that would still change (0 == verified).
     verify_changed: int | None = None
     # True once this device has been written into the open project (so it is not
@@ -81,6 +86,31 @@ class RecoverEntry:
     @property
     def recoverable(self) -> bool:
         return self.application is not None
+
+    @property
+    def version_mismatch(self) -> bool:
+        if self.app_id is None:
+            return False
+        layout_id = (
+            self.recovered.application_id
+            if self.recovered is not None
+            else self.application.id
+            if self.application is not None
+            else ""
+        )
+        layout = _app_id(layout_id)
+        return (
+            layout is not None
+            and layout.application_version != self.app_id.application_version
+        )
+
+    @property
+    def other_versions_available(self) -> bool:
+        return (
+            bool(self.online_versions)
+            and self.recovered is None
+            and (not self.recoverable or self.version_mismatch)
+        )
 
 
 def _unknown_parts(unrecoverable: int, not_found: int) -> list[str]:
@@ -268,7 +298,9 @@ class RecoverService:
         self.scan_current = ""
         return list(found)
 
-    def _identify_catalog(self, entry: RecoverEntry) -> None:
+    def _identify_catalog(
+        self, entry: RecoverEntry, *, application_id: str | None = None
+    ) -> None:
         """Match local layouts; different versions or multiple variants need confirmation."""
         from editor_gui.plugins.recover.strings import S
 
@@ -290,7 +322,11 @@ class RecoverService:
             return
         with self._api.catalog.io_lock:
             entry.catalog_candidates = catalog_candidates(
-                self._api.catalog, entry.app_id, mask, master
+                self._api.catalog,
+                entry.app_id,
+                mask,
+                master,
+                application_id=application_id,
             )
             entry.candidates = len(entry.catalog_candidates)
             if not entry.catalog_candidates:
@@ -386,6 +422,7 @@ class RecoverService:
                     master=self._api.connection.master,
                     factory_image=self._factory_image(entry),
                 )
+                entry.recovered = replace(entry.recovered, observed_app_id=entry.app_id)
                 entry.state = _recovered_state(entry.recovered)
                 if self._log is not None:
                     self._log.info(
@@ -455,6 +492,7 @@ class RecoverService:
         read yet says so)."""
         from editor_gui.plugins.recover.strings import S
 
+        version_note = RecoverService.version_warning(entry)
         recovered = entry.recovered
         if recovered is None:
             parts = [S.DETAIL_NOT_READ] if entry.recoverable else []
@@ -468,6 +506,8 @@ class RecoverService:
                 )
             if entry.app_id is not None and not entry.compatibility_checked:
                 parts.append(S.DETAIL_NO_MASTER)
+            if version_note:
+                parts.append(version_note)
             return " | ".join(parts)
         parameters = recovered.parameters
         counts = (
@@ -507,7 +547,29 @@ class RecoverService:
             )
         if entry.error:
             detail += f" | {entry.error}"
+        if version_note:
+            detail += f" | {version_note}"
         return detail
+
+    @staticmethod
+    def version_warning(entry: RecoverEntry) -> str:
+        """Keep the observed and decoding versions visible even after byte verification."""
+        from editor_gui.plugins.recover.strings import S
+
+        if not entry.version_mismatch or entry.app_id is None:
+            return ""
+        layout = _app_id(
+            entry.recovered.application_id
+            if entry.recovered is not None
+            else entry.application.id
+            if entry.application is not None
+            else ""
+        )
+        assert layout is not None
+        return S.VERSION_MISMATCH % {
+            "installed": entry.app_id.version_text,
+            "used": layout.version_text,
+        }
 
     # --- polling (UI thread) ----------------------------------------------
 
@@ -733,9 +795,10 @@ class RecoverService:
             entry = RecoverEntry(
                 address=device.address,
                 mask_version=device.mask_version,
-                app_id=_app_id(device.application_id),
+                app_id=device.observed_app_id or _app_id(device.application_id),
+                recovered=device,
             )
-            self._identify_catalog(entry)
+            self._identify_catalog(entry, application_id=device.application_id)
             if entry.application is not None:
                 application = entry.application
                 device = replace(
@@ -895,9 +958,39 @@ class RecoverService:
             return
         if self._cancel:
             return
-        # Only the products of the applications the devices run: the server refuses a whole
-        # request when one of its products is offered in no market, and the rest would only
-        # fill the catalog.
+        entries: list[RecoverEntry] = []
+        for entry in self.entries:
+            if (
+                self._needs_catalog(entry)
+                and entry.app_id is not None
+                and entry.app_id.manufacturer_id == manufacturer_id
+            ):
+                versions = {
+                    item.id: OnlineVersion(
+                        item.id, item.name, item.order_number, item.application_version
+                    )
+                    for item in items
+                    if item.downloadable
+                    and item.application_manufacturer_id == mid
+                    and item.application_number == entry.app_id.application_number
+                    and item.application_version is not None
+                    and item.application_version != entry.app_id.application_version
+                }
+                entry = replace(
+                    entry,
+                    online_versions=tuple(
+                        sorted(
+                            versions.values(),
+                            key=lambda item: (
+                                item.application_version,
+                                item.product_name,
+                                item.catalog_item_id,
+                            ),
+                        )
+                    ),
+                )
+            entries.append(entry)
+        self.entries = entries
         wanted = {
             (entry.app_id.application_number, entry.app_id.application_version)
             for entry in self.entries
@@ -905,12 +998,15 @@ class RecoverService:
             and entry.app_id is not None
             and entry.app_id.manufacturer_id == manufacturer_id
         }
-        item_ids = [
-            item.id
-            for item in items
-            if item.downloadable
-            and (item.application_number, item.application_version) in wanted
-        ]
+        item_ids = sorted(
+            {
+                item.id
+                for item in items
+                if item.downloadable
+                and item.application_manufacturer_id == mid
+                and (item.application_number, item.application_version) in wanted
+            }
+        )
         if not item_ids:
             if self._log is not None:
                 self._log.info(
@@ -918,7 +1014,7 @@ class RecoverService:
                     manufacturer=manufacturer_id,
                 )
             return
-        added = self._download_online(manufacturer_id, item_ids, error_type)
+        added = self._download_online(manufacturer_id, item_ids)
         if added is None:
             return
         self._api.catalog.refresh()
@@ -931,19 +1027,20 @@ class RecoverService:
                 added=added,
             )
 
-    def _download_online(
-        self, manufacturer_id: str, item_ids: list[str], error_type: type[Exception]
-    ) -> int | None:
+    def _download_online(self, manufacturer_id: str, item_ids: list[str]) -> int | None:
         """Download and import the online catalog products; how many product versions were
-        added, None when none could be downloaded. A refused request of several products is
-        tried again product by product, so one the server refuses leaves the others."""
+        added, None when none could be downloaded. A failed download or import of several
+        products is tried again product by product, so one failure leaves the others."""
         batches = (
             [item_ids] if len(item_ids) == 1 else [item_ids, *([i] for i in item_ids)]
         )
         added: int | None = None
-        for batch in batches:
+        for index, batch in enumerate(batches):
             if self._cancel:
                 break
+            self.fetch_status = f"catalog {manufacturer_id}"
+            if len(batch) == 1:
+                self.fetch_status += f": {index or 1}/{len(item_ids)}"
             try:
                 with self._api.catalog.io_lock:
                     if self._cancel:
@@ -951,9 +1048,9 @@ class RecoverService:
                     added = (added or 0) + len(
                         self._api.catalog.download_online_products(batch)
                     )
-            except error_type as exc:
+            except Exception as exc:
                 if len(batch) == 1:
-                    self._catalog_error(manufacturer_id, exc)
+                    self._catalog_error(batch[0], exc)
                 continue
             if len(batch) > 1:
                 break
@@ -968,6 +1065,62 @@ class RecoverService:
             entries.append(entry)
         self.entries = entries
 
+    def start_load_other_version(self, address: str, catalog_item_id: str) -> None:
+        """Import one explicitly chosen online article; never starts bus recovery."""
+        if self.busy:
+            raise ValueError("recovery is still running")
+        entry = next(
+            (entry for entry in self.entries if entry.address == address), None
+        )
+        if entry is None or not entry.other_versions_available:
+            raise ValueError("no other application versions available for this device")
+        option = next(
+            (
+                item
+                for item in entry.online_versions
+                if item.catalog_item_id == catalog_item_id
+            ),
+            None,
+        )
+        if option is None:
+            raise ValueError("catalog item is not an offered application version")
+        self._cancel = False
+        self.fetch_error = ""
+        thread = threading.Thread(
+            target=self._load_other_version, args=(address, option), daemon=True
+        )
+        self._fetch_thread = thread
+        thread.start()
+
+    def _load_other_version(self, address: str, option: OnlineVersion) -> None:
+        try:
+            self.fetch_status = option.product_name
+            with self._api.catalog.io_lock:
+                if self._cancel:
+                    return
+                self._api.catalog.download_online_products([option.catalog_item_id])
+                self._catalog_changed = True
+            self._reidentify_unresolved()
+            entries: list[RecoverEntry] = []
+            for entry in self.entries:
+                entry = replace(
+                    entry,
+                    online_versions=tuple(
+                        item
+                        for item in entry.online_versions
+                        if item.catalog_item_id != option.catalog_item_id
+                    ),
+                )
+                if entry.address == address:
+                    entry.selected = False
+                entries.append(entry)
+            self.entries = entries
+        except Exception as exc:
+            self._catalog_error(option.catalog_item_id, exc)
+        finally:
+            self.fetch_status = ""
+            self._fetch_thread = None
+
     # --- assemble into a project (UI thread) ------------------------------
 
     def _auto_apply(self) -> None:
@@ -976,7 +1129,7 @@ class RecoverService:
             return
         ga_ids: dict[int, int] = {}
         for entry in self.entries:
-            if entry.applied or entry.auto_tried:
+            if entry.applied or entry.auto_tried or entry.version_mismatch:
                 continue
             if entry.recovered is None or entry.product_ref_id is None:
                 continue
@@ -1113,7 +1266,12 @@ class RecoverService:
                     # The bus carries no clear name or description, so stamp the
                     # individual address as the description to record where the device
                     # came from.
-                    project.set_device_description(device_id, "", entry.address)
+                    note = self.version_warning(entry)
+                    project.set_device_description(
+                        device_id,
+                        "",
+                        f"{entry.address} | {note}" if note else entry.address,
+                    )
                     device = next(
                         (d for d in project.devices if d.node_id == device_id), None
                     )

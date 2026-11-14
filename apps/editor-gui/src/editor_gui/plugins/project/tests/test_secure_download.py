@@ -153,11 +153,16 @@ def test_routing_blocking_of_a_security_proxy_coupler() -> None:
     service = cast(Any, SimpleNamespace())
     service.security_proxy_coupler = lambda device: device.proxy
     service.unicast_broadcast_blocking = lambda device: device.mode
+    service._security_proxy = lambda device: device.table
     decide = lambda **fields: ProjectService.download_routing_blocking(  # noqa: E731
-        service, cast(Any, SimpleNamespace(**fields))
+        service, cast(Any, SimpleNamespace(**{"table": None, **fields}))
     )
     assert decide(proxy=False, mode="On") is None  # any other device: left alone
     assert decide(proxy=True, mode="On") is True
     assert decide(proxy=True, mode="Off") is False
-    # Auto: blocked only for a Security Proxy in use, which the project never sets up.
+    # Auto: blocked while the coupler translates a group address between its sides.
     assert decide(proxy=True, mode=None) is False
+    assert decide(proxy=True, mode=None, table=([], [])) is False
+    translated = ([(0x0801, bytes(16), True)], [])
+    assert decide(proxy=True, mode=None, table=translated) is True
+    assert decide(proxy=True, mode="Off", table=translated) is False

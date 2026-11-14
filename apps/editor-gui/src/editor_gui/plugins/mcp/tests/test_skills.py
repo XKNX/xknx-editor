@@ -62,6 +62,9 @@ def _allowed(schema: dict[str, Any]) -> set[str] | None:
 
 
 async def test_knx_skill_exposed_as_resource(tmp_path: Path) -> None:
+    # The skill reaches clients as a skill:// resource, which the server instructions point to.
+    # The MCP skills extension is not used here: the tool-search transform shadows its listing,
+    # and the resource path above is the supported delivery.
     mcp, _project = _build(tmp_path)
     async with Client(mcp) as client:
         uris = {str(r.uri) for r in await client.list_resources()}

@@ -1687,3 +1687,20 @@ msgstr "Arama"
 
 msgid "All tools lists every tool to the AI tool. Search lists only a search for the tools and one that calls them, for AI models whose context is too small for the whole list. An AI tool sees a change once it reconnects."
 msgstr "Tüm araçlar, yapay zekâ aracına her aracı listeler. Arama yalnızca araçlar için bir arama ve onları çağıran bir araç listeler; bağlamı tüm liste için çok küçük olan yapay zekâ modelleri içindir. Yapay zekâ aracı değişikliği yeniden bağlandığında görür."
+msgid "Delete"
+msgstr "Sil"
+
+msgid "Delete from the server"
+msgstr "Sunucudan sil"
+
+msgid "Delete {name} from the server? This cannot be undone."
+msgstr "{name} sunucudan silinsin mi? Bu işlem geri alınamaz."
+
+msgid "{name} belongs to the open project and is not deleted."
+msgstr "{name} açık projeye ait olduğundan silinmez."
+
+msgid "{name} could not be deleted: {error}"
+msgstr "{name} silinemedi: {error}"
+
+msgid "Delete File"
+msgstr "Dosyayı Sil"

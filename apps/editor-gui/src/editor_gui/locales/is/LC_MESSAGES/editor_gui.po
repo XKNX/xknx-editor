@@ -1775,3 +1775,20 @@ msgstr "Leit"
 
 msgid "All tools lists every tool to the AI tool. Search lists only a search for the tools and one that calls them, for AI models whose context is too small for the whole list. An AI tool sees a change once it reconnects."
 msgstr "Öll verkfæri sýnir gervigreindartólinu hvert verkfæri. Leit sýnir aðeins leit að verkfærunum og eitt sem kallar á þau, fyrir gervigreindarlíkön með of lítið samhengi fyrir allan listann. Gervigreindartól sér breytingu þegar það tengist aftur."
+msgid "Delete"
+msgstr "Eyða"
+
+msgid "Delete from the server"
+msgstr "Eyða af þjóninum"
+
+msgid "Delete {name} from the server? This cannot be undone."
+msgstr "Eyða {name} af þjóninum? Ekki er hægt að afturkalla það."
+
+msgid "{name} belongs to the open project and is not deleted."
+msgstr "{name} tilheyrir opna verkefninu og er ekki eytt."
+
+msgid "{name} could not be deleted: {error}"
+msgstr "Ekki tókst að eyða {name}: {error}"
+
+msgid "Delete File"
+msgstr "Eyða skrá"

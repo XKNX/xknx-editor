@@ -199,6 +199,9 @@ class WebHub:
         self.notify: Callable[[str], None] | None = None
         # Reports an error the app went on after (where, what), set by the app.
         self.report_error: Callable[[str, str], None] | None = None
+        # Whether the app holds a file of the file folder open (the open project), set by the
+        # app: such a file is not deleted.
+        self.file_in_use: Callable[[Path], bool] | None = None
         # The connection of the program that started the editor (Home Assistant's integration).
         self.host_link = HostLink(self.wake.set)
         # The app's theme colours for the page's own elements.
@@ -340,6 +343,11 @@ class WebHub:
                 name=str(event.get("name", "")),
             )
         )
+
+    def delete_file(self, name: str) -> None:
+        """Delete a file of the file folder (see :meth:`FileFolder.delete`): never one the app
+        holds open."""
+        self.files.delete(name, self.file_in_use)
 
     def download_when_written(self, path: Path) -> None:
         """Offer ``path`` for download once the app has written it (a folder as a ZIP)."""
