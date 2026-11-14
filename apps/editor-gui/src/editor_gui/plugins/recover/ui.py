@@ -8,10 +8,13 @@ from typing import TYPE_CHECKING
 from imgui_bundle import imgui
 
 from editor_gui import file_dialogs
+from editor_gui.device_info import application_version_text
 from editor_gui.plugins.recover.strings import S
+from editor_gui.strings import S as AppS
 from editor_gui.theme import status_color
 from editor_gui.widgets.checkbox import checkbox
 from editor_gui.widgets.combo import begin_combo, combo
+from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
 from editor_gui.widgets.dpi import px
 from editor_gui.widgets.flow import button_width, same_line_if_fits, text_width
 from editor_gui.widgets.tables import begin_data_table, freeze_header, table_header_menu
@@ -71,6 +74,8 @@ class RecoverPanel:
         # The height the action row took in the last frame: it goes on in a second row where the
         # window is narrow.
         self._actions_h = 0.0
+        self._versions_address: str | None = None
+        self._versions_requested = False
 
     def render(self) -> None:
         service = self._service
@@ -87,6 +92,7 @@ class RecoverPanel:
         self._render_status()
         self._render_results()
         self._render_actions()
+        self._render_other_versions()
 
     def _render_scan_controls(self) -> None:
         service = self._service
@@ -253,7 +259,53 @@ class RecoverPanel:
             text_clipped_tooltip(entry.state)
             imgui.table_set_column_index(5)
             text_clipped_tooltip(service.entry_detail(entry))
+            if entry.other_versions_available:
+                imgui.begin_disabled(busy)
+                if imgui.button(f"{S.BTN_OTHER_VERSIONS}##versions{index}"):
+                    self._versions_address = entry.address
+                    self._versions_requested = True
+                imgui.end_disabled()
         imgui.end_table()
+
+    def _render_other_versions(self) -> None:
+        service = self._service
+        title = f"{S.OTHER_VERSIONS}###recover_other_versions"
+        if self._versions_requested:
+            imgui.open_popup(title)
+            self._versions_requested = False
+        if not begin_dialog(title, width=620.0):
+            return
+        entry = next(
+            (
+                entry
+                for entry in service.entries
+                if entry.address == self._versions_address
+            ),
+            None,
+        )
+        if entry is not None and entry.app_id is not None:
+            imgui.text(entry.address)
+            imgui.text_wrapped(
+                S.OTHER_VERSION_NOTICE % {"installed": entry.app_id.version_text}
+            )
+            imgui.begin_disabled(service.busy or not entry.other_versions_available)
+            for index, option in enumerate(entry.online_versions):
+                imgui.push_id(index)
+                imgui.separator()
+                imgui.text_wrapped(f"{option.product_name} ({option.order_number})")
+                label = S.BTN_LOAD_VERSION % {
+                    "version": application_version_text(option.application_version)
+                }
+                if imgui.button(label):
+                    service.start_load_other_version(
+                        entry.address, option.catalog_item_id
+                    )
+                    imgui.close_current_popup()
+                imgui.pop_id()
+            imgui.end_disabled()
+        if dialog_buttons(AppS.BTN_CLOSE) is not None:
+            imgui.close_current_popup()
+        end_dialog()
 
     def _render_headers(self) -> None:
         """The header row: a checkbox that selects every device that can be read (or none),

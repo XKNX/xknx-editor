@@ -18,7 +18,12 @@ from editor_gui.plugins.recover.service import RecoverEntry, RecoverService
 from editor_gui.plugins.recover.strings import S
 from xknxeditor.prod import load
 from xknxeditor.proj.core.medium import MediumError
-from xknxeditor.recover import RecoveredDevice, RecoveredParameters, RecoveryEffort
+from xknxeditor.recover import (
+    AppId,
+    RecoveredDevice,
+    RecoveredParameters,
+    RecoveryEffort,
+)
 from xknxeditor.recover.recover import com_object_ref_by_number
 from xknxeditor.recover.tables_decode import DecodedGroupObject, DecodedLink
 
@@ -674,6 +679,7 @@ async def test_a_device_is_read_with_its_products_factory_image(
     api.catalog = SimpleNamespace(factory_image=images.get)  # type: ignore[attr-defined]
     service = RecoverService(api)  # type: ignore[arg-type]
     entries = [_rf_entry(application) for _ in range(3)]
+    entries[0].app_id = AppId("M-0002", 0x6322, 0x10)
     entries[1].hardware2program_ref_id = "HP-none"
     # A factory image that cannot be read is left out, as one the product does not have.
     entries[2].hardware2program_ref_id = "HP-bad"
@@ -684,3 +690,24 @@ async def test_a_device_is_read_with_its_products_factory_image(
     assert image.segments[0].data == bytes([0x12, 0x34])  # type: ignore[attr-defined]
     assert none is None
     assert bad is None
+    assert entries[0].recovered.observed_app_id == entries[0].app_id
+
+
+def test_manual_apply_preserves_the_version_warning_in_the_project(application) -> None:
+    from editor_gui.plugins.recover.service import _app_id
+
+    entry = _rf_entry(application)
+    layout = _app_id(application.id)
+    assert layout is not None
+    entry.app_id = dataclasses.replace(
+        layout, application_version=layout.application_version ^ 1
+    )
+    project = _FakeProject(refs=[])
+    service = RecoverService(_FakeAPI(project))
+    service.entries = [entry]
+    service._auto_apply()
+    assert project.add_calls == 0
+    assert service.apply_to_project() == 1
+    assert project.descriptions == [
+        (7, f"{entry.address} | {service.version_warning(entry)}")
+    ]

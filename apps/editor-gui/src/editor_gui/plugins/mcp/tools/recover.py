@@ -77,6 +77,11 @@ def _entry(service: RecoverService, entry: RecoverEntry) -> dict[str, Any]:
         "product_mask_version": entry.product_mask_version,
         "match_reason": entry.match_reason or None,
         "compatibility_checked": entry.compatibility_checked,
+        "version_mismatch": entry.version_mismatch,
+        "version_warning": service.version_warning(entry) or None,
+        "online_versions": [asdict(option) for option in entry.online_versions]
+        if entry.other_versions_available
+        else [],
         "recovered": (
             {
                 "group_addresses": [
@@ -231,6 +236,9 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         hardware2program_ref_id, product_mask_version, compatibility_checked (master declaration
         available), match_reason (exact | compatible_mask | different_version |
         different_version_compatible_mask). catalog_fetch_error retains download/import errors.
+        version_mismatch and version_warning identify a different decoding version even after
+        verification. online_versions [{catalog_item_id, product_name, order_number,
+        application_version (raw byte)}] lists other versions offered for manual product loading.
         recovered ({group_addresses, links, parameters, unknown_parameters,
         order_info} once read back, else null), verify_changed_bytes (0 = verified), applied
         (in the project), error (why adding it failed), details}."""
@@ -272,6 +280,22 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         )
         return state()
 
+    @tool("write", open_world=True)
+    def recover_load_other_version(
+        device_address: str, catalog_item_id: str, timeout: float = 300.0
+    ) -> dict[str, Any]:
+        """Load one other-version article from recover_status.entries[].online_versions into
+        the local catalog, as the Other Versions dialog. Does not change or read the device.
+        Recovery compatibility is unconfirmed: parameters and group objects may differ.
+        Leaves the device deselected; recover_select explicitly chooses it for read-back.
+        A result using another version is marked and never added to the project automatically.
+        Refused while busy or after read-back. Returns recover_status after completion or timeout
+        (busy true). Download/import errors remain in catalog_fetch_error. Outside project undo."""
+        ctx.run_on_ui(
+            lambda: service().start_load_other_version(device_address, catalog_item_id)
+        )
+        return wait(timeout)
+
     @tool("write")
     def recover_select(addresses: list[str], selected: bool = True) -> dict[str, Any]:
         """Select (``selected`` true) or deselect the scanned devices at ``addresses`` (their
@@ -297,7 +321,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
     def recover_read_back(timeout: float = 1800.0) -> dict[str, Any]:
         """Read the selected devices back from the bus: their parameters, group addresses,
         links and flags (Recover Selected). Only reads from the devices. With auto_apply on and
-        a project open, each device read is added to it (as recover_add_to_project does) when
+        a project open, each device read with the same application version is added to it when
         recover_status or this tool sees it. Waits up to ``timeout`` s; returns the state as
         recover_status does."""
         recover = service()

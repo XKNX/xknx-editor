@@ -241,3 +241,18 @@ msgstr "Δεν υπάρχουν δεδομένα συμβατότητας μασ
 
 msgid "The application version missing from the local catalog was found in the alternative catalog. A login is required to download it. Enter your username and password in Settings > Catalog."
 msgstr "Η έκδοση της εφαρμογής που λείπει από τον τοπικό κατάλογο βρέθηκε στον εναλλακτικό κατάλογο. Απαιτείται σύνδεση για τη λήψη της. Συμπληρώστε το όνομα χρήστη και τον κωδικό πρόσβασης στις Ρυθμίσεις > Κατάλογος."
+
+msgid "Other Application Versions"
+msgstr "Άλλες εκδόσεις εφαρμογής"
+
+msgid "Other Versions…"
+msgstr "Άλλες εκδόσεις…"
+
+msgid "The device runs application %(installed)s. These other versions are available in the online catalog. Loading product data does not change the device. Their suitability for recovery is unconfirmed; parameters and group objects may differ."
+msgstr "Η συσκευή χρησιμοποιεί την εφαρμογή %(installed)s. Αυτές οι άλλες εκδόσεις είναι διαθέσιμες στον ηλεκτρονικό κατάλογο. Η φόρτωση δεδομένων προϊόντος δεν αλλάζει τη συσκευή. Η καταλληλότητά τους για ανάκτηση δεν έχει επιβεβαιωθεί· οι παράμετροι και τα αντικείμενα ομάδας ενδέχεται να διαφέρουν."
+
+msgid "Load Product Data for Version %(version)s"
+msgstr "Φόρτωση δεδομένων προϊόντος για την έκδοση %(version)s"
+
+msgid "Different application version: device %(installed)s, recovery %(used)s. Not added to the project automatically."
+msgstr "Διαφορετική έκδοση εφαρμογής: συσκευή %(installed)s, ανάκτηση %(used)s. Δεν προστίθεται αυτόματα στο έργο."

@@ -227,3 +227,18 @@ msgstr "マスク互換性データがありません。同一のマスクのみ
 
 msgid "The application version missing from the local catalog was found in the alternative catalog. A login is required to download it. Enter your username and password in Settings > Catalog."
 msgstr "ローカルカタログにないアプリケーションバージョンが代替カタログで見つかりました。ダウンロードするにはログインが必要です。「設定 > カタログ」でユーザー名とパスワードを入力してください。"
+
+msgid "Other Application Versions"
+msgstr "他のアプリケーションバージョン"
+
+msgid "Other Versions…"
+msgstr "他のバージョン…"
+
+msgid "The device runs application %(installed)s. These other versions are available in the online catalog. Loading product data does not change the device. Their suitability for recovery is unconfirmed; parameters and group objects may differ."
+msgstr "デバイスはアプリケーション %(installed)s を使用しています。これらの他のバージョンはオンラインカタログで入手できます。製品データを読み込んでもデバイスは変更されません。復元への適合性は未確認であり、パラメーターやグループオブジェクトが異なる場合があります。"
+
+msgid "Load Product Data for Version %(version)s"
+msgstr "バージョン %(version)s の製品データを読み込む"
+
+msgid "Different application version: device %(installed)s, recovery %(used)s. Not added to the project automatically."
+msgstr "アプリケーションバージョンが異なります：デバイス %(installed)s、復元 %(used)s。プロジェクトには自動的に追加されません。"

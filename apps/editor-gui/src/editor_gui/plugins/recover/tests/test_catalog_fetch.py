@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import threading
 from dataclasses import replace
 from types import SimpleNamespace
@@ -247,11 +248,11 @@ class OnlineCatalog(FetchCatalog):
     def online_catalog_items(self, manufacturer_id: int) -> list[Any]:
         self.official.append(manufacturer_id)
         return [
-            SimpleNamespace(
-                id=item_id,
+            online_item(
+                item_id,
                 downloadable=downloadable,
-                application_number=number,
-                application_version=version,
+                number=number,
+                version=version,
             )
             for item_id, downloadable, number, version in (
                 ("wanted", True, 0x6322, 0x23),
@@ -312,3 +313,248 @@ def test_no_product_of_the_application_downloads_nothing() -> None:
     service._autofetch()
     assert catalog.requests == []
     assert service.fetch_error == ""
+
+
+@pytest.mark.parametrize("refused,added", [(set(), 2), ({"wanted-too"}, 1)])
+def test_download_counts_successful_product_versions(
+    refused: set[str], added: int
+) -> None:
+    service, catalog = _online_setup()
+    catalog.refused = refused
+    assert service._download_online("M-0002", ["wanted", "wanted-too"]) == added
+
+
+def online_item(
+    item_id: str,
+    number: int = 0x6322,
+    version: int = 0x23,
+    manufacturer: int = 2,
+    downloadable: bool = True,
+) -> Any:
+    from editor_gui.plugins.catalog.online_catalog import OnlineCatalogItem
+
+    return OnlineCatalogItem(
+        item_id,
+        item_id,
+        item_id,
+        downloadable,
+        manufacturer_id=manufacturer,
+        application_manufacturer_id=manufacturer,
+        application_number=number,
+        application_version=version,
+    )
+
+
+def official_fetch(service: RecoverService) -> None:
+    from editor_gui.plugins.catalog.online_catalog import OnlineCatalogError
+
+    service._fetch_manufacturer(
+        service.entries[0].app_id.manufacturer_id, OnlineCatalogError
+    )
+    service._reidentify_unresolved()
+
+
+def test_official_fetch_selects_only_exact_application_variants(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    service, catalog = setup()
+    items = [
+        online_item("matching-a"),
+        online_item("matching-a"),
+        online_item("matching-b"),
+        online_item("wrong-number", number=0x6323),
+        online_item("wrong-version", version=0x24),
+        online_item("wrong-manufacturer", manufacturer=7),
+        online_item("no-market", downloadable=False),
+    ]
+    monkeypatch.setattr(catalog, "online_catalog_items", lambda mid: items)
+    downloads: list[list[str]] = []
+
+    def download(ids: list[str]) -> list[Any]:
+        downloads.append(ids)
+        catalog.items.extend(product(item_id) for item_id in ids)
+        return []
+
+    monkeypatch.setattr(catalog, "download_online_products", download, raising=False)
+    monkeypatch.setattr(catalog, "refresh", lambda: None, raising=False)
+    official_fetch(service)
+    assert downloads == [["matching-a", "matching-b"]]
+    assert all(e.candidates == 2 and e.ambiguous for e in service.entries)
+    assert service._catalog_changed
+
+
+@pytest.mark.parametrize("number", [0xA01E, 0xA020, 0xA023, 0xA03A, 0xA03B])
+def test_catalog_version_two_does_not_trigger_download_for_version_one(
+    number: int, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    service, catalog = setup()
+    service.entries[0].app_id = AppId("M-0002", number, 0x10)
+    service.entries = service.entries[:1]
+    monkeypatch.setattr(
+        catalog,
+        "online_catalog_items",
+        lambda mid: [online_item("newer", number, 0x20)],
+    )
+    official_fetch(service)
+    assert not service._catalog_changed and not service.fetch_error
+
+
+def test_panel_identifier_does_not_download_unrelated_products(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    service, catalog = setup()
+    service.entries = [RecoverEntry("1.1.9", 0x0013, app_id=AppId("M-0007", 0, 0xFF))]
+    monkeypatch.setattr(
+        catalog,
+        "online_catalog_items",
+        lambda mid: [
+            online_item("accessory", 0, 0, 7),
+            online_item("panel", 0x6300, 0x1A, 7),
+        ],
+    )
+    official_fetch(service)
+    assert not service._catalog_changed and not service.fetch_error
+
+
+def test_market_rejection_does_not_block_other_application_product(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from editor_gui.plugins.catalog.online_catalog import OnlineCatalogError
+
+    service, catalog = setup()
+    monkeypatch.setattr(
+        catalog,
+        "online_catalog_items",
+        lambda mid: [online_item("a"), online_item("b")],
+    )
+    downloads: list[list[str]] = []
+
+    def download(ids: list[str]) -> list[Any]:
+        downloads.append(ids)
+        if "a" in ids:
+            raise OnlineCatalogError('400 Bad Request: {"Id":"NotInAnyMarket"}')
+        catalog.items.append(product("b"))
+        return []
+
+    monkeypatch.setattr(catalog, "download_online_products", download, raising=False)
+    monkeypatch.setattr(catalog, "refresh", lambda: None, raising=False)
+    official_fetch(service)
+    assert downloads == [["a", "b"], ["a"], ["b"]]
+    assert "NotInAnyMarket" in service.fetch_error
+    assert all(e.recoverable for e in service.entries)
+
+
+def test_stop_between_official_products_keeps_imported_result(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from editor_gui.plugins.catalog.online_catalog import OnlineCatalogError
+
+    service, catalog = setup()
+    monkeypatch.setattr(
+        catalog,
+        "online_catalog_items",
+        lambda mid: [online_item("a"), online_item("b")],
+    )
+    downloads: list[list[str]] = []
+
+    def download(ids: list[str]) -> list[Any]:
+        downloads.append(ids)
+        if len(ids) > 1:
+            raise OnlineCatalogError("batch refused")
+        catalog.items.append(product("a"))
+        service.stop()
+        return []
+
+    monkeypatch.setattr(catalog, "download_online_products", download, raising=False)
+    monkeypatch.setattr(catalog, "refresh", lambda: None, raising=False)
+    official_fetch(service)
+    assert downloads == [["a", "b"], ["a"]]
+    assert all(e.recoverable for e in service.entries)
+
+
+@pytest.mark.parametrize(
+    "manufacturer,number,version",
+    [(2, 0xA01E, 0x20), (7, 0x0806, 0x71), (0x183, 0x1234, 0x2A)],
+)
+def test_index_identity_matches_the_identity_read_from_the_device(
+    manufacturer: int, number: int, version: int, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from editor_gui.plugins.catalog.online_catalog import parse_catalog_items
+    from xknxeditor.recover.identify import parse_application_id
+
+    service, catalog = setup()
+    manufacturer_id = f"M-{manufacturer:04X}"
+    identity = [
+        manufacturer >> 8,
+        manufacturer & 0xFF,
+        number >> 8,
+        number & 0xFF,
+        version,
+    ]
+    app_id = parse_application_id(bytes(identity))
+    assert app_id is not None
+    service.entries = [RecoverEntry("1.1.5", 0x0013, app_id=app_id)]
+    items = parse_catalog_items(
+        json.dumps(
+            {
+                "ManufacturerId": manufacturer,
+                "Entries": [
+                    {"Id": "match", "ApplicationIdentifier": identity},
+                    {
+                        "Id": "wrong-manufacturer",
+                        "ApplicationIdentifier": [
+                            0,
+                            1,
+                            identity[2],
+                            identity[3],
+                            version,
+                        ],
+                    },
+                ],
+            }
+        ).encode()
+    )
+    monkeypatch.setattr(catalog, "online_catalog_items", lambda mid: items)
+    downloads = []
+
+    def download(ids):
+        downloads.append(ids)
+        catalog.items.append(
+            product(
+                "match", manufacturer=manufacturer_id, number=number, version=version
+            )
+        )
+        return []
+
+    monkeypatch.setattr(catalog, "download_online_products", download, raising=False)
+    monkeypatch.setattr(catalog, "refresh", lambda: None, raising=False)
+    official_fetch(service)
+    assert downloads == [["match"]]
+    assert service.entries[0].recoverable and service.entries[0].selected
+
+
+def test_failed_single_import_does_not_stop_the_next_manufacturer(monkeypatch) -> None:
+    service, catalog = setup()
+    catalog.alternative.ids = []
+    service.entries[1].app_id = AppId("M-0007", 0x6322, 0x23)
+    monkeypatch.setattr(
+        catalog,
+        "online_catalog_items",
+        lambda mid: [online_item(f"article-{mid}", manufacturer=mid)],
+    )
+    downloads = []
+
+    def download(ids):
+        downloads.append(ids)
+        if ids == ["article-2"]:
+            raise ValueError("invalid product archive")
+        catalog.items.append(product("valid", manufacturer="M-0007"))
+        return []
+
+    monkeypatch.setattr(catalog, "download_online_products", download, raising=False)
+    monkeypatch.setattr(catalog, "refresh", lambda: None, raising=False)
+    service._autofetch()
+    assert downloads == [["article-2"], ["article-7"]]
+    assert "article-2: invalid product archive" in service.fetch_error
+    assert not service.entries[0].recoverable
+    assert service.entries[1].recoverable and service.entries[1].selected

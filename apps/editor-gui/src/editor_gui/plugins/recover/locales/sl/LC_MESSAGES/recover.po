@@ -275,3 +275,18 @@ msgstr "Podatki o združljivosti mask niso na voljo; preverjene so bile le enake
 
 msgid "The application version missing from the local catalog was found in the alternative catalog. A login is required to download it. Enter your username and password in Settings > Catalog."
 msgstr "Različica aplikacije, ki manjka v lokalnem katalogu, je bila najdena v alternativnem katalogu. Za prenos je potrebna prijava. Vnesite uporabniško ime in geslo v Nastavitve > Katalog."
+
+msgid "Other Application Versions"
+msgstr "Druge različice aplikacije"
+
+msgid "Other Versions…"
+msgstr "Druge različice…"
+
+msgid "The device runs application %(installed)s. These other versions are available in the online catalog. Loading product data does not change the device. Their suitability for recovery is unconfirmed; parameters and group objects may differ."
+msgstr "Naprava uporablja aplikacijo %(installed)s. Te druge različice so na voljo v spletnem katalogu. Nalaganje podatkov o izdelku ne spremeni naprave. Njihova primernost za obnovitev ni potrjena; parametri in skupinski objekti se lahko razlikujejo."
+
+msgid "Load Product Data for Version %(version)s"
+msgstr "Naloži podatke o izdelku za različico %(version)s"
+
+msgid "Different application version: device %(installed)s, recovery %(used)s. Not added to the project automatically."
+msgstr "Drugačna različica aplikacije: naprava %(installed)s, obnovitev %(used)s. Ne bo samodejno dodana v projekt."

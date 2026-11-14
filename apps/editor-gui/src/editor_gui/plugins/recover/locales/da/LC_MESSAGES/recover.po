@@ -241,3 +241,18 @@ msgstr "Data om maskekompatibilitet mangler; kun identiske masker kontrolleret"
 
 msgid "The application version missing from the local catalog was found in the alternative catalog. A login is required to download it. Enter your username and password in Settings > Catalog."
 msgstr "Den applikationsversion, der mangler i det lokale katalog, blev fundet i det alternative katalog. Download kræver login. Indtast brugernavn og adgangskode under Indstillinger > Katalog."
+
+msgid "Other Application Versions"
+msgstr "Andre applikationsversioner"
+
+msgid "Other Versions…"
+msgstr "Andre versioner…"
+
+msgid "The device runs application %(installed)s. These other versions are available in the online catalog. Loading product data does not change the device. Their suitability for recovery is unconfirmed; parameters and group objects may differ."
+msgstr "Enheden bruger applikation %(installed)s. Disse andre versioner er tilgængelige i onlinekataloget. Indlæsning af produktdata ændrer ikke enheden. Deres egnethed til gendannelse er ikke bekræftet; parametre og gruppeobjekter kan være forskellige."
+
+msgid "Load Product Data for Version %(version)s"
+msgstr "Indlæs produktdata for version %(version)s"
+
+msgid "Different application version: device %(installed)s, recovery %(used)s. Not added to the project automatically."
+msgstr "Afvigende applikationsversion: enhed %(installed)s, gendannelse %(used)s. Føjes ikke automatisk til projektet."

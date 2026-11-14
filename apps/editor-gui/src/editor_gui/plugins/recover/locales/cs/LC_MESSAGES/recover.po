@@ -255,3 +255,18 @@ msgstr "Údaje o kompatibilitě masek nejsou dostupné; ověřeny pouze shodné 
 
 msgid "The application version missing from the local catalog was found in the alternative catalog. A login is required to download it. Enter your username and password in Settings > Catalog."
 msgstr "Verze aplikace chybějící v místním katalogu byla nalezena v alternativním katalogu. Ke stažení je nutné přihlášení. Zadejte uživatelské jméno a heslo v Nastavení > Katalog."
+
+msgid "Other Application Versions"
+msgstr "Jiné verze aplikace"
+
+msgid "Other Versions…"
+msgstr "Jiné verze…"
+
+msgid "The device runs application %(installed)s. These other versions are available in the online catalog. Loading product data does not change the device. Their suitability for recovery is unconfirmed; parameters and group objects may differ."
+msgstr "Zařízení používá aplikaci %(installed)s. Tyto jiné verze jsou dostupné v online katalogu. Načtení produktových dat zařízení nezmění. Jejich vhodnost pro obnovu není potvrzena; parametry a skupinové objekty se mohou lišit."
+
+msgid "Load Product Data for Version %(version)s"
+msgstr "Načíst produktová data pro verzi %(version)s"
+
+msgid "Different application version: device %(installed)s, recovery %(used)s. Not added to the project automatically."
+msgstr "Odlišná verze aplikace: zařízení %(installed)s, obnova %(used)s. Nebude automaticky přidáno do projektu."

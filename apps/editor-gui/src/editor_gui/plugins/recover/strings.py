@@ -132,6 +132,33 @@ class RecoverStrings:
         )
 
     @property
+    def OTHER_VERSIONS(self) -> str:
+        return _("Other Application Versions")
+
+    @property
+    def BTN_OTHER_VERSIONS(self) -> str:
+        return _("Other Versions…")
+
+    @property
+    def OTHER_VERSION_NOTICE(self) -> str:
+        return _(
+            "The device runs application %(installed)s. These other versions are available "
+            "in the online catalog. Loading product data does not change the device. Their "
+            "suitability for recovery is unconfirmed; parameters and group objects may differ."
+        )
+
+    @property
+    def BTN_LOAD_VERSION(self) -> str:
+        return _("Load Product Data for Version %(version)s")
+
+    @property
+    def VERSION_MISMATCH(self) -> str:
+        return _(
+            "Different application version: device %(installed)s, recovery %(used)s. "
+            "Not added to the project automatically."
+        )
+
+    @property
     def STATUS_RECOVERING(self) -> str:
         return _("Reading devices…")
 

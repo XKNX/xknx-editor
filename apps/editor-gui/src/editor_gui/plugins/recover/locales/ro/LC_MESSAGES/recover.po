@@ -261,3 +261,18 @@ msgstr "Datele de compatibilitate a măștilor nu sunt disponibile; au fost veri
 
 msgid "The application version missing from the local catalog was found in the alternative catalog. A login is required to download it. Enter your username and password in Settings > Catalog."
 msgstr "Versiunea aplicației care lipsește din catalogul local a fost găsită în catalogul alternativ. Descărcarea necesită autentificare. Introduceți numele de utilizator și parola în Setări > Catalog."
+
+msgid "Other Application Versions"
+msgstr "Alte versiuni ale aplicației"
+
+msgid "Other Versions…"
+msgstr "Alte versiuni…"
+
+msgid "The device runs application %(installed)s. These other versions are available in the online catalog. Loading product data does not change the device. Their suitability for recovery is unconfirmed; parameters and group objects may differ."
+msgstr "Dispozitivul folosește aplicația %(installed)s. Aceste alte versiuni sunt disponibile în catalogul online. Încărcarea datelor produsului nu modifică dispozitivul. Adecvarea lor pentru recuperare nu este confirmată; parametrii și obiectele de grup pot diferi."
+
+msgid "Load Product Data for Version %(version)s"
+msgstr "Încarcă datele produsului pentru versiunea %(version)s"
+
+msgid "Different application version: device %(installed)s, recovery %(used)s. Not added to the project automatically."
+msgstr "Versiune diferită a aplicației: dispozitiv %(installed)s, recuperare %(used)s. Nu este adăugat automat în proiect."

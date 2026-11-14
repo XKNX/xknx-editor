@@ -241,3 +241,18 @@ msgstr "Dados de compatibilidade de máscaras indisponíveis; apenas máscaras i
 
 msgid "The application version missing from the local catalog was found in the alternative catalog. A login is required to download it. Enter your username and password in Settings > Catalog."
 msgstr "A versão da aplicação em falta no catálogo local foi encontrada no catálogo alternativo. É necessário iniciar sessão para a descarregar. Introduza o nome de utilizador e a palavra-passe em Definições > Catálogo."
+
+msgid "Other Application Versions"
+msgstr "Outras versões da aplicação"
+
+msgid "Other Versions…"
+msgstr "Outras versões…"
+
+msgid "The device runs application %(installed)s. These other versions are available in the online catalog. Loading product data does not change the device. Their suitability for recovery is unconfirmed; parameters and group objects may differ."
+msgstr "O dispositivo utiliza a aplicação %(installed)s. Estas outras versões estão disponíveis no catálogo online. Carregar os dados do produto não altera o dispositivo. A sua adequação à recuperação não está confirmada; os parâmetros e os objetos de grupo podem diferir."
+
+msgid "Load Product Data for Version %(version)s"
+msgstr "Carregar dados do produto para a versão %(version)s"
+
+msgid "Different application version: device %(installed)s, recovery %(used)s. Not added to the project automatically."
+msgstr "Versão da aplicação diferente: dispositivo %(installed)s, recuperação %(used)s. Não é adicionado automaticamente ao projeto."
