@@ -18,6 +18,16 @@ BLOB_NAME = "PowerTool6108-Config"
 DATABASE_VERSION = "1.1.2.85"
 
 
+def object_flag_overrides(values: Mapping[str, int]) -> Mapping[str, int]:
+    checked: Any = values
+    if not isinstance(checked, Mapping) or any(
+        type(key) is not str or type(value) is not int or not 0 <= value <= 255
+        for key, value in values.items()
+    ):
+        raise ValueError("Invalid PowerTool object flags")
+    return MappingProxyType(dict(values))
+
+
 @dataclass(frozen=True)
 class Condition:
     operator: str
@@ -180,9 +190,13 @@ class PowerToolConfig:
     bindings: Mapping[str, str] = field(default_factory=lambda: MappingProxyType({}))
     schema_version: int = 1
     database_version: str = DATABASE_VERSION
+    object_flags: Mapping[str, int] = field(default_factory=lambda: {})
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "bindings", MappingProxyType(dict(self.bindings)))
+        object.__setattr__(
+            self, "object_flags", object_flag_overrides(self.object_flags)
+        )
         if self.schema_version != 1 or self.database_version != DATABASE_VERSION:
             raise ValueError("unsupported configuration version")
         if self.variant not in ("01", "02") or len(self.channels) != (
@@ -194,6 +208,12 @@ class PowerToolConfig:
                 raise ValueError(
                     f"function {channel.function} is unavailable on channel {index}"
                 )
+        if set(self.object_flags) - {
+            f"channel_{index}/{channel.function}/{obj.key}"
+            for index, channel in enumerate(self.channels)
+            for obj in functions()[channel.function].objects
+        }:
+            raise ValueError("PowerTool flags refer to an unknown object")
         if len(set(self.bindings.values())) != len(self.bindings):
             raise ValueError("duplicate object binding")
 
@@ -306,4 +326,12 @@ def edit_config(
         number = float(value) if match[1].kind == "float" else int(value)
         match[1].validate(number)
         channels[channel] = replace(current, values={**current.values, key: number})
-    return replace(config, channels=tuple(channels))
+    return replace(
+        config,
+        channels=tuple(channels),
+        object_flags={
+            role: flags
+            for role, flags in config.object_flags.items()
+            if key != "function" or not role.startswith(f"channel_{channel}/")
+        },
+    )

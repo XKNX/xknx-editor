@@ -145,17 +145,24 @@ GUI and MCP use `ProjectService.setup_plugin`, `edit_plugin_parameter`,
 edit stores the native blob, control parameters, role bindings and removed links
 in one undo step. Compatible roles retain their object rows and links. An invalid
 prior configuration provides no trusted roles; an explicit valid import reports
-and removes its old links. Original manufacturer blobs remain unchanged.
+and removes its old links. PowerTool edits update `PT2EtsPlugin` and the native
+configuration in the same undo step. Exports copy that current blob after validation.
+The direct project-store writer uses the same callback for binary attachments and
+their integrity files.
 The runtime `Device` restores the provider's native objects and channel groups
 after lazy rebuild. Unknown providers and invalid profiles cannot fall back to
 a catalog placeholder image. Preflight and programming have separate gates;
 PowerTool preflight and full programming are available for valid native configurations.
 Configuration and scope checks precede connection or route access.
+Prepared images keep payload lengths separate from catalog-derived memory reservations.
 
 A verified original plugin blob supplies the native parameter form automatically when
 no native configuration exists. Reading/exporting this form is side-effect free; the
-first edit persists and binds the native configuration atomically. Original links
-remain unverified until this conversion, so preparation rejects them. Profiles without an implemented encoder show saved parameter pages and collapsed
+first edit persists and binds the native configuration atomically. Existing objects
+are matched to the saved configuration by unique catalog number, size and compatible
+explicit DPT. Matching roles retain links on conversion; unmatched links block preparation.
+Saved object flags provide defaults, with explicit project overrides taking precedence.
+Profiles without an implemented encoder show saved parameter pages and collapsed
 internal values. Recognition alone cannot supply an image.
 
 ## Event Sourcing

@@ -58,6 +58,8 @@ import json
 import logging
 import os
 import re
+import sqlite3
+import tempfile
 import time
 import xml.etree.ElementTree as ET
 import zipfile
@@ -748,6 +750,7 @@ def export_knxproj(
     module_arguments: Mapping[int, Mapping[str, Sequence[tuple[str, str]]]]
     | None = None,
     group_object_trees: Mapping[int, str] | None = None,
+    binary_data_transform: Callable[[Device], Mapping[str, bytes]] | None = None,
 ) -> ExportResult:
     """Read the project at ``source`` (a ``.xknx``) and write a ``.knxproj`` archive to ``dest``.
 
@@ -806,6 +809,9 @@ def export_knxproj(
         stored (a project saved before module instances were stored) is written from them. The
         values and group objects of an instance a device listed here neither stores nor has in
         its evaluation are left out, as a project file only has those of its module instances.
+      binary_data_transform: Optional callback producing a device's binary data by name from
+        the same database snapshot as its exported objects and links. It may update or add
+        blobs; existing entries retain their copy flags and references. Exceptions abort export.
       group_object_trees: The ``<GroupObjectTree>`` of devices whose stored one does not list all
         their active group objects (objects the editor activated), by device id, as the stored
         trees are kept (namespace-free XML). The importer takes the objects a tree lists as the
@@ -821,7 +827,29 @@ def export_knxproj(
         certificate_signer is not None,
         len(extra_files) if extra_files else 0,
     )
-    engine = make_engine(url_for(Path(source)))
+    snapshot = (
+        tempfile.TemporaryDirectory(prefix="xknx_plugin_export_")
+        if binary_data_transform
+        else None
+    )
+    try:
+        database = Path(source)
+        if snapshot is not None:
+            database = Path(snapshot.name) / "project.xknx"
+            with (
+                contextlib.closing(
+                    sqlite3.connect(
+                        Path(source).resolve().as_uri() + "?mode=ro", uri=True
+                    )
+                ) as original,
+                contextlib.closing(sqlite3.connect(database)) as copy,
+            ):
+                original.backup(copy)
+        engine = make_engine(url_for(database))
+    except BaseException:
+        if snapshot is not None:
+            snapshot.cleanup()
+        raise
     import_notes_raw = ""
     effective_extra: dict[str, bytes] = {}
     prune_report: ProductPruneReport | None = None
@@ -895,6 +923,7 @@ def export_knxproj(
                 tool_version,
                 module_arguments=module_arguments,
                 group_object_trees=group_object_trees,
+                binary_data_transform=binary_data_transform,
             ).write_archive(
                 Path(dest),
                 project,
@@ -909,6 +938,8 @@ def export_knxproj(
             )
     finally:
         engine.dispose()
+        if snapshot is not None:
+            snapshot.cleanup()
     for folder in audit.signed:
         logger.info("signed folder %s (missing or invalid signature)", folder)
     for folder in audit.unverifiable:
@@ -1540,10 +1571,12 @@ class _Writer:
         module_arguments: Mapping[int, Mapping[str, Sequence[tuple[str, str]]]]
         | None = None,
         group_object_trees: Mapping[int, str] | None = None,
+        binary_data_transform: Callable[[Device], Mapping[str, bytes]] | None = None,
     ) -> None:
         self._ns = ns
         self._module_arguments = module_arguments or {}
         self._group_object_trees = group_object_trees or {}
+        self._binary_data_transform = binary_data_transform
         self._created_by = created_by
         self._tool_version = tool_version
         # Ids and Puids of the written elements, set per archive in write_archive.
@@ -2655,16 +2688,18 @@ class _Writer:
     def _build_binary_data(
         self, di: ET.Element, device: Device, device_id: str
     ) -> None:
-        if not device.binary_data:
+        entries = {bd.name: bd for bd in device.binary_data}
+        payloads = {name: bd.data for name, bd in entries.items()}
+        if self._binary_data_transform is not None:
+            payloads.update(self._binary_data_transform(device))
+        if not payloads:
             return
         container = self._el(di, "BinaryData")
-        for bd in device.binary_data:
-            # ETS id form: "{DeviceInstanceId}_{encoded Name}" (non-alnum -> ".{HEX2}", e.g. '-' ->
-            # '.2D'); the payload lives in the file BinaryData/{Id}.dat, not inline.
-            entry_id = f"{device_id}_{_encode_binary_name(bd.name)}"
-            # Copy flag under its schema-specific attribute name (DoNotCopy / AutoCopy / none).
+        for name, data in payloads.items():
+            bd = entries.get(name)
+            entry_id = f"{device_id}_{_encode_binary_name(name)}"
             copy_flag = (
-                {self._binary_copy_attr: "true" if bd.do_not_copy else "false"}
+                {self._binary_copy_attr: "true" if bd and bd.do_not_copy else "false"}
                 if self._binary_copy_attr is not None
                 else {}
             )
@@ -2672,12 +2707,12 @@ class _Writer:
                 container,
                 "BinaryData",
                 Id=entry_id,
-                Name=bd.name,
-                RefId=bd.ref_id or None,
+                Name=name,
+                RefId=bd.ref_id or None if bd else None,
                 **copy_flag,
             )
-            if bd.data:
-                self._binary_files[f"BinaryData/{entry_id}.dat"] = bd.data
+            if data:
+                self._binary_files[f"BinaryData/{entry_id}.dat"] = data
 
     def _build_range(
         self,
@@ -2735,6 +2770,7 @@ class _Writer:
 # Object-model id/ref helpers shared with the ETS project-store serializer
 # (:mod:`project_store_serialize`), which emits the same model in a different stream shape.
 assign_ids = _assign_ids
+encode_binary_name = _encode_binary_name
 enable = _enable
 group_object_tree_instances = _group_object_tree_instances
 has_override = _has_override

@@ -153,6 +153,16 @@ def test_missing_controls_are_not_synthesized() -> None:
     ) == [LdCtrlRestart()]
 
 
+def test_explicit_reservation_cannot_truncate_the_table() -> None:
+    image = replace(
+        _image(RelativeSegment(1, b"ADDR")),
+        object_segments={1: b"AD"},
+        allocation_sizes={1: 2},
+    )
+    with pytest.raises(ImageError, match="smaller than its payload"):
+        materialize_group_communication_controls(image, _lifecycle(), MAPPING)
+
+
 def test_missing_table_cannot_fall_back_to_parameter_memory() -> None:
     with pytest.raises(ImageError, match="missing table image"):
         materialize_group_communication_controls(_image(), _lifecycle(), MAPPING)

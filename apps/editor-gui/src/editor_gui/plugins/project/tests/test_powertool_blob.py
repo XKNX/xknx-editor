@@ -7,7 +7,7 @@ from editor_gui.plugin_providers.powertool import PROVIDER, configuration
 from packages.vendor.tests.powertool_fixtures import open_archive
 from xknxeditor.vendor.powertool import BLOB_NAME
 
-from .test_powertool import current, native_project
+from .test_powertool import assert_current_blob, current, native_project
 
 
 def original_blob(case="matrix/01-00018-App_DimmenWippeTBA"):
@@ -44,11 +44,13 @@ def test_stored_configuration_is_selected_without_persistence_then_edited(
         == []
     )
     assert project.cursor == before
+    assert project.device_binary_data(device, "PT2EtsPlugin") == data
     project.edit_plugin_parameter(device, "powertool:0:function", "switch_rocker")
     assert project.cursor == before + 1
     device = current(project, nid)
     assert configuration(device).channels[0].function == "switch_rocker"
-    assert project.device_binary_data(device, "PT2EtsPlugin") == data
+    active = assert_current_blob(project, nid)
+    assert active != data
     assert PROVIDER.capabilities(device).preflight
     assert PROVIDER.capabilities(device).programming_error is None
     converted = project.device_binary_data(device, BLOB_NAME)
@@ -61,7 +63,8 @@ def test_stored_configuration_is_selected_without_persistence_then_edited(
     project.close()
     project.open(tmp_path / "project.xknx")
     assert configuration(current(project, nid)).channels[0].function == "switch_rocker"
-    assert project.device_binary_data(current(project, nid), "PT2EtsPlugin") == data
+    assert project.device_binary_data(current(project, nid), "PT2EtsPlugin") == active
+    assert_current_blob(project, nid)
     project.close()
 
 
@@ -181,13 +184,16 @@ async def test_original_blob_never_allows_unknown_device_to_reach_bus(
     project.close()
 
 
-def test_imported_original_survives_project_archive_roundtrip(tmp_path, monkeypatch):
+def test_current_stored_format_survives_project_archive_roundtrip(
+    tmp_path, monkeypatch
+):
     from xknxeditor.proj import export_knxproj, import_knxproj
 
     project, nid = native_project(tmp_path, monkeypatch)
     data = original_blob()
     project.persist_device_blob(current(project, nid), "PT2EtsPlugin", data)
     project.import_stored_plugin_config(current(project, nid))
+    active = assert_current_blob(project, nid)
     native = project.device_binary_data(current(project, nid), BLOB_NAME)
     output = tmp_path / "project.knxproj"
     project.close()
@@ -195,7 +201,7 @@ def test_imported_original_survives_project_archive_roundtrip(tmp_path, monkeypa
     import_knxproj(output, tmp_path / "imported.xknx")
     project.open(tmp_path / "imported.xknx")
     device = project.devices[0]
-    assert project.device_binary_data(device, "PT2EtsPlugin") == data
+    assert project.device_binary_data(device, "PT2EtsPlugin") == active
     assert project.device_binary_data(device, BLOB_NAME) == native
     assert configuration(device).channels[0].function == "dim_rocker"
     project.close()
@@ -270,10 +276,11 @@ def test_saved_read_preserves_links_and_first_edit_reports_detach_atomically(
     PROVIDER.sections(device)
     assert project._svc.com_object_links(pid, co_id)
     assert project.cursor == before
-    with pytest.raises(ValueError, match="no verified native object roles"):
-        PROVIDER.prepare(
-            device, GroupCommunication(0x1101, [GroupObjectLink(ref, 2305, True)])
-        )
+    project._refresh_device(nid)
+    device = current(project, nid)
+    assert PROVIDER.prepare(
+        device, GroupCommunication(0x1101, [GroupObjectLink(ref, 2305, True)])
+    )
     lost = project.edit_plugin_parameter(
         device, "powertool:0:function", "switch_rocker"
     )
@@ -286,6 +293,179 @@ def test_saved_read_preserves_links_and_first_edit_reports_detach_atomically(
     assert project.device_binary_data(current(project, nid), "PT2EtsPlugin") == original
     project.redo()
     assert not project._svc.com_object_links(pid, co_id)
+    project.close()
+
+
+def stored_linked_project(
+    tmp_path, monkeypatch, service=None, case="matrix/01-00001-default"
+):
+    project, nid = native_project(tmp_path, monkeypatch, service)
+    original = original_blob(case)
+    project.persist_device_blob(current(project, nid), "PT2EtsPlugin", original)
+    state = PROVIDER.read(current(project, nid))
+    pid = project._pid
+    project._svc.set_parameters(pid, nid, list(state.parameters.items()))
+    project._svc.sync_device_com_objects(
+        pid, nid, [(o.reference, None) for o in state.objects]
+    )
+    for co in project._svc.devices(pid)[0].com_objects:
+        for index in range(2):
+            ga = project.create_group_address(f"1/{co.id}/{index + 1}", "Stored link")
+            project._svc.link_com_object(pid, co.id, ga)
+    project._refresh_device(nid)
+    project._bump(structural=False)
+    return project, nid, original
+
+
+@pytest.mark.parametrize("action", ["import", "parameter", "function"])
+def test_first_conversion_preserves_compatible_links_and_undo(
+    tmp_path, monkeypatch, action
+):
+    project, nid, original = stored_linked_project(tmp_path, monkeypatch)
+    device = current(project, nid)
+    pid = project._pid
+    before = project.cursor
+    before_links = project.group_communication_for(device).links
+    ids = [co.id for co in project._svc.devices(pid)[0].com_objects]
+    prepared = project.prepared_download(device)
+    assert prepared is not None and before_links
+    assert prepared.image.allocation_sizes[3] == 40
+    assert project.cursor == before
+    if action == "import":
+        lost = project.import_stored_plugin_config(device)
+    elif action == "parameter":
+        lost = project.edit_plugin_parameter(
+            device, "powertool:0:working_mode_of_the_rocker_switch_for_switching", "1"
+        )
+    else:
+        lost = project.edit_plugin_parameter(
+            device, "powertool:0:function", "dim_rocker"
+        )
+    assert project.cursor == before + 1
+    if action == "function":
+        assert len(lost) == 2
+        led = current(project, nid).com_objects[2]
+        assert led.db_id == ids[1]
+        assert len(project._svc.com_object_links(pid, ids[1])) == 2
+        assert not project._svc.com_object_links(pid, ids[0])
+    else:
+        assert lost == []
+        assert (
+            project.group_communication_for(current(project, nid)).links == before_links
+        )
+    if action == "import":
+        assert project.prepared_download(current(project, nid)).image == prepared.image
+    if action == "parameter":
+        label = project.history()[0].display_text
+        assert "Button" in label and "Working mode" in label
+    native = project.device_binary_data(current(project, nid), BLOB_NAME)
+    active = assert_current_blob(project, nid)
+    project.undo()
+    assert project.group_communication_for(current(project, nid)).links == before_links
+    assert project.device_binary_data(current(project, nid), BLOB_NAME) is None
+    assert project.device_binary_data(current(project, nid), "PT2EtsPlugin") == original
+    project.redo()
+    assert project.device_binary_data(current(project, nid), BLOB_NAME) == native
+    assert project.device_binary_data(current(project, nid), "PT2EtsPlugin") == active
+    project.close()
+    project.open(tmp_path / "project.xknx")
+    assert project.prepared_download(current(project, nid))
+    project.close()
+
+
+def test_stored_flags_survive_conversion_and_explicit_override(tmp_path, monkeypatch):
+    project, nid, _ = stored_linked_project(
+        tmp_path, monkeypatch, case="modified-flags"
+    )
+    row = project._svc.devices(project._pid)[0].com_objects[0]
+    row.read_flag = False
+    row.read_flag_override = None
+    row.priority = "High"
+    project._refresh_device(nid)
+    before = project.prepared_download(current(project, nid))
+    assert before is not None
+    assert project.import_stored_plugin_config(current(project, nid)) == []
+    device = current(project, nid)
+    assert device.com_objects[0].flags.read
+    assert device.com_objects[0].priority == "High"
+    assert project.prepared_download(device).image == before.image
+    project.set_flag(device, device.com_objects[0].id, "read", False)
+    project._refresh_device(nid)
+    assert not current(project, nid).com_objects[0].flags.read
+    assert project.prepared_download(current(project, nid)).image != before.image
+    project.close()
+
+
+def test_stored_live_overrides_convert_and_update_atomically(tmp_path, monkeypatch):
+    project, nid, original = stored_linked_project(tmp_path, monkeypatch)
+    device = current(project, nid)
+    reference = PROVIDER.read(device).objects[0].reference
+    before = project.prepared_download(device)
+    project.set_flag(device, reference, "read", True)
+    changed = project.prepared_download(device)
+    assert changed.image != before.image
+    active = assert_current_blob(project, nid)
+    assert active != original
+    project.undo()
+    assert project.device_binary_data(current(project, nid), BLOB_NAME) is None
+    assert project.device_binary_data(current(project, nid), "PT2EtsPlugin") == original
+    project.redo()
+    assert project.device_binary_data(current(project, nid), "PT2EtsPlugin") == active
+    project.set_com_object_priority(device, reference, "High")
+    priority = project.prepared_download(device)
+    assert priority.image != changed.image
+    assert_current_blob(project, nid)
+    project.set_com_object_datapoint_type(device, reference, "DPT-1")
+    assert project.prepared_download(device).image == priority.image
+    assert project.prepared_download(current(project, nid)).image == priority.image
+    project.close()
+
+
+def test_first_conversion_archive_roundtrip_preserves_links(tmp_path, monkeypatch):
+    from xknxeditor.proj import export_knxproj, import_knxproj
+
+    project, nid, _ = stored_linked_project(tmp_path, monkeypatch)
+    before = project.prepared_download(current(project, nid))
+    project.import_stored_plugin_config(current(project, nid))
+    native = project.export_plugin_config(current(project, nid))
+    active = assert_current_blob(project, nid)
+    project.close()
+    export_knxproj(
+        tmp_path / "project.xknx", tmp_path / "converted.knxproj", schema="23"
+    )
+    import_knxproj(tmp_path / "converted.knxproj", tmp_path / "converted.xknx")
+    project.open(tmp_path / "converted.xknx")
+    device = project.devices[0]
+    assert project.device_binary_data(device, "PT2EtsPlugin") == active
+    assert project.export_plugin_config(device) == native
+    assert project.prepared_download(device).image == before.image
+    assert len(project.group_communication_for(device).links) == 4
+    project.close()
+
+
+@pytest.mark.parametrize("mismatch", ["duplicate", "dpt", "unknown"])
+def test_stored_ambiguous_or_incompatible_links_block_preparation(
+    tmp_path, monkeypatch, mismatch
+):
+    from xknxeditor.proj.models import ComObject
+
+    project, nid, _ = stored_linked_project(tmp_path, monkeypatch)
+    row = project._svc.devices(project._pid)[0]
+    obj = row.com_objects[0]
+    if mismatch == "duplicate":
+        from sqlalchemy.orm import object_session
+
+        session = object_session(row)
+        session.add(ComObject(device_id=nid, ref_id=obj.ref_id))
+        session.flush()
+        session.expire(row, ["com_objects"])
+    elif mismatch == "dpt":
+        obj.datapoint_type_override = "DPST-5-1"
+    else:
+        obj.ref_id = "missing"
+    project._refresh_device(nid)
+    with pytest.raises(ValueError, match="no unique compatible"):
+        project.prepared_download(current(project, nid))
     project.close()
 
 

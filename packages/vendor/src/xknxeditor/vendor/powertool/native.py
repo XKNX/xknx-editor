@@ -139,8 +139,6 @@ def for_product(
         config.program_ids != ids or config.mask_version != mask
     ):
         raise ValueError("PowerTool application identifiers do not match the product")
-    if config.database_code is None and mask == 0x07B0:
-        return config
     products = config.products
     if config.database_code is None:
         state = FamilyEvaluation(config)
@@ -179,7 +177,7 @@ def load(data: bytes) -> Configuration:
                 else set()
             )
             if (
-                set(raw) - ({"channel_ids"} if qualified else set())
+                set(raw) - {"object_flags"} - ({"channel_ids"} if qualified else set())
                 != {
                     "format",
                     "schema_version",
@@ -227,6 +225,7 @@ def load(data: bytes) -> Configuration:
                 channel_ids=raw.get("channel_ids", {}),
                 program_ids=(ids[0], ids[1]) if ids is not None else None,
                 mask_version=raw.get("mask_version", 0x07B0),
+                object_flags=raw.get("object_flags", {}),
             )
             FamilyEvaluation(config)
             return config
@@ -252,6 +251,11 @@ def dump(config: Configuration) -> bytes:
                 "values": dict(config.values),
                 "bindings": dict(config.bindings),
                 **(
+                    {"object_flags": dict(config.object_flags)}
+                    if config.object_flags
+                    else {}
+                ),
+                **(
                     {
                         "database_code": config.database_code,
                         "products": dict(config.products),
@@ -274,11 +278,32 @@ def dump(config: Configuration) -> bytes:
 
 def from_original(data: bytes) -> Configuration:
     saved = read_project_blob(data)
-    if saved.product_type in PROFILES and saved.code == PROFILES[saved.product_type][3]:
-        return from_saved(data)
     if saved.code == 3 and saved.product_type in ("TasterBA1f", "TasterBA2f"):
         return config_from_project_blob(data)
     return from_saved(data, qualified=True)
+
+
+def rebase(config: Configuration) -> Configuration:
+    """Make a newly written blob the source for the next edit's channel identities."""
+    if isinstance(config, PowerToolConfig):
+        return config
+    state = FamilyEvaluation(config)
+    roles = {
+        f"{config.channel_ids.get(channel.path, channel.path)}/{channel.application.key}/{obj.key}": f"{channel.path}/{channel.application.key}/{obj.key}"
+        for channel in state.channels
+        if channel.application is not None
+        for obj in channel.application.objects
+    }
+    if config.bindings.keys() - roles.keys():
+        raise ValueError("PowerTool binding refers to an unknown object")
+    if not config.channel_ids:
+        return config
+    return replace(
+        config,
+        channel_ids={},
+        bindings={roles[key]: value for key, value in config.bindings.items()},
+        object_flags={roles[key]: value for key, value in config.object_flags.items()},
+    )
 
 
 def compile_native(
@@ -294,15 +319,32 @@ def compile_native(
 
 
 def edit_native(config: Configuration, reference: str, value: str) -> Configuration:
+    editable = replace(config, object_flags={}) if config.object_flags else config
     if isinstance(config, FamilyConfig):
         prefix = "powertool:family:"
         if not reference.startswith(prefix):
             raise ValueError("Invalid PowerTool family parameter reference")
-        return edit(config, reference.removeprefix(prefix), value)
-    parts = reference.split(":")
-    if len(parts) != 3 or parts[0] != "powertool":
-        raise ValueError("Invalid PowerTool parameter reference")
-    return edit_config(config, int(parts[1]), parts[2], value)
+        assert isinstance(editable, FamilyConfig)
+        updated = edit(editable, reference.removeprefix(prefix), value)
+    else:
+        parts = reference.split(":")
+        if len(parts) != 3 or parts[0] != "powertool":
+            raise ValueError("Invalid PowerTool parameter reference")
+        assert isinstance(editable, PowerToolConfig)
+        updated = edit_config(editable, int(parts[1]), parts[2], value)
+    if updated == editable:
+        return config
+    if not config.object_flags:
+        return updated
+    old = {o.key: (o.size_code, o.dpt) for o in compile_native(config).objects}
+    return replace(
+        updated,
+        object_flags={
+            o.key: config.object_flags[o.key]
+            for o in compile_native(updated).objects
+            if o.key in config.object_flags and old.get(o.key) == (o.size_code, o.dpt)
+        },
+    )
 
 
 def channel_labels(config: Configuration) -> list[str]:

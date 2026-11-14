@@ -144,6 +144,9 @@ async def test_preview_enabled_and_corrupt_configuration_refusal(tmp_path, monke
         result = await _data(client, "project_preview_plugin", device_address="1.1.1")
         assert result["programming_allowed"] is True
         assert len(result["resources"]) == 5
+        table = next(r for r in result["resources"] if r["object_index"] == 3)
+        assert table["allocation_size"] == 40
+        assert table["size"] < table["allocation_size"]
         assert len(result["properties"]) == 8
         assert result["controls"]
         from xknxeditor.vendor.powertool import BLOB_NAME

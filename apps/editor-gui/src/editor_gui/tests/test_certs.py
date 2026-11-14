@@ -36,18 +36,25 @@ def _paths(cafile: str | None, capath: str | None) -> _Paths:
     return _Paths(cafile=cafile, capath=capath)
 
 
+@pytest.mark.parametrize("original", [None, "/custom/ca.pem"])
 def test_installs_certifi_when_openssl_has_no_trust_store(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, original: str | None
 ) -> None:
     """The packaged-app case: OpenSSL's compiled-in paths do not exist on the user's machine."""
     bundle = tmp_path / "cacert.pem"
     bundle.write_text("-----BEGIN CERTIFICATE-----\n", encoding="utf-8")
-    monkeypatch.delenv("SSL_CERT_FILE", raising=False)
-    monkeypatch.setattr(ssl, "get_default_verify_paths", lambda: _paths(None, None))
-    monkeypatch.setitem(sys.modules, "certifi", _FakeCertifi(str(bundle)))
+    monkeypatch.setenv("SSL_CERT_FILE", original or "")
+    if original is None:
+        monkeypatch.delenv("SSL_CERT_FILE")
+    with monkeypatch.context() as scope:
+        scope.setenv("SSL_CERT_FILE", "")
+        scope.delenv("SSL_CERT_FILE")
+        scope.setattr(ssl, "get_default_verify_paths", lambda: _paths(None, None))
+        scope.setitem(sys.modules, "certifi", _FakeCertifi(str(bundle)))
 
-    assert certs.ensure_ca_bundle() == str(bundle)
-    assert os.environ["SSL_CERT_FILE"] == str(bundle)
+        assert certs.ensure_ca_bundle() == str(bundle)
+        assert os.environ["SSL_CERT_FILE"] == str(bundle)
+    assert os.environ.get("SSL_CERT_FILE") == original
 
 
 def test_leaves_a_working_system_store_alone(monkeypatch: pytest.MonkeyPatch) -> None:

@@ -75,6 +75,7 @@ def prepare_image(
     *,
     short_associations: bool = False,
     secondary_application: Application | None = None,
+    application: Application | None = None,
 ) -> PreparedDownload:
     occurrences: dict[int, tuple[int, ...]] = {}
     if secondary_application is not None:
@@ -85,6 +86,13 @@ def prepare_image(
         if segments[0].load_state_machine == 4:
             occurrences[4] = (4, 5)
     by_object = {r.object_index: r.data for r in compiled.resources}
+    allocation_sizes: dict[int, int] = {}
+    if application is not None:
+        table = application.program.static.com_object_table
+        highest = (
+            max((obj.number for obj in table.com_object), default=0) if table else 0
+        )
+        allocation_sizes[3] = max(len(by_object[3]), 2 + 2 * highest)
     image = DownloadImage(
         segments=(),
         properties=tuple(
@@ -107,6 +115,7 @@ def prepare_image(
             if r.object_index in (1, 2, 3)
         ),
         object_segments=MappingProxyType(by_object),
+        allocation_sizes=allocation_sizes,
     )
     return PreparedDownload(
         image,
@@ -138,4 +147,5 @@ def prepare(
         compile_image(config, host, associations, flags),
         short_associations=host.short_associations,
         secondary_application=secondary,
+        application=application,
     )

@@ -36,10 +36,10 @@ Each matrix case compares conversion of the saved parameters to the complete PID
 using its independently captured host association inputs. Source blobs stay unchanged.
 The Python reader never executes serialized .NET types. Unknown versions remain
 inspectable with unverified labels; native conversion requires a captured database version and modeled state. Modified
-original object flags are retained for inspection and rejected by native conversion.
+original object flags are retained by native conversion.
 
 One additional original `modified-flags` capture sets ReadEnable on the first object.
-Inspection preserves the flag; native conversion rejects it rather than resetting it.
+Inspection and native conversion preserve the flag.
 Its capture record includes exact blob/PID and source-probe hashes.
 
 `family-images.zip` adds 4,631 full original PID captures for ObjektRTR (243),
@@ -67,6 +67,13 @@ Windows emits 86,52,51,85; Mono emits 52,51,85,86. The files remain unmodified.
 This archive retains its original Windows ZIP paths and UTF-8 BOM manifests.
 All eleven complete PIDs are consumed by the Python tests with an explicit Windows
 property order. Mono expectations retain their original order.
+
+`windows-writeback.zip` contains 22 Windows outputs accepting Python-written blobs:
+the eleven configurations above and one parameter edit each. The recovered archive
+was verified against all 158 unchanged source files after the original ZIP omitted
+one case on a VM shared drive. Tests compare complete PIDs from the input, original
+reserialized project and Python rewrite. Interactive PowerTool GUI behavior remains
+unverified. Like the other captures, this archive is optional and Git-ignored.
 
 `all-profile-images.zip` adds 1,735 complete originals: 77 profile defaults, 138
 hardware layouts, 274 subsystem selections and 1,246 function captures. It includes

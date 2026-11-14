@@ -551,7 +551,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         node_id: int | None = None, device_address: str | None = None
     ) -> dict[str, Any]:
         """Explicitly initialize the device's mapped native configuration as one undo step.
-        Requires a supported product profile. Original blobs remain unchanged. Links
+        Requires a supported product profile. Updates the stored plugin blob. Links
         without proven native roles are removed and returned as lost_links.
         """
         require_project(ctx)
@@ -632,6 +632,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
     ) -> dict[str, Any]:
         """Return the provider's complete offline load plan: resource bytes/masks,
         properties, controls, allowed scopes and programming gate. No bus access.
+        Each resource reports its payload size and separate allocation_size in bytes.
         """
         require_project(ctx)
 

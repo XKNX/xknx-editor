@@ -136,11 +136,90 @@ def test_different_family_is_readable_but_has_no_native_conversion():
 
 
 def test_original_modified_flags_are_readable_but_not_silently_reset():
+    from xknxeditor.vendor.powertool.family import from_saved
+    from xknxeditor.vendor.powertool.family_codec import compile_family
+    from xknxeditor.vendor.powertool.native import dump, load
+
     data = blob("modified-flags")
     saved = read_project_blob(data)
     assert saved.channels[0].object_flags[0] & 8
-    with pytest.raises(ValueError, match="modified PowerTool object flags"):
-        config_from_project_blob(data)
+    config = config_from_project_blob(data)
+    assert config.object_flags
+    assert load(dump(config)) == config
+    with open_archive("original-projects.zip") as archive:
+        assert compile_image(config).pid == archive.read("modified-flags/image.pid")
+        family = from_saved(data, qualified=True)
+        assert load(dump(family)) == family
+        assert compile_family(
+            family,
+            program_ids=(bytes.fromhex("0007610821"), bytes.fromhex("0007610831")),
+        ).pid == archive.read("modified-flags/image.pid")
+
+
+@pytest.mark.parametrize("revision", [83, 84, 85, 86])
+def test_object_database_version_compatibility(revision):
+    data = blob()
+    version = struct.pack("<iiii", 1, 1, 2, 85)
+    assert data.count(version) == 1
+    changed = data.replace(version, struct.pack("<iiii", 1, 1, 2, revision))
+    saved = read_project_blob(changed)
+    assert saved.database_version == f"1.1.2.{revision}"
+    assert saved.metadata_verified == (revision in (84, 85))
+    if revision in (84, 85):
+        assert all(
+            not p.label.startswith("Parameter ")
+            for c in saved.channels
+            for p in c.parameters
+        )
+        assert (
+            compile_image(config_from_project_blob(changed)).pid
+            == compile_image(config_from_project_blob(data)).pid
+        )
+    else:
+        with pytest.raises(ValueError, match="not verified"):
+            config_from_project_blob(changed)
+
+
+@pytest.mark.parametrize(
+    "value", [[], None, {"role": True}, {"role": -1}, {"role": 256}]
+)
+def test_native_flag_validation(value):
+    from xknxeditor.vendor.powertool.native import dump, from_original, load
+
+    for case in ("matrix/01-00001-default", "generic/ToolBSoloDatabase/SoloRTR3"):
+        data = json.loads(dump(from_original(blob(case))))
+        data["object_flags"] = value
+        with pytest.raises(ValueError):
+            load(json.dumps(data).encode())
+
+
+def test_family_version_alias_keeps_flags_and_rejects_other_databases():
+    from xknxeditor.vendor.powertool.family import from_saved
+    from xknxeditor.vendor.powertool.native import dump
+
+    data = blob("generic/ToolBObjektTasterDatabase/ObjektRTR")
+    old = data.replace(
+        struct.pack("<iiii", 1, 1, 2, 85), struct.pack("<iiii", 1, 1, 2, 84)
+    )
+    assert old != data
+    assert dump(from_saved(old)) == dump(from_saved(data))
+    data = blob("generic/ToolBMcDimmerDatabase/REGDimmer")
+    old = data.replace(
+        struct.pack("<iiii", 1, 1, 2, 85), struct.pack("<iiii", 1, 1, 2, 84)
+    )
+    assert old != data
+    assert not read_project_blob(old).metadata_verified
+
+
+def test_flag_overrides_do_not_follow_replaced_roles():
+    from xknxeditor.vendor.powertool.native import edit_native, from_original
+
+    config = from_original(blob("modified-flags"))
+    assert edit_native(config, "powertool:0:function", "switch_rocker") == config
+    dim = edit_native(config, "powertool:0:function", "dim_rocker")
+    assert not dim.object_flags
+    restored = edit_native(dim, "powertool:0:function", "switch_rocker")
+    assert not restored.object_flags
 
 
 @pytest.mark.parametrize("cut", [0, 1, 16, 17, 128, 1000])

@@ -14,7 +14,7 @@ import threading
 import time
 import xml.etree.ElementTree as ET
 import zipfile
-from collections.abc import Callable, Collection, Generator, Iterable
+from collections.abc import Callable, Collection, Generator, Iterable, Mapping
 from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal, cast
@@ -109,7 +109,11 @@ from xknxeditor.proj.core.service import DEFAULT_MULTICAST_ADDRESS
 from xknxeditor.proj.core.space_rules import SpaceRuleError, holds_devices
 
 if TYPE_CHECKING:
-    from editor_gui.plugin_providers import NativeConfiguration, PluginProvider
+    from editor_gui.plugin_providers import (
+        NativeConfiguration,
+        NativeObject,
+        PluginProvider,
+    )
     from editor_gui.plugins.base import Logger
     from editor_gui.plugins.catalog.service import CatalogService
     from editor_gui.plugins.connection.service import SecureTunnel
@@ -432,6 +436,7 @@ class _DeviceInputs:
     # ``BLOB_PARA``). Carried through so :func:`_compute_device` can hand the live
     # SQLAlchemy-mapped rows to the ``Device`` without re-querying.
     binary_data: tuple[Any, ...] = ()
+    com_object_flag_overrides: dict[str, dict[str, bool]] | None = None
     # Gives the product's factory image (see Device.factory_image).
     factory_image: Callable[[], FactoryData | None] | None = None
     # Gives the product's second application program (see Device.second_application).
@@ -453,6 +458,7 @@ def _compute_device(inputs: _DeviceInputs, app: Application) -> Device:
         parameter_instance_refs=inputs.parameter_instance_refs,
         module_instances=inputs.module_instances,
         com_object_instance_refs=inputs.com_object_instance_refs,
+        com_object_flag_overrides=inputs.com_object_flag_overrides,
         binary_data=list(inputs.binary_data),
         second_application=inputs.second_application,
     )
@@ -517,20 +523,30 @@ def _co_instance_ref_from_row(
     def _e(v: bool | None) -> Enable | None:
         return None if v is None else (Enable.ENABLED if v else Enable.DISABLED)
 
-    if all(
-        getattr(row, col) is None
-        for col in (
-            "communication_flag",
-            "read_flag",
-            "write_flag",
-            "transmit_flag",
-            "update_flag",
-            "read_on_init_flag",
+    from xknxeditor.namespaces.intermediate import ComObjectPriority
+
+    priority = getattr(row, "priority", None)
+    datapoint_type = getattr(row, "datapoint_type_override", None)
+    if (
+        priority is None
+        and datapoint_type is None
+        and all(
+            getattr(row, col) is None
+            for col in (
+                "communication_flag",
+                "read_flag",
+                "write_flag",
+                "transmit_flag",
+                "update_flag",
+                "read_on_init_flag",
+            )
         )
     ):
         return None
     return ComObjectInstanceRef(
         ref_id=ref_id if ref_id is not None else row.ref_id,
+        priority=ComObjectPriority(priority) if priority is not None else None,
+        datapoint_type=[datapoint_type] if datapoint_type else [],
         communication_flag=_e(row.communication_flag),
         read_flag=_e(row.read_flag),
         write_flag=_e(row.write_flag),
@@ -538,6 +554,24 @@ def _co_instance_ref_from_row(
         update_flag=_e(row.update_flag),
         read_on_init_flag=_e(row.read_on_init_flag),
     )
+
+
+def _raw_object_flags(row: Any, app_id: str) -> dict[str, dict[str, bool]]:
+    return {
+        _qualified_com_object_ref(co, app_id): {
+            name: value
+            for name in (
+                "communication",
+                "read",
+                "write",
+                "transmit",
+                "update",
+                "read_on_init",
+            )
+            if (value := getattr(co, name + "_flag_override")) is not None
+        }
+        for co in row.com_objects
+    }
 
 
 def _effective_flags(
@@ -2501,6 +2535,7 @@ class ProjectService:
                 parameter_instance_refs=pirs,
                 module_instances=mis,
                 com_object_instance_refs=coirs,
+                com_object_flag_overrides=_raw_object_flags(row, app.id),
                 binary_data=list(getattr(row, "binary_data", []) or []),
                 visible=snapshot.visible,
                 second_application=self._second_application_source(program_ref),
@@ -2696,6 +2731,7 @@ class ProjectService:
             parameter_instance_refs=pirs,
             module_instances=mis,
             com_object_instance_refs=coirs,
+            com_object_flag_overrides=_raw_object_flags(row, app_program_id),
             download_plugin_required=not compared
             and self._requires_download_plugin(program_ref),
             binary_data=tuple(getattr(row, "binary_data", []) or []),
@@ -3278,10 +3314,26 @@ class ProjectService:
         domain_address, repeater_present, speakers = self._powerline_communication(
             device
         )
-        for com_object in device.com_objects:
-            if com_object.db_id is None:
-                continue
-            for assignment in self.get_links_for_com_object(com_object.db_id):
+        object_rows = [
+            (co.id, co.db_id) for co in device.com_objects if co.db_id is not None
+        ]
+        from editor_gui.plugin_providers import provider_for
+
+        if (
+            self._pid is not None
+            and device.app is not None
+            and provider_for(device) is not None
+        ):
+            row = next(
+                r for r in self._svc.devices(self._pid) if r.id == device.node_id
+            )
+            object_rows = [
+                (_qualified_com_object_ref(co, device.app.id), co.id)
+                for co in row.com_objects
+            ]
+        for reference, object_id in object_rows:
+            assert object_id is not None
+            for assignment in self.get_links_for_com_object(object_id):
                 ga = self.get_group_address(assignment.group_address_id)
                 if ga is None:
                     continue
@@ -3290,10 +3342,10 @@ class ProjectService:
                     continue
                 links.append(
                     GroupObjectLink(
-                        com_object_ref_id=com_object.id,
+                        com_object_ref_id=reference,
                         group_address=address,
                         sending=assignment.is_sending,
-                        group_speaker=(com_object.id, address) in speakers,
+                        group_speaker=(reference, address) in speakers,
                     )
                 )
         # A line/backbone coupler (address x.y.0) also carries a group-address filter table computed
@@ -4049,7 +4101,20 @@ class ProjectService:
             config = provider.edit(current, ref_id, value)
             if provider.read(current).data == config.data:
                 return []
-            return self._configure_plugin(current, provider, config)
+            parameter = next(
+                (
+                    p
+                    for section in provider.sections(current)
+                    for p in section.parameters
+                    if p.ref_id == ref_id
+                ),
+                None,
+            )
+            label = S.HISTORY_EV_SET_PARAMETER.format(
+                ref=parameter.label if parameter is not None else ref_id,
+                value=f'"{dict(parameter.choices).get(value, value) if parameter else value}"',
+            )
+            return self._configure_plugin(current, provider, config, label=label)
 
     def import_plugin_config(self, device: Device, data: bytes) -> list[dict[str, Any]]:
         """Validate and persist a provider's configuration in one undo step."""
@@ -4090,27 +4155,41 @@ class ProjectService:
             )
 
     def _configure_plugin(
-        self, device: Device, provider: "PluginProvider", config: "NativeConfiguration"
+        self,
+        device: Device,
+        provider: "PluginProvider",
+        config: "NativeConfiguration",
+        *,
+        label: str | None = None,
+        object_changes: Mapping[str, Mapping[str, Any]] | None = None,
     ) -> list[dict[str, Any]]:
         from xknx.telegram import GroupAddress
+
+        from editor_gui.plugin_providers import compatible_dpt
 
         if self._pid is None:
             raise ValueError("No project open")
         current = self.find_device_by_node_id(device.node_id) or device
         previous = self.device_binary_data(current, provider.blob_name)
-        if previous == config.data:
-            return []
         try:
-            old_roles = (
-                {r.key: r for r in provider.read(current).objects}
-                if previous is not None
-                else {}
-            )
+            old_state = provider.read(current)
+            old_roles = {
+                r.key: r
+                for r in (
+                    old_state.objects
+                    if old_state.source_objects is None
+                    else old_state.source_objects
+                )
+            }
         except ValueError:
             old_roles = {}
         row = next(r for r in self._svc.devices(self._pid) if r.id == current.node_id)
-        rows = {co.ref_id: co for co in row.com_objects}
+        rows = {
+            _qualified_com_object_ref(co, current.app.id if current.app else ""): co
+            for co in row.com_objects
+        }
         targets: list[dict[str, Any]] = []
+        effective_objects: list[NativeObject] = []
         preserved: set[int] = set()
         for role in config.objects:
             old = old_roles.get(role.key)
@@ -4120,11 +4199,7 @@ class ProjectService:
                 and old.size == role.size
                 and old.dpt == role.dpt
                 and source is not None
-                and (
-                    not source.datapoint_type_override
-                    or normalize_datapoint_type(source.datapoint_type_override)
-                    == normalize_datapoint_type(role.dpt)
-                )
+                and compatible_dpt(role.dpt, source.datapoint_type_override)
             )
             fields_: dict[str, Any] = {
                 "ref_id": role.reference,
@@ -4134,11 +4209,46 @@ class ProjectService:
             if compatible:
                 assert source is not None
                 preserved.add(source.id)
+                if previous is None:
+                    fields_["priority"] = source.priority or role.priority
+                    for name, value in role.flags.items():
+                        effective = getattr(source, name + "_flag_override")
+                        fields_[name + "_flag"] = fields_[name + "_flag_override"] = (
+                            value if effective is None else effective
+                        )
             else:
+                fields_["priority"] = role.priority
                 fields_["datapoint_type_override"] = normalize_datapoint_type(role.dpt)
                 for name, value in role.flags.items():
                     fields_[name + "_flag"] = value
                     fields_[name + "_flag_override"] = value
+            fields_.update((object_changes or {}).get(role.reference, {}))
+            effective_objects.append(
+                replace(
+                    role,
+                    priority=role.default_priority
+                    if "priority" in fields_ and fields_["priority"] is None
+                    else fields_.get("priority")
+                    or (
+                        source.priority
+                        if compatible and source and "priority" not in fields_
+                        else None
+                    )
+                    or role.priority,
+                    flags={
+                        name: fields_.get(
+                            name + "_flag",
+                            getattr(source, name + "_flag")
+                            if compatible
+                            and source
+                            and previous is not None
+                            and getattr(source, name + "_flag") is not None
+                            else value,
+                        )
+                        for name, value in role.flags.items()
+                    },
+                )
+            )
             targets.append(
                 {
                     "source_id": source.id if compatible and source else None,
@@ -4155,13 +4265,26 @@ class ProjectService:
             if co.id not in preserved
             for link in co.links
         ]
+        persisted = provider.serialize(current, config, tuple(effective_objects))
+        if (
+            previous == persisted.data
+            and not object_changes
+            and all(
+                self.device_binary_data(current, name) == payload
+                for name, payload in persisted.binary_data.items()
+            )
+        ):
+            return []
         self._svc.configure_native_device(
             self._pid,
             current.node_id,
             provider.blob_name,
-            config.data,
-            config.parameters,
+            persisted.data,
+            persisted.parameters,
             targets,
+            binary_data=persisted.binary_data,
+            label=f"{device_label(current)}: "
+            + (label or S.HISTORY_EV_STORE_PLUGIN_DATA.format(name=provider.id)),
         )
         self._refresh_device(current.node_id)
         self._bump(structural=False)
@@ -6811,12 +6934,21 @@ class ProjectService:
         column = _FLAG_COLUMNS.get(flag_name)
         if co is None or co.db_id is None or column is None:
             return
+        if self._set_native_object_fields(
+            device,
+            co_id,
+            {column: value, column + "_override": value},
+            S.HISTORY_EV_SET_FLAG,
+        ):
+            return
         self._svc.set_com_object_flag(self._pid, co.db_id, column, value)
         # In place instead of a full rebuild (which would reset the Configure panel's tree/edit
         # state): reflect on the live com-object and push the com-object's full override set into the
         # live dynamic UI — exactly what a rebuild reconstructs from the DB — then bump non-structurally
         # so revision-keyed panels (Health/Cockpit) refresh.
         setattr(co.flags, flag_name, value)
+        if device.com_object_flag_overrides is not None:
+            device.com_object_flag_overrides.setdefault(co_id, {})[flag_name] = value
         device.edited_in_place = True
         row = self._find_com_object_row(co.db_id)
         if row is not None:
@@ -6843,6 +6975,13 @@ class ProjectService:
         # DPT in place (non-structural bump keeps the Configure tree/edit state). On a clear, the
         # default DPT is only known after a rebuild, so bump structurally to pull it from the catalog.
         co.datapoint_type_override = token
+        row = self._find_com_object_row(co.db_id)
+        if row is not None:
+            device.set_com_obj_instance_ref(
+                co_id,
+                _co_instance_ref_from_row(row, co_id)
+                or ComObjectInstanceRef(ref_id=co_id),
+            )
         if value:
             co.dpt = lookup_or_make_dpt(value)
         device.edited_in_place = True
@@ -6858,12 +6997,54 @@ class ProjectService:
         co = device.find_com_object(co_id)
         if co is None or co.db_id is None:
             return
+        from xknxeditor.proj.core.events import COM_OBJECT_PRIORITIES
+
+        if value is not None and value not in COM_OBJECT_PRIORITIES:
+            raise ValueError(f"Unknown com-object priority {value!r}")
+        if self._set_native_object_fields(
+            device, co_id, {"priority": value}, S.HISTORY_EV_SET_PRIORITY
+        ):
+            return
         self._svc.set_com_object_priority(self._pid, co.db_id, value)
+        row = self._find_com_object_row(co.db_id)
+        if row is not None:
+            device.set_com_obj_instance_ref(
+                co_id,
+                _co_instance_ref_from_row(row, co_id)
+                or ComObjectInstanceRef(ref_id=co_id),
+            )
         # Set: reflect in place (non-structural). Clear: the default is only known after a rebuild.
         if value:
             co.priority = value
         device.edited_in_place = True
         self._bump(structural=value is None)
+
+    def _set_native_object_fields(
+        self, device: Device, reference: str, fields: Mapping[str, Any], label: str
+    ) -> bool:
+        from editor_gui.plugin_providers import provider_for
+
+        with self._io_lock:
+            current = self.find_device_by_node_id(device.node_id) or device
+            provider = provider_for(current)
+            if provider is None:
+                return False
+            state = provider.read(current)
+            sources = (
+                state.objects if state.source_objects is None else state.source_objects
+            )
+            source = next((obj for obj in sources if obj.reference == reference), None)
+            if source is None:
+                raise ValueError("Group object has no unique compatible native role")
+            target = next(obj for obj in state.objects if obj.key == source.key)
+            self._configure_plugin(
+                current,
+                provider,
+                state,
+                label=label,
+                object_changes={target.reference: fields},
+            )
+            return True
 
     def set_com_object_description(
         self, device: Device, co_id: str, value: str | None

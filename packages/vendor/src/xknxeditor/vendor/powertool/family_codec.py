@@ -253,9 +253,9 @@ def compile_family(
             default_flags = obj.spec["priority"] | sum(
                 bit for prop, bit in FLAGS.items() if evaluated.property(obj, prop)
             )
-            obj_flags = (
-                default_flags if flags is None else flags.get(key, default_flags)
-            )
+            obj_flags = config.object_flags.get(key, default_flags)
+            if flags is not None:
+                obj_flags = flags.get(key, obj_flags)
             if type(obj_flags) is not int or not 0 <= obj_flags <= 255:
                 raise ValueError("Invalid PowerTool object flags")
             if not visible:

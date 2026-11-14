@@ -13,8 +13,14 @@ from typing import Any
 from .model import PowerToolConfig
 from .nrbf import Document, Record, Value, read_document
 
-ORIGINAL_BLOB_NAME = "PT2EtsPlugin"
+PLUGIN_BLOB_NAME = "PT2EtsPlugin"
 _PREFIX = "BJE.toolB.PT2Logic."
+
+
+def schema_version(database: str, code: int, version: str) -> str:
+    if (database, code, version) == ("ToolBObjektTasterDatabase.dll", 3, "1.1.2.84"):
+        return "1.1.2.85"
+    return version
 
 
 @dataclass(frozen=True)
@@ -412,7 +418,7 @@ def read_project_blob(data: bytes) -> SavedProject:
             m
             for m in _catalog()
             if m["database"] == database
-            and m["version"] == version_text
+            and m["version"] == schema_version(database, code, version_text)
             and m["code"] == code
             and product in m["products"]
         ),
@@ -451,12 +457,14 @@ def config_from_project_blob(data: bytes) -> PowerToolConfig:
         not saved.metadata_verified
         or saved.code != 3
         or saved.database != "ToolBObjektTasterDatabase.dll"
-        or saved.database_version != DATABASE_VERSION
+        or schema_version(saved.database, saved.code, saved.database_version)
+        != DATABASE_VERSION
         or saved.product_type not in ("TasterBA1f", "TasterBA2f")
     ):
         raise ValueError("Native conversion is not verified for this PowerTool profile")
     variant: Variant = "01" if saved.product_type == "TasterBA1f" else "02"
     channels: list[ChannelConfig] = []
+    flags: dict[str, int] = {}
     if [(d.path, d.address, d.disabled) for d in saved.devices] != [
         ("devices/0", 0, False),
         ("devices/0/attached", 0, False),
@@ -477,11 +485,13 @@ def config_from_project_blob(data: bytes) -> PowerToolConfig:
             function = "inactive"
         fields = functions()[function].fields
         objects = functions()[function].objects
-        if channel.object_flags and channel.object_flags != tuple(
-            o.flags for o in objects
-        ):
-            raise ValueError(
-                "Native conversion of modified PowerTool object flags is not verified"
+        if channel.object_flags:
+            if len(channel.object_flags) != len(objects):
+                raise ValueError("PowerTool object flags do not match the application")
+            flags.update(
+                (f"channel_{len(channels)}/{function}/{obj.key}", value)
+                for obj, value in zip(objects, channel.object_flags, strict=True)
+                if value != obj.flags
             )
         values: dict[str, int | float] = {}
         paths: dict[int, str] = {}
@@ -527,4 +537,15 @@ def config_from_project_blob(data: bytes) -> PowerToolConfig:
             elif value != field.default:
                 raise ValueError("Unsupported hidden PowerTool parameter override")
         channels.append(ChannelConfig(function, values))
-    return PowerToolConfig(variant, tuple(channels))
+    return PowerToolConfig(variant, tuple(channels), object_flags=flags)
+
+
+def native_application_keys() -> dict[str, str]:
+    """Map the push-button function names to their shared product types."""
+    return {
+        node["native_function"]: key.removeprefix("BJE.toolB.ProductDatabase.")
+        for catalog in _catalog()
+        if catalog["code"] == 3
+        for key, node in catalog["nodes"].items()
+        if node.get("native_function")
+    }

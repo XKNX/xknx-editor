@@ -128,7 +128,18 @@ def materialize_group_communication_controls(
             next_phase = "allocated" if phase in ("loading", "allocated") else phase
             if (target, LdCtrlRelSegment) not in sized:
                 sized.add((target, LdCtrlRelSegment))
-                control = replace(control, size=len(segment.data))
+                index = next(
+                    (index for index, kind in object_types.items() if kind == target),
+                    None,
+                )
+                size = (
+                    image.allocation_sizes.get(index, len(segment.data))
+                    if index is not None
+                    else len(segment.data)
+                )
+                if size < len(segment.data):
+                    raise ImageError("table allocation is smaller than its payload")
+                control = replace(control, size=size)
         elif isinstance(control, LdCtrlWriteRelMem):
             valid = phase == "allocated"
             next_phase = "written"

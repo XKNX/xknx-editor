@@ -26,6 +26,7 @@ class PreparedDownload:
     scope or table-format substitution is permitted for a prepared image.
     Resource occurrences map repeated allocation/write indices to the ordered
     resources of the complete image.
+    Allocation sizes can reserve more memory than the resource bytes being written.
     The domain address describes the target network; domain commissioning is
     separate from the application load procedure.
     """
@@ -82,6 +83,8 @@ class PreparedDownload:
             covered.add(index)
         if covered != set(self.resource_sizes):
             raise ImageError("incomplete prepared application resources")
+        if not self.image.allocation_sizes.keys() <= self.resource_sizes.keys():
+            raise ImageError("prepared allocation has no resource")
         properties = [(p.object_index, p.property_id) for p in self.image.properties]
         if len(properties) != len(set(properties)):
             raise ImageError("duplicate prepared property")
@@ -140,7 +143,12 @@ class PreparedDownload:
                 if index in allocated:
                     raise ImageError("duplicate prepared allocation")
                 allocated.add(index)
-                control = replace(control, size=self.resource_sizes[index])
+                control = replace(
+                    control,
+                    size=self.image.allocation_sizes.get(
+                        index, self.resource_sizes[index]
+                    ),
+                )
             elif (
                 isinstance(control, LdCtrlWriteRelMem)
                 and control.obj_idx in self.resource_sizes

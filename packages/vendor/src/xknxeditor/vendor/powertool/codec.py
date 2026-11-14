@@ -167,7 +167,9 @@ def compile_image(
                     dpt, size = candidate_dpt, candidate_size
                     break
             role = f"channel_{channel}/{function.key}/{obj.key}"
-            object_flags = obj.flags if flags is None else flags.get(role, obj.flags)
+            object_flags = config.object_flags.get(role, obj.flags)
+            if flags is not None:
+                object_flags = flags.get(role, object_flags)
             if type(object_flags) is not int or not 0 <= object_flags <= 255:
                 raise ValueError("invalid object flags")
             if not obj.visible:
