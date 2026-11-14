@@ -1691,3 +1691,21 @@ msgstr "Δεν έχει οριστεί έγκυρο κλειδί υπογραφ�
 
 msgid "Export Anyway"
 msgstr "Εξαγωγή ούτως ή άλλως"
+
+msgid "Delete"
+msgstr "Διαγραφή"
+
+msgid "Delete from the server"
+msgstr "Διαγραφή από τον διακομιστή"
+
+msgid "Delete {name} from the server? This cannot be undone."
+msgstr "Διαγραφή του {name} από τον διακομιστή; Δεν μπορεί να αναιρεθεί."
+
+msgid "{name} belongs to the open project and is not deleted."
+msgstr "Το {name} ανήκει στο ανοιχτό έργο και δεν διαγράφεται."
+
+msgid "{name} could not be deleted: {error}"
+msgstr "Δεν ήταν δυνατή η διαγραφή του {name}: {error}"
+
+msgid "Delete File"
+msgstr "Διαγραφή αρχείου"

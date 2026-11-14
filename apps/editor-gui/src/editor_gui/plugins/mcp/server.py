@@ -34,6 +34,7 @@ from editor_gui.plugins.mcp.tools import (
     settings,
     status,
     structure,
+    web_files,
 )
 
 if TYPE_CHECKING:
@@ -206,6 +207,7 @@ def build_server(ctx: McpContext, auth: Any = None) -> FastMCP:
         settings,
         recover,
         home_assistant,
+        web_files,
     ):
         module.register(mcp, ctx)
     if _SKILLS_DIR.is_dir():

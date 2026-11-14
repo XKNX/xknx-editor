@@ -1707,3 +1707,21 @@ msgstr "Дійсний ключ підпису не задано, тому ек�
 
 msgid "Export Anyway"
 msgstr "Експортувати попри це"
+
+msgid "Delete"
+msgstr "Видалити"
+
+msgid "Delete from the server"
+msgstr "Видалити із сервера"
+
+msgid "Delete {name} from the server? This cannot be undone."
+msgstr "Видалити {name} із сервера? Цю дію не можна скасувати."
+
+msgid "{name} belongs to the open project and is not deleted."
+msgstr "{name} належить до відкритого проєкту і не видаляється."
+
+msgid "{name} could not be deleted: {error}"
+msgstr "Не вдалося видалити {name}: {error}"
+
+msgid "Delete File"
+msgstr "Видалення файлу"
