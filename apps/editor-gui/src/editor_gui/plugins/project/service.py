@@ -3348,34 +3348,68 @@ class ProjectService:
                         group_speaker=(reference, address) in speakers,
                     )
                 )
-        # A line/backbone coupler (address x.y.0) also carries a group-address filter table computed
-        # from the whole topology (which group addresses cross it). A non-coupler at .0 gets one too,
-        # but its load procedure has no Router-object write, so the extra image segment is unused.
-        from xknxeditor.download.filter_table import (
-            compute_coupler_filter_table,
-            is_coupler_address,
-        )
-
-        filter_table = None
-        if is_coupler_address(device_address):
-            # The project's pass-through addresses have to be included, or the computed table
-            # blocks addresses it was explicitly configured to always route: group addresses (or
-            # whole ranges) flagged Unfiltered, and the line's AdditionalGroupAddresses.
-            unfiltered, additional = self._coupler_pass_through(device_address)
-            filter_table = compute_coupler_filter_table(
-                device_address,
-                self._all_device_group_addresses(),
-                unfiltered=unfiltered,
-                additional=additional,
-            )
         return GroupCommunication(
             device_address=device_address,
             links=links,
-            filter_table=filter_table,
+            filter_table=self._filter_table_for(device, device_address),
             security=self._group_security(device),
             domain_address=domain_address,
             repeater_present=repeater_present,
         )
+
+    def _filter_table_for(self, device: Device, device_address: int) -> bytes | None:
+        """The group-address filter table of a coupler, computed from the whole topology (which
+        group addresses cross it); None for a device that is no coupler.
+
+        A line/backbone coupler (address x.y.0) filters between its line (or area) and the rest:
+        a non-coupler at .0 gets a table too, but its load procedure has no Router-object write,
+        so the extra image segment is unused. A segment coupler filters between its own segment
+        and the rest. The project's pass-through addresses are included, or the table blocks
+        addresses it was configured to always route: group addresses (or whole ranges) flagged
+        Unfiltered, and the AdditionalGroupAddresses of the segment the coupler feeds."""
+        from xknxeditor.download.filter_table import (
+            build_filter_table,
+            compute_coupler_filter_table,
+            is_coupler_address,
+            routed_group_addresses,
+        )
+
+        segment_id = self._coupled_segment(device)
+        if segment_id is None and not is_coupler_address(device_address):
+            return None
+        unfiltered, additional = self._coupler_pass_through(device_address, segment_id)
+        links = self._all_device_group_addresses()
+        if segment_id is None:
+            return compute_coupler_filter_table(
+                device_address, links, unfiltered=unfiltered, additional=additional
+            )
+        segments = self.device_segments()
+        inside: set[int] = set()
+        outside: set[int] = set()
+        for dev in self.devices:
+            ia = _parse_individual_address(dev.individual_address)
+            if ia is None:
+                continue
+            target = inside if segments.get(dev.node_id) == segment_id else outside
+            target.update(links.get(ia, ()))
+        return build_filter_table(
+            routed_group_addresses(
+                inside, outside, unfiltered=unfiltered, additional=additional
+            )
+        )
+
+    def _coupled_segment(self, device: Device) -> int | None:
+        """The segment a segment coupler feeds (the one it sits in, never a line's main segment);
+        None for any other device."""
+        if self._pid is None:
+            return None
+        segment_id = self.device_segments().get(device.node_id)
+        medium = self.segment_medium(segment_id) if segment_id is not None else None
+        if medium is None or medium[1]:
+            return None
+        program = self._svc.device_programs(self._pid).get(device.node_id)
+        coupler = self._coupler_device(program)
+        return segment_id if coupler is not None and coupler.segment_coupler else None
 
     def _powerline_communication(
         self, device: Device
@@ -4577,12 +4611,13 @@ class ProjectService:
         return fdsk
 
     def _coupler_pass_through(
-        self, coupler_address: int
+        self, coupler_address: int, segment_id: int | None = None
     ) -> tuple[list[int], list[int]]:
-        """``(unfiltered, additional)`` pass-through addresses for a coupler; empty when unknown."""
+        """``(unfiltered, additional)`` pass-through addresses for a coupler (of the segment
+        ``segment_id`` for a segment coupler); empty when unknown."""
         if self._pid is None:
             return [], []
-        return self._svc.coupler_pass_through(self._pid, coupler_address)
+        return self._svc.coupler_pass_through(self._pid, coupler_address, segment_id)
 
     def _all_device_group_addresses(self) -> dict[int, set[int]]:
         """Map every device's raw individual address to the raw group addresses it links (send or

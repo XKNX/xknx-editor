@@ -5354,9 +5354,10 @@ class ProjectService:
         ]
 
     def coupler_pass_through(
-        self, project_id: str, coupler_address: int
+        self, project_id: str, coupler_address: int, segment_id: int | None = None
     ) -> tuple[list[int], list[int]]:
-        """The pass-through group addresses for the coupler at raw ``coupler_address``.
+        """The pass-through group addresses for the coupler at raw ``coupler_address``, or for the
+        segment coupler of the segment ``segment_id``.
 
         Returns ``(unfiltered, additional)`` as raw 16-bit group-address values, ready for
         :func:`xknxeditor.download.filter_table.compute_coupler_filter_table`. Without these a
@@ -5366,10 +5367,11 @@ class ProjectService:
           itself or on any group range that contains it. The flag is inherited down the range tree:
           marking a range unfiltered is how a whole span (e.g. central functions) is passed through,
           so a child range or address inside it inherits it.
-        - ``additional`` - the ``AdditionalGroupAddresses`` configured on the coupler's own line.
-          A coupler at ``a.l.0`` is the coupler of line ``l`` in area ``a``, which is where the KNX
-          schema carries this list (an area/backbone coupler ``a.0.0`` is line 0 of its area, so the
-          same lookup applies).
+        - ``additional`` - the ``AdditionalGroupAddresses`` of the segment the coupler feeds. A
+          coupler at ``a.l.0`` is the coupler of line ``l`` in area ``a`` (an area/backbone coupler
+          ``a.0.0`` is line 0 of its area, so the same lookup applies): those of the line's main
+          segment. A project whose segments carry none of their own (project/14+20, where the list
+          sits on the line) has them on the line. A segment coupler: those of its own segment.
         """
         state = self._state(project_id)
         session = state.session
@@ -5398,21 +5400,31 @@ class ProjectService:
             }
         )
 
-        area_address = (coupler_address >> 12) & 0xF
-        line_address = (coupler_address >> 8) & 0xF
-        # Deterministic + defensive: even though import now de-duplicates topology, never let a
-        # stray duplicate area/line make this raise (MultipleResultsFound) mid-download; take the
-        # lowest-id match.
-        line = (
-            session.query(Line)
-            .join(Area, Line.area_id == Area.id)
-            .filter(Area.address == area_address, Line.address == line_address)
-            .order_by(Line.id)
-            .first()
-        )
+        listed = ""
+        if segment_id is not None:
+            segment = session.get(Segment, segment_id)
+            listed = segment.additional_group_addresses if segment is not None else ""
+        else:
+            area_address = (coupler_address >> 12) & 0xF
+            line_address = (coupler_address >> 8) & 0xF
+            # Deterministic + defensive: even though import now de-duplicates topology, never let
+            # a stray duplicate area/line make this raise (MultipleResultsFound) mid-download;
+            # take the lowest-id match.
+            line = (
+                session.query(Line)
+                .join(Area, Line.area_id == Area.id)
+                .filter(Area.address == area_address, Line.address == line_address)
+                .order_by(Line.id)
+                .first()
+            )
+            if line is not None:
+                listed = line.additional_group_addresses
+                if any(s.additional_group_addresses.strip() for s in line.segments):
+                    main = min(line.segments, key=lambda s: s.number)
+                    listed = main.additional_group_addresses
         additional: set[int] = set()
-        if line is not None:
-            for raw in line.additional_group_addresses.split(","):
+        if listed:
+            for raw in listed.split(","):
                 raw = raw.strip()
                 if not raw:
                     continue
