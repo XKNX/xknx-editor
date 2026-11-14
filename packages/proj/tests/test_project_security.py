@@ -121,3 +121,32 @@ def test_a_line_without_a_coupler_has_its_own_domain(tmp_path: Path) -> None:
     assert set(keys) == {0x0801}
     assert senders == []
     svc.close(pid)
+
+
+def test_the_security_proxy_group_key_table(tmp_path: Path) -> None:
+    svc, pid, devices = _project(tmp_path)
+    svc.set_security_context(pid, _Products())
+    table = svc.security_proxy_table(pid, devices["proxy"], [0x0801, 0x0802])
+    assert table is not None
+    entries, senders = table
+    # Secured on the secondary side (behind the proxy) only; its sender there is the actuator.
+    assert [(address, primary) for address, _key, primary in entries] == [
+        (0x0801, False)
+    ]
+    assert len(entries[0][1]) == 16
+    assert senders == [(0x2105, 0)]
+    # A device feeding no domain of its own translates nothing.
+    assert svc.security_proxy_table(pid, devices["coupler"], [0x0801]) is None
+    svc.close(pid)
+
+
+def test_no_entry_for_a_group_address_alike_on_both_sides(tmp_path: Path) -> None:
+    svc, pid, devices = _project(tmp_path)
+    # Without the security extensions known, the proxy's line shares the domain above it.
+    assert svc.security_proxy_table(pid, devices["proxy"], [0x0801]) is None
+    svc.set_security_context(pid, _Products())
+    # A group address linked nowhere is in the clear on both sides.
+    plain = svc.create_group_address(pid, 0, 0x0803, "Unlinked")
+    assert plain
+    assert svc.security_proxy_table(pid, devices["proxy"], [0x0803]) == ([], [])
+    svc.close(pid)

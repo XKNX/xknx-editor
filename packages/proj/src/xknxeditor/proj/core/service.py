@@ -165,6 +165,7 @@ from xknxeditor.proj.core.ga_export import (
 from xknxeditor.proj.core.ga_security import (
     AUTO_MODES,
     FORCED_MODES,
+    ProjectSecurity,
     SecurityContext,
     commissioned_devices,
     effective_mode,
@@ -3747,34 +3748,115 @@ class ProjectService:
         keys: dict[int, bytes] = {}
         created = False
         for ga in secured:
-            if ga.security_key is None:
-                ga.security_key = self._new_group_key(state)
-                ga.data_secure = True
-                created = True
-            value = ga.security_key
-            if state.cipher is not None:
-                value = state.cipher.value(value)
-            key = _key(value)
+            key, made = self._group_key(state, ga)
+            created = created or made
             if key is not None:
                 keys[ga.address] = key
         senders: dict[int, int] = {}
         for ga_id, address in [(ga.id, ga.address) for ga in secured]:
-            if address not in keys or domain is None:
-                continue
-            devices, interfaces, proxies = security.senders(ga_id, domain, can_send)
-            for other_id in sorted(devices | set(proxies)):
-                other = security.devices.get(other_id)
-                if other_id == device_id or other is None:
-                    continue
-                individual = _individual_address(other)
-                if individual is not None:
-                    senders[individual] = _last_valid_sequence_number(other)
-            for tunnel, owner in (tunnel_senders or {}).get(address, ()):
-                if owner in interfaces:
-                    senders.setdefault(tunnel, 0)
+            if address in keys and domain is not None:
+                self._add_senders(
+                    senders,
+                    security,
+                    (ga_id, address, domain, None),
+                    device_id,
+                    can_send,
+                    tunnel_senders,
+                )
         if created:
             session.commit()
         return keys, sorted(senders.items())
+
+    def security_proxy_table(
+        self,
+        project_id: str,
+        device_id: int,
+        group_addresses: Iterable[int],
+        can_send: Callable[[int], bool] | None = None,
+        tunnel_senders: Mapping[int, Sequence[tuple[int, int]]] | None = None,
+    ) -> tuple[list[tuple[int, bytes, bool]], list[tuple[int, int]]] | None:
+        """The Security Proxy Group Key Table of a coupler used as Security Proxy, for the group
+        addresses (raw) it routes: ``(group address, key, secured on the primary side)`` for each
+        one secured on one side only, and who may send on them on their secured side (see
+        :meth:`group_security`), whose telegrams it translates. None for a device that feeds no
+        security domain of its own. A group address without a key yet gets one, stored
+        directly."""
+        state = self._state(project_id)
+        session = state.session
+        security = project_security(session)
+        sides = security.sides(device_id)
+        if sides is None:
+            return None
+        primary, secondary = sides
+        wanted = set(group_addresses)
+        entries: list[tuple[int, bytes, bool]] = []
+        senders: dict[int, int] = {}
+        created = False
+        for ga in session.query(GroupAddress).order_by(GroupAddress.address):
+            if ga.address not in wanted:
+                continue
+            on_primary = security.secured_in(ga.id, primary)
+            if on_primary == security.secured_in(ga.id, secondary):
+                continue
+            key, made = self._group_key(state, ga)
+            created = created or made
+            if key is None:
+                continue
+            entries.append((ga.address, key, on_primary))
+            secured, other = (
+                (primary, secondary) if on_primary else (secondary, primary)
+            )
+            self._add_senders(
+                senders,
+                security,
+                (ga.id, ga.address, secured, other),
+                device_id,
+                can_send,
+                tunnel_senders,
+            )
+        if created:
+            session.commit()
+        return entries, sorted(senders.items())
+
+    def _group_key(self, state: _Open, ga: GroupAddress) -> tuple[bytes | None, bool]:
+        """The key of a secured group address, and whether it was made now (one without a key
+        yet gets one)."""
+        created = False
+        if ga.security_key is None:
+            ga.security_key = self._new_group_key(state)
+            ga.data_secure = True
+            created = True
+        value = ga.security_key
+        if state.cipher is not None:
+            value = state.cipher.value(value)
+        return _key(value), created
+
+    @staticmethod
+    def _add_senders(
+        senders: dict[int, int],
+        security: ProjectSecurity,
+        where: tuple[int, int, int, int | None],
+        device_id: int,
+        can_send: Callable[[int], bool] | None,
+        tunnel_senders: Mapping[int, Sequence[tuple[int, int]]] | None,
+    ) -> None:
+        """Add who may send on a group address ``(id, raw address, domain it is secured in, a
+        domain not to join)`` to ``senders`` (raw individual address -> last valid sequence
+        number), but the device itself."""
+        ga_id, address, domain, do_not_join = where
+        devices, interfaces, proxies = security.senders(
+            ga_id, domain, can_send, do_not_join
+        )
+        for other_id in sorted(devices | set(proxies)):
+            other = security.devices.get(other_id)
+            if other_id == device_id or other is None:
+                continue
+            individual = _individual_address(other)
+            if individual is not None:
+                senders[individual] = _last_valid_sequence_number(other)
+        for tunnel, owner in (tunnel_senders or {}).get(address, ()):
+            if owner in interfaces:
+                senders.setdefault(tunnel, 0)
 
     def security_table_sizes(
         self,

@@ -3403,34 +3403,46 @@ class ProjectService:
         Unfiltered, and the AdditionalGroupAddresses of the segment the coupler feeds."""
         from xknxeditor.download.filter_table import (
             build_filter_table,
-            compute_coupler_filter_table,
-            is_coupler_address,
             routed_group_addresses,
         )
+
+        sides = self._coupler_sides(device, device_address)
+        if sides is None:
+            return None
+        inside, outside, segment_id = sides
+        unfiltered, additional = self._coupler_pass_through(device_address, segment_id)
+        return build_filter_table(
+            routed_group_addresses(
+                inside, outside, unfiltered=unfiltered, additional=additional
+            )
+        )
+
+    def _coupler_sides(
+        self, device: Device, device_address: int
+    ) -> tuple[set[int], set[int], int | None] | None:
+        """The group addresses linked behind a coupler and in front of it, and the segment it
+        feeds for a segment coupler; None for a device that is no coupler (see
+        :meth:`_filter_table_for`)."""
+        from xknxeditor.download.filter_table import is_behind, is_coupler_address
 
         segment_id = self._coupled_segment(device)
         if segment_id is None and not is_coupler_address(device_address):
             return None
-        unfiltered, additional = self._coupler_pass_through(device_address, segment_id)
         links = self._all_device_group_addresses()
-        if segment_id is None:
-            return compute_coupler_filter_table(
-                device_address, links, unfiltered=unfiltered, additional=additional
-            )
-        segments = self.device_segments()
+        segments = self.device_segments() if segment_id is not None else {}
         inside: set[int] = set()
         outside: set[int] = set()
         for dev in self.devices:
             ia = _parse_individual_address(dev.individual_address)
             if ia is None:
                 continue
-            target = inside if segments.get(dev.node_id) == segment_id else outside
-            target.update(links.get(ia, ()))
-        return build_filter_table(
-            routed_group_addresses(
-                inside, outside, unfiltered=unfiltered, additional=additional
+            behind = (
+                segments.get(dev.node_id) == segment_id
+                if segment_id is not None
+                else is_behind(ia, device_address)
             )
-        )
+            (inside if behind else outside).update(links.get(ia, ()))
+        return inside, outside, segment_id
 
     def _coupled_segment(self, device: Device) -> int | None:
         """The segment a segment coupler feeds (the one it sits in, never a line's main segment);
@@ -3517,8 +3529,10 @@ class ProjectService:
 
     def _group_security(self, device: Device) -> "GroupSecurity | None":
         """The keys of the device's secured group addresses and their senders, for a device whose
-        application supports KNX Data Secure; ``None`` when none of its group addresses is secured."""
-        from xknxeditor.download.secure_config import GroupSecurity
+        application supports KNX Data Secure, with the Security Proxy Group Key Table of a coupler
+        used as Security Proxy; ``None`` when none of its group addresses is secured and it is no
+        such coupler."""
+        from xknxeditor.download.secure_config import GroupSecurity, ProxyEntry
 
         if self._pid is None or device.app is None:
             return None
@@ -3533,9 +3547,20 @@ class ProjectService:
         p2p = self._svc.p2p_security(
             self._pid, device.node_id, _security_role_masks(device)
         )
-        if not keys and not p2p:
+        proxy = self._security_proxy(device)
+        entries: list[ProxyEntry] | None = None
+        if proxy is not None:
+            rows, proxy_senders = proxy
+            entries = [
+                ProxyEntry(address, key, primary) for address, key, primary in rows
+            ]
+            merged = dict(senders)
+            for address, sequence in proxy_senders:
+                merged[address] = max(sequence, merged.get(address, 0))
+            senders = sorted(merged.items())
+        if not keys and not p2p and entries is None:
             return None
-        return GroupSecurity(keys=keys, senders=senders, p2p=p2p)
+        return GroupSecurity(keys=keys, senders=senders, p2p=p2p, proxy=entries)
 
     def com_object_requires_security(self, com_object_id: int) -> bool:
         """Whether the application requires KNX Data Secure for a group object (its
@@ -4595,11 +4620,42 @@ class ProjectService:
     def download_routing_blocking(self, device: Device) -> bool | None:
         """Whether a download blocks point-to-point and broadcast messages on both sides of the
         device, a coupler with the security extensions; ``None`` for any other device. Auto
-        blocks them on a coupler used as a Security Proxy (KNX AN192 3.5.2.2); the project never
-        sets one up to translate between secured and plain lines, so Auto routes them."""
+        blocks them while the coupler is used as a Security Proxy (KNX AN192 3.5.2.2): while it
+        translates a group address secured on one of its sides only."""
         if not self.security_proxy_coupler(device):
             return None
-        return self.unicast_broadcast_blocking(device) == "On"
+        mode = self.unicast_broadcast_blocking(device)
+        if mode in ("On", "Off"):
+            return mode == "On"
+        proxy = self._security_proxy(device)
+        return bool(proxy and proxy[0])
+
+    def _security_proxy(
+        self, device: Device
+    ) -> tuple[list[tuple[int, bytes, bool]], list[tuple[int, int]]] | None:
+        """The Security Proxy Group Key Table of a coupler with the security extensions
+        commissioned securely (see the core ``security_proxy_table``): the group addresses it
+        routes, secured on one of its sides only, and their senders on the secured side; None
+        for any other device."""
+        if self._pid is None or device.app is None:
+            return None
+        program = device.app.program
+        if not program.max_security_proxy_group_key_table_entries:
+            return None
+        if not self.security_proxy_coupler(device):
+            return None
+        address = _parse_individual_address(device.individual_address)
+        sides = self._coupler_sides(device, address) if address is not None else None
+        if sides is None:
+            return None
+        inside, outside, _segment = sides
+        return self._svc.security_proxy_table(
+            self._pid,
+            device.node_id,
+            inside & outside,
+            self._com_object_can_send,
+            self._tunnel_senders(),
+        )
 
     def record_factory_reset(self, device: Device) -> None:
         """A factory reset (with the individual address) gave the device its FDSK back: it no

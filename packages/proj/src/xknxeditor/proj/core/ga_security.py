@@ -2,10 +2,15 @@
 
 A device is commissioned securely ("Secure Commissioning" activated) when the project holds a Tool
 Key for it (``<Security @ToolKey>``). A group address with Security ``On`` is secured and one with
-``Off`` is not. In the default ``Auto`` mode it is secured when it is linked and every device linked
-to it is commissioned securely: a device commissioned in the clear could not take part in its
-secured communication. The state is derived from the links whenever it is needed, so a change of a
-link or of a device's secure commissioning counts everywhere at once.
+``Off`` is not. In the default ``Auto`` mode it is decided per security domain
+(:mod:`.security_domains`): secured where every device linked to it is commissioned securely (a
+device commissioned in the clear could not take part in its secured communication), in the clear
+where one is not; a coupler used as Security Proxy translates between the two. When the project has
+the coupler of every line and none is used as Security Proxy, it is one domain: a group address is
+secured when it is linked and every device linked to it is commissioned securely. The state is
+derived from the links whenever it is needed
+(:func:`project_security`), so a change of a link or of a device's secure commissioning counts
+everywhere at once.
 
 A main or middle group with Security ``On`` or ``Off`` forces it on every group address and group
 below it: the nearest such group above an address decides, the address's own mode only counts
@@ -354,18 +359,29 @@ class ProjectSecurity:
         """Whether the group address is secured in the device's domain."""
         return self.secured_in(ga_id, self.domain_of(device_id))
 
+    def sides(self, device_id: int) -> tuple[int, int] | None:
+        """The domains on the primary and on the secondary side of a coupler used as Security
+        Proxy: the domain above the one it feeds, and that one; None when it feeds none."""
+        secondary = self.domain_of(device_id)
+        if secondary is None or self.domains.domains[secondary].proxy != device_id:
+            return None
+        primary = self.domains.domains[secondary].parent
+        return None if primary is None else (primary, secondary)
+
     def senders(
         self,
         ga_id: int,
         domain: int,
         can_send: Callable[[int], bool] | None = None,
+        do_not_join: int | None = None,
     ) -> tuple[set[int], set[int], list[int]]:
         """Who may send on a group address secured in the domain: the devices (ids) with a
         group object sending on it that may send and are commissioned securely, the devices
         whose secured bus interfaces it is assigned to, both within the domains it reaches
-        without being translated, and the Security Proxies that translate it into them."""
+        without being translated (not through ``do_not_join``), and the Security Proxies that
+        translate it into them."""
         try:
-            reached, proxies = self.security.extent(ga_id, domain)
+            reached, proxies = self.security.extent(ga_id, domain, do_not_join)
         except SecurityContradiction:
             reached, proxies = set(range(len(self.domains.domains))), []
         segments = {
