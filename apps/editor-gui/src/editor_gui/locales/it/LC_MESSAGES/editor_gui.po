@@ -1691,3 +1691,15 @@ msgstr "Non è impostata alcuna chiave di firma valida, quindi il .knxproj espor
 
 msgid "Export Anyway"
 msgstr "Esporta comunque"
+
+msgid "Tool Discovery"
+msgstr "Individuazione degli strumenti"
+
+msgid "All tools"
+msgstr "Tutti gli strumenti"
+
+msgid "Search"
+msgstr "Ricerca"
+
+msgid "All tools lists every tool to the AI tool. Search lists only a search for the tools and one that calls them, for AI models whose context is too small for the whole list. An AI tool sees a change once it reconnects."
+msgstr "Tutti gli strumenti mostra ogni strumento allo strumento IA. Ricerca mostra solo una ricerca degli strumenti e uno che li chiama, per modelli IA il cui contesto è troppo piccolo per l’intero elenco. Uno strumento IA vede la modifica quando si riconnette."

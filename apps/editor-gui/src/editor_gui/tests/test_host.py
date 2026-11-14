@@ -217,3 +217,43 @@ def test_the_home_assistant_menu_only_inside_home_assistant() -> None:
     labels = [label for label, _render in app._menus()]  # pyright: ignore[reportPrivateUsage]
     # A menu of its own, after the MCP menu.
     assert labels[labels.index(S.MENU_MCP) + 1] == "Home Assistant"
+
+
+@pytest.mark.parametrize("managed", [False, True])
+def test_tool_discovery_is_stored_on_its_own(
+    monkeypatch: pytest.MonkeyPatch, managed: bool
+) -> None:
+    saved: list[tuple[str, dict[str, Any]]] = []
+    monkeypatch.setattr(
+        "editor_gui.main.save_settings", lambda name, value: saved.append((name, value))
+    )
+    if managed:
+        host.set_current(HostOptions(mcp_host="127.0.0.1", mcp_port=41000))
+
+    def nothing(*_args: Any, **_kwargs: Any) -> Any:
+        return None
+
+    stub = _app(
+        _mcp_discovery="all",
+        _mcp_plugin=SimpleNamespace(is_running=False),
+        _render_mcp_status_setting=nothing,
+        _render_mcp_host_setting=nothing,
+        _render_mcp_clients=nothing,
+        _copy_row=nothing,
+        _persist_mcp_fields=nothing,
+        _mcp_managed_text=lambda: "",
+        _mcp_client_commands=lambda placeholder=False: [],
+    )
+    settings = {s.key: s for s in KnxGuiApp._mcp_settings(stub)}  # type: ignore[arg-type]
+    setting = settings["mcp_tool_discovery"]
+    assert setting.get is not None and setting.set is not None
+    assert setting.choices is not None
+    assert setting.get() == "all"
+    assert [key for key, _label in setting.choices()] == ["all", "search"]
+    setting.set("search")
+    # Kept also where the launcher sets up the server, whose other fields are not stored.
+    assert stub._mcp_discovery == "search"
+    assert saved == [("mcp_tools", {"discovery": "search"})]
+    with pytest.raises(ValueError):
+        setting.set("everything")
+    assert stub._mcp_discovery == "search"

@@ -1691,3 +1691,15 @@ msgstr "Kelvollista allekirjoitusavainta ei ole asetettu, joten viedyllä .knxpr
 
 msgid "Export Anyway"
 msgstr "Vie silti"
+
+msgid "Tool Discovery"
+msgstr "Työkalujen haku"
+
+msgid "All tools"
+msgstr "Kaikki työkalut"
+
+msgid "Search"
+msgstr "Haku"
+
+msgid "All tools lists every tool to the AI tool. Search lists only a search for the tools and one that calls them, for AI models whose context is too small for the whole list. An AI tool sees a change once it reconnects."
+msgstr "Kaikki työkalut näyttää tekoälytyökalulle jokaisen työkalun. Haku näyttää vain työkalujen haun ja työkalun, joka kutsuu niitä, tekoälymalleille, joiden konteksti on liian pieni koko luettelolle. Tekoälytyökalu näkee muutoksen, kun se yhdistää uudelleen."

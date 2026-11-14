@@ -1691,3 +1691,15 @@ msgstr "Nuk është caktuar një çelës nënshkrimi i vlefshëm, prandaj skedar
 
 msgid "Export Anyway"
 msgstr "Eksporto gjithsesi"
+
+msgid "Tool Discovery"
+msgstr "Zbulimi i mjeteve"
+
+msgid "All tools"
+msgstr "Të gjitha mjetet"
+
+msgid "Search"
+msgstr "Kërkim"
+
+msgid "All tools lists every tool to the AI tool. Search lists only a search for the tools and one that calls them, for AI models whose context is too small for the whole list. An AI tool sees a change once it reconnects."
+msgstr "Të gjitha mjetet i tregon mjetit të IA-së çdo mjet. Kërkim tregon vetëm një kërkim të mjeteve dhe një që i thërret, për modele IA me kontekst shumë të vogël për gjithë listën. Mjeti i IA-së e sheh ndryshimin sapo rilidhet."

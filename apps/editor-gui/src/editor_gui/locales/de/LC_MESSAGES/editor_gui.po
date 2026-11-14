@@ -1848,3 +1848,15 @@ msgstr "Es ist kein gültiger Signaturschlüssel gesetzt, daher erhält die expo
 
 msgid "Export Anyway"
 msgstr "Trotzdem exportieren"
+
+msgid "Tool Discovery"
+msgstr "Werkzeugsuche"
+
+msgid "All tools"
+msgstr "Alle Werkzeuge"
+
+msgid "Search"
+msgstr "Suche"
+
+msgid "All tools lists every tool to the AI tool. Search lists only a search for the tools and one that calls them, for AI models whose context is too small for the whole list. An AI tool sees a change once it reconnects."
+msgstr "Alle Werkzeuge zeigt dem KI-Programm jedes Werkzeug. Suche zeigt nur eine Suche nach den Werkzeugen und eines, das sie aufruft, für KI-Modelle, deren Kontext für die ganze Liste zu klein ist. Ein KI-Programm sieht eine Änderung, sobald es sich neu verbindet."

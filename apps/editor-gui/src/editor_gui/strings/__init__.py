@@ -406,6 +406,26 @@ class MenuStrings:
         return _("Bearer Token (Optional)")
 
     @property
+    def SETTING_MCP_TOOL_DISCOVERY(self) -> str:
+        return _("Tool Discovery")
+
+    @property
+    def MCP_DISCOVERY_ALL(self) -> str:
+        return _("All tools")
+
+    @property
+    def MCP_DISCOVERY_SEARCH(self) -> str:
+        return _("Search")
+
+    @property
+    def SETTING_MCP_TOOL_DISCOVERY_HINT(self) -> str:
+        return _(
+            "All tools lists every tool to the AI tool. Search lists only a search for the "
+            "tools and one that calls them, for AI models whose context is too small for the "
+            "whole list. An AI tool sees a change once it reconnects."
+        )
+
+    @property
     def SETTINGS_MCP_RUNNING(self) -> str:
         return _("Server: Running")
 

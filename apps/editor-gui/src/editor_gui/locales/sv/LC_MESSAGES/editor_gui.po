@@ -1691,3 +1691,15 @@ msgstr "Ingen giltig signeringsnyckel är angiven, så den exporterade .knxproj 
 
 msgid "Export Anyway"
 msgstr "Exportera ändå"
+
+msgid "Tool Discovery"
+msgstr "Verktygsupptäckt"
+
+msgid "All tools"
+msgstr "Alla verktyg"
+
+msgid "Search"
+msgstr "Sökning"
+
+msgid "All tools lists every tool to the AI tool. Search lists only a search for the tools and one that calls them, for AI models whose context is too small for the whole list. An AI tool sees a change once it reconnects."
+msgstr "Alla verktyg visar AI-verktyget varje verktyg. Sökning visar bara en sökning efter verktygen och ett som anropar dem, för AI-modeller vars kontext är för liten för hela listan. Ett AI-verktyg ser en ändring när det ansluter igen."

@@ -1675,3 +1675,15 @@ msgstr "未设置有效的签名密钥，因此导出的 .knxproj 将没有有�
 
 msgid "Export Anyway"
 msgstr "仍然导出"
+
+msgid "Tool Discovery"
+msgstr "工具发现"
+
+msgid "All tools"
+msgstr "所有工具"
+
+msgid "Search"
+msgstr "搜索"
+
+msgid "All tools lists every tool to the AI tool. Search lists only a search for the tools and one that calls them, for AI models whose context is too small for the whole list. An AI tool sees a change once it reconnects."
+msgstr "“所有工具”向 AI 工具列出每个工具。“搜索”只列出工具搜索和一个调用工具的工具，适用于上下文容不下完整列表的 AI 模型。AI 工具重新连接后才能看到更改。"

@@ -7,11 +7,16 @@ user clicking in the editor would.
 
 from __future__ import annotations
 
+from collections.abc import Callable, Sequence
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 from fastmcp import FastMCP
 from fastmcp.server.providers.skills import SkillsDirectoryProvider
+from fastmcp.server.transforms import GetToolNext
+from fastmcp.server.transforms.search import BM25SearchTransform
+from fastmcp.tools.base import Tool
+from fastmcp.utilities.versions import VersionSpec
 
 from editor_gui.plugins.mcp.tools import (
     alternative_catalog,
@@ -56,6 +61,10 @@ INSTRUCTIONS = (
     "non-trivial edits (configuring a device function, linking com-objects to group addresses, "
     "reconfiguring a channel) with tool calls checked against these tools. If your client can read "
     "resources, read it before such a task; its examples resolve the identifiers and ordering below.\n"
+    "\n"
+    "TOOL SEARCH: when the tool list holds only status, search_tools and call_tool (the editor's "
+    "setting Tool Discovery is Search), find the tools named below with search_tools (a few "
+    "keywords or a tool name) and run them with call_tool(name, arguments).\n"
     "\n"
     "DOMAIN MODEL:\n"
     "- An individual address (e.g. 1.1.5) is a device's PHYSICAL address; a group address / GA (e.g. "
@@ -180,11 +189,43 @@ INSTRUCTIONS = (
 )
 
 
+#: The tools a client sees beside ``search_tools`` and ``call_tool`` when it searches for the
+#: rest (the setting Tool Discovery): ``status`` is the first call the instructions ask for.
+PINNED_TOOLS = ("status",)
+#: How many tools one search returns.
+SEARCH_RESULTS = 8
+
+
+class ToolSearch(BM25SearchTransform):
+    """Tool discovery by search, while ``enabled()`` says so (the setting Tool Discovery):
+    the tool list then holds only :data:`PINNED_TOOLS`, ``search_tools`` and ``call_tool``,
+    for AI models whose context is too small for the definitions of all tools. Every tool stays
+    callable, directly or through ``call_tool``. Asked on every request, so a change counts
+    without restarting the server; a client sees it once it reads the tool list again."""
+
+    def __init__(self, enabled: Callable[[], bool]) -> None:
+        super().__init__(max_results=SEARCH_RESULTS, always_visible=list(PINNED_TOOLS))
+        self._enabled = enabled
+
+    async def transform_tools(self, tools: Sequence[Tool]) -> Sequence[Tool]:
+        if not self._enabled():
+            return tools
+        return await super().transform_tools(tools)
+
+    async def get_tool(
+        self, name: str, call_next: GetToolNext, *, version: VersionSpec | None = None
+    ) -> Tool | None:
+        if not self._enabled():
+            return await call_next(name, version=version)
+        return await super().get_tool(name, call_next, version=version)
+
+
 def build_server(ctx: McpContext, auth: Any = None) -> FastMCP:
     """Build the FastMCP server with every tool module registered.
 
     ``auth`` is an optional FastMCP auth provider (e.g. a bearer-token verifier)."""
     mcp: FastMCP = FastMCP("xknx-editor", instructions=INSTRUCTIONS, auth=auth)
+    mcp.add_transform(ToolSearch(ctx.tool_search))
     for module in (
         status,
         project,

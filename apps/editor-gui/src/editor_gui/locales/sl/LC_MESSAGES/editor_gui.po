@@ -1795,3 +1795,15 @@ msgstr "Veljaven podpisni ključ ni nastavljen, zato izvožena datoteka .knxproj
 
 msgid "Export Anyway"
 msgstr "Vseeno izvozi"
+
+msgid "Tool Discovery"
+msgstr "Iskanje orodij"
+
+msgid "All tools"
+msgstr "Vsa orodja"
+
+msgid "Search"
+msgstr "Iskanje"
+
+msgid "All tools lists every tool to the AI tool. Search lists only a search for the tools and one that calls them, for AI models whose context is too small for the whole list. An AI tool sees a change once it reconnects."
+msgstr "Vsa orodja orodju UI pokaže vsako orodje. Iskanje pokaže le iskanje orodij in orodje, ki jih kliče, za modele UI, katerih kontekst je za celoten seznam premajhen. Orodje UI vidi spremembo, ko se znova poveže."
