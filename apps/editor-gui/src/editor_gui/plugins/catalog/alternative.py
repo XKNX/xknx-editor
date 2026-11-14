@@ -392,6 +392,40 @@ class AlternativeCatalogClient:
         key = hashlib.sha256(self.settings.base_url.encode()).hexdigest()[:20]
         return self._cache_dir / f"alternative_catalog_{key}.json.gz"
 
+    def find_application(
+        self,
+        manufacturer_id: str,
+        application_number: int,
+        application_version: int,
+        mask_versions: tuple[str, ...],
+    ) -> list[AlternativeEntry]:
+        """Files declaring this exact application identity and an accepted mask (no network).
+
+        Metadata fields are hexadecimal. Match within one program, never across programs
+        or against product names. Imported products still need local compatibility checks.
+        """
+        manufacturer = manufacturer_id.removeprefix("M-").upper()
+        masks = {mask.removeprefix("MV-").upper() for mask in mask_versions}
+        matches: list[AlternativeEntry] = []
+        for entry in self._entries:
+            for program in entry.programs:
+                try:
+                    number = int(program.get("applicationNumber", ""), 16)
+                    version = int(program.get("version", ""), 16)
+                except (ValueError, TypeError):
+                    continue
+                if (
+                    program.get("manufacturerId", "").upper().removeprefix("M-")
+                    == manufacturer
+                    and number == application_number
+                    and version == application_version
+                    and program.get("maskVersion", "").upper().removeprefix("MV-")
+                    in masks
+                ):
+                    matches.append(entry)
+                    break
+        return matches
+
     def load_cache(self) -> None:
         """Load once on a worker thread; a corrupt cache is replaced by the next refresh."""
         with self._operation:

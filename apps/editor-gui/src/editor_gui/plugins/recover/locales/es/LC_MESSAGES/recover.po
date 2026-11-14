@@ -232,3 +232,12 @@ msgstr "Instantánea de Recuperación (*.json)"
 
 msgid "All Files"
 msgstr "Todos los Archivos"
+
+msgid "Device mask: %(device)s; product mask: %(product)s"
+msgstr "Máscara del dispositivo: %(device)s; máscara del producto: %(product)s"
+
+msgid "Mask compatibility data unavailable; only exact masks checked"
+msgstr "Datos de compatibilidad de máscaras no disponibles; solo se comprobaron máscaras idénticas"
+
+msgid "The application version missing from the local catalog was found in the alternative catalog. A login is required to download it. Enter your username and password in Settings > Catalog."
+msgstr "La versión de la aplicación que falta en el catálogo local se encontró en el catálogo alternativo. Es necesario iniciar sesión para descargarla. Introduzca su nombre de usuario y contraseña en Configuración > Catálogo."

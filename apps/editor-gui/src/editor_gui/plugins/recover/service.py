@@ -13,9 +13,10 @@ import asyncio
 import re
 import threading
 from concurrent.futures import Future
-from dataclasses import dataclass, replace
+from dataclasses import dataclass, field, replace
 from typing import TYPE_CHECKING, Any
 
+from editor_gui.plugins.recover.matching import CatalogCandidate, catalog_candidates
 from xknxeditor.proj.core.medium import MediumError
 from xknxeditor.recover import (
     AppId,
@@ -55,10 +56,15 @@ class RecoverEntry:
     recovered: RecoveredDevice | None = None
     state: str = ""
     selected: bool = True
-    # True when more than one product matched, or when no exact-version product
-    # existed and a different version's layout was used: needs user confirmation.
+    # Multiple variants or a different application version require confirmation.
     ambiguous: bool = False
     candidates: int = 0
+    catalog_candidates: list[CatalogCandidate] = field(
+        default_factory=list[CatalogCandidate]
+    )
+    match_reason: str = ""
+    product_mask_version: str | None = None
+    compatibility_checked: bool = False
     # Read-only round-trip result: bytes that would still change (0 == verified).
     verify_changed: int | None = None
     # True once this device has been written into the open project (so it is not
@@ -152,6 +158,8 @@ class RecoverService:
         self.recover_stage = ""
         # Online-catalog auto-fetch for devices missing from the local catalog.
         self.fetch_status = ""
+        self.fetch_error = ""
+        self._catalog_changed = False
         self._fetch_thread: threading.Thread | None = None
         # Outcome of the last add-to-project action, shown in the window.
         self.apply_status = ""
@@ -209,6 +217,7 @@ class RecoverService:
         self._cancel = False
         self.error = None
         self.entries = []
+        self.fetch_error = ""
         self.scan_done = 0
         self.scan_total = 0
         self.scan_current = ""
@@ -260,59 +269,73 @@ class RecoverService:
         return list(found)
 
     def _identify_catalog(self, entry: RecoverEntry) -> None:
-        """Match a device's application id against the local catalog (no network).
-
-        Matches manufacturer + application number + version + mask first. If no
-        exact-version product exists, falls back to manufacturer + number + mask
-        (a different version's layout), which is flagged ambiguous so the user must
-        confirm before recovering - the layout may not match the installed one.
-        More than one candidate is likewise flagged for confirmation."""
+        """Match local layouts; different versions or multiple variants need confirmation."""
         from editor_gui.plugins.recover.strings import S
 
+        entry.catalog_candidates = []
+        entry.candidates = 0
+        entry.application = None
+        entry.product_ref_id = entry.hardware2program_ref_id = entry.product_name = None
+        entry.product_mask_version = None
+        entry.match_reason = ""
+        entry.ambiguous = False
+        entry.selected = False
+        mask = f"MV-{entry.mask_version:04X}"
+        master = self._api.connection.master
+        entry.compatibility_checked = (
+            master is not None and master.mask(mask) is not None
+        )
         if entry.app_id is None:
             entry.state = S.STATE_UNPROGRAMMED
-            entry.selected = False
             return
-        mask = f"MV-{entry.mask_version:04X}"
-        exact = self._api.catalog.find_products_for_application(
-            manufacturer_id=entry.app_id.manufacturer_id,
-            application_number=entry.app_id.application_number,
-            application_version=entry.app_id.application_version,
-            mask_version=mask,
+        with self._api.catalog.io_lock:
+            entry.catalog_candidates = catalog_candidates(
+                self._api.catalog, entry.app_id, mask, master
+            )
+            entry.candidates = len(entry.catalog_candidates)
+            if not entry.catalog_candidates:
+                entry.state = S.STATE_NO_APP
+                return
+            self._use_candidate(entry, entry.catalog_candidates[0])
+
+    def _use_candidate(self, entry: RecoverEntry, candidate: CatalogCandidate) -> None:
+        from editor_gui.plugins.recover.strings import S
+
+        application = self._api.catalog.get_application(candidate.application_id)
+        entry.application = application
+        entry.product_ref_id = candidate.product_ref_id
+        entry.hardware2program_ref_id = candidate.hardware2program_ref_id
+        entry.product_name = candidate.product_name
+        entry.product_mask_version = candidate.mask_version
+        entry.match_reason = candidate.match_reason
+        entry.ambiguous = len(
+            entry.catalog_candidates
+        ) > 1 or candidate.match_reason.startswith("different_version")
+        entry.state = (
+            S.STATE_NO_APP
+            if application is None
+            else S.STATE_AMBIGUOUS
+            if entry.ambiguous
+            else S.STATE_FOUND
         )
-        version_fallback = False
-        products = exact
-        if not products:
-            products = self._api.catalog.find_products_for_application(
-                manufacturer_id=entry.app_id.manufacturer_id,
-                application_number=entry.app_id.application_number,
-                mask_version=mask,
+        entry.selected = application is not None and not entry.ambiguous
+
+    def choose_candidate(self, address: str, candidate_index: int) -> None:
+        """Choose a zero-based candidate before read-back; selection confirms the layout."""
+        if self.busy:
+            raise ValueError("recovery is still running")
+        entry = next(
+            (entry for entry in self.entries if entry.address == address), None
+        )
+        if entry is None:
+            raise ValueError(f"not found by the scan: {address}")
+        if entry.recovered is not None or entry.applied:
+            raise ValueError(
+                "scan again before changing the product of a recovered device"
             )
-            version_fallback = bool(products)
-        if not products:
-            entry.state = S.STATE_NO_APP
-            entry.selected = False
-            return
-        distinct_refs = {p.product_ref_id for p in products}
-        entry.candidates = len(distinct_refs)
-        entry.ambiguous = version_fallback or len(distinct_refs) > 1
-        product = products[0]
-        entry.product_ref_id = product.product_ref_id
-        entry.hardware2program_ref_id = product.hardware2program_ref_id
-        entry.product_name = product.name or product.order_number
-        if product.application_id is not None:
-            entry.application = self._api.catalog.get_application(
-                product.application_id
-            )
-        if not entry.recoverable:
-            entry.state = S.STATE_NO_APP
-            entry.selected = False
-            return
-        # Ambiguous / version-fallback matches are not auto-selected: the user must
-        # tick them explicitly after checking the product, so we never silently
-        # recover with a possibly-wrong device model.
-        entry.state = S.STATE_AMBIGUOUS if entry.ambiguous else S.STATE_FOUND
-        entry.selected = not entry.ambiguous
+        if not 0 <= candidate_index < len(entry.catalog_candidates):
+            raise ValueError("candidate index out of range")
+        self._use_candidate(entry, entry.catalog_candidates[candidate_index])
 
     # --- read-back --------------------------------------------------------
 
@@ -434,7 +457,18 @@ class RecoverService:
 
         recovered = entry.recovered
         if recovered is None:
-            return S.DETAIL_NOT_READ if entry.recoverable else ""
+            parts = [S.DETAIL_NOT_READ] if entry.recoverable else []
+            if entry.product_mask_version is not None:
+                parts.append(
+                    S.DETAIL_MASK
+                    % {
+                        "device": f"MV-{entry.mask_version:04X}",
+                        "product": entry.product_mask_version,
+                    }
+                )
+            if entry.app_id is not None and not entry.compatibility_checked:
+                parts.append(S.DETAIL_NO_MASTER)
+            return " | ".join(parts)
         parameters = recovered.parameters
         counts = (
             (S.GROUP_ADDRESSES, len(recovered.group_addresses)),
@@ -488,6 +522,9 @@ class RecoverService:
 
     def advance(self) -> None:
         """Advance the phase when a pending bus operation has finished (no project edits)."""
+        if self._catalog_changed and self._fetch_thread is None:
+            self._catalog_changed = False
+            self._api.project.refresh_catalog_resolution()
         if self._pending is None or not self._pending.done():
             return
         future, self._pending = self._pending, None
@@ -723,48 +760,124 @@ class RecoverService:
 
     # --- online-catalog auto-fetch ---------------------------------------
 
+    def _needs_catalog(self, entry: RecoverEntry) -> bool:
+        return (
+            entry.app_id is not None
+            and entry.recovered is None
+            and (
+                not entry.recoverable
+                or entry.match_reason.startswith("different_version")
+            )
+        )
+
     def _unresolved_manufacturers(self) -> list[str]:
-        """Manufacturer ids of scanned devices whose application is not in the catalog."""
-        seen: list[str] = []
-        for entry in self.entries:
-            if entry.recoverable or entry.app_id is None:
-                continue
-            if entry.app_id.manufacturer_id not in seen:
-                seen.append(entry.app_id.manufacturer_id)
-        return seen
+        return list(
+            dict.fromkeys(
+                entry.app_id.manufacturer_id
+                for entry in self.entries
+                if self._needs_catalog(entry) and entry.app_id is not None
+            )
+        )
 
     def _start_autofetch(self) -> None:
-        """Automatically pull unresolved devices' products from the online catalog.
-
-        Bus recovery only reads a device's manufacturer, application number and
-        version - never the hardware/program ref a ``.knxproj`` import has - so it
-        cannot map a device to one online product. Instead it downloads the
-        unresolved manufacturers' catalogs, imports them, and re-matches. Runs on a
-        worker thread (network + import + parse)."""
-        if self._fetch_thread is not None:
+        """Try exact application metadata in the alternative catalog, then the online catalog."""
+        if self._fetch_thread is not None or self._cancel:
             return
-        manufacturers = self._unresolved_manufacturers()
-        if not manufacturers:
+        if not self._unresolved_manufacturers():
             return
-        thread = threading.Thread(
-            target=self._autofetch, args=(manufacturers,), daemon=True
-        )
+        self.fetch_error = ""
+        thread = threading.Thread(target=self._autofetch, daemon=True)
         self._fetch_thread = thread
         thread.start()
 
-    def _autofetch(self, manufacturers: list[str]) -> None:
+    def _autofetch(self) -> None:
         from editor_gui.plugins.catalog.online_catalog import OnlineCatalogError
 
         try:
+            self._fetch_alternative()
+            manufacturers = self._unresolved_manufacturers()
             for index, manufacturer_id in enumerate(manufacturers, start=1):
+                if self._cancel:
+                    break
                 self.fetch_status = (
                     f"catalog {index}/{len(manufacturers)}: {manufacturer_id}"
                 )
                 self._fetch_manufacturer(manufacturer_id, OnlineCatalogError)
-            self._reidentify_unresolved()
+                self._reidentify_unresolved()
+        except Exception as exc:
+            self._catalog_error("catalog", exc)
         finally:
             self.fetch_status = ""
             self._fetch_thread = None
+
+    def _catalog_error(
+        self, source: str, error: Exception, *, message: str | None = None
+    ) -> None:
+        if message is None:
+            message = f"{source}: {error}"
+        self.fetch_error = f"{self.fetch_error}\n{message}".strip()
+        if self._log is not None:
+            self._log.error(
+                "recovery catalog fetch failed", source=source, error=str(error)
+            )
+
+    def _fetch_alternative(self) -> None:
+        from editor_gui.plugins.catalog.alternative import AlternativeCatalogError
+        from editor_gui.plugins.recover.strings import S
+
+        if self._cancel or not any(
+            self._needs_catalog(entry) for entry in self.entries
+        ):
+            return
+        client = self._api.catalog.alternative
+        self.fetch_status = "alternative catalog"
+        client.load_cache()
+        try:
+            client.refresh()
+        except AlternativeCatalogError as exc:
+            self._catalog_error("alternative catalog", exc)
+        downloads: set[str] = set()
+        for entry in self.entries:
+            if not self._needs_catalog(entry) or entry.app_id is None:
+                continue
+            mask = f"MV-{entry.mask_version:04X}"
+            master = self._api.connection.master
+            compatible = master.compatible_masks(mask) if master is not None else ()
+            for item in client.find_application(
+                entry.app_id.manufacturer_id,
+                entry.app_id.application_number,
+                entry.app_id.application_version,
+                (mask, *compatible),
+            ):
+                downloads.add(item.id)
+        for index, entry_id in enumerate(sorted(downloads), start=1):
+            if self._cancel:
+                break
+            self.fetch_status = f"alternative catalog {index}/{len(downloads)}"
+            try:
+                data = client.download(entry_id)
+                if self._cancel:
+                    break
+                with self._api.catalog.io_lock:
+                    if self._cancel:
+                        break
+                    self._api.catalog.import_knxprod_data(data)
+                    self._catalog_changed = True
+            except AlternativeCatalogError as exc:
+                if exc.code == "NO_ACCOUNT":
+                    self._catalog_error(
+                        "alternative catalog", exc, message=S.CATALOG_LOGIN_REQUIRED
+                    )
+                    break
+                self._catalog_error("alternative catalog", exc)
+                if (
+                    exc.status in (401, 403, 429, 503)
+                    or exc.code == "DOWNLOAD_DAILY_LIMIT"
+                ):
+                    break
+            except Exception as exc:
+                self._catalog_error("alternative catalog import", exc)
+        self._reidentify_unresolved()
 
     def _fetch_manufacturer(
         self, manufacturer_id: str, error_type: type[Exception]
@@ -777,27 +890,24 @@ class RecoverService:
             return
         try:
             items = self._api.catalog.online_catalog_items(mid)
-        except error_type as exc:  # network / index error: skip this manufacturer
-            if self._log is not None:
-                self._log.error(
-                    "online index failed", manufacturer=manufacturer_id, error=str(exc)
-                )
+        except error_type as exc:
+            self._catalog_error(manufacturer_id, exc)
+            return
+        if self._cancel:
             return
         item_ids = [item.id for item in items if item.downloadable]
         if not item_ids:
             return
         try:
             with self._api.catalog.io_lock:
+                if self._cancel:
+                    return
                 added = self._api.catalog.download_online_products(item_ids)
         except error_type as exc:
-            if self._log is not None:
-                self._log.error(
-                    "online download failed",
-                    manufacturer=manufacturer_id,
-                    error=str(exc),
-                )
+            self._catalog_error(manufacturer_id, exc)
             return
         self._api.catalog.refresh()
+        self._catalog_changed = True
         if self._log is not None:
             self._log.info(
                 "fetched manufacturer catalog",
@@ -807,9 +917,13 @@ class RecoverService:
             )
 
     def _reidentify_unresolved(self) -> None:
+        entries: list[RecoverEntry] = []
         for entry in self.entries:
-            if not entry.recoverable and entry.app_id is not None:
+            if self._needs_catalog(entry):
+                entry = replace(entry)
                 self._identify_catalog(entry)
+            entries.append(entry)
+        self.entries = entries
 
     # --- assemble into a project (UI thread) ------------------------------
 

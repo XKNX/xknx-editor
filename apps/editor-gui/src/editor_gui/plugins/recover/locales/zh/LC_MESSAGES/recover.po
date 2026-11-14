@@ -218,3 +218,12 @@ msgstr "恢复快照 (*.json)"
 
 msgid "All Files"
 msgstr "所有文件"
+
+msgid "Device mask: %(device)s; product mask: %(product)s"
+msgstr "设备掩码：%(device)s；产品掩码：%(product)s"
+
+msgid "Mask compatibility data unavailable; only exact masks checked"
+msgstr "掩码兼容性数据不可用；仅检查了相同的掩码"
+
+msgid "The application version missing from the local catalog was found in the alternative catalog. A login is required to download it. Enter your username and password in Settings > Catalog."
+msgstr "本地目录中缺少的应用程序版本已在替代目录中找到。下载需要登录。请在“设置 > 目录”中输入用户名和密码。"

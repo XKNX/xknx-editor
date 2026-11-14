@@ -11,7 +11,7 @@ from editor_gui import file_dialogs
 from editor_gui.plugins.recover.strings import S
 from editor_gui.theme import status_color
 from editor_gui.widgets.checkbox import checkbox
-from editor_gui.widgets.combo import combo
+from editor_gui.widgets.combo import begin_combo, combo
 from editor_gui.widgets.dpi import px
 from editor_gui.widgets.flow import button_width, same_line_if_fits, text_width
 from editor_gui.widgets.tables import begin_data_table, freeze_header, table_header_menu
@@ -169,6 +169,8 @@ class RecoverPanel:
                 )
         if service.fetch_status:
             imgui.text_disabled(S.STATUS_FETCHING % {"what": service.fetch_status})
+        if service.fetch_error:
+            imgui.text_wrapped(service.fetch_error)
         if service.apply_status:
             imgui.text_colored(status_color("success"), service.apply_status)
         if service.apply_error:
@@ -176,6 +178,7 @@ class RecoverPanel:
 
     def _render_results(self) -> None:
         service = self._service
+        busy = service.busy
         if not service.entries:
             return
         flags = (
@@ -201,9 +204,10 @@ class RecoverPanel:
             imgui.table_setup_column(header)
         self._render_headers()
         for index, entry in enumerate(service.entries):
+            candidates = entry.catalog_candidates
             imgui.table_next_row()
             imgui.table_set_column_index(0)
-            imgui.begin_disabled(not entry.recoverable or service.busy)
+            imgui.begin_disabled(not entry.recoverable or busy)
             _, entry.selected = checkbox(f"##sel{index}", entry.selected)
             imgui.end_disabled()
             imgui.table_set_column_index(1)
@@ -212,10 +216,39 @@ class RecoverPanel:
             imgui.text(f"{entry.mask_version:#06x}")
             # Texts cut off by their column show in full in a tooltip.
             imgui.table_set_column_index(3)
-            text_clipped_tooltip(
-                entry.product_name
-                or (entry.app_id.manufacturer_id if entry.app_id else "-")
-            )
+            if len(candidates) > 1:
+                current = next(
+                    (
+                        i
+                        for i, candidate in enumerate(candidates)
+                        if candidate.product_ref_id == entry.product_ref_id
+                        and candidate.hardware2program_ref_id
+                        == entry.hardware2program_ref_id
+                        and entry.application is not None
+                        and candidate.application_id == entry.application.id
+                    ),
+                    0,
+                )
+                imgui.begin_disabled(
+                    busy or entry.recovered is not None or entry.applied
+                )
+                if begin_combo(f"##product{index}", candidates[current].label):
+                    for candidate_index, candidate in enumerate(candidates):
+                        clicked, _ = imgui.selectable(
+                            f"{candidate.label}##{candidate_index}",
+                            current == candidate_index,
+                        )
+                        if clicked:
+                            service.choose_candidate(entry.address, candidate_index)
+                    imgui.end_combo()
+                imgui.end_disabled()
+            else:
+                text_clipped_tooltip(
+                    candidates[0].label
+                    if candidates
+                    else entry.product_name
+                    or (entry.app_id.manufacturer_id if entry.app_id else "-")
+                )
             imgui.table_set_column_index(4)
             text_clipped_tooltip(entry.state)
             imgui.table_set_column_index(5)

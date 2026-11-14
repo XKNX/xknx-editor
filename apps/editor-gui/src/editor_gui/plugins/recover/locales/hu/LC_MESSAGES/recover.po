@@ -224,3 +224,12 @@ msgstr "Helyreállítási pillanatkép (*.json)"
 
 msgid "All Files"
 msgstr "Minden fájl"
+
+msgid "Device mask: %(device)s; product mask: %(product)s"
+msgstr "Eszközmaszk: %(device)s; termékmaszk: %(product)s"
+
+msgid "Mask compatibility data unavailable; only exact masks checked"
+msgstr "A maszkok kompatibilitási adatai nem érhetők el; csak az azonos maszkok ellenőrizve"
+
+msgid "The application version missing from the local catalog was found in the alternative catalog. A login is required to download it. Enter your username and password in Settings > Catalog."
+msgstr "A helyi katalógusból hiányzó alkalmazásverzió megtalálható az alternatív katalógusban. A letöltéshez be kell jelentkezni. Adja meg felhasználónevét és jelszavát a Beállítások > Katalógus menüpontban."

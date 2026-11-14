@@ -246,3 +246,12 @@ msgstr "Snímek obnovy (*.json)"
 
 msgid "All Files"
 msgstr "Všechny soubory"
+
+msgid "Device mask: %(device)s; product mask: %(product)s"
+msgstr "Maska zařízení: %(device)s; maska produktu: %(product)s"
+
+msgid "Mask compatibility data unavailable; only exact masks checked"
+msgstr "Údaje o kompatibilitě masek nejsou dostupné; ověřeny pouze shodné masky"
+
+msgid "The application version missing from the local catalog was found in the alternative catalog. A login is required to download it. Enter your username and password in Settings > Catalog."
+msgstr "Verze aplikace chybějící v místním katalogu byla nalezena v alternativním katalogu. Ke stažení je nutné přihlášení. Zadejte uživatelské jméno a heslo v Nastavení > Katalog."

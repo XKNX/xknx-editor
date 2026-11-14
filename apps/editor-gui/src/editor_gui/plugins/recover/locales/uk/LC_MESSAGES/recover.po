@@ -246,3 +246,12 @@ msgstr "Знімок відновлення (*.json)"
 
 msgid "All Files"
 msgstr "Всі файли"
+
+msgid "Device mask: %(device)s; product mask: %(product)s"
+msgstr "Маска пристрою: %(device)s; маска продукту: %(product)s"
+
+msgid "Mask compatibility data unavailable; only exact masks checked"
+msgstr "Дані про сумісність масок недоступні; перевірено лише однакові маски"
+
+msgid "The application version missing from the local catalog was found in the alternative catalog. A login is required to download it. Enter your username and password in Settings > Catalog."
+msgstr "Версію програми, якої немає в локальному каталозі, знайдено в альтернативному каталозі. Для завантаження потрібно ввійти в обліковий запис. Вкажіть ім’я користувача та пароль у розділі Налаштування > Каталог."

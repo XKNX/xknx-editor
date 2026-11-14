@@ -307,3 +307,177 @@ async def test_a_snapshot_is_imported_without_the_bus(tmp_path: Path) -> None:
             await client.call_tool(
                 "recover_import_snapshot", {"path": str(tmp_path / "other.json")}
             )
+
+
+async def test_catalog_candidates_are_visible_and_selectable(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from types import SimpleNamespace
+
+    from editor_gui.plugins.recover.matching import CatalogCandidate
+
+    mcp, service = _server(tmp_path)
+    candidate = CatalogCandidate(
+        "P-one",
+        "HP-one",
+        "APP-one",
+        "First",
+        "MV-0012",
+        0x23,
+        ("MT-0",),
+        "compatible_mask",
+    )
+    entry = RecoverEntry(
+        "1.1.5",
+        0x0013,
+        app_id=AppId("M-0002", 0x6322, 0x23),
+        catalog_candidates=[
+            candidate,
+            dataclasses.replace(
+                candidate, application_id="APP-two", hardware2program_ref_id="HP-two"
+            ),
+        ],
+        candidates=2,
+        compatibility_checked=True,
+    )
+    service.entries = [entry]
+    monkeypatch.setattr(
+        service._api.catalog,
+        "get_application",
+        lambda app_id: SimpleNamespace(id=app_id),
+    )
+    service.fetch_error = "alternative catalog: limit"
+    async with Client(mcp) as client:
+        status = await _data(
+            client,
+            "recover_choose_candidate",
+            device_address="1.1.5",
+            candidate_index=1,
+        )
+        result = status["entries"][0]
+        assert result["hardware2program_ref_id"] == "HP-two"
+        assert result["product_mask_version"] == "MV-0012"
+        assert result["mask_version"] == "0x0013"
+        assert result["match_reason"] == "compatible_mask" and result["ambiguous"]
+        assert not result["selected"] and result["compatibility_checked"]
+        assert result["catalog_candidates"][1]["application_id"] == "APP-two"
+        assert status["catalog_fetch_error"] == "alternative catalog: limit"
+        selected = await _data(client, "recover_select", addresses=["1.1.5"])
+        assert selected["entries"][0]["selected"]
+        with pytest.raises(Exception, match="out of range"):
+            await client.call_tool(
+                "recover_choose_candidate",
+                {"device_address": "1.1.5", "candidate_index": 3},
+            )
+
+
+@pytest.mark.skipif(not _FIXTURE.exists(), reason="knxprod fixture missing")
+async def test_missing_application_downloaded_and_imported_after_scan(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import hashlib
+    import threading
+
+    import httpx
+
+    from editor_gui.plugins.catalog.alternative import (
+        AlternativeCatalogClient,
+        AlternativeSettings,
+    )
+    from xknxeditor.prod import load
+
+    data = _FIXTURE.read_bytes()
+    app = next(iter(load(str(_FIXTURE)).applications.values()))
+    parts = app.id.split("_")
+    number, version = parts[1].split("-")[1:3]
+    mask = app.program.mask_version
+    assert mask
+    index = {
+        "schema": 1,
+        "count": 1,
+        "entries": [
+            {
+                "id": "product",
+                "manufacturer": "Manufacturer",
+                "manufacturerId": parts[0][2:],
+                "name": "Product",
+                "updated": "2026-11-14",
+                "orderNumbers": [],
+                "fileName": "product.knxprod",
+                "fileType": "knxprod",
+                "size": len(data),
+                "sha256": hashlib.sha256(data).hexdigest(),
+                "download_url": "/api/download?path=product.knxprod",
+                "programs": [
+                    {
+                        "key": app.id,
+                        "displayKey": app.id,
+                        "name": "Application",
+                        "manufacturer": "Manufacturer",
+                        "manufacturerId": parts[0][2:],
+                        "applicationNumber": number,
+                        "version": version,
+                        "maskVersion": mask[3:],
+                        "orderNumbers": [],
+                        "productNames": [],
+                    }
+                ],
+            }
+        ],
+    }
+    requests: list[str] = []
+
+    def serve(request: httpx.Request) -> httpx.Response:
+        requests.append(request.url.path)
+        if request.url.path == "/api/catalog/index.json":
+            return httpx.Response(200, json=index)
+        if request.url.path == "/api/auth/token":
+            return httpx.Response(
+                200,
+                json={"token": "test-token", "expiresIn": 3600, "tokenType": "bearer"},
+            )
+        assert request.headers["authorization"] == "Bearer test-token"
+        return httpx.Response(200, content=data)
+
+    mcp, service = _server(tmp_path)
+    client = AlternativeCatalogClient(
+        tmp_path,
+        settings=AlternativeSettings(
+            "https://catalog.example", "test-user", "test-password"
+        ),
+        transport=httpx.MockTransport(serve),
+    )
+    monkeypatch.setattr(service._api.catalog, "alternative", client)
+    monkeypatch.setattr(
+        service._api.catalog,
+        "online_catalog_items",
+        lambda mid: pytest.fail("resolved product requested from official catalog"),
+    )
+    entry = RecoverEntry(
+        "1.1.5",
+        int(mask[3:], 16),
+        app_id=AppId(parts[0], int(number, 16), int(version, 16)),
+    )
+    service.entries = [entry]
+    service._identify_catalog(entry)
+    assert not entry.recoverable
+    worker = threading.Thread(target=service._autofetch)
+    service._fetch_thread = worker
+    worker.start()
+    worker.join(30)
+    try:
+        assert not worker.is_alive()
+        assert service.fetch_error == ""
+        async with Client(mcp) as mcp_client:
+            status = await _data(mcp_client, "recover_status")
+        recovered_entry = status["entries"][0]
+        assert recovered_entry["recoverable"]
+        assert recovered_entry["catalog_candidates"][0]["application_id"] == app.id
+        assert requests == [
+            "/api/catalog/index.json",
+            "/api/auth/token",
+            "/api/download",
+        ]
+        assert not service._catalog_changed
+    finally:
+        client.close()

@@ -252,3 +252,12 @@ msgstr "Instantaneu de recuperare (*.json)"
 
 msgid "All Files"
 msgstr "Toate fișierele"
+
+msgid "Device mask: %(device)s; product mask: %(product)s"
+msgstr "Masca dispozitivului: %(device)s; masca produsului: %(product)s"
+
+msgid "Mask compatibility data unavailable; only exact masks checked"
+msgstr "Datele de compatibilitate a măștilor nu sunt disponibile; au fost verificate doar măștile identice"
+
+msgid "The application version missing from the local catalog was found in the alternative catalog. A login is required to download it. Enter your username and password in Settings > Catalog."
+msgstr "Versiunea aplicației care lipsește din catalogul local a fost găsită în catalogul alternativ. Descărcarea necesită autentificare. Introduceți numele de utilizator și parola în Setări > Catalog."

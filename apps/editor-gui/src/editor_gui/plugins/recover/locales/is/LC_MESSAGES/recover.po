@@ -238,3 +238,12 @@ msgstr "Endurheimtarskyndimynd (*.json)"
 
 msgid "All Files"
 msgstr "Allar skrár"
+
+msgid "Device mask: %(device)s; product mask: %(product)s"
+msgstr "Gríma tækis: %(device)s; gríma vöru: %(product)s"
+
+msgid "Mask compatibility data unavailable; only exact masks checked"
+msgstr "Gögn um samhæfni gríma vantar; aðeins eins grímur athugaðar"
+
+msgid "The application version missing from the local catalog was found in the alternative catalog. A login is required to download it. Enter your username and password in Settings > Catalog."
+msgstr "Útgáfa forritsins sem vantar í staðbundna vörulistann fannst í öðrum vörulista. Innskráning er nauðsynleg til að sækja hana. Sláðu inn notandanafn og lykilorð undir Stillingar > Vörulisti."

@@ -218,7 +218,8 @@ arrow of a device lists its group objects under their channels.
 <img src="docs/images/links.png" alt="Bus Diagram links" width="696">
 
 **Recover from the bus** — reconstruct an installation without a project file by scanning an address
-range and reading each device back read-only, then adding it to the project. Uncertain values are
+range and reading each device back read-only, then adding it to the project.
+Missing applications are also searched for in the alternative catalog. Uncertain values are
 marked, and a read-only verify diffs the result against the device. Settings
 a device keeps no copy of are searched for; a device whose result still differs from what was read
 is marked incomplete and can be searched again with more effort, without the bus. Still maturing —

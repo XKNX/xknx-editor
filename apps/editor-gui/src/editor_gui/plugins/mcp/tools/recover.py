@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import json
 import time
+from dataclasses import asdict
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
@@ -68,6 +69,14 @@ def _entry(service: RecoverService, entry: RecoverEntry) -> dict[str, Any]:
         "recoverable": entry.recoverable,
         "ambiguous": entry.ambiguous,
         "candidates": entry.candidates,
+        "catalog_candidates": [
+            {"index": index, **asdict(candidate)}
+            for index, candidate in enumerate(entry.catalog_candidates)
+        ],
+        "hardware2program_ref_id": entry.hardware2program_ref_id,
+        "product_mask_version": entry.product_mask_version,
+        "match_reason": entry.match_reason or None,
+        "compatibility_checked": entry.compatibility_checked,
         "recovered": (
             {
                 "group_addresses": [
@@ -128,6 +137,7 @@ def _state(service: RecoverService, connected: bool) -> dict[str, Any]:
         "auto_apply": service.auto_apply,
         "search_effort": service.effort.value,
         "catalog_fetch": service.fetch_status or None,
+        "catalog_fetch_error": service.fetch_error or None,
         "apply_status": service.apply_status or None,
         "apply_error": service.apply_error or None,
         "totals": service.recovery_totals(),
@@ -215,8 +225,13 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         {address, mask_version, manufacturer_id, application_number, application_version,
         application_version_text (major.minor, 0x2A is 2.10), product_ref_id, product_name, status (found | ambiguous | no_application | unprogrammed
         | recovered | exists | error), state (the window's text), selected, recoverable,
-        ambiguous (more than one product, or another version's: check before selecting),
-        candidates, recovered ({group_addresses, links, parameters, unknown_parameters,
+        ambiguous (multiple variants or another version: check before selecting),
+        candidates (count), catalog_candidates [{index, product_ref_id, hardware2program_ref_id,
+        application_id, product_name, mask_version, application_version, mediums, match_reason}],
+        hardware2program_ref_id, product_mask_version, compatibility_checked (master declaration
+        available), match_reason (exact | compatible_mask | different_version |
+        different_version_compatible_mask). catalog_fetch_error retains download/import errors.
+        recovered ({group_addresses, links, parameters, unknown_parameters,
         order_info} once read back, else null), verify_changed_bytes (0 = verified), applied
         (in the project), error (why adding it failed), details}."""
         return state()
@@ -225,7 +240,9 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
     def recover_scan(start: str, end: str, timeout: float = 600.0) -> dict[str, Any]:
         """Scan the individual addresses ``start`` to ``end`` (e.g. "1.1.1" and "1.1.255") on
         the bus for devices and identify each against the catalog, replacing the last scan; the
-        products of devices the catalog lacks are fetched from the online catalog afterwards.
+        missing exact applications are fetched using the alternative catalog's structured index
+        and saved login, then the online manufacturer catalog for unresolved devices. Download
+        failures are reported in catalog_fetch_error. No account is created automatically.
         Only reads from the devices. Waits up to ``timeout`` s for the scan (and the fetch) to
         end; returns the state as recover_status does (``busy`` true when it still runs).
         Unambiguous recoverable devices come selected for the read-back."""
@@ -241,6 +258,19 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         return run_operation(
             "the scan", lambda: recover.start_scan(start, end), timeout
         )
+
+    @tool("write")
+    def recover_choose_candidate(
+        device_address: str, candidate_index: int
+    ) -> dict[str, Any]:
+        """Choose a catalog layout for a scanned device before read-back, as in the product
+        dropdown. candidate_index is the zero-based index in recover_status.catalog_candidates.
+        Different versions and ambiguous matches remain deselected; recover_select confirms the choice.
+        Refused while busy or after read-back. Returns recover_status; no bus or project edit."""
+        ctx.run_on_ui(
+            lambda: service().choose_candidate(device_address, candidate_index)
+        )
+        return state()
 
     @tool("write")
     def recover_select(addresses: list[str], selected: bool = True) -> dict[str, Any]:

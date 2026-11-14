@@ -25,6 +25,42 @@ class MasterData:
     _medium_types: dict[str, str] | None = field(default=None, repr=False)
     _manufacturers: dict[str, str] | None = field(default=None, repr=False)
 
+    def mask(self, mask_id: str) -> ir.MaskVersion | None:
+        """The declaration for a device mask, if available."""
+        holder = self.raw.mask_versions if self.raw is not None else None
+        if holder is None:
+            return None
+        return next((mask for mask in holder.mask_version if mask.id == mask_id), None)
+
+    def compatible_masks(self, mask_id: str) -> tuple[str, ...]:
+        """Older application masks explicitly supported by this device mask."""
+        mask = self.mask(mask_id)
+        holder = mask.downward_compatible_masks if mask is not None else None
+        return (
+            tuple(
+                dict.fromkeys(
+                    item.ref_id
+                    for item in holder.downward_compatible_mask
+                    if item.ref_id != mask_id
+                )
+            )
+            if holder is not None
+            else ()
+        )
+
+    def mask_mediums(self, mask_id: str) -> tuple[str, ...]:
+        """Declared device media; empty when the mask is unknown."""
+        mask = self.mask(mask_id)
+        if mask is None:
+            return ()
+        return tuple(
+            dict.fromkeys(
+                medium
+                for medium in (mask.medium_type_ref_id, mask.other_medium_type_ref_id)
+                if medium
+            )
+        )
+
     @property
     def medium_types(self) -> dict[str, str]:
         """Medium type id to display name."""

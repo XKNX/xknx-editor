@@ -232,3 +232,12 @@ msgstr "Pamje e çastit e rikuperimit (*.json)"
 
 msgid "All Files"
 msgstr "Të gjithë skedarët"
+
+msgid "Device mask: %(device)s; product mask: %(product)s"
+msgstr "Maska e pajisjes: %(device)s; maska e produktit: %(product)s"
+
+msgid "Mask compatibility data unavailable; only exact masks checked"
+msgstr "Të dhënat e përputhshmërisë së maskave mungojnë; u kontrolluan vetëm maskat identike"
+
+msgid "The application version missing from the local catalog was found in the alternative catalog. A login is required to download it. Enter your username and password in Settings > Catalog."
+msgstr "Versioni i aplikacionit që mungon në katalogun lokal u gjet në katalogun alternativ. Për ta shkarkuar duhet të identifikoheni. Vendosni emrin e përdoruesit dhe fjalëkalimin te Cilësimet > Katalogu."

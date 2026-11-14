@@ -232,3 +232,12 @@ msgstr "Gendannelses-øjebliksbillede (*.json)"
 
 msgid "All Files"
 msgstr "Alle filer"
+
+msgid "Device mask: %(device)s; product mask: %(product)s"
+msgstr "Enhedsmaske: %(device)s; produktmaske: %(product)s"
+
+msgid "Mask compatibility data unavailable; only exact masks checked"
+msgstr "Data om maskekompatibilitet mangler; kun identiske masker kontrolleret"
+
+msgid "The application version missing from the local catalog was found in the alternative catalog. A login is required to download it. Enter your username and password in Settings > Catalog."
+msgstr "Den applikationsversion, der mangler i det lokale katalog, blev fundet i det alternative katalog. Download kræver login. Indtast brugernavn og adgangskode under Indstillinger > Katalog."

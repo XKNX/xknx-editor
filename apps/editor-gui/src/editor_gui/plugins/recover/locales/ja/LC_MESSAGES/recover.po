@@ -218,3 +218,12 @@ msgstr "復元のスナップショット (*.json)"
 
 msgid "All Files"
 msgstr "全てのファイル"
+
+msgid "Device mask: %(device)s; product mask: %(product)s"
+msgstr "デバイスマスク: %(device)s、製品マスク: %(product)s"
+
+msgid "Mask compatibility data unavailable; only exact masks checked"
+msgstr "マスク互換性データがありません。同一のマスクのみ確認しました"
+
+msgid "The application version missing from the local catalog was found in the alternative catalog. A login is required to download it. Enter your username and password in Settings > Catalog."
+msgstr "ローカルカタログにないアプリケーションバージョンが代替カタログで見つかりました。ダウンロードするにはログインが必要です。「設定 > カタログ」でユーザー名とパスワードを入力してください。"
