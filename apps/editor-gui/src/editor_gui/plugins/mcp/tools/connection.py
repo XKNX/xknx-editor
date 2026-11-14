@@ -13,14 +13,15 @@ import contextlib
 import time
 from typing import TYPE_CHECKING, Any, Literal
 
+from fastmcp import Context
 from fastmcp.exceptions import ToolError
 
 from editor_gui.device import address_order
-from editor_gui.plugins.mcp.context import McpContext, make_tool
+from editor_gui.plugins.mcp.context import McpContext, make_tool, send_progress
 from editor_gui.plugins.mcp.tools.project import require_device
 
 if TYPE_CHECKING:
-    from collections.abc import Mapping
+    from collections.abc import Callable, Mapping
     from collections.abc import Set as AbstractSet
     from concurrent.futures import Future
 
@@ -82,6 +83,60 @@ _OPERATION_NAMES: dict[str, str] = {
 }
 # How long a timed-out operation may take to unwind after it was canceled.
 _UNWIND_TIMEOUT = 10.0
+# How often a progress-reporting wait wakes to poll the running download and update the client.
+_PROGRESS_POLL = 0.5
+
+
+def _await_result(
+    future: Future[Any], timeout: float, on_tick: Callable[[], None] | None
+) -> Any:
+    """``future.result(timeout)``, but when ``on_tick`` is given it is called every poll interval
+    while waiting (to push a progress update) and a per-poll timeout does not end the wait — only
+    the overall ``timeout`` does, which then raises ``TimeoutError`` for the caller to handle."""
+    if on_tick is None:
+        return future.result(timeout=timeout)
+    deadline = time.monotonic() + timeout
+    while True:
+        if future.done():
+            # Finished (with a result or an exception) — surface it rather than keep polling.
+            # Guards against a future that completed with its own TimeoutError spinning the loop,
+            # and against reporting a just-completed operation as a timeout.
+            return future.result()
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            raise TimeoutError
+        try:
+            return future.result(timeout=min(_PROGRESS_POLL, remaining))
+        except TimeoutError:
+            if future.done():
+                return future.result()
+            # Progress is best-effort: a reporting failure (e.g. the client went away) must never
+            # abort an operation that is already running on the bus.
+            with contextlib.suppress(Exception):
+                on_tick()
+
+
+def _download_progress(
+    service: ConnectionService, mcp_ctx: Context | None, address: str | None
+) -> Callable[[], None] | None:
+    """A poll callback that reports the running download's ``(done, total)`` load-control progress
+    to the client, or ``None`` when no client context was injected or no address is known (nothing
+    to report to or for).
+
+    ``busy_progress`` is connection-wide, so an operation that waits in the queue behind another
+    one — or a request that starts just after this one hands the bus over — would otherwise report
+    the wrong operation's progress. ``busy_progress_for(address)`` ties the ownership check and the
+    read together under one lock, so only the progress of the operation at ``address`` is sent."""
+    if mcp_ctx is None or address is None:
+        return None
+
+    def tick() -> None:
+        progress = service.busy_progress_for(address)
+        if progress is not None:
+            done, total = progress
+            send_progress(mcp_ctx, float(done), float(total), "Programming")
+
+    return tick
 
 
 def not_started(service: ConnectionService, what: str) -> ToolError:
@@ -101,12 +156,17 @@ def not_started(service: ConnectionService, what: str) -> ToolError:
 
 
 def await_operation(
-    service: ConnectionService, future: Future[Any], timeout: float, what: str
+    service: ConnectionService,
+    future: Future[Any],
+    timeout: float,
+    what: str,
+    on_tick: Callable[[], None] | None = None,
 ) -> Any:
     """The operation's result. One that does not end within ``timeout`` s is canceled and given
-    a moment to unwind, so it does not keep the bus from later operations."""
+    a moment to unwind, so it does not keep the bus from later operations. ``on_tick`` (if given)
+    runs every poll interval while waiting, to push a progress update to the client."""
     try:
-        return future.result(timeout=timeout)
+        return _await_result(future, timeout, on_tick)
     except TimeoutError as exc:
         service.cancel_operation(future)
         # Canceled (or it ended just now): either way it no longer holds the bus.
@@ -117,12 +177,18 @@ def await_operation(
         ) from exc
 
 
-def wait_for_operation(ctx: McpContext, item: QueueItem, timeout: float) -> QueueItem:
+def wait_for_operation(
+    ctx: McpContext,
+    item: QueueItem,
+    timeout: float,
+    on_tick: Callable[[], None] | None = None,
+) -> QueueItem:
     """The operation of the queue once it has ended. One that does not end within ``timeout`` s
-    is canceled (ToolError)."""
+    is canceled (ToolError). ``on_tick`` (if given) runs every poll interval while waiting, to push
+    a progress update to the client."""
     assert item.ended is not None
     try:
-        return item.ended.result(timeout=timeout)
+        return _await_result(item.ended, timeout, on_tick)
     except TimeoutError as exc:
         cancel = ctx.api.cancel_operation
         if cancel is not None:
@@ -262,8 +328,13 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
     def _not_started(what: str) -> ToolError:
         return not_started(service, what)
 
-    def _await(future: Future[Any], timeout: float, what: str) -> Any:
-        return await_operation(service, future, timeout, what)
+    def _await(
+        future: Future[Any],
+        timeout: float,
+        what: str,
+        on_tick: Callable[[], None] | None = None,
+    ) -> Any:
+        return await_operation(service, future, timeout, what, on_tick)
 
     def _programmable_device(
         node_id: int | None, device_address: str | None
@@ -295,7 +366,12 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         )
 
     def _run_queued(
-        node_id: int, scope: Any, timeout: float, **options: Any
+        node_id: int,
+        scope: Any,
+        timeout: float,
+        address: str | None = None,
+        mcp_ctx: Context | None = None,
+        **options: Any,
     ) -> QueueItem | None:
         """Run a programming (or with ``test=True`` its test) in the editor's operations queue,
         labelled as started by an MCP client, so the user sees it there (also in the history) and
@@ -314,7 +390,8 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         )
         if item is None or item.ended is None:
             raise ToolError(f"no device with node_id {node_id}")
-        ended = wait_for_operation(ctx, item, timeout)
+        on_tick = _download_progress(service, mcp_ctx, address)
+        ended = wait_for_operation(ctx, item, timeout, on_tick)
         if ended.message == S.DEVICE_CERTIFICATE_REQUIRED:
             raise _certificate_error(node_id)
         return finished(ended)
@@ -617,6 +694,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         without_plugin: bool = False,
         current_address: str | None = None,
         use_serial_number: bool = False,
+        mcp_ctx: Context | None = None,
     ) -> dict[str, Any]:
         """Download the device onto the bus (``timeout`` seconds). Identify it by ``node_id`` OR
         ``device_address`` (its individual address in the PROJECT, like "1.0.30"); pass exactly
@@ -664,8 +742,9 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         The programming runs in the editor's operations queue, labelled MCP: the user sees it there
         and in its history, it waits behind operations already queued, and the user can cancel it
-        (the call then fails with the cancel message). Returns {status, node_id, scope}: the scope
-        that ran (for PARTIAL the one it resolved to)."""
+        (the call then fails with the cancel message). While it runs it reports the load control's
+        progress, so a progress-capable client can show a bar. Returns {status, node_id, scope}: the
+        scope that ran (for PARTIAL the one it resolved to)."""
         from editor_gui.plugin_providers import programming_error
 
         requested = _resolve_scope(scope)
@@ -722,11 +801,14 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                 "the device is commissioned securely: set a project password first"
             ) from exc
         programmed = {"status": "programmed", "node_id": nid, "scope": resolved.name}
+        address = device.individual_address
         if (
             _run_queued(
                 nid,
                 requested,
                 timeout,
+                address,
+                mcp_ctx,
                 without_plugin=without_plugin,
                 current_address=current_address,
                 serial_number=serial,
@@ -770,7 +852,14 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             raise _certificate_error(nid) from exc
         if future is None:
             raise _not_started("programming")
-        result = _await(future, timeout, "programming")
+        # Headless (no queue): report this device's download progress, scoped to its address so a
+        # request that starts right after this one hands over the bus cannot be reported here.
+        result = _await(
+            future,
+            timeout,
+            "programming",
+            _download_progress(service, mcp_ctx, address),
+        )
         serial = result if isinstance(result, bytes) else None
         mac = getattr(result, "mac_address", None)
         ctx.run_locked(

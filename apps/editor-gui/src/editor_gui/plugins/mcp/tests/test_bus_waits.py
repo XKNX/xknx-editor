@@ -143,3 +143,137 @@ async def test_the_evaluation_defaults_to_the_download_timeout(tmp_path: Path) -
     evaluate = tools["connection_evaluate_device"].input_schema["properties"]["timeout"]
     program = tools["connection_program_device"].input_schema["properties"]["timeout"]
     assert evaluate["default"] == program["default"] == 300.0
+
+
+def test_a_progress_wait_ticks_until_the_operation_ends(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """With a tick callback the wait wakes every poll interval (to push progress) instead of
+    blocking on one long ``result`` call, and still returns the result once it arrives."""
+    from editor_gui.plugins.mcp.tools import connection
+
+    monkeypatch.setattr(connection, "_PROGRESS_POLL", 0.01)
+    future: Future[Any] = Future()
+    ticks = 0
+
+    def on_tick() -> None:
+        nonlocal ticks
+        ticks += 1
+        if ticks == 3:
+            future.set_result("done")
+
+    assert connection._await_result(future, 5.0, on_tick) == "done"
+    assert ticks == 3
+
+
+def test_a_progress_wait_still_times_out(monkeypatch: pytest.MonkeyPatch) -> None:
+    from editor_gui.plugins.mcp.tools.connection import _await_result
+
+    monkeypatch.setattr("editor_gui.plugins.mcp.tools.connection._PROGRESS_POLL", 0.01)
+    future: Future[Any] = Future()
+    with pytest.raises(TimeoutError):
+        _await_result(future, 0.05, lambda: None)
+
+
+def test_a_progress_wait_returns_a_future_that_finished_just_past_the_deadline() -> (
+    None
+):
+    """A result set during a (possibly slow) tick must be returned, not reported as a timeout."""
+    from editor_gui.plugins.mcp.tools.connection import _await_result
+
+    future: Future[Any] = Future()
+    future.set_result("done")
+    assert _await_result(future, 0.0, lambda: None) == "done"
+
+
+def test_a_progress_wait_surfaces_a_future_that_raised_timeout_without_spinning(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A future that itself completed with a TimeoutError must surface at once, not spin the poll
+    loop (which cannot tell that exception from a per-poll timeout) until the deadline."""
+    from editor_gui.plugins.mcp.tools import connection
+
+    monkeypatch.setattr(connection, "_PROGRESS_POLL", 0.01)
+    future: Future[Any] = Future()
+    future.set_exception(TimeoutError("the device did not answer"))
+    ticks = 0
+
+    def on_tick() -> None:
+        nonlocal ticks
+        ticks += 1
+
+    with pytest.raises(TimeoutError, match="did not answer"):
+        connection._await_result(future, 5.0, on_tick)
+    assert ticks == 0  # surfaced immediately, no spinning
+
+
+def test_the_download_progress_reporter_forwards_the_running_progress(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The reporter reads the running download's ``(done, total)`` for its own address and forwards
+    it; it is None without a client context or an address, and sends nothing while nothing runs."""
+    from editor_gui.plugins.mcp.tools import connection
+
+    sent: list[tuple[float, float | None, str | None]] = []
+    monkeypatch.setattr(
+        connection, "send_progress", lambda ctx, p, t, m: sent.append((p, t, m))
+    )
+
+    class _Download:
+        def __init__(self, progress: tuple[int, int] | None) -> None:
+            self.progress = progress
+
+        def busy_progress_for(self, address: str) -> tuple[int, int] | None:
+            return self.progress if address == "1.1.5" else None
+
+    service = _Download((3, 10))
+    tick = connection._download_progress(service, object(), "1.1.5")
+    assert tick is not None
+    tick()
+    assert sent == [(3.0, 10.0, "Programming")]
+
+    service.progress = None  # no load control running yet
+    tick()
+    assert sent == [(3.0, 10.0, "Programming")]  # unchanged
+
+    # No context, no address -> no reporter.
+    assert connection._download_progress(service, None, "1.1.5") is None
+    assert connection._download_progress(service, object(), None) is None
+
+
+def test_a_queued_operation_does_not_report_another_operations_progress(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """``busy_progress_for`` ties the ownership check to the read, so a wait for device B reports
+    nothing while device A holds the bus, and only B's own progress once B runs."""
+    from editor_gui.plugins.connection.service import ConnectionService
+
+    sent: list[tuple[float, float | None, str | None]] = []
+    monkeypatch.setattr(
+        "editor_gui.plugins.mcp.tools.connection.send_progress",
+        lambda ctx, p, t, m: sent.append((p, t, m)),
+    )
+    from editor_gui.plugins.mcp.tools import connection
+
+    service = ConnectionService.__new__(ConnectionService)
+    import threading
+
+    service._busy_lock = threading.Lock()
+    service._busy = ("program", "1.1.1")  # device A running
+    service._busy_progress = (9, 10)
+
+    tick_b = connection._download_progress(service, object(), "1.1.2")  # waiting for B
+    assert tick_b is not None
+    tick_b()
+    assert sent == []  # A's progress is not reported under B's token
+
+    service._busy = ("program", "1.1.2")  # hand-off: now B holds the bus
+    service._busy_progress = (1, 20)
+    tick_b()
+    assert sent == [(1.0, 20.0, "Programming")]
+
+
+def test_send_progress_without_a_context_is_a_noop() -> None:
+    from editor_gui.plugins.mcp.context import send_progress
+
+    assert send_progress(None, 1.0, 2.0, "x") is None
