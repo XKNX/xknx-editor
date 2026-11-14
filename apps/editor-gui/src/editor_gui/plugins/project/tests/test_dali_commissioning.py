@@ -59,16 +59,30 @@ def _device() -> Any:
     return SimpleNamespace(individual_address="1.1.1", name="Gateway")
 
 
-def _runner(commissioner: Any, *, started: bool = True, texts: list[str] | None = None):
+def _runner(
+    commissioner: Any,
+    *,
+    started: bool = True,
+    texts: list[str] | None = None,
+    writes: list[bool] | None = None,
+):
     """A fake of the queue the panel hands its operations to: runs the wrapped coroutine (like
     the async loop would), swallowing exceptions (the real future captures them), then reports
-    the end; ``started=False`` ends it without running it (canceled while it waited)."""
+    the end; ``started=False`` ends it without running it (canceled while it waited).
+    ``writes`` gets whether each operation changes something."""
 
     def run(
-        device: Any, wrapped: Any, channel: int, text: str, ended: Callable[[], None]
+        device: Any,
+        wrapped: Any,
+        channel: int,
+        text: str,
+        ended: Callable[[], None],
+        changes: bool,
     ) -> None:
         if texts is not None:
             texts.append(text)
+        if writes is not None:
+            writes.append(changes)
         if started:
             with contextlib.suppress(Exception):  # the real future captures the error
                 asyncio.run(wrapped(commissioner))
@@ -116,7 +130,12 @@ def test_the_end_of_an_older_operation_keeps_a_newer_one() -> None:
     ends: list[Callable[[], None]] = []
 
     def run(
-        device: Any, wrapped: Any, channel: int, text: str, ended: Callable[[], None]
+        device: Any,
+        wrapped: Any,
+        channel: int,
+        text: str,
+        ended: Callable[[], None],
+        _writes: bool,
     ) -> None:
         ends.append(ended)
 
@@ -179,3 +198,16 @@ def test_new_scan_clears_stale_group_edits() -> None:
     panel._start(_device(), "scan", "Scan Bus", lambda c: c.scan(), store_scan=True)
 
     assert panel._state("1.1.1", 0).group_edits == {}  # dropped on fresh bus state
+
+
+def test_only_a_scan_is_marked_as_writing_nothing() -> None:
+    writes: list[bool] = []
+    commissioner = SimpleNamespace(
+        scan=lambda: _coro(DaliBusState(channel=0, ecgs=[])),
+        broadcast=lambda _on: _coro(None),
+    )
+    panel = DaliCommissioningPanel(_runner(commissioner, writes=writes))
+    panel._start(_device(), "scan", "Scan Bus", lambda c: c.scan(), store_scan=True)
+    panel._start(_device(), "broadcast", "All On", lambda c: c.broadcast(True))
+    # Block Bus Writes refuses all but the scan before they start.
+    assert writes == [False, True]

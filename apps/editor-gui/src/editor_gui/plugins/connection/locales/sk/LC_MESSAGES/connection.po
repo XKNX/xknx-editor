@@ -67,6 +67,18 @@ msgstr "Pripojiť pri spustení"
 msgid "At start, the editor looks for KNX interfaces and connects to the one used last. Turned off, it connects only when you choose."
 msgstr "Pri spustení editor vyhľadá rozhrania KNX a pripojí sa k naposledy použitému. Ak je vypnuté, pripojí sa len vtedy, keď to zvolíte."
 
+msgid "Block Bus Writes"
+msgstr "Blokovať zápisy na zbernicu"
+
+msgid "Reads only: nothing that would change something on the bus is sent, such as downloads, address changes, restarts or group writes. This holds for MCP clients too, which can turn it on but not off. Reads of KNX Data Secure devices are blocked as well."
+msgstr "Iba čítanie: neodošle sa nič, čo by na zbernici niečo zmenilo, napríklad nahrávanie, zmeny adries, reštarty alebo skupinové zápisy. Platí to aj pre klientov MCP, ktorí ho môžu zapnúť, ale nie vypnúť. Blokované je aj čítanie zariadení KNX Data Secure."
+
+msgid "Bus writes blocked"
+msgstr "Zápisy na zbernicu blokované"
+
+msgid "Block Bus Writes is on: the editor reads from the bus but changes nothing there. Click to change it in the settings."
+msgstr "Blokovať zápisy na zbernicu je zapnuté: editor zo zbernice číta, ale nič na nej nemení. Kliknutím to zmeníte v nastaveniach."
+
 msgid "Use Serial Number for Downloads"
 msgstr "Použiť sériové číslo pri nahrávaní"
 

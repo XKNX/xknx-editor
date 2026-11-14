@@ -67,6 +67,18 @@ msgstr "Tengjast við ræsingu"
 msgid "At start, the editor looks for KNX interfaces and connects to the one used last. Turned off, it connects only when you choose."
 msgstr "Við ræsingu leitar ritillinn að KNX-tengjum og tengist því sem síðast var notað. Ef slökkt er á þessu tengist hann aðeins þegar þú velur það."
 
+msgid "Block Bus Writes"
+msgstr "Loka á skrif á bus"
+
+msgid "Reads only: nothing that would change something on the bus is sent, such as downloads, address changes, restarts or group writes. This holds for MCP clients too, which can turn it on but not off. Reads of KNX Data Secure devices are blocked as well."
+msgstr "Aðeins lestur: ekkert er sent sem myndi breyta einhverju á busnum, svo sem niðurhleðslur, breytingar á vistföngum, endurræsingar eða hópskrif. Þetta gildir einnig um MCP-biðlara, sem geta kveikt á þessu en ekki slökkt. Lestur á KNX Data Secure-tækjum er einnig lokaður."
+
+msgid "Bus writes blocked"
+msgstr "Skrif á bus lokuð"
+
+msgid "Block Bus Writes is on: the editor reads from the bus but changes nothing there. Click to change it in the settings."
+msgstr "Lokað er á skrif á bus: ritillinn les af busnum en breytir þar engu. Smelltu til að breyta því í stillingunum."
+
 msgid "Use Serial Number for Downloads"
 msgstr "Nota raðnúmer við niðurhleðslu"
 

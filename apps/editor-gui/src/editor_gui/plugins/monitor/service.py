@@ -580,6 +580,12 @@ class MonitorService:
         self._send(address, GroupValueRead())
 
     def _send(self, address: str, payload: GroupValueWrite | GroupValueRead) -> None:
+        # Block Bus Writes holds also for a write sent through Home Assistant's connection,
+        # which never passes the editor's interface.
+        if isinstance(payload, GroupValueWrite) and self._connection.writes_refused(
+            "group write"
+        ):
+            return
         # Without a connection of its own: through another program's (Home Assistant's), which
         # shows the telegram as its own (see on_foreign_cemi).
         if (

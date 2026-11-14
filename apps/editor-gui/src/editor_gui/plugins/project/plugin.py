@@ -1149,7 +1149,12 @@ class ProjectPlugin:
                 if self._dali_channel_count(device) > 1:
                     text += f" ({S.DALI_CHANNEL_N.format(n=channel + 1)})"
                 op = options["op"]
-                start = functools.partial(conn.run_dali, op=op, channel=channel)
+                start = functools.partial(
+                    conn.run_dali,
+                    op=op,
+                    channel=channel,
+                    writes=options.get("writes", True),
+                )
             case "siemens_dali":
                 text = (
                     f"{S.EDITOR_TAB_SIEMENS_DALI}: {options['text'].removesuffix('…')}"
@@ -1228,10 +1233,18 @@ class ProjectPlugin:
         channel: int,
         text: str,
         ended: Callable[[], None],
+        writes: bool = True,
     ) -> None:
-        """Queue a DALI commissioning coroutine named ``text``; ``ended`` once it has ended."""
+        """Queue a DALI commissioning coroutine named ``text``; ``ended`` once it has ended.
+        ``writes``: whether it changes something (all but a scan)."""
         self._queue_bus_action(
-            device.node_id, "dali", op=op, channel=channel, text=text, ended=ended
+            device.node_id,
+            "dali",
+            op=op,
+            channel=channel,
+            text=text,
+            ended=ended,
+            writes=writes,
         )
 
     def _dali_channel_count(self, device: "Device") -> int:

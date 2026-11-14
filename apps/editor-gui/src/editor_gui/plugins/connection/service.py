@@ -227,6 +227,9 @@ class ConnectionService:
         self.busmonitor_link: LinkInfo | None = None
         self._xknx: XKNX | None = None
         self._loop: asyncio.AbstractEventLoop | None = None
+        # Block Bus Writes (Settings > Connection, or --no-bus-writes): reads only, every frame
+        # that would change something on the bus is refused (write_guard.py).
+        self.block_bus_writes = False
         # The task behind each future of run_async while it runs (cancel_operation).
         self._operation_tasks: dict[Future[Any], list[asyncio.Task[Any]]] = {}
         # Global KNX master data (mask-version default procedures), injected at
@@ -377,6 +380,21 @@ class ConnectionService:
 
     def set_logger(self, log: Logger) -> None:
         self._log = log
+
+    def writes_blocked(self) -> bool:
+        """Whether Block Bus Writes is on: the interfaces refuse every write while it is."""
+        return self.block_bus_writes
+
+    def writes_refused(self, op: str) -> bool:
+        """Guard for an operation that writes to the bus: logs and returns ``True`` (the caller
+        must abort) while Block Bus Writes is on, before anything is sent."""
+        if not self.block_bus_writes:
+            return False
+        self._log.error(
+            f"{op} refused: Block Bus Writes is on (Settings > Connection), nothing is written "
+            "to the bus"
+        )
+        return True
 
     def not_connected(self, op: str) -> bool:
         """Guard for every connection-requiring call: log + a status-bar notice if no KNX link.
@@ -749,7 +767,9 @@ class ConnectionService:
     def assign_individual_address_by_serial(
         self, serial: bytes, address: str
     ) -> Future[Any] | None:
-        if self.not_connected("assign_individual_address_by_serial"):
+        if self.writes_refused(
+            "assign_individual_address_by_serial"
+        ) or self.not_connected("assign_individual_address_by_serial"):
             return None
         self._log.debug(
             "Assigning individual address by serial",
@@ -764,7 +784,9 @@ class ConnectionService:
 
     @_connects("assign_individual_address")
     def assign_individual_address(self, address: str) -> Future[Any] | None:
-        if self.not_connected("assign_individual_address"):
+        if self.writes_refused("assign_individual_address") or self.not_connected(
+            "assign_individual_address"
+        ):
             return None
         self._log.debug("Assigning individual address", address=address)
         # Write the address to the device in programming mode without restarting it. xknx's
@@ -803,7 +825,9 @@ class ConnectionService:
     @_connects("restart_device")
     def restart_device(self, device: Device) -> Future[Any] | None:
         """Restart (reboot) a device over the bus via A_Restart (non-destructive)."""
-        if self.not_connected("restart_device"):
+        if self.writes_refused("restart_device") or self.not_connected(
+            "restart_device"
+        ):
             return None
         if not device.individual_address:
             self._log.warning("Device has no individual address", device=device.name)
@@ -859,7 +883,9 @@ class ConnectionService:
         follows the KNX spec (2=FactoryReset, 3=ResetIA, 4=ResetAP, 5=ResetParam, 6=ResetLinks,
         7=FactoryResetWithoutIA, 1=ConfirmedRestart). The device must be re-commissioned afterwards.
         Fire-and-forget (like Basic Restart): the device drops the connection while resetting."""
-        if self.not_connected("master_reset_device"):
+        if self.writes_refused("master_reset_device") or self.not_connected(
+            "master_reset_device"
+        ):
             return None
         if not device.individual_address:
             self._log.warning("Device has no individual address", device=device.name)
@@ -1089,7 +1115,9 @@ class ConnectionService:
         holds. For an unload of everything, ``in_programming_mode`` has the user put the device
         into programming mode first (``waiting`` is called while none is).
         """
-        if self.not_connected("program_device"):
+        if self.writes_refused("program_device") or self.not_connected(
+            "program_device"
+        ):
             return None
         if not device.individual_address:
             self._log.warning("Device has no individual address", device=device.name)
@@ -1584,15 +1612,20 @@ class ConnectionService:
         op: Callable[[Any], Coroutine[Any, Any, Any]],
         *,
         channel: int = 0,
+        writes: bool = True,
     ) -> Future[Any] | None:
         """Run one MDT-DALI commissioning coroutine against ``device`` over the bus.
+        ``writes``: whether the operation changes something (all but a scan); such an operation
+        is refused before it starts while Block Bus Writes is on.
 
         ``op`` receives an :class:`~xknxeditor.dali.MdtDaliCommissioner` and returns a coroutine
         (e.g. ``lambda c: c.scan()``). Acquires the exclusive bus slot, uses the device's Tool-Key
         security if a keyring is loaded, and releases the slot in the done-callback. The caller
         attaches its own callback to consume the result.
         """
-        if self.not_connected("dali_commissioning"):
+        if (writes and self.writes_refused("dali_commissioning")) or self.not_connected(
+            "dali_commissioning"
+        ):
             return None
         if not device.individual_address:
             self._log.warning("Device has no individual address", device=device.name)
@@ -1712,7 +1745,9 @@ class ConnectionService:
         property-table is derived from the project's BLOB_PARA; the port lives in
         :mod:`editor_gui.plugin_blob_readers.siemens_dali.download`.
         """
-        if self.not_connected("siemens_dca_program"):
+        if self.writes_refused("siemens_dca_program") or self.not_connected(
+            "siemens_dca_program"
+        ):
             return None
         if not device.individual_address:
             self._log.warning("Device has no individual address", device=device.name)

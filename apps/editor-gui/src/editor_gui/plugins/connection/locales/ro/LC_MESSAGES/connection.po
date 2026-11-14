@@ -67,6 +67,18 @@ msgstr "Conectare la pornire"
 msgid "At start, the editor looks for KNX interfaces and connects to the one used last. Turned off, it connects only when you choose."
 msgstr "La pornire, editorul caută interfețe KNX și se conectează la cea folosită ultima dată. Dezactivat, se conectează doar când alegeți dumneavoastră."
 
+msgid "Block Bus Writes"
+msgstr "Blocare scrieri pe magistrală"
+
+msgid "Reads only: nothing that would change something on the bus is sent, such as downloads, address changes, restarts or group writes. This holds for MCP clients too, which can turn it on but not off. Reads of KNX Data Secure devices are blocked as well."
+msgstr "Doar citire: nu se trimite nimic ce ar schimba ceva pe magistrală, precum programări, schimbări de adresă, reporniri sau scrieri de grup. Se aplică și clienților MCP, care o pot activa, dar nu o pot dezactiva. Sunt blocate și citirile dispozitivelor KNX Data Secure."
+
+msgid "Bus writes blocked"
+msgstr "Scrierile pe magistrală sunt blocate"
+
+msgid "Block Bus Writes is on: the editor reads from the bus but changes nothing there. Click to change it in the settings."
+msgstr "Blocarea scrierilor pe magistrală este activă: editorul citește de pe magistrală, dar nu schimbă nimic acolo. Faceți clic pentru a o schimba în setări."
+
 msgid "Use Serial Number for Downloads"
 msgstr "Se utilizează numărul de serie la programare"
 

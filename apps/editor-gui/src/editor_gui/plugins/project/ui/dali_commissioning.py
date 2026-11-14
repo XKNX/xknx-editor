@@ -44,6 +44,7 @@ DaliRunner = Callable[
         int,
         str,
         Callable[[], None],
+        bool,
     ],
     None,
 ]
@@ -212,6 +213,8 @@ class DaliCommissioningPanel:
             channel,
             text,
             functools.partial(self._ended, ia, channel, run),
+            # Everything but a scan changes the gateway or the DALI bus.
+            label != "scan",
         )
 
     def _ended(self, ia: str, channel: int, run: int) -> None:

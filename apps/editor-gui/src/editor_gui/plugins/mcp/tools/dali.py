@@ -165,15 +165,33 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             raise ToolError(f"the gateway has DALI channel 0 to {count - 1}")
         return device
 
-    def _run(device: Device, op: Any, channel: int, timeout: float, text: str) -> Any:
-        """Run ``op`` in the Operations queue, named ``text`` there as the tab's button."""
+    def _run(
+        device: Device,
+        op: Any,
+        channel: int,
+        timeout: float,
+        text: str,
+        *,
+        writes: bool = True,
+    ) -> Any:
+        """Run ``op`` in the Operations queue, named ``text`` there as the tab's button;
+        ``writes``: whether it changes something (all but a scan)."""
         _ensure_connected()
         ended = run_queued_action(
-            ctx, device.node_id, "dali", timeout, op=op, channel=channel, text=text
+            ctx,
+            device.node_id,
+            "dali",
+            timeout,
+            op=op,
+            channel=channel,
+            text=text,
+            writes=writes,
         )
         if ended is not None:
             return ended.result
-        future = ctx.run_locked(lambda: service.run_dali(device, op, channel=channel))
+        future = ctx.run_locked(
+            lambda: service.run_dali(device, op, channel=channel, writes=writes)
+        )
         if future is None:
             raise not_started(service, "the DALI operation")
         return await_operation(service, future, timeout, "the DALI operation")
@@ -233,7 +251,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         def op(c: Any) -> Any:
             return c.scan()
 
-        scan = _run(device, op, channel, timeout, S.DALI_SCAN)
+        scan = _run(device, op, channel, timeout, S.DALI_SCAN, writes=False)
         state = channels.setdefault((device.node_id, channel), _Channel())
         state.scan = scan
         return scan_dict(device.node_id, channel, scan)

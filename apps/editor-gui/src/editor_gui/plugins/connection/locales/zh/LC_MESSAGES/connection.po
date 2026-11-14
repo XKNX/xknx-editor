@@ -22,6 +22,18 @@ msgstr "启动时连接"
 msgid "At start, the editor looks for KNX interfaces and connects to the one used last. Turned off, it connects only when you choose."
 msgstr "启动时，编辑器会搜索 KNX 接口并连接到上次使用的接口。关闭后，只有在您选择时才会连接。"
 
+msgid "Block Bus Writes"
+msgstr "阻止写入总线"
+
+msgid "Reads only: nothing that would change something on the bus is sent, such as downloads, address changes, restarts or group writes. This holds for MCP clients too, which can turn it on but not off. Reads of KNX Data Secure devices are blocked as well."
+msgstr "仅读取：不会发送任何会改变总线上内容的数据，例如下载、地址更改、重启或组写入。这同样适用于 MCP 客户端，它们可以开启但不能关闭此设置。KNX Data Secure 设备的读取也会被阻止。"
+
+msgid "Bus writes blocked"
+msgstr "总线写入已阻止"
+
+msgid "Block Bus Writes is on: the editor reads from the bus but changes nothing there. Click to change it in the settings."
+msgstr "阻止写入总线已开启：编辑器从总线读取，但不在总线上更改任何内容。点击可在设置中更改。"
+
 msgid "Use Serial Number for Downloads"
 msgstr "下载时使用系列号"
 

@@ -22,6 +22,18 @@ msgstr "Koble til ved oppstart"
 msgid "At start, the editor looks for KNX interfaces and connects to the one used last. Turned off, it connects only when you choose."
 msgstr "Ved oppstart søker editoren etter KNX-grensesnitt og kobler til det som sist ble brukt. Slått av kobler den bare til når du velger det."
 
+msgid "Block Bus Writes"
+msgstr "Blokker skriving til bussen"
+
+msgid "Reads only: nothing that would change something on the bus is sent, such as downloads, address changes, restarts or group writes. This holds for MCP clients too, which can turn it on but not off. Reads of KNX Data Secure devices are blocked as well."
+msgstr "Kun lesing: ingenting som ville endret noe på bussen sendes, for eksempel nedlastinger, adresseendringer, omstarter eller gruppeskriving. Dette gjelder også MCP-klienter, som kan slå det på, men ikke av. Lesing av KNX Data Secure-enheter blokkeres også."
+
+msgid "Bus writes blocked"
+msgstr "Skriving til bussen blokkert"
+
+msgid "Block Bus Writes is on: the editor reads from the bus but changes nothing there. Click to change it in the settings."
+msgstr "Blokker skriving til bussen er på: editoren leser fra bussen, men endrer ingenting der. Klikk for å endre det i innstillingene."
+
 msgid "Use Serial Number for Downloads"
 msgstr "Bruk serienummer ved nedlasting"
 

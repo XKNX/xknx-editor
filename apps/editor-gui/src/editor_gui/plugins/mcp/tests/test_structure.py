@@ -332,7 +332,9 @@ async def test_dali_commissioning_of_a_gateway(
         lambda node_id: SimpleNamespace(order_number="SCN-DA641.03"),
     )
 
-    def run_dali(device: Any, op: Any, *, channel: int = 0) -> Future[Any]:
+    def run_dali(
+        device: Any, op: Any, *, channel: int = 0, writes: bool = True
+    ) -> Future[Any]:
         return _done(asyncio.run(op(commissioner)))
 
     monkeypatch.setattr(service, "run_dali", run_dali)
