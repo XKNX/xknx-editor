@@ -102,3 +102,29 @@ def test_routed_includes_unfiltered_and_additional() -> None:
     )
     # 10 does not cross (not outside); unfiltered + additional always route; de-duplicated + sorted.
     assert routed == [500, 600]
+
+
+def test_routed_without_a_partner_requirement() -> None:
+    # 0x0A03 only behind (e.g. a visualisation over KNXnet/IP is its partner), 0x0A04 both sides
+    behind, front = [0x0A03, 0x0A04], [0x0A04, 0x0B00]
+    assert routed_group_addresses(behind, front) == [0x0A04]
+    assert routed_group_addresses(behind, front, partner_required=False) == [
+        0x0A03,
+        0x0A04,
+    ]
+    assert routed_group_addresses(
+        behind, front, unfiltered=[0x0C00], partner_required=False
+    ) == [0x0A03, 0x0A04, 0x0C00]
+
+
+def test_compute_coupler_filter_ets_rule() -> None:
+    coupler = (1 << 12) | (1 << 8)  # 1.1.0
+    behind = (1 << 12) | (1 << 8) | 5  # 1.1.5
+    front = (1 << 12) | 3  # 1.0.3
+    links = {behind: [0x0A03, 0x0A04], front: [0x0A04]}
+    strict = compute_coupler_filter_table(coupler, links, length=3584)
+    ets = compute_coupler_filter_table(
+        coupler, links, length=3584, partner_required=False
+    )
+    assert addresses_in_filter_table(strict) == [0x0A04]
+    assert addresses_in_filter_table(ets) == [0x0A03, 0x0A04]

@@ -73,6 +73,7 @@ def routed_group_addresses(
     *,
     unfiltered: Iterable[int] = (),
     additional: Iterable[int] = (),
+    partner_required: bool = True,
 ) -> list[int]:
     """The set of group addresses a coupler must route.
 
@@ -83,9 +84,14 @@ def routed_group_addresses(
 
     A plain address is routed iff it is linked on *both* sides (it genuinely crosses the boundary);
     unfiltered and additional addresses are always routed. Returned sorted and de-duplicated.
+
+    With ``partner_required=False`` every address linked behind the coupler is routed, partner in
+    front of it or not, as ETS builds a line coupler's table. That keeps addresses whose only
+    partners are not in the project (a visualisation or gateway reached over KNXnet/IP) passing;
+    the default drops them.
     """
     inside_set = set(inside)
-    crossing = inside_set & set(outside)
+    crossing = inside_set & set(outside) if partner_required else inside_set
     return sorted(crossing | set(unfiltered) | set(additional))
 
 
@@ -108,6 +114,7 @@ def compute_coupler_filter_table(
     length: int = FILTER_TABLE_SIZE,
     unfiltered: Iterable[int] = (),
     additional: Iterable[int] = (),
+    partner_required: bool = True,
 ) -> bytes:
     """Build the filter-table bitmap for the coupler at ``coupler_ia`` from the project topology.
 
@@ -116,6 +123,8 @@ def compute_coupler_filter_table(
     device behind the coupler and at least one device in front of it link it (the standard
     filter-table computation), plus any ``unfiltered``/``additional`` pass-through addresses.
     ``length`` is the coupler's filter-table resource size (BCU1 = 3584, System B = 8192).
+    ``partner_required=False`` routes every address linked behind the coupler (ETS's rule, see
+    :func:`routed_group_addresses`).
     """
     inside: set[int] = set()
     outside: set[int] = set()
@@ -123,6 +132,10 @@ def compute_coupler_filter_table(
         target = inside if _is_behind(device_ia, coupler_ia) else outside
         target.update(gas)
     routed = routed_group_addresses(
-        inside, outside, unfiltered=unfiltered, additional=additional
+        inside,
+        outside,
+        unfiltered=unfiltered,
+        additional=additional,
+        partner_required=partner_required,
     )
     return build_filter_table(routed, length=length)
