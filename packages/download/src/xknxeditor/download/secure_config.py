@@ -14,14 +14,17 @@ A secure device keeps them in its Security Interface Object (object type 17, KNX
 
 from __future__ import annotations
 
-from collections.abc import Mapping, Sequence
-from dataclasses import dataclass
+from collections.abc import Callable, Mapping, Sequence
+from dataclasses import dataclass, replace
 from typing import Final
 
 from xknxeditor.namespaces.intermediate import (
+    LdCtrlDisconnect,
     LdCtrlInvokeFunctionProp,
     LdCtrlLoad,
     LdCtrlLoadCompleted,
+    LdCtrlMasterReset,
+    LdCtrlRestart,
     LdCtrlUnload,
     LdCtrlWriteProp,
 )
@@ -73,6 +76,19 @@ class GroupSecurity:
     keys: Mapping[int, bytes]
     senders: Sequence[tuple[int, int]] = ()
     p2p: Sequence[tuple[int, bytes, int]] = ()
+    # A coupler used as Security Proxy: the group addresses it translates; None for any other
+    # device. Its ``senders`` include those of the secured side of each.
+    proxy: Sequence[ProxyEntry] | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class ProxyEntry:
+    """A group address a Security Proxy translates (AN192 2.2.2.2): secured on one side of the
+    coupler only, the ``primary`` one or the secondary one, with its 16-octet key."""
+
+    group_address: int
+    key: bytes
+    primary: bool
 
 
 @dataclass(frozen=True, slots=True)
@@ -82,12 +98,14 @@ class SecurityTables:
     ``group_keys`` are ``(address table index, key)`` in index order, ``individual_addresses``
     ``(individual address, last valid sequence number)`` in address order, ``go_flags`` one octet
     per group object number from 0, and ``p2p_keys`` ``(individual-address-table index, key,
-    roles)`` in index order (3/5/1 6.3.6)."""
+    roles)`` in index order (3/5/1 6.3.6). ``proxy`` is the Security Proxy Group Key Table of a
+    coupler used as Security Proxy, in group address order (None for any other device)."""
 
     group_keys: tuple[tuple[int, bytes], ...]
     individual_addresses: tuple[tuple[int, int], ...]
     go_flags: bytes
     p2p_keys: tuple[tuple[int, bytes, int], ...] = ()
+    proxy: tuple[ProxyEntry, ...] | None = None
 
 
 def security_tables(
@@ -110,7 +128,7 @@ def security_tables(
             if address in index_of
         )
     )
-    if not group_keys and not security.p2p:
+    if not group_keys and not security.p2p and security.proxy is None:
         return None
     secured = {address for address in security.keys if address in index_of}
     numbers = {number for address, number in links if address in secured}
@@ -132,6 +150,9 @@ def security_tables(
         individual_addresses=individual_addresses,
         go_flags=bytes(flags),
         p2p_keys=p2p_keys,
+        proxy=None
+        if security.proxy is None
+        else tuple(sorted(security.proxy, key=lambda entry: entry.group_address)),
     )
 
 
@@ -212,6 +233,122 @@ def routing_control_controls(*, block: bool, router_objects: int = 2) -> list[ob
         for occurrence in range(router_objects)
         for prop_id in (PID_PTP_CONFIG, PID_BC_CONFIG)
     ]
+
+
+#: The Security Proxy Group Key Table of a coupler with the security extensions, in its first
+#: Router Object (AN192 2.2.2.2): for each group address the coupler translates, the address,
+#: its key and the side it is secured on (b7 primary, b6 secondary) with the security flags.
+PID_SECURITY_PROXY_GRP_KEY_TABLE: Final = 81
+_PROXY_PRIMARY: Final = 0x80
+_PROXY_SECONDARY: Final = 0x40
+#: A coupler used as Security Proxy configures its routing of group telegrams for it, whatever
+#: its parameters say: PID_MAIN_LCCONFIG and PID_SUB_LCCONFIG (52, 53), PID_MAIN_LCGRPCONFIG and
+#: PID_SUB_LCGRPCONFIG (54, 55) of its Router Objects.
+_PROXY_ROUTER_CONFIG: Final = {52: 0x77, 53: 0x77, 54: 0x1F, 55: 0x1F}
+#: The memory octets of a coupler's configuration a Security Proxy download leaves as they are.
+PROXY_KEPT_MEMORY: Final = (0x011B, 0x011C)
+
+
+def proxy_element(entry: ProxyEntry) -> bytes:
+    """An element of the Security Proxy Group Key Table."""
+    side = _PROXY_PRIMARY if entry.primary else _PROXY_SECONDARY
+    flags = side | GO_AUTHENTICATION_AND_CONFIDENTIALITY
+    return entry.group_address.to_bytes(2, "big") + entry.key + bytes([flags])
+
+
+def with_security_proxy(
+    controls: Sequence[object], entries: Sequence[ProxyEntry]
+) -> list[object]:
+    """``controls`` of a coupler used as Security Proxy (AN192 2.2.2.2), on a full or group
+    download: its Router Objects unloaded with the procedure's other unloads (unless it unloads
+    one already) and loaded again, then its Security Proxy Group Key Table cleared and filled,
+    before the procedure's first LoadCompleted (else before its final restart, master reset or
+    disconnect); and its Router Objects' configuration of group telegrams set for a proxy."""
+    result = [_proxy_router_config(control) for control in controls]
+    position = _proxy_position(result)
+    table: list[object] = []
+    unloads: list[object] = []
+    if not any(
+        isinstance(c, LdCtrlUnload) and c.obj_type == ROUTER_OBJECT for c in result
+    ):
+        for occurrence in range(2):
+            unloads.append(
+                LdCtrlUnload(
+                    obj_type=ROUTER_OBJECT, occurrence=occurrence, applies_to=_TABLES
+                )
+            )
+            table.append(
+                LdCtrlLoad(
+                    obj_type=ROUTER_OBJECT, occurrence=occurrence, applies_to=_TABLES
+                )
+            )
+    table.append(
+        LdCtrlWriteProp(
+            obj_type=ROUTER_OBJECT,
+            occurrence=0,
+            prop_id=PID_SECURITY_PROXY_GRP_KEY_TABLE,
+            start_element=0,
+            count=1,
+            verify=True,
+            inline_data=b"\x00\x00",
+            applies_to=_TABLES,
+        )
+    )
+    for index, entry in enumerate(entries, start=1):
+        table.append(
+            LdCtrlWriteProp(
+                obj_type=ROUTER_OBJECT,
+                occurrence=0,
+                prop_id=PID_SECURITY_PROXY_GRP_KEY_TABLE,
+                start_element=index,
+                count=1,
+                verify=True,
+                inline_data=proxy_element(entry),
+                applies_to=_TABLES,
+            )
+        )
+    unloaded = [i for i, c in enumerate(result) if isinstance(c, LdCtrlUnload)]
+    unload_at = unloaded[-1] + 1 if unloaded else position
+    # The later insertion first, so the earlier one's position still holds.
+    for at, inserted in sorted(
+        ((position, table), (unload_at, unloads)), key=lambda p: p[0], reverse=True
+    ):
+        result[at:at] = inserted
+    return result
+
+
+def _proxy_router_config(control: object) -> object:
+    if (
+        isinstance(control, LdCtrlWriteProp)
+        and control.obj_type == ROUTER_OBJECT
+        and control.prop_id in _PROXY_ROUTER_CONFIG
+    ):
+        return replace(
+            control, inline_data=bytes([_PROXY_ROUTER_CONFIG[control.prop_id]])
+        )
+    return control
+
+
+def _proxy_position(controls: Sequence[object]) -> int:
+    """Before the first LoadCompleted, else before the last restart, the last master reset to
+    the factory state, the last disconnect, or at the end."""
+    for i, control in enumerate(controls):
+        if isinstance(control, LdCtrlLoadCompleted):
+            return i
+
+    def factory_reset(control: object) -> bool:
+        return isinstance(control, LdCtrlMasterReset) and control.erase_code == 1
+
+    tests: tuple[Callable[[object], bool], ...] = (
+        lambda control: isinstance(control, LdCtrlRestart),
+        factory_reset,
+        lambda control: isinstance(control, LdCtrlDisconnect),
+    )
+    for test in tests:
+        found = [i for i, control in enumerate(controls) if test(control)]
+        if found:
+            return found[-1]
+    return len(controls)
 
 
 def plain_controls(*, p2p: bool) -> list[object]:

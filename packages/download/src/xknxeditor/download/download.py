@@ -64,6 +64,7 @@ from .secure_config import (
     plain_controls,
     routing_control_controls,
     table_controls,
+    with_security_proxy,
 )
 from .session import apdu_overhead, management_session
 
@@ -213,6 +214,12 @@ def _resolve_controls(
             *table_controls(image.security_tables),
             *controls[position:],
         ]
+        proxy = image.security_tables.proxy
+        if (
+            proxy is not None
+            and application.program.max_security_proxy_group_key_table_entries
+        ):
+            controls = with_security_proxy(controls, proxy)
     if ip_secure is not None:
         extra = ip_secure_controls(ip_secure)
         if extra:
