@@ -815,7 +815,24 @@ class LoadProcedureRunner:
         return PreflightReport(
             segments=tuple(_final_memory_steps(segments)),
             properties=tuple(properties),
-            device_written=frozenset(self._device_written),
+            device_written=frozenset(self._device_written)
+            | self._load_status_addresses(),
+        )
+
+    def _load_status_addresses(self) -> frozenset[int]:
+        """The memory where a memory-mapped mask shows the state of its load state machines
+        (BIM M112: 0xB6EA to 0xB6EC on MV-0701): the device keeps it itself, whatever a
+        download's code segment over it holds, so a preview's difference there is the
+        device's (device-managed), not a setting."""
+        if not self._memory_mapped_mask():
+            return frozenset()
+        resources = bundled_mask_resources(device_mask_version(self.application))
+        if resources is None:
+            return frozenset()
+        return frozenset(
+            address
+            for index in range(1, 6)
+            if (address := resources.memory_mapped_lsm_status(index)) is not None
         )
 
     def _in_scope(self, control: object) -> bool:
@@ -2003,8 +2020,14 @@ class LoadProcedureRunner:
 
         Image elements are laid over inline data. Every
         download, a full one too, writes only the bits the inline data, captured elements and
-        parameters cover, and the device keeps the rest.
+        parameters cover, and the device keeps the rest. A download of the group
+        communication alone writes nothing of a property the parameters set, its inline data
+        neither (the inline data is the base the parameters are laid over): the device keeps
+        its parameters.
         """
+        if not self._writes_parameters() and self._parameter_property(index, control):
+            size = 2 * control.count if control.start_element == 0 else control.count
+            return bytes(size), bytes(size)
         if control.start_element == 0:
             # Element 0 of an array property is its number of valid elements, 2 octets; writing
             # 0 clears the array.
@@ -2494,6 +2517,22 @@ class LoadProcedureRunner:
             if segment.id == table.code_segment and segment.address is not None:
                 return segment.address + (table.offset or 0)
         return None
+
+    def _parameter_property(self, index: int, control: LdCtrlWriteProp) -> bool:
+        """Whether the image's parameters set the property ``control`` writes (a group
+        communication table's property is the table's, not a parameter's)."""
+        object_type = (
+            control.obj_type
+            if control.obj_idx is None and control.obj_type is not None
+            else self._object_types.get(index)
+        )
+        if object_type in GROUP_COMMUNICATION_OBJECTS:
+            return False
+        return any(
+            prop.property_id == control.prop_id
+            and self._image_property_applies(prop, index, control)
+            for prop in self.image.properties
+        )
 
     def _image_property_applies(
         self,
@@ -3235,18 +3274,7 @@ class LoadProcedureRunner:
         segment_type = load_state.SegmentType(control.seg_type)
         index = await self._resolve_index(control)
         address, size = self._segment_placement(control)
-        # A checksum-less segment whose image holds only the code seed has no
-        # parameter bytes. ETS does not allocate it (the Merten 5701 segment at
-        # 0x5100 is 25856 bytes, and the device does not ACK that record). The
-        # seed stays as it already is on the device. A checksummed segment still
-        # allocates, so the code seed is written into the range the device checks.
-        if (
-            self._memory_lsm(index) is not None
-            and self._enable_segment_write
-            and not ((control.seg_flags or 0) & 0x80)
-            and self._memory_runs(address, size, include_initialized=False) == []
-            and self._memory_runs(address, size, include_initialized=True)
-        ):
+        if self._skips_code_only_segment(control, index, address, size):
             logger.info(
                 "skipping code-only segment without checksum: %s address=%#06x size=%d",
                 self._diagnostic_context(),
@@ -3289,6 +3317,24 @@ class LoadProcedureRunner:
         if runs:
             programmer = await self._memory_programmer()
             await self._write_memory_runs(programmer, runs, verify=True)
+
+    def _skips_code_only_segment(
+        self, control: LdCtrlAbsSegment, index: int, address: int, size: int
+    ) -> bool:
+        """Whether a download leaves the segment ``control`` allocates as the device holds it.
+
+        A checksum-less segment of a memory-mapped LSM whose image holds only the code seed
+        has no parameter bytes, and is not allocated (the Merten 5701 segment at 0x5100 is
+        25856 bytes, and the device does not ACK that record). The seed stays as it already is
+        on the device. A checksummed segment still allocates, so the code seed is written into
+        the range the device checks. The download and its preview decide alike."""
+        return bool(
+            self._memory_lsm(index) is not None
+            and self._enable_segment_write
+            and not ((control.seg_flags or 0) & 0x80)
+            and self._memory_runs(address, size, include_initialized=False) == []
+            and self._memory_runs(address, size, include_initialized=True)
+        )
 
     def _writes_segment_data(self, control: LdCtrlAbsSegment) -> bool:
         """Whether the image data of an allocated segment is written: only into EEPROM (memory
@@ -3422,6 +3468,10 @@ class LoadProcedureRunner:
             # by _abs_segment, so it is a clean allocate-only preview here too, not an error.
             if self._writes_segment_data(control):
                 address, size = self._segment_placement(control)
+                index = await self._resolve_index(control)
+                if self._skips_code_only_segment(control, index, address, size):
+                    # The download leaves it as the device holds it (see _abs_segment).
+                    return
                 await self._diff_masked(
                     address,
                     size,

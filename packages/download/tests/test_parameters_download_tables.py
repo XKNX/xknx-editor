@@ -181,3 +181,33 @@ def test_a_download_with_the_group_communication_writes_the_table(
 def test_a_parameters_download_writes_the_parameters_only() -> None:
     written = _written(DownloadScope.PARAMETERS)
     assert written == {_PARAMETER: 42}
+
+
+def test_a_group_table_is_laid_over_a_later_code_segment() -> None:
+    """A group object table at an offset of a RAM segment that reaches into an EEPROM
+    segment starting later (MV-0700 applications of M-00FA): the table is laid over that
+    segment's seed, in a full download as in a partial one."""
+    from xknxeditor.download.image import MemorySegment
+
+    image = DownloadImage(
+        segments=(
+            # The EEPROM segment at 0x4FA8: its seed, no parameter.
+            MemorySegment(
+                address=0x4FA8,
+                data=bytes(4),
+                mask=bytes(4),
+                initialized_mask=b"\xff" * 4,
+            ),
+            # The group object table, built on the RAM segment at 0x0700 (offset 18600).
+            MemorySegment(
+                address=0x0700,
+                data=bytes(0x4FA8 - 0x0700) + b"\x3c\x00\x03\x01",
+                mask=bytes(0x4FA8 - 0x0700) + b"\xff" * 4,
+                group_table=True,
+            ),
+        ),
+        properties=(),
+    )
+    for include_initialized in (True, False):
+        runs = image.masked_writes(0x4FA8, 4, include_initialized=include_initialized)
+        assert runs == [(0x4FA8, b"\x3c\x00\x03\x01")]

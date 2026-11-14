@@ -907,6 +907,68 @@ async def test_a_group_communication_download_writes_no_parameter_property(
     assert device.properties[(5, 0x33)] == held
 
 
+@pytest.mark.parametrize(
+    ("scope", "writes"),
+    [
+        (DownloadScope.PARAMETERS, [(0, b"\x00\x00"), (1, b"\xca\xfe")]),
+        (DownloadScope.GROUP_COMMUNICATION, []),
+    ],
+)
+async def test_a_group_communication_download_keeps_a_parameter_property_with_inline_data(
+    scope: DownloadScope, writes: list[tuple[int, bytes]]
+) -> None:
+    """Inline data that fills the write is the base the parameters are laid over (a
+    Siemens System B room unit writes its parameter properties with zeros as inline data):
+    a download of the group communication alone writes neither, so the device keeps its
+    parameters instead of getting the zeros."""
+    image = DownloadImage(
+        segments=(),
+        properties=(
+            PropertyValue(
+                object_index=5, property_id=0x33, occurrence=0, data=b"\xca\xfe"
+            ),
+        ),
+    )
+    controls = [
+        # Element 0 of the array: its number of elements, cleared first.
+        LdCtrlWriteProp(
+            obj_idx=5,
+            prop_id=0x33,
+            start_element=0,
+            count=1,
+            verify=False,
+            inline_data=b"\x00\x00",
+        ),
+        LdCtrlWriteProp(
+            obj_idx=5,
+            prop_id=0x33,
+            start_element=1,
+            count=1,
+            verify=False,
+            inline_data=b"\x00\x00",
+        ),
+    ]
+    device = _device()
+    device.properties[(5, 0x33)] = b"\x12\x34"
+    runner = LoadProcedureRunner(
+        _application(*controls),
+        image,
+        DeviceProgrammer(device),
+        controls=controls,
+        scope=scope,
+    )
+
+    await runner.run()
+
+    assert [
+        (p.start_index, p.data)
+        for p in device.sent
+        if isinstance(p, PropertyValueWrite) and p.property_id == 0x33
+    ] == writes
+    if not writes:
+        assert device.properties[(5, 0x33)] == b"\x12\x34"
+
+
 async def test_compare_prop_tolerates_trailing_padding() -> None:
     from xknxeditor.namespaces.intermediate.ld_ctrl_compare_prop_t import (
         LdCtrlCompareProp,
@@ -1813,6 +1875,68 @@ async def test_m112_code_only_segment_is_not_allocated() -> None:
         for payload in device.sent
         if isinstance(payload, (MemoryWrite, MemoryRead))
     ]
+
+
+async def test_m112_load_status_octets_are_the_devices() -> None:
+    """A code segment over the BIM M112 system octets (ABB MV-0701 applications from 0x4400
+    to 0xD571): the device shows its load state at 0xB6EC whatever the segment holds, so the
+    preview counts that octet as the device's own."""
+    image = DownloadImage(
+        segments=(
+            MemorySegment(
+                address=0xB6EB,
+                data=b"\x00\x38\x00",
+                mask=b"\x00\xff\x00",
+            ),
+        ),
+        properties=(),
+    )
+    application = _m112_application(
+        LdCtrlWriteMem(address=0xB6EB, size=3, verify=False, inline_data=None)
+    )
+    runner, device = _runner(application, image)
+    device.memory.update({0xB6EB: 0x00, 0xB6EC: 0x01, 0xB6ED: 0x00})
+
+    report = await runner.preflight()
+
+    (segment,) = report.changed_segments
+    assert segment.address + segment.changed_ranges[0].start == 0xB6EC
+    assert 0xB6EC in report.device_written
+
+
+async def test_m112_code_only_segment_is_not_previewed() -> None:
+    """The preview leaves the segment as the download does: the device keeps its octets,
+    so a preview right after a download finds nothing to change there (a Siemens
+    5WG1 342-1AB01 segment at 0x5E5D, 20 octets of defaults, no checksum)."""
+    image = DownloadImage(
+        segments=(
+            MemorySegment(
+                address=0x5E5D,
+                data=b"\x02" * 4,
+                mask=b"\x00" * 4,
+                initialized_mask=b"\xff" * 4,
+            ),
+        ),
+        properties=(),
+    )
+    application = _m112_application(
+        LdCtrlAbsSegment(
+            lsm_idx=3,
+            occurrence=0,
+            seg_type=0,
+            address=0x5E5D,
+            size=4,
+            access=0xFF,
+            mem_type=3,
+            seg_flags=0,
+        )
+    )
+    runner, device = _runner(application, image)
+    device.load_states[3] = LoadState.LOADED
+
+    report = await runner.preflight()
+
+    assert not any(segment.changed for segment in report.segments)
 
 
 async def test_m112_checksummed_code_seed_is_still_allocated() -> None:

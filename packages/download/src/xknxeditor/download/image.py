@@ -615,14 +615,17 @@ class DownloadImage:
         Segments that overlap each other (a BIM M112 group object table built on the
         code segment that also holds the parameters) are merged: every octet is written
         once, with the data of the last segment that writes it, so the device ends up
-        as if the runs had been written one after the other.
+        as if the runs had been written one after the other. The group communication
+        tables come last: they are laid over the code segments' seed, also over one that
+        starts after the table's own segment (a group object table at an offset of a RAM
+        segment that reaches into an EEPROM segment, MV-0700 applications of M-00FA).
         """
         end = address + size
         data = bytearray(size)
         written = bytearray(size)
         covered = False
         source = self.user_segments if user else self.segments
-        for segment in sorted(source, key=lambda s: s.address):
+        for segment in sorted(source, key=lambda s: (s.group_table, s.address)):
             if segment.address >= end or segment.end <= address:
                 continue  # no overlap with the requested range
             covered = True

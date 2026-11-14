@@ -394,6 +394,36 @@ def test_legacy_configuration_is_not_mixed_with_current_metadata() -> None:
     assert resolve_download_controls(app, master) != [LdCtrlConnect()]
 
 
+def test_the_bim_m112_mv_0700_objects_have_the_type_of_their_index() -> None:
+    """The MV-0700 master data lists no interface objects: the indices up to 4 are their
+    own type, so a partial download knows LSM 1 and 2 as the group tables. Other masks
+    without interface objects have no types."""
+    from xknxeditor.download.scope import (
+        DownloadScope,
+        control_in_scope,
+        mask_object_types,
+    )
+    from xknxeditor.namespaces.intermediate.ld_ctrl_abs_segment_t import (
+        LdCtrlAbsSegment,
+    )
+
+    types = mask_object_types(None, "MV-0700")
+    assert types == {0: 0, 1: 1, 2: 2, 3: 3, 4: 4}
+    assert mask_object_types(None, "MV-0701") == {}
+    address_table = LdCtrlAbsSegment(
+        lsm_idx=1,
+        occurrence=0,
+        seg_type=0,
+        address=0x4000,
+        size=183,
+        access=0xFF,
+        mem_type=3,
+        seg_flags=0x80,
+    )
+    assert not control_in_scope(address_table, DownloadScope.PARAMETERS, types)
+    assert control_in_scope(address_table, DownloadScope.GROUP_COMMUNICATION, types)
+
+
 def test_a_mask_id_with_a_management_descriptor_resolves() -> None:
     from xknxeditor.download.scope import DownloadScope
 
