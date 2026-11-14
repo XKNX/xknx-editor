@@ -4586,14 +4586,16 @@ class ProjectService:
 
     def _all_device_group_addresses(self) -> dict[int, set[int]]:
         """Map every device's raw individual address to the raw group addresses it links (send or
-        receive). The coupler filter-table computation uses this to decide which addresses cross a
-        coupler (linked both behind it and in front of it)."""
+        receive): those of its group objects and those assigned to its bus interfaces (a
+        visualisation reached over a tunnelling connection, for example). The coupler filter-table
+        computation uses this to decide which addresses cross a coupler (linked both behind it and
+        in front of it)."""
         result: dict[int, set[int]] = {}
         for dev in self.devices:
             ia = _parse_individual_address(dev.individual_address)
             if ia is None:
                 continue
-            gas: set[int] = set()
+            gas = self._bus_interface_group_addresses(dev)
             for co in dev.com_objects:
                 if co.db_id is None:
                     continue
@@ -4606,6 +4608,28 @@ class ProjectService:
                         gas.add(raw)
             result[ia] = gas
         return result
+
+    def _bus_interface_group_addresses(self, device: Device) -> set[int]:
+        """The raw group addresses assigned to the device's bus interfaces in use: those on the
+        device's own address (address index 0) always, those on an additional address only while
+        that address is set."""
+        if self._pid is None:
+            return set()
+        assigned = self._svc.bus_interface_group_addresses(self._pid, device.node_id)
+        if not assigned:
+            return set()
+        indices = {ref: index for ref, _access, index in _bus_interfaces(device)}
+        addressed = {
+            info.index
+            for info in self._svc.additional_addresses(self._pid, device.node_id)
+            if info.address is not None
+        }
+        return {
+            address
+            for ref, addresses in assigned.items()
+            if indices.get(ref, 0) == 0 or indices[ref] in addressed
+            for address in addresses
+        }
 
     @io_guarded(list)
     @revision_cached
