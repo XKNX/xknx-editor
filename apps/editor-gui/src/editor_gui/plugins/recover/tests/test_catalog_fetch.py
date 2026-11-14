@@ -229,3 +229,86 @@ def test_reidentification_publishes_complete_entries_without_mutating_displayed_
     assert all(
         new is not old for new, old in zip(service.entries, displayed, strict=True)
     )
+
+
+class OnlineCatalog(FetchCatalog):
+    """The online catalog of M-0002 with products of three applications; ``refused`` products
+    make a request fail as the server does when one of them is offered in no market."""
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.alternative.ids = []
+        self.requests: list[list[str]] = []
+        self.refused: set[str] = set()
+
+    def refresh(self) -> None:
+        pass
+
+    def online_catalog_items(self, manufacturer_id: int) -> list[Any]:
+        self.official.append(manufacturer_id)
+        return [
+            SimpleNamespace(
+                id=item_id,
+                downloadable=downloadable,
+                application_number=number,
+                application_version=version,
+            )
+            for item_id, downloadable, number, version in (
+                ("wanted", True, 0x6322, 0x23),
+                ("wanted-too", True, 0x6322, 0x23),
+                ("other-version", True, 0x6322, 0x20),
+                ("other-application", True, 0x6326, 0x23),
+                ("not-offered", False, 0x6322, 0x23),
+            )
+        ]
+
+    def download_online_products(self, item_ids: list[str]) -> list[Any]:
+        from editor_gui.plugins.catalog.online_catalog import OnlineCatalogError
+
+        self.requests.append(list(item_ids))
+        if self.refused & set(item_ids):
+            raise OnlineCatalogError("HTTP 400: Bad Request")
+        return [object() for _ in item_ids]
+
+
+def _online_setup() -> tuple[RecoverService, OnlineCatalog]:
+    catalog = OnlineCatalog()
+    service = RecoverService(
+        SimpleNamespace(
+            catalog=catalog, connection=SimpleNamespace(master=master_data())
+        )
+    )
+    service.entries = [
+        RecoverEntry("1.1.5", 0x0013, app_id=AppId("M-0002", 0x6322, 0x23))
+    ]
+    for e in service.entries:
+        service._identify_catalog(e)
+    return service, catalog
+
+
+def test_only_the_devices_applications_are_downloaded() -> None:
+    service, catalog = _online_setup()
+    service._autofetch()
+    assert catalog.official == [2]
+    assert catalog.requests == [["wanted", "wanted-too"]]
+    assert service.fetch_error == ""
+
+
+def test_a_refused_request_is_tried_product_by_product() -> None:
+    service, catalog = _online_setup()
+    catalog.refused = {"wanted-too"}
+    service._autofetch()
+    assert catalog.requests == [["wanted", "wanted-too"], ["wanted"], ["wanted-too"]]
+    # The product the server refuses is reported, the other one is imported.
+    assert "Bad Request" in service.fetch_error
+    assert service._catalog_changed
+
+
+def test_no_product_of_the_application_downloads_nothing() -> None:
+    service, catalog = _online_setup()
+    service.entries = [
+        replace(service.entries[0], app_id=AppId("M-0002", 0x6322, 0x10))
+    ]
+    service._autofetch()
+    assert catalog.requests == []
+    assert service.fetch_error == ""
