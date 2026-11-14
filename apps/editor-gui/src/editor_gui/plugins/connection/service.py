@@ -294,6 +294,18 @@ class ConnectionService:
         with self._busy_lock:
             return self._busy_progress
 
+    def busy_progress_for(self, address: str) -> tuple[int, int] | None:
+        """``(done, total)`` progress of the running operation, but only while it is the one at
+        ``address`` — the check and the read happen together under one lock, so a caller reporting
+        one operation's progress never picks up another operation at a DIFFERENT address across a
+        bus hand-off. The address is not a per-operation identity, so two operations on the SAME
+        address (e.g. the same device programmed twice) can still cross-report; that only affects a
+        progress indicator, never the operation itself."""
+        with self._busy_lock:
+            if self._busy is not None and self._busy[1] == address:
+                return self._busy_progress
+            return None
+
     @property
     def busy_memory_progress(self) -> tuple[int, int] | None:
         """``(done, total)`` octets the running download's current load control wrote of its

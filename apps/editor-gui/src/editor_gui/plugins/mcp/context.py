@@ -10,11 +10,14 @@ schedules onto the KNX event loop thread-safely and returns a ``concurrent.futur
 
 from __future__ import annotations
 
+import contextlib
 import functools
 from collections.abc import Callable
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, Literal, Protocol, TypeVar
 
+import anyio
+from fastmcp import Context
 from fastmcp.exceptions import ToolError
 from mcp.types import ToolAnnotations
 
@@ -84,6 +87,8 @@ def _redact_args(tool: str, kwargs: dict[str, Any]) -> dict[str, Any]:
         secret_here = secret_here | {"value"}
     redacted: dict[str, Any] = {}
     for name, value in kwargs.items():
+        if isinstance(value, Context):
+            continue  # the server context injected by fastmcp, not a client argument
         if _is_secret_arg(name) or name in secret_here:
             redacted[name] = "***"
         elif name in _BULK_ARGS and isinstance(value, str):
@@ -222,3 +227,32 @@ def require_project(ctx: McpContext) -> None:
     """Raise a ToolError when no project is open (most project tools need one)."""
     if not ctx.api.project.is_open:
         raise ToolError("no project is open; call project_open or project_new first")
+
+
+def send_progress(
+    mcp_ctx: Context | None,
+    progress: float,
+    total: float | None = None,
+    message: str | None = None,
+    *,
+    timeout: float = 2.0,
+) -> None:
+    """Send an MCP progress notification to the client from a synchronous tool body.
+
+    A tool that declares a ``Context | None`` parameter gets the server context injected; pass it
+    here while a long bus or import operation runs so a capable client can show a progress bar.
+    ``report_progress`` is a coroutine bound to the server's event loop, and sync tool bodies run in
+    the worker threadpool, so the update is marshalled back onto the loop through anyio's blocking
+    portal. Delivery is bounded by ``timeout`` so a stalled or slow client cannot hold up the calling
+    thread (which is driving a long operation's wait loop and must stay responsive to its deadline).
+    A no-op when no context was injected (headless server, direct test call), when the client did not
+    ask for progress, or when there is no portal (not run in the threadpool)."""
+    if mcp_ctx is None:
+        return
+
+    async def _send() -> None:
+        with anyio.move_on_after(timeout):
+            await mcp_ctx.report_progress(progress, total, message)
+
+    with contextlib.suppress(RuntimeError):
+        anyio.from_thread.run(_send)
