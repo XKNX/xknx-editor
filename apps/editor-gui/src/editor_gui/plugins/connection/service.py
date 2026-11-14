@@ -227,6 +227,9 @@ class ConnectionService:
         self.busmonitor_link: LinkInfo | None = None
         self._xknx: XKNX | None = None
         self._loop: asyncio.AbstractEventLoop | None = None
+        # Block Bus Writes (Settings > Connection, or --no-bus-writes): reads only, every frame
+        # that would change something on the bus is refused (write_guard.py).
+        self.block_bus_writes = False
         # The task behind each future of run_async while it runs (cancel_operation).
         self._operation_tasks: dict[Future[Any], list[asyncio.Task[Any]]] = {}
         # Global KNX master data (mask-version default procedures), injected at
@@ -365,6 +368,21 @@ class ConnectionService:
 
     def set_logger(self, log: Logger) -> None:
         self._log = log
+
+    def writes_blocked(self) -> bool:
+        """Whether Block Bus Writes is on: the interfaces refuse every write while it is."""
+        return self.block_bus_writes
+
+    def writes_refused(self, op: str) -> bool:
+        """Guard for an operation that writes to the bus: logs and returns ``True`` (the caller
+        must abort) while Block Bus Writes is on, before anything is sent."""
+        if not self.block_bus_writes:
+            return False
+        self._log.error(
+            f"{op} refused: Block Bus Writes is on (Settings > Connection), nothing is written "
+            "to the bus"
+        )
+        return True
 
     def not_connected(self, op: str) -> bool:
         """Guard for every connection-requiring call: log + a status-bar notice if no KNX link.
@@ -1077,7 +1095,9 @@ class ConnectionService:
         holds. For an unload of everything, ``in_programming_mode`` has the user put the device
         into programming mode first (``waiting`` is called while none is).
         """
-        if self.not_connected("program_device"):
+        if self.writes_refused("program_device") or self.not_connected(
+            "program_device"
+        ):
             return None
         if not device.individual_address:
             self._log.warning("Device has no individual address", device=device.name)

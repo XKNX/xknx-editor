@@ -91,6 +91,10 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             if setting.set is None or setting.read_only():
                 raise ToolError(f"the setting {key!r} cannot be changed now")
             new = _coerce(setting, value)
+            if not setting.mcp_may_set(new):
+                raise ToolError(
+                    f"only the user can set {key!r} to {new!r}, in the Settings window"
+                )
             setting.set(new)
             return _entry(page, setting)
 

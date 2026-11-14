@@ -22,6 +22,18 @@ msgstr "Ligar ao Iniciar"
 msgid "At start, the editor looks for KNX interfaces and connects to the one used last. Turned off, it connects only when you choose."
 msgstr "Ao iniciar, o editor procura interfaces KNX e liga-se à última utilizada. Desativado, só se liga quando o escolher."
 
+msgid "Block Bus Writes"
+msgstr "Bloquear Escritas no Barramento"
+
+msgid "Reads only: nothing that would change something on the bus is sent, such as downloads, address changes, restarts or group writes. This holds for MCP clients too, which can turn it on but not off. Reads of KNX Data Secure devices are blocked as well."
+msgstr "Só leitura: não é enviado nada que altere algo no barramento, como downloads, alterações de endereço, reinícios ou escritas de grupo. Aplica-se também aos clientes MCP, que podem ativá-lo mas não desativá-lo. As leituras de dispositivos KNX Data Secure também são bloqueadas."
+
+msgid "Bus writes blocked"
+msgstr "Escritas no barramento bloqueadas"
+
+msgid "Block Bus Writes is on: the editor reads from the bus but changes nothing there. Click to change it in the settings."
+msgstr "Bloquear escritas no barramento está ativado: o editor lê do barramento mas não altera nada nele. Clique para o alterar nas definições."
+
 msgid "Use Serial Number for Downloads"
 msgstr "Utilizar o Número de Série para Downloads"
 

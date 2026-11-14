@@ -14,6 +14,7 @@ from editor_gui.web import web_options
 _ARGUMENTS = (
     "--help",
     "--new-instance",
+    "--no-bus-writes",
     "--no-connect",
     "--password-file=",
     "--profile",

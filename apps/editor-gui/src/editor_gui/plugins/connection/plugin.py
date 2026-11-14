@@ -357,6 +357,10 @@ class ConnectionPlugin:
         self._connect_at_startup = True
         # This start only (``--no-connect``): no connection at start, whatever the setting says.
         self.skip_startup_connect = False
+        # Block Bus Writes as stored (Settings > Connection), and this start only
+        # (``--no-bus-writes``), which keeps it on whatever the setting says.
+        self._block_bus_writes_setting = False
+        self._block_bus_writes_forced = False
         self._panels: list[PanelDefinition] = []
         self._load_saved_settings()
 
@@ -592,6 +596,8 @@ class ConnectionPlugin:
             data.get("serial_number_downloads", True)
         )
         self._connect_at_startup = bool(data.get("connect_at_startup", True))
+        self._block_bus_writes_setting = bool(data.get("block_bus_writes", False))
+        self._apply_block_bus_writes()
 
     def _save_current_settings(self) -> None:
         save_settings(
@@ -609,6 +615,7 @@ class ConnectionPlugin:
                 "usb_interface_addresses": dict(self._usb_addresses),
                 "serial_number_downloads": self._api.connection.use_serial_number,
                 "connect_at_startup": self._connect_at_startup,
+                "block_bus_writes": self._block_bus_writes_setting,
             },
         )
 
@@ -876,6 +883,7 @@ class ConnectionPlugin:
                         self._api.connection.data_secure
                     ),
                     individual_address=self._usb_address_to_set(usb),
+                    writes_blocked=self._api.connection.writes_blocked,
                 )
                 self._interface = usb_interface
                 config = usb_interface.connection_config
@@ -894,6 +902,7 @@ class ConnectionPlugin:
                     connection_config=config,
                     raw_cemi_callback=self._api.connection.dispatch_raw_cemi,
                     sent_cemi_callback=self._api.connection.dispatch_sent_cemi,
+                    writes_blocked=self._api.connection.writes_blocked,
                 )
             self._xknx.cemi_handler = DiagnosticCEMIHandler(
                 self._xknx,
@@ -1935,6 +1944,14 @@ class ConnectionPlugin:
             imgui.dummy(px_vec2(12, 0))
             imgui.same_line()
             imgui.text_disabled(S.STATUS_DISCONNECTED)
+        if self._api.connection.block_bus_writes:
+            # Clickable (touch has no hover): opens the setting.
+            imgui.same_line()
+            imgui.text_colored(status_color("warning"), S.STATUS_WRITES_BLOCKED)
+            if imgui.is_item_hovered():
+                imgui.set_tooltip(S.STATUS_WRITES_BLOCKED_HINT)
+            if imgui.is_item_clicked() and self.open_settings is not None:
+                self.open_settings(SETTINGS_PAGE)
 
     def _open_progmode_window(self) -> None:
         """Open the 'Devices in programming mode' window and kick off a first scan."""
@@ -2374,6 +2391,17 @@ class ConnectionPlugin:
                 hint=lambda: S.SETTING_CONNECT_AT_STARTUP_HINT,
             ),
             Setting(
+                "block_bus_writes",
+                lambda: S.SETTING_BLOCK_BUS_WRITES,
+                "bool",
+                get=lambda: self._api.connection.block_bus_writes,
+                set=self._set_block_bus_writes,
+                hint=lambda: S.SETTING_BLOCK_BUS_WRITES_HINT,
+                read_only=lambda: self._block_bus_writes_forced,
+                # An MCP client may turn it on, never off.
+                mcp_may_set=bool,
+            ),
+            Setting(
                 "use_serial_number",
                 lambda: S.SETTING_USE_SERIAL_NUMBER,
                 "bool",
@@ -2456,6 +2484,23 @@ class ConnectionPlugin:
     def _set_controller_ip(self, value: object) -> None:
         self._controller_ip = str(value).strip() or self._controller_ip
         self._save_current_settings()
+
+    def block_bus_writes_this_start(self) -> None:
+        """``--no-bus-writes``: Block Bus Writes stays on until the editor ends, whatever the
+        setting says (the setting itself is kept as it is)."""
+        self._block_bus_writes_forced = True
+        self._apply_block_bus_writes()
+
+    def _set_block_bus_writes(self, value: object) -> None:
+        self._block_bus_writes_setting = bool(value)
+        self._save_current_settings()
+        self._apply_block_bus_writes()
+
+    def _apply_block_bus_writes(self) -> None:
+        blocked = self._block_bus_writes_setting or self._block_bus_writes_forced
+        if blocked != self._api.connection.block_bus_writes:
+            self._log.info("bus writes blocked" if blocked else "bus writes allowed")
+        self._api.connection.block_bus_writes = blocked
 
     def _set_connect_at_startup(self, value: object) -> None:
         self._connect_at_startup = bool(value)

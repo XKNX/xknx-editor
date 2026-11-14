@@ -29,7 +29,12 @@ def _plugin() -> Any:
     plugin._connection_type = ConnectionType.TUNNELING
     plugin._preferred_gateway_ip = None
     plugin._connect_at_startup = True
-    plugin._api = SimpleNamespace(connection=SimpleNamespace(use_serial_number=True))
+    plugin._block_bus_writes_setting = False
+    plugin._block_bus_writes_forced = False
+    plugin._log = SimpleNamespace(info=lambda *_a, **_k: None)
+    plugin._api = SimpleNamespace(
+        connection=SimpleNamespace(use_serial_number=True, block_bus_writes=False)
+    )
     return plugin
 
 

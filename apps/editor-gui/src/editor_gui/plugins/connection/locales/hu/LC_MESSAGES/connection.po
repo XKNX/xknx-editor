@@ -67,6 +67,18 @@ msgstr "Csatlakozás indításkor"
 msgid "At start, the editor looks for KNX interfaces and connects to the one used last. Turned off, it connects only when you choose."
 msgstr "Indításkor a szerkesztő KNX interfészeket keres, és a legutóbb használthoz csatlakozik. Kikapcsolva csak akkor csatlakozik, amikor Ön kéri."
 
+msgid "Block Bus Writes"
+msgstr "Busz írásának tiltása"
+
+msgid "Reads only: nothing that would change something on the bus is sent, such as downloads, address changes, restarts or group writes. This holds for MCP clients too, which can turn it on but not off. Reads of KNX Data Secure devices are blocked as well."
+msgstr "Csak olvasás: semmi nem kerül elküldésre, ami a buszon bármit megváltoztatna, például programozás, címváltoztatás, újraindítás vagy csoportírás. Ez az MCP-kliensekre is vonatkozik, amelyek bekapcsolhatják, de ki nem. A KNX Data Secure eszközök olvasása is tiltott."
+
+msgid "Bus writes blocked"
+msgstr "Busz írása tiltva"
+
+msgid "Block Bus Writes is on: the editor reads from the bus but changes nothing there. Click to change it in the settings."
+msgstr "A busz írásának tiltása be van kapcsolva: a szerkesztő olvas a buszról, de ott semmit nem változtat. Kattintson a beállításokban való módosításhoz."
+
 msgid "Use Serial Number for Downloads"
 msgstr "Sorozatszám használata programozáshoz"
 

@@ -209,6 +209,7 @@ class ObservableUSBInterfaceThreaded(ObservableKNXIPInterfaceThreaded):
         sent_cemi_callback: Callable[[bytes], None] | None = None,
         data_secure: DataSecure | None = None,
         individual_address: IndividualAddress | None = None,
+        writes_blocked: Callable[[], bool] | None = None,
     ) -> None:
         """``data_secure`` is in place while the interface is set up, so an interface Data Secure
         can't work with (unknown individual address, EMI1/EMI2 only) is noticed on connect as
@@ -219,6 +220,7 @@ class ObservableUSBInterfaceThreaded(ObservableKNXIPInterfaceThreaded):
             ConnectionConfig(threaded=True),
             raw_cemi_callback=raw_cemi_callback,
             sent_cemi_callback=sent_cemi_callback,
+            writes_blocked=writes_blocked,
         )
         self._target = target
         self._data_secure = data_secure

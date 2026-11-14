@@ -22,6 +22,18 @@ msgstr "Połącz przy uruchomieniu"
 msgid "At start, the editor looks for KNX interfaces and connects to the one used last. Turned off, it connects only when you choose."
 msgstr "Przy uruchomieniu edytor wyszukuje interfejsy KNX i łączy się z ostatnio używanym. Po wyłączeniu łączy się tylko wtedy, gdy to wybierzesz."
 
+msgid "Block Bus Writes"
+msgstr "Blokuj zapisy na magistralę"
+
+msgid "Reads only: nothing that would change something on the bus is sent, such as downloads, address changes, restarts or group writes. This holds for MCP clients too, which can turn it on but not off. Reads of KNX Data Secure devices are blocked as well."
+msgstr "Tylko odczyt: nie jest wysyłane nic, co zmieniłoby coś na magistrali, np. programowanie, zmiany adresów, restarty czy zapisy grupowe. Dotyczy to także klientów MCP, które mogą to włączyć, ale nie wyłączyć. Blokowane są również odczyty urządzeń KNX Data Secure."
+
+msgid "Bus writes blocked"
+msgstr "Zapisy na magistralę zablokowane"
+
+msgid "Block Bus Writes is on: the editor reads from the bus but changes nothing there. Click to change it in the settings."
+msgstr "Blokowanie zapisów na magistralę jest włączone: edytor odczytuje magistralę, ale niczego na niej nie zmienia. Kliknij, aby zmienić to w ustawieniach."
+
 msgid "Use Serial Number for Downloads"
 msgstr "Programuj z użyciem numeru seryjnego"
 

@@ -22,6 +22,18 @@ msgstr "Подключаться при запуске"
 msgid "At start, the editor looks for KNX interfaces and connects to the one used last. Turned off, it connects only when you choose."
 msgstr "При запуске редактор ищет интерфейсы KNX и подключается к последнему использованному. Если выключено, подключается только по вашему выбору."
 
+msgid "Block Bus Writes"
+msgstr "Блокировать запись на шину"
+
+msgid "Reads only: nothing that would change something on the bus is sent, such as downloads, address changes, restarts or group writes. This holds for MCP clients too, which can turn it on but not off. Reads of KNX Data Secure devices are blocked as well."
+msgstr "Только чтение: не отправляется ничего, что изменило бы что-либо на шине, например загрузки, смена адресов, перезапуски или групповая запись. Это касается и клиентов MCP, которые могут включить блокировку, но не выключить. Чтение устройств KNX Data Secure также блокируется."
+
+msgid "Bus writes blocked"
+msgstr "Запись на шину заблокирована"
+
+msgid "Block Bus Writes is on: the editor reads from the bus but changes nothing there. Click to change it in the settings."
+msgstr "Блокировка записи на шину включена: редактор читает с шины, но ничего на ней не меняет. Нажмите, чтобы изменить это в настройках."
+
 msgid "Use Serial Number for Downloads"
 msgstr "Использовать серийный номер для загрузки"
 
