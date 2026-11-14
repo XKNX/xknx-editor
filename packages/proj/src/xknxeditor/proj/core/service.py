@@ -165,15 +165,18 @@ from xknxeditor.proj.core.ga_export import (
 from xknxeditor.proj.core.ga_security import (
     AUTO_MODES,
     FORCED_MODES,
+    SecurityContext,
     commissioned_devices,
     effective_mode,
     exports_key,
     forcing_range,
     is_secured,
     linked_devices,
+    project_security,
     secure_commissioned,
     secured_group_addresses,
     security_attributes,
+    set_security_context,
 )
 from xknxeditor.proj.core.ip_settings import (
     ASSIGN_AUTO,
@@ -850,6 +853,14 @@ def _last_valid_sequence_number(device: Device) -> int:
         return max(int(value) - 1, 0) if value else 0
     except ValueError:
         return 0
+
+
+def _individual_address(device: Device) -> int | None:
+    """The device's individual address (raw); None for one without an address or line."""
+    if device.address is None or device.segment is None:
+        return None
+    line = device.segment.line
+    return (line.area.address << 12) | (line.address << 8) | device.address
 
 
 def _sequence_timestamp() -> str:
@@ -3537,6 +3548,13 @@ class ProjectService:
         device = self._state(project_id).session.get(Device, device_id)
         return device is not None and secure_commissioned(device)
 
+    def set_security_context(
+        self, project_id: str, context: SecurityContext | None
+    ) -> None:
+        """What the products tell about couplers and bus interfaces, for the project's security
+        domains (see :class:`.ga_security.SecurityContext`)."""
+        set_security_context(self._state(project_id).session, context)
+
     def secure_commissioned_devices(self, project_id: str) -> set[int]:
         """The ids of the devices commissioned securely (KNX Data Secure)."""
         return commissioned_devices(self._state(project_id).session)
@@ -3699,16 +3717,20 @@ class ProjectService:
         project_id: str,
         device_id: int,
         can_send: Callable[[int], bool] | None = None,
-        tunnel_senders: Mapping[int, Sequence[int]] | None = None,
+        tunnel_senders: Mapping[int, Sequence[tuple[int, int]]] | None = None,
     ) -> tuple[dict[int, bytes], list[tuple[int, int]]]:
-        """The keys of the secured group addresses the device is linked to (raw address -> key)
-        and the devices that may send on them: ``(individual address (raw), last valid sequence
-        number)`` of every other addressed device with a group object on one of them that can send
+        """The keys of the group addresses the device is linked to that are secured in its
+        security domain (raw address -> key) and who may send on them there:
+        ``(individual address (raw), last valid sequence number)`` of every other device
+        commissioned securely with a group object sending on one of them that can send
         (``can_send(com object id)``: its flags let it transmit, answer read requests or request
-        a read; every linked object without it), and the tunnels the group address is assigned to
-        (``tunnel_senders``: raw group address -> raw tunnelling addresses, sequence number 0). A
-        secured group address without a key yet gets one, stored directly: devices may hold it
-        from now on, so it is not an undo step."""
+        a read; every such object without it), of the Security Proxies translating one of them
+        into the domain, and the tunnels it is assigned to (``tunnel_senders``: raw group address
+        -> ``(raw tunnelling address, device id)``, sequence number 0) on secured bus interfaces;
+        the devices and tunnels within the domains the group address reaches without being
+        translated (see :class:`.ga_security.ProjectSecurity`). A secured group address without a
+        key yet gets one, stored directly: devices may hold it from now on, so it is not an undo
+        step."""
         state = self._state(project_id)
         session = state.session
         linked = (
@@ -3719,12 +3741,12 @@ class ProjectService:
             .distinct()
             .all()
         )
-        secured = secured_group_addresses(session)
+        security = project_security(session)
+        domain = security.domain_of(device_id)
+        secured = [ga for ga in linked if security.secured_in(ga.id, domain)]
         keys: dict[int, bytes] = {}
         created = False
-        for ga in linked:
-            if ga.id not in secured:
-                continue
+        for ga in secured:
             if ga.security_key is None:
                 ga.security_key = self._new_group_key(state)
                 ga.data_secure = True
@@ -3735,31 +3757,23 @@ class ProjectService:
             key = _key(value)
             if key is not None:
                 keys[ga.address] = key
+        senders: dict[int, int] = {}
+        for ga_id, address in [(ga.id, ga.address) for ga in secured]:
+            if address not in keys or domain is None:
+                continue
+            devices, interfaces, proxies = security.senders(ga_id, domain, can_send)
+            for other_id in sorted(devices | set(proxies)):
+                other = security.devices.get(other_id)
+                if other_id == device_id or other is None:
+                    continue
+                individual = _individual_address(other)
+                if individual is not None:
+                    senders[individual] = _last_valid_sequence_number(other)
+            for tunnel, owner in (tunnel_senders or {}).get(address, ()):
+                if owner in interfaces:
+                    senders.setdefault(tunnel, 0)
         if created:
             session.commit()
-        senders: dict[int, int] = {}
-        if keys:
-            rows = (
-                session.query(Device, ComObject.id)
-                .join(ComObject, ComObject.device_id == Device.id)
-                .join(ComObjectLink, ComObjectLink.com_object_id == ComObject.id)
-                .join(GroupAddress, GroupAddress.id == ComObjectLink.group_address_id)
-                .filter(GroupAddress.address.in_(keys), Device.id != device_id)
-                .all()
-            )
-            for other, com_object_id in rows:
-                if other.address is None or other.segment is None:
-                    continue
-                if can_send is not None and not can_send(com_object_id):
-                    continue
-                line = other.segment.line
-                address = (
-                    (line.area.address << 12) | (line.address << 8) | other.address
-                )
-                senders[address] = _last_valid_sequence_number(other)
-            for group_address in keys:
-                for tunnel in (tunnel_senders or {}).get(group_address, ()):
-                    senders.setdefault(tunnel, 0)
         return keys, sorted(senders.items())
 
     def security_table_sizes(
@@ -3782,34 +3796,26 @@ class ProjectService:
                     )
                 )
                 session.flush()
-            secured = secured_group_addresses(session)
+            security = project_security(session)
             sizes: dict[int, tuple[int, int]] = {}
             for device_id in device_ids:
+                domain = security.domain_of(device_id)
                 group_addresses = {
                     ga_id
                     for (ga_id,) in session.query(ComObjectLink.group_address_id)
                     .join(ComObject, ComObject.id == ComObjectLink.com_object_id)
                     .filter(ComObject.device_id == device_id)
-                    if ga_id in secured
+                    if security.secured_in(ga_id, domain)
                 }
                 senders: set[int] = set()
-                if group_addresses:
-                    rows = (
-                        session.query(Device.id, ComObject.id)
-                        .join(ComObject, ComObject.device_id == Device.id)
-                        .join(
-                            ComObjectLink, ComObjectLink.com_object_id == ComObject.id
-                        )
-                        .filter(
-                            ComObjectLink.group_address_id.in_(group_addresses),
-                            Device.id != device_id,
-                        )
+                for ga_id in group_addresses:
+                    if domain is None:
+                        break
+                    devices, _interfaces, proxies = security.senders(
+                        ga_id, domain, can_send
                     )
-                    senders = {
-                        other
-                        for other, com_object_id in rows
-                        if can_send is None or can_send(com_object_id)
-                    }
+                    senders |= devices | set(proxies)
+                senders.discard(device_id)
                 sizes[device_id] = (len(group_addresses), len(senders))
             return sizes
         finally:

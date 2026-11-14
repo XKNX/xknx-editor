@@ -86,6 +86,7 @@ from xknxeditor.proj.core.bus_load import BusLoad, Hardware
 from xknxeditor.proj.core.coupler_rules import CouplerDevice
 from xknxeditor.proj.core.dpt import normalize_datapoint_type
 from xknxeditor.proj.core.ga_export import write_ga_csv as _write_ga_csv
+from xknxeditor.proj.core.ga_security import SecurityContext
 from xknxeditor.proj.core.identity import qualified_com_object_ref
 from xknxeditor.proj.core.ip_secure import PASSWORD_ACCESS_TYPES
 from xknxeditor.proj.core.manufacturer_xml import DeviceProduct as ProductRefs
@@ -1277,6 +1278,37 @@ def _tunnelling_interfaces(device: Device) -> dict[str, int]:
     }
 
 
+class _ProductSecurity(SecurityContext):
+    """What the catalog and the application programs tell the project's security domains: which
+    devices are couplers used as Security Proxy, and on which address a bus interface is."""
+
+    def __init__(self, service: "ProjectService") -> None:
+        self._service = service
+
+    def coupler(self, device: "DeviceRow") -> tuple[bool, bool]:
+        program = device.hardware2program_ref_id
+        found = self._service._coupler_device(program)  # pyright: ignore[reportPrivateUsage]
+        if program is None or found is None or not found.is_coupler:
+            return False, False
+        catalog = self._service._catalog  # pyright: ignore[reportPrivateUsage]
+        return True, "SecurityProxy" in catalog.coupler_capabilities(program)
+
+    def interface_index(self, device: "DeviceRow", ref_id: str) -> int:
+        app = self._service._resolve_app(  # pyright: ignore[reportPrivateUsage]
+            device.hardware2program_ref_id, device.application_program_ref_id
+        )
+        if app is None:
+            return 0
+        return next(
+            (
+                index
+                for ref, _access, index in _app_bus_interfaces(app)
+                if ref == ref_id
+            ),
+            0,
+        )
+
+
 def _int_or(value: str | None, default: int) -> int:
     try:
         return int(value) if value is not None else default
@@ -1734,6 +1766,7 @@ class ProjectService:
             self._path = path
             self._working_path = working
             self._reset()
+            self._svc.set_security_context(self._pid, _ProductSecurity(self))
         if self.mirroring_active:
             self._log.info(
                 "network location: working on a local copy",
@@ -1819,6 +1852,7 @@ class ProjectService:
                 self._path = path
                 self._working_path = working
                 self._reset()
+                self._svc.set_security_context(new_pid, _ProductSecurity(self))
                 self._history_baseline = self._history_key()
                 if self.mirroring_active:
                     self._log.info(
@@ -3606,15 +3640,16 @@ class ProjectService:
             return any(self.com_object_requires_security(link) for link in ga.links)
         return False
 
-    def _tunnel_senders(self) -> dict[int, list[int]]:
+    def _tunnel_senders(self) -> dict[int, list[tuple[int, int]]]:
         """The tunnels of the project's KNX IP Secure interfaces by the group addresses assigned
-        to them (raw group address -> raw tunnelling addresses): a tool sends on those secured
-        group addresses through that tunnel, so the devices on them accept it as a sender."""
+        to them (raw group address -> ``(raw tunnelling address, device node id)``): a tool sends
+        on those secured group addresses through that tunnel, so the devices on them accept it as
+        a sender."""
         from xknx.telegram import IndividualAddress
 
         if self._pid is None:
             return {}
-        result: dict[int, list[int]] = {}
+        result: dict[int, list[tuple[int, int]]] = {}
         for device in self.devices:
             settings = self.ip_secure_settings(device)
             if settings is None:
@@ -3627,7 +3662,9 @@ class ProjectService:
                     continue
                 tunnel = IndividualAddress(interface.address).raw
                 for group_address in assigned.get(interface.ref_id, []):
-                    result.setdefault(group_address, []).append(tunnel)
+                    result.setdefault(group_address, []).append(
+                        (tunnel, device.node_id)
+                    )
         return result
 
     def _com_object_can_send(self, com_object_id: int) -> bool:
