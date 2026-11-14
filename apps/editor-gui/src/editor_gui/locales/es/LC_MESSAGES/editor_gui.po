@@ -1692,6 +1692,17 @@ msgstr "No hay una clave de firma válida, por lo que el .knxproj exportado no t
 msgid "Export Anyway"
 msgstr "Exportar de todos modos"
 
+msgid "Tool Discovery"
+msgstr "Descubrimiento de herramientas"
+
+msgid "All tools"
+msgstr "Todas las herramientas"
+
+msgid "Search"
+msgstr "Búsqueda"
+
+msgid "All tools lists every tool to the AI tool. Search lists only a search for the tools and one that calls them, for AI models whose context is too small for the whole list. An AI tool sees a change once it reconnects."
+msgstr "Todas las herramientas muestra cada herramienta a la herramienta de IA. Búsqueda muestra solo una búsqueda de las herramientas y una que las llama, para modelos de IA cuyo contexto es demasiado pequeño para la lista completa. Una herramienta de IA ve el cambio al volver a conectarse."
 msgid "Delete"
 msgstr "Eliminar"
 

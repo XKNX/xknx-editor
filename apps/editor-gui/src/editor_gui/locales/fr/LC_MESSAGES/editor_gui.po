@@ -1692,6 +1692,17 @@ msgstr "Aucune clé de signature valide n'est définie ; le .knxproj exporté n'
 msgid "Export Anyway"
 msgstr "Exporter quand même"
 
+msgid "Tool Discovery"
+msgstr "Découverte des outils"
+
+msgid "All tools"
+msgstr "Tous les outils"
+
+msgid "Search"
+msgstr "Recherche"
+
+msgid "All tools lists every tool to the AI tool. Search lists only a search for the tools and one that calls them, for AI models whose context is too small for the whole list. An AI tool sees a change once it reconnects."
+msgstr "Tous les outils présente chaque outil à l’outil d’IA. Recherche ne présente qu’une recherche des outils et un outil qui les appelle, pour les modèles d’IA dont le contexte est trop petit pour la liste complète. Un outil d’IA voit le changement dès qu’il se reconnecte."
 msgid "Delete"
 msgstr "Supprimer"
 

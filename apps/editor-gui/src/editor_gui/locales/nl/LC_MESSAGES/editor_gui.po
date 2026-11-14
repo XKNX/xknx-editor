@@ -1752,6 +1752,17 @@ msgstr "Er is geen geldige ondertekeningssleutel ingesteld, dus de geëxporteerd
 msgid "Export Anyway"
 msgstr "Toch exporteren"
 
+msgid "Tool Discovery"
+msgstr "Hulpmiddelen vinden"
+
+msgid "All tools"
+msgstr "Alle hulpmiddelen"
+
+msgid "Search"
+msgstr "Zoeken"
+
+msgid "All tools lists every tool to the AI tool. Search lists only a search for the tools and one that calls them, for AI models whose context is too small for the whole list. An AI tool sees a change once it reconnects."
+msgstr "Alle hulpmiddelen toont de AI-tool elk hulpmiddel. Zoeken toont alleen een zoekfunctie voor de hulpmiddelen en één die ze aanroept, voor AI-modellen waarvan de context te klein is voor de hele lijst. Een AI-tool ziet een wijziging zodra het opnieuw verbinding maakt."
 msgid "Delete"
 msgstr "Verwijderen"
 

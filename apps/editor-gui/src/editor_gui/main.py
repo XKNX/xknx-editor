@@ -759,6 +759,10 @@ class KnxGuiApp:
         self._mcp_port = str(_mcp_cfg.get("port") or "8765")
         # Optional bearer token; when set, the server requires it on every request. Empty = no auth.
         self._mcp_token = str(_mcp_cfg.get("token") or "")
+        # Tool Discovery: "all" lists every tool, "search" only a search for them (stored on its
+        # own, also where the program that started the editor sets up the server).
+        discovery = load_settings(_MCP_TOOLS_SETTINGS).get("discovery")
+        self._mcp_discovery = discovery if discovery in _MCP_DISCOVERY else "all"
         options = host.current()
         if options.mcp_managed:
             # Set up by the program that started the editor (--mcp); the token comes from
@@ -1028,6 +1032,7 @@ class KnxGuiApp:
             self._settings_window,
             self._recover_plugin.service,
             home_assistant=self._home_assistant_plugin.service,
+            tool_search=lambda: self._mcp_discovery == "search",
         )
 
         self._plugins: list[Any] = [
@@ -6978,6 +6983,12 @@ class KnxGuiApp:
             self._mcp_token = str(value)
             self._persist_mcp_fields()
 
+        def set_discovery(value: object) -> None:
+            if value not in _MCP_DISCOVERY:
+                raise ValueError(f"not a tool discovery: {value!r}")
+            self._mcp_discovery = str(value)
+            save_settings(_MCP_TOOLS_SETTINGS, {"discovery": self._mcp_discovery})
+
         return [
             Setting(
                 "mcp_status",
@@ -7012,6 +7023,18 @@ class KnxGuiApp:
                 set=set_token,
                 shown=configurable,
                 secret=True,
+            ),
+            Setting(
+                "mcp_tool_discovery",
+                lambda: S.SETTING_MCP_TOOL_DISCOVERY,
+                "choice",
+                get=lambda: self._mcp_discovery,
+                set=set_discovery,
+                choices=lambda: [
+                    ("all", S.MCP_DISCOVERY_ALL),
+                    ("search", S.MCP_DISCOVERY_SEARCH),
+                ],
+                hint=lambda: S.SETTING_MCP_TOOL_DISCOVERY_HINT,
             ),
             Setting(
                 "mcp_endpoint",
@@ -7206,6 +7229,9 @@ _ICON_MENU = ""
 _ICON_SETTINGS = ""
 # The page of the Settings window with the MCP server.
 _MCP_SETTINGS_PAGE = "mcp"
+# The settings file of the MCP server's Tool Discovery, and its choices.
+_MCP_TOOLS_SETTINGS = "mcp_tools"
+_MCP_DISCOVERY = ("all", "search")
 
 
 # Rows the command palette shows at most.

@@ -1708,6 +1708,17 @@ msgstr "Дійсний ключ підпису не задано, тому ек�
 msgid "Export Anyway"
 msgstr "Експортувати попри це"
 
+msgid "Tool Discovery"
+msgstr "Пошук інструментів"
+
+msgid "All tools"
+msgstr "Усі інструменти"
+
+msgid "Search"
+msgstr "Пошук"
+
+msgid "All tools lists every tool to the AI tool. Search lists only a search for the tools and one that calls them, for AI models whose context is too small for the whole list. An AI tool sees a change once it reconnects."
+msgstr "«Усі інструменти» показує AI-інструменту кожен інструмент. «Пошук» показує лише пошук інструментів та інструмент для їх виклику — для моделей AI, контекст яких замалий для всього списку. AI-інструмент побачить зміну після повторного підключення."
 msgid "Delete"
 msgstr "Видалити"
 
