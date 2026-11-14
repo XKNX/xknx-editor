@@ -1,4 +1,4 @@
-"""Local export preserves the project's password at both export stages."""
+"""Local export stages the project for the selected ETS version."""
 
 from collections.abc import Callable
 from pathlib import Path
@@ -16,11 +16,13 @@ from .test_server import _build_ctx, _data
 
 @pytest.mark.parametrize("password", [None, "project-password"])
 @pytest.mark.parametrize("change_after_staging", [False, True])
+@pytest.mark.parametrize("ets6", [False, True])
 async def test_local_export_forwards_password(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
     password: str | None,
     change_after_staging: bool,
+    ets6: bool,
 ) -> None:
     ctx = _build_ctx(tmp_path)
     project = ctx.api.project
@@ -47,8 +49,12 @@ async def test_local_export_forwards_password(
             notes=(),
         )
     )
-    monkeypatch.setattr("xknxeditor.proj.ets_local_available", lambda: True)
-    monkeypatch.setattr("xknxeditor.proj.ets_local_sign", signer)
+    monkeypatch.setattr("xknxeditor.proj.ets_local_available", lambda: ets6)
+    monkeypatch.setattr("xknxeditor.proj.ets5_local_available", lambda: True)
+    monkeypatch.setattr(
+        "xknxeditor.proj.ets_local_sign" if ets6 else "xknxeditor.proj.ets5_local_sign",
+        signer,
+    )
     monkeypatch.setattr("xknxeditor.proj.export_knxproj", stage)
     monkeypatch.setattr(
         "editor_gui.plugins.project.knxproj_manufacturer.collect_manufacturer_bundle",
@@ -61,6 +67,7 @@ async def test_local_export_forwards_password(
         assert result["status"] == "exported"
         stage.assert_called_once()
         signer.assert_called_once()
+        assert stage.call_args.kwargs["schema"] == ("23" if ets6 else "20")
         assert stage.call_args.kwargs["password"] == password
         assert signer.call_args.kwargs["password"] == password
         assert signer.call_args.args == (stage.call_args.args[1], dest)

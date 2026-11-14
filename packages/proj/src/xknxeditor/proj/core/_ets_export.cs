@@ -1229,31 +1229,59 @@ namespace EtsSignExport
       var manager = _autofac.Resolve(_container, managerType);
       Reflect.Call(Reflect.Method(managerType, "WaitForDongleManager", false, "System.Int32"), manager, 30000);
 
-      var perProject = Convert.ToInt32(Reflect.Get(manager, "LicensedDevicesPerProject"), CultureInfo.InvariantCulture);
       var withoutLicence = Convert.ToInt32(Reflect.Get(manager, "MaxDevicesWithoutLicense"), CultureInfo.InvariantCulture);
+      var cloudStatus = "";
+      if (Convert.ToInt32(Reflect.Get(manager, "LicensedDevicesPerProject"), CultureInfo.InvariantCulture) <= withoutLicence)
+      {
+        cloudStatus = RestoreCloudLicence();
+      }
+      var perProject = Convert.ToInt32(Reflect.Get(manager, "LicensedDevicesPerProject"), CultureInfo.InvariantCulture);
       var projectDevices = Convert.ToInt32(Reflect.Get(_project, "DeviceCount"), CultureInfo.InvariantCulture);
 
       object chosen = null;
       long best = withoutLicence;
-      foreach (var dongle in (IEnumerable)(Reflect.Get(manager, "Dongles") ?? new object[0]))
+      var viewModel = A("Knx.Ets.ViewModel");
+      var exportServiceType = viewModel.GetType("Knx.Ets.ViewModel.Service.ProjectExportService");
+      var select = exportServiceType?.GetMethod("GetLicenseWithMaxDevice", BindingFlags.NonPublic | BindingFlags.Instance);
+      if (select != null)
       {
-        foreach (var entry in (IEnumerable)(Reflect.Get(dongle, "Licenses") ?? new object[0]))
+        var authenticated = Reflect.Type(viewModel, "Knx.Ets.ViewModel.AuthenticatedProjectInfo");
+        var authenticatedCtor = Reflect.Ctor(authenticated, "Knx.Ets.ObjectModel.Project.IProject", "*");
+        var serviceCtor = exportServiceType.GetConstructors().Single();
+        OnDispatcher(() =>
         {
-          var licence = Reflect.Get(entry, "License");
-          if (licence == null)
+          var info = Reflect.New(authenticatedCtor, _project, null);
+          var arguments = serviceCtor.GetParameters().Select((p, index) => index == 0 ? info
+            : index == 1 ? Path.Combine(_workDirectory, "out", "export.knxproj")
+            : p.ParameterType == managerType ? manager : _autofac.Resolve(_container, p.ParameterType)).ToArray();
+          using (var service = (IDisposable)Reflect.New(serviceCtor, arguments))
           {
-            continue;
+            var selection = Reflect.Call(select, service);
+            chosen = Reflect.Get(selection, "Item1");
+            if (chosen != null)
+            {
+              best = Convert.ToInt64(Reflect.Get(selection, "Item2"), CultureInfo.InvariantCulture);
+            }
           }
-          var expired = Reflect.Get(licence, "IsExpired");
-          if (expired is bool flag && flag)
+        });
+      }
+      else
+      {
+        foreach (var dongle in (IEnumerable)(Reflect.Get(manager, "Dongles") ?? new object[0]))
+        {
+          foreach (var entry in (IEnumerable)(Reflect.Get(dongle, "Licenses") ?? new object[0]))
           {
-            continue;
-          }
-          var capacity = FeatureValue(licence, "DeviceCount");
-          if (capacity > best)
-          {
-            chosen = licence;
-            best = capacity;
+            var licence = Reflect.Get(entry, "License");
+            if (licence == null || Reflect.Get(licence, "IsExpired") is bool expired && expired)
+            {
+              continue;
+            }
+            var capacity = FeatureValue(licence, "DeviceCount");
+            if (capacity > best)
+            {
+              chosen = licence;
+              best = capacity;
+            }
           }
         }
       }
@@ -1268,15 +1296,57 @@ namespace EtsSignExport
       else
       {
         _result.LicensedDevices = 0;
-        _result.Notes.Add("no ETS licence was found; start ETS 6 once and wait until it shows your licence, then retry. Without a licence ETS caps the import at 5 devices.");
+        _result.Notes.Add(perProject > withoutLicence
+          ? "ETS recognised the project allowance but did not expose a licence for signing."
+          : "No active ETS licence was found. " + cloudStatus);
       }
 
-      if (perProject != 65535 && projectDevices > perProject)
+      if (projectDevices > perProject || projectDevices > best)
       {
-        throw new FailureException("the project has " + projectDevices + " devices, but ETS reports a licence for "
-          + perProject + " devices per project. " + (chosen == null
-            ? "ETS reports no licence at all: start ETS 6 once, wait until it shows your licence, and try again."
+        throw new FailureException("the project has " + projectDevices + " devices, but ETS allows "
+          + Math.Min(perProject, best) + " devices per export. " + (chosen == null
+            ? _result.Notes.Last()
             : "A licence with more devices per project is needed."));
+      }
+    }
+
+    private string RestoreCloudLicence()
+    {
+      // ETS's login workflow restores its saved MyKNX session before checking for a cloud licence.
+      // This helper has its own container, so starting ETS elsewhere does not initialise ours.
+      try
+      {
+        var sessionType = Reflect.Type(A("Knx.Ets.ViewModel"),
+          "Knx.Ets.ViewModel.Dialogs.PreNotification.Login.IUserSessionService");
+        var session = _autofac.Resolve(_container, sessionType);
+        using (var cancellation = new CancellationTokenSource(TimeSpan.FromSeconds(30)))
+        {
+          var login = Reflect.Method(sessionType, "IsLoggedInAsync", false, "System.Threading.CancellationToken");
+          var loginTask = (Task)Reflect.Call(login, session, cancellation.Token);
+          loginTask.Wait(cancellation.Token);
+          var loginResult = Reflect.Get(loginTask, "Result");
+          if (!(Reflect.Get(loginResult, "IsSuccess") is bool success && success
+            && Reflect.Get(loginResult, "Value") is bool loggedIn && loggedIn))
+          {
+            return "Sign in to MyKNX in ETS 6 and confirm that the cloud licence is active.";
+          }
+
+          var update = Reflect.Method(sessionType, "UpdateSessionAsync", false, "System.Threading.CancellationToken");
+          var updateTask = (Task)Reflect.Call(update, session, cancellation.Token);
+          updateTask.Wait(cancellation.Token);
+          var updateResult = Reflect.Get(updateTask, "Result");
+          return Reflect.Get(updateResult, "IsSuccess") is bool updated && updated
+            ? "The MyKNX session was refreshed, but ETS found no active cloud licence."
+            : "ETS could not refresh its MyKNX session. Check the active licence in ETS 6.";
+        }
+      }
+      catch (OperationCanceledException)
+      {
+        return "ETS timed out while restoring the MyKNX session.";
+      }
+      catch (Exception ex)
+      {
+        return "ETS could not restore its MyKNX session (" + ex.GetType().Name + ").";
       }
     }
 
