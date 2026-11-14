@@ -1692,6 +1692,17 @@ msgstr "Δεν έχει οριστεί έγκυρο κλειδί υπογραφ�
 msgid "Export Anyway"
 msgstr "Εξαγωγή ούτως ή άλλως"
 
+msgid "Tool Discovery"
+msgstr "Εύρεση εργαλείων"
+
+msgid "All tools"
+msgstr "Όλα τα εργαλεία"
+
+msgid "Search"
+msgstr "Αναζήτηση"
+
+msgid "All tools lists every tool to the AI tool. Search lists only a search for the tools and one that calls them, for AI models whose context is too small for the whole list. An AI tool sees a change once it reconnects."
+msgstr "Με «Όλα τα εργαλεία» το εργαλείο AI βλέπει κάθε εργαλείο. Με «Αναζήτηση» βλέπει μόνο μια αναζήτηση εργαλείων και ένα εργαλείο που τα καλεί, για μοντέλα AI με πολύ μικρό πλαίσιο για ολόκληρη τη λίστα. Ένα εργαλείο AI βλέπει την αλλαγή μόλις επανασυνδεθεί."
 msgid "Delete"
 msgstr "Διαγραφή"
 

@@ -1780,6 +1780,17 @@ msgstr "Nie je nastavený platný podpisový kľúč, takže exportovaný .knxpr
 msgid "Export Anyway"
 msgstr "Napriek tomu exportovať"
 
+msgid "Tool Discovery"
+msgstr "Vyhľadávanie nástrojov"
+
+msgid "All tools"
+msgstr "Všetky nástroje"
+
+msgid "Search"
+msgstr "Hľadanie"
+
+msgid "All tools lists every tool to the AI tool. Search lists only a search for the tools and one that calls them, for AI models whose context is too small for the whole list. An AI tool sees a change once it reconnects."
+msgstr "Všetky nástroje: nástroj AI dostane zoznam všetkých nástrojov. Hľadanie: dostane len vyhľadávanie nástrojov a nástroj, ktorý ich volá – pre modely AI, ktorých kontext je na celý zoznam príliš malý. Nástroj AI uvidí zmenu po opätovnom pripojení."
 msgid "Delete"
 msgstr "Odstrániť"
 

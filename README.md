@@ -231,8 +231,9 @@ review a recovered project before relying on it.
 server lets an LLM drive the editor in the same live session as the GUI (shared project, catalog, and
 connection). Start it from **Tools → MCP Server** (host, port, token and the commands that register
 it in an AI tool are under **Settings → AI/MCP**), or with the editor through `--mcp` (see
-[Started by another program](#started-by-another-program)). It can edit the project and program
-hardware, so only expose it to clients you trust.
+[Started by another program](#started-by-another-program)). For AI models with a small context,
+**Tool Discovery: Search** lists only a search for its tools instead of all of them. It can edit the
+project and program hardware, so only expose it to clients you trust.
 
 <img src="docs/images/mcp.png" alt="MCP server" width="560">
 

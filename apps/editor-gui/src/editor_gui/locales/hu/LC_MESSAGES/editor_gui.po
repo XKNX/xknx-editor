@@ -1748,6 +1748,17 @@ msgstr "Nincs beállítva érvényes aláíró kulcs, ezért az exportált .knxp
 msgid "Export Anyway"
 msgstr "Exportálás mindenképp"
 
+msgid "Tool Discovery"
+msgstr "Eszközök felderítése"
+
+msgid "All tools"
+msgstr "Minden eszköz"
+
+msgid "Search"
+msgstr "Keresés"
+
+msgid "All tools lists every tool to the AI tool. Search lists only a search for the tools and one that calls them, for AI models whose context is too small for the whole list. An AI tool sees a change once it reconnects."
+msgstr "A Minden eszköz az MI-eszköznek minden eszközt felsorol. A Keresés csak az eszközök keresését és egy őket meghívó eszközt sorol fel, olyan MI-modellekhez, amelyek kontextusa túl kicsi a teljes listához. Az MI-eszköz az újracsatlakozás után látja a változást."
 msgid "Delete"
 msgstr "Törlés"
 

@@ -1676,6 +1676,17 @@ msgstr "Geçerli bir imzalama anahtarı ayarlanmadı; bu nedenle dışa aktarıl
 msgid "Export Anyway"
 msgstr "Yine de dışa aktar"
 
+msgid "Tool Discovery"
+msgstr "Araç keşfi"
+
+msgid "All tools"
+msgstr "Tüm araçlar"
+
+msgid "Search"
+msgstr "Arama"
+
+msgid "All tools lists every tool to the AI tool. Search lists only a search for the tools and one that calls them, for AI models whose context is too small for the whole list. An AI tool sees a change once it reconnects."
+msgstr "Tüm araçlar, yapay zekâ aracına her aracı listeler. Arama yalnızca araçlar için bir arama ve onları çağıran bir araç listeler; bağlamı tüm liste için çok küçük olan yapay zekâ modelleri içindir. Yapay zekâ aracı değişikliği yeniden bağlandığında görür."
 msgid "Delete"
 msgstr "Sil"
 

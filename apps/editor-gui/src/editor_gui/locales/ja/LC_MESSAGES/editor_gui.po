@@ -1676,6 +1676,17 @@ msgstr "有効な署名キーが設定されていないため、エクスポー
 msgid "Export Anyway"
 msgstr "それでもエクスポート"
 
+msgid "Tool Discovery"
+msgstr "ツールの検出"
+
+msgid "All tools"
+msgstr "すべてのツール"
+
+msgid "Search"
+msgstr "検索"
+
+msgid "All tools lists every tool to the AI tool. Search lists only a search for the tools and one that calls them, for AI models whose context is too small for the whole list. An AI tool sees a change once it reconnects."
+msgstr "「すべてのツール」はすべてのツールを AI ツールに一覧表示します。「検索」はツールの検索とそれを呼び出すツールだけを表示します。一覧全体には文脈が小さすぎる AI モデル向けです。AI ツールは再接続すると変更を認識します。"
 msgid "Delete"
 msgstr "削除"
 
