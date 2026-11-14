@@ -146,6 +146,7 @@ class TestParse:
         assert item.manufacturer_id == 131
         assert item.manufacturer_name == "MDT"
         assert item.application_version == 40
+        assert item.application_number == 64
         assert item.application_program_name == "Dimmen 4fach"
 
     def test_app_version_from_list_and_string(self) -> None:
@@ -202,9 +203,11 @@ class TestParse:
             True,
             9,
             "Hager",
+            application_number=0x6322,
             name_translations=(("en-US", "Output module"),),
         )
         back = oc._item_from_dict(oc._item_to_dict(item))
+        assert back.application_number == 0x6322
         assert back.name_translations == (("en-US", "Output module"),)
         assert back.name_in("en") == "Output module"
 
@@ -498,3 +501,15 @@ class TestDownloadProductUnwrap:
 
     def test_non_zip_passed_through(self) -> None:
         assert oc._unwrap_products_knxprod(b"not a zip") == b"not a zip"
+
+
+def test_application_number_from_the_identifier() -> None:
+    from editor_gui.plugins.catalog.online_catalog import (
+        _app_number,  # pyright: ignore[reportPrivateUsage]
+    )
+
+    assert _app_number([0, 131, 0, 64, 40]) == 64
+    assert _app_number("M-0083_A-0040-28-ABCD") == 0x40
+    assert _app_number([0, 131]) is None
+    assert _app_number("M-0083_A-XYZ-28") is None
+    assert _app_number(None) is None

@@ -895,16 +895,31 @@ class RecoverService:
             return
         if self._cancel:
             return
-        item_ids = [item.id for item in items if item.downloadable]
+        # Only the products of the applications the devices run: the server refuses a whole
+        # request when one of its products is offered in no market, and the rest would only
+        # fill the catalog.
+        wanted = {
+            (entry.app_id.application_number, entry.app_id.application_version)
+            for entry in self.entries
+            if self._needs_catalog(entry)
+            and entry.app_id is not None
+            and entry.app_id.manufacturer_id == manufacturer_id
+        }
+        item_ids = [
+            item.id
+            for item in items
+            if item.downloadable
+            and (item.application_number, item.application_version) in wanted
+        ]
         if not item_ids:
+            if self._log is not None:
+                self._log.info(
+                    "no online catalog product for the devices' applications",
+                    manufacturer=manufacturer_id,
+                )
             return
-        try:
-            with self._api.catalog.io_lock:
-                if self._cancel:
-                    return
-                added = self._api.catalog.download_online_products(item_ids)
-        except error_type as exc:
-            self._catalog_error(manufacturer_id, exc)
+        added = self._download_online(manufacturer_id, item_ids, error_type)
+        if added is None:
             return
         self._api.catalog.refresh()
         self._catalog_changed = True
@@ -913,8 +928,36 @@ class RecoverService:
                 "fetched manufacturer catalog",
                 manufacturer=manufacturer_id,
                 products=len(item_ids),
-                added=len(added),
+                added=added,
             )
+
+    def _download_online(
+        self, manufacturer_id: str, item_ids: list[str], error_type: type[Exception]
+    ) -> int | None:
+        """Download and import the online catalog products; how many product versions were
+        added, None when none could be downloaded. A refused request of several products is
+        tried again product by product, so one the server refuses leaves the others."""
+        batches = (
+            [item_ids] if len(item_ids) == 1 else [item_ids, *([i] for i in item_ids)]
+        )
+        added: int | None = None
+        for batch in batches:
+            if self._cancel:
+                break
+            try:
+                with self._api.catalog.io_lock:
+                    if self._cancel:
+                        break
+                    added = (added or 0) + len(
+                        self._api.catalog.download_online_products(batch)
+                    )
+            except error_type as exc:
+                if len(batch) == 1:
+                    self._catalog_error(manufacturer_id, exc)
+                continue
+            if len(batch) > 1:
+                break
+        return added
 
     def _reidentify_unresolved(self) -> None:
         entries: list[RecoverEntry] = []
