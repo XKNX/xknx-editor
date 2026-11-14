@@ -71,6 +71,19 @@ async def test_knx_skill_exposed_as_resource(tmp_path: Path) -> None:
         assert content[0].text.strip()  # type: ignore[union-attr]  # non-empty
 
 
+async def test_knx_skill_exposed_via_skills_extension(tmp_path: Path) -> None:
+    # The provider also serves the skill through the MCP skills extension, which validates the
+    # frontmatter at startup; a missing name or description would stop the server there.
+    from fastmcp.skills.client import SkillsClientExtension
+
+    mcp, _project = _build(tmp_path)
+    async with Client(mcp, extensions=[SkillsClientExtension()]) as client:
+        skills = {str(s.uri): s.frontmatter for s in await client.list_skills()}
+    assert _SKILL in skills, skills
+    assert skills[_SKILL].name == "knx-editing"
+    assert skills[_SKILL].description
+
+
 async def test_the_skill_calls_the_tools_as_they_are(tmp_path: Path) -> None:
     mcp, _project = _build(tmp_path)
     async with Client(mcp) as client:
