@@ -494,6 +494,19 @@ class DownloadImage:
     # segment that covers part of an octet): the download reads the octet first and writes
     # these bits only, keeping the others as the device holds them.
     bit_masks: Mapping[int, int] = MappingProxyType({})
+    allocation_sizes: Mapping[int, int] = MappingProxyType({})
+
+    def __post_init__(self) -> None:
+        sizes = dict(self.allocation_sizes)
+        if any(
+            type(index) is not int
+            or index not in self.object_segments
+            or type(size) is not int
+            or not len(self.object_segments[index]) <= size <= 0xFFFFFFFF
+            for index, size in sizes.items()
+        ):
+            raise ImageError("invalid image allocation size")
+        object.__setattr__(self, "allocation_sizes", MappingProxyType(sizes))
 
     def in_group_tables(self, address: int) -> bool:
         """Whether ``address`` lies in a group communication table at an absolute address."""

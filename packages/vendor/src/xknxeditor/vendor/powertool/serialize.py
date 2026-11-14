@@ -21,6 +21,11 @@ def to_json_bytes(config: PowerToolConfig) -> bytes:
                     for c in config.channels
                 ],
                 "bindings": dict(config.bindings),
+                **(
+                    {"object_flags": dict(config.object_flags)}
+                    if config.object_flags
+                    else {}
+                ),
             },
             sort_keys=True,
             separators=(",", ":"),
@@ -43,7 +48,7 @@ def from_json_bytes(data: bytes) -> PowerToolConfig:
     try:
         raw = json.loads(data, object_pairs_hook=unique_members)
         if (
-            set(raw)
+            set(raw) - {"object_flags"}
             != {
                 "format",
                 "schema_version",
@@ -68,6 +73,7 @@ def from_json_bytes(data: bytes) -> PowerToolConfig:
             raw["bindings"],
             raw["schema_version"],
             raw["database_version"],
+            raw.get("object_flags", {}),
         )
     except (
         TypeError,

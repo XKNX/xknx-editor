@@ -13,7 +13,7 @@ from xknxeditor.prod import parse_application_xml
 from xknxeditor.vendor.powertool import BLOB_NAME
 from xknxeditor.vendor.powertool.family_codec import PROFILES
 
-from .test_powertool import current
+from .test_powertool import assert_current_blob, current
 from .test_powertool_blob import host_blob
 
 CASES = [
@@ -75,30 +75,41 @@ def test_saved_family_edit_undo_and_reopen(tmp_path, monkeypatch, case, profile)
     row = next(
         p
         for p in rows
-        if p.writable and p.choices and len(p.choices) > 1 and p.name != "function"
+        if p.writable
+        and p.choices
+        and len(p.choices) > 1
+        and "/application/" in p.ref_id
     )
     option = next(value for value, _ in row.choices if value != row.value)
     assert project.prepared_download(device)
     assert project.cursor == before
     assert project.device_binary_data(device, BLOB_NAME) is None
+    assert project.device_binary_data(device, "PT2EtsPlugin") == host_blob(case)
     project.edit_plugin_parameter(device, row.ref_id, option)
     assert project.cursor == before + 1
     device = current(project, node_id)
     assert not device.native_error
     blob = project.device_binary_data(device, BLOB_NAME)
     assert blob
-    assert project.device_binary_data(device, "PT2EtsPlugin") == host_blob(case)
+    active = assert_current_blob(project, node_id)
     assert project.prepared_download(device)
     assert device.get_visible_com_objects()
     device.release_dynamic_ui()
     assert device.get_visible_com_objects() and device.get_com_object_modules()
     project.undo()
     assert project.device_binary_data(current(project, node_id), BLOB_NAME) is None
+    assert project.device_binary_data(
+        current(project, node_id), "PT2EtsPlugin"
+    ) == host_blob(case)
     project.redo()
     assert project.device_binary_data(current(project, node_id), BLOB_NAME) == blob
     project.close()
     project.open(tmp_path / "project.xknx")
     assert project.device_binary_data(current(project, node_id), BLOB_NAME) == blob
+    assert (
+        project.device_binary_data(current(project, node_id), "PT2EtsPlugin") == active
+    )
+    assert_current_blob(project, node_id)
     assert project.prepared_download(current(project, node_id))
     project.close()
 
@@ -270,11 +281,7 @@ def test_native_scope_selector_defaults_to_full(tmp_path, monkeypatch):
         monkeypatch.setattr(imgui, name, lambda *_: None)
     configure.ConfigurePanel._render_scope_selector(panel, current(project, node_id))
     assert panel._download_scope is DownloadScope.FULL
-    assert choices == [
-        configure.S.SCOPE_FULL,
-        configure.S.SCOPE_INDIVIDUAL_ADDRESS,
-        configure.S.SCOPE_OVERWRITE_INDIVIDUAL_ADDRESS,
-    ]
+    assert choices == [configure.S.SCOPE_FULL]
     project.close()
 
 

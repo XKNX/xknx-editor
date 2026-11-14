@@ -4380,6 +4380,9 @@ class ProjectService:
         data: bytes,
         parameters: Mapping[str, str],
         targets: list[dict[str, Any]],
+        *,
+        label: str | None = None,
+        binary_data: Mapping[str, bytes] | None = None,
     ) -> None:
         """Persist configuration, controls and an explicit object rebind atomically."""
         from .events import RebindDeviceComObjects
@@ -4390,9 +4393,27 @@ class ProjectService:
                 SetParameter(device_id=device_id, ref_id=ref, value=value)
                 for ref, value in parameters.items()
             ),
-            UpsertDeviceBinaryData(device_id=device_id, name=name, data=data),
         ]
-        self._state(project_id).store.append(CompositeEvent(events=events))
+        if binary_data is not None and name in binary_data:
+            raise ValueError("Duplicate native configuration blob")
+        device = self._state(project_id).session.get(Device, device_id)
+        if device is None:
+            raise ValueError("Device no longer exists")
+        previous = {row.name: row for row in device.binary_data}
+        for blob_name, payload in {name: data, **(binary_data or {})}.items():
+            row = previous.get(blob_name)
+            if row is not None and row.data == payload:
+                continue
+            events.append(
+                UpsertDeviceBinaryData(
+                    device_id=device_id,
+                    name=blob_name,
+                    data=payload,
+                    ref_id=row.ref_id if row else "",
+                    do_not_copy=row.do_not_copy if row else False,
+                )
+            )
+        self._state(project_id).store.append(CompositeEvent(events=events, label=label))
 
     def set_parameters(
         self,

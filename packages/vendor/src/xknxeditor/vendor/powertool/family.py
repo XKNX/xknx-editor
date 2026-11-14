@@ -12,8 +12,8 @@ from importlib.resources import files
 from types import MappingProxyType
 from typing import Any
 
-from .model import float32, timer_code
-from .project_blob import read_project_blob
+from .model import float32, object_flag_overrides, timer_code
+from .project_blob import read_project_blob, schema_version
 
 type Scalar = int | float | str | None
 
@@ -63,8 +63,12 @@ class FamilyConfig:
     program_ids: tuple[str, str] | None = None
     mask_version: int = 0x07B0
     channel_ids: Mapping[str, str] = field(default_factory=lambda: {})
+    object_flags: Mapping[str, int] = field(default_factory=lambda: {})
 
     def __post_init__(self) -> None:
+        object.__setattr__(
+            self, "object_flags", object_flag_overrides(self.object_flags)
+        )
         if self.database_code is not None and type(self.database_code) is not int:
             raise ValueError("Invalid PowerTool database code")
         if self.mask_version not in (0x07B0, 0x17B0):
@@ -158,6 +162,13 @@ class FamilyEvaluation:
         identities = [config.channel_ids.get(c.path, c.path) for c in self.channels]
         if len(identities) != len(set(identities)):
             raise ValueError("Duplicate PowerTool channel identity")
+        if set(config.object_flags) - {
+            f"{config.channel_ids.get(c.path, c.path)}/{c.application.key}/{o.key}"
+            for c in self.channels
+            if c.application is not None
+            for o in c.application.objects
+        }:
+            raise ValueError("PowerTool flags refer to an unknown object")
         if set(config.values) - {
             n.path for n in self.nodes.values() if n.spec["kind"] == "parameter"
         }:
@@ -573,7 +584,7 @@ def from_saved(data: bytes, *, qualified: bool = False) -> FamilyConfig:
     schema = schema_for(saved.product_type, saved.code)
     if not saved.metadata_verified or (
         saved.database,
-        saved.database_version,
+        schema_version(saved.database, saved.code, saved.database_version),
         saved.code,
     ) != (schema["database"], schema["version"], schema["code"]):
         raise ValueError("Unverified PowerTool database version")
@@ -631,6 +642,7 @@ def from_saved(data: bytes, *, qualified: bool = False) -> FamilyConfig:
         raise ValueError("Unverified PowerTool channel layout")
     if any(c.internal_objects for c in saved.channels):
         raise ValueError("Unverified internal PowerTool objects")
+    flags: dict[str, int] = {}
     for channel, node in zip(saved.channels, evaluated.channels, strict=True):
         assert node.application is not None
         expected = tuple(
@@ -649,11 +661,20 @@ def from_saved(data: bytes, *, qualified: bool = False) -> FamilyConfig:
             )
             for o in node.application.objects
         )
-        if channel.object_flags and channel.object_flags != expected:
-            raise ValueError(
-                "Modified original PowerTool object flags need an explicit native configuration"
+        if channel.object_flags:
+            if len(channel.object_flags) != len(expected):
+                raise ValueError("PowerTool object flags do not match the application")
+            flags.update(
+                (f"{node.path}/{node.application.key}/{obj.key}", value)
+                for obj, value, default in zip(
+                    node.application.objects,
+                    channel.object_flags,
+                    expected,
+                    strict=True,
+                )
+                if value != default
             )
-    return config
+    return replace(config, object_flags=flags)
 
 
 def edit(config: FamilyConfig, path: str, text: str) -> FamilyConfig:

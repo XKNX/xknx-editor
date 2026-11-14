@@ -48,6 +48,7 @@ from editor_gui.certs import ensure_ca_bundle
 from editor_gui.concurrency import MainThreadExecutor
 from editor_gui.device import device_label
 from editor_gui.dock_menus import render_section_menus
+from editor_gui.export_snapshot import capture_export
 from editor_gui.instances import (
     BROWSER,
     DESKTOP,
@@ -108,6 +109,7 @@ from editor_gui.plugins.mcp.plugin import advertise_url as _mcp_advertise_url
 from editor_gui.plugins.monitor import MonitorPlugin
 from editor_gui.plugins.project import ProjectPlugin, ProjectService
 from editor_gui.plugins.project.knxproj_manufacturer import collect_manufacturer_bundle
+from editor_gui.plugins.project.plugin_export import binary_data_for_export
 from editor_gui.plugins.project.space_text import space_type_name
 from editor_gui.plugins.project.strings import S as PROJECT_S
 from editor_gui.plugins.project.ui.program_queue import bus_operation_text
@@ -219,6 +221,7 @@ from xknxeditor.proj.core.product_prune import (
     STEP_STORE,
     STEP_VACUUM,
 )
+from xknxeditor.proj.core.project_secrets import ProjectCipher
 from xknxeditor.proj.core.project_store_serialize import (
     next_free_pid,
     store_pid_exists,
@@ -1663,13 +1666,16 @@ class KnxGuiApp:
             self._signing_warning_pending = (dest, signer)
             self._signing_warning_requested = True
             return
-        # Snapshot the program refs now (UI thread) together with `source`, so switching projects
-        # mid-export can't pair project A's file with project B's manufacturer bundle.
-        program_refs = self._project_service.program_refs()
-        module_arguments = self._project_service.module_arguments()
-        group_object_trees = self._project_service.group_object_trees()
+        try:
+            prepared = capture_export(
+                self._project_service, self._catalog_service.io_lock
+            )
+        except Exception as e:
+            self._log.error("export preparation failed", path=dest, error=str(e))
+            self._show_export_failure(dest, str(e) or type(e).__name__)
+            return
         remove_unused = self._export_remove_unused
-        password = self._project_service.project_password
+        schema = self._export_schema
         # Set by the progress window's Cancel; the export stops at its next step.
         cancel_requested = threading.Event()
 
@@ -1697,13 +1703,14 @@ class KnxGuiApp:
                 _export()
             finally:
                 self._progress_running = False
+                prepared.cleanup()
 
         def _export() -> None:
             stage(S.EXPORT_STAGE_BUNDLE)
             self._log.debug(
                 "export knxproj",
                 dest=dest,
-                schema=self._export_schema,
+                schema=schema,
                 signed=signer is not None,
                 remove_unused_products=remove_unused,
             )
@@ -1711,7 +1718,7 @@ class KnxGuiApp:
             master_xml: bytes | None = None
             try:
                 bundle = collect_manufacturer_bundle(
-                    program_refs, self._catalog_service
+                    prepared.program_refs, self._catalog_service
                 )
                 extra_files, master_xml = bundle.extra_files, bundle.master_xml
                 self._log.info(
@@ -1729,10 +1736,10 @@ class KnxGuiApp:
             stage(S.EXPORT_STAGE_WRITE)
             try:
                 result = export_knxproj(
-                    source,
+                    prepared.source,
                     Path(dest),
-                    password=password,
-                    schema=self._export_schema,
+                    password=prepared.password,
+                    schema=schema,
                     extra_files=extra_files,
                     master_xml=master_xml,
                     # The current signed master, cached with the app's master data for exports
@@ -1742,8 +1749,9 @@ class KnxGuiApp:
                     certificate_signer=certificate_signer,
                     remove_unused_products=remove_unused,
                     cancelled=cancel_requested.is_set,
-                    module_arguments=module_arguments,
-                    group_object_trees=group_object_trees,
+                    module_arguments=prepared.module_arguments,
+                    group_object_trees=prepared.group_object_trees,
+                    binary_data_transform=binary_data_for_export,
                 )
                 used_schema = result.schema
                 self._last_export_path = dest
@@ -1859,10 +1867,16 @@ class KnxGuiApp:
                 )
                 self._show_export_failure(dest, str(e) or type(e).__name__)
 
-        self._begin_progress(S.EXPORT_PROGRESS_TEXT.format(name=Path(dest).name))
-        self._progress_cancel = cancel_export
-        self._myknx_thread = threading.Thread(target=_run, daemon=True)
-        self._myknx_thread.start()
+        try:
+            self._begin_progress(S.EXPORT_PROGRESS_TEXT.format(name=Path(dest).name))
+            self._progress_cancel = cancel_export
+            self._myknx_thread = threading.Thread(target=_run, daemon=True)
+            self._myknx_thread.start()
+        except Exception as e:
+            self._progress_running = False
+            prepared.cleanup()
+            self._log.error("export start failed", path=dest, error=str(e))
+            self._show_export_failure(dest, str(e) or type(e).__name__)
 
     def _show_export_failure(
         self,
@@ -1971,16 +1985,21 @@ class KnxGuiApp:
         source = self._project_service.working_path
         if source is None or (self._myknx_thread and self._myknx_thread.is_alive()):
             return
-        program_refs = self._project_service.program_refs()
-        reveal = self._project_service.reveal
-        group_object_trees = self._project_service.group_object_trees()
+        try:
+            prepared = capture_export(
+                self._project_service, self._catalog_service.io_lock
+            )
+        except Exception as e:
+            self._log.error("ProjectStore export preparation failed", error=str(e))
+            return
+        store_format = self._projectstore_format
 
         def _run() -> None:
             try:
                 catalog_members: dict[str, bytes] = {}
                 try:
                     bundle = collect_manufacturer_bundle(
-                        program_refs, self._catalog_service
+                        prepared.program_refs, self._catalog_service
                     )
                     catalog_members = {
                         name: data
@@ -1989,46 +2008,70 @@ class KnxGuiApp:
                     }
                 except Exception as e:
                     self._log.warning(
-                        "manufacturer bundle failed", error=f"{type(e).__name__}: {e}"
+                        "manufacturer bundle failed",
+                        error=f"{type(e).__name__}: {e}",
                     )
-                engine = make_engine(url_for(Path(source)))
-                with Session(engine, autoflush=False) as session:
-                    project = session.query(Project).first()
-                    if project is None:
-                        self._log.error("ProjectStore export: no project row")
-                        return
-                    installation = (
-                        session.query(Installation).order_by(Installation.index).first()
-                    )
-                    # Imported manufacturer data (ETS-reissued ids) wins; catalog members fill gaps
-                    # for devices added from the catalog rather than imported.
-                    members = unzip_members(project.imported_product_members)
-                    # The product data the project stores for added devices before the catalog's.
-                    added = stored_members(session)
-                    for name, data in [*added.items(), *catalog_members.items()]:
-                        members.setdefault(name, data)
-                    if create_copy:
-                        # A separate copy: free id, name tagged so it is distinguishable in ETS.
-                        pid = next_free_pid(store)
-                        project_name = f"{project.name} ({S.MYKNX_DONGLE_COPY_SUFFIX})"
-                    else:
-                        pid, project_name = project.id, None
-                    built = write_project_store(
-                        store / pid,
-                        project,
-                        installation,
-                        installer_guid,
-                        pid=pid,
-                        project_name=project_name,
-                        product_members=members,
-                        overwrite=not create_copy,
-                        reveal=reveal,
-                        store_format=self._projectstore_format,
-                        group_object_trees=group_object_trees,
-                    )
+                engine = make_engine(url_for(prepared.source))
+                try:
+                    with Session(engine, autoflush=False) as session:
+                        project = session.query(Project).first()
+                        if project is None:
+                            self._log.error("ProjectStore export: no project row")
+                            return
+                        reveal = None
+                        if project.password_salt:
+                            if not prepared.password:
+                                raise ProjectPasswordRequired(
+                                    "the project is password-protected"
+                                )
+                            cipher = ProjectCipher.derive(
+                                prepared.password, project.password_salt
+                            )
+                            if not cipher.verify(project.password_check or ""):
+                                raise InvalidProjectPassword("wrong project password")
+                            reveal = cipher.reveal
+                        installation = (
+                            session.query(Installation)
+                            .order_by(Installation.index)
+                            .first()
+                        )
+                        # Imported manufacturer data (ETS-reissued ids) wins; catalog members fill gaps
+                        # for devices added from the catalog rather than imported.
+                        members = unzip_members(project.imported_product_members)
+                        # The product data the project stores for added devices before the catalog's.
+                        added = stored_members(session)
+                        for name, data in [
+                            *added.items(),
+                            *catalog_members.items(),
+                        ]:
+                            members.setdefault(name, data)
+                        if create_copy:
+                            # A separate copy: free id, name tagged so it is distinguishable in ETS.
+                            pid = next_free_pid(store)
+                            project_name = (
+                                f"{project.name} ({S.MYKNX_DONGLE_COPY_SUFFIX})"
+                            )
+                        else:
+                            pid, project_name = project.id, None
+                        built = write_project_store(
+                            store / pid,
+                            project,
+                            installation,
+                            installer_guid,
+                            pid=pid,
+                            project_name=project_name,
+                            product_members=members,
+                            overwrite=not create_copy,
+                            reveal=reveal,
+                            store_format=store_format,
+                            group_object_trees=prepared.group_object_trees,
+                            binary_data_transform=binary_data_for_export,
+                        )
+                finally:
+                    engine.dispose()
                 ets = (
                     "ETS 5"
-                    if self._projectstore_format is project_store.StoreFormat.ETS5
+                    if store_format is project_store.StoreFormat.ETS5
                     else "ETS 6"
                 )
                 self._log.info(
@@ -2041,9 +2084,15 @@ class KnxGuiApp:
                 self._log.error(
                     "ProjectStore export failed", error=f"{type(e).__name__}: {e}"
                 )
+            finally:
+                prepared.cleanup()
 
-        self._myknx_thread = threading.Thread(target=_run, daemon=True)
-        self._myknx_thread.start()
+        try:
+            self._myknx_thread = threading.Thread(target=_run, daemon=True)
+            self._myknx_thread.start()
+        except Exception as e:
+            prepared.cleanup()
+            self._log.error("ProjectStore export start failed", error=str(e))
 
     def _start_myknx_login(self) -> None:
         """Log into MyKnx and fetch the account's licenses on a worker thread."""
@@ -5719,11 +5768,15 @@ class KnxGuiApp:
         source = self._project_service.working_path
         if source is None or (self._myknx_thread and self._myknx_thread.is_alive()):
             return
-        program_refs = self._project_service.program_refs()
-        module_arguments = self._project_service.module_arguments()
-        group_object_trees = self._project_service.group_object_trees()
+        try:
+            prepared = capture_export(
+                self._project_service, self._catalog_service.io_lock
+            )
+        except Exception as e:
+            self._log.error("export preparation failed", path=dest, error=str(e))
+            self._show_export_failure(dest, str(e) or type(e).__name__)
+            return
         remove_unused = self._export_remove_unused
-        password = self._project_service.project_password
         # ETS 5 reads only project/20; stage at 20 for it regardless of the chosen export format.
         schema = "20" if self._ets_is5 else self._export_schema
         # Pick the matching helper for the detected version (captured on the UI thread).
@@ -5743,6 +5796,7 @@ class KnxGuiApp:
                 _export()
             finally:
                 self._progress_running = False
+                prepared.cleanup()
 
         def _export() -> None:
             stage(S.EXPORT_STAGE_BUNDLE)
@@ -5750,7 +5804,7 @@ class KnxGuiApp:
             master_xml: bytes | None = None
             try:
                 bundle = collect_manufacturer_bundle(
-                    program_refs, self._catalog_service
+                    prepared.program_refs, self._catalog_service
                 )
                 extra_files, master_xml = bundle.extra_files, bundle.master_xml
             except Exception as e:
@@ -5763,9 +5817,9 @@ class KnxGuiApp:
                 staged = work / Path(dest).name
                 stage(S.EXPORT_STAGE_WRITE)
                 result = export_knxproj(
-                    source,
+                    prepared.source,
                     staged,
-                    password=password,
+                    password=prepared.password,
                     schema=schema,
                     extra_files=extra_files,
                     master_xml=master_xml,
@@ -5773,8 +5827,9 @@ class KnxGuiApp:
                     master_cache_dir=config_dir(),
                     remove_unused_products=remove_unused,
                     cancelled=cancel_requested.is_set,
-                    module_arguments=module_arguments,
-                    group_object_trees=group_object_trees,
+                    module_arguments=prepared.module_arguments,
+                    group_object_trees=prepared.group_object_trees,
+                    binary_data_transform=binary_data_for_export,
                 )
                 if result.missing_references:
                     self._log.error(
@@ -5799,7 +5854,7 @@ class KnxGuiApp:
                 sign = sign_local(
                     staged,
                     dest,
-                    password=password or None,
+                    password=prepared.password or None,
                     accept_untested=accept_untested,
                     progress=stage,
                 )
@@ -5849,10 +5904,16 @@ class KnxGuiApp:
                 if work is not None:
                     shutil.rmtree(work, ignore_errors=True)
 
-        self._begin_progress(S.EXPORT_PROGRESS_TEXT.format(name=Path(dest).name))
-        self._progress_cancel = cancel_export
-        self._myknx_thread = threading.Thread(target=_run, daemon=True)
-        self._myknx_thread.start()
+        try:
+            self._begin_progress(S.EXPORT_PROGRESS_TEXT.format(name=Path(dest).name))
+            self._progress_cancel = cancel_export
+            self._myknx_thread = threading.Thread(target=_run, daemon=True)
+            self._myknx_thread.start()
+        except Exception as e:
+            self._progress_running = False
+            prepared.cleanup()
+            self._log.error("export start failed", path=dest, error=str(e))
+            self._show_export_failure(dest, str(e) or type(e).__name__)
 
     def _render_signing_key_modal(self) -> None:
         """Signing-key manager (view/edit/save/extract) as a dialog, opened from the Signing menu

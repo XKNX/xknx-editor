@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, Protocol, cast
 
 if TYPE_CHECKING:
@@ -22,6 +22,8 @@ class NativeObject:
     size: str
     dpt: str
     flags: Mapping[str, bool]
+    priority: str = "Low"
+    default_priority: str = "Low"
 
 
 @dataclass(frozen=True)
@@ -29,6 +31,8 @@ class NativeConfiguration:
     data: bytes
     parameters: Mapping[str, str]
     objects: tuple[NativeObject, ...]
+    source_objects: tuple[NativeObject, ...] | None = None
+    binary_data: Mapping[str, bytes] = field(default_factory=dict[str, bytes])
 
 
 @dataclass(frozen=True)
@@ -54,11 +58,33 @@ class PluginProvider(Protocol):
     def read(self, device: Device) -> NativeConfiguration: ...
     def decode(self, device: Device, data: bytes) -> NativeConfiguration: ...
     def edit(self, device: Device, ref_id: str, value: str) -> NativeConfiguration: ...
+    def serialize(
+        self,
+        device: Device,
+        config: NativeConfiguration,
+        objects: tuple[NativeObject, ...],
+    ) -> NativeConfiguration: ...
     def sections(self, device: Device) -> list[PluginSectionView]: ...
     def install_view(self, device: Device) -> None: ...
     def prepare(
         self, device: Device, communication: GroupCommunication | None
     ) -> PreparedDownload: ...
+
+
+def compatible_dpt(expected: str, actual: str | None) -> bool:
+    from xknxeditor.proj.core.dpt import normalize_datapoint_type
+
+    if not actual:
+        return True
+    left = normalize_datapoint_type(expected)
+    right = normalize_datapoint_type(actual)
+    if left == right:
+        return True
+    if left is None or right is None:
+        return False
+    return left.split("-")[1] == right.split("-")[1] and (
+        left.startswith("DPT-") or right.startswith("DPT-")
+    )
 
 
 def providers() -> tuple[PluginProvider, ...]:
@@ -164,6 +190,9 @@ def preview(
             {
                 "object_index": s.object_index,
                 "size": len(s.memory.data),
+                "allocation_size": prepared.image.allocation_sizes.get(
+                    s.object_index, len(s.memory.data)
+                ),
                 "data": s.memory.data.hex(),
                 "mask": (s.memory.mask or b"").hex(),
             }

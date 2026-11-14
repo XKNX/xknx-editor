@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from dataclasses import replace
 from typing import TYPE_CHECKING
 
 from xknx.exceptions import CouldNotParseAddress
@@ -11,6 +12,8 @@ from editor_gui.device import ComObject, ComObjectFlags
 from editor_gui.device_channels import ComObjectModule
 from editor_gui.dpt import lookup_or_make_dpt
 from xknxeditor.download.scope import DownloadScope
+from xknxeditor.download.tables import com_object_flag_byte, priority_from_bits
+from xknxeditor.prod.parser_v2.application_indexer import ApplicationIndexer
 from xknxeditor.vendor.powertool import (
     BLOB_NAME,
     Association,
@@ -24,6 +27,7 @@ from xknxeditor.vendor.powertool.native import (
     edit_native,
     for_product,
     profile,
+    rebase,
 )
 from xknxeditor.vendor.powertool.native import (
     compile_native as compile_image,
@@ -42,9 +46,10 @@ from xknxeditor.vendor.powertool.native import (
 )
 from xknxeditor.vendor.powertool.prepare import prepare_image, product_parameters
 from xknxeditor.vendor.powertool.project_blob import (
-    ORIGINAL_BLOB_NAME,
+    PLUGIN_BLOB_NAME,
     read_project_blob,
 )
+from xknxeditor.vendor.powertool.project_writer import write_project_blob
 
 if TYPE_CHECKING:
     from editor_gui.device import Device
@@ -52,7 +57,7 @@ if TYPE_CHECKING:
     from xknxeditor.download.image import GroupCommunication
     from xknxeditor.download.prepared import PreparedDownload
 
-from . import NativeConfiguration, NativeObject, PluginCapabilities
+from . import NativeConfiguration, NativeObject, PluginCapabilities, compatible_dpt
 
 FLAGS = {
     "communication": 4,
@@ -67,7 +72,7 @@ FLAGS = {
 def configuration(device: Device) -> Configuration:
     entries = [r for r in device.binary_data if r.name == BLOB_NAME]
     if not entries:
-        originals = [r for r in device.binary_data if r.name == ORIGINAL_BLOB_NAME]
+        originals = [r for r in device.binary_data if r.name == PLUGIN_BLOB_NAME]
         if len(originals) == 1:
             return config_from_project_blob(bytes(originals[0].data))
     if len(entries) != 1:
@@ -90,8 +95,6 @@ def install_view(device: Device) -> None:
         bindings = bind_catalog(device.app, compiled).references
         if dict(config.bindings) != bindings:
             raise ValueError("native object bindings disagree with the product")
-        from xknxeditor.prod.parser_v2.application_indexer import ApplicationIndexer
-
         catalog = ApplicationIndexer(device.app.program)
         overrides = {r.ref_id: r for r in device.com_object_instance_refs}
         for role in compiled.objects:
@@ -117,7 +120,9 @@ def install_view(device: Device) -> None:
                     ].number,
                     object_size=SIZE_TEXT[role.size_code],
                     supported_dpts=[lookup_or_make_dpt(role.dpt)],
-                    priority="Low",
+                    priority=override.priority.value
+                    if override is not None and override.priority is not None
+                    else priority_from_bits(role.flags),
                 )
             )
         for channel, label in enumerate(channel_labels(config)):
@@ -136,6 +141,41 @@ def install_view(device: Device) -> None:
         device.com_objects = []
 
 
+def _stored_objects(
+    device: Device, objects: tuple[NativeObject, ...]
+) -> tuple[NativeObject, ...]:
+    assert device.app is not None
+    catalog = ApplicationIndexer(device.app.program)
+
+    def identity(reference: str) -> tuple[int, str] | None:
+        ref = catalog.com_object_refs.get(reference)
+        if ref is None:
+            return None
+        obj = catalog.com_objects[ref.ref_id]
+        return obj.number, (ref.object_size or obj.object_size).value
+
+    sources: dict[tuple[int, str], list[str]] = {}
+    for ref in device.com_object_instance_refs:
+        key = identity(ref.ref_id)
+        if key is not None:
+            sources.setdefault(key, []).append(ref.ref_id)
+    matched: list[NativeObject] = []
+    for obj in objects:
+        key = identity(obj.reference)
+        candidates = sources.get(key, []) if key is not None else []
+        if len(candidates) != 1:
+            continue
+        source = next(
+            r for r in device.com_object_instance_refs if r.ref_id == candidates[0]
+        )
+        if source.datapoint_type and any(
+            not compatible_dpt(obj.dpt, token) for token in source.datapoint_type
+        ):
+            continue
+        matched.append(replace(obj, reference=candidates[0]))
+    return tuple(matched)
+
+
 def _prepare(
     device: Device, communication: GroupCommunication | None = None
 ) -> PreparedDownload:
@@ -145,18 +185,22 @@ def _prepare(
         communication.security is not None or communication.filter_table is not None
     ):
         raise ValueError("unsupported native communication profile")
-    config = from_json_bytes(PROVIDER.read(device).data)
+    state = PROVIDER.read(device)
+    config = from_json_bytes(state.data)
     assert device.app is not None
     secondary = device.second_application() if device.second_application else None
     config = for_product(config, device.app, secondary)
-    reverse = {ref: role for role, ref in config.bindings.items()}
+    sources = state.objects if state.source_objects is None else state.source_objects
+    reverse = {obj.reference: obj.key for obj in sources}
     compiled = compile_image(config)
     if bind_catalog(device.app, compiled).references != dict(config.bindings):
         raise ValueError("native object bindings disagree with the product")
     associations: list[Association] = []
     for link in communication.links if communication else ():
         if link.com_object_ref_id not in reverse:
-            raise ValueError("group link has no native object role")
+            raise ValueError(
+                "Stored group link has no unique compatible native object role"
+            )
         associations.append(
             Association(
                 reverse[link.com_object_ref_id],
@@ -166,22 +210,34 @@ def _prepare(
             )
         )
     native = any(r.name == BLOB_NAME for r in device.binary_data)
-    if not native and communication is not None and communication.links:
-        raise ValueError("Stored group links have no verified native object roles")
     objects = {co.id: co for co in device.get_visible_com_objects()}
-    from xknxeditor.download.tables import com_object_flag_byte
-
-    flags = (
-        {
+    if native:
+        flags = {
             role: com_object_flag_byte(
                 priority=objects[ref].priority,
                 **{name: getattr(objects[ref].flags, name) for name in FLAGS},
             )
             for role, ref in config.bindings.items()
         }
-        if native
-        else None
-    )
+    else:
+        overrides = {r.ref_id: r for r in device.com_object_instance_refs}
+        flags = {}
+        for obj in sources:
+            override = overrides[obj.reference]
+            values = dict(obj.flags)
+            if device.com_object_flag_overrides is not None:
+                values.update(device.com_object_flag_overrides.get(obj.reference, {}))
+            else:
+                for name in FLAGS:
+                    value = getattr(override, name + "_flag")
+                    if value is not None:
+                        values[name] = value.value == "Enabled"
+            flags[obj.key] = com_object_flag_byte(
+                priority=override.priority.value
+                if override.priority is not None
+                else obj.priority,
+                **values,
+            )
     try:
         individual_address = IndividualAddress(device.individual_address).raw
     except CouldNotParseAddress as exc:
@@ -210,6 +266,7 @@ def _prepare(
     return prepare_image(
         compile_image(config, host, associations, flags),
         secondary_application=secondary,
+        application=device.app,
     )
 
 
@@ -226,7 +283,7 @@ class PowerToolProvider:
 
     def capabilities(self, device: Device) -> PluginCapabilities:
         native = any(r.name == self.blob_name for r in device.binary_data)
-        originals = [r for r in device.binary_data if r.name == ORIGINAL_BLOB_NAME]
+        originals = [r for r in device.binary_data if r.name == PLUGIN_BLOB_NAME]
         stored = bool(originals) and not native
         readable = False
         if stored:
@@ -264,7 +321,7 @@ class PowerToolProvider:
             if len(originals) == 1:
                 try:
                     self.decode(device, bytes(originals[0].data))
-                    importable = ORIGINAL_BLOB_NAME
+                    importable = PLUGIN_BLOB_NAME
                 except ValueError:
                     pass
             return PluginCapabilities(
@@ -282,21 +339,15 @@ class PowerToolProvider:
             True,
             True,
             None,
-            importable_blob=ORIGINAL_BLOB_NAME if stored else None,
+            importable_blob=PLUGIN_BLOB_NAME if stored else None,
             stored_configuration=stored,
             readable=True,
-            download_scopes=(
-                DownloadScope.FULL,
-                DownloadScope.INDIVIDUAL_ADDRESS,
-                DownloadScope.OVERWRITE_INDIVIDUAL_ADDRESS,
-            ),
+            download_scopes=(DownloadScope.FULL,),
         )
 
     def _state(
         self, device: Device, config: Configuration, *, verify: bool = False
     ) -> NativeConfiguration:
-        from dataclasses import replace
-
         if profile(config) != self._variant(device):
             raise ValueError("Configuration does not match the device")
         assert device.app is not None
@@ -304,6 +355,10 @@ class PowerToolProvider:
         config = for_product(config, device.app, secondary)
         compiled = compile_image(config)
         binding = bind_catalog(device.app, compiled)
+        defaults = {
+            obj.key: priority_from_bits(obj.flags)
+            for obj in compile_image(replace(config, object_flags={})).objects
+        }
         if verify and dict(config.bindings) != binding.references:
             raise ValueError("Native object bindings disagree with the product")
         return NativeConfiguration(
@@ -316,6 +371,8 @@ class PowerToolProvider:
                     SIZE_TEXT[role.size_code],
                     role.dpt,
                     {name: bool(role.flags & bit) for name, bit in FLAGS.items()},
+                    priority_from_bits(role.flags),
+                    defaults[role.key],
                 )
                 for role in compiled.objects
                 if role.visible
@@ -323,15 +380,48 @@ class PowerToolProvider:
         )
 
     def setup(self, device: Device) -> NativeConfiguration:
-        if any(r.name == ORIGINAL_BLOB_NAME for r in device.binary_data):
+        if any(r.name == PLUGIN_BLOB_NAME for r in device.binary_data):
             return self.read(device)
         return self._state(device, default(self._variant(device)))
 
     def read(self, device: Device) -> NativeConfiguration:
-        return self._state(
+        native = any(r.name == self.blob_name for r in device.binary_data)
+        state = self._state(
             device,
             configuration(device),
-            verify=any(r.name == self.blob_name for r in device.binary_data),
+            verify=native,
+        )
+        return (
+            state
+            if native
+            else replace(state, source_objects=_stored_objects(device, state.objects))
+        )
+
+    def serialize(
+        self,
+        device: Device,
+        config: NativeConfiguration,
+        objects: tuple[NativeObject, ...],
+    ) -> NativeConfiguration:
+        native = from_json_bytes(config.data)
+        flags = dict(native.object_flags)
+        flags.update(
+            (obj.key, com_object_flag_byte(priority=obj.priority, **obj.flags))
+            for obj in objects
+        )
+        native = replace(native, object_flags=flags)
+        source = next(
+            (
+                bytes(row.data)
+                for row in device.binary_data
+                if row.name == PLUGIN_BLOB_NAME
+            ),
+            None,
+        )
+        payload = write_project_blob(source, native)
+        return replace(
+            self._state(device, rebase(native)),
+            binary_data={PLUGIN_BLOB_NAME: payload},
         )
 
     def decode(self, device: Device, data: bytes) -> NativeConfiguration:
@@ -345,10 +435,10 @@ class PowerToolProvider:
 
     def sections(self, device: Device) -> list[PluginSectionView]:
         from editor_gui.plugin_blob_readers.powertool import read, read_original
-        from xknxeditor.vendor.powertool.project_blob import ORIGINAL_BLOB_NAME
+        from xknxeditor.vendor.powertool.project_blob import PLUGIN_BLOB_NAME
 
         if not any(r.name == self.blob_name for r in device.binary_data):
-            originals = [r for r in device.binary_data if r.name == ORIGINAL_BLOB_NAME]
+            originals = [r for r in device.binary_data if r.name == PLUGIN_BLOB_NAME]
             if len(originals) > 1:
                 raise ValueError("Duplicate PowerTool project blobs")
             if not originals:

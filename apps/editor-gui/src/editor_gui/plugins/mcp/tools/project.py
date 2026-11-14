@@ -33,6 +33,7 @@ from editor_gui.plugins.mcp.context import McpContext, make_tool, require_projec
 from editor_gui.plugins.project.code_page import code_page_text
 from editor_gui.plugins.project.element_status import usage_label, usage_options
 from editor_gui.plugins.project.paste import PasteTarget
+from editor_gui.plugins.project.plugin_export import binary_data_for_export
 from editor_gui.plugins.project.service import DeviceProduct
 from editor_gui.plugins.project.space_text import default_name, space_error_text
 from editor_gui.plugins.project.space_usages import SPACE_USAGES
@@ -1755,7 +1756,9 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
     def project_export_knxproj(dest: str) -> dict[str, str]:
         """Export the open project to a .knxproj archive at ``dest`` (with manufacturer bundle), in
         the format of the ``export_format`` setting (project/23 by default, or project/20).
-        Returns {status, dest} plus an optional ``warning``. ``status="incomplete"`` means
+        The current PowerTool plugin blob is included after consistency validation.
+        Returns {status, dest} plus an optional
+        ``warning``. ``status="incomplete"`` means
         manufacturer references are missing — ETS may reject the archive, so inspect the warning."""
         require_project(ctx)
         warnings: list[str] = []
@@ -1787,6 +1790,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                 master_cache_dir=config_dir(),
                 module_arguments=project.module_arguments(),
                 group_object_trees=project.group_object_trees(),
+                binary_data_transform=binary_data_for_export,
             )
             if result.unverifiable_folders:
                 warnings.append(
@@ -1870,6 +1874,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                 master_cache_dir=config_dir(),
                 module_arguments=project.module_arguments(),
                 group_object_trees=project.group_object_trees(),
+                binary_data_transform=binary_data_for_export,
             )
             return project.project_password
 

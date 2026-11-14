@@ -1,5 +1,6 @@
 """A placeholder signing key defers the .knxproj export behind a one-time warning."""
 
+import threading
 from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import Mock
@@ -19,6 +20,9 @@ def _app(tmp_path: Path, *, acknowledged: bool) -> SimpleNamespace:
     )
     return SimpleNamespace(
         _project_service=service,
+        _catalog_service=SimpleNamespace(io_lock=threading.RLock()),
+        _log=Mock(),
+        _show_export_failure=Mock(),
         _myknx_thread=None,
         _signing_warning_acknowledged=acknowledged,
         _signing_warning_requested=False,
@@ -49,8 +53,10 @@ def test_acknowledged_warning_lets_export_through(
     # Stop right after the gate so the worker setup is not exercised here.
     app._project_service.program_refs = Mock(side_effect=RuntimeError("past gate"))
 
-    with pytest.raises(RuntimeError, match="past gate"):
-        KnxGuiApp._do_export_knxproj(app, str(tmp_path / "export.knxproj"))  # type: ignore[arg-type]
+    dest = str(tmp_path / "export.knxproj")
+    KnxGuiApp._do_export_knxproj(app, dest)  # type: ignore[arg-type]
+    app._project_service.program_refs.assert_called_once()
+    app._show_export_failure.assert_called_once_with(dest, "past gate")
     assert app._signing_warning_requested is False
 
 
@@ -61,6 +67,8 @@ def test_valid_key_does_not_warn(
     app = _app(tmp_path, acknowledged=False)
     app._project_service.program_refs = Mock(side_effect=RuntimeError("past gate"))
 
-    with pytest.raises(RuntimeError, match="past gate"):
-        KnxGuiApp._do_export_knxproj(app, str(tmp_path / "export.knxproj"))  # type: ignore[arg-type]
+    dest = str(tmp_path / "export.knxproj")
+    KnxGuiApp._do_export_knxproj(app, dest)  # type: ignore[arg-type]
+    app._project_service.program_refs.assert_called_once()
+    app._show_export_failure.assert_called_once_with(dest, "past gate")
     assert app._signing_warning_requested is False

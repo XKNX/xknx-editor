@@ -12,7 +12,7 @@ from xknxeditor.vendor.powertool.model import (
 )
 from xknxeditor.vendor.powertool.native import load as from_json_bytes
 from xknxeditor.vendor.powertool.project_blob import (
-    ORIGINAL_BLOB_NAME,
+    PLUGIN_BLOB_NAME,
     SavedParameter,
     read_project_blob,
 )
@@ -21,7 +21,7 @@ from xknxeditor.vendor.powertool.project_blob import (
 def read_original(data: bytes) -> list[PluginSectionView]:
     """Expose stored values without granting editing or image capabilities."""
     project = read_project_blob(data)
-    section = ORIGINAL_BLOB_NAME
+    section = PLUGIN_BLOB_NAME
     metadata = {
         "database": project.database,
         "database_version": project.database_version,
@@ -136,7 +136,7 @@ def read_original(data: bytes) -> list[PluginSectionView]:
 
 
 def read(data: bytes, name: str = BLOB_NAME) -> list[PluginSectionView]:
-    if name == ORIGINAL_BLOB_NAME:
+    if name == PLUGIN_BLOB_NAME:
         return read_original(data)
     if name != BLOB_NAME:
         return []

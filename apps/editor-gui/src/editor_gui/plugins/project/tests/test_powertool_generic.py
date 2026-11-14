@@ -6,13 +6,14 @@ from editor_gui.plugin_providers.powertool import PROVIDER
 from editor_gui.plugins.base import Logger
 from editor_gui.plugins.catalog.service import CatalogService
 from editor_gui.plugins.logger.service import LogService
+from editor_gui.plugins.project.plugin_export import binary_data_for_export
 from editor_gui.plugins.project.service import ProjectService
 from packages.vendor.tests.powertool_fixtures import open_archive
 from xknxeditor.prod import parse_application_xml, parse_hardware_xml
 from xknxeditor.vendor.powertool.family import FamilyEvaluation
 from xknxeditor.vendor.powertool.native import load
 
-from .test_powertool import current
+from .test_powertool import assert_current_blob, current
 from .test_powertool_family import family_project
 
 
@@ -100,8 +101,7 @@ def test_generic_export_import_keeps_configuration_and_links(
     project, node = generic_project(tmp_path, monkeypatch, powerline=powerline)
     project.setup_plugin(current(project, node))
     device = current(project, node)
-    original = b"\x00preserved original data"
-    project.persist_device_blob(device, "PT2EtsPlugin", original)
+    active = assert_current_blob(project, node)
     co = device.get_visible_com_objects()[0]
     ga_id = project.create_group_address("1/2/3", "Linked")
     project.link_com_object_to_ga(co.db_id, ga_id)
@@ -119,13 +119,18 @@ def test_generic_export_import_keeps_configuration_and_links(
     before = project.export_plugin_config(current(project, node))
     image = project.prepared_download(current(project, node)).image
     project.close()
-    export_knxproj(tmp_path / "project.xknx", tmp_path / "export.knxproj", schema="23")
+    export_knxproj(
+        tmp_path / "project.xknx",
+        tmp_path / "export.knxproj",
+        schema="23",
+        binary_data_transform=binary_data_for_export,
+    )
     import_knxproj(tmp_path / "export.knxproj", tmp_path / "import.xknx")
     project.open(tmp_path / "import.xknx")
     device = project.devices[0]
     assert device.native_error is None
     assert project.device_binary_data(device, BLOB_NAME) == before
-    assert project.device_binary_data(device, "PT2EtsPlugin") == original
+    assert project.device_binary_data(device, "PT2EtsPlugin") == active
     communication = project.group_communication_for(device)
     assert len(communication.links) == 1
     assert communication.links[0].group_speaker == powerline
@@ -197,16 +202,13 @@ def test_general_channel_shift_keeps_links_atomically(tmp_path, monkeypatch):
     )
     device = current(project, node)
     config = load(project.export_plugin_config(device))
-    role = next(
-        k
-        for k in config.bindings
-        if k.startswith(config.channel_ids[second.path] + "/")
-    )
+    role = next(k for k in config.bindings if k.startswith(second.path + "/"))
     co = device.find_com_object(config.bindings[role])
     ga = project.create_group_address("1/2/3", "Survivor")
     assert co and ga is not None
     project.link_com_object_to_ga(co.db_id, ga)
     before = project.export_plugin_config(current(project, node))
+    before_blob = assert_current_blob(project, node)
     cursor = project.cursor
     project.edit_plugin_parameter(
         current(project, node), "powertool:family:" + first.path, "0"
@@ -214,13 +216,24 @@ def test_general_channel_shift_keeps_links_atomically(tmp_path, monkeypatch):
     assert project.cursor == cursor + 1
     device = current(project, node)
     config = load(project.export_plugin_config(device))
-    shifted = device.find_com_object(config.bindings[role])
+    shifted_role = first.path + role[len(second.path) :]
+    shifted = device.find_com_object(config.bindings[shifted_role])
     assert shifted.db_id == co.db_id
     assert project.get_links_for_com_object(shifted.db_id)[0].group_address_id == ga
+    shifted_blob = assert_current_blob(project, node)
     project.undo()
     assert project.export_plugin_config(current(project, node)) == before
+    assert assert_current_blob(project, node) == before_blob
     project.redo()
     assert current(project, node).native_error is None
+    assert assert_current_blob(project, node) == shifted_blob
+    project.close()
+    project.open(tmp_path / "project.xknx")
+    project.set_flag(current(project, node), shifted.id, "read_on_init", True)
+    assert_current_blob(project, node)
+    assert project.get_links_for_com_object(co.db_id)[0].group_address_id == ga
+    project.undo()
+    assert assert_current_blob(project, node) == shifted_blob
     project.close()
 
 

@@ -1,5 +1,6 @@
 """Native role rebinding, roundtrip state and the editor's read/write boundary."""
 
+from dataclasses import replace
 from pathlib import Path
 from typing import Any, cast
 
@@ -12,6 +13,8 @@ from editor_gui.plugins.logger.service import LogService
 from editor_gui.plugins.project.service import ProjectService
 from xknxeditor.prod import parse_application_xml
 from xknxeditor.vendor.powertool import BLOB_NAME
+from xknxeditor.vendor.powertool.family import FamilyConfig
+from xknxeditor.vendor.powertool.native import compile_native, from_original, load
 
 ROOT = (
     next(
@@ -45,6 +48,22 @@ def current(proj, node_id):
     return result
 
 
+def assert_current_blob(proj, node_id):
+    device = current(proj, node_id)
+    data = proj.device_binary_data(device, "PT2EtsPlugin")
+    assert data
+    native = load(proj.export_plugin_config(device))
+    restored = from_original(data)
+    if isinstance(native, FamilyConfig):
+        assert isinstance(restored, FamilyConfig)
+        restored = replace(
+            restored, program_ids=native.program_ids, mask_version=native.mask_version
+        )
+    assert compile_native(restored).pid == compile_native(native).pid
+    assert proj.device_binary_data(device, "PowerTool-Original") is None
+    return data
+
+
 @pytest.mark.parametrize("variant", ["01", "02"])
 async def test_pushbutton_programming_enabled(tmp_path, monkeypatch, variant):
     from unittest.mock import AsyncMock
@@ -64,13 +83,14 @@ async def test_pushbutton_programming_enabled(tmp_path, monkeypatch, variant):
     project.close()
 
 
-def test_setup_preserves_original_and_reopens(tmp_path, monkeypatch):
+def test_setup_updates_stored_format_and_undo_restores_original(tmp_path, monkeypatch):
     proj, nid = native_project(tmp_path, monkeypatch)
     dev = current(proj, nid)
     from .test_powertool_blob import original_blob
 
     original = original_blob("matrix/01-00001-default")
     proj.persist_device_blob(dev, "PT2EtsPlugin", original)
+    assert proj.device_binary_data(current(proj, nid), "PT2EtsPlugin") == original
     before = len(proj.history())
     proj.setup_plugin(current(proj, nid))
     dev = current(proj, nid)
@@ -78,7 +98,7 @@ def test_setup_preserves_original_and_reopens(tmp_path, monkeypatch):
     assert len(dev.get_visible_com_objects()) == 2
     assert all(co.db_id is not None for co in dev.com_objects)
     blob = proj.device_binary_data(dev, BLOB_NAME)
-    assert proj.device_binary_data(dev, "PT2EtsPlugin") == original
+    active = assert_current_blob(proj, nid)
     dev.release_dynamic_ui()
     assert dev.get_com_object_modules()
     assert len(dev.get_visible_com_objects()) == 2
@@ -88,11 +108,13 @@ def test_setup_preserves_original_and_reopens(tmp_path, monkeypatch):
     assert proj.device_binary_data(dev, BLOB_NAME) == blob
     assert len(dev.get_visible_com_objects()) == 2
     assert all(co.db_id is not None for co in dev.com_objects)
-    assert proj.device_binary_data(dev, "PT2EtsPlugin") == original
+    assert proj.device_binary_data(dev, "PT2EtsPlugin") == active
     proj.undo()
     assert proj.device_binary_data(current(proj, nid), BLOB_NAME) is None
+    assert proj.device_binary_data(current(proj, nid), "PT2EtsPlugin") == original
     proj.redo()
     assert proj.device_binary_data(current(proj, nid), BLOB_NAME) == blob
+    assert proj.device_binary_data(current(proj, nid), "PT2EtsPlugin") == active
     proj.close()
 
 
@@ -151,10 +173,9 @@ def test_export_import_keeps_both_blobs_and_bindings(tmp_path, monkeypatch):
     from xknxeditor.proj import export_knxproj, import_knxproj
 
     proj, nid = native_project(tmp_path, monkeypatch)
-    original = b"\xff\x00\x89original"
     proj.setup_plugin(current(proj, nid))
-    proj.persist_device_blob(current(proj, nid), "PT2EtsPlugin", original)
     proj.edit_plugin_parameter(current(proj, nid), "powertool:0:function", "dim_rocker")
+    active = assert_current_blob(proj, nid)
     linked = current(proj, nid).com_objects[2]
     ga = proj.create_group_address("1/2/3", "LED")
     assert ga is not None and linked.db_id is not None and proj._pid is not None
@@ -166,7 +187,8 @@ def test_export_import_keeps_both_blobs_and_bindings(tmp_path, monkeypatch):
     proj.open(tmp_path / "import.xknx")
     dev = proj.devices[0]
     assert proj.device_binary_data(dev, BLOB_NAME) == before
-    assert proj.device_binary_data(dev, "PT2EtsPlugin") == original
+    assert proj.device_binary_data(dev, "PT2EtsPlugin") == active
+    assert_current_blob(proj, dev.node_id)
     assert len(dev.get_visible_com_objects()) == 3
     assert all(co.db_id is not None for co in dev.com_objects)
     communication = proj.group_communication_for(dev)

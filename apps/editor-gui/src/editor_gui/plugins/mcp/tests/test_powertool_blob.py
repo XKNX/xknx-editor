@@ -6,8 +6,15 @@ from fastmcp import Client
 from editor_gui.plugin_providers.powertool import configuration
 from editor_gui.plugins.mcp.server import build_server
 from editor_gui.plugins.project.plugin import ProjectPlugin
-from editor_gui.plugins.project.tests.test_powertool import current, native_project
-from editor_gui.plugins.project.tests.test_powertool_blob import original_blob
+from editor_gui.plugins.project.tests.test_powertool import (
+    assert_current_blob,
+    current,
+    native_project,
+)
+from editor_gui.plugins.project.tests.test_powertool_blob import (
+    original_blob,
+    stored_linked_project,
+)
 from xknxeditor.vendor.powertool import BLOB_NAME
 
 from .test_server import _build_ctx, _data
@@ -15,10 +22,14 @@ from .test_server import _build_ctx, _data
 
 async def test_mcp_imports_stored_blob_and_batch_rolls_back(tmp_path, monkeypatch):
     ctx = _build_ctx(tmp_path)
-    project, nid = native_project(tmp_path, monkeypatch, ctx.api.project)
+    project, nid, original = stored_linked_project(
+        tmp_path,
+        monkeypatch,
+        ctx.api.project,
+        case="matrix/01-00018-App_DimmenWippeTBA",
+    )
     ctx.project_plugin = ProjectPlugin(ctx.api)
-    original = original_blob()
-    project.persist_device_blob(current(project, nid), "PT2EtsPlugin", original)
+    links = project.group_communication_for(current(project, nid)).links
     async with Client(build_server(ctx)) as client:
         rows = await _data(client, "project_plugin_parameters", device_address="1.1.1")
         assert rows["sections"]
@@ -30,6 +41,7 @@ async def test_mcp_imports_stored_blob_and_batch_rolls_back(tmp_path, monkeypatc
             client, "project_import_stored_plugin_config", device_address="1.1.1"
         )
         assert result == {"lost_links": []}
+        assert project.group_communication_for(current(project, nid)).links == links
         assert project.cursor == before + 1
         assert configuration(current(project, nid)).channels[0].function == "dim_rocker"
         project.undo()
@@ -50,6 +62,7 @@ async def test_mcp_imports_stored_blob_and_batch_rolls_back(tmp_path, monkeypatc
             ],
         )
         assert project.cursor == before
+        assert project.group_communication_for(current(project, nid)).links == links
         assert project.device_binary_data(current(project, nid), BLOB_NAME) is None
         assert (
             project.device_binary_data(current(project, nid), "PT2EtsPlugin")
@@ -66,6 +79,7 @@ async def test_mcp_imports_stored_blob_and_batch_rolls_back(tmp_path, monkeypatc
             ],
         )
         assert result["applied"] == 1
+        assert project.group_communication_for(current(project, nid)).links == links
         assert configuration(current(project, nid)).channels[0].function == "dim_rocker"
     project.close()
 
@@ -142,6 +156,10 @@ async def test_mcp_edits_saved_config_directly_and_batch_undoes_conversion(
         assert response["applied"] == 0
         assert project.cursor == before
         assert project.device_binary_data(current(project, nid), BLOB_NAME) is None
+        assert (
+            project.device_binary_data(current(project, nid), "PT2EtsPlugin")
+            == original
+        )
         result = await _data(
             client,
             "project_set_plugin_parameter",
@@ -154,10 +172,7 @@ async def test_mcp_edits_saved_config_directly_and_batch_undoes_conversion(
         assert (
             configuration(current(project, nid)).channels[0].function == "switch_rocker"
         )
-        assert (
-            project.device_binary_data(current(project, nid), "PT2EtsPlugin")
-            == original
-        )
+        assert assert_current_blob(project, nid) != original
     project.close()
 
 
@@ -185,4 +200,47 @@ async def test_mcp_rtc_pages_raw_values_and_search_match_gui(tmp_path, monkeypat
         assert any(
             p["value"] == "257" for s in result["sections"] for p in s["parameters"]
         )
+    project.close()
+
+
+async def test_mcp_archive_export_uses_plugin_writeback(tmp_path, monkeypatch):
+    from types import SimpleNamespace
+
+    from editor_gui.plugins.project.plugin_export import binary_data_for_export
+    from xknxeditor.proj import export_knxproj
+
+    ctx = _build_ctx(tmp_path)
+    project, nid, _ = stored_linked_project(tmp_path, monkeypatch, ctx.api.project)
+    project.import_stored_plugin_config(current(project, nid))
+    active_blob = assert_current_blob(project, nid)
+    captured = {}
+
+    def export(source, dest, **kwargs):
+        assert kwargs["binary_data_transform"] is binary_data_for_export
+        kwargs["fetch_master"] = False
+        result = export_knxproj(source, dest, **kwargs)
+        captured["result"] = result
+        return result
+
+    monkeypatch.setattr("xknxeditor.proj.export_knxproj", export)
+    monkeypatch.setattr(
+        "editor_gui.plugins.project.knxproj_manufacturer.collect_manufacturer_bundle",
+        lambda *_: SimpleNamespace(extra_files={}, master_xml=None),
+    )
+    async with Client(build_server(ctx)) as client:
+        await _data(
+            client, "project_export_knxproj", dest=str(tmp_path / "mcp.knxproj")
+        )
+    import zipfile
+
+    from xknxeditor.vendor.powertool.native import from_original
+
+    with zipfile.ZipFile(tmp_path / "mcp.knxproj") as archive:
+        active = next(n for n in archive.namelist() if n.endswith("_PT2EtsPlugin.dat"))
+        assert not any(
+            n.endswith("_PowerTool.2DOriginal.dat") for n in archive.namelist()
+        )
+        assert archive.read(active) == active_blob
+        assert from_original(archive.read(active)).channels
+    assert captured
     project.close()

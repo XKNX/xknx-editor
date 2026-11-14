@@ -1,5 +1,8 @@
 """The staged archive and local signer use the same project password."""
 
+import sqlite3
+import threading
+from contextlib import closing
 from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import Mock
@@ -13,6 +16,8 @@ from editor_gui.main import KnxGuiApp
 def test_local_export_forwards_password(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, password: str | None
 ) -> None:
+    with closing(sqlite3.connect(tmp_path / "project.xknx")) as connection:
+        connection.execute("CREATE TABLE source (value TEXT)")
     service = SimpleNamespace(
         working_path=tmp_path / "project.xknx",
         project_password=password,
@@ -22,7 +27,7 @@ def test_local_export_forwards_password(
     )
     app = SimpleNamespace(
         _project_service=service,
-        _catalog_service=object(),
+        _catalog_service=SimpleNamespace(io_lock=threading.RLock()),
         _myknx_thread=None,
         _export_remove_unused=False,
         _export_schema="23",

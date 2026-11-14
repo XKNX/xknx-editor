@@ -19,7 +19,9 @@ from xknxeditor.download.scope import DownloadScope
 from xknxeditor.namespaces.intermediate.ld_ctrl_load_completed_t import (
     LdCtrlLoadCompleted,
 )
+from xknxeditor.namespaces.intermediate.ld_ctrl_rel_segment_t import LdCtrlRelSegment
 from xknxeditor.namespaces.intermediate.ld_ctrl_write_prop_t import LdCtrlWriteProp
+from xknxeditor.namespaces.intermediate.ld_ctrl_write_rel_mem_t import LdCtrlWriteRelMem
 from xknxeditor.namespaces.intermediate.mask_version_t import MaskVersion
 from xknxeditor.prod import MasterData, parse_application_xml
 from xknxeditor.vendor.powertool import (
@@ -98,6 +100,105 @@ async def test_complete_plan(short, variant):
     assert not any(
         isinstance(p, PropertyValueWrite) and p.property_id == 27 for p in fake.sent
     )
+
+
+@pytest.mark.parametrize("short", [False, True])
+@pytest.mark.parametrize("variant", ["01", "02"])
+async def test_catalog_reservation_keeps_payload_and_unwritten_tail(short, variant):
+    from xknxeditor.vendor.powertool.model import edit_config
+
+    config = edit_config(default_config(variant), 0, "function", "step_rocker")
+    config = edit_config(config, 0, "number_of_objects", "5")
+    compiled = compile_image(config, HostProfile(short_associations=short))
+    app, pei = applications(variant)
+    prepared = prepare_image(
+        compiled, short_associations=short, application=app, secondary_application=pei
+    )
+    assert prepared.resource_sizes[3] == 14
+    assert prepared.image.allocation_sizes[3] == 40
+    assert (
+        prepared.image.object_segments == prepare_image(compiled).image.object_segments
+    )
+    controls = prepared_controls(app, prepared, master(), pei)
+    allocation = next(
+        c for c in controls if isinstance(c, LdCtrlRelSegment) and c.lsm_idx == 3
+    )
+    write = next(
+        c for c in controls if isinstance(c, LdCtrlWriteRelMem) and c.obj_idx == 3
+    )
+    assert (allocation.size, allocation.mode, allocation.fill) == (40, 0, 0)
+    assert write.size == 14
+    fake = FakeDevice(MAPPING, 0x07B0)
+    fake.table_references = {i: 0x1000 + i * 0x1000 for i in range(1, 6)}
+    base = fake.table_references[3]
+    tail = {base + i: 0xA5 for i in range(14, 40)}
+    fake.memory.update(tail)
+    for prop in compiled.properties:
+        fake.property_element_sizes[prop.object_index, prop.pid] = len(prop.data)
+    runner = LoadProcedureRunner(
+        app,
+        prepared.image,
+        DeviceProgrammer(fake),
+        controls=controls,
+        object_types=MAPPING,
+        application2=pei,
+    )
+    await runner.preflight()
+    assert not any(isinstance(p, (MemoryWrite, PropertyValueWrite)) for p in fake.sent)
+    await runner.run()
+    assert any(
+        isinstance(p, PropertyValueWrite)
+        and p.object_index == 3
+        and p.property_id == 5
+        and p.data == bytes.fromhex("030b0000002800000000")
+        for p in fake.sent
+    )
+    assert (
+        bytes(fake.memory[base + i] for i in range(14))
+        == prepared.image.object_segments[3]
+    )
+    assert all(fake.memory[address] == value for address, value in tail.items())
+
+
+def test_object_payload_matches_original_with_larger_catalog_reservation():
+    from xknxeditor.vendor.powertool.serialize import from_json_bytes
+
+    with open_archive("original-images.zip") as archive:
+        prefix = "fixtures/01-00390-Par_AnzahlObjekte/"
+        config = from_json_bytes(archive.read(prefix + "config.json"))
+        compiled = compile_image(config)
+        assert compiled.pid == archive.read(prefix + "image.pid")
+    app, pei = applications()
+    prepared = prepare_image(compiled, application=app, secondary_application=pei)
+    assert prepared.resource_sizes[3] == 14
+    assert prepared.image.allocation_sizes[3] == 40
+
+
+def test_allocation_sizes_reject_truncation_and_unknown_resources():
+    from dataclasses import replace
+
+    from xknxeditor.download.errors import ImageError
+
+    prepared = prepare_image(compile_image(default_config("01")))
+    for sizes in ({3: 1}, {6: 40}, {3: 0x100000000}, {3: 40.0}):
+        with pytest.raises(ImageError, match="allocation size"):
+            replace(prepared.image, allocation_sizes=sizes)
+    sizes = {3: 40}
+    larger = replace(prepared.image, allocation_sizes=sizes)
+    sizes[3] = 1
+    assert larger.allocation_sizes[3] == 40
+
+
+def test_catalog_reservation_includes_numbering_holes_without_truncation():
+    app, pei = applications()
+    table = app.program.static.com_object_table
+    assert table is not None
+    table.com_object = [table.com_object[-1]]
+    compiled = compile_image(default_config("01"))
+    assert prepare_image(compiled, application=app).image.allocation_sizes[3] == 40
+    table.com_object = []
+    prepared = prepare_image(compiled, application=app, secondary_application=pei)
+    assert prepared.image.allocation_sizes[3] == len(prepared.image.object_segments[3])
 
 
 async def test_prepared_write_gate_precedes_bus(monkeypatch):
@@ -261,8 +362,20 @@ async def test_family_complete_plan_and_preserved_masks(
         config, HostProfile(short_associations=short), [Association(role, 0x1234, True)]
     )
     prepared = prepare_image(
-        compiled, short_associations=short, secondary_application=pei
+        compiled,
+        short_associations=short,
+        secondary_application=pei,
+        application=app,
     )
+    reservation = {
+        "ObjektRTR": 120,
+        "PraesenzStandard": 420,
+        "PraesenzKomfort": 760,
+        "ObjektRTRunified": 120,
+        "SoloRTR3": 402,
+        "SoloRTR3oBE": 402,
+    }[profile]
+    assert prepared.image.allocation_sizes[3] == reservation
     controls = prepared_controls(app, prepared, master(), pei)
     boundary = next(
         i for i, c in enumerate(controls) if isinstance(c, LdCtrlLoadCompleted)
@@ -281,6 +394,9 @@ async def test_family_complete_plan_and_preserved_masks(
                 address = fake.table_references[resource.object_index] + i
                 fake.memory[address] = 0xA5
                 holes.append(address)
+    base = fake.table_references[3]
+    tail = {base + i: 0xA5 for i in range(prepared.resource_sizes[3], reservation)}
+    fake.memory.update(tail)
     runner = LoadProcedureRunner(
         app,
         prepared.image,
@@ -311,6 +427,14 @@ async def test_family_complete_plan_and_preserved_masks(
         max_apdu_length=15,
     )
     assert all(fake.memory[a] == 0xA5 for a in holes)
+    assert all(fake.memory[a] == value for a, value in tail.items())
+    assert any(
+        isinstance(p, PropertyValueWrite)
+        and p.object_index == 3
+        and p.property_id == 5
+        and p.data[2:6] == reservation.to_bytes(4, "big")
+        for p in fake.sent
+    )
     for r in compiled.resources:
         base = fake.table_references[r.object_index]
         assert all(
@@ -402,8 +526,12 @@ async def test_powerline_plan_property_elements_and_domain(short):
         [Association(role, i + 1, i == 0, i == 8) for i in range(9)],
     )
     prepared = prepare_image(
-        compiled, short_associations=short, secondary_application=pei
+        compiled,
+        short_associations=short,
+        secondary_application=pei,
+        application=app,
     )
+    assert prepared.image.allocation_sizes[3] == 402
     assert prepared.domain_address == 0x12
     controls = prepared_controls(app, prepared, pl_master, pei)
     speaker_write = next(
@@ -431,6 +559,13 @@ async def test_powerline_plan_property_elements_and_domain(short):
     await runner.preflight()
     assert not any(isinstance(p, (MemoryWrite, PropertyValueWrite)) for p in fake.sent)
     await runner.run()
+    assert any(
+        isinstance(p, PropertyValueWrite)
+        and p.object_index == 3
+        and p.property_id == 5
+        and p.data[2:6] == (402).to_bytes(4, "big")
+        for p in fake.sent
+    )
     assert fake.properties[1, 53] == b"\0\x01"
     assert fake.properties[0, 73] == b"\xef"
     for resource in compiled.resources:

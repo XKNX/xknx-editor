@@ -5,7 +5,7 @@ from fastmcp import Client
 
 from editor_gui.plugins.mcp.server import build_server
 from editor_gui.plugins.project.plugin import ProjectPlugin
-from editor_gui.plugins.project.tests.test_powertool import current
+from editor_gui.plugins.project.tests.test_powertool import assert_current_blob, current
 from editor_gui.plugins.project.tests.test_powertool_family import CASES, family_project
 from xknxeditor.vendor.powertool import BLOB_NAME
 
@@ -21,16 +21,13 @@ async def test_family_mcp_edit_export_and_atomic_batch(
         tmp_path, monkeypatch, case, profile, ctx.api.project
     )
     ctx.project_plugin = ProjectPlugin(ctx.api)
+    original = project.device_binary_data(current(project, node_id), "PT2EtsPlugin")
     async with Client(build_server(ctx)) as client:
         capabilities = await _data(
             client, "project_plugin_capabilities", device_address="1.1.1"
         )
         assert capabilities["preflight"] and capabilities["programming_error"] is None
-        assert capabilities["download_scopes"] == [
-            "FULL",
-            "INDIVIDUAL_ADDRESS",
-            "OVERWRITE_INDIVIDUAL_ADDRESS",
-        ]
+        assert capabilities["download_scopes"] == ["FULL"]
         data = await _data(client, "project_plugin_parameters", node_id=node_id)
         rows = [p for s in data["sections"] for p in s["parameters"]]
         row = next(
@@ -52,6 +49,7 @@ async def test_family_mcp_edit_export_and_atomic_batch(
         )
         assert result["changed"]
         assert project.cursor == cursor + 1
+        assert_current_blob(project, node_id)
         exported = await _data(client, "project_export_plugin_config", node_id=node_id)
         assert (
             exported["config_json"]
@@ -59,6 +57,10 @@ async def test_family_mcp_edit_export_and_atomic_batch(
         )
         project.undo()
         assert project.device_binary_data(current(project, node_id), BLOB_NAME) is None
+        assert (
+            project.device_binary_data(current(project, node_id), "PT2EtsPlugin")
+            == original
+        )
         cursor = project.cursor
         result = await _data(
             client,
@@ -85,6 +87,10 @@ async def test_family_mcp_edit_export_and_atomic_batch(
         assert result["rolled_back"]
         assert project.cursor == cursor
         assert project.device_binary_data(current(project, node_id), BLOB_NAME) is None
+        assert (
+            project.device_binary_data(current(project, node_id), "PT2EtsPlugin")
+            == original
+        )
     project.close()
 
 

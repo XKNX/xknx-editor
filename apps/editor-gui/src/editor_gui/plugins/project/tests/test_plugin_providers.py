@@ -124,6 +124,9 @@ async def test_another_registered_provider_uses_all_shared_paths(tmp_path, monke
                 device, ref_id.replace("example:", "powertool:"), value
             )
 
+        def serialize(self, device, config, objects):
+            return PROVIDER.serialize(device, config, objects)
+
         def sections(self, device):
             calls.append("sections")
             return PROVIDER.sections(device)
