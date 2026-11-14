@@ -1722,3 +1722,6 @@ msgstr "{name} належить до відкритого проєкту і не
 
 msgid "{name} could not be deleted: {error}"
 msgstr "Не вдалося видалити {name}: {error}"
+
+msgid "Delete File"
+msgstr "Видалення файлу"

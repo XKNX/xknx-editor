@@ -1794,3 +1794,6 @@ msgstr "{name} patrí k otvorenému projektu a neodstráni sa."
 
 msgid "{name} could not be deleted: {error}"
 msgstr "{name} sa nepodarilo odstrániť: {error}"
+
+msgid "Delete File"
+msgstr "Odstrániť súbor"

@@ -1706,3 +1706,6 @@ msgstr "Το {name} ανήκει στο ανοιχτό έργο και δεν δ
 
 msgid "{name} could not be deleted: {error}"
 msgstr "Δεν ήταν δυνατή η διαγραφή του {name}: {error}"
+
+msgid "Delete File"
+msgstr "Διαγραφή αρχείου"

@@ -1794,3 +1794,6 @@ msgstr "{name} aparține proiectului deschis și nu este șters."
 
 msgid "{name} could not be deleted: {error}"
 msgstr "{name} nu a putut fi șters: {error}"
+
+msgid "Delete File"
+msgstr "Ștergere fișier"

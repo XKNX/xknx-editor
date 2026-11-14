@@ -2307,6 +2307,10 @@ class MenuStrings:
         return _("Delete")
 
     @property
+    def WEB_DELETE_TITLE(self) -> str:
+        return _("Delete File")
+
+    @property
     def WEB_DELETE_HINT(self) -> str:
         return _("Delete from the server")
 

@@ -1706,3 +1706,6 @@ msgstr "{name} hører til det åbne projekt og slettes ikke."
 
 msgid "{name} could not be deleted: {error}"
 msgstr "{name} kunne ikke slettes: {error}"
+
+msgid "Delete File"
+msgstr "Slet fil"

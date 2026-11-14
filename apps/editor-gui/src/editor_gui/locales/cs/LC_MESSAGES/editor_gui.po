@@ -1722,3 +1722,6 @@ msgstr "{name} patří k otevřenému projektu a nebude smazán."
 
 msgid "{name} could not be deleted: {error}"
 msgstr "{name} nelze smazat: {error}"
+
+msgid "Delete File"
+msgstr "Smazat soubor"

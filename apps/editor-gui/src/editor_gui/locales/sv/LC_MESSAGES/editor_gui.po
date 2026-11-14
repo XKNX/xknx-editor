@@ -1706,3 +1706,6 @@ msgstr "{name} hör till det öppna projektet och tas inte bort."
 
 msgid "{name} could not be deleted: {error}"
 msgstr "{name} kunde inte tas bort: {error}"
+
+msgid "Delete File"
+msgstr "Ta bort fil"

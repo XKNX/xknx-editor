@@ -1778,3 +1778,6 @@ msgstr "{name} tilheyrir opna verkefninu og er ekki eytt."
 
 msgid "{name} could not be deleted: {error}"
 msgstr "Ekki tókst að eyða {name}: {error}"
+
+msgid "Delete File"
+msgstr "Eyða skrá"

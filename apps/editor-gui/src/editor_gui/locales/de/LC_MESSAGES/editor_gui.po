@@ -1863,3 +1863,6 @@ msgstr "{name} gehört zum geöffneten Projekt und wird nicht gelöscht."
 
 msgid "{name} could not be deleted: {error}"
 msgstr "{name} konnte nicht gelöscht werden: {error}"
+
+msgid "Delete File"
+msgstr "Datei löschen"

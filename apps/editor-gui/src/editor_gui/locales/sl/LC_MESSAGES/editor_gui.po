@@ -1810,3 +1810,6 @@ msgstr "{name} pripada odprtemu projektu in se ne izbriše."
 
 msgid "{name} could not be deleted: {error}"
 msgstr "{name} ni bilo mogoče izbrisati: {error}"
+
+msgid "Delete File"
+msgstr "Izbriši datoteko"

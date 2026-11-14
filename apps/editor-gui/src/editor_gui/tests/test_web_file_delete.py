@@ -9,6 +9,7 @@ from pathlib import Path
 import pytest
 from imgui_bundle import imgui
 
+from editor_gui.strings import S
 from editor_gui.web.dialogs import WebOpenFile, WebSaveFile
 from editor_gui.web.files import FileFolder, FileInUseError, held_open
 from editor_gui.web.server import WebHub
@@ -74,6 +75,14 @@ def test_the_open_project_and_its_database_files_are_held_open(tmp_path: Path) -
     assert not held_open(project, [None])
 
 
+def _question_shown(dialog: WebOpenFile | WebSaveFile) -> bool:
+    """Whether the question before deleting is open as a window of its own."""
+    window = imgui.internal.find_window_by_name(
+        f"{S.WEB_DELETE_TITLE}###web-delete-{dialog.id}"
+    )
+    return window is not None and window.active
+
+
 def test_the_dialog_deletes_after_the_question(
     context: imgui.IO, tmp_path: Path
 ) -> None:
@@ -84,11 +93,15 @@ def test_the_dialog_deletes_after_the_question(
     dialog = WebOpenFile(hub, "Open")
     for _ in range(2):
         _frame(hub.host.draw)
+    assert not _question_shown(dialog)
     entry = next(e for e in hub.files.files() if e.name == "a.knxproj")
     dialog._selected = {"a.knxproj"}  # pyright: ignore[reportPrivateUsage]
     dialog._ask_delete(entry)  # pyright: ignore[reportPrivateUsage]
-    # The question shows below the list; the file stays until it is confirmed.
-    _frame(hub.host.draw)
+    # The question opens in a dialog over the file dialog; the file stays until it is
+    # confirmed.
+    for _ in range(2):
+        _frame(hub.host.draw)
+    assert _question_shown(dialog)
     assert (hub.files.root / "a.knxproj").exists()
     dialog.delete("a.knxproj")
     assert not (hub.files.root / "a.knxproj").exists()
@@ -97,7 +110,6 @@ def test_the_dialog_deletes_after_the_question(
     dialog.delete("open.xknx")
     assert (hub.files.root / "open.xknx").exists()
     assert "open.xknx" in dialog._status  # pyright: ignore[reportPrivateUsage]
-    _frame(hub.host.draw)
 
 
 def test_the_save_dialog_deletes_too(context: imgui.IO, tmp_path: Path) -> None:

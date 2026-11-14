@@ -1766,3 +1766,6 @@ msgstr "{name} hoort bij het geopende project en wordt niet verwijderd."
 
 msgid "{name} could not be deleted: {error}"
 msgstr "{name} kon niet worden verwijderd: {error}"
+
+msgid "Delete File"
+msgstr "Bestand verwijderen"

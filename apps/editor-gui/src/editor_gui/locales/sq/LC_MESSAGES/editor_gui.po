@@ -1706,3 +1706,6 @@ msgstr "{name} i përket projektit të hapur dhe nuk fshihet."
 
 msgid "{name} could not be deleted: {error}"
 msgstr "{name} nuk u fshi dot: {error}"
+
+msgid "Delete File"
+msgstr "Fshi skedarin"

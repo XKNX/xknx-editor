@@ -1762,3 +1762,6 @@ msgstr "A(z) {name} a megnyitott projekthez tartozik, ezért nem törlődik."
 
 msgid "{name} could not be deleted: {error}"
 msgstr "A(z) {name} nem törölhető: {error}"
+
+msgid "Delete File"
+msgstr "Fájl törlése"

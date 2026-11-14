@@ -1690,3 +1690,6 @@ msgstr "{name} は開いているプロジェクトのファイルのため削�
 
 msgid "{name} could not be deleted: {error}"
 msgstr "{name} を削除できませんでした: {error}"
+
+msgid "Delete File"
+msgstr "ファイルの削除"

@@ -44,6 +44,8 @@ if TYPE_CHECKING:
 _ids = itertools.count(1)
 _WIDTH = 620.0
 _LIST_HEIGHT = 220.0
+# The width of the question before a file is deleted.
+_QUESTION_WIDTH = 420.0
 # How often an open dialog reads the file folder again (seconds).
 _REFRESH_SECONDS = 2.0
 
@@ -259,6 +261,8 @@ class WebDialog(_Item):
         self._download = _download_wanted(title, self._download_default)
         # The file whose deletion the user is asked to confirm.
         self._deleting: str | None = None
+        # Whether its question dialog is still to be opened.
+        self._ask = False
         hub.open_dialog(self)
 
     def ready(self, timeout: int = 20) -> bool:
@@ -348,8 +352,9 @@ class WebDialog(_Item):
         _, self._download = checkbox(S.WEB_DOWNLOAD_AFTER, self._download)
 
     def _ask_delete(self, entry: Entry) -> None:
-        """A row's delete button: the user confirms below the list first."""
+        """A row's delete button: the user confirms in a dialog of its own first."""
         self._deleting = entry.name
+        self._ask = True
         self._status = ""
 
     def delete(self, name: str) -> None:
@@ -366,17 +371,26 @@ class WebDialog(_Item):
         self._read_at = 0.0
 
     def _delete_confirmation(self) -> None:
-        """Below the list while a file is to be deleted: the question, Delete and Cancel."""
+        """While a file is to be deleted: a dialog over this one asks, with Delete and Cancel
+        (Escape cancels)."""
         if self._deleting is None:
             return
-        imgui.spacing()
+        title = f"{S.WEB_DELETE_TITLE}###web-delete-{self.id}"
+        if self._ask:
+            imgui.open_popup(title)
+            self._ask = False
+        # Ended with end_popup, not end_dialog: the file dialogs are not drawn inside it again.
+        if not begin_dialog(title, width=_QUESTION_WIDTH):
+            self._deleting = None
+            return
         imgui.text_wrapped(S.WEB_DELETE_QUESTION.format(name=self._deleting))
-        if imgui.button(S.WEB_DELETE):
+        chosen = dialog_buttons(S.WEB_DELETE, S.BTN_CANCEL)
+        if chosen == 0:
             self.delete(self._deleting)
+        if chosen is not None:
             self._deleting = None
-        imgui.same_line()
-        if imgui.button(f"{S.BTN_CANCEL}##delete"):
-            self._deleting = None
+            imgui.close_current_popup()
+        imgui.end_popup()
 
     def draw(self) -> None:
         if not begin_dialog(self.popup_id, width=_WIDTH):

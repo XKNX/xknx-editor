@@ -1690,3 +1690,6 @@ msgstr "{name} 属于已打开的项目，不会被删除。"
 
 msgid "{name} could not be deleted: {error}"
 msgstr "无法删除 {name}：{error}"
+
+msgid "Delete File"
+msgstr "删除文件"
