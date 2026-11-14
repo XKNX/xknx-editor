@@ -120,7 +120,10 @@ def test_the_start_hands_no_connect_to_the_connection(
     connection = SimpleNamespace(skip_startup_connect=False)
     connection.autostart = lambda: seen.append(connection.skip_startup_connect)
     stub = SimpleNamespace(
-        _connection_plugin=connection, no_connect=True, startup_file=None
+        _connection_plugin=connection,
+        no_connect=True,
+        startup_file=None,
+        _last_project_to_reopen=lambda: None,
     )
     main.KnxGuiApp._start_session(stub)  # type: ignore[arg-type]  # pyright: ignore[reportPrivateUsage]
     assert seen == [True]
