@@ -86,6 +86,7 @@ from xknxeditor.proj.core.bus_load import BusLoad, Hardware
 from xknxeditor.proj.core.coupler_rules import CouplerDevice
 from xknxeditor.proj.core.dpt import normalize_datapoint_type
 from xknxeditor.proj.core.ga_export import write_ga_csv as _write_ga_csv
+from xknxeditor.proj.core.ga_security import SecurityContext
 from xknxeditor.proj.core.identity import qualified_com_object_ref
 from xknxeditor.proj.core.ip_secure import PASSWORD_ACCESS_TYPES
 from xknxeditor.proj.core.manufacturer_xml import DeviceProduct as ProductRefs
@@ -1277,6 +1278,37 @@ def _tunnelling_interfaces(device: Device) -> dict[str, int]:
     }
 
 
+class _ProductSecurity(SecurityContext):
+    """What the catalog and the application programs tell the project's security domains: which
+    devices are couplers used as Security Proxy, and on which address a bus interface is."""
+
+    def __init__(self, service: "ProjectService") -> None:
+        self._service = service
+
+    def coupler(self, device: "DeviceRow") -> tuple[bool, bool]:
+        program = device.hardware2program_ref_id
+        found = self._service._coupler_device(program)  # pyright: ignore[reportPrivateUsage]
+        if program is None or found is None or not found.is_coupler:
+            return False, False
+        catalog = self._service._catalog  # pyright: ignore[reportPrivateUsage]
+        return True, "SecurityProxy" in catalog.coupler_capabilities(program)
+
+    def interface_index(self, device: "DeviceRow", ref_id: str) -> int:
+        app = self._service._resolve_app(  # pyright: ignore[reportPrivateUsage]
+            device.hardware2program_ref_id, device.application_program_ref_id
+        )
+        if app is None:
+            return 0
+        return next(
+            (
+                index
+                for ref, _access, index in _app_bus_interfaces(app)
+                if ref == ref_id
+            ),
+            0,
+        )
+
+
 def _int_or(value: str | None, default: int) -> int:
     try:
         return int(value) if value is not None else default
@@ -1734,6 +1766,7 @@ class ProjectService:
             self._path = path
             self._working_path = working
             self._reset()
+            self._svc.set_security_context(self._pid, _ProductSecurity(self))
         if self.mirroring_active:
             self._log.info(
                 "network location: working on a local copy",
@@ -1819,6 +1852,7 @@ class ProjectService:
                 self._path = path
                 self._working_path = working
                 self._reset()
+                self._svc.set_security_context(new_pid, _ProductSecurity(self))
                 self._history_baseline = self._history_key()
                 if self.mirroring_active:
                     self._log.info(
@@ -3348,34 +3382,80 @@ class ProjectService:
                         group_speaker=(reference, address) in speakers,
                     )
                 )
-        # A line/backbone coupler (address x.y.0) also carries a group-address filter table computed
-        # from the whole topology (which group addresses cross it). A non-coupler at .0 gets one too,
-        # but its load procedure has no Router-object write, so the extra image segment is unused.
-        from xknxeditor.download.filter_table import (
-            compute_coupler_filter_table,
-            is_coupler_address,
-        )
-
-        filter_table = None
-        if is_coupler_address(device_address):
-            # The project's pass-through addresses have to be included, or the computed table
-            # blocks addresses it was explicitly configured to always route: group addresses (or
-            # whole ranges) flagged Unfiltered, and the line's AdditionalGroupAddresses.
-            unfiltered, additional = self._coupler_pass_through(device_address)
-            filter_table = compute_coupler_filter_table(
-                device_address,
-                self._all_device_group_addresses(),
-                unfiltered=unfiltered,
-                additional=additional,
-            )
         return GroupCommunication(
             device_address=device_address,
             links=links,
-            filter_table=filter_table,
+            filter_table=self._filter_table_for(device, device_address),
             security=self._group_security(device),
             domain_address=domain_address,
             repeater_present=repeater_present,
         )
+
+    def _filter_table_for(self, device: Device, device_address: int) -> bytes | None:
+        """The group-address filter table of a coupler, computed from the whole topology (which
+        group addresses cross it); None for a device that is no coupler.
+
+        A line/backbone coupler (address x.y.0) filters between its line (or area) and the rest:
+        a non-coupler at .0 gets a table too, but its load procedure has no Router-object write,
+        so the extra image segment is unused. A segment coupler filters between its own segment
+        and the rest. The project's pass-through addresses are included, or the table blocks
+        addresses it was configured to always route: group addresses (or whole ranges) flagged
+        Unfiltered, and the AdditionalGroupAddresses of the segment the coupler feeds."""
+        from xknxeditor.download.filter_table import (
+            build_filter_table,
+            routed_group_addresses,
+        )
+
+        sides = self._coupler_sides(device, device_address)
+        if sides is None:
+            return None
+        inside, outside, segment_id = sides
+        unfiltered, additional = self._coupler_pass_through(device_address, segment_id)
+        return build_filter_table(
+            routed_group_addresses(
+                inside, outside, unfiltered=unfiltered, additional=additional
+            )
+        )
+
+    def _coupler_sides(
+        self, device: Device, device_address: int
+    ) -> tuple[set[int], set[int], int | None] | None:
+        """The group addresses linked behind a coupler and in front of it, and the segment it
+        feeds for a segment coupler; None for a device that is no coupler (see
+        :meth:`_filter_table_for`)."""
+        from xknxeditor.download.filter_table import is_behind, is_coupler_address
+
+        segment_id = self._coupled_segment(device)
+        if segment_id is None and not is_coupler_address(device_address):
+            return None
+        links = self._all_device_group_addresses()
+        segments = self.device_segments() if segment_id is not None else {}
+        inside: set[int] = set()
+        outside: set[int] = set()
+        for dev in self.devices:
+            ia = _parse_individual_address(dev.individual_address)
+            if ia is None:
+                continue
+            behind = (
+                segments.get(dev.node_id) == segment_id
+                if segment_id is not None
+                else is_behind(ia, device_address)
+            )
+            (inside if behind else outside).update(links.get(ia, ()))
+        return inside, outside, segment_id
+
+    def _coupled_segment(self, device: Device) -> int | None:
+        """The segment a segment coupler feeds (the one it sits in, never a line's main segment);
+        None for any other device."""
+        if self._pid is None:
+            return None
+        segment_id = self.device_segments().get(device.node_id)
+        medium = self.segment_medium(segment_id) if segment_id is not None else None
+        if medium is None or medium[1]:
+            return None
+        program = self._svc.device_programs(self._pid).get(device.node_id)
+        coupler = self._coupler_device(program)
+        return segment_id if coupler is not None and coupler.segment_coupler else None
 
     def _powerline_communication(
         self, device: Device
@@ -3449,8 +3529,10 @@ class ProjectService:
 
     def _group_security(self, device: Device) -> "GroupSecurity | None":
         """The keys of the device's secured group addresses and their senders, for a device whose
-        application supports KNX Data Secure; ``None`` when none of its group addresses is secured."""
-        from xknxeditor.download.secure_config import GroupSecurity
+        application supports KNX Data Secure, with the Security Proxy Group Key Table of a coupler
+        used as Security Proxy; ``None`` when none of its group addresses is secured and it is no
+        such coupler."""
+        from xknxeditor.download.secure_config import GroupSecurity, ProxyEntry
 
         if self._pid is None or device.app is None:
             return None
@@ -3465,9 +3547,20 @@ class ProjectService:
         p2p = self._svc.p2p_security(
             self._pid, device.node_id, _security_role_masks(device)
         )
-        if not keys and not p2p:
+        proxy = self._security_proxy(device)
+        entries: list[ProxyEntry] | None = None
+        if proxy is not None:
+            rows, proxy_senders = proxy
+            entries = [
+                ProxyEntry(address, key, primary) for address, key, primary in rows
+            ]
+            merged = dict(senders)
+            for address, sequence in proxy_senders:
+                merged[address] = max(sequence, merged.get(address, 0))
+            senders = sorted(merged.items())
+        if not keys and not p2p and entries is None:
             return None
-        return GroupSecurity(keys=keys, senders=senders, p2p=p2p)
+        return GroupSecurity(keys=keys, senders=senders, p2p=p2p, proxy=entries)
 
     def com_object_requires_security(self, com_object_id: int) -> bool:
         """Whether the application requires KNX Data Secure for a group object (its
@@ -3572,15 +3665,16 @@ class ProjectService:
             return any(self.com_object_requires_security(link) for link in ga.links)
         return False
 
-    def _tunnel_senders(self) -> dict[int, list[int]]:
+    def _tunnel_senders(self) -> dict[int, list[tuple[int, int]]]:
         """The tunnels of the project's KNX IP Secure interfaces by the group addresses assigned
-        to them (raw group address -> raw tunnelling addresses): a tool sends on those secured
-        group addresses through that tunnel, so the devices on them accept it as a sender."""
+        to them (raw group address -> ``(raw tunnelling address, device node id)``): a tool sends
+        on those secured group addresses through that tunnel, so the devices on them accept it as
+        a sender."""
         from xknx.telegram import IndividualAddress
 
         if self._pid is None:
             return {}
-        result: dict[int, list[int]] = {}
+        result: dict[int, list[tuple[int, int]]] = {}
         for device in self.devices:
             settings = self.ip_secure_settings(device)
             if settings is None:
@@ -3593,7 +3687,9 @@ class ProjectService:
                     continue
                 tunnel = IndividualAddress(interface.address).raw
                 for group_address in assigned.get(interface.ref_id, []):
-                    result.setdefault(group_address, []).append(tunnel)
+                    result.setdefault(group_address, []).append(
+                        (tunnel, device.node_id)
+                    )
         return result
 
     def _com_object_can_send(self, com_object_id: int) -> bool:
@@ -4524,11 +4620,42 @@ class ProjectService:
     def download_routing_blocking(self, device: Device) -> bool | None:
         """Whether a download blocks point-to-point and broadcast messages on both sides of the
         device, a coupler with the security extensions; ``None`` for any other device. Auto
-        blocks them on a coupler used as a Security Proxy (KNX AN192 3.5.2.2); the project never
-        sets one up to translate between secured and plain lines, so Auto routes them."""
+        blocks them while the coupler is used as a Security Proxy (KNX AN192 3.5.2.2): while it
+        translates a group address secured on one of its sides only."""
         if not self.security_proxy_coupler(device):
             return None
-        return self.unicast_broadcast_blocking(device) == "On"
+        mode = self.unicast_broadcast_blocking(device)
+        if mode in ("On", "Off"):
+            return mode == "On"
+        proxy = self._security_proxy(device)
+        return bool(proxy and proxy[0])
+
+    def _security_proxy(
+        self, device: Device
+    ) -> tuple[list[tuple[int, bytes, bool]], list[tuple[int, int]]] | None:
+        """The Security Proxy Group Key Table of a coupler with the security extensions
+        commissioned securely (see the core ``security_proxy_table``): the group addresses it
+        routes, secured on one of its sides only, and their senders on the secured side; None
+        for any other device."""
+        if self._pid is None or device.app is None:
+            return None
+        program = device.app.program
+        if not program.max_security_proxy_group_key_table_entries:
+            return None
+        if not self.security_proxy_coupler(device):
+            return None
+        address = _parse_individual_address(device.individual_address)
+        sides = self._coupler_sides(device, address) if address is not None else None
+        if sides is None:
+            return None
+        inside, outside, _segment = sides
+        return self._svc.security_proxy_table(
+            self._pid,
+            device.node_id,
+            inside & outside,
+            self._com_object_can_send,
+            self._tunnel_senders(),
+        )
 
     def record_factory_reset(self, device: Device) -> None:
         """A factory reset (with the individual address) gave the device its FDSK back: it no
@@ -4577,23 +4704,26 @@ class ProjectService:
         return fdsk
 
     def _coupler_pass_through(
-        self, coupler_address: int
+        self, coupler_address: int, segment_id: int | None = None
     ) -> tuple[list[int], list[int]]:
-        """``(unfiltered, additional)`` pass-through addresses for a coupler; empty when unknown."""
+        """``(unfiltered, additional)`` pass-through addresses for a coupler (of the segment
+        ``segment_id`` for a segment coupler); empty when unknown."""
         if self._pid is None:
             return [], []
-        return self._svc.coupler_pass_through(self._pid, coupler_address)
+        return self._svc.coupler_pass_through(self._pid, coupler_address, segment_id)
 
     def _all_device_group_addresses(self) -> dict[int, set[int]]:
         """Map every device's raw individual address to the raw group addresses it links (send or
-        receive). The coupler filter-table computation uses this to decide which addresses cross a
-        coupler (linked both behind it and in front of it)."""
+        receive): those of its group objects and those assigned to its bus interfaces (a
+        visualisation reached over a tunnelling connection, for example). The coupler filter-table
+        computation uses this to decide which addresses cross a coupler (linked both behind it and
+        in front of it)."""
         result: dict[int, set[int]] = {}
         for dev in self.devices:
             ia = _parse_individual_address(dev.individual_address)
             if ia is None:
                 continue
-            gas: set[int] = set()
+            gas = self._bus_interface_group_addresses(dev)
             for co in dev.com_objects:
                 if co.db_id is None:
                     continue
@@ -4606,6 +4736,28 @@ class ProjectService:
                         gas.add(raw)
             result[ia] = gas
         return result
+
+    def _bus_interface_group_addresses(self, device: Device) -> set[int]:
+        """The raw group addresses assigned to the device's bus interfaces in use: those on the
+        device's own address (address index 0) always, those on an additional address only while
+        that address is set."""
+        if self._pid is None:
+            return set()
+        assigned = self._svc.bus_interface_group_addresses(self._pid, device.node_id)
+        if not assigned:
+            return set()
+        indices = {ref: index for ref, _access, index in _bus_interfaces(device)}
+        addressed = {
+            info.index
+            for info in self._svc.additional_addresses(self._pid, device.node_id)
+            if info.address is not None
+        }
+        return {
+            address
+            for ref, addresses in assigned.items()
+            if indices.get(ref, 0) == 0 or indices[ref] in addressed
+            for address in addresses
+        }
 
     @io_guarded(list)
     @revision_cached

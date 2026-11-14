@@ -269,6 +269,7 @@ def test_security_tables_must_fit_the_device() -> None:
                     max_security_group_key_table_entries=group_keys,
                     max_security_individual_address_entries=0,
                     max_security_p2_pkey_table_entries=0,
+                    max_security_proxy_group_key_table_entries=0,
                 )
             ),
         )
