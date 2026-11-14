@@ -37,8 +37,8 @@ _CACHE_FILE = "online_catalog_manufacturers.json"
 _INDEX_CACHE_FILE = "online_catalog_index.json"
 # Raised when the cached items' meaning changes, so an older cache is rebuilt (2: market check,
 # 3: plugin and incomplete-information flags no longer block, 4: an empty market list offers
-# nothing, 5: each item's text languages).
-_INDEX_FORMAT = 6
+# nothing, 5: each item's text languages, 7: each item's application number).
+_INDEX_FORMAT = 7
 _INDEX_SAVE_EVERY = (
     10  # persist the growing index every N manufacturers, for resumability
 )
@@ -165,6 +165,7 @@ class OnlineCatalogItem:
     manufacturer_name: str = ""
     application_version: int | None = None  # application program version, e.g. 40
     application_program_name: str = ""  # e.g. "Dimmen 4fach, HSV/RGBW LED, REG"
+    application_number: int | None = None  # application number, e.g. 64
     download_block_reason: str = (
         ""  # why the online download is refused (empty = downloadable)
     )
@@ -326,6 +327,24 @@ def _app_version(app_ident: object) -> int | None:
         if len(parts) >= 4:
             try:
                 return int(parts[3], 16)
+            except ValueError:
+                return None
+    return None
+
+
+def _app_number(app_ident: object) -> int | None:
+    """Application number from an ``ApplicationIdentifier`` (see :func:`_app_version`): the
+    fourth value of the list form (``[0, 131, 0, 64, 40]`` -> 64), ``NNNN`` (hex) of the string
+    form. Returns None if unknown."""
+    if isinstance(app_ident, list):
+        values = cast(list[object], app_ident)
+        number = values[3] if len(values) >= 5 else None
+        return number if isinstance(number, int) else None
+    if isinstance(app_ident, str):
+        parts = app_ident.split("-")
+        if len(parts) >= 4:
+            try:
+                return int(parts[2], 16)
             except ValueError:
                 return None
     return None
@@ -512,6 +531,9 @@ def parse_catalog_items(index_bytes: bytes) -> list[OnlineCatalogItem]:
                     application_program_name=str(
                         _ci_get(entry, "ApplicationProgramName") or ""
                     ),
+                    application_number=_app_number(
+                        _ci_get(entry, "ApplicationIdentifier")
+                    ),
                     download_block_reason=block_reason,
                     sections=sections.get(cid, ()),
                     languages=_entry_languages(entry),
@@ -598,6 +620,7 @@ def _item_to_dict(item: OnlineCatalogItem) -> dict[str, object]:
         "mid": item.manufacturer_id,
         "mname": item.manufacturer_name,
         "ver": item.application_version,
+        "app": item.application_number,
         "appname": item.application_program_name,
         "dl_reason": item.download_block_reason,
         "langs": list(item.languages),
@@ -620,6 +643,7 @@ def _item_from_dict(d: dict[str, object]) -> OnlineCatalogItem:
         manufacturer_id=int(cast(int | str, d.get("mid") or 0)),
         manufacturer_name=str(d.get("mname") or ""),
         application_version=ver if isinstance(ver, int) else None,
+        application_number=number if isinstance(number := d.get("app"), int) else None,
         application_program_name=str(d.get("appname") or ""),
         download_block_reason=str(d.get("dl_reason") or ""),
         languages=tuple(str(c) for c in cast(list[object], d.get("langs") or [])),
