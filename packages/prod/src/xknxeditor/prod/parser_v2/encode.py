@@ -257,21 +257,30 @@ def _encode_value(
     try:
         str_value = validate_parameter_value(str_value, tc, as_bits=True)
     except ValueError:
-        # Values set in the editor are checked before; one outside the type's range here is the
-        # product's own (e.g. a hidden parameter's default), written as given while it fits.
-        if not (
-            isinstance(tc, ParameterTypeTypeNumber)
-            and _fits_in_bits(str_value, size_in_bit)
-        ):
+        # Values set in the editor are checked before. A number outside the type's range here
+        # (a product's own default or Assign, a value imported as it was stored) is written as
+        # its two's complement bits, cut to the parameter's size.
+        if not isinstance(tc, ParameterTypeTypeNumber):
+            return None
+        bits = _encode_number(str_value, size_in_bit)
+        if bits is None:
             return None
         if (str_value, id(tc)) not in _out_of_range_logged:
             _out_of_range_logged.add((str_value, id(tc)))
-            log.warning(
-                "parameter value %r outside %s..%s, written as given",
-                str_value,
-                tc.min_inclusive,
-                tc.max_inclusive,
-            )
+            if _fits_in_bits(str_value, size_in_bit):
+                log.warning(
+                    "parameter value %r outside %s..%s, written as given",
+                    str_value,
+                    tc.min_inclusive,
+                    tc.max_inclusive,
+                )
+            else:
+                log.warning(
+                    "parameter value %r does not fit %s bits, written as its lowest bits (%s)",
+                    str_value,
+                    size_in_bit,
+                    bits,
+                )
     if isinstance(tc, (ParameterTypeTypeNumber, ParameterTypeTypeTime)):
         # A time value is stored as a plain integer in the type's unit.
         return _apply_byte_order(

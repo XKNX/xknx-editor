@@ -1,10 +1,11 @@
-"""A stored number outside its type's range is downloaded while its bits are a value in range.
+"""A stored number outside its type's range is downloaded as its bits, cut to the parameter's size.
 
 A product's plug-in may store an unsigned 32-bit value as a signed one: the bit mask of a DALI
 gateway's ballast groups with group 32 set is stored as -2147483648 instead of 2147483648.
-Written into the parameter's 32 bits both are 0x80000000, so the download writes it. A value
-whose bits are no value of the type is still refused, and a value set in the editor is still
-checked against the range.
+Written into the parameter's 32 bits both are 0x80000000. Any other whole number is written the
+same way, with a warning in the log when its bits are no value of the type or it does not fit
+the parameter's size. Only a value that is no number is refused, and a value set in the editor
+is still checked against the range.
 """
 
 from __future__ import annotations
@@ -77,16 +78,32 @@ def test_an_unsigned_value_of_a_signed_parameter_is_downloaded_as_its_bits() -> 
     assert ui.encode_to_memory()[_SEGMENT][4:8] == b"\xff\xff\xff\xff"
 
 
-def test_a_value_whose_bits_are_no_value_of_the_type_is_refused() -> None:
-    # -1 in 8 bits is 255, outside 1..64; 300 does not fit 8 bits at all.
-    for value in ("-1", "300"):
-        with pytest.raises(EncodingError, match=r"outside 1\.\.64"):
-            _ui({_SCENE: value}).encode_to_memory()
+def test_a_value_whose_bits_are_no_value_of_the_type_is_written_with_a_warning(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    # -2 in 8 bits is 254, outside 1..64.
+    with caplog.at_level("WARNING"):
+        assert _ui({_SCENE: "-2"}).encode_to_memory()[_SEGMENT][8] == 0xFE
+    assert "'-2' outside 1..64, written as given" in caplog.text
 
 
-def test_a_value_beyond_the_parameter_size_is_refused() -> None:
-    with pytest.raises(EncodingError, match=r"outside 0\.\.4294967295"):
-        _ui({_MASK: str(-(1 << 31) - 1)}).encode_to_memory()
+def test_a_value_beyond_the_parameter_size_is_written_as_its_lowest_bits(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    # 300 = 0x12C does not fit 8 bits: 0x2C is written.
+    with caplog.at_level("WARNING"):
+        ui = _ui({_SCENE: "300", _MASK: str(-(1 << 31) - 1)})
+        image = ui.encode_to_memory()[_SEGMENT]
+    assert image[8] == 0x2C
+    assert image[:4] == b"\x7f\xff\xff\xff"
+    data, mask = ui.encode_to_memory_masked()[_SEGMENT]
+    assert (data[8], mask[8]) == (0x2C, 0xFF)
+    assert "'300' does not fit 8 bits, written as its lowest bits (44)" in caplog.text
+
+
+def test_a_value_that_is_no_number_is_refused() -> None:
+    with pytest.raises(EncodingError, match="five"):
+        _ui({_SCENE: "five"}).encode_to_memory()
 
 
 def test_a_value_set_in_the_editor_is_still_checked_against_the_range() -> None:

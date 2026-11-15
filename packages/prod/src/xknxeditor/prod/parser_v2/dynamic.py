@@ -1842,21 +1842,19 @@ class DynamicUI:
     def validate_parameter_values(self) -> None:
         """Check resolved values, including selectors without storage.
 
-        A number an Assign writes may be outside its type's range: it is the product's own
-        value, written as given while it fits the parameter's size. Every other value (stored,
-        imported) has to be in range, or give the bits of a value in range (-2147483648 of
-        an unsigned 32-bit parameter is written as 0x80000000).
+        A number has to be a whole number, but not in its type's range: a value set in the
+        editor is checked when it is set, and any other (a product's own default or Assign, a
+        value imported as it was stored) is written as its two's complement bits, cut to the
+        parameter's size (-2147483648 of an unsigned 32-bit parameter as 0x80000000).
         """
-        for ref_id, value, assigned in self._state.relative_param_values_assigned():
+        for ref_id, value in self._state.relative_param_values():
             ref = self._idx.parameter_refs.get(ref_id)
             if ref is None:
                 raise EncodingError(f"unknown parameter ref {ref_id!r}")
             parameter = self._idx.parameters[ref.ref_id]
             tc = self._idx.parameter_types[parameter.parameter_type].choice
             try:
-                validate_parameter_value(
-                    value, tc, check_range=not assigned, as_bits=True
-                )
+                validate_parameter_value(value, tc, check_range=False)
             except ValueError as exc:
                 raise EncodingError(f"parameter {ref_id}: {exc}") from exc
 

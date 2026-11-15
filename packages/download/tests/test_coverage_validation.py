@@ -225,14 +225,26 @@ def test_numeric_domain_boundaries(application, suffix, value):
 
 
 @pytest.mark.parametrize("suffix", ["P-5_R-4", "UP-8_R-7"])
-def test_imported_numeric_values_checked_even_without_storage(application, suffix):
+def test_imported_numeric_values_outside_the_range_are_downloaded(application, suffix):
+    # A value imported as it was stored is written as its bits, cut to the parameter's size;
+    # a value set in the editor is checked when it is set (test_numeric_domains_rejected_...).
     ui = DynamicUI(
         application.program,
         parameter_instance_refs=[
             ParameterInstanceRef(ref_id=f"{APP_ID}_{suffix}", value="700")
         ],
     )
-    with pytest.raises(ImageError, match="outside"):
+    assert build_image(application, ui=ui)
+
+
+def test_an_imported_value_that_is_no_number_is_refused(application):
+    ui = DynamicUI(
+        application.program,
+        parameter_instance_refs=[
+            ParameterInstanceRef(ref_id=f"{APP_ID}_P-5_R-4", value="seven")
+        ],
+    )
+    with pytest.raises(ImageError, match="seven"):
         build_image(application, ui=ui)
 
 
