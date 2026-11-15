@@ -1567,8 +1567,6 @@ msgstr "Skupinové objekty"
 msgid "No differences"
 msgstr "Žiadne rozdiely"
 
-msgid "Only Differences"
-msgstr "Len rozdiely"
 
 msgid "Open a project with at least two devices to compare."
 msgstr "Na porovnanie otvorte projekt aspoň s dvoma zariadeniami."
@@ -3414,3 +3412,12 @@ msgstr "Rozloženie pamäte sa počas čítania zmenilo. Pre porovnanie načíta
 
 msgid "Compared with device memory read in this session."
 msgstr "Porovnané s pamäťou zariadenia načítanou v tejto relácii."
+
+msgid "Select a device"
+msgstr "Vyberte zariadenie"
+
+msgid "Select the two devices to compare."
+msgstr "Vyberte dve zariadenia na porovnanie."
+
+msgid "Loading application programs… {done}/{total}"
+msgstr "Načítavajú sa aplikačné programy… {done}/{total}"

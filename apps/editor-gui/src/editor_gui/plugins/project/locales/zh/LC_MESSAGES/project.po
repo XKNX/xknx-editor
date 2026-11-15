@@ -1117,8 +1117,6 @@ msgstr "比较设备"
 msgid "Open a project with at least two devices to compare."
 msgstr "请打开至少包含两个设备的项目以进行比较。"
 
-msgid "Only Differences"
-msgstr "仅显示差异"
 
 msgid "Filter devices by address, name or description…"
 msgstr "按地址、名称或说明过滤设备…"
@@ -3283,3 +3281,12 @@ msgstr "读取过程中内存布局发生了变化。请重新读取以进行比
 
 msgid "Compared with device memory read in this session."
 msgstr "已与本次会话中读取的设备内存进行比较。"
+
+msgid "Select a device"
+msgstr "选择设备"
+
+msgid "Select the two devices to compare."
+msgstr "选择要比较的两个设备。"
+
+msgid "Loading application programs… {done}/{total}"
+msgstr "正在加载应用程序… {done}/{total}"

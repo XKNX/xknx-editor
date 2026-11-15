@@ -1117,8 +1117,6 @@ msgstr "Krahaso pajisjet"
 msgid "Open a project with at least two devices to compare."
 msgstr "Hapni një projekt me të paktën dy pajisje për të krahasuar."
 
-msgid "Only Differences"
-msgstr "Vetëm ndryshimet"
 
 msgid "Filter devices by address, name or description…"
 msgstr "Filtro pajisjet sipas adresës, emrit ose përshkrimit…"
@@ -3335,3 +3333,12 @@ msgstr "Struktura e memories ndryshoi gjatë leximit. Lexoni përsëri për ta k
 
 msgid "Compared with device memory read in this session."
 msgstr "Krahasuar me memorien e pajisjes të lexuar në këtë sesion."
+
+msgid "Select a device"
+msgstr "Zgjidhni një pajisje"
+
+msgid "Select the two devices to compare."
+msgstr "Zgjidhni dy pajisjet për t'i krahasuar."
+
+msgid "Loading application programs… {done}/{total}"
+msgstr "Po ngarkohen programet aplikative… {done}/{total}"

@@ -1117,8 +1117,6 @@ msgstr "Сравнить устройства"
 msgid "Open a project with at least two devices to compare."
 msgstr "Откройте проект как минимум с двумя устройствами для сравнения."
 
-msgid "Only Differences"
-msgstr "Только различия"
 
 msgid "Filter devices by address, name or description…"
 msgstr "Фильтр устройств по адресу, имени или описанию…"
@@ -3387,3 +3385,12 @@ msgstr "Структура памяти изменилась во время ч�
 
 msgid "Compared with device memory read in this session."
 msgstr "Сравнение с памятью устройства, прочитанной в этом сеансе."
+
+msgid "Select a device"
+msgstr "Выберите устройство"
+
+msgid "Select the two devices to compare."
+msgstr "Выберите два устройства для сравнения."
+
+msgid "Loading application programs… {done}/{total}"
+msgstr "Загрузка прикладных программ… {done}/{total}"

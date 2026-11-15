@@ -1117,8 +1117,6 @@ msgstr "Jämför apparater"
 msgid "Open a project with at least two devices to compare."
 msgstr "Öppna ett projekt med minst två apparater för att jämföra."
 
-msgid "Only Differences"
-msgstr "Endast skillnader"
 
 msgid "Filter devices by address, name or description…"
 msgstr "Filtrera apparater efter adress, namn eller beskrivning…"
@@ -3335,3 +3333,12 @@ msgstr "Minneslayouten ändrades under läsningen. Läs igen för att jämföra.
 
 msgid "Compared with device memory read in this session."
 msgstr "Jämfört med enhetens minne som lästes i den här sessionen."
+
+msgid "Select a device"
+msgstr "Välj en enhet"
+
+msgid "Select the two devices to compare."
+msgstr "Välj de två enheter som ska jämföras."
+
+msgid "Loading application programs… {done}/{total}"
+msgstr "Läser in applikationsprogram… {done}/{total}"

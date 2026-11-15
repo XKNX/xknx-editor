@@ -39,7 +39,7 @@ from editor_gui.widgets.checkbox import checkbox, radio_button
 from editor_gui.widgets.combo import begin_combo, end_combo
 from editor_gui.widgets.dpi import px, px_vec2
 from editor_gui.widgets.filter_box import filter_box
-from editor_gui.widgets.flow import button_width, same_line_if_fits
+from editor_gui.widgets.flow import button_width, checkbox_width, same_line_if_fits
 from editor_gui.widgets.spinner import busy_bar
 from editor_gui.widgets.tables import headers_row
 from editor_gui.widgets.tabs import begin_tab_bar
@@ -703,21 +703,17 @@ class ToolsPanel:
         """Checkboxes for the label fields, in canonical order, wrapped across the width."""
         imgui.separator_text(S.TOOLS_LABELS_FIELDS_TITLE)
         labels = S.TOOLS_LABEL_FIELDS
-        avail = imgui.get_content_region_avail().x
-        used = 0.0
-        for fid in label_render.FIELD_IDS:
+        for index, fid in enumerate(label_render.FIELD_IDS):
+            label = f"{labels.get(fid, fid)}##fld_{fid}"
+            if index:
+                same_line_if_fits(checkbox_width(label), px(16.0))
             selected = fid in self._label_fields
-            changed, now = checkbox(f"{labels.get(fid, fid)}##fld_{fid}", selected)
+            changed, now = checkbox(label, selected)
             if changed:
                 if now:
                     self._label_fields.add(fid)
                 else:
                     self._label_fields.discard(fid)
-            used += imgui.get_item_rect_size().x + px(16.0)
-            if used < avail - px(120.0):
-                imgui.same_line()
-            else:
-                used = 0.0
 
     def _render_output_controls(self) -> None:
         imgui.separator_text(S.TOOLS_LABELS_OUTPUT)

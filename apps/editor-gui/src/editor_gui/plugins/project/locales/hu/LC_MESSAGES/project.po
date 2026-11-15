@@ -1567,8 +1567,6 @@ msgstr "Kommunikációs objektumok"
 msgid "No differences"
 msgstr "Nincs eltérés"
 
-msgid "Only Differences"
-msgstr "Csak az eltérések"
 
 msgid "Open a project with at least two devices to compare."
 msgstr "Az összehasonlításhoz nyisson meg egy legalább két készüléket tartalmazó projektet."
@@ -3310,3 +3308,12 @@ msgstr "A memória elrendezése olvasás közben megváltozott. Az összehasonl�
 
 msgid "Compared with device memory read in this session."
 msgstr "Összehasonlítva az eszköz ebben a munkamenetben kiolvasott memóriájával."
+
+msgid "Select a device"
+msgstr "Válasszon eszközt"
+
+msgid "Select the two devices to compare."
+msgstr "Válassza ki a két összehasonlítandó eszközt."
+
+msgid "Loading application programs… {done}/{total}"
+msgstr "Alkalmazási programok betöltése… {done}/{total}"

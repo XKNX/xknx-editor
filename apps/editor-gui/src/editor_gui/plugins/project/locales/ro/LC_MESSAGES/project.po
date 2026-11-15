@@ -1567,8 +1567,6 @@ msgstr "Obiecte de comunicare"
 msgid "No differences"
 msgstr "Nicio diferență"
 
-msgid "Only Differences"
-msgstr "Numai diferențe"
 
 msgid "Open a project with at least two devices to compare."
 msgstr "Deschideți un proiect cu cel puțin două dispozitive pentru comparare."
@@ -3414,3 +3412,12 @@ msgstr "Structura memoriei s-a schimbat în timpul citirii. Citiți din nou pent
 
 msgid "Compared with device memory read in this session."
 msgstr "Comparat cu memoria dispozitivului citită în această sesiune."
+
+msgid "Select a device"
+msgstr "Selectați un dispozitiv"
+
+msgid "Select the two devices to compare."
+msgstr "Selectați cele două dispozitive de comparat."
+
+msgid "Loading application programs… {done}/{total}"
+msgstr "Se încarcă programele de aplicație… {done}/{total}"
