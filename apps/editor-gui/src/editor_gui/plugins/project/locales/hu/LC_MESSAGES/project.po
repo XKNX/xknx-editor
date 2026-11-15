@@ -3179,9 +3179,6 @@ msgstr "Plugin-konfiguráció importálása…"
 msgid "Export Plugin Configuration…"
 msgstr "Plugin-konfiguráció exportálása…"
 
-msgid "Plugin Image and Load Plan"
-msgstr "Plugin-kép és betöltési terv"
-
 msgid "Use Stored Plugin Configuration"
 msgstr "Mentett bővítménykonfiguráció használata"
 
@@ -3211,3 +3208,105 @@ msgstr "Válasszon egy másik lépést a listában, hogy a projektet visszaáll�
 
 msgid "Current state of the project"
 msgstr "A projekt jelenlegi állapota"
+msgid "Configuration Comparison"
+msgstr "Konfiguráció összehasonlítása"
+
+msgid "Compare settings with another device or the stored image from the last download."
+msgstr "Hasonlítsa össze a beállításokat egy másik eszközzel vagy az utolsó letöltés mentett memóriaképével."
+
+msgid "No Generic Plug-in description or stored settings were found for this device."
+msgstr "Ehhez az eszközhöz nem található Generic Plug-in leírás vagy mentett beállítás."
+
+#, python-brace-format
+msgid "Matching: {match} · Not matching: {mismatch} · Not checked: {unchecked}"
+msgstr "Egyezik: {match} · Eltér: {mismatch} · Nincs ellenőrizve: {unchecked}"
+
+#, python-brace-format
+msgid "Last download: {date}"
+msgstr "Utolsó letöltés: {date}"
+
+msgid "No memory image is stored, so the values are not checked."
+msgstr "Nincs mentett memóriakép, ezért az értékek nincsenek ellenőrizve."
+
+msgid "The memory image does not fit the layout of the description, so the values are not checked."
+msgstr "A memóriakép nem illik a leírás felépítéséhez, ezért az értékek nincsenek ellenőrizve."
+
+#, python-brace-format
+msgid "The stored settings name another application ({stored})."
+msgstr "A mentett beállítások egy másik alkalmazást jelölnek meg ({stored})."
+
+msgid "Only values that differ from the memory image"
+msgstr "Csak a memóriaképtől eltérő értékek"
+
+msgid "Memory Image"
+msgstr "Memóriakép"
+
+msgid "Matches"
+msgstr "Egyezik"
+
+#, python-brace-format
+msgid "Image holds {value}"
+msgstr "A kép értéke: {value}"
+
+msgid "Not in memory"
+msgstr "Nincs a memóriában"
+
+msgid "Not checked"
+msgstr "Nincs ellenőrizve"
+
+#, python-brace-format
+msgid "{value} (scaled, raw {raw})"
+msgstr "{value} (skálázott, nyers {raw})"
+
+msgid "Show settings for modules not fitted"
+msgstr "Nem beépített modulok beállításainak megjelenítése"
+
+#, python-brace-format
+msgid "{title} (module not fitted)"
+msgstr "{title} (a modul nincs beépítve)"
+
+msgid "Module not fitted"
+msgstr "A modul nincs beépítve"
+
+#, python-brace-format
+msgid "Settings of modules not fitted: {count}"
+msgstr "Nem beépített modulok beállításai: {count}"
+
+msgid "Compare With"
+msgstr "Összehasonlítás ezzel"
+
+msgid "No comparison"
+msgstr "Nincs összehasonlítás"
+
+#, python-brace-format
+msgid "Settings that differ from {device}: {count}"
+msgstr "{device} eszköztől eltérő beállítások: {count}"
+
+msgid "Only differences"
+msgstr "Csak az eltérések"
+
+#, python-brace-format
+msgid "Value on {device}"
+msgstr "Érték itt: {device}"
+
+msgid "Not shown"
+msgstr "Nincs megjelenítve"
+
+msgid "Read from Device Memory"
+msgstr "Olvasás az eszköz memóriájából"
+
+msgid "Show device memory"
+msgstr "Eszközmemória megjelenítése"
+
+msgid "Read this segment from the device and compare it with the image. Writes nothing."
+msgstr "Kiolvassa ezt a szegmenst az eszközből, és összehasonlítja a képpel. Nem ír semmit."
+
+
+msgid "Compare device memory without changing the saved configuration."
+msgstr "Az eszköz memóriájának összehasonlítása a mentett konfiguráció módosítása nélkül."
+
+msgid "Memory layout changed during the read. Read again to compare."
+msgstr "A memória elrendezése olvasás közben megváltozott. Az összehasonlításhoz olvassa ki újra."
+
+msgid "Compared with device memory read in this session."
+msgstr "Összehasonlítva az eszköz ebben a munkamenetben kiolvasott memóriájával."

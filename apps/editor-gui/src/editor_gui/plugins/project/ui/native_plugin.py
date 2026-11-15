@@ -1,8 +1,7 @@
-"""Native configuration file actions and the complete offline plan."""
+"""Native configuration setup and file actions."""
 
 from __future__ import annotations
 
-import json
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -16,7 +15,6 @@ from editor_gui.theme import status_color
 if TYPE_CHECKING:
     from editor_gui.device import Device
     from editor_gui.plugins.project.service import ProjectService
-    from xknxeditor.prod import MasterData
 
 
 class NativePluginPanel:
@@ -26,12 +24,8 @@ class NativePluginPanel:
         self._target: tuple[int, int] | None = None
         self._data: bytes = b""
         self._error: str = ""
-        self._plan: str = ""
-        self._plan_key: tuple[int, int, int] | None = None
 
-    def render(
-        self, device: Device, project: ProjectService, master: MasterData | None
-    ) -> None:
+    def render(self, device: Device, project: ProjectService) -> None:
         self._poll(project)
         try:
             provider = provider_for(device)
@@ -65,30 +59,16 @@ class NativePluginPanel:
             self._open = file_dialogs.open_file(
                 title=S.PLUGIN_NATIVE_IMPORT, filters=["JSON", "*.json"]
             )
-        if capabilities.preflight:
-            if imgui.button(S.PLUGIN_NATIVE_EXPORT):
-                try:
-                    self._data = project.export_plugin_config(device)
-                    self._save = file_dialogs.save_file(
-                        title=S.PLUGIN_NATIVE_EXPORT,
-                        default_path=f"{provider.id}-config.json",
-                        filters=["JSON", "*.json"],
-                    )
-                except ValueError as exc:
-                    self._error = str(exc)
-            if imgui.collapsing_header(S.PLUGIN_NATIVE_PLAN):
-                key = (project.generation, project.revision, device.node_id)
-                if key != self._plan_key:
-                    try:
-                        self._plan = json.dumps(
-                            project.preview_plugin(device, master), indent=2
-                        )
-                        self._plan_key = key
-                        self._error = ""
-                    except (ValueError, RuntimeError) as exc:
-                        self._error = str(exc)
-                        self._plan = ""
-                imgui.text_unformatted(self._plan)
+        if capabilities.configured and imgui.button(S.PLUGIN_NATIVE_EXPORT):
+            try:
+                self._data = project.export_plugin_config(device)
+                self._save = file_dialogs.save_file(
+                    title=S.PLUGIN_NATIVE_EXPORT,
+                    default_path=f"{provider.id}-config.json",
+                    filters=["JSON", "*.json"],
+                )
+            except ValueError as exc:
+                self._error = str(exc)
 
     def _poll(self, project: ProjectService) -> None:
         if self._open is not None and self._open.ready():

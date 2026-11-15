@@ -606,3 +606,25 @@ def test_completion_properties_require_an_explicit_final_step():
         [*missing[: completion + 1], write, *missing[completion + 1 :]],
         DownloadScope.FULL,
     )
+
+
+def test_absolute_prepared_resource_requires_exact_mapping():
+    from dataclasses import replace
+
+    from xknxeditor.download.errors import ImageError
+    from xknxeditor.download.image import DownloadImage, MemorySegment
+    from xknxeditor.download.prepared import PreparedDownload
+
+    image = DownloadImage(
+        segments=(MemorySegment(0x5000, b"\x01\xab\x02", b"\xff\0\xff"),),
+        properties=(),
+        object_segments={4: b"\x01\xab\x02"},
+        allocation_sizes={4: 8192},
+    )
+    prepared = PreparedDownload(image, {4: 3}, absolute_resources={4: 0x5000})
+    with pytest.raises(ImageError, match="explicit procedure"):
+        prepared.materialize([], DownloadScope.FULL)
+    with pytest.raises(ImageError, match="Contradictory absolute"):
+        replace(prepared, absolute_resources={4: 0x5001})
+    with pytest.raises(ImageError, match="incomplete prepared"):
+        replace(prepared, absolute_resources={})

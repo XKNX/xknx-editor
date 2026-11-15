@@ -3204,9 +3204,6 @@ msgstr "Εισαγωγή διαμόρφωσης Plugin…"
 msgid "Export Plugin Configuration…"
 msgstr "Εξαγωγή διαμόρφωσης Plugin…"
 
-msgid "Plugin Image and Load Plan"
-msgstr "Εικόνα και σχέδιο φόρτωσης Plugin"
-
 msgid "Use Stored Plugin Configuration"
 msgstr "Χρήση αποθηκευμένης διαμόρφωσης πρόσθετου"
 
@@ -3236,3 +3233,105 @@ msgstr "Επιλέξτε άλλο βήμα στη λίστα για να επα�
 
 msgid "Current state of the project"
 msgstr "Τρέχουσα κατάσταση του έργου"
+msgid "Configuration Comparison"
+msgstr "Σύγκριση ρυθμίσεων"
+
+msgid "Compare settings with another device or the stored image from the last download."
+msgstr "Συγκρίνετε τις ρυθμίσεις με μια άλλη συσκευή ή με την αποθηκευμένη εικόνα από τον τελευταίο προγραμματισμό."
+
+msgid "No Generic Plug-in description or stored settings were found for this device."
+msgstr "Δεν βρέθηκε περιγραφή Generic Plug-in ή αποθηκευμένες ρυθμίσεις για αυτή τη συσκευή."
+
+#, python-brace-format
+msgid "Matching: {match} · Not matching: {mismatch} · Not checked: {unchecked}"
+msgstr "Ταιριάζουν: {match} · Δεν ταιριάζουν: {mismatch} · Χωρίς έλεγχο: {unchecked}"
+
+#, python-brace-format
+msgid "Last download: {date}"
+msgstr "Τελευταία λήψη: {date}"
+
+msgid "No memory image is stored, so the values are not checked."
+msgstr "Δεν υπάρχει αποθηκευμένο είδωλο μνήμης, οπότε οι τιμές δεν ελέγχονται."
+
+msgid "The memory image does not fit the layout of the description, so the values are not checked."
+msgstr "Το είδωλο μνήμης δεν ταιριάζει με τη δομή της περιγραφής, οπότε οι τιμές δεν ελέγχονται."
+
+#, python-brace-format
+msgid "The stored settings name another application ({stored})."
+msgstr "Οι αποθηκευμένες ρυθμίσεις αναφέρουν άλλη εφαρμογή ({stored})."
+
+msgid "Only values that differ from the memory image"
+msgstr "Μόνο τιμές που διαφέρουν από το είδωλο μνήμης"
+
+msgid "Memory Image"
+msgstr "Είδωλο Μνήμης"
+
+msgid "Matches"
+msgstr "Ταιριάζει"
+
+#, python-brace-format
+msgid "Image holds {value}"
+msgstr "Το είδωλο περιέχει {value}"
+
+msgid "Not in memory"
+msgstr "Όχι στη μνήμη"
+
+msgid "Not checked"
+msgstr "Χωρίς έλεγχο"
+
+#, python-brace-format
+msgid "{value} (scaled, raw {raw})"
+msgstr "{value} (κλιμακωμένη, ακατέργαστη {raw})"
+
+msgid "Show settings for modules not fitted"
+msgstr "Εμφάνιση ρυθμίσεων για μη τοποθετημένες μονάδες"
+
+#, python-brace-format
+msgid "{title} (module not fitted)"
+msgstr "{title} (η μονάδα δεν έχει τοποθετηθεί)"
+
+msgid "Module not fitted"
+msgstr "Η μονάδα δεν έχει τοποθετηθεί"
+
+#, python-brace-format
+msgid "Settings of modules not fitted: {count}"
+msgstr "Ρυθμίσεις μη τοποθετημένων μονάδων: {count}"
+
+msgid "Compare With"
+msgstr "Σύγκριση με"
+
+msgid "No comparison"
+msgstr "Χωρίς σύγκριση"
+
+#, python-brace-format
+msgid "Settings that differ from {device}: {count}"
+msgstr "Ρυθμίσεις που διαφέρουν από {device}: {count}"
+
+msgid "Only differences"
+msgstr "Μόνο διαφορές"
+
+#, python-brace-format
+msgid "Value on {device}"
+msgstr "Τιμή σε {device}"
+
+msgid "Not shown"
+msgstr "Δεν εμφανίζεται"
+
+msgid "Read from Device Memory"
+msgstr "Ανάγνωση από τη μνήμη της συσκευής"
+
+msgid "Show device memory"
+msgstr "Εμφάνιση μνήμης συσκευής"
+
+msgid "Read this segment from the device and compare it with the image. Writes nothing."
+msgstr "Διαβάζει αυτό το τμήμα από τη συσκευή και το συγκρίνει με την εικόνα. Δεν γράφει τίποτα."
+
+
+msgid "Compare device memory without changing the saved configuration."
+msgstr "Σύγκριση της μνήμης της συσκευής χωρίς αλλαγή της αποθηκευμένης διαμόρφωσης."
+
+msgid "Memory layout changed during the read. Read again to compare."
+msgstr "Η διάταξη της μνήμης άλλαξε κατά την ανάγνωση. Επαναλάβετε την ανάγνωση για σύγκριση."
+
+msgid "Compared with device memory read in this session."
+msgstr "Σύγκριση με τη μνήμη της συσκευής που διαβάστηκε σε αυτή τη συνεδρία."

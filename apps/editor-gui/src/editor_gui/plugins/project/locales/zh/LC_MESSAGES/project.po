@@ -3152,9 +3152,6 @@ msgstr "导入Plugin配置…"
 msgid "Export Plugin Configuration…"
 msgstr "导出Plugin配置…"
 
-msgid "Plugin Image and Load Plan"
-msgstr "Plugin映像和加载计划"
-
 msgid "Use Stored Plugin Configuration"
 msgstr "使用已保存的插件配置"
 
@@ -3184,3 +3181,105 @@ msgstr "在列表中选择另一个步骤，将项目恢复到该步骤"
 
 msgid "Current state of the project"
 msgstr "项目的当前状态"
+msgid "Configuration Comparison"
+msgstr "配置比较"
+
+msgid "Compare settings with another device or the stored image from the last download."
+msgstr "将设置与另一台设备或上次下载时保存的映像进行比较。"
+
+msgid "No Generic Plug-in description or stored settings were found for this device."
+msgstr "未找到此设备的通用插件说明或已保存的设置。"
+
+#, python-brace-format
+msgid "Matching: {match} · Not matching: {mismatch} · Not checked: {unchecked}"
+msgstr "一致：{match} · 不一致：{mismatch} · 未检查：{unchecked}"
+
+#, python-brace-format
+msgid "Last download: {date}"
+msgstr "上次下载：{date}"
+
+msgid "No memory image is stored, so the values are not checked."
+msgstr "未保存存储器映像，因此不检查这些值。"
+
+msgid "The memory image does not fit the layout of the description, so the values are not checked."
+msgstr "存储器映像与说明的布局不符，因此不检查这些值。"
+
+#, python-brace-format
+msgid "The stored settings name another application ({stored})."
+msgstr "已保存的设置指向另一个应用程序（{stored}）。"
+
+msgid "Only values that differ from the memory image"
+msgstr "仅显示与存储器映像不同的值"
+
+msgid "Memory Image"
+msgstr "存储器映像"
+
+msgid "Matches"
+msgstr "一致"
+
+#, python-brace-format
+msgid "Image holds {value}"
+msgstr "映像中为 {value}"
+
+msgid "Not in memory"
+msgstr "不在存储器中"
+
+msgid "Not checked"
+msgstr "未检查"
+
+#, python-brace-format
+msgid "{value} (scaled, raw {raw})"
+msgstr "{value}（已换算，原始值 {raw}）"
+
+msgid "Show settings for modules not fitted"
+msgstr "显示未安装模块的设置"
+
+#, python-brace-format
+msgid "{title} (module not fitted)"
+msgstr "{title}（模块未安装）"
+
+msgid "Module not fitted"
+msgstr "模块未安装"
+
+#, python-brace-format
+msgid "Settings of modules not fitted: {count}"
+msgstr "未安装模块的设置：{count}"
+
+msgid "Compare With"
+msgstr "比较对象"
+
+msgid "No comparison"
+msgstr "不比较"
+
+#, python-brace-format
+msgid "Settings that differ from {device}: {count}"
+msgstr "与 {device} 不同的设置：{count}"
+
+msgid "Only differences"
+msgstr "仅显示差异"
+
+#, python-brace-format
+msgid "Value on {device}"
+msgstr "{device} 上的值"
+
+msgid "Not shown"
+msgstr "未显示"
+
+msgid "Read from Device Memory"
+msgstr "读取设备内存"
+
+msgid "Show device memory"
+msgstr "显示设备内存"
+
+msgid "Read this segment from the device and compare it with the image. Writes nothing."
+msgstr "从设备读取此段并与映像比较。不写入任何数据。"
+
+
+msgid "Compare device memory without changing the saved configuration."
+msgstr "比较设备内存，不更改已保存的配置。"
+
+msgid "Memory layout changed during the read. Read again to compare."
+msgstr "读取过程中内存布局发生了变化。请重新读取以进行比较。"
+
+msgid "Compared with device memory read in this session."
+msgstr "已与本次会话中读取的设备内存进行比较。"

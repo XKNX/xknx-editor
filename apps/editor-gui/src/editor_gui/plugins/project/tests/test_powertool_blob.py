@@ -135,7 +135,7 @@ def test_gui_selects_stored_without_an_import_button_or_mutation(tmp_path, monke
         before = project.cursor
         imgui.new_frame()
         imgui.begin("Stored Configuration")
-        NativePluginPanel().render(current(project, nid), project, None)
+        NativePluginPanel().render(current(project, nid), project)
         imgui.end()
         imgui.end_frame()
         assert configuration(current(project, nid)).channels[0].function == "dim_rocker"
@@ -495,7 +495,7 @@ def test_gui_reports_readable_profile_without_generic_unsupported_banner(
     monkeypatch.setattr(imgui, "text_disabled", messages.append)
     monkeypatch.setattr(imgui, "text_wrapped", messages.append)
     monkeypatch.setattr(imgui, "button", lambda *_: False)
-    NativePluginPanel().render(current(project, nid), project, None)
+    NativePluginPanel().render(current(project, nid), project)
     if readable:
         assert messages == [PROVIDER.capabilities(current(project, nid)).reason]
     else:

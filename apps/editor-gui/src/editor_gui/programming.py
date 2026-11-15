@@ -620,7 +620,7 @@ async def download_device(
     interface_max_apdu_length = await _route_limited(
         xknx, route_couplers, interface_max_apdu_length
     )
-    return await download(
+    result = await download(
         xknx,
         _address(device),
         _application(device),
@@ -648,3 +648,8 @@ async def download_device(
         waiting=waiting,
         memory_progress=memory_progress,
     )
+    if prepared is not None and prepared.completion is not None:
+        result = replace(
+            result, binary_updates=prepared.completion(result.property_reads)
+        )
+    return result

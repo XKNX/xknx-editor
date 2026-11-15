@@ -3152,9 +3152,6 @@ msgstr "Plugin Yapılandırmasını İçe Aktar…"
 msgid "Export Plugin Configuration…"
 msgstr "Plugin Yapılandırmasını Dışa Aktar…"
 
-msgid "Plugin Image and Load Plan"
-msgstr "Plugin İmajı ve Yükleme Planı"
-
 msgid "Use Stored Plugin Configuration"
 msgstr "Kayıtlı eklenti yapılandırmasını kullan"
 
@@ -3184,3 +3181,105 @@ msgstr "Projeyi geri getirmek için listeden başka bir adım seçin"
 
 msgid "Current state of the project"
 msgstr "Projenin mevcut durumu"
+msgid "Configuration Comparison"
+msgstr "Yapılandırma karşılaştırması"
+
+msgid "Compare settings with another device or the stored image from the last download."
+msgstr "Ayarları başka bir cihazla veya son programlamadan kaydedilen görüntüyle karşılaştırın."
+
+msgid "No Generic Plug-in description or stored settings were found for this device."
+msgstr "Bu cihaz için Generic Plug-in açıklaması veya kayıtlı ayar bulunamadı."
+
+#, python-brace-format
+msgid "Matching: {match} · Not matching: {mismatch} · Not checked: {unchecked}"
+msgstr "Eşleşen: {match} · Eşleşmeyen: {mismatch} · Denetlenmeyen: {unchecked}"
+
+#, python-brace-format
+msgid "Last download: {date}"
+msgstr "Son indirme: {date}"
+
+msgid "No memory image is stored, so the values are not checked."
+msgstr "Kayıtlı bellek görüntüsü yok, bu nedenle değerler denetlenmiyor."
+
+msgid "The memory image does not fit the layout of the description, so the values are not checked."
+msgstr "Bellek görüntüsü açıklamanın yapısına uymuyor, bu nedenle değerler denetlenmiyor."
+
+#, python-brace-format
+msgid "The stored settings name another application ({stored})."
+msgstr "Kayıtlı ayarlar başka bir uygulamayı belirtiyor ({stored})."
+
+msgid "Only values that differ from the memory image"
+msgstr "Yalnızca bellek görüntüsünden farklı olan değerler"
+
+msgid "Memory Image"
+msgstr "Bellek Görüntüsü"
+
+msgid "Matches"
+msgstr "Eşleşiyor"
+
+#, python-brace-format
+msgid "Image holds {value}"
+msgstr "Görüntüdeki değer: {value}"
+
+msgid "Not in memory"
+msgstr "Bellekte değil"
+
+msgid "Not checked"
+msgstr "Denetlenmedi"
+
+#, python-brace-format
+msgid "{value} (scaled, raw {raw})"
+msgstr "{value} (ölçeklenmiş, ham {raw})"
+
+msgid "Show settings for modules not fitted"
+msgstr "Takılı olmayan modüllerin ayarlarını göster"
+
+#, python-brace-format
+msgid "{title} (module not fitted)"
+msgstr "{title} (modül takılı değil)"
+
+msgid "Module not fitted"
+msgstr "Modül takılı değil"
+
+#, python-brace-format
+msgid "Settings of modules not fitted: {count}"
+msgstr "Takılı olmayan modüllerin ayarları: {count}"
+
+msgid "Compare With"
+msgstr "Şununla karşılaştır"
+
+msgid "No comparison"
+msgstr "Karşılaştırma yok"
+
+#, python-brace-format
+msgid "Settings that differ from {device}: {count}"
+msgstr "{device} cihazından farklı ayarlar: {count}"
+
+msgid "Only differences"
+msgstr "Yalnızca farklar"
+
+#, python-brace-format
+msgid "Value on {device}"
+msgstr "{device} üzerindeki değer"
+
+msgid "Not shown"
+msgstr "Gösterilmiyor"
+
+msgid "Read from Device Memory"
+msgstr "Cihaz belleğinden oku"
+
+msgid "Show device memory"
+msgstr "Cihaz belleğini göster"
+
+msgid "Read this segment from the device and compare it with the image. Writes nothing."
+msgstr "Bu bölümü cihazdan okur ve görüntüyle karşılaştırır. Hiçbir şey yazmaz."
+
+
+msgid "Compare device memory without changing the saved configuration."
+msgstr "Kaydedilen yapılandırmayı değiştirmeden cihaz belleğini karşılaştırın."
+
+msgid "Memory layout changed during the read. Read again to compare."
+msgstr "Okuma sırasında bellek düzeni değişti. Karşılaştırmak için yeniden okuyun."
+
+msgid "Compared with device memory read in this session."
+msgstr "Bu oturumda okunan cihaz belleğiyle karşılaştırıldı."

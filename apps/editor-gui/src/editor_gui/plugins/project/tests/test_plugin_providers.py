@@ -127,6 +127,9 @@ async def test_another_registered_provider_uses_all_shared_paths(tmp_path, monke
         def serialize(self, device, config, objects):
             return PROVIDER.serialize(device, config, objects)
 
+        def export(self, device):
+            return PROVIDER.export(device)
+
         def sections(self, device):
             calls.append("sections")
             return PROVIDER.sections(device)
@@ -196,7 +199,7 @@ async def test_another_registered_provider_uses_all_shared_paths(tmp_path, monke
         io.backend_flags |= imgui.BackendFlags_.renderer_has_textures
         imgui.new_frame()
         imgui.begin("Example")
-        NativePluginPanel().render(device, proj, None)
+        NativePluginPanel().render(device, proj)
         imgui.end()
         imgui.end_frame()
     finally:

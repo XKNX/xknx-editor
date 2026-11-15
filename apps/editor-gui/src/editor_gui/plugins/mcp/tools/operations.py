@@ -183,6 +183,128 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         ended = finished(wait_for_operation(ctx, item, timeout))
         return ctx.run_on_ui(lambda: item_dict(ended, None))
 
+    @tool("read")
+    def project_memory_segments(
+        node_id: int | None = None, device_address: str | None = None
+    ) -> dict[str, Any]:
+        """List the memory preview's segments without accessing the bus.
+
+        Identify a device by node_id OR device_address. Returns segments with id,
+        address (absolute address or object-relative offset), object_index (null
+        for absolute memory), user_memory, size and planned bytes as hex. Use a
+        segment id with connection_read_memory to read the same range from the device.
+        """
+        from editor_gui.memory_read import preview_segments
+
+        def read() -> dict[str, Any]:
+            project = ctx.api.project
+            device = require_device(project, node_id, device_address)
+            segments = preview_segments(device, project.prepared_download(device))
+            return {
+                "segments": [
+                    {
+                        "id": key,
+                        "address": segment.request.address,
+                        "object_index": segment.request.object_index,
+                        "user_memory": segment.request.user_memory,
+                        "size": len(segment.data),
+                        "planned": segment.data.hex(),
+                    }
+                    for key, segment in segments.items()
+                ]
+            }
+
+        return ctx.run_locked(read)
+
+    @tool("read", open_world=True)
+    def connection_read_memory(
+        segment: str,
+        node_id: int | None = None,
+        device_address: str | None = None,
+        timeout: float = 120.0,
+    ) -> dict[str, Any]:
+        """Read a segment of the memory preview from the device, without writing.
+
+        Identify the device by node_id OR device_address; segment is an id from
+        project_memory_segments. Reads the complete displayed range, including
+        holes, resolving relative memory through the device's table reference.
+        Uses the GUI's cancellable operations queue and secure connection. Changes
+        to project parameters do not prevent reading. Returns segment, actual
+        address, size, object_index, user_memory and the bytes read as hex in data.
+        A refusal or incomplete read fails instead of returning fabricated bytes.
+        Does not change parameters, stored blobs or download status.
+        """
+        from editor_gui.memory_read import MemoryReadResult
+        from editor_gui.plugins.mcp.tools.connection import finished, wait_for_operation
+        from editor_gui.plugins.project.program_queue import ORIGIN_MCP
+
+        plugin = _plugin()
+
+        def queue() -> QueueItem:
+            device = require_device(ctx.api.project, node_id, device_address)
+            return plugin.queue_memory_read(device.node_id, segment, origin=ORIGIN_MCP)
+
+        item = ctx.run_locked(queue)
+        ended = finished(wait_for_operation(ctx, item, timeout))
+        result = ended.result
+        if not isinstance(result, MemoryReadResult):
+            raise ToolError("Memory read returned no data")
+        return {
+            "segment": result.request.segment,
+            "address": result.address,
+            "size": len(result.data),
+            "object_index": result.request.object_index,
+            "user_memory": result.request.user_memory,
+            "data": result.data.hex(),
+        }
+
+    @tool("read", open_world=True)
+    def connection_read_plugin_memory(
+        node_id: int | None = None,
+        device_address: str | None = None,
+        timeout: float = 120.0,
+    ) -> dict[str, Any]:
+        """Read device parameter memory directly into Plugin Config's comparison.
+
+        Identify the device by node_id OR device_address. For supported Siemens
+        plugin layouts, automatically selects the full parameter memory range.
+        Uses the same cancellable queue and connection as the GUI. Returns address,
+        size and counts of matching, mismatching and unchecked parameters. The
+        comparison stays in this session; no configuration blob, parameter, group
+        link or download status is overwritten. Inspect parameter differences with
+        project_generic_plugin_parameters after this read. No memory preview opens.
+        """
+        from editor_gui.plugins.mcp.tools.connection import finished, wait_for_operation
+        from editor_gui.plugins.project.program_queue import ORIGIN_MCP
+        from xknxeditor.vendor.siemens_generic import MemoryCheck
+
+        plugin = _plugin()
+
+        def queue() -> QueueItem:
+            device = require_device(ctx.api.project, node_id, device_address)
+            return plugin.queue_plugin_memory_read(device.node_id, origin=ORIGIN_MCP)
+
+        item = ctx.run_locked(queue)
+        finished(wait_for_operation(ctx, item, timeout))
+
+        def result() -> dict[str, Any]:
+            device = require_device(ctx.api.project, node_id, device_address)
+            memory = plugin.generic_plugin_memory_result(device)
+            view = plugin.generic_plugin_view(device)
+            if (
+                memory is None
+                or view is None
+                or plugin.generic_plugin_memory_operation(device) is not item
+            ):
+                raise ToolError("Device changed during memory comparison")
+            return {
+                "address": memory.address,
+                "size": len(memory.data),
+                "counts": {check.value: view.count(check) for check in MemoryCheck},
+            }
+
+        return ctx.run_locked(result)
+
     @tool("write", open_world=True)
     def connection_cancel_operations(
         node_ids: list[int] | None = None,

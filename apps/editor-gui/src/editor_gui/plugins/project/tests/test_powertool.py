@@ -279,7 +279,7 @@ def test_gui_parameter_and_file_actions_share_service(tmp_path, monkeypatch):
         for _ in range(2):
             imgui.new_frame()
             imgui.begin("Native")
-            panel.render(dev, proj, None)
+            panel.render(dev, proj)
             generic.render(dev)
             imgui.end()
             imgui.end_frame()

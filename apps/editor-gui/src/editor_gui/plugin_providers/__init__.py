@@ -58,6 +58,7 @@ class PluginProvider(Protocol):
     def read(self, device: Device) -> NativeConfiguration: ...
     def decode(self, device: Device, data: bytes) -> NativeConfiguration: ...
     def edit(self, device: Device, ref_id: str, value: str) -> NativeConfiguration: ...
+    def export(self, device: Device) -> bytes: ...
     def serialize(
         self,
         device: Device,
@@ -74,7 +75,7 @@ class PluginProvider(Protocol):
 def compatible_dpt(expected: str, actual: str | None) -> bool:
     from xknxeditor.proj.core.dpt import normalize_datapoint_type
 
-    if not actual:
+    if not actual or not expected:
         return True
     left = normalize_datapoint_type(expected)
     right = normalize_datapoint_type(actual)
@@ -89,8 +90,9 @@ def compatible_dpt(expected: str, actual: str | None) -> bool:
 
 def providers() -> tuple[PluginProvider, ...]:
     from .powertool import PROVIDER
+    from .siemens_generic import PROVIDER as SIEMENS
 
-    return (PROVIDER,)
+    return (PROVIDER, SIEMENS)
 
 
 def provider_named(name: str) -> PluginProvider:
@@ -101,7 +103,7 @@ def provider_named(name: str) -> PluginProvider:
 
 
 def native_blob_names() -> frozenset[str]:
-    return frozenset(p.blob_name for p in providers())
+    return frozenset(p.blob_name for p in providers() if p.blob_name != "BLOB_STRING")
 
 
 def provider_for(device: Device) -> PluginProvider | None:
@@ -136,10 +138,15 @@ def programming_error(device: Device) -> str | None:
 
 
 def install_view(device: Device) -> None:
-    if not any(r.name in native_blob_names() for r in device.binary_data):
+    if not any(
+        r.name in native_blob_names() or r.name == "BLOB_STRING"
+        for r in device.binary_data
+    ):
         return
     try:
-        require_provider(device).install_view(device)
+        provider = provider_for(device)
+        if provider is not None:
+            provider.install_view(device)
     except ValueError as exc:
         device.native_objects = []
         device.native_modules = []
@@ -186,6 +193,10 @@ def preview(
         return value
 
     return {
+        "memory": [
+            {"address": s.address, "data": s.data.hex(), "mask": (s.mask or b"").hex()}
+            for s in prepared.image.segments
+        ],
         "resources": [
             {
                 "object_index": s.object_index,
@@ -197,6 +208,21 @@ def preview(
                 "mask": (s.memory.mask or b"").hex(),
             }
             for s in prepared.image.application_segments
+        ]
+        + [
+            {
+                "object_index": index,
+                "address": address,
+                "size": prepared.resource_sizes[index],
+                "allocation_size": prepared.image.allocation_sizes.get(
+                    index, prepared.resource_sizes[index]
+                ),
+                "data": segment.data.hex(),
+                "mask": (segment.mask or b"").hex(),
+            }
+            for index, address in prepared.absolute_resources.items()
+            for segment in prepared.image.segments
+            if segment.address == address
         ],
         "properties": [
             {"object_index": p.object_index, "pid": p.property_id, "data": p.data.hex()}

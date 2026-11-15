@@ -433,6 +433,9 @@ class PowerToolProvider:
         config = from_json_bytes(self.read(device).data)
         return self._state(device, edit_native(config, ref_id, value))
 
+    def export(self, device: Device) -> bytes:
+        return self.read(device).data
+
     def sections(self, device: Device) -> list[PluginSectionView]:
         from editor_gui.plugin_blob_readers.powertool import read, read_original
         from xknxeditor.vendor.powertool.project_blob import PLUGIN_BLOB_NAME

@@ -30,10 +30,6 @@ class ProjectStrings:
         return _("Export Plugin Configuration…")
 
     @property
-    def PLUGIN_NATIVE_PLAN(self) -> str:
-        return _("Plugin Image and Load Plan")
-
-    @property
     def PLUGIN_NATIVE_SETUP(self) -> str:
         return _("Set Up Plugin")
 
@@ -2199,6 +2195,119 @@ class ProjectStrings:
         return _("Plugin Config")
 
     @property
+    def PLUGIN_CONFIG_COMPARISON(self) -> str:
+        return _("Configuration Comparison")
+
+    @property
+    def GENERIC_PLUGIN_NOTE(self) -> str:
+        return _(
+            "Compare settings with another device or the stored image from the last download."
+        )
+
+    @property
+    def GENERIC_PLUGIN_NONE(self) -> str:
+        return _(
+            "No Generic Plug-in description or stored settings were found for this device."
+        )
+
+    @property
+    def GENERIC_PLUGIN_SUMMARY(self) -> str:
+        return _(
+            "Matching: {match} · Not matching: {mismatch} · Not checked: {unchecked}"
+        )
+
+    @property
+    def GENERIC_PLUGIN_LAST_DOWNLOAD(self) -> str:
+        return _("Last download: {date}")
+
+    @property
+    def GENERIC_PLUGIN_NO_IMAGE(self) -> str:
+        return _("No memory image is stored, so the values are not checked.")
+
+    @property
+    def GENERIC_PLUGIN_LAYOUT_UNKNOWN(self) -> str:
+        return _(
+            "The memory image does not fit the layout of the description, so the values are "
+            "not checked."
+        )
+
+    @property
+    def GENERIC_PLUGIN_OTHER_APPLICATION(self) -> str:
+        return _("The stored settings name another application ({stored}).")
+
+    @property
+    def GENERIC_PLUGIN_ONLY_MISMATCHES(self) -> str:
+        return _("Only values that differ from the memory image")
+
+    @property
+    def GENERIC_PLUGIN_COL_MEMORY(self) -> str:
+        return _("Memory Image")
+
+    @property
+    def GENERIC_PLUGIN_MATCH(self) -> str:
+        return _("Matches")
+
+    @property
+    def GENERIC_PLUGIN_MISMATCH(self) -> str:
+        return _("Image holds {value}")
+
+    @property
+    def GENERIC_PLUGIN_NOT_IN_MEMORY(self) -> str:
+        return _("Not in memory")
+
+    @property
+    def GENERIC_PLUGIN_UNCHECKED(self) -> str:
+        return _("Not checked")
+
+    @property
+    def GENERIC_PLUGIN_GENERAL(self) -> str:
+        return _("General")
+
+    @property
+    def GENERIC_PLUGIN_SCALED(self) -> str:
+        return _("{value} (scaled, raw {raw})")
+
+    @property
+    def GENERIC_PLUGIN_SHOW_UNFITTED(self) -> str:
+        return _("Show settings for modules not fitted")
+
+    @property
+    def GENERIC_PLUGIN_UNFITTED_PAGE(self) -> str:
+        return _("{title} (module not fitted)")
+
+    @property
+    def GENERIC_PLUGIN_NOT_FITTED(self) -> str:
+        return _("Module not fitted")
+
+    @property
+    def GENERIC_PLUGIN_UNFITTED_COUNT(self) -> str:
+        return _("Settings of modules not fitted: {count}")
+
+    @property
+    def GENERIC_PLUGIN_COMPARE_WITH(self) -> str:
+        return _("Compare With")
+
+    @property
+    def GENERIC_PLUGIN_COMPARE_NONE(self) -> str:
+        return _("No comparison")
+
+    @property
+    def GENERIC_PLUGIN_COMPARE_DIFFERENCES(self) -> str:
+        return _("Settings that differ from {device}: {count}")
+
+    @property
+    def GENERIC_PLUGIN_ONLY_DIFFERENCES(self) -> str:
+        return _("Only differences")
+
+    @property
+    def GENERIC_PLUGIN_COL_OTHER(self) -> str:
+        return _("Value on {device}")
+
+    @property
+    def GENERIC_PLUGIN_NOT_SHOWN(self) -> str:
+        return _("Not shown")
+
+    @property
     def PLUGIN_PARAMS_NO_MAPPING(self) -> str:
         return _(
             "No plugin mapping is available for this device yet. The vendor plugin's "
@@ -2881,6 +2990,32 @@ class ProjectStrings:
     @property
     def MEMORY_SAVE(self) -> str:
         return _("Save…")
+
+    @property
+    def MEMORY_READ(self) -> str:
+        return _("Read from Device Memory")
+
+    @property
+    def MEMORY_COMPARE_LIVE(self) -> str:
+        return _("Compared with device memory read in this session.")
+
+    @property
+    def MEMORY_COMPARE_HINT(self) -> str:
+        return _("Compare device memory without changing the saved configuration.")
+
+    @property
+    def MEMORY_LAYOUT_CHANGED(self) -> str:
+        return _("Memory layout changed during the read. Read again to compare.")
+
+    @property
+    def MEMORY_SHOW_DEVICE(self) -> str:
+        return _("Show device memory")
+
+    @property
+    def MEMORY_READ_HINT(self) -> str:
+        return _(
+            "Read this segment from the device and compare it with the image. Writes nothing."
+        )
 
     @property
     def MEMORY_DIFF(self) -> str:

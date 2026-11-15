@@ -335,6 +335,10 @@ class Device:
     second_application: Callable[[], Application | None] | None = field(
         default=None, repr=False, compare=False
     )
+    plugin_baggage: Callable[[str], bytes | None] | None = field(
+        default=None, repr=False, compare=False
+    )
+    order_number: str = ""
     # Name of a device configuration app the project carries for this device's application.
     configuration_app: str | None = field(
         default=None, repr=False, compare=False, init=False
@@ -389,7 +393,8 @@ class Device:
     def __post_init__(self, visible: list[int] | None) -> None:
         from editor_gui.plugin_providers import install_view
 
-        install_view(self)
+        if visible is None:
+            install_view(self)
         if self.native_objects is not None:
             return
         if visible is not None:

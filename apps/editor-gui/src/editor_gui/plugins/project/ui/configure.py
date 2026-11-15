@@ -1,4 +1,3 @@
-import datetime
 import threading
 from collections.abc import Callable
 from contextlib import nullcontext
@@ -75,6 +74,7 @@ from editor_gui.widgets.backgrounds import (
 )
 from editor_gui.widgets.checkbox import checkbox, radio_button
 from editor_gui.widgets.combo import begin_combo, combo
+from editor_gui.widgets.datetime_format import timestamp_text
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
 from editor_gui.widgets.group_objects_widgets import (
     GroupAddressCatalog,
@@ -256,22 +256,6 @@ def direct_program_request(
     return ProgramRequest(scope=scope, use_serial_number=use_serial_number)
 
 
-def timestamp_text(stamp: str | None) -> str:
-    """A time the project stores (UTC, "2026-01-24T11:38:26.8111136Z") as shown: in local time to
-    the minute, "2026-01-24 12:38"; "-" for none or one that cannot be read."""
-    if not stamp:
-        return "-"
-    # Seven digits of fraction are more than fromisoformat reads; the minute is enough.
-    whole = stamp.strip().removesuffix("Z").partition(".")[0]
-    try:
-        moment = datetime.datetime.fromisoformat(whole)
-    except ValueError:
-        return "-"
-    if moment.tzinfo is None:
-        moment = moment.replace(tzinfo=datetime.UTC)
-    return moment.astimezone().strftime("%Y-%m-%d %H:%M")
-
-
 def _timestamp_field(stamp: str | None) -> None:
     imgui.align_text_to_frame_padding()
     imgui.text_unformatted(timestamp_text(stamp))
@@ -330,6 +314,7 @@ class ConfigurePanel:
         render_dali: Callable[[Device], None] | None = None,
         render_siemens_dali: Callable[[Device], None] | None = None,
         render_plugin_params: Callable[[Device], None] | None = None,
+        has_plugin_params: Callable[[Device], bool] | None = None,
         on_navigate_ga: Callable[[int], None] | None = None,
         on_paste_links: Callable[[int, list[tuple[int, bool]], bool], None]
         | None = None,
@@ -512,6 +497,7 @@ class ConfigurePanel:
         )
         self._render_siemens_dali = render_siemens_dali
         self._render_plugin_params = render_plugin_params
+        self._has_plugin_params = has_plugin_params
         self._param_filter: str = ""
         self._module_filter: str = ""  # "Channels" tab (module-instance table) filter
         self._lv_seq: int = 0  # per-frame counter for unique _render_label_value ids
@@ -1311,12 +1297,16 @@ class ConfigurePanel:
                 self._render_siemens_dali(device)
                 imgui.end_tab_item()
 
-            # "Plugin Config" tab: sectioned view of the raw application parameters for devices
-            # whose vendor mapping file is bundled under editor_gui/plugin_mappings/.
             if (
                 self._render_plugin_params is not None
                 and device.app is not None
-                and mapping_for_device(device) is not None
+                and (
+                    mapping_for_device(device) is not None
+                    or (
+                        self._has_plugin_params is not None
+                        and self._has_plugin_params(device)
+                    )
+                )
                 and imgui.begin_tab_item(
                     f"{S.EDITOR_TAB_PLUGIN_PARAMS}###editor_tab_plugin_params"
                 )[0]

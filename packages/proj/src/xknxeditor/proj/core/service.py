@@ -2649,6 +2649,7 @@ class ProjectService:
         ip_address: str | None = None,
         clear_load_data: bool = False,
         clear_network: bool = False,
+        binary_updates: Mapping[str, tuple[bytes, bytes]] | None = None,
     ) -> None:
         """Update a device's commissioning state (loaded ticks, serial, last download, the MAC
         address read from an IP device and the IP address it was found at).
@@ -2658,7 +2659,23 @@ class ProjectService:
         importer's round-trip (the ``.knxproj`` carries it). After an unload, ``clear_load_data``
         and ``clear_network`` clear what the device no longer holds (see
         :class:`SetDeviceCommissioning`)."""
-        self._state(project_id).store.append(
+        state = self._state(project_id)
+        device = self._require_device(state, device_id)
+        events: list[Event] = []
+        for name, (expected, data) in (binary_updates or {}).items():
+            row = next((r for r in device.binary_data if r.name == name), None)
+            if row is None or bytes(row.data or b"") != expected:
+                raise ValueError("Device configuration changed while programming")
+            events.append(
+                UpsertDeviceBinaryData(
+                    device_id=device_id,
+                    name=name,
+                    data=data,
+                    ref_id=row.ref_id,
+                    do_not_copy=row.do_not_copy,
+                )
+            )
+        events.append(
             SetDeviceCommissioning(
                 device_id=device_id,
                 serial_number=serial_number,
@@ -2674,6 +2691,9 @@ class ProjectService:
                 clear_load_data=clear_load_data,
                 clear_network=clear_network,
             )
+        )
+        state.store.append(
+            CompositeEvent(events=events) if binary_updates else events[0]
         )
 
     # --- remove / rename / move -------------------------------------------

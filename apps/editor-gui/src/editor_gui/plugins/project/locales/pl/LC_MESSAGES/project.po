@@ -3256,9 +3256,6 @@ msgstr "Importuj konfigurację Plugin…"
 msgid "Export Plugin Configuration…"
 msgstr "Eksportuj konfigurację Plugin…"
 
-msgid "Plugin Image and Load Plan"
-msgstr "Obraz i plan ładowania Plugin"
-
 msgid "Use Stored Plugin Configuration"
 msgstr "Użyj zapisanej konfiguracji wtyczki"
 
@@ -3288,3 +3285,105 @@ msgstr "Wybierz inny krok na liście, aby przywrócić do niego projekt"
 
 msgid "Current state of the project"
 msgstr "Bieżący stan projektu"
+msgid "Configuration Comparison"
+msgstr "Porównanie konfiguracji"
+
+msgid "Compare settings with another device or the stored image from the last download."
+msgstr "Porównaj ustawienia z innym urządzeniem lub zapisanym obrazem z ostatniego programowania."
+
+msgid "No Generic Plug-in description or stored settings were found for this device."
+msgstr "Nie znaleziono opisu Generic Plug-in ani zapisanych ustawień dla tego urządzenia."
+
+#, python-brace-format
+msgid "Matching: {match} · Not matching: {mismatch} · Not checked: {unchecked}"
+msgstr "Zgodne: {match} · Niezgodne: {mismatch} · Niesprawdzone: {unchecked}"
+
+#, python-brace-format
+msgid "Last download: {date}"
+msgstr "Ostatnie pobranie: {date}"
+
+msgid "No memory image is stored, so the values are not checked."
+msgstr "Nie zapisano obrazu pamięci, więc wartości nie są sprawdzane."
+
+msgid "The memory image does not fit the layout of the description, so the values are not checked."
+msgstr "Obraz pamięci nie pasuje do układu opisu, więc wartości nie są sprawdzane."
+
+#, python-brace-format
+msgid "The stored settings name another application ({stored})."
+msgstr "Zapisane ustawienia wskazują inną aplikację ({stored})."
+
+msgid "Only values that differ from the memory image"
+msgstr "Tylko wartości różniące się od obrazu pamięci"
+
+msgid "Memory Image"
+msgstr "Obraz pamięci"
+
+msgid "Matches"
+msgstr "Zgodne"
+
+#, python-brace-format
+msgid "Image holds {value}"
+msgstr "Obraz zawiera {value}"
+
+msgid "Not in memory"
+msgstr "Nie w pamięci"
+
+msgid "Not checked"
+msgstr "Niesprawdzone"
+
+#, python-brace-format
+msgid "{value} (scaled, raw {raw})"
+msgstr "{value} (przeskalowane, surowa {raw})"
+
+msgid "Show settings for modules not fitted"
+msgstr "Pokaż ustawienia niezamontowanych modułów"
+
+#, python-brace-format
+msgid "{title} (module not fitted)"
+msgstr "{title} (moduł niezamontowany)"
+
+msgid "Module not fitted"
+msgstr "Moduł niezamontowany"
+
+#, python-brace-format
+msgid "Settings of modules not fitted: {count}"
+msgstr "Ustawienia niezamontowanych modułów: {count}"
+
+msgid "Compare With"
+msgstr "Porównaj z"
+
+msgid "No comparison"
+msgstr "Bez porównania"
+
+#, python-brace-format
+msgid "Settings that differ from {device}: {count}"
+msgstr "Ustawienia różne od {device}: {count}"
+
+msgid "Only differences"
+msgstr "Tylko różnice"
+
+#, python-brace-format
+msgid "Value on {device}"
+msgstr "Wartość w {device}"
+
+msgid "Not shown"
+msgstr "Nie pokazano"
+
+msgid "Read from Device Memory"
+msgstr "Odczytaj z pamięci urządzenia"
+
+msgid "Show device memory"
+msgstr "Pokaż pamięć urządzenia"
+
+msgid "Read this segment from the device and compare it with the image. Writes nothing."
+msgstr "Odczytuje ten segment z urządzenia i porównuje go z obrazem. Niczego nie zapisuje."
+
+
+msgid "Compare device memory without changing the saved configuration."
+msgstr "Porównaj pamięć urządzenia bez zmiany zapisanej konfiguracji."
+
+msgid "Memory layout changed during the read. Read again to compare."
+msgstr "Układ pamięci zmienił się podczas odczytu. Odczytaj ponownie, aby porównać."
+
+msgid "Compared with device memory read in this session."
+msgstr "Porównano z pamięcią urządzenia odczytaną w tej sesji."

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass, field, replace
 from types import MappingProxyType
 
@@ -29,6 +29,8 @@ class PreparedDownload:
     Allocation sizes can reserve more memory than the resource bytes being written.
     The domain address describes the target network; domain commissioning is
     separate from the application load procedure.
+    A procedure builder owns validation of its complete transaction. Completion
+    receives the final property reads and returns expected/current blob pairs.
     """
 
     image: DownloadImage
@@ -42,6 +44,16 @@ class PreparedDownload:
     )
     domain_address: int | None = None
     completion_properties: frozenset[tuple[int, int]] = frozenset()
+    absolute_resources: Mapping[int, int] = field(default_factory=dict[int, int])
+    procedure_builder: Callable[[Sequence[object]], list[object]] | None = field(
+        default=None, repr=False, compare=False
+    )
+    completion: (
+        Callable[
+            [Mapping[tuple[int, int, int], bytes]], Mapping[str, tuple[bytes, bytes]]
+        ]
+        | None
+    ) = field(default=None, repr=False, compare=False)
 
     def __post_init__(self) -> None:
         if self.domain_address is not None and (
@@ -51,6 +63,9 @@ class PreparedDownload:
             raise ImageError("invalid prepared domain address")
         object.__setattr__(
             self, "resource_sizes", MappingProxyType(dict(self.resource_sizes))
+        )
+        object.__setattr__(
+            self, "absolute_resources", MappingProxyType(dict(self.absolute_resources))
         )
         object.__setattr__(
             self,
@@ -81,6 +96,16 @@ class PreparedDownload:
             if self.image.object_segments.get(index) != segment.memory.data:
                 raise ImageError("contradictory prepared resource data")
             covered.add(index)
+        for index, address in self.absolute_resources.items():
+            if index in covered or index not in self.resource_sizes:
+                raise ImageError("Invalid absolute prepared resource")
+            matches = [s for s in self.image.segments if s.address == address]
+            if (
+                len(matches) != 1
+                or matches[0].data != self.image.object_segments[index]
+            ):
+                raise ImageError("Contradictory absolute prepared resource")
+            covered.add(index)
         if covered != set(self.resource_sizes):
             raise ImageError("incomplete prepared application resources")
         if not self.image.allocation_sizes.keys() <= self.resource_sizes.keys():
@@ -108,6 +133,12 @@ class PreparedDownload:
         self, controls: Sequence[object], scope: DownloadScope
     ) -> list[object]:
         self.check_scope(scope)
+        if self.procedure_builder is not None:
+            return self.procedure_builder(controls)
+        if self.absolute_resources:
+            raise ImageError(
+                "Absolute prepared resources require an explicit procedure"
+            )
         allocated: set[int] = set()
         written: set[int] = set()
         props = {(p.object_index, p.property_id): p for p in self.image.properties}

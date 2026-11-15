@@ -3256,9 +3256,6 @@ msgstr "Importovat konfiguraci Plugin…"
 msgid "Export Plugin Configuration…"
 msgstr "Exportovat konfiguraci Plugin…"
 
-msgid "Plugin Image and Load Plan"
-msgstr "Obraz a plán načítání Plugin"
-
 msgid "Use Stored Plugin Configuration"
 msgstr "Použít uloženou konfiguraci pluginu"
 
@@ -3288,3 +3285,105 @@ msgstr "Vyberte v seznamu jiný krok, ke kterému se má projekt vrátit"
 
 msgid "Current state of the project"
 msgstr "Aktuální stav projektu"
+msgid "Configuration Comparison"
+msgstr "Porovnání konfigurace"
+
+msgid "Compare settings with another device or the stored image from the last download."
+msgstr "Porovnejte nastavení s jiným zařízením nebo s uloženým obrazem z posledního nahrání."
+
+msgid "No Generic Plug-in description or stored settings were found for this device."
+msgstr "Pro toto zařízení nebyl nalezen popis Generic Plug-in ani uložená nastavení."
+
+#, python-brace-format
+msgid "Matching: {match} · Not matching: {mismatch} · Not checked: {unchecked}"
+msgstr "Shodných: {match} · Neshodných: {mismatch} · Nekontrolováno: {unchecked}"
+
+#, python-brace-format
+msgid "Last download: {date}"
+msgstr "Poslední nahrání: {date}"
+
+msgid "No memory image is stored, so the values are not checked."
+msgstr "Není uložen žádný obraz paměti, proto se hodnoty nekontrolují."
+
+msgid "The memory image does not fit the layout of the description, so the values are not checked."
+msgstr "Obraz paměti neodpovídá struktuře popisu, proto se hodnoty nekontrolují."
+
+#, python-brace-format
+msgid "The stored settings name another application ({stored})."
+msgstr "Uložená nastavení uvádějí jinou aplikaci ({stored})."
+
+msgid "Only values that differ from the memory image"
+msgstr "Jen hodnoty, které se liší od obrazu paměti"
+
+msgid "Memory Image"
+msgstr "Obraz paměti"
+
+msgid "Matches"
+msgstr "Shoduje se"
+
+#, python-brace-format
+msgid "Image holds {value}"
+msgstr "Obraz obsahuje {value}"
+
+msgid "Not in memory"
+msgstr "Není v paměti"
+
+msgid "Not checked"
+msgstr "Nekontrolováno"
+
+#, python-brace-format
+msgid "{value} (scaled, raw {raw})"
+msgstr "{value} (přepočteno, surová hodnota {raw})"
+
+msgid "Show settings for modules not fitted"
+msgstr "Zobrazit nastavení nenainstalovaných modulů"
+
+#, python-brace-format
+msgid "{title} (module not fitted)"
+msgstr "{title} (modul není osazen)"
+
+msgid "Module not fitted"
+msgstr "Modul není osazen"
+
+#, python-brace-format
+msgid "Settings of modules not fitted: {count}"
+msgstr "Nastavení nenainstalovaných modulů: {count}"
+
+msgid "Compare With"
+msgstr "Porovnat s"
+
+msgid "No comparison"
+msgstr "Bez porovnání"
+
+#, python-brace-format
+msgid "Settings that differ from {device}: {count}"
+msgstr "Nastavení odlišná od {device}: {count}"
+
+msgid "Only differences"
+msgstr "Jen rozdíly"
+
+#, python-brace-format
+msgid "Value on {device}"
+msgstr "Hodnota na {device}"
+
+msgid "Not shown"
+msgstr "Nezobrazeno"
+
+msgid "Read from Device Memory"
+msgstr "Číst z paměti zařízení"
+
+msgid "Show device memory"
+msgstr "Zobrazit paměť zařízení"
+
+msgid "Read this segment from the device and compare it with the image. Writes nothing."
+msgstr "Přečte tento segment ze zařízení a porovná jej s obrazem. Nic nezapisuje."
+
+
+msgid "Compare device memory without changing the saved configuration."
+msgstr "Porovná paměť zařízení beze změny uložené konfigurace."
+
+msgid "Memory layout changed during the read. Read again to compare."
+msgstr "Rozložení paměti se během čtení změnilo. Pro porovnání načtěte znovu."
+
+msgid "Compared with device memory read in this session."
+msgstr "Porovnáno s pamětí zařízení načtenou v této relaci."

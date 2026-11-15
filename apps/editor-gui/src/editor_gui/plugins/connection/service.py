@@ -31,6 +31,7 @@ if TYPE_CHECKING:
     from xknx.telegram import IndividualAddress
 
     from editor_gui.device import Device
+    from editor_gui.memory_read import MemoryReadRequest
     from editor_gui.net import TelegramSource
     from editor_gui.plugins.base import Logger
     from editor_gui.plugins.keyring.service import KeyringService
@@ -1543,6 +1544,37 @@ class ConnectionService:
         )
         for line in report.summary().splitlines():
             self._log.info(line.strip())
+
+    @_connects("read_memory")
+    def read_memory(
+        self, device: Device, request: MemoryReadRequest
+    ) -> Future[Any] | None:
+        """Read one preview range without changing the device or project."""
+        if self.not_connected("read_memory") or not device.individual_address:
+            return None
+        from editor_gui.memory_read import read_memory
+        from xknxeditor.download.procedure import MemoryServices, memory_services
+
+        security = self._security_for(device)
+        services = memory_services(device.app) if device.app else MemoryServices()
+        if not self.begin_operation("read_memory", device.individual_address):
+            return None
+        future = self.run_async(
+            read_memory(
+                self._connected_xknx,
+                device.individual_address,
+                request,
+                security=security,
+                services=services,
+                interface_max_apdu=self.interface_max_apdu_length,
+                progress=self._on_program_progress,
+            )
+        )
+        if future is None:
+            self._clear_busy()
+        else:
+            future.add_done_callback(lambda _future: self._clear_busy())
+        return future
 
     @_connects("device_info")
     def device_info(

@@ -302,6 +302,8 @@ def _bus_operation_names() -> dict[str, str]:
         "dali": S.EDITOR_TAB_DALI,
         "siemens_dali": S.EDITOR_TAB_SIEMENS_DALI,
         "siemens_dca": S.PLUGIN_PARAMS_PROGRAM_DCA,
+        "read_memory": S.MEMORY_READ,
+        "read_plugin_memory": S.MEMORY_READ,
         "recover": S.OPERATION_RECOVER,
         "scan_progmode": S.OPERATION_PROGRAMMING_MODE,
     }

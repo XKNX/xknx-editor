@@ -3204,9 +3204,6 @@ msgstr "Importer Plugin-konfiguration…"
 msgid "Export Plugin Configuration…"
 msgstr "Eksporter Plugin-konfiguration…"
 
-msgid "Plugin Image and Load Plan"
-msgstr "Plugin-image og indlæsningsplan"
-
 msgid "Use Stored Plugin Configuration"
 msgstr "Brug gemt pluginkonfiguration"
 
@@ -3236,3 +3233,105 @@ msgstr "Vælg et andet trin på listen for at bringe projektet tilbage til det"
 
 msgid "Current state of the project"
 msgstr "Projektets aktuelle tilstand"
+msgid "Configuration Comparison"
+msgstr "Sammenligning af konfiguration"
+
+msgid "Compare settings with another device or the stored image from the last download."
+msgstr "Sammenlign indstillinger med en anden enhed eller det gemte hukommelsesbillede fra den seneste programmering."
+
+msgid "No Generic Plug-in description or stored settings were found for this device."
+msgstr "Der blev ikke fundet nogen Generic Plug-in-beskrivelse eller gemte indstillinger for denne enhed."
+
+#, python-brace-format
+msgid "Matching: {match} · Not matching: {mismatch} · Not checked: {unchecked}"
+msgstr "Ens: {match} · Forskellige: {mismatch} · Ikke kontrolleret: {unchecked}"
+
+#, python-brace-format
+msgid "Last download: {date}"
+msgstr "Seneste download: {date}"
+
+msgid "No memory image is stored, so the values are not checked."
+msgstr "Der er ikke gemt noget hukommelsesbillede, så værdierne kontrolleres ikke."
+
+msgid "The memory image does not fit the layout of the description, so the values are not checked."
+msgstr "Hukommelsesbilledet passer ikke til beskrivelsens opbygning, så værdierne kontrolleres ikke."
+
+#, python-brace-format
+msgid "The stored settings name another application ({stored})."
+msgstr "De gemte indstillinger angiver en anden applikation ({stored})."
+
+msgid "Only values that differ from the memory image"
+msgstr "Kun værdier, der afviger fra hukommelsesbilledet"
+
+msgid "Memory Image"
+msgstr "Hukommelsesbillede"
+
+msgid "Matches"
+msgstr "Stemmer"
+
+#, python-brace-format
+msgid "Image holds {value}"
+msgstr "Billedet indeholder {value}"
+
+msgid "Not in memory"
+msgstr "Ikke i hukommelsen"
+
+msgid "Not checked"
+msgstr "Ikke kontrolleret"
+
+#, python-brace-format
+msgid "{value} (scaled, raw {raw})"
+msgstr "{value} (skaleret, rå {raw})"
+
+msgid "Show settings for modules not fitted"
+msgstr "Vis indstillinger for moduler, der ikke er monteret"
+
+#, python-brace-format
+msgid "{title} (module not fitted)"
+msgstr "{title} (modul ikke monteret)"
+
+msgid "Module not fitted"
+msgstr "Modul ikke monteret"
+
+#, python-brace-format
+msgid "Settings of modules not fitted: {count}"
+msgstr "Indstillinger for moduler, der ikke er monteret: {count}"
+
+msgid "Compare With"
+msgstr "Sammenlign med"
+
+msgid "No comparison"
+msgstr "Ingen sammenligning"
+
+#, python-brace-format
+msgid "Settings that differ from {device}: {count}"
+msgstr "Indstillinger, der afviger fra {device}: {count}"
+
+msgid "Only differences"
+msgstr "Kun forskelle"
+
+#, python-brace-format
+msgid "Value on {device}"
+msgstr "Værdi på {device}"
+
+msgid "Not shown"
+msgstr "Ikke vist"
+
+msgid "Read from Device Memory"
+msgstr "Læs fra enhedens hukommelse"
+
+msgid "Show device memory"
+msgstr "Vis enhedens hukommelse"
+
+msgid "Read this segment from the device and compare it with the image. Writes nothing."
+msgstr "Læs dette segment fra enheden og sammenlign det med hukommelsesbilledet. Skriver intet."
+
+
+msgid "Compare device memory without changing the saved configuration."
+msgstr "Sammenlign enhedens hukommelse uden at ændre den gemte konfiguration."
+
+msgid "Memory layout changed during the read. Read again to compare."
+msgstr "Hukommelseslayoutet blev ændret under læsningen. Læs igen for at sammenligne."
+
+msgid "Compared with device memory read in this session."
+msgstr "Sammenlignet med enhedens hukommelse læst i denne session."

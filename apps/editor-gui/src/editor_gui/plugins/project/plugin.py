@@ -5,13 +5,14 @@ import tempfile
 import threading
 import zipfile
 from collections.abc import Callable
+from dataclasses import replace
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, cast
 
 from xknx.telegram.apci import GroupValueRead, GroupValueWrite
 
 from editor_gui import file_dialogs
-from editor_gui.device import device_label
+from editor_gui.device import address_order, device_label
 from editor_gui.device_info import (
     same_application,
     serial_from_project,
@@ -19,6 +20,9 @@ from editor_gui.device_info import (
     serial_to_project,
 )
 from editor_gui.dpt_formats import cached_master_formats, cached_master_names
+from editor_gui.languages import product_language
+from editor_gui.memory_read import MemoryReadRequest, MemoryReadResult
+from editor_gui.plugin_params import mapping_for_device
 from editor_gui.plugins.base import Logger, PanelDefinition, PluginAPI
 from editor_gui.plugins.connection.strings import S as CONNECTION_S
 from editor_gui.plugins.project.button_runner import ButtonOutcome, ButtonRunner
@@ -38,6 +42,7 @@ from editor_gui.plugins.project.paste import (
 )
 from editor_gui.plugins.project.program_queue import (
     BusAction,
+    OperationState,
     ProgramQueue,
     QueueItem,
     ScriptRun,
@@ -70,6 +75,7 @@ from editor_gui.plugins.project.ui.device_certificate import (
 )
 from editor_gui.plugins.project.ui.device_compare import DeviceComparePanel
 from editor_gui.plugins.project.ui.element_details import ElementDetailsPanel
+from editor_gui.plugins.project.ui.generic_plugin_panel import GenericPluginPanel
 from editor_gui.plugins.project.ui.group_value import GroupValueActions
 from editor_gui.plugins.project.ui.memory_preview import MemoryPreviewWindow
 from editor_gui.plugins.project.ui.paste_special import PasteSpecialDialog
@@ -102,6 +108,17 @@ from xknxeditor.prod.baggage import Baggages
 from xknxeditor.prod.errors import ArchiveError
 from xknxeditor.proj.core.medium import MediumError
 from xknxeditor.proj.core.paste import PasteOptions
+from xknxeditor.vendor.siemens_generic import (
+    GenericView,
+    Sources,
+    is_xml_baggage,
+)
+from xknxeditor.vendor.siemens_generic import (
+    find_sources as find_generic_sources,
+)
+from xknxeditor.vendor.siemens_generic import (
+    read_view as read_generic_view,
+)
 
 if TYPE_CHECKING:
     from concurrent.futures import Future
@@ -229,6 +246,8 @@ class ProjectPlugin:
         self._memory_preview = MemoryPreviewWindow(
             get_devices=lambda: api.project.devices,
             prepared_image=api.project.prepared_download,
+            read_memory=self.queue_memory_read,
+            generation=lambda: api.project.generation,
         )
         self._preflight_result = PreflightResultWindow()
         self._read_device_dialog = ReadDeviceDialog(self._request_device_info)
@@ -367,6 +386,7 @@ class ProjectPlugin:
             render_dali=self._render_dali_tab,
             render_siemens_dali=self._render_siemens_dali_tab,
             render_plugin_params=self._render_plugin_params_tab,
+            has_plugin_params=self._has_plugin_comparison,
             on_navigate_ga=self._navigate_to_group_address,
             on_paste_links=self._paste_com_object_links,
             ga_menu=self._group_object_ga_menu,
@@ -426,6 +446,25 @@ class ProjectPlugin:
             _on_export_prj=self._handle_export_prj,
             _detect_display_type=self._detect_triton_type,
         )
+        self._generic_plugin_panel = GenericPluginPanel(
+            self.generic_plugin_view,
+            self.generic_plugin_compare_candidates,
+            _read_memory=lambda device: self.queue_plugin_memory_read(device.node_id),
+            _memory_operation=self.generic_plugin_memory_operation,
+            _generation=lambda: self._api.project.generation,
+        )
+        self._generic_memory_items: dict[
+            int, tuple[tuple[int, str, str | None], QueueItem]
+        ] = {}
+        self._generic_memory_revision = 0
+        # Generic Plug-in sources per application id and views per device, see
+        # generic_plugin_view.
+        self._generic_sources: dict[tuple[int, str, tuple[str, ...]], Sources] = {}
+        self._generic_views: dict[
+            tuple[int, bool], tuple[Device, MemoryReadResult | None, GenericView | None]
+        ] = {}
+        self._generic_candidates: dict[int, list[Device]] = {}
+        self._generic_cache_stamp: tuple[int, int, int, str, int] | None = None
         # Pending triton LCD ".prj" import: the open dialog and the device it was started for.
         self._triton_prj_dialog: file_dialogs.OpenFileDialog | None = None
         self._triton_prj_device: Device | None = None
@@ -1116,7 +1155,9 @@ class ProjectPlugin:
         - ``"dali"``: the DALI run ``op`` (a coroutine of the commissioner) on ``channel``, named
           ``text`` (what the user started, e.g. "Scan");
         - ``"siemens_dali"``: the Siemens DALI run ``op``, named ``text``;
-        - ``"siemens_dca"``: programming the DALI device data ``data``.
+        - ``"siemens_dca"``: programming the DALI device data ``data``;
+        - ``"read_memory"``: reading the preview range ``request``;
+        - ``"read_plugin_memory"``: reading parameter memory for comparison.
 
         ``origin`` names who started it when not the editor's own UI (an MCP client);
         ``ended`` is called on the UI thread once it has ended, also when it never ran. Returns
@@ -1165,6 +1206,9 @@ class ProjectPlugin:
                 start = functools.partial(
                     conn.run_siemens_dca_program, blob_xml=options["data"]
                 )
+            case "read_memory" | "read_plugin_memory":
+                text = S.MEMORY_READ
+                start = functools.partial(conn.read_memory, request=options["request"])
             case _:
                 raise ValueError(f"unknown bus operation {kind!r}")
         item = QueueItem(
@@ -1175,22 +1219,77 @@ class ProjectPlugin:
             origin=origin,
             ended=Future(),
         )
+        generation = self._api.project.generation
+        app_id = device.app.id if device.app else None
 
         def begin() -> Future[Any] | None:
             # The device as it is now (the project may have been reloaded meanwhile).
             current = self._api.project.find_device_by_node_id(node_id)
             if current is None:
                 return None
+            if kind in ("read_memory", "read_plugin_memory") and (
+                self._api.project.generation != generation
+                or current.individual_address != item.address
+                or (current.app.id if current.app else None) != app_id
+            ):
+                raise ValueError("Device changed while the memory read was queued")
+            if kind == "read_memory":
+                from editor_gui.memory_read import preview_segments
+
+                segments = preview_segments(
+                    current, self._api.project.prepared_download(current)
+                )
+                request = options["request"]
+                if (
+                    request.segment not in segments
+                    or segments[request.segment].request != request
+                ):
+                    raise ValueError("Memory layout changed while the read was queued")
+            elif (
+                kind == "read_plugin_memory"
+                and self._generic_memory_request(current) != options["request"]
+            ):
+                raise ValueError("Memory layout changed while the read was queued")
             future = start(current)
             if future is None and conn.xknx is None:
                 item.message = S.SCRIPT_NOT_CONNECTED
             return future
 
-        item.action = BusAction(kind, text, begin)
+        def start_read() -> Future[Any] | None:
+            try:
+                return begin()
+            except Exception as exc:
+                failed: Future[Any] = Future()
+                failed.set_exception(exc)
+                return failed
+
+        item.action = BusAction(
+            kind,
+            text,
+            start_read if kind in ("read_memory", "read_plugin_memory") else begin,
+        )
         if ended is not None:
             assert item.ended is not None
             item.ended.add_done_callback(lambda _f: ended())
         self._program_queue.enqueue(item)
+        return item
+
+    def queue_memory_read(
+        self, node_id: int, segment: str, *, origin: str | None = None
+    ) -> QueueItem:
+        """Queue the same selected memory range for the GUI and MCP."""
+        from editor_gui.memory_read import preview_segments
+
+        device = self._api.project.find_device_by_node_id(node_id)
+        if device is None or not device.individual_address:
+            raise ValueError("Device has no individual address")
+        segments = preview_segments(device, self._api.project.prepared_download(device))
+        if segment not in segments:
+            raise ValueError(f"Unknown memory segment {segment}")
+        item = self._queue_bus_action(
+            node_id, "read_memory", request=segments[segment].request, origin=origin
+        )
+        assert item is not None
         return item
 
     def _restart_device(self, device: "Device") -> None:
@@ -1292,13 +1391,243 @@ class ProjectPlugin:
         )
 
     def _render_plugin_params_tab(self, device: "Device") -> None:
-        """Render the generic sectioned view of the device's raw plugin parameters."""
+        """Render configuration actions, optional comparison and editable parameters."""
         self._poll_triton_prj_dialog()
         self._poll_triton_prj_save()
-        self._native_plugin_panel.render(
-            device, self._api.project, self._api.connection.master
+        self._native_plugin_panel.render(device, self._api.project)
+        self._generic_plugin_panel.render_section(device)
+        if mapping_for_device(device) is not None:
+            self._plugin_params_panel.render(device)
+
+    def _has_plugin_comparison(self, device: "Device") -> bool:
+        return self.generic_plugin_view(device) is not None
+
+    def _generic_memory_request(self, device: "Device") -> MemoryReadRequest:
+        from editor_gui.plugin_providers.siemens_generic import blob, sources
+        from xknxeditor.vendor.siemens_generic import parse_settings
+        from xknxeditor.vendor.siemens_generic.image import compile_image
+        from xknxeditor.vendor.siemens_generic.prepare import validate_profile
+
+        source = sources(device)
+        assert device.app is not None
+        validate_profile(device.app, source.description)
+        settings = parse_settings(blob(device))
+        if settings is None:
+            raise ValueError("Siemens configuration is unreadable")
+        compiled = compile_image(
+            source.description, settings, {"DeviceOrderNumber": device.order_number}
         )
-        self._plugin_params_panel.render(device)
+        return MemoryReadRequest(
+            "plugin_parameters", compiled.base, compiled.used_length
+        )
+
+    def _generic_memory_owner(self, device: "Device") -> tuple[int, str, str | None]:
+        return (
+            self._api.project.generation,
+            device.individual_address,
+            device.app.id if device.app else None,
+        )
+
+    def queue_plugin_memory_read(
+        self, node_id: int, *, origin: str | None = None
+    ) -> QueueItem:
+        """Read parameter memory directly for the comparison, without storing a blob."""
+        device = self._api.project.find_device_by_node_id(node_id)
+        if device is None or not device.individual_address:
+            raise ValueError("Device has no individual address")
+        operation = self.generic_plugin_memory_operation(device)
+        if operation is not None and operation.state in (
+            OperationState.WAITING,
+            OperationState.RUNNING,
+        ):
+            raise ValueError("Device memory is already being read")
+        request = self._generic_memory_request(device)
+        item = self._queue_bus_action(
+            node_id, "read_plugin_memory", request=request, origin=origin
+        )
+        assert item is not None
+        self._generic_memory_items[node_id] = (self._generic_memory_owner(device), item)
+        self._generic_memory_revision += 1
+        assert item.ended is not None
+        item.ended.add_done_callback(lambda _future: self._generic_memory_changed())
+        return item
+
+    def _generic_memory_changed(self) -> None:
+        self._generic_memory_revision += 1
+
+    def generic_plugin_memory_operation(self, device: "Device") -> QueueItem | None:
+        held = self._generic_memory_items.get(device.node_id)
+        if held is None or held[0] != self._generic_memory_owner(device):
+            return None
+        return held[1]
+
+    def generic_plugin_memory_result(self, device: "Device") -> MemoryReadResult | None:
+        item = self.generic_plugin_memory_operation(device)
+        if (
+            item is not None
+            and item.state is OperationState.FINISHED
+            and isinstance(item.result, MemoryReadResult)
+        ):
+            return item.result
+        return None
+
+    def generic_plugin_view(
+        self, device: "Device", show_unfitted: bool = False
+    ) -> GenericView | None:
+        """Cached settings and memory comparison, including unrecognised configurations."""
+        language = self._sync_generic_cache()
+        memory = self.generic_plugin_memory_result(device)
+        key = (device.node_id, show_unfitted)
+        cached = self._generic_views.get(key)
+        if cached is not None and cached[0] is device and cached[1] is memory:
+            return cached[2]
+        view = self._build_generic_plugin_view(device, show_unfitted, language, memory)
+        self._generic_views[key] = (device, memory, view)
+        return view
+
+    def _sync_generic_cache(self) -> str:
+        language = product_language()
+        stamp = (
+            self._api.project.generation,
+            self._api.project.revision,
+            self._api.catalog.generation,
+            language,
+            self._generic_memory_revision,
+        )
+        if stamp != self._generic_cache_stamp:
+            previous = self._generic_cache_stamp
+            if previous is None or (stamp[0], stamp[2]) != (previous[0], previous[2]):
+                self._generic_sources.clear()
+            self._generic_cache_stamp = stamp
+            self._generic_views.clear()
+            self._generic_candidates.clear()
+        return language
+
+    def _build_generic_plugin_view(
+        self,
+        device: "Device",
+        show_unfitted: bool,
+        language: str,
+        memory: MemoryReadResult | None,
+    ) -> GenericView | None:
+        if device.app is None:
+            return None
+        static = getattr(device.app.program, "static", None)
+        extension = getattr(static, "extension", None)
+        baggage_ids: list[str] = []
+        for b in cast("list[Any]", getattr(extension, "baggage", None) or []):
+            ref_id = str(getattr(b, "ref_id", None) or "")
+            if ref_id and is_xml_baggage(ref_id):
+                baggage_ids.append(ref_id)
+        blobs: list[bytes] = []
+        for entry in cast("list[Any]", getattr(device, "binary_data", None) or []):
+            data = getattr(entry, "data", None)
+            if data:
+                blobs.append(bytes(cast("bytes", data)))
+        if not baggage_ids or not blobs:
+            return None
+        if memory is not None:
+            blobs = [
+                bytes(entry.data)
+                for entry in device.binary_data
+                if entry.name == "BLOB_STRING"
+            ]
+            if len(blobs) != 1:
+                return None
+        sources = self._generic_plugin_sources(device, baggage_ids)
+        view: GenericView | None = None
+        if sources is not None:
+            info = self._api.project.get_device_info(device.node_id)
+            order = str(getattr(info, "order_number", "") or "") if info else ""
+            globals_ = {"DeviceOrderNumber": order} if order else {}
+            for blob in blobs:
+                try:
+                    view = read_generic_view(
+                        sources, blob, language, globals_, show_unfitted
+                    )
+                    if view is not None and memory is not None:
+                        from xknxeditor.vendor.siemens_generic import (
+                            build_view,
+                            parse_settings,
+                            pick_language,
+                        )
+
+                        settings = parse_settings(blob)
+                        assert settings is not None
+                        if memory.address != sources.description.memory_base:
+                            raise ValueError(
+                                "Device memory no longer matches this layout"
+                            )
+                        view = build_view(
+                            sources.description,
+                            replace(
+                                settings,
+                                memory_image=memory.data,
+                                memory_mask=None,
+                                last_download="",
+                            ),
+                            pick_language(sources.translations, language),
+                            globals_,
+                            show_unfitted,
+                        )
+                except Exception as exc:  # a damaged blob must not break the tab bar
+                    self._api.log.warning(
+                        "generic plug-in settings unreadable",
+                        plugin="project",
+                        error=str(exc),
+                    )
+                    view = None
+                if view is not None:
+                    break
+        return view
+
+    def generic_plugin_compare_candidates(self, device: "Device") -> list["Device"]:
+        """The other devices of the project with the same application as ``device`` whose
+        Generic Plug-in settings can be shown, in address order: the devices its settings can be
+        compared with."""
+        self._sync_generic_cache()
+        cached = self._generic_candidates.get(device.node_id)
+        if cached is not None:
+            return cached
+        if device.app is None:
+            self._generic_candidates[device.node_id] = []
+            return []
+        app_id = device.app.id
+        out = [
+            other
+            for other in self._api.project.devices
+            if other.node_id != device.node_id
+            and other.app is not None
+            and other.app.id == app_id
+            and self.generic_plugin_view(other) is not None
+        ]
+        candidates = sorted(out, key=lambda d: address_order(d.individual_address))
+        self._generic_candidates[device.node_id] = candidates
+        return candidates
+
+    def _generic_plugin_sources(
+        self, device: "Device", baggage_ids: list[str]
+    ) -> Sources | None:
+        if device.plugin_baggage is not None:
+            key = (
+                id(device.plugin_baggage),
+                device.app.id if device.app else "",
+                tuple(baggage_ids),
+            )
+            if key not in self._generic_sources:
+                found = find_generic_sources(baggage_ids, device.plugin_baggage)
+                if found is not None:
+                    self._generic_sources[key] = found
+            return self._generic_sources.get(key)
+        baggages = self._device_baggages(device)
+        app_id = device.app.id if device.app is not None else ""
+        key = (id(baggages), app_id, tuple(baggage_ids))
+        if key in self._generic_sources and baggages is not None:
+            return self._generic_sources[key]
+        sources = find_generic_sources(baggage_ids, baggages.file) if baggages else None
+        if sources is not None:
+            self._generic_sources[key] = sources
+        return sources
 
     def _detect_triton_type(self, device: "Device") -> str | None:
         """The auto-detected triton LCD display type as its enum value string, or None."""
@@ -3264,7 +3593,12 @@ class ProjectPlugin:
     ) -> None:
         def _apply() -> None:
             self._api.project.record_download(
-                node_id, scope_value, serial, mac_address, medium_config=medium_config
+                node_id,
+                scope_value,
+                serial,
+                mac_address,
+                medium_config=medium_config,
+                result=result,
             )
             device = self._api.project.find_device_by_node_id(node_id)
             if result is not None and device is not None:

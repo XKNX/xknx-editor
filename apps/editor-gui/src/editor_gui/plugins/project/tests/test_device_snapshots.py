@@ -132,6 +132,23 @@ def test_changed_device_is_evaluated_again(tmp_path: Path) -> None:
     proj.close()
 
 
+def test_unrelated_blob_string_keeps_snapshot_restore(tmp_path: Path) -> None:
+    cat, path, (a, _b) = _project(tmp_path)
+    proj = _service(cat)
+    proj.open(path)
+    device = next(d for d in proj.devices if d.node_id == a)
+    proj.persist_device_blob(device, "BLOB_STRING", b"unrelated configuration")
+    expected = _state(next(d for d in proj.devices if d.node_id == a))
+    proj.close()
+    proj = _service(cat)
+    proj.open(path)
+    device = next(d for d in proj.devices if d.node_id == a)
+    assert device.app is not None and not device.app.loaded
+    assert _state(device) == expected
+    assert proj.device_binary_data(device, "BLOB_STRING") == b"unrelated configuration"
+    proj.close()
+
+
 @pytest.mark.parametrize("data", ["not json", '{"format": 0}', "[]"])
 def test_unusable_snapshot_is_evaluated_again(tmp_path: Path, data: str) -> None:
     cat, path, (a, _b) = _project(tmp_path)

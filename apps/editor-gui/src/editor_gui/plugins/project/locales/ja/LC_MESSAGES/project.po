@@ -3152,9 +3152,6 @@ msgstr "Plugin設定をインポート…"
 msgid "Export Plugin Configuration…"
 msgstr "Plugin設定をエクスポート…"
 
-msgid "Plugin Image and Load Plan"
-msgstr "Pluginイメージとロード計画"
-
 msgid "Use Stored Plugin Configuration"
 msgstr "保存済みプラグイン設定を使用"
 
@@ -3184,3 +3181,105 @@ msgstr "プロジェクトを戻すには、一覧で別のステップを選択
 
 msgid "Current state of the project"
 msgstr "プロジェクトの現在の状態"
+msgid "Configuration Comparison"
+msgstr "設定の比較"
+
+msgid "Compare settings with another device or the stored image from the last download."
+msgstr "設定を別のデバイス、または前回のダウンロード時に保存されたイメージと比較します。"
+
+msgid "No Generic Plug-in description or stored settings were found for this device."
+msgstr "このデバイスの Generic Plug-in の説明または保存された設定が見つかりません。"
+
+#, python-brace-format
+msgid "Matching: {match} · Not matching: {mismatch} · Not checked: {unchecked}"
+msgstr "一致: {match} · 不一致: {mismatch} · 未確認: {unchecked}"
+
+#, python-brace-format
+msgid "Last download: {date}"
+msgstr "前回のダウンロード: {date}"
+
+msgid "No memory image is stored, so the values are not checked."
+msgstr "メモリイメージが保存されていないため、値は確認されません。"
+
+msgid "The memory image does not fit the layout of the description, so the values are not checked."
+msgstr "メモリイメージが説明のレイアウトと合わないため、値は確認されません。"
+
+#, python-brace-format
+msgid "The stored settings name another application ({stored})."
+msgstr "保存された設定は別のアプリケーション ({stored}) を示しています。"
+
+msgid "Only values that differ from the memory image"
+msgstr "メモリイメージと異なる値のみ"
+
+msgid "Memory Image"
+msgstr "メモリイメージ"
+
+msgid "Matches"
+msgstr "一致"
+
+#, python-brace-format
+msgid "Image holds {value}"
+msgstr "イメージの値: {value}"
+
+msgid "Not in memory"
+msgstr "メモリにありません"
+
+msgid "Not checked"
+msgstr "未確認"
+
+#, python-brace-format
+msgid "{value} (scaled, raw {raw})"
+msgstr "{value}（換算値、生の値 {raw}）"
+
+msgid "Show settings for modules not fitted"
+msgstr "未装着モジュールの設定を表示"
+
+#, python-brace-format
+msgid "{title} (module not fitted)"
+msgstr "{title}（モジュール未装着）"
+
+msgid "Module not fitted"
+msgstr "モジュール未装着"
+
+#, python-brace-format
+msgid "Settings of modules not fitted: {count}"
+msgstr "未装着モジュールの設定: {count}"
+
+msgid "Compare With"
+msgstr "比較対象"
+
+msgid "No comparison"
+msgstr "比較しない"
+
+#, python-brace-format
+msgid "Settings that differ from {device}: {count}"
+msgstr "{device} と異なる設定: {count}"
+
+msgid "Only differences"
+msgstr "違いのみ"
+
+#, python-brace-format
+msgid "Value on {device}"
+msgstr "{device} の値"
+
+msgid "Not shown"
+msgstr "表示されません"
+
+msgid "Read from Device Memory"
+msgstr "デバイスメモリから読み取る"
+
+msgid "Show device memory"
+msgstr "デバイスのメモリを表示"
+
+msgid "Read this segment from the device and compare it with the image. Writes nothing."
+msgstr "このセグメントをデバイスから読み取り、イメージと比較します。書き込みは行いません。"
+
+
+msgid "Compare device memory without changing the saved configuration."
+msgstr "保存済みの設定を変更せずにデバイスメモリを比較します。"
+
+msgid "Memory layout changed during the read. Read again to compare."
+msgstr "読み取り中にメモリ構成が変更されました。比較するには再度読み取ってください。"
+
+msgid "Compared with device memory read in this session."
+msgstr "このセッションで読み取ったデバイスメモリと比較しています。"
