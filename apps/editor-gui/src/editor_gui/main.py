@@ -138,7 +138,7 @@ from editor_gui.update_check import (
 )
 from editor_gui.web import enable_web_mode, wake_frame, web_options
 from editor_gui.widgets.checkbox import checkbox, radio_button
-from editor_gui.widgets.combo import begin_combo
+from editor_gui.widgets.combo import begin_combo, end_combo
 from editor_gui.widgets.description import set_pending_downloads, set_secure_devices
 from editor_gui.widgets.dialog import (
     begin_dialog,
@@ -2324,7 +2324,7 @@ class KnxGuiApp:
             for code, lbl in formats:
                 if imgui.selectable(lbl, code == self._export_schema)[0]:
                     self._set_export_schema(code)
-            imgui.end_combo()
+            end_combo()
         changed, self._export_remove_unused = checkbox(
             S.EXPORT_REMOVE_UNUSED, self._export_remove_unused
         )
@@ -2640,7 +2640,7 @@ class KnxGuiApp:
                     imgui.end_disabled()
                 elif imgui.selectable(lbl, pid == self._myknx_selected_pid)[0]:
                     self._myknx_selected_pid = pid
-            imgui.end_combo()
+            end_combo()
         if not any(enabled for _pid, _lbl, enabled in self._myknx_products):
             imgui.push_style_color(imgui.Col_.text, status_color("warning"))
             imgui.text_wrapped(S.MYKNX_SIGN_NO_CLOUD_HINT)
@@ -3150,7 +3150,7 @@ class KnxGuiApp:
             for style, label in styles:
                 if imgui.selectable(label, style is self._new_project_style)[0]:
                     self._new_project_style = style
-            imgui.end_combo()
+            end_combo()
         clicked = dialog_buttons(S.NEW_PROJECT_CREATE, S.BTN_CANCEL)
         if clicked == 0:
             imgui.close_current_popup()
@@ -5848,13 +5848,13 @@ class KnxGuiApp:
         # When both ETS 6 and ETS 5 are installed, let the user pick which one signs.
         if det is not None and det.ets6 is not None and det.ets5 is not None:
             imgui.text_wrapped(S.MYKNX_ETS_PICK)
-            if imgui.radio_button(
+            if radio_button(
                 S.MYKNX_ETS_PICK_ETS6.format(version=det.ets6.version or "?"),
                 not self._ets_is5,
             ):
                 self._apply_ets_choice(False)
             imgui.same_line()
-            if imgui.radio_button(
+            if radio_button(
                 S.MYKNX_ETS_PICK_ETS5.format(version=det.ets5.version or "?"),
                 self._ets_is5,
             ):
@@ -7029,7 +7029,7 @@ class KnxGuiApp:
                 for label, theme in group:
                     if imgui.selectable(label, theme == tweaked.theme)[0]:
                         self._set_theme(theme.name)
-            imgui.end_combo()
+            end_combo()
         if beside:
             imgui.same_line()
         if imgui.button(customize):
@@ -7179,7 +7179,7 @@ class KnxGuiApp:
             for preset, label in zip(presets, labels, strict=True):
                 if imgui.selectable(label, preset == self._mcp_host.strip())[0]:
                     chosen = preset
-            imgui.end_combo()
+            end_combo()
         imgui.set_next_item_width(-1)
         changed, self._mcp_host = imgui.input_text("##mcp_host", self._mcp_host)
         if chosen is not None:

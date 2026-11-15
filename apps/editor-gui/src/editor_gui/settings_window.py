@@ -12,7 +12,7 @@ from imgui_bundle import imgui
 
 from editor_gui.strings import S, get_locale, in_english
 from editor_gui.widgets.checkbox import checkbox
-from editor_gui.widgets.combo import begin_combo
+from editor_gui.widgets.combo import begin_combo, end_combo
 from editor_gui.widgets.dialog import (
     begin_dialog,
     dialog_buttons,
@@ -246,7 +246,7 @@ class SettingsWindow:
                     imgui.separator()
                 if imgui.selectable(page.title(), page.key == self._page)[0]:
                     self._page = page.key
-            imgui.end_combo()
+            end_combo()
 
     def _render_content(self, pages: Sequence[SettingsPage], narrow: bool) -> None:
         if self._query:
@@ -342,7 +342,7 @@ def _render_control(setting: Setting, label: str) -> None:
                 chosen = imgui.selectable(f"{text}##{key}", key == value)[0]
                 if chosen and key != value and change is not None:
                     change(key)
-            imgui.end_combo()
+            end_combo()
     elif setting.kind in ("text", "password"):
         flags = imgui.InputTextFlags_.password if setting.kind == "password" else 0
         changed, text = imgui.input_text("##value", str(value or ""), flags)

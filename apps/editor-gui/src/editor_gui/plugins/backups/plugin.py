@@ -36,7 +36,11 @@ from editor_gui.widgets.dialog import (
 )
 from editor_gui.widgets.dpi import px
 from editor_gui.widgets.flow import button_width, same_line_if_fits
-from editor_gui.widgets.tables import begin_data_table, data_table_headers
+from editor_gui.widgets.tables import (
+    begin_data_table,
+    data_table_headers,
+    row_selectable,
+)
 
 # The page of the Settings window with the backup settings.
 SETTINGS_PAGE = "backups"
@@ -352,7 +356,7 @@ class BackupsPlugin:
             imgui.table_next_row()
             imgui.table_set_column_index(0)
             chosen = backup.path == self._selected
-            if imgui.selectable(
+            if row_selectable(
                 f"{when(info.created)}##{backup.path.name}",
                 chosen,
                 imgui.SelectableFlags_.span_all_columns

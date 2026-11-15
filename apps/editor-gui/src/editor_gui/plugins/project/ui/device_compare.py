@@ -20,7 +20,7 @@ from editor_gui.plugins.project.ui.device_diff import (
 )
 from editor_gui.theme import status_color
 from editor_gui.widgets.checkbox import checkbox
-from editor_gui.widgets.combo import begin_combo
+from editor_gui.widgets.combo import begin_combo, end_combo
 from editor_gui.widgets.description import (
     description_icon_width,
     is_secure_device,
@@ -167,7 +167,7 @@ class DeviceComparePanel:
                 )[0]:
                     current = d.node_id
                 render_device_marks(d.node_id, d.description)
-            imgui.end_combo()
+            end_combo()
         if cur is not None:
             render_device_marks(cur.node_id, description)
         return current

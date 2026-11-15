@@ -13,7 +13,8 @@ from imgui_bundle import hello_imgui, imgui
 
 from editor_gui.strings import S
 from editor_gui.widgets.checkbox import checkbox
-from editor_gui.widgets.combo import begin_combo
+from editor_gui.widgets.choice import ChoiceColors, set_choice_colors
+from editor_gui.widgets.combo import begin_combo, end_combo
 from editor_gui.widgets.dialog import begin_tool_window
 from editor_gui.widgets.dpi import label_column_width
 from editor_gui.widgets.filter_box import filter_box
@@ -133,11 +134,15 @@ _WINDOWS_COLORS = {
     imgui.Col_.scrollbar_grab: _rgb(205, 205, 205),
     imgui.Col_.scrollbar_grab_hovered: _rgb(166, 166, 166),
     imgui.Col_.scrollbar_grab_active: _rgb(96, 96, 96),
-    imgui.Col_.tab: _rgb(228, 228, 228),
+    # The bars of docked windows' tabs a light cool gray, the focused window's a light blue-gray:
+    # the theme's slate grays were much darker than the rest and barely differed.
+    imgui.Col_.title_bg: _rgb(217, 221, 226),
+    imgui.Col_.title_bg_active: _rgb(188, 202, 218),
+    imgui.Col_.tab: _rgb(237, 238, 240),
     imgui.Col_.tab_hovered: _rgb(229, 241, 251),
     imgui.Col_.tab_selected: _rgb(255, 255, 255),
     imgui.Col_.tab_selected_overline: _rgb(0, 120, 215),
-    imgui.Col_.tab_dimmed: _rgb(228, 228, 228),
+    imgui.Col_.tab_dimmed: _rgb(237, 238, 240),
     imgui.Col_.tab_dimmed_selected: _rgb(255, 255, 255),
     imgui.Col_.tab_dimmed_selected_overline: _rgb(160, 160, 160),
     # Buttons in the light gray of Windows dialogs.
@@ -146,7 +151,17 @@ _WINDOWS_COLORS = {
     imgui.Col_.button_active: _rgb(204, 228, 247),
     imgui.Col_.header_hovered: _rgb(229, 241, 251),
     imgui.Col_.header_active: _rgb(204, 228, 247),
+    # A selected row of a tree or a list in a light gray, as in Windows 11 lists.
+    imgui.Col_.header: _rgb(234, 234, 234),
+    # Table rows white and every second one barely darker.
+    imgui.Col_.table_row_bg: _rgb(255, 255, 255),
+    imgui.Col_.table_row_bg_alt: _rgb(251, 251, 251),
+    # Column headers as light as the rows, set off by their lines (see tables.headers_row).
+    imgui.Col_.table_header_bg: _rgb(251, 251, 251),
 }
+# The open drop-down, its chosen and hovered entries and a chosen radio button's dot in the
+# light blue-gray of Windows 11 choices, the drop-down's list on a light gray.
+_WINDOWS_CHOICE = ChoiceColors(fill=_rgb(195, 208, 221), list_bg=_rgb(242, 242, 242))
 
 # A disabled button in Windows dialogs: nearly white with a faint border and text, not the enabled
 # button faded (which could never get lighter than the window it is drawn on).
@@ -235,14 +250,19 @@ def apply_style() -> None:
         # A light gray with a touch of blue: the page tree and the help have it (see
         # backgrounds.side_background), and with them the windows around.
         style.set_color_(imgui.Col_.window_bg, _MICROSOFT_WINDOW)
+    if windows:
+        # The menu bar on the window's background, as in Windows 11, not a darker gray.
+        style.set_color_(imgui.Col_.menu_bar_bg, style.color_(imgui.Col_.window_bg))
     # The themes leave the text cursor at imgui's default, the white of its dark colors, which
     # disappears in the white fields of the light themes. imgui's own color sets draw it in the
     # text color.
     style.set_color_(imgui.Col_.input_text_cursor, style.color_(imgui.Col_.text))
+    set_choice_colors(_WINDOWS_CHOICE if windows else None)
     _apply_text_selection(style)
     _apply_link_color(style)
     _apply_table_lines(style)
-    _apply_row_selection(style)
+    if not windows:  # their selection is clearly darker than their table rows
+        _apply_row_selection(style)
     _apply_resize_lines(style)
     _apply_disabled_buttons(style, windows, tweaked.theme == DARK_THEME)
     apply_window_colors()
@@ -679,7 +699,7 @@ class ThemeWindow:
                 if imgui.selectable(theme_name(theme), theme == tweaked.theme)[0]:
                     tweaked.theme = theme
                     apply_theme(tweaked)
-            imgui.end_combo()
+            end_combo()
         imgui.separator_text(S.THEME_SECTION_ADJUSTMENTS)
         changed = False
         for setting in _ADJUSTMENTS:

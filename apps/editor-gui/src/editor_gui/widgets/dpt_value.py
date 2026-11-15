@@ -36,7 +36,7 @@ from editor_gui.dpt_formats import (
 )
 from editor_gui.regional import regional_format
 from editor_gui.widgets.checkbox import checkbox, radio_button
-from editor_gui.widgets.combo import begin_combo
+from editor_gui.widgets.combo import begin_combo, end_combo
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
 from editor_gui.widgets.dpi import px
 from editor_gui.widgets.float_format import general_float
@@ -201,7 +201,7 @@ class _Choice(_Editor):
             for index, (label, _) in enumerate(self.options):
                 if imgui.selectable(f"{label}##{index}", self.selected == index)[0]:
                     self.selected = index
-            imgui.end_combo()
+            end_combo()
         return False
 
     def payload(self) -> Payload:
@@ -372,7 +372,7 @@ class _Fields(_Editor):
                             _option_text(option), item.selected == option_index
                         )[0]:
                             item.selected = option_index
-                    imgui.end_combo()
+                    end_combo()
             elif item.kind == "boolean":
                 item.checked = checkbox(item_id, item.checked)[1]
             else:
@@ -535,7 +535,7 @@ class _MasterField:
                         f"{value_text(text)}##{index}", self.selected == index
                     )[0]:
                         self.selected = index
-                imgui.end_combo()
+                end_combo()
             return False
         if kind == "string":
             imgui.set_next_item_width(px(180.0 if inline else 260.0))

@@ -36,7 +36,7 @@ from editor_gui.plugins.project.ui.project_diff import (
 )
 from editor_gui.theme import status_color
 from editor_gui.widgets.checkbox import checkbox, radio_button
-from editor_gui.widgets.combo import begin_combo
+from editor_gui.widgets.combo import begin_combo, end_combo
 from editor_gui.widgets.dpi import px, px_vec2
 from editor_gui.widgets.filter_box import filter_box
 from editor_gui.widgets.flow import button_width, same_line_if_fits
@@ -408,7 +408,7 @@ class ToolsPanel:
                     f"{self._device_label(d)}##{combo_id}{i}", i == idx
                 )[0]:
                     idx = i
-            imgui.end_combo()
+            end_combo()
         return idx
 
     def _device_single_select(

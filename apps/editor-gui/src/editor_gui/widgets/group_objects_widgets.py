@@ -21,7 +21,7 @@ from editor_gui.device import (
     object_size_text,
 )
 from editor_gui.widgets.checkbox import checkbox
-from editor_gui.widgets.combo import begin_combo
+from editor_gui.widgets.combo import begin_combo, end_combo
 from editor_gui.widgets.dialog import (
     begin_dialog,
     begin_tool_window,
@@ -509,7 +509,7 @@ class GroupObjectsTable:
                 if depth:
                     imgui.unindent(px(20) * depth)
                 imgui.pop_id()
-            imgui.end_combo()
+            end_combo()
 
     def _checked_targets(self, com_objects: list[ComObject]) -> list[ComObject]:
         """Checked com-objects that have a DB row (the copy/paste source and target set)."""
@@ -787,7 +787,7 @@ class GroupObjectsTable:
             selected = dpt.code == current.code
             if imgui.selectable(f"{dpt.code}  {dpt.name}", selected)[0]:
                 self._on_set_dpt(device, com_object.id, dpt.code)
-        imgui.end_combo()
+        end_combo()
 
     def _render_priority_combo(self, device: Device, com_object: ComObject) -> None:
         """Dropdown for the group object's per-instance Priority (Low/High/Alert), plus a "Default"
@@ -807,7 +807,7 @@ class GroupObjectsTable:
                 f"{priority_text(priority)}##{priority}", priority == current
             )[0]:
                 self._on_set_priority(device, com_object.id, priority)
-        imgui.end_combo()
+        end_combo()
 
     def _render_description_popup(self) -> None:
         """A small modal to edit the per-instance Description, opened from the row context menu."""

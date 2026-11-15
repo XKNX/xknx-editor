@@ -9,7 +9,7 @@ from dataclasses import dataclass
 
 from imgui_bundle import imgui
 
-from editor_gui.widgets.combo import begin_combo
+from editor_gui.widgets.combo import begin_combo, end_combo
 from editor_gui.widgets.dpi import px
 from editor_gui.widgets.filter_box import filter_box
 
@@ -137,5 +137,5 @@ def dpt_combo(
                 if selected and appearing:
                     imgui.set_scroll_here_y()
         imgui.end_child()
-        imgui.end_combo()
+        end_combo()
     return changed, current

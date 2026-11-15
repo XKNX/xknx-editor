@@ -5,8 +5,19 @@ arrow button. The theme's frame rounding and border stay."""
 from __future__ import annotations
 
 from imgui_bundle import imgui
+from imgui_bundle.imgui import internal
 
+from editor_gui.widgets.choice import choice_colors
 from editor_gui.widgets.text_util import fit_text
+
+# The colors of a drop-down's entries: chosen, hovered and pressed.
+_ENTRY_COLORS = (
+    imgui.Col_.header,
+    imgui.Col_.header_hovered,
+    imgui.Col_.header_active,
+)
+# The entry colors each open drop-down pushed, popped by end_combo (nested drop-downs stack).
+_pushed: list[int] = []
 
 # How far the drop-down background moves from an input field's toward the text color: a white
 # field gives the light gray (242) of a Windows drop-down next to dark gray (#333) text.
@@ -52,16 +63,24 @@ def begin_combo(
 ) -> bool:
     """A Windows-style drop-down, with an optional closed-field background.
 
-    End it with ``imgui.end_combo``. Hover, border and arrow keep the shared style.
+    End it with :func:`end_combo` when it opened. Hover, border and arrow keep the shared style;
+    where the theme has choice colors, the open drop-down and its chosen and hovered entries are
+    in them, on the list's own background.
     """
     if background is None:
         background = combo_background()
     hovered = combo_background(hovered=True)
-    colors = (
+    choice = choice_colors()
+    if choice is not None and _popup_open(label):
+        background = hovered = choice.fill
+    colors = [
         (imgui.Col_.frame_bg, background),
         (imgui.Col_.frame_bg_hovered, hovered),
         (imgui.Col_.border, combo_border()),
-    )
+    ]
+    if choice is not None:
+        # Read when the list's window begins, inside imgui.begin_combo.
+        colors.append((imgui.Col_.popup_bg, choice.list_bg))
     arrow = not flags & (
         imgui.ComboFlags_.no_arrow_button | imgui.ComboFlags_.no_preview
     )
@@ -81,7 +100,27 @@ def begin_combo(
     imgui.pop_style_color(len(colors))
     if arrow:
         _draw_arrow(label)
+    if opened:
+        pushed = 0
+        if choice is not None:
+            for col in _ENTRY_COLORS:
+                imgui.push_style_color(col, choice.fill)
+            pushed = len(_ENTRY_COLORS)
+        _pushed.append(pushed)
     return opened
+
+
+def end_combo() -> None:
+    """End a drop-down :func:`begin_combo` opened (instead of ``imgui.end_combo``)."""
+    imgui.pop_style_color(_pushed.pop() if _pushed else 0)
+    imgui.end_combo()
+
+
+def _popup_open(label: str) -> bool:
+    """Whether the list of the drop-down ``label`` (in the current window) is open: imgui names
+    it after the drop-down's id."""
+    popup = internal.im_hash_str("##ComboPopup", 0, imgui.get_id(label))
+    return internal.is_popup_open(popup, 0)
 
 
 def combo(
@@ -107,7 +146,7 @@ def combo(
                 changed = True
             if selected:
                 imgui.set_item_default_focus()
-        imgui.end_combo()
+        end_combo()
     return changed, current
 
 

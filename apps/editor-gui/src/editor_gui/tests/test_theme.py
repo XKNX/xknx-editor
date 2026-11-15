@@ -172,8 +172,6 @@ def test_windows_themes_have_the_dark_gray_text_of_windows_dialogs(
 @pytest.mark.parametrize(
     ("applied", "table_header"),
     [
-        (hello_imgui.ImGuiTheme_.microsoft_style, True),
-        (hello_imgui.ImGuiTheme_.white_is_white, True),
         (hello_imgui.ImGuiTheme_.gray_variations, True),
         (hello_imgui.ImGuiTheme_.imgui_colors_light, False),
         (hello_imgui.ImGuiTheme_.darcula_darker, False),
@@ -199,6 +197,56 @@ def test_light_themes_select_in_the_gray_of_table_headers(
     else:
         # A blue or dark theme's selection shows clearly already.
         assert (header.x, header.y, header.z, header.w) == before
+
+
+def _hex(color: imgui.ImVec4) -> str:
+    return "#" + "".join(f"{round(c * 255):02X}" for c in (color.x, color.y, color.z))
+
+
+@pytest.mark.parametrize(
+    "applied",
+    [hello_imgui.ImGuiTheme_.microsoft_style, hello_imgui.ImGuiTheme_.white_is_white],
+)
+def test_the_light_theme_has_the_colors_of_windows_11_lists(
+    context: None, monkeypatch: pytest.MonkeyPatch, applied: hello_imgui.ImGuiTheme_
+) -> None:
+    from editor_gui.widgets.choice import choice_colors
+
+    tweaked = hello_imgui.ImGuiTweakedTheme()
+    tweaked.theme = applied
+    hello_imgui.apply_tweaked_theme(tweaked)
+    _use_theme(monkeypatch, hello_imgui.ImGuiThemeTweaks(), applied)
+    theme.apply_style()
+    style = imgui.get_style()
+    # A selected row light gray, table rows white and barely darker, headers as light.
+    assert _hex(style.color_(imgui.Col_.header)) == "#EAEAEA"
+    assert _hex(style.color_(imgui.Col_.table_row_bg)) == "#FFFFFF"
+    assert _hex(style.color_(imgui.Col_.table_row_bg_alt)) == "#FBFBFB"
+    assert _hex(style.color_(imgui.Col_.table_header_bg)) == "#FBFBFB"
+    # The menu bar on the window's background.
+    assert _hex(style.color_(imgui.Col_.menu_bar_bg)) == _hex(
+        style.color_(imgui.Col_.window_bg)
+    )
+    # The focused window's tab bar clearly differs from the others'.
+    bar = style.color_(imgui.Col_.title_bg)
+    focused = style.color_(imgui.Col_.title_bg_active)
+    assert abs(theme._luminance(bar) - theme._luminance(focused)) > 0.05  # pyright: ignore[reportPrivateUsage]
+    # Drop-downs and radio buttons choose in blue-gray, on a light gray list.
+    choice = choice_colors()
+    assert choice is not None
+    assert (_hex(choice.fill), _hex(choice.list_bg)) == ("#C3D0DD", "#F2F2F2")
+
+
+def test_other_themes_keep_their_own_choice_colors(
+    context: None, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from editor_gui.widgets.choice import choice_colors
+
+    applied = hello_imgui.ImGuiTheme_.darcula_darker
+    hello_imgui.apply_theme(applied)
+    _use_theme(monkeypatch, hello_imgui.ImGuiThemeTweaks(), applied)
+    theme.apply_style()
+    assert choice_colors() is None
 
 
 @pytest.mark.usefixtures("context")

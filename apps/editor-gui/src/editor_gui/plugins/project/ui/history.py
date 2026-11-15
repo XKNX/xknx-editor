@@ -14,6 +14,7 @@ from imgui_bundle import imgui
 from editor_gui.local_time import recent_text
 from editor_gui.plugins.project.strings import S
 from editor_gui.theme import status_color
+from editor_gui.widgets.tables import row_selectable
 from editor_gui.widgets.tree import header_arrow, header_title_offset
 
 
@@ -122,7 +123,7 @@ class HistoryPanel:
             imgui.SelectableFlags_.span_all_columns
             | imgui.SelectableFlags_.allow_double_click
         )
-        if imgui.selectable(
+        if row_selectable(
             f"##history_{entry.id}",
             self.selected == entry.id,
             flags,

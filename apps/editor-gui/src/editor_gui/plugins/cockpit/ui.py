@@ -21,7 +21,11 @@ from editor_gui.widgets.description import (
 )
 from editor_gui.widgets.dpi import px
 from editor_gui.widgets.filter_box import filter_box
-from editor_gui.widgets.tables import begin_data_table, data_table_headers
+from editor_gui.widgets.tables import (
+    begin_data_table,
+    data_table_headers,
+    row_selectable,
+)
 from editor_gui.widgets.text_util import text_clipped_tooltip
 
 
@@ -123,7 +127,7 @@ class CockpitPanel:
         for i, r in enumerate(rows):
             imgui.table_next_row()
             imgui.table_set_column_index(0)
-            if imgui.selectable(
+            if row_selectable(
                 f"{r.individual_address or '-'}##cockpit{i}",
                 False,
                 imgui.SelectableFlags_.span_all_columns,

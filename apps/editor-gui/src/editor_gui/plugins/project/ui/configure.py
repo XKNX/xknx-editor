@@ -30,6 +30,7 @@ from editor_gui.os_open import open_url
 from editor_gui.plugins.project.strings import S
 from editor_gui.plugins.project.ui import name_focus
 from editor_gui.plugins.project.ui.status_field import status_combo
+from editor_gui.widgets.combo import end_combo
 from editor_gui.widgets.dpi import label_column_width, px, px_vec2
 from editor_gui.widgets.filter_box import filter_box
 from editor_gui.widgets.flow import button_width, same_line_if_fits
@@ -1009,7 +1010,7 @@ class ConfigurePanel:
                     and self._on_secure_commissioning_change is not None
                 ):
                     self._on_secure_commissioning_change(device, value)
-            imgui.end_combo()
+            end_combo()
         if self._on_add_certificate is not None:
             if combo_w + style.item_spacing.x + button_w <= avail:
                 imgui.same_line()
@@ -1035,7 +1036,7 @@ class ConfigurePanel:
                     and self._on_routing_blocking is not None
                 ):
                     self._on_routing_blocking(device, mode)
-            imgui.end_combo()
+            end_combo()
 
     def _render_device_actions(self, device: Device) -> None:
         """The device's occasional actions (read-out, restart, reset) in one row that wraps when
@@ -1100,7 +1101,7 @@ class ConfigurePanel:
                     )
                     if imgui.selectable(f"{text}##{program.id}", False)[0]:
                         self._on_change_application(device, program)
-                imgui.end_combo()
+                end_combo()
             imgui.end_disabled()
         if self._on_update_application is not None:
             imgui.text_disabled(S.UPDATE_APPLICATION_VERSION)

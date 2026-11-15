@@ -29,7 +29,7 @@ from editor_gui.local_time import time_text
 from editor_gui.plugins.project.strings import S
 from editor_gui.theme import status_color
 from editor_gui.widgets.checkbox import checkbox
-from editor_gui.widgets.combo import begin_combo
+from editor_gui.widgets.combo import begin_combo, end_combo
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
 from editor_gui.widgets.dpi import px, px_vec2
 from editor_gui.widgets.filter_box import filter_box
@@ -506,7 +506,7 @@ class MassLinkerPanel:
                     continue
                 if imgui.selectable(f"{text}##g{g.ga_id}", g.ga_id == row.target_ga)[0]:
                     self._set_target(row, g.ga_id, by_id)
-            imgui.end_combo()
+            end_combo()
 
     @staticmethod
     def _set_target(row: _Row, ga_id: int | None, by_id: dict[int, _FlatGa]) -> None:
@@ -795,7 +795,7 @@ class MassLinkerPanel:
                     row.target_co = co
                     row.target_device = _device_of(entries, k)
                 imgui.unindent()
-        imgui.end_combo()
+        end_combo()
 
     # -- shared rows -------------------------------------------------------
 

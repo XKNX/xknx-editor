@@ -39,7 +39,11 @@ from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
 from editor_gui.widgets.dpi import px
 from editor_gui.widgets.filter_box import filter_box
 from editor_gui.widgets.flow import button_width, same_line_if_fits, text_width
-from editor_gui.widgets.tables import begin_data_table, data_table_headers
+from editor_gui.widgets.tables import (
+    begin_data_table,
+    data_table_headers,
+    row_selectable,
+)
 
 if TYPE_CHECKING:
     from editor_gui.plugins.connection.service import ConnectionService
@@ -519,7 +523,7 @@ class TelegramView:
         imgui.table_set_column_index(0)
         imgui.set_next_item_selection_user_data(i)
         selected = record.number in self.selected
-        if imgui.selectable(
+        if row_selectable(
             f"{cells[0]}##row{record.number}",
             selected,
             imgui.SelectableFlags_.span_all_columns

@@ -19,7 +19,11 @@ from editor_gui.widgets.dpi import px
 from editor_gui.widgets.dpt_value import DptValueInput
 from editor_gui.widgets.filter_box import filter_box
 from editor_gui.widgets.flow import button_width, same_line_if_fits, text_width
-from editor_gui.widgets.tables import begin_data_table, data_table_headers
+from editor_gui.widgets.tables import (
+    begin_data_table,
+    data_table_headers,
+    row_selectable,
+)
 from editor_gui.widgets.tabs import begin_tab_bar
 from editor_gui.widgets.text_util import text_clipped_tooltip
 
@@ -271,7 +275,7 @@ class MonitorPanel:
                 ga = gas[i]
                 imgui.table_next_row()
                 imgui.table_set_column_index(0)
-                if imgui.selectable(
+                if row_selectable(
                     f"{ga.address}##mon{ga.id}",
                     self._selected == ga.address,
                     imgui.SelectableFlags_.span_all_columns,

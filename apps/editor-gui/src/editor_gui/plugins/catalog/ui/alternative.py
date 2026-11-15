@@ -27,7 +27,11 @@ from editor_gui.widgets.filter_box import filter_box
 from editor_gui.widgets.flow import button_width, fits_beside, same_line_if_fits
 from editor_gui.widgets.icon_button import ICON_COPY, copy_button, icon_button_width
 from editor_gui.widgets.spinner import loading
-from editor_gui.widgets.tables import begin_data_table, data_table_headers
+from editor_gui.widgets.tables import (
+    begin_data_table,
+    data_table_headers,
+    row_selectable,
+)
 
 
 def error_text(exc: Exception) -> str:
@@ -236,7 +240,7 @@ class AlternativeCatalogPanel:
                     imgui.text_unformatted(" ".join(entry.manufacturer.splitlines()))
                     imgui.table_next_column()
                     imgui.push_id(entry.id)
-                    if imgui.selectable(
+                    if row_selectable(
                         " ".join(entry.name.splitlines()),
                         self._selected == entry,
                         imgui.SelectableFlags_.span_all_columns,
