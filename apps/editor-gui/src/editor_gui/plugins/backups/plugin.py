@@ -36,6 +36,7 @@ from editor_gui.widgets.dialog import (
 )
 from editor_gui.widgets.dpi import px
 from editor_gui.widgets.flow import button_width, same_line_if_fits
+from editor_gui.widgets.spinner import busy_bar
 from editor_gui.widgets.tables import (
     begin_data_table,
     data_table_headers,
@@ -305,7 +306,7 @@ class BackupsPlugin:
         if job is not None:
             self._render_progress(job)
         if self._busy:
-            imgui.progress_bar(-1.0 * imgui.get_time(), imgui.ImVec2(-1, 0), self._busy)
+            busy_bar("##backups_busy", imgui.ImVec2(-1, 0), self._busy)
         imgui.push_text_wrap_pos(0.0)
         imgui.text_disabled(S.FOLDER.format(path=self._service.folder()))
         imgui.pop_text_wrap_pos()
@@ -326,10 +327,11 @@ class BackupsPlugin:
         self._render_actions(None if self._busy else selected, actions)
 
     def _render_progress(self, job: BackupJob) -> None:
-        fraction = job.done / job.total if job.total else -1.0 * imgui.get_time()
-        imgui.progress_bar(
-            fraction, imgui.ImVec2(-1, 0), S.STEP.get(job.step, S.STEP["copy"])
-        )
+        text = S.STEP.get(job.step, S.STEP["copy"])
+        if job.total:
+            imgui.progress_bar(job.done / job.total, imgui.ImVec2(-1, 0), text)
+        else:
+            busy_bar("##backup_job_busy", imgui.ImVec2(-1, 0), text)
 
     def _render_table(self, backups: list[Backup], height: float) -> None:
         flags = (

@@ -345,6 +345,8 @@ def enable_web_mode(
         # Shortcuts follow the browser's platform (the client sends Cmd as Ctrl on a Mac), not
         # the server's.
         io.config_mac_osx_behaviors = False
+        # A steady text cursor: each blink would send the whole window around a text field again.
+        io.config_input_text_cursor_blink = False
         # Imgui's checks of how it is used log and recover instead of ending the app.
         io.config_error_recovery = True
         io.config_error_recovery_enable_assert = False

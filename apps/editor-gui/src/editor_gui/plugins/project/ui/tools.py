@@ -40,6 +40,7 @@ from editor_gui.widgets.combo import begin_combo, end_combo
 from editor_gui.widgets.dpi import px, px_vec2
 from editor_gui.widgets.filter_box import filter_box
 from editor_gui.widgets.flow import button_width, same_line_if_fits
+from editor_gui.widgets.spinner import busy_bar
 from editor_gui.widgets.tables import headers_row
 from editor_gui.widgets.tabs import begin_tab_bar
 from xknxeditor.proj.core.addressing import GroupAddressStyle, format_ga
@@ -893,13 +894,11 @@ class ToolsPanel:
     def _render_diff_progress(self, job: DiffJob) -> None:
         """How far a running comparison is, with the button that stops it."""
         if job.total:
-            fraction = job.done / job.total
             text = S.TOOLS_DIFF_PROGRESS.format(done=job.done, total=job.total)
+            imgui.progress_bar(job.done / job.total, imgui.ImVec2(-1, 0), text)
         else:
             # Reading the projects: no count yet, the bar moves back and forth.
-            fraction = -1.0 * imgui.get_time()
-            text = S.TOOLS_DIFF_READING
-        imgui.progress_bar(fraction, imgui.ImVec2(-1, 0), text)
+            busy_bar("##diff_busy", imgui.ImVec2(-1, 0), S.TOOLS_DIFF_READING)
         imgui.begin_disabled(job.cancel_requested)
         if imgui.button(S.BTN_CANCEL):
             job.cancel()

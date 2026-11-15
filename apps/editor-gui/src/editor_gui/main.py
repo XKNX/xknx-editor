@@ -172,6 +172,7 @@ from editor_gui.widgets.markdown import COMPACT as COMPACT_MARKDOWN
 from editor_gui.widgets.markdown import render_markdown
 from editor_gui.widgets.parameter_widgets import set_highlight_changes
 from editor_gui.widgets.password_form import NewPasswordForm
+from editor_gui.widgets.spinner import busy_bar
 from editor_gui.widgets.tables import (
     begin_data_table,
     data_table_headers,
@@ -485,9 +486,17 @@ _VD_PASSWORD_HINT_URL = "https://github.com/christoph2/knx/blob/72b6732322cc2f46
 # Room at 100 % scaling above and below the status bar's text.
 _STATUS_PADDING = 7.0
 
-# Refresh rate (Hz) once input stops, and while a progress dialog shows work going on.
+# Refresh rate (Hz) once input stops, and while a progress dialog shows work going on (on the
+# desktop, in the browser view).
 _FPS_IDLE = 6.0
 _FPS_PROGRESS = 30.0
+_FPS_PROGRESS_WEB = 10.0
+
+
+def progress_fps() -> float:
+    """The refresh rate while a progress dialog shows work going on."""
+    return _FPS_PROGRESS if web.active_hub is None else _FPS_PROGRESS_WEB
+
 
 # The user counts as working in the app this long after the last input (seconds): work in the
 # background that would slow the frames down waits for a pause (see ProjectService.ui_busy).
@@ -2831,9 +2840,10 @@ class KnxGuiApp:
 
     def _render_progress_modal(self) -> None:
         # Without input the window drops to the idle refresh rate, at which a progress bar looks
-        # frozen; it keeps redrawing at the active rate while work is in progress.
+        # frozen; it keeps redrawing at the active rate while work is in progress (in the browser
+        # view at a lower one: its animations move in steps anyway, every frame is sent).
         idling = hello_imgui.get_runner_params().fps_idling
-        idling.fps_idle = _FPS_PROGRESS if self._progress_running else _FPS_IDLE
+        idling.fps_idle = progress_fps() if self._progress_running else _FPS_IDLE
         if self._progress_requested:
             imgui.open_popup(S.PROGRESS_TITLE)
             self._progress_requested = False
@@ -2861,8 +2871,7 @@ class KnxGuiApp:
             fraction = max(0.0, min(1.0, fraction))
             imgui.progress_bar(fraction, bar_size, f"{fraction * 100:0.0f}%")
         else:
-            # ImGui shows an animated indeterminate bar for a negative fraction.
-            imgui.progress_bar(-1.0 * float(imgui.get_time()), bar_size, "")
+            busy_bar("##progress_busy", bar_size)
         # The current step, shortened with "…" where it would reach them, and the seconds so far
         # right-aligned with the bar on the same line.
         seconds = f"{elapsed:0.0f}s"
