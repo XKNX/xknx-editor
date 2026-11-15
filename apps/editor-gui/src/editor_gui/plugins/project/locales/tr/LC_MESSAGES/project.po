@@ -3178,3 +3178,9 @@ msgstr "Dahili değerler"
 
 msgid "Acknowledge Group Address"
 msgstr "Grup Adresini Onayla"
+
+msgid "Select another step in the list to bring the project back to it"
+msgstr "Projeyi geri getirmek için listeden başka bir adım seçin"
+
+msgid "Current state of the project"
+msgstr "Projenin mevcut durumu"

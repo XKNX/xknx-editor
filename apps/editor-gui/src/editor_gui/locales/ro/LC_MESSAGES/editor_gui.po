@@ -1808,3 +1808,12 @@ msgstr "{name} nu a putut fi șters: {error}"
 
 msgid "Delete File"
 msgstr "Ștergere fișier"
+
+msgid "Status"
+msgstr "Stare"
+
+msgid "New"
+msgstr "Nou"
+
+msgid "In catalog"
+msgstr "În catalog"

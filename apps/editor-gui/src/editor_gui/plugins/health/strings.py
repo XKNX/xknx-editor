@@ -21,11 +21,21 @@ class HealthStrings:
     def HEALTH_ALL_GOOD(self) -> str:
         return _("No issues found")
 
-    def HEALTH_ERRORS(self, count: int) -> str:
-        return _.plural("{count} error", "{count} errors", count)
+    @property
+    def HEALTH_NONE_SHOWN(self) -> str:
+        return _("No findings of the selected kinds")
 
-    def HEALTH_WARNINGS(self, count: int) -> str:
-        return _.plural("{count} warning", "{count} warnings", count)
+    @property
+    def HEALTH_KIND_ERRORS(self) -> str:
+        return _("Errors")
+
+    @property
+    def HEALTH_KIND_WARNINGS(self) -> str:
+        return _("Warnings")
+
+    @property
+    def HEALTH_KIND_HINTS(self) -> str:
+        return _("Hints")
 
     @property
     def HEALTH_NO_ADDRESS(self) -> str:

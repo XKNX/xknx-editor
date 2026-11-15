@@ -2167,9 +2167,10 @@ class ConnectionPlugin:
         if unprogrammed:
             imgui.text_colored(status_color("warning"), S.PROGMODE_UNPROGRAMMED)
         elif device is not None:
+            imgui.align_text_to_frame_padding()
             imgui.text_disabled(S.PROGMODE_IN_PROJECT.format(name=device.name))
             imgui.same_line()
-            if imgui.small_button(f"{S.PROGMODE_SELECT}##progmode_sel_{index}"):
+            if imgui.button(f"{S.PROGMODE_SELECT}##progmode_sel_{index}"):
                 self._api.project.selected_device = device
                 self._api.project.focus_editor()
         else:

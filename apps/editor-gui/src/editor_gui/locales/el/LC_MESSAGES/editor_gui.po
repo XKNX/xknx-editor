@@ -1720,3 +1720,12 @@ msgstr "Δεν ήταν δυνατή η διαγραφή του {name}: {error}"
 
 msgid "Delete File"
 msgstr "Διαγραφή αρχείου"
+
+msgid "Status"
+msgstr "Κατάσταση"
+
+msgid "New"
+msgstr "Νέο"
+
+msgid "In catalog"
+msgstr "Στον κατάλογο"

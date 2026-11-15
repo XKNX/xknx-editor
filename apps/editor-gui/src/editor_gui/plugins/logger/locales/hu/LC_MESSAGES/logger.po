@@ -39,3 +39,14 @@ msgstr "Figyelmeztetés"
 
 msgid "Error"
 msgstr "Hiba"
+
+msgid "The lowest level shown: entries of this level and of the levels above it"
+msgstr "A legalacsonyabb megjelenített szint: az ezen és a magasabb szinteken lévő bejegyzések"
+
+msgid "{count} log entry"
+msgid_plural "{count} log entries"
+msgstr[0] "{count} naplóbejegyzés"
+
+msgid "{count} shown with the filter"
+msgid_plural "{count} shown with the filter"
+msgstr[0] "ebből {count} látható a szűrővel"

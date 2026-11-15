@@ -39,3 +39,16 @@ msgstr "Waarschuwing"
 
 msgid "Error"
 msgstr "Fout"
+
+msgid "The lowest level shown: entries of this level and of the levels above it"
+msgstr "Laagste getoonde niveau: regels van dit niveau en de niveaus daarboven"
+
+msgid "{count} log entry"
+msgid_plural "{count} log entries"
+msgstr[0] "{count} logboekregel"
+msgstr[1] "{count} logboekregels"
+
+msgid "{count} shown with the filter"
+msgid_plural "{count} shown with the filter"
+msgstr[0] "{count} getoond met het filter"
+msgstr[1] "{count} getoond met het filter"

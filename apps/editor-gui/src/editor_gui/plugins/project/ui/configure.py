@@ -34,6 +34,7 @@ from editor_gui.widgets.dpi import label_column_width, px, px_vec2
 from editor_gui.widgets.filter_box import filter_box
 from editor_gui.widgets.flow import button_width, same_line_if_fits
 from editor_gui.widgets.fonts import heading, italic
+from editor_gui.widgets.icon_button import ICON_COPY, copy_button, icon_button_width
 from editor_gui.widgets.spinner import loading
 from editor_gui.widgets.tables import begin_data_table, data_table_headers
 from editor_gui.widgets.tree import collapsing_header
@@ -1962,13 +1963,10 @@ class ConfigurePanel:
     ) -> None:
         """A KNX IP Secure password field (hidden unless shown) with a copy button; an edit is
         stored when the field is left."""
-        button = S.CONFIGURE_IP_SECURE_COPY
-        button_w = (
-            imgui.calc_text_size(button).x + imgui.get_style().frame_padding.x * 2
-        )
+        button_w = icon_button_width(ICON_COPY) + imgui.get_style().item_spacing.x
         buffer = self._ip_secure_buffers.get(key, value)
         imgui.set_next_item_width(
-            max(px(80), imgui.get_content_region_avail().x - button_w - px(8))
+            max(px(80), imgui.get_content_region_avail().x - button_w)
         )
         flags = (
             imgui.InputTextFlags_.none
@@ -1982,10 +1980,11 @@ class ConfigurePanel:
         if not imgui.is_item_active() and buffer != value:
             self._ip_secure_buffers[key] = value
         imgui.same_line()
-        if imgui.button(f"{button}##copy_{key}") and value:
-            imgui.set_clipboard_text(value)
-            if self._notify is not None:
-                self._notify(S.CONFIGURE_COPIED)
+        if (
+            copy_button(f"ip_secure_{key}", value, S.CONFIGURE_IP_SECURE_COPY)
+            and self._notify is not None
+        ):
+            self._notify(S.CONFIGURE_COPIED)
 
     def _ip_secure_edit(self, device: Device, field: str, value: object) -> None:
         if self._on_ip_secure_change is None:

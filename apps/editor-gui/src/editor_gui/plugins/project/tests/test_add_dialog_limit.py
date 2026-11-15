@@ -50,7 +50,7 @@ def test_items_without_room_are_grayed_out_and_do_nothing(
         return True, real_menu_item(label, *args)[1]
 
     monkeypatch.setattr(imgui, "menu_item", menu_item)
-    monkeypatch.setattr(imgui, "small_button", lambda _label: True)
+    monkeypatch.setattr(imgui, "button", lambda _label: True)
     monkeypatch.setattr(imgui, "is_item_hovered", lambda *_a: True)
     monkeypatch.setattr(imgui, "set_tooltip", tips.append)
     imgui.new_frame()

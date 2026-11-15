@@ -1736,3 +1736,12 @@ msgstr "Nie można usunąć {name}: {error}"
 
 msgid "Delete File"
 msgstr "Usuń plik"
+
+msgid "Status"
+msgstr "Stan"
+
+msgid "New"
+msgstr "Nowy"
+
+msgid "In catalog"
+msgstr "W katalogu"

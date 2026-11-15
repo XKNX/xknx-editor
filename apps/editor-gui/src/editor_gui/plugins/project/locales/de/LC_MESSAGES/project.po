@@ -3370,3 +3370,9 @@ msgstr "Interne Werte"
 
 msgid "Acknowledge Group Address"
 msgstr "Gruppenadresse quittieren"
+
+msgid "Select another step in the list to bring the project back to it"
+msgstr "Wählen Sie einen anderen Schritt in der Liste, um das Projekt auf diesen Stand zurückzusetzen"
+
+msgid "Current state of the project"
+msgstr "Aktueller Stand des Projekts"

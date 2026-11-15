@@ -28,20 +28,6 @@ msgstr "{address} {name}: ni tipa podatkovne točke"
 msgid "{address} {name}: no known value source in the project"
 msgstr "{address} {name}: v projektu ni znanega vira vrednosti"
 
-msgid "{count} error"
-msgid_plural "{count} errors"
-msgstr[0] "{count} napaka"
-msgstr[1] "{count} napaki"
-msgstr[2] "{count} napake"
-msgstr[3] "{count} napak"
-
-msgid "{count} warning"
-msgid_plural "{count} warnings"
-msgstr[0] "{count} opozorilo"
-msgstr[1] "{count} opozorili"
-msgstr[2] "{count} opozorila"
-msgstr[3] "{count} opozoril"
-
 msgid "{count} device skipped: application not in catalog"
 msgid_plural "{count} devices skipped: application not in catalog"
 msgstr[0] "{count} naprava preskočena (aplikacije ni v katalogu)"
@@ -62,3 +48,15 @@ msgstr[0] "{address} {name}: {count} komunikacijski objekt, ki lahko oddaja; pre
 msgstr[1] "{address} {name}: {count} komunikacijska objekta, ki lahko oddajata; preverite dodelitev"
 msgstr[2] "{address} {name}: {count} komunikacijski objekti, ki lahko oddajajo; preverite dodelitev"
 msgstr[3] "{address} {name}: {count} komunikacijskih objektov, ki lahko oddajajo; preverite dodelitev"
+
+msgid "Errors"
+msgstr "Napake"
+
+msgid "Warnings"
+msgstr "Opozorila"
+
+msgid "Hints"
+msgstr "Namigi"
+
+msgid "No findings of the selected kinds"
+msgstr "Ni ugotovitev izbranih vrst"

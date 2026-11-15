@@ -36,3 +36,16 @@ msgstr "Paralajmërim"
 
 msgid "Error"
 msgstr "Gabim"
+
+msgid "The lowest level shown: entries of this level and of the levels above it"
+msgstr "Niveli më i ulët i shfaqur: hyrje të këtij niveli dhe të niveleve më të larta"
+
+msgid "{count} log entry"
+msgid_plural "{count} log entries"
+msgstr[0] "{count} hyrje në regjistër"
+msgstr[1] "{count} hyrje në regjistër"
+
+msgid "{count} shown with the filter"
+msgid_plural "{count} shown with the filter"
+msgstr[0] "{count} shfaqet me filtrin"
+msgstr[1] "{count} shfaqen me filtrin"

@@ -26,12 +26,12 @@ from imgui_bundle import imgui
 
 from editor_gui.device import address_order, device_label, object_size_text
 from editor_gui.plugins.project.strings import S
-from editor_gui.plugins.project.ui._filter import filter_box
 from editor_gui.theme import status_color
 from editor_gui.widgets.checkbox import checkbox
 from editor_gui.widgets.combo import begin_combo
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
 from editor_gui.widgets.dpi import px, px_vec2
+from editor_gui.widgets.filter_box import filter_box
 from editor_gui.widgets.tables import begin_data_table, data_table_headers
 from editor_gui.widgets.tabs import begin_tab_bar
 from editor_gui.widgets.x_button import x_button
@@ -944,7 +944,7 @@ class MassLinkerPanel:
                 header = f"{device_label(device)}##dev{device.node_id}"
                 if imgui.tree_node_ex(header, imgui.TreeNodeFlags_.default_open):
                     # One click grabs every object of the device (the "drop a device" speed-up).
-                    if imgui.small_button(f"{S.ML_SELECT_ALL}##all{device.node_id}"):
+                    if imgui.button(f"{S.ML_SELECT_ALL}##all{device.node_id}"):
                         for co in cos:
                             self._pick_obj_selected.add(co.db_id)  # type: ignore[arg-type]
                     for co in cos:

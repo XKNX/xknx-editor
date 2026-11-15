@@ -130,11 +130,8 @@ def collapsing_header(label: str, flags: int = 0) -> bool:
     style = imgui.get_style()
     font = imgui.get_font_size()
     margin = arrow_margin()
-    # imgui widens the frame into the window padding by this much, but places the arrow from where
-    # the content starts (the cursor).
-    reach = int(internal.get_current_window().window_padding.x * 0.5 - 1.0)
     content_x = imgui.get_cursor_screen_pos().x
-    arrow_box_x = max(0.0, margin - reach - _ARROW_START * font)
+    arrow_box_x = max(0.0, margin - _header_reach() - _ARROW_START * font)
     imgui.push_id(ident)
     imgui.push_style_var(
         imgui.StyleVar_.frame_padding, imgui.ImVec2(arrow_box_x, style.frame_padding.y)
@@ -155,6 +152,35 @@ def collapsing_header(label: str, flags: int = 0) -> bool:
     )
     draw.pop_clip_rect()
     return opened
+
+
+def _header_reach() -> float:
+    """How far imgui widens a section header's frame into the window padding (it places the
+    arrow from where the content starts, the cursor)."""
+    return int(internal.get_current_window().window_padding.x * 0.5 - 1.0)
+
+
+def header_arrow(content_x: float, top: float, color: int) -> None:
+    """imgui's closed arrow, in ``color``, of the size and at the place of a section header's
+    (see :func:`collapsing_header`) in a row as high as a field whose content starts at
+    ``content_x`` and whose top is ``top``."""
+    font = imgui.get_font_size()
+    box = imgui.ImVec2(
+        content_x + max(0.0, arrow_margin() - _header_reach() - _ARROW_START * font),
+        top + imgui.get_style().frame_padding.y,
+    )
+    internal.render_arrow(imgui.get_window_draw_list(), box, color, imgui.Dir.right)
+
+
+def header_title_offset() -> float:
+    """How far right of where the content starts a section header's title is: the text after a
+    :func:`header_arrow` starts there."""
+    font = imgui.get_font_size()
+    return (
+        max(0.0, arrow_margin() - _header_reach() - _ARROW_START * font)
+        + _ARROW_END * font
+        + arrow_margin()
+    )
 
 
 def arrow_margin() -> float:

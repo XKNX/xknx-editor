@@ -28,18 +28,6 @@ msgstr "{address} {name}: нет типа данных"
 msgid "{address} {name}: no known value source in the project"
 msgstr "{address} {name}: в проекте нет известного источника значений"
 
-msgid "{count} error"
-msgid_plural "{count} errors"
-msgstr[0] "{count} ошибка"
-msgstr[1] "{count} ошибки"
-msgstr[2] "{count} ошибок"
-
-msgid "{count} warning"
-msgid_plural "{count} warnings"
-msgstr[0] "{count} предупреждение"
-msgstr[1] "{count} предупреждения"
-msgstr[2] "{count} предупреждений"
-
 msgid "{count} device skipped: application not in catalog"
 msgid_plural "{count} devices skipped: application not in catalog"
 msgstr[0] "Пропущено {count} устройство — прикладной программы нет в каталоге"
@@ -57,3 +45,15 @@ msgid_plural "{address} {name}: {count} transmit-capable group objects; check as
 msgstr[0] "{address} {name}: {count} групповой объект с возможностью передачи; проверьте назначение"
 msgstr[1] "{address} {name}: {count} групповых объекта с возможностью передачи; проверьте назначение"
 msgstr[2] "{address} {name}: {count} групповых объектов с возможностью передачи; проверьте назначение"
+
+msgid "Errors"
+msgstr "Ошибки"
+
+msgid "Warnings"
+msgstr "Предупреждения"
+
+msgid "Hints"
+msgstr "Подсказки"
+
+msgid "No findings of the selected kinds"
+msgstr "Нет результатов выбранных типов"

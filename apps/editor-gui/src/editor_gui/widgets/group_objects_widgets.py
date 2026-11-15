@@ -36,6 +36,7 @@ from editor_gui.widgets.tables import (
     begin_data_table,
     data_table_headers,
     freeze_header,
+    table_header,
     table_header_menu,
 )
 from xknxeditor.proj.core.addressing import GroupAddressStyle
@@ -426,7 +427,7 @@ class GroupObjectsTable:
                 if changed:
                     self._selected = {co.id for co in com_objects} if every else set()
                 imgui.same_line()
-            imgui.table_header(imgui.table_get_column_name(column))
+            table_header(imgui.table_get_column_name(column) or "")
         table_header_menu()
 
     def _render_module_filter(self, device: Device) -> None:
@@ -1034,8 +1035,7 @@ class GroupObjectsTable:
         if expanded:
             self._render_create_new(device, com_object)
             already = {ga_id for _aid, ga_id, _text, _sending in get_links(db_id)}
-            imgui.set_next_item_width(-1.0)
-            _, self._picker_filter = imgui.input_text_with_hint(
+            self._picker_filter = filter_box(
                 "##ga_filter", S.SEARCH_HINT, self._picker_filter
             )
             needle = self._picker_filter.lower()

@@ -1736,3 +1736,12 @@ msgstr "Не удалось удалить {name}: {error}"
 
 msgid "Delete File"
 msgstr "Удаление файла"
+
+msgid "Status"
+msgstr "Статус"
+
+msgid "New"
+msgstr "Новый"
+
+msgid "In catalog"
+msgstr "В каталоге"

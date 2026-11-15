@@ -36,3 +36,16 @@ msgstr "Aviso"
 
 msgid "Error"
 msgstr "Erro"
+
+msgid "The lowest level shown: entries of this level and of the levels above it"
+msgstr "Nível mais baixo mostrado: entradas deste nível e dos níveis superiores"
+
+msgid "{count} log entry"
+msgid_plural "{count} log entries"
+msgstr[0] "{count} entrada de registo"
+msgstr[1] "{count} entradas de registo"
+
+msgid "{count} shown with the filter"
+msgid_plural "{count} shown with the filter"
+msgstr[0] "{count} mostrada com o filtro"
+msgstr[1] "{count} mostradas com o filtro"

@@ -3309,3 +3309,9 @@ msgstr "Valori interne"
 
 msgid "Acknowledge Group Address"
 msgstr "Confirmă Adresa de Grup"
+
+msgid "Select another step in the list to bring the project back to it"
+msgstr "Selectați alt pas din listă pentru a readuce proiectul la acesta"
+
+msgid "Current state of the project"
+msgstr "Starea curentă a proiectului"

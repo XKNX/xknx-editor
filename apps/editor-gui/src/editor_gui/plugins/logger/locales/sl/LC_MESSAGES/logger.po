@@ -39,3 +39,20 @@ msgstr "Opozorilo"
 
 msgid "Error"
 msgstr "Napaka"
+
+msgid "The lowest level shown: entries of this level and of the levels above it"
+msgstr "Najnižja prikazana raven: vnosi te ravni in višjih ravni"
+
+msgid "{count} log entry"
+msgid_plural "{count} log entries"
+msgstr[0] "{count} vnos dnevnika"
+msgstr[1] "{count} vnosa dnevnika"
+msgstr[2] "{count} vnosi dnevnika"
+msgstr[3] "{count} vnosov dnevnika"
+
+msgid "{count} shown with the filter"
+msgid_plural "{count} shown with the filter"
+msgstr[0] "{count} prikazan s filtrom"
+msgstr[1] "{count} prikazana s filtrom"
+msgstr[2] "{count} prikazani s filtrom"
+msgstr[3] "{count} prikazanih s filtrom"

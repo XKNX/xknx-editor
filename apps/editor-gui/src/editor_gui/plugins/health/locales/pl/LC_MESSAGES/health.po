@@ -28,18 +28,6 @@ msgstr "{address} {name}: brak typu punktu danych"
 msgid "{address} {name}: no known value source in the project"
 msgstr "{address} {name}: brak znanego źródła wartości w projekcie"
 
-msgid "{count} error"
-msgid_plural "{count} errors"
-msgstr[0] "{count} błąd"
-msgstr[1] "{count} błędy"
-msgstr[2] "{count} błędów"
-
-msgid "{count} warning"
-msgid_plural "{count} warnings"
-msgstr[0] "{count} ostrzeżenie"
-msgstr[1] "{count} ostrzeżenia"
-msgstr[2] "{count} ostrzeżeń"
-
 msgid "{count} device skipped: application not in catalog"
 msgid_plural "{count} devices skipped: application not in catalog"
 msgstr[0] "Pominięto {count} urządzenie: brak aplikacji w katalogu"
@@ -57,3 +45,15 @@ msgid_plural "{address} {name}: {count} transmit-capable group objects; check as
 msgstr[0] "{address} {name}: {count} obiekt grupy zdolny do nadawania; sprawdź przypisanie"
 msgstr[1] "{address} {name}: {count} obiekty grupy zdolne do nadawania; sprawdź przypisanie"
 msgstr[2] "{address} {name}: {count} obiektów grupy zdolnych do nadawania; sprawdź przypisanie"
+
+msgid "Errors"
+msgstr "Błędy"
+
+msgid "Warnings"
+msgstr "Ostrzeżenia"
+
+msgid "Hints"
+msgstr "Wskazówki"
+
+msgid "No findings of the selected kinds"
+msgstr "Brak wyników wybranych rodzajów"

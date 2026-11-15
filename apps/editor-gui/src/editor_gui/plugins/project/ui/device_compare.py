@@ -29,6 +29,7 @@ from editor_gui.widgets.description import (
     shows_description_icon,
 )
 from editor_gui.widgets.filter_box import filter_box
+from editor_gui.widgets.icon_button import ICON_COPY, icon_button
 from editor_gui.widgets.tables import begin_data_table, data_table_headers
 from editor_gui.widgets.text_util import text_clipped_tooltip
 from editor_gui.widgets.tree import collapsing_header
@@ -96,7 +97,7 @@ class DeviceComparePanel:
             )
         )
         imgui.same_line()
-        if imgui.button(S.COMPARE_COPY):
+        if icon_button(ICON_COPY, "cmp_copy", S.COMPARE_COPY):
             imgui.set_clipboard_text(
                 self._clipboard_text(result, by_id[self._a_id], by_id[self._b_id])
             )

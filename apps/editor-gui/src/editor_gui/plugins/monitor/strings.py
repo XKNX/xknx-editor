@@ -81,17 +81,6 @@ class MonitorStrings:
     def MONITOR_BUS_LOAD(self) -> str:
         return _("{rate} t/s")
 
-    @property
-    def MONITOR_MAX_RECORDS(self) -> str:
-        return _("Max")
-
-    @property
-    def MONITOR_MAX_RECORDS_HINT(self) -> str:
-        return _(
-            "Maximum telegrams this monitor keeps. The oldest tenth is dropped when the cap "
-            "is exceeded."
-        )
-
     # --- command bar ---------------------------------------------------------
 
     @property
@@ -306,25 +295,39 @@ class MonitorStrings:
     # --- persisting the group monitor ----------------------------------------
 
     @property
-    def TOOL_PERSIST(self) -> str:
-        return _("Persist")
-
-    @property
-    def TOOL_PERSIST_HINT(self) -> str:
-        return _("Keep this project's group telegrams across restarts")
-
-    @property
     def SETTING_PERSIST(self) -> str:
         return _("Persist Group Monitor Telegrams")
 
     @property
     def SETTING_MAX_TELEGRAMS(self) -> str:
-        return _("Maximum Telegrams")
+        return _("Maximum Group Monitor Telegrams")
 
     @property
     def SETTING_MAX_TELEGRAMS_HINT(self) -> str:
         return _(
             "How many telegrams the Group Monitor keeps before dropping the oldest. "
+            "0 = unlimited."
+        )
+
+    @property
+    def SETTING_MAX_BUS_TELEGRAMS(self) -> str:
+        return _("Maximum Bus Monitor Telegrams")
+
+    @property
+    def SETTING_MAX_BUS_TELEGRAMS_HINT(self) -> str:
+        return _(
+            "How many telegrams the Bus Monitor keeps before dropping the oldest. "
+            "0 = unlimited."
+        )
+
+    @property
+    def SETTING_MAX_ACTIVITY_TELEGRAMS(self) -> str:
+        return _("Maximum Bus Activity Telegrams")
+
+    @property
+    def SETTING_MAX_ACTIVITY_TELEGRAMS_HINT(self) -> str:
+        return _(
+            "How many telegrams Bus Activity keeps before dropping the oldest. "
             "0 = unlimited."
         )
 
@@ -347,21 +350,6 @@ class MonitorStrings:
         return _(
             "The oldest telegrams are dropped to keep the saved file under this size. 0 = no limit."
         )
-
-    @property
-    def QUESTION_UNLIMITED_TITLE(self) -> str:
-        return _("Unlimited Recording")
-
-    @property
-    def QUESTION_UNLIMITED(self) -> str:
-        return _(
-            "Without a count limit the telegrams can use a lot of memory, and disk while "
-            "persisting. Continue?"
-        )
-
-    @property
-    def MONITOR_MAX_RECORDS_UNLIMITED(self) -> str:
-        return _("0 = unlimited")
 
     # --- statistics ----------------------------------------------------------
 

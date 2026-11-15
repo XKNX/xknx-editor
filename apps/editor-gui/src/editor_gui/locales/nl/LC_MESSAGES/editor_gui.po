@@ -1780,3 +1780,12 @@ msgstr "{name} kon niet worden verwijderd: {error}"
 
 msgid "Delete File"
 msgstr "Bestand verwijderen"
+
+msgid "Status"
+msgstr "Status"
+
+msgid "New"
+msgstr "Nieuw"
+
+msgid "In catalog"
+msgstr "In catalogus"

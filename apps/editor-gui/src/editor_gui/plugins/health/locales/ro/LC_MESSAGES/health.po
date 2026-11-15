@@ -28,18 +28,6 @@ msgstr "{address} {name}: niciun tip de punct de date"
 msgid "{address} {name}: no known value source in the project"
 msgstr "{address} {name}: nicio sursă cunoscută de valori în proiect"
 
-msgid "{count} error"
-msgid_plural "{count} errors"
-msgstr[0] "{count} eroare"
-msgstr[1] "{count} erori"
-msgstr[2] "{count} de erori"
-
-msgid "{count} warning"
-msgid_plural "{count} warnings"
-msgstr[0] "{count} avertisment"
-msgstr[1] "{count} avertismente"
-msgstr[2] "{count} de avertismente"
-
 msgid "{count} device skipped: application not in catalog"
 msgid_plural "{count} devices skipped: application not in catalog"
 msgstr[0] "{count} dispozitiv omis (aplicația nu este în catalog)"
@@ -57,3 +45,15 @@ msgid_plural "{address} {name}: {count} transmit-capable group objects; check as
 msgstr[0] "{address} {name}: {count} obiect de comunicare capabil să transmită; verificați atribuirea"
 msgstr[1] "{address} {name}: {count} obiecte de comunicare capabile să transmită; verificați atribuirea"
 msgstr[2] "{address} {name}: {count} de obiecte de comunicare capabile să transmită; verificați atribuirea"
+
+msgid "Errors"
+msgstr "Erori"
+
+msgid "Warnings"
+msgstr "Avertismente"
+
+msgid "Hints"
+msgstr "Sugestii"
+
+msgid "No findings of the selected kinds"
+msgstr "Nicio constatare de tipurile selectate"

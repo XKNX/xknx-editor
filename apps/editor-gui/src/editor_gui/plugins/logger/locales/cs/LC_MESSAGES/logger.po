@@ -36,3 +36,18 @@ msgstr "Varování"
 
 msgid "Error"
 msgstr "Chyba"
+
+msgid "The lowest level shown: entries of this level and of the levels above it"
+msgstr "Nejnižší zobrazená úroveň: záznamy této úrovně a vyšších úrovní"
+
+msgid "{count} log entry"
+msgid_plural "{count} log entries"
+msgstr[0] "{count} záznam protokolu"
+msgstr[1] "{count} záznamy protokolu"
+msgstr[2] "{count} záznamů protokolu"
+
+msgid "{count} shown with the filter"
+msgid_plural "{count} shown with the filter"
+msgstr[0] "{count} zobrazen s filtrem"
+msgstr[1] "{count} zobrazeny s filtrem"
+msgstr[2] "{count} zobrazeno s filtrem"

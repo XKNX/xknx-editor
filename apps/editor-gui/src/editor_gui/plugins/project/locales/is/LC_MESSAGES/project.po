@@ -3257,3 +3257,9 @@ msgstr "Innri gildi"
 
 msgid "Acknowledge Group Address"
 msgstr "Staðfesta Hópvistfang"
+
+msgid "Select another step in the list to bring the project back to it"
+msgstr "Veldu annað skref á listanum til að færa verkefnið aftur á það"
+
+msgid "Current state of the project"
+msgstr "Núverandi staða verkefnisins"
