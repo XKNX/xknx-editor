@@ -255,23 +255,32 @@ def _encode_value(
     length prefix, a property value carries none (see ``_encode_raw_data``).
     """
     try:
-        str_value = validate_parameter_value(str_value, tc)
+        str_value = validate_parameter_value(str_value, tc, as_bits=True)
     except ValueError:
-        # Values set in the editor are checked before; one outside the type's range here is the
-        # product's own (e.g. a hidden parameter's default), written as given while it fits.
-        if not (
-            isinstance(tc, ParameterTypeTypeNumber)
-            and _fits_in_bits(str_value, size_in_bit)
-        ):
+        # Values set in the editor are checked before. A number outside the type's range here
+        # (a product's own default or Assign, a value imported as it was stored) is written as
+        # its two's complement bits, cut to the parameter's size.
+        if not isinstance(tc, ParameterTypeTypeNumber):
+            return None
+        bits = _encode_number(str_value, size_in_bit)
+        if bits is None:
             return None
         if (str_value, id(tc)) not in _out_of_range_logged:
             _out_of_range_logged.add((str_value, id(tc)))
-            log.warning(
-                "parameter value %r outside %s..%s, written as given",
-                str_value,
-                tc.min_inclusive,
-                tc.max_inclusive,
-            )
+            if _fits_in_bits(str_value, size_in_bit):
+                log.warning(
+                    "parameter value %r outside %s..%s, written as given",
+                    str_value,
+                    tc.min_inclusive,
+                    tc.max_inclusive,
+                )
+            else:
+                log.warning(
+                    "parameter value %r does not fit %s bits, written as its lowest bits (%s)",
+                    str_value,
+                    size_in_bit,
+                    bits,
+                )
     if isinstance(tc, (ParameterTypeTypeNumber, ParameterTypeTypeTime)):
         # A time value is stored as a plain integer in the type's unit.
         return _apply_byte_order(
@@ -381,17 +390,36 @@ def _encode_number(str_value: str, size_in_bit: int) -> int | None:
     return v & ((1 << size_in_bit) - 1)
 
 
+def _number_bits_in_range(number: int, tc: ParameterTypeTypeNumber) -> bool:
+    """Whether ``number``, written into the type's size as two's complement, gives the bits
+    of a value in the type's range: -2147483648 in an unsigned 32-bit field is 0x80000000,
+    2147483648."""
+    size = tc.size_in_bit
+    if size <= 0 or not -(1 << (size - 1)) <= number < (1 << size):
+        return False
+    bits = number & ((1 << size) - 1)
+    if _is_signed_number(tc) and bits >= 1 << (size - 1):
+        bits -= 1 << size
+    return tc.min_inclusive <= bits <= tc.max_inclusive
+
+
 def validate_parameter_value(
-    value: str, tc: object, *, check_range: bool = True
+    value: str, tc: object, *, check_range: bool = True, as_bits: bool = False
 ) -> str:
     """Validate integer domains and resolve restriction labels to numeric values.
 
     ``check_range=False`` accepts a whole number outside its type's range (it still has to
-    be a number).
+    be a number). ``as_bits`` accepts a number outside the range whose bits in the type's
+    size are a value in it (a signed 32-bit value of an unsigned 32-bit parameter, as a
+    product's plug-in may store it), as a download writes it.
     """
     if isinstance(tc, ParameterTypeTypeNumber):
         number = int(value, 16) if value[:2].lower() == "0x" else int(value)
-        if check_range and not tc.min_inclusive <= number <= tc.max_inclusive:
+        if (
+            check_range
+            and not tc.min_inclusive <= number <= tc.max_inclusive
+            and not (as_bits and _number_bits_in_range(number, tc))
+        ):
             raise ValueError(
                 f"value {value!r} outside {tc.min_inclusive}..{tc.max_inclusive}"
             )

@@ -120,9 +120,9 @@ def test_number_invalid_returns_none() -> None:
     assert _encode_value("abc", 8, _number()) is None
 
 
-def test_number_outside_its_range_is_written_while_it_fits() -> None:
+def test_number_outside_its_range_is_written_as_its_bits() -> None:
     # A product's own value may lie outside the type's range (a hidden parameter's default of 1
-    # for a 129..129 type): written as given, as long as it fits the size.
+    # for a 129..129 type): written as given, cut to the size when it does not fit.
     only_129 = ParameterTypeTypeNumber(
         size_in_bit=8,
         type_value=ParameterTypeTypeNumberType.UNSIGNED_INT,
@@ -130,7 +130,9 @@ def test_number_outside_its_range_is_written_while_it_fits() -> None:
         max_inclusive=129,
     )
     assert _encode_value("1", 8, only_129) == 0x01
-    assert _encode_value("256", 8, only_129) is None
+    assert _encode_value("-127", 8, only_129) == 0x81
+    assert _encode_value("257", 8, only_129) == 0x01
+    assert _encode_value("one", 8, only_129) is None
 
 
 def test_float_dpt9() -> None:

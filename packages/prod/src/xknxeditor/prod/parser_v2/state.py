@@ -1025,17 +1025,6 @@ class ParameterState:
             result.extend(child.relative_param_values())
         return result
 
-    def relative_param_values_assigned(self) -> list[tuple[str, str, bool]]:
-        """As :meth:`relative_param_values`, each with whether it is the target of an Assign
-        that applies in the last pass."""
-        result = [
-            (ref, value, ref in self._assign_targets)
-            for ref, value in self.param_ref_id_to_value.items()
-        ]
-        for child in self._children.values():
-            result.extend(child.relative_param_values_assigned())
-        return result
-
     def module_instances(self) -> list[tuple[str, str, dict[str, ModuleArg]]]:
         result: list[tuple[str, str, dict[str, ModuleArg]]] = []
         for child in self._children.values():
