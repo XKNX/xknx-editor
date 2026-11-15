@@ -173,8 +173,10 @@ def _reopening(
     calls: list[dict[str, Any]] = []
     monkeypatch.delenv(PROJECT_PASSWORD_ENV, raising=False)
     monkeypatch.setattr(main, "load_settings", lambda _name: settings)
+    monkeypatch.setattr(main, "others", list)
     stub = SimpleNamespace(
         _connection_plugin=SimpleNamespace(autostart=lambda: None),
+        _project_service=SimpleNamespace(can_open=lambda path: Path(path).is_file()),
         _log=_Log(),
         no_connect=False,
         startup_file=None,
@@ -249,6 +251,45 @@ def test_a_missing_last_project_is_not_opened_or_reported(
     stub, calls = _reopening(monkeypatch, {"open_last_project": True})
     KnxGuiApp._start_session(stub)  # type: ignore[arg-type]
     assert calls == []
+
+
+def test_the_last_project_is_checked_like_the_normal_open(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+):
+    # A project on a network drive whose file is missing but whose local copy remains after a
+    # crash: ProjectService.can_open accepts it, so the start opens it like Open Recent would.
+    missing = str(tmp_path / "Haus.xknx")
+    stub, calls = _reopening(
+        monkeypatch, {"open_last_project": True, "recent_files": [missing]}
+    )
+    asked: list[Path] = []
+    stub._project_service = SimpleNamespace(
+        can_open=lambda path: asked.append(path) or True
+    )
+    KnxGuiApp._start_session(stub)  # type: ignore[arg-type]
+    assert asked == [Path(missing)]
+    assert [call["path"] for call in calls] == [missing]
+
+
+def test_the_last_project_is_not_opened_when_another_editor_has_it(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+):
+    last = tmp_path / "Haus.xknx"
+    last.write_bytes(b"")
+    stub, calls = _reopening(
+        monkeypatch, {"open_last_project": True, "recent_files": [str(last)]}
+    )
+    # "Start Another" while an editor has the last project open: this one starts on the
+    # Welcome screen instead of asking about the project open there.
+    other = SimpleNamespace(project=str(last))
+    monkeypatch.setattr(main, "others", lambda: [other])
+    KnxGuiApp._start_session(stub)  # type: ignore[arg-type]
+    assert calls == []
+    assert stub._log.errors == []
+    # Another editor with another project open does not stop it.
+    other.project = str(tmp_path / "Büro.xknx")
+    KnxGuiApp._start_session(stub)  # type: ignore[arg-type]
+    assert [call["path"] for call in calls] == [str(last)]
 
 
 def test_the_setting_is_kept_in_the_app_settings(monkeypatch: pytest.MonkeyPatch):

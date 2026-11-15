@@ -1161,15 +1161,22 @@ class KnxGuiApp:
 
     def _last_project_to_reopen(self) -> str | None:
         """The project to open at a start without one given: the most recent one, while Open
-        Last Project on Startup is on and its file is still there (a moved or deleted file is
-        not reported at the start, it stays in Open Recent until it is picked)."""
+        Last Project on Startup is on, it can still be opened (``ProjectService.can_open``, like
+        the normal open) and no other editor has it open. Otherwise nothing is reported at the
+        start: a missing file stays in Open Recent until it is picked, and a project open in
+        another editor stays there."""
         if not self._open_last_project_enabled():
             return None
         recent = self._recent_files()
         if not recent:
             return None
-        if not Path(recent[0]).is_file():
+        if not self._project_service.can_open(Path(recent[0])):
             self._log.info("last project not found, not reopened", path=recent[0])
+            return None
+        if with_project(recent[0], others()):
+            self._log.info(
+                "last project open in another editor, not reopened", path=recent[0]
+            )
             return None
         self._log.info("reopening the last project", path=recent[0])
         return recent[0]
