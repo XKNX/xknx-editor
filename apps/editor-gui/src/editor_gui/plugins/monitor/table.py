@@ -25,6 +25,7 @@ from editor_gui.plugins.monitor.formatting import (
     ProjectIndex,
     format_cells,
     record_cells,
+    sample_text,
 )
 from editor_gui.plugins.monitor.pdf import table_pdf
 from editor_gui.plugins.monitor.records import MonitorRecord, RecordKind
@@ -472,11 +473,15 @@ class TelegramView:
             hide = not extended and i not in _SIMPLE_COLUMNS[self.kind]
             if hide:
                 column_flags |= imgui.TableColumnFlags_.default_hide
-            width = (
-                1.0
-                if column_flags & imgui.TableColumnFlags_.width_stretch
-                else px(column.width)
-            )
+            if column_flags & imgui.TableColumnFlags_.width_stretch:
+                width = 1.0
+            else:
+                width = px(column.width)
+                # The time and date are as wide as the regional formats make them.
+                sample = sample_text(column.key)
+                if sample:
+                    padding = imgui.get_style().cell_padding.x * 2
+                    width = max(width, imgui.calc_text_size(sample).x + padding)
             imgui.table_setup_column(column.label, column_flags, width)
         data_table_headers()
         self._enabled_columns = [

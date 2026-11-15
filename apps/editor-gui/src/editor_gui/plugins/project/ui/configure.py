@@ -25,6 +25,7 @@ from editor_gui.device_plugins import (
     parameters_in_plugin,
 )
 from editor_gui.hardware_text import bus_current_text, rail_text
+from editor_gui.local_time import stamp_text
 from editor_gui.os_open import open_url
 from editor_gui.plugins.project.strings import S
 from editor_gui.plugins.project.ui import name_focus
@@ -258,7 +259,7 @@ def direct_program_request(
 
 def _timestamp_field(stamp: str | None) -> None:
     imgui.align_text_to_frame_padding()
-    imgui.text_unformatted(timestamp_text(stamp))
+    imgui.text_unformatted(stamp_text(stamp))
 
 
 def _render_loading_application() -> None:

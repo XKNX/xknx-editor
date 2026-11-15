@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING
 
 from imgui_bundle import imgui
 
+from editor_gui.local_time import stamp_text
 from editor_gui.plugins.project.code_page import PROJECT_CODE_PAGES, code_page_text
 from editor_gui.plugins.project.strings import S
 from editor_gui.plugins.project.ui.status_field import choice_combo, status_combo
@@ -78,7 +79,7 @@ class ProjectInfoPanel:
             (S.PROJECT_INFO_CREATED_BY, info.created_by),
             (S.PROJECT_INFO_TOOL_VERSION, info.tool_version),
             (S.PROJECT_INFO_SCHEMA_VERSION, info.schema_version),
-            (S.PROJECT_INFO_LAST_MODIFIED, info.last_modified),
+            (S.PROJECT_INFO_LAST_MODIFIED, stamp_text(info.last_modified)),
             (S.PROJECT_INFO_GUID, info.guid),
             (S.PROJECT_INFO_ID, info.id),
             (S.PROJECT_INFO_ORIGINAL_ID, info.original_project_id),

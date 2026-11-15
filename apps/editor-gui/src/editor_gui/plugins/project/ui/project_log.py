@@ -16,6 +16,7 @@ from imgui_bundle import imgui
 from imgui_bundle import portable_file_dialogs as pfd
 
 from editor_gui import file_dialogs, trace_key, web
+from editor_gui.local_time import stamp_text
 from editor_gui.plugins.project.strings import S
 from editor_gui.theme import status_color
 from editor_gui.widgets.dpi import px
@@ -66,6 +67,8 @@ class ProjectLogPanel:
         self._shown: (
             tuple[list[ProjectTrace], tuple[str, int, bool], list[ProjectTrace]] | None
         ) = None
+        # The shown date of each stored one.
+        self._dates: dict[str, str] = {}
 
     def render(self) -> None:
         self._poll_dialog()
@@ -118,7 +121,7 @@ class ProjectLogPanel:
                 comment = self._display(t)
                 imgui.table_next_row()
                 imgui.table_set_column_index(0)
-                imgui.text_unformatted(t.date or "-")
+                imgui.text_unformatted(self._date(t))
                 imgui.table_set_column_index(1)
                 imgui.text_unformatted(t.user_name or "-")
                 imgui.table_set_column_index(2)
@@ -232,6 +235,14 @@ class ProjectLogPanel:
             self._shown = (traces, state, rows)
         return self._shown[2]
 
+    def _date(self, t: ProjectTrace) -> str:
+        """When the entry was made (stored in UTC), in local time in the regional formats; made
+        once per entry (the panel renders every frame)."""
+        text = self._dates.get(t.date)
+        if text is None:
+            text = self._dates[t.date] = stamp_text(t.date, seconds=True)
+        return text
+
     @staticmethod
     def _display(t: ProjectTrace) -> str:
         """The comment as shown, filtered and sorted: "Encrypted" while it cannot be read."""
@@ -258,7 +269,7 @@ class ProjectLogPanel:
 
     def _matches(self, t: ProjectTrace, needle: str) -> bool:
         return (
-            needle in t.date.lower()
+            needle in self._date(t).lower()
             or needle in t.user_name.lower()
             or needle in self._display(t).lower()
         )

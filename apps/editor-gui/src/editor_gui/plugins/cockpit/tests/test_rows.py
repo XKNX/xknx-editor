@@ -100,3 +100,24 @@ def test_a_finding_about_something_else_keeps_its_text() -> None:
 def test_a_full_width_colon_ends_the_device_too() -> None:
     row = _finding_row("1.1.2", "Aktor", "1.1.2  Aktor\uff1a10 个未链接的组对象")
     assert row.issue_summary == "10 个未链接的组对象"
+
+
+def test_the_last_download_is_shown_in_local_time() -> None:
+    from editor_gui.local_time import stamp_text
+    from editor_gui.plugins.cockpit.service import (
+        _commissioning,  # pyright: ignore[reportPrivateUsage]
+    )
+
+    stored = "2026-01-24T11:38:26.8111136Z"
+    info = SimpleNamespace(
+        individual_address_loaded=True,
+        application_program_loaded=True,
+        communication_part_loaded=True,
+        medium_config_loaded=True,
+        parameters_loaded=True,
+        serial_number="",
+        last_download=stored,
+    )
+    _label, tooltip, done = _commissioning(cast(Any, info))
+    assert done == 5
+    assert tooltip.endswith(stamp_text(stored)) and stored not in tooltip

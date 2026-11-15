@@ -240,6 +240,11 @@ def date_names(locale: str | None) -> tuple[str, list[str]]:
     return loc.long_date, loc.months
 
 
+def time_pattern(locale: str | None) -> str:
+    """Long time pattern of ``locale`` (``None``: the system locale), e.g. ``h:mm:ss tt``."""
+    return _locale(locale or system_locale()).long_time
+
+
 def _format_date(fmt: str, loc: _Locale, f: list[int]) -> str:
     y, mo, d, wd, h, mi, s = f
     tokens = {

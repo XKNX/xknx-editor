@@ -71,6 +71,7 @@ from editor_gui.languages import (
     set_product_language,
     supported,
 )
+from editor_gui.local_time import date_text, date_time_text, iso_date_text
 from editor_gui.log_file import log_dir
 from editor_gui.master_data import MasterDataInfo, load_master, master_xml_bytes
 from editor_gui.myknx_oauth import (
@@ -1829,7 +1830,7 @@ class KnxGuiApp:
                     self._export_summary_schema = labels.get(
                         used_schema, f"project/{used_schema}"
                     )
-                    self._export_summary_at = datetime.now().strftime("%Y-%m-%d %H:%M")
+                    self._export_summary_at = date_time_text(datetime.now())
                     self._export_summary_signer = signer
                     self._export_summary_requested = True
                 if result.import_notes:
@@ -1893,7 +1894,7 @@ class KnxGuiApp:
                     self._export_summary_schema = labels.get(
                         used_schema, f"project/{used_schema}"
                     )
-                    self._export_summary_at = datetime.now().strftime("%Y-%m-%d %H:%M")
+                    self._export_summary_at = date_time_text(datetime.now())
                     self._export_summary_signer = signer
                     self._export_summary_requested = True
             except ExportCancelled:
@@ -3991,7 +3992,7 @@ class KnxGuiApp:
                 part
                 for part in (
                     facts.registration_number if facts else None,
-                    facts.registration_date.isoformat()
+                    date_text(facts.registration_date)
                     if facts and facts.registration_date
                     else None,
                 )
@@ -4318,7 +4319,7 @@ class KnxGuiApp:
             self._status_part(
                 S.STATUS_MASTER_DATA.format(
                     version=self._master_info.version,
-                    date=self._master_info.date,
+                    date=iso_date_text(self._master_info.date),
                 )
             )
 

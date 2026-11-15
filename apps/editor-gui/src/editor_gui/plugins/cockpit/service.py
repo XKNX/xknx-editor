@@ -12,6 +12,7 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
 
 from editor_gui.device import address_order
+from editor_gui.local_time import stamp_text
 from editor_gui.plugins.cockpit.strings import S
 from editor_gui.plugins.health.service import HealthService, Severity
 from editor_gui.strings import get_locale
@@ -127,7 +128,9 @@ def _commissioning(info: DeviceInfo | None) -> tuple[str, str, int]:
         lines.append(S.COCKPIT_LOADED_TOOLTIP_SERIAL.format(serial=info.serial_number))
     if info.last_download:
         lines.append(
-            S.COCKPIT_LOADED_TOOLTIP_LAST_DOWNLOAD.format(when=info.last_download)
+            S.COCKPIT_LOADED_TOOLTIP_LAST_DOWNLOAD.format(
+                when=stamp_text(info.last_download)
+            )
         )
     return label, "\n".join(lines), done
 

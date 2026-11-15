@@ -112,13 +112,11 @@ def test_the_index_status_shows_the_local_fetch_date() -> None:
 def test_a_product_update_shows_in_the_regional_date_format_and_local_time() -> None:
     from datetime import datetime
 
+    from editor_gui.local_time import date_time_text
     from editor_gui.plugins.catalog.ui.panel import updated_time
-    from editor_gui.regional import regional_format
-    from editor_gui.widgets.value_pickers import format_date
 
     stamp = "2026-05-16T09:09:02+00:00"
     local = datetime.fromisoformat(stamp).astimezone()
-    day = format_date(local.date().isoformat(), True, regional_format())
-    assert updated_time(stamp) == f"{day} {local:%H:%M}"
+    assert updated_time(stamp) == date_time_text(local)
     assert "T" not in updated_time(stamp)
     assert updated_time("not a date") == "not a date"

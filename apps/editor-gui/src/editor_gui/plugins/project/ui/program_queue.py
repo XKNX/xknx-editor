@@ -11,6 +11,7 @@ from collections.abc import Callable
 
 from imgui_bundle import hello_imgui, imgui
 
+from editor_gui.local_time import recent_text
 from editor_gui.plugins.project.device_info_view import Toned
 from editor_gui.plugins.project.program_queue import OperationState, QueueItem
 from editor_gui.plugins.project.strings import S
@@ -243,9 +244,9 @@ def _render_details(item: QueueItem) -> None:
     if item.connection:
         imgui.text(S.OPERATION_CONNECTION.format(connection=item.connection))
     if item.started_at is not None:
-        imgui.text(S.OPERATION_START.format(time=item.started_at.strftime("%H:%M:%S")))
+        imgui.text(S.OPERATION_START.format(time=recent_text(item.started_at)))
     if item.ended_at is not None:
-        imgui.text(S.OPERATION_END.format(time=item.ended_at.strftime("%H:%M:%S")))
+        imgui.text(S.OPERATION_END.format(time=recent_text(item.ended_at)))
 
 
 def _render_result(sections: list[tuple[str, list[tuple[str, str]]]]) -> None:

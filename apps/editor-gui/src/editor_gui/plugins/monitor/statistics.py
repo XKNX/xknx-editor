@@ -13,6 +13,7 @@ from typing import TYPE_CHECKING
 
 from imgui_bundle import imgui
 
+from editor_gui.local_time import date_time_text
 from editor_gui.plugins.monitor.formatting import ProjectIndex
 from editor_gui.plugins.monitor.frames import individual_address_text
 from editor_gui.plugins.monitor.records import TICKS_PER_SECOND
@@ -166,7 +167,7 @@ class StatisticsView:
         if stats.peak_per_minute:
             imgui.same_line()
             moment = datetime.fromtimestamp(stats.peak_ticks // TICKS_PER_SECOND)
-            when = f"{moment:%H:%M} {moment:%Y-%m-%d}"
+            when = date_time_text(moment)
             imgui.text_disabled(
                 S.STATS_PEAK.format(peak=stats.peak_per_minute, when=when)
             )

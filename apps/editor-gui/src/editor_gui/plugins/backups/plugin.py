@@ -14,6 +14,7 @@ from pathlib import Path
 from imgui_bundle import imgui
 
 from editor_gui import file_dialogs
+from editor_gui.local_time import date_time_text
 from editor_gui.plugins.backups.service import BackupJob, BackupService
 from editor_gui.plugins.backups.settings import (
     EXPIRE_DAYS,
@@ -45,8 +46,8 @@ _Action = tuple[str, str, Callable[[Backup], None], str]
 
 
 def when(moment: datetime) -> str:
-    """A backup's time, in local time."""
-    return moment.astimezone().strftime("%Y-%m-%d %H:%M")
+    """A backup's time, in local time in the regional formats."""
+    return date_time_text(moment)
 
 
 def size_text(size: int) -> str:

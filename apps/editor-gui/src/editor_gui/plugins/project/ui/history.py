@@ -11,6 +11,7 @@ from dataclasses import dataclass
 
 from imgui_bundle import imgui
 
+from editor_gui.local_time import recent_text
 from editor_gui.plugins.project.strings import S
 from editor_gui.theme import status_color
 from editor_gui.widgets.tree import header_arrow, header_title_offset
@@ -28,14 +29,9 @@ class HistoryEntry:
 def history_time_text(
     moment: datetime.datetime | None, now: datetime.datetime | None = None
 ) -> str:
-    """When a history step was made, in local time: the time of day for a step of today, else
-    the date too ("2026-10-26 17:05:12"); "" when unknown."""
-    if moment is None:
-        return ""
-    local = moment.astimezone()
-    today = (now or datetime.datetime.now().astimezone()).date()
-    pattern = "%H:%M:%S" if local.date() == today else "%Y-%m-%d %H:%M:%S"
-    return local.strftime(pattern)
+    """When a history step was made, in local time in the regional formats: the time of day for
+    a step of today, else the date too; "" when unknown."""
+    return "" if moment is None else recent_text(moment, now)
 
 
 class HistoryPanel:

@@ -25,6 +25,7 @@ from typing import TYPE_CHECKING
 from imgui_bundle import imgui
 
 from editor_gui.device import address_order, device_label, object_size_text
+from editor_gui.local_time import time_text
 from editor_gui.plugins.project.strings import S
 from editor_gui.theme import status_color
 from editor_gui.widgets.checkbox import checkbox
@@ -1009,7 +1010,7 @@ class MassLinkerPanel:
         text = summary
         if errors:
             text += "  " + S.ML_ERRORS(len(errors)).format(count=len(errors))
-        self._log_entries.append(_LogEntry(datetime.now().strftime("%H:%M:%S"), text))
+        self._log_entries.append(_LogEntry(time_text(datetime.now()), text))
         self._result = self._log_entries[-1]
         self._result_errors = errors
         self._open_result_pending = True
