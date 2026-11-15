@@ -96,7 +96,15 @@ def begin_combo(
         flags |= imgui.ComboFlags_.no_arrow_button
     for col, color in colors:
         imgui.push_style_color(col, color)
+    # The list's entries reach up to its border: its padding above the first and below the last
+    # is the part of the item spacing their highlight reaches past their text anyway.
+    style = imgui.get_style()
+    imgui.push_style_var(
+        imgui.StyleVar_.window_padding,
+        imgui.ImVec2(style.window_padding.x, list_padding()),
+    )
     opened = imgui.begin_combo(label, preview, flags)
+    imgui.pop_style_var()
     imgui.pop_style_color(len(colors))
     if arrow:
         _draw_arrow(label)
@@ -108,6 +116,11 @@ def begin_combo(
             pushed = len(_ENTRY_COLORS)
         _pushed.append(pushed)
     return opened
+
+
+def list_padding() -> float:
+    """The padding of a drop-down's list above its first and below its last entry."""
+    return float(int(imgui.get_style().item_spacing.y * 0.5))
 
 
 def end_combo() -> None:
@@ -132,7 +145,7 @@ def combo(
         style = imgui.get_style()
         height = (
             imgui.get_font_size() + style.item_spacing.y
-        ) * popup_max_height_in_items + style.window_padding.y * 2
+        ) * popup_max_height_in_items + list_padding() * 2
         imgui.set_next_window_size_constraints(
             imgui.ImVec2(0.0, 0.0), imgui.ImVec2(imgui.FLT_MAX, height)
         )

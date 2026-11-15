@@ -57,6 +57,29 @@ def test_an_open_drop_down_chooses_in_the_choice_color(context: None) -> None:
     assert seen and all(_same(color, BLUE) for color in seen)
 
 
+def test_the_entries_of_a_drop_down_reach_up_to_its_border(context: None) -> None:
+    from editor_gui.widgets.combo import list_padding
+
+    tops: list[tuple[float, float]] = []
+    for frame in range(3):
+        imgui.new_frame()
+        imgui.begin("Window")
+        if frame == 1:
+            popup = internal.im_hash_str("##ComboPopup", 0, imgui.get_id("##list"))
+            internal.open_popup_ex(popup, 0)
+        if begin_combo("##list", "One"):
+            first = imgui.get_cursor_screen_pos().y
+            tops.append((first, imgui.get_window_pos().y))
+            imgui.selectable("One", True)
+            end_combo()
+        imgui.end()
+        imgui.end_frame()
+    first, window = tops[-1]
+    # Only the part of the spacing the highlight reaches above the text, not imgui's padding.
+    assert first - window == list_padding()
+    assert list_padding() == int(imgui.get_style().item_spacing.y / 2)
+
+
 def test_a_chosen_radio_button_has_a_dot_in_the_choice_color(
     context: None, monkeypatch: pytest.MonkeyPatch
 ) -> None:
