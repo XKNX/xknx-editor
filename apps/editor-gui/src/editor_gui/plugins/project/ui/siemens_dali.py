@@ -78,11 +78,24 @@ class SiemensDaliPanel:
     """Stateful "DALI (Siemens)" tab body. One instance owned by the project plugin."""
 
     _run: SiemensDaliRunner
-    _ui: dict[str, _DeviceUi] = field(default_factory=dict[str, "_DeviceUi"])
+    _generation: Callable[[], int] = lambda: 0
+    _project_generation: int | None = None
+    _ui: dict[tuple[int, str], _DeviceUi] = field(
+        default_factory=dict[tuple[int, str], _DeviceUi]
+    )
     _lock: threading.Lock = field(default_factory=threading.Lock)
 
-    def _state(self, ia: str) -> _DeviceUi:
-        return self._ui.setdefault(ia, _DeviceUi())
+    def _key(self, device: Device) -> tuple[int, str]:
+        generation = self._generation()
+        if generation != self._project_generation:
+            with self._lock:
+                if self._project_generation is not None:
+                    self._ui.clear()
+                self._project_generation = generation
+        return device.node_id, device.app.id if device.app else ""
+
+    def _state(self, key: tuple[int, str]) -> _DeviceUi:
+        return self._ui.setdefault(key, _DeviceUi())
 
     def _start(
         self,
@@ -92,29 +105,28 @@ class SiemensDaliPanel:
         op: Callable[[Programmer], Awaitable[object]],
     ) -> None:
         """Queue ``op`` as the operation ``label``, named ``text`` in the Operations panel."""
-        ia = device.individual_address
+        key = self._key(device)
         with self._lock:
-            state = self._state(ia)
+            state = self._state(key)
             if state.busy:
                 return
             state.busy = label
             state.error = ""
             state.run += 1
             run = state.run
-        wrapped = self._wrap(ia, op)
-        self._run(device, wrapped, text, functools.partial(self._ended, ia, run))
+        wrapped = self._wrap(state, op)
+        self._run(device, wrapped, text, functools.partial(self._ended, state, run))
 
-    def _ended(self, ia: str, run: int) -> None:
+    def _ended(self, state: _DeviceUi, run: int) -> None:
         """The operation ``run`` has ended: free the device also when it never ran or was
         canceled."""
         with self._lock:
-            state = self._state(ia)
             if state.run == run:
                 state.busy = ""
 
     def _wrap(
         self,
-        ia: str,
+        state: _DeviceUi,
         op: Callable[[Programmer], Awaitable[object]],
     ) -> Callable[[Programmer], Awaitable[object]]:
         async def runner(programmer: Programmer) -> object:
@@ -122,12 +134,12 @@ class SiemensDaliPanel:
                 result = await op(programmer)
             except Exception as exc:
                 with self._lock:
-                    st = self._state(ia)
+                    st = state
                     st.error = f"{type(exc).__name__}: {exc}"
                     st.busy = ""
                 raise
             with self._lock:
-                st = self._state(ia)
+                st = state
                 if isinstance(result, SiemensN141BusState):
                     st.scan = result
                 st.busy = ""
@@ -136,9 +148,16 @@ class SiemensDaliPanel:
         return runner
 
     def render(self, device: Device, connected: bool) -> None:
-        ia = device.individual_address
+        key = self._key(device)
+        imgui.push_id(f"siemens_dali_{self._project_generation}_{key}")
+        try:
+            self._render(device, connected, key)
+        finally:
+            imgui.pop_id()
+
+    def _render(self, device: Device, connected: bool, key: tuple[int, str]) -> None:
         with self._lock:
-            state = self._state(ia)
+            state = self._state(key)
             busy, error, scan = state.busy, state.error, state.scan
 
         if not connected:

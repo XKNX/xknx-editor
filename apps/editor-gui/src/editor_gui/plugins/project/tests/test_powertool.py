@@ -256,10 +256,11 @@ def test_gui_parameter_and_file_actions_share_service(tmp_path, monkeypatch):
     panel._target = (proj.generation, nid)
     panel._open = SimpleNamespace(ready=lambda: True, result=lambda: [str(source)])
     panel._poll(proj)
-    assert not panel._error
+    assert not panel._errors
     dev = current(proj, nid)
     assert configuration(dev).channels[0].function == "dim_button"
     panel._data = to_json_bytes(configuration(dev))
+    panel._save_target = (proj.generation, nid)
     output = tmp_path / "export.json"
     panel._save = SimpleNamespace(ready=lambda: True, result=lambda: str(output))
     panel._poll(proj)

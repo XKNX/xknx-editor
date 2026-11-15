@@ -329,15 +329,13 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
     # --- plugin parameters ------------------------------------------------------
 
     def _plugin_sections(device: Any) -> tuple[Any, list[Any]]:
-        from editor_gui.plugin_params import collect_from_device, mapping_for_device
-
-        mapping = mapping_for_device(device)
+        mapping = project.plugin_mapping(device)
         if mapping is None:
             raise ToolError(
                 f"device {device.node_id} has no plugin parameters the editor can show"
             )
         try:
-            return mapping, collect_from_device(device, mapping)
+            return mapping, project.plugin_sections(device, mapping)
         except ValueError as exc:
             raise ToolError(str(exc)) from exc
 
@@ -741,7 +739,8 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             device = require_device(project, node_id, device_address)
             try:
                 provider = require_provider(device)
-                capabilities = provider.capabilities(device)
+                capabilities = project.plugin_capabilities(device)
+                assert capabilities is not None
                 return {
                     "provider": provider.id,
                     **asdict(capabilities),

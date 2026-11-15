@@ -393,7 +393,7 @@ def test_single_plugin_tab_includes_comparison_only_devices(
         _render_dali=None,
         _render_siemens_dali=None,
         _render_plugin_params=rendered.append,
-        _has_plugin_params=lambda _device: comparable,
+        _has_plugin_params=lambda _device: mapped or comparable,
     )
     ConfigurePanel.render(cast("Any", panel))
     assert rendered == ([device] if visible else [])
@@ -409,11 +409,11 @@ def test_comparison_section_is_optional_and_does_not_hide_editor(
     device = SimpleNamespace(node_id=1)
     events: list[str] = []
     comparison = GenericPluginPanel(lambda _device, **_kw: _view())
-    monkeypatch.setattr(plugin_module, "mapping_for_device", lambda _device: object())
+    project = SimpleNamespace(plugin_mapping=lambda _device: object())
     plugin = SimpleNamespace(
         _poll_triton_prj_dialog=lambda: None,
         _poll_triton_prj_save=lambda: None,
-        _api=SimpleNamespace(project=None, connection=SimpleNamespace(master=None)),
+        _api=SimpleNamespace(project=project, connection=SimpleNamespace(master=None)),
         _native_plugin_panel=SimpleNamespace(
             render=lambda *_args: events.append("actions")
         ),
@@ -448,7 +448,7 @@ def test_comparison_section_is_optional_and_does_not_hide_editor(
     frame()
     assert events == ["actions", "compare", "edit"]
     events.clear()
-    monkeypatch.setattr(plugin_module, "mapping_for_device", lambda _device: None)
+    monkeypatch.setattr(project, "plugin_mapping", lambda _device: None)
     frame()
     assert events == ["actions", "compare"]
 
@@ -518,3 +518,78 @@ def test_comparison_filters_use_shared_checkboxes(context, monkeypatch):
         S.GENERIC_PLUGIN_SHOW_UNFITTED,
         S.GENERIC_PLUGIN_ONLY_DIFFERENCES,
     ]
+
+
+def test_native_import_error_stays_with_its_device(context, tmp_path, monkeypatch):
+    from editor_gui.plugin_params import PluginMapping
+    from editor_gui.plugin_providers import PluginCapabilities
+    from editor_gui.plugins.project.ui.native_plugin import NativePluginPanel
+
+    first = SimpleNamespace(node_id=1, native_error=None, last_lost_links=[])
+    second = SimpleNamespace(node_id=2, native_error=None, last_lost_links=[])
+    imported = []
+    shown = []
+    path = tmp_path / "configuration.json"
+    path.write_bytes(b"invalid")
+
+    def import_config(device, data):
+        imported.append((device.node_id, data))
+        raise ValueError("Invalid configuration")
+
+    project = SimpleNamespace(
+        generation=1,
+        find_device_by_node_id=lambda _: first,
+        import_plugin_config=import_config,
+        plugin_mapping=lambda _: PluginMapping(
+            (), "PowerTool", (), provider="powertool"
+        ),
+        plugin_capabilities=lambda _: PluginCapabilities(True, True, True, None),
+    )
+    monkeypatch.setattr(imgui, "text_colored", lambda _color, text: shown.append(text))
+    panel = NativePluginPanel()
+
+    def render(device):
+        imgui.new_frame()
+        imgui.begin("Native")
+        try:
+            panel.render(device, project)
+        finally:
+            imgui.end()
+            imgui.end_frame()
+
+    panel._target = (1, 1)
+    dialog = SimpleNamespace(ready=lambda: True, result=lambda: [str(path)])
+    panel._open = dialog
+    render(second)
+    assert imported == [(1, b"invalid")] and not shown
+    render(first)
+    assert shown == ["Invalid configuration"]
+    shown.clear()
+    project.generation = 2
+    panel._open = dialog
+    render(first)
+    assert not shown and imported == [(1, b"invalid")]
+
+
+def test_orphaned_native_configuration_still_shows_error(context, monkeypatch):
+    from editor_gui.plugins.project.ui.native_plugin import NativePluginPanel
+
+    shown = []
+
+    def capabilities(_):
+        raise ValueError("Native configuration has no matching product provider")
+
+    project = SimpleNamespace(
+        generation=1,
+        plugin_mapping=lambda _: None,
+        plugin_capabilities=capabilities,
+    )
+    monkeypatch.setattr(imgui, "text_colored", lambda _color, text: shown.append(text))
+    imgui.new_frame()
+    imgui.begin("Native")
+    try:
+        NativePluginPanel().render(SimpleNamespace(node_id=1), project)
+    finally:
+        imgui.end()
+        imgui.end_frame()
+    assert shown == ["Native configuration has no matching product provider"]

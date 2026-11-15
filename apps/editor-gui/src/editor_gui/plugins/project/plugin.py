@@ -22,7 +22,6 @@ from editor_gui.device_info import (
 from editor_gui.dpt_formats import cached_master_formats, cached_master_names
 from editor_gui.languages import product_language
 from editor_gui.memory_read import MemoryReadRequest, MemoryReadResult
-from editor_gui.plugin_params import mapping_for_device
 from editor_gui.plugins.base import Logger, PanelDefinition, PluginAPI
 from editor_gui.plugins.connection.strings import S as CONNECTION_S
 from editor_gui.plugins.project.button_runner import ButtonOutcome, ButtonRunner
@@ -386,7 +385,11 @@ class ProjectPlugin:
             render_dali=self._render_dali_tab,
             render_siemens_dali=self._render_siemens_dali_tab,
             render_plugin_params=self._render_plugin_params_tab,
-            has_plugin_params=self._has_plugin_comparison,
+            has_plugin_params=lambda d: (
+                api.project.plugin_mapping(d) is not None
+                or self._has_plugin_comparison(d)
+            ),
+            plugin_capabilities=api.project.plugin_capabilities,
             on_navigate_ga=self._navigate_to_group_address,
             on_paste_links=self._paste_com_object_links,
             ga_menu=self._group_object_ga_menu,
@@ -430,12 +433,17 @@ class ProjectPlugin:
             find_product=api.catalog.find_product,
         )
         self._dali_panel = DaliCommissioningPanel(
-            self._run_dali, self._persist_dali_backup, self._dali_channel_count
+            self._run_dali,
+            self._persist_dali_backup,
+            self._dali_channel_count,
+            _generation=lambda: api.project.generation,
         )
         from editor_gui.plugins.project.ui.native_plugin import NativePluginPanel
 
         self._native_plugin_panel = NativePluginPanel()
-        self._siemens_dali_panel = SiemensDaliPanel(self._run_siemens_dali)
+        self._siemens_dali_panel = SiemensDaliPanel(
+            self._run_siemens_dali, _generation=lambda: api.project.generation
+        )
         self._plugin_params_panel = PluginParamsPanel(
             self.handle_param_change,
             self.add_plugin_collection_item,
@@ -445,6 +453,9 @@ class ProjectPlugin:
             _on_import_prj=self._handle_import_prj,
             _on_export_prj=self._handle_export_prj,
             _detect_display_type=self._detect_triton_type,
+            _generation=lambda: api.project.generation,
+            _mapping_for=api.project.plugin_mapping,
+            _sections_for=api.project.plugin_sections,
         )
         self._generic_plugin_panel = GenericPluginPanel(
             self.generic_plugin_view,
@@ -1227,12 +1238,17 @@ class ProjectPlugin:
             current = self._api.project.find_device_by_node_id(node_id)
             if current is None:
                 return None
-            if kind in ("read_memory", "read_plugin_memory") and (
+            if kind in (
+                "read_memory",
+                "read_plugin_memory",
+                "dali",
+                "siemens_dali",
+            ) and (
                 self._api.project.generation != generation
                 or current.individual_address != item.address
                 or (current.app.id if current.app else None) != app_id
             ):
-                raise ValueError("Device changed while the memory read was queued")
+                raise ValueError("Device changed while the operation was queued")
             if kind == "read_memory":
                 from editor_gui.memory_read import preview_segments
 
@@ -1255,7 +1271,7 @@ class ProjectPlugin:
                 item.message = S.SCRIPT_NOT_CONNECTED
             return future
 
-        def start_read() -> Future[Any] | None:
+        def start_action() -> Future[Any] | None:
             try:
                 return begin()
             except Exception as exc:
@@ -1266,7 +1282,9 @@ class ProjectPlugin:
         item.action = BusAction(
             kind,
             text,
-            start_read if kind in ("read_memory", "read_plugin_memory") else begin,
+            start_action
+            if kind in ("read_memory", "read_plugin_memory", "dali", "siemens_dali")
+            else begin,
         )
         if ended is not None:
             assert item.ended is not None
@@ -1396,7 +1414,7 @@ class ProjectPlugin:
         self._poll_triton_prj_save()
         self._native_plugin_panel.render(device, self._api.project)
         self._generic_plugin_panel.render_section(device)
-        if mapping_for_device(device) is not None:
+        if self._api.project.plugin_mapping(device) is not None:
             self._plugin_params_panel.render(device)
 
     def _has_plugin_comparison(self, device: "Device") -> bool:
@@ -1650,7 +1668,6 @@ class ProjectPlugin:
             )
             self._api.tell_refused(S.PLUGIN_PARAMS_PRJ_FAILED.format(error=str(exc)))
             return
-        self._plugin_params_panel.invalidate(device)
 
     def _handle_import_prj(self, device: "Device") -> None:
         """Open a file picker for a Busch-Jaeger LVS ".prj"; the result is handled on a later
@@ -1706,7 +1723,6 @@ class ProjectPlugin:
             # "applied is None" means the device already held this exact config: the view already
             # shows it, so report it as configured either way.
             self._api.notify(S.PLUGIN_PARAMS_PRJ_DONE(1).format(count=1))
-        self._plugin_params_panel.invalidate(device)
 
     def _handle_export_prj(self, device: "Device") -> None:
         """Build this device's LCD config as an LVS ".prj" and open a save dialog for it."""
@@ -1768,8 +1784,6 @@ class ProjectPlugin:
     ) -> None:
         """Generic Add dispatcher. Picks the vendor-specific writer based on the active
         row's ref_id prefix (``siemens_blob:`` for N141/03 today)."""
-        from sqlalchemy.orm import Session
-
         from editor_gui.plugin_blob_readers.siemens_dali.writer import (
             EditError,
             add_item,
@@ -1791,7 +1805,7 @@ class ProjectPlugin:
             )
             return
         try:
-            entry.data = add_item(entry.data, binding, type_id, name)
+            data = add_item(entry.data, binding, type_id, name)
         except EditError as exc:
             self._api.log.warning(
                 "add collection item rejected",
@@ -1801,9 +1815,7 @@ class ProjectPlugin:
                 error=str(exc),
             )
             return
-        session = Session.object_session(entry)
-        if session is not None:
-            session.commit()
+        self._api.project.persist_device_blob(device, entry.name, data)
         self._api.log.info(
             "collection item added",
             plugin="project",
@@ -1819,8 +1831,6 @@ class ProjectPlugin:
         binding: "CollectionBinding",
         item_id: str,
     ) -> None:
-        from sqlalchemy.orm import Session
-
         from editor_gui.plugin_blob_readers.siemens_dali.writer import (
             EditError,
             remove_item,
@@ -1842,7 +1852,7 @@ class ProjectPlugin:
             )
             return
         try:
-            entry.data = remove_item(entry.data, binding, item_id)
+            data = remove_item(entry.data, binding, item_id)
         except EditError as exc:
             self._api.log.warning(
                 "remove collection item rejected",
@@ -1853,9 +1863,7 @@ class ProjectPlugin:
                 error=str(exc),
             )
             return
-        session = Session.object_session(entry)
-        if session is not None:
-            session.commit()
+        self._api.project.persist_device_blob(device, entry.name, data)
         self._api.log.info(
             "collection item removed",
             plugin="project",
@@ -2586,7 +2594,6 @@ class ProjectPlugin:
         if handles_parameter(device, param_id):
             try:
                 self._api.project.edit_plugin_parameter(device, param_id, new_value)
-                self._plugin_params_panel.invalidate(device)
             except ValueError as exc:
                 if raise_on_error:
                     raise
@@ -2627,8 +2634,6 @@ class ProjectPlugin:
     def _apply_siemens_blob_edit(
         self, device: "Device", ref_id: str, new_value: str
     ) -> None:
-        from sqlalchemy.orm import Session
-
         from editor_gui.plugin_blob_readers.siemens_dali.writer import (
             EditError,
             apply_edit,
@@ -2658,12 +2663,7 @@ class ProjectPlugin:
                 error=str(exc),
             )
             return
-        entry.data = new_blob
-        # Persist the mutation on the ORM session that owns this entry; without an explicit
-        # commit the change would survive in memory but be dropped on project close.
-        session = Session.object_session(entry)
-        if session is not None:
-            session.commit()
+        self._api.project.persist_device_blob(device, entry.name, new_blob)
         self._api.log.info(
             "siemens blob edit applied",
             plugin="project",
@@ -2678,8 +2678,6 @@ class ProjectPlugin:
         device's BinaryData. The blob name is encoded in ``ref_id``
         (``dali_backup:<name>:<container>:<index>:<attr>``) so a two-channel gateway routes to
         the right blob."""
-        from sqlalchemy.orm import Session
-
         from editor_gui.plugin_blob_readers.dali_backup import apply_edit
 
         parts = ref_id.split(":")
@@ -2715,10 +2713,7 @@ class ProjectPlugin:
                 error=str(exc),
             )
             return
-        entry.data = new_blob
-        session = Session.object_session(entry)
-        if session is not None:
-            session.commit()
+        self._api.project.persist_device_blob(device, entry.name, new_blob)
         self._api.log.info(
             "dali backup edit applied",
             plugin="project",

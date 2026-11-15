@@ -513,6 +513,7 @@ async def test_plugin_parameters(
         # The fixture's application has no plugin; any mapping groups its parameters.
         mapping = plugin_params.mapping_for("M-0008_A-C030-21-AA50-O000A")
         monkeypatch.setattr(plugin_params, "mapping_for", lambda app_id: mapping)
+        project._bump(structural=False)
         listed = await _data(client, "project_plugin_parameters", node_id=node_id)
         assert listed["title"] == mapping.title
         parameter = next(

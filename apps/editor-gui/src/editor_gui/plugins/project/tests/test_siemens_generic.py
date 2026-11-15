@@ -37,6 +37,40 @@ def current(project, node):
     return device
 
 
+def test_shared_parameter_cache_follows_edit_and_undo(project):
+    device = project.devices[0]
+    node = device.node_id
+
+    def sections():
+        device = current(project, node)
+        mapping = project.plugin_mapping(device)
+        assert mapping is not None
+        return project.plugin_sections(device, mapping)
+
+    initial = sections()
+    assert sections() is initial
+    parameter = next(
+        p for s in initial for p in s.parameters if p.writable and len(p.choices) > 1
+    )
+    original = (
+        parameter.raw_value if parameter.raw_value is not None else parameter.value
+    )
+    alternative = next(v for v, _ in parameter.choices if v != original)
+
+    def value():
+        p = next(
+            p for s in sections() for p in s.parameters if p.ref_id == parameter.ref_id
+        )
+        return p.raw_value if p.raw_value is not None else p.value
+
+    project.edit_plugin_parameter(device, parameter.ref_id, alternative)
+    assert value() == alternative and sections() is not initial
+    project.undo()
+    assert value() == original
+    project.redo()
+    assert value() == alternative
+
+
 def test_original_devices_objects_and_edits_roundtrip(project, tmp_path):
     assert len(project.devices) == 7
     with ZipFile(ARCHIVE) as archive:

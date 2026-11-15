@@ -86,34 +86,55 @@ class PluginParamsPanel:
     _on_import_prj: ImportPrjHandler | None = None
     _on_export_prj: ExportPrjHandler | None = None
     _detect_display_type: DetectDisplayType | None = None
+    _generation: Callable[[], int] = lambda: 0
+    _mapping_for: Callable[[Device], PluginMapping | None] | None = None
+    _sections_for: Callable[[Device, PluginMapping], list[PluginSectionView]] | None = (
+        None
+    )
+    _project_generation: int | None = None
     _filter: str = ""
-    _closed_sections: dict[str, set[str]] = field(default_factory=dict[str, "set[str]"])
-    _seen_sections: dict[str, set[str]] = field(default_factory=dict[str, "set[str]"])
-    # Per-ref edit buffer; cleared when the device commits a value back to the DOM.
-    _edit_buffers: dict[str, str] = field(default_factory=dict[str, str])
-    # Collect-from-device is expensive on large applications (iterating 30-80k parameter refs);
-    # cache the result per device so the per-frame render stays cheap.
-    _sections_cache: dict[str, tuple[object, list[PluginSectionView]]] = field(
-        default_factory=dict[str, "tuple[object, list[PluginSectionView]]"]
+    _closed_sections: dict[int, set[str]] = field(default_factory=dict[int, set[str]])
+    _seen_sections: dict[int, set[str]] = field(default_factory=dict[int, set[str]])
+    _edit_buffers: dict[tuple[int, str], tuple[str, str]] = field(
+        default_factory=dict[tuple[int, str], tuple[str, str]]
     )
-    # Add form state per (device_address, section_label): item-type dropdown index and name.
-    _new_type_idx: dict[tuple[str, str], int] = field(
-        default_factory=dict[tuple[str, str], int]
+    _new_type_idx: dict[tuple[int, str], int] = field(
+        default_factory=dict[tuple[int, str], int]
     )
-    _new_name: dict[tuple[str, str], str] = field(
-        default_factory=dict[tuple[str, str], str]
+    _new_name: dict[tuple[int, str], str] = field(
+        default_factory=dict[tuple[int, str], str]
     )
-    # Per-device display-type dropdown index for the triton LCD setup area, keyed by the
-    # device's individual address; seeded once from auto-detection on first render.
-    _setup_type_idx: dict[str, int] = field(default_factory=dict[str, int])
+    _setup_type_idx: dict[int, int] = field(default_factory=dict[int, int])
+
+    def _sync_project(self) -> None:
+        generation = self._generation()
+        if (
+            self._project_generation is not None
+            and generation != self._project_generation
+        ):
+            self._closed_sections.clear()
+            self._seen_sections.clear()
+            self._edit_buffers.clear()
+            self._new_type_idx.clear()
+            self._new_name.clear()
+            self._setup_type_idx.clear()
+        self._project_generation = generation
 
     def render(self, device: Device) -> None:
-        mapping = mapping_for_device(device)
+        self._sync_project()
+        imgui.push_id(f"plugin_parameters_{self._project_generation}_{device.node_id}")
+        try:
+            self._render(device)
+        finally:
+            imgui.pop_id()
+
+    def _render(self, device: Device) -> None:
+        mapping = (self._mapping_for or mapping_for_device)(device)
         if mapping is None:
             imgui.text_disabled(S.PLUGIN_PARAMS_NO_MAPPING)
             return
         try:
-            sections = self._cached_sections(device, mapping)
+            sections = self._sections(device, mapping)
         except ValueError as exc:
             imgui.text_colored(status_color("error"), str(exc))
             return
@@ -137,9 +158,7 @@ class PluginParamsPanel:
         # the device actually carries a vendor BLOB. One-click upload of the plug-in's
         # property-image to the gateway, bypassing the generic Parameters download.
         if self._on_program_dca is not None and _has_vendor_blob(device):
-            if imgui.button(
-                f"{S.PLUGIN_PARAMS_PROGRAM_DCA}##dca_{device.individual_address}"
-            ):
+            if imgui.button(f"{S.PLUGIN_PARAMS_PROGRAM_DCA}##dca_{device.node_id}"):
                 self._on_program_dca(device)
             imgui.same_line()
             imgui.text_disabled(S.PLUGIN_PARAMS_PROGRAM_DCA_HINT)
@@ -173,7 +192,7 @@ class PluginParamsPanel:
         """Setup area for a blob-only triton LCD display with no configuration yet: a hint, a
         display-type dropdown (pre-selected from auto-detection) and the two setup actions."""
         assert self._on_setup_display is not None
-        key = device.individual_address or "?"
+        key = device.node_id
         if key not in self._setup_type_idx:
             detected = (
                 self._detect_display_type(device)
@@ -202,7 +221,7 @@ class PluginParamsPanel:
     def _render_triton_actions(self, device: Device) -> None:
         """Import/export row shown above a configured triton LCD display, so a ".prj" can be loaded
         or saved after the display is already set up (the setup area is gone by then)."""
-        key = device.individual_address or "?"
+        key = device.node_id
         acted = False
         if self._on_import_prj is not None:
             if imgui.button(f"{S.PLUGIN_PARAMS_LOAD_PRJ}##triton_prj_{key}"):
@@ -214,25 +233,10 @@ class PluginParamsPanel:
             if imgui.button(f"{S.PLUGIN_PARAMS_EXPORT_PRJ}##triton_prj_export_{key}"):
                 self._on_export_prj(device)
 
-    def invalidate(self, device: Device) -> None:
-        """Drop the cached section list for ``device`` so the next render reads fresh values."""
-        self._sections_cache.pop(device.individual_address, None)
-
-    def _cached_sections(
+    def _sections(
         self, device: Device, mapping: PluginMapping
     ) -> list[PluginSectionView]:
-        # Fast cache key: the parameter_instance_refs identity (replaced on project reload) plus
-        # its length (changes on set_param). Avoids iterating the ref list here just to key the
-        # cache; a stale cache only shows outdated values until the user triggers an edit (which
-        # calls invalidate()).
-        pirs = device.parameter_instance_refs
-        key = (id(pirs), len(pirs), id(mapping))
-        cached = self._sections_cache.get(device.individual_address)
-        if cached is not None and cached[0] == key:
-            return cached[1]
-        sections = collect_from_device(device, mapping)
-        self._sections_cache[device.individual_address] = (key, sections)
-        return sections
+        return (self._sections_for or collect_from_device)(device, mapping)
 
     def _render_section(
         self,
@@ -243,7 +247,7 @@ class PluginParamsPanel:
         filtering: bool = False,
         collapsed: bool = False,
     ) -> None:
-        device_key = device.individual_address
+        device_key = device.node_id
         closed = self._closed_sections.setdefault(device_key, set())
         seen = self._seen_sections.setdefault(device_key, set())
         if section_label not in seen:
@@ -281,7 +285,7 @@ class PluginParamsPanel:
         """
         binding = section.collection
         assert binding is not None
-        device_key = device.individual_address
+        device_key = device.node_id
         closed = self._closed_sections.setdefault(device_key, set())
         label = f"{section.section}  ({len(rows)})"
         is_open = section.section not in closed
@@ -293,7 +297,7 @@ class PluginParamsPanel:
             return
         closed.discard(section.section)
 
-        key = (device.individual_address or "?", section.section)
+        key = (device.node_id, section.section)
         imgui.text_disabled(
             S.PLUGIN_PARAMS_ADD_TO.format(section=binding.display_label)
         )
@@ -325,7 +329,6 @@ class PluginParamsPanel:
             final_name = (name or "").strip() or f"{binding.display_label} new"
             self._on_add_item(device, binding, type_id, final_name)
             self._new_name[key] = ""
-            self._sections_cache.pop(device.individual_address, None)
         imgui.separator()
 
         if not rows:
@@ -362,7 +365,6 @@ class PluginParamsPanel:
                 )
             ):
                 self._on_remove_item(device, binding, item_id)
-                self._sections_cache.pop(device.individual_address, None)
         imgui.end_table()
 
     def _render_standard_table(
@@ -472,7 +474,12 @@ class PluginParamsPanel:
         # so each keystroke writes straight through — ``apply_edit`` is cheap and the user
         # gets immediate feedback. ParameterRef rows keep the Enter-to-commit flow because
         # ``set_param`` runs full validation + visibility recalculation on every call.
-        current = self._edit_buffers.get(row.ref_id, row.value)
+        key = (device.node_id, row.ref_id)
+        buffered = self._edit_buffers.get(key)
+        if buffered is not None and buffered[0] != row.value:
+            self._edit_buffers.pop(key)
+            buffered = None
+        current = buffered[1] if buffered is not None else row.value
         imgui.set_next_item_width(-1.0)
         if row.choices:
             # Enum field: a combo with the humanized labels. The DOM holds the raw token the
@@ -495,8 +502,7 @@ class PluginParamsPanel:
             if changed:
                 new_token = raw_values[new_idx]
                 self._on_edit(device, row.ref_id, new_token)
-                self._edit_buffers.pop(row.ref_id, None)
-                self._sections_cache.pop(device.individual_address, None)
+                self._edit_buffers.pop(key, None)
             imgui.table_next_column()
             imgui.text_disabled(_default_label(row))
             return
@@ -517,13 +523,9 @@ class PluginParamsPanel:
         )
         if changed:
             self._on_edit(device, row.ref_id, new_value)
-            self._edit_buffers.pop(row.ref_id, None)
-            # Edit commits mutate parameter_instance_refs; drop the cached section list so the
-            # next frame reflects any newly activated/dropped parameters (parser visibility can
-            # add or remove rows after a function-selector change).
-            self._sections_cache.pop(device.individual_address, None)
+            self._edit_buffers.pop(key, None)
         elif new_value != current:
-            self._edit_buffers[row.ref_id] = new_value
+            self._edit_buffers[key] = (row.value, new_value)
         imgui.table_next_column()
         imgui.text_disabled(_default_label(row))
 

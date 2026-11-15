@@ -110,9 +110,11 @@ from xknxeditor.proj.core.service import DEFAULT_MULTICAST_ADDRESS
 from xknxeditor.proj.core.space_rules import SpaceRuleError, holds_devices
 
 if TYPE_CHECKING:
+    from editor_gui.plugin_params import PluginMapping, PluginSectionView
     from editor_gui.plugin_providers import (
         NativeConfiguration,
         NativeObject,
+        PluginCapabilities,
         PluginProvider,
     )
     from editor_gui.plugins.base import Logger
@@ -1427,6 +1429,8 @@ class ProjectService:
         self._revision_cache: dict[str, tuple[int, object]] = {}
         # Reads per device that depend on the catalog too (see _device_read).
         self._device_reads: dict[tuple[str, int], tuple[tuple[int, int], object]] = {}
+        self._plugin_reads: dict[tuple[str, int], tuple[Device, object]] = {}
+        self._plugin_read_stamp: tuple[int, int, int, str] | None = None
         # Each lazy cache tracks the project version it was built at, independently. A single shared
         # counter is wrong: after an edit only the first cache read would rebuild (and stamp the
         # shared version), leaving the others returning stale data until the next edit.
@@ -2138,6 +2142,8 @@ class ProjectService:
         self._ga_cache = None
         self._revision_cache.clear()
         self._device_reads.clear()
+        self._plugin_reads.clear()
+        self._plugin_read_stamp = None
         self._devices_cache_version = -1
         self._topology_cache_version = -1
         self._ga_cache_version = -1
@@ -4214,6 +4220,58 @@ class ProjectService:
             if getattr(row, "name", None) == name:
                 return bytes(getattr(row, "data", b"") or b"")
         return None
+
+    def _plugin_read[T](self, name: str, device: Device, read: Callable[[], T]) -> T:
+        from editor_gui.languages import product_language
+
+        stamp = (
+            self.generation,
+            self.revision,
+            self._catalog.generation,
+            product_language(),
+        )
+        if stamp != self._plugin_read_stamp:
+            self._plugin_reads.clear()
+            self._plugin_read_stamp = stamp
+        key = (name, device.node_id)
+        cached = self._plugin_reads.get(key)
+        if cached is not None and cached[0] is device:
+            result = cached[1]
+        else:
+            try:
+                result = read()
+            except ValueError as exc:
+                result = ValueError(str(exc))
+            self._plugin_reads[key] = (device, result)
+        if isinstance(result, ValueError):
+            raise ValueError(str(result))
+        return cast("T", result)
+
+    def plugin_mapping(self, device: Device) -> "PluginMapping | None":
+        """The display mapping, cached until project or product data changes."""
+        from editor_gui.plugin_params import mapping_for_device
+
+        return self._plugin_read("mapping", device, lambda: mapping_for_device(device))
+
+    def plugin_sections(
+        self, device: Device, mapping: "PluginMapping"
+    ) -> "list[PluginSectionView]":
+        """Current parameter rows shared by the GUI and MCP."""
+        from editor_gui.plugin_params import collect_from_device
+
+        return self._plugin_read(
+            "sections", device, lambda: collect_from_device(device, mapping)
+        )
+
+    def plugin_capabilities(self, device: Device) -> "PluginCapabilities | None":
+        """Cached display eligibility; execution still validates the current image."""
+        from editor_gui.plugin_providers import provider_for
+
+        def read() -> "PluginCapabilities | None":
+            provider = provider_for(device)
+            return provider.capabilities(device) if provider is not None else None
+
+        return self._plugin_read("capabilities", device, read)
 
     def setup_plugin(self, device: Device) -> list[dict[str, Any]]:
         """Explicitly initialize the mapped native provider in one undo step."""
