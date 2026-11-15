@@ -1844,7 +1844,8 @@ class DynamicUI:
 
         A number an Assign writes may be outside its type's range: it is the product's own
         value, written as given while it fits the parameter's size. Every other value (stored,
-        imported) has to be in range.
+        imported) has to be in range, or give the bits of a value in range (-2147483648 of
+        an unsigned 32-bit parameter is written as 0x80000000).
         """
         for ref_id, value, assigned in self._state.relative_param_values_assigned():
             ref = self._idx.parameter_refs.get(ref_id)
@@ -1853,7 +1854,9 @@ class DynamicUI:
             parameter = self._idx.parameters[ref.ref_id]
             tc = self._idx.parameter_types[parameter.parameter_type].choice
             try:
-                validate_parameter_value(value, tc, check_range=not assigned)
+                validate_parameter_value(
+                    value, tc, check_range=not assigned, as_bits=True
+                )
             except ValueError as exc:
                 raise EncodingError(f"parameter {ref_id}: {exc}") from exc
 
