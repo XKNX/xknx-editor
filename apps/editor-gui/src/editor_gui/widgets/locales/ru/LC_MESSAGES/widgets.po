@@ -235,14 +235,11 @@ msgstr "Копировать {count} Б"
 msgid "Go To:"
 msgstr "Перейти к:"
 
-msgid "no differences"
-msgstr "нет различий"
+msgid "No differences"
+msgstr "Нет различий"
 
 msgid "Parameter:"
 msgstr "Параметр:"
-
-msgid "search…"
-msgstr "поиск…"
 
 msgid "Low"
 msgstr "Низкий"
@@ -321,3 +318,18 @@ msgid_plural "{count} Modules Selected"
 msgstr[0] "Выбран {count} модуль"
 msgstr[1] "Выбрано {count} модуля"
 msgstr[2] "Выбрано {count} модулей"
+
+msgid "Offset:"
+msgstr "Смещение:"
+
+msgid "Binary:"
+msgstr "Двоичное:"
+
+msgid "Value:"
+msgstr "Значение:"
+
+msgid "Reference Byte:"
+msgstr "Эталонный байт:"
+
+msgid "Not in the reference"
+msgstr "Нет в эталоне"

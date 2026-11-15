@@ -235,14 +235,11 @@ msgstr "Kopier {count} B"
 msgid "Go To:"
 msgstr "Gå til:"
 
-msgid "no differences"
-msgstr "ingen forskjeller"
+msgid "No differences"
+msgstr "Ingen forskjeller"
 
 msgid "Parameter:"
 msgstr "Parameter:"
-
-msgid "search…"
-msgstr "søk…"
 
 msgid "Low"
 msgstr "Lav"
@@ -317,3 +314,18 @@ msgid "{count} Module Selected"
 msgid_plural "{count} Modules Selected"
 msgstr[0] "{count} modul valgt"
 msgstr[1] "{count} moduler valgt"
+
+msgid "Offset:"
+msgstr "Forskyvning:"
+
+msgid "Binary:"
+msgstr "Binær:"
+
+msgid "Value:"
+msgstr "Verdi:"
+
+msgid "Reference Byte:"
+msgstr "Referansebyte:"
+
+msgid "Not in the reference"
+msgstr "Ikke i referansen"

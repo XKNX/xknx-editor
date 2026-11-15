@@ -303,6 +303,8 @@ class HexView:
                 imgui.text_disabled("  " + S.HEX_NO_DIFFS)
 
         imgui.begin_disabled(byte_map is None)
+        # On the line of the drop-down's text beside it.
+        imgui.align_text_to_frame_padding()
         imgui.text_disabled(S.HEX_PARAMETER)
         imgui.same_line()
         imgui.set_next_item_width(-1.0)
@@ -332,7 +334,20 @@ class HexView:
 
         imgui.separator()
         addr = self._hover_addr
-        label_w = glyph_w * 16.0
+        # The values start after the longest label (translated ones may be longer).
+        labels = (
+            S.HEX_OFFSET,
+            S.HEX_BINARY,
+            S.HEX_REFERENCE_BYTE,
+            S.HEX_PARAMETER,
+            S.HEX_VALUE,
+            "Uint16 / Int16:",
+        )
+        label_w = max(
+            glyph_w * 16.0,
+            max(imgui.calc_text_size(text).x for text in labels)
+            + imgui.get_style().item_spacing.x,
+        )
 
         def _row(label: str, value: str | None) -> None:
             imgui.text_disabled(label)
@@ -347,12 +362,12 @@ class HexView:
             addr_fmt = (
                 f"{{:0{addr_digits}X}}" if self.uppercase else f"{{:0{addr_digits}x}}"
             )
-            _row("Offset:", addr_fmt.format(abs_addr))
+            _row(S.HEX_OFFSET, addr_fmt.format(abs_addr))
             rem = n - addr
             b0 = data[addr]
             i8 = struct.unpack("b", bytes([b0]))[0]
             _row("Uint8 / Int8:", f"{b0} / {i8}  (0x{b0:02X})")
-            _row("Binary:", f"{b0 >> 4:04b} {b0 & 0xF:04b}")
+            _row(S.HEX_BINARY, f"{b0 >> 4:04b} {b0 & 0xF:04b}")
             if rem >= 2:
                 (u16,) = struct.unpack_from(">H", data, addr)
                 (s16,) = struct.unpack_from(">h", data, addr)
@@ -371,30 +386,30 @@ class HexView:
                 if addr < len(ref):
                     rb = ref[addr]
                     marker = "  !=" if rb != b0 else "  =="
-                    _row("Ref byte:", f"{rb}  (0x{rb:02X}){marker}")
+                    _row(S.HEX_REFERENCE_BYTE, f"{rb}  (0x{rb:02X}){marker}")
                 else:
-                    _row("Ref byte:", "(beyond ref)")
+                    _row(S.HEX_REFERENCE_BYTE, S.HEX_NOT_IN_REFERENCE)
         else:
-            _row("Offset:", None)
+            _row(S.HEX_OFFSET, None)
             _row("Uint8 / Int8:", None)
-            _row("Binary:", None)
+            _row(S.HEX_BINARY, None)
             _row("Uint16 / Int16:", None)
             _row("Uint32:", None)
             _row("Float32:", None)
             if ref is not None:
-                _row("Ref byte:", None)
+                _row(S.HEX_REFERENCE_BYTE, None)
 
         imgui.separator()
         if byte_map is not None and addr is not None and addr < n:
             entry = byte_map.get(addr)
             if entry is not None:
                 param_id, param_val = entry
-                _row("Parameter:", param_id)
-                _row("Value:", param_val)
+                _row(S.HEX_PARAMETER, param_id)
+                _row(S.HEX_VALUE, param_val)
             else:
-                _row("Parameter:", None)
-                _row("Value:", None)
+                _row(S.HEX_PARAMETER, None)
+                _row(S.HEX_VALUE, None)
         else:
-            _row("Parameter:", None)
-            _row("Value:", None)
+            _row(S.HEX_PARAMETER, None)
+            _row(S.HEX_VALUE, None)
         self._footer_h = imgui.get_cursor_pos_y() - footer_top

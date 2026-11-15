@@ -235,14 +235,11 @@ msgstr "{count} Bをコピー"
 msgid "Go To:"
 msgstr "移動先："
 
-msgid "no differences"
+msgid "No differences"
 msgstr "差異なし"
 
 msgid "Parameter:"
 msgstr "パラメータ："
-
-msgid "search…"
-msgstr "検索…"
 
 msgid "Low"
 msgstr "低"
@@ -313,3 +310,18 @@ msgstr "モジュールなし"
 msgid "{count} Module Selected"
 msgid_plural "{count} Modules Selected"
 msgstr[0] "{count} 個のモジュールを選択済み"
+
+msgid "Offset:"
+msgstr "オフセット："
+
+msgid "Binary:"
+msgstr "2進数："
+
+msgid "Value:"
+msgstr "値："
+
+msgid "Reference Byte:"
+msgstr "参照バイト："
+
+msgid "Not in the reference"
+msgstr "参照にありません"

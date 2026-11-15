@@ -400,7 +400,7 @@ class WidgetStrings(BaseStrings):
 
     @property
     def HEX_NO_DIFFS(self) -> str:
-        return _("no differences")
+        return _("No differences")
 
     @property
     def HEX_PARAMETER(self) -> str:
@@ -408,7 +408,27 @@ class WidgetStrings(BaseStrings):
 
     @property
     def HEX_PARAMETER_SEARCH(self) -> str:
-        return _("search…")
+        return _("Search…")
+
+    @property
+    def HEX_OFFSET(self) -> str:
+        return _("Offset:")
+
+    @property
+    def HEX_BINARY(self) -> str:
+        return _("Binary:")
+
+    @property
+    def HEX_VALUE(self) -> str:
+        return _("Value:")
+
+    @property
+    def HEX_REFERENCE_BYTE(self) -> str:
+        return _("Reference Byte:")
+
+    @property
+    def HEX_NOT_IN_REFERENCE(self) -> str:
+        return _("Not in the reference")
 
     @property
     def GROUP_OBJECTS_PRIORITY_LOW(self) -> str:

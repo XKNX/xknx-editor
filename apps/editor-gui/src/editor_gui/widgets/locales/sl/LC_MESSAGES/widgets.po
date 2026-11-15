@@ -259,14 +259,11 @@ msgstr "Kopiraj {count} B"
 msgid "Go To:"
 msgstr "Pojdi na:"
 
-msgid "no differences"
-msgstr "ni razlik"
+msgid "No differences"
+msgstr "Ni razlik"
 
 msgid "Parameter:"
 msgstr "Parameter:"
-
-msgid "search…"
-msgstr "iskanje…"
 
 msgid "automatic"
 msgstr "samodejno"
@@ -334,3 +331,18 @@ msgstr[0] "Izbran {count} modul"
 msgstr[1] "Izbrana {count} modula"
 msgstr[2] "Izbrani {count} moduli"
 msgstr[3] "Izbranih {count} modulov"
+
+msgid "Offset:"
+msgstr "Odmik:"
+
+msgid "Binary:"
+msgstr "Dvojiško:"
+
+msgid "Value:"
+msgstr "Vrednost:"
+
+msgid "Reference Byte:"
+msgstr "Referenčni bajt:"
+
+msgid "Not in the reference"
+msgstr "Ni v referenci"

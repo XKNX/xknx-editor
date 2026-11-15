@@ -235,14 +235,11 @@ msgstr "Kopiuj {count} B"
 msgid "Go To:"
 msgstr "Przejdź do:"
 
-msgid "no differences"
-msgstr "brak różnic"
+msgid "No differences"
+msgstr "Brak różnic"
 
 msgid "Parameter:"
 msgstr "Parametr:"
-
-msgid "search…"
-msgstr "szukaj…"
 
 msgid "Low"
 msgstr "Niski"
@@ -321,3 +318,18 @@ msgid_plural "{count} Modules Selected"
 msgstr[0] "Wybrano {count} moduł"
 msgstr[1] "Wybrano {count} moduły"
 msgstr[2] "Wybrano {count} modułów"
+
+msgid "Offset:"
+msgstr "Przesunięcie:"
+
+msgid "Binary:"
+msgstr "Binarnie:"
+
+msgid "Value:"
+msgstr "Wartość:"
+
+msgid "Reference Byte:"
+msgstr "Bajt odniesienia:"
+
+msgid "Not in the reference"
+msgstr "Brak w odniesieniu"

@@ -235,14 +235,11 @@ msgstr "Kopjo {count} B"
 msgid "Go To:"
 msgstr "Shko te:"
 
-msgid "no differences"
-msgstr "asnjë ndryshim"
+msgid "No differences"
+msgstr "Asnjë ndryshim"
 
 msgid "Parameter:"
 msgstr "Parametri:"
-
-msgid "search…"
-msgstr "kërko…"
 
 msgid "Low"
 msgstr "I ulët"
@@ -317,3 +314,18 @@ msgid "{count} Module Selected"
 msgid_plural "{count} Modules Selected"
 msgstr[0] "{count} modul i zgjedhur"
 msgstr[1] "{count} module të zgjedhura"
+
+msgid "Offset:"
+msgstr "Zhvendosja:"
+
+msgid "Binary:"
+msgstr "Binar:"
+
+msgid "Value:"
+msgstr "Vlera:"
+
+msgid "Reference Byte:"
+msgstr "Bajti i referencës:"
+
+msgid "Not in the reference"
+msgstr "Nuk është në referencë"

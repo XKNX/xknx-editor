@@ -1,4 +1,5 @@
 import collections
+import contextlib
 import functools
 import os
 import platform
@@ -10,7 +11,7 @@ import tempfile
 import threading
 import time
 import unicodedata
-from collections.abc import Callable, Sequence
+from collections.abc import Callable, Generator, Sequence
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
@@ -4474,13 +4475,13 @@ class KnxGuiApp:
         shown = menus_shown(widths, room, _menu_width(_ICON_MENU))
         left = imgui.get_cursor_screen_pos().x
         for label, render in menus[:shown]:
-            if imgui.begin_menu(label):
+            if _bar_menu(label):
                 render()
                 imgui.end_menu()
             right = imgui.get_item_rect_max().x + style.item_spacing.x
             self._menu_widths[label] = right - left
             left = right
-        if shown < len(menus) and imgui.begin_menu(f"{_ICON_MENU}##all_menus"):
+        if shown < len(menus) and _bar_menu(f"{_ICON_MENU}##all_menus"):
             for label, render in menus[shown:]:
                 if imgui.begin_menu(label):
                     render()
@@ -4488,7 +4489,9 @@ class KnxGuiApp:
             imgui.end_menu()
         settings_x = imgui.get_window_width() - style.window_padding.x - settings_width
         imgui.set_cursor_pos_x(max(settings_x, imgui.get_cursor_pos_x()))
-        if imgui.menu_item(f"{_ICON_SETTINGS}##settings", "", False)[0]:
+        with _bar_item_spacing():
+            settings = imgui.menu_item(f"{_ICON_SETTINGS}##settings", "", False)[0]
+        if settings:
             self._settings_window.open()
         if imgui.is_item_hovered():
             imgui.set_tooltip(f"{S.SETTINGS_TITLE} ({S.SHORTCUT_SETTINGS})")
@@ -7359,6 +7362,29 @@ def _menu_width(label: str) -> float:
         imgui.calc_text_size(label, hide_text_after_double_hash=True).x
         + 2 * imgui.get_style().item_spacing.x
     )
+
+
+@contextlib.contextmanager
+def _bar_item_spacing() -> Generator[None]:
+    """The spacing for an entry of the menu bar: its highlight reaches half the item spacing
+    past the text, and so down to the bar's lower edge (one pixel stays free at the top, as
+    imgui rounds the upper half down)."""
+    style = imgui.get_style()
+    reach = style.frame_padding.y * 2 - 1.0
+    imgui.push_style_var(
+        imgui.StyleVar_.item_spacing, imgui.ImVec2(style.item_spacing.x, reach)
+    )
+    try:
+        yield
+    finally:
+        imgui.pop_style_var()
+
+
+def _bar_menu(label: str) -> bool:
+    """``imgui.begin_menu`` for a menu of the menu bar, highlighted down to the bar's edge; its
+    contents keep the usual spacing."""
+    with _bar_item_spacing():
+        return imgui.begin_menu(label)
 
 
 def _theme_items() -> list[tuple[str, hello_imgui.ImGuiTheme_]]:

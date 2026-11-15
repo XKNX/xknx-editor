@@ -259,14 +259,11 @@ msgstr "Copiere {count} B"
 msgid "Go To:"
 msgstr "Salt la:"
 
-msgid "no differences"
-msgstr "nicio diferență"
+msgid "No differences"
+msgstr "Nicio diferență"
 
 msgid "Parameter:"
 msgstr "Parametru:"
-
-msgid "search…"
-msgstr "căutare…"
 
 msgid "automatic"
 msgstr "automat"
@@ -330,3 +327,18 @@ msgid_plural "{count} Modules Selected"
 msgstr[0] "{count} modul selectat"
 msgstr[1] "{count} module selectate"
 msgstr[2] "{count} de module selectate"
+
+msgid "Offset:"
+msgstr "Deplasament:"
+
+msgid "Binary:"
+msgstr "Binar:"
+
+msgid "Value:"
+msgstr "Valoare:"
+
+msgid "Reference Byte:"
+msgstr "Octet de referință:"
+
+msgid "Not in the reference"
+msgstr "Nu este în referință"
