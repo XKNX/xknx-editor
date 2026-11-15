@@ -31,6 +31,8 @@ def _image(
     ``(segment index, offset)``, the group tables in segment ``tables`` (else in none)."""
     original = next(iter(load(_FIXTURE).applications.values()))
     program = deepcopy(original.program)
+    # An application of M-00FA's own (the fixture's is one M-0008 sells of M-000A's).
+    program.original_manufacturer = None
     assert program.static.code is not None
     for table in (
         program.static.address_table,

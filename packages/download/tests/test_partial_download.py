@@ -71,6 +71,8 @@ _BCU2 = MaskResources(
 def _application(mask: str = "MV-07B0", **options: bool) -> Application:
     original = next(iter(load(_FIXTURE).applications.values()))
     program = deepcopy(original.program)
+    # An application of M-00FA's own (the fixture's is one M-0008 sells of M-000A's).
+    program.original_manufacturer = None
     program.mask_version = mask
     program.static.options = ApplicationProgramStaticOptions(**options)
     return cast(Application, SimpleNamespace(program=program, manufacturer_id="M-00FA"))
@@ -332,3 +334,23 @@ async def test_resources_the_device_does_not_have_are_skipped() -> None:
     device.load_states[4] = LoadState.LOADED
     device.properties[4, 13] = application_id(app)
     assert await _mismatch(device, app) is None
+
+
+def test_an_oem_application_carries_the_original_manufacturers_program_id() -> None:
+    """An application another manufacturer sells (``-O000A``, ``OriginalManufacturer``) runs
+    the original manufacturer's firmware: its program id carries that manufacturer, as the
+    product data's own program ids of such applications do (ABB ``-O0007``: ``0007...``)."""
+    from xknxeditor.download.partial import program_id_of
+    from xknxeditor.download.procedure import _application_id
+
+    oem = next(iter(load(_FIXTURE).applications.values()))
+    assert oem.manufacturer_id == "M-0008"
+    assert oem.program.original_manufacturer == "M-000A"
+    number = oem.program.application_number.to_bytes(2, "big")
+    version = bytes([oem.program.application_version])
+    assert application_id(oem) == b"\x00\x0a" + number + version
+    assert application_id(oem, 4) == b"\x0a" + number + version
+    assert _application_id(oem) == application_id(oem)
+    assert program_id_of(oem)[0] == 0x000A
+    # Without an original manufacturer, the application's own.
+    assert application_id(_application())[:2] == b"\x00\xfa"
