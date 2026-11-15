@@ -376,12 +376,6 @@ class MemorySegment:
         With no mask the whole block is one run; otherwise each maximal run of
         ``0xFF`` mask bytes becomes one write. ``partial`` applies ``partial_octets``.
         """
-        source = self.data
-        if partial and self.partial_octets:
-            patched = bytearray(source)
-            for offset, value in self.partial_octets:
-                patched[offset] = value
-            source = bytes(patched)
         mask = self.mask
         if (
             include_initialized
@@ -391,6 +385,29 @@ class MemorySegment:
             mask = bytes(
                 a | b for a, b in zip(mask, self.initialized_mask, strict=True)
             )
+        return self._runs(mask, partial)
+
+    def seed_runs(self, *, partial: bool = False) -> list[tuple[int, bytes]]:
+        """Return the runs of the product's seed alone: the octets ``initialized_mask`` writes
+        and ``mask`` does not (``masked_runs`` with ``include_initialized`` less the encoded
+        octets)."""
+        if self.mask is None or self.initialized_mask is None:
+            return []
+        return self._runs(
+            bytes(
+                b & ~a & 0xFF
+                for a, b in zip(self.mask, self.initialized_mask, strict=True)
+            ),
+            partial,
+        )
+
+    def _runs(self, mask: bytes | None, partial: bool) -> list[tuple[int, bytes]]:
+        source = self.data
+        if partial and self.partial_octets:
+            patched = bytearray(source)
+            for offset, value in self.partial_octets:
+                patched[offset] = value
+            source = bytes(patched)
         if mask is None:
             return [(self.address, source)] if source else []
         runs: list[tuple[int, bytes]] = []
@@ -624,21 +641,31 @@ class DownloadImage:
         tables come last: they are laid over the code segments' seed, also over one that
         starts after the table's own segment (a group object table at an offset of a RAM
         segment that reaches into an EEPROM segment, MV-0700 applications of M-00FA).
+        The seed of every segment comes before what any segment encodes: an encoded octet
+        is never written over by another segment's seed (the parameters of an ABB A01C
+        segment inside a larger segment that also holds the group tables).
         """
         end = address + size
         data = bytearray(size)
         written = bytearray(size)
-        covered = False
         source = self.user_segments if user else self.segments
-        for segment in sorted(source, key=lambda s: (s.group_table, s.address)):
-            if segment.address >= end or segment.end <= address:
-                continue  # no overlap with the requested range
-            covered = True
-            if not (group_tables if segment.group_table else parameters):
-                continue
-            for run_address, run_data in segment.masked_runs(
-                include_initialized=include_initialized, partial=partial
-            ):
+        overlapping = [
+            s
+            for s in sorted(source, key=lambda s: (s.group_table, s.address))
+            if s.address < end and s.end > address
+        ]
+        covered = bool(overlapping)
+        writing = [
+            s for s in overlapping if (group_tables if s.group_table else parameters)
+        ]
+        layers = (
+            [s.seed_runs(partial=partial) for s in writing]
+            if include_initialized
+            else []
+        )
+        layers += [s.masked_runs(partial=partial) for s in writing]
+        for runs in layers:
+            for run_address, run_data in runs:
                 lo = max(run_address, address)
                 hi = min(run_address + len(run_data), end)
                 if lo < hi:
