@@ -32,7 +32,7 @@ from editor_gui.widgets.tables import (
     data_table_headers,
     row_selectable,
 )
-from editor_gui.widgets.tree import collapsing_header
+from editor_gui.widgets.tree import collapsing_header, tree_node
 
 
 def error_text(exc: Exception) -> str:
@@ -401,7 +401,7 @@ class AlternativeCatalogPanel:
             self._submit("registration", self._client.resend_registration_code)
 
     def _render_details(self, entry: AlternativeEntry) -> None:
-        if imgui.tree_node(S.CATALOG_DETAIL_TITLE):
+        if tree_node(S.CATALOG_DETAIL_TITLE):
             # The details with the copy button (all of them, as JSON) right of them.
             slot = icon_button_width(ICON_COPY) + imgui.get_style().item_spacing.x
             imgui.begin_child("##alternative_details", imgui.ImVec2(-slot, 180))

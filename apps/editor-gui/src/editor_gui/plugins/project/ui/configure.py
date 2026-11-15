@@ -38,7 +38,7 @@ from editor_gui.widgets.fonts import heading, italic
 from editor_gui.widgets.icon_button import ICON_COPY, copy_button, icon_button_width
 from editor_gui.widgets.spinner import loading
 from editor_gui.widgets.tables import begin_data_table, data_table_headers
-from editor_gui.widgets.tree import collapsing_header
+from editor_gui.widgets.tree import collapsing_header, tree_node
 from xknxeditor.download.scope import DownloadScope
 from xknxeditor.prod.app_id import parse_app_id
 from xknxeditor.prod.parser_v2.ui import UiNode
@@ -1666,7 +1666,7 @@ class ConfigurePanel:
                 number=i + 1, count=len(proc.steps)
             )
             label = f"{procedure}##lp{i}"
-            if imgui.tree_node(label):
+            if tree_node(label):
                 _table_flags = (
                     imgui.TableFlags_.borders_outer
                     | imgui.TableFlags_.borders_inner_v

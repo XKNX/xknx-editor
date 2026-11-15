@@ -39,6 +39,7 @@ from editor_gui.widgets.tables import (
     table_header,
     table_header_menu,
 )
+from editor_gui.widgets.tree import tree_node
 from xknxeditor.proj.core.addressing import GroupAddressStyle
 
 # One com-object → group-address link: (assignment_id, group_address_id, text, is_sending).
@@ -919,7 +920,7 @@ class GroupObjectsTable:
     def _render_placeholder_reference(self, extra: str | None = None) -> None:
         """A collapsed 'Placeholders' section listing each placeholder with a short description;
         ``extra`` appends a flow-specific line (e.g. the bulk flow's ``{n}`` index)."""
-        if imgui.tree_node_ex(S.GA_NAME_TEMPLATE_PLACEHOLDERS):
+        if tree_node(S.GA_NAME_TEMPLATE_PLACEHOLDERS):
             imgui.text_disabled(S.GA_NAME_TEMPLATE_HINT)
             if extra:
                 imgui.text_disabled(extra)
@@ -1064,7 +1065,7 @@ class GroupObjectsTable:
         label = f"{ga_range_label(node)}##grpick{node.id}"
         if needle:
             imgui.set_next_item_open(True, imgui.Cond_.always)
-        if not imgui.tree_node_ex(label):
+        if not tree_node(label):
             return
         for child in node.children:
             self._render_ga_range(child, db_id, already, needle)

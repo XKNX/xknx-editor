@@ -35,6 +35,7 @@ from editor_gui.widgets.dpi import px, px_vec2
 from editor_gui.widgets.filter_box import filter_box
 from editor_gui.widgets.tables import begin_data_table, data_table_headers
 from editor_gui.widgets.tabs import begin_tab_bar
+from editor_gui.widgets.tree import tree_node
 from editor_gui.widgets.x_button import x_button
 
 if TYPE_CHECKING:
@@ -943,7 +944,7 @@ class MassLinkerPanel:
                 if not cos:
                     continue
                 header = f"{device_label(device)}##dev{device.node_id}"
-                if imgui.tree_node_ex(header, imgui.TreeNodeFlags_.default_open):
+                if tree_node(header, imgui.TreeNodeFlags_.default_open):
                     # One click grabs every object of the device (the "drop a device" speed-up).
                     if imgui.button(f"{S.ML_SELECT_ALL}##all{device.node_id}"):
                         for co in cos:

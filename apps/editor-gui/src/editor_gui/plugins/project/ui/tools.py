@@ -43,6 +43,7 @@ from editor_gui.widgets.flow import button_width, same_line_if_fits
 from editor_gui.widgets.spinner import busy_bar
 from editor_gui.widgets.tables import headers_row
 from editor_gui.widgets.tabs import begin_tab_bar
+from editor_gui.widgets.tree import tree_node
 from xknxeditor.proj.core.addressing import GroupAddressStyle, format_ga
 
 if TYPE_CHECKING:
@@ -929,7 +930,7 @@ class ToolsPanel:
         """The parameters and group objects of a changed device, collapsed: what each is in the
         open project and in the other one."""
         label = S.TOOLS_DIFF_COUNT(len(entry.rows)).format(count=len(entry.rows))
-        if not imgui.tree_node(f"{label}###diff_rows_{entry.key}"):
+        if not tree_node(f"{label}###diff_rows_{entry.key}"):
             return
         for section, title in (
             ("parameter", S.COMPARE_SECTION_PARAMETERS),

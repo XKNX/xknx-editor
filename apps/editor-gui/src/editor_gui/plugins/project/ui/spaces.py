@@ -1442,7 +1442,7 @@ class SpacesPanel:
             return
         if needle:
             imgui.set_next_item_open(True, imgui.Cond_.always)
-        if not imgui.tree_node_ex(f"{group_text(node)}##fngr{node.id}"):
+        if not tree_node(f"{group_text(node)}##fngr{node.id}"):
             return
         for child in node.children:
             self._render_ga_pick_range(function_id, child, needle)

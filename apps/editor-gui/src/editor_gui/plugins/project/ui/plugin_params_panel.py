@@ -26,7 +26,7 @@ from editor_gui.widgets.combo import combo
 from editor_gui.widgets.dpi import px
 from editor_gui.widgets.filter_box import filter_box
 from editor_gui.widgets.tables import headers_row
-from editor_gui.widgets.tree import collapsing_header
+from editor_gui.widgets.tree import collapsing_header, tree_node
 from xknxeditor.vendor.triton import DeviceType
 
 if TYPE_CHECKING:
@@ -431,7 +431,7 @@ class PluginParamsPanel:
             else:
                 if filtering:
                     imgui.set_next_item_open(True)
-                if imgui.tree_node_ex(
+                if tree_node(
                     f"{first.group}##{section_label}:{key}",
                     imgui.TreeNodeFlags_.span_avail_width,
                 ):
