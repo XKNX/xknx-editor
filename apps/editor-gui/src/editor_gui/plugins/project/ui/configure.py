@@ -71,7 +71,7 @@ from editor_gui.widgets import (
 )
 from editor_gui.widgets.backgrounds import (
     child_background,
-    page_line,
+    pane_line,
     side_background,
 )
 from editor_gui.widgets.checkbox import checkbox, radio_button
@@ -1587,13 +1587,13 @@ class ConfigurePanel:
             )
         if imgui.is_item_deactivated():
             self._save_help_height()
-        # In the color of the page's separator lines; the theme's while hovered or dragged.
+        # In the color of the line beside the page tree; the theme's while hovered or dragged.
         color = imgui.get_color_u32(
             imgui.Col_.separator_active
             if active
             else imgui.Col_.separator_hovered
             if hovered
-            else page_line()
+            else pane_line()
         )
         # The line right below the parameters, the rest on the help's background.
         line_bottom = top_left.y + px(_HELP_LINE)

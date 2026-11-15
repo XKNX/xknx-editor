@@ -28,6 +28,7 @@ from editor_gui.widgets.backgrounds import (
     group_background,
     page_button,
     page_line,
+    pane_line,
     side_background,
 )
 from editor_gui.widgets.checkbox import checkbox, radio_button, radio_button_width
@@ -1754,7 +1755,7 @@ def _draw_page_line(
         # The tree's scrollbar parts it from the page.
         color = imgui.get_color_u32(content_background())
     else:
-        color = imgui.get_color_u32(imgui.Col_.separator)
+        color = imgui.get_color_u32(pane_line())
     draw_list.add_rect_filled(
         imgui.ImVec2(left, top), imgui.ImVec2(right, bottom), color
     )

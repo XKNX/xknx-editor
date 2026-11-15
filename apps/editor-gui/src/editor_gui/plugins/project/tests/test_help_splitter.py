@@ -1,4 +1,4 @@
-"""The line above a page's help is drawn in the color of the page's separator lines."""
+"""The line above a page's help has the color of the line between the page tree and the page."""
 
 from __future__ import annotations
 
@@ -10,7 +10,7 @@ import pytest
 from imgui_bundle import imgui
 
 from editor_gui.plugins.project.ui.configure import ConfigurePanel
-from editor_gui.widgets.backgrounds import page_line
+from editor_gui.widgets.backgrounds import pane_line
 
 
 @pytest.fixture
@@ -52,7 +52,7 @@ def _panel() -> ConfigurePanel:
 
 
 @pytest.mark.usefixtures("frame")
-def test_the_line_above_the_help_has_the_color_of_the_page_lines(
+def test_the_line_above_the_help_has_the_color_of_the_line_beside_the_tree(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     colors: list[int] = []
@@ -70,7 +70,7 @@ def test_the_line_above_the_help_has_the_color_of_the_page_lines(
 
     monkeypatch.setattr(imgui.ImDrawList, "add_rect_filled", record)
     _panel()._render_help_splitter()  # pyright: ignore[reportPrivateUsage]
-    assert colors[0] == imgui.get_color_u32(page_line())
+    assert colors[0] == imgui.get_color_u32(pane_line())
 
 
 @pytest.mark.usefixtures("frame")

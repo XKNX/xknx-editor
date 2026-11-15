@@ -181,3 +181,19 @@ def test_the_line_is_black_at_20_percent_over_the_page(
     monkeypatch.setattr(backgrounds, "content_background", lambda: color)
     drawn = backgrounds.page_line()
     assert (drawn.x, drawn.y, drawn.z) == pytest.approx((line, line, line))
+
+
+@pytest.mark.usefixtures("frame")
+@pytest.mark.parametrize(("page", "line"), [(1.0, 0.9), (0.1, 0.5)])
+def test_the_pane_lines_are_the_separator_darker_on_a_dark_page(
+    monkeypatch: pytest.MonkeyPatch, page: float, line: float
+) -> None:
+    # The separator on a light page; halfway toward a dark page, apart from the page's own lines.
+    monkeypatch.setattr(
+        backgrounds, "content_background", lambda: imgui.ImVec4(page, page, page, 1.0)
+    )
+    imgui.get_style().set_color_(imgui.Col_.separator, imgui.ImVec4(0.9, 0.9, 0.9, 1.0))
+    drawn = backgrounds.pane_line()
+    assert (drawn.x, drawn.y, drawn.z, drawn.w) == pytest.approx(
+        (line, line, line, 1.0)
+    )

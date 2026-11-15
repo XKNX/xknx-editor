@@ -41,6 +41,9 @@ _WINDOW_BORDER_CONTRAST = 0.35
 # and a button on the page.
 _PAGE_LINE = 0.2
 _PAGE_BUTTON = 0.05
+# How far the lines between the page tree, the page and the help move from the separator color
+# toward the page in a dark theme, apart from the page's own lines.
+_DARK_PANE_LINE = 0.5
 
 
 def _mix(a: imgui.ImVec4, b: imgui.ImVec4, t: float) -> imgui.ImVec4:
@@ -114,6 +117,16 @@ def page_line() -> imgui.ImVec4:
     content = content_background()
     other = _BLACK if _luminance(content) >= 0.5 else _WHITE
     return _mix(content, other, _PAGE_LINE)
+
+
+def pane_line() -> imgui.ImVec4:
+    """The lines between the page tree, the page and its help: the theme's separator, in a dark
+    theme halfway toward the page, darker than the page's own separator lines."""
+    separator = imgui.get_style().color_(imgui.Col_.separator)
+    content = content_background()
+    if _luminance(content) >= 0.5:
+        return imgui.ImVec4(separator.x, separator.y, separator.z, 1.0)
+    return _mix(separator, content, _DARK_PANE_LINE)
 
 
 def page_button() -> imgui.ImVec4:
