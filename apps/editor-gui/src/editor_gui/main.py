@@ -468,8 +468,11 @@ def _file_name(name: str) -> str:
 
 
 def _link(url: str) -> None:
-    """``url`` as a link that opens it, with a menu to copy it (the built-in one is untranslated)."""
-    if imgui.text_link(url):
+    """``url`` as a link that opens it, with a menu to copy it (the built-in one is untranslated).
+    A URL longer than the room left on the line is shown shortened with "…"; opening, the tooltip
+    and copying keep the whole URL."""
+    shown = fit_text(url, imgui.get_content_region_avail().x)
+    if imgui.text_link(f"{shown}###{url}"):
         open_url(url)
     if imgui.is_item_hovered():
         imgui.set_tooltip(S.LINK_OPEN.format(url=url))
