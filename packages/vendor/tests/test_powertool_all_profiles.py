@@ -30,6 +30,7 @@ def test_shared_profile_default(code, name):
     assert load(dump(config)) == config
     image = compile_family(config)
     assert {r.object_index for r in image.resources} == {1, 2, 3, 4, 5}
+    assert all(obj.dpt for obj in image.objects if obj.visible)
 
 
 @pytest.mark.parametrize("case", CAPTURES)

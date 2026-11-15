@@ -104,6 +104,7 @@ from xknxeditor.namespaces.intermediate.resource_addr_space_t import ResourceAdd
 from xknxeditor.namespaces.intermediate.resource_name_t import ResourceName
 
 from . import gaps, load_state
+from .conditions import ConditionalWrite, FinalPropertyRead, PropertyAlternatives
 from .errors import (
     RESOURCE_READ_PROTECTED_ERROR,
     RESOURCE_WRITE_PROTECTED_ERROR,
@@ -312,6 +313,9 @@ _CLIENT_SIDE = (
 # ``LdCtrlClearLCFilterTable``, which is not implemented).
 _SUPPORTED_CONTROLS = frozenset(
     {
+        "PropertyAlternatives",
+        "ConditionalWrite",
+        "FinalPropertyRead",
         "LdCtrlConnect",
         "LdCtrlDisconnect",
         "LdCtrlDelay",
@@ -533,6 +537,7 @@ class LoadProcedureRunner:
         # index/type addressing and overlapping ranges refer to the same bytes.
         # Keep this separate from the caller's immutable download image.
         self._property_captures: dict[tuple[int, int, int], bytes] = {}
+        self.property_reads: dict[tuple[int, int, int], bytes] = {}
         self._memory_captures: dict[
             tuple[LdCtrlMemAddrSpace | int | None, int], int
         ] = {}
@@ -648,6 +653,7 @@ class LoadProcedureRunner:
         )
         self._prevalidate(in_scope)
         self._property_captures.clear()
+        self.property_reads.clear()
         self._memory_captures.clear()
         self._factory_registered.clear()
         self._enable_segment_write = True
@@ -779,6 +785,7 @@ class LoadProcedureRunner:
         )
         self._prevalidate(in_scope)
         self._property_captures.clear()
+        self.property_reads.clear()
         self._memory_captures.clear()
         self._factory_registered.clear()
         self._procedure_steps = _procedure_steps(in_scope)
@@ -938,6 +945,14 @@ class LoadProcedureRunner:
         """
         captured_objects: set[int | None] = set()
         for position, control in enumerate(in_scope, start=1):
+            if isinstance(control, PropertyAlternatives):
+                self._prevalidate(list(control.comparisons))
+            elif isinstance(control, ConditionalWrite):
+                self._prevalidate([*control.conditions, control.write])
+            elif isinstance(control, FinalPropertyRead):
+                self._prevalidate([control.read])
+                if control.size <= 0 or control.read.count != 1:
+                    raise ImageError("Invalid required property read")
             if (
                 isinstance(control, LdCtrlWriteProp)
                 and control.prop_id == PID_TABLE_REFERENCE
@@ -1415,6 +1430,34 @@ class LoadProcedureRunner:
 
     async def _execute(self, control: object) -> None:
         """Dispatch a single Load Control to the matching bus operation."""
+        if isinstance(control, FinalPropertyRead):
+            index = await self._resolve_index(control.read, extended=True)
+            key = (index, control.read.prop_id, control.read.start_element)
+            self.property_reads.pop(key, None)
+            await self._load_image_prop(control.read)
+            if len(self.property_reads.get(key, b"")) != control.size:
+                raise VerificationError(
+                    "Required property read returned incomplete data"
+                )
+            return
+        if isinstance(control, PropertyAlternatives):
+            for comparison in control.comparisons:
+                try:
+                    await self._compare_prop(comparison, literal=True)
+                    return
+                except CompareMismatch:
+                    if comparison is control.comparisons[-1]:
+                        raise
+            return
+        if isinstance(control, ConditionalWrite):
+            for comparison in control.conditions:
+                try:
+                    await self._compare_prop(comparison, literal=True)
+                except CompareMismatch:
+                    return
+            self.state_mutated = True
+            await self._write_prop(control.write)
+            return
         where = f" [{self._position[0]}/{self._position[1]}]" if self._position else ""
         logger.debug("execute load control: %s%s", type(control).__name__, where)
         if isinstance(control, LdCtrlDeclarePropDesc):
@@ -2928,6 +2971,7 @@ class LoadProcedureRunner:
                     f"property {control.prop_id} element {key[2]}"
                 )
             self._property_captures.setdefault(key, element)
+            self.property_reads[key] = element
 
     def _property_compare_data(
         self, index: int, control: LdCtrlCompareProp
@@ -3034,7 +3078,9 @@ class LoadProcedureRunner:
             raise ImageError("incomplete memory comparison image")
         return bytes(values[address + n] for n in range(control.size))
 
-    async def _compare_prop(self, control: LdCtrlCompareProp) -> None:
+    async def _compare_prop(
+        self, control: LdCtrlCompareProp, *, literal: bool = False
+    ) -> None:
         """Read a property and compare it against expected data.
 
         PID_TABLE_REFERENCE is a runtime descriptor: compare it only against a
@@ -3054,11 +3100,17 @@ class LoadProcedureRunner:
         if control.range is not None:
             await self._compare_prop_range(index, control, control.range)
             return
-        from_image = await self._compare_from_image(index, control)
+        from_image = (
+            control if literal else await self._compare_from_image(index, control)
+        )
         if from_image is None:
             return
         control = from_image
-        expected, captured_width, source = self._property_compare_data(index, control)
+        expected, captured_width, source = (
+            (control.inline_data, None, "literal")
+            if literal
+            else self._property_compare_data(index, control)
+        )
         read_back = await self._read_property(index, control)
         logger.debug(
             "property compare: %s object=%s pid=%d count=%d start-index=%d "
@@ -3416,6 +3468,19 @@ class LoadProcedureRunner:
         Load state events, restart, delays and other read-back controls have no
         write to preview and are ignored.
         """
+        if isinstance(control, FinalPropertyRead):
+            return
+        if isinstance(control, PropertyAlternatives):
+            await self._execute(control)
+            return
+        if isinstance(control, ConditionalWrite):
+            for comparison in control.conditions:
+                try:
+                    await self._compare_prop(comparison, literal=True)
+                except CompareMismatch:
+                    return
+            await self._preflight_control(control.write, segments, properties)
+            return
         if isinstance(control, LdCtrlConnect):
             await self._bus()
             return

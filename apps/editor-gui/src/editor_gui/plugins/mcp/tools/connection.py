@@ -864,7 +864,12 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         mac = getattr(result, "mac_address", None)
         ctx.run_locked(
             lambda: ctx.api.project.record_download(
-                nid, resolved.value, serial, mac, medium_config=parts.medium_config
+                nid,
+                resolved.value,
+                serial,
+                mac,
+                medium_config=parts.medium_config,
+                result=result,
             )
         )
         ctx.run_locked(lambda: ctx.api.project.record_secure_download(device, result))

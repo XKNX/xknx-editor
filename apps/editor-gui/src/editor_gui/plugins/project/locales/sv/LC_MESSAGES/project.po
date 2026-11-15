@@ -3204,9 +3204,6 @@ msgstr "Importera Plugin-konfiguration…"
 msgid "Export Plugin Configuration…"
 msgstr "Exportera Plugin-konfiguration…"
 
-msgid "Plugin Image and Load Plan"
-msgstr "Plugin-avbildning och laddningsplan"
-
 msgid "Use Stored Plugin Configuration"
 msgstr "Använd sparad instickskonfiguration"
 
@@ -3236,3 +3233,105 @@ msgstr "Välj ett annat steg i listan för att återställa projektet till det"
 
 msgid "Current state of the project"
 msgstr "Projektets nuvarande tillstånd"
+msgid "Configuration Comparison"
+msgstr "Jämförelse av konfiguration"
+
+msgid "Compare settings with another device or the stored image from the last download."
+msgstr "Jämför inställningar med en annan enhet eller den sparade minnesbilden från den senaste programmeringen."
+
+msgid "No Generic Plug-in description or stored settings were found for this device."
+msgstr "Ingen Generic Plug-in-beskrivning eller sparade inställningar hittades för den här enheten."
+
+#, python-brace-format
+msgid "Matching: {match} · Not matching: {mismatch} · Not checked: {unchecked}"
+msgstr "Stämmer: {match} · Stämmer inte: {mismatch} · Inte kontrollerade: {unchecked}"
+
+#, python-brace-format
+msgid "Last download: {date}"
+msgstr "Senaste nedladdning: {date}"
+
+msgid "No memory image is stored, so the values are not checked."
+msgstr "Ingen minnesavbild är sparad, så värdena kontrolleras inte."
+
+msgid "The memory image does not fit the layout of the description, so the values are not checked."
+msgstr "Minnesavbilden passar inte beskrivningens uppbyggnad, så värdena kontrolleras inte."
+
+#, python-brace-format
+msgid "The stored settings name another application ({stored})."
+msgstr "De sparade inställningarna anger ett annat program ({stored})."
+
+msgid "Only values that differ from the memory image"
+msgstr "Endast värden som skiljer sig från minnesavbilden"
+
+msgid "Memory Image"
+msgstr "Minnesavbild"
+
+msgid "Matches"
+msgstr "Stämmer"
+
+#, python-brace-format
+msgid "Image holds {value}"
+msgstr "Avbilden innehåller {value}"
+
+msgid "Not in memory"
+msgstr "Inte i minnet"
+
+msgid "Not checked"
+msgstr "Inte kontrollerad"
+
+#, python-brace-format
+msgid "{value} (scaled, raw {raw})"
+msgstr "{value} (skalat, rå {raw})"
+
+msgid "Show settings for modules not fitted"
+msgstr "Visa inställningar för moduler som inte är monterade"
+
+#, python-brace-format
+msgid "{title} (module not fitted)"
+msgstr "{title} (modul inte monterad)"
+
+msgid "Module not fitted"
+msgstr "Modul inte monterad"
+
+#, python-brace-format
+msgid "Settings of modules not fitted: {count}"
+msgstr "Inställningar för moduler som inte är monterade: {count}"
+
+msgid "Compare With"
+msgstr "Jämför med"
+
+msgid "No comparison"
+msgstr "Ingen jämförelse"
+
+#, python-brace-format
+msgid "Settings that differ from {device}: {count}"
+msgstr "Inställningar som skiljer sig från {device}: {count}"
+
+msgid "Only differences"
+msgstr "Endast skillnader"
+
+#, python-brace-format
+msgid "Value on {device}"
+msgstr "Värde på {device}"
+
+msgid "Not shown"
+msgstr "Visas inte"
+
+msgid "Read from Device Memory"
+msgstr "Läs från enhetens minne"
+
+msgid "Show device memory"
+msgstr "Visa enhetens minne"
+
+msgid "Read this segment from the device and compare it with the image. Writes nothing."
+msgstr "Läs detta segment från enheten och jämför det med minnesbilden. Skriver ingenting."
+
+
+msgid "Compare device memory without changing the saved configuration."
+msgstr "Jämför enhetens minne utan att ändra den sparade konfigurationen."
+
+msgid "Memory layout changed during the read. Read again to compare."
+msgstr "Minneslayouten ändrades under läsningen. Läs igen för att jämföra."
+
+msgid "Compared with device memory read in this session."
+msgstr "Jämfört med enhetens minne som lästes i den här sessionen."

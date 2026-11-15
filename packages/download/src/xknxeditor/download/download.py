@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import logging
 from collections.abc import Awaitable, Callable, Mapping
-from dataclasses import dataclass, replace
+from dataclasses import dataclass, field, replace
 from typing import TYPE_CHECKING, NamedTuple
 
 from xknx.exceptions import ManagementConnectionError
@@ -127,6 +127,12 @@ class DownloadResult:
     # Whether an unload reset the device to its factory state with its individual address
     # (a secure device then uses its FDSK again).
     factory_reset: bool = False
+    property_reads: Mapping[tuple[int, int, int], bytes] = field(
+        default_factory=dict[tuple[int, int, int], bytes]
+    )
+    binary_updates: Mapping[str, tuple[bytes, bytes]] = field(
+        default_factory=dict[str, tuple[bytes, bytes]]
+    )
 
 
 _IP_CONFIG_SCOPES = frozenset(
@@ -1044,6 +1050,7 @@ async def download(
         secured=security is not None,
         memory_service_count=used_memory_cap,
         factory_reset=factory_reset,
+        property_reads=dict(runner.property_reads),
     )
 
 

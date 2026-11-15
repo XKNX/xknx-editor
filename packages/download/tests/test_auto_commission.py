@@ -52,7 +52,7 @@ async def _run(
 
     class FakeRunner:
         def __init__(self, *args: Any, **kwargs: Any) -> None:
-            pass
+            self.property_reads: dict[tuple[int, int, int], bytes] = {}
 
         restarted = False
 

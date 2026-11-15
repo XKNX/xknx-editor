@@ -3283,9 +3283,6 @@ msgstr "Importare configurație Plugin…"
 msgid "Export Plugin Configuration…"
 msgstr "Exportare configurație Plugin…"
 
-msgid "Plugin Image and Load Plan"
-msgstr "Imagine și plan de încărcare Plugin"
-
 msgid "Use Stored Plugin Configuration"
 msgstr "Utilizează configurația salvată a extensiei"
 
@@ -3315,3 +3312,105 @@ msgstr "Selectați alt pas din listă pentru a readuce proiectul la acesta"
 
 msgid "Current state of the project"
 msgstr "Starea curentă a proiectului"
+msgid "Configuration Comparison"
+msgstr "Compararea configurației"
+
+msgid "Compare settings with another device or the stored image from the last download."
+msgstr "Comparați setările cu un alt dispozitiv sau cu imaginea salvată la ultima programare."
+
+msgid "No Generic Plug-in description or stored settings were found for this device."
+msgstr "Nu s-a găsit nicio descriere Generic Plug-in și nicio setare salvată pentru acest dispozitiv."
+
+#, python-brace-format
+msgid "Matching: {match} · Not matching: {mismatch} · Not checked: {unchecked}"
+msgstr "Corespund: {match} · Nu corespund: {mismatch} · Neverificate: {unchecked}"
+
+#, python-brace-format
+msgid "Last download: {date}"
+msgstr "Ultima descărcare: {date}"
+
+msgid "No memory image is stored, so the values are not checked."
+msgstr "Nu este salvată nicio imagine de memorie, deci valorile nu sunt verificate."
+
+msgid "The memory image does not fit the layout of the description, so the values are not checked."
+msgstr "Imaginea de memorie nu se potrivește cu structura descrierii, deci valorile nu sunt verificate."
+
+#, python-brace-format
+msgid "The stored settings name another application ({stored})."
+msgstr "Setările salvate indică o altă aplicație ({stored})."
+
+msgid "Only values that differ from the memory image"
+msgstr "Doar valorile care diferă de imaginea de memorie"
+
+msgid "Memory Image"
+msgstr "Imagine de Memorie"
+
+msgid "Matches"
+msgstr "Corespunde"
+
+#, python-brace-format
+msgid "Image holds {value}"
+msgstr "Imaginea conține {value}"
+
+msgid "Not in memory"
+msgstr "Nu este în memorie"
+
+msgid "Not checked"
+msgstr "Neverificat"
+
+#, python-brace-format
+msgid "{value} (scaled, raw {raw})"
+msgstr "{value} (scalat, brut {raw})"
+
+msgid "Show settings for modules not fitted"
+msgstr "Afișează setările modulelor nemontate"
+
+#, python-brace-format
+msgid "{title} (module not fitted)"
+msgstr "{title} (modul nemontat)"
+
+msgid "Module not fitted"
+msgstr "Modul nemontat"
+
+#, python-brace-format
+msgid "Settings of modules not fitted: {count}"
+msgstr "Setările modulelor nemontate: {count}"
+
+msgid "Compare With"
+msgstr "Compară cu"
+
+msgid "No comparison"
+msgstr "Fără comparație"
+
+#, python-brace-format
+msgid "Settings that differ from {device}: {count}"
+msgstr "Setări diferite de {device}: {count}"
+
+msgid "Only differences"
+msgstr "Doar diferențele"
+
+#, python-brace-format
+msgid "Value on {device}"
+msgstr "Valoare pe {device}"
+
+msgid "Not shown"
+msgstr "Neafișat"
+
+msgid "Read from Device Memory"
+msgstr "Citește din memoria dispozitivului"
+
+msgid "Show device memory"
+msgstr "Afișează memoria dispozitivului"
+
+msgid "Read this segment from the device and compare it with the image. Writes nothing."
+msgstr "Citește acest segment din dispozitiv și îl compară cu imaginea. Nu scrie nimic."
+
+
+msgid "Compare device memory without changing the saved configuration."
+msgstr "Comparați memoria dispozitivului fără a modifica configurația salvată."
+
+msgid "Memory layout changed during the read. Read again to compare."
+msgstr "Structura memoriei s-a schimbat în timpul citirii. Citiți din nou pentru comparare."
+
+msgid "Compared with device memory read in this session."
+msgstr "Comparat cu memoria dispozitivului citită în această sesiune."

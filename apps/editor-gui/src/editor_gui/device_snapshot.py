@@ -42,6 +42,7 @@ class DeviceSnapshot:
     com_objects: list[ComObject]
     # The positions of the group objects visible with the device's parameters.
     visible: list[int]
+    native: bool | None = None
 
 
 # Written into a frozen build by its build, which has the sources a frozen build does not ship.
@@ -159,7 +160,11 @@ def _decode_co(data: dict[str, Any]) -> ComObject:
 
 
 def encode_snapshot(
-    app: Application, com_objects: list[ComObject], visible: list[ComObject]
+    app: Application,
+    com_objects: list[ComObject],
+    visible: list[ComObject],
+    *,
+    native: bool = False,
 ) -> str:
     """The snapshot data of a device built with ``app``; ``visible`` are objects of
     ``com_objects``."""
@@ -170,6 +175,7 @@ def encode_snapshot(
             "application": [app.name, app.version, app.manufacturer_id],
             "com_objects": [_encode_co(co) for co in com_objects],
             "visible": [i for i, co in enumerate(com_objects) if id(co) in shown],
+            "native": native,
         },
         separators=(",", ":"),
     )
@@ -191,6 +197,7 @@ def decode_snapshot(data: str) -> DeviceSnapshot | None:
             manufacturer_id=str(manufacturer_id),
             com_objects=[_decode_co(co) for co in content["com_objects"]],
             visible=[int(i) for i in content["visible"]],
+            native=content.get("native"),
         )
     except (ValueError, KeyError, TypeError, IndexError):
         return None

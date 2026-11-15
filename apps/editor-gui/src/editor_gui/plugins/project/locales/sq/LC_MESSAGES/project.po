@@ -3204,9 +3204,6 @@ msgstr "Importo konfigurimin e plugin-it…"
 msgid "Export Plugin Configuration…"
 msgstr "Eksporto konfigurimin e plugin-it…"
 
-msgid "Plugin Image and Load Plan"
-msgstr "Imazhi i plugin-it dhe plani i ngarkimit"
-
 msgid "Use Stored Plugin Configuration"
 msgstr "Përdor konfigurimin e ruajtur të plugin-it"
 
@@ -3236,3 +3233,105 @@ msgstr "Zgjidhni një hap tjetër në listë për ta kthyer projektin në të"
 
 msgid "Current state of the project"
 msgstr "Gjendja aktuale e projektit"
+msgid "Configuration Comparison"
+msgstr "Krahasimi i konfigurimit"
+
+msgid "Compare settings with another device or the stored image from the last download."
+msgstr "Krahasoni cilësimet me një pajisje tjetër ose me imazhin e ruajtur nga programimi i fundit."
+
+msgid "No Generic Plug-in description or stored settings were found for this device."
+msgstr "Nuk u gjet asnjë përshkrim i Generic Plug-in apo cilësime të ruajtura për këtë pajisje."
+
+#, python-brace-format
+msgid "Matching: {match} · Not matching: {mismatch} · Not checked: {unchecked}"
+msgstr "Përputhen: {match} · Nuk përputhen: {mismatch} · Të pakontrolluara: {unchecked}"
+
+#, python-brace-format
+msgid "Last download: {date}"
+msgstr "Shkarkimi i fundit: {date}"
+
+msgid "No memory image is stored, so the values are not checked."
+msgstr "Nuk është ruajtur asnjë imazh i kujtesës, prandaj vlerat nuk kontrollohen."
+
+msgid "The memory image does not fit the layout of the description, so the values are not checked."
+msgstr "Imazhi i kujtesës nuk përshtatet me strukturën e përshkrimit, prandaj vlerat nuk kontrollohen."
+
+#, python-brace-format
+msgid "The stored settings name another application ({stored})."
+msgstr "Cilësimet e ruajtura tregojnë një aplikacion tjetër ({stored})."
+
+msgid "Only values that differ from the memory image"
+msgstr "Vetëm vlerat që ndryshojnë nga imazhi i kujtesës"
+
+msgid "Memory Image"
+msgstr "Imazhi i Kujtesës"
+
+msgid "Matches"
+msgstr "Përputhet"
+
+#, python-brace-format
+msgid "Image holds {value}"
+msgstr "Imazhi përmban {value}"
+
+msgid "Not in memory"
+msgstr "Jo në kujtesë"
+
+msgid "Not checked"
+msgstr "E pakontrolluar"
+
+#, python-brace-format
+msgid "{value} (scaled, raw {raw})"
+msgstr "{value} (e shkallëzuar, e papërpunuar {raw})"
+
+msgid "Show settings for modules not fitted"
+msgstr "Shfaq cilësimet e moduleve të pamontuara"
+
+#, python-brace-format
+msgid "{title} (module not fitted)"
+msgstr "{title} (moduli nuk është montuar)"
+
+msgid "Module not fitted"
+msgstr "Moduli nuk është montuar"
+
+#, python-brace-format
+msgid "Settings of modules not fitted: {count}"
+msgstr "Cilësimet e moduleve të pamontuara: {count}"
+
+msgid "Compare With"
+msgstr "Krahaso me"
+
+msgid "No comparison"
+msgstr "Pa krahasim"
+
+#, python-brace-format
+msgid "Settings that differ from {device}: {count}"
+msgstr "Cilësimet që ndryshojnë nga {device}: {count}"
+
+msgid "Only differences"
+msgstr "Vetëm ndryshimet"
+
+#, python-brace-format
+msgid "Value on {device}"
+msgstr "Vlera në {device}"
+
+msgid "Not shown"
+msgstr "Nuk shfaqet"
+
+msgid "Read from Device Memory"
+msgstr "Lexo nga memoria e pajisjes"
+
+msgid "Show device memory"
+msgstr "Shfaq memorien e pajisjes"
+
+msgid "Read this segment from the device and compare it with the image. Writes nothing."
+msgstr "Lexon këtë segment nga pajisja dhe e krahason me imazhin. Nuk shkruan asgjë."
+
+
+msgid "Compare device memory without changing the saved configuration."
+msgstr "Krahasoni memorien e pajisjes pa ndryshuar konfigurimin e ruajtur."
+
+msgid "Memory layout changed during the read. Read again to compare."
+msgstr "Struktura e memories ndryshoi gjatë leximit. Lexoni përsëri për ta krahasuar."
+
+msgid "Compared with device memory read in this session."
+msgstr "Krahasuar me memorien e pajisjes të lexuar në këtë sesion."

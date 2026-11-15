@@ -3335,9 +3335,6 @@ msgstr "Uvozi konfiguracijo Plugin…"
 msgid "Export Plugin Configuration…"
 msgstr "Izvozi konfiguracijo Plugin…"
 
-msgid "Plugin Image and Load Plan"
-msgstr "Slika in načrt nalaganja Plugin"
-
 msgid "Use Stored Plugin Configuration"
 msgstr "Uporabi shranjeno konfiguracijo vtičnika"
 
@@ -3367,3 +3364,105 @@ msgstr "Na seznamu izberite drug korak, da projekt vrnete nanj"
 
 msgid "Current state of the project"
 msgstr "Trenutno stanje projekta"
+msgid "Configuration Comparison"
+msgstr "Primerjava konfiguracije"
+
+msgid "Compare settings with another device or the stored image from the last download."
+msgstr "Primerjajte nastavitve z drugo napravo ali s shranjeno sliko zadnjega programiranja."
+
+msgid "No Generic Plug-in description or stored settings were found for this device."
+msgstr "Za to napravo ni bilo najdenega opisa Generic Plug-in ali shranjenih nastavitev."
+
+#, python-brace-format
+msgid "Matching: {match} · Not matching: {mismatch} · Not checked: {unchecked}"
+msgstr "Ujemajo se: {match} · Se ne ujemajo: {mismatch} · Ni preverjeno: {unchecked}"
+
+#, python-brace-format
+msgid "Last download: {date}"
+msgstr "Zadnji prenos: {date}"
+
+msgid "No memory image is stored, so the values are not checked."
+msgstr "Pomnilniška slika ni shranjena, zato vrednosti niso preverjene."
+
+msgid "The memory image does not fit the layout of the description, so the values are not checked."
+msgstr "Pomnilniška slika se ne ujema z zgradbo opisa, zato vrednosti niso preverjene."
+
+#, python-brace-format
+msgid "The stored settings name another application ({stored})."
+msgstr "Shranjene nastavitve navajajo drugo aplikacijo ({stored})."
+
+msgid "Only values that differ from the memory image"
+msgstr "Samo vrednosti, ki se razlikujejo od pomnilniške slike"
+
+msgid "Memory Image"
+msgstr "Pomnilniška Slika"
+
+msgid "Matches"
+msgstr "Se ujema"
+
+#, python-brace-format
+msgid "Image holds {value}"
+msgstr "Slika vsebuje {value}"
+
+msgid "Not in memory"
+msgstr "Ni v pomnilniku"
+
+msgid "Not checked"
+msgstr "Ni preverjeno"
+
+#, python-brace-format
+msgid "{value} (scaled, raw {raw})"
+msgstr "{value} (preračunano, surova {raw})"
+
+msgid "Show settings for modules not fitted"
+msgstr "Prikaži nastavitve nevgrajenih modulov"
+
+#, python-brace-format
+msgid "{title} (module not fitted)"
+msgstr "{title} (modul ni vgrajen)"
+
+msgid "Module not fitted"
+msgstr "Modul ni vgrajen"
+
+#, python-brace-format
+msgid "Settings of modules not fitted: {count}"
+msgstr "Nastavitve nevgrajenih modulov: {count}"
+
+msgid "Compare With"
+msgstr "Primerjaj z"
+
+msgid "No comparison"
+msgstr "Brez primerjave"
+
+#, python-brace-format
+msgid "Settings that differ from {device}: {count}"
+msgstr "Nastavitve, ki se razlikujejo od {device}: {count}"
+
+msgid "Only differences"
+msgstr "Samo razlike"
+
+#, python-brace-format
+msgid "Value on {device}"
+msgstr "Vrednost na {device}"
+
+msgid "Not shown"
+msgstr "Ni prikazano"
+
+msgid "Read from Device Memory"
+msgstr "Preberi iz pomnilnika naprave"
+
+msgid "Show device memory"
+msgstr "Prikaži pomnilnik naprave"
+
+msgid "Read this segment from the device and compare it with the image. Writes nothing."
+msgstr "Prebere ta segment iz naprave in ga primerja s sliko. Ničesar ne zapiše."
+
+
+msgid "Compare device memory without changing the saved configuration."
+msgstr "Primerjajte pomnilnik naprave brez spreminjanja shranjene konfiguracije."
+
+msgid "Memory layout changed during the read. Read again to compare."
+msgstr "Razporeditev pomnilnika se je med branjem spremenila. Za primerjavo preberite znova."
+
+msgid "Compared with device memory read in this session."
+msgstr "Primerjano s pomnilnikom naprave, prebranim v tej seji."

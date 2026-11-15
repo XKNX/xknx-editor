@@ -184,6 +184,8 @@ import/export, undo/redo, preflight and full application programming through GUI
 No PowerTool installation is needed; edits update the stored PowerTool configuration.
 Hardware behavior remains unverified; initial Powerline domain commissioning is not supported.
 
+**Siemens plug-ins** are supported in **Plugin Config**.
+
 **Cockpit and health checks** — a site-wide device table with live status, plus a panel that flags
 issues (missing or duplicate addresses, applications missing from the catalog, unlinked objects,
 group addresses without a type or sender); click a finding to jump to the device.

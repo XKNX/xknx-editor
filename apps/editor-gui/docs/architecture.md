@@ -165,6 +165,15 @@ Saved object flags provide defaults, with explicit project overrides taking prec
 Profiles without an implemented encoder show saved parameter pages and collapsed
 internal values. Recognition alone cannot supply an image.
 
+The Siemens Generic provider reads the product's XML description and edits its existing
+`BLOB_STRING`, preserving the long and compact XML dialects and the last downloaded settings.
+Its object roles use description reference IDs; catalog number, size and selector value resolve
+the catalog binding. GUI, MCP and batch edits share the native configuration transaction.
+The optional Configuration Comparison section in Plugin Config uses the same vendor parser. Siemens builds its masked parameter
+image from that description and wraps the table procedure with its application allocation and status
+steps. Preview, preflight and full programming share this prepared plan; a successful download
+updates the stored image and device-reported segment record atomically with commissioning status.
+
 ## Event Sourcing
 
 See `packages/proj/src/xknxeditor/proj/core/events.py` for the full list (`EVENT_TYPES`, about 90

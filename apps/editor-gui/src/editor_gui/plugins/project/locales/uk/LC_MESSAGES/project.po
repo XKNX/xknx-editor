@@ -3256,9 +3256,6 @@ msgstr "Імпортувати конфігурацію Plugin…"
 msgid "Export Plugin Configuration…"
 msgstr "Експортувати конфігурацію Plugin…"
 
-msgid "Plugin Image and Load Plan"
-msgstr "Образ і план завантаження Plugin"
-
 msgid "Use Stored Plugin Configuration"
 msgstr "Використати збережену конфігурацію плагіна"
 
@@ -3288,3 +3285,105 @@ msgstr "Виберіть у списку інший крок, щоб повер�
 
 msgid "Current state of the project"
 msgstr "Поточний стан проєкту"
+msgid "Configuration Comparison"
+msgstr "Порівняння конфігурацій"
+
+msgid "Compare settings with another device or the stored image from the last download."
+msgstr "Порівняйте налаштування з іншим пристроєм або зі збереженим образом останнього завантаження."
+
+msgid "No Generic Plug-in description or stored settings were found for this device."
+msgstr "Для цього пристрою не знайдено опису Generic Plug-in або збережених налаштувань."
+
+#, python-brace-format
+msgid "Matching: {match} · Not matching: {mismatch} · Not checked: {unchecked}"
+msgstr "Збігаються: {match} · Не збігаються: {mismatch} · Не перевірено: {unchecked}"
+
+#, python-brace-format
+msgid "Last download: {date}"
+msgstr "Останнє завантаження: {date}"
+
+msgid "No memory image is stored, so the values are not checked."
+msgstr "Образ пам'яті не збережено, тому значення не перевіряються."
+
+msgid "The memory image does not fit the layout of the description, so the values are not checked."
+msgstr "Образ пам'яті не відповідає структурі опису, тому значення не перевіряються."
+
+#, python-brace-format
+msgid "The stored settings name another application ({stored})."
+msgstr "Збережені налаштування вказують іншу програму ({stored})."
+
+msgid "Only values that differ from the memory image"
+msgstr "Лише значення, що відрізняються від образу пам'яті"
+
+msgid "Memory Image"
+msgstr "Образ пам'яті"
+
+msgid "Matches"
+msgstr "Збігається"
+
+#, python-brace-format
+msgid "Image holds {value}"
+msgstr "В образі {value}"
+
+msgid "Not in memory"
+msgstr "Немає в пам'яті"
+
+msgid "Not checked"
+msgstr "Не перевірено"
+
+#, python-brace-format
+msgid "{value} (scaled, raw {raw})"
+msgstr "{value} (масштабовано, вихідне {raw})"
+
+msgid "Show settings for modules not fitted"
+msgstr "Показати параметри невстановлених модулів"
+
+#, python-brace-format
+msgid "{title} (module not fitted)"
+msgstr "{title} (модуль не встановлено)"
+
+msgid "Module not fitted"
+msgstr "Модуль не встановлено"
+
+#, python-brace-format
+msgid "Settings of modules not fitted: {count}"
+msgstr "Параметри невстановлених модулів: {count}"
+
+msgid "Compare With"
+msgstr "Порівняти з"
+
+msgid "No comparison"
+msgstr "Без порівняння"
+
+#, python-brace-format
+msgid "Settings that differ from {device}: {count}"
+msgstr "Параметри, що відрізняються від {device}: {count}"
+
+msgid "Only differences"
+msgstr "Лише відмінності"
+
+#, python-brace-format
+msgid "Value on {device}"
+msgstr "Значення на {device}"
+
+msgid "Not shown"
+msgstr "Не показано"
+
+msgid "Read from Device Memory"
+msgstr "Прочитати пам’ять пристрою"
+
+msgid "Show device memory"
+msgstr "Показати пам’ять пристрою"
+
+msgid "Read this segment from the device and compare it with the image. Writes nothing."
+msgstr "Читає цей сегмент із пристрою та порівнює його з образом. Нічого не записує."
+
+
+msgid "Compare device memory without changing the saved configuration."
+msgstr "Порівняйте пам’ять пристрою без зміни збереженої конфігурації."
+
+msgid "Memory layout changed during the read. Read again to compare."
+msgstr "Структура пам’яті змінилася під час читання. Повторіть читання для порівняння."
+
+msgid "Compared with device memory read in this session."
+msgstr "Порівняно з пам’яттю пристрою, прочитаною в цьому сеансі."

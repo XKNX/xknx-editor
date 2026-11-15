@@ -3237,9 +3237,6 @@ msgstr "Plugin-configuratie importeren…"
 msgid "Export Plugin Configuration…"
 msgstr "Plugin-configuratie exporteren…"
 
-msgid "Plugin Image and Load Plan"
-msgstr "Plugin-image en laadplan"
-
 msgid "Use Stored Plugin Configuration"
 msgstr "Opgeslagen pluginconfiguratie gebruiken"
 
@@ -3269,3 +3266,107 @@ msgstr "Selecteer een andere stap in de lijst om het project daarnaar terug te z
 
 msgid "Current state of the project"
 msgstr "Huidige toestand van het project"
+msgid "Configuration Comparison"
+msgstr "Configuratie vergelijken"
+
+msgid "Compare settings with another device or the stored image from the last download."
+msgstr "Vergelijk instellingen met een ander apparaat of met het opgeslagen geheugenbeeld van de laatste download."
+
+msgid "No Generic Plug-in description or stored settings were found for this device."
+msgstr "Voor dit apparaat is geen Generic Plug-in-beschrijving of opgeslagen instelling gevonden."
+
+#, python-brace-format
+msgid "Matching: {match} · Not matching: {mismatch} · Not checked: {unchecked}"
+msgstr "Overeenkomend: {match} · Afwijkend: {mismatch} · Niet gecontroleerd: {unchecked}"
+
+#, python-brace-format
+msgid "Last download: {date}"
+msgstr "Laatste download: {date}"
+
+msgid "No memory image is stored, so the values are not checked."
+msgstr "Er is geen geheugenbeeld opgeslagen, dus de waarden worden niet gecontroleerd."
+
+msgid "The memory image does not fit the layout of the description, so the values are not checked."
+msgstr ""
+"Het geheugenbeeld past niet bij de indeling van de beschrijving, dus de waarden worden niet "
+"gecontroleerd."
+
+#, python-brace-format
+msgid "The stored settings name another application ({stored})."
+msgstr "De opgeslagen instellingen noemen een andere applicatie ({stored})."
+
+msgid "Only values that differ from the memory image"
+msgstr "Alleen waarden die afwijken van het geheugenbeeld"
+
+msgid "Memory Image"
+msgstr "Geheugenbeeld"
+
+msgid "Matches"
+msgstr "Komt overeen"
+
+#, python-brace-format
+msgid "Image holds {value}"
+msgstr "Beeld bevat {value}"
+
+msgid "Not in memory"
+msgstr "Niet in geheugen"
+
+msgid "Not checked"
+msgstr "Niet gecontroleerd"
+
+#, python-brace-format
+msgid "{value} (scaled, raw {raw})"
+msgstr "{value} (geschaald, ruw {raw})"
+
+msgid "Show settings for modules not fitted"
+msgstr "Instellingen van niet-geplaatste modules tonen"
+
+#, python-brace-format
+msgid "{title} (module not fitted)"
+msgstr "{title} (module niet geplaatst)"
+
+msgid "Module not fitted"
+msgstr "Module niet geplaatst"
+
+#, python-brace-format
+msgid "Settings of modules not fitted: {count}"
+msgstr "Instellingen van niet-geplaatste modules: {count}"
+
+msgid "Compare With"
+msgstr "Vergelijken met"
+
+msgid "No comparison"
+msgstr "Geen vergelijking"
+
+#, python-brace-format
+msgid "Settings that differ from {device}: {count}"
+msgstr "Instellingen die afwijken van {device}: {count}"
+
+msgid "Only differences"
+msgstr "Alleen verschillen"
+
+#, python-brace-format
+msgid "Value on {device}"
+msgstr "Waarde op {device}"
+
+msgid "Not shown"
+msgstr "Niet getoond"
+
+msgid "Read from Device Memory"
+msgstr "Uit apparaatgeheugen lezen"
+
+msgid "Show device memory"
+msgstr "Apparaatgeheugen tonen"
+
+msgid "Read this segment from the device and compare it with the image. Writes nothing."
+msgstr "Lees dit segment uit het apparaat en vergelijk het met het geheugenbeeld. Schrijft niets."
+
+
+msgid "Compare device memory without changing the saved configuration."
+msgstr "Vergelijk het apparaatgeheugen zonder de opgeslagen configuratie te wijzigen."
+
+msgid "Memory layout changed during the read. Read again to compare."
+msgstr "De geheugenindeling is tijdens het lezen gewijzigd. Lees opnieuw om te vergelijken."
+
+msgid "Compared with device memory read in this session."
+msgstr "Vergeleken met het apparaatgeheugen dat in deze sessie is uitgelezen."

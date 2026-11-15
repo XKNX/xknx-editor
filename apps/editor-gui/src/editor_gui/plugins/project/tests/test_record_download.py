@@ -45,6 +45,7 @@ def test_partial_scopes_set_only_their_part() -> None:
         # Only an unload clears what the device no longer holds.
         "clear_load_data": False,
         "clear_network": False,
+        "binary_updates": None,
     }
     ((_, kwargs),) = _record("ia").call_args_list
     assert kwargs["individual_address_loaded"] is True

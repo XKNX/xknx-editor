@@ -9,19 +9,18 @@ from typing import Any, cast
 import pytest
 from imgui_bundle import imgui
 
-from editor_gui.plugins.project.ui.configure import timestamp_text
+from editor_gui.regional import regional_format
+from editor_gui.widgets.datetime_format import timestamp_text
+from editor_gui.widgets.value_pickers import format_date
 
 
 def test_a_stored_time_is_shown_in_local_time_to_the_minute() -> None:
     stored = "2026-01-24T11:38:26.8111136Z"
-    local = (
-        datetime.datetime(2026, 1, 24, 11, 38, tzinfo=datetime.UTC)
-        .astimezone()
-        .strftime("%Y-%m-%d %H:%M")
-    )
-    assert timestamp_text(stored) == local
-    assert timestamp_text("2026-01-24T11:38:26Z") == local
-    assert timestamp_text("2026-01-24T11:38:26+00:00") == local
+    local = datetime.datetime(2026, 1, 24, 11, 38, tzinfo=datetime.UTC).astimezone()
+    shown = f"{format_date(local.date().isoformat(), True, regional_format())} {local:%H:%M}"
+    assert timestamp_text(stored) == shown
+    assert timestamp_text("2026-01-24T11:38:26Z") == shown
+    assert timestamp_text("2026-01-24T11:38:26+00:00") == shown
 
 
 def test_no_time_shows_a_dash() -> None:

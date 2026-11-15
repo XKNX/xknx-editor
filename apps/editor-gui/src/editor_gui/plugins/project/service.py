@@ -387,7 +387,7 @@ def _device_source_key(row: Any) -> tuple[Any, ...]:
         tuple(
             (r.name, bytes(r.data or b""))
             for r in getattr(row, "binary_data", ())
-            if r.name in native_blob_names()
+            if r.name in native_blob_names() or r.name == "BLOB_STRING"
         ),
     )
 
@@ -442,6 +442,8 @@ class _DeviceInputs:
     factory_image: Callable[[], FactoryData | None] | None = None
     # Gives the product's second application program (see Device.second_application).
     second_application: Callable[[], Application | None] | None = None
+    plugin_baggage: Callable[[str], bytes | None] | None = None
+    order_number: str = ""
     # Gives the project's codepage (see Device.project_code_page).
     project_code_page: Callable[[], str | None] | None = None
 
@@ -462,6 +464,8 @@ def _compute_device(inputs: _DeviceInputs, app: Application) -> Device:
         com_object_flag_overrides=inputs.com_object_flag_overrides,
         binary_data=list(inputs.binary_data),
         second_application=inputs.second_application,
+        plugin_baggage=inputs.plugin_baggage,
+        order_number=inputs.order_number,
     )
     device.download_plugin_required = inputs.download_plugin_required
     device.factory_image = inputs.factory_image
@@ -2456,6 +2460,24 @@ class ProjectService:
         catalog = self._catalog
         return lambda: catalog.second_application(program_ref)
 
+    def _plugin_baggage_source(
+        self, program_ref: str | None
+    ) -> Callable[[str], bytes | None] | None:
+        from xknxeditor.prod.baggage import Baggages
+
+        source = self._catalog.get_program_source(program_ref) if program_ref else None
+        if source is None:
+            return None
+        baggage: Baggages | None = None
+
+        def read(reference: str) -> bytes | None:
+            nonlocal baggage
+            if baggage is None:
+                baggage = Baggages.from_archive(*source)
+            return baggage.file(reference)
+
+        return read
+
     def _build_device(self, row: Any) -> Device | None:
         """The device of ``row``: from its snapshot when nothing it was derived from changed, else
         evaluated from its application (and a new snapshot made)."""
@@ -2474,7 +2496,10 @@ class ProjectService:
                 self._new_snapshots[row.id] = (
                     snapshot_key(content, source),
                     encode_snapshot(
-                        device.app, device.com_objects, device.get_visible_com_objects()
+                        device.app,
+                        device.com_objects,
+                        device.get_visible_com_objects(),
+                        native=device.native_objects is not None,
                     ),
                 )
         if device is not None:
@@ -2545,6 +2570,11 @@ class ProjectService:
         snapshot = decode_snapshot(stored[1])
         if snapshot is None:
             return None
+        if snapshot.native or (
+            snapshot.native is None
+            and any(r.name == "BLOB_STRING" for r in row.binary_data)
+        ):
+            return None
         app = cached
         if app is None:
             app = self._catalog.unloaded_application(
@@ -2573,6 +2603,8 @@ class ProjectService:
                 binary_data=list(getattr(row, "binary_data", []) or []),
                 visible=snapshot.visible,
                 second_application=self._second_application_source(program_ref),
+                plugin_baggage=self._plugin_baggage_source(program_ref),
+                order_number=getattr(row, "order_number", "") or "",
             )
         except (IndexError, ValueError) as e:
             self._log.debug("device snapshot unusable", device_id=row.id, error=str(e))
@@ -2673,7 +2705,10 @@ class ProjectService:
                 continue
             assert device.app is not None
             data = encode_snapshot(
-                device.app, device.com_objects, device.get_visible_com_objects()
+                device.app,
+                device.com_objects,
+                device.get_visible_com_objects(),
+                native=device.native_objects is not None,
             )
             self._new_snapshots[node_id] = (snapshot_key(job.content, job.source), data)
             if data != job.data:
@@ -2773,6 +2808,10 @@ class ProjectService:
             second_application=None
             if compared
             else self._second_application_source(program_ref),
+            plugin_baggage=None
+            if compared
+            else self._plugin_baggage_source(program_ref),
+            order_number=getattr(row, "order_number", "") or "",
             project_code_page=None if compared else self.project_code_page,
             configuration_app=None
             if compared
@@ -4229,7 +4268,7 @@ class ProjectService:
 
         with self._io_lock:
             current = self.find_device_by_node_id(device.node_id) or device
-            return require_provider(current).read(current).data
+            return require_provider(current).export(current)
 
     def import_stored_plugin_config(self, device: Device) -> list[dict[str, Any]]:
         """Explicitly convert the provider's supported stored blob as one undo step."""
@@ -5387,6 +5426,7 @@ class ProjectService:
         mac_address: bytes | None = None,
         *,
         medium_config: bool = False,
+        result: object = None,
     ) -> None:
         """Record a successful download of ``scope_value`` (a DownloadScope value): its loaded
         flags, the serial number and MAC address read and, except for an unload, the time. An
@@ -5410,6 +5450,7 @@ class ProjectService:
             ip_address=None,
             clear_load_data=unload,
             clear_network=scope_value == "unload_all",
+            binary_updates=getattr(result, "binary_updates", None),
             **flags,
         )
 
@@ -5429,6 +5470,7 @@ class ProjectService:
         ip_address: str | None = None,
         clear_load_data: bool = False,
         clear_network: bool = False,
+        binary_updates: Mapping[str, tuple[bytes, bytes]] | None = None,
     ) -> None:
         """Record a device's commissioning state (loaded ticks / serial / last download / MAC
         address / the IP address it was found at); ``download`` for what a download recorded
@@ -5454,7 +5496,10 @@ class ProjectService:
             ip_address=ip_address,
             clear_load_data=clear_load_data,
             clear_network=clear_network,
+            binary_updates=binary_updates,
         )
+        if binary_updates:
+            self._refresh_device(node_id)
         self._bump(structural=False)
 
     def serial_to_find_ip(self, node_id: int) -> bytes | None:
