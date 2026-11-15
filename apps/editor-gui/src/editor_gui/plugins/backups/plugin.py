@@ -42,6 +42,7 @@ from editor_gui.widgets.tables import (
     data_table_headers,
     row_selectable,
 )
+from editor_gui.widgets.text_util import human_size
 
 # The page of the Settings window with the backup settings.
 SETTINGS_PAGE = "backups"
@@ -56,7 +57,8 @@ def when(moment: datetime) -> str:
 
 
 def size_text(size: int) -> str:
-    return S.SIZE_MB.format(size=f"{size / 1_000_000:.1f}")
+    """A backup's size in the unit that suits it."""
+    return human_size(size)
 
 
 def _comment_line(backup: Backup) -> None:

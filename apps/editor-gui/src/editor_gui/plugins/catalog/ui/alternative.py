@@ -11,6 +11,7 @@ from typing import Any
 
 from imgui_bundle import imgui
 
+from editor_gui.local_time import WIDEST, date_time_text
 from editor_gui.os_open import open_url
 from editor_gui.plugins.catalog.alternative import (
     AlternativeCatalogClient,
@@ -32,6 +33,7 @@ from editor_gui.widgets.tables import (
     data_table_headers,
     row_selectable,
 )
+from editor_gui.widgets.text_util import human_size
 from editor_gui.widgets.tree import collapsing_header, tree_node
 
 
@@ -53,6 +55,24 @@ def error_text(exc: Exception) -> str:
     if isinstance(exc, AlternativeCatalogError) and exc.status in (429, 503):
         return S.ALTERNATIVE_ERROR_BUSY
     return str(exc)
+
+
+# The product table at 100 % scaling: as wide (narrower windows scroll it sideways), and its order
+# number and file name columns.
+_TABLE_WIDTH = 1130.0
+_ORDER_WIDTH = 130.0
+_FILE_WIDTH = 250.0
+
+
+def _fitting(header: str, widest: str = "") -> float:
+    """The width of a column as wide as its header or its widest value."""
+    text = max(imgui.calc_text_size(header).x, imgui.calc_text_size(widest).x)
+    return text + px(8)
+
+
+def _widest_time() -> str:
+    """The widest time of an update, in the regional formats."""
+    return date_time_text(WIDEST)
 
 
 class AlternativeCatalogPanel:
@@ -202,7 +222,9 @@ class AlternativeCatalogPanel:
             | imgui.TableFlags_.resizable
             | imgui.TableFlags_.sizing_fixed_fit
         )
-        if begin_data_table("##alternative_products_v6", 9, flags, min_width=1500):
+        if begin_data_table(
+            "##alternative_products_v7", 9, flags, min_width=_TABLE_WIDTH
+        ):
             if reset_scroll:
                 imgui.set_scroll_y(0)
                 imgui.set_scroll_x(0)
@@ -210,25 +232,29 @@ class AlternativeCatalogPanel:
             imgui.table_setup_column(
                 S.CATALOG_DETAIL_MANUFACTURER,
                 imgui.TableColumnFlags_.width_fixed,
-                imgui.calc_text_size(S.CATALOG_DETAIL_MANUFACTURER).x + px(8),
+                _fitting(S.CATALOG_DETAIL_MANUFACTURER),
             )
             imgui.table_setup_column(
                 S.CATALOG_DETAIL_NAME, imgui.TableColumnFlags_.width_stretch, 1.0
             )
+            # The short values as wide as their header or their widest value.
             for name, width in (
-                (S.CATALOG_DETAIL_ORDER, 170),
+                (S.CATALOG_DETAIL_ORDER, px(_ORDER_WIDTH)),
+                (S.ALTERNATIVE_VERSION, _fitting(S.ALTERNATIVE_VERSION)),
+                (S.ALTERNATIVE_FILE, px(_FILE_WIDTH)),
+                (S.CATALOG_DETAIL_APPLICATION, _fitting(S.CATALOG_DETAIL_APPLICATION)),
+                (S.ALTERNATIVE_MASK, _fitting(S.ALTERNATIVE_MASK)),
                 (
-                    S.ALTERNATIVE_VERSION,
-                    imgui.calc_text_size(S.ALTERNATIVE_VERSION).x / px(1) + 8,
+                    S.ALTERNATIVE_SIZE,
+                    _fitting(S.ALTERNATIVE_SIZE, human_size(1023 << 20)),
                 ),
-                (S.ALTERNATIVE_FILE, 260),
-                (S.CATALOG_DETAIL_APPLICATION, 90),
-                (S.ALTERNATIVE_MASK, 90),
-                (S.ALTERNATIVE_SIZE, 110),
-                (S.ALTERNATIVE_UPDATED, 130),
+                (
+                    S.ALTERNATIVE_UPDATED,
+                    _fitting(S.ALTERNATIVE_UPDATED, _widest_time()),
+                ),
             ):
                 imgui.table_setup_column(
-                    name, imgui.TableColumnFlags_.width_fixed, px(width)
+                    name, imgui.TableColumnFlags_.width_fixed, width
                 )
             data_table_headers()
             clipper = imgui.ListClipper()
@@ -256,7 +282,7 @@ class AlternativeCatalogPanel:
                         entry.file_name,
                         ", ".join(p["applicationNumber"] for p in entry.programs),
                         ", ".join(p["maskVersion"] for p in entry.programs),
-                        f"{entry.size:,} B",
+                        human_size(entry.size),
                         updated_time(entry.updated),
                     ):
                         imgui.table_next_column()
@@ -413,7 +439,7 @@ class AlternativeCatalogPanel:
                 ),
                 (S.CATALOG_DETAIL_ORDER, ", ".join(entry.order_numbers)),
                 (S.ALTERNATIVE_FILE, entry.file_name),
-                (S.ALTERNATIVE_SIZE, f"{entry.size:,} B"),
+                (S.ALTERNATIVE_SIZE, human_size(entry.size)),
                 (S.ALTERNATIVE_UPDATED, updated_time(entry.updated)),
                 ("ID", entry.id),
                 ("SHA-256", entry.sha256),

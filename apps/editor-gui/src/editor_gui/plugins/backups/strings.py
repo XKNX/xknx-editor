@@ -136,10 +136,6 @@ class BackupStrings:
         return _("Pinned")
 
     @property
-    def SIZE_MB(self) -> str:
-        return _("{size} MB")
-
-    @property
     def STEP(self) -> dict[str, str]:
         """What a backup being made does now."""
         return {

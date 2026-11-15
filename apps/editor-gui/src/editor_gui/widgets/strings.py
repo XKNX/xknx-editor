@@ -36,6 +36,23 @@ class WidgetStrings(BaseStrings):
     def SEARCH_HINT(self) -> str:
         return _("Search…")
 
+    # A size in its unit ({size}: the number), see text_util.human_size.
+    @property
+    def SIZE_BYTES(self) -> str:
+        return _("{size} B")
+
+    @property
+    def SIZE_KB(self) -> str:
+        return _("{size} KB")
+
+    @property
+    def SIZE_MB(self) -> str:
+        return _("{size} MB")
+
+    @property
+    def SIZE_GB(self) -> str:
+        return _("{size} GB")
+
     @property
     def TOOLTIP_LOCKED(self) -> str:
         return _("{name} (locked)")

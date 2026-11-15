@@ -97,9 +97,6 @@ msgstr "Перед восстановлением"
 msgid "Pinned"
 msgstr "закреплена"
 
-msgid "{size} MB"
-msgstr "{size} МБ"
-
 msgid "Creating a backup: copying the project…"
 msgstr "Создание резервной копии: копирование проекта…"
 

@@ -329,3 +329,15 @@ msgstr "Vertailutavu:"
 
 msgid "Not in the reference"
 msgstr "Ei vertailussa"
+
+msgid "{size} B"
+msgstr "{size} t"
+
+msgid "{size} KB"
+msgstr "{size} kt"
+
+msgid "{size} MB"
+msgstr "{size} Mt"
+
+msgid "{size} GB"
+msgstr "{size} Gt"

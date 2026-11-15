@@ -329,3 +329,15 @@ msgstr "Byte di riferimento:"
 
 msgid "Not in the reference"
 msgstr "Non presente nel riferimento"
+
+msgid "{size} B"
+msgstr "{size} B"
+
+msgid "{size} KB"
+msgstr "{size} KB"
+
+msgid "{size} MB"
+msgstr "{size} MB"
+
+msgid "{size} GB"
+msgstr "{size} GB"

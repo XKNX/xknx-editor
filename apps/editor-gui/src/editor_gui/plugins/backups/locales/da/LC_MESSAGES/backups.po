@@ -97,9 +97,6 @@ msgstr "Før gendannelse"
 msgid "Pinned"
 msgstr "fastgjort"
 
-msgid "{size} MB"
-msgstr "{size} MB"
-
 msgid "Creating a backup: copying the project…"
 msgstr "Opretter sikkerhedskopi: kopierer projektet…"
 

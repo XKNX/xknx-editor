@@ -97,9 +97,6 @@ msgstr "Visszaállítás előtt"
 msgid "Pinned"
 msgstr "Rögzítve"
 
-msgid "{size} MB"
-msgstr "{size} MB"
-
 msgid "Creating a backup: copying the project…"
 msgstr "Biztonsági mentés létrehozása: a projekt másolása…"
 

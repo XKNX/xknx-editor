@@ -333,3 +333,15 @@ msgstr "Еталонний байт:"
 
 msgid "Not in the reference"
 msgstr "Немає в еталоні"
+
+msgid "{size} B"
+msgstr "{size} Б"
+
+msgid "{size} KB"
+msgstr "{size} КБ"
+
+msgid "{size} MB"
+msgstr "{size} МБ"
+
+msgid "{size} GB"
+msgstr "{size} ГБ"

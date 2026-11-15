@@ -325,3 +325,15 @@ msgstr "参考字节："
 
 msgid "Not in the reference"
 msgstr "不在参考中"
+
+msgid "{size} B"
+msgstr "{size} B"
+
+msgid "{size} KB"
+msgstr "{size} KB"
+
+msgid "{size} MB"
+msgstr "{size} MB"
+
+msgid "{size} GB"
+msgstr "{size} GB"

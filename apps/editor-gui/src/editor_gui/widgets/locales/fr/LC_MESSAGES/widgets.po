@@ -329,3 +329,15 @@ msgstr "Octet de référence :"
 
 msgid "Not in the reference"
 msgstr "Absent de la référence"
+
+msgid "{size} B"
+msgstr "{size} o"
+
+msgid "{size} KB"
+msgstr "{size} Ko"
+
+msgid "{size} MB"
+msgstr "{size} Mo"
+
+msgid "{size} GB"
+msgstr "{size} Go"

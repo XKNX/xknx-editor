@@ -334,3 +334,15 @@ msgstr "Referenciabájt:"
 
 msgid "Not in the reference"
 msgstr "Nincs a referenciában"
+
+msgid "{size} B"
+msgstr "{size} B"
+
+msgid "{size} KB"
+msgstr "{size} KB"
+
+msgid "{size} MB"
+msgstr "{size} MB"
+
+msgid "{size} GB"
+msgstr "{size} GB"

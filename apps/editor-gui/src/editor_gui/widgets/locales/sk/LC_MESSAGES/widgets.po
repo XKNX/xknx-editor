@@ -342,3 +342,15 @@ msgstr "Referenčný bajt:"
 
 msgid "Not in the reference"
 msgstr "Nie je v referencii"
+
+msgid "{size} B"
+msgstr "{size} B"
+
+msgid "{size} KB"
+msgstr "{size} KB"
+
+msgid "{size} MB"
+msgstr "{size} MB"
+
+msgid "{size} GB"
+msgstr "{size} GB"
