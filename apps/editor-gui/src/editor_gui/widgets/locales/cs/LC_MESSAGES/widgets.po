@@ -235,14 +235,11 @@ msgstr "Kopírovat {count} B"
 msgid "Go To:"
 msgstr "Přejít na:"
 
-msgid "no differences"
-msgstr "žádné rozdíly"
+msgid "No differences"
+msgstr "Žádné rozdíly"
 
 msgid "Parameter:"
 msgstr "Parametr:"
-
-msgid "search…"
-msgstr "hledat…"
 
 msgid "Low"
 msgstr "Nízká"
@@ -321,3 +318,30 @@ msgid_plural "{count} Modules Selected"
 msgstr[0] "Vybrán {count} modul"
 msgstr[1] "Vybrány {count} moduly"
 msgstr[2] "Vybráno {count} modulů"
+
+msgid "Offset:"
+msgstr "Posun:"
+
+msgid "Binary:"
+msgstr "Binárně:"
+
+msgid "Value:"
+msgstr "Hodnota:"
+
+msgid "Reference Byte:"
+msgstr "Referenční bajt:"
+
+msgid "Not in the reference"
+msgstr "Není v referenci"
+
+msgid "{size} B"
+msgstr "{size} B"
+
+msgid "{size} KB"
+msgstr "{size} KB"
+
+msgid "{size} MB"
+msgstr "{size} MB"
+
+msgid "{size} GB"
+msgstr "{size} GB"

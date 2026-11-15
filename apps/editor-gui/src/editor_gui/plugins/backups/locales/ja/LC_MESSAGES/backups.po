@@ -97,9 +97,6 @@ msgstr "復元前"
 msgid "Pinned"
 msgstr "固定"
 
-msgid "{size} MB"
-msgstr "{size} MB"
-
 msgid "Creating a backup: copying the project…"
 msgstr "バックアップを作成中：プロジェクトをコピーしています…"
 

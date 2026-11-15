@@ -97,9 +97,6 @@ msgstr "Voor herstel"
 msgid "Pinned"
 msgstr "vastgezet"
 
-msgid "{size} MB"
-msgstr "{size} MB"
-
 msgid "Creating a backup: copying the project…"
 msgstr "Back-up maken: project kopiëren…"
 

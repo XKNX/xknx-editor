@@ -97,9 +97,6 @@ msgstr "Pred obnovením"
 msgid "Pinned"
 msgstr "pripnuté"
 
-msgid "{size} MB"
-msgstr "{size} MB"
-
 msgid "Creating a backup: copying the project…"
 msgstr "Vytvára sa záloha: kopírovanie projektu…"
 

@@ -97,9 +97,6 @@ msgstr "Przed przywróceniem"
 msgid "Pinned"
 msgstr "przypięta"
 
-msgid "{size} MB"
-msgstr "{size} MB"
-
 msgid "Creating a backup: copying the project…"
 msgstr "Tworzenie kopii zapasowej: kopiowanie projektu…"
 

@@ -235,14 +235,11 @@ msgstr "Copia {count} B"
 msgid "Go To:"
 msgstr "Vai a:"
 
-msgid "no differences"
-msgstr "nessuna differenza"
+msgid "No differences"
+msgstr "Nessuna differenza"
 
 msgid "Parameter:"
 msgstr "Parametro:"
-
-msgid "search…"
-msgstr "cerca…"
 
 msgid "Low"
 msgstr "Basso"
@@ -317,3 +314,30 @@ msgid "{count} Module Selected"
 msgid_plural "{count} Modules Selected"
 msgstr[0] "{count} modulo selezionato"
 msgstr[1] "{count} moduli selezionati"
+
+msgid "Offset:"
+msgstr "Offset:"
+
+msgid "Binary:"
+msgstr "Binario:"
+
+msgid "Value:"
+msgstr "Valore:"
+
+msgid "Reference Byte:"
+msgstr "Byte di riferimento:"
+
+msgid "Not in the reference"
+msgstr "Non presente nel riferimento"
+
+msgid "{size} B"
+msgstr "{size} B"
+
+msgid "{size} KB"
+msgstr "{size} KB"
+
+msgid "{size} MB"
+msgstr "{size} MB"
+
+msgid "{size} GB"
+msgstr "{size} GB"

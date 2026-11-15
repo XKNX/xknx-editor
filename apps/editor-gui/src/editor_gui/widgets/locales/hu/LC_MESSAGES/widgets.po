@@ -259,14 +259,11 @@ msgstr "{count} B másolása"
 msgid "Go To:"
 msgstr "Ugrás:"
 
-msgid "no differences"
-msgstr "nincs eltérés"
+msgid "No differences"
+msgstr "Nincs eltérés"
 
 msgid "Parameter:"
 msgstr "Paraméter:"
-
-msgid "search…"
-msgstr "keresés…"
 
 msgid "automatic"
 msgstr "automatikus"
@@ -322,3 +319,30 @@ msgstr "Modul nélkül"
 msgid "{count} Module Selected"
 msgid_plural "{count} Modules Selected"
 msgstr[0] "{count} modul kijelölve"
+
+msgid "Offset:"
+msgstr "Eltolás:"
+
+msgid "Binary:"
+msgstr "Bináris:"
+
+msgid "Value:"
+msgstr "Érték:"
+
+msgid "Reference Byte:"
+msgstr "Referenciabájt:"
+
+msgid "Not in the reference"
+msgstr "Nincs a referenciában"
+
+msgid "{size} B"
+msgstr "{size} B"
+
+msgid "{size} KB"
+msgstr "{size} KB"
+
+msgid "{size} MB"
+msgstr "{size} MB"
+
+msgid "{size} GB"
+msgstr "{size} GB"

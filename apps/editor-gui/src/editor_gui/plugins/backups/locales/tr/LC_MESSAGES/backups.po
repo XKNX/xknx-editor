@@ -97,9 +97,6 @@ msgstr "Geri yüklemeden önce"
 msgid "Pinned"
 msgstr "sabitlenmiş"
 
-msgid "{size} MB"
-msgstr "{size} MB"
-
 msgid "Creating a backup: copying the project…"
 msgstr "Yedek oluşturuluyor: proje kopyalanıyor…"
 

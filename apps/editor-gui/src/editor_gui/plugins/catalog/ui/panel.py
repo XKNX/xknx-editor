@@ -3,7 +3,6 @@ from __future__ import annotations
 import threading
 from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import datetime
 from typing import TYPE_CHECKING
 
 from imgui_bundle import imgui
@@ -12,10 +11,10 @@ from editor_gui import file_dialogs
 from editor_gui.device_info import application_version_text
 from editor_gui.hardware_text import bus_current_text, rail_text
 from editor_gui.languages import product_text_languages
+from editor_gui.local_time import MISSING, date_text, parse_stamp, stamp_text
 from editor_gui.plugins.catalog.strings import S
 from editor_gui.plugins.project.ui.move_menu import render_move_menu
 from editor_gui.plugins.project.ui.paste_special import MenuGroups
-from editor_gui.regional import regional_format
 from editor_gui.strings import get_locale
 from editor_gui.theme import status_color
 from editor_gui.widgets.checkbox import checkbox
@@ -39,7 +38,6 @@ from editor_gui.widgets.tree import (
     note_row,
     tree_node,
 )
-from editor_gui.widgets.value_pickers import format_date
 
 if TYPE_CHECKING:
     from editor_gui.plugins.catalog.filters import OnlineFilters
@@ -162,24 +160,14 @@ def _version_text(product: ProductSummary) -> str:
 def fetched_date(fetched_at: str | None) -> str:
     """When the product index was fetched (stored in UTC), as a local date in the regional short
     date format; "-" when unknown."""
-    if not fetched_at:
-        return "-"
-    try:
-        moment = datetime.fromisoformat(fetched_at).astimezone()
-    except ValueError:
-        return "-"
-    return format_date(moment.date().isoformat(), True, regional_format())
+    moment = parse_stamp(fetched_at)
+    return MISSING if moment is None else date_text(moment)
 
 
 def updated_time(updated: str) -> str:
-    """When a product was updated (an ISO time with its offset), in local time: the date in the
-    regional short date format and the time to the minute; the text as it is when unreadable."""
-    try:
-        moment = datetime.fromisoformat(updated).astimezone()
-    except ValueError:
-        return updated
-    day = format_date(moment.date().isoformat(), True, regional_format())
-    return f"{day} {moment:%H:%M}"
+    """When a product was updated (an ISO time with its offset), in local time in the regional
+    date and time formats, to the minute; the text as it is when unreadable."""
+    return stamp_text(updated)
 
 
 class CatalogPanel:

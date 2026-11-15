@@ -22,9 +22,11 @@ from editor_gui.plugin_params import (
 )
 from editor_gui.plugins.project.strings import S
 from editor_gui.theme import status_color
+from editor_gui.widgets.combo import combo
 from editor_gui.widgets.dpi import px
 from editor_gui.widgets.filter_box import filter_box
 from editor_gui.widgets.tables import headers_row
+from editor_gui.widgets.tree import collapsing_header, tree_node
 from xknxeditor.vendor.triton import DeviceType
 
 if TYPE_CHECKING:
@@ -185,7 +187,7 @@ class PluginParamsPanel:
         if idx >= len(labels):
             idx = 0
         imgui.set_next_item_width(px(240.0))
-        changed, idx = imgui.combo(
+        changed, idx = combo(
             f"{S.PLUGIN_PARAMS_SETUP_TYPE}##triton_type_{key}", idx, labels
         )
         if changed:
@@ -253,11 +255,11 @@ class PluginParamsPanel:
             # visible, without touching the user's remembered collapse state (it is restored the
             # moment the filter is cleared).
             imgui.set_next_item_open(True)
-            if imgui.collapsing_header(f"{section_label}  ({len(rows)})"):
+            if collapsing_header(f"{section_label}  ({len(rows)})"):
                 self._render_standard_table(device, section_label, rows, filtering=True)
             return
         imgui.set_next_item_open(section_label not in closed)
-        shown = imgui.collapsing_header(f"{section_label}  ({len(rows)})")
+        shown = collapsing_header(f"{section_label}  ({len(rows)})")
         if not shown:
             closed.add(section_label)
             return
@@ -285,7 +287,7 @@ class PluginParamsPanel:
         is_open = section.section not in closed
         if is_open:
             imgui.set_next_item_open(True, imgui.Cond_.appearing)
-        shown = imgui.collapsing_header(label)
+        shown = collapsing_header(label)
         if not shown:
             closed.add(section.section)
             return
@@ -302,7 +304,7 @@ class PluginParamsPanel:
             if type_idx >= len(labels):
                 type_idx = 0
             imgui.set_next_item_width(px(360.0))
-            type_changed, type_idx = imgui.combo(
+            type_changed, type_idx = combo(
                 f"{S.PLUGIN_PARAMS_TYPE}##add_{section.section}", type_idx, labels
             )
             if type_changed:
@@ -429,7 +431,7 @@ class PluginParamsPanel:
             else:
                 if filtering:
                     imgui.set_next_item_open(True)
-                if imgui.tree_node_ex(
+                if tree_node(
                     f"{first.group}##{section_label}:{key}",
                     imgui.TreeNodeFlags_.span_avail_width,
                 ):
@@ -489,7 +491,7 @@ class PluginParamsPanel:
                     current_idx = len(labels)
                     labels = [*labels, current]
                     raw_values = [*raw_values, current]
-            changed, new_idx = imgui.combo(f"##val_{row.ref_id}", current_idx, labels)
+            changed, new_idx = combo(f"##val_{row.ref_id}", current_idx, labels)
             if changed:
                 new_token = raw_values[new_idx]
                 self._on_edit(device, row.ref_id, new_token)

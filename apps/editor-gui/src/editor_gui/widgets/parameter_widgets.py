@@ -8,7 +8,6 @@ from dataclasses import dataclass, replace
 from imgui_bundle import imgui
 from imgui_bundle.imgui import internal
 
-# The module, not status_color: the theme module imports the widgets package itself.
 from editor_gui import theme
 from editor_gui.device import Device
 from editor_gui.device_channels import (
@@ -29,10 +28,13 @@ from editor_gui.widgets.backgrounds import (
     group_background,
     page_button,
     page_line,
+    pane_line,
     side_background,
 )
 from editor_gui.widgets.checkbox import checkbox, radio_button, radio_button_width
-from editor_gui.widgets.combo import begin_combo
+
+# The module, not status_color: the theme module imports the widgets package itself.
+from editor_gui.widgets.combo import begin_combo, end_combo
 from editor_gui.widgets.dpi import px
 from editor_gui.widgets.float_format import format_float, general_float, parse_float
 from editor_gui.widgets.fonts import bold, bold_font, semilight
@@ -559,7 +561,7 @@ def _render_enum_combo(
                 on_change(str(choice.value))
             if selected:
                 imgui.set_item_default_focus()
-        imgui.end_combo()
+        end_combo()
     if custom and current is not None:
         _draw_choice(current, icon, draw, low, high)
 
@@ -1028,7 +1030,7 @@ def _render_differs_text(widget_id: str, on_change: Callable[[str], None]) -> No
             on_change("0")
         if imgui.selectable(S.PARAM_ON, False)[0]:
             on_change("1")
-        imgui.end_combo()
+        end_combo()
 
 
 def _render_int_param(
@@ -1454,7 +1456,7 @@ def _render_page_choice(
     preview = " / ".join(page.label.strip() for page in path)
     if begin_combo("##page_choice", preview, imgui.ComboFlags_.height_largest):
         rows(pages, 0)
-        imgui.end_combo()
+        end_combo()
     return chosen[0] if chosen else None
 
 
@@ -1753,7 +1755,7 @@ def _draw_page_line(
         # The tree's scrollbar parts it from the page.
         color = imgui.get_color_u32(content_background())
     else:
-        color = imgui.get_color_u32(imgui.Col_.separator)
+        color = imgui.get_color_u32(pane_line())
     draw_list.add_rect_filled(
         imgui.ImVec2(left, top), imgui.ImVec2(right, bottom), color
     )

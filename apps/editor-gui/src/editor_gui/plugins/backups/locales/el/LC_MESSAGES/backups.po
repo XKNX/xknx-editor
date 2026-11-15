@@ -97,9 +97,6 @@ msgstr "Πριν από επαναφορά"
 msgid "Pinned"
 msgstr "καρφιτσωμένο"
 
-msgid "{size} MB"
-msgstr "{size} MB"
-
 msgid "Creating a backup: copying the project…"
 msgstr "Δημιουργία αντιγράφου ασφαλείας: αντιγραφή του έργου…"
 

@@ -2,31 +2,13 @@
 
 from __future__ import annotations
 
-import datetime
 from types import SimpleNamespace
 from typing import Any, cast
 
 import pytest
 from imgui_bundle import imgui
 
-from editor_gui.regional import regional_format
-from editor_gui.widgets.datetime_format import timestamp_text
-from editor_gui.widgets.value_pickers import format_date
-
-
-def test_a_stored_time_is_shown_in_local_time_to_the_minute() -> None:
-    stored = "2026-01-24T11:38:26.8111136Z"
-    local = datetime.datetime(2026, 1, 24, 11, 38, tzinfo=datetime.UTC).astimezone()
-    shown = f"{format_date(local.date().isoformat(), True, regional_format())} {local:%H:%M}"
-    assert timestamp_text(stored) == shown
-    assert timestamp_text("2026-01-24T11:38:26Z") == shown
-    assert timestamp_text("2026-01-24T11:38:26+00:00") == shown
-
-
-def test_no_time_shows_a_dash() -> None:
-    assert timestamp_text(None) == "-"
-    assert timestamp_text("") == "-"
-    assert timestamp_text("yesterday") == "-"
+from editor_gui.local_time import stamp_text
 
 
 def test_the_device_header_shows_the_times_and_the_status(
@@ -93,7 +75,7 @@ def test_the_device_header_shows_the_times_and_the_status(
         panel._render_header_fields(device)  # pyright: ignore[reportPrivateUsage]
         imgui.end()
         imgui.end_frame()
-        assert timestamp_text("2026-01-24T11:38:26Z") in shown and "-" in shown
+        assert stamp_text("2026-01-24T11:38:26Z") in shown and "-" in shown
         assert changes == [(3, "Accepted")]
     finally:
         imgui.destroy_context(ctx)

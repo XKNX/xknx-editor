@@ -1275,7 +1275,7 @@ class GroupAddressesPanel:
             imgui.table_set_column_index(0)
             # Clicking a row opens the owning device in the editor (Configure panel).
             if node_id is not None and self._on_select_device_id is not None:
-                if imgui.selectable(
+                if row_selectable(
                     f"{device_label}##ga_asg{a.com_object_id}",
                     False,
                     imgui.SelectableFlags_.span_all_columns,

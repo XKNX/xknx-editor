@@ -4,6 +4,7 @@ from collections.abc import Callable
 
 from imgui_bundle import imgui
 
+from editor_gui.local_time import WIDEST, time_text
 from editor_gui.plugins.logger.service import LogRecord
 from editor_gui.plugins.logger.strings import S
 from editor_gui.theme import status_color
@@ -226,8 +227,14 @@ class LogPanel:
             | imgui.TableColumnFlags_.no_resize,
             level_icon_width(),
         )
+        # As wide as the time in the regional format (with AM/PM it is wider).
+        time_width = max(
+            px(60),
+            imgui.calc_text_size(time_text(WIDEST)).x
+            + imgui.get_style().cell_padding.x * 2,
+        )
         imgui.table_setup_column(
-            S.COL_TIME, imgui.TableColumnFlags_.width_fixed, px(60)
+            S.COL_TIME, imgui.TableColumnFlags_.width_fixed, time_width
         )
         imgui.table_setup_column(S.COL_MESSAGE, imgui.TableColumnFlags_.width_stretch)
         data_table_headers()

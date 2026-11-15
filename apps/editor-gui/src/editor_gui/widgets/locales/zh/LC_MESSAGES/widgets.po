@@ -235,14 +235,11 @@ msgstr "复制 {count} B"
 msgid "Go To:"
 msgstr "转到："
 
-msgid "no differences"
+msgid "No differences"
 msgstr "无差异"
 
 msgid "Parameter:"
 msgstr "参数："
-
-msgid "search…"
-msgstr "搜索…"
 
 msgid "Low"
 msgstr "低"
@@ -313,3 +310,30 @@ msgstr "无模块"
 msgid "{count} Module Selected"
 msgid_plural "{count} Modules Selected"
 msgstr[0] "已选择 {count} 个模块"
+
+msgid "Offset:"
+msgstr "偏移："
+
+msgid "Binary:"
+msgstr "二进制："
+
+msgid "Value:"
+msgstr "值："
+
+msgid "Reference Byte:"
+msgstr "参考字节："
+
+msgid "Not in the reference"
+msgstr "不在参考中"
+
+msgid "{size} B"
+msgstr "{size} B"
+
+msgid "{size} KB"
+msgstr "{size} KB"
+
+msgid "{size} MB"
+msgstr "{size} MB"
+
+msgid "{size} GB"
+msgstr "{size} GB"

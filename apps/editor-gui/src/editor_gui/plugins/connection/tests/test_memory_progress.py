@@ -74,7 +74,13 @@ async def test_the_memory_progress_reaches_the_download(
     assert calls[0]["memory_progress"] is report
 
 
-def test_progress_text_and_fraction() -> None:
+def test_progress_text_and_fraction(monkeypatch: pytest.MonkeyPatch) -> None:
+    from editor_gui import regional
+
+    # The sizes with the regional decimal separator, here a point.
+    monkeypatch.setattr(
+        regional, "regional_format", lambda: regional.RegionalFormat(decimal=".")
+    )
     assert download_progress_text((17, 28), None) == "17/28"
     assert download_progress_text((17, 28), (6348, 14968)) == "17/28, 6.2 KB/14.6 KB"
     assert download_progress_fraction((17, 28), None) == pytest.approx(17 / 28)

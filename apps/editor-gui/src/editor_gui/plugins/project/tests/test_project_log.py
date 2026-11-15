@@ -83,3 +83,26 @@ class _Inline:
 
     def start(self) -> None:
         self._target()
+
+
+def test_the_date_is_shown_in_local_time_in_the_regional_formats(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import datetime
+
+    from editor_gui import local_time
+    from editor_gui.regional import RegionalFormat
+
+    regional = RegionalFormat(short_date="dd.MM.yyyy", long_time="HH:mm:ss")
+    monkeypatch.setattr(local_time, "regional_format", lambda: regional)
+    stored = "2026-01-24T11:38:26.8111136Z"
+    trace = _trace(stored, "anna", "Programmed")
+    panel = ProjectLogPanel(lambda: [trace])
+    moment = datetime.datetime(
+        2026, 1, 24, 11, 38, 26, tzinfo=datetime.UTC
+    ).astimezone()
+    shown = panel._date(trace)
+    assert shown == f"{moment:%d.%m.%Y %H:%M:%S}"
+    assert "T" not in shown and "Z" not in shown
+    # The filter finds what the column shows.
+    assert panel._rows([trace], f"{moment:%d.%m.%Y}") == [trace]

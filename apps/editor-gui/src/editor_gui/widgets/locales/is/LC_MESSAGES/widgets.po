@@ -259,14 +259,11 @@ msgstr "Afrita {count} B"
 msgid "Go To:"
 msgstr "Fara á:"
 
-msgid "no differences"
-msgstr "enginn munur"
+msgid "No differences"
+msgstr "Enginn munur"
 
 msgid "Parameter:"
 msgstr "Færibreyta:"
-
-msgid "search…"
-msgstr "leita…"
 
 msgid "automatic"
 msgstr "sjálfvirkt"
@@ -326,3 +323,30 @@ msgid "{count} Module Selected"
 msgid_plural "{count} Modules Selected"
 msgstr[0] "{count} eining valin"
 msgstr[1] "{count} einingar valdar"
+
+msgid "Offset:"
+msgstr "Hliðrun:"
+
+msgid "Binary:"
+msgstr "Tvíundakerfi:"
+
+msgid "Value:"
+msgstr "Gildi:"
+
+msgid "Reference Byte:"
+msgstr "Viðmiðunarbæti:"
+
+msgid "Not in the reference"
+msgstr "Ekki í viðmiðuninni"
+
+msgid "{size} B"
+msgstr "{size} B"
+
+msgid "{size} KB"
+msgstr "{size} KB"
+
+msgid "{size} MB"
+msgstr "{size} MB"
+
+msgid "{size} GB"
+msgstr "{size} GB"

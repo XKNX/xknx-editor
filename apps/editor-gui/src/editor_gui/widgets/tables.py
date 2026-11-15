@@ -111,6 +111,54 @@ def headers_row() -> None:
         imgui.push_id(column)
         table_header(name)
         imgui.pop_id()
+        _header_cell_lines(column)
+
+
+def row_selectable(
+    label: str,
+    selected: bool = False,
+    flags: int = 0,
+    size: imgui.ImVec2 | None = None,
+) -> tuple[bool, bool]:
+    """``imgui.selectable`` that selects the whole row of the current table: its highlight
+    (selected, hovered) fills the row from line to line. imgui reaches half the item spacing
+    past the text, so the spacing becomes the row's padding above and below; where the table
+    draws lines between its rows, the line on the row's first pixel stays uncovered."""
+    padding = imgui.get_style().cell_padding.y
+    spacing = imgui.get_style().item_spacing
+    reach = padding * 2
+    if internal.get_current_table().flags & imgui.TableFlags_.borders_inner_h:
+        # imgui reaches the lower half of the spacing (rounded down) above the text.
+        reach -= 1.0
+    imgui.push_style_var(imgui.StyleVar_.item_spacing, imgui.ImVec2(spacing.x, reach))
+    try:
+        return imgui.selectable(
+            label,
+            selected,
+            flags | imgui.SelectableFlags_.span_all_columns,
+            size or imgui.ImVec2(0.0, 0.0),
+        )
+    finally:
+        imgui.pop_style_var()
+
+
+def _header_cell_lines(column: int) -> None:
+    """Lines around a header cell, as in Windows lists: along its bottom and at its right edge
+    (where the table draws no column line of its own), in the color of the table's lines."""
+    table = internal.get_current_table()
+    cell = internal.table_get_cell_bg_rect(table, column)
+    color = imgui.get_color_u32(imgui.Col_.table_border_light)
+    draw = imgui.get_window_draw_list()
+    # In the cell's own channel and clip rectangle, on top of the header's background.
+    bottom = cell.max.y - 0.5
+    draw.add_line(
+        imgui.ImVec2(cell.min.x, bottom), imgui.ImVec2(cell.max.x, bottom), color
+    )
+    if not table.flags & imgui.TableFlags_.borders_inner_v:
+        right = cell.max.x - 0.5
+        draw.add_line(
+            imgui.ImVec2(right, cell.min.y), imgui.ImVec2(right, cell.max.y), color
+        )
 
 
 def _sort_direction(column: int) -> imgui.SortDirection | None:

@@ -14,6 +14,7 @@ from pathlib import Path
 from imgui_bundle import imgui
 
 from editor_gui import file_dialogs
+from editor_gui.local_time import date_time_text
 from editor_gui.plugins.backups.service import BackupJob, BackupService
 from editor_gui.plugins.backups.settings import (
     EXPIRE_DAYS,
@@ -35,7 +36,13 @@ from editor_gui.widgets.dialog import (
 )
 from editor_gui.widgets.dpi import px
 from editor_gui.widgets.flow import button_width, same_line_if_fits
-from editor_gui.widgets.tables import begin_data_table, data_table_headers
+from editor_gui.widgets.spinner import busy_bar
+from editor_gui.widgets.tables import (
+    begin_data_table,
+    data_table_headers,
+    row_selectable,
+)
+from editor_gui.widgets.text_util import human_size
 
 # The page of the Settings window with the backup settings.
 SETTINGS_PAGE = "backups"
@@ -45,12 +52,13 @@ _Action = tuple[str, str, Callable[[Backup], None], str]
 
 
 def when(moment: datetime) -> str:
-    """A backup's time, in local time."""
-    return moment.astimezone().strftime("%Y-%m-%d %H:%M")
+    """A backup's time, in local time in the regional formats."""
+    return date_time_text(moment)
 
 
 def size_text(size: int) -> str:
-    return S.SIZE_MB.format(size=f"{size / 1_000_000:.1f}")
+    """A backup's size in the unit that suits it."""
+    return human_size(size)
 
 
 def _comment_line(backup: Backup) -> None:
@@ -300,7 +308,7 @@ class BackupsPlugin:
         if job is not None:
             self._render_progress(job)
         if self._busy:
-            imgui.progress_bar(-1.0 * imgui.get_time(), imgui.ImVec2(-1, 0), self._busy)
+            busy_bar("##backups_busy", imgui.ImVec2(-1, 0), self._busy)
         imgui.push_text_wrap_pos(0.0)
         imgui.text_disabled(S.FOLDER.format(path=self._service.folder()))
         imgui.pop_text_wrap_pos()
@@ -321,10 +329,11 @@ class BackupsPlugin:
         self._render_actions(None if self._busy else selected, actions)
 
     def _render_progress(self, job: BackupJob) -> None:
-        fraction = job.done / job.total if job.total else -1.0 * imgui.get_time()
-        imgui.progress_bar(
-            fraction, imgui.ImVec2(-1, 0), S.STEP.get(job.step, S.STEP["copy"])
-        )
+        text = S.STEP.get(job.step, S.STEP["copy"])
+        if job.total:
+            imgui.progress_bar(job.done / job.total, imgui.ImVec2(-1, 0), text)
+        else:
+            busy_bar("##backup_job_busy", imgui.ImVec2(-1, 0), text)
 
     def _render_table(self, backups: list[Backup], height: float) -> None:
         flags = (
@@ -351,7 +360,7 @@ class BackupsPlugin:
             imgui.table_next_row()
             imgui.table_set_column_index(0)
             chosen = backup.path == self._selected
-            if imgui.selectable(
+            if row_selectable(
                 f"{when(info.created)}##{backup.path.name}",
                 chosen,
                 imgui.SelectableFlags_.span_all_columns

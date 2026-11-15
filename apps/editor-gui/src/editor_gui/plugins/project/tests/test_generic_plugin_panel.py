@@ -9,6 +9,7 @@ from typing import Any, cast
 import pytest
 from imgui_bundle import imgui
 
+from editor_gui.local_time import stamp_text
 from editor_gui.plugins.project.strings import S
 from editor_gui.plugins.project.ui import configure as configure_module
 from editor_gui.plugins.project.ui import generic_plugin_panel as panel_module
@@ -22,7 +23,6 @@ from editor_gui.plugins.project.ui.generic_plugin_panel import (
     summary_lines,
     value_text,
 )
-from editor_gui.widgets.datetime_format import timestamp_text
 from xknxeditor.vendor.siemens_generic import (
     ComparePage,
     CompareRow,
@@ -99,9 +99,7 @@ def test_summary_lines() -> None:
     )
     assert lines[1] == (
         "info",
-        S.GENERIC_PLUGIN_LAST_DOWNLOAD.format(
-            date=timestamp_text(_view().last_download)
-        ),
+        S.GENERIC_PLUGIN_LAST_DOWNLOAD.format(date=stamp_text(_view().last_download)),
     )
     other = summary_lines(
         _view(
@@ -187,7 +185,7 @@ def test_read_memory_is_inside_comparison(context, monkeypatch):
     monkeypatch.setattr(imgui, "button", lambda label, *_args: label == S.MEMORY_READ)
     monkeypatch.setattr(imgui, "text_wrapped", hints.append)
     expanded = [False]
-    monkeypatch.setattr(imgui, "collapsing_header", lambda *_a: expanded[0])
+    monkeypatch.setattr(panel_module, "collapsing_header", lambda *_a: expanded[0])
     for state in (False, True, True):
         expanded[0] = state
         imgui.new_frame()
@@ -440,13 +438,13 @@ def test_comparison_section_is_optional_and_does_not_hide_editor(
     frame()
     assert events == ["actions", "edit"]
     events.clear()
-    collapse = imgui.collapsing_header
+    collapse = panel_module.collapsing_header
 
     def expanded(label: str) -> bool:
         imgui.set_next_item_open(True)
         return collapse(label)
 
-    monkeypatch.setattr(panel_module.imgui, "collapsing_header", expanded)
+    monkeypatch.setattr(panel_module, "collapsing_header", expanded)
     frame()
     assert events == ["actions", "compare", "edit"]
     events.clear()

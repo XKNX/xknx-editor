@@ -235,14 +235,11 @@ msgstr "Kopioi {count} B"
 msgid "Go To:"
 msgstr "Siirry:"
 
-msgid "no differences"
-msgstr "ei eroja"
+msgid "No differences"
+msgstr "Ei eroja"
 
 msgid "Parameter:"
 msgstr "Parametri:"
-
-msgid "search…"
-msgstr "etsi…"
 
 msgid "Low"
 msgstr "Matala"
@@ -317,3 +314,30 @@ msgid "{count} Module Selected"
 msgid_plural "{count} Modules Selected"
 msgstr[0] "{count} moduuli valittu"
 msgstr[1] "{count} moduulia valittu"
+
+msgid "Offset:"
+msgstr "Siirtymä:"
+
+msgid "Binary:"
+msgstr "Binäärinen:"
+
+msgid "Value:"
+msgstr "Arvo:"
+
+msgid "Reference Byte:"
+msgstr "Vertailutavu:"
+
+msgid "Not in the reference"
+msgstr "Ei vertailussa"
+
+msgid "{size} B"
+msgstr "{size} t"
+
+msgid "{size} KB"
+msgstr "{size} kt"
+
+msgid "{size} MB"
+msgstr "{size} Mt"
+
+msgid "{size} GB"
+msgstr "{size} Gt"

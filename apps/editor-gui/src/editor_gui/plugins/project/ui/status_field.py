@@ -11,7 +11,7 @@ from editor_gui.plugins.project.element_status import (
     usage_label,
     usage_options,
 )
-from editor_gui.widgets.combo import begin_combo, combo
+from editor_gui.widgets.combo import begin_combo, combo, end_combo
 
 # Rows the "Use" list shows before it scrolls (it has 28 entries).
 USAGE_ROWS = 16
@@ -66,7 +66,7 @@ def choice_combo(
                 imgui.set_tooltip(reason)
             if selected:
                 imgui.set_item_default_focus()
-        imgui.end_combo()
+        end_combo()
     return chosen
 
 
@@ -108,7 +108,7 @@ def bus_connection_combo(
                 chosen = value
             if selected:
                 imgui.set_item_default_focus()
-        imgui.end_combo()
+        end_combo()
     return chosen
 
 
@@ -132,5 +132,5 @@ def line_combo(
                 chosen = (True, line_id)
             if selected:
                 imgui.set_item_default_focus()
-        imgui.end_combo()
+        end_combo()
     return chosen

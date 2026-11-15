@@ -97,9 +97,6 @@ msgstr "Pred obnovitvijo"
 msgid "Pinned"
 msgstr "Pripeto"
 
-msgid "{size} MB"
-msgstr "{size} MB"
-
 msgid "Creating a backup: copying the project…"
 msgstr "Ustvarjanje varnostne kopije: kopiranje projekta…"
 

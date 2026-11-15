@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from imgui_bundle import imgui
 
+from editor_gui.widgets.choice import choice_colors
+
 
 def checkbox(label: str, value: bool, *, centred: bool = False) -> tuple[bool, bool]:
     """A checkbox about the size of the text. ``centred`` lines it up with full-height fields
@@ -49,7 +51,13 @@ def radio_button(label: str, active: bool, *, centred: bool = False) -> bool:
     if centred:
         imgui.set_cursor_pos_y(imgui.get_cursor_pos_y() + padding.y - small)
     imgui.push_style_var(imgui.StyleVar_.frame_padding, imgui.ImVec2(padding.x, small))
+    # The dot in the theme's choice color where it has one (the light theme's blue).
+    choice = choice_colors()
+    if choice is not None:
+        imgui.push_style_color(imgui.Col_.check_mark, choice.fill)
     pressed = imgui.radio_button(label, active)
+    if choice is not None:
+        imgui.pop_style_color()
     imgui.pop_style_var()
     return pressed
 

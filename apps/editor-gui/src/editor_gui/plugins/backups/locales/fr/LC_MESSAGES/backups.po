@@ -97,9 +97,6 @@ msgstr "Avant restauration"
 msgid "Pinned"
 msgstr "épinglée"
 
-msgid "{size} MB"
-msgstr "{size} MB"
-
 msgid "Creating a backup: copying the project…"
 msgstr "Création d'une sauvegarde : copie du projet…"
 

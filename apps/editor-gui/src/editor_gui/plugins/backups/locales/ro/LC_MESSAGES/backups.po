@@ -97,9 +97,6 @@ msgstr "Înainte de restaurare"
 msgid "Pinned"
 msgstr "Fixată"
 
-msgid "{size} MB"
-msgstr "{size} MB"
-
 msgid "Creating a backup: copying the project…"
 msgstr "Creare copie de rezervă: se copiază proiectul…"
 

@@ -17,6 +17,7 @@ from editor_gui.plugins.catalog.alternative import (
     AlternativeSettings,
 )
 from editor_gui.plugins.catalog.strings import S
+from editor_gui.plugins.catalog.ui import alternative as alternative_ui
 from editor_gui.plugins.catalog.ui.alternative import (
     AlternativeCatalogPanel,
     error_text,
@@ -46,7 +47,7 @@ def test_expanded_forms_and_product_metadata(
     io.display_size = imgui.ImVec2(width, 1500)
     io.backend_flags |= imgui.BackendFlags_.renderer_has_textures
     original_button = imgui.button
-    original_header = imgui.collapsing_header
+    original_header = alternative_ui.collapsing_header
     ids: dict[int, str] = {}
     columns: list[str] = []
     widths: list[float] = []
@@ -74,7 +75,7 @@ def test_expanded_forms_and_product_metadata(
         return original_column(label, *args, **kwargs)
 
     monkeypatch.setattr(imgui, "button", button)
-    monkeypatch.setattr(imgui, "collapsing_header", header)
+    monkeypatch.setattr(alternative_ui, "collapsing_header", header)
     monkeypatch.setattr(imgui, "table_setup_column", column)
     try:
         for _ in range(3):
@@ -297,7 +298,7 @@ def test_settings_closed_and_the_catalog_status(
     io.backend_flags |= imgui.BackendFlags_.renderer_has_textures
     opened: list[bool] = []
     greyed: list[str] = []
-    original_header = imgui.collapsing_header
+    original_header = alternative_ui.collapsing_header
     original_disabled = imgui.text_disabled
 
     def header(label, *args, **kwargs):
@@ -309,7 +310,7 @@ def test_settings_closed_and_the_catalog_status(
         greyed.append(value)
         return original_disabled(value, *args, **kwargs)
 
-    monkeypatch.setattr(imgui, "collapsing_header", header)
+    monkeypatch.setattr(alternative_ui, "collapsing_header", header)
     monkeypatch.setattr(imgui, "text_disabled", disabled)
 
     def frame() -> None:

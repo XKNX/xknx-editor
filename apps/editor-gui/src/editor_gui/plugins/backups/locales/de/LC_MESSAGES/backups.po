@@ -97,9 +97,6 @@ msgstr "Vor Wiederherstellung"
 msgid "Pinned"
 msgstr "angeheftet"
 
-msgid "{size} MB"
-msgstr "{size} MB"
-
 msgid "Creating a backup: copying the project…"
 msgstr "Sicherung wird erstellt: Projekt wird kopiert…"
 

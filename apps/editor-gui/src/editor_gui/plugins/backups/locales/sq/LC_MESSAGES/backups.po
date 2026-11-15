@@ -97,9 +97,6 @@ msgstr "Para rikthimit"
 msgid "Pinned"
 msgstr "E fiksuar"
 
-msgid "{size} MB"
-msgstr "{size} MB"
-
 msgid "Creating a backup: copying the project…"
 msgstr "Po krijohet kopja rezervë: po kopjohet projekti…"
 

@@ -407,7 +407,7 @@ def test_the_line_beside_the_page_tree_is_highlighted_while_resized(
             100, 102, 0, 300, highlight
         )
         line = imgui.get_color_u32(
-            imgui.Col_.separator if highlight is None else highlight
+            backgrounds.pane_line() if highlight is None else highlight
         )
         assert rects == [(0, 300, line), (11.0, 30.0, page)]
 
