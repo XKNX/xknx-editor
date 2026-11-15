@@ -36,3 +36,16 @@ msgstr "Advarsel"
 
 msgid "Error"
 msgstr "Fejl"
+
+msgid "The lowest level shown: entries of this level and of the levels above it"
+msgstr "Laveste viste niveau: poster på dette niveau og niveauerne over det"
+
+msgid "{count} log entry"
+msgid_plural "{count} log entries"
+msgstr[0] "{count} logpost"
+msgstr[1] "{count} logposter"
+
+msgid "{count} shown with the filter"
+msgid_plural "{count} shown with the filter"
+msgstr[0] "{count} vist med filteret"
+msgstr[1] "{count} vist med filteret"

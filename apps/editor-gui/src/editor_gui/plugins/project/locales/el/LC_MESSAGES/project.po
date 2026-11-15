@@ -3230,3 +3230,9 @@ msgstr "Εσωτερικές τιμές"
 
 msgid "Acknowledge Group Address"
 msgstr "Επιβεβαίωση Ομαδικής Διεύθυνσης"
+
+msgid "Select another step in the list to bring the project back to it"
+msgstr "Επιλέξτε άλλο βήμα στη λίστα για να επαναφέρετε το έργο σε αυτό"
+
+msgid "Current state of the project"
+msgstr "Τρέχουσα κατάσταση του έργου"

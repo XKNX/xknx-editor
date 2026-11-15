@@ -19,7 +19,6 @@ from editor_gui.plugins.project.space_text import (
     space_type_name,
 )
 from editor_gui.plugins.project.strings import S
-from editor_gui.plugins.project.ui._filter import filter_box
 from editor_gui.plugins.project.ui.add_dialog import (
     AddChoice,
     AddDialog,
@@ -54,6 +53,7 @@ from editor_gui.plugins.project.ui.tree_drag import Dragged, drag_source, drop_t
 from editor_gui.widgets.description import render_description, render_device_marks
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
 from editor_gui.widgets.dpi import px_vec2
+from editor_gui.widgets.filter_box import filter_box
 from editor_gui.widgets.tree import (
     begin_tree_area,
     context_menu,

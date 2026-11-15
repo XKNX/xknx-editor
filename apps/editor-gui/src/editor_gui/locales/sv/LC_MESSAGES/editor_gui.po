@@ -1720,3 +1720,12 @@ msgstr "{name} kunde inte tas bort: {error}"
 
 msgid "Delete File"
 msgstr "Ta bort fil"
+
+msgid "Status"
+msgstr "Status"
+
+msgid "New"
+msgstr "Ny"
+
+msgid "In catalog"
+msgstr "I katalogen"

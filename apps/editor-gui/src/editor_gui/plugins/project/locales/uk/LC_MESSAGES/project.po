@@ -3282,3 +3282,9 @@ msgstr "Внутрішні значення"
 
 msgid "Acknowledge Group Address"
 msgstr "Підтверджувати Групову Адресу"
+
+msgid "Select another step in the list to bring the project back to it"
+msgstr "Виберіть у списку інший крок, щоб повернути до нього проєкт"
+
+msgid "Current state of the project"
+msgstr "Поточний стан проєкту"

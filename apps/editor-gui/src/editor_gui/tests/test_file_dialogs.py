@@ -172,14 +172,24 @@ def test_error_window_waits_for_other_dialog_and_can_be_copied_and_closed(
     io.display_size = imgui.ImVec2(800, 600)
     io.backend_flags |= imgui.BackendFlags_.renderer_has_textures
     command = "sudo apt install zenity gnu-which"
+    toasts: list[str] = []
     stub = SimpleNamespace(
         _file_dialog_error_requested=True,
         _file_dialog_missing=["zenity / kdialog / matedialog / qarma", "which"],
         _file_dialog_install_command=command,
+        _flash_toast=toasts.append,
     )
     title = f"{S.FILE_DIALOG_UNAVAILABLE_TITLE}###file-dialog-unavailable"
     copied: list[str] = []
-    monkeypatch.setattr(imgui, "set_clipboard_text", copied.append)
+    click_copy = [False]
+
+    # The command with its copy button, "clicked" when ``click_copy`` says so.
+    def copy_row(_id: str, text: str, **_kwargs: object) -> bool:
+        if click_copy[0]:
+            copied.append(text)
+        return click_copy[0]
+
+    monkeypatch.setattr("editor_gui.main.text_with_copy_button", copy_row)
 
     def frame() -> bool:
         imgui.new_frame()
@@ -202,10 +212,13 @@ def test_error_window_waits_for_other_dialog_and_can_be_copied_and_closed(
         assert frame()
         assert not stub._file_dialog_error_requested
         assert frame()
-        monkeypatch.setattr("editor_gui.main.dialog_buttons", lambda *_: 0)
+        click_copy[0] = True
         assert frame()
+        click_copy[0] = False
         assert copied == [command]
-        monkeypatch.setattr("editor_gui.main.dialog_buttons", lambda *_: 1)
+        assert toasts == [S.COPIED]
+        # Close is the dialog's only button.
+        monkeypatch.setattr("editor_gui.main.dialog_buttons", lambda *_: 0)
         assert not frame()
         assert not frame()
     finally:

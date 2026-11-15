@@ -25,6 +25,7 @@ from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
 from editor_gui.widgets.dpi import px
 from editor_gui.widgets.filter_box import filter_box
 from editor_gui.widgets.flow import button_width, fits_beside, same_line_if_fits
+from editor_gui.widgets.icon_button import ICON_COPY, copy_button, icon_button_width
 from editor_gui.widgets.spinner import loading
 from editor_gui.widgets.tables import begin_data_table, data_table_headers
 
@@ -396,11 +397,9 @@ class AlternativeCatalogPanel:
 
     def _render_details(self, entry: AlternativeEntry) -> None:
         if imgui.tree_node(S.CATALOG_DETAIL_TITLE):
-            if imgui.button(AppS.BTN_COPY + "##alternative_metadata"):
-                imgui.set_clipboard_text(
-                    json.dumps(entry.as_dict(), ensure_ascii=False, indent=2)
-                )
-            imgui.begin_child("##alternative_details", imgui.ImVec2(0, 180))
+            # The details with the copy button (all of them, as JSON) right of them.
+            slot = icon_button_width(ICON_COPY) + imgui.get_style().item_spacing.x
+            imgui.begin_child("##alternative_details", imgui.ImVec2(-slot, 180))
             for label, value in (
                 (S.CATALOG_DETAIL_NAME, entry.name),
                 (
@@ -433,6 +432,11 @@ class AlternativeCatalogPanel:
                 for name in program["productNames"]:
                     imgui.text_wrapped(name)
             imgui.end_child()
+            imgui.same_line()
+            copy_button(
+                "alternative_metadata",
+                json.dumps(entry.as_dict(), ensure_ascii=False, indent=2),
+            )
             imgui.tree_pop()
         imgui.begin_disabled(self._future is not None)
         if imgui.button(S.ONLINE_DOWNLOAD):

@@ -3230,3 +3230,9 @@ msgstr "Interne verdier"
 
 msgid "Acknowledge Group Address"
 msgstr "Bekreft Gruppeadresse"
+
+msgid "Select another step in the list to bring the project back to it"
+msgstr "Velg et annet trinn i listen for å føre prosjektet tilbake til det"
+
+msgid "Current state of the project"
+msgstr "Prosjektets nåværende tilstand"

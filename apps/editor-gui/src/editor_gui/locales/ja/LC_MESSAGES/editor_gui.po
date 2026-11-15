@@ -1704,3 +1704,12 @@ msgstr "{name} を削除できませんでした: {error}"
 
 msgid "Delete File"
 msgstr "ファイルの削除"
+
+msgid "Status"
+msgstr "状態"
+
+msgid "New"
+msgstr "新規"
+
+msgid "In catalog"
+msgstr "カタログ内"

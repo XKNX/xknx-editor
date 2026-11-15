@@ -1824,3 +1824,12 @@ msgstr "{name} ni bilo mogoče izbrisati: {error}"
 
 msgid "Delete File"
 msgstr "Izbriši datoteko"
+
+msgid "Status"
+msgstr "Stanje"
+
+msgid "New"
+msgstr "Novo"
+
+msgid "In catalog"
+msgstr "V katalogu"

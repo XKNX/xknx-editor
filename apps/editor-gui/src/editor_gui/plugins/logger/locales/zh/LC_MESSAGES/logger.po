@@ -36,3 +36,14 @@ msgstr "警告"
 
 msgid "Error"
 msgstr "错误"
+
+msgid "The lowest level shown: entries of this level and of the levels above it"
+msgstr "显示的最低级别：此级别及更高级别的记录"
+
+msgid "{count} log entry"
+msgid_plural "{count} log entries"
+msgstr[0] "{count} 条日志记录"
+
+msgid "{count} shown with the filter"
+msgid_plural "{count} shown with the filter"
+msgstr[0] "筛选后显示 {count} 条"

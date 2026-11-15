@@ -1720,3 +1720,12 @@ msgstr "{name} nuk u fshi dot: {error}"
 
 msgid "Delete File"
 msgstr "Fshi skedarin"
+
+msgid "Status"
+msgstr "Gjendja"
+
+msgid "New"
+msgstr "I ri"
+
+msgid "In catalog"
+msgstr "Në katalog"

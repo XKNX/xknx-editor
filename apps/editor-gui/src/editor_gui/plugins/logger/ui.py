@@ -9,7 +9,18 @@ from editor_gui.plugins.logger.strings import S
 from editor_gui.theme import status_color
 from editor_gui.widgets.combo import combo
 from editor_gui.widgets.dpi import px
-from editor_gui.widgets.flow import button_width, same_line_if_fits
+from editor_gui.widgets.filter_box import filter_box
+from editor_gui.widgets.flow import same_line_if_fits
+from editor_gui.widgets.icon_button import (
+    ICON_CLEAR,
+    ICON_COPY,
+    ICON_DEBUG,
+    ICON_ERROR,
+    ICON_INFO,
+    ICON_WARNING,
+    icon_button,
+    icon_button_width,
+)
 from editor_gui.widgets.tables import begin_data_table, data_table_headers
 
 # The status color (see ``status_color``) of the levels that report a problem.
@@ -26,6 +37,47 @@ def level_color(level: str) -> imgui.ImVec4:
     return style.color_(
         imgui.Col_.text_disabled if level == "debug" else imgui.Col_.text
     )
+
+
+# Each level's icon (the ones Health shows its kinds with, and a bug for debug records) and the
+# status colour it is drawn in (None: dimmed).
+_LEVEL_ICON: dict[str, tuple[str, str | None]] = {
+    "debug": (ICON_DEBUG, None),
+    "info": (ICON_INFO, "info"),
+    "warning": (ICON_WARNING, "warning"),
+    "error": (ICON_ERROR, "error"),
+    "critical": (ICON_ERROR, "error"),
+}
+
+
+def level_icon_width() -> float:
+    """The width of the level column: the widest of the icons."""
+    return max(imgui.calc_text_size(icon).x for icon, _ in _LEVEL_ICON.values())
+
+
+def level_icon(level: str) -> None:
+    """The icon of a record's ``level``, centred in its column, with the level's name as
+    tooltip."""
+    icon, kind = _LEVEL_ICON.get(level, _LEVEL_ICON["info"])
+    x = imgui.get_cursor_pos_x()
+    imgui.set_cursor_pos_x(x + (level_icon_width() - imgui.calc_text_size(icon).x) / 2)
+    if kind is None:
+        imgui.text_disabled(icon)
+    else:
+        imgui.text_colored(status_color(kind), icon)
+    if imgui.is_item_hovered():
+        imgui.set_tooltip(_level_name(level))
+
+
+def _level_name(level: str) -> str:
+    """The name of ``level`` as the level filter shows it."""
+    return {
+        "debug": S.LEVEL_DEBUG,
+        "info": S.LEVEL_INFO,
+        "warning": S.LEVEL_WARNING,
+        "error": S.LEVEL_ERROR,
+        "critical": S.LEVEL_ERROR,
+    }.get(level, level)
 
 
 _LEVEL_RANK = {"debug": 0, "info": 1, "warning": 2, "error": 3, "critical": 4}
@@ -105,13 +157,27 @@ class LogPanel:
 
     def _render_toolbar(self) -> None:
         records = self._get_records()
-        # The count on the line of the fields after it.
+        total = len(records)
+        shown = len(self._filtered_records())
+        # The count on the line of the fields after it: the entries shown and all of them while
+        # the filter or the level hides some, else all of them.
         imgui.align_text_to_frame_padding()
-        imgui.text_disabled(str(len(records)))
+        imgui.text_disabled(f"{shown}/{total}" if shown != total else str(total))
+        if imgui.is_item_hovered():
+            tip = S.LOG_ENTRIES(total).format(count=total)
+            if shown != total:
+                tip += "\n" + S.LOG_ENTRIES_SHOWN(shown).format(count=shown)
+            imgui.set_tooltip(tip)
         imgui.same_line()
-        imgui.set_next_item_width(px(200))
-        _, self._filter_text = imgui.input_text_with_hint(
-            "##logfilter", S.FILTER_PLACEHOLDER, self._filter_text
+        # The filter with its "x" that clears it, as the other filter fields; the field 200 px
+        # wide where there is room.
+        room = imgui.get_content_region_avail().x
+        clear = imgui.get_frame_height() + px(4.0)
+        self._filter_text = filter_box(
+            "##logfilter",
+            S.FILTER_PLACEHOLDER,
+            self._filter_text,
+            max(0.0, room - px(200) - clear),
         )
         # The row goes on in the next line where the panel is narrow.
         same_line_if_fits(px(100))
@@ -119,17 +185,19 @@ class LogPanel:
         _, self._min_level_idx = combo(
             "##loglevel", self._min_level_idx, [label() for label, _ in _LEVEL_OPTIONS]
         )
-        same_line_if_fits(button_width(S.COPY_LOG))
+        imgui.set_item_tooltip(S.LEVEL_HINT)
+        # The toolbar's actions as icons, as the monitors' toolbars have them.
+        same_line_if_fits(icon_button_width(ICON_COPY))
         # Rows are plain text (not selectable), so offer an explicit copy-all-to-clipboard.
         # Copy the COMPLETE log (all records, ignoring the current filter) so nothing is lost.
-        if imgui.button(S.COPY_LOG) and records:
+        if icon_button(ICON_COPY, "copy_log", S.COPY_LOG) and records:
             text = "\n".join(self._record_as_text(r) for r in records)
             # Strip control chars (esp. NUL, which some payloads like a gateway name carry): a NUL
             # terminates the C string in set_clipboard_text and would truncate the whole copy.
             text = "".join(c for c in text if c in "\n\t" or c.isprintable())
             imgui.set_clipboard_text(text)
-        same_line_if_fits(button_width(S.BTN_CLEAR))
-        if imgui.button(S.BTN_CLEAR):
+        same_line_if_fits(icon_button_width(ICON_CLEAR))
+        if icon_button(ICON_CLEAR, "clear_log", S.BTN_CLEAR):
             self._on_clear()
             self._last_count = 0
 
@@ -149,11 +217,17 @@ class LogPanel:
             return
 
         imgui.table_setup_scroll_freeze(0, 1)
+        # The level as an icon, as Health shows its kinds: a narrow column without a header
+        # text (its name in the header menu).
         imgui.table_setup_column(
-            S.COL_TIME, imgui.TableColumnFlags_.width_fixed, px(60)
+            S.COL_LEVEL,
+            imgui.TableColumnFlags_.width_fixed
+            | imgui.TableColumnFlags_.no_header_label
+            | imgui.TableColumnFlags_.no_resize,
+            level_icon_width(),
         )
         imgui.table_setup_column(
-            S.COL_LEVEL, imgui.TableColumnFlags_.width_fixed, px(55)
+            S.COL_TIME, imgui.TableColumnFlags_.width_fixed, px(60)
         )
         imgui.table_setup_column(S.COL_MESSAGE, imgui.TableColumnFlags_.width_stretch)
         data_table_headers()
@@ -181,12 +255,10 @@ class LogPanel:
         imgui.table_next_row()
 
         imgui.table_set_column_index(0)
-        imgui.text_disabled(record.timestamp_str)
+        level_icon(record.level)
 
         imgui.table_set_column_index(1)
-        imgui.push_style_color(imgui.Col_.text, color)
-        imgui.text(record.level.upper())
-        imgui.pop_style_color()
+        imgui.text_disabled(record.timestamp_str)
 
         imgui.table_set_column_index(2)
         imgui.push_style_color(imgui.Col_.text, color)

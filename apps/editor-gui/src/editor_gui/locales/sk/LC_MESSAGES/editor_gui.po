@@ -1808,3 +1808,12 @@ msgstr "{name} sa nepodarilo odstrániť: {error}"
 
 msgid "Delete File"
 msgstr "Odstrániť súbor"
+
+msgid "Status"
+msgstr "Stav"
+
+msgid "New"
+msgstr "Nový"
+
+msgid "In catalog"
+msgstr "V katalógu"

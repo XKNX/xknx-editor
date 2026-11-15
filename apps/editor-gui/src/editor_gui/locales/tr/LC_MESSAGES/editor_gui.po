@@ -1704,3 +1704,12 @@ msgstr "{name} silinemedi: {error}"
 
 msgid "Delete File"
 msgstr "Dosyayı Sil"
+
+msgid "Status"
+msgstr "Durum"
+
+msgid "New"
+msgstr "Yeni"
+
+msgid "In catalog"
+msgstr "Katalogda"

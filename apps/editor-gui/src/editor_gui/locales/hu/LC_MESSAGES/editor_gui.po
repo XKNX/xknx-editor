@@ -1776,3 +1776,12 @@ msgstr "A(z) {name} nem törölhető: {error}"
 
 msgid "Delete File"
 msgstr "Fájl törlése"
+
+msgid "Status"
+msgstr "Állapot"
+
+msgid "New"
+msgstr "Új"
+
+msgid "In catalog"
+msgstr "A katalógusban"

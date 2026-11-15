@@ -369,12 +369,6 @@ msgstr "Adresa"
 msgid "Name"
 msgstr "Emri"
 
-msgid "Max"
-msgstr "Maks."
-
-msgid "Maximum telegrams this monitor keeps. The oldest tenth is dropped when the cap is exceeded."
-msgstr "Numri maksimal i telegrameve që mban ky monitor. Kur kalohet kufiri, hiqet një e dhjeta e telegrameve më të vjetra."
-
 msgid "{count} telegram exported to {path}"
 msgid_plural "{count} telegrams exported to {path}"
 msgstr[0] "{count} telegram u eksportua në {path}"
@@ -405,12 +399,6 @@ msgid_plural "Replay cancelled: {count} telegrams sent"
 msgstr[0] "Ridërgimi u anulua: {count} telegram u dërgua"
 msgstr[1] "Ridërgimi u anulua: {count} telegrame u dërguan"
 
-msgid "Persist"
-msgstr "Mbaj telegramet"
-
-msgid "Keep this project's group telegrams across restarts"
-msgstr "Mbaj telegramet e grupit të këtij projekti edhe pas rinisjes"
-
 msgid "Persist Group Monitor Telegrams"
 msgstr "Mbaj telegramet e Monitorit të grupeve"
 
@@ -422,21 +410,6 @@ msgstr "Madhësia maksimale e skedarit të telegrameve (MB)"
 
 msgid "The oldest telegrams are dropped to keep the saved file under this size. 0 = no limit."
 msgstr "Telegramet më të vjetra hiqen që skedari i ruajtur të mos e tejkalojë këtë madhësi. 0 = pa kufi."
-
-msgid "Unlimited Recording"
-msgstr "Regjistrim pa kufi"
-
-msgid "Without a count limit the telegrams can use a lot of memory, and disk while persisting. Continue?"
-msgstr "Pa kufizim të numrit të telegrameve, ato mund të zënë shumë memorie dhe hapësirë në disk kur ruhen. Të vazhdohet?"
-
-msgid "0 = unlimited"
-msgstr "0 = pa kufi"
-
-msgid "Maximum Telegrams"
-msgstr "Numri maksimal i telegrameve"
-
-msgid "How many telegrams the Group Monitor keeps before dropping the oldest. 0 = unlimited."
-msgstr "Sa telegrame ruan Monitori i grupeve përpara se të heqë telegramet më të vjetra. 0 = pa kufi."
 
 msgid "Open Monitor Folder"
 msgstr "Hap dosjen e monitorit"
@@ -481,3 +454,21 @@ msgstr[1] "{count} telegrame"
 
 msgid "max {peak}/min at {when}"
 msgstr "maks {peak}/min në {when}"
+
+msgid "Maximum Group Monitor Telegrams"
+msgstr "Numri maksimal i telegrameve në Monitorin e grupeve"
+
+msgid "Maximum Bus Monitor Telegrams"
+msgstr "Numri maksimal i telegrameve në Monitorin e busit"
+
+msgid "Maximum Bus Activity Telegrams"
+msgstr "Numri maksimal i telegrameve në Aktivitetin e busit"
+
+msgid "How many telegrams the Group Monitor keeps before dropping the oldest. 0 = unlimited."
+msgstr "Sa telegrame ruan Monitori i grupeve përpara se të heqë telegramet më të vjetra. 0 = pa kufi."
+
+msgid "How many telegrams the Bus Monitor keeps before dropping the oldest. 0 = unlimited."
+msgstr "Sa telegrame ruan Monitori i busit përpara se të heqë telegramet më të vjetra. 0 = pa kufi."
+
+msgid "How many telegrams Bus Activity keeps before dropping the oldest. 0 = unlimited."
+msgstr "Sa telegrame ruan Aktiviteti i busit përpara se të heqë telegramet më të vjetra. 0 = pa kufi."

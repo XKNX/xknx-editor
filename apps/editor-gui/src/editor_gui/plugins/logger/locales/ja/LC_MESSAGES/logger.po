@@ -36,3 +36,14 @@ msgstr "警告"
 
 msgid "Error"
 msgstr "エラー"
+
+msgid "The lowest level shown: entries of this level and of the levels above it"
+msgstr "表示する最低レベル: このレベル以上のエントリ"
+
+msgid "{count} log entry"
+msgid_plural "{count} log entries"
+msgstr[0] "{count} 件のログ"
+
+msgid "{count} shown with the filter"
+msgid_plural "{count} shown with the filter"
+msgstr[0] "フィルターで {count} 件を表示"

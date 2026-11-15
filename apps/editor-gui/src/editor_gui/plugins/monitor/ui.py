@@ -43,24 +43,13 @@ class MonitorPanel:
         get_index: Callable[[], ProjectIndex],
         notify: Callable[[str], None] | None = None,
         on_select_device: Callable[[int], None] | None = None,
-        persist_get: Callable[[], bool] | None = None,
-        persist_set: Callable[[bool], None] | None = None,
     ) -> None:
         self._service = service
         self._connection = connection
         self._get_group_addresses = get_group_addresses
         self._get_index = get_index
         self._views = {
-            kind: TelegramView(
-                kind,
-                service,
-                connection,
-                notify,
-                on_select_device,
-                # Persistence applies to the Group Monitor only.
-                persist_get if kind is MonitorKind.GROUP else None,
-                persist_set if kind is MonitorKind.GROUP else None,
-            )
+            kind: TelegramView(kind, service, connection, notify, on_select_device)
             for kind in MonitorKind
         }
         # Group Objects tab.
@@ -72,7 +61,7 @@ class MonitorPanel:
         self._cmd_value = DptValueInput("mon_cmd_value")
         self._cmd_focused: MonitorRecord | None = None
         # Statistics tab (Group Monitor telegrams aggregated).
-        self._statistics = StatisticsView(service, persist_get, persist_set)
+        self._statistics = StatisticsView(service)
 
     def _is_connected(self) -> bool:
         """Whether the command bars can send (also through Home Assistant's connection)."""

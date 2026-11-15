@@ -73,8 +73,6 @@ class MonitorPlugin:
             get_index=self._project_index,
             notify=api.tell_refused,
             on_select_device=self._select_device,
-            persist_get=lambda: self._persist,
-            persist_set=self.set_persist,
         )
         connection = api.connection
         connection.add_raw_cemi_listener(self._service.on_raw_cemi)
@@ -182,17 +180,47 @@ class MonitorPlugin:
             folder.mkdir(parents=True, exist_ok=True)
             open_folder(folder)
 
-        return [
-            Setting(
-                "max_telegrams",
-                lambda: S.SETTING_MAX_TELEGRAMS,
+        def max_telegrams(
+            key: str,
+            kind: MonitorKind,
+            label: Callable[[], str],
+            hint: Callable[[], str],
+        ) -> Setting:
+            """How many telegrams the monitor of ``kind`` keeps: 0 = unlimited, else at
+            least 10."""
+
+            def set_max(value: object) -> None:
+                count = int(str(value))
+                self._service.set_max_records(kind, 0 if count <= 0 else max(count, 10))
+
+            return Setting(
+                key,
+                label,
                 "int",
-                get=lambda: self._service.max_records(MonitorKind.GROUP),
-                set=lambda value: self._service.set_max_records(
-                    MonitorKind.GROUP, int(value)
-                ),
+                get=lambda: self._service.max_records(kind),
+                set=set_max,
                 bounds=(0, 1_000_000),
-                hint=lambda: S.SETTING_MAX_TELEGRAMS_HINT,
+                hint=hint,
+            )
+
+        return [
+            max_telegrams(
+                "max_telegrams",
+                MonitorKind.GROUP,
+                lambda: S.SETTING_MAX_TELEGRAMS,
+                lambda: S.SETTING_MAX_TELEGRAMS_HINT,
+            ),
+            max_telegrams(
+                "max_bus_telegrams",
+                MonitorKind.BUS,
+                lambda: S.SETTING_MAX_BUS_TELEGRAMS,
+                lambda: S.SETTING_MAX_BUS_TELEGRAMS_HINT,
+            ),
+            max_telegrams(
+                "max_activity_telegrams",
+                MonitorKind.ACTIVITY,
+                lambda: S.SETTING_MAX_ACTIVITY_TELEGRAMS,
+                lambda: S.SETTING_MAX_ACTIVITY_TELEGRAMS_HINT,
             ),
             Setting(
                 "persist_telegrams",

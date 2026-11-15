@@ -3263,3 +3263,9 @@ msgstr "Interne waarden"
 
 msgid "Acknowledge Group Address"
 msgstr "Groepsadres Bevestigen"
+
+msgid "Select another step in the list to bring the project back to it"
+msgstr "Selecteer een andere stap in de lijst om het project daarnaar terug te zetten"
+
+msgid "Current state of the project"
+msgstr "Huidige toestand van het project"

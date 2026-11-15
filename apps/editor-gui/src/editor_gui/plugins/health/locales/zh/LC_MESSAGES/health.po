@@ -28,14 +28,6 @@ msgstr "{address} {name}：没有数据点类型"
 msgid "{address} {name}: no known value source in the project"
 msgstr "{address} {name}：项目中没有已知的值来源"
 
-msgid "{count} error"
-msgid_plural "{count} errors"
-msgstr[0] "{count} 个错误"
-
-msgid "{count} warning"
-msgid_plural "{count} warnings"
-msgstr[0] "{count} 个警告"
-
 msgid "{count} device skipped: application not in catalog"
 msgid_plural "{count} devices skipped: application not in catalog"
 msgstr[0] "已跳过 {count} 个设备：应用不在产品目录中"
@@ -47,3 +39,15 @@ msgstr[0] "{device}：{count} 个未链接的组对象"
 msgid "{address} {name}: {count} transmit-capable group object; check assignment"
 msgid_plural "{address} {name}: {count} transmit-capable group objects; check assignment"
 msgstr[0] "{address} {name}：{count} 个可发送的组对象；请检查分配"
+
+msgid "Errors"
+msgstr "错误"
+
+msgid "Warnings"
+msgstr "警告"
+
+msgid "Hints"
+msgstr "提示"
+
+msgid "No findings of the selected kinds"
+msgstr "没有所选类型的结果"

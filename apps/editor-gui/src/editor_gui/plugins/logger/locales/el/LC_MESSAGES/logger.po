@@ -36,3 +36,16 @@ msgstr "Προειδοποίηση"
 
 msgid "Error"
 msgstr "Σφάλμα"
+
+msgid "The lowest level shown: entries of this level and of the levels above it"
+msgstr "Χαμηλότερο εμφανιζόμενο επίπεδο: καταχωρίσεις αυτού του επιπέδου και των ανώτερων"
+
+msgid "{count} log entry"
+msgid_plural "{count} log entries"
+msgstr[0] "{count} καταχώριση αρχείου καταγραφής"
+msgstr[1] "{count} καταχωρίσεις αρχείου καταγραφής"
+
+msgid "{count} shown with the filter"
+msgid_plural "{count} shown with the filter"
+msgstr[0] "{count} εμφανίζεται με το φίλτρο"
+msgstr[1] "{count} εμφανίζονται με το φίλτρο"

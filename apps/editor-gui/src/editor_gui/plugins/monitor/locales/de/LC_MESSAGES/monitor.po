@@ -372,12 +372,6 @@ msgstr "Adresse"
 msgid "Name"
 msgstr "Name"
 
-msgid "Max"
-msgstr "Max"
-
-msgid "Maximum telegrams this monitor keeps. The oldest tenth is dropped when the cap is exceeded."
-msgstr "Maximale Anzahl Telegramme, die dieser Monitor behält. Das älteste Zehntel wird verworfen, sobald die Grenze überschritten ist."
-
 msgid "{count} telegram exported to {path}"
 msgid_plural "{count} telegrams exported to {path}"
 msgstr[0] "{count} Telegramm nach {path} exportiert"
@@ -408,12 +402,6 @@ msgid_plural "Replay cancelled: {count} telegrams sent"
 msgstr[0] "Wiedergabe abgebrochen: {count} Telegramm gesendet"
 msgstr[1] "Wiedergabe abgebrochen: {count} Telegramme gesendet"
 
-msgid "Persist"
-msgstr "Behalten"
-
-msgid "Keep this project's group telegrams across restarts"
-msgstr "Die Gruppen-Telegramme dieses Projekts über Neustarts hinweg behalten"
-
 msgid "Persist Group Monitor Telegrams"
 msgstr "Gruppenmonitor-Telegramme behalten"
 
@@ -425,21 +413,6 @@ msgstr "Maximale Telegrammdatei (MB)"
 
 msgid "The oldest telegrams are dropped to keep the saved file under this size. 0 = no limit."
 msgstr "Älteste Telegramme werden verworfen, damit die Datei unter dieser Größe bleibt. 0 = kein Limit."
-
-msgid "Unlimited Recording"
-msgstr "Unbegrenzte Aufzeichnung"
-
-msgid "Without a count limit the telegrams can use a lot of memory, and disk while persisting. Continue?"
-msgstr "Ohne Anzahl-Limit können die Telegramme viel Speicher belegen, beim Persistieren auch Plattenplatz. Fortfahren?"
-
-msgid "0 = unlimited"
-msgstr "0 = unbegrenzt"
-
-msgid "Maximum Telegrams"
-msgstr "Maximale Telegramme"
-
-msgid "How many telegrams the Group Monitor keeps before dropping the oldest. 0 = unlimited."
-msgstr "Wie viele Telegramme der Gruppenmonitor behält, bevor die ältesten verworfen werden. 0 = unbegrenzt."
 
 msgid "Open Monitor Folder"
 msgstr "Monitor-Ordner öffnen"
@@ -484,3 +457,21 @@ msgstr[1] "{count} Telegramme"
 
 msgid "max {peak}/min at {when}"
 msgstr "max {peak}/min um {when}"
+
+msgid "Maximum Group Monitor Telegrams"
+msgstr "Maximale Telegramme im Gruppenmonitor"
+
+msgid "Maximum Bus Monitor Telegrams"
+msgstr "Maximale Telegramme im Busmonitor"
+
+msgid "Maximum Bus Activity Telegrams"
+msgstr "Maximale Telegramme in der Busaktivität"
+
+msgid "How many telegrams the Group Monitor keeps before dropping the oldest. 0 = unlimited."
+msgstr "Wie viele Telegramme der Gruppenmonitor behält, bevor die ältesten verworfen werden. 0 = unbegrenzt."
+
+msgid "How many telegrams the Bus Monitor keeps before dropping the oldest. 0 = unlimited."
+msgstr "Wie viele Telegramme der Busmonitor behält, bevor die ältesten verworfen werden. 0 = unbegrenzt."
+
+msgid "How many telegrams Bus Activity keeps before dropping the oldest. 0 = unlimited."
+msgstr "Wie viele Telegramme die Busaktivität behält, bevor die ältesten verworfen werden. 0 = unbegrenzt."

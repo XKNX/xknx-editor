@@ -3230,3 +3230,9 @@ msgstr "Valeurs internes"
 
 msgid "Acknowledge Group Address"
 msgstr "Acquitter l’Adresse de Groupe"
+
+msgid "Select another step in the list to bring the project back to it"
+msgstr "Sélectionnez une autre étape dans la liste pour y ramener le projet"
+
+msgid "Current state of the project"
+msgstr "État actuel du projet"

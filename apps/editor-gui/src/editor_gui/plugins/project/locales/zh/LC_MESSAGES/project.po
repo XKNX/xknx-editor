@@ -3178,3 +3178,9 @@ msgstr "内部值"
 
 msgid "Acknowledge Group Address"
 msgstr "确认组地址"
+
+msgid "Select another step in the list to bring the project back to it"
+msgstr "在列表中选择另一个步骤，将项目恢复到该步骤"
+
+msgid "Current state of the project"
+msgstr "项目的当前状态"

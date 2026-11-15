@@ -17,6 +17,7 @@ from editor_gui.plugins.project.strings import S
 from editor_gui.theme import status_color
 from editor_gui.widgets.tabs import begin_tab_bar
 from editor_gui.widgets.text_util import human_size
+from editor_gui.widgets.tree import label_offset, tree_node
 from xknxeditor.download.scope import DownloadScope
 
 # Seconds a script may ignore Cancel before Force stop is offered.
@@ -151,17 +152,20 @@ class ProgramQueuePanel:
         if failed:
             imgui.push_style_color(imgui.Col_.text, status_color("error"))
         state = state_text(item, self._is_connecting(item))
-        # A bus operation is named in the line above already.
-        is_open = imgui.tree_node_ex(
+        # A bus operation is named in the line above already. The tree's row (its narrow arrow
+        # margin); the details start where its text does.
+        is_open = tree_node(
             f"{state if item.bus_operation is not None else f'{operation_text(item)}: {state}'}"
             "###status",
-            imgui.TreeNodeFlags_.span_avail_width,
+            imgui.TreeNodeFlags_.span_avail_width
+            | imgui.TreeNodeFlags_.no_tree_push_on_open,
         )
         if failed:
             imgui.pop_style_color()
         if is_open:
+            imgui.indent(label_offset())
             _render_details(item)
-            imgui.tree_pop()
+            imgui.unindent(label_offset())
         imgui.separator()
         imgui.pop_id()
 

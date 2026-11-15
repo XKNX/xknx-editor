@@ -28,16 +28,6 @@ msgstr "{address} {name}: engin gagnapunktsgerð"
 msgid "{address} {name}: no known value source in the project"
 msgstr "{address} {name}: engin þekkt uppspretta gilda í verkefninu"
 
-msgid "{count} error"
-msgid_plural "{count} errors"
-msgstr[0] "{count} villa"
-msgstr[1] "{count} villur"
-
-msgid "{count} warning"
-msgid_plural "{count} warnings"
-msgstr[0] "{count} viðvörun"
-msgstr[1] "{count} viðvaranir"
-
 msgid "{count} device skipped: application not in catalog"
 msgid_plural "{count} devices skipped: application not in catalog"
 msgstr[0] "{count} tæki sleppt (verkforrit ekki í vörulista)"
@@ -52,3 +42,15 @@ msgid "{address} {name}: {count} transmit-capable group object; check assignment
 msgid_plural "{address} {name}: {count} transmit-capable group objects; check assignment"
 msgstr[0] "{address} {name}: {count} hóphlutur sem getur sent; athugaðu úthlutunina"
 msgstr[1] "{address} {name}: {count} hóphlutir sem geta sent; athugaðu úthlutunina"
+
+msgid "Errors"
+msgstr "Villur"
+
+msgid "Warnings"
+msgstr "Viðvaranir"
+
+msgid "Hints"
+msgstr "Ábendingar"
+
+msgid "No findings of the selected kinds"
+msgstr "Engar niðurstöður af völdum tegundum"

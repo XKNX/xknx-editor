@@ -28,14 +28,6 @@ msgstr "{address} {name}: veri tipi yok"
 msgid "{address} {name}: no known value source in the project"
 msgstr "{address} {name}: projede bilinen bir değer kaynağı yok"
 
-msgid "{count} error"
-msgid_plural "{count} errors"
-msgstr[0] "{count} hata"
-
-msgid "{count} warning"
-msgid_plural "{count} warnings"
-msgstr[0] "{count} uyarı"
-
 msgid "{count} device skipped: application not in catalog"
 msgid_plural "{count} devices skipped: application not in catalog"
 msgstr[0] "{count} cihaz atlandı (uygulama katalogda değil)"
@@ -47,3 +39,15 @@ msgstr[0] "{device}: {count} bağlanmamış grup nesnesi"
 msgid "{address} {name}: {count} transmit-capable group object; check assignment"
 msgid_plural "{address} {name}: {count} transmit-capable group objects; check assignment"
 msgstr[0] "{address} {name}: {count} iletim yapabilen grup nesnesi; atamayı kontrol edin"
+
+msgid "Errors"
+msgstr "Hatalar"
+
+msgid "Warnings"
+msgstr "Uyarılar"
+
+msgid "Hints"
+msgstr "İpuçları"
+
+msgid "No findings of the selected kinds"
+msgstr "Seçilen türlerde bulgu yok"

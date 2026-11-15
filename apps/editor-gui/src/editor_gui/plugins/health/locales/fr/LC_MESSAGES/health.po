@@ -28,16 +28,6 @@ msgstr "{address} {name} : aucun type de point de données"
 msgid "{address} {name}: no known value source in the project"
 msgstr "{address} {name} : aucune source de valeurs connue dans le projet"
 
-msgid "{count} error"
-msgid_plural "{count} errors"
-msgstr[0] "{count} erreur"
-msgstr[1] "{count} erreurs"
-
-msgid "{count} warning"
-msgid_plural "{count} warnings"
-msgstr[0] "{count} avertissement"
-msgstr[1] "{count} avertissements"
-
 msgid "{count} device skipped: application not in catalog"
 msgid_plural "{count} devices skipped: application not in catalog"
 msgstr[0] "{count} participant ignoré : application absente du catalogue"
@@ -52,3 +42,15 @@ msgid "{address} {name}: {count} transmit-capable group object; check assignment
 msgid_plural "{address} {name}: {count} transmit-capable group objects; check assignment"
 msgstr[0] "{address} {name} : {count} objet de groupe capable de transmettre ; vérifiez l’affectation"
 msgstr[1] "{address} {name} : {count} objets de groupe capables de transmettre ; vérifiez l’affectation"
+
+msgid "Errors"
+msgstr "Erreurs"
+
+msgid "Warnings"
+msgstr "Avertissements"
+
+msgid "Hints"
+msgstr "Conseils"
+
+msgid "No findings of the selected kinds"
+msgstr "Aucun résultat des types sélectionnés"

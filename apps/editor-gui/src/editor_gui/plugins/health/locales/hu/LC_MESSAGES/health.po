@@ -28,14 +28,6 @@ msgstr "{address} {name}: nincs adatponttípus"
 msgid "{address} {name}: no known value source in the project"
 msgstr "{address} {name}: nincs ismert értékforrás a projektben"
 
-msgid "{count} error"
-msgid_plural "{count} errors"
-msgstr[0] "{count} hiba"
-
-msgid "{count} warning"
-msgid_plural "{count} warnings"
-msgstr[0] "{count} figyelmeztetés"
-
 msgid "{count} device skipped: application not in catalog"
 msgid_plural "{count} devices skipped: application not in catalog"
 msgstr[0] "{count} készülék kihagyva (az alkalmazás nincs a katalógusban)"
@@ -47,3 +39,15 @@ msgstr[0] "{device}: {count} nem összekapcsolt kommunikációs objektum"
 msgid "{address} {name}: {count} transmit-capable group object; check assignment"
 msgid_plural "{address} {name}: {count} transmit-capable group objects; check assignment"
 msgstr[0] "{address} {name}: {count} küldésre képes csoportobjektum; ellenőrizze a hozzárendelést"
+
+msgid "Errors"
+msgstr "Hibák"
+
+msgid "Warnings"
+msgstr "Figyelmeztetések"
+
+msgid "Hints"
+msgstr "Tippek"
+
+msgid "No findings of the selected kinds"
+msgstr "Nincs találat a kiválasztott típusokból"

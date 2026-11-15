@@ -160,6 +160,12 @@ from editor_gui.widgets.fonts import (
     heading,
     load_fonts,
 )
+from editor_gui.widgets.icon_button import (
+    ICON_COPY,
+    copy_button,
+    icon_button_width,
+    text_with_copy_button,
+)
 from editor_gui.widgets.markdown import COMPACT as COMPACT_MARKDOWN
 from editor_gui.widgets.markdown import render_markdown
 from editor_gui.widgets.parameter_widgets import set_highlight_changes
@@ -563,6 +569,31 @@ class _ProductRow:
     mask: str
     hardware: str
     registered: str
+    # Whether the import added it (else it was in the catalog already).
+    new: bool = False
+
+
+def _product_status(row: _ProductRow) -> str:
+    """Whether the import added ``row`` or it was in the catalog already."""
+    return S.KNXPROD_STATUS_NEW if row.new else S.KNXPROD_STATUS_EXISTING
+
+
+def _product_columns() -> tuple[
+    tuple[str, Callable[[_ProductRow], str], bool, float], ...
+]:
+    """The columns of the product-import table: (label, cell text, stretch, the widest a
+    fixed column gets in unscaled pixels)."""
+    return (
+        (S.KNXPROD_COL_STATUS, _product_status, False, 0.0),
+        (S.KNXPROD_COL_MANUFACTURER, lambda r: r.manufacturer, False, 170.0),
+        (S.KNXPROD_COL_PRODUCT, lambda r: r.product, True, 0.0),
+        (S.KNXPROD_COL_ORDER, lambda r: r.order, False, 150.0),
+        (S.KNXPROD_COL_APPLICATION, lambda r: r.application, True, 0.0),
+        (S.KNXPROD_COL_VERSION, lambda r: r.version, False, 70.0),
+        (S.KNXPROD_COL_MASK, lambda r: r.mask, False, 90.0),
+        (S.KNXPROD_COL_HARDWARE, lambda r: r.hardware, True, 0.0),
+        (S.KNXPROD_COL_REGISTERED, lambda r: r.registered, False, 190.0),
+    )
 
 
 @dataclass(frozen=True, slots=True)
@@ -822,6 +853,8 @@ class KnxGuiApp:
         # ``_import_rows_result``; the render loop latches it into ``_import_rows`` until OK.
         self._import_rows_result: tuple[str, list[_ProductRow]] | None = None
         self._import_rows: tuple[str, list[_ProductRow]] | None = None
+        # The content width of the table's columns: ((rows id, font size), widths).
+        self._product_widths: tuple[tuple[int, float], list[float]] = ((0, 0.0), [])
         # Lossy-import notes to show in a readable modal (set after a lossy import or before an
         # export that echoes them); rendered by _render_import_notes_modal.
         self._import_notes: list[ImportLoss] = []
@@ -1448,16 +1481,17 @@ class KnxGuiApp:
             self._file_dialog_error_requested = False
         if not begin_dialog(title, width=560.0):
             return
+        # The command ends the text: on its own line, with the copy button right of it.
         imgui.text_wrapped(
             S.FILE_DIALOG_UNAVAILABLE_TEXT.format(
-                programs=", ".join(self._file_dialog_missing),
-                command=self._file_dialog_install_command,
-            )
+                programs=", ".join(self._file_dialog_missing), command=""
+            ).rstrip()
         )
-        clicked = dialog_buttons(S.BTN_COPY, S.BTN_CLOSE)
-        if clicked == 0:
-            imgui.set_clipboard_text(self._file_dialog_install_command)
-        elif clicked == 1:
+        if text_with_copy_button(
+            "file_dialog_command", self._file_dialog_install_command, disabled=False
+        ):
+            self._flash_toast(S.COPIED)
+        if dialog_buttons(S.BTN_CLOSE) == 0:
             imgui.close_current_popup()
         end_dialog()
 
@@ -2317,13 +2351,16 @@ class KnxGuiApp:
         dongle = False
         # Both tabs share one height so the dialog does not jump on switch, sized to the dongle steps
         # (the taller tab) so they show without an inner scrollbar. The dongle box's text width is the
-        # tab page's content width (page padding + the box's own frame padding/border).
+        # tab page's content width (page padding + the box's own frame padding/border), without the
+        # copy button right of the box.
         style = imgui.get_style()
         steps_w = (
             imgui.get_content_region_avail().x
             - 2 * style.window_padding.x
             - 2 * style.frame_padding.x
             - 2 * style.frame_border_size
+            - icon_button_width(ICON_COPY)
+            - style.item_spacing.x
         )
         steps_key = (S.MYKNX_DONGLE_STEPS, steps_w)
         if self._dongle_steps_wrapped[0] != steps_key:
@@ -2332,8 +2369,6 @@ class KnxGuiApp:
         tab_page_h = (
             steps_lines * imgui.get_text_line_height()
             + 2 * style.frame_padding.y  # the steps box's own padding
-            + imgui.get_frame_height()  # the Copy button row below the box
-            + style.item_spacing.y
             + 2 * style.window_padding.y  # the tab page's own padding
         )
         # Local-ETS re-export drives the installed tool, so it makes no sense on a server (web mode):
@@ -3162,7 +3197,7 @@ class KnxGuiApp:
             if added:
                 self._import_rows_result = (
                     _import_summary(len(added), new, url),
-                    self._product_import_rows(added),
+                    self._product_import_rows(added, imported.new),
                 )
             else:
                 self._knxprod_result = S.URL_IMPORT_EMPTY
@@ -3272,7 +3307,7 @@ class KnxGuiApp:
             if added_all:
                 self._import_rows_result = (
                     _import_summary(len(added_all), new, source),
-                    self._product_import_rows(added_all),
+                    self._product_import_rows(added_all, new_keys),
                 )
             else:
                 self._knxprod_result = S.IMPORT_CANCELLED if cancel.is_set() else empty
@@ -3898,14 +3933,24 @@ class KnxGuiApp:
         ):
             self._export_knxproj()
 
-    def _product_import_rows(self, added: list[ProductSummary]) -> list[_ProductRow]:
+    def _product_import_rows(
+        self,
+        added: list[ProductSummary],
+        new: frozenset[tuple[str, str]] | set[tuple[str, str]],
+    ) -> list[_ProductRow]:
         """One pre-formatted table row per imported product version, with its technical facts
         (order number, application + real version, mask, KNX Secure, size, bus current, media,
-        registration), sorted for reading."""
+        registration) and whether it is new (its product and hardware program in ``new``);
+        the new ones first, each part sorted for reading."""
+
+        def is_new(p: ProductSummary) -> bool:
+            return (p.product_ref_id, p.hardware2program_ref_id) in new
+
         rows: list[_ProductRow] = []
         for product in sorted(
             added,
             key=lambda p: (
+                not is_new(p),
                 (p.manufacturer_name or "").lower(),
                 (p.name or "").lower(),
                 p.order_number or "",
@@ -3964,6 +4009,7 @@ class KnxGuiApp:
                     mask=facts.mask_version if facts and facts.mask_version else "",
                     hardware="  ·  ".join(hardware),
                     registered="  ·  ".join(registered),
+                    new=is_new(product),
                 )
             )
         return rows
@@ -3996,7 +4042,7 @@ class KnxGuiApp:
                     )
                     self._import_rows_result = (
                         _import_summary(len(added), new, name),
-                        self._product_import_rows(added),
+                        self._product_import_rows(added, imported.new),
                     )
                 else:
                     self._log.info("knxprod held no products", path=path)
@@ -4599,7 +4645,16 @@ class KnxGuiApp:
             if imgui.is_popup_open("", imgui.PopupFlags_.any_popup):
                 return
             imgui.open_popup(S.KNXPROD_IMPORT_TITLE)
-        width = 1000.0 if self._import_rows is not None else 560.0
+        # As wide as the product table's content (within limits; a narrow screen gets the width
+        # there is, the table scrolls sideways there).
+        width = (
+            min(
+                max(1000.0, self._product_table_width(self._import_rows[1]) + 40.0),
+                1400.0,
+            )
+            if self._import_rows is not None
+            else 560.0
+        )
         if not begin_dialog(S.KNXPROD_IMPORT_TITLE, width=width):
             return
         if self._import_rows is not None:
@@ -4624,49 +4679,84 @@ class KnxGuiApp:
         end_dialog()
 
     def _render_product_table(self, rows: list[_ProductRow]) -> None:
-        """The imported product versions as a one-row-per-product table. Short columns keep a tight
-        fixed width; the free-text columns stretch to fill the dialog so it needs no sideways scroll
-        (the wrapper still scrolls sideways on a narrow phone window)."""
-        # (label, getter, stretch): a stretching column's width follows the dialog; a fixed one
-        # keeps the px width below. Overflow in any cell is clipped with a hover tooltip.
-        columns: tuple[tuple[str, Callable[[_ProductRow], str], bool, float], ...] = (
-            (S.KNXPROD_COL_MANUFACTURER, lambda r: r.manufacturer, False, 95.0),
-            (S.KNXPROD_COL_PRODUCT, lambda r: r.product, True, 1.4),
-            (S.KNXPROD_COL_ORDER, lambda r: r.order, False, 115.0),
-            (S.KNXPROD_COL_APPLICATION, lambda r: r.application, True, 1.4),
-            (S.KNXPROD_COL_VERSION, lambda r: r.version, False, 50.0),
-            (S.KNXPROD_COL_MASK, lambda r: r.mask, False, 72.0),
-            (S.KNXPROD_COL_HARDWARE, lambda r: r.hardware, True, 1.0),
-            (S.KNXPROD_COL_REGISTERED, lambda r: r.registered, False, 140.0),
-        )
+        """The imported product versions as a one-row-per-product table, each first with whether
+        it is new or was in the catalog already. The columns are as wide as their content: a short
+        one exactly (up to a limit), the free-text ones share the rest of the dialog by their
+        content; where the dialog is narrower than that (a phone), the table scrolls sideways.
+        Overflow in any cell is clipped with a hover tooltip."""
+        columns = _product_columns()
+        widths = self._product_column_widths(rows)
         flags = (
             imgui.TableFlags_.borders_inner
             | imgui.TableFlags_.row_bg
             | imgui.TableFlags_.resizable
             | imgui.TableFlags_.reorderable
             | imgui.TableFlags_.scroll_y
+            | imgui.TableFlags_.no_saved_settings
         )
         height = min(px(380.0), text_table_height(len(rows)))
+        # Its own table per import result: the widths follow each one's content.
         if not begin_data_table(
-            "##product_import", len(columns), flags, imgui.ImVec2(0.0, height)
+            f"##product_import_{id(rows)}",
+            len(columns),
+            flags,
+            imgui.ImVec2(0.0, height),
+            min_width=self._product_table_width(rows),
         ):
             return
-        for label, _get, stretch, size in columns:
+        for (label, _get, stretch, cap), width in zip(columns, widths, strict=True):
             if stretch:
                 imgui.table_setup_column(
-                    label, imgui.TableColumnFlags_.width_stretch, size
+                    label, imgui.TableColumnFlags_.width_stretch, width
                 )
             else:
                 imgui.table_setup_column(
-                    label, imgui.TableColumnFlags_.width_fixed, px(size)
+                    label,
+                    imgui.TableColumnFlags_.width_fixed,
+                    min(width, px(cap)) if cap else width,
                 )
         data_table_headers()
+        new_color = status_color("success")
         for row in rows:
             imgui.table_next_row()
-            for index, (_label, get, _stretch, _size) in enumerate(columns):
+            imgui.table_set_column_index(0)
+            if row.new:
+                imgui.text_colored(new_color, _product_status(row))
+            else:
+                imgui.text_disabled(_product_status(row))
+            for index, (_label, get, _stretch, _cap) in enumerate(columns[1:], 1):
                 imgui.table_set_column_index(index)
                 text_clipped_tooltip(get(row))
         imgui.end_table()
+
+    def _product_column_widths(self, rows: list[_ProductRow]) -> list[float]:
+        """The width of the widest text of each column (its header or a cell), made once per
+        import result and font size."""
+        key = (id(rows), imgui.get_font_size())
+        if self._product_widths[0] != key:
+            self._product_widths = (
+                key,
+                [
+                    max(
+                        imgui.calc_text_size(text).x
+                        for text in (label, *(get(row) for row in rows))
+                    )
+                    for label, get, _stretch, _cap in _product_columns()
+                ],
+            )
+        return self._product_widths[1]
+
+    def _product_table_width(self, rows: list[_ProductRow]) -> float:
+        """The width (unscaled pixels) the product table needs to show its texts unclipped: the
+        short columns up to their limit, the free-text ones whole."""
+        pad = 2 * imgui.get_style().cell_padding.x
+        total = sum(
+            (min(width, px(cap)) if cap else width) + pad
+            for (_label, _get, _stretch, cap), width in zip(
+                _product_columns(), self._product_column_widths(rows), strict=True
+            )
+        )
+        return total / px(1.0)
 
     def _render_about_modal(self) -> None:
         if self._about_requested:
@@ -5673,11 +5763,13 @@ class KnxGuiApp:
         # P-XXXX_M-dummy stay intact) — otherwise long lines are clipped on the right.
         style = imgui.get_style()
         # The box's text width: inside its padding and the border (sized to its full content below,
-        # so there is no scrollbar to leave room for).
+        # so there is no scrollbar to leave room for), with the copy button right of the box.
+        button_slot = icon_button_width(ICON_COPY) + style.item_spacing.x
         width = (
             imgui.get_content_region_avail().x
             - 2 * style.frame_padding.x
             - 2 * style.frame_border_size
+            - button_slot
         )
         key = (S.MYKNX_DONGLE_STEPS, width)
         if self._dongle_steps_wrapped[0] != key:
@@ -5685,17 +5777,18 @@ class KnxGuiApp:
         wrapped = self._dongle_steps_wrapped[1]
         # Size the box to its wrapped line count so every step shows without an inner scrollbar. The
         # read-only multiline advances one font line (no item spacing) per line, so use the plain line
-        # height; the surrounding tab page was sized to fit exactly this box plus the Copy button.
+        # height; the surrounding tab page was sized to fit exactly this box.
         lines = wrapped.count("\n") + 1
         height = lines * imgui.get_text_line_height() + 2 * style.frame_padding.y
         imgui.input_text_multiline(
             "##dongle_steps",
             wrapped,
-            imgui.ImVec2(-1.0, height),
+            imgui.ImVec2(-button_slot, height),
             imgui.InputTextFlags_.read_only,
         )
-        if imgui.button(S.BTN_COPY):
-            imgui.set_clipboard_text(S.MYKNX_DONGLE_STEPS)
+        imgui.same_line()
+        if copy_button("dongle_steps", S.MYKNX_DONGLE_STEPS):
+            self._flash_toast(S.COPIED)
 
     def _probe_ets(self) -> None:
         """Detect a local ETS install (backend-independent) and record the outcome + a log line.
@@ -7105,16 +7198,12 @@ class KnxGuiApp:
             )
         imgui.pop_text_wrap_pos()
         for label, command in self._mcp_client_commands():
+            # Each tool as the section itself: its name, then the text, as close as the
+            # section's title is to its text; the copy button right of the text it copies.
             imgui.spacing()
-            imgui.align_text_to_frame_padding()
             imgui.text(label)
-            imgui.same_line()
-            if imgui.small_button(f"{S.BTN_COPY}##mcp_cmd_{label}"):
-                imgui.set_clipboard_text(command)
+            if text_with_copy_button(f"mcp_cmd_{label}", command):
                 self._flash_toast(S.COPIED)
-            imgui.push_text_wrap_pos(0.0)
-            imgui.text_disabled(command)
-            imgui.pop_text_wrap_pos()
 
     def _mcp_client_commands(
         self, *, placeholder: bool = False
@@ -7150,13 +7239,8 @@ class KnxGuiApp:
         return os.environ.get("XKNX_MCP_AUTH_TOKEN", "").strip()
 
     def _copy_row(self, text: str, ident: str) -> None:
-        """``text`` with a button that copies it."""
-        imgui.align_text_to_frame_padding()
-        imgui.push_text_wrap_pos(0.0)
-        imgui.text_disabled(text)
-        imgui.pop_text_wrap_pos()
-        if imgui.small_button(f"{S.BTN_COPY}##copy_{ident}"):
-            imgui.set_clipboard_text(text)
+        """``text`` with a button that copies it, on the line of the setting's name."""
+        if text_with_copy_button(ident, text, aligned=True):
             self._flash_toast(S.COPIED)
 
     def _render_welcome(self) -> None:

@@ -123,7 +123,7 @@ def add_menu_item(label: str, why_not: str = "") -> bool:
 def add_button(label: str, why_not: str = "") -> bool:
     """An "Add …" toolbar button, clicked; grayed out like :func:`add_menu_item`."""
     imgui.begin_disabled(bool(why_not))
-    clicked = imgui.small_button(label)
+    clicked = imgui.button(label)
     imgui.end_disabled()
     if why_not and imgui.is_item_hovered(imgui.HoveredFlags_.allow_when_disabled):
         imgui.set_tooltip(why_not)

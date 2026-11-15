@@ -67,3 +67,30 @@ async def test_health_follows_flag_edits_and_undo(tmp_path: Path) -> None:
             ] == 0
     finally:
         project.close()
+
+
+async def test_health_filters_by_kind_as_its_checkboxes(tmp_path: Path) -> None:
+    mcp, project = _build(tmp_path)
+    try:
+        async with Client(mcp) as client:
+            await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
+            await _data(client, "catalog_import_product", path=str(_FIXTURE))
+            product = (await _data(client, "catalog_list_products"))["items"][0]
+            await _data(
+                client, "project_add_device", product_ref_id=product["product_ref_id"]
+            )
+            everything = (await _data(client, "project_health"))["items"]
+            kinds = {item["severity"] for item in everything}
+            assert "info" in kinds and len(kinds) > 1
+            for chosen in (["info"], ["error", "warning"]):
+                items = (await _data(client, "project_health", severities=chosen))[
+                    "items"
+                ]
+                assert items == [i for i in everything if i["severity"] in chosen]
+            result = await client.call_tool(
+                "project_health", {"severities": ["hint"]}, raise_on_error=False
+            )
+            assert result.is_error
+            assert "unknown severity" in str(result.content[0])
+    finally:
+        project.close()

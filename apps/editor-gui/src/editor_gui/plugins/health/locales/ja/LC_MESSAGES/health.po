@@ -28,14 +28,6 @@ msgstr "{address} {name}：データポイントタイプがありません"
 msgid "{address} {name}: no known value source in the project"
 msgstr "{address} {name}：プロジェクト内に既知の値の供給元がありません"
 
-msgid "{count} error"
-msgid_plural "{count} errors"
-msgstr[0] "エラー {count} 件"
-
-msgid "{count} warning"
-msgid_plural "{count} warnings"
-msgstr[0] "警告 {count} 件"
-
 msgid "{count} device skipped: application not in catalog"
 msgid_plural "{count} devices skipped: application not in catalog"
 msgstr[0] "{count} 台のデバイスをスキップしました：アプリケーションがカタログにありません"
@@ -47,3 +39,15 @@ msgstr[0] "{device}：リンクされていないグループ・オブジェク�
 msgid "{address} {name}: {count} transmit-capable group object; check assignment"
 msgid_plural "{address} {name}: {count} transmit-capable group objects; check assignment"
 msgstr[0] "{address} {name}：送信可能なグループオブジェクトが{count}個あります。割り当てを確認してください"
+
+msgid "Errors"
+msgstr "エラー"
+
+msgid "Warnings"
+msgstr "警告"
+
+msgid "Hints"
+msgstr "ヒント"
+
+msgid "No findings of the selected kinds"
+msgstr "選択した種類の項目はありません"

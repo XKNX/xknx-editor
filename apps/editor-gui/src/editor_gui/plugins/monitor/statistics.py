@@ -6,7 +6,7 @@ both read the same numbers off the same log.
 
 from __future__ import annotations
 
-from collections.abc import Callable, Sequence
+from collections.abc import Sequence
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import TYPE_CHECKING
@@ -18,7 +18,6 @@ from editor_gui.plugins.monitor.frames import individual_address_text
 from editor_gui.plugins.monitor.records import TICKS_PER_SECOND
 from editor_gui.plugins.monitor.service import MonitorKind
 from editor_gui.plugins.monitor.strings import S
-from editor_gui.widgets.checkbox import checkbox
 from editor_gui.widgets.dpi import px
 from editor_gui.widgets.tables import begin_data_table, data_table_headers
 from editor_gui.widgets.text_util import text_clipped_tooltip
@@ -143,15 +142,8 @@ class StatisticsView:
     The aggregation is cached by the log's (generation, length) and the project index, so it is
     recomputed only when the telegrams or the names change, not every frame."""
 
-    def __init__(
-        self,
-        service: MonitorService,
-        persist_get: Callable[[], bool] | None = None,
-        persist_set: Callable[[bool], None] | None = None,
-    ) -> None:
+    def __init__(self, service: MonitorService) -> None:
         self._service = service
-        self._persist_get = persist_get
-        self._persist_set = persist_set
         self._cache_key: object = None
         self._stats = Statistics()
 
@@ -163,25 +155,10 @@ class StatisticsView:
             self._cache_key = key
         return self._stats
 
-    def _render_persist_toggle(self, *, after_text: bool = False) -> bool:
-        """The Persist toggle (shared with the Group Monitor); True when it was drawn. With
-        ``after_text`` it follows the preceding text on the same line, centred to it."""
-        if self._persist_get is None or self._persist_set is None:
-            return False
-        if after_text:
-            imgui.same_line()
-        changed, value = checkbox(S.TOOL_PERSIST, self._persist_get(), centred=True)
-        if changed:
-            self._persist_set(value)
-        imgui.set_item_tooltip(S.TOOL_PERSIST_HINT)
-        return True
-
     def render(self, index: ProjectIndex) -> None:
         stats = self._current(index)
-        imgui.align_text_to_frame_padding()
         if stats.total == 0:
             imgui.text_disabled(S.STATS_EMPTY)
-            self._render_persist_toggle(after_text=True)
             return
         imgui.text_disabled(S.STATS_TOTAL(stats.total).format(count=stats.total))
         imgui.same_line()
@@ -202,7 +179,6 @@ class StatisticsView:
             imgui.text_disabled(
                 S.STATS_SPAN.format(span=_span_text(stats.span_seconds))
             )
-        self._render_persist_toggle(after_text=True)
         imgui.separator()
         avail = imgui.get_content_region_avail()
         height = max(avail.y / 2 - imgui.get_frame_height_with_spacing(), px(120.0))

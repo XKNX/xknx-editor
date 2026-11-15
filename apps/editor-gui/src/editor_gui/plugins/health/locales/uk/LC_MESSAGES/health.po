@@ -28,18 +28,6 @@ msgstr "{address} {name}: немає типу точки даних"
 msgid "{address} {name}: no known value source in the project"
 msgstr "{address} {name}: у проєкті немає відомого джерела значень"
 
-msgid "{count} error"
-msgid_plural "{count} errors"
-msgstr[0] "{count} помилка"
-msgstr[1] "{count} помилки"
-msgstr[2] "{count} помилок"
-
-msgid "{count} warning"
-msgid_plural "{count} warnings"
-msgstr[0] "{count} попередження"
-msgstr[1] "{count} попередження"
-msgstr[2] "{count} попереджень"
-
 msgid "{count} device skipped: application not in catalog"
 msgid_plural "{count} devices skipped: application not in catalog"
 msgstr[0] "Пропущено {count} пристрій (прикладна програма відсутня в каталозі)"
@@ -57,3 +45,15 @@ msgid_plural "{address} {name}: {count} transmit-capable group objects; check as
 msgstr[0] "{address} {name}: {count} груповий об’єкт із можливістю передавання; перевірте призначення"
 msgstr[1] "{address} {name}: {count} групові об’єкти з можливістю передавання; перевірте призначення"
 msgstr[2] "{address} {name}: {count} групових об’єктів із можливістю передавання; перевірте призначення"
+
+msgid "Errors"
+msgstr "Помилки"
+
+msgid "Warnings"
+msgstr "Попередження"
+
+msgid "Hints"
+msgstr "Підказки"
+
+msgid "No findings of the selected kinds"
+msgstr "Немає результатів вибраних типів"
