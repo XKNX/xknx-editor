@@ -11,7 +11,6 @@ from editor_gui.plugins.project.medium_text import (
 )
 from editor_gui.plugins.project.paste import PasteTarget
 from editor_gui.plugins.project.strings import S
-from editor_gui.plugins.project.ui._filter import filter_box
 from editor_gui.plugins.project.ui.add_dialog import (
     AddChoice,
     AddDialog,
@@ -40,6 +39,7 @@ from editor_gui.strings import S as APP_S
 from editor_gui.theme import status_color
 from editor_gui.widgets.description import render_description, render_device_marks
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
+from editor_gui.widgets.filter_box import filter_box
 from editor_gui.widgets.tree import (
     begin_tree_area,
     context_menu,

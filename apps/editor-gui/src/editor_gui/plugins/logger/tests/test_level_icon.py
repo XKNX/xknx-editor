@@ -87,3 +87,42 @@ def test_each_level_is_an_icon_in_the_first_column(
     ]
     # No level as text any more.
     assert not any(value in ("DEBUG", "INFO", "WARNING", "ERROR") for value, _ in drawn)
+
+
+def _toolbar_texts(panel: LogPanel, monkeypatch: pytest.MonkeyPatch) -> list[str]:
+    texts: list[str] = []
+    disabled = imgui.text_disabled
+
+    def record(value: str) -> None:
+        disabled(value)
+        texts.append(value)
+
+    monkeypatch.setattr(imgui, "text_disabled", record)
+    imgui.new_frame()
+    imgui.set_next_window_size(imgui.ImVec2(600, 400))
+    imgui.begin("Log")
+    panel.render()
+    imgui.end()
+    imgui.end_frame()
+    monkeypatch.setattr(imgui, "text_disabled", disabled)
+    return texts
+
+
+def test_the_count_says_how_many_are_shown_of_all(
+    context: None, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    records = [
+        _record("debug", "traced"),
+        _record("info", "started"),
+        _record("warning", "unplugged"),
+        _record("error", "failed"),
+    ]
+    panel = LogPanel(lambda: records, lambda: 1, lambda: None)
+    # The default level (Info) hides the debug record.
+    assert _toolbar_texts(panel, monkeypatch)[0] == "3/4"
+    panel._filter_text = "fail"  # pyright: ignore[reportPrivateUsage]
+    assert _toolbar_texts(panel, monkeypatch)[0] == "1/4"
+    # Nothing hidden: the number of all entries alone.
+    panel._filter_text = ""  # pyright: ignore[reportPrivateUsage]
+    panel._min_level_idx = 0  # pyright: ignore[reportPrivateUsage]
+    assert _toolbar_texts(panel, monkeypatch)[0] == "4"

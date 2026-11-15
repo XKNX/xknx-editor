@@ -371,12 +371,6 @@ msgstr "Cím"
 msgid "Name"
 msgstr "Név"
 
-msgid "Max"
-msgstr "Max."
-
-msgid "Maximum telegrams this monitor keeps. The oldest tenth is dropped when the cap is exceeded."
-msgstr "A monitor által megőrzött táviratok legnagyobb száma. A korlát túllépésekor a legrégebbi tizedük törlődik."
-
 msgid "{count} telegram exported to {path}"
 msgid_plural "{count} telegrams exported to {path}"
 msgstr[0] "{count} távirat exportálva ide: {path}"
@@ -401,12 +395,6 @@ msgid "Replay cancelled: {count} telegram sent"
 msgid_plural "Replay cancelled: {count} telegrams sent"
 msgstr[0] "Visszajátszás megszakítva: {count} távirat elküldve"
 
-msgid "Persist"
-msgstr "Persist"
-
-msgid "Keep this project's group telegrams across restarts"
-msgstr "Keep this project's group telegrams across restarts"
-
 msgid "Persist Group Monitor Telegrams"
 msgstr "Persist Group Monitor Telegrams"
 
@@ -418,21 +406,6 @@ msgstr "Maximum Telegram File (MB)"
 
 msgid "The oldest telegrams are dropped to keep the saved file under this size. 0 = no limit."
 msgstr "The oldest telegrams are dropped to keep the saved file under this size. 0 = no limit."
-
-msgid "Unlimited Recording"
-msgstr "Unlimited Recording"
-
-msgid "Without a count limit the telegrams can use a lot of memory, and disk while persisting. Continue?"
-msgstr "Without a count limit the telegrams can use a lot of memory, and disk while persisting. Continue?"
-
-msgid "0 = unlimited"
-msgstr "0 = unlimited"
-
-msgid "Maximum Telegrams"
-msgstr "Maximum Telegrams"
-
-msgid "How many telegrams the Group Monitor keeps before dropping the oldest. 0 = unlimited."
-msgstr "How many telegrams the Group Monitor keeps before dropping the oldest. 0 = unlimited."
 
 msgid "Open Monitor Folder"
 msgstr "Open Monitor Folder"
@@ -476,3 +449,21 @@ msgstr[0] "{count} távirat"
 
 msgid "max {peak}/min at {when}"
 msgstr "max {peak}/min ekkor: {when}"
+
+msgid "Maximum Group Monitor Telegrams"
+msgstr "Csoportmonitor maximális telegramszáma"
+
+msgid "Maximum Bus Monitor Telegrams"
+msgstr "Buszmonitor maximális telegramszáma"
+
+msgid "Maximum Bus Activity Telegrams"
+msgstr "Buszaktivitás maximális telegramszáma"
+
+msgid "How many telegrams the Group Monitor keeps before dropping the oldest. 0 = unlimited."
+msgstr "Hány telegramot őriz meg a csoportmonitor, mielőtt a legrégebbieket elveti. 0 = korlátlan."
+
+msgid "How many telegrams the Bus Monitor keeps before dropping the oldest. 0 = unlimited."
+msgstr "Hány telegramot őriz meg a buszmonitor, mielőtt a legrégebbieket elveti. 0 = korlátlan."
+
+msgid "How many telegrams Bus Activity keeps before dropping the oldest. 0 = unlimited."
+msgstr "Hány telegramot őriz meg a buszaktivitás, mielőtt a legrégebbieket elveti. 0 = korlátlan."

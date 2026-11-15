@@ -39,3 +39,16 @@ msgstr "Viðvörun"
 
 msgid "Error"
 msgstr "Villa"
+
+msgid "The lowest level shown: entries of this level and of the levels above it"
+msgstr "Lægsta stig sem birtist: færslur á þessu stigi og hærri stigum"
+
+msgid "{count} log entry"
+msgid_plural "{count} log entries"
+msgstr[0] "{count} annálsfærsla"
+msgstr[1] "{count} annálsfærslur"
+
+msgid "{count} shown with the filter"
+msgid_plural "{count} shown with the filter"
+msgstr[0] "{count} birt með síunni"
+msgstr[1] "{count} birtar með síunni"

@@ -11,6 +11,7 @@ from imgui_bundle import imgui
 
 from editor_gui.widgets.combo import begin_combo
 from editor_gui.widgets.dpi import px
+from editor_gui.widgets.filter_box import filter_box
 
 _SUBTYPE = re.compile(r"^DPST-(\d+)-(\d+)$")
 _MAIN = re.compile(r"^DPT-(\d+)$")
@@ -113,8 +114,7 @@ def dpt_combo(
         if appearing:
             _filters[widget_id] = ""
             imgui.set_keyboard_focus_here()
-        imgui.set_next_item_width(-1)
-        _, text = imgui.input_text_with_hint(
+        text = filter_box(
             f"##{widget_id}_filter", filter_hint, _filters.get(widget_id, "")
         )
         _filters[widget_id] = text

@@ -36,3 +36,14 @@ msgstr "Uyarı"
 
 msgid "Error"
 msgstr "Hata"
+
+msgid "The lowest level shown: entries of this level and of the levels above it"
+msgstr "Gösterilen en düşük seviye: bu seviyedeki ve daha yüksek seviyelerdeki kayıtlar"
+
+msgid "{count} log entry"
+msgid_plural "{count} log entries"
+msgstr[0] "{count} günlük kaydı"
+
+msgid "{count} shown with the filter"
+msgid_plural "{count} shown with the filter"
+msgstr[0] "Filtreyle {count} tanesi gösteriliyor"

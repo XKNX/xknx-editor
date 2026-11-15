@@ -36,3 +36,16 @@ msgstr "Varoitus"
 
 msgid "Error"
 msgstr "Virhe"
+
+msgid "The lowest level shown: entries of this level and of the levels above it"
+msgstr "Alin näytettävä taso: tämän ja sitä ylempien tasojen merkinnät"
+
+msgid "{count} log entry"
+msgid_plural "{count} log entries"
+msgstr[0] "{count} lokimerkintä"
+msgstr[1] "{count} lokimerkintää"
+
+msgid "{count} shown with the filter"
+msgid_plural "{count} shown with the filter"
+msgstr[0] "{count} näytetään suodattimella"
+msgstr[1] "{count} näytetään suodattimella"

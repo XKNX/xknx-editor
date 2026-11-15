@@ -24,6 +24,7 @@ from editor_gui.plugins.project.strings import S
 from editor_gui.theme import status_color
 from editor_gui.widgets.dpi import px
 from editor_gui.widgets.filter_box import filter_box
+from editor_gui.widgets.tables import headers_row
 from xknxeditor.vendor.triton import DeviceType
 
 if TYPE_CHECKING:
@@ -342,7 +343,7 @@ class PluginParamsPanel:
             S.PLUGIN_PARAMS_COL_DETAILS, imgui.TableColumnFlags_.width_stretch, 0.4
         )
         imgui.table_setup_column("", imgui.TableColumnFlags_.width_fixed, px(72.0))
-        imgui.table_headers_row()
+        headers_row()
         for row in rows:
             imgui.table_next_row()
             imgui.table_next_column()
@@ -394,7 +395,7 @@ class PluginParamsPanel:
         self._setup_param_columns()
         if scrolling:
             imgui.table_setup_scroll_freeze(0, 1)
-        imgui.table_headers_row()
+        headers_row()
         if scrolling:
             clipper = imgui.ListClipper()
             clipper.begin(len(rows), row_height)

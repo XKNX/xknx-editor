@@ -39,7 +39,7 @@ from editor_gui.widgets.fonts import bold, bold_font, semilight
 from editor_gui.widgets.icons import Icon, Picture, draw_icon
 from editor_gui.widgets.star_columns import star_widths
 from editor_gui.widgets.strings import S
-from editor_gui.widgets.tables import data_table_id
+from editor_gui.widgets.tables import data_table_id, headers_row
 from editor_gui.widgets.time_format import (
     format_time,
     parse_time,
@@ -2455,7 +2455,7 @@ def _render_grid_cells(
         else:
             imgui.table_setup_column(header, imgui.TableColumnFlags_.width_stretch, 1.0)
     if has_col_headers:
-        imgui.table_headers_row()
+        headers_row()
         imgui.pop_style_var()
         layout_padding = False
     for row in range(1, max_row + 1):

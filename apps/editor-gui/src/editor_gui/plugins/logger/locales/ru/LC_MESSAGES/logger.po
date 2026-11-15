@@ -36,3 +36,18 @@ msgstr "Предупреждение"
 
 msgid "Error"
 msgstr "Ошибка"
+
+msgid "The lowest level shown: entries of this level and of the levels above it"
+msgstr "Минимальный отображаемый уровень: записи этого и более высоких уровней"
+
+msgid "{count} log entry"
+msgid_plural "{count} log entries"
+msgstr[0] "{count} запись журнала"
+msgstr[1] "{count} записи журнала"
+msgstr[2] "{count} записей журнала"
+
+msgid "{count} shown with the filter"
+msgid_plural "{count} shown with the filter"
+msgstr[0] "{count} показана с фильтром"
+msgstr[1] "{count} показаны с фильтром"
+msgstr[2] "{count} показано с фильтром"

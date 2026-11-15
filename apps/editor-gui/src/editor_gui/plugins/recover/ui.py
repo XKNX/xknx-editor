@@ -17,7 +17,12 @@ from editor_gui.widgets.combo import begin_combo, combo
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
 from editor_gui.widgets.dpi import px
 from editor_gui.widgets.flow import button_width, same_line_if_fits, text_width
-from editor_gui.widgets.tables import begin_data_table, freeze_header, table_header_menu
+from editor_gui.widgets.tables import (
+    begin_data_table,
+    freeze_header,
+    table_header,
+    table_header_menu,
+)
 from editor_gui.widgets.text_util import text_clipped_tooltip
 from xknxeditor.recover import RecoveryEffort
 from xknxeditor.recover.recover import STAGE_GROUP_COMMUNICATION, STAGE_PARAMETERS
@@ -316,7 +321,7 @@ class RecoverPanel:
         for column in range(imgui.table_get_column_count()):
             imgui.table_set_column_index(column)
             if column:
-                imgui.table_header(imgui.table_get_column_name(column))
+                table_header(imgui.table_get_column_name(column) or "")
                 continue
             readable = [entry for entry in service.entries if entry.recoverable]
             every = bool(readable) and all(entry.selected for entry in readable)

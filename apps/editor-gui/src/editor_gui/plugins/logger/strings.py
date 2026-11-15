@@ -47,5 +47,19 @@ class LoggerStrings(BaseStrings):
     def LEVEL_ERROR(self) -> str:
         return _("Error")
 
+    @property
+    def LEVEL_HINT(self) -> str:
+        return _(
+            "The lowest level shown: entries of this level and of the levels above it"
+        )
+
+    def LOG_ENTRIES(self, count: int) -> str:
+        return _.plural("{count} log entry", "{count} log entries", count)
+
+    def LOG_ENTRIES_SHOWN(self, count: int) -> str:
+        return _.plural(
+            "{count} shown with the filter", "{count} shown with the filter", count
+        )
+
 
 S = LoggerStrings()

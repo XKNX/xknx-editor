@@ -182,29 +182,3 @@ def test_statistics_tab_empty_renders_headless() -> None:
     imgui.end()
     imgui.end_frame()
     assert view._stats.total == 0  # type: ignore[attr-defined]
-
-
-@pytest.mark.usefixtures("context")
-def test_statistics_tab_persist_toggle() -> None:
-    # The Persist toggle is shared with the Group Monitor: rendering it reads the getter, and
-    # both the empty and the populated view show it (so it can be enabled before recording).
-    state = {"persist": False}
-    view = StatisticsView(
-        _Service([]),  # type: ignore[arg-type]
-        persist_get=lambda: state["persist"],
-        persist_set=lambda v: state.__setitem__("persist", v),
-    )
-    for _ in range(2):
-        imgui.new_frame()
-        if imgui.begin("Monitor"):
-            view.render(ProjectIndex())
-        imgui.end()
-        imgui.end_frame()
-    # The getter is read without error; a view without callbacks simply omits the checkbox.
-    plain = StatisticsView(_Service([]))  # type: ignore[arg-type]
-    imgui.new_frame()
-    if imgui.begin("Monitor"):
-        plain.render(ProjectIndex())
-    imgui.end()
-    imgui.end_frame()
-    assert state["persist"] is False  # no interaction simulated, state unchanged

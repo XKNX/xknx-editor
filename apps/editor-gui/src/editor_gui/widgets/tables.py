@@ -87,8 +87,85 @@ def data_table_headers() -> None:
     that scrolls vertically, the header row stays at the top (columns the caller froze stay
     frozen)."""
     freeze_header()
-    imgui.table_headers_row()
+    headers_row()
     table_header_menu()
+
+
+# imgui draws a header's sort arrow this much smaller than the text.
+_SORT_ARROW_SCALE = 0.65
+
+
+def headers_row() -> None:
+    """``imgui.table_headers_row`` with the headers of :func:`table_header`."""
+    imgui.table_next_row(
+        imgui.TableRowFlags_.headers, internal.table_get_header_row_height()
+    )
+    for column in range(imgui.table_get_column_count()):
+        if not imgui.table_set_column_index(column):
+            continue
+        hidden = (
+            imgui.table_get_column_flags(column)
+            & imgui.TableColumnFlags_.no_header_label
+        )
+        name = "" if hidden else imgui.table_get_column_name(column) or ""
+        imgui.push_id(column)
+        table_header(name)
+        imgui.pop_id()
+
+
+def _sort_direction(column: int) -> imgui.SortDirection | None:
+    """The direction the current table is sorted by ``column`` in, None when not by it."""
+    if not imgui.table_get_column_flags(column) & imgui.TableColumnFlags_.is_sorted:
+        return None
+    # A sorted column: the table sorts, so it has sort specs.
+    specs = imgui.table_get_sort_specs()
+    for index in range(specs.specs_count):
+        spec = specs.get_specs(index)
+        if spec.column_index == column:
+            return spec.sort_direction
+    return None
+
+
+def table_header(label: str) -> None:
+    """``imgui.table_header`` of the current column, with its sort arrow in the middle of the
+    text's line: imgui puts the smaller arrow at the top of the line."""
+    direction = _sort_direction(imgui.table_get_column_index())
+    if direction is None:
+        imgui.table_header(label)
+        return
+    start = imgui.get_cursor_screen_pos()
+    # imgui's header as it is (its clicks sort), its text and arrow drawn here instead.
+    imgui.push_style_color(imgui.Col_.text, imgui.ImVec4(0.0, 0.0, 0.0, 0.0))
+    imgui.table_header(label)
+    imgui.pop_style_color()
+    if not imgui.is_item_visible():
+        return
+    style = imgui.get_style()
+    font = imgui.get_font_size()
+    low, high = imgui.get_item_rect_min(), imgui.get_item_rect_max()
+    arrow_w = int(font * _SORT_ARROW_SCALE + style.frame_padding.x)
+    text = label.split("##", 1)[0]
+    size = imgui.calc_text_size(text)
+    end = max(high.x - arrow_w, start.x)
+    draw = imgui.get_window_draw_list()
+    internal.render_text_ellipsis(
+        draw,
+        start,
+        imgui.ImVec2(end, start.y + size.y + style.frame_padding.y),
+        end,
+        text,
+        size,
+    )
+    internal.render_arrow(
+        draw,
+        imgui.ImVec2(
+            max(low.x, high.x - arrow_w),
+            start.y + font * 0.5 * (1.0 - _SORT_ARROW_SCALE),
+        ),
+        imgui.get_color_u32(imgui.Col_.text),
+        imgui.Dir.up if direction == imgui.SortDirection.ascending else imgui.Dir.down,
+        _SORT_ARROW_SCALE,
+    )
 
 
 def freeze_header() -> None:

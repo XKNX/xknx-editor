@@ -22,6 +22,7 @@ from editor_gui.plugins.catalog.ui.alternative import (
     error_text,
 )
 from editor_gui.strings import S as AppS
+from editor_gui.widgets import tables
 
 from .test_alternative import index, large_index
 
@@ -200,7 +201,7 @@ def test_all_results_scroll_select_and_filter(
     move_to_bottom = False
     original_selectable = imgui.selectable
     original_text = imgui.text_unformatted
-    original_headers = imgui.table_headers_row
+    original_headers = tables.headers_row
 
     def selectable(label, *args, **kwargs):
         rendered.append(label)
@@ -228,7 +229,8 @@ def test_all_results_scroll_select_and_filter(
     monkeypatch.setattr(imgui, "selectable", selectable)
     monkeypatch.setattr(imgui, "text_unformatted", text)
     monkeypatch.setattr(imgui, "text_disabled", disabled)
-    monkeypatch.setattr(imgui, "table_headers_row", headers)
+    # The table's header row, drawn after the rows' scroll position is known.
+    monkeypatch.setattr(tables, "headers_row", headers)
 
     def frame() -> None:
         rendered.clear()

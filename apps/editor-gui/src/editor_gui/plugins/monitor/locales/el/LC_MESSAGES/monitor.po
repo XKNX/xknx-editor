@@ -369,12 +369,6 @@ msgstr "Διεύθυνση"
 msgid "Name"
 msgstr "Όνομα"
 
-msgid "Max"
-msgstr "Max"
-
-msgid "Maximum telegrams this monitor keeps. The oldest tenth is dropped when the cap is exceeded."
-msgstr "Maximum telegrams this monitor keeps. The oldest tenth is dropped when the cap is exceeded."
-
 msgid "{count} telegram exported to {path}"
 msgid_plural "{count} telegrams exported to {path}"
 msgstr[0] "{count} τηλεγράφημα εξήχθη στο {path}"
@@ -405,12 +399,6 @@ msgid_plural "Replay cancelled: {count} telegrams sent"
 msgstr[0] "Η αναπαραγωγή ακυρώθηκε: στάλθηκε {count} τηλεγράφημα"
 msgstr[1] "Η αναπαραγωγή ακυρώθηκε: στάλθηκαν {count} τηλεγραφήματα"
 
-msgid "Persist"
-msgstr "Persist"
-
-msgid "Keep this project's group telegrams across restarts"
-msgstr "Keep this project's group telegrams across restarts"
-
 msgid "Persist Group Monitor Telegrams"
 msgstr "Persist Group Monitor Telegrams"
 
@@ -422,21 +410,6 @@ msgstr "Maximum Telegram File (MB)"
 
 msgid "The oldest telegrams are dropped to keep the saved file under this size. 0 = no limit."
 msgstr "The oldest telegrams are dropped to keep the saved file under this size. 0 = no limit."
-
-msgid "Unlimited Recording"
-msgstr "Unlimited Recording"
-
-msgid "Without a count limit the telegrams can use a lot of memory, and disk while persisting. Continue?"
-msgstr "Without a count limit the telegrams can use a lot of memory, and disk while persisting. Continue?"
-
-msgid "0 = unlimited"
-msgstr "0 = unlimited"
-
-msgid "Maximum Telegrams"
-msgstr "Maximum Telegrams"
-
-msgid "How many telegrams the Group Monitor keeps before dropping the oldest. 0 = unlimited."
-msgstr "How many telegrams the Group Monitor keeps before dropping the oldest. 0 = unlimited."
 
 msgid "Open Monitor Folder"
 msgstr "Open Monitor Folder"
@@ -481,3 +454,21 @@ msgstr[1] "{count} τηλεγραφήματα"
 
 msgid "max {peak}/min at {when}"
 msgstr "μέγ. {peak}/min στις {when}"
+
+msgid "Maximum Group Monitor Telegrams"
+msgstr "Μέγιστα τηλεγραφήματα παρακολούθησης ομάδων"
+
+msgid "Maximum Bus Monitor Telegrams"
+msgstr "Μέγιστα τηλεγραφήματα παρακολούθησης bus"
+
+msgid "Maximum Bus Activity Telegrams"
+msgstr "Μέγιστα τηλεγραφήματα δραστηριότητας bus"
+
+msgid "How many telegrams the Group Monitor keeps before dropping the oldest. 0 = unlimited."
+msgstr "Πόσα τηλεγραφήματα κρατά η Παρακολούθηση Ομάδων πριν απορρίψει τα παλαιότερα. 0 = απεριόριστα."
+
+msgid "How many telegrams the Bus Monitor keeps before dropping the oldest. 0 = unlimited."
+msgstr "Πόσα τηλεγραφήματα κρατά η Παρακολούθηση Bus πριν απορρίψει τα παλαιότερα. 0 = απεριόριστα."
+
+msgid "How many telegrams Bus Activity keeps before dropping the oldest. 0 = unlimited."
+msgstr "Πόσα τηλεγραφήματα κρατά η Δραστηριότητα Bus πριν απορρίψει τα παλαιότερα. 0 = απεριόριστα."

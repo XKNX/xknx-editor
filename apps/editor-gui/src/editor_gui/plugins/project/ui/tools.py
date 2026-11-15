@@ -28,7 +28,6 @@ from editor_gui.device import device_label
 from editor_gui.os_open import open_path
 from editor_gui.plugins.project.strings import S
 from editor_gui.plugins.project.ui import label_render
-from editor_gui.plugins.project.ui._filter import filter_box
 from editor_gui.plugins.project.ui.project_diff import (
     DiffEntry,
     DiffJob,
@@ -39,7 +38,9 @@ from editor_gui.theme import status_color
 from editor_gui.widgets.checkbox import checkbox, radio_button
 from editor_gui.widgets.combo import begin_combo
 from editor_gui.widgets.dpi import px, px_vec2
+from editor_gui.widgets.filter_box import filter_box
 from editor_gui.widgets.flow import button_width, same_line_if_fits
+from editor_gui.widgets.tables import headers_row
 from editor_gui.widgets.tabs import begin_tab_bar
 from xknxeditor.proj.core.addressing import GroupAddressStyle, format_ga
 
@@ -949,7 +950,7 @@ class ToolsPanel:
             imgui.table_setup_column(S.COMPARE_COL_FIELD)
             imgui.table_setup_column(S.TOOLS_DIFF_OPEN_PROJECT)
             imgui.table_setup_column(self._diff_other_name)
-            imgui.table_headers_row()
+            headers_row()
             for row in rows:
                 imgui.table_next_row()
                 imgui.table_set_column_index(0)

@@ -9,6 +9,7 @@ from editor_gui.plugins.logger.strings import S
 from editor_gui.theme import status_color
 from editor_gui.widgets.combo import combo
 from editor_gui.widgets.dpi import px
+from editor_gui.widgets.filter_box import filter_box
 from editor_gui.widgets.flow import same_line_if_fits
 from editor_gui.widgets.icon_button import (
     ICON_CLEAR,
@@ -156,13 +157,27 @@ class LogPanel:
 
     def _render_toolbar(self) -> None:
         records = self._get_records()
-        # The count on the line of the fields after it.
+        total = len(records)
+        shown = len(self._filtered_records())
+        # The count on the line of the fields after it: the entries shown and all of them while
+        # the filter or the level hides some, else all of them.
         imgui.align_text_to_frame_padding()
-        imgui.text_disabled(str(len(records)))
+        imgui.text_disabled(f"{shown}/{total}" if shown != total else str(total))
+        if imgui.is_item_hovered():
+            tip = S.LOG_ENTRIES(total).format(count=total)
+            if shown != total:
+                tip += "\n" + S.LOG_ENTRIES_SHOWN(shown).format(count=shown)
+            imgui.set_tooltip(tip)
         imgui.same_line()
-        imgui.set_next_item_width(px(200))
-        _, self._filter_text = imgui.input_text_with_hint(
-            "##logfilter", S.FILTER_PLACEHOLDER, self._filter_text
+        # The filter with its "x" that clears it, as the other filter fields; the field 200 px
+        # wide where there is room.
+        room = imgui.get_content_region_avail().x
+        clear = imgui.get_frame_height() + px(4.0)
+        self._filter_text = filter_box(
+            "##logfilter",
+            S.FILTER_PLACEHOLDER,
+            self._filter_text,
+            max(0.0, room - px(200) - clear),
         )
         # The row goes on in the next line where the panel is narrow.
         same_line_if_fits(px(100))
@@ -170,6 +185,7 @@ class LogPanel:
         _, self._min_level_idx = combo(
             "##loglevel", self._min_level_idx, [label() for label, _ in _LEVEL_OPTIONS]
         )
+        imgui.set_item_tooltip(S.LEVEL_HINT)
         # The toolbar's actions as icons, as the monitors' toolbars have them.
         same_line_if_fits(icon_button_width(ICON_COPY))
         # Rows are plain text (not selectable), so offer an explicit copy-all-to-clipboard.

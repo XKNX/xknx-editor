@@ -16,7 +16,6 @@ from editor_gui.color import sending_green, themed
 from editor_gui.device import com_object_display_name
 from editor_gui.plugins.project.paste import PasteTarget
 from editor_gui.plugins.project.strings import S
-from editor_gui.plugins.project.ui._filter import filter_box
 from editor_gui.plugins.project.ui.add_dialog import (
     AddChoice,
     AddDialog,
@@ -52,8 +51,9 @@ from editor_gui.widgets.description import (
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
 from editor_gui.widgets.dpi import px
 from editor_gui.widgets.dpt_value import GroupValueBus
+from editor_gui.widgets.filter_box import filter_box
 from editor_gui.widgets.flow import button_width, same_line_if_fits
-from editor_gui.widgets.tables import begin_data_table, table_header_menu
+from editor_gui.widgets.tables import begin_data_table, table_header, table_header_menu
 from editor_gui.widgets.text_util import text_clipped_tooltip
 from editor_gui.widgets.tree import (
     begin_tree_area,
@@ -1261,7 +1261,7 @@ class GroupAddressesPanel:
         imgui.table_next_row(imgui.TableRowFlags_.headers)
         for col in range(3):
             imgui.table_set_column_index(col)
-            imgui.table_header(imgui.table_get_column_name(col))
+            table_header(imgui.table_get_column_name(col) or "")
             if col == 2 and imgui.is_item_hovered():
                 imgui.set_tooltip(S.GA_COL_SENDING_TOOLTIP)
         table_header_menu()
