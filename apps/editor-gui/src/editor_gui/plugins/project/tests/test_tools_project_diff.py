@@ -207,7 +207,7 @@ def test_a_changed_device_lists_its_parameters_and_group_objects(
     _frame(panel, result)
     # Collapsed at first: only the device line.
     assert shown == ["1.1.5  name 'A' -> 'B'"]
-    monkeypatch.setattr(tools.imgui, "tree_node", lambda *_a: True)
+    monkeypatch.setattr(tools, "tree_node", lambda *_a: True)
     monkeypatch.setattr(tools.imgui, "tree_pop", lambda: None)
     shown.clear()
     _frame(panel, result)
