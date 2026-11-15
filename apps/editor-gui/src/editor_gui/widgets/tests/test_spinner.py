@@ -3,6 +3,7 @@ color, faint; the text of what loads follows it on its line."""
 
 from __future__ import annotations
 
+import math
 from collections.abc import Iterator
 from typing import Any
 
@@ -25,8 +26,8 @@ def frame() -> Iterator[None]:
     imgui.destroy_context(ctx)
 
 
-def _rgba(color: imgui.ImColor) -> tuple[float, float, float, float]:
-    value = color.value
+def _rgba(color: int) -> tuple[float, float, float, float]:
+    value = imgui.color_convert_u32_to_float4(color)
     return value.x, value.y, value.z, value.w
 
 
@@ -38,19 +39,30 @@ def test_the_arc_and_the_ring_show_on_the_window(
     style = imgui.get_style()
     if light:
         imgui.style_colors_light(style)
-    drawn: list[dict[str, Any]] = []
-    monkeypatch.setattr(
-        spinner.imspinner,
-        "spinner_ang",
-        lambda label, radius, thickness, **colors: drawn.append(colors),
-    )
+    rings: list[int] = []
+    arcs: list[int] = []
+    circle = imgui.ImDrawList.add_circle
+    stroke = imgui.ImDrawList.path_stroke
+
+    def ring(
+        self: imgui.ImDrawList, centre: Any, radius: float, col: int, *a: Any
+    ) -> None:
+        rings.append(col)
+        circle(self, centre, radius, col, *a)
+
+    def arc(self: imgui.ImDrawList, col: int, *a: Any) -> None:
+        arcs.append(col)
+        stroke(self, col, *a)
+
+    monkeypatch.setattr(imgui.ImDrawList, "add_circle", ring)
+    monkeypatch.setattr(imgui.ImDrawList, "path_stroke", arc)
     spinner.spinner("##loading")
     link = style.color_(imgui.Col_.text_link)
     text = style.color_(imgui.Col_.text)
-    assert _rgba(drawn[0]["color"]) == pytest.approx((link.x, link.y, link.z, link.w))
-    ring = _rgba(drawn[0]["bg"])
-    assert ring[:3] == pytest.approx((text.x, text.y, text.z))
-    assert 0.0 < ring[3] < 0.5
+    assert _rgba(arcs[0]) == pytest.approx((link.x, link.y, link.z, link.w), abs=0.01)
+    faint = _rgba(rings[0])
+    assert faint[:3] == pytest.approx((text.x, text.y, text.z), abs=0.01)
+    assert 0.0 < faint[3] < 0.5
     # Not the theme's selected tab, which is as light as the window in a light theme.
     window = style.color_(imgui.Col_.window_bg)
     assert abs(link.z - window.z) + abs(link.x - window.x) > 0.3
@@ -71,17 +83,14 @@ def test_loading_puts_the_text_after_the_animation(
 
 
 @pytest.mark.usefixtures("frame")
-def test_the_ring_is_centred_on_its_text_and_turns_once_a_second(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
+def test_the_ring_is_centred_on_its_text(monkeypatch: pytest.MonkeyPatch) -> None:
     rings: list[float] = []
     texts: list[float] = []
-    speeds: list[float] = []
-    draw = spinner.imspinner.spinner_ang
+    end_child = imgui.end_child
 
-    def ring(label: str, radius: float, thickness: float, **kwargs: Any) -> None:
-        speeds.append(kwargs["speed"])
-        draw(label, radius, thickness, **kwargs)
+    def ring_drawn() -> None:
+        # The ring's own window is the item just drawn once it ends.
+        end_child()
         low, high = imgui.get_item_rect_min(), imgui.get_item_rect_max()
         rings.append((low.y + high.y) / 2)
 
@@ -92,7 +101,7 @@ def test_the_ring_is_centred_on_its_text_and_turns_once_a_second(
         low, high = imgui.get_item_rect_min(), imgui.get_item_rect_max()
         texts.append((low.y + high.y) / 2)
 
-    monkeypatch.setattr(spinner.imspinner, "spinner_ang", ring)
+    monkeypatch.setattr(spinner.imgui, "end_child", ring_drawn)
     monkeypatch.setattr(spinner.imgui, "text_disabled", label)
     # A text after the ring, and a ring after a text.
     spinner.loading("##loading", "Applikationsprogramm wird geladen…")
@@ -100,4 +109,22 @@ def test_the_ring_is_centred_on_its_text_and_turns_once_a_second(
     imgui.same_line()
     spinner.spinner("##scan")
     assert rings == pytest.approx(texts, abs=0.5)
-    assert speeds == pytest.approx([2 * 3.14159265, 2 * 3.14159265])
+
+
+@pytest.mark.usefixtures("frame")
+def test_the_arc_turns_once_a_second(monkeypatch: pytest.MonkeyPatch) -> None:
+    starts: list[float] = []
+    arc_to = imgui.ImDrawList.path_arc_to
+
+    def arc(
+        self: imgui.ImDrawList, centre: Any, radius: float, a_min: float, *a: Any
+    ) -> None:
+        starts.append(a_min)
+        arc_to(self, centre, radius, a_min, *a)
+
+    monkeypatch.setattr(imgui.ImDrawList, "path_arc_to", arc)
+    for now in (0.0, 0.25, 1.0):
+        monkeypatch.setattr(spinner, "animation_time", lambda now=now: now)
+        spinner.spinner(f"##turn{now}")
+    # A quarter of a second: a quarter turn; a second: a whole one.
+    assert starts == pytest.approx([0.0, math.pi / 2, 2 * math.pi])
