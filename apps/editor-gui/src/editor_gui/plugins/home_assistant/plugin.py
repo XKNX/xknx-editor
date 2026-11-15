@@ -13,6 +13,7 @@ from typing import TYPE_CHECKING, Any, cast
 from imgui_bundle import imgui
 
 from editor_gui import host
+from editor_gui.local_time import date_text, iso_date_text, parse_stamp
 from editor_gui.plugins.base import Logger, PanelDefinition, PluginAPI
 from editor_gui.plugins.home_assistant.areas import AreaRow, AreaState
 from editor_gui.plugins.home_assistant.service import (
@@ -905,7 +906,11 @@ def _use_text(user: dict[str, Any]) -> str:
 
 
 def _date(value: object) -> str:
-    """The date part of an ISO timestamp, as the project info gives it."""
+    """The local date of an ISO timestamp (as the project info gives it) in the regional date
+    format."""
     if not isinstance(value, str) or not value:
         return S.UNKNOWN_DATE
-    return value.split("T", 1)[0]
+    moment = parse_stamp(value)
+    return (
+        iso_date_text(value.split("T", 1)[0]) if moment is None else date_text(moment)
+    )

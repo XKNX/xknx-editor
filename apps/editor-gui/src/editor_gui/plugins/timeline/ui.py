@@ -16,7 +16,7 @@ from editor_gui.dpt import transcoder_for
 from editor_gui.plugins.monitor.service import TelegramRecord
 from editor_gui.plugins.timeline.strings import S
 from editor_gui.widgets.checkbox import checkbox
-from editor_gui.widgets.combo import begin_combo
+from editor_gui.widgets.combo import begin_combo, end_combo
 from editor_gui.widgets.dpi import px
 
 # (raw group-address value, display label, dpt string)
@@ -113,7 +113,7 @@ class TimelinePanel:
             for i, lbl in enumerate(labels):
                 if imgui.selectable(lbl, i == current)[0]:
                     self._window_s = values[i]
-            imgui.end_combo()
+            end_combo()
 
         if not self._pinned:
             imgui.text_disabled(S.TIMELINE_NO_PINS)

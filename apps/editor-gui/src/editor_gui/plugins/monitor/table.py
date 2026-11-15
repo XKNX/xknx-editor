@@ -25,6 +25,7 @@ from editor_gui.plugins.monitor.formatting import (
     ProjectIndex,
     format_cells,
     record_cells,
+    sample_text,
 )
 from editor_gui.plugins.monitor.pdf import table_pdf
 from editor_gui.plugins.monitor.records import MonitorRecord, RecordKind
@@ -38,7 +39,11 @@ from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
 from editor_gui.widgets.dpi import px
 from editor_gui.widgets.filter_box import filter_box
 from editor_gui.widgets.flow import button_width, same_line_if_fits, text_width
-from editor_gui.widgets.tables import begin_data_table, data_table_headers
+from editor_gui.widgets.tables import (
+    begin_data_table,
+    data_table_headers,
+    row_selectable,
+)
 
 if TYPE_CHECKING:
     from editor_gui.plugins.connection.service import ConnectionService
@@ -472,11 +477,15 @@ class TelegramView:
             hide = not extended and i not in _SIMPLE_COLUMNS[self.kind]
             if hide:
                 column_flags |= imgui.TableColumnFlags_.default_hide
-            width = (
-                1.0
-                if column_flags & imgui.TableColumnFlags_.width_stretch
-                else px(column.width)
-            )
+            if column_flags & imgui.TableColumnFlags_.width_stretch:
+                width = 1.0
+            else:
+                width = px(column.width)
+                # The time and date are as wide as the regional formats make them.
+                sample = sample_text(column.key)
+                if sample:
+                    padding = imgui.get_style().cell_padding.x * 2
+                    width = max(width, imgui.calc_text_size(sample).x + padding)
             imgui.table_setup_column(column.label, column_flags, width)
         data_table_headers()
         self._enabled_columns = [
@@ -514,7 +523,7 @@ class TelegramView:
         imgui.table_set_column_index(0)
         imgui.set_next_item_selection_user_data(i)
         selected = record.number in self.selected
-        if imgui.selectable(
+        if row_selectable(
             f"{cells[0]}##row{record.number}",
             selected,
             imgui.SelectableFlags_.span_all_columns

@@ -36,12 +36,14 @@ from editor_gui.plugins.project.ui.project_diff import (
 )
 from editor_gui.theme import status_color
 from editor_gui.widgets.checkbox import checkbox, radio_button
-from editor_gui.widgets.combo import begin_combo
+from editor_gui.widgets.combo import begin_combo, end_combo
 from editor_gui.widgets.dpi import px, px_vec2
 from editor_gui.widgets.filter_box import filter_box
 from editor_gui.widgets.flow import button_width, same_line_if_fits
+from editor_gui.widgets.spinner import busy_bar
 from editor_gui.widgets.tables import headers_row
 from editor_gui.widgets.tabs import begin_tab_bar
+from editor_gui.widgets.tree import tree_node
 from xknxeditor.proj.core.addressing import GroupAddressStyle, format_ga
 
 if TYPE_CHECKING:
@@ -408,7 +410,7 @@ class ToolsPanel:
                     f"{self._device_label(d)}##{combo_id}{i}", i == idx
                 )[0]:
                     idx = i
-            imgui.end_combo()
+            end_combo()
         return idx
 
     def _device_single_select(
@@ -893,13 +895,11 @@ class ToolsPanel:
     def _render_diff_progress(self, job: DiffJob) -> None:
         """How far a running comparison is, with the button that stops it."""
         if job.total:
-            fraction = job.done / job.total
             text = S.TOOLS_DIFF_PROGRESS.format(done=job.done, total=job.total)
+            imgui.progress_bar(job.done / job.total, imgui.ImVec2(-1, 0), text)
         else:
             # Reading the projects: no count yet, the bar moves back and forth.
-            fraction = -1.0 * imgui.get_time()
-            text = S.TOOLS_DIFF_READING
-        imgui.progress_bar(fraction, imgui.ImVec2(-1, 0), text)
+            busy_bar("##diff_busy", imgui.ImVec2(-1, 0), S.TOOLS_DIFF_READING)
         imgui.begin_disabled(job.cancel_requested)
         if imgui.button(S.BTN_CANCEL):
             job.cancel()
@@ -930,7 +930,7 @@ class ToolsPanel:
         """The parameters and group objects of a changed device, collapsed: what each is in the
         open project and in the other one."""
         label = S.TOOLS_DIFF_COUNT(len(entry.rows)).format(count=len(entry.rows))
-        if not imgui.tree_node(f"{label}###diff_rows_{entry.key}"):
+        if not tree_node(f"{label}###diff_rows_{entry.key}"):
             return
         for section, title in (
             ("parameter", S.COMPARE_SECTION_PARAMETERS),

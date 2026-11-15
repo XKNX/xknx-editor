@@ -37,7 +37,7 @@ from editor_gui.plugins.bus_diagram.flow import (
     main_of,
 )
 from editor_gui.plugins.bus_diagram.strings import S
-from editor_gui.widgets.combo import begin_combo
+from editor_gui.widgets.combo import begin_combo, end_combo
 from editor_gui.widgets.description import wrapped_tooltip
 from editor_gui.widgets.dpi import px
 
@@ -160,7 +160,7 @@ class LinkView:
                     candidate = Scope("channel", device, channel)
                     if imgui.selectable(f"{label}##{channel}", scope == candidate)[0]:
                         self.show(candidate)
-            imgui.end_combo()
+            end_combo()
         imgui.same_line()
         imgui.begin_disabled(not self._history)
         if imgui.button(S.BUS_DIAGRAM_BACK) or self._back_key():

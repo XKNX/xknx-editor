@@ -11,10 +11,12 @@ from collections.abc import Callable
 
 from imgui_bundle import hello_imgui, imgui
 
+from editor_gui.local_time import recent_text
 from editor_gui.plugins.project.device_info_view import Toned
 from editor_gui.plugins.project.program_queue import OperationState, QueueItem
 from editor_gui.plugins.project.strings import S
 from editor_gui.theme import status_color
+from editor_gui.widgets.spinner import busy_bar
 from editor_gui.widgets.tabs import begin_tab_bar
 from editor_gui.widgets.text_util import human_size
 from editor_gui.widgets.tree import label_offset, tree_node
@@ -195,7 +197,7 @@ class ProgramQueuePanel:
                 frac = min(max(run.progress / 100.0, 0.0), 1.0)
                 imgui.progress_bar(frac, bar, "")
             else:
-                imgui.progress_bar(-1.0 * float(imgui.get_time()), bar, "")
+                busy_bar("##script_busy", bar)
             return
         # While it waits for its connection, the bus progress is not its own.
         progress = None if self._is_connecting(item) else self._get_progress()
@@ -213,7 +215,7 @@ class ProgramQueuePanel:
                 download_progress_text(progress, memory),
             )
         else:
-            imgui.progress_bar(-1.0 * float(imgui.get_time()), bar, "")
+            busy_bar("##bus_busy", bar)
 
 
 def _render_full_download_question(item: QueueItem) -> None:
@@ -243,9 +245,9 @@ def _render_details(item: QueueItem) -> None:
     if item.connection:
         imgui.text(S.OPERATION_CONNECTION.format(connection=item.connection))
     if item.started_at is not None:
-        imgui.text(S.OPERATION_START.format(time=item.started_at.strftime("%H:%M:%S")))
+        imgui.text(S.OPERATION_START.format(time=recent_text(item.started_at)))
     if item.ended_at is not None:
-        imgui.text(S.OPERATION_END.format(time=item.ended_at.strftime("%H:%M:%S")))
+        imgui.text(S.OPERATION_END.format(time=recent_text(item.ended_at)))
 
 
 def _render_result(sections: list[tuple[str, list[tuple[str, str]]]]) -> None:

@@ -1,4 +1,5 @@
 import collections
+import contextlib
 import functools
 import os
 import platform
@@ -10,7 +11,7 @@ import tempfile
 import threading
 import time
 import unicodedata
-from collections.abc import Callable, Sequence
+from collections.abc import Callable, Generator, Sequence
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
@@ -71,6 +72,7 @@ from editor_gui.languages import (
     set_product_language,
     supported,
 )
+from editor_gui.local_time import date_text, date_time_text, iso_date_text
 from editor_gui.log_file import log_dir
 from editor_gui.master_data import MasterDataInfo, load_master, master_xml_bytes
 from editor_gui.myknx_oauth import (
@@ -137,7 +139,7 @@ from editor_gui.update_check import (
 )
 from editor_gui.web import enable_web_mode, wake_frame, web_options
 from editor_gui.widgets.checkbox import checkbox, radio_button
-from editor_gui.widgets.combo import begin_combo
+from editor_gui.widgets.combo import begin_combo, end_combo
 from editor_gui.widgets.description import set_pending_downloads, set_secure_devices
 from editor_gui.widgets.dialog import (
     begin_dialog,
@@ -170,6 +172,7 @@ from editor_gui.widgets.markdown import COMPACT as COMPACT_MARKDOWN
 from editor_gui.widgets.markdown import render_markdown
 from editor_gui.widgets.parameter_widgets import set_highlight_changes
 from editor_gui.widgets.password_form import NewPasswordForm
+from editor_gui.widgets.spinner import busy_bar
 from editor_gui.widgets.tables import (
     begin_data_table,
     data_table_headers,
@@ -465,8 +468,11 @@ def _file_name(name: str) -> str:
 
 
 def _link(url: str) -> None:
-    """``url`` as a link that opens it, with a menu to copy it (the built-in one is untranslated)."""
-    if imgui.text_link(url):
+    """``url`` as a link that opens it, with a menu to copy it (the built-in one is untranslated).
+    A URL longer than the room left on the line is shown shortened with "…"; opening, the tooltip
+    and copying keep the whole URL."""
+    shown = fit_text(url, imgui.get_content_region_avail().x)
+    if imgui.text_link(f"{shown}###{url}"):
         open_url(url)
     if imgui.is_item_hovered():
         imgui.set_tooltip(S.LINK_OPEN.format(url=url))
@@ -483,9 +489,17 @@ _VD_PASSWORD_HINT_URL = "https://github.com/christoph2/knx/blob/72b6732322cc2f46
 # Room at 100 % scaling above and below the status bar's text.
 _STATUS_PADDING = 7.0
 
-# Refresh rate (Hz) once input stops, and while a progress dialog shows work going on.
+# Refresh rate (Hz) once input stops, and while a progress dialog shows work going on (on the
+# desktop, in the browser view).
 _FPS_IDLE = 6.0
 _FPS_PROGRESS = 30.0
+_FPS_PROGRESS_WEB = 10.0
+
+
+def progress_fps() -> float:
+    """The refresh rate while a progress dialog shows work going on."""
+    return _FPS_PROGRESS if web.active_hub is None else _FPS_PROGRESS_WEB
+
 
 # The user counts as working in the app this long after the last input (seconds): work in the
 # background that would slow the frames down waits for a pause (see ProjectService.ui_busy).
@@ -1829,7 +1843,7 @@ class KnxGuiApp:
                     self._export_summary_schema = labels.get(
                         used_schema, f"project/{used_schema}"
                     )
-                    self._export_summary_at = datetime.now().strftime("%Y-%m-%d %H:%M")
+                    self._export_summary_at = date_time_text(datetime.now())
                     self._export_summary_signer = signer
                     self._export_summary_requested = True
                 if result.import_notes:
@@ -1893,7 +1907,7 @@ class KnxGuiApp:
                     self._export_summary_schema = labels.get(
                         used_schema, f"project/{used_schema}"
                     )
-                    self._export_summary_at = datetime.now().strftime("%Y-%m-%d %H:%M")
+                    self._export_summary_at = date_time_text(datetime.now())
                     self._export_summary_signer = signer
                     self._export_summary_requested = True
             except ExportCancelled:
@@ -2323,7 +2337,7 @@ class KnxGuiApp:
             for code, lbl in formats:
                 if imgui.selectable(lbl, code == self._export_schema)[0]:
                     self._set_export_schema(code)
-            imgui.end_combo()
+            end_combo()
         changed, self._export_remove_unused = checkbox(
             S.EXPORT_REMOVE_UNUSED, self._export_remove_unused
         )
@@ -2639,7 +2653,7 @@ class KnxGuiApp:
                     imgui.end_disabled()
                 elif imgui.selectable(lbl, pid == self._myknx_selected_pid)[0]:
                     self._myknx_selected_pid = pid
-            imgui.end_combo()
+            end_combo()
         if not any(enabled for _pid, _lbl, enabled in self._myknx_products):
             imgui.push_style_color(imgui.Col_.text, status_color("warning"))
             imgui.text_wrapped(S.MYKNX_SIGN_NO_CLOUD_HINT)
@@ -2829,9 +2843,10 @@ class KnxGuiApp:
 
     def _render_progress_modal(self) -> None:
         # Without input the window drops to the idle refresh rate, at which a progress bar looks
-        # frozen; it keeps redrawing at the active rate while work is in progress.
+        # frozen; it keeps redrawing at the active rate while work is in progress (in the browser
+        # view at a lower one: its animations move in steps anyway, every frame is sent).
         idling = hello_imgui.get_runner_params().fps_idling
-        idling.fps_idle = _FPS_PROGRESS if self._progress_running else _FPS_IDLE
+        idling.fps_idle = progress_fps() if self._progress_running else _FPS_IDLE
         if self._progress_requested:
             imgui.open_popup(S.PROGRESS_TITLE)
             self._progress_requested = False
@@ -2859,8 +2874,7 @@ class KnxGuiApp:
             fraction = max(0.0, min(1.0, fraction))
             imgui.progress_bar(fraction, bar_size, f"{fraction * 100:0.0f}%")
         else:
-            # ImGui shows an animated indeterminate bar for a negative fraction.
-            imgui.progress_bar(-1.0 * float(imgui.get_time()), bar_size, "")
+            busy_bar("##progress_busy", bar_size)
         # The current step, shortened with "…" where it would reach them, and the seconds so far
         # right-aligned with the bar on the same line.
         seconds = f"{elapsed:0.0f}s"
@@ -3149,7 +3163,7 @@ class KnxGuiApp:
             for style, label in styles:
                 if imgui.selectable(label, style is self._new_project_style)[0]:
                     self._new_project_style = style
-            imgui.end_combo()
+            end_combo()
         clicked = dialog_buttons(S.NEW_PROJECT_CREATE, S.BTN_CANCEL)
         if clicked == 0:
             imgui.close_current_popup()
@@ -3991,7 +4005,7 @@ class KnxGuiApp:
                 part
                 for part in (
                     facts.registration_number if facts else None,
-                    facts.registration_date.isoformat()
+                    date_text(facts.registration_date)
                     if facts and facts.registration_date
                     else None,
                 )
@@ -4318,7 +4332,7 @@ class KnxGuiApp:
             self._status_part(
                 S.STATUS_MASTER_DATA.format(
                     version=self._master_info.version,
-                    date=self._master_info.date,
+                    date=iso_date_text(self._master_info.date),
                 )
             )
 
@@ -4473,13 +4487,13 @@ class KnxGuiApp:
         shown = menus_shown(widths, room, _menu_width(_ICON_MENU))
         left = imgui.get_cursor_screen_pos().x
         for label, render in menus[:shown]:
-            if imgui.begin_menu(label):
+            if _bar_menu(label):
                 render()
                 imgui.end_menu()
             right = imgui.get_item_rect_max().x + style.item_spacing.x
             self._menu_widths[label] = right - left
             left = right
-        if shown < len(menus) and imgui.begin_menu(f"{_ICON_MENU}##all_menus"):
+        if shown < len(menus) and _bar_menu(f"{_ICON_MENU}##all_menus"):
             for label, render in menus[shown:]:
                 if imgui.begin_menu(label):
                     render()
@@ -4487,7 +4501,9 @@ class KnxGuiApp:
             imgui.end_menu()
         settings_x = imgui.get_window_width() - style.window_padding.x - settings_width
         imgui.set_cursor_pos_x(max(settings_x, imgui.get_cursor_pos_x()))
-        if imgui.menu_item(f"{_ICON_SETTINGS}##settings", "", False)[0]:
+        with _bar_item_spacing():
+            settings = imgui.menu_item(f"{_ICON_SETTINGS}##settings", "", False)[0]
+        if settings:
             self._settings_window.open()
         if imgui.is_item_hovered():
             imgui.set_tooltip(f"{S.SETTINGS_TITLE} ({S.SHORTCUT_SETTINGS})")
@@ -5847,13 +5863,13 @@ class KnxGuiApp:
         # When both ETS 6 and ETS 5 are installed, let the user pick which one signs.
         if det is not None and det.ets6 is not None and det.ets5 is not None:
             imgui.text_wrapped(S.MYKNX_ETS_PICK)
-            if imgui.radio_button(
+            if radio_button(
                 S.MYKNX_ETS_PICK_ETS6.format(version=det.ets6.version or "?"),
                 not self._ets_is5,
             ):
                 self._apply_ets_choice(False)
             imgui.same_line()
-            if imgui.radio_button(
+            if radio_button(
                 S.MYKNX_ETS_PICK_ETS5.format(version=det.ets5.version or "?"),
                 self._ets_is5,
             ):
@@ -7028,7 +7044,7 @@ class KnxGuiApp:
                 for label, theme in group:
                     if imgui.selectable(label, theme == tweaked.theme)[0]:
                         self._set_theme(theme.name)
-            imgui.end_combo()
+            end_combo()
         if beside:
             imgui.same_line()
         if imgui.button(customize):
@@ -7178,7 +7194,7 @@ class KnxGuiApp:
             for preset, label in zip(presets, labels, strict=True):
                 if imgui.selectable(label, preset == self._mcp_host.strip())[0]:
                     chosen = preset
-            imgui.end_combo()
+            end_combo()
         imgui.set_next_item_width(-1)
         changed, self._mcp_host = imgui.input_text("##mcp_host", self._mcp_host)
         if chosen is not None:
@@ -7358,6 +7374,29 @@ def _menu_width(label: str) -> float:
         imgui.calc_text_size(label, hide_text_after_double_hash=True).x
         + 2 * imgui.get_style().item_spacing.x
     )
+
+
+@contextlib.contextmanager
+def _bar_item_spacing() -> Generator[None]:
+    """The spacing for an entry of the menu bar: its highlight reaches half the item spacing
+    past the text, and so down to the bar's lower edge (one pixel stays free at the top, as
+    imgui rounds the upper half down)."""
+    style = imgui.get_style()
+    reach = style.frame_padding.y * 2 - 1.0
+    imgui.push_style_var(
+        imgui.StyleVar_.item_spacing, imgui.ImVec2(style.item_spacing.x, reach)
+    )
+    try:
+        yield
+    finally:
+        imgui.pop_style_var()
+
+
+def _bar_menu(label: str) -> bool:
+    """``imgui.begin_menu`` for a menu of the menu bar, highlighted down to the bar's edge; its
+    contents keep the usual spacing."""
+    with _bar_item_spacing():
+        return imgui.begin_menu(label)
 
 
 def _theme_items() -> list[tuple[str, hello_imgui.ImGuiTheme_]]:

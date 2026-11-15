@@ -6,11 +6,14 @@ import time
 from collections import deque
 from collections.abc import MutableMapping
 from dataclasses import dataclass, field
+from datetime import datetime
+from functools import cached_property
 from typing import Any
 
 import structlog
 
 from editor_gui.cemi_diagnostics import cemi_error_details
+from editor_gui.local_time import time_text
 from editor_gui.log_file import PlainTextFile, session_log
 
 _MAX_RECORDS = 10_000
@@ -89,10 +92,11 @@ class LogRecord:
     event: str
     payload: dict[str, str] = field(default_factory=dict[str, str])
 
-    @property
+    @cached_property
     def timestamp_str(self) -> str:
-        t = time.localtime(self.timestamp)
-        return f"{t.tm_hour:02d}:{t.tm_min:02d}:{t.tm_sec:02d}"
+        """The local time of the record in the regional time format; made once (the log renders
+        every frame)."""
+        return time_text(datetime.fromtimestamp(self.timestamp))
 
 
 class LogService:

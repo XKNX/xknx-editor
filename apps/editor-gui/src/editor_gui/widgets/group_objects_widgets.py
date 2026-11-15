@@ -21,7 +21,7 @@ from editor_gui.device import (
     object_size_text,
 )
 from editor_gui.widgets.checkbox import checkbox
-from editor_gui.widgets.combo import begin_combo
+from editor_gui.widgets.combo import begin_combo, end_combo
 from editor_gui.widgets.dialog import (
     begin_dialog,
     begin_tool_window,
@@ -39,6 +39,7 @@ from editor_gui.widgets.tables import (
     table_header,
     table_header_menu,
 )
+from editor_gui.widgets.tree import tree_node
 from xknxeditor.proj.core.addressing import GroupAddressStyle
 
 # One com-object → group-address link: (assignment_id, group_address_id, text, is_sending).
@@ -509,7 +510,7 @@ class GroupObjectsTable:
                 if depth:
                     imgui.unindent(px(20) * depth)
                 imgui.pop_id()
-            imgui.end_combo()
+            end_combo()
 
     def _checked_targets(self, com_objects: list[ComObject]) -> list[ComObject]:
         """Checked com-objects that have a DB row (the copy/paste source and target set)."""
@@ -787,7 +788,7 @@ class GroupObjectsTable:
             selected = dpt.code == current.code
             if imgui.selectable(f"{dpt.code}  {dpt.name}", selected)[0]:
                 self._on_set_dpt(device, com_object.id, dpt.code)
-        imgui.end_combo()
+        end_combo()
 
     def _render_priority_combo(self, device: Device, com_object: ComObject) -> None:
         """Dropdown for the group object's per-instance Priority (Low/High/Alert), plus a "Default"
@@ -807,7 +808,7 @@ class GroupObjectsTable:
                 f"{priority_text(priority)}##{priority}", priority == current
             )[0]:
                 self._on_set_priority(device, com_object.id, priority)
-        imgui.end_combo()
+        end_combo()
 
     def _render_description_popup(self) -> None:
         """A small modal to edit the per-instance Description, opened from the row context menu."""
@@ -919,7 +920,7 @@ class GroupObjectsTable:
     def _render_placeholder_reference(self, extra: str | None = None) -> None:
         """A collapsed 'Placeholders' section listing each placeholder with a short description;
         ``extra`` appends a flow-specific line (e.g. the bulk flow's ``{n}`` index)."""
-        if imgui.tree_node_ex(S.GA_NAME_TEMPLATE_PLACEHOLDERS):
+        if tree_node(S.GA_NAME_TEMPLATE_PLACEHOLDERS):
             imgui.text_disabled(S.GA_NAME_TEMPLATE_HINT)
             if extra:
                 imgui.text_disabled(extra)
@@ -1064,7 +1065,7 @@ class GroupObjectsTable:
         label = f"{ga_range_label(node)}##grpick{node.id}"
         if needle:
             imgui.set_next_item_open(True, imgui.Cond_.always)
-        if not imgui.tree_node_ex(label):
+        if not tree_node(label):
             return
         for child in node.children:
             self._render_ga_range(child, db_id, already, needle)

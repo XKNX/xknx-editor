@@ -20,7 +20,7 @@ from typing import TYPE_CHECKING, Any, cast
 
 from imgui_bundle import imgui
 
-from editor_gui.regional import regional_format
+from editor_gui.local_time import date_time_text
 from editor_gui.settings import load_settings, save_settings
 from editor_gui.strings import S
 from editor_gui.web.files import Entry, FileInUseError, matches, safe_name
@@ -36,7 +36,6 @@ from editor_gui.widgets.dpi import px
 from editor_gui.widgets.icon_button import ICON_DOWNLOAD
 from editor_gui.widgets.tables import begin_data_table, data_table_headers
 from editor_gui.widgets.text_util import fit_text, human_size
-from editor_gui.widgets.value_pickers import format_date
 from editor_gui.widgets.x_button import (
     glyph_button,
     small_glyph_size,
@@ -75,10 +74,8 @@ def _suffix(patterns: list[str]) -> str:
 
 
 def _modified(timestamp: float) -> str:
-    """A file's time in the regional date format."""
-    moment = datetime.fromtimestamp(timestamp)
-    day = format_date(moment.date().isoformat(), True, regional_format())
-    return f"{day} {moment:%H:%M}"
+    """A file's time in local time in the regional date and time formats."""
+    return date_time_text(datetime.fromtimestamp(timestamp))
 
 
 def _download_default(filters: list[tuple[str, list[str]]]) -> bool:

@@ -97,9 +97,6 @@ msgstr "Fyrir endurheimt"
 msgid "Pinned"
 msgstr "Fest"
 
-msgid "{size} MB"
-msgstr "{size} MB"
-
 msgid "Creating a backup: copying the project…"
 msgstr "Býr til öryggisafrit: afritar verkefnið…"
 

@@ -272,14 +272,11 @@ msgstr "{count} B kopiëren"
 msgid "Go To:"
 msgstr "Ga naar:"
 
-msgid "no differences"
-msgstr "geen verschillen"
+msgid "No differences"
+msgstr "Geen verschillen"
 
 msgid "Parameter:"
 msgstr "Parameter:"
-
-msgid "search…"
-msgstr "zoeken…"
 
 msgid "automatic"
 msgstr "automatisch"
@@ -339,3 +336,30 @@ msgid "{count} Module Selected"
 msgid_plural "{count} Modules Selected"
 msgstr[0] "{count} module geselecteerd"
 msgstr[1] "{count} modules geselecteerd"
+
+msgid "Offset:"
+msgstr "Offset:"
+
+msgid "Binary:"
+msgstr "Binair:"
+
+msgid "Value:"
+msgstr "Waarde:"
+
+msgid "Reference Byte:"
+msgstr "Referentiebyte:"
+
+msgid "Not in the reference"
+msgstr "Niet in de referentie"
+
+msgid "{size} B"
+msgstr "{size} B"
+
+msgid "{size} KB"
+msgstr "{size} KB"
+
+msgid "{size} MB"
+msgstr "{size} MB"
+
+msgid "{size} GB"
+msgstr "{size} GB"

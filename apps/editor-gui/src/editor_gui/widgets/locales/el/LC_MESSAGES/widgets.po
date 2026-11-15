@@ -235,14 +235,11 @@ msgstr "Αντιγραφή {count} B"
 msgid "Go To:"
 msgstr "Μετάβαση σε:"
 
-msgid "no differences"
-msgstr "καμία διαφορά"
+msgid "No differences"
+msgstr "Καμία διαφορά"
 
 msgid "Parameter:"
 msgstr "Παράμετρος:"
-
-msgid "search…"
-msgstr "αναζήτηση…"
 
 msgid "Low"
 msgstr "Χαμηλή"
@@ -317,3 +314,30 @@ msgid "{count} Module Selected"
 msgid_plural "{count} Modules Selected"
 msgstr[0] "Επιλέχθηκε {count} μονάδα"
 msgstr[1] "Επιλέχθηκαν {count} μονάδες"
+
+msgid "Offset:"
+msgstr "Μετατόπιση:"
+
+msgid "Binary:"
+msgstr "Δυαδικό:"
+
+msgid "Value:"
+msgstr "Τιμή:"
+
+msgid "Reference Byte:"
+msgstr "Byte αναφοράς:"
+
+msgid "Not in the reference"
+msgstr "Δεν υπάρχει στην αναφορά"
+
+msgid "{size} B"
+msgstr "{size} B"
+
+msgid "{size} KB"
+msgstr "{size} KB"
+
+msgid "{size} MB"
+msgstr "{size} MB"
+
+msgid "{size} GB"
+msgstr "{size} GB"

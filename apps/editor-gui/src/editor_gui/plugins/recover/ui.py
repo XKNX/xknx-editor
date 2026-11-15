@@ -13,7 +13,7 @@ from editor_gui.plugins.recover.strings import S
 from editor_gui.strings import S as AppS
 from editor_gui.theme import status_color
 from editor_gui.widgets.checkbox import checkbox
-from editor_gui.widgets.combo import begin_combo, combo
+from editor_gui.widgets.combo import begin_combo, combo, end_combo
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
 from editor_gui.widgets.dpi import px
 from editor_gui.widgets.flow import button_width, same_line_if_fits, text_width
@@ -251,7 +251,7 @@ class RecoverPanel:
                         )
                         if clicked:
                             service.choose_candidate(entry.address, candidate_index)
-                    imgui.end_combo()
+                    end_combo()
                 imgui.end_disabled()
             else:
                 text_clipped_tooltip(

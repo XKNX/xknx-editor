@@ -30,13 +30,22 @@ def text_clipped_tooltip(
 
 
 def human_size(num_bytes: int) -> str:
-    """Human-readable byte size (e.g. '1.2 MB')."""
+    """A size in the unit that suits it, bytes whole and larger units with one decimal in the
+    regional format, its unit as the UI language writes it ("1.2 MB", "1,2 MB", "1,2 МБ")."""
+    from editor_gui.regional import regional_format
+    from editor_gui.widgets.strings import S
+
+    units = (S.SIZE_BYTES, S.SIZE_KB, S.SIZE_MB, S.SIZE_GB)
     size = float(num_bytes)
-    for unit in ("B", "KB", "MB", "GB"):
-        if size < 1024.0 or unit == "GB":
-            return f"{size:.0f} {unit}" if unit == "B" else f"{size:.1f} {unit}"
+    step = 0
+    while size >= 1024.0 and step < len(units) - 1:
         size /= 1024.0
-    return f"{size:.1f} GB"
+        step += 1
+    if step == 0:
+        return units[0].format(size=f"{num_bytes}")
+    return units[step].format(
+        size=f"{size:.1f}".replace(".", regional_format().decimal)
+    )
 
 
 def fit_text(text: str, room: float) -> str:

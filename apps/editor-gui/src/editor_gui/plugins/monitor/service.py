@@ -26,6 +26,7 @@ from xknx.telegram import GroupAddress as XGroupAddress
 from xknx.telegram.apci import GroupValueRead, GroupValueResponse, GroupValueWrite
 
 from editor_gui.dpt import transcoder_for
+from editor_gui.local_time import time_text
 from editor_gui.plugins.connection.busmonitor import TP1Acknowledgement
 from editor_gui.plugins.connection.service import BusmonitorState
 from editor_gui.plugins.monitor.frames import (
@@ -59,9 +60,9 @@ class LiveValue:
 
     @cached_property
     def time_str(self) -> str:
-        # Cached: strftime does a tzset (getenv/notify) on macOS and the monitor re-renders every
-        # frame; format the fixed timestamp once, not per frame.
-        return self.timestamp.strftime("%H:%M:%S")
+        # Cached: the conversion to local time does a tzset (getenv/notify) on macOS and the
+        # monitor re-renders every frame; format the fixed timestamp once, not per frame.
+        return time_text(self.timestamp)
 
 
 def decode_group_value(payload: Any, dpt: str | None) -> str:
@@ -89,10 +90,6 @@ class TelegramRecord:
     service: str  # "Write" | "Response" | "Read"
     payload: Any  # raw DPTArray/DPTBinary value, or None for Read
     destination_raw: int = 0  # 16-bit group address value
-
-    @cached_property
-    def time_str(self) -> str:
-        return self.timestamp.strftime("%H:%M:%S")
 
 
 class MonitorKind(Enum):

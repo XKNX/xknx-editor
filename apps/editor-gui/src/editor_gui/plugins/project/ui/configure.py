@@ -25,10 +25,12 @@ from editor_gui.device_plugins import (
     parameters_in_plugin,
 )
 from editor_gui.hardware_text import bus_current_text, rail_text
+from editor_gui.local_time import stamp_text
 from editor_gui.os_open import open_url
 from editor_gui.plugins.project.strings import S
 from editor_gui.plugins.project.ui import name_focus
 from editor_gui.plugins.project.ui.status_field import status_combo
+from editor_gui.widgets.combo import end_combo
 from editor_gui.widgets.dpi import label_column_width, px, px_vec2
 from editor_gui.widgets.filter_box import filter_box
 from editor_gui.widgets.flow import button_width, same_line_if_fits
@@ -36,7 +38,7 @@ from editor_gui.widgets.fonts import heading, italic
 from editor_gui.widgets.icon_button import ICON_COPY, copy_button, icon_button_width
 from editor_gui.widgets.spinner import loading
 from editor_gui.widgets.tables import begin_data_table, data_table_headers
-from editor_gui.widgets.tree import collapsing_header
+from editor_gui.widgets.tree import collapsing_header, tree_node
 from xknxeditor.download.scope import DownloadScope
 from xknxeditor.prod.app_id import parse_app_id
 from xknxeditor.prod.parser_v2.ui import UiNode
@@ -69,12 +71,11 @@ from editor_gui.widgets import (
 )
 from editor_gui.widgets.backgrounds import (
     child_background,
-    page_line,
+    pane_line,
     side_background,
 )
 from editor_gui.widgets.checkbox import checkbox, radio_button
 from editor_gui.widgets.combo import begin_combo, combo
-from editor_gui.widgets.datetime_format import timestamp_text
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
 from editor_gui.widgets.group_objects_widgets import (
     GroupAddressCatalog,
@@ -258,7 +259,7 @@ def direct_program_request(
 
 def _timestamp_field(stamp: str | None) -> None:
     imgui.align_text_to_frame_padding()
-    imgui.text_unformatted(timestamp_text(stamp))
+    imgui.text_unformatted(stamp_text(stamp))
 
 
 def _render_loading_application() -> None:
@@ -1008,7 +1009,7 @@ class ConfigurePanel:
                     and self._on_secure_commissioning_change is not None
                 ):
                     self._on_secure_commissioning_change(device, value)
-            imgui.end_combo()
+            end_combo()
         if self._on_add_certificate is not None:
             if combo_w + style.item_spacing.x + button_w <= avail:
                 imgui.same_line()
@@ -1034,7 +1035,7 @@ class ConfigurePanel:
                     and self._on_routing_blocking is not None
                 ):
                     self._on_routing_blocking(device, mode)
-            imgui.end_combo()
+            end_combo()
 
     def _render_device_actions(self, device: Device) -> None:
         """The device's occasional actions (read-out, restart, reset) in one row that wraps when
@@ -1099,7 +1100,7 @@ class ConfigurePanel:
                     )
                     if imgui.selectable(f"{text}##{program.id}", False)[0]:
                         self._on_change_application(device, program)
-                imgui.end_combo()
+                end_combo()
             imgui.end_disabled()
         if self._on_update_application is not None:
             imgui.text_disabled(S.UPDATE_APPLICATION_VERSION)
@@ -1585,13 +1586,13 @@ class ConfigurePanel:
             )
         if imgui.is_item_deactivated():
             self._save_help_height()
-        # In the color of the page's separator lines; the theme's while hovered or dragged.
+        # In the color of the line beside the page tree; the theme's while hovered or dragged.
         color = imgui.get_color_u32(
             imgui.Col_.separator_active
             if active
             else imgui.Col_.separator_hovered
             if hovered
-            else page_line()
+            else pane_line()
         )
         # The line right below the parameters, the rest on the help's background.
         line_bottom = top_left.y + px(_HELP_LINE)
@@ -1665,7 +1666,7 @@ class ConfigurePanel:
                 number=i + 1, count=len(proc.steps)
             )
             label = f"{procedure}##lp{i}"
-            if imgui.tree_node(label):
+            if tree_node(label):
                 _table_flags = (
                     imgui.TableFlags_.borders_outer
                     | imgui.TableFlags_.borders_inner_v

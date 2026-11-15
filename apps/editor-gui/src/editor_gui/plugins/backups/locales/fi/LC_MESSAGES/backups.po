@@ -97,9 +97,6 @@ msgstr "Ennen palautusta"
 msgid "Pinned"
 msgstr "kiinnitetty"
 
-msgid "{size} MB"
-msgstr "{size} Mt"
-
 msgid "Creating a backup: copying the project…"
 msgstr "Luodaan varmuuskopiota: kopioidaan projektia…"
 

@@ -235,14 +235,11 @@ msgstr "{count} B Kopyala"
 msgid "Go To:"
 msgstr "Git:"
 
-msgid "no differences"
-msgstr "fark yok"
+msgid "No differences"
+msgstr "Fark yok"
 
 msgid "Parameter:"
 msgstr "Parametre:"
-
-msgid "search…"
-msgstr "ara…"
 
 msgid "Low"
 msgstr "Düşük"
@@ -313,3 +310,30 @@ msgstr "Modülsüz"
 msgid "{count} Module Selected"
 msgid_plural "{count} Modules Selected"
 msgstr[0] "{count} modül seçili"
+
+msgid "Offset:"
+msgstr "Ofset:"
+
+msgid "Binary:"
+msgstr "İkili:"
+
+msgid "Value:"
+msgstr "Değer:"
+
+msgid "Reference Byte:"
+msgstr "Referans baytı:"
+
+msgid "Not in the reference"
+msgstr "Referansta yok"
+
+msgid "{size} B"
+msgstr "{size} B"
+
+msgid "{size} KB"
+msgstr "{size} KB"
+
+msgid "{size} MB"
+msgstr "{size} MB"
+
+msgid "{size} GB"
+msgstr "{size} GB"

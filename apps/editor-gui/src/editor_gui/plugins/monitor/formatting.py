@@ -10,6 +10,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import TYPE_CHECKING, Any, Protocol, cast
 
+from editor_gui import local_time
 from editor_gui.dpt import lookup_or_make_dpt, transcoder_for
 from editor_gui.dpt_formats import BitFormat as BitFormat
 from editor_gui.dpt_formats import DptFormat as DptFormat
@@ -428,16 +429,24 @@ def info_text(frame: FrameInfo, dpt: str | None, index: ProjectIndex) -> str:
 
 
 def time_text(ticks: int) -> str:
-    """Local time of day with milliseconds, e.g. ``19:41:18.824``."""
+    """Local time of day in the regional time format with milliseconds, e.g. ``19:41:18,824``."""
     seconds, fraction = divmod(ticks, TICKS_PER_SECOND)
-    moment = datetime.fromtimestamp(seconds)
-    return f"{moment:%H:%M:%S}.{fraction // 10_000:03d}"
+    moment = datetime.fromtimestamp(seconds).replace(microsecond=fraction // 10)
+    return local_time.time_text(moment, millis=True)
 
 
 def date_text(ticks: int) -> str:
-    """Local date, e.g. ``2026-10-12``."""
-    seconds = ticks // TICKS_PER_SECOND
-    return f"{datetime.fromtimestamp(seconds):%Y-%m-%d}"
+    """Local date in the regional short date format, e.g. ``12.10.2026``."""
+    return local_time.date_text(datetime.fromtimestamp(ticks // TICKS_PER_SECOND))
+
+
+def sample_text(key: str) -> str | None:
+    """The widest text of the time or date column (``key``); None for other columns."""
+    if key == "time":
+        return local_time.time_text(local_time.WIDEST, millis=True)
+    if key == "date":
+        return local_time.date_text(local_time.WIDEST)
+    return None
 
 
 def medium_info_text(raw: bytes) -> str:

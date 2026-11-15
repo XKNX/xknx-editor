@@ -97,9 +97,6 @@ msgstr "Prima del ripristino"
 msgid "Pinned"
 msgstr "fissato"
 
-msgid "{size} MB"
-msgstr "{size} MB"
-
 msgid "Creating a backup: copying the project…"
 msgstr "Creazione del backup: copia del progetto…"
 

@@ -1,6 +1,5 @@
 import asyncio
 import contextlib
-import math
 import threading
 import time
 from collections.abc import Awaitable, Callable, Coroutine, Iterable
@@ -58,6 +57,7 @@ from editor_gui.settings import load_settings, save_settings
 from editor_gui.settings_window import Setting
 from editor_gui.strings import S as app_strings
 from editor_gui.theme import status_color
+from editor_gui.widgets.animation import animation_time
 from editor_gui.widgets.checkbox import radio_button
 from editor_gui.widgets.dialog import (
     begin_dialog,
@@ -1901,12 +1901,9 @@ class ConnectionPlugin:
             if imgui.is_item_hovered():
                 imgui.set_tooltip(S.STATUS_BUSMONITOR_HINT)
         elif self._state == ConnectionState.CONNECTED:
-            pulse = 0.5 + 0.5 * math.sin(imgui.get_time() * 3.0)
-            alpha = 0.4 + 0.6 * pulse
-            draw_list.add_circle_filled(center, px(4), color_u32(0.2, 0.8, 0.3, alpha))
-            draw_list.add_circle_filled(
-                center, px(4 + pulse * 3), color_u32(0.2, 0.8, 0.3, 0.15 * (1 - pulse))
-            )
+            # A steady dot: a connection that lasts is no reason to redraw the status bar (in the
+            # browser view, to send it again) all the time.
+            draw_list.add_circle_filled(center, px(4), color_u32(0.2, 0.8, 0.3, 1.0))
             imgui.dummy(px_vec2(12, 0))
             imgui.same_line()
             target = self._connection_target
@@ -1918,7 +1915,7 @@ class ConnectionPlugin:
                     target = f"{name} @ {target}"
             imgui.text(S.STATUS_CONNECTED.format(ip=target))
         elif self._state == ConnectionState.CONNECTING:
-            spin = (imgui.get_time() * 4) % 1.0
+            spin = (animation_time() * 4) % 1.0
             draw_list.add_circle_filled(
                 center, px(4), color_u32(0.8, 0.7, 0.2, 0.5 + 0.5 * spin)
             )
@@ -2080,12 +2077,11 @@ class ConnectionPlugin:
             self._start_usb_address(self.check_usb_interface_address)
         imgui.end_disabled()
         if busy or (self._state == ConnectionState.CONNECTING):
-            spinner("##usb_address_spinner")
-            imgui.same_line()
-            imgui.text_disabled(
+            loading(
+                "##usb_address_spinner",
                 S.USB_ADDRESS_CHECKING
                 if self._usb_address_checking
-                else S.USB_ADDRESS_SETTING
+                else S.USB_ADDRESS_SETTING,
             )
         elif self._usb_address_error:
             imgui.push_style_color(imgui.Col_.text, status_color("error"))
