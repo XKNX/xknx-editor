@@ -3178,3 +3178,9 @@ msgstr "内部値"
 
 msgid "Acknowledge Group Address"
 msgstr "グループアドレスを確認応答"
+
+msgid "Select another step in the list to bring the project back to it"
+msgstr "プロジェクトを戻すには、一覧で別のステップを選択してください"
+
+msgid "Current state of the project"
+msgstr "プロジェクトの現在の状態"

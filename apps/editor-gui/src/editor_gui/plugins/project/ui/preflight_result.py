@@ -29,6 +29,7 @@ from editor_gui.programming import (
 from editor_gui.theme import status_color
 from editor_gui.widgets.dialog import begin_tool_window
 from editor_gui.widgets.dpi import px
+from editor_gui.widgets.icon_button import ICON_COPY, icon_button
 from editor_gui.widgets.tables import begin_data_table, data_table_headers
 
 if TYPE_CHECKING:
@@ -129,6 +130,8 @@ class PreflightResultWindow:
 
     def _render_body(self) -> None:
         # The device as the device lists show it, then the scope: its label dimmed, its value not.
+        # On the line of the copy button at the end.
+        imgui.align_text_to_frame_padding()
         imgui.text(self._label)
         before, _, after = S.PREFLIGHT_SCOPE.partition("{scope}")
         imgui.same_line(spacing=px(24))
@@ -141,7 +144,7 @@ class PreflightResultWindow:
             imgui.text_disabled(after.strip())
         imgui.same_line(spacing=px(24))
         # Text is plain (not selectable), so offer explicit copy-to-clipboard.
-        if imgui.small_button(S.COPY_LOG):
+        if icon_button(ICON_COPY, "preflight_copy", S.COPY_LOG):
             imgui.set_clipboard_text(self._clipboard_text())
         imgui.separator()
         # Reassure up front: a test never writes to the device. (text_disabled doesn't wrap, so

@@ -28,16 +28,6 @@ msgstr "{address} {name}: geen datapunttype"
 msgid "{address} {name}: no known value source in the project"
 msgstr "{address} {name}: geen bekende waardebron in het project"
 
-msgid "{count} error"
-msgid_plural "{count} errors"
-msgstr[0] "{count} fout"
-msgstr[1] "{count} fouten"
-
-msgid "{count} warning"
-msgid_plural "{count} warnings"
-msgstr[0] "{count} waarschuwing"
-msgstr[1] "{count} waarschuwingen"
-
 msgid "{count} device skipped: application not in catalog"
 msgid_plural "{count} devices skipped: application not in catalog"
 msgstr[0] "{count} apparaat overgeslagen: applicatie niet in catalogus"
@@ -52,3 +42,15 @@ msgid "{address} {name}: {count} transmit-capable group object; check assignment
 msgid_plural "{address} {name}: {count} transmit-capable group objects; check assignment"
 msgstr[0] "{address} {name}: {count} groepsobject dat kan verzenden; controleer de toewijzing"
 msgstr[1] "{address} {name}: {count} groepsobjecten die kunnen verzenden; controleer de toewijzing"
+
+msgid "Errors"
+msgstr "Fouten"
+
+msgid "Warnings"
+msgstr "Waarschuwingen"
+
+msgid "Hints"
+msgstr "Tips"
+
+msgid "No findings of the selected kinds"
+msgstr "Geen bevindingen van de geselecteerde soorten"

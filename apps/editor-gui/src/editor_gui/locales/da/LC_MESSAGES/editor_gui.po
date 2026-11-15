@@ -1720,3 +1720,12 @@ msgstr "{name} kunne ikke slettes: {error}"
 
 msgid "Delete File"
 msgstr "Slet fil"
+
+msgid "Status"
+msgstr "Status"
+
+msgid "New"
+msgstr "Ny"
+
+msgid "In catalog"
+msgstr "I kataloget"

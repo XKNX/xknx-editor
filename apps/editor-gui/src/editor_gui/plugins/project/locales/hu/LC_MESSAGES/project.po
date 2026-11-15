@@ -3205,3 +3205,9 @@ msgstr "Belső értékek"
 
 msgid "Acknowledge Group Address"
 msgstr "Csoportcím Nyugtázása"
+
+msgid "Select another step in the list to bring the project back to it"
+msgstr "Válasszon egy másik lépést a listában, hogy a projektet visszaállítsa arra"
+
+msgid "Current state of the project"
+msgstr "A projekt jelenlegi állapota"

@@ -28,16 +28,6 @@ msgstr "{address} {name}: pa lloj pike të dhënash"
 msgid "{address} {name}: no known value source in the project"
 msgstr "{address} {name}: nuk ka burim të njohur vlerash në projekt"
 
-msgid "{count} error"
-msgid_plural "{count} errors"
-msgstr[0] "{count} gabim"
-msgstr[1] "{count} gabime"
-
-msgid "{count} warning"
-msgid_plural "{count} warnings"
-msgstr[0] "{count} paralajmërim"
-msgstr[1] "{count} paralajmërime"
-
 msgid "{count} device skipped: application not in catalog"
 msgid_plural "{count} devices skipped: application not in catalog"
 msgstr[0] "{count} pajisje u anashkalua: programi aplikativ nuk është në katalog"
@@ -52,3 +42,15 @@ msgid "{address} {name}: {count} transmit-capable group object; check assignment
 msgid_plural "{address} {name}: {count} transmit-capable group objects; check assignment"
 msgstr[0] "{address} {name}: {count} objekt grupi me aftësi transmetimi; kontrolloni lidhjet"
 msgstr[1] "{address} {name}: {count} objekte grupi me aftësi transmetimi; kontrolloni lidhjet"
+
+msgid "Errors"
+msgstr "Gabime"
+
+msgid "Warnings"
+msgstr "Paralajmërime"
+
+msgid "Hints"
+msgstr "Këshilla"
+
+msgid "No findings of the selected kinds"
+msgstr "Asnjë gjetje e llojeve të zgjedhura"

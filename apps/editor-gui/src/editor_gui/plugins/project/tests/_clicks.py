@@ -1,7 +1,7 @@
 """Choose items of menus and dialogs in a headless imgui context, as a user would click them.
 
 A test names what it wants: the context menu to open (by its popup id), the submenus to enter,
-the menu items, selectables and small buttons to click and the dialog button to press (by their
+the menu items, selectables and buttons to click and the dialog button to press (by their
 labels). Each is used once; everything else renders and behaves as without it.
 """
 
@@ -38,7 +38,7 @@ class Clicks:
         real_end_menu = imgui.end_menu
         real_menu_item = imgui.menu_item
         real_selectable = imgui.selectable
-        real_small_button = imgui.small_button
+        real_button = imgui.button
 
         def begin_popup_context_item(str_id: str | None = None, *args: Any) -> bool:
             if str_id is not None and str_id == self.context:
@@ -87,8 +87,8 @@ class Clicks:
                 return True, result[1]
             return result
 
-        def small_button(label: str) -> bool:
-            clicked = real_small_button(label)
+        def button(label: str, *args: Any) -> bool:
+            clicked = real_button(label, *args)
             if label in self.items:
                 self.items.discard(label)
                 return True
@@ -101,7 +101,7 @@ class Clicks:
             ("end_menu", end_menu),
             ("menu_item", menu_item),
             ("selectable", selectable),
-            ("small_button", small_button),
+            ("button", button),
         ):
             monkeypatch.setattr(imgui, name, fake)
         for module in modules:

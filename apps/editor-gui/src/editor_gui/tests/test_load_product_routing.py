@@ -141,7 +141,9 @@ def test_files_import_stops_at_cancel(monkeypatch: pytest.MonkeyPatch) -> None:
     stub._knxprod_result = None
     stub._import_rows_result = None
     stub._conversion_progress = lambda done, total: None
-    stub._product_import_rows = lambda added: [f"row {p.product_ref_id}" for p in added]
+    stub._product_import_rows = lambda added, _new: [
+        f"row {p.product_ref_id}" for p in added
+    ]
     stub._project_service = SimpleNamespace(
         refresh_catalog_resolution=lambda rebuild: None
     )

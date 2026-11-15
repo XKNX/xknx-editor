@@ -9,7 +9,13 @@ from editor_gui.plugins.logger.strings import S
 from editor_gui.theme import status_color
 from editor_gui.widgets.combo import combo
 from editor_gui.widgets.dpi import px
-from editor_gui.widgets.flow import button_width, same_line_if_fits
+from editor_gui.widgets.flow import same_line_if_fits
+from editor_gui.widgets.icon_button import (
+    ICON_CLEAR,
+    ICON_COPY,
+    icon_button,
+    icon_button_width,
+)
 from editor_gui.widgets.tables import begin_data_table, data_table_headers
 
 # The status color (see ``status_color``) of the levels that report a problem.
@@ -119,17 +125,18 @@ class LogPanel:
         _, self._min_level_idx = combo(
             "##loglevel", self._min_level_idx, [label() for label, _ in _LEVEL_OPTIONS]
         )
-        same_line_if_fits(button_width(S.COPY_LOG))
+        # The toolbar's actions as icons, as the monitors' toolbars have them.
+        same_line_if_fits(icon_button_width(ICON_COPY))
         # Rows are plain text (not selectable), so offer an explicit copy-all-to-clipboard.
         # Copy the COMPLETE log (all records, ignoring the current filter) so nothing is lost.
-        if imgui.button(S.COPY_LOG) and records:
+        if icon_button(ICON_COPY, "copy_log", S.COPY_LOG) and records:
             text = "\n".join(self._record_as_text(r) for r in records)
             # Strip control chars (esp. NUL, which some payloads like a gateway name carry): a NUL
             # terminates the C string in set_clipboard_text and would truncate the whole copy.
             text = "".join(c for c in text if c in "\n\t" or c.isprintable())
             imgui.set_clipboard_text(text)
-        same_line_if_fits(button_width(S.BTN_CLEAR))
-        if imgui.button(S.BTN_CLEAR):
+        same_line_if_fits(icon_button_width(ICON_CLEAR))
+        if icon_button(ICON_CLEAR, "clear_log", S.BTN_CLEAR):
             self._on_clear()
             self._last_count = 0
 

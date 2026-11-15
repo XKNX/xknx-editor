@@ -28,16 +28,6 @@ msgstr "{address} {name}: kein Datenpunkttyp"
 msgid "{address} {name}: no known value source in the project"
 msgstr "{address} {name}: keine bekannte Wertquelle im Projekt"
 
-msgid "{count} error"
-msgid_plural "{count} errors"
-msgstr[0] "{count} Fehler"
-msgstr[1] "{count} Fehler"
-
-msgid "{count} warning"
-msgid_plural "{count} warnings"
-msgstr[0] "{count} Warnung"
-msgstr[1] "{count} Warnungen"
-
 msgid "{count} device skipped: application not in catalog"
 msgid_plural "{count} devices skipped: application not in catalog"
 msgstr[0] "{count} Gerät übersprungen: Applikation nicht im Katalog"
@@ -52,3 +42,15 @@ msgid "{address} {name}: {count} transmit-capable group object; check assignment
 msgid_plural "{address} {name}: {count} transmit-capable group objects; check assignment"
 msgstr[0] "{address} {name}: {count} sendefähiges Kommunikationsobjekt; Zuordnung prüfen"
 msgstr[1] "{address} {name}: {count} sendefähige Kommunikationsobjekte; Zuordnung prüfen"
+
+msgid "Errors"
+msgstr "Fehler"
+
+msgid "Warnings"
+msgstr "Warnungen"
+
+msgid "Hints"
+msgstr "Hinweise"
+
+msgid "No findings of the selected kinds"
+msgstr "Keine Befunde der ausgewählten Arten"

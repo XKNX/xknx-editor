@@ -3282,3 +3282,9 @@ msgstr "Wartości wewnętrzne"
 
 msgid "Acknowledge Group Address"
 msgstr "Potwierdzaj Adres Grupowy"
+
+msgid "Select another step in the list to bring the project back to it"
+msgstr "Wybierz inny krok na liście, aby przywrócić do niego projekt"
+
+msgid "Current state of the project"
+msgstr "Bieżący stan projektu"

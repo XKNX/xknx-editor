@@ -28,16 +28,6 @@ msgstr "{address} {name}: ei tietopisteen tyyppiä"
 msgid "{address} {name}: no known value source in the project"
 msgstr "{address} {name}: projektissa ei ole tunnettua arvolähdettä"
 
-msgid "{count} error"
-msgid_plural "{count} errors"
-msgstr[0] "{count} virhe"
-msgstr[1] "{count} virhettä"
-
-msgid "{count} warning"
-msgid_plural "{count} warnings"
-msgstr[0] "{count} varoitus"
-msgstr[1] "{count} varoitusta"
-
 msgid "{count} device skipped: application not in catalog"
 msgid_plural "{count} devices skipped: application not in catalog"
 msgstr[0] "{count} laite ohitettiin – sovellus ei ole luettelossa"
@@ -52,3 +42,15 @@ msgid "{address} {name}: {count} transmit-capable group object; check assignment
 msgid_plural "{address} {name}: {count} transmit-capable group objects; check assignment"
 msgstr[0] "{address} {name}: {count} lähetyskykyinen ryhmäobjekti; tarkista määritys"
 msgstr[1] "{address} {name}: {count} lähetyskykyistä ryhmäobjektia; tarkista määritys"
+
+msgid "Errors"
+msgstr "Virheet"
+
+msgid "Warnings"
+msgstr "Varoitukset"
+
+msgid "Hints"
+msgstr "Vihjeet"
+
+msgid "No findings of the selected kinds"
+msgstr "Ei valittujen tyyppien havaintoja"

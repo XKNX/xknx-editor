@@ -1736,3 +1736,12 @@ msgstr "{name} nelze smazat: {error}"
 
 msgid "Delete File"
 msgstr "Smazat soubor"
+
+msgid "Status"
+msgstr "Stav"
+
+msgid "New"
+msgstr "Nový"
+
+msgid "In catalog"
+msgstr "V katalogu"

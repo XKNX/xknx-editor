@@ -28,16 +28,6 @@ msgstr "{address} {name}: χωρίς τύπο datapoint"
 msgid "{address} {name}: no known value source in the project"
 msgstr "{address} {name}: δεν υπάρχει γνωστή πηγή τιμών στο έργο"
 
-msgid "{count} error"
-msgid_plural "{count} errors"
-msgstr[0] "{count} σφάλμα"
-msgstr[1] "{count} σφάλματα"
-
-msgid "{count} warning"
-msgid_plural "{count} warnings"
-msgstr[0] "{count} προειδοποίηση"
-msgstr[1] "{count} προειδοποιήσεις"
-
 msgid "{count} device skipped: application not in catalog"
 msgid_plural "{count} devices skipped: application not in catalog"
 msgstr[0] "{count} συσκευή παραλείφθηκε: η εφαρμογή δεν υπάρχει στον κατάλογο"
@@ -52,3 +42,15 @@ msgid "{address} {name}: {count} transmit-capable group object; check assignment
 msgid_plural "{address} {name}: {count} transmit-capable group objects; check assignment"
 msgstr[0] "{address} {name}: {count} ομαδικό αντικείμενο με δυνατότητα μετάδοσης; ελέγξτε την αντιστοίχιση"
 msgstr[1] "{address} {name}: {count} ομαδικά αντικείμενα με δυνατότητα μετάδοσης; ελέγξτε την αντιστοίχιση"
+
+msgid "Errors"
+msgstr "Σφάλματα"
+
+msgid "Warnings"
+msgstr "Προειδοποιήσεις"
+
+msgid "Hints"
+msgstr "Υποδείξεις"
+
+msgid "No findings of the selected kinds"
+msgstr "Κανένα εύρημα των επιλεγμένων ειδών"

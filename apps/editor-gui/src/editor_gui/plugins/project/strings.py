@@ -3553,6 +3553,14 @@ class ProjectStrings:
         return _("Restore")
 
     @property
+    def HISTORY_RESTORE_HINT(self) -> str:
+        return _("Select another step in the list to bring the project back to it")
+
+    @property
+    def HISTORY_CURRENT(self) -> str:
+        return _("Current state of the project")
+
+    @property
     def HISTORY_DEVICE_ADD(self) -> str:
         return _("Add device: {name}")
 

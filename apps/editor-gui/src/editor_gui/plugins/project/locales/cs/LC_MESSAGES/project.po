@@ -3282,3 +3282,9 @@ msgstr "Interní hodnoty"
 
 msgid "Acknowledge Group Address"
 msgstr "Potvrzovat Skupinovou Adresu"
+
+msgid "Select another step in the list to bring the project back to it"
+msgstr "Vyberte v seznamu jiný krok, ke kterému se má projekt vrátit"
+
+msgid "Current state of the project"
+msgstr "Aktuální stav projektu"

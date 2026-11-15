@@ -3361,3 +3361,9 @@ msgstr "Notranje vrednosti"
 
 msgid "Acknowledge Group Address"
 msgstr "Potrdi Skupinski Naslov"
+
+msgid "Select another step in the list to bring the project back to it"
+msgstr "Na seznamu izberite drug korak, da projekt vrnete nanj"
+
+msgid "Current state of the project"
+msgstr "Trenutno stanje projekta"

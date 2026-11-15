@@ -380,6 +380,10 @@ class WidgetStrings(BaseStrings):
         return _("Copy")
 
     @property
+    def COPY(self) -> str:
+        return _("Copy")
+
+    @property
     def HEX_COPY_BYTES(self) -> str:
         return _("Copy {count} B")
 

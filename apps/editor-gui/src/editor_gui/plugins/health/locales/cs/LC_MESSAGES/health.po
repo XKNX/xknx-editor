@@ -28,18 +28,6 @@ msgstr "{address} {name}: bez typu datového bodu"
 msgid "{address} {name}: no known value source in the project"
 msgstr "{address} {name}: v projektu není znám žádný zdroj hodnot"
 
-msgid "{count} error"
-msgid_plural "{count} errors"
-msgstr[0] "{count} chyba"
-msgstr[1] "{count} chyby"
-msgstr[2] "{count} chyb"
-
-msgid "{count} warning"
-msgid_plural "{count} warnings"
-msgstr[0] "{count} varování"
-msgstr[1] "{count} varování"
-msgstr[2] "{count} varování"
-
 msgid "{count} device skipped: application not in catalog"
 msgid_plural "{count} devices skipped: application not in catalog"
 msgstr[0] "{count} zařízení přeskočeno – aplikace není v katalogu"
@@ -57,3 +45,15 @@ msgid_plural "{address} {name}: {count} transmit-capable group objects; check as
 msgstr[0] "{address} {name}: {count} skupinový objekt schopný vysílat; zkontrolujte přiřazení"
 msgstr[1] "{address} {name}: {count} skupinové objekty schopné vysílat; zkontrolujte přiřazení"
 msgstr[2] "{address} {name}: {count} skupinových objektů schopných vysílat; zkontrolujte přiřazení"
+
+msgid "Errors"
+msgstr "Chyby"
+
+msgid "Warnings"
+msgstr "Varování"
+
+msgid "Hints"
+msgstr "Tipy"
+
+msgid "No findings of the selected kinds"
+msgstr "Žádná zjištění vybraných druhů"

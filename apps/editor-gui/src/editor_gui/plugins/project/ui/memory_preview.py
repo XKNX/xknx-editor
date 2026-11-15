@@ -129,11 +129,12 @@ class MemoryPreviewWindow:
             self._ref_data = {}
 
     def _render_seg_toolbar(self, seg_id: str, data: bytes, idx: int) -> None:
+        imgui.align_text_to_frame_padding()
         imgui.text_disabled(S.MEMORY_BYTES(len(data)).format(count=len(data)))
         imgui.same_line()
         idle = self._save_dialog is None and self._ref_dialog is None
         imgui.begin_disabled(not idle)
-        if imgui.small_button(f"{S.MEMORY_SAVE}##sv{idx}"):
+        if imgui.button(f"{S.MEMORY_SAVE}##sv{idx}"):
             self._save_seg_id = seg_id
             self._file_error = None
             self._save_dialog = file_dialogs.save_file(
@@ -143,9 +144,9 @@ class MemoryPreviewWindow:
             )
         imgui.same_line()
         if seg_id in self._ref_data:
-            if imgui.small_button(f"{S.MEMORY_CLEAR_DIFF}##df{idx}"):
+            if imgui.button(f"{S.MEMORY_CLEAR_DIFF}##df{idx}"):
                 del self._ref_data[seg_id]
-        elif imgui.small_button(f"{S.MEMORY_DIFF}##df{idx}"):
+        elif imgui.button(f"{S.MEMORY_DIFF}##df{idx}"):
             self._ref_seg_id = seg_id
             self._file_error = None
             self._ref_dialog = file_dialogs.open_file(

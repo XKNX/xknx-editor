@@ -30,8 +30,14 @@ def test_english_singular_and_plural() -> None:
     assert project_strings.TOOLS_COPY_DONE(1).format(count=1) == "Created 1 copy"
     assert project_strings.TOOLS_COPY_DONE(2).format(count=2) == "Created 2 copies"
     assert project_strings.TOOLS_COPY_DONE(0).format(count=0) == "Created 0 copies"
-    assert health_strings.HEALTH_ERRORS(1).format(count=1) == "1 error"
-    assert health_strings.HEALTH_WARNINGS(3).format(count=3) == "3 warnings"
+    assert (
+        health_strings.HEALTH_UNLINKED(1).format(device="1.1.1", count=1)
+        == "1.1.1: 1 unlinked group object"
+    )
+    assert (
+        health_strings.HEALTH_UNLINKED(3).format(device="1.1.1", count=3)
+        == "1.1.1: 3 unlinked group objects"
+    )
 
 
 def test_sentence_from_parts() -> None:

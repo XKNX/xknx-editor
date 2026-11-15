@@ -33,10 +33,16 @@ from editor_gui.widgets.dialog import (
     focus_when_appearing,
 )
 from editor_gui.widgets.dpi import px
+from editor_gui.widgets.icon_button import ICON_DOWNLOAD
 from editor_gui.widgets.tables import begin_data_table, data_table_headers
 from editor_gui.widgets.text_util import fit_text, human_size
 from editor_gui.widgets.value_pickers import format_date
-from editor_gui.widgets.x_button import small_x_size, x_button
+from editor_gui.widgets.x_button import (
+    glyph_button,
+    small_glyph_size,
+    small_x_size,
+    x_button,
+)
 
 if TYPE_CHECKING:
     from editor_gui.web.server import WebHub
@@ -163,7 +169,6 @@ def _entries_table(
         table_id, columns, flags, imgui.ImVec2(0, px(_LIST_HEIGHT))
     ):
         return None, False, None
-    style = imgui.get_style()
     imgui.table_setup_scroll_freeze(0, 1)
     imgui.table_setup_column(S.WEB_COL_NAME, imgui.TableColumnFlags_.width_stretch)
     if sizes:
@@ -182,9 +187,7 @@ def _entries_table(
     )
     if download:
         imgui.table_setup_column(
-            "",
-            imgui.TableColumnFlags_.width_fixed,
-            imgui.calc_text_size(S.WEB_DOWNLOAD).x + 2 * style.frame_padding.x,
+            "", imgui.TableColumnFlags_.width_fixed, small_glyph_size(ICON_DOWNLOAD).x
         )
     if delete:
         imgui.table_setup_column(
@@ -215,8 +218,15 @@ def _entries_table(
         if download:
             imgui.table_next_column()
             if not entry.folder:
-                if imgui.small_button(f"{S.WEB_DOWNLOAD}##{entry.name}"):
+                # An icon as the row's "x" to delete it, of the same size.
+                if glyph_button(
+                    f"download_{entry.name}",
+                    ICON_DOWNLOAD,
+                    small_glyph_size(ICON_DOWNLOAD),
+                ):
                     fetch = entry
+                if imgui.is_item_hovered():
+                    imgui.set_tooltip(S.WEB_DOWNLOAD)
                 if on_download is not None:
                     on_download(entry)
         if on_delete is not None:

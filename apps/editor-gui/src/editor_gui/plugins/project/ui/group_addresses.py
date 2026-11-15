@@ -317,15 +317,15 @@ class GroupAddressesPanel:
                 self._start_add_main_groups(tree)
         elif self._free_ranges_enabled():
             same_line_if_fits(button_width(S.GA_ADD_GROUP_RANGES))
-            if imgui.small_button(f"{S.GA_ADD_GROUP_RANGES}{TOOLBAR_ID}"):
+            if imgui.button(f"{S.GA_ADD_GROUP_RANGES}{TOOLBAR_ID}"):
                 self._start_add_free_ranges(None)
         if self._on_export is not None:
             same_line_if_fits(button_width(S.GA_EXPORT_BUTTON))
-            if imgui.small_button(S.GA_EXPORT_BUTTON):
+            if imgui.button(S.GA_EXPORT_BUTTON):
                 self._on_export()
         if self._on_import is not None:
             same_line_if_fits(button_width(S.GA_IMPORT_BUTTON))
-            if imgui.small_button(S.GA_IMPORT_BUTTON):
+            if imgui.button(S.GA_IMPORT_BUTTON):
                 self.start_import()
 
         if self._open_delete_range:

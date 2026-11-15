@@ -1923,6 +1923,18 @@ class MenuStrings:
         return _("Registered")
 
     @property
+    def KNXPROD_COL_STATUS(self) -> str:
+        return _("Status")
+
+    @property
+    def KNXPROD_STATUS_NEW(self) -> str:
+        return _("New")
+
+    @property
+    def KNXPROD_STATUS_EXISTING(self) -> str:
+        return _("In catalog")
+
+    @property
     def KNXPROD_IMPORT_NOTHING_NEW(self) -> str:
         return _("{name} was already in the catalog, nothing new imported")
 

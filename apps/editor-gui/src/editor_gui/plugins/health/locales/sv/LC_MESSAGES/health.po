@@ -28,16 +28,6 @@ msgstr "{address} {name}: ingen datapunkttyp"
 msgid "{address} {name}: no known value source in the project"
 msgstr "{address} {name}: ingen känd värdekälla i projektet"
 
-msgid "{count} error"
-msgid_plural "{count} errors"
-msgstr[0] "{count} fel"
-msgstr[1] "{count} fel"
-
-msgid "{count} warning"
-msgid_plural "{count} warnings"
-msgstr[0] "{count} varning"
-msgstr[1] "{count} varningar"
-
 msgid "{count} device skipped: application not in catalog"
 msgid_plural "{count} devices skipped: application not in catalog"
 msgstr[0] "{count} apparat överhoppad: applikationen saknas i katalogen"
@@ -52,3 +42,15 @@ msgid "{address} {name}: {count} transmit-capable group object; check assignment
 msgid_plural "{address} {name}: {count} transmit-capable group objects; check assignment"
 msgstr[0] "{address} {name}: {count} gruppobjekt som kan sända; kontrollera tilldelningen"
 msgstr[1] "{address} {name}: {count} gruppobjekt som kan sända; kontrollera tilldelningen"
+
+msgid "Errors"
+msgstr "Fel"
+
+msgid "Warnings"
+msgstr "Varningar"
+
+msgid "Hints"
+msgstr "Tips"
+
+msgid "No findings of the selected kinds"
+msgstr "Inga fynd av de valda typerna"

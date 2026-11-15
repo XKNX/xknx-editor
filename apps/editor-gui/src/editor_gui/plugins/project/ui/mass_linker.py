@@ -944,7 +944,7 @@ class MassLinkerPanel:
                 header = f"{device_label(device)}##dev{device.node_id}"
                 if imgui.tree_node_ex(header, imgui.TreeNodeFlags_.default_open):
                     # One click grabs every object of the device (the "drop a device" speed-up).
-                    if imgui.small_button(f"{S.ML_SELECT_ALL}##all{device.node_id}"):
+                    if imgui.button(f"{S.ML_SELECT_ALL}##all{device.node_id}"):
                         for co in cos:
                             self._pick_obj_selected.add(co.db_id)  # type: ignore[arg-type]
                     for co in cos:

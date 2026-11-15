@@ -1792,3 +1792,12 @@ msgstr "Ekki tókst að eyða {name}: {error}"
 
 msgid "Delete File"
 msgstr "Eyða skrá"
+
+msgid "Status"
+msgstr "Staða"
+
+msgid "New"
+msgstr "Nýtt"
+
+msgid "In catalog"
+msgstr "Í vörulistanum"

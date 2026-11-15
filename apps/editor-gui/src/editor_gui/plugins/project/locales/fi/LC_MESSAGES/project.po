@@ -3230,3 +3230,9 @@ msgstr "Sisäiset arvot"
 
 msgid "Acknowledge Group Address"
 msgstr "Kuittaa Ryhmäosoite"
+
+msgid "Select another step in the list to bring the project back to it"
+msgstr "Valitse luettelosta toinen vaihe palauttaaksesi projektin siihen"
+
+msgid "Current state of the project"
+msgstr "Projektin nykyinen tila"
