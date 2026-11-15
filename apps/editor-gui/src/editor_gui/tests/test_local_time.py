@@ -83,6 +83,13 @@ def test_a_stored_time_is_shown_in_local_time(stored: str) -> None:
     )
 
 
+def test_a_stored_time_with_another_offset_keeps_its_moment() -> None:
+    # 03:04 at +02:00 is 01:04 UTC, whatever the local zone shows of it.
+    stored = "2025-01-02T03:04:05.1234567+02:00"
+    moment = datetime.datetime(2025, 1, 2, 1, 4, 5, tzinfo=datetime.UTC).astimezone()
+    assert stamp_text(stored, regional=US) == date_time_text(moment, regional=US)
+
+
 def test_a_stored_date_and_no_time() -> None:
     assert stamp_text("2026-01-24", regional=GERMAN) == "24.01.2026"
     assert stamp_text(None) == MISSING

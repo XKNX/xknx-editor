@@ -18,12 +18,12 @@ from typing import TYPE_CHECKING
 from imgui_bundle import imgui
 
 from editor_gui.device import device_label
+from editor_gui.local_time import stamp_text
 from editor_gui.plugins.project.program_queue import OperationState, QueueItem
 from editor_gui.plugins.project.strings import S
 from editor_gui.theme import status_color
 from editor_gui.widgets.checkbox import checkbox
-from editor_gui.widgets.combo import begin_combo
-from editor_gui.widgets.datetime_format import timestamp_text
+from editor_gui.widgets.combo import begin_combo, end_combo
 from editor_gui.widgets.filter_box import filter_box
 from editor_gui.widgets.tables import begin_data_table, data_table_headers
 from xknxeditor.vendor.siemens_generic import (
@@ -127,7 +127,7 @@ def summary_lines(view: GenericView) -> list[tuple[str, str]]:
             (
                 "info",
                 S.GENERIC_PLUGIN_LAST_DOWNLOAD.format(
-                    date=timestamp_text(view.last_download)
+                    date=stamp_text(view.last_download)
                 ),
             )
         )
@@ -328,7 +328,7 @@ class GenericPluginPanel:
                 )[0]:
                     self._compare[key] = d.node_id
                     chosen = d
-            imgui.end_combo()
+            end_combo()
         return chosen
 
     def _render_pages(self, device: Device, view: GenericView) -> None:

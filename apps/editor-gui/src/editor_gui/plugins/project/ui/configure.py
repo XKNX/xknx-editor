@@ -76,7 +76,6 @@ from editor_gui.widgets.backgrounds import (
 )
 from editor_gui.widgets.checkbox import checkbox, radio_button
 from editor_gui.widgets.combo import begin_combo, combo
-from editor_gui.widgets.datetime_format import timestamp_text
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
 from editor_gui.widgets.group_objects_widgets import (
     GroupAddressCatalog,

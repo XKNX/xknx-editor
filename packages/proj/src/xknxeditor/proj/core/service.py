@@ -2660,9 +2660,12 @@ class ProjectService:
         and ``clear_network`` clear what the device no longer holds (see
         :class:`SetDeviceCommissioning`)."""
         state = self._state(project_id)
-        device = self._require_device(state, device_id)
         events: list[Event] = []
+        # Only stored images to update need the device; the commissioning record alone is
+        # appended as before (applying it to a device that is gone does nothing).
+        device = self._require_device(state, device_id) if binary_updates else None
         for name, (expected, data) in (binary_updates or {}).items():
+            assert device is not None
             row = next((r for r in device.binary_data if r.name == name), None)
             if row is None or bytes(row.data or b"") != expected:
                 raise ValueError("Device configuration changed while programming")

@@ -63,13 +63,16 @@ class _Connection:
 
 def _plugin(order_number: str = "SCN-DA641.03") -> tuple[Any, _Connection, list[int]]:
     connection = _Connection()
-    device = SimpleNamespace(node_id=1, individual_address="1.1.5", name="Gateway")
+    device = SimpleNamespace(
+        node_id=1, individual_address="1.1.5", name="Gateway", app=None
+    )
     recorded: list[int] = []
     plugin: Any = ProjectPlugin.__new__(ProjectPlugin)
     plugin._api = SimpleNamespace(
         connection=connection,
         main_thread=None,
         project=SimpleNamespace(
+            generation=0,
             find_device_by_node_id=lambda node_id: device if node_id == 1 else None,
             get_device_info=lambda node_id: SimpleNamespace(order_number=order_number),
             record_factory_reset=lambda d: recorded.append(d.node_id),

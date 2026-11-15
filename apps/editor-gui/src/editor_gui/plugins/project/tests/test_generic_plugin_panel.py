@@ -9,6 +9,7 @@ from typing import Any, cast
 import pytest
 from imgui_bundle import imgui
 
+from editor_gui.local_time import stamp_text
 from editor_gui.plugins.project.strings import S
 from editor_gui.plugins.project.ui import configure as configure_module
 from editor_gui.plugins.project.ui import generic_plugin_panel as panel_module
@@ -22,7 +23,6 @@ from editor_gui.plugins.project.ui.generic_plugin_panel import (
     summary_lines,
     value_text,
 )
-from editor_gui.widgets.datetime_format import timestamp_text
 from xknxeditor.vendor.siemens_generic import (
     ComparePage,
     CompareRow,
@@ -99,9 +99,7 @@ def test_summary_lines() -> None:
     )
     assert lines[1] == (
         "info",
-        S.GENERIC_PLUGIN_LAST_DOWNLOAD.format(
-            date=timestamp_text(_view().last_download)
-        ),
+        S.GENERIC_PLUGIN_LAST_DOWNLOAD.format(date=stamp_text(_view().last_download)),
     )
     other = summary_lines(
         _view(
