@@ -30,6 +30,7 @@ from editor_gui.plugin_blob_readers.siemens_generic import (
 )
 from editor_gui.plugins.project.strings import S
 from editor_gui.theme import status_color
+from editor_gui.widgets.checkbox import checkbox
 from editor_gui.widgets.combo import begin_combo
 from editor_gui.widgets.filter_box import filter_box
 from editor_gui.widgets.tables import begin_data_table, data_table_headers
@@ -180,9 +181,13 @@ class GenericPluginPanel:
     _only_mismatches: bool = False
     _only_differences: bool = False
     _show_unfitted: bool = False
-    # The device each device is compared with (by individual address of the shown device).
-    _compare: dict[str, int] = field(default_factory=dict[str, int])
-    _closed: dict[str, set[str]] = field(default_factory=dict[str, "set[str]"])
+    # The device each device is compared with, and the closed pages of each device (by the
+    # shown device's node id, so they stay when it is readdressed).
+    _compare: dict[int, int] = field(default_factory=dict[int, int])
+    _closed: dict[int, set[str]] = field(default_factory=dict[int, "set[str]"])
+    # The last comparison, with the two views it was made from (they stay the same objects
+    # until the project changes, see ProjectPlugin.generic_plugin_view).
+    _comparison: tuple[GenericView, GenericView, ViewComparison] | None = None
 
     def render(self, device: Device) -> None:
         view = self._view_for(device, show_unfitted=self._show_unfitted)
@@ -199,7 +204,7 @@ class GenericPluginPanel:
             else None
         )
         comparison = (
-            compare_views(view, other_view)
+            self._compared(view, other_view)
             if other is not None and other_view is not None
             else None
         )
@@ -214,19 +219,28 @@ class GenericPluginPanel:
         self._filter = filter_box(
             "##generic_plugin_filter", S.CONFIGURE_PARAM_FILTER_HINT, self._filter
         )
-        _, self._only_mismatches = imgui.checkbox(
+        _, self._only_mismatches = checkbox(
             S.GENERIC_PLUGIN_ONLY_MISMATCHES, self._only_mismatches
         )
-        _, self._show_unfitted = imgui.checkbox(
+        _, self._show_unfitted = checkbox(
             S.GENERIC_PLUGIN_SHOW_UNFITTED, self._show_unfitted
         )
         if other is not None and comparison is not None:
-            _, self._only_differences = imgui.checkbox(
+            _, self._only_differences = checkbox(
                 S.GENERIC_PLUGIN_ONLY_DIFFERENCES, self._only_differences
             )
             self._render_comparison(device, other, comparison)
         else:
             self._render_pages(device, view)
+
+    def _compared(self, view: GenericView, other: GenericView) -> ViewComparison:
+        """``view`` compared with ``other``, worked out again only when either changed."""
+        last = self._comparison
+        if last is not None and last[0] is view and last[1] is other:
+            return last[2]
+        comparison = compare_views(view, other)
+        self._comparison = (view, other, comparison)
+        return comparison
 
     def _render_compare_picker(self, device: Device) -> Device | None:
         """The "Compare With" drop-down (only when another device of the same application
@@ -236,7 +250,7 @@ class GenericPluginPanel:
         candidates = self._candidates_for(device)
         if not candidates:
             return None
-        key = device.individual_address
+        key = device.node_id
         chosen = next(
             (d for d in candidates if d.node_id == self._compare.get(key)), None
         )
@@ -268,7 +282,7 @@ class GenericPluginPanel:
     def _render_pages(self, device: Device, view: GenericView) -> None:
         needle = self._filter.lower().strip()
         filtering = bool(needle) or self._only_mismatches
-        closed = self._closed.setdefault(device.individual_address, set())
+        closed = self._closed.setdefault(device.node_id, set())
         shown = 0
         for index, page in enumerate(view.pages):
             rows = filter_rows(page, needle, self._only_mismatches)
@@ -286,7 +300,7 @@ class GenericPluginPanel:
     ) -> None:
         needle = self._filter.lower().strip()
         filtering = bool(needle) or self._only_mismatches or self._only_differences
-        closed = self._closed.setdefault(device.individual_address, set())
+        closed = self._closed.setdefault(device.node_id, set())
         shown = 0
         for index, page in enumerate(comparison.pages):
             rows = filter_compare_rows(

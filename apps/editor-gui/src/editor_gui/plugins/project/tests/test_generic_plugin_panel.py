@@ -151,7 +151,7 @@ def test_render_headless(context: None, monkeypatch: pytest.MonkeyPatch) -> None
     monkeypatch.setattr(
         panel_module.imgui, "text_disabled", lambda text: shown.append(text)
     )
-    device = cast("Any", SimpleNamespace(individual_address="1.1.1"))
+    device = cast("Any", SimpleNamespace(individual_address="1.1.1", node_id=1))
     empty = GenericPluginPanel(lambda _d, **_k: None)
     _frames(empty, device, 1)
     assert S.GENERIC_PLUGIN_NONE in shown
@@ -248,7 +248,7 @@ def test_render_comparison_headless(
     panel = GenericPluginPanel(view_for, lambda _d: [twin])
     _frames(panel, device)
     assert not any("1.1.2" in t for t in colored)  # nothing chosen yet
-    panel._compare["1.1.1"] = 2
+    panel._compare[1] = 2
     panel._show_unfitted = True
     _frames(panel, device)
     assert (
@@ -273,3 +273,107 @@ def test_clock_texts() -> None:
     )
     assert value_text(timed) == "15:00 (900 s)"
     assert memory_text(timed) == S.GENERIC_PLUGIN_MISMATCH.format(value="05:00 (300 s)")
+
+
+def test_the_comparison_is_worked_out_only_when_a_view_changes(
+    context: None, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    device = cast("Any", SimpleNamespace(individual_address="1.1.1", node_id=1))
+    twin = cast(
+        "Any",
+        SimpleNamespace(
+            individual_address="1.1.2", node_id=2, display_name="Twin", name="Twin"
+        ),
+    )
+    views = {1: _view(), 2: _view()}
+    compared: list[int] = []
+    real = panel_module.compare_views
+
+    def counting(first: GenericView, second: GenericView) -> Any:
+        compared.append(1)
+        return real(first, second)
+
+    monkeypatch.setattr(panel_module, "compare_views", counting)
+    panel = GenericPluginPanel(
+        lambda d, show_unfitted=False: views[d.node_id], lambda _d: [twin]
+    )
+    panel._compare[1] = 2
+    _frames(panel, device, count=3)
+    assert len(compared) == 1
+    # The project changed: the views are new objects, compared again once.
+    views[2] = _view()
+    _frames(panel, device, count=3)
+    assert len(compared) == 2
+
+
+def test_the_choices_stay_when_the_device_is_readdressed(
+    context: None, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    device = cast("Any", SimpleNamespace(individual_address="1.1.1", node_id=1))
+    twin = cast(
+        "Any",
+        SimpleNamespace(
+            individual_address="1.1.2", node_id=2, display_name="Twin", name="Twin"
+        ),
+    )
+    colored: list[str] = []
+    monkeypatch.setattr(
+        panel_module.imgui, "text_colored", lambda _c, text: colored.append(text)
+    )
+    panel = GenericPluginPanel(
+        lambda _d, show_unfitted=False: _view(), lambda _d: [twin]
+    )
+    panel._compare[1] = 2
+    device.individual_address = "1.1.9"
+    _frames(panel, device)
+    # Still compared with the twin after the new address.
+    assert any(
+        text == S.GENERIC_PLUGIN_COMPARE_DIFFERENCES.format(device="1.1.2", count=0)
+        for text in colored
+    )
+
+
+def test_views_and_candidates_are_worked_out_once_per_project_state() -> None:
+    from editor_gui.plugins.project.plugin import ProjectPlugin
+
+    built: list[int] = []
+    stamp = [(1, 1, "en-US")]
+    device = cast("Any", SimpleNamespace(node_id=1, app=SimpleNamespace(id="A")))
+    other = cast(
+        "Any",
+        SimpleNamespace(
+            node_id=2, app=SimpleNamespace(id="A"), individual_address="1.1.10"
+        ),
+    )
+    third = cast(
+        "Any",
+        SimpleNamespace(
+            node_id=3, app=SimpleNamespace(id="A"), individual_address="1.1.9"
+        ),
+    )
+    stub = cast("Any", SimpleNamespace())
+    stub._generic_seen = {}
+    stub._generic_candidates = {}
+    stub._generic_stamp = lambda: stamp[0]
+
+    def build(d: Any, _show_unfitted: bool) -> object:
+        built.append(d.node_id)
+        return object()
+
+    stub._generic_plugin_view = build
+    stub.generic_plugin_view = lambda d, show_unfitted=False: (
+        ProjectPlugin.generic_plugin_view(stub, d, show_unfitted)
+    )
+    stub._api = SimpleNamespace(project=SimpleNamespace(devices=[device, other, third]))
+    first = ProjectPlugin.generic_plugin_view(stub, device)
+    assert ProjectPlugin.generic_plugin_view(stub, device) is first
+    assert built == [1]
+    candidates = ProjectPlugin.generic_plugin_compare_candidates(stub, device)
+    # In address order: 1.1.9 before 1.1.10.
+    assert [d.node_id for d in candidates] == [3, 2]
+    assert ProjectPlugin.generic_plugin_compare_candidates(stub, device) is candidates
+    assert built == [1, 2, 3]
+    # An edit: worked out again.
+    stamp[0] = (1, 2, "en-US")
+    assert ProjectPlugin.generic_plugin_view(stub, device) is not first
+    assert built == [1, 2, 3, 1]

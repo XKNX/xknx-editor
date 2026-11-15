@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING, Any, cast
 from xknx.telegram.apci import GroupValueRead, GroupValueWrite
 
 from editor_gui import file_dialogs
-from editor_gui.device import device_label
+from editor_gui.device import address_order, device_label
 from editor_gui.device_info import (
     same_application,
     serial_from_project,
@@ -449,6 +449,14 @@ class ProjectPlugin:
         self._generic_sources: dict[str, Sources | None] = {}
         self._generic_views: dict[
             tuple[int, bool], tuple[tuple[object, ...], GenericView | None]
+        ] = {}
+        # The views and the compare candidates as last worked out, by the project state they
+        # were worked out for (see _generic_stamp): the tab asks for them every frame.
+        self._generic_seen: dict[
+            tuple[int, bool], tuple[tuple[int, int, str], GenericView | None]
+        ] = {}
+        self._generic_candidates: dict[
+            int, tuple[tuple[int, int, str], list[Device]]
         ] = {}
         # Pending triton LCD ".prj" import: the open dialog and the device it was started for.
         self._triton_prj_dialog: file_dialogs.OpenFileDialog | None = None
@@ -1339,6 +1347,23 @@ class ProjectPlugin:
         XML baggages or the device stores no plug-in settings. ``show_unfitted`` adds the
         settings of extension modules that are not fitted. Cached per device, product language
         and that choice; only XML baggages are read."""
+        stamp = self._generic_stamp()
+        seen = self._generic_seen.get((device.node_id, show_unfitted))
+        if seen is not None and seen[0] == stamp:
+            return seen[1]
+        view = self._generic_plugin_view(device, show_unfitted)
+        self._generic_seen[(device.node_id, show_unfitted)] = (stamp, view)
+        return view
+
+    def _generic_stamp(self) -> tuple[int, int, str]:
+        """The project state a Generic Plug-in view or candidate list holds for: the opened
+        project, its revision and the product language."""
+        project = self._api.project
+        return (project.generation, project.revision, product_language())
+
+    def _generic_plugin_view(
+        self, device: "Device", show_unfitted: bool
+    ) -> GenericView | None:
         if device.app is None or not device.app.loaded:
             return None
         static = getattr(device.app.program, "static", None)
@@ -1393,6 +1418,10 @@ class ProjectPlugin:
         compared with."""
         if device.app is None:
             return []
+        stamp = self._generic_stamp()
+        seen = self._generic_candidates.get(device.node_id)
+        if seen is not None and seen[0] == stamp:
+            return seen[1]
         app_id = device.app.id
         out = [
             other
@@ -1402,7 +1431,9 @@ class ProjectPlugin:
             and other.app.id == app_id
             and self.generic_plugin_view(other) is not None
         ]
-        return sorted(out, key=lambda d: _address_key(d.individual_address))
+        out.sort(key=lambda d: address_order(d.individual_address))
+        self._generic_candidates[device.node_id] = (stamp, out)
+        return out
 
     def _generic_plugin_sources(
         self, device: "Device", baggage_ids: list[str]
@@ -3652,8 +3683,3 @@ class ProjectPlugin:
 
     def on_unload(self) -> None:
         pass
-
-
-def _address_key(address: str) -> tuple[int, ...]:
-    """Sort key of an individual address "1.2.3" (unparsable parts sort first)."""
-    return tuple(int(p) if p.isdigit() else -1 for p in address.split("."))
