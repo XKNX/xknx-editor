@@ -150,37 +150,49 @@ class _DeviceUi:
     # Set by a successful groups/scenes write on the asyncio thread; render() picks it up on the
     # GUI thread and persists the backup blob into the project (project edits are not thread-safe).
     persist_pending: bool = False
+    pending: str = ""
 
 
 @dataclass
 class DaliCommissioningPanel:
     """Stateful "DALI (Bus)" tab body. One instance owned by the project plugin.
 
-    A gateway can carry more than one DALI bus channel (a 2x64 gateway has two). Each channel is
-    an independent bus with its own scan/edits/blob, so state is keyed per ``(individual address,
-    channel)`` and the user picks the active channel with a selector when there is more than one.
+    Each project device and DALI channel keeps its scan and edits across address changes.
     """
 
     _run: DaliRunner
     _persist: DaliPersist | None = None
     _channel_count: DaliChannelCount | None = None
-    _ui: dict[str, _DeviceUi] = field(default_factory=dict[str, "_DeviceUi"])
-    _active_channel: dict[str, int] = field(default_factory=dict[str, int])
-    _lock: threading.Lock = field(default_factory=threading.Lock)
-    _pending: str = (
-        ""  # "" | "new" | "post" | "groups" | "scenes" — awaiting confirmation
+    _generation: Callable[[], int] = lambda: 0
+    _project_generation: int | None = None
+    _ui: dict[tuple[tuple[int, str], int], _DeviceUi] = field(
+        default_factory=dict[tuple[tuple[int, str], int], _DeviceUi]
     )
+    _active_channel: dict[tuple[int, str], int] = field(
+        default_factory=dict[tuple[int, str], int]
+    )
+    _lock: threading.Lock = field(default_factory=threading.Lock)
+
+    def _key(self, device: Device) -> tuple[int, str]:
+        generation = self._generation()
+        if generation != self._project_generation:
+            with self._lock:
+                if self._project_generation is not None:
+                    self._ui.clear()
+                    self._active_channel.clear()
+                self._project_generation = generation
+        return device.node_id, device.app.id if device.app else ""
 
     def _channels(self, device: Device) -> int:
         if self._channel_count is None:
             return 1
         return max(1, self._channel_count(device))
 
-    def _current_channel(self, ia: str) -> int:
-        return self._active_channel.get(ia, 0)
+    def _current_channel(self, key: tuple[int, str]) -> int:
+        return self._active_channel.get(key, 0)
 
-    def _state(self, ia: str, channel: int) -> _DeviceUi:
-        return self._ui.setdefault(f"{ia}#{channel}", _DeviceUi())
+    def _state(self, key: tuple[int, str], channel: int) -> _DeviceUi:
+        return self._ui.setdefault((key, channel), _DeviceUi())
 
     # --- op runner + thread-safe result stash ------------------------------
 
@@ -195,10 +207,10 @@ class DaliCommissioningPanel:
     ) -> None:
         """Queue ``op`` as the operation ``label``, named ``text`` (the button that started it)
         in the Operations panel."""
-        ia = device.individual_address
-        channel = self._current_channel(ia)
+        key = self._key(device)
+        channel = self._current_channel(key)
         with self._lock:
-            state = self._state(ia, channel)
+            state = self._state(key, channel)
             if state.busy:
                 return
             state.busy = label
@@ -206,29 +218,27 @@ class DaliCommissioningPanel:
             state.progress = ""
             state.run += 1
             run = state.run
-        wrapped = self._wrap(ia, channel, label, op, store_scan)
+        wrapped = self._wrap(state, label, op, store_scan)
         self._run(
             device,
             wrapped,
             channel,
             text,
-            functools.partial(self._ended, ia, channel, run),
+            functools.partial(self._ended, state, run),
             # Everything but a scan changes the gateway or the DALI bus.
             label != "scan",
         )
 
-    def _ended(self, ia: str, channel: int, run: int) -> None:
+    def _ended(self, state: _DeviceUi, run: int) -> None:
         """The operation ``run`` has ended: free the channel also when it never ran (canceled
         while it waited, or it could not start) or was canceled while it ran."""
         with self._lock:
-            state = self._state(ia, channel)
             if state.run == run:
                 state.busy = ""
 
     def _wrap(
         self,
-        ia: str,
-        channel: int,
+        state: _DeviceUi,
         label: str,
         op: Callable[[MdtDaliCommissioner], Awaitable[object]],
         store_scan: bool,
@@ -238,14 +248,14 @@ class DaliCommissioningPanel:
                 result = await op(commissioner)
             except Exception as exc:  # surface any bus/protocol error in the UI
                 with self._lock:  # set error AND release busy in one acquisition
-                    st = self._state(ia, channel)
+                    st = state
                     st.error = f"{type(exc).__name__}: {exc}"
                     st.busy = ""
                 raise
             # Store the result and clear busy atomically, so a follow-up op that starts the instant
             # busy clears cannot have its state overwritten by this (older) result.
             with self._lock:
-                st = self._state(ia, channel)
+                st = state
                 if store_scan and isinstance(result, DaliBusState):
                     st.scan = result
                     st.group_edits.clear()  # fresh bus state -> drop stale group edits
@@ -256,10 +266,6 @@ class DaliCommissioningPanel:
             return result
 
         return runner
-
-    def _note_progress(self, ia: str, channel: int, text: str) -> None:
-        with self._lock:
-            self._state(ia, channel).progress = text
 
     def _persist_backup(self, device: Device, channel: int, state: _DeviceUi) -> None:
         """Hand the current commissioning state to the project persistence callback.
@@ -277,11 +283,26 @@ class DaliCommissioningPanel:
     # --- rendering ---------------------------------------------------------
 
     def render(self, device: Device, connected: bool) -> None:
-        ia = device.individual_address
+        key = self._key(device)
         channels = self._channels(device)
-        channel = self._current_channel(ia)
+        channel = min(self._current_channel(key), channels - 1)
+        self._active_channel[key] = channel
+        imgui.push_id(f"dali_{self._project_generation}_{key}_{channel}")
+        try:
+            self._render(device, connected, key, channels, channel)
+        finally:
+            imgui.pop_id()
+
+    def _render(
+        self,
+        device: Device,
+        connected: bool,
+        key: tuple[int, str],
+        channels: int,
+        channel: int,
+    ) -> None:
         with self._lock:
-            state = self._state(ia, channel)
+            state = self._state(key, channel)
             busy, error, progress = state.busy, state.error, state.progress
             scan = state.scan
             persist_pending = state.persist_pending
@@ -315,7 +336,7 @@ class DaliCommissioningPanel:
             )
             imgui.end_disabled()
             if changed and new_channel != channel:
-                self._active_channel[ia] = new_channel
+                self._active_channel[key] = new_channel
                 return  # re-render next frame with the newly selected channel's state
 
         imgui.begin_disabled(bool(busy))
@@ -333,10 +354,10 @@ class DaliCommissioningPanel:
             )
         imgui.same_line()
         if imgui.button(S.DALI_NEW_INSTALLATION):
-            self._pending = "new"
+            state.pending = "new"
         imgui.same_line()
         if imgui.button(S.DALI_POST_INSTALLATION):
-            self._pending = "post"
+            state.pending = "post"
         imgui.end_disabled()
 
         if busy:
@@ -345,7 +366,7 @@ class DaliCommissioningPanel:
         if error:
             imgui.text_colored(status_color("error"), error)
 
-        self._render_confirm(device, ia)
+        self._render_confirm(device, key)
 
         if scan is None:
             imgui.text_disabled(S.DALI_SCAN_HINT)
@@ -356,43 +377,46 @@ class DaliCommissioningPanel:
         self._render_ecg_table(device, scan, state, busy=bool(busy))
         self._render_scenes(scan, state, busy=bool(busy))
 
-    def _install_progress(self, ia: str) -> Callable[[object], None]:
-        channel = self._current_channel(ia)
+    def _install_progress(self, key: tuple[int, str]) -> Callable[[object], None]:
+        state = self._state(key, self._current_channel(key))
 
         def cb(readback: object) -> None:
             found = getattr(readback, "param1", None)
             if found is not None:
-                self._note_progress(ia, channel, S.DALI_FOUND.format(count=found))
+                with self._lock:
+                    state.progress = S.DALI_FOUND.format(count=found)
 
         return cb
 
-    def _render_confirm(self, device: Device, ia: str) -> None:
-        title = f"{S.DALI_CONFIRM_TITLE}###dali_confirm"
-        if self._pending:
+    def _render_confirm(self, device: Device, key: tuple[int, str]) -> None:
+        channel = self._current_channel(key)
+        state = self._state(key, channel)
+        title = f"{S.DALI_CONFIRM_TITLE}###dali_confirm_{self._project_generation}_{key}_{channel}"
+        if state.pending:
             imgui.open_popup(title)
         if begin_dialog(title):
-            imgui.text(_confirm_text(self._pending))
+            imgui.text(_confirm_text(state.pending))
             clicked = dialog_buttons(S.DALI_CONTINUE, S.DALI_CANCEL)
             if clicked == 0:
-                kind = self._pending
-                self._pending = ""
-                self._dispatch(device, ia, kind)
+                kind = state.pending
+                state.pending = ""
+                self._dispatch(device, key, kind)
                 imgui.close_current_popup()
             elif clicked == 1:
-                self._pending = ""
+                state.pending = ""
                 imgui.close_current_popup()
             end_dialog()
 
-    def _dispatch(self, device: Device, ia: str, kind: str) -> None:
+    def _dispatch(self, device: Device, key: tuple[int, str], kind: str) -> None:
         if kind in ("new", "post"):
-            self._start_install(device, ia, kind)
+            self._start_install(device, key, kind)
         elif kind == "groups":
-            self._start_program_groups(device, ia)
+            self._start_program_groups(device, key)
         elif kind == "scenes":
-            self._start_program_scenes(device, ia)
+            self._start_program_scenes(device, key)
 
-    def _start_install(self, device: Device, ia: str, kind: str) -> None:
-        progress = self._install_progress(ia)
+    def _start_install(self, device: Device, key: tuple[int, str], kind: str) -> None:
+        progress = self._install_progress(key)
         if kind == "new":
             self._start(
                 device,
@@ -410,8 +434,8 @@ class DaliCommissioningPanel:
                 store_scan=True,
             )
 
-    def _start_program_groups(self, device: Device, ia: str) -> None:
-        st = self._state(ia, self._current_channel(ia))
+    def _start_program_groups(self, device: Device, key: tuple[int, str]) -> None:
+        st = self._state(key, self._current_channel(key))
         if st.scan is None:
             return
         assignments = _assignments_from(st.scan, st.group_edits)
@@ -424,8 +448,8 @@ class DaliCommissioningPanel:
             lambda c: c.commission(assignments),
         )
 
-    def _start_program_scenes(self, device: Device, ia: str) -> None:
-        st = self._state(ia, self._current_channel(ia))
+    def _start_program_scenes(self, device: Device, key: tuple[int, str]) -> None:
+        st = self._state(key, self._current_channel(key))
         scenes = _scenes_from(st.scene_edits)
         if not scenes:
             return
@@ -502,7 +526,7 @@ class DaliCommissioningPanel:
 
         imgui.begin_disabled(busy or not present)
         if imgui.button(S.DALI_PROGRAM_GROUPS):
-            self._pending = "groups"
+            state.pending = "groups"
         imgui.end_disabled()
 
     def _render_scenes(
@@ -539,7 +563,7 @@ class DaliCommissioningPanel:
         has_values = any(lv for lv in state.scene_edits.values())
         imgui.begin_disabled(busy or not has_values)
         if imgui.button(S.DALI_PROGRAM_SCENES):
-            self._pending = "scenes"
+            state.pending = "scenes"
         imgui.end_disabled()
 
 

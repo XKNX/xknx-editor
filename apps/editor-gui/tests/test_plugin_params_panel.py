@@ -99,6 +99,7 @@ def context() -> Iterator[None]:
 
 
 class _StubDevice:
+    node_id = 5
     individual_address = "1.1.5"
 
 
@@ -250,7 +251,7 @@ def test_triton_setup_renders_and_seeds_from_detection(context: None) -> None:
     )
     device = _StubDevice()
     _render_setup(panel, device)
-    assert panel._setup_type_idx["1.1.5"] == 1
+    assert panel._setup_type_idx[5] == 1
 
 
 def _render_panel(panel: PluginParamsPanel, device: object) -> None:
@@ -263,6 +264,7 @@ def _render_panel(panel: PluginParamsPanel, device: object) -> None:
 
 
 class _TritonStub:
+    node_id = 5
     individual_address = "1.1.5"
     app = SimpleNamespace(id="app")
     parameter_instance_refs: ClassVar[list[object]] = []
@@ -286,7 +288,7 @@ def test_render_shows_setup_only_without_sections(
     monkeypatch.setattr(ppp, "mapping_for_device", lambda _device: mapping)
     device = _TritonStub()
 
-    monkeypatch.setattr(panel, "_cached_sections", lambda _d, _m: [])
+    monkeypatch.setattr(panel, "_sections", lambda _d, _m: [])
     _render_panel(panel, device)
     assert calls and all(c is device for c in calls)
 
@@ -306,7 +308,7 @@ def test_render_shows_setup_only_without_sections(
             )
         ],
     )
-    monkeypatch.setattr(panel, "_cached_sections", lambda _d, _m: [section])
+    monkeypatch.setattr(panel, "_sections", lambda _d, _m: [section])
     _render_panel(panel, device)
     assert calls == []
 
@@ -317,9 +319,7 @@ def test_native_panel_omits_standard_download_hint(
     panel = PluginParamsPanel(_on_edit=lambda *_: None)
     mapping = ppp.PluginMapping((), "Native", (), provider="example")
     monkeypatch.setattr(ppp, "mapping_for_device", lambda _: mapping)
-    monkeypatch.setattr(
-        panel, "_cached_sections", lambda *_: [PluginSectionView("Section")]
-    )
+    monkeypatch.setattr(panel, "_sections", lambda *_: [PluginSectionView("Section")])
     texts: list[str] = []
     monkeypatch.setattr(imgui, "text_wrapped", texts.append)
     monkeypatch.setattr(imgui, "text_disabled", texts.append)
@@ -352,7 +352,7 @@ def test_parameter_filter_has_a_hint_and_can_be_cleared(
         ],
     )
     monkeypatch.setattr(ppp, "mapping_for_device", lambda _: mapping)
-    monkeypatch.setattr(panel, "_cached_sections", lambda *_: [section])
+    monkeypatch.setattr(panel, "_sections", lambda *_: [section])
     hints: list[str] = []
     rendered: list[list[str]] = []
     input_text = imgui.input_text_with_hint
@@ -389,7 +389,7 @@ def test_native_setup_omits_static_parameter_empty_hint(
     panel = PluginParamsPanel(_on_edit=lambda *_: None)
     mapping = ppp.PluginMapping((), "Native", (), provider="example")
     monkeypatch.setattr(ppp, "mapping_for_device", lambda _: mapping)
-    monkeypatch.setattr(panel, "_cached_sections", lambda *_: [])
+    monkeypatch.setattr(panel, "_sections", lambda *_: [])
     texts: list[str] = []
     monkeypatch.setattr(imgui, "text_disabled", texts.append)
     _render_panel(panel, _TritonStub())
@@ -404,7 +404,7 @@ def test_missing_provider_shows_error_without_crashing(
     monkeypatch.setattr(ppp, "mapping_for_device", lambda _: mapping)
     monkeypatch.setattr(
         panel,
-        "_cached_sections",
+        "_sections",
         lambda device, mapping: ppp.collect_from_device(device, mapping),
     )
     texts: list[str] = []
@@ -466,3 +466,57 @@ def test_group_identity_and_page_scrolling(context, monkeypatch):
     _render(panel, rows, filtering=True)
     assert set(tables) == {15, 2}
     assert len(set(nodes)) == 2
+
+
+def test_device_ui_state_survives_readdress_and_resets_on_project_change(
+    context, monkeypatch
+):
+    generation = [1]
+    mapping = ppp.PluginMapping((), "Example", (), provider="example")
+    panel = PluginParamsPanel(
+        lambda *_: None,
+        _generation=lambda: generation[0],
+        _mapping_for=lambda _: mapping,
+        _sections_for=lambda *_: [],
+    )
+    device = SimpleNamespace(node_id=1, individual_address="")
+    other = SimpleNamespace(node_id=2, individual_address="")
+    _render_panel(panel, device)
+    panel._closed_sections[1] = {"Options"}
+    panel._new_name[1, "Sensors"] = "Room"
+    panel._setup_type_idx[1] = 2
+    _render_panel(panel, other)
+    assert 2 not in panel._setup_type_idx
+    device.individual_address = "1.2.3"
+    _render_panel(panel, device)
+    assert panel._closed_sections[1] == {"Options"}
+    assert panel._new_name[1, "Sensors"] == "Room"
+    assert panel._setup_type_idx[1] == 2
+    generation[0] += 1
+    _render_panel(panel, device)
+    assert (
+        not panel._closed_sections and not panel._new_name and not panel._setup_type_idx
+    )
+
+
+def test_edit_buffers_are_device_local_and_external_changes_win(context, monkeypatch):
+    panel = PluginParamsPanel(lambda *_: None)
+    first = SimpleNamespace(node_id=1, individual_address="")
+    second = SimpleNamespace(node_id=2, individual_address="")
+    values = []
+    panel._edit_buffers[1, "r"] = ("v", "draft")
+    original = imgui.input_text
+
+    def input_text(label, value, flags):
+        values.append(value)
+        original(label, value, flags)
+        return False, value
+
+    monkeypatch.setattr(imgui, "input_text", input_text)
+    for device, value in ((first, "v"), (second, "v"), (first, "updated")):
+        imgui.new_frame()
+        imgui.begin("Buffers")
+        panel._render_standard_table(device, "Options", [_row(value=value)])
+        imgui.end()
+        imgui.end_frame()
+    assert values == ["draft", "v", "updated"]

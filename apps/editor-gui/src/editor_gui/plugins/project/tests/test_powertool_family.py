@@ -266,7 +266,9 @@ def test_native_scope_selector_defaults_to_full(tmp_path, monkeypatch):
 
     project, node_id = family_project(tmp_path, monkeypatch, "DI-4", "PraesenzStandard")
     panel = SimpleNamespace(
-        _download_scope=DownloadScope.PARTIAL, _scope_combo_width=lambda: 100
+        _download_scope=DownloadScope.PARTIAL,
+        _scope_combo_width=lambda: 100,
+        _capabilities=project.plugin_capabilities,
     )
     choices = []
     monkeypatch.setattr(

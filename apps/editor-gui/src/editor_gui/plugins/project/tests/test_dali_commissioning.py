@@ -12,6 +12,8 @@ from collections.abc import Callable
 from types import SimpleNamespace
 from typing import Any
 
+import pytest
+
 from editor_gui.plugins.project.ui.dali_commissioning import (
     DaliCommissioningPanel,
     _assignments_from,
@@ -56,7 +58,9 @@ def test_channel_count_from_order_number() -> None:
 
 
 def _device() -> Any:
-    return SimpleNamespace(individual_address="1.1.1", name="Gateway")
+    return SimpleNamespace(
+        node_id=1, app=None, individual_address="1.1.1", name="Gateway"
+    )
 
 
 def _runner(
@@ -99,7 +103,7 @@ def test_scan_stashes_result_and_clears_busy() -> None:
 
     panel._start(_device(), "scan", "Scan Bus", lambda c: c.scan(), store_scan=True)
 
-    state = panel._state("1.1.1", 0)
+    state = panel._state((1, ""), 0)
     assert state.busy == ""  # released
     assert state.error == ""
     assert state.scan is bus
@@ -115,7 +119,7 @@ def test_error_is_surfaced_and_busy_released() -> None:
     panel = DaliCommissioningPanel(_runner(commissioner))
     panel._start(_device(), "commission", "Program Groups…", boom)
 
-    state = panel._state("1.1.1", 0)
+    state = panel._state((1, ""), 0)
     assert state.busy == ""
     assert "no ack" in state.error
 
@@ -123,7 +127,7 @@ def test_error_is_surfaced_and_busy_released() -> None:
 def test_released_when_it_never_ran() -> None:
     panel = DaliCommissioningPanel(_runner(SimpleNamespace(), started=False))
     panel._start(_device(), "scan", "Scan Bus", lambda c: c.scan(), store_scan=True)
-    assert panel._state("1.1.1", 0).busy == ""  # canceled while it waited in the queue
+    assert panel._state((1, ""), 0).busy == ""  # canceled while it waited in the queue
 
 
 def test_the_end_of_an_older_operation_keeps_a_newer_one() -> None:
@@ -141,7 +145,7 @@ def test_the_end_of_an_older_operation_keeps_a_newer_one() -> None:
 
     panel = DaliCommissioningPanel(run)
     panel._start(_device(), "scan", "Scan Bus", lambda c: c.scan())
-    state = panel._state("1.1.1", 0)
+    state = panel._state((1, ""), 0)
     assert state.busy == "scan"
     # A second start while the first is queued is ignored.
     panel._start(_device(), "broadcast", "All Off", lambda c: c.broadcast(False))
@@ -193,11 +197,11 @@ def test_new_scan_clears_stale_group_edits() -> None:
     bus = DaliBusState(channel=0, ecgs=[EcgState(slot=0, present=True, group_index=5)])
     commissioner = SimpleNamespace(scan=lambda: _coro(bus))
     panel = DaliCommissioningPanel(_runner(commissioner))
-    panel._state("1.1.1", 0).group_edits[0] = 9  # stale edit from a prior scan
+    panel._state((1, ""), 0).group_edits[0] = 9  # stale edit from a prior scan
 
     panel._start(_device(), "scan", "Scan Bus", lambda c: c.scan(), store_scan=True)
 
-    assert panel._state("1.1.1", 0).group_edits == {}  # dropped on fresh bus state
+    assert panel._state((1, ""), 0).group_edits == {}  # dropped on fresh bus state
 
 
 def test_only_a_scan_is_marked_as_writing_nothing() -> None:
@@ -211,3 +215,95 @@ def test_only_a_scan_is_marked_as_writing_nothing() -> None:
     panel._start(_device(), "broadcast", "All On", lambda c: c.broadcast(True))
     # Block Bus Writes refuses all but the scan before they start.
     assert writes == [False, True]
+
+
+def test_dali_state_survives_readdress_and_late_results_stay_in_old_project():
+    generation = [1]
+    queued = []
+    panel = DaliCommissioningPanel(
+        lambda *args: queued.append(args), _generation=lambda: generation[0]
+    )
+    device = _device()
+    key = panel._key(device)
+    state = panel._state(key, 0)
+    state.scene_edits[1] = {2: 50}
+    state.pending = "scenes"
+    device.individual_address = "1.2.3"
+    assert panel._state(panel._key(device), 0) is state
+    other = SimpleNamespace(node_id=2, app=None, individual_address="1.2.3")
+    assert not panel._state(panel._key(other), 0).scene_edits
+    assert not panel._state(key, 1).pending
+    scan = DaliBusState(channel=0, ecgs=[])
+    panel._start(device, "scan", "Scan", lambda _: _coro(scan), store_scan=True)
+    generation[0] += 1
+    fresh = panel._state(panel._key(device), 0)
+    assert fresh is not state and not fresh.scene_edits and not fresh.pending
+    asyncio.run(queued[0][1](None))
+    queued[0][4]()
+    assert state.scan is scan
+    assert fresh.scan is None
+
+
+def test_siemens_dali_results_are_isolated_by_project_and_device():
+    from editor_gui.plugins.project.ui.siemens_dali import SiemensDaliPanel
+    from xknxeditor.dali.siemens import SiemensN141BusState
+
+    generation = [1]
+    queued = []
+    panel = SiemensDaliPanel(
+        lambda *args: queued.append(args), _generation=lambda: generation[0]
+    )
+    device = _device()
+    scan = SiemensN141BusState(line=0, object_index=1, ecgs=[])
+    panel._start(device, "scan", "Scan", lambda _: _coro(scan))
+    state = panel._state(panel._key(device))
+    device.individual_address = "1.2.3"
+    assert panel._state(panel._key(device)) is state
+    generation[0] += 1
+    fresh = panel._state(panel._key(device))
+    asyncio.run(queued[0][1](None))
+    queued[0][3]()
+    assert state.scan is scan and fresh.scan is None
+
+
+@pytest.mark.parametrize("siemens", [False, True])
+def test_widget_state_is_scoped_to_project_device_and_channel(monkeypatch, siemens):
+    from imgui_bundle import imgui
+
+    from editor_gui.plugins.project.ui.siemens_dali import SiemensDaliPanel
+
+    generation = [1]
+    panel_type = SiemensDaliPanel if siemens else DaliCommissioningPanel
+    panel = panel_type(lambda *_: None, _generation=lambda: generation[0])
+    ids = []
+    monkeypatch.setattr(panel, "_render", lambda *_: ids.append(imgui.get_id("field")))
+    context = imgui.create_context()
+    io = imgui.get_io()
+    io.display_size = imgui.ImVec2(800, 600)
+    io.backend_flags |= imgui.BackendFlags_.renderer_has_textures
+    device = _device()
+
+    def render():
+        imgui.new_frame()
+        imgui.begin("DALI")
+        panel.render(device, True)
+        imgui.end()
+        imgui.end_frame()
+
+    try:
+        render()
+        device.individual_address = "1.2.3"
+        render()
+        device.node_id = 2
+        render()
+        generation[0] += 1
+        render()
+        assert ids[0] == ids[1]
+        assert len(set(ids)) == 3
+        if not siemens:
+            panel._channel_count = lambda _: 2
+            panel._active_channel[panel._key(device)] = 1
+            render()
+            assert len(set(ids)) == 4
+    finally:
+        imgui.destroy_context(context)

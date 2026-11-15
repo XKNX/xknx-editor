@@ -231,3 +231,27 @@ def test_the_device_is_looked_up_when_it_starts() -> None:
     connection.busy = False
     _queue(plugin).tick()
     assert item.state is OperationState.FAILED and connection.calls == []
+
+
+@pytest.mark.parametrize("kind", ["dali", "siemens_dali"])
+@pytest.mark.parametrize("change", ["project", "address", "application"])
+def test_changed_dali_target_never_reaches_connection(kind, change):
+    plugin, connection, _ = _plugin()
+    connection.busy = True
+    ended = []
+    item = plugin._queue_bus_action(
+        1, kind, op=lambda _: None, text="Scan", ended=lambda: ended.append(True)
+    )
+    device = plugin._api.project.find_device_by_node_id(1)
+    if change == "project":
+        plugin._api.project.generation += 1
+    elif change == "address":
+        device.individual_address = "1.1.6"
+    else:
+        device.app = SimpleNamespace(id="changed")
+    connection.busy = False
+    plugin.program_queue.tick()
+    assert item.state is OperationState.FAILED
+    assert ended == [True]
+    assert connection.calls == []
+    assert plugin.program_queue.current is None

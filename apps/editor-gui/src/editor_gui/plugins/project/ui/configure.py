@@ -56,6 +56,7 @@ if TYPE_CHECKING:
     from xknxeditor.proj.core.addressing import GroupAddressStyle
     from xknxeditor.proj.core.service import DeviceInfo
 from editor_gui.plugin_params import mapping_for_device
+from editor_gui.plugin_providers import PluginCapabilities, provider_for
 from editor_gui.programming_dali import is_dali_dca_app, is_siemens_n141_03
 from editor_gui.settings import load_settings, save_settings
 from editor_gui.theme import status_color
@@ -316,6 +317,8 @@ class ConfigurePanel:
         render_siemens_dali: Callable[[Device], None] | None = None,
         render_plugin_params: Callable[[Device], None] | None = None,
         has_plugin_params: Callable[[Device], bool] | None = None,
+        plugin_capabilities: Callable[[Device], PluginCapabilities | None]
+        | None = None,
         on_navigate_ga: Callable[[int], None] | None = None,
         on_paste_links: Callable[[int, list[tuple[int, bool]], bool], None]
         | None = None,
@@ -499,6 +502,7 @@ class ConfigurePanel:
         self._render_siemens_dali = render_siemens_dali
         self._render_plugin_params = render_plugin_params
         self._has_plugin_params = has_plugin_params
+        self._plugin_capabilities = plugin_capabilities
         self._param_filter: str = ""
         self._module_filter: str = ""  # "Channels" tab (module-instance table) filter
         self._lv_seq: int = 0  # per-frame counter for unique _render_label_value ids
@@ -675,15 +679,15 @@ class ConfigurePanel:
 
         if self._on_program_device is not None:
             _same_line_if_fits(S.BTN_PROGRAM_DEVICE)
-            from editor_gui.plugin_providers import programming_error
-
+            try:
+                capabilities = self._capabilities(device)
+                allowed = capabilities is None or capabilities.programming_error is None
+            except ValueError:
+                allowed = False
             enabled = (
                 bool(device.individual_address)
                 and device.has_application
-                and (
-                    self._download_scope.individual_address_only
-                    or programming_error(device) is None
-                )
+                and (self._download_scope.individual_address_only or allowed)
             )
             imgui.begin_disabled(not enabled)
             if imgui.button(S.BTN_PROGRAM_DEVICE):
@@ -1302,11 +1306,9 @@ class ConfigurePanel:
                 self._render_plugin_params is not None
                 and device.app is not None
                 and (
-                    mapping_for_device(device) is not None
-                    or (
-                        self._has_plugin_params is not None
-                        and self._has_plugin_params(device)
-                    )
+                    self._has_plugin_params(device)
+                    if self._has_plugin_params is not None
+                    else mapping_for_device(device) is not None
                 )
                 and imgui.begin_tab_item(
                     f"{S.EDITOR_TAB_PLUGIN_PARAMS}###editor_tab_plugin_params"
@@ -2182,16 +2184,20 @@ class ConfigurePanel:
             + imgui.get_frame_height()
         )
 
+    def _capabilities(self, device: Device) -> PluginCapabilities | None:
+        if self._plugin_capabilities is not None:
+            return self._plugin_capabilities(device)
+        provider = provider_for(device)
+        return provider.capabilities(device) if provider is not None else None
+
     def _render_scope_selector(self, device: Device | None = None) -> None:
         """Select what a download/eval covers: full, parameters, or group comm."""
-        from editor_gui.plugin_providers import provider_for
-
         scopes = _SCOPE_ORDER
         if device is not None:
             try:
-                provider = provider_for(device)
+                capabilities = self._capabilities(device)
                 allowed = (
-                    provider.capabilities(device).download_scopes if provider else ()
+                    capabilities.download_scopes if capabilities is not None else ()
                 )
             except ValueError:
                 allowed = ()
