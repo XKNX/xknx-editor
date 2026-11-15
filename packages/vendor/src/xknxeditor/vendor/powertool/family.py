@@ -79,7 +79,7 @@ class FamilyConfig:
             or any(
                 type(value) is not str
                 or len(value) != 10
-                or not value.startswith("0007")
+                or value[:4] != str(self.program_ids[0])[:4]
                 or any(c not in "0123456789abcdef" for c in value)
                 for value in self.program_ids
             )

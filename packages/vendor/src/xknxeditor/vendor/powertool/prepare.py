@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from collections.abc import Mapping, Sequence
 from types import MappingProxyType
 from typing import Literal
@@ -13,17 +14,44 @@ from xknxeditor.download.image import (
     PropertyValue,
     RelativeSegment,
 )
+from xknxeditor.download.partial import program_manufacturer
 from xknxeditor.download.prepared import PreparedDownload
 from xknxeditor.prod import Application
 
 from .codec import Association, CompiledPowerToolImage, HostProfile, compile_image
 from .model import PowerToolConfig, Variant
 
+# An application program id: number and version, and the original manufacturer of an
+# application another manufacturer sells (``-O0007``).
+_PROGRAM_ID = re.compile(
+    r"^M-[0-9A-F]{4}_A-([0-9A-F]{4})-([0-9A-F]{2})-[0-9A-F]{4}(?:-O[0-9A-F]{4})?$"
+)
+# Busch-Jaeger, whose firmware the PowerTool devices run.
+BUSCH_JAEGER = 0x0007
+
+
+def firmware_manufacturer(application: Application) -> int:
+    """The manufacturer the device's program ids carry: the original manufacturer of an
+    application another manufacturer sells (ABB sells Busch-Jaeger devices), else the
+    application's own (see ``program_manufacturer``)."""
+    return program_manufacturer(application)
+
+
+def program_identity(application: Application) -> tuple[int, int] | None:
+    """The application number and version the id of ``application`` names."""
+    match = _PROGRAM_ID.match(str(getattr(application, "id", "")).upper())
+    return (int(match[1], 16), int(match[2], 16)) if match else None
+
 
 def is_powertool_application(application: Application | None) -> bool:
     if application is None:
         return False
-    return str(getattr(application, "id", "")).upper().startswith("M-0007_A-6108-")
+    identity = program_identity(application)
+    return (
+        identity is not None
+        and identity[0] == 0x6108
+        and firmware_manufacturer(application) == BUSCH_JAEGER
+    )
 
 
 def product_parameters(application: Application) -> dict[str, str]:
@@ -37,21 +65,18 @@ def product_parameters(application: Application) -> dict[str, str]:
 
 def profile_for(application: Application, secondary: Application | None) -> Variant:
     program = application.program
-    identifier = application.id.upper().split("-")
-    version = identifier[-2] if len(identifier) >= 5 else ""
+    identity = program_identity(application)
+    version = f"{identity[1]:02X}" if identity is not None else ""
     variant: Literal["01", "02"] = "01" if version == "21" else "02"
     expected = "31" if variant == "01" else "32"
     if not is_powertool_application(application) or version not in ("21", "22"):
         raise ValueError("unsupported 6108 application")
     if str(program.mask_version).upper() not in ("MV-07B0", "07B0"):
         raise ValueError("unsupported 6108 mask")
-    if secondary is None or not secondary.id.upper().startswith(
-        f"M-0007_A-6108-{expected}-"
-    ):
+    if secondary is None or program_identity(secondary) != (0x6108, int(expected, 16)):
         raise ValueError("missing or mismatched secondary application")
     if (
-        application.manufacturer_id.upper() != "M-0007"
-        or secondary.manufacturer_id.upper() != "M-0007"
+        secondary.manufacturer_id.upper() != application.manufacturer_id.upper()
         or program.application_number != 0x6108
         or secondary.program.application_number != 0x6108
         or program.application_version != int(version, 16)
