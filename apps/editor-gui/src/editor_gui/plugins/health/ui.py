@@ -85,10 +85,13 @@ class HealthPanel:
         if not shown:
             imgui.text_disabled(S.HEALTH_NONE_SHOWN)
             return
-        # Stable within a kind.
-        rank = {severity: i for i, severity in enumerate(_ORDER)}
-        for i, f in enumerate(sorted(shown, key=lambda f: rank[f.severity])):
-            self._render_row(i, f)
+        # Only the list scrolls; the checkboxes stay above it.
+        if imgui.begin_child("##health_list"):
+            # Stable within a kind.
+            rank = {severity: i for i, severity in enumerate(_ORDER)}
+            for i, f in enumerate(sorted(shown, key=lambda f: rank[f.severity])):
+                self._render_row(i, f)
+        imgui.end_child()
 
     def _render_filters(self, findings: list[Finding]) -> None:
         """A checkbox per kind of findings, with its icon and how many there are; a click on the
