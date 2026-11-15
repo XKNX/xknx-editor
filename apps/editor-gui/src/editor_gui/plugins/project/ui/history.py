@@ -13,7 +13,7 @@ from imgui_bundle import imgui
 
 from editor_gui.plugins.project.strings import S
 from editor_gui.theme import status_color
-from editor_gui.widgets.icon_button import ICON_CURRENT
+from editor_gui.widgets.tree import header_arrow, header_title_offset
 
 
 @dataclass
@@ -91,13 +91,13 @@ class HistoryPanel:
             | imgui.TableFlags_.sizing_fixed_fit
             | imgui.TableFlags_.no_saved_settings
         )
-        if not imgui.begin_table("##history", 3, flags, imgui.ImVec2(0.0, 0.0)):
+        content_x = imgui.get_cursor_screen_pos().x
+        if not imgui.begin_table("##history", 2, flags, imgui.ImVec2(0.0, 0.0)):
             return
-        imgui.table_setup_column("", imgui.TableColumnFlags_.width_fixed)
         imgui.table_setup_column("", imgui.TableColumnFlags_.width_fixed)
         imgui.table_setup_column("", imgui.TableColumnFlags_.width_stretch)
         for entry in entries:
-            self._render_row(entry, entry.id == cursor)
+            self._render_row(entry, entry.id == cursor, content_x)
         imgui.end_table()
 
     def _render_toolbar(self, cursor: int) -> None:
@@ -112,16 +112,26 @@ class HistoryPanel:
         if clicked and enabled and self.selected is not None:
             self.restore(self.selected)
 
-    def _render_row(self, entry: HistoryEntry, is_current: bool) -> None:
-        imgui.table_next_row()
+    def _render_row(
+        self, entry: HistoryEntry, is_current: bool, content_x: float
+    ) -> None:
+        """A step as a row as high as a section header; the current one with the header's
+        arrow, in the header's place, and the texts where a header's title starts."""
+        style = imgui.get_style()
+        height = imgui.get_frame_height()
+        imgui.table_next_row(0, height)
         imgui.table_set_column_index(0)
+        top = imgui.get_cursor_screen_pos().y - style.cell_padding.y
         flags = (
             imgui.SelectableFlags_.span_all_columns
             | imgui.SelectableFlags_.allow_double_click
         )
-        if imgui.selectable(f"##history_{entry.id}", self.selected == entry.id, flags)[
-            0
-        ]:
+        if imgui.selectable(
+            f"##history_{entry.id}",
+            self.selected == entry.id,
+            flags,
+            imgui.ImVec2(0.0, height - 2 * style.cell_padding.y),
+        )[0]:
             self.selected = entry.id
             if (
                 imgui.is_mouse_double_clicked(imgui.MouseButton_.left)
@@ -133,21 +143,25 @@ class HistoryPanel:
             if imgui.menu_item(S.HISTORY_REVERT, "", False, not is_current)[0]:
                 self.restore(entry.id)
             imgui.end_popup()
-        imgui.same_line(0.0, 0.0)
+        text_x = content_x + header_title_offset()
         if is_current:
-            imgui.text_colored(status_color("success"), ICON_CURRENT)
-            if imgui.is_item_hovered():
+            header_arrow(content_x, top, imgui.get_color_u32(status_color("success")))
+            if imgui.is_mouse_hovering_rect(
+                imgui.ImVec2(content_x, top), imgui.ImVec2(text_x, top + height)
+            ):
                 imgui.set_tooltip(S.HISTORY_CURRENT)
-        else:
-            # The column as wide as the arrow on every row.
-            imgui.dummy(imgui.ImVec2(imgui.calc_text_size(ICON_CURRENT).x, 0.0))
         if entry.reverted:
             imgui.push_style_color(
                 imgui.Col_.text, imgui.get_style_color_vec4(imgui.Col_.text_disabled)
             )
-        imgui.table_set_column_index(1)
+        # The texts in the middle of the row, as a header's title.
+        text_y = top + style.frame_padding.y
+        imgui.set_cursor_screen_pos(imgui.ImVec2(text_x, text_y))
         imgui.text_disabled(self._time_text(entry.timestamp))
-        imgui.table_set_column_index(2)
+        imgui.table_set_column_index(1)
+        imgui.set_cursor_screen_pos(
+            imgui.ImVec2(imgui.get_cursor_screen_pos().x, text_y)
+        )
         imgui.text(entry.display_text)
         if entry.reverted:
             imgui.pop_style_color()

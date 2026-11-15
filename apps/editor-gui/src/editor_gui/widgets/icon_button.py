@@ -16,7 +16,7 @@ ICON_DOWNLOAD = ""
 ICON_ERROR = ""
 ICON_WARNING = ""
 ICON_INFO = ""
-ICON_CURRENT = ""
+ICON_DEBUG = ""
 
 
 def icon_button_width(icon: str) -> float:
