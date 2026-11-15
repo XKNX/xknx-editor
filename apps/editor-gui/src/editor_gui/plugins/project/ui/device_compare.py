@@ -128,7 +128,13 @@ class DeviceComparePanel:
         )
         imgui.same_line()
         imgui.set_cursor_pos_y(top)
-        if icon_button(ICON_COPY, "cmp_copy", S.COMPARE_COPY):
+        # Copies the rows shown: off while "Only differences" leaves none.
+        shown = any(
+            not self._only_diff or row.kind != "same"
+            for _title, rows in self._result_sections(result)
+            for row in rows
+        )
+        if icon_button(ICON_COPY, "cmp_copy", S.COMPARE_COPY, enabled=shown):
             imgui.set_clipboard_text(self._clipboard_text(result, a, b))
         imgui.separator()
 

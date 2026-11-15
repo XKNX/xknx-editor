@@ -85,6 +85,20 @@ def _desc(text: str) -> None:
     imgui.spacing()
 
 
+def _select_all_none(list_id: str, shown: set[int], selected: set[int]) -> None:
+    """The All and None buttons of a checked list: they check or uncheck the ``shown`` entries
+    in ``selected``, each only while that would change something (none shown: both off)."""
+    imgui.begin_disabled(shown <= selected)
+    if imgui.button(f"{S.TOOLS_SELECT_ALL}##{list_id}_all"):
+        selected |= shown
+    imgui.end_disabled()
+    imgui.same_line()
+    imgui.begin_disabled(not shown & selected)
+    if imgui.button(f"{S.TOOLS_SELECT_NONE}##{list_id}_none"):
+        selected -= shown
+    imgui.end_disabled()
+
+
 def apply_name_swap(name: str, find: str, replace: str) -> str:
     """Return ``name`` with ``find`` replaced by ``replace``; unchanged when ``find`` is empty."""
     return name.replace(find, replace) if find else name
@@ -554,11 +568,7 @@ class ToolsPanel:
         )
         flt = self._ga_filter.strip().lower()
         shown = [g for g in gas if not flt or flt in f"{g.address} {g.name}".lower()]
-        if imgui.button(S.TOOLS_SELECT_ALL):
-            self._selected_gas |= {g.id for g in shown}
-        imgui.same_line()
-        if imgui.button(S.TOOLS_SELECT_NONE):
-            self._selected_gas -= {g.id for g in shown}
+        _select_all_none("ga", {g.id for g in shown}, self._selected_gas)
         imgui.same_line()
         sel = sum(1 for g in gas if g.id in self._selected_gas)
         imgui.text_disabled(S.TOOLS_SELECTED_COUNT.format(sel=sel, total=len(gas)))
@@ -656,11 +666,7 @@ class ToolsPanel:
 
     def _device_toolbar(self, devices: list[Device], shown: list[Device]) -> None:
         """All / None (acting on the filtered ``shown`` set) + a 'N of M selected' counter."""
-        if imgui.button(S.TOOLS_SELECT_ALL):
-            self._selected_nodes |= {d.node_id for d in shown}
-        imgui.same_line()
-        if imgui.button(S.TOOLS_SELECT_NONE):
-            self._selected_nodes -= {d.node_id for d in shown}
+        _select_all_none("devices", {d.node_id for d in shown}, self._selected_nodes)
         imgui.same_line()
         sel = sum(1 for d in devices if d.node_id in self._selected_nodes)
         imgui.text_disabled(S.TOOLS_SELECTED_COUNT.format(sel=sel, total=len(devices)))

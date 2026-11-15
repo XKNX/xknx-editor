@@ -12,7 +12,7 @@ from imgui_bundle import imgui
 
 from editor_gui.plugins.project.ui import device_compare
 from editor_gui.plugins.project.ui.device_compare import DeviceComparePanel
-from editor_gui.plugins.project.ui.device_diff import DeviceDiffResult
+from editor_gui.plugins.project.ui.device_diff import DeviceDiffResult, DiffRow
 
 
 @pytest.fixture
@@ -143,3 +143,30 @@ def test_each_list_leaves_out_the_device_chosen_in_the_other(
     setup.choose(1, 3)
     setup.frame()
     assert listed == {"##cmp_a": [1, 2], "##cmp_b": [2, 3]}
+
+
+def test_copy_is_off_while_no_row_is_shown(
+    setup: _Setup, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    enabled: list[bool] = []
+
+    def button(_icon: str, _id: str, _tip: str, **options: Any) -> bool:
+        enabled.append(options.get("enabled", True))
+        return False
+
+    monkeypatch.setattr(device_compare, "icon_button", button)
+    same = DiffRow(key="Name", label="Name", kind="same", a="Light", b="Light")
+    monkeypatch.setattr(
+        device_compare,
+        "diff_devices",
+        lambda _a, _b: DeviceDiffResult(header=[same], parameters=[], com_objects=[]),
+    )
+    setup.choose(1, 2)
+    # Identical devices with "Only differences" on: no row to copy.
+    setup.frame()
+    assert enabled == [False]
+    # All rows shown: they can be copied.
+    setup.panel._only_diff = False  # pyright: ignore[reportPrivateUsage]
+    enabled.clear()
+    setup.frame()
+    assert enabled == [True]
