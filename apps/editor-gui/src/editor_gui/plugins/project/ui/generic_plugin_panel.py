@@ -26,6 +26,7 @@ from editor_gui.widgets.checkbox import checkbox
 from editor_gui.widgets.combo import begin_combo, end_combo
 from editor_gui.widgets.filter_box import filter_box
 from editor_gui.widgets.tables import begin_data_table, data_table_headers
+from editor_gui.widgets.tree import collapsing_header
 from xknxeditor.vendor.siemens_generic import (
     ComparePage,
     CompareRow,
@@ -209,7 +210,7 @@ class GenericPluginPanel:
         if self._view_for(device) is None:
             return
         imgui.push_id(f"plugin_comparison_{device.node_id}")
-        if imgui.collapsing_header(S.PLUGIN_CONFIG_COMPARISON):
+        if collapsing_header(S.PLUGIN_CONFIG_COMPARISON):
             self.render(device)
         imgui.pop_id()
 
@@ -383,7 +384,7 @@ class GenericPluginPanel:
             imgui.set_next_item_open(True)
         elif key not in closed:
             imgui.set_next_item_open(page.fitted, imgui.Cond_.appearing)
-        if imgui.collapsing_header(f"{page_title(page)}  ({count})"):
+        if collapsing_header(f"{page_title(page)}  ({count})"):
             if not filtering:
                 closed.discard(key)
             return True

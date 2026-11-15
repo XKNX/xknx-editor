@@ -1,6 +1,6 @@
-"""The GUI draws checkboxes, radio buttons, drop-downs, buttons and table headers with the app's own
-widgets, never imgui's directly: those carry the app's look (size, colors of the theme, header
-lines, sort arrow), which a raw imgui call would silently miss."""
+"""The GUI draws checkboxes, radio buttons, drop-downs, buttons, table headers and section headers
+with the app's own widgets, never imgui's directly: those carry the app's look (size, colors of
+the theme, header lines, sort arrow, arrow margin), which a raw imgui call would silently miss."""
 
 from __future__ import annotations
 
@@ -21,6 +21,10 @@ RULES: dict[str, tuple[str, str]] = {
     "end_combo": ("editor_gui.widgets.combo.end_combo", "widgets/combo.py"),
     "small_button": ("imgui.button (small buttons cut off descenders)", ""),
     "table_headers_row": ("editor_gui.widgets.tables.headers_row", "widgets/tables.py"),
+    "collapsing_header": (
+        "editor_gui.widgets.tree.collapsing_header (its arrow margin)",
+        "widgets/tree.py",
+    ),
 }
 
 

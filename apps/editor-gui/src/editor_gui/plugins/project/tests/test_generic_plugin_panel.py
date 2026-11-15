@@ -185,7 +185,7 @@ def test_read_memory_is_inside_comparison(context, monkeypatch):
     monkeypatch.setattr(imgui, "button", lambda label, *_args: label == S.MEMORY_READ)
     monkeypatch.setattr(imgui, "text_wrapped", hints.append)
     expanded = [False]
-    monkeypatch.setattr(imgui, "collapsing_header", lambda *_a: expanded[0])
+    monkeypatch.setattr(panel_module, "collapsing_header", lambda *_a: expanded[0])
     for state in (False, True, True):
         expanded[0] = state
         imgui.new_frame()
@@ -438,13 +438,13 @@ def test_comparison_section_is_optional_and_does_not_hide_editor(
     frame()
     assert events == ["actions", "edit"]
     events.clear()
-    collapse = imgui.collapsing_header
+    collapse = panel_module.collapsing_header
 
     def expanded(label: str) -> bool:
         imgui.set_next_item_open(True)
         return collapse(label)
 
-    monkeypatch.setattr(panel_module.imgui, "collapsing_header", expanded)
+    monkeypatch.setattr(panel_module, "collapsing_header", expanded)
     frame()
     assert events == ["actions", "compare", "edit"]
     events.clear()

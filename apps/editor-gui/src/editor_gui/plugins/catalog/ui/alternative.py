@@ -32,6 +32,7 @@ from editor_gui.widgets.tables import (
     data_table_headers,
     row_selectable,
 )
+from editor_gui.widgets.tree import collapsing_header
 
 
 def error_text(exc: Exception) -> str:
@@ -161,7 +162,7 @@ class AlternativeCatalogPanel:
             self._settings_key = settings_key
         status = self._client.status()
         imgui.begin_disabled(self._future is not None)
-        if imgui.collapsing_header(AppS.SETTINGS_TITLE):
+        if collapsing_header(AppS.SETTINGS_TITLE):
             self._render_settings()
             # Where the section ends.
             imgui.separator()

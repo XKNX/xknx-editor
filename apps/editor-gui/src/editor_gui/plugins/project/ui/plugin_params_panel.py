@@ -26,6 +26,7 @@ from editor_gui.widgets.combo import combo
 from editor_gui.widgets.dpi import px
 from editor_gui.widgets.filter_box import filter_box
 from editor_gui.widgets.tables import headers_row
+from editor_gui.widgets.tree import collapsing_header
 from xknxeditor.vendor.triton import DeviceType
 
 if TYPE_CHECKING:
@@ -254,11 +255,11 @@ class PluginParamsPanel:
             # visible, without touching the user's remembered collapse state (it is restored the
             # moment the filter is cleared).
             imgui.set_next_item_open(True)
-            if imgui.collapsing_header(f"{section_label}  ({len(rows)})"):
+            if collapsing_header(f"{section_label}  ({len(rows)})"):
                 self._render_standard_table(device, section_label, rows, filtering=True)
             return
         imgui.set_next_item_open(section_label not in closed)
-        shown = imgui.collapsing_header(f"{section_label}  ({len(rows)})")
+        shown = collapsing_header(f"{section_label}  ({len(rows)})")
         if not shown:
             closed.add(section_label)
             return
@@ -286,7 +287,7 @@ class PluginParamsPanel:
         is_open = section.section not in closed
         if is_open:
             imgui.set_next_item_open(True, imgui.Cond_.appearing)
-        shown = imgui.collapsing_header(label)
+        shown = collapsing_header(label)
         if not shown:
             closed.add(section.section)
             return

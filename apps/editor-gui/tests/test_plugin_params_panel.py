@@ -434,7 +434,7 @@ def test_internal_sections_restore_collapse_after_search(context, monkeypatch):
     panel = PluginParamsPanel(_on_edit=lambda *_: None)
     opened = []
     monkeypatch.setattr(imgui, "set_next_item_open", lambda value: opened.append(value))
-    monkeypatch.setattr(imgui, "collapsing_header", lambda *_: opened[-1])
+    monkeypatch.setattr(ppp, "collapsing_header", lambda *_: opened[-1])
     monkeypatch.setattr(panel, "_render_standard_table", lambda *args, **kwargs: None)
     device = _StubDevice()
     panel._render_section(device, "Internal", [_row()], collapsed=True)
