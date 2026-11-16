@@ -179,61 +179,7 @@ class FamilyEvaluation:
                 self._validate_stored(node)
 
     def _validate_stored(self, node: Node) -> None:
-        value = self.config.values.get(node.path)
-        if value is None:
-            return
-        spec = node.spec
-        kind = spec["value_kind"]
-        if kind == "V_PAGE":
-            raise ValueError("PowerTool pages have no scalar value")
-        if spec["extension"] == "DatapointConfig":
-            if value != spec["default"]:
-                raise ValueError("Invalid PowerTool datapoint configuration")
-            return
-        if kind in ("V_STRING", "V_STRINGPTR"):
-            smart_touch = bool(
-                node.application and node.application.spec["smart_touch"]
-            )
-            if not isinstance(value, str) or len(
-                value.encode("utf-8" if smart_touch else "utf-16-be")
-            ) > spec["size"] - (0 if smart_touch else 4):
-                raise ValueError("Invalid PowerTool text value")
-            return
-        if kind == "V_FLOAT":
-            if type(value) not in (int, float):
-                raise ValueError("Invalid PowerTool float value")
-            assert isinstance(value, (int, float))
-            number = float32(value)
-        else:
-            if type(value) is not int:
-                raise ValueError("Invalid PowerTool integer value")
-            if kind == "V_ENUM":
-                if not 0 <= value < len(spec["options"]):
-                    raise ValueError("Invalid PowerTool enum index")
-                return
-            if kind == "V_SYMBOL":
-                if value not in [option["value"] for option in spec["options"]]:
-                    raise ValueError("Invalid PowerTool symbol")
-                return
-            if kind == "V_FREETIMER":
-                if not 0 <= value >> 8 <= 23 or not 0 <= value & 255 <= 127:
-                    raise ValueError("Invalid PowerTool timer")
-                number = (value & 255) * (5 << (value >> 8))
-            else:
-                if value < 0 or value & ~spec["mask"]:
-                    raise ValueError("Invalid PowerTool masked value")
-                number = value >> spec["shift"]
-                if kind == "V_SIGNED" and value & (1 << (spec["size"] * 8 - 1)):
-                    number = value - (1 << (spec["size"] * 8))
-        bounds = spec["constraints"]
-        low, high = bounds["min"], bounds["max"]
-        if kind == "V_FLOAT":
-            low, high = float32(low), float32(high)
-        elif kind == "V_FREETIMER":
-            code = timer_code(low)
-            low = (code & 255) * (5 << (code >> 8))
-        if not low <= number <= high:
-            raise ValueError("PowerTool parameter is outside its allowed range")
+        check_stored(node, self.config.values.get(node.path))
 
     def _node(self, key: str, path: str, parent: Node | None = None) -> Node:
         node = Node(key, path, self.schema["nodes"][key], parent)
@@ -577,6 +523,63 @@ class FamilyEvaluation:
                     "constraints"
                 ].get("displayoffset", 0)
         return value
+
+
+def check_stored(node: Node, value: Scalar) -> None:
+    """Raise ``ValueError`` unless ``value`` (as a configuration stores it) is one the
+    parameter ``node`` can hold; ``None`` (no value of its own) always is."""
+    if value is None:
+        return
+    spec = node.spec
+    kind = spec["value_kind"]
+    if kind == "V_PAGE":
+        raise ValueError("PowerTool pages have no scalar value")
+    if spec["extension"] == "DatapointConfig":
+        if value != spec["default"]:
+            raise ValueError("Invalid PowerTool datapoint configuration")
+        return
+    if kind in ("V_STRING", "V_STRINGPTR"):
+        smart_touch = bool(node.application and node.application.spec["smart_touch"])
+        if not isinstance(value, str) or len(
+            value.encode("utf-8" if smart_touch else "utf-16-be")
+        ) > spec["size"] - (0 if smart_touch else 4):
+            raise ValueError("Invalid PowerTool text value")
+        return
+    if kind == "V_FLOAT":
+        if type(value) not in (int, float):
+            raise ValueError("Invalid PowerTool float value")
+        assert isinstance(value, (int, float))
+        number = float32(value)
+    else:
+        if type(value) is not int:
+            raise ValueError("Invalid PowerTool integer value")
+        if kind == "V_ENUM":
+            if not 0 <= value < len(spec["options"]):
+                raise ValueError("Invalid PowerTool enum index")
+            return
+        if kind == "V_SYMBOL":
+            if value not in [option["value"] for option in spec["options"]]:
+                raise ValueError("Invalid PowerTool symbol")
+            return
+        if kind == "V_FREETIMER":
+            if not 0 <= value >> 8 <= 23 or not 0 <= value & 255 <= 127:
+                raise ValueError("Invalid PowerTool timer")
+            number = (value & 255) * (5 << (value >> 8))
+        else:
+            if value < 0 or value & ~spec["mask"]:
+                raise ValueError("Invalid PowerTool masked value")
+            number = value >> spec["shift"]
+            if kind == "V_SIGNED" and value & (1 << (spec["size"] * 8 - 1)):
+                number = value - (1 << (spec["size"] * 8))
+    bounds = spec["constraints"]
+    low, high = bounds["min"], bounds["max"]
+    if kind == "V_FLOAT":
+        low, high = float32(low), float32(high)
+    elif kind == "V_FREETIMER":
+        code = timer_code(low)
+        low = (code & 255) * (5 << (code >> 8))
+    if not low <= number <= high:
+        raise ValueError("PowerTool parameter is outside its allowed range")
 
 
 def from_saved(data: bytes, *, qualified: bool = False) -> FamilyConfig:
