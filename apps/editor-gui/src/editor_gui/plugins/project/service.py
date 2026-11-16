@@ -671,6 +671,9 @@ _HISTORY_LABELS: dict[str, Callable[[dict[str, Any]], str]] = {
     "SetDeviceAddinData": lambda d: S.HISTORY_EV_STORE_PLUGIN_DATA.format(
         name=_quoted(d, "app_id")
     ),
+    "SetProjectUserFile": lambda d: S.HISTORY_EV_STORE_PLUGIN_DATA.format(
+        name=_quoted(d, "filename")
+    ),
     "SetParameter": lambda d: S.HISTORY_EV_SET_PARAMETER.format(
         ref=d.get("ref_id", ""), value=_quoted(d, "value")
     ),
