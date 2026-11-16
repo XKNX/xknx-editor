@@ -55,6 +55,14 @@ class ConnectionStrings:
         return _("Protected Group Addresses")
 
     @property
+    def SETTING_PROTECTED_GAS_APPLY(self) -> str:
+        return _("Apply")
+
+    @property
+    def SETTING_PROTECTED_GAS_INVALID(self) -> str:
+        return _("Not a group address or group: {entries}")
+
+    @property
     def SETTING_PROTECTED_GAS_HINT(self) -> str:
         return _(
             "Nothing is ever sent to these group addresses, not even reads, e.g. the ones of "

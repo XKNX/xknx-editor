@@ -475,3 +475,6 @@ msgstr "Sa telegrame ruan Aktiviteti i busit përpara se të heqë telegramet m�
 
 msgid "Not sent: a protected group address is among them (Settings > Connection)"
 msgstr "Nuk u dërgua: ndër to është një adresë grupi e mbrojtur (Cilësimet > Lidhja)"
+
+msgid "Protected group address: nothing is sent to it (Settings > Connection)"
+msgstr "Adresë grupi e mbrojtur: nuk i dërgohet asgjë (Cilësimet > Lidhja)"

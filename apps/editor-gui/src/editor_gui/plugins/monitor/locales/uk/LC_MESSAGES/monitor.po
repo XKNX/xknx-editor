@@ -483,3 +483,6 @@ msgstr "Скільки телеграм зберігає активність ш
 
 msgid "Not sent: a protected group address is among them (Settings > Connection)"
 msgstr "Не надіслано: серед них є захищена групова адреса (Налаштування > Підключення)"
+
+msgid "Protected group address: nothing is sent to it (Settings > Connection)"
+msgstr "Захищена групова адреса: на неї нічого не надсилається (Налаштування > Підключення)"

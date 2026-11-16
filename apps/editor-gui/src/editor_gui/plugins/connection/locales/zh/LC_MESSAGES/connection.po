@@ -307,3 +307,6 @@ msgstr "受保护的组地址"
 
 msgid "Nothing is ever sent to these group addresses, not even reads, e.g. the ones of gates or an alarm system: addresses like 1/2/3, or groups ending with a slash like 7/0/, separated by spaces. MCP clients can add to the list but not take anything out."
 msgstr "绝不向这些组地址发送任何内容，连读取也不发送，例如大门或报警系统的地址：如 1/2/3 的地址，或像 7/0/ 这样以斜杠结尾的组，用空格分隔。MCP 客户端可以向列表添加，但不能从中删除。"
+
+msgid "Not a group address or group: {entries}"
+msgstr "不是组地址或组：{entries}"

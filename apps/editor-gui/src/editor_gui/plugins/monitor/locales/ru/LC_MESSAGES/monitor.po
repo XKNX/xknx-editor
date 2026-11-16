@@ -483,3 +483,6 @@ msgstr "Сколько телеграмм хранит активность ши
 
 msgid "Not sent: a protected group address is among them (Settings > Connection)"
 msgstr "Не отправлено: среди них есть защищённый групповой адрес (Настройки > Подключение)"
+
+msgid "Protected group address: nothing is sent to it (Settings > Connection)"
+msgstr "Защищённый групповой адрес: на него ничего не отправляется (Настройки > Подключение)"

@@ -486,3 +486,6 @@ msgstr "Câte telegrame păstrează activitatea magistralei înainte de a le eli
 
 msgid "Not sent: a protected group address is among them (Settings > Connection)"
 msgstr "Netrimis: printre ele se află o adresă de grup protejată (Setări > Conexiune)"
+
+msgid "Protected group address: nothing is sent to it (Settings > Connection)"
+msgstr "Adresă de grup protejată: nu i se trimite nimic (Setări > Conexiune)"

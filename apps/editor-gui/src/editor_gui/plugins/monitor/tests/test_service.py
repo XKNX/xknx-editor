@@ -458,6 +458,12 @@ def test_nothing_is_sent_or_replayed_to_a_protected_group_address() -> None:
         assert not service.send_write("7/0/2", "DPST-1-1", "1")
         service.send_read("1/2/3")
         assert sent == ["1/2/3"]
+        # Every spelling of 7/0/1, which Home Assistant would parse itself.
+        for spelling in ("7/1", "14337", "07/0/1"):
+            assert service.protected_reason(spelling)
+            service.send_read(spelling)
+            assert not service.send_write(spelling, "DPST-1-1", "1")
+        assert sent == ["1/2/3"]
         # A replay holding one does not start at all.
         connection.xknx = FakeXknx("1.1.250")
         service.on_connected()

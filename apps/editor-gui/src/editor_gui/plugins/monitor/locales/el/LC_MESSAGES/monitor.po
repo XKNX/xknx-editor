@@ -475,3 +475,6 @@ msgstr "Πόσα τηλεγραφήματα κρατά η Δραστηριότη
 
 msgid "Not sent: a protected group address is among them (Settings > Connection)"
 msgstr "Δεν στάλθηκε: ανάμεσά τους υπάρχει προστατευμένη διεύθυνση ομάδας (Ρυθμίσεις > Σύνδεση)"
+
+msgid "Protected group address: nothing is sent to it (Settings > Connection)"
+msgstr "Προστατευμένη διεύθυνση ομάδας: δεν στέλνεται τίποτα σε αυτήν (Ρυθμίσεις > Σύνδεση)"

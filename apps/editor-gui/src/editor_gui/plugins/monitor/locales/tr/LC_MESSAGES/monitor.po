@@ -467,3 +467,6 @@ msgstr "Bus Etkinliği'nin en eskileri atmadan önce tuttuğu telegram sayısı.
 
 msgid "Not sent: a protected group address is among them (Settings > Connection)"
 msgstr "Gönderilmedi: aralarında korumalı bir grup adresi var (Ayarlar > Bağlantı)"
+
+msgid "Protected group address: nothing is sent to it (Settings > Connection)"
+msgstr "Korumalı grup adresi: ona hiçbir şey gönderilmez (Ayarlar > Bağlantı)"

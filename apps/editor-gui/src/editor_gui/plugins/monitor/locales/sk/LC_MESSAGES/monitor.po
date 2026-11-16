@@ -486,3 +486,6 @@ msgstr "Koľko telegramov aktivita zbernice uchová, kým zahodí najstaršie. 0
 
 msgid "Not sent: a protected group address is among them (Settings > Connection)"
 msgstr "Neodoslané: je medzi nimi chránená skupinová adresa (Nastavenia > Pripojenie)"
+
+msgid "Protected group address: nothing is sent to it (Settings > Connection)"
+msgstr "Chránená skupinová adresa: nič sa na ňu neposiela (Nastavenia > Pripojenie)"

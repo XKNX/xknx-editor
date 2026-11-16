@@ -483,3 +483,6 @@ msgstr "Ile telegramów przechowuje aktywność magistrali, zanim usunie najstar
 
 msgid "Not sent: a protected group address is among them (Settings > Connection)"
 msgstr "Nie wysłano: jest wśród nich chroniony adres grupowy (Ustawienia > Połączenie)"
+
+msgid "Protected group address: nothing is sent to it (Settings > Connection)"
+msgstr "Chroniony adres grupowy: nic nie jest do niego wysyłane (Ustawienia > Połączenie)"

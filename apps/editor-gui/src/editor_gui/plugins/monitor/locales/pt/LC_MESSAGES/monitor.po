@@ -475,3 +475,6 @@ msgstr "Quantos telegramas a Atividade do Bus guarda antes de descartar os mais 
 
 msgid "Not sent: a protected group address is among them (Settings > Connection)"
 msgstr "Não enviado: há um endereço de grupo protegido entre eles (Definições > Ligação)"
+
+msgid "Protected group address: nothing is sent to it (Settings > Connection)"
+msgstr "Endereço de grupo protegido: nada lhe é enviado (Definições > Ligação)"

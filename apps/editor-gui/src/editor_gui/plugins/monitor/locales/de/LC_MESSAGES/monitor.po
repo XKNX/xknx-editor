@@ -478,3 +478,6 @@ msgstr "Wie viele Telegramme die Busaktivität behält, bevor die ältesten verw
 
 msgid "Not sent: a protected group address is among them (Settings > Connection)"
 msgstr "Nicht gesendet: Eine geschützte Gruppenadresse ist darunter (Einstellungen > Verbindung)"
+
+msgid "Protected group address: nothing is sent to it (Settings > Connection)"
+msgstr "Geschützte Gruppenadresse: An sie wird nichts gesendet (Einstellungen > Verbindung)"

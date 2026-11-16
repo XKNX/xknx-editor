@@ -309,3 +309,6 @@ msgstr "Chronione Adresy Grupowe"
 
 msgid "Nothing is ever sent to these group addresses, not even reads, e.g. the ones of gates or an alarm system: addresses like 1/2/3, or groups ending with a slash like 7/0/, separated by spaces. MCP clients can add to the list but not take anything out."
 msgstr "Na te adresy grupowe nigdy nic nie jest wysyłane, nawet odczyty, np. adresy bram lub systemu alarmowego: adresy takie jak 1/2/3 lub grupy kończące się ukośnikiem, jak 7/0/, oddzielone spacjami. Klienci MCP mogą dodawać do listy, ale nie mogą niczego z niej usuwać."
+
+msgid "Not a group address or group: {entries}"
+msgstr "To nie jest adres grupowy ani grupa: {entries}"

@@ -557,6 +557,11 @@ class MonitorService:
 
     # --- outgoing (UI thread) ---------------------------------------------
 
+    def protected_reason(self, address: str) -> str:
+        """Why nothing may be sent to ``address`` (any spelling of a group address), "" when
+        it may: it is a protected group address (Settings > Connection)."""
+        return protected_reason(address)
+
     def send_write(self, address: str, dpt: str | None, text: str) -> bool:
         """Encode ``text`` per the group address' DPT and send a GroupValueWrite. Returns success."""
         transcoder = transcoder_for(dpt)

@@ -494,3 +494,6 @@ msgstr "Koliko telegramov dejavnost vodila obdrži, preden zavrže najstarejše.
 
 msgid "Not sent: a protected group address is among them (Settings > Connection)"
 msgstr "Ni poslano: med njimi je zaščiten skupinski naslov (Nastavitve > Povezava)"
+
+msgid "Protected group address: nothing is sent to it (Settings > Connection)"
+msgstr "Zaščiten skupinski naslov: nanj se nič ne pošlje (Nastavitve > Povezava)"

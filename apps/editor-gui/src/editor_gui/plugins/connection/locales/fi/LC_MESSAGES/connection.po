@@ -308,3 +308,6 @@ msgstr "Suojatut ryhmäosoitteet"
 
 msgid "Nothing is ever sent to these group addresses, not even reads, e.g. the ones of gates or an alarm system: addresses like 1/2/3, or groups ending with a slash like 7/0/, separated by spaces. MCP clients can add to the list but not take anything out."
 msgstr "Näihin ryhmäosoitteisiin ei koskaan lähetetä mitään, ei edes lukuja, esim. porttien tai hälytysjärjestelmän osoitteet: osoitteita kuten 1/2/3 tai kauttaviivaan päättyviä ryhmiä kuten 7/0/, välilyönnein erotettuina. MCP-asiakkaat voivat lisätä luetteloon mutta eivät poistaa siitä mitään."
+
+msgid "Not a group address or group: {entries}"
+msgstr "Ei ryhmäosoite eikä ryhmä: {entries}"

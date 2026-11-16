@@ -307,3 +307,6 @@ msgstr "Korumalı Grup Adresleri"
 
 msgid "Nothing is ever sent to these group addresses, not even reads, e.g. the ones of gates or an alarm system: addresses like 1/2/3, or groups ending with a slash like 7/0/, separated by spaces. MCP clients can add to the list but not take anything out."
 msgstr "Bu grup adreslerine hiçbir zaman hiçbir şey gönderilmez, okuma bile: örneğin kapıların veya bir alarm sisteminin adresleri. 1/2/3 gibi adresler veya 7/0/ gibi eğik çizgiyle biten gruplar, boşlukla ayrılmış olarak. MCP istemcileri listeye ekleyebilir ancak listeden bir şey çıkaramaz."
+
+msgid "Not a group address or group: {entries}"
+msgstr "Grup adresi veya grup değil: {entries}"

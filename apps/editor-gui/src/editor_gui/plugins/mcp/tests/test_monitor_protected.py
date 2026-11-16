@@ -24,6 +24,8 @@ async def test_a_protected_group_address_is_refused(tmp_path: Path) -> None:
         async with Client(mcp) as client:
             for tool, args in (
                 ("monitor_send_read", {"address": "7/0/1"}),
+                ("monitor_send_read", {"address": "14337"}),
+                ("monitor_read_value", {"address": "7/1", "timeout": 5.0}),
                 (
                     "monitor_send_write",
                     {"address": "7/0/1", "value": "1", "dpt": "1.001"},

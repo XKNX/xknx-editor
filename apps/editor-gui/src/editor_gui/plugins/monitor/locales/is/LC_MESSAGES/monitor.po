@@ -478,3 +478,6 @@ msgstr "Hversu mörg skeyti virkni á tengibraut geymir áður en þeim elstu er
 
 msgid "Not sent: a protected group address is among them (Settings > Connection)"
 msgstr "Ekki sent: varið hópvistfang er þar á meðal (Stillingar > Tenging)"
+
+msgid "Protected group address: nothing is sent to it (Settings > Connection)"
+msgstr "Varið hópvistfang: ekkert er sent á það (Stillingar > Tenging)"

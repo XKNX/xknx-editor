@@ -21,6 +21,10 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
     tool = make_tool(mcp, ctx)
     monitor = ctx.monitor
 
+    def _refuse_protected(address: str) -> None:
+        if reason := protected_reason(address):
+            raise ToolError(f"not sent: {reason} (Settings > Connection)")
+
     def _require_connection() -> None:
         # Also through Home Assistant's connection while the editor has none.
         if not monitor.can_send():
@@ -69,8 +73,10 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         seconds for a fresh value. Requires an open connection; raises on timeout. Any Write or
         Response seen on that address since the request can satisfy the wait, including unrelated
         traffic. Returns {address, service, timestamp, payload}; timestamp is ISO-formatted and payload
-        is a raw payload string. This sends a bus read without editing the project."""
+        is a raw payload string. This sends a bus read without editing the project. A protected
+        group address (Settings > Connection) is refused at once, in any spelling."""
         _require_connection()
+        _refuse_protected(address)
         sent_at = datetime.now()
         monitor.send_read(address)
         deadline = time.monotonic() + timeout
@@ -147,8 +153,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                     None,
                 )
             )
-        if reason := protected_reason(address):
-            raise ToolError(f"not sent: {reason} (Settings > Connection)")
+        _refuse_protected(address)
         if not monitor.send_write(address, resolved, value):
             raise ToolError(f"could not encode value {value!r} for DPT {resolved!r}")
         # Fire-and-forget: the value was encoded and queued onto the bus loop; actual delivery is not
@@ -163,7 +168,6 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         This sends a bus read without editing the project. A protected group address (Settings >
         Connection) is refused."""
         _require_connection()
-        if reason := protected_reason(address):
-            raise ToolError(f"not sent: {reason} (Settings > Connection)")
+        _refuse_protected(address)
         monitor.send_read(address)
         return {"status": "queued", "address": address}

@@ -308,3 +308,6 @@ msgstr "Beschermde Groepsadressen"
 
 msgid "Nothing is ever sent to these group addresses, not even reads, e.g. the ones of gates or an alarm system: addresses like 1/2/3, or groups ending with a slash like 7/0/, separated by spaces. MCP clients can add to the list but not take anything out."
 msgstr "Naar deze groepsadressen wordt nooit iets verstuurd, ook geen leesopdrachten, bijv. die van poorten of een alarmsysteem: adressen zoals 1/2/3 of groepen die op een schuine streep eindigen zoals 7/0/, gescheiden door spaties. MCP-clients kunnen de lijst aanvullen maar er niets uit verwijderen."
+
+msgid "Not a group address or group: {entries}"
+msgstr "Geen groepsadres of groep: {entries}"

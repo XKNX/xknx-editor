@@ -26,9 +26,10 @@ from __future__ import annotations
 from collections.abc import Callable, Generator, Iterable
 from contextlib import contextmanager
 from contextvars import ContextVar
+from dataclasses import dataclass
 
 from xknx.cemi.cemi_frame import CEMIFrame, CEMILData, CEMIMPropReadRequest
-from xknx.exceptions import XKNXException
+from xknx.exceptions import CouldNotParseAddress, XKNXException
 from xknx.telegram import GroupAddress, Telegram, apci, tpci
 
 # Services that only ask a device, the interface or the bus for information.
@@ -120,7 +121,7 @@ def check_telegram(
     :class:`BusWritesBlocked` for a telegram that writes while Block Bus Writes is on."""
     destination = telegram.destination_address
     if isinstance(destination, GroupAddress) and (
-        reason := protected_reason(str(destination))
+        reason := protected_reason(destination)
     ):
         raise ProtectedRefused(describe_telegram(telegram), reason)
     if (
@@ -173,41 +174,107 @@ class ProtectedRefused(BusWritesBlocked):
         )
 
 
+@dataclass(frozen=True, slots=True)
+class ProtectedEntry:
+    """One entry of Protected Group Addresses: a group address, or a main group (``7/``) or
+    middle group (``7/0/``), as the range of raw address values it covers."""
+
+    text: str
+    first: int
+    last: int
+
+    def covers(self, raw: int) -> bool:
+        return self.first <= raw <= self.last
+
+
+def parse_protected_entry(text: str) -> ProtectedEntry:
+    """``text`` as a :class:`ProtectedEntry`; :class:`ValueError` when it is no group address
+    (any spelling ``GroupAddress`` takes: ``1/2/3``, ``1/515``, ``2563``) or group (``7/``,
+    ``7/0/``)."""
+    item = text.strip()
+    try:
+        if item.endswith("/"):
+            parts = item[:-1].split("/")
+            if len(parts) == 1:
+                main = GroupAddress(f"{int(parts[0])}/0/0").main or 0
+                return ProtectedEntry(f"{main}/", main << 11, (main << 11) | 0x7FF)
+            if len(parts) == 2:
+                address = GroupAddress(f"{int(parts[0])}/{int(parts[1])}/0")
+                start = address.raw
+                return ProtectedEntry(
+                    f"{address.main}/{address.middle}/", start, start | 0xFF
+                )
+            raise ValueError(item)
+        address = GroupAddress(item)
+    except (CouldNotParseAddress, ValueError):
+        raise ValueError(f"not a group address or group: {item!r}") from None
+    printed = f"{address.raw >> 11}/{(address.raw >> 8) & 0x7}/{address.raw & 0xFF}"
+    return ProtectedEntry(printed, address.raw, address.raw)
+
+
+def parse_protected(text: str | Iterable[str]) -> list[str]:
+    """The entries of a setting (separated by commas, spaces or new lines), each written the
+    same way (``07/0/1`` and ``14337`` become ``7/0/1``), sorted by address; a group ends with
+    ``/`` (``7/``, ``7/0/``). Raises :class:`ValueError` naming every entry that is no group
+    address or group."""
+    items = text.replace(",", " ").split() if isinstance(text, str) else list(text)
+    entries: dict[str, ProtectedEntry] = {}
+    invalid: list[str] = []
+    for item in items:
+        if not item.strip():
+            continue
+        try:
+            entry = parse_protected_entry(item)
+        except ValueError:
+            invalid.append(item.strip())
+            continue
+        entries[entry.text] = entry
+    if invalid:
+        raise ValueError(f"not a group address or group: {', '.join(invalid)}")
+    ordered = sorted(entries.values(), key=lambda e: (e.first, -e.last))
+    return [entry.text for entry in ordered]
+
+
 class _Protected:
-    exact: frozenset[str] = frozenset()
-    prefixes: tuple[str, ...] = ()
+    entries: tuple[ProtectedEntry, ...] = ()
 
 
 _protected = _Protected()
 
 
-def parse_protected(text: str | Iterable[str]) -> list[str]:
-    """Group addresses and groups from a setting, separated by commas, spaces or new lines; a
-    group ends with ``/`` (e.g. ``7/0/``, ``7/``)."""
-    items = text.replace(",", " ").split() if isinstance(text, str) else list(text)
-    return sorted({item.strip() for item in items if item.strip()})
-
-
 def set_protected(patterns: Iterable[str]) -> None:
     """Protected Group Addresses: nothing is sent to them, reads included, whatever else is
-    allowed (exact addresses, or groups ending with ``/``)."""
-    items = parse_protected(patterns)
-    _protected.exact = frozenset(p for p in items if not p.endswith("/"))
-    _protected.prefixes = tuple(p for p in items if p.endswith("/"))
+    allowed (group addresses, or main and middle groups ending with ``/``). Raises
+    :class:`ValueError` for an entry that is no group address or group."""
+    _protected.entries = tuple(
+        parse_protected_entry(text) for text in parse_protected(patterns)
+    )
 
 
 def protected_patterns() -> list[str]:
-    """The protected group addresses and groups, sorted."""
-    return sorted([*_protected.exact, *_protected.prefixes])
+    """The protected group addresses and groups, sorted by address."""
+    return [entry.text for entry in _protected.entries]
 
 
-def protected_reason(group_address: str) -> str:
-    """Why ``group_address`` (printed, e.g. ``1/2/3``) may not be sent to, "" when it may."""
-    if group_address in _protected.exact:
-        return f"{group_address} is a protected group address"
-    for prefix in _protected.prefixes:
-        if group_address.startswith(prefix):
-            return f"{group_address} is in the protected group {prefix}"
+def protected_reason(group_address: str | int | GroupAddress) -> str:
+    """Why ``group_address`` (any spelling ``GroupAddress`` takes, e.g. ``1/2/3``, ``1/515``,
+    ``2563``) may not be sent to, "" when it may (also when it is no group address: whoever
+    sends it refuses that)."""
+    try:
+        address = (
+            group_address
+            if isinstance(group_address, GroupAddress)
+            else GroupAddress(group_address)
+        )
+    except CouldNotParseAddress:
+        return ""
+    raw = address.raw
+    printed = f"{raw >> 11}/{(raw >> 8) & 0x7}/{raw & 0xFF}"
+    for entry in _protected.entries:
+        if entry.covers(raw):
+            if entry.first == entry.last:
+                return f"{printed} is a protected group address"
+            return f"{printed} is in the protected group {entry.text}"
     return ""
 
 
@@ -216,4 +283,4 @@ def protected_allows(cemi: CEMIFrame) -> str:
     data = cemi.data
     if not isinstance(data, CEMILData) or not isinstance(data.dst_addr, GroupAddress):
         return ""
-    return protected_reason(str(data.dst_addr))
+    return protected_reason(data.dst_addr)
