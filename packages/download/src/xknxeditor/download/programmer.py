@@ -707,14 +707,12 @@ class DeviceProgrammer:
         Tolerant of a device that answers an A_Memory_Read with fewer octets than
         requested (some cap the reply below the negotiated APDU): the returned
         octets are valid, so the read advances by however many came back and asks
-        for the rest, remembering the cap so it does not keep over-asking. Only a
-        completely empty reply (no progress) is an error, or with ``until_refused``
-        the end of the read.
+        for the rest. A short reply costs no extra request, so its length is not
+        remembered: the next request asks for full blocks again. Only the block size
+        learned from empty replies (see below) carries over. A completely empty reply
+        at one octet is an error, or with ``until_refused`` the end of the read.
         """
         self._validate_memory_range(address, size)
-        # A smaller block size learned from a short reply holds for this read only: one short
-        # reply (e.g. at the end of a segment) must not slow every later read to single octets.
-        self._memory_read_cap = None
         result = bytearray()
         offset = 0
         cap_before = self._memory_read_cap
@@ -735,7 +733,7 @@ class DeviceProgrammer:
                     self._memory_read_cap = count
                     data = await self._read_block(block_address, count, user=user)
                 if not data:
-                    # The end of what the device holds: the short replies before it were
+                    # The end of what the device holds: the empty replies before it were
                     # that end too, not a block size the device cannot serve.
                     self._memory_read_cap = cap_before
                 if not data and until_refused:
@@ -745,8 +743,6 @@ class DeviceProgrammer:
                     raise VerificationError(
                         f"no memory response for address {block_address:#06x}"
                     )
-            if len(data) < count:
-                self._memory_read_cap = len(data)
             result.extend(data)
             offset += len(data)
         return bytes(result)

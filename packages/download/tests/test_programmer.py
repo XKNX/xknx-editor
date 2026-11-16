@@ -68,9 +68,8 @@ async def test_read_memory_tolerates_short_replies() -> None:
     programmer = DeviceProgrammer(connection, max_apdu_length=55)  # asks up to 52
     result = await programmer.read_memory(0, 20)
     assert result == memory  # reassembled from 4-octet replies
-    # After the first short reply the read stops over-asking (caps at 4).
-    assert connection.request_counts[0] > 4
-    assert all(count <= 4 for count in connection.request_counts[1:])
+    # A short reply costs no extra request: each one asks for the rest, never fewer.
+    assert connection.request_counts == [20, 16, 12, 8, 4]
 
 
 async def test_read_memory_raises_on_empty_reply() -> None:
@@ -664,3 +663,56 @@ async def test_a_short_reply_does_not_slow_later_reads() -> None:
     connection.request_counts.clear()
     assert await programmer.read_memory(0x10, 24) == memory[0x10:0x28]
     assert connection.request_counts == [12, 12]  # not 24 single octets
+
+
+class _EmptyAbove(_CappingConnection):
+    """Answers a read of more than ``cap`` octets with an empty reply (BIM M112 / mask 0701)."""
+
+    async def request(self, payload: object, expected: object) -> object:
+        from xknx.telegram import IndividualAddress, Telegram
+        from xknx.telegram.apci import MemoryResponse
+
+        assert isinstance(payload, MemoryRead)
+        self.request_counts.append(payload.count)
+        n = payload.count if payload.count <= self._cap else 0
+        return Telegram(
+            destination_address=IndividualAddress("1.1.1"),
+            payload=MemoryResponse(
+                address=payload.address,
+                data=self._memory[payload.address : payload.address + n],
+            ),
+        )
+
+
+async def test_the_empty_reply_back_off_carries_over_to_the_next_read() -> None:
+    memory = bytes(range(64))
+    connection = _EmptyAbove(memory, cap=4)
+    programmer = DeviceProgrammer(connection, max_apdu_length=15)  # 12-octet blocks
+    assert await programmer.read_memory(0, 6) == memory[:6]
+    assert connection.request_counts == [6, 3, 3]  # halved until the device answers
+    connection.request_counts.clear()
+    assert await programmer.read_memory(0x10, 6) == memory[0x10:0x16]
+    assert connection.request_counts == [
+        3,
+        3,
+    ]  # not the empty replies and halving again
+
+
+async def test_a_short_reply_mid_read_is_followed_by_full_blocks() -> None:
+    memory = bytes(range(64))
+
+    class _ShortSecond(_CappingConnection):
+        """Answers the second request with one octet only."""
+
+        async def request(self, payload: object, expected: object) -> object:
+            self._cap = 1 if len(self.request_counts) == 1 else 64
+            return await super().request(payload, expected)
+
+    connection = _ShortSecond(memory, cap=64)
+    programmer = DeviceProgrammer(connection, max_apdu_length=15)  # 12-octet blocks
+    assert await programmer.read_memory(0, 25) == memory[:25]
+    assert connection.request_counts == [
+        12,
+        12,
+        12,
+    ]  # not single octets after the short one
