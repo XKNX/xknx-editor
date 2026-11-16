@@ -480,3 +480,6 @@ msgstr "Ile telegramów przechowuje monitor magistrali, zanim usunie najstarsze.
 
 msgid "How many telegrams Bus Activity keeps before dropping the oldest. 0 = unlimited."
 msgstr "Ile telegramów przechowuje aktywność magistrali, zanim usunie najstarsze. 0 = bez limitu."
+
+msgid "Not sent: a protected group address is among them (Settings > Connection)"
+msgstr "Nie wysłano: jest wśród nich chroniony adres grupowy (Ustawienia > Połączenie)"

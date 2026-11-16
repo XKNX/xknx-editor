@@ -480,3 +480,6 @@ msgstr "Сколько телеграмм хранит мониторинг ши
 
 msgid "How many telegrams Bus Activity keeps before dropping the oldest. 0 = unlimited."
 msgstr "Сколько телеграмм хранит активность шины, прежде чем удалить самые старые. 0 = без ограничений."
+
+msgid "Not sent: a protected group address is among them (Settings > Connection)"
+msgstr "Не отправлено: среди них есть защищённый групповой адрес (Настройки > Подключение)"

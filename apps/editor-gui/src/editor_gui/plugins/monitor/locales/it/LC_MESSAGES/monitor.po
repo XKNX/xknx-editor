@@ -472,3 +472,6 @@ msgstr "Quanti telegrammi conserva il controllo bus prima di scartare i più vec
 
 msgid "How many telegrams Bus Activity keeps before dropping the oldest. 0 = unlimited."
 msgstr "Quanti telegrammi conserva l'attività bus prima di scartare i più vecchi. 0 = illimitati."
+
+msgid "Not sent: a protected group address is among them (Settings > Connection)"
+msgstr "Non inviato: tra questi c'è un indirizzo di gruppo protetto (Impostazioni > Connessione)"

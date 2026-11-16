@@ -472,3 +472,6 @@ msgstr "Montako telegrammia väylän seuranta säilyttää ennen vanhimpien pois
 
 msgid "How many telegrams Bus Activity keeps before dropping the oldest. 0 = unlimited."
 msgstr "Montako telegrammia väylän toiminta säilyttää ennen vanhimpien poistamista. 0 = rajoittamaton."
+
+msgid "Not sent: a protected group address is among them (Settings > Connection)"
+msgstr "Ei lähetetty: joukossa on suojattu ryhmäosoite (Asetukset > Yhteys)"

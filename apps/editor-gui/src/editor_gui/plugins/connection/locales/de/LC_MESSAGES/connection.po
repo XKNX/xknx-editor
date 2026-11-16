@@ -302,3 +302,9 @@ msgstr "Physikalische Adresse wird am Bus geprüft…"
 
 msgid "This interface forgets its individual address when unplugged, so it is set again on every connect."
 msgstr "Diese Schnittstelle vergisst ihre physikalische Adresse beim Abstecken, daher wird sie bei jedem Verbinden erneut gesetzt."
+
+msgid "Protected Group Addresses"
+msgstr "Geschützte Gruppenadressen"
+
+msgid "Nothing is ever sent to these group addresses, not even reads, e.g. the ones of gates or an alarm system: addresses like 1/2/3, or groups ending with a slash like 7/0/, separated by spaces. MCP clients can add to the list but not take anything out."
+msgstr "An diese Gruppenadressen wird nie etwas gesendet, auch keine Lesezugriffe, z. B. die von Toren oder einer Alarmanlage: Adressen wie 1/2/3 oder Gruppen mit einem Schrägstrich am Ende wie 7/0/, durch Leerzeichen getrennt. MCP-Clients können die Liste ergänzen, aber nichts daraus entfernen."

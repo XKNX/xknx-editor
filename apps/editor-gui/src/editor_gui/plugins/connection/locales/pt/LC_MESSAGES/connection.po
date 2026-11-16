@@ -302,3 +302,9 @@ msgstr "A verificar o endereço individual no barramento…"
 
 msgid "This interface forgets its individual address when unplugged, so it is set again on every connect."
 msgstr "Esta interface esquece o seu endereço individual quando é desligada, por isso é definido de novo em cada ligação."
+
+msgid "Protected Group Addresses"
+msgstr "Endereços de Grupo Protegidos"
+
+msgid "Nothing is ever sent to these group addresses, not even reads, e.g. the ones of gates or an alarm system: addresses like 1/2/3, or groups ending with a slash like 7/0/, separated by spaces. MCP clients can add to the list but not take anything out."
+msgstr "Nunca é enviado nada para estes endereços de grupo, nem sequer leituras, p. ex. os de portões ou de um sistema de alarme: endereços como 1/2/3 ou grupos terminados em barra como 7/0/, separados por espaços. Os clientes MCP podem acrescentar à lista mas não retirar nada."

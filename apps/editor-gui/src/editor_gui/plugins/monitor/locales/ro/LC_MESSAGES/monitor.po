@@ -483,3 +483,6 @@ msgstr "Câte telegrame păstrează monitorul de magistrală înainte de a le el
 
 msgid "How many telegrams Bus Activity keeps before dropping the oldest. 0 = unlimited."
 msgstr "Câte telegrame păstrează activitatea magistralei înainte de a le elimina pe cele mai vechi. 0 = nelimitat."
+
+msgid "Not sent: a protected group address is among them (Settings > Connection)"
+msgstr "Netrimis: printre ele se află o adresă de grup protejată (Setări > Conexiune)"

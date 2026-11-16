@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING, Any
 
 from fastmcp.exceptions import ToolError
 
+from editor_gui.plugins.connection.write_guard import protected_reason
 from editor_gui.plugins.mcp.context import McpContext, make_tool
 
 if TYPE_CHECKING:
@@ -131,7 +132,8 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         or unsupported DPTs and values that cannot be encoded raise an error.
         Returns {status: "queued", address}; this does not confirm delivery or device action.
         This can actuate hardware and is not reversible with project_undo; it does not edit the
-        project. Inspect fresh bus feedback to verify the effect."""
+        project. Inspect fresh bus feedback to verify the effect. A protected group address
+        (Settings > Connection) is refused."""
         _require_connection()
         resolved = dpt
         if resolved is None:
@@ -145,6 +147,8 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                     None,
                 )
             )
+        if reason := protected_reason(address):
+            raise ToolError(f"not sent: {reason} (Settings > Connection)")
         if not monitor.send_write(address, resolved, value):
             raise ToolError(f"could not encode value {value!r} for DPT {resolved!r}")
         # Fire-and-forget: the value was encoded and queued onto the bus loop; actual delivery is not
@@ -156,7 +160,10 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         """Queue a GroupValueRead to a group-address string such as "1/2/3". Requires an open
         connection. Returns {status: "queued", address} without waiting for a reply; monitor_read_value
         waits for a fresh value. When polling monitor_latest, check timestamp to avoid stale data.
-        This sends a bus read without editing the project."""
+        This sends a bus read without editing the project. A protected group address (Settings >
+        Connection) is refused."""
         _require_connection()
+        if reason := protected_reason(address):
+            raise ToolError(f"not sent: {reason} (Settings > Connection)")
         monitor.send_read(address)
         return {"status": "queued", "address": address}

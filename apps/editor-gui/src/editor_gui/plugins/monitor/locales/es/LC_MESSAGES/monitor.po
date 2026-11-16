@@ -472,3 +472,6 @@ msgstr "Cuántos telegramas conserva el Monitor del Bus antes de descartar los m
 
 msgid "How many telegrams Bus Activity keeps before dropping the oldest. 0 = unlimited."
 msgstr "Cuántos telegramas conserva la Actividad del Bus antes de descartar los más antiguos. 0 = ilimitado."
+
+msgid "Not sent: a protected group address is among them (Settings > Connection)"
+msgstr "No enviado: entre ellas hay una dirección de grupo protegida (Ajustes > Conexión)"

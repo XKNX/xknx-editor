@@ -302,3 +302,9 @@ msgstr "Έλεγχος της ατομικής διεύθυνσης στον δ�
 
 msgid "This interface forgets its individual address when unplugged, so it is set again on every connect."
 msgstr "Αυτή η διεπαφή ξεχνά την ατομική της διεύθυνση όταν αποσυνδέεται, γι' αυτό ορίζεται ξανά σε κάθε σύνδεση."
+
+msgid "Protected Group Addresses"
+msgstr "Προστατευμένες Διευθύνσεις Ομάδας"
+
+msgid "Nothing is ever sent to these group addresses, not even reads, e.g. the ones of gates or an alarm system: addresses like 1/2/3, or groups ending with a slash like 7/0/, separated by spaces. MCP clients can add to the list but not take anything out."
+msgstr "Δεν στέλνεται ποτέ τίποτα σε αυτές τις διευθύνσεις ομάδας, ούτε αναγνώσεις, π.χ. αυτές για πύλες ή σύστημα συναγερμού: διευθύνσεις όπως 1/2/3 ή ομάδες που τελειώνουν σε κάθετο όπως 7/0/, χωρισμένες με κενά. Οι πελάτες MCP μπορούν να προσθέσουν στη λίστα αλλά όχι να αφαιρέσουν κάτι."

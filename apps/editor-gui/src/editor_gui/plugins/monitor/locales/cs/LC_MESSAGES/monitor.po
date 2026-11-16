@@ -480,3 +480,6 @@ msgstr "Kolik telegramů sběrnicový monitor uchová, než zahodí nejstarší.
 
 msgid "How many telegrams Bus Activity keeps before dropping the oldest. 0 = unlimited."
 msgstr "Kolik telegramů aktivita sběrnice uchová, než zahodí nejstarší. 0 = neomezeně."
+
+msgid "Not sent: a protected group address is among them (Settings > Connection)"
+msgstr "Neodesláno: je mezi nimi chráněná skupinová adresa (Nastavení > Připojení)"

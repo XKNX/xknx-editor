@@ -472,3 +472,6 @@ msgstr "Sa telegrame ruan Monitori i busit përpara se të heqë telegramet më 
 
 msgid "How many telegrams Bus Activity keeps before dropping the oldest. 0 = unlimited."
 msgstr "Sa telegrame ruan Aktiviteti i busit përpara se të heqë telegramet më të vjetra. 0 = pa kufi."
+
+msgid "Not sent: a protected group address is among them (Settings > Connection)"
+msgstr "Nuk u dërgua: ndër to është një adresë grupi e mbrojtur (Cilësimet > Lidhja)"

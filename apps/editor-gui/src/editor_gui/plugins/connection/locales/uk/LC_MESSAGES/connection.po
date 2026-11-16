@@ -303,3 +303,9 @@ msgstr "Перевірка індивідуальної адреси на шин
 
 msgid "This interface forgets its individual address when unplugged, so it is set again on every connect."
 msgstr "Цей інтерфейс забуває свою індивідуальну адресу після від'єднання, тому вона встановлюється знову під час кожного підключення."
+
+msgid "Protected Group Addresses"
+msgstr "Захищені Групові Адреси"
+
+msgid "Nothing is ever sent to these group addresses, not even reads, e.g. the ones of gates or an alarm system: addresses like 1/2/3, or groups ending with a slash like 7/0/, separated by spaces. MCP clients can add to the list but not take anything out."
+msgstr "На ці групові адреси ніколи нічого не надсилається, навіть читання, наприклад адреси воріт або охоронної системи: адреси на кшталт 1/2/3 або групи, що закінчуються скісною рискою, на кшталт 7/0/, через пробіл. Клієнти MCP можуть доповнювати список, але не можуть нічого з нього прибирати."

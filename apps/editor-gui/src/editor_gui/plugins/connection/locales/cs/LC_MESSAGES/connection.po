@@ -303,3 +303,9 @@ msgstr "Kontroluje se individuální adresa na sběrnici…"
 
 msgid "This interface forgets its individual address when unplugged, so it is set again on every connect."
 msgstr "Toto rozhraní po odpojení zapomene svou individuální adresu, proto se nastaví znovu při každém připojení."
+
+msgid "Protected Group Addresses"
+msgstr "Chráněné skupinové adresy"
+
+msgid "Nothing is ever sent to these group addresses, not even reads, e.g. the ones of gates or an alarm system: addresses like 1/2/3, or groups ending with a slash like 7/0/, separated by spaces. MCP clients can add to the list but not take anything out."
+msgstr "Na tyto skupinové adresy se nikdy nic neodešle, ani čtení, např. adresy bran nebo zabezpečovacího systému: adresy jako 1/2/3 nebo skupiny končící lomítkem jako 7/0/, oddělené mezerami. Klienti MCP mohou seznam rozšířit, ale nic z něj odebrat."

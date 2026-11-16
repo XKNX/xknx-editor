@@ -472,3 +472,6 @@ msgstr "Πόσα τηλεγραφήματα κρατά η Παρακολούθη
 
 msgid "How many telegrams Bus Activity keeps before dropping the oldest. 0 = unlimited."
 msgstr "Πόσα τηλεγραφήματα κρατά η Δραστηριότητα Bus πριν απορρίψει τα παλαιότερα. 0 = απεριόριστα."
+
+msgid "Not sent: a protected group address is among them (Settings > Connection)"
+msgstr "Δεν στάλθηκε: ανάμεσά τους υπάρχει προστατευμένη διεύθυνση ομάδας (Ρυθμίσεις > Σύνδεση)"
