@@ -36,8 +36,9 @@ def icon_button(icon: str, str_id: str, tooltip: str, *, enabled: bool = True) -
 
 
 def copy_button(str_id: str, text: str, tooltip: str | None = None) -> bool:
-    """A copy button that puts ``text`` on the clipboard; whether it did (``text`` not empty)."""
-    if icon_button(ICON_COPY, f"copy_{str_id}", tooltip or S.COPY) and text:
+    """A copy button that puts ``text`` on the clipboard, off while ``text`` is empty; whether
+    it did."""
+    if icon_button(ICON_COPY, f"copy_{str_id}", tooltip or S.COPY, enabled=bool(text)):
         imgui.set_clipboard_text(text)
         return True
     return False

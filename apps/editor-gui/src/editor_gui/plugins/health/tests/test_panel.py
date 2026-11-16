@@ -157,3 +157,38 @@ def test_without_findings_all_is_good(
     _frame(_panel([]), drawn)
     assert disabled == [S.HEALTH_ALL_GOOD]
     assert f"{S.HEALTH_KIND_ERRORS} (0)" in drawn.texts
+
+
+def test_only_the_list_scrolls_the_checkboxes_stay_on_top(
+    context: None, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    drawn = _Drawn(monkeypatch)
+    many = [Finding(Severity.WARNING, "address", f"Warning {i}", i) for i in range(200)]
+    panel = _panel(many)
+    # How far the panel and its list scroll.
+    scroll: dict[str, float] = {}
+    end_child = imgui.end_child
+
+    def record_end_child() -> None:
+        scroll["list"] = imgui.get_scroll_max_y()
+        end_child()
+
+    monkeypatch.setattr(imgui, "end_child", record_end_child)
+
+    def frame() -> None:
+        drawn.clear()
+        imgui.new_frame()
+        imgui.set_next_window_pos(imgui.ImVec2(0, 0))
+        imgui.set_next_window_size(imgui.ImVec2(600, 400))
+        imgui.begin("Health")
+        panel.render()
+        scroll["panel"] = imgui.get_scroll_max_y()
+        imgui.end()
+        imgui.end_frame()
+
+    # Two frames: a window knows how far it scrolls from the frame before.
+    frame()
+    frame()
+    # The 200 rows run past the panel, yet the panel itself does not scroll: its list does.
+    assert scroll["list"] > 0.0
+    assert scroll["panel"] == 0.0

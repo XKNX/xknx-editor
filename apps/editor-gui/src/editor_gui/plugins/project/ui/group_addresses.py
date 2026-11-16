@@ -129,6 +129,17 @@ def address_groups(
     return out
 
 
+def has_group_addresses(tree: "list[GroupRangeInfo]") -> bool:
+    """Whether any group of ``tree`` holds a group address."""
+    stack = list(tree)
+    while stack:
+        each = stack.pop()
+        if each.group_addresses:
+            return True
+        stack.extend(each.children)
+    return False
+
+
 def used_addresses(tree: "list[GroupRangeInfo]") -> set[int]:
     """Every address in use, in every group (Free style ranges may share them)."""
     used: set[int] = set()
@@ -321,8 +332,11 @@ class GroupAddressesPanel:
                 self._start_add_free_ranges(None)
         if self._on_export is not None:
             same_line_if_fits(button_width(S.GA_EXPORT_BUTTON))
+            # Off while there is no group address to export.
+            imgui.begin_disabled(not has_group_addresses(tree))
             if imgui.button(S.GA_EXPORT_BUTTON):
                 self._on_export()
+            imgui.end_disabled()
         if self._on_import is not None:
             same_line_if_fits(button_width(S.GA_IMPORT_BUTTON))
             if imgui.button(S.GA_IMPORT_BUTTON):

@@ -1117,8 +1117,6 @@ msgstr "デバイスを比較する"
 msgid "Open a project with at least two devices to compare."
 msgstr "比較するには、2 台以上のデバイスがあるプロジェクトを開いてください。"
 
-msgid "Only Differences"
-msgstr "差異のみ"
 
 msgid "Filter devices by address, name or description…"
 msgstr "アドレス、名前、説明でデバイスをフィルター…"
@@ -3283,3 +3281,12 @@ msgstr "読み取り中にメモリ構成が変更されました。比較する
 
 msgid "Compared with device memory read in this session."
 msgstr "このセッションで読み取ったデバイスメモリと比較しています。"
+
+msgid "Select a device"
+msgstr "デバイスを選択"
+
+msgid "Select the two devices to compare."
+msgstr "比較する2台のデバイスを選択してください。"
+
+msgid "Loading application programs… {done}/{total}"
+msgstr "アプリケーションプログラムを読み込み中… {done}/{total}"

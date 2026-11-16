@@ -1670,8 +1670,6 @@ msgstr "Kommunikationsobjekte"
 msgid "No differences"
 msgstr "Keine Unterschiede"
 
-msgid "Only Differences"
-msgstr "Nur Unterschiede"
 
 msgid "Open a project with at least two devices to compare."
 msgstr "Öffnen Sie ein Projekt mit mindestens zwei Geräten zum Vergleichen."
@@ -3477,3 +3475,12 @@ msgstr "Das Speicherlayout hat sich während des Auslesens geändert. Für den V
 
 msgid "Compared with device memory read in this session."
 msgstr "Mit dem in dieser Sitzung ausgelesenen Gerätespeicher verglichen."
+
+msgid "Select a device"
+msgstr "Gerät auswählen"
+
+msgid "Select the two devices to compare."
+msgstr "Wählen Sie die beiden Geräte aus, die verglichen werden sollen."
+
+msgid "Loading application programs… {done}/{total}"
+msgstr "Applikationsprogramme werden geladen… {done}/{total}"

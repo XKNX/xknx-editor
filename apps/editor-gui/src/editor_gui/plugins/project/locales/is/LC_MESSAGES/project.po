@@ -1567,8 +1567,6 @@ msgstr "Samskiptahlutir"
 msgid "No differences"
 msgstr "Enginn munur"
 
-msgid "Only Differences"
-msgstr "Aðeins mismunur"
 
 msgid "Open a project with at least two devices to compare."
 msgstr "Opnaðu verkefni með að minnsta kosti tveimur tækjum til að bera saman."
@@ -3362,3 +3360,12 @@ msgstr "Minnisskipan breyttist við lestur. Lestu aftur til að bera saman."
 
 msgid "Compared with device memory read in this session."
 msgstr "Borið saman við minni tækisins sem var lesið í þessari lotu."
+
+msgid "Select a device"
+msgstr "Veldu tæki"
+
+msgid "Select the two devices to compare."
+msgstr "Veldu tækin tvö sem á að bera saman."
+
+msgid "Loading application programs… {done}/{total}"
+msgstr "Hleður verkforritum… {done}/{total}"
