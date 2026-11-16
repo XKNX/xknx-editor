@@ -1801,3 +1801,9 @@ msgstr "Nýtt"
 
 msgid "In catalog"
 msgstr "Í vörulistanum"
+
+msgid "Open Last Project on Startup"
+msgstr "Opna síðasta verkefni við ræsingu"
+
+msgid "When no project is given at the start, opens the project that was open last. A protected project asks for its password, unless --password-file gives it."
+msgstr "Þegar ekkert verkefni er gefið við ræsingu er síðasta opna verkefnið opnað. Varið verkefni biður um lykilorð sitt nema --password-file gefi það."

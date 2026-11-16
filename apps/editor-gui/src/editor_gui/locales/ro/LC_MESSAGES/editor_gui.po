@@ -1817,3 +1817,9 @@ msgstr "Nou"
 
 msgid "In catalog"
 msgstr "În catalog"
+
+msgid "Open Last Project on Startup"
+msgstr "Deschide ultimul proiect la pornire"
+
+msgid "When no project is given at the start, opens the project that was open last. A protected project asks for its password, unless --password-file gives it."
+msgstr "Când la pornire nu este indicat niciun proiect, deschide ultimul proiect deschis. Un proiect protejat cere parola, cu excepția cazului în care --password-file o furnizează."

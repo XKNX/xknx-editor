@@ -144,6 +144,7 @@ def test_session_starts_the_managed_mcp_server(
         no_connect=False,
         _start_mcp=lambda *, save: started.append(save),
         startup_file=None,
+        _last_project_to_reopen=lambda: None,
     )
     KnxGuiApp._start_session(stub)  # type: ignore[arg-type]
     # Started without storing anything.

@@ -2050,6 +2050,17 @@ class MenuStrings:
         return _("Check for Updates on Startup")
 
     @property
+    def SETTING_OPEN_LAST_PROJECT(self) -> str:
+        return _("Open Last Project on Startup")
+
+    @property
+    def SETTING_OPEN_LAST_PROJECT_HINT(self) -> str:
+        return _(
+            "When no project is given at the start, opens the project that was open last. "
+            "A protected project asks for its password, unless --password-file gives it."
+        )
+
+    @property
     def UPDATE_TITLE(self) -> str:
         return _("Update Available")
 

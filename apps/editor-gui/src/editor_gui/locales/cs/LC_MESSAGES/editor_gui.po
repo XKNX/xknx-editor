@@ -1745,3 +1745,9 @@ msgstr "Nový"
 
 msgid "In catalog"
 msgstr "V katalogu"
+
+msgid "Open Last Project on Startup"
+msgstr "Při spuštění otevřít poslední projekt"
+
+msgid "When no project is given at the start, opens the project that was open last. A protected project asks for its password, unless --password-file gives it."
+msgstr "Pokud při spuštění není zadán žádný projekt, otevře naposledy otevřený projekt. Chráněný projekt se zeptá na heslo, pokud ho nezadává --password-file."
