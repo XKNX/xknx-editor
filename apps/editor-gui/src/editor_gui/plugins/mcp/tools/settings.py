@@ -95,7 +95,10 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                 raise ToolError(
                     f"only the user can set {key!r} to {new!r}, in the Settings window"
                 )
-            setting.set(new)
+            try:
+                setting.set(new)
+            except ValueError as error:
+                raise ToolError(f"{key}: {error}") from None
             return _entry(page, setting)
 
         return ctx.run_on_ui(change)

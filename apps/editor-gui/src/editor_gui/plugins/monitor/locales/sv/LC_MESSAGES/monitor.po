@@ -472,3 +472,9 @@ msgstr "Hur många telegram bussövervakaren behåller innan de äldsta tas bort
 
 msgid "How many telegrams Bus Activity keeps before dropping the oldest. 0 = unlimited."
 msgstr "Hur många telegram bussaktiviteten behåller innan de äldsta tas bort. 0 = obegränsat."
+
+msgid "Not sent: a protected group address is among them (Settings > Connection)"
+msgstr "Inte skickat: en skyddad gruppadress finns bland dem (Inställningar > Anslutning)"
+
+msgid "Protected group address: nothing is sent to it (Settings > Connection)"
+msgstr "Skyddad gruppadress: inget skickas till den (Inställningar > Anslutning)"

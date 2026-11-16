@@ -47,6 +47,12 @@ from editor_gui.plugins.connection.usb import (
     supported_emi_type_names,
     usb_device_name,
 )
+from editor_gui.plugins.connection.write_guard import (
+    parse_protected,
+    parse_protected_entry,
+    protected_patterns,
+    set_protected,
+)
 from editor_gui.plugins.connection.xknx_usb import USBDeviceInfo, USBInterfaceInfo
 from editor_gui.programming import (
     DEFAULT_INDIVIDUAL_ADDRESS,
@@ -66,6 +72,7 @@ from editor_gui.widgets.dialog import (
     end_dialog,
 )
 from editor_gui.widgets.dpi import label_column_width, px, px_vec2
+from editor_gui.widgets.flow import button_width, same_line_if_fits
 from editor_gui.widgets.spinner import loading, spinner
 from editor_gui.widgets.tree import collapsing_header
 from xknxeditor.prod.app_id import parse_app_id
@@ -361,6 +368,8 @@ class ConnectionPlugin:
         # (``--no-bus-writes``), which keeps it on whatever the setting says.
         self._block_bus_writes_setting = False
         self._block_bus_writes_forced = False
+        # Protected Group Addresses as typed in the Settings window, until applied.
+        self._protected_draft: str | None = None
         self._panels: list[PanelDefinition] = []
         self._load_saved_settings()
 
@@ -598,6 +607,7 @@ class ConnectionPlugin:
         self._connect_at_startup = bool(data.get("connect_at_startup", True))
         self._block_bus_writes_setting = bool(data.get("block_bus_writes", False))
         self._apply_block_bus_writes()
+        self._load_protected(str(data.get("protected_group_addresses", "")))
 
     def _save_current_settings(self) -> None:
         save_settings(
@@ -616,6 +626,7 @@ class ConnectionPlugin:
                 "serial_number_downloads": self._api.connection.use_serial_number,
                 "connect_at_startup": self._connect_at_startup,
                 "block_bus_writes": self._block_bus_writes_setting,
+                "protected_group_addresses": " ".join(protected_patterns()),
             },
         )
 
@@ -2400,6 +2411,17 @@ class ConnectionPlugin:
                 mcp_may_set=bool,
             ),
             Setting(
+                "protected_group_addresses",
+                lambda: S.SETTING_PROTECTED_GAS,
+                "custom",
+                get=lambda: " ".join(protected_patterns()),
+                set=self._set_protected,
+                hint=lambda: S.SETTING_PROTECTED_GAS_HINT,
+                render=self._render_protected,
+                # An MCP client may add to the list, never take anything out of it.
+                mcp_may_set=_only_adds_protected,
+            ),
+            Setting(
                 "use_serial_number",
                 lambda: S.SETTING_USE_SERIAL_NUMBER,
                 "bool",
@@ -2488,6 +2510,52 @@ class ConnectionPlugin:
         setting says (the setting itself is kept as it is)."""
         self._block_bus_writes_forced = True
         self._apply_block_bus_writes()
+
+    def _load_protected(self, text: str) -> None:
+        """The saved list; an entry that is no group address (saved by an older version) is
+        left out and logged."""
+        kept: list[str] = []
+        for item in text.replace(",", " ").split():
+            try:
+                kept.append(parse_protected_entry(item).text)
+            except ValueError:
+                self._log.warning("protected group address left out", entry=item)
+        set_protected(kept)
+
+    def _render_protected(self) -> None:
+        """The list as a text field with Apply: an entry that is no group address or group is
+        named below it, and Apply stays off until every entry is one."""
+        current = " ".join(protected_patterns())
+        draft = current if self._protected_draft is None else self._protected_draft
+        imgui.set_next_item_width(px(260.0))
+        changed, draft = imgui.input_text("##protected_gas", draft)
+        if changed:
+            self._protected_draft = draft
+        try:
+            patterns = parse_protected(draft)
+            error = ""
+        except ValueError:
+            patterns = []
+            invalid = [
+                item for item in draft.replace(",", " ").split() if not _parses(item)
+            ]
+            error = S.SETTING_PROTECTED_GAS_INVALID.format(entries=", ".join(invalid))
+        same_line_if_fits(button_width(S.SETTING_PROTECTED_GAS_APPLY))
+        imgui.begin_disabled(bool(error) or patterns == protected_patterns())
+        if imgui.button(f"{S.SETTING_PROTECTED_GAS_APPLY}##protected_gas_apply"):
+            self._set_protected(" ".join(patterns))
+            self._protected_draft = None
+        imgui.end_disabled()
+        if error:
+            imgui.text_colored(status_color("error"), error)
+
+    def _set_protected(self, value: object) -> None:
+        """Raises :class:`ValueError` naming the entries that are no group address or group."""
+        patterns = parse_protected(str(value))
+        if patterns != protected_patterns():
+            self._log.info("protected group addresses", patterns=" ".join(patterns))
+        set_protected(patterns)
+        self._save_current_settings()
 
     def _set_block_bus_writes(self, value: object) -> None:
         self._block_bus_writes_setting = bool(value)
@@ -2702,3 +2770,22 @@ def _parse_individual_address(text: str) -> IndividualAddress:
         return IndividualAddress(text.strip())
     except CouldNotParseAddress:
         raise ValueError(S.USB_ADDRESS_INVALID.format(address=text.strip())) from None
+
+
+def _parses(item: str) -> bool:
+    try:
+        parse_protected_entry(item)
+    except ValueError:
+        return False
+    return True
+
+
+def _only_adds_protected(value: object) -> bool:
+    """Whether an MCP client may set Protected Group Addresses to ``value``: only when it keeps
+    every entry (it may add, never take out). A list with an entry that is no group address
+    passes here, so the setting refuses it with the entries named."""
+    try:
+        new = set(parse_protected(str(value)))
+    except ValueError:
+        return True
+    return new >= set(protected_patterns())

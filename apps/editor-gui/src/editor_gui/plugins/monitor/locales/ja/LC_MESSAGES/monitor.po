@@ -464,3 +464,9 @@ msgstr "バス・モニターが最も古いものを破棄するまでに保持
 
 msgid "How many telegrams Bus Activity keeps before dropping the oldest. 0 = unlimited."
 msgstr "バス・アクティビティが最も古いものを破棄するまでに保持するテレグラムの数。0 = 無制限。"
+
+msgid "Not sent: a protected group address is among them (Settings > Connection)"
+msgstr "送信されませんでした: 保護されたグループアドレスが含まれています（設定 > 接続）"
+
+msgid "Protected group address: nothing is sent to it (Settings > Connection)"
+msgstr "保護されたグループアドレス: 何も送信されません (設定 > 接続)"

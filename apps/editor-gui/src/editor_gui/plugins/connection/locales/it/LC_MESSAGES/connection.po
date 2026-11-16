@@ -302,3 +302,12 @@ msgstr "Verifica dell'indirizzo individuale sul bus…"
 
 msgid "This interface forgets its individual address when unplugged, so it is set again on every connect."
 msgstr "Questa interfaccia dimentica il proprio indirizzo individuale quando viene scollegata, quindi viene reimpostato a ogni connessione."
+
+msgid "Protected Group Addresses"
+msgstr "Indirizzi di Gruppo Protetti"
+
+msgid "Nothing is ever sent to these group addresses, not even reads, e.g. the ones of gates or an alarm system: addresses like 1/2/3, or groups ending with a slash like 7/0/, separated by spaces. MCP clients can add to the list but not take anything out."
+msgstr "A questi indirizzi di gruppo non viene mai inviato nulla, nemmeno letture, ad es. quelli di cancelli o di un impianto d'allarme: indirizzi come 1/2/3 o gruppi che terminano con una barra come 7/0/, separati da spazi. I client MCP possono aggiungere all'elenco ma non togliere nulla."
+
+msgid "Not a group address or group: {entries}"
+msgstr "Non è un indirizzo di gruppo né un gruppo: {entries}"

@@ -464,3 +464,9 @@ msgstr "总线监视器在丢弃最旧报文之前保留的报文数。0 = 无�
 
 msgid "How many telegrams Bus Activity keeps before dropping the oldest. 0 = unlimited."
 msgstr "总线活动在丢弃最旧报文之前保留的报文数。0 = 无限制。"
+
+msgid "Not sent: a protected group address is among them (Settings > Connection)"
+msgstr "未发送：其中包含受保护的组地址（设置 > 连接）"
+
+msgid "Protected group address: nothing is sent to it (Settings > Connection)"
+msgstr "受保护的组地址：不会向其发送任何内容（设置 > 连接）"

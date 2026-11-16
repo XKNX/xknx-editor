@@ -51,6 +51,27 @@ class ConnectionStrings:
         )
 
     @property
+    def SETTING_PROTECTED_GAS(self) -> str:
+        return _("Protected Group Addresses")
+
+    @property
+    def SETTING_PROTECTED_GAS_APPLY(self) -> str:
+        return _("Apply")
+
+    @property
+    def SETTING_PROTECTED_GAS_INVALID(self) -> str:
+        return _("Not a group address or group: {entries}")
+
+    @property
+    def SETTING_PROTECTED_GAS_HINT(self) -> str:
+        return _(
+            "Nothing is ever sent to these group addresses, not even reads, e.g. the ones of "
+            "gates or an alarm system: addresses like 1/2/3, or groups ending with a slash like "
+            "7/0/, separated by spaces. MCP clients can add to the list but not take anything "
+            "out."
+        )
+
+    @property
     def SETTING_BLOCK_BUS_WRITES(self) -> str:
         return _("Block Bus Writes")
 

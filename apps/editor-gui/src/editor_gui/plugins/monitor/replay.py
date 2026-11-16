@@ -27,6 +27,9 @@ class ReplayPlan:
     items: list[ReplayItem]
     # Data Secure telegrams, which are not sent.
     skipped_secure: int
+    # Why the replay did not start ("" when it did or had nothing to send), e.g. a telegram to a
+    # protected group address among them.
+    refused: str = ""
 
 
 def build_plan(records: Iterable[MonitorRecord]) -> ReplayPlan:

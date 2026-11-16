@@ -442,3 +442,47 @@ def test_without_a_connection_group_telegrams_go_over_another_programs() -> None
     service.send_read("1/2/5")
     assert connection.sent == [b"x"]
     assert len(sent) == 2
+
+
+def test_nothing_is_sent_or_replayed_to_a_protected_group_address() -> None:
+    from editor_gui.plugins.connection.write_guard import set_protected
+
+    connection = FakeConnection()
+    service = MonitorService(connection)  # type: ignore[arg-type]
+    sent: list[str] = []
+    service.send_elsewhere = lambda address, _apci: sent.append(address) or True
+    set_protected(["7/0/"])
+    try:
+        # Not even a read, also not through another program's connection.
+        service.send_read("7/0/1")
+        assert not service.send_write("7/0/2", "DPST-1-1", "1")
+        service.send_read("1/2/3")
+        assert sent == ["1/2/3"]
+        # Every spelling of 7/0/1, which Home Assistant would parse itself.
+        for spelling in ("7/1", "14337", "07/0/1"):
+            assert service.protected_reason(spelling)
+            service.send_read(spelling)
+            assert not service.send_write(spelling, "DPST-1-1", "1")
+        assert sent == ["1/2/3"]
+        # A replay holding one does not start at all.
+        connection.xknx = FakeXknx("1.1.250")
+        service.on_connected()
+        records = [
+            MonitorRecord(
+                kind=RecordKind.TELEGRAM,
+                ticks=0,
+                raw=_raw("1/2/3", GroupValueWrite(DPTBinary(1))),
+            ),
+            MonitorRecord(
+                kind=RecordKind.TELEGRAM,
+                ticks=1,
+                raw=_raw("7/0/1", GroupValueWrite(DPTBinary(1))),
+            ),
+        ]
+        plan = service.start_replay(records)
+        assert plan.refused == "7/0/1 is in the protected group 7/0/"
+        assert not plan.items
+        assert not service.replaying
+        assert connection.sent == []
+    finally:
+        set_protected([])

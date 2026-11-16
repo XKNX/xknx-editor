@@ -475,3 +475,9 @@ msgstr "Hversu mörg skeyti brautarvöktun geymir áður en þeim elstu er hent.
 
 msgid "How many telegrams Bus Activity keeps before dropping the oldest. 0 = unlimited."
 msgstr "Hversu mörg skeyti virkni á tengibraut geymir áður en þeim elstu er hent. 0 = ótakmarkað."
+
+msgid "Not sent: a protected group address is among them (Settings > Connection)"
+msgstr "Ekki sent: varið hópvistfang er þar á meðal (Stillingar > Tenging)"
+
+msgid "Protected group address: nothing is sent to it (Settings > Connection)"
+msgstr "Varið hópvistfang: ekkert er sent á það (Stillingar > Tenging)"

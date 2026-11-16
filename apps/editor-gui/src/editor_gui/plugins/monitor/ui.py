@@ -144,10 +144,13 @@ class MonitorPanel:
             submitted = self._cmd_value.render(token, index.formats, inline=True)
         else:
             imgui.text_disabled("-")
+        address = entry.address if entry is not None else self._cmd_address.strip()
+        protected = self._service.protected_reason(address) if raw is not None else ""
         same_line_if_fits(button_width(S.MONITOR_WRITE))
         can_write = (
             connected
             and entry is not None
+            and not protected
             and self._cmd_value.can_write(token, index.formats)
         )
         imgui.begin_disabled(not can_write)
@@ -155,20 +158,24 @@ class MonitorPanel:
             submitted and can_write
         )
         imgui.end_disabled()
-        if not can_write and connected:
+        if protected:
+            imgui.set_item_tooltip(S.MONITOR_PROTECTED)
+        elif not can_write and connected:
             imgui.set_item_tooltip(S.MONITOR_UNKNOWN_ADDRESS)
         same_line_if_fits(button_width(S.MONITOR_READ))
-        imgui.begin_disabled(not connected or raw is None)
+        imgui.begin_disabled(not connected or raw is None or bool(protected))
         read = imgui.button(f"{S.MONITOR_READ}##mon_cmd_read")
         imgui.end_disabled()
+        if protected:
+            imgui.set_item_tooltip(S.MONITOR_PROTECTED)
+            imgui.text_colored(status_color("warning"), S.MONITOR_PROTECTED)
         if not connected:
             same_line_if_fits(text_width(S.MONITOR_DISCONNECTED))
             imgui.text_disabled(S.MONITOR_DISCONNECTED)
         if self._cmd_value.error:
             imgui.text_colored(status_color("error"), self._cmd_value.error)
-        if raw is None or not connected:
+        if raw is None or not connected or protected:
             return
-        address = entry.address if entry is not None else self._cmd_address.strip()
         if write and entry is not None:
             payload = self._cmd_value.payload()
             if payload is not None:
@@ -214,6 +221,11 @@ class MonitorPanel:
         connected = self._is_connected()
         formats = self._get_index().formats
         token = self._dpt_for(self._selected) if self._selected is not None else None
+        protected = (
+            self._service.protected_reason(self._selected)
+            if self._selected is not None
+            else ""
+        )
         imgui.begin_disabled(not connected or self._selected is None)
         # The selected group address (set by clicking a table row), then the value to send.
         imgui.align_text_to_frame_padding()
@@ -228,12 +240,22 @@ class MonitorPanel:
         else:
             imgui.text_disabled("-")
         same_line_if_fits(button_width(S.MONITOR_WRITE))
-        imgui.begin_disabled(not self._write_value.can_write(token, formats))
-        write = imgui.button(S.MONITOR_WRITE) or submitted
+        imgui.begin_disabled(
+            bool(protected) or not self._write_value.can_write(token, formats)
+        )
+        write = imgui.button(S.MONITOR_WRITE) or (submitted and not protected)
         imgui.end_disabled()
+        if protected:
+            imgui.set_item_tooltip(S.MONITOR_PROTECTED)
         same_line_if_fits(button_width(S.MONITOR_READ))
+        imgui.begin_disabled(bool(protected))
         read = imgui.button(S.MONITOR_READ)
         imgui.end_disabled()
+        if protected:
+            imgui.set_item_tooltip(S.MONITOR_PROTECTED)
+        imgui.end_disabled()
+        if protected:
+            imgui.text_colored(status_color("warning"), S.MONITOR_PROTECTED)
         if not connected:
             # Right after the buttons, as in the other monitors.
             same_line_if_fits(text_width(S.MONITOR_DISCONNECTED))
@@ -241,7 +263,7 @@ class MonitorPanel:
         if self._write_value.error:
             imgui.text_colored(status_color("error"), self._write_value.error)
 
-        if self._selected is None or not connected:
+        if self._selected is None or not connected or protected:
             return
         if write:
             payload = self._write_value.payload()

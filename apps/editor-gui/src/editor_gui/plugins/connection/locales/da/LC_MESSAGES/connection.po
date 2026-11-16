@@ -302,3 +302,12 @@ msgstr "Kontrollerer den individuelle adresse på bussen…"
 
 msgid "This interface forgets its individual address when unplugged, so it is set again on every connect."
 msgstr "Dette interface glemmer sin individuelle adresse, når det tages ud, så den indstilles igen ved hver forbindelse."
+
+msgid "Protected Group Addresses"
+msgstr "Beskyttede Gruppeadresser"
+
+msgid "Nothing is ever sent to these group addresses, not even reads, e.g. the ones of gates or an alarm system: addresses like 1/2/3, or groups ending with a slash like 7/0/, separated by spaces. MCP clients can add to the list but not take anything out."
+msgstr "Der sendes aldrig noget til disse gruppeadresser, heller ikke læsninger, f.eks. dem til porte eller et alarmsystem: adresser som 1/2/3 eller grupper, der slutter med en skråstreg, som 7/0/, adskilt af mellemrum. MCP-klienter kan tilføje til listen, men ikke fjerne noget."
+
+msgid "Not a group address or group: {entries}"
+msgstr "Ikke en gruppeadresse eller gruppe: {entries}"
