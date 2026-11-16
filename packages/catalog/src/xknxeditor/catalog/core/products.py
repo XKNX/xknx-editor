@@ -1,6 +1,7 @@
 """Product-first catalog queries (orderable items with their program/application refs)."""
 
 import datetime
+from collections.abc import Collection
 from dataclasses import dataclass
 
 from sqlalchemy import select
@@ -76,12 +77,8 @@ def product_facts(db: Session, program_id: str) -> ProductFacts | None:
     return ProductFacts(row[0], row[1], row[2], row[3], mediums)
 
 
-def _list_products(
-    db: Session, knxprod_path: str | None = None
-) -> list[ProductSummary]:
-    """Catalog items with a ProductRefId, joined to program/application/manufacturer.
-
-    ``knxprod_path`` restricts the result to the versions ingested from one stored archive."""
+def _list_products(db: Session) -> list[ProductSummary]:
+    """Catalog items with a ProductRefId, joined to program/application/manufacturer."""
     stmt = (
         select(
             CatalogSectionProduct.product_ref_id,
@@ -110,8 +107,6 @@ def _list_products(
         )
         .where(CatalogSectionProduct.product_ref_id.is_not(None))
     )
-    if knxprod_path is not None:
-        stmt = stmt.where(HardwareProgram.knxprod_path == knxprod_path)
     rows = db.execute(stmt.distinct()).all()
     return [
         ProductSummary(
@@ -155,10 +150,19 @@ def list_products(db: Session) -> list[ProductSummary]:
     return _list_products(db)
 
 
-def products_for_path(db: Session, knxprod_path: str) -> list[ProductSummary]:
-    """Every product version ingested from one stored ``.knxprod`` archive (by its path). Lets a
-    re-import of an already-present file still list what it provides, instead of reporting nothing."""
-    return _list_products(db, knxprod_path)
+def products_for_versions(
+    db: Session, versions: Collection[tuple[str, str]]
+) -> list[ProductSummary]:
+    """The catalog's product versions among ``versions`` (pairs of product and hardware program,
+    see :func:`~xknxeditor.catalog.core.archive_versions.archive_versions`), whichever file each
+    is stored from. Lets an import list every version its file provides, also the ones the
+    catalog has from another file, instead of reporting nothing."""
+    wanted = set(versions)
+    return [
+        product
+        for product in _list_products(db)
+        if (product.product_ref_id, product.hardware2program_ref_id) in wanted
+    ]
 
 
 def find_products_for_application(

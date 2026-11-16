@@ -350,12 +350,13 @@ class CatalogService:
     def _import_contents(
         self, data: bytes, *, cancel: threading.Event | None
     ) -> ImportedProducts:
-        """Store ``.knxprod`` bytes; every product version they provide, and which are new."""
+        """Store ``.knxprod`` bytes; every product version they provide (also the ones the catalog
+        has from another file), and which are new."""
         with self._io_lock:
             before = {_version_key(p) for p in self.get_products()}
-            stored = self._service.import_knxprod(data, cancel=cancel)
+            self._service.import_knxprod(data, cancel=cancel)
             self._forget_products()
-            products = self._service.products_for_path(str(stored))
+            products = self._service.products_for_archive(data)
         return ImportedProducts(
             products, frozenset(_version_key(p) for p in products) - before
         )
