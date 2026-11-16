@@ -320,6 +320,7 @@ class ProjectPlugin:
                 else ""
             ),
             get_revision=lambda: api.project.revision,
+            application_ready=api.project.application_ready,
         )
         self._focus_tools = False
         # Whose details the Device tab showed last (see _render_device).

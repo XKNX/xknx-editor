@@ -191,14 +191,15 @@ class LogPanel:
         same_line_if_fits(icon_button_width(ICON_COPY))
         # Rows are plain text (not selectable), so offer an explicit copy-all-to-clipboard.
         # Copy the COMPLETE log (all records, ignoring the current filter) so nothing is lost.
-        if icon_button(ICON_COPY, "copy_log", S.COPY_LOG) and records:
+        # Both off while there is nothing to copy or clear.
+        if icon_button(ICON_COPY, "copy_log", S.COPY_LOG, enabled=bool(records)):
             text = "\n".join(self._record_as_text(r) for r in records)
             # Strip control chars (esp. NUL, which some payloads like a gateway name carry): a NUL
             # terminates the C string in set_clipboard_text and would truncate the whole copy.
             text = "".join(c for c in text if c in "\n\t" or c.isprintable())
             imgui.set_clipboard_text(text)
         same_line_if_fits(icon_button_width(ICON_CLEAR))
-        if icon_button(ICON_CLEAR, "clear_log", S.BTN_CLEAR):
+        if icon_button(ICON_CLEAR, "clear_log", S.BTN_CLEAR, enabled=bool(records)):
             self._on_clear()
             self._last_count = 0
 

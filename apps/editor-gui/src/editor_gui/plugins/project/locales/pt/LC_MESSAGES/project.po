@@ -1117,8 +1117,6 @@ msgstr "Comparar Dispositivos"
 msgid "Open a project with at least two devices to compare."
 msgstr "Abra um projeto com pelo menos dois dispositivos para comparar."
 
-msgid "Only Differences"
-msgstr "Só Diferenças"
 
 msgid "Filter devices by address, name or description…"
 msgstr "Filtrar dispositivos por endereço, nome ou descrição…"
@@ -3339,3 +3337,12 @@ msgstr "A disposição da memória mudou durante a leitura. Leia novamente para 
 
 msgid "Compared with device memory read in this session."
 msgstr "Comparado com a memória do dispositivo lida nesta sessão."
+
+msgid "Select a device"
+msgstr "Selecione um dispositivo"
+
+msgid "Select the two devices to compare."
+msgstr "Selecione os dois dispositivos a comparar."
+
+msgid "Loading application programs… {done}/{total}"
+msgstr "A carregar os programas de aplicação… {done}/{total}"

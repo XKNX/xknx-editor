@@ -51,6 +51,11 @@ def move_product_cache(old: Path) -> None:
         pass
 
 
+def cache_has_files() -> bool:
+    """Whether the cache folder holds any file (stops at the first one found)."""
+    return any(files for _root, _dirs, files in os.walk(cache_dir()))
+
+
 def cache_size() -> int:
     """The bytes the files in the cache folder take."""
     total = 0

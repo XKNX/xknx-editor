@@ -1117,8 +1117,6 @@ msgstr "Sammenlign enheder"
 msgid "Open a project with at least two devices to compare."
 msgstr "Åbn et projekt med mindst to enheder for at sammenligne."
 
-msgid "Only Differences"
-msgstr "Kun forskelle"
 
 msgid "Filter devices by address, name or description…"
 msgstr "Filtrer enheder efter adresse, navn eller beskrivelse…"
@@ -3335,3 +3333,12 @@ msgstr "Hukommelseslayoutet blev ændret under læsningen. Læs igen for at samm
 
 msgid "Compared with device memory read in this session."
 msgstr "Sammenlignet med enhedens hukommelse læst i denne session."
+
+msgid "Select a device"
+msgstr "Vælg en enhed"
+
+msgid "Select the two devices to compare."
+msgstr "Vælg de to enheder, der skal sammenlignes."
+
+msgid "Loading application programs… {done}/{total}"
+msgstr "Indlæser applikationsprogrammer… {done}/{total}"

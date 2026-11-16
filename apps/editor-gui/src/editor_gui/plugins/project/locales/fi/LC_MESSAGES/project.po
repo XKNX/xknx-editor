@@ -1117,8 +1117,6 @@ msgstr "Vertaa Laitteet"
 msgid "Open a project with at least two devices to compare."
 msgstr "Avaa projekti, jossa on vähintään kaksi laitetta verrattavaksi."
 
-msgid "Only Differences"
-msgstr "Vain erot"
 
 msgid "Filter devices by address, name or description…"
 msgstr "Suodata laitteita osoitteen, nimen tai kuvauksen mukaan…"
@@ -3335,3 +3333,12 @@ msgstr "Muistin rakenne muuttui lukemisen aikana. Lue uudelleen vertailua varten
 
 msgid "Compared with device memory read in this session."
 msgstr "Verrattu tässä istunnossa luettuun laitteen muistiin."
+
+msgid "Select a device"
+msgstr "Valitse laite"
+
+msgid "Select the two devices to compare."
+msgstr "Valitse kaksi verrattavaa laitetta."
+
+msgid "Loading application programs… {done}/{total}"
+msgstr "Ladataan sovellusohjelmia… {done}/{total}"

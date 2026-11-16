@@ -63,3 +63,12 @@ def test_clear_frees_every_file(cache_root: Path) -> None:
     assert cache.cache_size() == 0
     # The folders stay, for whatever is cached next.
     assert cache.product_cache_dir().is_dir()
+
+
+def test_cache_has_files_only_with_a_file(cache_root: Path) -> None:
+    # No folder yet, then only empty folders: nothing to clear.
+    assert not cache.cache_has_files()
+    (cache_root / "products" / "nested").mkdir(parents=True)
+    assert not cache.cache_has_files()
+    _entries(cache_root / "products" / "nested", "a.pkl")
+    assert cache.cache_has_files()

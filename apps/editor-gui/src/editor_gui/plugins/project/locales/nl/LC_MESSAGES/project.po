@@ -1564,8 +1564,6 @@ msgstr "Groepsobjecten"
 msgid "No differences"
 msgstr "Geen verschillen"
 
-msgid "Only Differences"
-msgstr "Alleen verschillen"
 
 msgid "Open a project with at least two devices to compare."
 msgstr "Open een project met minstens twee apparaten om te vergelijken."
@@ -3370,3 +3368,12 @@ msgstr "De geheugenindeling is tijdens het lezen gewijzigd. Lees opnieuw om te v
 
 msgid "Compared with device memory read in this session."
 msgstr "Vergeleken met het apparaatgeheugen dat in deze sessie is uitgelezen."
+
+msgid "Select a device"
+msgstr "Selecteer een apparaat"
+
+msgid "Select the two devices to compare."
+msgstr "Selecteer de twee apparaten die u wilt vergelijken."
+
+msgid "Loading application programs… {done}/{total}"
+msgstr "Applicatieprogramma's worden geladen… {done}/{total}"

@@ -3407,8 +3407,20 @@ class ProjectStrings:
         return _("Open a project with at least two devices to compare.")
 
     @property
+    def COMPARE_SELECT_DEVICE(self) -> str:
+        return _("Select a device")
+
+    @property
+    def COMPARE_CHOOSE_TWO(self) -> str:
+        return _("Select the two devices to compare.")
+
+    @property
+    def COMPARE_LOADING(self) -> str:
+        return _("Loading application programs… {done}/{total}")
+
+    @property
     def COMPARE_ONLY_DIFF(self) -> str:
-        return _("Only Differences")
+        return _("Only differences")
 
     @property
     def COMPARE_COPY(self) -> str:

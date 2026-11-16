@@ -945,10 +945,15 @@ class MassLinkerPanel:
                     continue
                 header = f"{device_label(device)}##dev{device.node_id}"
                 if tree_node(header, imgui.TreeNodeFlags_.default_open):
-                    # One click grabs every object of the device (the "drop a device" speed-up).
+                    # One click grabs every object of the device (the "drop a device" speed-up),
+                    # off while they all are.
+                    imgui.begin_disabled(
+                        all(co.db_id in self._pick_obj_selected for co in cos)
+                    )
                     if imgui.button(f"{S.ML_SELECT_ALL}##all{device.node_id}"):
                         for co in cos:
                             self._pick_obj_selected.add(co.db_id)  # type: ignore[arg-type]
+                    imgui.end_disabled()
                     for co in cos:
                         assert co.db_id is not None
                         checked = co.db_id in self._pick_obj_selected
@@ -1018,8 +1023,10 @@ class MassLinkerPanel:
 
     def _render_log_tab(self) -> None:
         _desc(S.ML_DESC_LOG)
+        imgui.begin_disabled(not self._log_entries)
         if imgui.button(S.ML_LOG_CLEAR):
             self._log_entries.clear()
+        imgui.end_disabled()
         imgui.separator()
         if not self._log_entries:
             _hint(S.ML_LOG_EMPTY)

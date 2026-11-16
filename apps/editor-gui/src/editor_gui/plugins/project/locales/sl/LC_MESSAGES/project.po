@@ -1567,8 +1567,6 @@ msgstr "Komunikacijski objekti"
 msgid "No differences"
 msgstr "Ni razlik"
 
-msgid "Only Differences"
-msgstr "Samo razlike"
 
 msgid "Open a project with at least two devices to compare."
 msgstr "Za primerjavo odprite projekt z vsaj dvema napravama."
@@ -3466,3 +3464,12 @@ msgstr "Razporeditev pomnilnika se je med branjem spremenila. Za primerjavo preb
 
 msgid "Compared with device memory read in this session."
 msgstr "Primerjano s pomnilnikom naprave, prebranim v tej seji."
+
+msgid "Select a device"
+msgstr "Izberite napravo"
+
+msgid "Select the two devices to compare."
+msgstr "Izberite napravi za primerjavo."
+
+msgid "Loading application programs… {done}/{total}"
+msgstr "Nalaganje aplikacijskih programov… {done}/{total}"

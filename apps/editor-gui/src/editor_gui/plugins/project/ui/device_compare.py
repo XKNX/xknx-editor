@@ -30,6 +30,7 @@ from editor_gui.widgets.description import (
 )
 from editor_gui.widgets.filter_box import filter_box
 from editor_gui.widgets.icon_button import ICON_COPY, icon_button
+from editor_gui.widgets.spinner import busy_bar
 from editor_gui.widgets.tables import begin_data_table, data_table_headers
 from editor_gui.widgets.text_util import text_clipped_tooltip
 from editor_gui.widgets.tree import collapsing_header
@@ -47,11 +48,15 @@ class DeviceComparePanel:
         get_links: LinksResolver,
         get_address: AddressResolver,
         get_revision: Callable[[], int],
+        application_ready: Callable[[Device], bool] = lambda _device: True,
     ) -> None:
         self._get_devices = get_devices
         self._get_links = get_links
         self._get_address = get_address
         self._get_revision = get_revision
+        # Whether a device's application is loaded; while not, it loads in the background.
+        self._application_ready = application_ready
+        # Nothing is compared until the user has chosen both devices.
         self._a_id: int | None = None
         self._b_id: int | None = None
         self._only_diff = True
@@ -62,9 +67,9 @@ class DeviceComparePanel:
         self._result: DeviceDiffResult | None = None
 
     def set_primary(self, node_id: int) -> None:
-        """Seed device A (from the Devices-tree context menu); keep B unless it is unset/equal."""
+        """Seed device A (from the Devices-tree context menu); keep B unless it is the same."""
         self._a_id = node_id
-        if self._b_id is None or self._b_id == node_id:
+        if self._b_id == node_id:
             self._b_id = None
         self._cache_key = None
 
@@ -74,22 +79,47 @@ class DeviceComparePanel:
             imgui.text_disabled(S.COMPARE_NEED_TWO)
             return
         by_id = {d.node_id: d for d in devices}
+        # A chosen device that is gone (deleted, undone) is chosen no more.
         if self._a_id not in by_id:
-            self._a_id = devices[0].node_id
+            self._a_id = None
         if self._b_id not in by_id or self._b_id == self._a_id:
-            self._b_id = next(
-                (d.node_id for d in devices if d.node_id != self._a_id),
-                devices[0].node_id,
-            )
+            self._b_id = None
 
         self._filter = filter_box("##cmp_filter", S.COMPARE_FILTER_HINT, self._filter)
         needle = self._filter.lower()
         visible = [d for d in devices if self._matches(d, needle)]
-        self._a_id = self._device_combo("##cmp_a", self._a_id, visible, by_id)
-        self._b_id = self._device_combo("##cmp_b", self._b_id, visible, by_id)
-        _, self._only_diff = checkbox(S.COMPARE_ONLY_DIFF, self._only_diff)
+        # Both drop-downs side by side, device A left and device B right, as in the tables below.
+        if imgui.begin_table("##cmp_pick", 2, imgui.TableFlags_.sizing_stretch_same):
+            imgui.table_next_row()
+            imgui.table_next_column()
+            # Each lists the devices but the one chosen in the other.
+            self._a_id = self._device_combo(
+                "##cmp_a",
+                self._a_id,
+                [d for d in visible if d.node_id != self._b_id],
+                by_id,
+            )
+            imgui.table_next_column()
+            self._b_id = self._device_combo(
+                "##cmp_b",
+                self._b_id,
+                [d for d in visible if d.node_id != self._a_id],
+                by_id,
+            )
+            imgui.end_table()
+        if self._a_id is None or self._b_id is None:
+            imgui.text_disabled(S.COMPARE_CHOOSE_TWO)
+            return
+        a, b = by_id[self._a_id], by_id[self._b_id]
+        result = self._diff(a, b)
+        if result is None:
+            return
 
-        result = self._diff(by_id[self._a_id], by_id[self._b_id])
+        # The checkbox and the count centred on the copy button's line.
+        top = imgui.get_cursor_pos_y()
+        _, self._only_diff = checkbox(
+            S.COMPARE_ONLY_DIFF, self._only_diff, centred=True
+        )
         imgui.same_line()
         imgui.text_disabled(
             S.COMPARE_SUMMARY(result.difference_count).format(
@@ -97,10 +127,15 @@ class DeviceComparePanel:
             )
         )
         imgui.same_line()
-        if icon_button(ICON_COPY, "cmp_copy", S.COMPARE_COPY):
-            imgui.set_clipboard_text(
-                self._clipboard_text(result, by_id[self._a_id], by_id[self._b_id])
-            )
+        imgui.set_cursor_pos_y(top)
+        # Copies the rows shown: off while "Only differences" leaves none.
+        shown = any(
+            not self._only_diff or row.kind != "same"
+            for _title, rows in self._result_sections(result)
+            for row in rows
+        )
+        if icon_button(ICON_COPY, "cmp_copy", S.COMPARE_COPY, enabled=shown):
+            imgui.set_clipboard_text(self._clipboard_text(result, a, b))
         imgui.separator()
 
         for title, rows in self._result_sections(result):
@@ -127,39 +162,59 @@ class DeviceComparePanel:
             lines.extend(f"{r.label}\t{r.a}\t{r.b}" for r in shown)
         return "\n".join(lines)
 
-    def _diff(self, a: Device, b: Device) -> DeviceDiffResult:
+    def _diff(self, a: Device, b: Device) -> DeviceDiffResult | None:
+        """The comparison of ``a`` with ``b``; None, with a bar that shows it, while their
+        applications still load in the background (seconds for a large one)."""
         key = (a.node_id, b.node_id, self._get_revision())
-        if self._cache_key != key or self._result is None:
-            self._result = diff_devices(
-                snapshot_device(a, self._get_links, self._get_address),
-                snapshot_device(b, self._get_links, self._get_address),
+        if self._cache_key == key and self._result is not None:
+            return self._result
+        # Both asked for, so both load at the same time.
+        ready = [self._application_ready(a), self._application_ready(b)]
+        if not all(ready):
+            busy_bar(
+                "##cmp_loading",
+                imgui.ImVec2(-1, 0),
+                S.COMPARE_LOADING.format(done=sum(ready), total=len(ready)),
             )
-            self._cache_key = key
+            return None
+        self._result = diff_devices(
+            snapshot_device(a, self._get_links, self._get_address),
+            snapshot_device(b, self._get_links, self._get_address),
+        )
+        self._cache_key = key
         return self._result
 
     def _device_combo(
         self,
         combo_id: str,
-        current: int,
+        current: int | None,
         devices: list[Device],
         by_id: dict[int, Device],
-    ) -> int:
-        cur = by_id.get(current)
+    ) -> int | None:
+        """A drop-down of ``devices`` that starts with "Select a device"; the chosen one's node
+        id, or None while none is chosen."""
+        cur = by_id.get(current) if current is not None else None
         description = cur.description.strip() if cur is not None else ""
         # Room after the dropdown for the KNX Data Secure shield and the description: the icon
         # (long) or the inline text (short).
         spacing = imgui.get_style().item_spacing.x
         if shows_description_icon(description):
             room = description_icon_width() + spacing
-        elif description.strip():
+        elif description:
             room = imgui.calc_text_size(description).x + spacing
         else:
             room = 0.0
-        if is_secure_device(current):
+        if cur is not None and is_secure_device(cur.node_id):
             room += secure_icon_width() + spacing
+        # The drop-down keeps at least half of its column, the description is cut after it.
+        room = min(room, imgui.get_content_region_avail().x / 2)
         imgui.set_next_item_width(-room if room else -1)
-        label = device_label(cur) if cur is not None else "?"
+        label = device_label(cur) if cur is not None else S.COMPARE_SELECT_DEVICE
         if begin_combo(combo_id, label):
+            if imgui.selectable(
+                f"{S.COMPARE_SELECT_DEVICE}##{combo_id}_none", cur is None
+            )[0]:
+                current = None
             for d in devices:
                 if imgui.selectable(
                     f"{device_label(d)}##{combo_id}{d.node_id}",

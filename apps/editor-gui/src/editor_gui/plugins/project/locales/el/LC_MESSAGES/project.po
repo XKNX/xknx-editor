@@ -1117,8 +1117,6 @@ msgstr "Σύγκριση Συσκευών"
 msgid "Open a project with at least two devices to compare."
 msgstr "Ανοίξτε ένα έργο με τουλάχιστον δύο συσκευές για σύγκριση."
 
-msgid "Only Differences"
-msgstr "Μόνο Διαφορές"
 
 msgid "Filter devices by address, name or description…"
 msgstr "Φιλτράρισμα συσκευών κατά διεύθυνση, όνομα ή περιγραφή…"
@@ -3335,3 +3333,12 @@ msgstr "Η διάταξη της μνήμης άλλαξε κατά την αν�
 
 msgid "Compared with device memory read in this session."
 msgstr "Σύγκριση με τη μνήμη της συσκευής που διαβάστηκε σε αυτή τη συνεδρία."
+
+msgid "Select a device"
+msgstr "Επιλέξτε συσκευή"
+
+msgid "Select the two devices to compare."
+msgstr "Επιλέξτε τις δύο συσκευές για σύγκριση."
+
+msgid "Loading application programs… {done}/{total}"
+msgstr "Φόρτωση προγραμμάτων εφαρμογής… {done}/{total}"

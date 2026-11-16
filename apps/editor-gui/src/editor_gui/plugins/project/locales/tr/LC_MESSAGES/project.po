@@ -1117,8 +1117,6 @@ msgstr "Cihaz Karşılaştırma"
 msgid "Open a project with at least two devices to compare."
 msgstr "Karşılaştırmak için en az iki cihaz içeren bir proje açın."
 
-msgid "Only Differences"
-msgstr "Yalnızca Farklar"
 
 msgid "Filter devices by address, name or description…"
 msgstr "Cihazları adrese, ada veya tanıma göre filtrele…"
@@ -3283,3 +3281,12 @@ msgstr "Okuma sırasında bellek düzeni değişti. Karşılaştırmak için yen
 
 msgid "Compared with device memory read in this session."
 msgstr "Bu oturumda okunan cihaz belleğiyle karşılaştırıldı."
+
+msgid "Select a device"
+msgstr "Bir cihaz seçin"
+
+msgid "Select the two devices to compare."
+msgstr "Karşılaştırılacak iki cihazı seçin."
+
+msgid "Loading application programs… {done}/{total}"
+msgstr "Uygulama programları yükleniyor… {done}/{total}"

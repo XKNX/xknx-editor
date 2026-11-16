@@ -40,6 +40,7 @@ from editor_gui import signing_key as signing_key_store
 from editor_gui import trace_key as trace_key_store
 from editor_gui.cache import (
     cache_dir,
+    cache_has_files,
     cache_size,
     clear_cache,
     move_product_cache,
@@ -652,6 +653,10 @@ class KnxGuiApp:
         # Clear Cache…: the confirmation, with the size the cache had when it was asked for.
         self._clear_cache_requested = False
         self._clear_cache_size = 0
+        # Whether the cache holds files, and when that was looked up (at most once a second, for
+        # the Clear Cache button, which is off while it is empty).
+        self._cache_has_files = True
+        self._cache_checked = float("-inf")
         # Folder picker for the ProjectStore export when the default path is not found, and which
         # ETS generation that export is aimed at (set when the export starts, read by the dialogs).
         self._projectstore_dialog: file_dialogs.SelectFolderDialog | None = None
@@ -1571,6 +1576,12 @@ class KnxGuiApp:
             pfd.opt.force_overwrite,
         )
 
+    def _can_export_ga(self) -> bool:
+        """Whether the open project has group addresses to export (while it loads, its reads come
+        back empty: then it may)."""
+        service = self._project_service
+        return service.is_open and (service.loading or bool(service.group_addresses))
+
     def _export_ga_export(self) -> None:
         if not self._project_service.is_open or not self._can_launch_file_dialog():
             return
@@ -1663,6 +1674,14 @@ class KnxGuiApp:
             imgui.close_current_popup()
         end_dialog()
 
+    def _cache_holds_files(self) -> bool:
+        """Whether the cache folder holds files, looked up at most once a second."""
+        now = time.monotonic()
+        if now - self._cache_checked >= 1.0:
+            self._cache_has_files = cache_has_files()
+            self._cache_checked = now
+        return self._cache_has_files
+
     def _render_clear_cache_modal(self) -> None:
         if self._clear_cache_requested:
             imgui.open_popup(S.CLEAR_CACHE_TITLE)
@@ -1679,6 +1698,8 @@ class KnxGuiApp:
         )
         if clicked == 0:
             freed = clear_cache()
+            # Looked up again on the next frame.
+            self._cache_checked = float("-inf")
             self._log.info("cache cleared", freed=freed)
             self._flash_toast(S.CLEAR_CACHE_DONE.format(size=human_size(freed)))
             imgui.close_current_popup()
@@ -4572,7 +4593,7 @@ class KnxGuiApp:
             S.MENU_EXPORT_GA_EXPORT,
             "",
             False,
-            self._project_service.is_open,
+            self._can_export_ga(),
         )[0]:
             self._export_ga_export()
         if imgui.menu_item(
@@ -6217,7 +6238,13 @@ class KnxGuiApp:
                 "",
                 self._backups_plugin.show_window,
             ),
-            (is_open, file, S.MENU_EXPORT_GA_EXPORT, "", self._export_ga_export),
+            (
+                self._can_export_ga(),
+                file,
+                S.MENU_EXPORT_GA_EXPORT,
+                "",
+                self._export_ga_export,
+            ),
             (
                 is_open,
                 file,
@@ -7103,9 +7130,11 @@ class KnxGuiApp:
                     self._open_folder(path())
                 if key == "cache_folder":
                     imgui.same_line()
+                    imgui.begin_disabled(not self._cache_holds_files())
                     if imgui.button(S.BTN_CLEAR_CACHE):
                         self._clear_cache_size = cache_size()
                         self._clear_cache_requested = True
+                    imgui.end_disabled()
 
             return Setting(key, label, "custom", get=lambda: str(path()), render=render)
 
