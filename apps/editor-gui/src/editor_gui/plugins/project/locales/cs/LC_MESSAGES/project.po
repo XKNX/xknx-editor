@@ -3549,3 +3549,24 @@ msgstr "K tomuto projektu není připojena úplná výchozí knihovna."
 
 msgid "The project changed while choosing the library. Please import it again."
 msgstr "Projekt se během výběru knihovny změnil. Importujte ji znovu."
+
+msgid "Read Symbols from Device"
+msgstr "Načíst symboly ze zařízení"
+
+msgid "Import from .etsapp…"
+msgstr "Importovat z .etsapp…"
+
+msgid "Manage Symbol Library"
+msgstr "Spravovat knihovnu symbolů"
+
+msgid "Reads the device's images into this project. Reading takes about 2:30 minutes. Undo restores the previous symbols; the device is unchanged."
+msgstr "Načte obrázky ze zařízení do tohoto projektu. Čtení trvá přibližně 2:30 minuty. Zpět obnoví předchozí symboly; zařízení se nezmění."
+
+msgid "Choose the MDT .etsapp file. Only symbol resources are added; custom symbols and library selections stay unchanged."
+msgstr "Vyberte soubor MDT .etsapp. Přidají se pouze zdroje symbolů; vlastní symboly a výběr knihovny se nezmění."
+
+msgid "Read Symbols from Device…"
+msgstr "Načíst symboly ze zařízení…"
+
+msgid "Read all symbols from {address}? This takes about 2:30 minutes. The images will be saved in this project; the device stays unchanged."
+msgstr "Načíst všechny symboly ze zařízení {address}? Čtení trvá přibližně 2:30 minuty. Obrázky se uloží do tohoto projektu; zařízení zůstane beze změny."

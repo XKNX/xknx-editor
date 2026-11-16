@@ -3501,3 +3501,24 @@ msgstr "A biblioteca predefinida completa não está anexada a este projeto."
 
 msgid "The project changed while choosing the library. Please import it again."
 msgstr "O projeto mudou durante a escolha da biblioteca. Importe-a novamente."
+
+msgid "Read Symbols from Device"
+msgstr "Ler símbolos do dispositivo"
+
+msgid "Import from .etsapp…"
+msgstr "Importar de .etsapp…"
+
+msgid "Manage Symbol Library"
+msgstr "Gerir biblioteca de símbolos"
+
+msgid "Reads the device's images into this project. Reading takes about 2:30 minutes. Undo restores the previous symbols; the device is unchanged."
+msgstr "Lê as imagens do dispositivo para este projeto. A leitura demora cerca de 2:30 minutos. Anular restaura os símbolos anteriores; o dispositivo não é alterado."
+
+msgid "Choose the MDT .etsapp file. Only symbol resources are added; custom symbols and library selections stay unchanged."
+msgstr "Escolhe o ficheiro MDT .etsapp. Apenas os recursos de símbolos são adicionados; os símbolos personalizados e a seleção de biblioteca não são alterados."
+
+msgid "Read Symbols from Device…"
+msgstr "Ler símbolos do dispositivo…"
+
+msgid "Read all symbols from {address}? This takes about 2:30 minutes. The images will be saved in this project; the device stays unchanged."
+msgstr "Ler todos os símbolos de {address}? A leitura demora cerca de 2:30 minutos. As imagens serão guardadas neste projeto; o dispositivo permanecerá inalterado."

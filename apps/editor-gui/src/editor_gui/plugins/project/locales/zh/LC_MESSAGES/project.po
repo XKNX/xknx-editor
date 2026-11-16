@@ -3445,3 +3445,24 @@ msgstr "此项目未附带完整的默认符号库。"
 
 msgid "The project changed while choosing the library. Please import it again."
 msgstr "选择符号库期间项目已更改。请重新导入。"
+
+msgid "Read Symbols from Device"
+msgstr "从设备读取符号"
+
+msgid "Import from .etsapp…"
+msgstr "从 .etsapp 导入…"
+
+msgid "Manage Symbol Library"
+msgstr "管理符号库"
+
+msgid "Reads the device's images into this project. Reading takes about 2:30 minutes. Undo restores the previous symbols; the device is unchanged."
+msgstr "将设备图像读入此项目。读取大约需要2分30秒。撤销可恢复之前的符号；设备保持不变。"
+
+msgid "Choose the MDT .etsapp file. Only symbol resources are added; custom symbols and library selections stay unchanged."
+msgstr "选择 MDT .etsapp 文件。仅添加符号资源；自定义符号和符号库选择保持不变。"
+
+msgid "Read Symbols from Device…"
+msgstr "从设备读取符号…"
+
+msgid "Read all symbols from {address}? This takes about 2:30 minutes. The images will be saved in this project; the device stays unchanged."
+msgstr "是否从 {address} 读取所有符号？读取大约需要2分30秒。图像将保存到此项目中，设备保持不变。"

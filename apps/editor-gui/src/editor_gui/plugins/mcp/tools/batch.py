@@ -373,6 +373,15 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         )
         return {"node_id": device.node_id}
 
+    def _op_mdt_import_defaults(p: dict[str, Any]) -> dict[str, Any]:
+        from xknxeditor.vendor.mdt.symbol_resources import MAX_APP_SIZE
+
+        device = _device(p)
+        with Path(p["path"]).open("rb") as stream:
+            archive = stream.read(MAX_APP_SIZE + 1)
+        project.import_mdt_default_library(device.node_id, archive)
+        return {"node_id": device.node_id}
+
     def _op_mdt_restore(p: dict[str, Any]) -> dict[str, Any]:
         device = _device(p)
         project.restore_mdt_symbol(device.node_id, p["slot"])
@@ -407,6 +416,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         "set_mdt_symbol": (("slot",), _op_mdt_symbol),
         "load_mdt_default_symbols": ((), _op_mdt_defaults),
         "import_mdt_symbol_library": (("path",), _op_mdt_import_library),
+        "import_mdt_default_library": (("path",), _op_mdt_import_defaults),
         "restore_mdt_symbol": (("slot",), _op_mdt_restore),
         "set_mdt_layout": (
             ("page_number", "name", "orientation", "tiles"),
@@ -579,6 +589,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         - import_mdt_visucontrol: device, path (local .etsvcp). Returns lost_links.
         - set_mdt_symbol: device, slot (zero-based), grayscale_hex (4096 pixels; null removes the override).
         - restore_mdt_symbol: device, slot (zero-based). Store the default from the attached symbol library.
+        - import_mdt_default_library: device, path (.etsapp/resource ZIP). Add shared standard pixels; retain custom symbols and selections.
         - set_mdt_symbol_library: device, new_library (bool). Select the default symbol library.
         - set_mdt_layout: device, page_number, name, orientation (V/H), tiles. Replace a GTS page.
         - set_parameter: device, (parameter_ref_id | parameter_id | label [subtree_id tree_token]

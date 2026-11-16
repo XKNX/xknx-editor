@@ -517,6 +517,8 @@ def test_search_again_replaces_the_device_it_added(
         _code_page: Any,
         cancel: Any = None,
         master: Any = None,
+        editable_parameter_refs: Any = (),
+        parameter_candidates: Any = (),
     ) -> RecoveredDevice:
         searched.append((device.address, effort))
         cancels.append(cancel)

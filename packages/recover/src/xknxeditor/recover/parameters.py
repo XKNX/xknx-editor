@@ -210,10 +210,12 @@ class _SearchCache:
         application: Application,
         master: MasterData | None = None,
         factory_image: FactoryImage | None = None,
+        editable_parameter_refs: Collection[str] = (),
     ) -> None:
         self.application = application
         self.master = master
         self.factory_image = factory_image
+        self.editable_parameter_refs = frozenset(editable_parameter_refs)
         # The factory contents of each property asked for (``None``: the image holds none).
         self.factory_properties: dict[TypedPropertyKey, bytes | None] = {}
         self.uis: OrderedDict[tuple[object, ...], DynamicUI | None] = OrderedDict()
@@ -568,6 +570,8 @@ def recover_parameters(
     *,
     master: MasterData | None = None,
     factory_image: FactoryImage | None = None,
+    editable_parameter_refs: Collection[str] = (),
+    parameter_candidates: Sequence[Mapping[str, str]] = (),
 ) -> RecoveredParameters:
     """Recover parameter reference values from a device's memory and properties.
 
@@ -592,6 +596,9 @@ def recover_parameters(
     ``factory_image`` is the image the product's devices leave the factory with: a property
     holds its contents where no active parameter writes it (see
     :func:`_differing_property_cells`).
+    ``editable_parameter_refs`` identifies hidden references edited by a configuration
+    app. ``parameter_candidates`` supplies possible values of unstored selectors;
+    each is decoded and compared with the captured bytes before one is selected.
     """
     if cancel is not None:
         requested = cancel
@@ -605,8 +612,38 @@ def recover_parameters(
         cancel = latched_cancel
 
     previous = getattr(_SEARCH, "cache", None)
-    _SEARCH.cache = _SearchCache(application, master, factory_image)
+    _SEARCH.cache = _SearchCache(
+        application, master, factory_image, editable_parameter_refs
+    )
     try:
+        start: Mapping[str, str] = {}
+        if parameter_candidates:
+            trials: list[tuple[RecoveredParameters, Mapping[str, str]]] = []
+            for candidate in (dict[str, str](), *parameter_candidates):
+                trial = _search(
+                    application,
+                    parameter_segments,
+                    property_values,
+                    project_code_page,
+                    linked_objects,
+                    object_sizes,
+                    RecoveryEffort.FAST,
+                    cancel,
+                    candidate,
+                )
+                trials.append((trial, candidate))
+                if trial.complete or (cancel is not None and cancel()):
+                    return trial
+            best, start = min(
+                trials,
+                key=lambda item: (
+                    item[0].differing_objects * _OBJECT_WEIGHT
+                    + item[0].differing_bytes,
+                    len(item[0].unknown),
+                ),
+            )
+            if effort is RecoveryEffort.FAST:
+                return best
         return _search(
             application,
             parameter_segments,
@@ -616,6 +653,7 @@ def recover_parameters(
             object_sizes,
             effort,
             cancel,
+            start,
         )
     finally:
         _SEARCH.cache = previous
@@ -630,6 +668,7 @@ def _search(
     object_sizes: Mapping[int, str] | None,
     effort: RecoveryEffort,
     cancel: Callable[[], bool] | None,
+    start: Mapping[str, str] | None = None,
 ) -> RecoveredParameters:
     """The search of :func:`recover_parameters`."""
     ui = application.dynamic_ui()
@@ -648,7 +687,7 @@ def _search(
             linked,
             sizes,
             fixed,
-            {},
+            start or {},
             dead,
             cancel,
         )
@@ -4152,7 +4191,19 @@ def _fixed_values(application: Application, ui: DynamicUI) -> _ValueMap:
     which tells the device what a setting it keeps no copy of chose (e.g. the datapoint type
     of a status value, the kind of a button function). References an assign or a calculation
     writes are left out, their value is not the fixed one."""
-    return _program_fixed_values(application.program, ui)
+    return _without_editable(
+        application.program, _program_fixed_values(application.program, ui)
+    )
+
+
+def _without_editable(program: object, values: Mapping[str, str]) -> _ValueMap:
+    cache: _SearchCache | None = getattr(_SEARCH, "cache", None)
+    editable = (
+        cache.editable_parameter_refs
+        if cache is not None and cache.application.program is program
+        else frozenset[str]()
+    )
+    return {ref: value for ref, value in values.items() if ref not in editable}
 
 
 def _program_fixed_values(program: object, ui: DynamicUI) -> _ValueMap:
@@ -4192,26 +4243,25 @@ def _program_fixed_values(program: object, ui: DynamicUI) -> _ValueMap:
 
 
 # The hidden settings with a fixed value of the last programs decoded (see _hidden_fixed).
-_HIDDEN: list[tuple[object, frozenset[str], Mapping[str, str]]] = []
+_HIDDEN: list[tuple[object, Mapping[str, str]]] = []
 
 
 def _hidden_fixed(program: object, ui: DynamicUI) -> frozenset[str]:
     """The refs of the application program's hidden settings with a fixed value (see
     :func:`_fixed_values`): the product's data gives them, not the memory."""
-    _hidden_fixed_values(program, ui)
-    return _HIDDEN[0][1]
+    return frozenset(_hidden_fixed_values(program, ui))
 
 
 def _hidden_fixed_values(program: object, ui: DynamicUI) -> Mapping[str, str]:
     """:func:`_hidden_fixed` with the value of each (local param-ref -> value)."""
-    for n, (seen, _refs, values) in enumerate(_HIDDEN):
+    for n, (seen, values) in enumerate(_HIDDEN):
         if seen is program:
             _HIDDEN.insert(0, _HIDDEN.pop(n))
-            return values
+            return _without_editable(program, values)
     values = _program_fixed_values(program, ui)
-    _HIDDEN.insert(0, (program, frozenset(values), values))
+    _HIDDEN.insert(0, (program, values))
     del _HIDDEN[4:]
-    return values
+    return _without_editable(program, values)
 
 
 def _fixed_cells(

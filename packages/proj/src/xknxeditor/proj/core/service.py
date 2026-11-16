@@ -2796,6 +2796,30 @@ class ProjectService:
         ``None`` for the system language."""
         return (self.project(project_id).extra_attributes or {}).get("CodePage")
 
+    def project_user_file(self, project_id: str, filename: str) -> bytes | None:
+        from .user_files import read_user_file
+
+        return read_user_file(self.project(project_id), filename)
+
+    def set_project_user_file(
+        self, project_id: str, filename: str, data: bytes, *, label: str
+    ) -> None:
+        """Store a shared attachment and its metadata as one undo step."""
+        from .events import SetProjectUserFile
+
+        if self.project_user_file(project_id, filename) == data:
+            return
+        self._state(project_id).store.append(
+            CompositeEvent(
+                events=[
+                    SetProjectUserFile(
+                        project_id, filename, base64.b64encode(data).decode("ascii")
+                    )
+                ],
+                label=label,
+            )
+        )
+
     def set_project_code_page(self, project_id: str, code_page: str | None) -> None:
         """Set the project's ``CodePage`` (one undo step); ``None`` is the system language. Raises
         :class:`ValueError` for a value the project schema does not know."""

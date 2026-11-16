@@ -9,6 +9,71 @@ from .profiles import DcaProfile
 from .symbols import decode_symbol
 
 
+class SymbolReader(Protocol):
+    def property_chunk_size(self, element_size: int) -> int: ...
+    async def read_property_element_size(
+        self, object_index: int, property_id: int
+    ) -> int: ...
+    async def read_property(
+        self,
+        object_index: int,
+        property_id: int,
+        *,
+        count: int = 1,
+        start_index: int = 1,
+    ) -> bytes: ...
+
+
+async def recover_symbols(
+    connection: SymbolReader, profile: DcaProfile
+) -> dict[int, bytes]:
+    """Read every slot, rejecting unavailable pixels or inconsistent checksums.
+
+    Pixel read access depends on the device. No transfer or checksum calculation
+    mode is entered, and no default library is substituted for unreadable data.
+    """
+    if profile.kind != "symbols" or profile.slots <= 0:
+        raise ValueError("Device has no symbol library")
+    if await connection.read_property_element_size(5, 150) != 8:
+        raise ValueError("MDT symbol pixel property does not have 8-byte elements")
+    chunk_size = connection.property_chunk_size(8)
+    if not 1 <= chunk_size <= 15:
+        raise ValueError("Invalid symbol property chunk size")
+
+    async def checksums() -> dict[int, bytes]:
+        result: dict[int, bytes] = {}
+        for slot in range(profile.slots):
+            crc = await connection.read_property(5, 151, start_index=slot + 1)
+            if len(crc) != 2:
+                raise ValueError(f"MDT symbol {slot + 1} checksum is not readable")
+            result[slot] = crc[::-1]
+        return result
+
+    before = await checksums()
+    symbols: dict[int, bytes] = {}
+    for slot in range(profile.slots):
+        pixels = bytearray()
+        for offset in range(0, 64, chunk_size):
+            count = min(chunk_size, 64 - offset)
+            part = await connection.read_property(
+                5, 150, count=count, start_index=slot * 64 + offset + 1
+            )
+            if len(part) != count * 8:
+                raise ValueError(f"MDT symbol {slot + 1} pixels are not readable")
+            pixels.extend(part)
+        data = bytes(pixels) + before[slot]
+        try:
+            decode_symbol(data)
+        except ValueError as exc:
+            raise ValueError(
+                f"MDT symbol {slot + 1} checksum differs from pixels"
+            ) from exc
+        symbols[slot] = data
+    if await checksums() != before:
+        raise ValueError("MDT symbol library changed while reading")
+    return symbols
+
+
 class SymbolConnection(Protocol):
     async def write_property(
         self,

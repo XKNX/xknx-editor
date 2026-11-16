@@ -1637,6 +1637,48 @@ class ConnectionService:
                 shown=SHOWN_IN_OPERATIONS,
             )
 
+    def read_mdt_symbols(self, device: Device) -> Future[Any] | None:
+        """Read symbol pixels without requiring existing project pixels."""
+        from xknxeditor.vendor.mdt import profile_for_application
+
+        profile = profile_for_application(device.app.id) if device.app else None
+        if (
+            profile is None
+            or profile.kind != "symbols"
+            or not device.individual_address
+        ):
+            raise ValueError("Device has no MDT symbol configuration or address")
+        return self._read_mdt_symbols(device)
+
+    @_connects("mdt_symbols")
+    def _read_mdt_symbols(self, device: Device) -> Future[Any] | None:
+        from editor_gui.programming_mdt import read_symbols
+
+        if self.not_connected("mdt_symbols"):
+            return None
+        if not device.individual_address or device.app is None:
+            raise ValueError("Device has no individual address or application")
+        if not self.begin_operation("mdt_symbols", device.individual_address):
+            return None
+        try:
+            future = self.run_async(
+                read_symbols(
+                    self._connected_xknx,
+                    device.individual_address,
+                    self._security_for(device),
+                    device.app.id,
+                    interface_max_apdu_length=self.interface_max_apdu_length,
+                )
+            )
+        except BaseException:
+            self._clear_busy()
+            raise
+        if future is None:
+            self._clear_busy()
+        else:
+            future.add_done_callback(self._mdt_symbols_done)
+        return future
+
     def run_mdt_symbols(
         self,
         device: Device,

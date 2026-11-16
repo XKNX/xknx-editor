@@ -3549,3 +3549,24 @@ msgstr "Полная стандартная библиотека не прикр
 
 msgid "The project changed while choosing the library. Please import it again."
 msgstr "Проект изменился во время выбора библиотеки. Импортируйте её снова."
+
+msgid "Read Symbols from Device"
+msgstr "Прочитать символы из устройства"
+
+msgid "Import from .etsapp…"
+msgstr "Импорт из .etsapp…"
+
+msgid "Manage Symbol Library"
+msgstr "Управление библиотекой символов"
+
+msgid "Reads the device's images into this project. Reading takes about 2:30 minutes. Undo restores the previous symbols; the device is unchanged."
+msgstr "Считывает изображения устройства в этот проект. Чтение занимает около 2 мин 30 с. Отмена восстанавливает предыдущие символы; устройство не изменяется."
+
+msgid "Choose the MDT .etsapp file. Only symbol resources are added; custom symbols and library selections stay unchanged."
+msgstr "Выберите файл MDT .etsapp. Добавляются только ресурсы символов; пользовательские символы и выбор библиотеки не изменяются."
+
+msgid "Read Symbols from Device…"
+msgstr "Прочитать символы из устройства…"
+
+msgid "Read all symbols from {address}? This takes about 2:30 minutes. The images will be saved in this project; the device stays unchanged."
+msgstr "Прочитать все символы из устройства {address}? Чтение занимает около 2 мин 30 с. Изображения будут сохранены в этом проекте; устройство останется без изменений."

@@ -38,6 +38,8 @@ class _SymbolState:
     include_defaults: bool = True
     invert_library: bool = False
     operation: Any = None
+    read_prompt: tuple[str, str] | None = None
+    confirm_read: bool = False
     operation_source: tuple[tuple[int, str], ...] = ()
     comparison: dict[int, bool] = field(default_factory=dict[int, bool])
 
@@ -60,8 +62,14 @@ def _symbol_runs(grayscale_hex: str) -> tuple[tuple[int, int, int], ...]:
 
 
 class MdtDcaPanel:
-    def __init__(self, queue: Callable[..., Any] | None = None) -> None:
+    def __init__(
+        self,
+        queue: Callable[..., Any] | None = None,
+        *,
+        connected: Callable[[], bool] | None = None,
+    ) -> None:
         self._queue = queue
+        self._connected = connected or (lambda: False)
         self._states: dict[int, _SymbolState] = {}
         self._generation: int | None = None
         self._open: file_dialogs.OpenFileDialog | None = None
@@ -104,12 +112,32 @@ class MdtDcaPanel:
             imgui.text_wrapped(str(exc))
             return
         state.slot = min(state.slot, profile.slots - 1)
-        if profile.app_id == "M0083-A0041":
-            changed, library = checkbox(S.MDT_NEW_LIBRARY, view["new_library"])
-            if changed:
-                project.set_mdt_symbol_library(device.node_id, library)
-                view = project.mdt_symbols(device.node_id)
-        self._symbol_library(device, project, state, view)
+        self._offer_symbol_read(device, state, view)
+        imgui.begin_disabled(
+            self._queue is None
+            or state.operation is not None
+            or not device.individual_address
+        )
+        if imgui.button(S.MDT_READ_SYMBOLS_BUTTON):
+            self._request_symbol_read(device, state)
+        imgui.end_disabled()
+        self._confirm_symbol_read(device, state)
+        imgui.text_wrapped(S.MDT_READ_SYMBOLS_HELP)
+        missing = not view["defaults"] and len(view["symbols"]) != view["slots"]
+        if missing:
+            imgui.text_wrapped(S.MDT_LIBRARY_MISSING)
+        self._add_default_library(device, project)
+        if collapsing_header(S.MDT_MANAGE_LIBRARY + "###symbol_library"):
+            imgui.push_id("symbol_library")
+            try:
+                if profile.app_id == "M0083-A0041" and view["new_library"] is not None:
+                    changed, library = checkbox(S.MDT_NEW_LIBRARY, view["new_library"])
+                    if changed:
+                        project.set_mdt_symbol_library(device.node_id, library)
+                        view = project.mdt_symbols(device.node_id)
+                self._symbol_library(device, project, state, view)
+            finally:
+                imgui.pop_id()
         view = project.mdt_symbols(device.node_id)
         wide = imgui.get_content_region_avail().x >= px(700)
         if imgui.begin_table("##symbols", 2 if wide else 1):
@@ -121,6 +149,84 @@ class MdtDcaPanel:
         self._symbol_operations(device, project, state, view)
         if state.error:
             imgui.text_wrapped(state.error)
+
+    def _offer_symbol_read(
+        self, device: Device, state: _SymbolState, view: dict[str, Any]
+    ) -> None:
+        identity = (
+            device.individual_address or "",
+            device.app.id if device.app else "",
+        )
+        if (
+            not view["symbols"]
+            and not view["defaults"]
+            and identity != state.read_prompt
+            and not state.confirm_read
+            and self._queue is not None
+            and state.operation is None
+            and self._connected()
+            and self._open is None
+            and self._save is None
+            and identity[0]
+            and identity[1]
+        ):
+            self._request_symbol_read(device, state)
+
+    @staticmethod
+    def _request_symbol_read(device: Device, state: _SymbolState) -> None:
+        if not device.individual_address or device.app is None:
+            return
+        state.read_prompt = (
+            device.individual_address or "",
+            device.app.id if device.app else "",
+        )
+        state.confirm_read = True
+
+    def _confirm_symbol_read(self, device: Device, state: _SymbolState) -> None:
+        title = f"{S.MDT_READ_SYMBOLS}###mdt_read_symbols_{device.node_id}"
+        if state.confirm_read and not imgui.is_popup_open(title):
+            imgui.open_popup(title)
+        if begin_dialog(title, width=480):
+            identity = (
+                device.individual_address or "",
+                device.app.id if device.app else "",
+            )
+            imgui.text_wrapped(
+                S.MDT_READ_SYMBOLS_CONFIRM.format(address=device.individual_address)
+            )
+            clicked = dialog_buttons(S.MDT_READ_SYMBOLS, S.BTN_CANCEL)
+            if identity != state.read_prompt or clicked is not None:
+                state.confirm_read = False
+                imgui.close_current_popup()
+                if clicked == 0 and identity == state.read_prompt:
+                    self._read_symbols(device, state)
+            end_dialog()
+
+    def _read_symbols(self, device: Device, state: _SymbolState) -> None:
+        if self._queue is None:
+            return
+        state.error = ""
+        state.comparison.clear()
+        try:
+            state.operation = self._queue(device.node_id, "read_mdt_symbols")
+        except ValueError as exc:
+            state.error = str(exc)
+
+    def _add_default_library(self, device: Device, project: ProjectService) -> None:
+        if imgui.button(S.MDT_ADD_DEFAULT_LIBRARY):
+            self._import_kind = "default_library"
+            self._import_revision = project.revision
+            self._target = (
+                project.generation,
+                device.node_id,
+                0,
+                device.app.id if device.app else "",
+            )
+            self._open = file_dialogs.open_file(
+                title=S.MDT_ADD_DEFAULT_LIBRARY,
+                filters=["MDT DCA / Symbol Resources", "*.etsapp *.zip"],
+            )
+        imgui.text_wrapped(S.MDT_ADD_DEFAULT_LIBRARY_HELP)
 
     def _symbol_library(
         self,
@@ -139,10 +245,12 @@ class MdtDcaPanel:
             for index, (label, newer) in enumerate(choices):
                 if index:
                     same_line_if_fits(button_width(label))
+                imgui.begin_disabled(newer not in view["default_libraries"])
                 if imgui.button(label):
                     project.load_mdt_default_symbols(device.node_id, new_library=newer)
                     state.include_defaults = True
                     state.error = ""
+                imgui.end_disabled()
             imgui.text_wrapped(S.MDT_LIBRARY_HELP)
             _, state.invert_library = checkbox(
                 S.MDT_INVERT_LIBRARY, state.invert_library
@@ -281,6 +389,8 @@ class MdtDcaPanel:
             imgui.text_wrapped(S.MDT_DEFAULT_SYMBOL)
         if item is None:
             imgui.text_wrapped(S.MDT_SYMBOL_UNAVAILABLE)
+        if not slot["editable"] and item is None:
+            return
         imgui.begin_disabled(not slot["editable"])
         _, state.ink = checkbox(S.MDT_DRAW_SYMBOL, state.ink)
         imgui.end_disabled()
@@ -395,8 +505,6 @@ class MdtDcaPanel:
             len({s["slot"] for s in (*view["defaults"], *view["symbols"])})
             == view["slots"]
         )
-        if not complete:
-            imgui.text_wrapped(S.MDT_LIBRARY_MISSING)
         _, state.include_defaults = wrapped_checkbox(
             S.MDT_INCLUDE_DEFAULTS, state.include_defaults
         )
@@ -665,13 +773,22 @@ class MdtDcaPanel:
                     return
                 state = self._states.setdefault(node_id, _SymbolState())
                 try:
-                    data = Path(result[0]).read_bytes()
-                    if self._import_kind == "library":
+                    if self._import_kind == "default_library":
+                        from xknxeditor.vendor.mdt.symbol_resources import MAX_APP_SIZE
+
+                        with Path(result[0]).open("rb") as stream:
+                            data = stream.read(MAX_APP_SIZE + 1)
+                    else:
+                        data = Path(result[0]).read_bytes()
+                    if self._import_kind in ("library", "default_library"):
                         if self._import_revision != project.revision:
                             raise ValueError(S.MDT_IMPORT_STALE)
-                        project.import_mdt_symbol_library(
-                            node_id, data, invert=self._import_invert
-                        )
+                        if self._import_kind == "default_library":
+                            project.import_mdt_default_library(node_id, data)
+                        else:
+                            project.import_mdt_symbol_library(
+                                node_id, data, invert=self._import_invert
+                            )
                     elif self._import_kind == "visucontrol":
                         project.import_mdt_visucontrol(node_id, data)
                     else:

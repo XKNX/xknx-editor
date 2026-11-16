@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
-from collections.abc import Awaitable, Callable, Mapping, Sequence
+from collections.abc import Awaitable, Callable, Collection, Mapping, Sequence
 from dataclasses import dataclass, field, replace
 from typing import TYPE_CHECKING
 
@@ -53,6 +53,7 @@ STAGE_PARAMETERS = "parameters"
 # Reads what a device keeps of a configuration of its own (a manufacturer's plug-in's,
 # which its parameters do not hold) off it; what it returns, its caller decodes.
 type NativeReader = Callable[[DeviceProgrammer], Awaitable[object]]
+type AddinReader = Callable[[DeviceProgrammer], Awaitable[dict[str, dict[str, bytes]]]]
 
 
 @dataclass(frozen=True, slots=True)
@@ -83,6 +84,9 @@ class RecoveredDevice:
     observed_app_id: AppId | None = None
     # What a ``native_read`` read off the device (see recover_device); None without one.
     native_image: object | None = None
+    addin_data: dict[str, dict[str, bytes]] = field(
+        default_factory=dict[str, dict[str, bytes]]
+    )
 
 
 def seed_dynamic_ui(
@@ -219,6 +223,9 @@ async def recover_device(
     master: MasterData | None = None,
     factory_image: FactoryImage | None = None,
     native_read: NativeReader | None = None,
+    addin_read: AddinReader | None = None,
+    editable_parameter_refs: Collection[str] = (),
+    parameter_candidates: Sequence[Mapping[str, str]] = (),
 ) -> RecoveredDevice:
     """Read and decode one device's configuration over an open connection.
 
@@ -234,6 +241,8 @@ async def recover_device(
     factory image) as for :func:`~xknxeditor.recover.parameters.recover_parameters`.
     ``native_read`` reads what a device of a manufacturer's plug-in keeps of that
     plug-in's configuration (its result is the device's ``native_image``). Read-only.
+    ``addin_read`` reads supplemental project attachments, kept in ``addin_data``
+    and in recovery snapshots. Both callbacks finish before the connection closes.
     """
     mask_version = await programmer.read_device_descriptor()
     # A BCU 1 has no Device Object: waiting for its missing answers outlasts the
@@ -251,6 +260,7 @@ async def recover_device(
     parameter_segments = await read_parameter_memory(programmer, application)
     property_values = await read_property_values(programmer, application)
     native_image = await native_read(programmer) if native_read is not None else None
+    addin_data = await addin_read(programmer) if addin_read is not None else {}
     if reads_done is not None:
         await reads_done()
     # Decoding takes seconds for a large application: off the event loop, which keeps the
@@ -267,6 +277,8 @@ async def recover_device(
         cancel,
         master,
         factory_image,
+        editable_parameter_refs,
+        parameter_candidates,
     )
     return RecoveredDevice(
         address=address,
@@ -284,6 +296,7 @@ async def recover_device(
         effort=effort,
         factory_image=factory_image,
         native_image=native_image,
+        addin_data=addin_data,
     )
 
 
@@ -294,6 +307,8 @@ def search_again(
     project_code_page: str | None = None,
     cancel: Callable[[], bool] | None = None,
     master: MasterData | None = None,
+    editable_parameter_refs: Collection[str] = (),
+    parameter_candidates: Sequence[Mapping[str, str]] = (),
 ) -> RecoveredDevice:
     """``device`` with its parameters searched again in what was read off it, with
     ``effort`` (e.g. more for a device whose result still differs from it, see
@@ -312,6 +327,8 @@ def search_again(
         cancel,
         master,
         device.factory_image,
+        editable_parameter_refs,
+        parameter_candidates,
     )
     return replace(
         device, parameters=parameters, com_object_refs=com_object_refs, effort=effort
@@ -329,6 +346,8 @@ def _decode_configuration(
     cancel: Callable[[], bool] | None = None,
     master: MasterData | None = None,
     factory_image: FactoryImage | None = None,
+    editable_parameter_refs: Collection[str] = (),
+    parameter_candidates: Sequence[Mapping[str, str]] = (),
 ) -> tuple[RecoveredParameters, dict[int, str]]:
     """The parameters read off a device, and the reference of each group object number."""
     linked = {link.group_object_number for link in links}
@@ -347,6 +366,8 @@ def _decode_configuration(
         cancel=cancel,
         master=master,
         factory_image=factory_image,
+        editable_parameter_refs=editable_parameter_refs,
+        parameter_candidates=parameter_candidates,
     )
     # Resolve com object numbers against a UI seeded with the recovered parameters,
     # so module instances (and their runtime numbers) match the device rather than
@@ -403,6 +424,9 @@ async def recover_device_at(
     master: MasterData | None = None,
     factory_image: FactoryImage | None = None,
     native_read: NativeReader | None = None,
+    addin_read: AddinReader | None = None,
+    editable_parameter_refs: Collection[str] = (),
+    parameter_candidates: Sequence[Mapping[str, str]] = (),
 ) -> RecoveredDevice:
     """Open a connection to ``address``, recover the device, and close it again.
 
@@ -470,6 +494,9 @@ async def recover_device_at(
                 master=master,
                 factory_image=factory_image,
                 native_read=native_read,
+                addin_read=addin_read,
+                editable_parameter_refs=editable_parameter_refs,
+                parameter_candidates=parameter_candidates,
             )
         except (ManagementConnectionError, XKNXException, MemoryReadNotAnswered) as exc:
             # Transport hiccup, or a long read the interface dropped (raised as

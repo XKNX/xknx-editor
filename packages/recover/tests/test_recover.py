@@ -89,6 +89,9 @@ def _device_reports_55(monkeypatch: pytest.MonkeyPatch) -> list[int]:
         master=None,
         factory_image=None,
         native_read=None,
+        addin_read=None,
+        editable_parameter_refs=(),
+        parameter_candidates=(),
     ):
         used.append(programmer.max_apdu_length)
         if len(used) == 1:
@@ -186,6 +189,56 @@ async def test_the_connection_is_closed_before_the_decoding(
     assert events == ["connect", "read", "read", "read", "read", "disconnect", "decode"]
 
 
+async def test_addin_read_finishes_before_disconnect_and_survives_search(monkeypatch):
+    from xknxeditor.recover import RecoveredParameters, search_again
+
+    events = []
+
+    class Management(_OkManagement):
+        async def disconnect(self, address):
+            events.append("disconnect")
+
+    async def read(*args):
+        return SimpleNamespace(
+            device_address=None, group_addresses=[], links=[], group_objects={}
+        )
+
+    async def properties(*args):
+        return {}
+
+    async def descriptor(self):
+        return 0x07B0
+
+    def decode(*args):
+        events.append("decode")
+        return RecoveredParameters(values={}, unknown=[]), {}
+
+    async def addin(programmer):
+        assert isinstance(programmer, DeviceProgrammer)
+        events.append("addin")
+        return {"test": {"pixels": b"\x01\xff"}}
+
+    monkeypatch.setattr(DeviceProgrammer, "read_device_descriptor", descriptor)
+    for name in ("read_dossier", "read_group_communication", "read_parameter_memory"):
+        monkeypatch.setattr(recover_mod, name, read)
+    monkeypatch.setattr(recover_mod, "read_property_values", properties)
+    monkeypatch.setattr(recover_mod, "_decode_configuration", decode)
+    app = SimpleNamespace(id="test")
+    device = await recover_device_at(
+        SimpleNamespace(management=Management()),
+        "1.1.1",
+        app,
+        negotiate_apdu=False,
+        addin_read=addin,
+    )
+    assert events == ["addin", "disconnect", "decode"]
+    assert device.addin_data == {"test": {"pixels": b"\x01\xff"}}
+    assert (
+        search_again(device, app, recover_mod.RecoveryEffort.FAST).addin_data
+        == device.addin_data
+    )
+
+
 async def test_the_factory_image_is_searched_with_and_kept_to_search_again(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -216,7 +269,7 @@ async def test_the_factory_image_is_searched_with_and_kept_to_search_again(
     searched: list[object] = []
 
     def decode(*args: Any) -> tuple[Any, dict[int, str]]:
-        searched.append(args[-1])
+        searched.append(args[-3])
         return SimpleNamespace(values={}, unknown=[]), {}
 
     monkeypatch.setattr(DeviceProgrammer, "read_device_descriptor", descriptor)

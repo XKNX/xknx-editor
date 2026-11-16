@@ -411,6 +411,11 @@ class RecoverService:
             self.recover_stage = ""
             try:
                 from editor_gui.plugin_providers import device_reader
+                from editor_gui.plugins.recover.mdt import (
+                    addin_reader,
+                    editable_parameter_refs,
+                    parameter_candidates,
+                )
 
                 # A device configured through a manufacturer's plug-in keeps that
                 # configuration of its own: it is read as well.
@@ -420,6 +425,9 @@ class RecoverService:
                     entry.address,
                     entry.application,
                     native_read=reader.read_device if reader is not None else None,
+                    addin_read=addin_reader(entry.application.id),
+                    editable_parameter_refs=editable_parameter_refs(entry.application),
+                    parameter_candidates=parameter_candidates(entry.application),
                     interface_max_apdu_length=self._api.connection.interface_max_apdu_length,
                     progress=self._on_recover_stage,
                     project_code_page=self._api.project.project_code_page(),
@@ -430,6 +438,7 @@ class RecoverService:
                 )
                 entry.recovered = replace(entry.recovered, observed_app_id=entry.app_id)
                 entry.state = _recovered_state(entry.recovered)
+                entry.error = None
                 if self._log is not None:
                     self._log.info(
                         "device recovered",
@@ -440,7 +449,9 @@ class RecoverService:
                         unknown=len(entry.recovered.parameters.unknown),
                     )
             except Exception as exc:  # bus/read failure for one device: keep going
+                entry.recovered = None
                 entry.state = S.STATE_ERROR
+                entry.error = _error_text(exc)
                 if self._log is not None:
                     self._log.warning(
                         "recover failed", address=entry.address, error=str(exc)
@@ -658,6 +669,11 @@ class RecoverService:
                 self.recover_current = entry.address
                 self.recover_done = done
                 try:
+                    from editor_gui.plugins.recover.mdt import (
+                        editable_parameter_refs,
+                        parameter_candidates,
+                    )
+
                     found = search_again(
                         entry.recovered,
                         entry.application,
@@ -665,6 +681,10 @@ class RecoverService:
                         code_page,
                         cancel=self._cancelled,
                         master=master,
+                        editable_parameter_refs=editable_parameter_refs(
+                            entry.application
+                        ),
+                        parameter_candidates=parameter_candidates(entry.application),
                     )
                 except Exception as exc:  # one device failing must not stop the others
                     if self._log is not None:
@@ -1283,11 +1303,19 @@ class RecoverService:
                     )
                 if device_id is None or device is None:
                     raise RuntimeError(f"{entry.address} was not added")
+                from xknxeditor.vendor.mdt import profile_for_application
+
+                mdt_refs = None
+                if recovered.addin_data or profile_for_application(application.id):
+                    mdt_refs = project.recover_mdt_dca(device_id, recovered.addin_data)
+                    device = project.find_device_by_node_id(device_id) or device
                 # Prefer the device-matched map computed during recovery (module
                 # instances seeded from the recovered parameters); fall back to default.
                 number_to_ref = recovered.com_object_refs or com_object_ref_by_number(
                     application
                 )
+                if mdt_refs is not None:
+                    number_to_ref = mdt_refs
                 if self._log is not None:
                     persisted = [
                         co

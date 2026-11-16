@@ -80,6 +80,7 @@ class BusAction:
     kind: str
     text: str
     start: Callable[[], Future[Any] | None] = field(repr=False)
+    finish: Callable[[Any], Any] | None = field(default=None, repr=False)
 
 
 class OperationState(Enum):
@@ -338,9 +339,22 @@ class ProgramQueue:
         item.future = None
         if message is not None:
             item.message = message
+        if (
+            item.canceled_by_user
+            and item.action is not None
+            and item.action.finish is not None
+        ):
+            state = OperationState.CANCELED
         if state is OperationState.FINISHED:
             item.result = future.result()
-            if self._on_finished is not None:
+            if item.action is not None and item.action.finish is not None:
+                try:
+                    item.result = item.action.finish(item.result)
+                except Exception as exc:
+                    item.result = None
+                    item.message = str(exc)
+                    state = OperationState.FAILED
+            if self._on_finished is not None and state is OperationState.FINISHED:
                 self._on_finished(item, item.result)
         self._end(item, state)
         self._current = None
