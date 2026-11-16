@@ -3342,3 +3342,158 @@ msgstr "Επιλέξτε τις δύο συσκευές για σύγκριση.
 
 msgid "Loading application programs… {done}/{total}"
 msgstr "Φόρτωση προγραμμάτων εφαρμογής… {done}/{total}"
+msgid "Symbol"
+msgstr "Σύμβολο"
+
+msgid "Use the newer symbol library"
+msgstr "Χρήση της νεότερης βιβλιοθήκης συμβόλων"
+
+msgid "Import Symbol…"
+msgstr "Εισαγωγή συμβόλου…"
+
+msgid "Export Symbol…"
+msgstr "Εξαγωγή συμβόλου…"
+
+msgid "Draw pixels"
+msgstr "Σχεδίαση εικονοστοιχείων"
+
+msgid "No custom symbol is stored in this slot."
+msgstr "Δεν έχει αποθηκευτεί προσαρμοσμένο σύμβολο σε αυτή τη θέση."
+
+msgid "Page"
+msgstr "Σελίδα"
+
+msgid "Tile"
+msgstr "Πλακίδιο"
+
+msgid "Color"
+msgstr "Χρώμα"
+
+msgid "Transparency"
+msgstr "Διαφάνεια"
+
+msgid "Program Symbols…"
+msgstr "Προγραμματισμός συμβόλων…"
+
+msgid "Compare Symbols with Device"
+msgstr "Σύγκριση συμβόλων με τη συσκευή"
+
+msgid "Write the custom symbols to this device and restart it?"
+msgstr "Να εγγραφούν τα προσαρμοσμένα σύμβολα στη συσκευή και να γίνει επανεκκίνηση;"
+
+msgid "Select the device type and enable a page in Parameters to edit its layout."
+msgstr "Επιλέξτε τον τύπο συσκευής και ενεργοποιήστε μια σελίδα στις Παραμέτρους για να επεξεργαστείτε τη διάταξη."
+
+msgid "Restore Default Symbol"
+msgstr "Επαναφορά προεπιλεγμένου συμβόλου"
+
+msgid "Standby Page (Day)"
+msgstr "Σελίδα αναμονής (ημέρα)"
+
+msgid "Standby Page (Night)"
+msgstr "Σελίδα αναμονής (νύχτα)"
+
+msgid "Special Symbol"
+msgstr "Ειδικό σύμβολο"
+
+msgid "Mode: Automatic"
+msgstr "Λειτουργία: αυτόματη"
+
+msgid "Mode: Comfort"
+msgstr "Λειτουργία: άνεση"
+
+msgid "Mode: Standby"
+msgstr "Λειτουργία: αναμονή"
+
+msgid "Mode: Night"
+msgstr "Λειτουργία: νύχτα"
+
+msgid "Mode: Frost Protection"
+msgstr "Λειτουργία: αντιπαγετική προστασία"
+
+msgid "Mode: Heat Protection"
+msgstr "Λειτουργία: προστασία από υπερθέρμανση"
+
+msgid "Temperature"
+msgstr "Θερμοκρασία"
+
+msgid "Cooling"
+msgstr "Ψύξη"
+
+msgid "Heating"
+msgstr "Θέρμανση"
+
+msgid "Functionally Linked Symbols"
+msgstr "Σύμβολα συνδεδεμένα με λειτουργίες"
+
+msgid "Normal Symbols"
+msgstr "Κανονικά σύμβολα"
+
+msgid "This symbol is fixed and cannot be changed."
+msgstr "Αυτό το σύμβολο είναι σταθερό και δεν μπορεί να αλλάξει."
+
+msgid "No symbol preview is available in this project."
+msgstr "Δεν υπάρχει προεπισκόπηση συμβόλου σε αυτό το έργο."
+
+msgid "Import: PNG/BMP, exactly 64 x 64 pixels, or MDT .data."
+msgstr "Εισαγωγή: PNG/BMP, ακριβώς 64 x 64 pixel, ή MDT .data."
+
+msgid "Format Details"
+msgstr "Λεπτομέρειες μορφής"
+
+msgid "Images are not resized. Use black and white with a solid white background. Transparency is ignored."
+msgstr "Οι εικόνες δεν αλλάζουν μέγεθος. Χρησιμοποιήστε ασπρόμαυρη εικόνα με αδιαφανές λευκό φόντο. Η διαφάνεια αγνοείται."
+
+msgid "Colors are converted to the average of red, green and blue. Values below 128 appear black on the device; 128 and above appear white."
+msgstr "Τα χρώματα μετατρέπονται στον μέσο όρο κόκκινου, πράσινου και μπλε. Τιμές κάτω από 128 εμφανίζονται μαύρες στη συσκευή, από 128 και πάνω λευκές."
+
+msgid "MDT .data contains one symbol: 514 bytes including a valid checksum."
+msgstr "Το MDT .data περιέχει ένα σύμβολο: 514 byte με έγκυρο άθροισμα ελέγχου."
+
+msgid "Export saves the selected symbol as a 64 x 64 PNG. Imported grayscale values are preserved."
+msgstr "Η εξαγωγή αποθηκεύει το επιλεγμένο σύμβολο ως PNG 64 x 64. Οι εισαγόμενες τιμές του γκρι διατηρούνται."
+
+msgid "Import replaces only the selected symbol in the project. To transfer it to the device, use {button}."
+msgstr "Η εισαγωγή αντικαθιστά μόνο το επιλεγμένο σύμβολο στο έργο. Για μεταφορά στη συσκευή, χρησιμοποιήστε {button}."
+
+msgid "Load Default Symbols"
+msgstr "Φόρτωση προεπιλεγμένων συμβόλων"
+
+msgid "Load Defaults (1st Generation)"
+msgstr "Φόρτωση προεπιλογών (1η γενιά)"
+
+msgid "Load Defaults (2nd Generation)"
+msgstr "Φόρτωση προεπιλογών (2η γενιά)"
+
+msgid "Import Symbol Library…"
+msgstr "Εισαγωγή βιβλιοθήκης συμβόλων…"
+
+msgid "Export Symbol Library…"
+msgstr "Εξαγωγή βιβλιοθήκης συμβόλων…"
+
+msgid "Invert imported library"
+msgstr "Αντιστροφή εισαγόμενης βιβλιοθήκης"
+
+msgid "Include default symbols when programming"
+msgstr "Συμπερίληψη προεπιλεγμένων συμβόλων στον προγραμματισμό"
+
+msgid "Synchronize Symbols"
+msgstr "Συγχρονισμός συμβόλων"
+
+msgid "Loading defaults replaces all custom symbols in the project. Undo restores them. Program with defaults included to transfer the entire library."
+msgstr "Η φόρτωση προεπιλογών αντικαθιστά όλα τα προσαρμοσμένα σύμβολα του έργου. Η αναίρεση τα επαναφέρει. Συμπεριλάβετε τις προεπιλογές στον προγραμματισμό για μεταφορά όλης της βιβλιοθήκης."
+
+msgid "ZIP: Symbol_{first}.bmp through Symbol_{last}.bmp at the archive root, each 64 x 64 pixels. Import replaces all editable symbols; export saves their black-and-white device pixels."
+msgstr "ZIP: Symbol_{first}.bmp έως Symbol_{last}.bmp στη ρίζα, 64 x 64 pixel το καθένα. Η εισαγωγή αντικαθιστά όλα τα επεξεργάσιμα σύμβολα· η εξαγωγή αποθηκεύει τα ασπρόμαυρα pixel της συσκευής."
+
+msgid "Compare only reads checksums. Synchronize also refreshes Smart device checksums, without changing pixels or the project."
+msgstr "Η σύγκριση διαβάζει μόνο αθροίσματα ελέγχου. Ο συγχρονισμός ανανεώνει επίσης τα αθροίσματα της συσκευής Smart χωρίς αλλαγή pixel ή έργου."
+
+msgid "Write the entire symbol library, including defaults, to this device and restart it?"
+msgstr "Εγγραφή όλης της βιβλιοθήκης συμβόλων, μαζί με τις προεπιλογές, στη συσκευή και επανεκκίνηση;"
+
+msgid "The complete default library is not attached to this project."
+msgstr "Η πλήρης προεπιλεγμένη βιβλιοθήκη δεν είναι συνημμένη στο έργο."
+
+msgid "The project changed while choosing the library. Please import it again."
+msgstr "Το έργο άλλαξε κατά την επιλογή βιβλιοθήκης. Εισαγάγετέ την ξανά."

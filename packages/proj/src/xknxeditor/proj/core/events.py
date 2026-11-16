@@ -27,6 +27,7 @@ from xknxeditor.proj.models import (
     ComObject,
     ComObjectLink,
     Device,
+    DeviceAddinData,
     DeviceAdditionalAddress,
     DeviceBinaryData,
     Function,
@@ -496,6 +497,7 @@ class AddDevice(Event):
     )
     # The space the device is added to, None for none.
     space_id: int | None = None
+    addin_data: list[list[str]] = field(default_factory=list[list[str]])
     device_id: int | None = None
     parameter_ids: list[int] = field(default_factory=list[int])
     com_object_ids: list[int] = field(default_factory=list[int])
@@ -535,6 +537,20 @@ class AddDevice(Event):
             if i < len(self.com_object_ids):
                 com_object.id = self.com_object_ids[i]
             device.com_objects.append(com_object)
+        for attachment in self.addin_data:
+            app_id, suffix, payload = attachment[:3]
+            metadata = attachment[3] if len(attachment) > 3 else ""
+            from .addin_data import validate_key
+
+            validate_key(app_id, suffix)
+            device.addin_data.append(
+                DeviceAddinData(
+                    app_id=app_id,
+                    suffix=suffix,
+                    data=base64.b64decode(payload, validate=True),
+                    metadata_xml=metadata,
+                )
+            )
         _set_additional_entries(device, self.additional_addresses)
         session.add(device)
         session.flush()
@@ -557,6 +573,7 @@ class AddDevice(Event):
             "hardware2program_ref_id": self.hardware2program_ref_id,
             "application_program_ref_id": self.application_program_ref_id,
             "parameters": self.parameters,
+            "addin_data": self.addin_data,
             "com_objects": self.com_objects,
             "module_instances": self.module_instances,
             "product_name": self.product_name,
@@ -915,13 +932,21 @@ class ChangeDeviceApplication(Event):
             device.module_instances,
             device.com_objects,
             device.binary_data,
+            device.addin_data,
         ):
             for row in list(rows):
                 self.removed.extend(_snapshot_subtree(row))
                 session.delete(row)
         session.flush()
         session.expire(
-            device, ["parameters", "module_instances", "com_objects", "binary_data"]
+            device,
+            [
+                "parameters",
+                "module_instances",
+                "com_objects",
+                "binary_data",
+                "addin_data",
+            ],
         )
 
         device.hardware2program_ref_id = self.new_hardware2program_ref_id
@@ -4879,6 +4904,76 @@ class UpsertDeviceBinaryData(Event):
         prev = payload.get("previous")
         payload["previous"] = _decode_previous(prev)
         return cls(**payload)
+
+
+@_register
+@dataclass
+class SetDeviceAddinData(Event):
+    """Update related app attachments in a single reversible operation."""
+
+    event_type: ClassVar[str] = "SetDeviceAddinData"
+    device_id: int
+    app_id: str
+    entries: dict[str, str | None]
+    previous: list[dict[str, Any]] | None = None
+    metadata: dict[str, str] = field(default_factory=dict[str, str])
+
+    def apply(self, session: Session) -> None:
+        from .addin_data import validate_key
+
+        device = session.get(Device, self.device_id)
+        if device is None:
+            raise ValueError("Device no longer exists")
+        for suffix, data in self.entries.items():
+            validate_key(self.app_id, suffix)
+            if data is not None:
+                base64.b64decode(data, validate=True)
+        rows = [
+            r
+            for r in device.addin_data
+            if r.app_id == self.app_id and r.suffix in self.entries
+        ]
+        self.previous = [_row_to_dict(r) for r in rows]
+        metadata = {r.suffix: r.metadata_xml for r in rows}
+        metadata.update(self.metadata)
+        for row in rows:
+            device.addin_data.remove(row)
+        session.flush()
+        for suffix, data in self.entries.items():
+            if data is not None:
+                device.addin_data.append(
+                    DeviceAddinData(
+                        app_id=self.app_id,
+                        suffix=suffix,
+                        data=base64.b64decode(data),
+                        metadata_xml=metadata.get(suffix, ""),
+                    )
+                )
+        session.flush()
+
+    def revert(self, session: Session) -> None:
+        device = session.get(Device, self.device_id)
+        if device is None:
+            raise ValueError("Device no longer exists")
+        for row in list(device.addin_data):
+            if row.app_id == self.app_id and row.suffix in self.entries:
+                device.addin_data.remove(row)
+        session.flush()
+        _restore_rows(session, self.previous or [])
+        session.expire(device, ["addin_data"])
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "device_id": self.device_id,
+            "app_id": self.app_id,
+            "entries": self.entries,
+            "previous": self.previous,
+            "metadata": self.metadata,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> SetDeviceAddinData:
+        return cls(**data)
 
 
 def _encode_previous(previous: dict[str, Any] | None) -> dict[str, Any] | None:

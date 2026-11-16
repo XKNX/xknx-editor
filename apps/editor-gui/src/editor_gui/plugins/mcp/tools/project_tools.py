@@ -38,6 +38,363 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
     def _result(count: int, errors: list[str], key: str) -> dict[str, Any]:
         return {key: count, "errors": errors}
 
+    @tool("read", open_world=True)
+    def project_compare_mdt_symbols(
+        node_id: int | None = None,
+        device_address: str | None = None,
+        timeout: float = 120,
+    ) -> dict[int, bool]:
+        """Read device CRCs and compare all symbols including defaults, without writing or restarting.
+        Address by node_id OR device_address. Missing default pixels must be available in
+        the attached app library; otherwise the operation fails before bus access.
+        Returns zero-based slot -> equal.
+        """
+        return _run_symbols(
+            node_id, device_address, timeout, False, include_defaults=True
+        )
+
+    @tool("destructive", open_world=True)
+    def project_program_mdt_symbols(
+        node_id: int | None = None,
+        device_address: str | None = None,
+        timeout: float = 180,
+        include_defaults: bool = False,
+    ) -> int:
+        """Write every stored custom MDT symbol, verify CRCs, then restart the device.
+        Address by node_id OR device_address. Honors Block Bus Writes; returns symbols written.
+        Set include_defaults=true for the entire library, including protected original defaults.
+        Requires the attached library for missing slots. Does not program firmware.
+        """
+        return _run_symbols(
+            node_id, device_address, timeout, True, include_defaults=include_defaults
+        )
+
+    @tool("write", open_world=True)
+    def project_synchronize_mdt_symbols(
+        node_id: int | None = None,
+        device_address: str | None = None,
+        timeout: float = 120,
+    ) -> dict[int, bool]:
+        """Refresh Smart device CRCs, then compare all custom and default symbols.
+        Address by node_id OR device_address. Requires the complete attached library.
+        Writes checksum control on Smart, only reads on Central. Honors Block Bus Writes.
+        Does not write pixels, restart, or change the project. Returns zero-based slot -> equal.
+        """
+        return _run_symbols(
+            node_id,
+            device_address,
+            timeout,
+            False,
+            include_defaults=True,
+            synchronize=True,
+        )
+
+    def _run_symbols(
+        node_id: int | None,
+        device_address: str | None,
+        timeout: float,
+        writes: bool,
+        *,
+        include_defaults: bool,
+        synchronize: bool = False,
+    ) -> Any:
+        from editor_gui.plugins.mcp.tools.connection import (
+            await_operation,
+            finished,
+            not_started,
+            wait_for_operation,
+        )
+        from editor_gui.plugins.project.program_queue import ORIGIN_MCP
+
+        require_project(ctx)
+        service = ctx.api.connection
+
+        def start() -> tuple[Any, Any]:
+            device = require_device(project, node_id, device_address)
+            symbols = project.mdt_symbol_payload(
+                device.node_id, include_defaults=include_defaults
+            )
+            if ctx.api.queue_action is not None:
+                return ctx.api.queue_action(
+                    device.node_id,
+                    "mdt_symbols",
+                    origin=ORIGIN_MCP,
+                    symbols=symbols,
+                    writes=writes,
+                    include_defaults=include_defaults,
+                    synchronize=synchronize,
+                ), None
+            return None, service.run_mdt_symbols(
+                device, symbols, writes=writes, synchronize=synchronize
+            )
+
+        item, future = ctx.run_locked(start)
+        if item is not None:
+            return finished(wait_for_operation(ctx, item, timeout)).result
+        if future is None:
+            raise not_started(service, "the symbol operation")
+        return await_operation(service, future, timeout, "the symbol operation")
+
+    @tool("write")
+    def project_load_mdt_default_symbols(
+        new_library: bool = False,
+        node_id: int | None = None,
+        device_address: str | None = None,
+    ) -> dict[str, Any]:
+        """Replace all custom symbols with defaults in one undo step, without bus access.
+        Address by node_id OR device_address. Smart: new_library=false selects the first
+        library, true the second, independently of the device generation. Central has one.
+        Requires original pixel resources attached to the project. Program with
+        project_program_mdt_symbols(include_defaults=true) to transfer the complete library.
+        """
+        require_project(ctx)
+
+        def apply() -> dict[str, Any]:
+            device = require_device(project, node_id, device_address)
+            project.load_mdt_default_symbols(device.node_id, new_library=new_library)
+            return project.mdt_symbols(device.node_id)
+
+        return ctx.run_locked(apply)
+
+    @tool("write")
+    def project_import_mdt_symbol_library(
+        path: str,
+        invert: bool = False,
+        node_id: int | None = None,
+        device_address: str | None = None,
+    ) -> dict[str, Any]:
+        """Import a complete symbol ZIP from a local editor path in one undo step, offline.
+        Address by node_id OR device_address. Root-level Symbol_3.bmp..Symbol_36.bmp for
+        Smart or Symbol_1.bmp..Symbol_20.bmp for Central, exactly 64x64 pixels, BMP format.
+        Replaces every editable slot; protected slots and library selection stay unchanged.
+        RGB average below 128 is black; invert reverses all colors before conversion.
+        Returns the current library. Use project_program_mdt_symbols to transfer it.
+        """
+        require_project(ctx)
+        archive = Path(path).read_bytes()
+
+        def apply() -> dict[str, Any]:
+            device = require_device(project, node_id, device_address)
+            project.import_mdt_symbol_library(device.node_id, archive, invert=invert)
+            return project.mdt_symbols(device.node_id)
+
+        return ctx.run_locked(apply)
+
+    @tool("write")
+    def project_export_mdt_symbol_library(
+        path: str, node_id: int | None = None, device_address: str | None = None
+    ) -> dict[str, Any]:
+        """Export all editable effective symbols to a ZIP at a local editor path.
+        Address by node_id OR device_address. Contains 64x64 black/white BMP files named
+        Symbol_3.bmp..Symbol_36.bmp (Smart) or Symbol_1.bmp..Symbol_20.bmp (Central).
+        Resolves defaults from the attached app resources; fails if pixels are missing.
+        No bus or project changes. Returns path and bytes.
+        """
+        require_project(ctx)
+        data = ctx.run_locked(
+            lambda: project.export_mdt_symbol_library(
+                require_device(project, node_id, device_address).node_id
+            )
+        )
+        Path(path).write_bytes(data)
+        return {"path": path, "bytes": len(data)}
+
+    @tool("write")
+    def project_import_mdt_visucontrol(
+        path: str, node_id: int | None = None, device_address: str | None = None
+    ) -> dict[str, Any]:
+        """Import an .etsvcp into a VisuControl Plus device. Path is local to the editor.
+        Address by node_id OR device_address. Validates the complete image before an atomic
+        undoable edit. Empty scheduler/scene parts retain their previous values.
+        Preserves compatible links and returns lost_links for removed objects.
+        """
+        require_project(ctx)
+        data = Path(path).read_bytes()
+        return ctx.run_locked(
+            lambda: {
+                "lost_links": project.import_mdt_visucontrol(
+                    require_device(project, node_id, device_address).node_id, data
+                )
+            }
+        )
+
+    @tool("write")
+    def project_export_mdt_visucontrol(
+        path: str, node_id: int | None = None, device_address: str | None = None
+    ) -> dict[str, Any]:
+        """Export the current VisuControl Plus configuration to .etsvcp at a local editor path.
+        Address by node_id OR device_address. Returns path and bytes; no project or bus changes.
+        """
+        require_project(ctx)
+        data = ctx.run_locked(
+            lambda: project.export_mdt_visucontrol(
+                require_device(project, node_id, device_address).node_id
+            )
+        )
+        Path(path).write_bytes(data)
+        return {"path": path, "bytes": len(data)}
+
+    @tool("read")
+    def project_mdt_symbols(
+        node_id: int | None = None, device_address: str | None = None
+    ) -> dict[str, Any]:
+        """Read an MDT Smart device's symbol library and custom slots. Address by node_id OR
+        device_address. Returns app_id, slots, first_custom_slot, new_library, slot_info
+        (zero-based slot, localized name, fixed role or null, group, editable), groups
+        (functional/normal with localized labels), symbols and defaults from the attached
+        library (slot, grayscale_hex: 4096 row-major pixels, data_hex: 514 packed bytes
+        including CRC). Protected slots are included for viewing; names are fixed by the
+        device family, not editable fields."""
+        require_project(ctx)
+        return ctx.run_locked(
+            lambda: project.mdt_symbols(
+                require_device(project, node_id, device_address).node_id
+            )
+        )
+
+    @tool("read")
+    def project_mdt_layout(
+        node_id: int | None = None, device_address: str | None = None
+    ) -> dict[str, Any]:
+        """Read GTS page layouts and function choices. Address by node_id OR device_address.
+        Returns orientation V/H, display width/height, pages (number, name, orientation,
+        status, tiles), functions and status_functions (number, name). Page 0 is standby day,
+        -1 standby night, positive numbers regular pages. Tile fields: positive x/y device
+        coordinates, kind 0..6, function number, transparency from
+        [255,32,29,26,23,20,16,13,10,6,3,0] (255 default), color 0 default, 1/2 individual colors."""
+        require_project(ctx)
+        return ctx.run_locked(
+            lambda: project.mdt_layout(
+                require_device(project, node_id, device_address).node_id
+            )
+        )
+
+    @tool("write")
+    def project_set_mdt_layout(
+        page_number: int,
+        name: str,
+        orientation: str,
+        tiles: list[dict[str, int]],
+        node_id: int | None = None,
+        device_address: str | None = None,
+    ) -> dict[str, Any]:
+        """Replace one GTS page layout, at most 12 tiles, in one undo step. Address by node_id
+        OR device_address. Use page_number, orientation and tile fields from project_mdt_layout.
+        Writes ordinary device parameters and keeps surviving object links. No bus access."""
+        require_project(ctx)
+
+        def apply() -> dict[str, Any]:
+            device = require_device(project, node_id, device_address)
+            project.set_mdt_layout(
+                device.node_id, page_number, name, orientation, tiles
+            )
+            return project.mdt_layout(device.node_id)
+
+        return ctx.run_locked(apply)
+
+    @tool("write")
+    def project_set_mdt_symbol(
+        slot: int,
+        grayscale_hex: str | None = None,
+        node_id: int | None = None,
+        device_address: str | None = None,
+    ) -> dict[str, Any]:
+        """Set a zero-based MDT custom symbol slot, or remove its override with null.
+        Slots start at first_custom_slot from project_mdt_symbols (2 for Smart, 0 for Central).
+        grayscale_hex holds 4096 row-major bytes, 64 by 64, black below 128. Address by
+        node_id OR device_address. One undo step, no bus access. Returns the current library."""
+        require_project(ctx)
+
+        def apply() -> dict[str, Any]:
+            device = require_device(project, node_id, device_address)
+            project.set_mdt_symbol(device.node_id, slot, grayscale_hex)
+            return project.mdt_symbols(device.node_id)
+
+        return ctx.run_locked(apply)
+
+    @tool("write")
+    def project_restore_mdt_symbol(
+        slot: int, node_id: int | None = None, device_address: str | None = None
+    ) -> dict[str, Any]:
+        """Restore a zero-based symbol slot from the app library attached to this project.
+        Address by node_id OR device_address. Creates a stored symbol in one undo step;
+        use project_program_mdt_symbols to transfer it. No DLL is executed.
+        """
+        require_project(ctx)
+
+        def restore() -> dict[str, Any]:
+            device = require_device(project, node_id, device_address)
+            project.restore_mdt_symbol(device.node_id, slot)
+            return project.mdt_symbols(device.node_id)
+
+        return ctx.run_locked(restore)
+
+    @tool("write")
+    def project_set_mdt_symbol_library(
+        new_library: bool, node_id: int | None = None, device_address: str | None = None
+    ) -> dict[str, Any]:
+        """Select the newer or older default symbol library for an MDT Smart device.
+        Address by node_id OR device_address. Does not write to the bus or replace custom
+        symbols; changes the library selection in one undo step. Returns the current library."""
+        require_project(ctx)
+
+        def apply() -> dict[str, Any]:
+            device = require_device(project, node_id, device_address)
+            project.set_mdt_symbol_library(device.node_id, new_library)
+            return project.mdt_symbols(device.node_id)
+
+        return ctx.run_locked(apply)
+
+    @tool("write")
+    def project_import_mdt_symbol(
+        path: str,
+        slot: int,
+        node_id: int | None = None,
+        device_address: str | None = None,
+    ) -> dict[str, Any]:
+        """Import a 64 by 64 PNG/BMP or 514-byte .data into a zero-based MDT symbol slot.
+        Images must be exactly 64 by 64 pixels; no resizing. Black and white with a solid
+        white background is recommended. RGB channels are averaged; below 128 becomes
+        black on the device, otherwise white. Alpha/transparency is ignored. MDT .data
+        must contain one packed symbol with a valid checksum. Replaces the selected
+        symbol in the project; use project_program_mdt_symbols to transfer to the device.
+        Path is local to the running editor. Address by node_id OR device_address.
+        One undo step, no bus access; returns the current library."""
+        from xknxeditor.vendor.mdt.symbols import import_symbol_image
+
+        return project_set_mdt_symbol(
+            slot,
+            import_symbol_image(Path(path).read_bytes()).hex(),
+            node_id,
+            device_address,
+        )
+
+    @tool("write")
+    def project_export_mdt_symbol(
+        path: str,
+        slot: int,
+        node_id: int | None = None,
+        device_address: str | None = None,
+    ) -> dict[str, str]:
+        """Export a custom or attached default symbol as a 64 by 64 grayscale PNG to a local
+        editor path. Preserves imported grayscale values; the device uses a black/white
+        threshold of 128. Address by node_id OR device_address; slot is zero-based.
+        Fails for a default symbol without pixel data.
+        Returns path. Does not change the project or access the bus."""
+        from xknxeditor.vendor.mdt.symbols import export_symbol_image
+
+        view = project_mdt_symbols(node_id, device_address)
+        symbol = next(
+            (s for s in (*view["symbols"], *view["defaults"]) if s["slot"] == slot),
+            None,
+        )
+        if symbol is None:
+            raise ToolError("No symbol pixels available in this slot")
+        Path(path).write_bytes(
+            export_symbol_image(bytes.fromhex(symbol["grayscale_hex"]))
+        )
+        return {"path": path}
+
     @tool("write")
     def project_extended_copy(
         node_id: int | None = None,

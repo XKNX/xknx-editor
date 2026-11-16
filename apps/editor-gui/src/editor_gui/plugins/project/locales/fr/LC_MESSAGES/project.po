@@ -3346,3 +3346,158 @@ msgstr "Sélectionnez les deux appareils à comparer."
 
 msgid "Loading application programs… {done}/{total}"
 msgstr "Chargement des programmes d'application… {done}/{total}"
+msgid "Symbol"
+msgstr "Symbole"
+
+msgid "Use the newer symbol library"
+msgstr "Utiliser la bibliothèque de symboles récente"
+
+msgid "Import Symbol…"
+msgstr "Importer un symbole…"
+
+msgid "Export Symbol…"
+msgstr "Exporter un symbole…"
+
+msgid "Draw pixels"
+msgstr "Dessiner des pixels"
+
+msgid "No custom symbol is stored in this slot."
+msgstr "Aucun symbole personnalisé n’est enregistré à cet emplacement."
+
+msgid "Page"
+msgstr "Page"
+
+msgid "Tile"
+msgstr "Tuile"
+
+msgid "Color"
+msgstr "Couleur"
+
+msgid "Transparency"
+msgstr "Transparence"
+
+msgid "Program Symbols…"
+msgstr "Programmer les symboles…"
+
+msgid "Compare Symbols with Device"
+msgstr "Comparer les symboles avec l’appareil"
+
+msgid "Write the custom symbols to this device and restart it?"
+msgstr "Écrire les symboles personnalisés sur cet appareil et le redémarrer ?"
+
+msgid "Select the device type and enable a page in Parameters to edit its layout."
+msgstr "Sélectionnez le type d’appareil et activez une page dans Paramètres pour modifier sa disposition."
+
+msgid "Restore Default Symbol"
+msgstr "Restaurer le symbole par défaut"
+
+msgid "Standby Page (Day)"
+msgstr "Page de veille (jour)"
+
+msgid "Standby Page (Night)"
+msgstr "Page de veille (nuit)"
+
+msgid "Special Symbol"
+msgstr "Symbole spécial"
+
+msgid "Mode: Automatic"
+msgstr "Mode : automatique"
+
+msgid "Mode: Comfort"
+msgstr "Mode : confort"
+
+msgid "Mode: Standby"
+msgstr "Mode : veille"
+
+msgid "Mode: Night"
+msgstr "Mode : nuit"
+
+msgid "Mode: Frost Protection"
+msgstr "Mode : protection antigel"
+
+msgid "Mode: Heat Protection"
+msgstr "Mode : protection contre la chaleur"
+
+msgid "Temperature"
+msgstr "Température"
+
+msgid "Cooling"
+msgstr "Refroidissement"
+
+msgid "Heating"
+msgstr "Chauffage"
+
+msgid "Functionally Linked Symbols"
+msgstr "Symboles liés aux fonctions"
+
+msgid "Normal Symbols"
+msgstr "Symboles normaux"
+
+msgid "This symbol is fixed and cannot be changed."
+msgstr "Ce symbole est fixe et ne peut pas être modifié."
+
+msgid "No symbol preview is available in this project."
+msgstr "Aucun aperçu du symbole n’est disponible dans ce projet."
+
+msgid "Import: PNG/BMP, exactly 64 x 64 pixels, or MDT .data."
+msgstr "Import : PNG/BMP de 64 x 64 pixels exactement, ou MDT .data."
+
+msgid "Format Details"
+msgstr "Détails du format"
+
+msgid "Images are not resized. Use black and white with a solid white background. Transparency is ignored."
+msgstr "Les images ne sont pas redimensionnées. Utilisez du noir et blanc sur un fond blanc opaque. La transparence est ignorée."
+
+msgid "Colors are converted to the average of red, green and blue. Values below 128 appear black on the device; 128 and above appear white."
+msgstr "Les couleurs sont converties en moyenne du rouge, du vert et du bleu. Les valeurs inférieures à 128 apparaissent en noir sur l’appareil, et à partir de 128 en blanc."
+
+msgid "MDT .data contains one symbol: 514 bytes including a valid checksum."
+msgstr "MDT .data contient un symbole : 514 octets avec une somme de contrôle valide."
+
+msgid "Export saves the selected symbol as a 64 x 64 PNG. Imported grayscale values are preserved."
+msgstr "L’export enregistre le symbole sélectionné en PNG de 64 x 64 pixels. Les valeurs de gris importées sont conservées."
+
+msgid "Import replaces only the selected symbol in the project. To transfer it to the device, use {button}."
+msgstr "L’import remplace uniquement le symbole sélectionné dans le projet. Pour le transférer à l’appareil, utilisez {button}."
+
+msgid "Load Default Symbols"
+msgstr "Charger les symboles par défaut"
+
+msgid "Load Defaults (1st Generation)"
+msgstr "Charger les valeurs par défaut (1re génération)"
+
+msgid "Load Defaults (2nd Generation)"
+msgstr "Charger les valeurs par défaut (2e génération)"
+
+msgid "Import Symbol Library…"
+msgstr "Importer une bibliothèque de symboles…"
+
+msgid "Export Symbol Library…"
+msgstr "Exporter la bibliothèque de symboles…"
+
+msgid "Invert imported library"
+msgstr "Inverser la bibliothèque importée"
+
+msgid "Include default symbols when programming"
+msgstr "Inclure les symboles par défaut lors de la programmation"
+
+msgid "Synchronize Symbols"
+msgstr "Synchroniser les symboles"
+
+msgid "Loading defaults replaces all custom symbols in the project. Undo restores them. Program with defaults included to transfer the entire library."
+msgstr "Le chargement des valeurs par défaut remplace tous les symboles personnalisés du projet. Annuler les restaure. Incluez les symboles par défaut pour transférer toute la bibliothèque."
+
+msgid "ZIP: Symbol_{first}.bmp through Symbol_{last}.bmp at the archive root, each 64 x 64 pixels. Import replaces all editable symbols; export saves their black-and-white device pixels."
+msgstr "ZIP : Symbol_{first}.bmp à Symbol_{last}.bmp à la racine, chacun de 64 x 64 pixels. L’import remplace tous les symboles modifiables ; l’export enregistre leurs pixels noir et blanc pour l’appareil."
+
+msgid "Compare only reads checksums. Synchronize also refreshes Smart device checksums, without changing pixels or the project."
+msgstr "Comparer lit uniquement les sommes de contrôle. Synchroniser actualise aussi celles de l’appareil Smart, sans modifier les pixels ni le projet."
+
+msgid "Write the entire symbol library, including defaults, to this device and restart it?"
+msgstr "Écrire toute la bibliothèque de symboles, y compris ceux par défaut, sur cet appareil et le redémarrer ?"
+
+msgid "The complete default library is not attached to this project."
+msgstr "La bibliothèque complète par défaut n’est pas jointe à ce projet."
+
+msgid "The project changed while choosing the library. Please import it again."
+msgstr "Le projet a changé pendant le choix de la bibliothèque. Veuillez l’importer à nouveau."

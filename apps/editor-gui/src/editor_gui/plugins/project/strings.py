@@ -8,6 +8,209 @@ _ = create_translator("project", _locale_dir)
 
 class ProjectStrings:
     @property
+    def MDT_LOAD_DEFAULTS(self) -> str:
+        return _("Load Default Symbols")
+
+    @property
+    def MDT_LOAD_FIRST_LIBRARY(self) -> str:
+        return _("Load Defaults (1st Generation)")
+
+    @property
+    def MDT_LOAD_SECOND_LIBRARY(self) -> str:
+        return _("Load Defaults (2nd Generation)")
+
+    @property
+    def MDT_IMPORT_LIBRARY(self) -> str:
+        return _("Import Symbol Library…")
+
+    @property
+    def MDT_EXPORT_LIBRARY(self) -> str:
+        return _("Export Symbol Library…")
+
+    @property
+    def MDT_INVERT_LIBRARY(self) -> str:
+        return _("Invert imported library")
+
+    @property
+    def MDT_INCLUDE_DEFAULTS(self) -> str:
+        return _("Include default symbols when programming")
+
+    @property
+    def MDT_SYNCHRONIZE_SYMBOLS(self) -> str:
+        return _("Synchronize Symbols")
+
+    @property
+    def MDT_LIBRARY_HELP(self) -> str:
+        return _(
+            "Loading defaults replaces all custom symbols in the project. Undo restores them. Program with defaults included to transfer the entire library."
+        )
+
+    @property
+    def MDT_ZIP_HELP(self) -> str:
+        return _(
+            "ZIP: Symbol_{first}.bmp through Symbol_{last}.bmp at the archive root, each 64 x 64 pixels. Import replaces all editable symbols; export saves their black-and-white device pixels."
+        )
+
+    @property
+    def MDT_SYNC_HELP(self) -> str:
+        return _(
+            "Compare only reads checksums. Synchronize also refreshes Smart device checksums, without changing pixels or the project."
+        )
+
+    @property
+    def MDT_PROGRAM_ALL_CONFIRM(self) -> str:
+        return _(
+            "Write the entire symbol library, including defaults, to this device and restart it?"
+        )
+
+    @property
+    def MDT_LIBRARY_MISSING(self) -> str:
+        return _("The complete default library is not attached to this project.")
+
+    @property
+    def MDT_IMPORT_STALE(self) -> str:
+        return _(
+            "The project changed while choosing the library. Please import it again."
+        )
+
+    @property
+    def MDT_SYMBOL_IMPORT_HINT(self) -> str:
+        return _("Import: PNG/BMP, exactly 64 x 64 pixels, or MDT .data.")
+
+    @property
+    def MDT_SYMBOL_FORMAT_DETAILS(self) -> str:
+        return _("Format Details")
+
+    @property
+    def MDT_SYMBOL_IMAGE_HELP(self) -> str:
+        return _(
+            "Images are not resized. Use black and white with a solid white background. "
+            "Transparency is ignored."
+        )
+
+    @property
+    def MDT_SYMBOL_COLOR_HELP(self) -> str:
+        return _(
+            "Colors are converted to the average of red, green and blue. Values below "
+            "128 appear black on the device; 128 and above appear white."
+        )
+
+    @property
+    def MDT_SYMBOL_DATA_HELP(self) -> str:
+        return _("MDT .data contains one symbol: 514 bytes including a valid checksum.")
+
+    @property
+    def MDT_SYMBOL_EXPORT_HELP(self) -> str:
+        return _(
+            "Export saves the selected symbol as a 64 x 64 PNG. Imported grayscale "
+            "values are preserved."
+        )
+
+    @property
+    def MDT_SYMBOL_IMPORT_PROJECT_HELP(self) -> str:
+        return _(
+            "Import replaces only the selected symbol in the project. To transfer it "
+            "to the device, use {button}."
+        )
+
+    @property
+    def MDT_SYMBOL_ROLES(self) -> dict[str, str]:
+        return {
+            "special": _("Special Symbol"),
+            "automatic": _("Mode: Automatic"),
+            "comfort": _("Mode: Comfort"),
+            "standby": _("Mode: Standby"),
+            "night": _("Mode: Night"),
+            "frost_protection": _("Mode: Frost Protection"),
+            "heat_protection": _("Mode: Heat Protection"),
+            "temperature": _("Temperature"),
+            "cooling": _("Cooling"),
+            "heating": _("Heating"),
+        }
+
+    @property
+    def MDT_SYMBOL_GROUPS(self) -> dict[str, str]:
+        return {
+            "functional": _("Functionally Linked Symbols"),
+            "normal": _("Normal Symbols"),
+        }
+
+    @property
+    def MDT_SYMBOL_PROTECTED(self) -> str:
+        return _("This symbol is fixed and cannot be changed.")
+
+    @property
+    def MDT_SYMBOL_UNAVAILABLE(self) -> str:
+        return _("No symbol preview is available in this project.")
+
+    @property
+    def MDT_STATUS_DAY(self) -> str:
+        return _("Standby Page (Day)")
+
+    @property
+    def MDT_STATUS_NIGHT(self) -> str:
+        return _("Standby Page (Night)")
+
+    @property
+    def MDT_RESTORE_SYMBOL(self) -> str:
+        return _("Restore Default Symbol")
+
+    @property
+    def MDT_DEFAULT_VALUE(self) -> str:
+        return _("Default")
+
+    @property
+    def MDT_NO_PAGES(self) -> str:
+        return _(
+            "Select the device type and enable a page in Parameters to edit its layout."
+        )
+
+    @property
+    def MDT_PROGRAM_SYMBOLS(self) -> str:
+        return _("Program Symbols…")
+
+    @property
+    def MDT_COMPARE_SYMBOLS(self) -> str:
+        return _("Compare Symbols with Device")
+
+    @property
+    def MDT_PROGRAM_CONFIRM(self) -> str:
+        return _("Write the custom symbols to this device and restart it?")
+
+    @property
+    def MDT_LAYOUT_FIELDS(self) -> dict[str, str]:
+        return {
+            "page": _("Page"),
+            "tile": _("Tile"),
+            "color": _("Color"),
+            "transparency": _("Transparency"),
+        }
+
+    @property
+    def MDT_SYMBOL(self) -> str:
+        return _("Symbol")
+
+    @property
+    def MDT_NEW_LIBRARY(self) -> str:
+        return _("Use the newer symbol library")
+
+    @property
+    def MDT_IMPORT_SYMBOL(self) -> str:
+        return _("Import Symbol…")
+
+    @property
+    def MDT_EXPORT_SYMBOL(self) -> str:
+        return _("Export Symbol…")
+
+    @property
+    def MDT_DRAW_SYMBOL(self) -> str:
+        return _("Draw pixels")
+
+    @property
+    def MDT_DEFAULT_SYMBOL(self) -> str:
+        return _("No custom symbol is stored in this slot.")
+
+    @property
     def PLUGIN_ORIGINAL_FIELDS(self) -> dict[str, str]:
         return {
             "database": _("Database"),

@@ -3394,3 +3394,158 @@ msgstr "Виберіть два пристрої для порівняння."
 
 msgid "Loading application programs… {done}/{total}"
 msgstr "Завантаження прикладних програм… {done}/{total}"
+msgid "Symbol"
+msgstr "Символ"
+
+msgid "Use the newer symbol library"
+msgstr "Використовувати новішу бібліотеку символів"
+
+msgid "Import Symbol…"
+msgstr "Імпортувати символ…"
+
+msgid "Export Symbol…"
+msgstr "Експортувати символ…"
+
+msgid "Draw pixels"
+msgstr "Малювати пікселі"
+
+msgid "No custom symbol is stored in this slot."
+msgstr "У цій позиції не збережено власного символу."
+
+msgid "Page"
+msgstr "Сторінка"
+
+msgid "Tile"
+msgstr "Плитка"
+
+msgid "Color"
+msgstr "Колір"
+
+msgid "Transparency"
+msgstr "Прозорість"
+
+msgid "Program Symbols…"
+msgstr "Запрограмувати символи…"
+
+msgid "Compare Symbols with Device"
+msgstr "Порівняти символи з пристроєм"
+
+msgid "Write the custom symbols to this device and restart it?"
+msgstr "Записати власні символи на цей пристрій і перезапустити його?"
+
+msgid "Select the device type and enable a page in Parameters to edit its layout."
+msgstr "Виберіть тип пристрою й увімкніть сторінку в розділі «Параметри», щоб змінити її макет."
+
+msgid "Restore Default Symbol"
+msgstr "Відновити типовий символ"
+
+msgid "Standby Page (Day)"
+msgstr "Сторінка очікування (день)"
+
+msgid "Standby Page (Night)"
+msgstr "Сторінка очікування (ніч)"
+
+msgid "Special Symbol"
+msgstr "Спеціальний символ"
+
+msgid "Mode: Automatic"
+msgstr "Режим: автоматичний"
+
+msgid "Mode: Comfort"
+msgstr "Режим: комфорт"
+
+msgid "Mode: Standby"
+msgstr "Режим: очікування"
+
+msgid "Mode: Night"
+msgstr "Режим: ніч"
+
+msgid "Mode: Frost Protection"
+msgstr "Режим: захист від замерзання"
+
+msgid "Mode: Heat Protection"
+msgstr "Режим: захист від перегріву"
+
+msgid "Temperature"
+msgstr "Температура"
+
+msgid "Cooling"
+msgstr "Охолодження"
+
+msgid "Heating"
+msgstr "Опалення"
+
+msgid "Functionally Linked Symbols"
+msgstr "Символи, пов’язані з функціями"
+
+msgid "Normal Symbols"
+msgstr "Звичайні символи"
+
+msgid "This symbol is fixed and cannot be changed."
+msgstr "Цей символ фіксований і не може бути змінений."
+
+msgid "No symbol preview is available in this project."
+msgstr "У цьому проєкті немає попереднього перегляду символу."
+
+msgid "Import: PNG/BMP, exactly 64 x 64 pixels, or MDT .data."
+msgstr "Імпорт: PNG/BMP розміром рівно 64 x 64 пікселі або MDT .data."
+
+msgid "Format Details"
+msgstr "Відомості про формат"
+
+msgid "Images are not resized. Use black and white with a solid white background. Transparency is ignored."
+msgstr "Розмір зображень не змінюється. Використовуйте чорно-біле зображення з непрозорим білим тлом. Прозорість ігнорується."
+
+msgid "Colors are converted to the average of red, green and blue. Values below 128 appear black on the device; 128 and above appear white."
+msgstr "Кольори перетворюються на середнє значення червоного, зеленого та синього. Значення нижче 128 відображаються на пристрої чорним, від 128 — білим."
+
+msgid "MDT .data contains one symbol: 514 bytes including a valid checksum."
+msgstr "MDT .data містить один символ: 514 байтів із коректною контрольною сумою."
+
+msgid "Export saves the selected symbol as a 64 x 64 PNG. Imported grayscale values are preserved."
+msgstr "Експорт зберігає вибраний символ як PNG 64 x 64. Імпортовані значення відтінків сірого зберігаються."
+
+msgid "Import replaces only the selected symbol in the project. To transfer it to the device, use {button}."
+msgstr "Імпорт замінює лише вибраний символ у проєкті. Для передавання на пристрій використовуйте {button}."
+
+msgid "Load Default Symbols"
+msgstr "Завантажити стандартні символи"
+
+msgid "Load Defaults (1st Generation)"
+msgstr "Завантажити стандартні (1-ше покоління)"
+
+msgid "Load Defaults (2nd Generation)"
+msgstr "Завантажити стандартні (2-ге покоління)"
+
+msgid "Import Symbol Library…"
+msgstr "Імпортувати бібліотеку символів…"
+
+msgid "Export Symbol Library…"
+msgstr "Експортувати бібліотеку символів…"
+
+msgid "Invert imported library"
+msgstr "Інвертувати імпортовану бібліотеку"
+
+msgid "Include default symbols when programming"
+msgstr "Включати стандартні символи під час програмування"
+
+msgid "Synchronize Symbols"
+msgstr "Синхронізувати символи"
+
+msgid "Loading defaults replaces all custom symbols in the project. Undo restores them. Program with defaults included to transfer the entire library."
+msgstr "Завантаження стандартних символів замінює всі власні символи проєкту. Скасування відновлює їх. Для передавання всієї бібліотеки включіть стандартні символи під час програмування."
+
+msgid "ZIP: Symbol_{first}.bmp through Symbol_{last}.bmp at the archive root, each 64 x 64 pixels. Import replaces all editable symbols; export saves their black-and-white device pixels."
+msgstr "ZIP: від Symbol_{first}.bmp до Symbol_{last}.bmp у корені архіву, кожен 64 x 64 пікселі. Імпорт замінює всі редаговані символи; експорт зберігає їхні чорно-білі пікселі для пристрою."
+
+msgid "Compare only reads checksums. Synchronize also refreshes Smart device checksums, without changing pixels or the project."
+msgstr "Порівняння лише читає контрольні суми. Синхронізація також оновлює їх у пристрої Smart, не змінюючи пікселі або проєкт."
+
+msgid "Write the entire symbol library, including defaults, to this device and restart it?"
+msgstr "Записати всю бібліотеку символів, включно зі стандартними, у цей пристрій і перезапустити його?"
+
+msgid "The complete default library is not attached to this project."
+msgstr "Повна стандартна бібліотека не прикріплена до цього проєкту."
+
+msgid "The project changed while choosing the library. Please import it again."
+msgstr "Проєкт змінився під час вибору бібліотеки. Імпортуйте її знову."

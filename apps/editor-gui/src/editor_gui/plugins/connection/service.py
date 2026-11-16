@@ -1637,6 +1637,77 @@ class ConnectionService:
                 shown=SHOWN_IN_OPERATIONS,
             )
 
+    def run_mdt_symbols(
+        self,
+        device: Device,
+        symbols: dict[int, bytes],
+        *,
+        writes: bool = False,
+        synchronize: bool = False,
+    ) -> Future[Any] | None:
+        """Compare or transfer custom symbols, checking the profile before connecting."""
+        from xknxeditor.vendor.mdt import profile_for_application
+        from xknxeditor.vendor.mdt.transfer import validate_symbols
+
+        profile = profile_for_application(device.app.id) if device.app else None
+        if profile is None:
+            raise ValueError("Device has no MDT symbol configuration")
+        if writes and synchronize:
+            raise ValueError("Cannot program and synchronize in the same operation")
+        validate_symbols(profile, symbols, writes=writes)
+        if synchronize and set(symbols) != set(range(profile.slots)):
+            raise ValueError("Synchronization requires the complete symbol library")
+        if (writes or synchronize) and self.writes_refused("mdt_symbols"):
+            return None
+        return self._run_mdt_symbols(
+            device, dict(symbols), writes=writes, synchronize=synchronize
+        )
+
+    @_connects("mdt_symbols")
+    def _run_mdt_symbols(
+        self,
+        device: Device,
+        symbols: dict[int, bytes],
+        *,
+        writes: bool,
+        synchronize: bool = False,
+    ) -> Future[Any] | None:
+        from editor_gui.programming_mdt import run_symbols
+
+        if (
+            (writes or synchronize) and self.writes_refused("mdt_symbols")
+        ) or self.not_connected("mdt_symbols"):
+            return None
+        if not device.individual_address or device.app is None:
+            raise ValueError("Device has no individual address or application")
+        if not self.begin_operation("mdt_symbols", device.individual_address):
+            return None
+        try:
+            future = self.run_async(
+                run_symbols(
+                    self._connected_xknx,
+                    device.individual_address,
+                    self._security_for(device),
+                    device.app.id,
+                    symbols,
+                    writes=writes,
+                    synchronize=synchronize,
+                )
+            )
+        except BaseException:
+            self._clear_busy()
+            raise
+        if future is None:
+            self._clear_busy()
+        else:
+            future.add_done_callback(self._mdt_symbols_done)
+        return future
+
+    def _mdt_symbols_done(self, future: Future[Any]) -> None:
+        self._clear_busy()
+        if not future.cancelled() and (error := future.exception()) is not None:
+            self._log.error("Symbol operation failed", error=str(error))
+
     @_connects("dali_commissioning")
     def run_dali(
         self,

@@ -1758,10 +1758,15 @@ class _Writer:
             self._graft(info, ET.fromstring(raw))
         # Project-level collections captured verbatim from project.xml, re-emitted after
         # ProjectInformation in schema order (Installations live in 0.xml, not here).
+        from .addin_data import export_addin_data
+
         project_subtrees = project.extra_subtrees or {}
-        for name in ("UserFiles", "AddinData"):
+        for name in ("UserFiles",):
             if raw := project_subtrees.get(name):
                 self._graft(p, ET.fromstring(raw))
+        addin_metadata, addin_files = export_addin_data(project, installation)
+        if len(addin_metadata):
+            self._graft(p, addin_metadata)
 
         own_paths = {
             "knx_master.xml",
@@ -1782,7 +1787,12 @@ class _Writer:
         # Per-device BinaryData payloads (populated while building 0.xml) are files under the project
         # folder; ETS signs the folder recursively, so include them in the signed set (and the
         # certificate then binds to a signature that covers them).
-        folder_files = {"project.xml": project_xml, "0.xml": zero, **self._binary_files}
+        folder_files = {
+            "project.xml": project_xml,
+            "0.xml": zero,
+            **self._binary_files,
+            **addin_files,
+        }
         # The source's other project folder files (user files, data of device configuration apps).
         kept_files = {
             rel: data
@@ -1844,7 +1854,7 @@ class _Writer:
             # `.validation` (and no separate `.certificate`); we emit both so either reader is
             # satisfied.
             members[".validation"] = validation_record(certificate, project_signature)
-        for rel, data in {**self._binary_files, **kept_files}.items():
+        for rel, data in {**self._binary_files, **addin_files, **kept_files}.items():
             members[f"{pid}/{rel}"] = data
         for path, data in (extra_files or {}).items():
             if path not in own_paths:

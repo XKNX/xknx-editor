@@ -3342,3 +3342,158 @@ msgstr "Zgjidhni dy pajisjet për t'i krahasuar."
 
 msgid "Loading application programs… {done}/{total}"
 msgstr "Po ngarkohen programet aplikative… {done}/{total}"
+msgid "Symbol"
+msgstr "Simbol"
+
+msgid "Use the newer symbol library"
+msgstr "Përdor bibliotekën më të re të simboleve"
+
+msgid "Import Symbol…"
+msgstr "Importo simbol…"
+
+msgid "Export Symbol…"
+msgstr "Eksporto simbol…"
+
+msgid "Draw pixels"
+msgstr "Vizato pikselë"
+
+msgid "No custom symbol is stored in this slot."
+msgstr "Në këtë vend nuk është ruajtur asnjë simbol i personalizuar."
+
+msgid "Page"
+msgstr "Faqe"
+
+msgid "Tile"
+msgstr "Pllakë"
+
+msgid "Color"
+msgstr "Ngjyrë"
+
+msgid "Transparency"
+msgstr "Tejdukshmëri"
+
+msgid "Program Symbols…"
+msgstr "Programo simbolet…"
+
+msgid "Compare Symbols with Device"
+msgstr "Krahaso simbolet me pajisjen"
+
+msgid "Write the custom symbols to this device and restart it?"
+msgstr "Të shkruhen simbolet e personalizuara në këtë pajisje dhe të riniset ajo?"
+
+msgid "Select the device type and enable a page in Parameters to edit its layout."
+msgstr "Zgjidh llojin e pajisjes dhe aktivizo një faqe te Parametrat për të ndryshuar paraqitjen."
+
+msgid "Restore Default Symbol"
+msgstr "Rikthe simbolin e parazgjedhur"
+
+msgid "Standby Page (Day)"
+msgstr "Faqja e gatishmërisë (ditë)"
+
+msgid "Standby Page (Night)"
+msgstr "Faqja e gatishmërisë (natë)"
+
+msgid "Special Symbol"
+msgstr "Simbol i veçantë"
+
+msgid "Mode: Automatic"
+msgstr "Modaliteti: automatik"
+
+msgid "Mode: Comfort"
+msgstr "Modaliteti: komfort"
+
+msgid "Mode: Standby"
+msgstr "Modaliteti: gatishmëri"
+
+msgid "Mode: Night"
+msgstr "Modaliteti: natë"
+
+msgid "Mode: Frost Protection"
+msgstr "Modaliteti: mbrojtje nga ngrica"
+
+msgid "Mode: Heat Protection"
+msgstr "Modaliteti: mbrojtje nga nxehtësia"
+
+msgid "Temperature"
+msgstr "Temperatura"
+
+msgid "Cooling"
+msgstr "Ftohje"
+
+msgid "Heating"
+msgstr "Ngrohje"
+
+msgid "Functionally Linked Symbols"
+msgstr "Simbole të lidhura me funksionet"
+
+msgid "Normal Symbols"
+msgstr "Simbole normale"
+
+msgid "This symbol is fixed and cannot be changed."
+msgstr "Ky simbol është i pandryshueshëm dhe nuk mund të ndryshohet."
+
+msgid "No symbol preview is available in this project."
+msgstr "Në këtë projekt nuk ka pamje paraprake të simbolit."
+
+msgid "Import: PNG/BMP, exactly 64 x 64 pixels, or MDT .data."
+msgstr "Import: PNG/BMP, saktësisht 64 x 64 pikselë, ose MDT .data."
+
+msgid "Format Details"
+msgstr "Hollësitë e formatit"
+
+msgid "Images are not resized. Use black and white with a solid white background. Transparency is ignored."
+msgstr "Madhësia e imazheve nuk ndryshohet. Përdor bardh e zi me sfond të bardhë të patejdukshëm. Tejdukshmëria shpërfillet."
+
+msgid "Colors are converted to the average of red, green and blue. Values below 128 appear black on the device; 128 and above appear white."
+msgstr "Ngjyrat kthehen në mesataren e së kuqes, së gjelbrës dhe blusë. Vlerat nën 128 shfaqen të zeza në pajisje; nga 128 e lart të bardha."
+
+msgid "MDT .data contains one symbol: 514 bytes including a valid checksum."
+msgstr "MDT .data përmban një simbol: 514 bajte me një shumë kontrolli të vlefshme."
+
+msgid "Export saves the selected symbol as a 64 x 64 PNG. Imported grayscale values are preserved."
+msgstr "Eksporti ruan simbolin e zgjedhur si PNG 64 x 64. Vlerat e importuara të grisë ruhen."
+
+msgid "Import replaces only the selected symbol in the project. To transfer it to the device, use {button}."
+msgstr "Importi zëvendëson vetëm simbolin e zgjedhur në projekt. Për ta transferuar në pajisje, përdor {button}."
+
+msgid "Load Default Symbols"
+msgstr "Ngarko simbolet e parazgjedhura"
+
+msgid "Load Defaults (1st Generation)"
+msgstr "Ngarko të parazgjedhurat (brezi 1)"
+
+msgid "Load Defaults (2nd Generation)"
+msgstr "Ngarko të parazgjedhurat (brezi 2)"
+
+msgid "Import Symbol Library…"
+msgstr "Importo bibliotekën e simboleve…"
+
+msgid "Export Symbol Library…"
+msgstr "Eksporto bibliotekën e simboleve…"
+
+msgid "Invert imported library"
+msgstr "Përmbys bibliotekën e importuar"
+
+msgid "Include default symbols when programming"
+msgstr "Përfshi simbolet e parazgjedhura gjatë programimit"
+
+msgid "Synchronize Symbols"
+msgstr "Sinkronizo simbolet"
+
+msgid "Loading defaults replaces all custom symbols in the project. Undo restores them. Program with defaults included to transfer the entire library."
+msgstr "Ngarkimi i simboleve të parazgjedhura zëvendëson të gjitha simbolet e personalizuara në projekt. Zhbërja i rikthen. Përfshi të parazgjedhurat gjatë programimit për të transferuar të gjithë bibliotekën."
+
+msgid "ZIP: Symbol_{first}.bmp through Symbol_{last}.bmp at the archive root, each 64 x 64 pixels. Import replaces all editable symbols; export saves their black-and-white device pixels."
+msgstr "ZIP: Symbol_{first}.bmp deri te Symbol_{last}.bmp në rrënjën e arkivit, secili 64 x 64 pikselë. Importi zëvendëson të gjitha simbolet e redaktueshme; eksporti ruan pikselët bardhezi të pajisjes."
+
+msgid "Compare only reads checksums. Synchronize also refreshes Smart device checksums, without changing pixels or the project."
+msgstr "Krahasimi vetëm lexon shumat e kontrollit. Sinkronizimi gjithashtu rifreskon shumat e pajisjes Smart, pa ndryshuar pikselët apo projektin."
+
+msgid "Write the entire symbol library, including defaults, to this device and restart it?"
+msgstr "Të shkruhet e gjithë biblioteka e simboleve, përfshirë të parazgjedhurat, në këtë pajisje dhe të riniset ajo?"
+
+msgid "The complete default library is not attached to this project."
+msgstr "Biblioteka e plotë e parazgjedhur nuk është bashkëngjitur këtij projekti."
+
+msgid "The project changed while choosing the library. Please import it again."
+msgstr "Projekti ndryshoi gjatë zgjedhjes së bibliotekës. Importoje përsëri."

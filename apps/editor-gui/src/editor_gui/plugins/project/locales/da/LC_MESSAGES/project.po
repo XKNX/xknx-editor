@@ -3342,3 +3342,158 @@ msgstr "Vælg de to enheder, der skal sammenlignes."
 
 msgid "Loading application programs… {done}/{total}"
 msgstr "Indlæser applikationsprogrammer… {done}/{total}"
+msgid "Symbol"
+msgstr "Symbol"
+
+msgid "Use the newer symbol library"
+msgstr "Brug det nyere symbolbibliotek"
+
+msgid "Import Symbol…"
+msgstr "Importér symbol…"
+
+msgid "Export Symbol…"
+msgstr "Eksportér symbol…"
+
+msgid "Draw pixels"
+msgstr "Tegn pixels"
+
+msgid "No custom symbol is stored in this slot."
+msgstr "Der er ikke gemt et brugerdefineret symbol på denne plads."
+
+msgid "Page"
+msgstr "Side"
+
+msgid "Tile"
+msgstr "Felt"
+
+msgid "Color"
+msgstr "Farve"
+
+msgid "Transparency"
+msgstr "Gennemsigtighed"
+
+msgid "Program Symbols…"
+msgstr "Programmér symboler…"
+
+msgid "Compare Symbols with Device"
+msgstr "Sammenlign symboler med enhed"
+
+msgid "Write the custom symbols to this device and restart it?"
+msgstr "Skriv de brugerdefinerede symboler til denne enhed, og genstart den?"
+
+msgid "Select the device type and enable a page in Parameters to edit its layout."
+msgstr "Vælg enhedstypen, og aktivér en side under Parametre for at redigere layoutet."
+
+msgid "Restore Default Symbol"
+msgstr "Gendan standardsymbol"
+
+msgid "Standby Page (Day)"
+msgstr "Standbyside (dag)"
+
+msgid "Standby Page (Night)"
+msgstr "Standbyside (nat)"
+
+msgid "Special Symbol"
+msgstr "Særligt symbol"
+
+msgid "Mode: Automatic"
+msgstr "Tilstand: automatisk"
+
+msgid "Mode: Comfort"
+msgstr "Tilstand: komfort"
+
+msgid "Mode: Standby"
+msgstr "Tilstand: standby"
+
+msgid "Mode: Night"
+msgstr "Tilstand: nat"
+
+msgid "Mode: Frost Protection"
+msgstr "Tilstand: frostbeskyttelse"
+
+msgid "Mode: Heat Protection"
+msgstr "Tilstand: varmebeskyttelse"
+
+msgid "Temperature"
+msgstr "Temperatur"
+
+msgid "Cooling"
+msgstr "Køling"
+
+msgid "Heating"
+msgstr "Opvarmning"
+
+msgid "Functionally Linked Symbols"
+msgstr "Funktionsbundne symboler"
+
+msgid "Normal Symbols"
+msgstr "Normale symboler"
+
+msgid "This symbol is fixed and cannot be changed."
+msgstr "Dette symbol er fast og kan ikke ændres."
+
+msgid "No symbol preview is available in this project."
+msgstr "Der er ingen symbolforhåndsvisning i dette projekt."
+
+msgid "Import: PNG/BMP, exactly 64 x 64 pixels, or MDT .data."
+msgstr "Import: PNG/BMP, præcis 64 x 64 pixels, eller MDT .data."
+
+msgid "Format Details"
+msgstr "Formatdetaljer"
+
+msgid "Images are not resized. Use black and white with a solid white background. Transparency is ignored."
+msgstr "Billeder skaleres ikke. Brug sort og hvid med en uigennemsigtig hvid baggrund. Gennemsigtighed ignoreres."
+
+msgid "Colors are converted to the average of red, green and blue. Values below 128 appear black on the device; 128 and above appear white."
+msgstr "Farver omregnes til gennemsnittet af rød, grøn og blå. Værdier under 128 vises sorte på enheden; fra 128 og op vises de hvide."
+
+msgid "MDT .data contains one symbol: 514 bytes including a valid checksum."
+msgstr "MDT .data indeholder ét symbol: 514 bytes inklusive en gyldig kontrolsum."
+
+msgid "Export saves the selected symbol as a 64 x 64 PNG. Imported grayscale values are preserved."
+msgstr "Eksport gemmer det valgte symbol som en PNG på 64 x 64. Importerede gråtoneværdier bevares."
+
+msgid "Import replaces only the selected symbol in the project. To transfer it to the device, use {button}."
+msgstr "Import erstatter kun det valgte symbol i projektet. Brug {button} for at overføre det til enheden."
+
+msgid "Load Default Symbols"
+msgstr "Indlæs standardsymboler"
+
+msgid "Load Defaults (1st Generation)"
+msgstr "Indlæs standarder (1. generation)"
+
+msgid "Load Defaults (2nd Generation)"
+msgstr "Indlæs standarder (2. generation)"
+
+msgid "Import Symbol Library…"
+msgstr "Importér symbolbibliotek…"
+
+msgid "Export Symbol Library…"
+msgstr "Eksportér symbolbibliotek…"
+
+msgid "Invert imported library"
+msgstr "Invertér importeret bibliotek"
+
+msgid "Include default symbols when programming"
+msgstr "Medtag standardsymboler ved programmering"
+
+msgid "Synchronize Symbols"
+msgstr "Synkroniser symboler"
+
+msgid "Loading defaults replaces all custom symbols in the project. Undo restores them. Program with defaults included to transfer the entire library."
+msgstr "Indlæsning af standarder erstatter alle egne symboler i projektet. Fortryd gendanner dem. Medtag standarder ved programmering for at overføre hele biblioteket."
+
+msgid "ZIP: Symbol_{first}.bmp through Symbol_{last}.bmp at the archive root, each 64 x 64 pixels. Import replaces all editable symbols; export saves their black-and-white device pixels."
+msgstr "ZIP: Symbol_{first}.bmp til Symbol_{last}.bmp i arkivets rod, hver 64 x 64 pixels. Import erstatter alle redigerbare symboler; eksport gemmer deres sorte og hvide enhedspixels."
+
+msgid "Compare only reads checksums. Synchronize also refreshes Smart device checksums, without changing pixels or the project."
+msgstr "Sammenligning læser kun kontrolsummer. Synkronisering opdaterer også Smart-enhedens kontrolsummer uden at ændre pixels eller projektet."
+
+msgid "Write the entire symbol library, including defaults, to this device and restart it?"
+msgstr "Skriv hele symbolbiblioteket inklusive standarder til denne enhed og genstart den?"
+
+msgid "The complete default library is not attached to this project."
+msgstr "Det komplette standardbibliotek er ikke vedlagt dette projekt."
+
+msgid "The project changed while choosing the library. Please import it again."
+msgstr "Projektet blev ændret under valg af bibliotek. Importér det igen."

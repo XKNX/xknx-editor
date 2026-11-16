@@ -3421,3 +3421,158 @@ msgstr "Vyberte dve zariadenia na porovnanie."
 
 msgid "Loading application programs… {done}/{total}"
 msgstr "Načítavajú sa aplikačné programy… {done}/{total}"
+msgid "Symbol"
+msgstr "Symbol"
+
+msgid "Use the newer symbol library"
+msgstr "Použiť novšiu knižnicu symbolov"
+
+msgid "Import Symbol…"
+msgstr "Importovať symbol…"
+
+msgid "Export Symbol…"
+msgstr "Exportovať symbol…"
+
+msgid "Draw pixels"
+msgstr "Kresliť pixely"
+
+msgid "No custom symbol is stored in this slot."
+msgstr "Na tejto pozícii nie je uložený vlastný symbol."
+
+msgid "Page"
+msgstr "Stránka"
+
+msgid "Tile"
+msgstr "Dlaždica"
+
+msgid "Color"
+msgstr "Farba"
+
+msgid "Transparency"
+msgstr "Priehľadnosť"
+
+msgid "Program Symbols…"
+msgstr "Naprogramovať symboly…"
+
+msgid "Compare Symbols with Device"
+msgstr "Porovnať symboly so zariadením"
+
+msgid "Write the custom symbols to this device and restart it?"
+msgstr "Zapísať vlastné symboly do tohto zariadenia a reštartovať ho?"
+
+msgid "Select the device type and enable a page in Parameters to edit its layout."
+msgstr "Vyberte typ zariadenia a aktivujte stránku v Parametroch na úpravu rozloženia."
+
+msgid "Restore Default Symbol"
+msgstr "Obnoviť predvolený symbol"
+
+msgid "Standby Page (Day)"
+msgstr "Pohotovostná stránka (deň)"
+
+msgid "Standby Page (Night)"
+msgstr "Pohotovostná stránka (noc)"
+
+msgid "Special Symbol"
+msgstr "Špeciálny symbol"
+
+msgid "Mode: Automatic"
+msgstr "Režim: automatický"
+
+msgid "Mode: Comfort"
+msgstr "Režim: komfort"
+
+msgid "Mode: Standby"
+msgstr "Režim: pohotovosť"
+
+msgid "Mode: Night"
+msgstr "Režim: noc"
+
+msgid "Mode: Frost Protection"
+msgstr "Režim: ochrana pred mrazom"
+
+msgid "Mode: Heat Protection"
+msgstr "Režim: ochrana pred prehriatím"
+
+msgid "Temperature"
+msgstr "Teplota"
+
+msgid "Cooling"
+msgstr "Chladenie"
+
+msgid "Heating"
+msgstr "Vykurovanie"
+
+msgid "Functionally Linked Symbols"
+msgstr "Symboly viazané na funkcie"
+
+msgid "Normal Symbols"
+msgstr "Bežné symboly"
+
+msgid "This symbol is fixed and cannot be changed."
+msgstr "Tento symbol je pevne daný a nemožno ho zmeniť."
+
+msgid "No symbol preview is available in this project."
+msgstr "V tomto projekte nie je k dispozícii náhľad symbolu."
+
+msgid "Import: PNG/BMP, exactly 64 x 64 pixels, or MDT .data."
+msgstr "Import: PNG/BMP, presne 64 x 64 pixelov, alebo MDT .data."
+
+msgid "Format Details"
+msgstr "Podrobnosti formátu"
+
+msgid "Images are not resized. Use black and white with a solid white background. Transparency is ignored."
+msgstr "Veľkosť obrázkov sa nemení. Použite čiernobiely obrázok s nepriehľadným bielym pozadím. Priehľadnosť sa ignoruje."
+
+msgid "Colors are converted to the average of red, green and blue. Values below 128 appear black on the device; 128 and above appear white."
+msgstr "Farby sa prevádzajú na priemer červenej, zelenej a modrej. Hodnoty pod 128 sa na zariadení zobrazia čierne, od 128 biele."
+
+msgid "MDT .data contains one symbol: 514 bytes including a valid checksum."
+msgstr "MDT .data obsahuje jeden symbol: 514 bajtov vrátane platného kontrolného súčtu."
+
+msgid "Export saves the selected symbol as a 64 x 64 PNG. Imported grayscale values are preserved."
+msgstr "Export uloží vybraný symbol ako PNG 64 x 64. Importované hodnoty odtieňov sivej sa zachovajú."
+
+msgid "Import replaces only the selected symbol in the project. To transfer it to the device, use {button}."
+msgstr "Import nahradí iba vybraný symbol v projekte. Na prenos do zariadenia použite {button}."
+
+msgid "Load Default Symbols"
+msgstr "Načítať predvolené symboly"
+
+msgid "Load Defaults (1st Generation)"
+msgstr "Načítať predvolené (1. generácia)"
+
+msgid "Load Defaults (2nd Generation)"
+msgstr "Načítať predvolené (2. generácia)"
+
+msgid "Import Symbol Library…"
+msgstr "Importovať knižnicu symbolov…"
+
+msgid "Export Symbol Library…"
+msgstr "Exportovať knižnicu symbolov…"
+
+msgid "Invert imported library"
+msgstr "Invertovať importovanú knižnicu"
+
+msgid "Include default symbols when programming"
+msgstr "Pri programovaní zahrnúť predvolené symboly"
+
+msgid "Synchronize Symbols"
+msgstr "Synchronizovať symboly"
+
+msgid "Loading defaults replaces all custom symbols in the project. Undo restores them. Program with defaults included to transfer the entire library."
+msgstr "Načítanie predvolených symbolov nahradí všetky vlastné symboly v projekte. Späť ich obnoví. Pre prenos celej knižnice zahrňte pri programovaní predvolené symboly."
+
+msgid "ZIP: Symbol_{first}.bmp through Symbol_{last}.bmp at the archive root, each 64 x 64 pixels. Import replaces all editable symbols; export saves their black-and-white device pixels."
+msgstr "ZIP: Symbol_{first}.bmp až Symbol_{last}.bmp v koreni archívu, každý 64 x 64 pixelov. Import nahradí všetky upraviteľné symboly; export uloží ich čiernobiele pixely pre zariadenie."
+
+msgid "Compare only reads checksums. Synchronize also refreshes Smart device checksums, without changing pixels or the project."
+msgstr "Porovnanie iba číta kontrolné súčty. Synchronizácia tiež obnoví kontrolné súčty zariadenia Smart bez zmeny pixelov alebo projektu."
+
+msgid "Write the entire symbol library, including defaults, to this device and restart it?"
+msgstr "Zapísať celú knižnicu symbolov vrátane predvolených do tohto zariadenia a reštartovať ho?"
+
+msgid "The complete default library is not attached to this project."
+msgstr "K tomuto projektu nie je pripojená úplná predvolená knižnica."
+
+msgid "The project changed while choosing the library. Please import it again."
+msgstr "Projekt sa počas výberu knižnice zmenil. Importujte ju znova."

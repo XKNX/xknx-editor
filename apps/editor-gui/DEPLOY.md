@@ -87,6 +87,7 @@ and update with `winget install XKNX.Editor` and `winget upgrade XKNX.Editor`.
 
 - **imgui_bundle** — native libraries + its bundled fonts (via `collect_all`).
 - **fastmcp / xknx / xknxproject** — data files + submodules.
+- **Pillow** — PNG/BMP symbol support via `packaging/hooks`, retaining the core's linked libraries.
 - **xknxeditor / editor_gui** — our packages: dynamic imports (parser_v2, model adapters, plugins)
   plus data (generated model bindings, i18n `.mo` locales, the app icon + fonts under `assets/`).
 

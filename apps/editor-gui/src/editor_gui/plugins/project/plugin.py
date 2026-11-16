@@ -76,6 +76,7 @@ from editor_gui.plugins.project.ui.device_compare import DeviceComparePanel
 from editor_gui.plugins.project.ui.element_details import ElementDetailsPanel
 from editor_gui.plugins.project.ui.generic_plugin_panel import GenericPluginPanel
 from editor_gui.plugins.project.ui.group_value import GroupValueActions
+from editor_gui.plugins.project.ui.mdt_dca import MdtDcaPanel
 from editor_gui.plugins.project.ui.memory_preview import MemoryPreviewWindow
 from editor_gui.plugins.project.ui.paste_special import PasteSpecialDialog
 from editor_gui.plugins.project.ui.plugin_params_panel import PluginParamsPanel
@@ -389,6 +390,7 @@ class ProjectPlugin:
             has_plugin_params=lambda d: (
                 api.project.plugin_mapping(d) is not None
                 or self._has_plugin_comparison(d)
+                or api.project.mdt_dca_profile(d) is not None
             ),
             plugin_capabilities=api.project.plugin_capabilities,
             on_navigate_ga=self._navigate_to_group_address,
@@ -442,6 +444,7 @@ class ProjectPlugin:
         from editor_gui.plugins.project.ui.native_plugin import NativePluginPanel
 
         self._native_plugin_panel = NativePluginPanel()
+        self._mdt_dca_panel = MdtDcaPanel(self._queue_bus_action)
         self._siemens_dali_panel = SiemensDaliPanel(
             self._run_siemens_dali, _generation=lambda: api.project.generation
         )
@@ -1218,6 +1221,20 @@ class ProjectPlugin:
                 start = functools.partial(
                     conn.run_siemens_dca_program, blob_xml=options["data"]
                 )
+            case "mdt_symbols":
+                text = (
+                    S.MDT_SYNCHRONIZE_SYMBOLS
+                    if options.get("synchronize")
+                    else S.MDT_PROGRAM_SYMBOLS
+                    if options.get("writes")
+                    else S.MDT_COMPARE_SYMBOLS
+                )
+                start = functools.partial(
+                    conn.run_mdt_symbols,
+                    symbols=options["symbols"],
+                    writes=options.get("writes", False),
+                    synchronize=options.get("synchronize", False),
+                )
             case "read_memory" | "read_plugin_memory":
                 text = S.MEMORY_READ
                 start = functools.partial(conn.read_memory, request=options["request"])
@@ -1244,6 +1261,7 @@ class ProjectPlugin:
                 "read_plugin_memory",
                 "dali",
                 "siemens_dali",
+                "mdt_symbols",
             ) and (
                 self._api.project.generation != generation
                 or current.individual_address != item.address
@@ -1267,6 +1285,12 @@ class ProjectPlugin:
                 and self._generic_memory_request(current) != options["request"]
             ):
                 raise ValueError("Memory layout changed while the read was queued")
+            elif kind == "mdt_symbols":
+                symbols = self._api.project.mdt_symbol_payload(
+                    node_id, include_defaults=options.get("include_defaults", False)
+                )
+                if symbols != options["symbols"]:
+                    raise ValueError("Symbols changed while the operation was queued")
             future = start(current)
             if future is None and conn.xknx is None:
                 item.message = S.SCRIPT_NOT_CONNECTED
@@ -1284,7 +1308,14 @@ class ProjectPlugin:
             kind,
             text,
             start_action
-            if kind in ("read_memory", "read_plugin_memory", "dali", "siemens_dali")
+            if kind
+            in (
+                "read_memory",
+                "read_plugin_memory",
+                "dali",
+                "siemens_dali",
+                "mdt_symbols",
+            )
             else begin,
         )
         if ended is not None:
@@ -1413,6 +1444,7 @@ class ProjectPlugin:
         """Render configuration actions, optional comparison and editable parameters."""
         self._poll_triton_prj_dialog()
         self._poll_triton_prj_save()
+        self._mdt_dca_panel.render(device, self._api.project)
         self._native_plugin_panel.render(device, self._api.project)
         self._generic_plugin_panel.render_section(device)
         if self._api.project.plugin_mapping(device) is not None:

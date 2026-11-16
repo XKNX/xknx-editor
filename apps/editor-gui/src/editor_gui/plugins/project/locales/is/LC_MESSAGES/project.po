@@ -3369,3 +3369,158 @@ msgstr "Veldu tækin tvö sem á að bera saman."
 
 msgid "Loading application programs… {done}/{total}"
 msgstr "Hleður verkforritum… {done}/{total}"
+msgid "Symbol"
+msgstr "Tákn"
+
+msgid "Use the newer symbol library"
+msgstr "Nota nýrra táknasafnið"
+
+msgid "Import Symbol…"
+msgstr "Flytja inn tákn…"
+
+msgid "Export Symbol…"
+msgstr "Flytja út tákn…"
+
+msgid "Draw pixels"
+msgstr "Teikna myndpunkta"
+
+msgid "No custom symbol is stored in this slot."
+msgstr "Ekkert sérsniðið tákn er vistað í þessu sæti."
+
+msgid "Page"
+msgstr "Síða"
+
+msgid "Tile"
+msgstr "Reitur"
+
+msgid "Color"
+msgstr "Litur"
+
+msgid "Transparency"
+msgstr "Gagnsæi"
+
+msgid "Program Symbols…"
+msgstr "Forrita tákn…"
+
+msgid "Compare Symbols with Device"
+msgstr "Bera tákn saman við tæki"
+
+msgid "Write the custom symbols to this device and restart it?"
+msgstr "Skrifa sérsniðnu táknin í þetta tæki og endurræsa það?"
+
+msgid "Select the device type and enable a page in Parameters to edit its layout."
+msgstr "Veldu gerð tækis og virkjaðu síðu undir Færibreytur til að breyta útlitinu."
+
+msgid "Restore Default Symbol"
+msgstr "Endurheimta sjálfgefið tákn"
+
+msgid "Standby Page (Day)"
+msgstr "Biðsíða (dagur)"
+
+msgid "Standby Page (Night)"
+msgstr "Biðsíða (nótt)"
+
+msgid "Special Symbol"
+msgstr "Sértákn"
+
+msgid "Mode: Automatic"
+msgstr "Stilling: sjálfvirk"
+
+msgid "Mode: Comfort"
+msgstr "Stilling: þægindi"
+
+msgid "Mode: Standby"
+msgstr "Stilling: bið"
+
+msgid "Mode: Night"
+msgstr "Stilling: nótt"
+
+msgid "Mode: Frost Protection"
+msgstr "Stilling: frostvörn"
+
+msgid "Mode: Heat Protection"
+msgstr "Stilling: hitavörn"
+
+msgid "Temperature"
+msgstr "Hitastig"
+
+msgid "Cooling"
+msgstr "Kæling"
+
+msgid "Heating"
+msgstr "Upphitun"
+
+msgid "Functionally Linked Symbols"
+msgstr "Tákn tengd aðgerðum"
+
+msgid "Normal Symbols"
+msgstr "Venjuleg tákn"
+
+msgid "This symbol is fixed and cannot be changed."
+msgstr "Þetta tákn er fast og því er ekki hægt að breyta."
+
+msgid "No symbol preview is available in this project."
+msgstr "Engin forskoðun tákns er tiltæk í þessu verkefni."
+
+msgid "Import: PNG/BMP, exactly 64 x 64 pixels, or MDT .data."
+msgstr "Innflutningur: PNG/BMP, nákvæmlega 64 x 64 myndpunktar, eða MDT .data."
+
+msgid "Format Details"
+msgstr "Upplýsingar um snið"
+
+msgid "Images are not resized. Use black and white with a solid white background. Transparency is ignored."
+msgstr "Stærð mynda er ekki breytt. Notaðu svart og hvítt með ógegnsæjum hvítum bakgrunni. Gagnsæi er hunsað."
+
+msgid "Colors are converted to the average of red, green and blue. Values below 128 appear black on the device; 128 and above appear white."
+msgstr "Litum er breytt í meðaltal rauðs, græns og blás. Gildi undir 128 birtast svört á tækinu; 128 og hærri birtast hvít."
+
+msgid "MDT .data contains one symbol: 514 bytes including a valid checksum."
+msgstr "MDT .data inniheldur eitt tákn: 514 bæti ásamt gildri gátsummu."
+
+msgid "Export saves the selected symbol as a 64 x 64 PNG. Imported grayscale values are preserved."
+msgstr "Útflutningur vistar valið tákn sem 64 x 64 PNG-mynd. Innflutt grátonagildi haldast."
+
+msgid "Import replaces only the selected symbol in the project. To transfer it to the device, use {button}."
+msgstr "Innflutningur skiptir aðeins út völdu tákni í verkefninu. Notaðu {button} til að flytja það í tækið."
+
+msgid "Load Default Symbols"
+msgstr "Hlaða sjálfgefnum táknum"
+
+msgid "Load Defaults (1st Generation)"
+msgstr "Hlaða sjálfgefnum (1. kynslóð)"
+
+msgid "Load Defaults (2nd Generation)"
+msgstr "Hlaða sjálfgefnum (2. kynslóð)"
+
+msgid "Import Symbol Library…"
+msgstr "Flytja inn táknasafn…"
+
+msgid "Export Symbol Library…"
+msgstr "Flytja út táknasafn…"
+
+msgid "Invert imported library"
+msgstr "Snúa við innfluttu safni"
+
+msgid "Include default symbols when programming"
+msgstr "Taka sjálfgefin tákn með við forritun"
+
+msgid "Synchronize Symbols"
+msgstr "Samstilla tákn"
+
+msgid "Loading defaults replaces all custom symbols in the project. Undo restores them. Program with defaults included to transfer the entire library."
+msgstr "Hleðsla sjálfgefinna tákna skiptir út öllum sérsniðnum táknum í verkefninu. Afturkalla endurheimtir þau. Taktu sjálfgefin tákn með við forritun til að flytja allt safnið."
+
+msgid "ZIP: Symbol_{first}.bmp through Symbol_{last}.bmp at the archive root, each 64 x 64 pixels. Import replaces all editable symbols; export saves their black-and-white device pixels."
+msgstr "ZIP: Symbol_{first}.bmp til Symbol_{last}.bmp í rót safnsins, hvert 64 x 64 myndpunktar. Innflutningur skiptir út öllum breytanlegum táknum; útflutningur vistar svarthvíta myndpunkta tækisins."
+
+msgid "Compare only reads checksums. Synchronize also refreshes Smart device checksums, without changing pixels or the project."
+msgstr "Samanburður les aðeins gátsummur. Samstilling endurnýjar einnig gátsummur Smart-tækisins án þess að breyta myndpunktum eða verkefninu."
+
+msgid "Write the entire symbol library, including defaults, to this device and restart it?"
+msgstr "Skrifa allt táknasafnið, ásamt sjálfgefnum táknum, í þetta tæki og endurræsa það?"
+
+msgid "The complete default library is not attached to this project."
+msgstr "Allt sjálfgefna safnið fylgir ekki þessu verkefni."
+
+msgid "The project changed while choosing the library. Please import it again."
+msgstr "Verkefnið breyttist á meðan safnið var valið. Flyttu það inn aftur."
