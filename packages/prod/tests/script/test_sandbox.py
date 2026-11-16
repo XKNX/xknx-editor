@@ -339,3 +339,30 @@ def test_values_are_globals_the_script_may_redefine() -> None:
         script="var taken = 'script'; function h() { return outputSelectionError + '|' + taken; }",
     )
     assert ctx.invoke("h", []).value == "Output in Use|script"
+
+
+def test_a_prefix_runs_with_the_script_and_its_rewrite_is_reused(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Declarations of literal values ahead of a script run as one text with it, outside the
+    JScript front end: a script run again with other values is not rewritten again."""
+    from xknxeditor.prod.script.compat import frontend
+
+    body = "\nvar b = a > 10 ? a * 2 : a + 1;\nfunction out() { return b; }\n"
+    rewritten: list[str] = []
+    transform = frontend.transform
+
+    def counted(source: str) -> Any:
+        rewritten.append(source)
+        return transform(source)
+
+    monkeypatch.setattr(frontend, "transform", counted)
+    results = [
+        ScriptContext(script=body, prefix=f"var a = {a};").invoke("out", []).value
+        for a in (3, 12)
+    ]
+    assert results == [4, 24]
+    # Same as the declarations and the script as one script.
+    assert ScriptContext(script="var a = 12;" + body).invoke("out", []).value == 24
+    assert rewritten.count(body) == 2
+    assert all("var a" not in source for source in rewritten[:2])
