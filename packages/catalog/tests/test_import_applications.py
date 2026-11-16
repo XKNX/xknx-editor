@@ -86,13 +86,15 @@ def _xmls() -> list[bytes]:
     ]
 
 
-def _product(master: str = _MASTER, hardware: str | None = None) -> bytes:
+def _product(
+    master: str = _MASTER, hardware: str | None = None, xmls: list[bytes] | None = None
+) -> bytes:
     buffer = io.BytesIO()
     with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as archive:
         archive.writestr("knx_master.xml", master)
         archive.writestr("M-00FA/Hardware.xml", hardware or _hardware_xml())
         archive.writestr("M-00FA/Catalog.xml", _catalog_xml())
-        for xml in _xmls():
+        for xml in xmls or _xmls():
             match = re.search(rb'<ApplicationProgram Id="([^"]+)"', xml)
             assert match is not None
             archive.writestr(f"M-00FA/{match.group(1).decode()}.xml", xml)
@@ -190,3 +192,26 @@ def test_a_program_that_names_no_media_has_its_mask_versions(tmp_path: Path) -> 
         for programs in _PROGRAMS.values()
         for program_id in programs
     ]
+
+
+def test_another_file_with_an_application_the_catalog_has_leaves_it(
+    tmp_path: Path,
+) -> None:
+    # A second product file declares the same programs and application ids, with other content.
+    other = [xml.replace(b'Name="Calc"', b'Name="Calc 2"', 1) for xml in _xmls()]
+    assert other != _xmls()
+    db = tmp_path / "cat.xknxcatalog"
+    service = CatalogService(db, tmp_path / "cache")
+    first = service.import_knxprod(_product())
+    service.import_knxprod(_product(xmls=other))
+    program = "M-00FA_H-1-0_HP-0001-01-0000"
+    assert service.get_program_source(program) == (str(first), "M-00FA")
+    application = service.get_application("M-00FA_A-0001-01-0000")
+    assert application is not None
+    assert application.name == "Calc"
+
+    # Without its first file the program takes the other one.
+    first.unlink()
+    second = service.import_knxprod(_product(xmls=other))
+    assert service.get_program_source(program) == (str(second), "M-00FA")
+    service.close()

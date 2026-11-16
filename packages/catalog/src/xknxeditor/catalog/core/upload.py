@@ -52,8 +52,11 @@ def _ingest_manufacturers(session: Session, reg: Registry) -> None:
 
 
 def _ingest_applications(session: Session, reg: Registry) -> None:
-    # From the facts the load kept: the parsed programs are not in memory any more.
+    # From the facts the load kept: the parsed programs are not in memory any more. An
+    # application the catalog has stays as it is (see _ingest_program).
     for app in reg.applications.values():
+        if session.get(Application, app.id) is not None:
+            continue
         facts = reg.application_facts[app.id]
         session.merge(
             Application(
@@ -122,6 +125,15 @@ def _program_media(reg: Registry, program: DeviceProgram) -> list[str]:
     return []
 
 
+def _keeps_source(existing: HardwareProgram, app_id: str | None) -> bool:
+    """Whether a hardware program the catalog has stays with its product file when another file
+    declares it again (with the application ``app_id``): while that file is there and gives it
+    an application (or the other gives none either)."""
+    if existing.application_id is None and app_id is not None:
+        return False
+    return Path(existing.knxprod_path).exists()
+
+
 def _registration_date(value: object) -> datetime.date | None:
     """The day of a registration date: an ``xs:date``, or, as older products write it, a date
     with a time (``2005-03-10T00:00:00``), which stays a plain string. ``None`` when there is
@@ -153,10 +165,15 @@ def _ingest_program(
     # (applications.id) and roll back the whole ingest.
     app_id = next((a for a in program.application_ref_ids if a in known_app_ids), None)
 
-    if project_mode and session.get(HardwareProgram, program.id) is not None:
+    existing = session.get(HardwareProgram, program.id)
+    if existing is not None and (project_mode or _keeps_source(existing, app_id)):
         # Already ingested (e.g. from a full .knxprod carrying Catalog.xml + baggages). A leaner
         # project archive must not overwrite it: that would downgrade the source path and could null
-        # a resolved application_id. Project-mode ingest only ADDS programs that are missing.
+        # a resolved application_id. Project-mode ingest only ADDS programs that are missing. Nor
+        # does another product file that declares the program again: its application, of the
+        # same id, may differ (other texts, other flags), and the devices built from the first
+        # would change with it. A program whose file is gone, or which had no application, takes
+        # the new one.
         return
 
     reg_status = reg_number = reg_date = None
