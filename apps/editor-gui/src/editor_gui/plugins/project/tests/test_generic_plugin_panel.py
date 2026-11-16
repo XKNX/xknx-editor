@@ -414,6 +414,7 @@ def test_comparison_section_is_optional_and_does_not_hide_editor(
         _poll_triton_prj_dialog=lambda: None,
         _poll_triton_prj_save=lambda: None,
         _api=SimpleNamespace(project=project, connection=SimpleNamespace(master=None)),
+        _mdt_dca_panel=SimpleNamespace(render=lambda *_args: None),
         _native_plugin_panel=SimpleNamespace(
             render=lambda *_args: events.append("actions")
         ),

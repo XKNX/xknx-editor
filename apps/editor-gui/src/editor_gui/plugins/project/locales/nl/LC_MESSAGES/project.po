@@ -3377,3 +3377,158 @@ msgstr "Selecteer de twee apparaten die u wilt vergelijken."
 
 msgid "Loading application programs… {done}/{total}"
 msgstr "Applicatieprogramma's worden geladen… {done}/{total}"
+msgid "Symbol"
+msgstr "Symbool"
+
+msgid "Use the newer symbol library"
+msgstr "De nieuwere symboolbibliotheek gebruiken"
+
+msgid "Import Symbol…"
+msgstr "Symbool importeren…"
+
+msgid "Export Symbol…"
+msgstr "Symbool exporteren…"
+
+msgid "Draw pixels"
+msgstr "Pixels tekenen"
+
+msgid "No custom symbol is stored in this slot."
+msgstr "Er is geen aangepast symbool in dit vak opgeslagen."
+
+msgid "Page"
+msgstr "Pagina"
+
+msgid "Tile"
+msgstr "Tegel"
+
+msgid "Color"
+msgstr "Kleur"
+
+msgid "Transparency"
+msgstr "Transparantie"
+
+msgid "Program Symbols…"
+msgstr "Symbolen programmeren…"
+
+msgid "Compare Symbols with Device"
+msgstr "Symbolen met apparaat vergelijken"
+
+msgid "Write the custom symbols to this device and restart it?"
+msgstr "De aangepaste symbolen naar dit apparaat schrijven en het herstarten?"
+
+msgid "Select the device type and enable a page in Parameters to edit its layout."
+msgstr "Selecteer het apparaattype en activeer een pagina bij Parameters om de indeling te bewerken."
+
+msgid "Restore Default Symbol"
+msgstr "Standaardsymbool herstellen"
+
+msgid "Standby Page (Day)"
+msgstr "Stand-bypagina (dag)"
+
+msgid "Standby Page (Night)"
+msgstr "Stand-bypagina (nacht)"
+
+msgid "Special Symbol"
+msgstr "Speciaal symbool"
+
+msgid "Mode: Automatic"
+msgstr "Modus: automatisch"
+
+msgid "Mode: Comfort"
+msgstr "Modus: comfort"
+
+msgid "Mode: Standby"
+msgstr "Modus: stand-by"
+
+msgid "Mode: Night"
+msgstr "Modus: nacht"
+
+msgid "Mode: Frost Protection"
+msgstr "Modus: vorstbeveiliging"
+
+msgid "Mode: Heat Protection"
+msgstr "Modus: hittebeveiliging"
+
+msgid "Temperature"
+msgstr "Temperatuur"
+
+msgid "Cooling"
+msgstr "Koelen"
+
+msgid "Heating"
+msgstr "Verwarmen"
+
+msgid "Functionally Linked Symbols"
+msgstr "Functiegebonden symbolen"
+
+msgid "Normal Symbols"
+msgstr "Normale symbolen"
+
+msgid "This symbol is fixed and cannot be changed."
+msgstr "Dit symbool is vastgelegd en kan niet worden gewijzigd."
+
+msgid "No symbol preview is available in this project."
+msgstr "In dit project is geen symboolvoorbeeld beschikbaar."
+
+msgid "Import: PNG/BMP, exactly 64 x 64 pixels, or MDT .data."
+msgstr "Import: PNG/BMP, precies 64 x 64 pixels, of MDT .data."
+
+msgid "Format Details"
+msgstr "Formaatdetails"
+
+msgid "Images are not resized. Use black and white with a solid white background. Transparency is ignored."
+msgstr "Afbeeldingen worden niet geschaald. Gebruik zwart-wit met een ondoorzichtige witte achtergrond. Transparantie wordt genegeerd."
+
+msgid "Colors are converted to the average of red, green and blue. Values below 128 appear black on the device; 128 and above appear white."
+msgstr "Kleuren worden omgezet naar het gemiddelde van rood, groen en blauw. Waarden onder 128 verschijnen zwart op het apparaat; vanaf 128 wit."
+
+msgid "MDT .data contains one symbol: 514 bytes including a valid checksum."
+msgstr "MDT .data bevat één symbool: 514 bytes inclusief een geldige controlesom."
+
+msgid "Export saves the selected symbol as a 64 x 64 PNG. Imported grayscale values are preserved."
+msgstr "Export slaat het geselecteerde symbool op als PNG van 64 x 64 pixels. Geïmporteerde grijswaarden blijven behouden."
+
+msgid "Import replaces only the selected symbol in the project. To transfer it to the device, use {button}."
+msgstr "Import vervangt alleen het geselecteerde symbool in het project. Gebruik {button} om het naar het apparaat over te dragen."
+
+msgid "Load Default Symbols"
+msgstr "Standaardsymbolen laden"
+
+msgid "Load Defaults (1st Generation)"
+msgstr "Standaardsymbolen laden (1e generatie)"
+
+msgid "Load Defaults (2nd Generation)"
+msgstr "Standaardsymbolen laden (2e generatie)"
+
+msgid "Import Symbol Library…"
+msgstr "Symboolbibliotheek importeren…"
+
+msgid "Export Symbol Library…"
+msgstr "Symboolbibliotheek exporteren…"
+
+msgid "Invert imported library"
+msgstr "Geïmporteerde bibliotheek inverteren"
+
+msgid "Include default symbols when programming"
+msgstr "Standaardsymbolen meenemen bij programmeren"
+
+msgid "Synchronize Symbols"
+msgstr "Symbolen synchroniseren"
+
+msgid "Loading defaults replaces all custom symbols in the project. Undo restores them. Program with defaults included to transfer the entire library."
+msgstr "Standaardsymbolen laden vervangt alle eigen symbolen in het project. Ongedaan maken herstelt ze. Neem standaardsymbolen mee bij het programmeren om de hele bibliotheek over te dragen."
+
+msgid "ZIP: Symbol_{first}.bmp through Symbol_{last}.bmp at the archive root, each 64 x 64 pixels. Import replaces all editable symbols; export saves their black-and-white device pixels."
+msgstr "ZIP: Symbol_{first}.bmp tot Symbol_{last}.bmp in de hoofdmap, elk 64 x 64 pixels. Import vervangt alle bewerkbare symbolen; export slaat hun zwart-witte apparaatpixels op."
+
+msgid "Compare only reads checksums. Synchronize also refreshes Smart device checksums, without changing pixels or the project."
+msgstr "Vergelijken leest alleen controlesommen. Synchroniseren vernieuwt ook de controlesommen van het Smart-apparaat, zonder pixels of project te wijzigen."
+
+msgid "Write the entire symbol library, including defaults, to this device and restart it?"
+msgstr "De hele symboolbibliotheek inclusief standaardsymbolen naar dit apparaat schrijven en het herstarten?"
+
+msgid "The complete default library is not attached to this project."
+msgstr "De volledige standaardbibliotheek is niet bij dit project gevoegd."
+
+msgid "The project changed while choosing the library. Please import it again."
+msgstr "Het project is gewijzigd tijdens het kiezen van de bibliotheek. Importeer deze opnieuw."

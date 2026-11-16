@@ -5,6 +5,7 @@ description = "Reproductions of manufacturer device-configuration tools (e.g. th
 license = "GPL-2.0-only"
 requires-python = ">=3.13"
 dependencies = [
+    "pillow>=13.0",
     "xknxeditor-namespaces",
     "xknxeditor-download",
 ]

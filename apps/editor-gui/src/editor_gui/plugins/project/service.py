@@ -159,6 +159,8 @@ if TYPE_CHECKING:
         GroupAddressInfo as CoreGroupAddressInfo,
     )
     from xknxeditor.proj.models import Device as DeviceRow
+    from xknxeditor.vendor.mdt import DcaProfile
+    from xknxeditor.vendor.mdt.layout import Layout
     from xknxeditor.vendor.triton import DeviceType as TritonDeviceType
 
 _INSTALLATION = 0
@@ -685,6 +687,9 @@ _HISTORY_LABELS: dict[str, Callable[[dict[str, Any]], str]] = {
     "UpsertDeviceBinaryData": lambda d: S.HISTORY_EV_STORE_PLUGIN_DATA.format(
         name=_quoted(d, "name")
     ),
+    "SetDeviceAddinData": lambda d: S.HISTORY_EV_STORE_PLUGIN_DATA.format(
+        name=_quoted(d, "app_id")
+    ),
     "SetParameter": lambda d: S.HISTORY_EV_SET_PARAMETER.format(
         ref=d.get("ref_id", ""), value=_quoted(d, "value")
     ),
@@ -1118,6 +1123,7 @@ class DeviceConfigClipboard:
     source_label: str
     params: list[tuple[str, str]]
     links: list[tuple[int, str, int, bool]]
+    addin_data: tuple[tuple[str, str, bytes, str], ...] = ()
 
 
 @dataclass(frozen=True)
@@ -4214,6 +4220,560 @@ class ProjectService:
         self._refresh_device(device.node_id)
         self._bump(structural=False)
 
+    @staticmethod
+    def mdt_dca_profile(device: Device) -> "DcaProfile | None":
+        from xknxeditor.vendor.mdt import profile_for_application
+
+        return (
+            profile_for_application(device.app.id) if device.app is not None else None
+        )
+
+    def mdt_symbols(self, node_id: int) -> dict[str, Any]:
+        """Named symbol slots and the selected library, without changing the project."""
+        return self._mdt_symbols(
+            node_id,
+            tuple(S.MDT_SYMBOL_ROLES.items()),
+            tuple(S.MDT_SYMBOL_GROUPS.items()),
+            S.MDT_SYMBOL,
+        )
+
+    @revision_cached_by_args
+    def _mdt_symbols(
+        self,
+        node_id: int,
+        role_names: tuple[tuple[str, str], ...],
+        group_names: tuple[tuple[str, str], ...],
+        symbol_name: str,
+    ) -> dict[str, Any]:
+        from xknxeditor.vendor.mdt.symbols import read_symbols
+
+        device = self.find_device_by_node_id(node_id)
+        profile = self.mdt_dca_profile(device) if device is not None else None
+        if self._pid is None or profile is None or profile.kind != "symbols":
+            raise ValueError("Device has no MDT symbol configuration")
+        entries = self._svc.device_addin_data(self._pid, node_id, profile.app_id)
+        symbols = read_symbols(entries, profile)
+        library = self._mdt_symbol_library(node_id)
+        names = dict(role_names)
+        slot_info: list[dict[str, Any]] = []
+        for slot in range(profile.slots):
+            role = (
+                profile.symbol_roles[slot] if slot < len(profile.symbol_roles) else None
+            )
+            name = f"{symbol_name} {slot + 1}"
+            slot_info.append(
+                {
+                    "slot": slot,
+                    "name": f"{name}: {names[role]}" if role else name,
+                    "role": role,
+                    "group": "functional" if role else "normal",
+                    "editable": slot >= profile.first_custom_slot,
+                }
+            )
+        return {
+            "app_id": profile.app_id,
+            "slots": profile.slots,
+            "first_custom_slot": profile.first_custom_slot,
+            "slot_info": slot_info,
+            "groups": dict(group_names),
+            "new_library": entries.get(
+                "Lib",
+                b"\x01"
+                if device is not None and ".02" in device.order_number
+                else b"\x00",
+            )
+            == b"\x01",
+            "symbols": [
+                {
+                    "slot": symbol.slot,
+                    "grayscale_hex": symbol.grayscale.hex(),
+                    "data_hex": symbol.data.hex(),
+                }
+                for symbol in symbols
+            ],
+            "defaults": library,
+        }
+
+    @revision_cached_by_args
+    def _mdt_symbol_library(
+        self, node_id: int, new_library: bool | None = None
+    ) -> list[dict[str, Any]]:
+        from io import BytesIO
+        from zipfile import ZipFile
+
+        from xknxeditor.vendor.mdt.symbols import read_symbol_library
+
+        device = self.find_device_by_node_id(node_id)
+        profile = self.mdt_dca_profile(device) if device is not None else None
+        if (
+            self._pid is None
+            or profile is None
+            or profile.kind != "symbols"
+            or device is None
+        ):
+            return []
+        files = self._svc.project(self._pid).imported_project_files
+        if not files:
+            return []
+        entries = self._svc.device_addin_data(self._pid, node_id, profile.app_id)
+        second = ".02" in device.order_number
+        newer = (
+            entries.get("Lib", bytes([second])) == b"\x01"
+            if new_library is None
+            else new_library
+        )
+        with ZipFile(BytesIO(files)) as project_files:
+            member = f"UserFiles/{profile.app_id}.etsapp"
+            if member not in project_files.namelist():
+                return []
+            try:
+                symbols = read_symbol_library(
+                    project_files.read(member),
+                    profile,
+                    new_library=newer,
+                    second_generation=second,
+                )
+            except ValueError:
+                return []
+        return [
+            {
+                "slot": s.slot,
+                "grayscale_hex": s.grayscale.hex(),
+                "data_hex": s.data.hex(),
+            }
+            for s in symbols
+        ]
+
+    def restore_mdt_symbol(self, node_id: int, slot: int) -> None:
+        symbol = next(
+            (s for s in self._mdt_symbol_library(node_id) if s["slot"] == slot), None
+        )
+        if symbol is None:
+            raise ValueError(
+                "The default symbol library is not available in this project"
+            )
+        self.set_mdt_symbol(node_id, slot, symbol["grayscale_hex"])
+
+    def set_mdt_symbol(
+        self, node_id: int, slot: int, grayscale_hex: str | None
+    ) -> None:
+        """Set a custom symbol, or remove its override; one undo step."""
+        from xknxeditor.vendor.mdt.symbols import Symbol
+
+        device = self.find_device_by_node_id(node_id)
+        profile = self.mdt_dca_profile(device) if device is not None else None
+        if self._pid is None or profile is None or profile.kind != "symbols":
+            raise ValueError("Device has no MDT symbol configuration")
+        if (
+            type(slot) is not int
+            or not profile.first_custom_slot <= slot < profile.slots
+        ):
+            raise ValueError("Symbol slot is outside this device's library")
+        assert device is not None
+        entries: dict[str, bytes | None] = {
+            f"Symbol_{slot}_bmp": None,
+            f"Symbol_{slot}_data": None,
+        }
+        if grayscale_hex is not None:
+            entries.update(Symbol(slot, bytes.fromhex(grayscale_hex)).entries(profile))
+        self._svc.set_device_addin_data(
+            self._pid,
+            node_id,
+            profile.app_id,
+            entries,
+            label=f"{device_label(device)}: {S.MDT_SYMBOL} {slot + 1}",
+        )
+        self._bump(structural=False)
+
+    def set_mdt_symbol_library(self, node_id: int, new_library: bool) -> None:
+        if type(new_library) is not bool:
+            raise ValueError("Symbol library selection must be a boolean")
+        device = self.find_device_by_node_id(node_id)
+        profile = self.mdt_dca_profile(device) if device is not None else None
+        if self._pid is None or profile is None or profile.app_id != "M0083-A0041":
+            raise ValueError("Device has no selectable MDT symbol library")
+        self._svc.set_device_addin_data(
+            self._pid, node_id, profile.app_id, {"Lib": bytes([new_library])}
+        )
+        self._bump(structural=False)
+
+    def mdt_symbol_payload(
+        self, node_id: int, *, include_defaults: bool = False
+    ) -> dict[int, bytes]:
+        """Resolve and validate the exact symbols for a queued bus operation."""
+        view = self.mdt_symbols(node_id)
+        entries = (
+            [*view["defaults"], *view["symbols"]]
+            if include_defaults
+            else view["symbols"]
+        )
+        symbols = {s["slot"]: bytes.fromhex(s["data_hex"]) for s in entries}
+        if include_defaults and set(symbols) != set(range(view["slots"])):
+            raise ValueError(
+                "The complete default symbol library is not attached to this project"
+            )
+        if not symbols:
+            raise ValueError("No custom symbols to transfer")
+        return symbols
+
+    def load_mdt_default_symbols(
+        self, node_id: int, *, new_library: bool = False
+    ) -> None:
+        """Select a complete default library and remove custom overrides in one undo step."""
+        if type(new_library) is not bool:
+            raise ValueError("Symbol library selection must be a boolean")
+        device = self.find_device_by_node_id(node_id)
+        profile = self.mdt_dca_profile(device) if device is not None else None
+        if self._pid is None or profile is None or profile.kind != "symbols":
+            raise ValueError("Device has no MDT symbol configuration")
+        if new_library and profile.app_id != "M0083-A0041":
+            raise ValueError("Device has only one default symbol library")
+        if len(self._mdt_symbol_library(node_id, new_library)) != profile.slots:
+            raise ValueError(
+                "The complete default symbol library is not attached to this project"
+            )
+        entries: dict[str, bytes | None] = {
+            f"Symbol_{slot}_{suffix}": None
+            for slot in range(profile.slots)
+            for suffix in ("bmp", "data")
+        }
+        if profile.app_id == "M0083-A0041":
+            entries["Lib"] = bytes([new_library])
+        assert device is not None
+        self._svc.set_device_addin_data(
+            self._pid,
+            node_id,
+            profile.app_id,
+            entries,
+            label=f"{device_label(device)}: {S.MDT_LOAD_DEFAULTS}",
+        )
+        self._bump(structural=False)
+
+    def import_mdt_symbol_library(
+        self, node_id: int, archive: bytes, *, invert: bool = False
+    ) -> None:
+        """Replace all editable symbols from a complete ZIP library in one undo step."""
+        from xknxeditor.vendor.mdt.symbols import import_symbol_library
+
+        device = self.find_device_by_node_id(node_id)
+        profile = self.mdt_dca_profile(device) if device is not None else None
+        if self._pid is None or profile is None or profile.kind != "symbols":
+            raise ValueError("Device has no MDT symbol configuration")
+        symbols = import_symbol_library(archive, profile, invert=invert)
+        entries = {
+            key: value for s in symbols for key, value in s.entries(profile).items()
+        }
+        assert device is not None
+        self._svc.set_device_addin_data(
+            self._pid,
+            node_id,
+            profile.app_id,
+            entries,
+            label=f"{device_label(device)}: {S.MDT_IMPORT_LIBRARY}",
+        )
+        self._bump(structural=False)
+
+    def export_mdt_symbol_library(self, node_id: int) -> bytes:
+        """Export every editable effective symbol as a numbered BMP in a ZIP archive."""
+        from xknxeditor.vendor.mdt.symbols import export_symbol_library
+
+        device = self.find_device_by_node_id(node_id)
+        profile = self.mdt_dca_profile(device) if device is not None else None
+        if profile is None:
+            raise ValueError("Device has no MDT symbol configuration")
+        view = self.mdt_symbols(node_id)
+        symbols = {
+            s["slot"]: bytes.fromhex(s["data_hex"])
+            for s in (*view["defaults"], *view["symbols"])
+        }
+        return export_symbol_library(symbols, profile)
+
+    def _mdt_layout(self, node_id: int) -> "tuple[Device, Layout]":
+        from xknxeditor.vendor.mdt.layout import Layout
+
+        device = self.find_device_by_node_id(node_id)
+        if device is None or self.mdt_dca_profile(device) is None:
+            raise ValueError("Device has no MDT layout configuration")
+        profile = self.mdt_dca_profile(device)
+        assert profile is not None
+        if profile.kind != "layout" or device.dynamic_ui is None:
+            raise ValueError("Device has no MDT layout configuration")
+        return device, Layout(
+            {
+                ref: device.get_param_value(ref)
+                for ref in device.dynamic_ui.parameter_ref_ids()
+            }
+        )
+
+    @revision_cached_by_args
+    def mdt_layout(self, node_id: int) -> dict[str, Any]:
+        """Read page layouts and function choices from the current parameter state."""
+        import re
+        from dataclasses import asdict
+
+        _device, layout = self._mdt_layout(node_id)
+        orientation = "V"
+        functions: dict[int, str] = {}
+        status_functions: dict[int, str] = {}
+        for ref, value in layout.values.items():
+            if ref.endswith("_P-28_R-128"):
+                orientation = "H" if value == "1" else "V"
+            match = re.search(r"MD-2_M-(\d+)_MI-(\d+)_P-1_R-\d+$", ref)
+            if match:
+                module, instance = map(int, match.groups())
+                number = instance if module == 2 else (module - 5) * 8 + instance
+                functions.setdefault(number, str(value or ""))
+            status_match = re.search(r"MD-1_M-\d+_MI-(\d+)_P-7_R-\d+$", ref)
+            if status_match:
+                status_functions[int(status_match[1])] = str(value or "")
+        return {
+            "orientation": orientation,
+            "width": 720,
+            "height": layout.height,
+            "status_functions": [
+                {"number": n, "name": name}
+                for n, name in sorted(status_functions.items())
+            ],
+            "pages": [asdict(page) for page in layout.pages(orientation)],
+            "functions": [
+                {"number": key, "name": value}
+                for key, value in sorted(functions.items())
+            ],
+        }
+
+    def set_mdt_layout(
+        self,
+        node_id: int,
+        page_number: int,
+        name: str,
+        orientation: str,
+        tiles: list[dict[str, int]],
+    ) -> None:
+        from xknxeditor.vendor.mdt.layout import Page, Tile
+
+        if orientation not in ("V", "H"):
+            raise ValueError("Orientation must be V or H")
+        device, layout = self._mdt_layout(node_id)
+        page = Page(
+            page_number, name, orientation, tuple(Tile(**tile) for tile in tiles)
+        )
+        changes = layout.changes(page)
+        function_key = "status_functions" if page_number <= 0 else "functions"
+        available = {0, *(f["number"] for f in self.mdt_layout(node_id)[function_key])}
+        if any(tile.function not in available for tile in page.tiles):
+            raise ValueError(
+                "Tile function is not available in this device configuration"
+            )
+        self.edit_params(
+            device,
+            list(changes.items()),
+            mode="transfer",
+            label=f"{device_label(device)}: {name or page_number}",
+        )
+
+    def _mdt_visucontrol_device(self, node_id: int) -> Device:
+        device = self.find_device_by_node_id(node_id)
+        profile = self.mdt_dca_profile(device) if device else None
+        if self._pid is None or profile is None or profile.kind != "visucontrol":
+            raise ValueError("Device has no MDT VisuControl configuration")
+        assert device is not None
+        return device
+
+    def export_mdt_visucontrol(self, node_id: int) -> bytes:
+        import base64
+
+        from xknxeditor.vendor.mdt.visucontrol import create_configuration
+
+        device = self._mdt_visucontrol_device(node_id)
+        assert device.app is not None
+        blobs = tuple(
+            base64.b64decode(
+                device.get_param_value(f"{device.app.id}_P-{n}_R-{n}") or "",
+                validate=True,
+            )
+            for n in (2, 3, 4)
+        )
+        return create_configuration(
+            (blobs[0], blobs[1], blobs[2]),
+            self.device_binary_data(device, "FunctionTexts") or b"",
+            {
+                "name": device.name,
+                "address": device.individual_address,
+                "project": "",
+                "location": "",
+                "rooms": [],
+            },
+        ).write()
+
+    def import_mdt_visucontrol(self, node_id: int, data: bytes) -> list[dict[str, Any]]:
+        import base64
+        import re
+
+        from xknx.dpt.dpt import DPTBase
+        from xknx.dpt.payload import DPTBinary
+        from xknx.telegram import GroupAddress
+
+        from editor_gui.languages import product_language
+        from xknxeditor.download import build_image
+        from xknxeditor.vendor.mdt.visucontrol import Configuration
+
+        config = Configuration.read(data)
+        device = self._mdt_visucontrol_device(node_id)
+        assert device.app is not None and self._pid is not None
+        app_id = device.app.id
+        objects = config.objects((product_language() or "en").split("-")[0])
+        sizes = self._mdt_datapoint_sizes()
+        rows = {co.id: co for co in self._svc.devices(self._pid) if co.id == node_id}
+        row = rows[node_id]
+        parameters = {p.ref_id: p.value for p in row.parameters}
+        assert device.dynamic_ui is not None
+        for ref in device.dynamic_ui.parameter_ref_ids():
+            match = re.search(r"_P-(\d+)_R-\d+$", ref)
+            if match and int(match[1]) >= 16:
+                parameters[ref] = "0"
+        parameters[f"{app_id}_P-1_R-1"] = str(config.version)
+        for number, blob in enumerate(config.parts[1:4], 2):
+            if blob:
+                parameters[f"{app_id}_P-{number}_R-{number}"] = base64.b64encode(
+                    blob
+                ).decode("ascii")
+        for obj in objects:
+            size = sizes.get(obj.dpt)
+            if size is None:
+                transcoder = DPTBase.parse_transcoder(f"DPT-{obj.dpt}")
+                if transcoder is None:
+                    raise ValueError(f"Unsupported data point type: {obj.dpt}")
+                size = transcoder.payload_length * (
+                    1 if transcoder.payload_type is DPTBinary else 8
+                )
+            for p, value in (
+                (2 * obj.number + 14, size),
+                (2 * obj.number + 15, obj.dpt),
+            ):
+                ref = f"{app_id}_P-{p}_R-{p}"
+                if not device.dynamic_ui.has_parameter(ref):
+                    raise ValueError(
+                        f"Communication object {obj.number} is outside the product capacity"
+                    )
+                parameters[ref] = str(value)
+        probe = self._initial_device(device.name, device.app, list(parameters.items()))
+        probe.individual_address = device.individual_address
+        assert probe.dynamic_ui is not None
+        image = build_image(device.app, ui=probe.dynamic_ui)
+        static = device.app.program.static
+        assert static is not None and static.code is not None
+        memory = {
+            segment.id: block.memory.data
+            for segment in static.code.relative_segment
+            for block in image.application_segments
+            if block.object_index == segment.load_state_machine
+            and block.memory.address == segment.offset
+        }
+        decoded = probe.dynamic_ui.decode_memory_parameters(memory)
+        for n, blob in enumerate(config.parts[1:4], 2):
+            if blob and decoded.get(f"{app_id}_P-{n}") != base64.b64encode(blob).decode(
+                "ascii"
+            ):
+                raise ValueError(
+                    f"Configuration part {n - 1} does not fit the product image"
+                )
+        targets: list[dict[str, Any]] = []
+        old = {co.number: co for co in device.get_visible_com_objects()}
+        new = {co.number: co for co in probe.get_visible_com_objects()}
+        kept: set[int] = set()
+        flags = {
+            "C": "communication",
+            "T": "transmit",
+            "U": "update",
+            "R": "read",
+            "W": "write",
+            "I": "read_on_init",
+        }
+        for obj in objects:
+            co = new.get(obj.number)
+            if co is None:
+                raise ValueError(
+                    f"The product cannot activate communication object {obj.number}"
+                )
+            previous = old.get(obj.number)
+            compatible = (
+                previous is not None
+                and previous.object_size == co.object_size
+                and previous.dpt.major in (0, obj.dpt)
+                and (
+                    obj.subtype is None
+                    or not previous.dpt.has_subtype
+                    or previous.dpt.minor == obj.subtype
+                )
+            )
+            source_id = previous.db_id if compatible and previous is not None else None
+            if source_id is not None:
+                kept.add(source_id)
+            token = (
+                f"DPST-{obj.dpt}-{obj.subtype}"
+                if obj.subtype is not None
+                else f"DPT-{obj.dpt}"
+            )
+            fields: dict[str, Any] = {
+                "ref_id": co.id,
+                "instance_ref_id": "",
+                "channel_id": None,
+                "text_override": obj.name,
+                "function_text_override": obj.function_text,
+                "datapoint_type_override": token,
+            }
+            for flag, name in flags.items():
+                fields[name + "_flag"] = fields[name + "_flag_override"] = (
+                    flag in obj.flags
+                )
+            targets.append({"source_id": source_id, "fields": fields})
+        lost = [
+            {
+                "com_object_ref_id": co.ref_id,
+                "group_address_id": link.group_address_id,
+                "address": str(GroupAddress(link.group_address.address)),
+            }
+            for co in row.com_objects
+            if co.id not in kept
+            for link in co.links
+        ]
+        self._svc.configure_native_device(
+            self._pid,
+            node_id,
+            "FunctionTexts",
+            config.function_texts,
+            parameters,
+            targets,
+            label=f"{device_label(device)}: VisuControl",
+        )
+        self._refresh_device(node_id)
+        self._bump(structural=False)
+        current = self.find_device_by_node_id(node_id)
+        if current is not None:
+            current.last_lost_links = lost
+        return lost
+
+    @revision_cached
+    def _mdt_datapoint_sizes(self) -> dict[int, int]:
+        from xknxeditor.prod import parse_master_xml
+        from xknxeditor.proj import master_cache_path
+
+        if self._pid is None:
+            return {}
+        data = self._svc.project(self._pid).knx_master_xml
+        if data is None:
+            path = master_cache_path(config_dir(), "23")
+            if path.is_file():
+                data = path.read_bytes()
+        if data is None:
+            return {}
+        master = parse_master_xml(data).raw
+        if master is None or master.datapoint_types is None:
+            return {}
+        return {
+            dpt.number: dpt.size_in_bit for dpt in master.datapoint_types.datapoint_type
+        }
+
     def device_binary_data(self, device: Device, name: str) -> bytes | None:
         """The raw bytes of the device's ``BinaryData`` entry named ``name``, or ``None``."""
         for row in device.binary_data:
@@ -6416,6 +6976,7 @@ class ProjectService:
         segment_id: int | None = None,
         address: int | None = None,
         parameters: list[tuple[str, str]] | None = None,
+        addin_data: tuple[tuple[str, str, bytes, str], ...] = (),
         product: DeviceProduct | None = None,
         secure_commissioning: bool | None = None,
         with_additional_addresses: bool = True,
@@ -6481,6 +7042,7 @@ class ProjectService:
                 address=address,
                 hardware2program_ref_id=hardware2program_ref_id,
                 application_program_ref_id=app.id if app is not None else None,
+                addin_data=addin_data,
                 parameters=parameters or None,
                 com_objects=com_objects,
                 module_instances=module_instances if module_instances else None,
@@ -6924,6 +7486,11 @@ class ProjectService:
                 f"{row.name}{suffix}" if row.name else "",
                 app,
                 parameters=params,
+                addin_data=tuple(
+                    (r.app_id, r.suffix, r.data, r.metadata_xml) for r in row.addin_data
+                )
+                if include_params
+                else (),
                 product=DeviceProduct(
                     product_name=row.product_name,
                     hardware_name=row.hardware_name,
@@ -6959,6 +7526,11 @@ class ProjectService:
             source_label=device.name or getattr(device.app, "name", "") or "",
             params=params,
             links=self._capture_links(device),
+            addin_data=tuple(
+                (r.app_id, r.suffix, r.data, r.metadata_xml) for r in row.addin_data
+            )
+            if row
+            else (),
         )
 
     def paste_device_config(
@@ -6976,16 +7548,44 @@ class ProjectService:
         device = self.find_device_by_node_id(node_id)
         if device is None or getattr(device.app, "id", None) != clip.app_id:
             return (False, 0, 0)
-        params_changed = (
-            self._apply_params(node_id, clip.params) if include_params else 0
-        )
-        links_mapped = 0
-        if include_links:
-            device = self.find_device_by_node_id(node_id)
-            if device is not None:
-                links_mapped = self._apply_links(
-                    device, clip.links, replace_matching=True
-                )
+        with self.one_undo_step():
+            params_changed = (
+                self._apply_params(node_id, clip.params) if include_params else 0
+            )
+            links_mapped = 0
+            if include_links:
+                device = self.find_device_by_node_id(node_id)
+                if device is not None:
+                    links_mapped = self._apply_links(
+                        device, clip.links, replace_matching=True
+                    )
+            if include_params:
+                row = next(r for r in self._svc.devices(self._pid) if r.id == node_id)
+                apps = {r.app_id for r in row.addin_data} | {
+                    a for a, _, _, _ in clip.addin_data
+                }
+                for app_id in apps:
+                    entries: dict[str, bytes | None] = {
+                        r.suffix: None for r in row.addin_data if r.app_id == app_id
+                    }
+                    entries.update(
+                        {
+                            key: data
+                            for app, key, data, _ in clip.addin_data
+                            if app == app_id
+                        }
+                    )
+                    self._svc.set_device_addin_data(
+                        self._pid,
+                        node_id,
+                        app_id,
+                        entries,
+                        metadata={
+                            key: xml
+                            for app, key, _, xml in clip.addin_data
+                            if app == app_id
+                        },
+                    )
         self._bump(structural=False)
         self._log.info(
             "paste device config",
@@ -9268,6 +9868,9 @@ class ProjectService:
             no_address=number is None,
             unassigned=segment_id is None,
             parameters=[(p.ref_id, p.value) for p in source.parameters],
+            addin_data=tuple(
+                (r.app_id, r.suffix, r.data, r.metadata_xml) for r in source.addin_data
+            ),
             product=DeviceProduct(
                 product_name=source.product_name,
                 hardware_name=source.hardware_name,

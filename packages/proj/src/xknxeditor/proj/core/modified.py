@@ -22,6 +22,7 @@ from xknxeditor.proj.core.events import (
     CompositeEvent,
     Event,
     SetComObjectFlag,
+    SetDeviceAddinData,
     SetDeviceCommissioning,
     SetDeviceIpConfig,
     SetParameter,
@@ -66,7 +67,7 @@ def modified_devices(event: Event, session: Session, *, reverting: bool) -> set[
 def _own_device(event: Event, *, reverting: bool) -> int | None:
     """The device a parameter change, the adding of a device, a change of its application, of
     its IP settings or of its commissioning state modified; None for other events."""
-    if isinstance(event, SetParameter | AddDevice):
+    if isinstance(event, SetParameter | AddDevice | SetDeviceAddinData):
         return None if reverting else event.device_id
     if isinstance(
         event, ChangeDeviceApplication | UpdateDeviceApplication | SetDeviceIpConfig

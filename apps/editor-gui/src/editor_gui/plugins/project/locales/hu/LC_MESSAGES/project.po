@@ -3317,3 +3317,158 @@ msgstr "Válassza ki a két összehasonlítandó eszközt."
 
 msgid "Loading application programs… {done}/{total}"
 msgstr "Alkalmazási programok betöltése… {done}/{total}"
+msgid "Symbol"
+msgstr "Szimbólum"
+
+msgid "Use the newer symbol library"
+msgstr "Újabb szimbólumkönyvtár használata"
+
+msgid "Import Symbol…"
+msgstr "Szimbólum importálása…"
+
+msgid "Export Symbol…"
+msgstr "Szimbólum exportálása…"
+
+msgid "Draw pixels"
+msgstr "Képpontok rajzolása"
+
+msgid "No custom symbol is stored in this slot."
+msgstr "Ehhez a helyhez nincs egyéni szimbólum mentve."
+
+msgid "Page"
+msgstr "Oldal"
+
+msgid "Tile"
+msgstr "Csempe"
+
+msgid "Color"
+msgstr "Szín"
+
+msgid "Transparency"
+msgstr "Átlátszóság"
+
+msgid "Program Symbols…"
+msgstr "Szimbólumok programozása…"
+
+msgid "Compare Symbols with Device"
+msgstr "Szimbólumok összehasonlítása az eszközzel"
+
+msgid "Write the custom symbols to this device and restart it?"
+msgstr "Egyéni szimbólumok írása erre az eszközre és újraindítás?"
+
+msgid "Select the device type and enable a page in Parameters to edit its layout."
+msgstr "Válaszd ki az eszköz típusát, és engedélyezz egy oldalt a Paraméterek között az elrendezés szerkesztéséhez."
+
+msgid "Restore Default Symbol"
+msgstr "Alapértelmezett szimbólum visszaállítása"
+
+msgid "Standby Page (Day)"
+msgstr "Készenléti oldal (nappal)"
+
+msgid "Standby Page (Night)"
+msgstr "Készenléti oldal (éjjel)"
+
+msgid "Special Symbol"
+msgstr "Különleges szimbólum"
+
+msgid "Mode: Automatic"
+msgstr "Üzemmód: automatikus"
+
+msgid "Mode: Comfort"
+msgstr "Üzemmód: komfort"
+
+msgid "Mode: Standby"
+msgstr "Üzemmód: készenlét"
+
+msgid "Mode: Night"
+msgstr "Üzemmód: éjszaka"
+
+msgid "Mode: Frost Protection"
+msgstr "Üzemmód: fagyvédelem"
+
+msgid "Mode: Heat Protection"
+msgstr "Üzemmód: hővédelem"
+
+msgid "Temperature"
+msgstr "Hőmérséklet"
+
+msgid "Cooling"
+msgstr "Hűtés"
+
+msgid "Heating"
+msgstr "Fűtés"
+
+msgid "Functionally Linked Symbols"
+msgstr "Funkcióhoz kötött szimbólumok"
+
+msgid "Normal Symbols"
+msgstr "Normál szimbólumok"
+
+msgid "This symbol is fixed and cannot be changed."
+msgstr "Ez a szimbólum rögzített, és nem módosítható."
+
+msgid "No symbol preview is available in this project."
+msgstr "Ebben a projektben nincs szimbólum-előnézet."
+
+msgid "Import: PNG/BMP, exactly 64 x 64 pixels, or MDT .data."
+msgstr "Importálás: pontosan 64 x 64 képpontos PNG/BMP vagy MDT .data."
+
+msgid "Format Details"
+msgstr "Formátum részletei"
+
+msgid "Images are not resized. Use black and white with a solid white background. Transparency is ignored."
+msgstr "A képek mérete nem változik. Használj fekete-fehér képet átlátszatlan fehér háttérrel. Az átlátszóságot figyelmen kívül hagyjuk."
+
+msgid "Colors are converted to the average of red, green and blue. Values below 128 appear black on the device; 128 and above appear white."
+msgstr "A színek a vörös, zöld és kék átlagára alakulnak. A 128 alatti értékek feketén, a 128 vagy nagyobb értékek fehéren jelennek meg az eszközön."
+
+msgid "MDT .data contains one symbol: 514 bytes including a valid checksum."
+msgstr "Az MDT .data egy szimbólumot tartalmaz: 514 bájt, érvényes ellenőrző összeggel."
+
+msgid "Export saves the selected symbol as a 64 x 64 PNG. Imported grayscale values are preserved."
+msgstr "Az exportálás a kiválasztott szimbólumot 64 x 64 képpontos PNG-ként menti. Az importált szürkeárnyalatok megmaradnak."
+
+msgid "Import replaces only the selected symbol in the project. To transfer it to the device, use {button}."
+msgstr "Az importálás csak a projektben kiválasztott szimbólumot cseréli le. Az eszközre küldéshez használd ezt: {button}."
+
+msgid "Load Default Symbols"
+msgstr "Alapértelmezett szimbólumok betöltése"
+
+msgid "Load Defaults (1st Generation)"
+msgstr "Alapértékek betöltése (1. generáció)"
+
+msgid "Load Defaults (2nd Generation)"
+msgstr "Alapértékek betöltése (2. generáció)"
+
+msgid "Import Symbol Library…"
+msgstr "Szimbólumkönyvtár importálása…"
+
+msgid "Export Symbol Library…"
+msgstr "Szimbólumkönyvtár exportálása…"
+
+msgid "Invert imported library"
+msgstr "Importált könyvtár invertálása"
+
+msgid "Include default symbols when programming"
+msgstr "Alapértelmezett szimbólumok programozása is"
+
+msgid "Synchronize Symbols"
+msgstr "Szimbólumok szinkronizálása"
+
+msgid "Loading defaults replaces all custom symbols in the project. Undo restores them. Program with defaults included to transfer the entire library."
+msgstr "Az alapértékek betöltése lecseréli a projekt összes egyéni szimbólumát. A visszavonás visszaállítja őket. A teljes könyvtár átviteléhez az alapértelmezett szimbólumokat is programozd."
+
+msgid "ZIP: Symbol_{first}.bmp through Symbol_{last}.bmp at the archive root, each 64 x 64 pixels. Import replaces all editable symbols; export saves their black-and-white device pixels."
+msgstr "ZIP: Symbol_{first}.bmp és Symbol_{last}.bmp között, az archívum gyökerében, egyenként 64 x 64 képpont. Az import minden szerkeszthető szimbólumot lecserél; az export az eszköz fekete-fehér képpontjait menti."
+
+msgid "Compare only reads checksums. Synchronize also refreshes Smart device checksums, without changing pixels or the project."
+msgstr "Az összehasonlítás csak ellenőrzőösszegeket olvas. A szinkronizálás a Smart eszköz ellenőrzőösszegeit is frissíti, a képpontok és a projekt módosítása nélkül."
+
+msgid "Write the entire symbol library, including defaults, to this device and restart it?"
+msgstr "Kiírod a teljes szimbólumkönyvtárat az alapértékekkel együtt az eszközre, és újraindítod?"
+
+msgid "The complete default library is not attached to this project."
+msgstr "A teljes alapértelmezett könyvtár nincs a projekthez csatolva."
+
+msgid "The project changed while choosing the library. Please import it again."
+msgstr "A projekt megváltozott a könyvtár kiválasztása közben. Importáld újra."

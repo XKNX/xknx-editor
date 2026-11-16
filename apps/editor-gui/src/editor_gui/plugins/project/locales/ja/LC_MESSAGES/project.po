@@ -3290,3 +3290,158 @@ msgstr "比較する2台のデバイスを選択してください。"
 
 msgid "Loading application programs… {done}/{total}"
 msgstr "アプリケーションプログラムを読み込み中… {done}/{total}"
+msgid "Symbol"
+msgstr "シンボル"
+
+msgid "Use the newer symbol library"
+msgstr "新しいシンボルライブラリを使用"
+
+msgid "Import Symbol…"
+msgstr "シンボルをインポート…"
+
+msgid "Export Symbol…"
+msgstr "シンボルをエクスポート…"
+
+msgid "Draw pixels"
+msgstr "ピクセルを描画"
+
+msgid "No custom symbol is stored in this slot."
+msgstr "このスロットにカスタムシンボルは保存されていません。"
+
+msgid "Page"
+msgstr "ページ"
+
+msgid "Tile"
+msgstr "タイル"
+
+msgid "Color"
+msgstr "色"
+
+msgid "Transparency"
+msgstr "透明度"
+
+msgid "Program Symbols…"
+msgstr "シンボルを書き込む…"
+
+msgid "Compare Symbols with Device"
+msgstr "デバイスとシンボルを比較"
+
+msgid "Write the custom symbols to this device and restart it?"
+msgstr "カスタムシンボルをこのデバイスに書き込み、再起動しますか？"
+
+msgid "Select the device type and enable a page in Parameters to edit its layout."
+msgstr "パラメータでデバイスの種類を選び、ページを有効にするとレイアウトを編集できます。"
+
+msgid "Restore Default Symbol"
+msgstr "既定のシンボルを復元"
+
+msgid "Standby Page (Day)"
+msgstr "待機ページ（昼間）"
+
+msgid "Standby Page (Night)"
+msgstr "待機ページ（夜間）"
+
+msgid "Special Symbol"
+msgstr "特殊シンボル"
+
+msgid "Mode: Automatic"
+msgstr "モード：自動"
+
+msgid "Mode: Comfort"
+msgstr "モード：コンフォート"
+
+msgid "Mode: Standby"
+msgstr "モード：待機"
+
+msgid "Mode: Night"
+msgstr "モード：夜間"
+
+msgid "Mode: Frost Protection"
+msgstr "モード：凍結防止"
+
+msgid "Mode: Heat Protection"
+msgstr "モード：過熱防止"
+
+msgid "Temperature"
+msgstr "温度"
+
+msgid "Cooling"
+msgstr "冷房"
+
+msgid "Heating"
+msgstr "暖房"
+
+msgid "Functionally Linked Symbols"
+msgstr "機能連動シンボル"
+
+msgid "Normal Symbols"
+msgstr "通常シンボル"
+
+msgid "This symbol is fixed and cannot be changed."
+msgstr "このシンボルは固定されており、変更できません。"
+
+msgid "No symbol preview is available in this project."
+msgstr "このプロジェクトにはシンボルのプレビューがありません。"
+
+msgid "Import: PNG/BMP, exactly 64 x 64 pixels, or MDT .data."
+msgstr "インポート：64 x 64 ピクセルの PNG/BMP、または MDT .data。"
+
+msgid "Format Details"
+msgstr "形式の詳細"
+
+msgid "Images are not resized. Use black and white with a solid white background. Transparency is ignored."
+msgstr "画像はリサイズされません。不透明な白い背景の白黒画像を使用してください。透明度は無視されます。"
+
+msgid "Colors are converted to the average of red, green and blue. Values below 128 appear black on the device; 128 and above appear white."
+msgstr "色は赤・緑・青の平均値に変換されます。128 未満はデバイス上で黒、128 以上は白で表示されます。"
+
+msgid "MDT .data contains one symbol: 514 bytes including a valid checksum."
+msgstr "MDT .data は 1 つのシンボルを含みます。有効なチェックサムを含む 514 バイトです。"
+
+msgid "Export saves the selected symbol as a 64 x 64 PNG. Imported grayscale values are preserved."
+msgstr "エクスポートでは選択したシンボルを 64 x 64 の PNG として保存します。インポートしたグレースケール値は保持されます。"
+
+msgid "Import replaces only the selected symbol in the project. To transfer it to the device, use {button}."
+msgstr "インポートはプロジェクト内の選択したシンボルのみを置き換えます。デバイスへの転送には {button} を使用してください。"
+
+msgid "Load Default Symbols"
+msgstr "既定のシンボルを読み込む"
+
+msgid "Load Defaults (1st Generation)"
+msgstr "既定を読み込む（第1世代）"
+
+msgid "Load Defaults (2nd Generation)"
+msgstr "既定を読み込む（第2世代）"
+
+msgid "Import Symbol Library…"
+msgstr "シンボルライブラリをインポート…"
+
+msgid "Export Symbol Library…"
+msgstr "シンボルライブラリをエクスポート…"
+
+msgid "Invert imported library"
+msgstr "インポートしたライブラリを反転"
+
+msgid "Include default symbols when programming"
+msgstr "書き込み時に既定のシンボルを含める"
+
+msgid "Synchronize Symbols"
+msgstr "シンボルを同期"
+
+msgid "Loading defaults replaces all custom symbols in the project. Undo restores them. Program with defaults included to transfer the entire library."
+msgstr "既定の読み込みはプロジェクトのすべてのカスタムシンボルを置き換えます。元に戻す操作で復元できます。ライブラリ全体を転送するには既定のシンボルを含めて書き込んでください。"
+
+msgid "ZIP: Symbol_{first}.bmp through Symbol_{last}.bmp at the archive root, each 64 x 64 pixels. Import replaces all editable symbols; export saves their black-and-white device pixels."
+msgstr "ZIP：ルートに Symbol_{first}.bmp から Symbol_{last}.bmp、各64 x 64ピクセル。インポートは編集可能な全シンボルを置き換え、エクスポートはデバイス用の白黒ピクセルを保存します。"
+
+msgid "Compare only reads checksums. Synchronize also refreshes Smart device checksums, without changing pixels or the project."
+msgstr "比較はチェックサムの読み取りのみです。同期はSmartデバイスのチェックサムも更新します。ピクセルやプロジェクトは変更しません。"
+
+msgid "Write the entire symbol library, including defaults, to this device and restart it?"
+msgstr "既定を含むシンボルライブラリ全体をこのデバイスに書き込み、再起動しますか？"
+
+msgid "The complete default library is not attached to this project."
+msgstr "このプロジェクトには完全な既定ライブラリが添付されていません。"
+
+msgid "The project changed while choosing the library. Please import it again."
+msgstr "ライブラリの選択中にプロジェクトが変更されました。再度インポートしてください。"

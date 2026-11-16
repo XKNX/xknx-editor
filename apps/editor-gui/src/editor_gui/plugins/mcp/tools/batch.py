@@ -10,6 +10,7 @@ Atomic apply rolls back everything on the first failure by rewinding the undo cu
 from __future__ import annotations
 
 from collections.abc import Callable
+from pathlib import Path
 from typing import TYPE_CHECKING, Any, get_args
 
 from editor_gui.device_plugins import parameters_in_plugin
@@ -348,6 +349,51 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             )
         return {"node_id": device.node_id, "lost_links": lost}
 
+    def _op_mdt_symbol(p: dict[str, Any]) -> dict[str, Any]:
+        device = _device(p)
+        project.set_mdt_symbol(device.node_id, p["slot"], p.get("grayscale_hex"))
+        return {"node_id": device.node_id}
+
+    def _op_mdt_library(p: dict[str, Any]) -> dict[str, Any]:
+        device = _device(p)
+        project.set_mdt_symbol_library(device.node_id, p["new_library"])
+        return {"node_id": device.node_id}
+
+    def _op_mdt_defaults(p: dict[str, Any]) -> dict[str, Any]:
+        device = _device(p)
+        project.load_mdt_default_symbols(
+            device.node_id, new_library=p.get("new_library", False)
+        )
+        return {"node_id": device.node_id}
+
+    def _op_mdt_import_library(p: dict[str, Any]) -> dict[str, Any]:
+        device = _device(p)
+        project.import_mdt_symbol_library(
+            device.node_id, Path(p["path"]).read_bytes(), invert=p.get("invert", False)
+        )
+        return {"node_id": device.node_id}
+
+    def _op_mdt_restore(p: dict[str, Any]) -> dict[str, Any]:
+        device = _device(p)
+        project.restore_mdt_symbol(device.node_id, p["slot"])
+        return {"node_id": device.node_id}
+
+    def _op_mdt_layout(p: dict[str, Any]) -> dict[str, Any]:
+        device = _device(p)
+        project.set_mdt_layout(
+            device.node_id, p["page_number"], p["name"], p["orientation"], p["tiles"]
+        )
+        return {"node_id": device.node_id}
+
+    def _op_mdt_visucontrol(p: dict[str, Any]) -> dict[str, Any]:
+        device = _device(p)
+        return {
+            "node_id": device.node_id,
+            "lost_links": project.import_mdt_visucontrol(
+                device.node_id, Path(p["path"]).read_bytes()
+            ),
+        }
+
     handlers: dict[
         str, tuple[tuple[str, ...], Callable[[dict[str, Any]], dict[str, Any]]]
     ] = {
@@ -357,6 +403,16 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         "remove_device": ((), _op_remove_device),
         "set_individual_address": (("address",), _op_set_individual_address),
         "set_parameter": ((), _op_set_parameter),
+        "import_mdt_visucontrol": (("path",), _op_mdt_visucontrol),
+        "set_mdt_symbol": (("slot",), _op_mdt_symbol),
+        "load_mdt_default_symbols": ((), _op_mdt_defaults),
+        "import_mdt_symbol_library": (("path",), _op_mdt_import_library),
+        "restore_mdt_symbol": (("slot",), _op_mdt_restore),
+        "set_mdt_layout": (
+            ("page_number", "name", "orientation", "tiles"),
+            _op_mdt_layout,
+        ),
+        "set_mdt_symbol_library": (("new_library",), _op_mdt_library),
         "setup_plugin": ((), lambda p: _op_plugin(p, "setup_plugin")),
         "import_stored_plugin_config": (
             (),
@@ -520,6 +576,11 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         - import_stored_plugin_config: device. Convert a verified stored plugin blob; returns lost_links.
         - import_plugin_config: device, config_json. Atomic mapped-provider configuration import.
         - set_plugin_parameter: device, ref_id, value. Mapped native provider field edit; returns lost_links.
+        - import_mdt_visucontrol: device, path (local .etsvcp). Returns lost_links.
+        - set_mdt_symbol: device, slot (zero-based), grayscale_hex (4096 pixels; null removes the override).
+        - restore_mdt_symbol: device, slot (zero-based). Store the default from the attached symbol library.
+        - set_mdt_symbol_library: device, new_library (bool). Select the default symbol library.
+        - set_mdt_layout: device, page_number, name, orientation (V/H), tiles. Replace a GTS page.
         - set_parameter: device, (parameter_ref_id | parameter_id | label [subtree_id tree_token]
           [value_label]), value? -> {node_id, ref_id, requested, value, active, tree_token,
           changed?, lost_links?} (tree_token as for project_set_parameter: the tree after this op).

@@ -3421,3 +3421,158 @@ msgstr "Selectați cele două dispozitive de comparat."
 
 msgid "Loading application programs… {done}/{total}"
 msgstr "Se încarcă programele de aplicație… {done}/{total}"
+msgid "Symbol"
+msgstr "Simbol"
+
+msgid "Use the newer symbol library"
+msgstr "Folosește biblioteca de simboluri mai nouă"
+
+msgid "Import Symbol…"
+msgstr "Importă simbol…"
+
+msgid "Export Symbol…"
+msgstr "Exportă simbol…"
+
+msgid "Draw pixels"
+msgstr "Desenează pixeli"
+
+msgid "No custom symbol is stored in this slot."
+msgstr "Nu este salvat niciun simbol personalizat în această poziție."
+
+msgid "Page"
+msgstr "Pagină"
+
+msgid "Tile"
+msgstr "Dală"
+
+msgid "Color"
+msgstr "Culoare"
+
+msgid "Transparency"
+msgstr "Transparență"
+
+msgid "Program Symbols…"
+msgstr "Programează simboluri…"
+
+msgid "Compare Symbols with Device"
+msgstr "Compară simbolurile cu dispozitivul"
+
+msgid "Write the custom symbols to this device and restart it?"
+msgstr "Scrie simbolurile personalizate pe acest dispozitiv și îl repornește?"
+
+msgid "Select the device type and enable a page in Parameters to edit its layout."
+msgstr "Selectează tipul dispozitivului și activează o pagină în Parametri pentru a edita aspectul."
+
+msgid "Restore Default Symbol"
+msgstr "Restabilește simbolul implicit"
+
+msgid "Standby Page (Day)"
+msgstr "Pagină de așteptare (zi)"
+
+msgid "Standby Page (Night)"
+msgstr "Pagină de așteptare (noapte)"
+
+msgid "Special Symbol"
+msgstr "Simbol special"
+
+msgid "Mode: Automatic"
+msgstr "Mod: automat"
+
+msgid "Mode: Comfort"
+msgstr "Mod: confort"
+
+msgid "Mode: Standby"
+msgstr "Mod: așteptare"
+
+msgid "Mode: Night"
+msgstr "Mod: noapte"
+
+msgid "Mode: Frost Protection"
+msgstr "Mod: protecție la îngheț"
+
+msgid "Mode: Heat Protection"
+msgstr "Mod: protecție la căldură"
+
+msgid "Temperature"
+msgstr "Temperatură"
+
+msgid "Cooling"
+msgstr "Răcire"
+
+msgid "Heating"
+msgstr "Încălzire"
+
+msgid "Functionally Linked Symbols"
+msgstr "Simboluri asociate funcțiilor"
+
+msgid "Normal Symbols"
+msgstr "Simboluri normale"
+
+msgid "This symbol is fixed and cannot be changed."
+msgstr "Acest simbol este fix și nu poate fi modificat."
+
+msgid "No symbol preview is available in this project."
+msgstr "Nu este disponibilă o previzualizare a simbolului în acest proiect."
+
+msgid "Import: PNG/BMP, exactly 64 x 64 pixels, or MDT .data."
+msgstr "Import: PNG/BMP de exact 64 x 64 pixeli sau MDT .data."
+
+msgid "Format Details"
+msgstr "Detalii despre format"
+
+msgid "Images are not resized. Use black and white with a solid white background. Transparency is ignored."
+msgstr "Imaginile nu sunt redimensionate. Folosește alb și negru cu un fundal alb opac. Transparența este ignorată."
+
+msgid "Colors are converted to the average of red, green and blue. Values below 128 appear black on the device; 128 and above appear white."
+msgstr "Culorile sunt convertite în media valorilor de roșu, verde și albastru. Valorile sub 128 apar negre pe dispozitiv; de la 128 în sus apar albe."
+
+msgid "MDT .data contains one symbol: 514 bytes including a valid checksum."
+msgstr "MDT .data conține un simbol: 514 octeți, inclusiv o sumă de control validă."
+
+msgid "Export saves the selected symbol as a 64 x 64 PNG. Imported grayscale values are preserved."
+msgstr "Exportul salvează simbolul selectat ca PNG de 64 x 64. Valorile de gri importate sunt păstrate."
+
+msgid "Import replaces only the selected symbol in the project. To transfer it to the device, use {button}."
+msgstr "Importul înlocuiește doar simbolul selectat în proiect. Pentru a-l transfera pe dispozitiv, folosește {button}."
+
+msgid "Load Default Symbols"
+msgstr "Încarcă simbolurile implicite"
+
+msgid "Load Defaults (1st Generation)"
+msgstr "Încarcă implicite (generația 1)"
+
+msgid "Load Defaults (2nd Generation)"
+msgstr "Încarcă implicite (generația 2)"
+
+msgid "Import Symbol Library…"
+msgstr "Importă biblioteca de simboluri…"
+
+msgid "Export Symbol Library…"
+msgstr "Exportă biblioteca de simboluri…"
+
+msgid "Invert imported library"
+msgstr "Inversează biblioteca importată"
+
+msgid "Include default symbols when programming"
+msgstr "Include simbolurile implicite la programare"
+
+msgid "Synchronize Symbols"
+msgstr "Sincronizează simbolurile"
+
+msgid "Loading defaults replaces all custom symbols in the project. Undo restores them. Program with defaults included to transfer the entire library."
+msgstr "Încărcarea simbolurilor implicite înlocuiește toate simbolurile personalizate din proiect. Anularea le restaurează. Include simbolurile implicite la programare pentru a transfera întreaga bibliotecă."
+
+msgid "ZIP: Symbol_{first}.bmp through Symbol_{last}.bmp at the archive root, each 64 x 64 pixels. Import replaces all editable symbols; export saves their black-and-white device pixels."
+msgstr "ZIP: Symbol_{first}.bmp până la Symbol_{last}.bmp la rădăcina arhivei, fiecare de 64 x 64 pixeli. Importul înlocuiește toate simbolurile editabile; exportul salvează pixelii alb-negru pentru dispozitiv."
+
+msgid "Compare only reads checksums. Synchronize also refreshes Smart device checksums, without changing pixels or the project."
+msgstr "Compararea doar citește sumele de control. Sincronizarea actualizează și sumele dispozitivului Smart, fără a schimba pixelii sau proiectul."
+
+msgid "Write the entire symbol library, including defaults, to this device and restart it?"
+msgstr "Scrii întreaga bibliotecă de simboluri, inclusiv cele implicite, pe acest dispozitiv și îl repornești?"
+
+msgid "The complete default library is not attached to this project."
+msgstr "Biblioteca implicită completă nu este atașată acestui proiect."
+
+msgid "The project changed while choosing the library. Please import it again."
+msgstr "Proiectul s-a schimbat în timpul alegerii bibliotecii. Import-o din nou."

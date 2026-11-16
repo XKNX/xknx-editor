@@ -93,6 +93,7 @@ class StoreStreams:
     #: Stream name -> file bytes (incl. BOM), e.g. ``{"P": b"...", "P-0273-0_A-1": b"..."}``.
     streams: dict[str, bytes]
     binary_data: dict[str, bytes] = field(default_factory=lambda: {})
+    addin_data: dict[str, bytes] = field(default_factory=lambda: {})
 
 
 def _attr(parent: ET.Element, tag: str, **attrs: object) -> ET.Element:
@@ -741,11 +742,23 @@ def build_store_streams(
         binary_data_transform=binary_data_transform,
     )
     streams = builder.build()
+    from .addin_data import export_addin_data
+
+    metadata, addin_files = export_addin_data(project, installation)
+    if len(metadata) or "AddinData" in (project.extra_subtrees or {}):
+        metadata.tag = "AddinDataElements"
+        for entry in metadata:
+            entry.tag = "AInDat"
+        streams["AI"] = _serialize(metadata)
+    for path, data in unzip_members(project.imported_project_files).items():
+        if path.startswith("AddinData/") and _is_safe_member(path):
+            addin_files.setdefault(path, data)
     return StoreStreams(
         pid=resolved_pid,
         guid=builder.guid,
         streams=streams,
         binary_data=builder.binary_data,
+        addin_data=addin_files,
     )
 
 
@@ -843,6 +856,11 @@ def write_project_store(
         write_store_stream(staging / "BinaryData", name, data, mask)
         if not data:
             (staging / "BinaryData" / name).write_bytes(b"")
+    for name, data in built.addin_data.items():
+        target = staging / name
+        write_store_stream(target.parent, target.name, data, mask)
+        if not data:
+            target.write_bytes(b"")
 
     if dest_dir.exists():
         if not overwrite:

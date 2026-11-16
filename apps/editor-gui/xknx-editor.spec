@@ -108,9 +108,10 @@ a = Analysis(
     binaries=_binaries,
     datas=_datas,
     hiddenimports=_hiddenimports,
-    hookspath=[],
+    hookspath=[os.path.join(SPECPATH, "packaging", "hooks")],
     runtime_hooks=[],
-    excludes=["pytest", "tkinter"],
+    # Pygments' unused image formatter pulls in Pillow's font renderer.
+    excludes=["pytest", "tkinter", "pygments.formatters.img"],
     cipher=block_cipher,
 )
 # Drop ONLY the bundled ucrtbase.dll. A/B-confirmed on the target: when the bundled ucrtbase.dll is

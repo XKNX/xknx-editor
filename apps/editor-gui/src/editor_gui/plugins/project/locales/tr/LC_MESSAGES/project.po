@@ -3290,3 +3290,158 @@ msgstr "Karşılaştırılacak iki cihazı seçin."
 
 msgid "Loading application programs… {done}/{total}"
 msgstr "Uygulama programları yükleniyor… {done}/{total}"
+msgid "Symbol"
+msgstr "Sembol"
+
+msgid "Use the newer symbol library"
+msgstr "Yeni sembol kitaplığını kullan"
+
+msgid "Import Symbol…"
+msgstr "Sembol İçe Aktar…"
+
+msgid "Export Symbol…"
+msgstr "Sembol Dışa Aktar…"
+
+msgid "Draw pixels"
+msgstr "Piksel çiz"
+
+msgid "No custom symbol is stored in this slot."
+msgstr "Bu yuvada özel bir sembol kayıtlı değil."
+
+msgid "Page"
+msgstr "Sayfa"
+
+msgid "Tile"
+msgstr "Kutucuk"
+
+msgid "Color"
+msgstr "Renk"
+
+msgid "Transparency"
+msgstr "Saydamlık"
+
+msgid "Program Symbols…"
+msgstr "Sembolleri Programla…"
+
+msgid "Compare Symbols with Device"
+msgstr "Sembolleri Cihazla Karşılaştır"
+
+msgid "Write the custom symbols to this device and restart it?"
+msgstr "Özel semboller bu cihaza yazılsın ve cihaz yeniden başlatılsın mı?"
+
+msgid "Select the device type and enable a page in Parameters to edit its layout."
+msgstr "Düzeni düzenlemek için Parametreler bölümünde cihaz türünü seçin ve bir sayfayı etkinleştirin."
+
+msgid "Restore Default Symbol"
+msgstr "Varsayılan Sembolü Geri Yükle"
+
+msgid "Standby Page (Day)"
+msgstr "Bekleme Sayfası (Gündüz)"
+
+msgid "Standby Page (Night)"
+msgstr "Bekleme Sayfası (Gece)"
+
+msgid "Special Symbol"
+msgstr "Özel Sembol"
+
+msgid "Mode: Automatic"
+msgstr "Mod: Otomatik"
+
+msgid "Mode: Comfort"
+msgstr "Mod: Konfor"
+
+msgid "Mode: Standby"
+msgstr "Mod: Bekleme"
+
+msgid "Mode: Night"
+msgstr "Mod: Gece"
+
+msgid "Mode: Frost Protection"
+msgstr "Mod: Donma Koruması"
+
+msgid "Mode: Heat Protection"
+msgstr "Mod: Isı Koruması"
+
+msgid "Temperature"
+msgstr "Sıcaklık"
+
+msgid "Cooling"
+msgstr "Soğutma"
+
+msgid "Heating"
+msgstr "Isıtma"
+
+msgid "Functionally Linked Symbols"
+msgstr "İşleve Bağlı Semboller"
+
+msgid "Normal Symbols"
+msgstr "Normal Semboller"
+
+msgid "This symbol is fixed and cannot be changed."
+msgstr "Bu sembol sabittir ve değiştirilemez."
+
+msgid "No symbol preview is available in this project."
+msgstr "Bu projede sembol önizlemesi yok."
+
+msgid "Import: PNG/BMP, exactly 64 x 64 pixels, or MDT .data."
+msgstr "İçe aktarma: Tam 64 x 64 piksellik PNG/BMP veya MDT .data."
+
+msgid "Format Details"
+msgstr "Biçim Ayrıntıları"
+
+msgid "Images are not resized. Use black and white with a solid white background. Transparency is ignored."
+msgstr "Görseller yeniden boyutlandırılmaz. Opak beyaz arka plan üzerinde siyah beyaz kullanın. Şeffaflık yok sayılır."
+
+msgid "Colors are converted to the average of red, green and blue. Values below 128 appear black on the device; 128 and above appear white."
+msgstr "Renkler kırmızı, yeşil ve mavinin ortalamasına dönüştürülür. 128 altındaki değerler cihazda siyah, 128 ve üzeri beyaz görünür."
+
+msgid "MDT .data contains one symbol: 514 bytes including a valid checksum."
+msgstr "MDT .data bir sembol içerir: Geçerli sağlama toplamı dahil 514 bayt."
+
+msgid "Export saves the selected symbol as a 64 x 64 PNG. Imported grayscale values are preserved."
+msgstr "Dışa aktarma, seçili sembolü 64 x 64 PNG olarak kaydeder. İçe aktarılan gri ton değerleri korunur."
+
+msgid "Import replaces only the selected symbol in the project. To transfer it to the device, use {button}."
+msgstr "İçe aktarma yalnızca projedeki seçili sembolü değiştirir. Cihaza aktarmak için {button} kullanın."
+
+msgid "Load Default Symbols"
+msgstr "Varsayılan Sembolleri Yükle"
+
+msgid "Load Defaults (1st Generation)"
+msgstr "Varsayılanları Yükle (1. Nesil)"
+
+msgid "Load Defaults (2nd Generation)"
+msgstr "Varsayılanları Yükle (2. Nesil)"
+
+msgid "Import Symbol Library…"
+msgstr "Sembol Kitaplığını İçe Aktar…"
+
+msgid "Export Symbol Library…"
+msgstr "Sembol Kitaplığını Dışa Aktar…"
+
+msgid "Invert imported library"
+msgstr "İçe aktarılan kitaplığı ters çevir"
+
+msgid "Include default symbols when programming"
+msgstr "Programlamada varsayılan sembolleri dahil et"
+
+msgid "Synchronize Symbols"
+msgstr "Sembolleri Eşitle"
+
+msgid "Loading defaults replaces all custom symbols in the project. Undo restores them. Program with defaults included to transfer the entire library."
+msgstr "Varsayılanları yüklemek projedeki tüm özel sembolleri değiştirir. Geri al işlemi bunları geri getirir. Tüm kitaplığı aktarmak için programlamaya varsayılanları dahil edin."
+
+msgid "ZIP: Symbol_{first}.bmp through Symbol_{last}.bmp at the archive root, each 64 x 64 pixels. Import replaces all editable symbols; export saves their black-and-white device pixels."
+msgstr "ZIP: Arşiv kökünde Symbol_{first}.bmp ile Symbol_{last}.bmp arası, her biri 64 x 64 piksel. İçe aktarma tüm düzenlenebilir sembolleri değiştirir; dışa aktarma cihazın siyah beyaz piksellerini kaydeder."
+
+msgid "Compare only reads checksums. Synchronize also refreshes Smart device checksums, without changing pixels or the project."
+msgstr "Karşılaştırma yalnızca sağlama toplamlarını okur. Eşitleme ayrıca Smart cihazının sağlama toplamlarını yeniler; pikselleri veya projeyi değiştirmez."
+
+msgid "Write the entire symbol library, including defaults, to this device and restart it?"
+msgstr "Varsayılanlar dahil tüm sembol kitaplığı bu cihaza yazılsın ve cihaz yeniden başlatılsın mı?"
+
+msgid "The complete default library is not attached to this project."
+msgstr "Varsayılan kitaplığın tamamı bu projeye eklenmemiş."
+
+msgid "The project changed while choosing the library. Please import it again."
+msgstr "Kitaplık seçilirken proje değişti. Lütfen yeniden içe aktarın."

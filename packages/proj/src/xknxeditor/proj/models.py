@@ -405,6 +405,9 @@ class Device(_SourcePuid, Base):
     binary_data: Mapped[list["DeviceBinaryData"]] = relationship(
         back_populates="device", cascade="all, delete-orphan"
     )
+    addin_data: Mapped[list["DeviceAddinData"]] = relationship(
+        back_populates="device", cascade="all, delete-orphan"
+    )
     additional_addresses: Mapped[list["DeviceAdditionalAddress"]] = relationship(
         back_populates="device",
         cascade="all, delete-orphan",
@@ -522,6 +525,23 @@ class DeviceBinaryData(Base):
     do_not_copy: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
 
     device: Mapped["Device"] = relationship(back_populates="binary_data")
+
+
+class DeviceAddinData(Base):
+    """An app attachment whose exported name follows the device's address."""
+
+    __tablename__ = "device_addin_data"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    device_id: Mapped[int] = mapped_column(
+        ForeignKey("devices.id"), nullable=False, index=True
+    )
+    app_id: Mapped[str] = mapped_column(String, nullable=False)
+    suffix: Mapped[str] = mapped_column(String, nullable=False)
+    data: Mapped[bytes] = mapped_column(LargeBinary, nullable=False)
+    metadata_xml: Mapped[str] = mapped_column(Text, nullable=False, default="")
+
+    device: Mapped["Device"] = relationship(back_populates="addin_data")
 
 
 class ComObject(Base):
