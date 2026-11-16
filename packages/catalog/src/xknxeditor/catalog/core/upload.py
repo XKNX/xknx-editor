@@ -99,8 +99,27 @@ def _ingest_hardware(
             )
             for program in reg.programs_for_hardware(hardware_id).values():
                 _ingest_program(
-                    session, hw.id, program, knxprod_path, known_app_ids, project_mode
+                    session,
+                    hw.id,
+                    program,
+                    _program_media(reg, program),
+                    knxprod_path,
+                    known_app_ids,
+                    project_mode,
                 )
+
+
+def _program_media(reg: Registry, program: DeviceProgram) -> list[str]:
+    """The media of a hardware program: the ones it names, else (older product data names none)
+    the media the master data declares for its application's mask version."""
+    named = [str(medium) for medium in program.raw.medium_types or []]
+    if named:
+        return named
+    for app_id in program.application_ref_ids:
+        facts = reg.application_facts.get(app_id)
+        if facts is not None and facts.mask_version:
+            return list(reg.master.mask_mediums(facts.mask_version))
+    return []
 
 
 def _registration_date(value: object) -> datetime.date | None:
@@ -123,6 +142,7 @@ def _ingest_program(
     session: Session,
     hardware_id: str,
     program: DeviceProgram,
+    media: list[str],
     knxprod_path: str,
     known_app_ids: set[str],
     project_mode: bool,
@@ -157,7 +177,7 @@ def _ingest_program(
             registration_date=reg_date,
         )
     )
-    for medium_type in program.raw.medium_types or []:
+    for medium_type in media:
         session.merge(
             HardwareProgramMediumType(
                 hardware_program_id=program.id, medium_type=medium_type

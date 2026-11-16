@@ -38,11 +38,11 @@ _PROGRAMS = {
 }
 
 
-def _hardware_xml() -> str:
+def _hardware_xml(media: str = ' MediumTypes="MT-0"') -> str:
     devices = ""
     for number, (hardware_id, programs) in enumerate(_PROGRAMS.items(), start=1):
         refs = "".join(
-            f'<Hardware2Program Id="{program_id}" MediumTypes="MT-0">'
+            f'<Hardware2Program Id="{program_id}"{media}>'
             f'<ApplicationProgramRef RefId="{app_id}" />'
             f'<RegistrationInfo RegistrationStatus="Registered" '
             f'RegistrationNumber="2026/{number}" RegistrationDate="2026-01-0{number}" />'
@@ -86,11 +86,11 @@ def _xmls() -> list[bytes]:
     ]
 
 
-def _product() -> bytes:
+def _product(master: str = _MASTER, hardware: str | None = None) -> bytes:
     buffer = io.BytesIO()
     with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as archive:
-        archive.writestr("knx_master.xml", _MASTER)
-        archive.writestr("M-00FA/Hardware.xml", _hardware_xml())
+        archive.writestr("knx_master.xml", master)
+        archive.writestr("M-00FA/Hardware.xml", hardware or _hardware_xml())
         archive.writestr("M-00FA/Catalog.xml", _catalog_xml())
         for xml in _xmls():
             match = re.search(rb'<ApplicationProgram Id="([^"]+)"', xml)
@@ -170,3 +170,23 @@ def test_import_of_several_applications(tmp_path: Path) -> None:
             to_ir(xml, version), protocol=pickle.HIGHEST_PROTOCOL
         )
     assert entries == expected
+
+
+def test_a_program_that_names_no_media_has_its_mask_versions(tmp_path: Path) -> None:
+    db = tmp_path / "cat.xknxcatalog"
+    master = _MASTER.replace(
+        "<Manufacturers>",
+        '<MaskVersions><MaskVersion Id="MV-07B0" MaskVersion="1968" Name="System B" '
+        'ManagementModel="SystemB" MediumTypeRefId="MT-0" /></MaskVersions><Manufacturers>',
+    )
+    service = CatalogService(db, tmp_path / "cache")
+    service.import_knxprod(_product(master, _hardware_xml(media="")))
+    service.close()
+
+    assert _rows(
+        db, "SELECT hardware_program_id, medium_type FROM hardware_program_medium_types"
+    ) == [
+        (program_id, "MT-0")
+        for programs in _PROGRAMS.values()
+        for program_id in programs
+    ]
