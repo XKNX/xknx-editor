@@ -472,3 +472,9 @@ msgstr "Hvor mange telegrammer busovervågningen gemmer, før de ældste kassere
 
 msgid "How many telegrams Bus Activity keeps before dropping the oldest. 0 = unlimited."
 msgstr "Hvor mange telegrammer busaktiviteten gemmer, før de ældste kasseres. 0 = ubegrænset."
+
+msgid "Not sent: a protected group address is among them (Settings > Connection)"
+msgstr "Ikke sendt: en beskyttet gruppeadresse er blandt dem (Indstillinger > Forbindelse)"
+
+msgid "Protected group address: nothing is sent to it (Settings > Connection)"
+msgstr "Beskyttet gruppeadresse: der sendes intet til den (Indstillinger > Forbindelse)"

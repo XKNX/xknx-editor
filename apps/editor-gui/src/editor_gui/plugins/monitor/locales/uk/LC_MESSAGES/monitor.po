@@ -480,3 +480,9 @@ msgstr "Скільки телеграм зберігає монітор шини
 
 msgid "How many telegrams Bus Activity keeps before dropping the oldest. 0 = unlimited."
 msgstr "Скільки телеграм зберігає активність шини, перш ніж видалити найстаріші. 0 = без обмежень."
+
+msgid "Not sent: a protected group address is among them (Settings > Connection)"
+msgstr "Не надіслано: серед них є захищена групова адреса (Налаштування > Підключення)"
+
+msgid "Protected group address: nothing is sent to it (Settings > Connection)"
+msgstr "Захищена групова адреса: на неї нічого не надсилається (Налаштування > Підключення)"

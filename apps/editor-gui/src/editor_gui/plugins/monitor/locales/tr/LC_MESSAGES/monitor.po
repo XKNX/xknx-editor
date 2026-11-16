@@ -464,3 +464,9 @@ msgstr "Bus İzleme'nin en eskileri atmadan önce tuttuğu telegram sayısı. 0 
 
 msgid "How many telegrams Bus Activity keeps before dropping the oldest. 0 = unlimited."
 msgstr "Bus Etkinliği'nin en eskileri atmadan önce tuttuğu telegram sayısı. 0 = sınırsız."
+
+msgid "Not sent: a protected group address is among them (Settings > Connection)"
+msgstr "Gönderilmedi: aralarında korumalı bir grup adresi var (Ayarlar > Bağlantı)"
+
+msgid "Protected group address: nothing is sent to it (Settings > Connection)"
+msgstr "Korumalı grup adresi: ona hiçbir şey gönderilmez (Ayarlar > Bağlantı)"

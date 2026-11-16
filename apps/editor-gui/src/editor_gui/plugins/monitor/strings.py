@@ -485,6 +485,18 @@ class MonitorStrings:
         )
 
     @property
+    def MONITOR_PROTECTED(self) -> str:
+        return _(
+            "Protected group address: nothing is sent to it (Settings > Connection)"
+        )
+
+    @property
+    def REPLAY_PROTECTED(self) -> str:
+        return _(
+            "Not sent: a protected group address is among them (Settings > Connection)"
+        )
+
+    @property
     def REPLAY_NOTHING(self) -> str:
         return _("There are no group telegrams to replay")
 

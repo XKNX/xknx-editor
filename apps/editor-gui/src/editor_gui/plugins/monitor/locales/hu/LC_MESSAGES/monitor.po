@@ -467,3 +467,9 @@ msgstr "Hány telegramot őriz meg a buszmonitor, mielőtt a legrégebbieket elv
 
 msgid "How many telegrams Bus Activity keeps before dropping the oldest. 0 = unlimited."
 msgstr "Hány telegramot őriz meg a buszaktivitás, mielőtt a legrégebbieket elveti. 0 = korlátlan."
+
+msgid "Not sent: a protected group address is among them (Settings > Connection)"
+msgstr "Nincs elküldve: védett csoportcím van köztük (Beállítások > Kapcsolat)"
+
+msgid "Protected group address: nothing is sent to it (Settings > Connection)"
+msgstr "Védett csoportcím: semmit nem küld rá (Beállítások > Kapcsolat)"

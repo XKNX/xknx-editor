@@ -207,3 +207,19 @@ async def test_a_setting_mcp_may_only_tighten_is_refused_the_other_way(
         assert values.values["flag"] is True
         await _error(client, "only the user can set 'flag'", key="flag", value=False)
     assert values.values["flag"] is True
+
+
+async def test_a_value_the_setting_refuses_is_reported(tmp_path: Path) -> None:
+    def refuse(value: Any) -> None:
+        raise ValueError(f"not a group address or group: {value}")
+
+    ctx = _build_ctx(tmp_path)
+    picky = Setting("picky", lambda: "Picky", "text", get=lambda: "", set=refuse)
+    ctx.settings = SettingsWindow(lambda: [SettingsPage("p", lambda: "P", [picky])])
+    async with Client(build_server(ctx)) as client:
+        await _error(
+            client,
+            "picky: not a group address or group: 1/2/3x",
+            key="picky",
+            value="1/2/3x",
+        )

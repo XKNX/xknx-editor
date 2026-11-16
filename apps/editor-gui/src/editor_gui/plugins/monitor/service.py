@@ -14,12 +14,13 @@ import threading
 import time
 from collections import deque
 from collections.abc import Callable, Iterable
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import datetime
 from enum import Enum
 from functools import cached_property
 from typing import TYPE_CHECKING, Any, cast
 
+from xknx.cemi.cemi_frame import CEMIFrame
 from xknx.dpt.payload import DPTArray, DPTBinary
 from xknx.exceptions import CouldNotParseAddress
 from xknx.telegram import GroupAddress as XGroupAddress
@@ -29,6 +30,7 @@ from editor_gui.dpt import transcoder_for
 from editor_gui.local_time import time_text
 from editor_gui.plugins.connection.busmonitor import TP1Acknowledgement
 from editor_gui.plugins.connection.service import BusmonitorState
+from editor_gui.plugins.connection.write_guard import protected_allows, protected_reason
 from editor_gui.plugins.monitor.frames import (
     L_DATA_CON,
     L_DATA_IND,
@@ -555,6 +557,11 @@ class MonitorService:
 
     # --- outgoing (UI thread) ---------------------------------------------
 
+    def protected_reason(self, address: str) -> str:
+        """Why nothing may be sent to ``address`` (any spelling of a group address), "" when
+        it may: it is a protected group address (Settings > Connection)."""
+        return protected_reason(address)
+
     def send_write(self, address: str, dpt: str | None, text: str) -> bool:
         """Encode ``text`` per the group address' DPT and send a GroupValueWrite. Returns success."""
         transcoder = transcoder_for(dpt)
@@ -566,8 +573,7 @@ class MonitorService:
         except Exception as e:  # xknx raises ConversionError/ValueError on bad input
             self._warn("cannot encode value", address=address, value=text, error=str(e))
             return False
-        self._send(address, GroupValueWrite(knx_value))
-        return True
+        return self._send(address, GroupValueWrite(knx_value))
 
     def send_payload(self, address: str, payload: DPTBinary | DPTArray) -> None:
         """Send an already encoded value as a GroupValueWrite."""
@@ -576,13 +582,19 @@ class MonitorService:
     def send_read(self, address: str) -> None:
         self._send(address, GroupValueRead())
 
-    def _send(self, address: str, payload: GroupValueWrite | GroupValueRead) -> None:
+    def _send(self, address: str, payload: GroupValueWrite | GroupValueRead) -> bool:
+        """Send ``payload`` to ``address``; False when it was refused."""
+        # Nothing is sent to a protected group address, not even a read; checked here, as the
+        # way through Home Assistant's connection never passes the editor's interface.
+        if reason := protected_reason(address):
+            self._warn("not sent", address=address, reason=reason)
+            return False
         # Block Bus Writes holds also for a write sent through Home Assistant's connection,
         # which never passes the editor's interface.
         if isinstance(payload, GroupValueWrite) and self._connection.writes_refused(
             "group write"
         ):
-            return
+            return False
         # Without a connection of its own: through another program's (Home Assistant's), which
         # shows the telegram as its own (see on_foreign_cemi).
         if (
@@ -590,8 +602,9 @@ class MonitorService:
             and self.send_elsewhere is not None
             and self.send_elsewhere(address, payload)
         ):
-            return
+            return True
         self._connection.send_group_telegram(address, payload)
+        return True
 
     def _warn(self, event: str, **kwargs: Any) -> None:
         if self._log is not None:
@@ -617,6 +630,17 @@ class MonitorService:
             )
         if not plan.items or self._replayer is not None:
             return plan
+        refused = next(
+            (
+                reason
+                for item in plan.items
+                if (reason := protected_allows(CEMIFrame.from_knx(item.raw)))
+            ),
+            "",
+        )
+        if refused:
+            self._warn("replay not started", reason=refused)
+            return replace(plan, items=[], refused=refused)
         replayer = Replayer(self._connection.send_cemi)
         self._replayer = replayer
         self.replay_result = None
