@@ -256,3 +256,60 @@ def test_the_update_takes_over_what_the_new_device_accepts(
         kind(NEW): "0",
     }
     project.close()
+
+
+def _target_last(app: str, version: int) -> Any:
+    """The application with the Assign's target last among the ParameterRefs: the update sets
+    it after the switches the Assign applies under."""
+    xml = _xml(app, version).decode()
+    target = (
+        f'<ParameterRef Id="{app}_P-{TARGET}_R-{TARGET}" RefId="{app}_P-{TARGET}" />'
+    )
+    xml = xml.replace(target, "").replace(
+        "</ParameterRefs>", target + "</ParameterRefs>", 1
+    )
+    return parse_application_xml(xml.encode(), "M-00FA")[0]
+
+
+def test_the_updated_device_is_the_one_the_next_open_builds(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The updated device is calculated anew, as each device on the project's next open: every
+    Assign that applies writes its target. The update sets the target after the switches, which
+    turn the Assign on, so the device held the old target value until that open changed it."""
+    new = _target_last(NEW, 2)
+    catalog = CatalogService(tmp_path / "c.xknxcatalog")
+    project = ProjectService(catalog)
+    project.set_logger(Logger(LogService(), "project"))
+    project.new(tmp_path / "p.xknx")
+    assert project.add_device(
+        "M-00FA_H-1-1_P-1", OLD_PROGRAM, "A", _target_last(OLD, 1)
+    )
+    (device,) = project.devices
+    # The Assign applies on the old device (the first switch on, the second off); its target
+    # holds another value.
+    project.edit_params(
+        device,
+        [(ref(OLD, n), v) for n, v in {**STORED, SECOND: "0", TARGET: "2"}.items()],
+        mode="raw",
+    )
+    monkeypatch.setattr(project, "local_update_target", lambda device: target())
+    monkeypatch.setattr(
+        catalog, "get_application", lambda app_id: new if app_id == NEW else None
+    )
+    (device,) = project.devices
+    assert project.update_application(device) is not None
+
+    def values() -> dict[str, str | None]:
+        (device,) = project.devices
+        ui = device.dynamic_ui
+        assert ui is not None
+        return {ref(NEW, n): ui.get_parameter_ref(ref(NEW, n)) for n in STORED}
+
+    updated = values()
+    path = project.path
+    assert path is not None
+    project.close()
+    project.open(path)
+    assert values() == updated
+    project.close()

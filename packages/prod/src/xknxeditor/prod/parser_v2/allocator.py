@@ -30,13 +30,20 @@ class Allocator:
         self.error_message_ref = error_message_ref
 
     def resolve(
-        self, position: int, allocates: int, alignment: int, base: int
+        self,
+        position: int,
+        allocates: int,
+        alignment: int,
+        base: int,
+        *,
+        bounded: bool = True,
     ) -> tuple[int, int]:
-        """Give back (address, next_position); AllocatorOverflow past max_inclusive."""
+        """Give back (address, next_position); AllocatorOverflow past max_inclusive, unless not
+        ``bounded``."""
         aligned = position
         if alignment > 1 and aligned % alignment != 0:
             aligned += alignment - (aligned % alignment)
-        if aligned + allocates - 1 > self.max_inclusive:
+        if bounded and aligned + allocates - 1 > self.max_inclusive:
             raise AllocatorOverflow(
                 f"allocator {self.id!r} overflow: end {aligned + allocates - 1} > max {self.max_inclusive}",
                 self.id,

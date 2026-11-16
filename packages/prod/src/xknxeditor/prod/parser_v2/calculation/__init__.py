@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import functools
 import json
 import logging
 import re
@@ -638,6 +639,15 @@ def _candidates(tc: object, current: str) -> list[str]:
     return [v for v in values if not _same_value(v, current)]
 
 
+_FUNCTION = re.compile(r"\bfunction\s+([A-Za-z_$][\w$]*)")
+
+
+@functools.lru_cache(maxsize=256)
+def _declared_functions(code: str) -> frozenset[str]:
+    """The names of the functions ``code`` declares (or names, in a function expression)."""
+    return frozenset(_FUNCTION.findall(code))
+
+
 def _run_inline(
     code: str,
     inputs: dict[str, Any],
@@ -656,11 +666,16 @@ def _run_inline(
     reader = ",".join(
         f"{json.dumps(name)}: {name}" for name in output if _IDENT.match(name)
     )
-    script = (
-        decls + "\n" + code + "\nfunction __xk_outputs() { return {" + reader + "}; }\n"
-    )
+    body = "\n" + code + "\nfunction __xk_outputs() { return {" + reader + "}; }\n"
+    # The code is the same on every run, its inputs are not: their declarations (literals only)
+    # stay out of the text the JScript front end checks and rewrites, so its rewrite of the code is
+    # reused instead of parsed anew on every run (most of a calculation's time otherwise). Not
+    # where the code declares a function of an input's name: in one text, the declaration of
+    # the function is hoisted above the input's.
+    shared = not _declared_functions(code) & names.keys()
     ctx = ScriptContext(
-        script=script,
+        script=body if shared else decls + body,
+        prefix=decls if shared else "",
         get_message=True,
         host=host,
         jscript=jscript,

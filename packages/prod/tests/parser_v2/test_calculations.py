@@ -216,3 +216,27 @@ def test_a_script_write_settles_only_where_an_allocator_can_overflow(
         ui.write_parameter(ref, value)
         assert ui.get_value(ref) == value
     assert settled == ([True] if settles else [])
+
+
+def test_inline_code_keeps_one_text_where_a_function_has_an_inputs_name() -> None:
+    """The inputs' declarations run ahead of the code; where the code declares a function of an
+    input's name, as one text (the function is hoisted above the input's declaration), else
+    apart from the rewritten code: the same outputs."""
+    from xknxeditor.prod.parser_v2.calculation import (
+        _run_inline,  # pyright: ignore[reportPrivateUsage]
+    )
+
+    plain = _run_inline("y = x * 2;", {"x": 4}, {"y": 0}, {}, True, None, {})
+    assert plain == {"y": 8}
+    # One text: the function is hoisted, then the input's declaration gives the name its value
+    # (apart, the function would win).
+    shadowed = _run_inline(
+        "function x() { return 5; }\ny = typeof x;",
+        {"x": 4},
+        {"y": 0},
+        {},
+        True,
+        None,
+        {},
+    )
+    assert shadowed == {"y": "number"}

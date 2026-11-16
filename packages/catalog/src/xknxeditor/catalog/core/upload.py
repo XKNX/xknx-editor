@@ -52,8 +52,11 @@ def _ingest_manufacturers(session: Session, reg: Registry) -> None:
 
 
 def _ingest_applications(session: Session, reg: Registry) -> None:
-    # From the facts the load kept: the parsed programs are not in memory any more.
+    # From the facts the load kept: the parsed programs are not in memory any more. An
+    # application the catalog has stays as it is (see _ingest_program).
     for app in reg.applications.values():
+        if session.get(Application, app.id) is not None:
+            continue
         facts = reg.application_facts[app.id]
         session.merge(
             Application(
@@ -99,8 +102,36 @@ def _ingest_hardware(
             )
             for program in reg.programs_for_hardware(hardware_id).values():
                 _ingest_program(
-                    session, hw.id, program, knxprod_path, known_app_ids, project_mode
+                    session,
+                    hw.id,
+                    program,
+                    _program_media(reg, program),
+                    knxprod_path,
+                    known_app_ids,
+                    project_mode,
                 )
+
+
+def _program_media(reg: Registry, program: DeviceProgram) -> list[str]:
+    """The media of a hardware program: the ones it names, else (older product data names none)
+    the media the master data declares for its application's mask version."""
+    named = [str(medium) for medium in program.raw.medium_types or []]
+    if named:
+        return named
+    for app_id in program.application_ref_ids:
+        facts = reg.application_facts.get(app_id)
+        if facts is not None and facts.mask_version:
+            return list(reg.master.mask_mediums(facts.mask_version))
+    return []
+
+
+def _keeps_source(existing: HardwareProgram, app_id: str | None) -> bool:
+    """Whether a hardware program the catalog has stays with its product file when another file
+    declares it again (with the application ``app_id``): while that file is there and gives it
+    an application (or the other gives none either)."""
+    if existing.application_id is None and app_id is not None:
+        return False
+    return Path(existing.knxprod_path).exists()
 
 
 def _registration_date(value: object) -> datetime.date | None:
@@ -123,6 +154,7 @@ def _ingest_program(
     session: Session,
     hardware_id: str,
     program: DeviceProgram,
+    media: list[str],
     knxprod_path: str,
     known_app_ids: set[str],
     project_mode: bool,
@@ -133,10 +165,15 @@ def _ingest_program(
     # (applications.id) and roll back the whole ingest.
     app_id = next((a for a in program.application_ref_ids if a in known_app_ids), None)
 
-    if project_mode and session.get(HardwareProgram, program.id) is not None:
+    existing = session.get(HardwareProgram, program.id)
+    if existing is not None and (project_mode or _keeps_source(existing, app_id)):
         # Already ingested (e.g. from a full .knxprod carrying Catalog.xml + baggages). A leaner
         # project archive must not overwrite it: that would downgrade the source path and could null
-        # a resolved application_id. Project-mode ingest only ADDS programs that are missing.
+        # a resolved application_id. Project-mode ingest only ADDS programs that are missing. Nor
+        # does another product file that declares the program again: its application, of the
+        # same id, may differ (other texts, other flags), and the devices built from the first
+        # would change with it. A program whose file is gone, or which had no application, takes
+        # the new one.
         return
 
     reg_status = reg_number = reg_date = None
@@ -157,7 +194,7 @@ def _ingest_program(
             registration_date=reg_date,
         )
     )
-    for medium_type in program.raw.medium_types or []:
+    for medium_type in media:
         session.merge(
             HardwareProgramMediumType(
                 hardware_program_id=program.id, medium_type=medium_type

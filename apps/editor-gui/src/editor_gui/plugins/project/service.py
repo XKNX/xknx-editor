@@ -6210,6 +6210,9 @@ class ProjectService:
         )
         self._app_cache[target.id] = new_app
         self._bump()
+        # Of the new application: calculated anew, as on the project's next open, so the device
+        # stays as the update leaves it.
+        self._calculate_anew({device.node_id}, now=True)
         # The values the device held that the new one took, and those it did not.
         kept = len(stored) - not_taken + objects.kept
         dropped = parameters.dropped + not_taken + objects.dropped
@@ -6254,6 +6257,8 @@ class ProjectService:
         )
         self._app_cache[program.id] = new_app
         self._bump()
+        # Of the new application: calculated anew, as on the project's next open.
+        self._calculate_anew({device.node_id}, now=True)
         self._log.info(
             "application changed",
             device=device.node_id,

@@ -108,8 +108,10 @@ class ScriptContext:
         jscript: JScriptEnv | bool = True,
         deadline: float | None = None,
         values: Mapping[str, str] | None = None,
+        prefix: str = "",
     ) -> None:
-        """``values`` become global variables ahead of ``script`` (which may redefine them)."""
+        """``values`` become global variables ahead of ``script`` (which may redefine them);
+        ``prefix`` is evaluated with ``script`` as one text, ahead of it (see :meth:`load`)."""
         from .compat import runtime
 
         self._abort = abort or AbortToken()
@@ -146,7 +148,7 @@ class ScriptContext:
                 + "void 0;"
             )
         if script:
-            self.load(script)
+            self.load(script, prefix)
 
     @property
     def abort_token(self) -> AbortToken:
@@ -190,8 +192,11 @@ class ScriptContext:
                 raise ScriptAborted() from None
             raise
 
-    def load(self, script: str) -> None:
-        """Evaluate script text in the global scope."""
+    def load(self, script: str, prefix: str = "") -> None:
+        """Evaluate script text in the global scope. ``prefix``, code the JScript front end
+        need not check or rewrite (declarations of literal values), goes ahead of ``script`` in
+        the same text without passing through it, so the front end's rewrite of a ``script``
+        run with other values is reused."""
         if self._jscript:
             from .compat.frontend import transform
 
@@ -200,7 +205,7 @@ class ScriptContext:
                 self._eval("__xk.fnmap(dukpy.m)", m=result.fnmap)
             script = result.code
         try:
-            self._eval(script + "\n;void 0;")
+            self._eval(prefix + script + "\n;void 0;")
         except ScriptAborted:
             raise
         except Exception as exc:

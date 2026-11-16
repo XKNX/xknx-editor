@@ -9,6 +9,7 @@ application, using the locations the mask version's resources define.
 from __future__ import annotations
 
 import logging
+import re
 from typing import TYPE_CHECKING
 
 from xknxeditor.namespaces.intermediate.resource_addr_space_t import ResourceAddrSpace
@@ -57,10 +58,24 @@ class FullDownloadDeclined(DownloadError):
     """The user declined the full download a partial one had to become."""
 
 
+def program_manufacturer(application: Application) -> int:
+    """The manufacturer of the program id ``application`` loads: the original manufacturer of an
+    application another manufacturer sells (``OriginalManufacturer``, the ``-Oxxxx`` of its id;
+    the device runs that manufacturer's firmware, as the product data's own program ids of such
+    applications show), else the application's own."""
+    original = getattr(application.program, "original_manufacturer", None)
+    if not (isinstance(original, str) and _MANUFACTURER.fullmatch(original)):
+        original = application.manufacturer_id
+    return int(original.split("-")[-1], 16)
+
+
+_MANUFACTURER = re.compile(r"M-[0-9A-Fa-f]{4}")
+
+
 def application_id(application: Application, length: int = 5) -> bytes:
     """The application id as the device stores it: manufacturer, number and version,
     with a one-octet manufacturer in the four-octet form."""
-    manufacturer = int(application.manufacturer_id.split("-")[-1], 16)
+    manufacturer = program_manufacturer(application)
     program = application.program
     head = (
         manufacturer.to_bytes(2, "big") if length >= 5 else bytes([manufacturer & 0xFF])
@@ -202,7 +217,7 @@ def program_id_of(application: Application) -> tuple[int, int, int]:
     """The (manufacturer, number, version) of ``application``."""
     program = application.program
     return (
-        int(application.manufacturer_id.split("-")[-1], 16),
+        program_manufacturer(application),
         program.application_number,
         program.application_version & 0xFF,
     )

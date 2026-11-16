@@ -88,6 +88,7 @@ def _device_reports_55(monkeypatch: pytest.MonkeyPatch) -> list[int]:
         cancel=None,
         master=None,
         factory_image=None,
+        native_read=None,
     ):
         used.append(programmer.max_apdu_length)
         if len(used) == 1:

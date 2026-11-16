@@ -19,7 +19,13 @@ from .codec import (
 from .family import FamilyConfig, FamilyEvaluation, edit, from_saved, schema_for
 from .family_codec import PROFILES, compile_family
 from .model import BLOB_NAME, PowerToolConfig, default_config, edit_config
-from .prepare import product_parameters, profile_for
+from .prepare import (
+    BUSCH_JAEGER,
+    firmware_manufacturer,
+    product_parameters,
+    profile_for,
+    program_identity,
+)
 from .project_blob import config_from_project_blob, read_project_blob
 from .serialize import from_json_bytes, to_json_bytes, unique_members
 
@@ -67,10 +73,8 @@ def product_profile(application: Application, secondary: Application | None) -> 
             number, version = program.application_number, program.application_version
             mask = str(program.mask_version).upper().removeprefix("MV-")
             if (
-                app.manufacturer_id.upper() != "M-0007"
-                or not app.id.upper().startswith(
-                    f"M-0007_A-{number:04X}-{version:02X}-"
-                )
+                program_identity(app) != (number, version)
+                or app.manufacturer_id.upper() != application.manufacturer_id.upper()
                 or getattr(program.program_type, "value", program.program_type) != kind
                 or mask not in ("07B0", "17B0")
             ):
@@ -94,8 +98,9 @@ def product_profile(application: Application, secondary: Application | None) -> 
     for app, version in ((application, main), (secondary, pei)):
         program = app.program
         if (
-            app.manufacturer_id.upper() != "M-0007"
-            or not app.id.upper().startswith(f"M-0007_A-{number:04X}-{version:02X}-")
+            firmware_manufacturer(application) != BUSCH_JAEGER
+            or app.manufacturer_id.upper() != application.manufacturer_id.upper()
+            or program_identity(app) != (number, version)
             or program.application_number != number
             or program.application_version != version
             or str(program.mask_version).upper() not in ("MV-07B0", "07B0")
@@ -126,9 +131,13 @@ def for_product(
     if not isinstance(config, FamilyConfig):
         return config
     assert secondary is not None
+    # One device, one firmware: the PEI program carries the application's manufacturer also
+    # where only the application names its original manufacturer (ABB 6108-40-...-O0007 with
+    # 6108-50-...).
+    manufacturer = firmware_manufacturer(application).to_bytes(2, "big")
     ids = tuple(
         (
-            b"\0\x07"
+            manufacturer
             + app.program.application_number.to_bytes(2, "big")
             + bytes([app.program.application_version])
         ).hex()

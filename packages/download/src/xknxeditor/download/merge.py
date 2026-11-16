@@ -99,6 +99,24 @@ def device_mask_version(application: Application) -> str:
     return resolved
 
 
+# The line coupler masks whose current configuration is for programs of the newer programming
+# style only: it programs the coupler through its Router object's properties.
+_LEGACY_COUPLER_MASKS = frozenset({"MV-0912", "MV-091A"})
+
+
+def legacy_configuration(application: Application) -> bool:
+    """Whether the mask's legacy configuration (``LegacyVersion``) programs the device: a line
+    coupler program on MV-0912 or MV-091A without the option
+    ``LineCoupler0912NewProgrammingStyle`` (product data converted from older data). Its
+    procedure writes the program's memory, as on MV-0911; the current configuration's writes
+    fixed octets to the Router object's properties and none of the program's parameters."""
+    if device_mask_version(application) not in _LEGACY_COUPLER_MASKS:
+        return False
+    static = getattr(application.program, "static", None)
+    options = getattr(static, "options", None)
+    return not (options is not None and options.line_coupler0912_new_programming_style)
+
+
 def system300_mask_unresolved(application: Application) -> bool:
     """Whether ``application`` is a System 300 application whose procedure does not say
     which configuration it expects: only the device's management descriptor tells."""
@@ -205,6 +223,7 @@ def _resolve_controls(
     style = application.load_procedure_style
     modules = modules or {}
     load_procedures = application.load_procedures
+    legacy = legacy_configuration(application)
 
     # An application ships only its Load procedure (ProductProcedure) or Load
     # fragments (MergedProcedure). The Unload procedure always comes from the
@@ -247,6 +266,7 @@ def _resolve_controls(
             device_mask_version(application),
             scope,
             has_application_program2,
+            legacy=legacy,
         )
 
     try:
@@ -257,6 +277,7 @@ def _resolve_controls(
             scope=scope,
             access=access,
             has_application_program2=has_application_program2,
+            legacy=legacy,
         )
     except UnsupportedProcedureError:
         if procedure_type is ProcedureType.UNLOAD:
@@ -336,6 +357,7 @@ def _resolve_controls(
         device_mask_version(application),
         scope,
         has_application_program2,
+        legacy=legacy,
     )
 
 
@@ -345,8 +367,10 @@ def _finalize_controls(
     mask_version: str,
     scope: DownloadScope,
     has_application_program2: bool,
+    *,
+    legacy: bool = False,
 ) -> list[object]:
-    object_types = mask_object_types(master_data, mask_version)
+    object_types = mask_object_types(master_data, mask_version, legacy=legacy)
     partial_parameters = scope in (
         DownloadScope.PARAMETERS,
         DownloadScope.PARAMETERS_AND_GROUP_COMMUNICATION,
@@ -683,9 +707,10 @@ def _default_procedure(
     scope: DownloadScope = DownloadScope.FULL,
     access: ResourceAccess = ResourceAccess.REMOTE,
     has_application_program2: bool = False,
+    legacy: bool = False,
 ) -> LoadProcedure | None:
     """Select a compatible subtype from the same configuration as InterfaceObjects."""
-    configuration = mask_configuration(master_data, mask_version_id)
+    configuration = mask_configuration(master_data, mask_version_id, legacy=legacy)
     if configuration is None:
         return None
     requested = {
@@ -734,26 +759,24 @@ def _default_procedure(
 _AUTHORIZE_LEVELS_FEATURE = "AuthorizeLevels"
 
 
-def mask_authorize_levels(master_data: MasterData | None, mask_version_id: str) -> int:
-    """Return the mask version's AuthorizeLevels, or 0 when unknown or absent.
+def mask_authorize_levels(
+    master_data: MasterData | None, mask_version_id: str, *, legacy: bool = False
+) -> int:
+    """Return the AuthorizeLevels of the mask's configuration (the legacy one with
+    ``legacy``, see :func:`legacy_configuration`), or 0 when unknown or absent.
 
     A value greater than zero means the device uses access protection, so an
     A_Authorize handshake is performed before writing. Without master data the
     value is unknown and 0 is returned (no authorize attempted).
     """
-    if master_data is None or master_data.mask_versions is None:
+    configuration = mask_configuration(master_data, mask_version_id, legacy=legacy)
+    features = configuration.features if configuration is not None else None
+    if features is None:
         return 0
-    for mask_version in master_data.mask_versions.mask_version:
-        if mask_version.id != mask_version_id:
-            continue
-        for configuration in mask_version.hawk_configuration_data:
-            features = configuration.features
-            if features is None:
-                continue
-            for feature in features.feature:
-                name = getattr(feature.name, "value", feature.name)
-                if name == _AUTHORIZE_LEVELS_FEATURE:
-                    return feature.value or 0
+    for feature in features.feature:
+        name = getattr(feature.name, "value", feature.name)
+        if name == _AUTHORIZE_LEVELS_FEATURE:
+            return feature.value or 0
     return 0
 
 

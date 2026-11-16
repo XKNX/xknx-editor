@@ -50,6 +50,12 @@ from xknxeditor.vendor.powertool.project_blob import (
     read_project_blob,
 )
 from xknxeditor.vendor.powertool.project_writer import write_project_blob
+from xknxeditor.vendor.powertool.recover import (
+    DeviceImage,
+    MemoryReader,
+    read_device_image,
+)
+from xknxeditor.vendor.powertool.recover import decode as decode_device
 
 if TYPE_CHECKING:
     from editor_gui.device import Device
@@ -457,6 +463,37 @@ class PowerToolProvider:
 
     def install_view(self, device: Device) -> None:
         install_view(device)
+
+    async def read_device(self, programmer: MemoryReader) -> DeviceImage:
+        """What a PowerTool device holds of its configuration (see
+        :func:`xknxeditor.vendor.powertool.recover.read_device_image`)."""
+        return await read_device_image(programmer)
+
+    def recover(self, device: Device, image: object) -> NativeConfiguration:
+        """The configuration a device read off the bus (``image``, see
+        :meth:`read_device`) was downloaded with, for ``device`` (of the same product)."""
+        if not isinstance(image, DeviceImage):
+            raise ValueError("No PowerTool configuration was read off the device")
+        assert device.app is not None
+        secondary = device.second_application() if device.second_application else None
+        base = for_product(
+            default(profile_for(device.app, secondary)), device.app, secondary
+        )
+        return self._state(device, decode_device(base, image))
+
+    def slot_references(self, device: Device) -> dict[int, str]:
+        """The group object reference of each slot of the device's object table, as the
+        device's configuration places its objects (an association names the slot)."""
+        state = self.read(device)
+        config = from_json_bytes(state.data)
+        assert device.app is not None
+        secondary = device.second_application() if device.second_application else None
+        compiled = compile_image(for_product(config, device.app, secondary))
+        return {
+            role.index: config.bindings[role.key]
+            for role in compiled.objects
+            if role.visible and role.key in config.bindings
+        }
 
     def prepare(
         self, device: Device, communication: GroupCommunication | None
