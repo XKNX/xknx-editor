@@ -1018,14 +1018,14 @@ msgstr "評価に失敗しました"
 msgid "Read-only test: compares what a download would write with what is on the device. Nothing is written to the device."
 msgstr "読み取り専用テスト：ダウンロードで書き込まれる内容とデバイス上の内容を比較します。デバイスには何も書き込まれません。"
 
-msgid "Cannot run: the project was changed since it was opened and may no longer match the device. Undo the changes of this session, or save and reopen the project."
-msgstr "実行できません：プロジェクトは開いた後に変更されているため、デバイスと一致しない可能性があります。このセッションの変更を元に戻すか、プロジェクトを保存して開き直してください。"
+msgid "Cannot run: the project was changed since it was opened and may no longer match the device. Undo the changes of this session, or reopen the project."
+msgstr "実行できません。プロジェクトは開いてから変更されており、デバイスと一致しない可能性があります。このセッションの変更を元に戻すか、プロジェクトを開き直してください。"
 
 msgid "Cannot run: no KNX connection. Connect to a gateway ({menu} menu) and make sure the device is reachable at its individual address."
 msgstr "実行できません：KNX 接続がありません。ゲートウェイに接続し（［{menu}］メニュー）、デバイスがその個別アドレスで到達可能であることを確認してください。"
 
-msgid "Match: the generated image is identical to what is on the device."
-msgstr "一致：生成されたイメージはデバイス上のものと同一です。"
+msgid "Match: all compared memory bytes and properties match the device."
+msgstr "一致：比較したすべてのメモリバイトとプロパティがデバイスと一致します。"
 
 msgid "{matched} matched, {changed} would change"
 msgstr "一致 {matched}、変更予定 {changed}"
@@ -3466,3 +3466,15 @@ msgstr "デバイスからシンボルを読み取り…"
 
 msgid "Read all symbols from {address}? This takes about 2:30 minutes. The images will be saved in this project; the device stays unchanged."
 msgstr "{address} からすべてのシンボルを読み取りますか？読み取りには約2分30秒かかります。画像はこのプロジェクトに保存され、デバイスは変更されません。"
+
+msgid "Unused reserved memory and PID 27 length/CRC are not compared."
+msgstr "未使用の予約メモリと PID 27 の長さ/CRC は比較されません。"
+
+msgid "Upper / Rocker"
+msgstr "上側 / ロッカー"
+
+msgid "Lower"
+msgstr "下側"
+
+msgid "LED"
+msgstr "LED"

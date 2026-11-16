@@ -93,6 +93,10 @@ def configuration(device: Device) -> Configuration:
 def install_view(device: Device) -> None:
     if not any(r.name == BLOB_NAME for r in device.binary_data):
         return
+    from editor_gui.languages import product_language
+    from xknxeditor.vendor.powertool.family import FamilyConfig, schema_for
+    from xknxeditor.vendor.powertool.presentation import Presentation
+
     device.native_objects = []
     device.native_modules = []
     device.native_error = None
@@ -107,6 +111,13 @@ def install_view(device: Device) -> None:
             raise ValueError("native object bindings disagree with the product")
         catalog = ApplicationIndexer(device.app.program)
         overrides = {r.ref_id: r for r in device.com_object_instance_refs}
+        language = product_language()
+        presentation = Presentation(
+            schema_for(config.profile, config.database_code)["code"]
+            if isinstance(config, FamilyConfig)
+            else 3,
+            language,
+        )
         for role in compiled.objects:
             if not role.visible:
                 continue
@@ -122,7 +133,15 @@ def install_view(device: Device) -> None:
             device.native_objects.append(
                 ComObject(
                     id=ref,
-                    name=role.name,
+                    name=presentation.text(
+                        role.key.rsplit("/", 1)[-1]
+                        if isinstance(config, FamilyConfig)
+                        else presentation.native_node(
+                            config.channels[role.channel].function,
+                            object_key=role.key.rsplit("/", 1)[-1],
+                        ),
+                        role.name,
+                    ),
                     dpt=lookup_or_make_dpt(role.dpt),
                     flags=flags,
                     number=catalog.com_objects[
@@ -135,7 +154,7 @@ def install_view(device: Device) -> None:
                     else priority_from_bits(role.flags),
                 )
             )
-        for channel, label in enumerate(channel_labels(config)):
+        for channel, label in enumerate(channel_labels(config, language)):
             refs = frozenset(
                 bindings[o.key]
                 for o in compiled.objects

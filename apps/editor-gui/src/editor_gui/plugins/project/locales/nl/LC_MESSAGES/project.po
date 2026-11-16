@@ -844,8 +844,8 @@ msgstr "CSV"
 msgid "Cannot run: no KNX connection. Connect to a gateway ({menu} menu) and make sure the device is reachable at its individual address."
 msgstr "Kan niet worden uitgevoerd: geen KNX-verbinding. Maak verbinding met een gateway (menu {menu}) en zorg dat het apparaat bereikbaar is op zijn individuele adres."
 
-msgid "Cannot run: the project was changed since it was opened and may no longer match the device. Undo the changes of this session, or save and reopen the project."
-msgstr "Kan niet worden uitgevoerd: het project is sinds het openen gewijzigd en komt mogelijk niet meer overeen met het apparaat. Maak de wijzigingen van deze sessie ongedaan, of sla het project op en open het opnieuw."
+msgid "Cannot run: the project was changed since it was opened and may no longer match the device. Undo the changes of this session, or reopen the project."
+msgstr "Kan niet uitvoeren: het project is sinds het openen gewijzigd en komt mogelijk niet meer overeen met het apparaat. Maak de wijzigingen van deze sessie ongedaan of open het project opnieuw."
 
 msgid "Changed"
 msgstr "Gewijzigd"
@@ -1114,8 +1114,8 @@ msgstr "Masterdata (ondertekend)"
 msgid "Match by Name"
 msgstr "Op naam toewijzen"
 
-msgid "Match: the generated image is identical to what is on the device."
-msgstr "Overeenkomst: het gegenereerde geheugenbeeld is identiek aan wat op het apparaat staat."
+msgid "Match: all compared memory bytes and properties match the device."
+msgstr "Overeenkomst: alle vergeleken geheugenbytes en eigenschappen komen overeen met het apparaat."
 
 msgid "Memory Preview"
 msgstr "Geheugenvoorbeeld"
@@ -3553,3 +3553,15 @@ msgstr "Symbolen van apparaat lezen…"
 
 msgid "Read all symbols from {address}? This takes about 2:30 minutes. The images will be saved in this project; the device stays unchanged."
 msgstr "Alle symbolen van {address} lezen? Het uitlezen duurt ongeveer 2:30 minuten. De afbeeldingen worden in dit project opgeslagen; het apparaat blijft ongewijzigd."
+
+msgid "Unused reserved memory and PID 27 length/CRC are not compared."
+msgstr "Ongebruikt gereserveerd geheugen en de lengte/CRC van PID 27 worden niet vergeleken."
+
+msgid "Upper / Rocker"
+msgstr "Boven / Wip"
+
+msgid "Lower"
+msgstr "Onder"
+
+msgid "LED"
+msgstr "LED"

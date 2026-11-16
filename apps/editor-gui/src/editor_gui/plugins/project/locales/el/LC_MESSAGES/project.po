@@ -1018,14 +1018,14 @@ msgstr "Η αξιολόγηση απέτυχε"
 msgid "Read-only test: compares what a download would write with what is on the device. Nothing is written to the device."
 msgstr "Δοκιμή μόνο ανάγνωσης: συγκρίνει ό,τι θα έγραφε μια λήψη με ό,τι υπάρχει στη συσκευή. Δεν γράφεται τίποτα στη συσκευή."
 
-msgid "Cannot run: the project was changed since it was opened and may no longer match the device. Undo the changes of this session, or save and reopen the project."
-msgstr "Δεν είναι δυνατή η εκτέλεση: το έργο άλλαξε από τότε που άνοιξε και ίσως δεν ταιριάζει πλέον με τη συσκευή. Αναιρέστε τις αλλαγές αυτής της συνεδρίας ή αποθηκεύστε και ανοίξτε ξανά το έργο."
+msgid "Cannot run: the project was changed since it was opened and may no longer match the device. Undo the changes of this session, or reopen the project."
+msgstr "Δεν είναι δυνατή η εκτέλεση: το έργο άλλαξε από τότε που ανοίχτηκε και ενδέχεται να μην αντιστοιχεί πλέον στη συσκευή. Αναιρέστε τις αλλαγές αυτής της συνεδρίας ή ανοίξτε ξανά το έργο."
 
 msgid "Cannot run: no KNX connection. Connect to a gateway ({menu} menu) and make sure the device is reachable at its individual address."
 msgstr "Δεν είναι δυνατή η εκτέλεση: δεν υπάρχει σύνδεση KNX. Συνδεθείτε σε ένα gateway (μενού {menu}) και βεβαιωθείτε ότι η συσκευή είναι προσβάσιμη στην ατομική της διεύθυνση."
 
-msgid "Match: the generated image is identical to what is on the device."
-msgstr "Ταύτιση: η παραγόμενη εικόνα είναι ίδια με αυτή στη συσκευή."
+msgid "Match: all compared memory bytes and properties match the device."
+msgstr "Συμφωνία: όλα τα συγκρινόμενα byte μνήμης και οι ιδιότητες συμφωνούν με τη συσκευή."
 
 msgid "{matched} matched, {changed} would change"
 msgstr "{matched} ταυτίζονται, {changed} θα άλλαζαν"
@@ -3518,3 +3518,15 @@ msgstr "Ανάγνωση συμβόλων από συσκευή…"
 
 msgid "Read all symbols from {address}? This takes about 2:30 minutes. The images will be saved in this project; the device stays unchanged."
 msgstr "Ανάγνωση όλων των συμβόλων από τη συσκευή {address}; Η ανάγνωση διαρκεί περίπου 2:30 λεπτά. Οι εικόνες θα αποθηκευτούν σε αυτό το έργο· η συσκευή παραμένει αμετάβλητη."
+
+msgid "Unused reserved memory and PID 27 length/CRC are not compared."
+msgstr "Η αχρησιμοποίητη δεσμευμένη μνήμη και το μήκος/CRC του PID 27 δεν συγκρίνονται."
+
+msgid "Upper / Rocker"
+msgstr "Πάνω / Πλήκτρο παλινδρόμησης"
+
+msgid "Lower"
+msgstr "Κάτω"
+
+msgid "LED"
+msgstr "LED"

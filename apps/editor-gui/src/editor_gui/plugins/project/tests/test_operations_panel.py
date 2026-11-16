@@ -273,7 +273,7 @@ def test_test_programming_waits_in_the_queue_while_the_bus_is_busy() -> None:
     evaluations[0].set_result("report")
     # The report shows in the result window, and the entry ends as finished.
     assert shown == [
-        ("result", "1.1.5  Dimmer", S.SCOPE_PARAMETERS, "report", set(), {})
+        ("result", "1.1.5  Dimmer", S.SCOPE_PARAMETERS, "report", set(), {}, False)
     ]
     assert queue.history[0].state is OperationState.FINISHED
 

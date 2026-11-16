@@ -13,6 +13,7 @@ from types import MappingProxyType
 from typing import Any
 
 from .model import float32, object_flag_overrides, timer_code
+from .presentation import Presentation
 from .project_blob import read_project_blob, schema_version
 
 type Scalar = int | float | str | None
@@ -136,9 +137,10 @@ class Node:
 
 
 class FamilyEvaluation:
-    def __init__(self, config: FamilyConfig) -> None:
+    def __init__(self, config: FamilyConfig, *, language: str = "en") -> None:
         self.config = config
-        self.schema = schema_for(config.profile, config.database_code)
+        schema = schema_for(config.profile, config.database_code)
+        self.schema = Presentation(schema["code"], language).schema(schema)
         self.nodes: dict[str, Node] = {}
         self.channels: list[Node] = []
         self.devices: list[Node] = []

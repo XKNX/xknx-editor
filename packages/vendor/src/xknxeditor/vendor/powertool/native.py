@@ -356,7 +356,10 @@ def edit_native(config: Configuration, reference: str, value: str) -> Configurat
     )
 
 
-def channel_labels(config: Configuration) -> list[str]:
+def channel_labels(config: Configuration, language: str = "en") -> list[str]:
     if isinstance(config, FamilyConfig):
-        return [c.spec["label"] for c in FamilyEvaluation(config).channels]
+        return [
+            c.spec["label"]
+            for c in FamilyEvaluation(config, language=language).channels
+        ]
     return [f"Channel {i + 1}" for i in range(len(config.channels))]
