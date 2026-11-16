@@ -40,7 +40,7 @@ _LAZY: dict[str, tuple[str, str]] = {
     "list_hardware": (".core.hardware", "list_hardware"),
     "list_manufacturers": (".core.manufacturers", "list_manufacturers"),
     "list_products": (".core.products", "list_products"),
-    "products_for_path": (".core.products", "products_for_path"),
+    "products_for_versions": (".core.products", "products_for_versions"),
     "upload_knxprod": (".core.upload", "upload_knxprod"),
     "default_db_url": (".db", "default_db_url"),
     "knxprod_dir_for": (".db", "knxprod_dir_for"),
@@ -76,7 +76,7 @@ __all__ = [
     "make_engine",
     "plan_product_deletion",
     "product_facts",
-    "products_for_path",
+    "products_for_versions",
     "upload_knxprod",
 ]
 
@@ -109,7 +109,7 @@ if TYPE_CHECKING:
         find_products_for_application,
         list_products,
         product_facts,
-        products_for_path,
+        products_for_versions,
     )
     from .core.service import CatalogService
     from .core.upload import upload_knxprod
