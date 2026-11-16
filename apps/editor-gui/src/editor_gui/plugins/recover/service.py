@@ -410,10 +410,16 @@ class RecoverService:
             self.recover_done = done
             self.recover_stage = ""
             try:
+                from editor_gui.plugin_providers import device_reader
+
+                # A device configured through a manufacturer's plug-in keeps that
+                # configuration of its own: it is read as well.
+                reader = device_reader(entry.application)
                 entry.recovered = await recover_device_at(
                     xknx,
                     entry.address,
                     entry.application,
+                    native_read=reader.read_device if reader is not None else None,
                     interface_max_apdu_length=self._api.connection.interface_max_apdu_length,
                     progress=self._on_recover_stage,
                     project_code_page=self._api.project.project_code_page(),
@@ -1298,7 +1304,13 @@ class RecoverService:
                         links=len(recovered.links),
                         group_objects=len(recovered.group_objects),
                     )
-                self._apply_flags(device, recovered, number_to_ref)
+                native = self._apply_native(device, recovered, application)
+                if native is not None:
+                    # The plug-in's configuration places the objects (and holds their
+                    # flags): an association names the slot of the device's object table.
+                    device, number_to_ref = native
+                else:
+                    self._apply_flags(device, recovered, number_to_ref)
                 self._apply_links(device, recovered, number_to_ref, ga_ids)
                 project.recalculate_params(
                     device_id, list(recovered.parameters.values), stored=True
@@ -1329,6 +1341,26 @@ class RecoverService:
         entry.applied = True
         entry.error = None
         return True
+
+    def _apply_native(
+        self, device: Any, recovered: RecoveredDevice, application: Any
+    ) -> tuple[Any, dict[int, str]] | None:
+        """Give ``device`` the configuration of a manufacturer's plug-in read off it (in the
+        undo step of the device), and return the device and the reference of each slot of
+        its object table; None for a device without one."""
+        from editor_gui.plugin_providers import device_reader
+
+        if recovered.native_image is None:
+            return None
+        reader = device_reader(application)
+        if reader is None:
+            return None
+        project = self._api.project
+        project.import_plugin_config(
+            device, reader.recover(device, recovered.native_image).data
+        )
+        device = project.find_device_by_node_id(device.node_id) or device
+        return device, reader.slot_references(device)
 
     def _apply_flags(
         self, device: Any, recovered: RecoveredDevice, number_to_ref: dict[int, str]

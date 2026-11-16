@@ -249,7 +249,9 @@ def _master_with_features(*features: object) -> MasterData:
     mask = SimpleNamespace(
         id=_MASK,
         hawk_configuration_data=[
-            SimpleNamespace(features=SimpleNamespace(feature=list(features)))
+            SimpleNamespace(
+                legacy_version=None, features=SimpleNamespace(feature=list(features))
+            )
         ],
     )
     return cast(
@@ -392,6 +394,154 @@ def test_legacy_configuration_is_not_mixed_with_current_metadata() -> None:
     configurations.insert(0, legacy)
     assert mask_object_types(master, "MV-07B0") == MAPPING
     assert resolve_download_controls(app, master) != [LdCtrlConnect()]
+
+
+def _coupler_master(mask: str = "MV-0912") -> MasterData:
+    """A line coupler mask with the current configuration (the Router object's properties,
+    access protection, an Unload procedure) and a legacy one (memory writes only)."""
+    from xknxeditor.namespaces.intermediate.ld_ctrl_unload_t import LdCtrlUnload
+    from xknxeditor.namespaces.intermediate.ld_ctrl_write_prop_t import LdCtrlWriteProp
+
+    def procedure(kind: ProcedureType, *controls: object) -> object:
+        return SimpleNamespace(
+            procedure_type=kind,
+            procedure_sub_type=LdCtrlProcType.ALL,
+            access=[ResourceAccess.REMOTE],
+            choice=list(controls),
+        )
+
+    current = SimpleNamespace(
+        legacy_version=None,
+        interface_objects=None,
+        features=SimpleNamespace(feature=[_feature("AuthorizeLevels", 4)]),
+        procedures=SimpleNamespace(
+            procedure=[
+                procedure(
+                    ProcedureType.LOAD,
+                    LdCtrlConnect(),
+                    LdCtrlWriteProp(
+                        obj_type=6, prop_id=52, verify=True, inline_data=b"\x77"
+                    ),
+                ),
+                procedure(
+                    ProcedureType.UNLOAD, LdCtrlConnect(), LdCtrlUnload(obj_type=6)
+                ),
+            ]
+        ),
+    )
+    legacy = SimpleNamespace(
+        legacy_version=1,
+        interface_objects=None,
+        features=SimpleNamespace(feature=[]),
+        procedures=SimpleNamespace(
+            procedure=[
+                procedure(
+                    ProcedureType.LOAD,
+                    LdCtrlConnect(),
+                    LdCtrlWriteMem(address=270, size=8, verify=True),
+                )
+            ]
+        ),
+    )
+    return cast(
+        "MasterData",
+        SimpleNamespace(
+            mask_versions=SimpleNamespace(
+                mask_version=[
+                    SimpleNamespace(id=mask, hawk_configuration_data=[current, legacy])
+                ]
+            )
+        ),
+    )
+
+
+def _coupler_application(
+    mask: str = "MV-0912", new_style: bool | None = None
+) -> object:
+    from xknxeditor.namespaces.intermediate.application_program_static_t_options import (
+        ApplicationProgramStaticOptions,
+    )
+
+    options = (
+        None
+        if new_style is None
+        else ApplicationProgramStaticOptions(
+            line_coupler0912_new_programming_style=new_style
+        )
+    )
+    return SimpleNamespace(
+        load_procedure_style=LoadProcedureStyle.DEFAULT_PROCEDURE,
+        load_procedures=LoadProcedures(load_procedure=[]),
+        program=SimpleNamespace(
+            mask_version=mask, static=SimpleNamespace(options=options)
+        ),
+    )
+
+
+def _writes(controls: list[object]) -> list[str]:
+    return [type(c).__name__ for c in controls if not isinstance(c, LdCtrlConnect)]
+
+
+def test_a_coupler_program_of_the_older_style_takes_the_legacy_configuration() -> None:
+    """A line coupler program on MV-0912 or MV-091A without
+    LineCoupler0912NewProgrammingStyle is written into the coupler's memory by the mask's
+    legacy configuration: the current one writes fixed octets to the Router object's
+    properties and none of its parameters. A program of the newer style, and any other
+    mask, keep the current configuration."""
+    from xknxeditor.download.merge import legacy_configuration
+
+    for mask in ("MV-0912", "MV-091A"):
+        master = _coupler_master(mask)
+        for new_style in (None, False):
+            app = _coupler_application(mask, new_style)
+            assert legacy_configuration(app)  # type: ignore[arg-type]
+            controls = resolve_download_controls(app, master)  # type: ignore[arg-type]
+            assert _writes(controls) == ["LdCtrlWriteMem"]
+            # The legacy configuration has no Unload procedure: nothing to unload.
+            assert (
+                resolve_download_controls(
+                    app,  # type: ignore[arg-type]
+                    master,
+                    procedure_type=ProcedureType.UNLOAD,
+                )
+                == []
+            )
+        app = _coupler_application(mask, new_style=True)
+        assert not legacy_configuration(app)  # type: ignore[arg-type]
+        controls = resolve_download_controls(app, master)  # type: ignore[arg-type]
+        assert _writes(controls) == ["LdCtrlWriteProp"]
+    other = _coupler_application("MV-0911")
+    assert not legacy_configuration(other)  # type: ignore[arg-type]
+    controls = resolve_download_controls(other, _coupler_master("MV-0911"))  # type: ignore[arg-type]
+    assert _writes(controls) == ["LdCtrlWriteProp"]
+
+
+def test_access_protection_comes_from_the_configuration_the_device_takes() -> None:
+    """The current MV-0912 configuration authorizes, the legacy one (older couplers) does
+    not; so does a download of a program of the older style."""
+    from xknxeditor.download.download import (
+        _authorize_levels,  # pyright: ignore[reportPrivateUsage]
+    )
+
+    master = _coupler_master()
+    assert mask_authorize_levels(master, "MV-0912") == 4
+    assert mask_authorize_levels(master, "MV-0912", legacy=True) == 0
+    wrapper = cast("object", SimpleNamespace(raw=master))
+    older = _coupler_application(new_style=False)
+    newer = _coupler_application(new_style=True)
+    assert _authorize_levels(older, wrapper, None) == 0  # type: ignore[arg-type]
+    assert _authorize_levels(newer, wrapper, None) == 4  # type: ignore[arg-type]
+
+
+def test_a_mask_without_a_legacy_configuration_keeps_its_current_one() -> None:
+    from xknxeditor.download.scope import mask_configuration
+
+    master = _master_with_features(_feature("AuthorizeLevels", 2))
+    assert mask_authorize_levels(master, _MASK, legacy=True) == 2
+    assert mask_configuration(master, _MASK, legacy=True) is mask_configuration(
+        master, _MASK
+    )
+    assert mask_configuration(master, "MV-9999", legacy=True) is None
 
 
 def test_the_bim_m112_mv_0700_objects_have_the_type_of_their_index() -> None:

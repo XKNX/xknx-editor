@@ -464,3 +464,20 @@ async def test_recover_device_links_the_channel_objects(
     # The linked number resolves to the object of the channel's instance, which the project
     # creates, so the link is not dropped.
     assert recovered.com_object_refs[2] == f"{_A}O-2-2_R-2"
+    # Without a reader of a plug-in's own configuration nothing of it is read; with one,
+    # what it reads off the device is kept with the device.
+    assert recovered.native_image is None
+    read: list[object] = []
+
+    async def native(programmer: Any) -> object:
+        read.append(programmer)
+        return b"native"
+
+    again = await recover_mod.recover_device(
+        Programmer(),  # type: ignore[arg-type]
+        application,
+        address="1.1.20",
+        native_read=native,
+    )
+    assert again.native_image == b"native"
+    assert len(read) == 1

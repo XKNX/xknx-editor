@@ -50,6 +50,10 @@ if TYPE_CHECKING:
 STAGE_GROUP_COMMUNICATION = "group_communication"
 STAGE_PARAMETERS = "parameters"
 
+# Reads what a device keeps of a configuration of its own (a manufacturer's plug-in's,
+# which its parameters do not hold) off it; what it returns, its caller decodes.
+type NativeReader = Callable[[DeviceProgrammer], Awaitable[object]]
+
 
 @dataclass(frozen=True, slots=True)
 class RecoveredDevice:
@@ -77,6 +81,8 @@ class RecoveredDevice:
     # The image the product's devices leave the factory with, kept to search again.
     factory_image: FactoryImage | None = None
     observed_app_id: AppId | None = None
+    # What a ``native_read`` read off the device (see recover_device); None without one.
+    native_image: object | None = None
 
 
 def seed_dynamic_ui(
@@ -212,6 +218,7 @@ async def recover_device(
     cancel: Callable[[], bool] | None = None,
     master: MasterData | None = None,
     factory_image: FactoryImage | None = None,
+    native_read: NativeReader | None = None,
 ) -> RecoveredDevice:
     """Read and decode one device's configuration over an open connection.
 
@@ -225,7 +232,8 @@ async def recover_device(
     application): the connection can be closed there, before the device closes it for
     being idle. ``effort``, ``cancel``, ``master`` and ``factory_image`` (the product's
     factory image) as for :func:`~xknxeditor.recover.parameters.recover_parameters`.
-    Read-only.
+    ``native_read`` reads what a device of a manufacturer's plug-in keeps of that
+    plug-in's configuration (its result is the device's ``native_image``). Read-only.
     """
     mask_version = await programmer.read_device_descriptor()
     # A BCU 1 has no Device Object: waiting for its missing answers outlasts the
@@ -242,6 +250,7 @@ async def recover_device(
         progress(STAGE_PARAMETERS)
     parameter_segments = await read_parameter_memory(programmer, application)
     property_values = await read_property_values(programmer, application)
+    native_image = await native_read(programmer) if native_read is not None else None
     if reads_done is not None:
         await reads_done()
     # Decoding takes seconds for a large application: off the event loop, which keeps the
@@ -274,6 +283,7 @@ async def recover_device(
         property_values=dict(property_values),
         effort=effort,
         factory_image=factory_image,
+        native_image=native_image,
     )
 
 
@@ -392,6 +402,7 @@ async def recover_device_at(
     cancel: Callable[[], bool] | None = None,
     master: MasterData | None = None,
     factory_image: FactoryImage | None = None,
+    native_read: NativeReader | None = None,
 ) -> RecoveredDevice:
     """Open a connection to ``address``, recover the device, and close it again.
 
@@ -401,7 +412,8 @@ async def recover_device_at(
     a tunnelling-v1 interface may advertise longer frames than the interface can carry,
     and those frames are dropped. ``progress`` reports the current read stage.
     ``project_code_page``, ``effort``, ``cancel``, ``master`` and ``factory_image`` as for
-    :func:`~xknxeditor.recover.parameters.recover_parameters`. Read-only.
+    :func:`~xknxeditor.recover.parameters.recover_parameters`, ``native_read`` as for
+    :func:`recover_device`. Read-only.
 
     A transient transport failure (the KNXnet/IP tunnel dropping the point-to-point
     connection under sustained load - a ``DisconnectRequest``, a missing ACK, or a
@@ -457,6 +469,7 @@ async def recover_device_at(
                 cancel=cancel,
                 master=master,
                 factory_image=factory_image,
+                native_read=native_read,
             )
         except (ManagementConnectionError, XKNXException, MemoryReadNotAnswered) as exc:
             # Transport hiccup, or a long read the interface dropped (raised as

@@ -1378,6 +1378,15 @@ def _written_width_in_bit(tc: object, value: str) -> int | None:
     return size_in_bit
 
 
+def _no_value(tc: object, value: str) -> bool:
+    """Whether ``value`` is no value of the number type ``tc``: an empty one (hidden settings a
+    manufacturer's plug-in fills in, declared without a value). Nothing is written for it; the
+    memory keeps what the segment holds there."""
+    return value == "" and isinstance(
+        tc, (ParameterTypeTypeNumber, ParameterTypeTypeFloat)
+    )
+
+
 def _plan_memory_write(
     tc: object,
     value: str,
@@ -1396,7 +1405,7 @@ def _plan_memory_write(
     those leading octets and ``bits_to_write`` shrinks to match.
     """
     size_in_bit = type_size_in_bit(tc)
-    if size_in_bit is None:
+    if size_in_bit is None or _no_value(tc, value):
         return None
     encoded = _encode_value(
         value,
@@ -2496,6 +2505,8 @@ def _masked_property_writes[K](
             # download): covered, not masked.
             _, _, cover = extend(key, needed)
             cover[first:needed] = b"\xff" * (needed - first)
+            continue
+        if _no_value(tc, w.value):
             continue
         try:
             encoded = _encode_value(

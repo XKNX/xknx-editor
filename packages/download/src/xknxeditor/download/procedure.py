@@ -450,15 +450,11 @@ def memory_services(application: Application) -> MemoryServices:
 
 
 def _application_id(application: Application) -> bytes:
-    """Assemble the 5 octet application id (manufacturer, type, version)."""
-    manufacturer = application.manufacturer_id.split("-")[-1]
-    manufacturer_id = int(manufacturer, 16)
-    program = application.program
-    return (
-        manufacturer_id.to_bytes(2, "big")
-        + program.application_number.to_bytes(2, "big")
-        + bytes([program.application_version & 0xFF])
-    )
+    """Assemble the 5 octet application id (manufacturer, type, version); the manufacturer of an
+    application another manufacturer sells is the original one (see ``program_manufacturer``)."""
+    from .partial import application_id
+
+    return application_id(application, 5)
 
 
 #: A Sequence Number Sending above this is close to the end of its 48 bits (3/5/3 1.5.4.1).

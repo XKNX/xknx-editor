@@ -404,7 +404,11 @@ class EvalContext:
             return base
         allocates, alignment = arg_allocs[arg_ref_id]
         position = self._scope.alloc_position(alloc_id, alloc.start)
-        address, next_position = alloc.resolve(position, allocates, alignment, base)
+        # An explore pass evaluates every branch, also those no configuration has together
+        # (each placing a module): its allocations may run past the allocator's end.
+        address, next_position = alloc.resolve(
+            position, allocates, alignment, base, bounded=self._explore is None
+        )
         self._scope.set_alloc_position(alloc_id, next_position)
         return address
 

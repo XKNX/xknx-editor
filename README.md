@@ -181,7 +181,8 @@ panel, choose the display type, and load or export the display's LVS project (`.
 
 **PowerTool**: configure supported Busch-Jaeger devices in **Plugin Parameters**, with
 import/export, undo/redo, preflight and full application programming through GUI and MCP.
-No PowerTool installation is needed; edits update the stored PowerTool configuration.
+No PowerTool installation is needed; edits update the stored PowerTool configuration, and
+**Recover from the bus** reads it back from the device.
 Hardware behavior remains unverified; initial Powerline domain commissioning is not supported.
 
 **Siemens plug-ins** are supported in **Plugin Config**.

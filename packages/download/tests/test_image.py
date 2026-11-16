@@ -103,6 +103,35 @@ def test_masked_writes_overlapping_segments_write_each_octet_once() -> None:
     ]
 
 
+def test_masked_writes_seed_never_writes_over_an_encoded_octet() -> None:
+    """A segment holding the group tables whose seed covers a parameter segment inside it
+    (ABB A01C: 0x4300 inside 0x4196): the parameters' values are written, not the seed, in
+    a full download too, whichever range the procedure writes."""
+    table = MemorySegment(
+        address=0x4196,
+        data=bytes([0x02, 0x11, 0x05, 0x00, 0x00, 0x0A]),
+        mask=bytes([0xFF, 0xFF, 0, 0, 0, 0]),
+        initialized_mask=b"\xff" * 6,
+        group_table=True,
+    )
+    parameters = MemorySegment(
+        address=0x4198,
+        data=bytes([0x01, 0x94, 0x11]),
+        mask=b"\xff" * 3,
+        initialized_mask=b"\xff" * 3,
+    )
+    image = DownloadImage(segments=(table, parameters), properties=())
+    full = [(0x4196, bytes([0x02, 0x11, 0x01, 0x94, 0x11, 0x0A]))]
+    assert image.masked_writes(0x4196, 6, include_initialized=True) == full
+    assert image.masked_writes(0x4198, 3, include_initialized=True) == [
+        (0x4198, bytes([0x01, 0x94, 0x11]))
+    ]
+    # The seed still fills what nothing encodes.
+    assert MemorySegment(
+        address=0, data=b"\x01\x02", mask=b"\xff\x00", initialized_mask=b"\xff\xff"
+    ).seed_runs() == [(1, b"\x02")]
+
+
 def test_masked_writes_later_segment_wins_an_overlapping_octet() -> None:
     """Where overlapping segments disagree, the octet of the later one is written, as the
     device would hold it after both writes."""

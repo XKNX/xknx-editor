@@ -2774,8 +2774,13 @@ def _decode(
     # stores, so they merge straight into values. Which member of a module union owns a
     # field depends on the instance's own values too (a member shown behind another setting
     # of the instance): decode again with a UI seeded with what was read until nothing
-    # changes, as above.
-    values = calculated({**inferred, **values})
+    # changes, as above. What the calculations compute before the instances' settings are read
+    # is no value read: a calculation of an instance with an output given computes the other
+    # outputs from the instance's settings as they are then (defaults, or what running back
+    # from that output sets them to), so they are computed again with the instances' settings
+    # read, not kept.
+    given = {**inferred, **values}
+    values = calculated(given)
     top_unknown = unknown
     module_values: _ValueMap = {}
     seen_modules: set[frozenset[tuple[str, str]]] = set()
@@ -2792,7 +2797,7 @@ def _decode(
                 raise
         seeded = _seeded(
             application,
-            calculated({**values, **module_values}) if module_values else values,
+            calculated({**given, **module_values}) if module_values else values,
             project_code_page,
         )
         if seeded is None:
@@ -2825,8 +2830,7 @@ def _decode(
         if state in seen_modules:
             break
         seen_modules.add(state)
-    values.update(module_values)
-    return calculated(values), unknown
+    return calculated({**given, **module_values}), unknown
 
 
 def _steers(ui: DynamicUI, ref_id: str, value: str) -> bool:

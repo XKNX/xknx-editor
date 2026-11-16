@@ -117,6 +117,30 @@ def provider_for(device: Device) -> PluginProvider | None:
     return None
 
 
+class DeviceReader(Protocol):
+    """A provider that reads its configuration back from a device (see the recovery)."""
+
+    async def read_device(self, programmer: Any) -> object: ...
+    def recover(self, device: Device, image: object) -> NativeConfiguration: ...
+    def slot_references(self, device: Device) -> dict[int, str]: ...
+
+
+def device_reader(application: object) -> DeviceReader | None:
+    """The provider of a device of ``application`` that reads its configuration back from
+    the device; None for an application without one."""
+    from types import SimpleNamespace
+
+    try:
+        provider = provider_for(
+            cast("Device", SimpleNamespace(app=application, binary_data=()))
+        )
+    except ValueError:
+        return None
+    if provider is None or not hasattr(provider, "read_device"):
+        return None
+    return cast(DeviceReader, provider)
+
+
 def require_provider(device: Device) -> PluginProvider:
     provider = provider_for(device)
     if provider is None:
