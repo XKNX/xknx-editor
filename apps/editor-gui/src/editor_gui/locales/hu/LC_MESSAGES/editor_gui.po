@@ -1785,3 +1785,9 @@ msgstr "Új"
 
 msgid "In catalog"
 msgstr "A katalógusban"
+
+msgid "Open Last Project on Startup"
+msgstr "Utolsó projekt megnyitása indításkor"
+
+msgid "When no project is given at the start, opens the project that was open last. A protected project asks for its password, unless --password-file gives it."
+msgstr "Ha indításkor nincs megadva projekt, megnyitja a legutóbb megnyitott projektet. A védett projekt kéri a jelszavát, hacsak a --password-file meg nem adja."

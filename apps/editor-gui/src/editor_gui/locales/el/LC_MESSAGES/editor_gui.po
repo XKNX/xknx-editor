@@ -1729,3 +1729,9 @@ msgstr "Νέο"
 
 msgid "In catalog"
 msgstr "Στον κατάλογο"
+
+msgid "Open Last Project on Startup"
+msgstr "Άνοιγμα τελευταίου έργου κατά την εκκίνηση"
+
+msgid "When no project is given at the start, opens the project that was open last. A protected project asks for its password, unless --password-file gives it."
+msgstr "Όταν δεν δίνεται έργο κατά την εκκίνηση, ανοίγει το έργο που ήταν ανοιχτό τελευταίο. Ένα προστατευμένο έργο ζητά τον κωδικό του, εκτός αν τον δίνει το --password-file."

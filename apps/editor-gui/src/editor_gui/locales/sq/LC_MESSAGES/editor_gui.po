@@ -1729,3 +1729,9 @@ msgstr "I ri"
 
 msgid "In catalog"
 msgstr "Në katalog"
+
+msgid "Open Last Project on Startup"
+msgstr "Hap projektin e fundit në nisje"
+
+msgid "When no project is given at the start, opens the project that was open last. A protected project asks for its password, unless --password-file gives it."
+msgstr "Kur në nisje nuk jepet asnjë projekt, hapet projekti që ishte hapur i fundit. Një projekt i mbrojtur kërkon fjalëkalimin e tij, përveç nëse e jep --password-file."

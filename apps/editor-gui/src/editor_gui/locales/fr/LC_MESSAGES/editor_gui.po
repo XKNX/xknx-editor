@@ -1729,3 +1729,9 @@ msgstr "Nouveau"
 
 msgid "In catalog"
 msgstr "Dans le catalogue"
+
+msgid "Open Last Project on Startup"
+msgstr "Ouvrir le dernier projet au démarrage"
+
+msgid "When no project is given at the start, opens the project that was open last. A protected project asks for its password, unless --password-file gives it."
+msgstr "Si aucun projet n'est indiqué au démarrage, ouvre le dernier projet ouvert. Un projet protégé demande son mot de passe, sauf si --password-file le fournit."

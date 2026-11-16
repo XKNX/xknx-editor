@@ -1151,12 +1151,35 @@ class KnxGuiApp:
         # running at the last exit.
         if host.current().mcp_managed or load_settings("mcp").get("running"):
             self._start_mcp(save=False)
-        if self.startup_file is not None:
+        startup = self.startup_file or self._last_project_to_reopen()
+        if startup is not None:
             self._do_open_project(
-                self.startup_file,
+                startup,
                 password_file=self.startup_password_file,
                 password=os.environ.get(PROJECT_PASSWORD_ENV) or None,
             )
+
+    def _last_project_to_reopen(self) -> str | None:
+        """The project to open at a start without one given: the most recent one, while Open
+        Last Project on Startup is on, it can still be opened (``ProjectService.can_open``, like
+        the normal open) and no other editor has it open. Otherwise nothing is reported at the
+        start: a missing file stays in Open Recent until it is picked, and a project open in
+        another editor stays there."""
+        if not self._open_last_project_enabled():
+            return None
+        recent = self._recent_files()
+        if not recent:
+            return None
+        if not self._project_service.can_open(Path(recent[0])):
+            self._log.info("last project not found, not reopened", path=recent[0])
+            return None
+        if with_project(recent[0], others()):
+            self._log.info(
+                "last project open in another editor, not reopened", path=recent[0]
+            )
+            return None
+        self._log.info("reopening the last project", path=recent[0])
+        return recent[0]
 
     # --- other running editors (instances.py) -----------------------------
 
@@ -1317,6 +1340,14 @@ class KnxGuiApp:
     def _set_update_check_enabled(self, enabled: bool) -> None:
         data = load_settings("app")
         data["update_check_enabled"] = enabled
+        save_settings("app", data)
+
+    def _open_last_project_enabled(self) -> bool:
+        return bool(load_settings("app").get("open_last_project", False))
+
+    def _set_open_last_project_enabled(self, enabled: bool) -> None:
+        data = load_settings("app")
+        data["open_last_project"] = enabled
         save_settings("app", data)
 
     def _skipped_update_version(self) -> str:
@@ -6971,6 +7002,14 @@ class KnxGuiApp:
                 set=lambda enabled: self._set_update_check_enabled(bool(enabled)),
             ),
             Setting(
+                "open_last_project",
+                lambda: S.SETTING_OPEN_LAST_PROJECT,
+                "bool",
+                get=self._open_last_project_enabled,
+                set=lambda enabled: self._set_open_last_project_enabled(bool(enabled)),
+                hint=lambda: S.SETTING_OPEN_LAST_PROJECT_HINT,
+            ),
+            Setting(
                 "export_format",
                 lambda: S.SETTING_EXPORT_FORMAT,
                 "choice",
@@ -7910,8 +7949,8 @@ def _main() -> None:
     if "--new-instance" not in sys.argv:
         app.running_editors = others()
 
-    # Start on the Welcome screen (New / Open / Recent). We deliberately do NOT auto-open a project
-    # so the Welcome is always visible on launch; the recent list gives one-click access.
+    # Start on the Welcome screen (New / Open / Recent) unless a project is given or Open Last
+    # Project on Startup is on (off by default); the recent list gives one-click access.
 
     runner_params = hello_imgui.RunnerParams()
     runner_params.app_window_params.window_title = S.APP_TITLE
