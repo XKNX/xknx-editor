@@ -712,6 +712,9 @@ class DeviceProgrammer:
         the end of the read.
         """
         self._validate_memory_range(address, size)
+        # A smaller block size learned from a short reply holds for this read only: one short
+        # reply (e.g. at the end of a segment) must not slow every later read to single octets.
+        self._memory_read_cap = None
         result = bytearray()
         offset = 0
         cap_before = self._memory_read_cap

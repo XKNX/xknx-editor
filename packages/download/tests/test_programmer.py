@@ -641,3 +641,26 @@ async def test_an_additional_load_control_is_sent_once() -> None:
             alloc_absolute_segment(SegmentType.ABS_DATA, 0x4000, 0x100),
         )
     assert len(device.writes) == 1
+
+
+async def test_a_short_reply_does_not_slow_later_reads() -> None:
+    memory = bytes(range(64))
+
+    class _ShortOnce(_CappingConnection):
+        """Answers the first read with one octet only, then serves full blocks."""
+
+        short_left = 1
+
+        async def request(self, payload: object, expected: object) -> object:
+            self._cap = 1 if self.short_left else 64
+            self.short_left = 0
+            return await super().request(payload, expected)
+
+    connection = _ShortOnce(memory, cap=1)
+    programmer = DeviceProgrammer(connection, max_apdu_length=15)  # 12-octet blocks
+    assert (
+        await programmer.read_memory(0, 4) == memory[:4]
+    )  # first reply short: 1 octet
+    connection.request_counts.clear()
+    assert await programmer.read_memory(0x10, 24) == memory[0x10:0x28]
+    assert connection.request_counts == [12, 12]  # not 24 single octets
