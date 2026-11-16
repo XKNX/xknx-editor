@@ -1018,14 +1018,14 @@ msgstr "Utvärderingen misslyckades"
 msgid "Read-only test: compares what a download would write with what is on the device. Nothing is written to the device."
 msgstr "Skrivskyddat test: jämför det en nedladdning skulle skriva med det som finns i enheten. Inget skrivs till enheten."
 
-msgid "Cannot run: the project was changed since it was opened and may no longer match the device. Undo the changes of this session, or save and reopen the project."
-msgstr "Kan inte köras: projektet har ändrats sedan det öppnades och stämmer kanske inte längre med enheten. Ångra ändringarna i den här sessionen, eller spara projektet och öppna det igen."
+msgid "Cannot run: the project was changed since it was opened and may no longer match the device. Undo the changes of this session, or reopen the project."
+msgstr "Kan inte köra: projektet har ändrats sedan det öppnades och kanske inte längre stämmer med enheten. Ångra ändringarna i denna session eller öppna projektet igen."
 
 msgid "Cannot run: no KNX connection. Connect to a gateway ({menu} menu) and make sure the device is reachable at its individual address."
 msgstr "Kan inte köras: ingen KNX-anslutning. Anslut till en gateway (menyn {menu}) och se till att apparaten kan nås på sin individuella adress."
 
-msgid "Match: the generated image is identical to what is on the device."
-msgstr "Överensstämmer: den genererade avbildningen är identisk med den i apparaten."
+msgid "Match: all compared memory bytes and properties match the device."
+msgstr "Matchning: alla jämförda minnesbyte och egenskaper matchar enheten."
 
 msgid "{matched} matched, {changed} would change"
 msgstr "{matched} överensstämmer, {changed} skulle ändras"
@@ -3518,3 +3518,15 @@ msgstr "Läs symboler från enheten…"
 
 msgid "Read all symbols from {address}? This takes about 2:30 minutes. The images will be saved in this project; the device stays unchanged."
 msgstr "Läsa alla symboler från {address}? Läsningen tar cirka 2:30 minuter. Bilderna sparas i detta projekt; enheten förblir oförändrad."
+
+msgid "Unused reserved memory and PID 27 length/CRC are not compared."
+msgstr "Oanvänt reserverat minne och längd/CRC för PID 27 jämförs inte."
+
+msgid "Upper / Rocker"
+msgstr "Övre / Vippa"
+
+msgid "Lower"
+msgstr "Nedre"
+
+msgid "LED"
+msgstr "LED"

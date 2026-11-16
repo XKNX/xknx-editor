@@ -56,6 +56,7 @@ class PreflightResultWindow:
                 str | None,
                 frozenset[int],
                 dict[int, int],
+                bool,
             ]
             | None
         ) = None
@@ -71,6 +72,7 @@ class PreflightResultWindow:
         # A changed bit outside this mask is only reset to the application default
         # (the device holds an older value), which is benign, not a configured change.
         self._driven: dict[int, int] = {}
+        self._powertool = False
         self._show = False
         # The export's file dialog while it is open, and the report it saves.
         self._save_dialog: SaveFileDialog | None = None
@@ -85,6 +87,7 @@ class PreflightResultWindow:
         report: PreflightReport,
         runtime_addresses: set[int] | frozenset[int] = frozenset(),
         driven_bits: dict[int, int] | None = None,
+        powertool: bool = False,
     ) -> None:
         with self._lock:
             self._pending = (
@@ -96,11 +99,12 @@ class PreflightResultWindow:
                 # so the per-row view agrees with the classified totals.
                 frozenset(runtime_addresses) | report.device_written,
                 dict(driven_bits or {}),
+                powertool,
             )
 
     def submit_error(self, label: str, scope: str, error: str) -> None:
         with self._lock:
-            self._pending = (label, scope, None, error, frozenset(), {})
+            self._pending = (label, scope, None, error, frozenset(), {}, False)
 
     # -- UI thread --------------------------------------------------------
     def render(self) -> None:
@@ -114,6 +118,7 @@ class PreflightResultWindow:
                     self._error,
                     self._runtime,
                     self._driven,
+                    self._powertool,
                 ) = self._pending
                 self._pending = None
                 self._show = True
@@ -154,12 +159,6 @@ class PreflightResultWindow:
         )
         imgui.text_wrapped(S.PREFLIGHT_NO_CHANGES_MADE)
         imgui.pop_style_color()
-        # The schema-23 precondition is easy to miss but decisive: a schema-20 device shows huge
-        # false diffs. Render it as a coloured callout, not dim text, so it stands out.
-        imgui.push_style_color(imgui.Col_.text, status_color("info"))
-        imgui.text_wrapped(S.PREFLIGHT_ETS6_NOTE)
-        imgui.pop_style_color()
-        imgui.spacing()
 
         if self._error is not None:
             imgui.push_style_color(imgui.Col_.text, status_color("error"))
@@ -170,6 +169,13 @@ class PreflightResultWindow:
         report = self._report
         if report is None:
             return
+
+        imgui.push_style_color(imgui.Col_.text, status_color("info"))
+        imgui.text_wrapped(
+            S.PREFLIGHT_POWERTOOL_NOTE if self._powertool else S.PREFLIGHT_ETS6_NOTE
+        )
+        imgui.pop_style_color()
+        imgui.spacing()
 
         # Break the changed bytes into three buckets so a difference count is never
         # scary without context: real configured changes vs. bytes only reset to the
@@ -197,7 +203,8 @@ class PreflightResultWindow:
             imgui.push_style_color(
                 imgui.Col_.text, imgui.get_style_color_vec4(imgui.Col_.text_disabled)
             )
-            imgui.text_wrapped(S.PREFLIGHT_ETS5_HINT)
+            if not self._powertool:
+                imgui.text_wrapped(S.PREFLIGHT_ETS5_HINT)
             imgui.pop_style_color()
         elif default_bytes or runtime_bytes:
             # No configured differences: the device carries the configuration. The

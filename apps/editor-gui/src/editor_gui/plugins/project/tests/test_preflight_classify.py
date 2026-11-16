@@ -345,3 +345,54 @@ def test_export_saves_where_the_file_dialog_says(tmp_path, monkeypatch) -> None:
     # Saved with the text suffix, and the dialog is done.
     assert "generated: 01" in (tmp_path / "result.txt").read_text(encoding="utf-8")
     assert w._save_dialog is None and w._export_error is None
+
+
+def test_powertool_preflight_explains_comparison_scope(monkeypatch):
+    from unittest.mock import Mock
+
+    from editor_gui.plugins.project.strings import S
+    from editor_gui.plugins.project.ui import preflight_result as ui
+
+    rendered = []
+    fake_imgui = Mock()
+    fake_imgui.text.side_effect = rendered.append
+    fake_imgui.text_wrapped.side_effect = rendered.append
+    fake_imgui.button.return_value = False
+    monkeypatch.setattr(ui, "imgui", fake_imgui)
+    monkeypatch.setattr(ui, "icon_button", lambda *_: False)
+    monkeypatch.setattr(ui, "px", lambda value: value)
+    monkeypatch.setattr(ui, "status_color", lambda _: None)
+    w = PreflightResultWindow()
+    monkeypatch.setattr(w, "_render_table", lambda _: None)
+    for powertool in (True, False):
+        for changed in (True, False):
+            report = PreflightReport(
+                segments=(
+                    SegmentDiff(
+                        address=0x100,
+                        current=b"\x01",
+                        planned=b"\x02" if changed else b"\x01",
+                    ),
+                ),
+                properties=(),
+            )
+            w.submit_result(
+                "1.1.1", "Full", report, driven_bits={0x100: 0xFF}, powertool=powertool
+            )
+            assert w._pending is not None
+            (
+                w._label,
+                w._scope,
+                w._report,
+                w._error,
+                w._runtime,
+                w._driven,
+                w._powertool,
+            ) = w._pending
+            rendered.clear()
+            w._render_body()
+            assert (S.PREFLIGHT_POWERTOOL_NOTE in rendered) is powertool
+            assert (S.PREFLIGHT_ETS6_NOTE in rendered) is not powertool
+            assert (S.PREFLIGHT_ETS5_HINT in rendered) is (changed and not powertool)
+            if not changed:
+                assert S.PREFLIGHT_MATCH in rendered

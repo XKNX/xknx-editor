@@ -3741,11 +3741,15 @@ class ProjectPlugin:
                 item.message = S.SCRIPT_NOT_CONNECTED
             return None
         if item.origin is None:
+            from editor_gui.plugin_params import mapping_for_device
+
+            mapping = mapping_for_device(device)
+            powertool = mapping is not None and mapping.provider == "powertool"
             scope_name = scope_label(item.scope)
 
             def done(f: "Future[Any]") -> None:
                 if not item.canceled_by_user:
-                    self._on_eval_done(label, scope_name, runtime, driven, f)
+                    self._on_eval_done(label, scope_name, runtime, driven, f, powertool)
 
             future.add_done_callback(done)
         return future
@@ -3777,6 +3781,7 @@ class ProjectPlugin:
         runtime: set[int],
         driven: dict[int, int],
         future: "Future[Any]",
+        powertool: bool = False,
     ) -> None:
         """Runs on the async loop thread; only hands the result to the (thread-safe) window."""
         if future.cancelled():
@@ -3788,7 +3793,7 @@ class ProjectPlugin:
             self._preflight_result.submit_error(label, scope_name, text)
             return
         self._preflight_result.submit_result(
-            label, scope_name, future.result(), runtime, driven
+            label, scope_name, future.result(), runtime, driven, powertool
         )
 
     def _group_communication_for(self, device: "Device") -> "GroupCommunication | None":

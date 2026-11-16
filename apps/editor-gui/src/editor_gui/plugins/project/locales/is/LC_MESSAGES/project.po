@@ -220,8 +220,8 @@ msgstr "Prófun án skrifa: ber saman það sem niðurhal myndi skrifa við þa�
 msgid "Cannot run: no KNX connection. Connect to a gateway ({menu} menu) and make sure the device is reachable at its individual address."
 msgstr "Ekki hægt að keyra: engin KNX-tenging. Tengstu við gátt (valmyndin {menu}) og gakktu úr skugga um að hægt sé að ná í tækið á einstaklingsvistfangi þess."
 
-msgid "Match: the generated image is identical to what is on the device."
-msgstr "Samsvörun: myndin sem búin var til er eins og sú sem er í tækinu."
+msgid "Match: all compared memory bytes and properties match the device."
+msgstr "Samsvörun: öll samanborin minnisbæti og eiginleikar passa við tækið."
 
 msgid "{matched} matched, {changed} would change"
 msgstr "Samsvarandi: {matched}, myndu breytast: {changed}"
@@ -379,8 +379,8 @@ msgstr "Lína {number} fjarlægð"
 msgid "Line: {old} -> {new}"
 msgstr "Lína: {old} -> {new}"
 
-msgid "Cannot run: the project was changed since it was opened and may no longer match the device. Undo the changes of this session, or save and reopen the project."
-msgstr "Ekki hægt að keyra: verkefninu var breytt eftir að það var opnað og passar ef til vill ekki lengur við tækið. Afturkallið breytingar þessarar lotu eða vistið verkefnið og opnið það aftur."
+msgid "Cannot run: the project was changed since it was opened and may no longer match the device. Undo the changes of this session, or reopen the project."
+msgstr "Ekki hægt að keyra: verkefninu hefur verið breytt frá því það var opnað og það passar hugsanlega ekki lengur við tækið. Afturkallaðu breytingar þessarar lotu eða opnaðu verkefnið aftur."
 
 msgid "Duplicate"
 msgstr "Tvöfalda"
@@ -3545,3 +3545,15 @@ msgstr "Lesa tákn úr tæki…"
 
 msgid "Read all symbols from {address}? This takes about 2:30 minutes. The images will be saved in this project; the device stays unchanged."
 msgstr "Lesa öll tákn úr {address}? Lesturinn tekur um 2:30 mínútur. Myndirnar verða vistaðar í þessu verkefni; tækið helst óbreytt."
+
+msgid "Unused reserved memory and PID 27 length/CRC are not compared."
+msgstr "Ónotað frátekið minni og lengd/CRC fyrir PID 27 eru ekki borin saman."
+
+msgid "Upper / Rocker"
+msgstr "Efri / Veltirofi"
+
+msgid "Lower"
+msgstr "Neðri"
+
+msgid "LED"
+msgstr "LED"

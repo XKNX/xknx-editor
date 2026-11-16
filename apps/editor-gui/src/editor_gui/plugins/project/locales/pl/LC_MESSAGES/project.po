@@ -1018,14 +1018,14 @@ msgstr "Ocena nie powiodła się"
 msgid "Read-only test: compares what a download would write with what is on the device. Nothing is written to the device."
 msgstr "Test tylko do odczytu: porównuje to, co zapisałoby pobieranie, z zawartością urządzenia. Nic nie jest zapisywane w urządzeniu."
 
-msgid "Cannot run: the project was changed since it was opened and may no longer match the device. Undo the changes of this session, or save and reopen the project."
-msgstr "Nie można uruchomić: projekt zmieniono od otwarcia i może już nie odpowiadać urządzeniu. Cofnij zmiany z tej sesji albo zapisz projekt i otwórz go ponownie."
+msgid "Cannot run: the project was changed since it was opened and may no longer match the device. Undo the changes of this session, or reopen the project."
+msgstr "Nie można uruchomić: projekt został zmieniony od otwarcia i może już nie odpowiadać urządzeniu. Cofnij zmiany tej sesji lub otwórz projekt ponownie."
 
 msgid "Cannot run: no KNX connection. Connect to a gateway ({menu} menu) and make sure the device is reachable at its individual address."
 msgstr "Nie można uruchomić: brak połączenia KNX. Należy połączyć się z bramką (menu {menu}) i upewnić się, że urządzenie jest osiągalne pod swoim adresem indywidualnym."
 
-msgid "Match: the generated image is identical to what is on the device."
-msgstr "Zgodność: wygenerowany obraz jest identyczny z zawartością urządzenia."
+msgid "Match: all compared memory bytes and properties match the device."
+msgstr "Zgodność: wszystkie porównane bajty pamięci i właściwości są zgodne z urządzeniem."
 
 msgid "{matched} matched, {changed} would change"
 msgstr "zgodne: {matched}, do zmiany: {changed}"
@@ -3570,3 +3570,15 @@ msgstr "Odczytaj symbole z urządzenia…"
 
 msgid "Read all symbols from {address}? This takes about 2:30 minutes. The images will be saved in this project; the device stays unchanged."
 msgstr "Odczytać wszystkie symbole z urządzenia {address}? Odczyt trwa około 2 min 30 s. Obrazy zostaną zapisane w tym projekcie; urządzenie pozostanie bez zmian."
+
+msgid "Unused reserved memory and PID 27 length/CRC are not compared."
+msgstr "Nieużywana zarezerwowana pamięć oraz długość/CRC PID 27 nie są porównywane."
+
+msgid "Upper / Rocker"
+msgstr "Góra / Klawisz"
+
+msgid "Lower"
+msgstr "Dół"
+
+msgid "LED"
+msgstr "LED"

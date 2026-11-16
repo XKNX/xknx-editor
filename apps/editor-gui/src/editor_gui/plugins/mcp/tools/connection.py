@@ -890,6 +890,8 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         Identify the device by ``node_id`` OR ``device_address`` (its individual address like
         "1.0.30"); pass exactly one.
 
+        Compares only planned writes: unused reserved memory and, for PowerTool, PID 27
+        length/CRC are not compared. A match applies to the compared bytes and properties.
         Reads the live device point-to-point and diffs it against the generated image. Needs an open
         connection and the device answering at its project individual address — a device that does not
         respond (e.g. a virgin/unprogrammed one) fails, so skip this and program a NEW device directly

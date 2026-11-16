@@ -1018,14 +1018,14 @@ msgstr "Arviointi epäonnistui"
 msgid "Read-only test: compares what a download would write with what is on the device. Nothing is written to the device."
 msgstr "Vain luku -testi: vertaa sitä, mitä lataus kirjoittaisi, laitteen nykyiseen sisältöön. Laitteeseen ei kirjoiteta mitään."
 
-msgid "Cannot run: the project was changed since it was opened and may no longer match the device. Undo the changes of this session, or save and reopen the project."
-msgstr "Ei voi suorittaa: projektia on muutettu avaamisen jälkeen, eikä se ehkä enää vastaa laitetta. Kumoa tämän istunnon muutokset tai tallenna projekti ja avaa se uudelleen."
+msgid "Cannot run: the project was changed since it was opened and may no longer match the device. Undo the changes of this session, or reopen the project."
+msgstr "Ei voida suorittaa: projektia on muutettu avaamisen jälkeen, eikä se ehkä enää vastaa laitetta. Kumoa tämän istunnon muutokset tai avaa projekti uudelleen."
 
 msgid "Cannot run: no KNX connection. Connect to a gateway ({menu} menu) and make sure the device is reachable at its individual address."
 msgstr "Ei voi suorittaa: ei KNX-yhteyttä. Yhdistä yhdyskäytävään ({menu}-valikko) ja varmista, että laite on tavoitettavissa yksilöllisessä osoitteessaan."
 
-msgid "Match: the generated image is identical to what is on the device."
-msgstr "Vastaa: muodostettu kuva on identtinen laitteessa olevan kanssa."
+msgid "Match: all compared memory bytes and properties match the device."
+msgstr "Täsmää: kaikki verratut muistitavut ja ominaisuudet vastaavat laitetta."
 
 msgid "{matched} matched, {changed} would change"
 msgstr "{matched} vastaa, {changed} muuttuisi"
@@ -3518,3 +3518,15 @@ msgstr "Lue symbolit laitteesta…"
 
 msgid "Read all symbols from {address}? This takes about 2:30 minutes. The images will be saved in this project; the device stays unchanged."
 msgstr "Luetaanko kaikki symbolit laitteesta {address}? Lukeminen kestää noin 2:30 minuuttia. Kuvat tallennetaan tähän projektiin; laite pysyy muuttumattomana."
+
+msgid "Unused reserved memory and PID 27 length/CRC are not compared."
+msgstr "Käyttämätöntä varattua muistia ja PID 27:n pituutta/CRC:tä ei verrata."
+
+msgid "Upper / Rocker"
+msgstr "Ylä / Keinukytkin"
+
+msgid "Lower"
+msgstr "Ala"
+
+msgid "LED"
+msgstr "LED"

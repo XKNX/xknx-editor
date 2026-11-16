@@ -1018,14 +1018,14 @@ msgstr "评估失败"
 msgid "Read-only test: compares what a download would write with what is on the device. Nothing is written to the device."
 msgstr "只读测试：将下载会写入的内容与设备上的内容进行比较。不会向设备写入任何内容。"
 
-msgid "Cannot run: the project was changed since it was opened and may no longer match the device. Undo the changes of this session, or save and reopen the project."
-msgstr "无法运行：项目自打开以来已被更改，可能不再与设备一致。请撤消本次会话中的更改，或保存后重新打开项目。"
+msgid "Cannot run: the project was changed since it was opened and may no longer match the device. Undo the changes of this session, or reopen the project."
+msgstr "无法运行：项目自打开后已被更改，可能不再与设备匹配。请撤销本次会话的更改，或重新打开项目。"
 
 msgid "Cannot run: no KNX connection. Connect to a gateway ({menu} menu) and make sure the device is reachable at its individual address."
 msgstr "无法运行：没有 KNX 连接。请连接到网关（“{menu}”菜单），并确保设备可通过其物理地址访问。"
 
-msgid "Match: the generated image is identical to what is on the device."
-msgstr "匹配：生成的映像与设备上的内容完全相同。"
+msgid "Match: all compared memory bytes and properties match the device."
+msgstr "匹配：所有比较的内存字节和属性均与设备一致。"
 
 msgid "{matched} matched, {changed} would change"
 msgstr "{matched} 个匹配，{changed} 个将更改"
@@ -3466,3 +3466,15 @@ msgstr "从设备读取符号…"
 
 msgid "Read all symbols from {address}? This takes about 2:30 minutes. The images will be saved in this project; the device stays unchanged."
 msgstr "是否从 {address} 读取所有符号？读取大约需要2分30秒。图像将保存到此项目中，设备保持不变。"
+
+msgid "Unused reserved memory and PID 27 length/CRC are not compared."
+msgstr "未使用的预留内存以及 PID 27 的长度/CRC 不参与比较。"
+
+msgid "Upper / Rocker"
+msgstr "上部 / 翘板"
+
+msgid "Lower"
+msgstr "下部"
+
+msgid "LED"
+msgstr "LED"

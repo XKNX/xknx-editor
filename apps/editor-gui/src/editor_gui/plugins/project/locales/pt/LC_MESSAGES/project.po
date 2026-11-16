@@ -1018,14 +1018,14 @@ msgstr "Falha na avaliação"
 msgid "Read-only test: compares what a download would write with what is on the device. Nothing is written to the device."
 msgstr "Teste só de leitura: compara o que uma transferência escreveria com o que está no dispositivo. Nada é escrito no dispositivo."
 
-msgid "Cannot run: the project was changed since it was opened and may no longer match the device. Undo the changes of this session, or save and reopen the project."
-msgstr "Não é possível executar: o projeto foi alterado desde que foi aberto e pode já não corresponder ao dispositivo. Anule as alterações desta sessão ou guarde e volte a abrir o projeto."
+msgid "Cannot run: the project was changed since it was opened and may no longer match the device. Undo the changes of this session, or reopen the project."
+msgstr "Não é possível executar: o projeto foi alterado desde que foi aberto e pode já não corresponder ao dispositivo. Anule as alterações desta sessão ou volte a abrir o projeto."
 
 msgid "Cannot run: no KNX connection. Connect to a gateway ({menu} menu) and make sure the device is reachable at its individual address."
 msgstr "Não é possível executar: sem conexão KNX. Conecte-se a um gateway (menu {menu}) e certifique-se de que o dispositivo está acessível no seu endereço individual."
 
-msgid "Match: the generated image is identical to what is on the device."
-msgstr "Correspondência: a imagem gerada é idêntica à que está no dispositivo."
+msgid "Match: all compared memory bytes and properties match the device."
+msgstr "Correspondência: todos os bytes de memória e propriedades comparados correspondem ao dispositivo."
 
 msgid "{matched} matched, {changed} would change"
 msgstr "{matched} correspondentes, {changed} seriam alterados"
@@ -3522,3 +3522,15 @@ msgstr "Ler símbolos do dispositivo…"
 
 msgid "Read all symbols from {address}? This takes about 2:30 minutes. The images will be saved in this project; the device stays unchanged."
 msgstr "Ler todos os símbolos de {address}? A leitura demora cerca de 2:30 minutos. As imagens serão guardadas neste projeto; o dispositivo permanecerá inalterado."
+
+msgid "Unused reserved memory and PID 27 length/CRC are not compared."
+msgstr "A memória reservada não utilizada e o comprimento/CRC de PID 27 não são comparados."
+
+msgid "Upper / Rocker"
+msgstr "Cima / Tecla basculante"
+
+msgid "Lower"
+msgstr "Baixo"
+
+msgid "LED"
+msgstr "LED"

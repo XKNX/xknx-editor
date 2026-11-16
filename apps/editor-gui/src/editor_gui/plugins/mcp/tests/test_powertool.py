@@ -160,3 +160,24 @@ async def test_preview_enabled_and_corrupt_configuration_refusal(tmp_path, monke
         assert response.is_error
         connector.assert_not_called()
     proj.close()
+
+
+async def test_product_language_in_plugin_parameters(tmp_path, monkeypatch):
+    from editor_gui import languages, strings
+
+    monkeypatch.setattr(languages, "_product_language", "de-DE")
+    monkeypatch.setattr(strings, "_current_locale", "de")
+    ctx = _build_ctx(tmp_path)
+    project, nid = native_project(tmp_path, monkeypatch, ctx.api.project)
+    async with Client(build_server(ctx)) as client:
+        await _data(client, "project_setup_plugin", node_id=nid)
+        before = project.cursor
+        result = await _data(client, "project_plugin_parameters", node_id=nid)
+        assert "Arbeitsweise der Wippe für Schalten" in str(result)
+        assert "Oben / Wippe" in str(result)
+        monkeypatch.setattr(strings, "_current_locale", "en")
+        result = await _data(client, "project_plugin_parameters", node_id=nid)
+        assert "Arbeitsweise der Wippe für Schalten" in str(result)
+        assert "Upper / Rocker" in str(result)
+        assert project.cursor == before
+    project.close()

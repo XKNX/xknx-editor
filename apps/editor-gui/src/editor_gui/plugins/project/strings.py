@@ -3308,7 +3308,7 @@ class ProjectStrings:
     def PREFLIGHT_PROJECT_MODIFIED(self) -> str:
         return _(
             "Cannot run: the project was changed since it was opened and may no "
-            "longer match the device. Undo the changes of this session, or save and "
+            "longer match the device. Undo the changes of this session, or "
             "reopen the project."
         )
 
@@ -3322,7 +3322,7 @@ class ProjectStrings:
 
     @property
     def PREFLIGHT_MATCH(self) -> str:
-        return _("Match: the generated image is identical to what is on the device.")
+        return _("Match: all compared memory bytes and properties match the device.")
 
     @property
     def PREFLIGHT_WOULD_CHANGE(self) -> str:
@@ -3338,6 +3338,22 @@ class ProjectStrings:
     @property
     def PREFLIGHT_SUMMARY_COUNTS(self) -> str:
         return _("{matched} matched, {changed} would change")
+
+    @property
+    def PREFLIGHT_POWERTOOL_NOTE(self) -> str:
+        return _("Unused reserved memory and PID 27 length/CRC are not compared.")
+
+    @property
+    def POWERTOOL_LED(self) -> str:
+        return _("LED")
+
+    @property
+    def POWERTOOL_UPPER(self) -> str:
+        return _("Upper / Rocker")
+
+    @property
+    def POWERTOOL_LOWER(self) -> str:
+        return _("Lower")
 
     @property
     def PREFLIGHT_ETS6_NOTE(self) -> str:

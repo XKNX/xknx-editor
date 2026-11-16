@@ -220,8 +220,8 @@ msgstr "Preizkus samo za branje: primerja, kaj bi prenos zapisal, s tem, kar je 
 msgid "Cannot run: no KNX connection. Connect to a gateway ({menu} menu) and make sure the device is reachable at its individual address."
 msgstr "Ni mogoče zagnati: ni povezave KNX. Povežite se s prehodom (meni {menu}) in se prepričajte, da je naprava dosegljiva na svojem fizičnem naslovu."
 
-msgid "Match: the generated image is identical to what is on the device."
-msgstr "Ujemanje: ustvarjena slika je enaka tisti v napravi."
+msgid "Match: all compared memory bytes and properties match the device."
+msgstr "Ujemanje: vsi primerjani pomnilniški bajti in lastnosti se ujemajo z napravo."
 
 msgid "{matched} matched, {changed} would change"
 msgstr "Ujemajoči se: {matched}, bi se spremenili: {changed}"
@@ -379,8 +379,8 @@ msgstr "Linija {number} je odstranjena"
 msgid "Line: {old} -> {new}"
 msgstr "Linija: {old} -> {new}"
 
-msgid "Cannot run: the project was changed since it was opened and may no longer match the device. Undo the changes of this session, or save and reopen the project."
-msgstr "Ni mogoče zagnati: projekt je bil od odprtja spremenjen in se morda ne ujema več z napravo. Razveljavite spremembe te seje ali shranite projekt in ga znova odprite."
+msgid "Cannot run: the project was changed since it was opened and may no longer match the device. Undo the changes of this session, or reopen the project."
+msgstr "Ni mogoče zagnati: projekt je bil od odprtja spremenjen in se morda ne ujema več z napravo. Razveljavite spremembe te seje ali znova odprite projekt."
 
 msgid "Duplicate"
 msgstr "Podvoji"
@@ -3649,3 +3649,15 @@ msgstr "Preberi simbole iz naprave…"
 
 msgid "Read all symbols from {address}? This takes about 2:30 minutes. The images will be saved in this project; the device stays unchanged."
 msgstr "Preberem vse simbole iz naprave {address}? Branje traja približno 2 minuti in 30 sekund. Slike bodo shranjene v ta projekt; naprava ostane nespremenjena."
+
+msgid "Unused reserved memory and PID 27 length/CRC are not compared."
+msgstr "Neuporabljen rezerviran pomnilnik in dolžina/CRC PID 27 se ne primerjata."
+
+msgid "Upper / Rocker"
+msgstr "Zgoraj / Prevesna tipka"
+
+msgid "Lower"
+msgstr "Spodaj"
+
+msgid "LED"
+msgstr "LED"
