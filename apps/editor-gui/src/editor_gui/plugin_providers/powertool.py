@@ -22,11 +22,6 @@ from xknxeditor.vendor.powertool import (
     HostProfile,
 )
 from xknxeditor.vendor.powertool.binding import SIZE_TEXT, bind_catalog
-from xknxeditor.vendor.powertool.model import (
-    EvaluatedChannel,
-    PowerToolConfig,
-    channel_exists,
-)
 from xknxeditor.vendor.powertool.native import (
     Configuration,
     channel_labels,
@@ -298,27 +293,6 @@ def _prepare(
                     obj.flags,
                     effective,
                 )
-        if isinstance(config, PowerToolConfig):
-            for index, channel in enumerate(config.channels):
-                if not channel_exists(config, index):
-                    continue
-                evaluated = EvaluatedChannel(channel)
-                for field_index, field in enumerate(evaluated.function.fields):
-                    if (
-                        field.kind == "freetimer"
-                        and field.key not in channel.values
-                        and evaluated.exists(field_index)
-                    ):
-                        _LOGGER.debug(
-                            "PowerTool %s: channel %s/%s parameter %s has no stored value; "
-                            "default %s ms, encoded %04x",
-                            device.individual_address,
-                            index,
-                            channel.function,
-                            field.key,
-                            evaluated.value(field_index),
-                            int(evaluated.stored_value(field_index)),
-                        )
         _LOGGER.debug(
             "PowerTool %s (%s): prepared payload lengths %s, allocation reservations %s",
             device.individual_address,

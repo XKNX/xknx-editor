@@ -112,7 +112,9 @@ def test_project_flags_win_and_survive_conversion_and_archive(
     project.close()
 
 
-def test_preparation_logs_default_encoding_and_effective_flags(tmp_path, monkeypatch):
+def test_preparation_logs_flags_and_sizes_without_parameter_values(
+    tmp_path, monkeypatch
+):
     from dataclasses import replace
 
     from editor_gui.plugin_providers.powertool import configuration
@@ -134,8 +136,8 @@ def test_preparation_logs_default_encoding_and_effective_flags(tmp_path, monkeyp
     logs = LogService()
     project.prepared_download(device)
     messages = "\n".join(record.event for record in logs.get_records())
-    assert "default 400 ms, encoded 0050" in messages
-    assert "channel 2/blind_rocker parameter duration_of_long_operation_s" in messages
+    assert "duration_of_long_operation_s" not in messages
+    assert "prepared payload lengths" in messages
     assert "override saved flags 47 -> d7" in messages
     assert "allocation reservations {3: 40}" in messages
     assert project.device_binary_data(device, PLUGIN_BLOB_NAME) == before
