@@ -127,6 +127,7 @@ if TYPE_CHECKING:
         DiffProgress,
         DiffResult,
     )
+    from editor_gui.programming_mdt import SymbolReadTarget
     from xknxeditor.catalog import ProductDeletion, ProductSummary, ProgramSummary
     from xknxeditor.download.image import GroupCommunication
     from xknxeditor.download.ip_config import IpDeviceConfig
@@ -4237,6 +4238,103 @@ class ProjectService:
             S.MDT_SYMBOL,
         )
 
+    def recover_mdt_dca(
+        self, node_id: int, addin_data: Mapping[str, Mapping[str, bytes]]
+    ) -> dict[int, str] | None:
+        """Apply validated DCA data before the read-back object flags and links.
+
+        The Recover service calls this inside the undo step that adds the device.
+        Layouts and VisuControl blobs are already held by recovered parameters.
+        """
+        from xknxeditor.vendor.mdt.symbols import read_symbols, recovered_symbol_entries
+
+        device = self.find_device_by_node_id(node_id)
+        profile = self.mdt_dca_profile(device) if device is not None else None
+        if device is None or self._pid is None:
+            raise ValueError("Recovered device no longer exists")
+        if addin_data and (
+            profile is None
+            or profile.kind != "symbols"
+            or set(addin_data) != {profile.app_id}
+        ):
+            raise ValueError("Recovered DCA data does not match this application")
+        if profile is None or profile.kind == "layout":
+            return None
+        if profile.kind == "symbols":
+            entries = addin_data.get(profile.app_id, {})
+            symbols = read_symbols(entries, profile)
+            expected = recovered_symbol_entries(
+                {symbol.slot: symbol.data for symbol in symbols}, profile
+            )
+            if dict(entries) != expected:
+                raise ValueError("Invalid recovered MDT symbol data")
+            self._svc.set_device_addin_data(
+                self._pid, node_id, profile.app_id, expected
+            )
+        else:
+            self.import_mdt_visucontrol(node_id, self.export_mdt_visucontrol(node_id))
+            current = self.find_device_by_node_id(node_id)
+            assert current is not None
+            return {co.number: co.id for co in current.get_visible_com_objects()}
+        self._bump(structural=False)
+        return None
+
+    def prepare_mdt_symbol_read(self, node_id: int) -> "SymbolReadTarget":
+        from editor_gui.programming_mdt import SymbolReadTarget
+
+        device = self.find_device_by_node_id(node_id)
+        profile = self.mdt_dca_profile(device) if device is not None else None
+        if (
+            self._pid is None
+            or device is None
+            or device.app is None
+            or not device.individual_address
+            or profile is None
+            or profile.kind != "symbols"
+        ):
+            raise ValueError("Device has no MDT symbol configuration or address")
+        return SymbolReadTarget(
+            self.generation,
+            node_id,
+            device.individual_address,
+            device.app.id,
+            tuple(
+                sorted(
+                    self._svc.device_addin_data(
+                        self._pid, node_id, profile.app_id
+                    ).items()
+                )
+            ),
+        )
+
+    def apply_mdt_symbol_read(
+        self, target: "SymbolReadTarget", symbols: Mapping[int, bytes]
+    ) -> int:
+        """Replace device symbols after a complete read, retaining all other configuration."""
+        from xknxeditor.vendor.mdt import profile_for_application
+        from xknxeditor.vendor.mdt.symbols import recovered_symbol_entries
+
+        with self._io_lock:
+            if self.prepare_mdt_symbol_read(target.node_id) != target:
+                raise ValueError(
+                    "Device or symbols changed while reading; read them again"
+                )
+            profile = profile_for_application(target.application_id)
+            assert profile is not None and self._pid is not None
+            entries: dict[str, bytes | None] = dict(
+                recovered_symbol_entries(symbols, profile)
+            )
+            entries["Lib"] = None
+            self._svc.set_device_addin_data(
+                self._pid,
+                target.node_id,
+                profile.app_id,
+                entries,
+                label=f"{target.address}: {S.MDT_READ_SYMBOLS}",
+            )
+        self._bump(structural=False)
+        return len(symbols)
+
     @revision_cached_by_args
     def _mdt_symbols(
         self,
@@ -4253,6 +4351,11 @@ class ProjectService:
             raise ValueError("Device has no MDT symbol configuration")
         entries = self._svc.device_addin_data(self._pid, node_id, profile.app_id)
         symbols = read_symbols(entries, profile)
+        library_unknown = (
+            profile.app_id == "M0083-A0041"
+            and "Lib" not in entries
+            and len(symbols) == profile.slots
+        )
         library = self._mdt_symbol_library(node_id)
         names = dict(role_names)
         slot_info: list[dict[str, Any]] = []
@@ -4276,7 +4379,9 @@ class ProjectService:
             "first_custom_slot": profile.first_custom_slot,
             "slot_info": slot_info,
             "groups": dict(group_names),
-            "new_library": entries.get(
+            "new_library": None
+            if library_unknown
+            else entries.get(
                 "Lib",
                 b"\x01"
                 if device is not None and ".02" in device.order_number
@@ -4292,15 +4397,19 @@ class ProjectService:
                 for symbol in symbols
             ],
             "defaults": library,
+            "default_libraries": [
+                newer
+                for newer in (
+                    (False, True) if profile.app_id == "M0083-A0041" else (False,)
+                )
+                if len(self._mdt_symbol_library(node_id, newer)) == profile.slots
+            ],
         }
 
     @revision_cached_by_args
     def _mdt_symbol_library(
         self, node_id: int, new_library: bool | None = None
     ) -> list[dict[str, Any]]:
-        from io import BytesIO
-        from zipfile import ZipFile
-
         from xknxeditor.vendor.mdt.symbols import read_symbol_library
 
         device = self.find_device_by_node_id(node_id)
@@ -4312,37 +4421,67 @@ class ProjectService:
             or device is None
         ):
             return []
-        files = self._svc.project(self._pid).imported_project_files
-        if not files:
-            return []
         entries = self._svc.device_addin_data(self._pid, node_id, profile.app_id)
+        if (
+            profile.app_id == "M0083-A0041"
+            and new_library is None
+            and "Lib" not in entries
+            and all(f"Symbol_{slot}_data" in entries for slot in range(profile.slots))
+        ):
+            return []
         second = ".02" in device.order_number
         newer = (
             entries.get("Lib", bytes([second])) == b"\x01"
             if new_library is None
             else new_library
         )
-        with ZipFile(BytesIO(files)) as project_files:
-            member = f"UserFiles/{profile.app_id}.etsapp"
-            if member not in project_files.namelist():
-                return []
+        for filename in (f"{profile.app_id}.etsapp", f"{profile.app_id}-symbols.zip"):
+            archive = self._svc.project_user_file(self._pid, filename)
+            if archive is None:
+                continue
             try:
+                if filename.endswith("-symbols.zip"):
+                    from xknxeditor.vendor.mdt.symbol_resources import (
+                        prepare_default_library,
+                    )
+
+                    assert device.app is not None
+                    archive = prepare_default_library(archive, device.app.id)
                 symbols = read_symbol_library(
-                    project_files.read(member),
+                    archive,
                     profile,
                     new_library=newer,
                     second_generation=second,
                 )
             except ValueError:
-                return []
-        return [
-            {
-                "slot": s.slot,
-                "grayscale_hex": s.grayscale.hex(),
-                "data_hex": s.data.hex(),
-            }
-            for s in symbols
-        ]
+                continue
+            return [
+                {
+                    "slot": s.slot,
+                    "grayscale_hex": s.grayscale.hex(),
+                    "data_hex": s.data.hex(),
+                }
+                for s in symbols
+            ]
+        return []
+
+    def import_mdt_default_library(self, node_id: int, archive: bytes) -> None:
+        """Attach validated standard pixels once for matching devices, retaining all overrides."""
+        from xknxeditor.vendor.mdt.symbol_resources import prepare_default_library
+
+        device = self.find_device_by_node_id(node_id)
+        profile = self.mdt_dca_profile(device) if device is not None else None
+        if self._pid is None or profile is None or device is None or device.app is None:
+            raise ValueError("Device has no MDT symbol configuration")
+        resources = prepare_default_library(archive, device.app.id)
+        with self._io_lock:
+            self._svc.set_project_user_file(
+                self._pid,
+                f"{profile.app_id}-symbols.zip",
+                resources,
+                label=S.MDT_ADD_DEFAULT_LIBRARY,
+            )
+        self._bump(structural=False)
 
     def restore_mdt_symbol(self, node_id: int, slot: int) -> None:
         symbol = next(

@@ -3628,3 +3628,24 @@ msgstr "Celotna privzeta knjižnica ni priložena temu projektu."
 
 msgid "The project changed while choosing the library. Please import it again."
 msgstr "Projekt se je med izbiro knjižnice spremenil. Uvozi jo znova."
+
+msgid "Read Symbols from Device"
+msgstr "Preberi simbole iz naprave"
+
+msgid "Import from .etsapp…"
+msgstr "Uvozi iz .etsapp…"
+
+msgid "Manage Symbol Library"
+msgstr "Upravljaj knjižnico simbolov"
+
+msgid "Reads the device's images into this project. Reading takes about 2:30 minutes. Undo restores the previous symbols; the device is unchanged."
+msgstr "Prebere slike naprave v ta projekt. Branje traja približno 2 minuti in 30 sekund. Razveljavitev obnovi prejšnje simbole; naprava ostane nespremenjena."
+
+msgid "Choose the MDT .etsapp file. Only symbol resources are added; custom symbols and library selections stay unchanged."
+msgstr "Izberite datoteko MDT .etsapp. Dodajo se le viri simbolov; lastni simboli in izbire knjižnic ostanejo nespremenjeni."
+
+msgid "Read Symbols from Device…"
+msgstr "Preberi simbole iz naprave…"
+
+msgid "Read all symbols from {address}? This takes about 2:30 minutes. The images will be saved in this project; the device stays unchanged."
+msgstr "Preberem vse simbole iz naprave {address}? Branje traja približno 2 minuti in 30 sekund. Slike bodo shranjene v ta projekt; naprava ostane nespremenjena."

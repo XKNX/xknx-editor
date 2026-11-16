@@ -3524,3 +3524,24 @@ msgstr "Allt sjálfgefna safnið fylgir ekki þessu verkefni."
 
 msgid "The project changed while choosing the library. Please import it again."
 msgstr "Verkefnið breyttist á meðan safnið var valið. Flyttu það inn aftur."
+
+msgid "Read Symbols from Device"
+msgstr "Lesa tákn úr tæki"
+
+msgid "Import from .etsapp…"
+msgstr "Flytja inn úr .etsapp…"
+
+msgid "Manage Symbol Library"
+msgstr "Stjórna táknasafni"
+
+msgid "Reads the device's images into this project. Reading takes about 2:30 minutes. Undo restores the previous symbols; the device is unchanged."
+msgstr "Les myndir tækisins inn í þetta verkefni. Lesturinn tekur um 2:30 mínútur. Afturkalla endurheimtir fyrri tákn; tækið breytist ekki."
+
+msgid "Choose the MDT .etsapp file. Only symbol resources are added; custom symbols and library selections stay unchanged."
+msgstr "Veldu MDT .etsapp-skrána. Aðeins táknaauðlindum er bætt við; sérsniðin tákn og val á safni haldast óbreytt."
+
+msgid "Read Symbols from Device…"
+msgstr "Lesa tákn úr tæki…"
+
+msgid "Read all symbols from {address}? This takes about 2:30 minutes. The images will be saved in this project; the device stays unchanged."
+msgstr "Lesa öll tákn úr {address}? Lesturinn tekur um 2:30 mínútur. Myndirnar verða vistaðar í þessu verkefni; tækið helst óbreytt."

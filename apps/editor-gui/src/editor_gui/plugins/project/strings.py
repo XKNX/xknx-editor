@@ -8,6 +8,40 @@ _ = create_translator("project", _locale_dir)
 
 class ProjectStrings:
     @property
+    def MDT_READ_SYMBOLS(self) -> str:
+        return _("Read Symbols from Device")
+
+    @property
+    def MDT_READ_SYMBOLS_BUTTON(self) -> str:
+        return _("Read Symbols from Device…")
+
+    @property
+    def MDT_READ_SYMBOLS_CONFIRM(self) -> str:
+        return _(
+            "Read all symbols from {address}? This takes about 2:30 minutes. The images will be saved in this project; the device stays unchanged."
+        )
+
+    @property
+    def MDT_READ_SYMBOLS_HELP(self) -> str:
+        return _(
+            "Reads the device's images into this project. Reading takes about 2:30 minutes. Undo restores the previous symbols; the device is unchanged."
+        )
+
+    @property
+    def MDT_ADD_DEFAULT_LIBRARY(self) -> str:
+        return _("Import from .etsapp…")
+
+    @property
+    def MDT_ADD_DEFAULT_LIBRARY_HELP(self) -> str:
+        return _(
+            "Choose the MDT .etsapp file. Only symbol resources are added; custom symbols and library selections stay unchanged."
+        )
+
+    @property
+    def MDT_MANAGE_LIBRARY(self) -> str:
+        return _("Manage Symbol Library")
+
+    @property
     def MDT_LOAD_DEFAULTS(self) -> str:
         return _("Load Default Symbols")
 

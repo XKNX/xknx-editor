@@ -3472,3 +3472,24 @@ msgstr "A teljes alapértelmezett könyvtár nincs a projekthez csatolva."
 
 msgid "The project changed while choosing the library. Please import it again."
 msgstr "A projekt megváltozott a könyvtár kiválasztása közben. Importáld újra."
+
+msgid "Read Symbols from Device"
+msgstr "Szimbólumok olvasása az eszközről"
+
+msgid "Import from .etsapp…"
+msgstr "Importálás .etsapp fájlból…"
+
+msgid "Manage Symbol Library"
+msgstr "Szimbólumkönyvtár kezelése"
+
+msgid "Reads the device's images into this project. Reading takes about 2:30 minutes. Undo restores the previous symbols; the device is unchanged."
+msgstr "Beolvassa az eszköz képeit ebbe a projektbe. A beolvasás körülbelül 2 perc 30 másodpercet vesz igénybe. A visszavonás visszaállítja a korábbi szimbólumokat; az eszköz nem változik."
+
+msgid "Choose the MDT .etsapp file. Only symbol resources are added; custom symbols and library selections stay unchanged."
+msgstr "Válaszd ki az MDT .etsapp fájlt. Csak a szimbólumok erőforrásai kerülnek hozzáadásra; az egyéni szimbólumok és a könyvtárválasztások nem változnak."
+
+msgid "Read Symbols from Device…"
+msgstr "Szimbólumok olvasása az eszközről…"
+
+msgid "Read all symbols from {address}? This takes about 2:30 minutes. The images will be saved in this project; the device stays unchanged."
+msgstr "Beolvassa az összes szimbólumot a(z) {address} eszközről? A beolvasás körülbelül 2 perc 30 másodpercet vesz igénybe. A képek ebbe a projektbe kerülnek; az eszköz változatlan marad."

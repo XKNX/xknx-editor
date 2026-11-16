@@ -250,6 +250,8 @@ async def test_an_incomplete_device_is_searched_again(
             _cp: object,
             cancel: object = None,
             master: object = None,
+            editable_parameter_refs: object = (),
+            parameter_candidates: object = (),
         ) -> RecoveredDevice:
             return dataclasses.replace(
                 device,

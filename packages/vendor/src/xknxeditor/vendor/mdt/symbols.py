@@ -155,14 +155,31 @@ class Symbol:
             or not profile.first_custom_slot <= self.slot < profile.slots
         ):
             raise ValueError("Symbol slot is outside this device's library")
-        stream = BytesIO()
-        Image.frombytes("L", (64, 64), self.grayscale).convert("RGB").save(
-            stream, format="BMP"
-        )
-        return {
-            f"Symbol_{self.slot}_bmp": stream.getvalue(),
-            f"Symbol_{self.slot}_data": self.data,
-        }
+        return _symbol_entries(self)
+
+
+def _symbol_entries(symbol: Symbol) -> dict[str, bytes]:
+    stream = BytesIO()
+    Image.frombytes("L", (64, 64), symbol.grayscale).convert("RGB").save(
+        stream, format="BMP"
+    )
+    return {
+        f"Symbol_{symbol.slot}_bmp": stream.getvalue(),
+        f"Symbol_{symbol.slot}_data": symbol.data,
+    }
+
+
+def recovered_symbol_entries(
+    symbols: Mapping[int, bytes], profile: DcaProfile
+) -> dict[str, bytes]:
+    """Store a complete read-back, including protected slots, without guessing Lib."""
+    if profile.kind != "symbols" or set(symbols) != set(range(profile.slots)):
+        raise ValueError("Recovery requires the complete symbol library")
+    return {
+        key: value
+        for slot, data in sorted(symbols.items())
+        for key, value in _symbol_entries(Symbol(slot, decode_symbol(data))).items()
+    }
 
 
 def read_symbols(

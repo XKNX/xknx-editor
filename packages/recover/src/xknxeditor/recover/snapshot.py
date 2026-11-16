@@ -58,6 +58,10 @@ def device_snapshot(device: RecoveredDevice) -> dict[str, Any]:
             "limited": device.parameters.limited,
         },
         "search_effort": device.effort.value,
+        "addin_data": {
+            app_id: {name: data.hex() for name, data in entries.items()}
+            for app_id, entries in device.addin_data.items()
+        },
         "raw_segments": {
             segment_id: data.hex()
             for segment_id, data in (device.parameter_segments or {}).items()
@@ -139,6 +143,12 @@ def devices_from_snapshot(text: str) -> list[RecoveredDevice]:
                         for entry in properties
                     },
                     effort=RecoveryEffort(record.get("search_effort", "fast")),
+                    addin_data={
+                        app_id: {
+                            name: bytes.fromhex(data) for name, data in entries.items()
+                        }
+                        for app_id, entries in record.get("addin_data", {}).items()
+                    },
                 )
             )
     except (KeyError, TypeError, ValueError, AttributeError) as exc:

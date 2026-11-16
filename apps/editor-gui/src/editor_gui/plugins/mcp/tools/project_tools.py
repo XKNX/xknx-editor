@@ -53,6 +53,58 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             node_id, device_address, timeout, False, include_defaults=True
         )
 
+    @tool("write", open_world=True)
+    def project_read_mdt_symbols(
+        node_id: int | None = None,
+        device_address: str | None = None,
+        timeout: float = 300,
+    ) -> dict[str, Any]:
+        """Read all MDT device symbol pixels into the project in one undo step.
+
+        Address by node_id OR device_address. Requires no existing symbol library.
+        Reads the application identity, every pixel and CRC, never writes to or restarts
+        the device. Refused, incomplete or inconsistent reads leave the project unchanged.
+        Replaces the selected device's stored symbols; the default library selection is
+        unknown after read-back. Retains parameters, links, flags and download status.
+        Refuses to apply if the device or its symbols changed during the read. Returns
+        the current symbol view. Reading can take several minutes. Call only when the
+        user requests it; the GUI asks before starting a read for missing symbols.
+        """
+        from editor_gui.plugins.mcp.tools.connection import (
+            await_operation,
+            finished,
+            not_started,
+            wait_for_operation,
+        )
+        from editor_gui.plugins.project.program_queue import ORIGIN_MCP
+
+        require_project(ctx)
+
+        def start() -> tuple[Any, Any, Any]:
+            device = require_device(project, node_id, device_address)
+            target = project.prepare_mdt_symbol_read(device.node_id)
+            if ctx.api.queue_action is not None:
+                return (
+                    target,
+                    ctx.api.queue_action(
+                        device.node_id, "read_mdt_symbols", origin=ORIGIN_MCP
+                    ),
+                    None,
+                )
+            return target, None, ctx.api.connection.read_mdt_symbols(device)
+
+        target, item, future = ctx.run_locked(start)
+        if item is not None:
+            finished(wait_for_operation(ctx, item, timeout))
+        else:
+            if future is None:
+                raise not_started(ctx.api.connection, "the symbol read")
+            symbols = await_operation(
+                ctx.api.connection, future, timeout, "the symbol read"
+            )
+            ctx.run_locked(lambda: project.apply_mdt_symbol_read(target, symbols))
+        return ctx.run_locked(lambda: project.mdt_symbols(target.node_id))
+
     @tool("destructive", open_world=True)
     def project_program_mdt_symbols(
         node_id: int | None = None,
@@ -157,6 +209,33 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         return ctx.run_locked(apply)
 
     @tool("write")
+    def project_import_mdt_default_library(
+        path: str,
+        node_id: int | None = None,
+        device_address: str | None = None,
+    ) -> dict[str, Any]:
+        """Add missing MDT default symbols from a local .etsapp or symbol resource ZIP.
+
+        Address by node_id OR device_address. Validates the app identity, supported
+        application version and every symbol CRC. Stores only standard pixel resources
+        once in the project for all matching devices, without executing app code.
+        Retains custom symbols, library selections, links and download status. One undo
+        step, no bus access. Returns the selected device's current symbol library.
+        """
+        require_project(ctx)
+        from xknxeditor.vendor.mdt.symbol_resources import MAX_APP_SIZE
+
+        with Path(path).open("rb") as stream:
+            archive = stream.read(MAX_APP_SIZE + 1)
+
+        def apply() -> dict[str, Any]:
+            device = require_device(project, node_id, device_address)
+            project.import_mdt_default_library(device.node_id, archive)
+            return project.mdt_symbols(device.node_id)
+
+        return ctx.run_locked(apply)
+
+    @tool("write")
     def project_import_mdt_symbol_library(
         path: str,
         invert: bool = False,
@@ -239,7 +318,9 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         node_id: int | None = None, device_address: str | None = None
     ) -> dict[str, Any]:
         """Read an MDT Smart device's symbol library and custom slots. Address by node_id OR
-        device_address. Returns app_id, slots, first_custom_slot, new_library, slot_info
+        device_address. Returns app_id, slots, first_custom_slot, new_library
+        (null for a complete read-back without a known default library), slot_info
+        and default_libraries (available library selections, false=first, true=second),
         (zero-based slot, localized name, fixed role or null, group, editable), groups
         (functional/normal with localized labels), symbols and defaults from the attached
         library (slot, grayscale_hex: 4096 row-major pixels, data_hex: 514 packed bytes

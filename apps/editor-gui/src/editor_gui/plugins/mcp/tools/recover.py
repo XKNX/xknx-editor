@@ -99,6 +99,10 @@ def _entry(service: RecoverService, entry: RecoverEntry) -> dict[str, Any]:
                 "more_effort_may_help": recovered.parameters.limited,
                 "search_effort": recovered.effort.value,
                 "order_info": recovered.dossier.order_info,
+                "addin_data": {
+                    app_id: len(entries)
+                    for app_id, entries in recovered.addin_data.items()
+                },
             }
             if recovered is not None
             else None
@@ -320,7 +324,9 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
     @tool("read", open_world=True)
     def recover_read_back(timeout: float = 1800.0) -> dict[str, Any]:
         """Read the selected devices back from the bus: their parameters, group addresses,
-        links and flags (Recover Selected). Only reads from the devices. With auto_apply on and
+        links, flags and supported DCA data (Recover Selected). MDT symbol recovery reads
+        all pixels and validates their checksums; unreadable pixels fail that device.
+        GTS layouts and VisuControl data come from parameter memory. Only reads from the devices. With auto_apply on and
         a project open, each device read with the same application version is added to it when
         recover_status or this tool sees it. Waits up to ``timeout`` s; returns the state as
         recover_status does."""

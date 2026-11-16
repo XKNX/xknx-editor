@@ -3532,3 +3532,24 @@ msgstr "De volledige standaardbibliotheek is niet bij dit project gevoegd."
 
 msgid "The project changed while choosing the library. Please import it again."
 msgstr "Het project is gewijzigd tijdens het kiezen van de bibliotheek. Importeer deze opnieuw."
+
+msgid "Read Symbols from Device"
+msgstr "Symbolen van apparaat lezen"
+
+msgid "Import from .etsapp…"
+msgstr "Importeren uit .etsapp…"
+
+msgid "Manage Symbol Library"
+msgstr "Symboolbibliotheek beheren"
+
+msgid "Reads the device's images into this project. Reading takes about 2:30 minutes. Undo restores the previous symbols; the device is unchanged."
+msgstr "Leest de afbeeldingen van het apparaat in dit project. Het uitlezen duurt ongeveer 2:30 minuten. Ongedaan maken herstelt de vorige symbolen; het apparaat blijft ongewijzigd."
+
+msgid "Choose the MDT .etsapp file. Only symbol resources are added; custom symbols and library selections stay unchanged."
+msgstr "Kies het MDT .etsapp-bestand. Alleen symboolbronnen worden toegevoegd; eigen symbolen en bibliotheekkeuzes blijven ongewijzigd."
+
+msgid "Read Symbols from Device…"
+msgstr "Symbolen van apparaat lezen…"
+
+msgid "Read all symbols from {address}? This takes about 2:30 minutes. The images will be saved in this project; the device stays unchanged."
+msgstr "Alle symbolen van {address} lezen? Het uitlezen duurt ongeveer 2:30 minuten. De afbeeldingen worden in dit project opgeslagen; het apparaat blijft ongewijzigd."

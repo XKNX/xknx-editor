@@ -2672,6 +2672,70 @@ class SetProjectName(Event):
 
 @_register
 @dataclass
+class SetProjectUserFile(Event):
+    """Add or replace one shared attachment without changing device configuration."""
+
+    event_type: ClassVar[str] = "SetProjectUserFile"
+    project_id: str
+    filename: str
+    data: str
+    old_data: str | None = None
+    old_metadata: str | None = None
+    old_archive_missing: bool = False
+
+    def apply(self, session: Session) -> None:
+        from .user_files import read_user_file, write_user_file
+
+        project = session.get(Project, self.project_id)
+        if project is None:
+            raise ValueError("Project no longer exists")
+        old = read_user_file(project, self.filename)
+        self.old_data = (
+            base64.b64encode(old).decode("ascii") if old is not None else None
+        )
+        self.old_metadata = (project.extra_subtrees or {}).get("UserFiles")
+        self.old_archive_missing = project.imported_project_files is None
+        write_user_file(
+            project, self.filename, base64.b64decode(self.data, validate=True)
+        )
+
+    def revert(self, session: Session) -> None:
+        from .user_files import write_user_file
+
+        project = session.get(Project, self.project_id)
+        if project is None:
+            return
+        write_user_file(
+            project,
+            self.filename,
+            base64.b64decode(self.old_data) if self.old_data is not None else None,
+        )
+        metadata = dict(project.extra_subtrees or {})
+        if self.old_metadata is None:
+            metadata.pop("UserFiles", None)
+        else:
+            metadata["UserFiles"] = self.old_metadata
+        project.extra_subtrees = metadata
+        if self.old_archive_missing:
+            project.imported_project_files = None
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "project_id": self.project_id,
+            "filename": self.filename,
+            "data": self.data,
+            "old_data": self.old_data,
+            "old_metadata": self.old_metadata,
+            "old_archive_missing": self.old_archive_missing,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> SetProjectUserFile:
+        return cls(**data)
+
+
+@_register
+@dataclass
 class SetProjectCodePage(Event):
     """Set the project's ``CodePage`` (``ProjectInformation/@CodePage``); ``None`` removes it, which
     means the system language."""

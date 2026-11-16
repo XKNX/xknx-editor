@@ -164,6 +164,7 @@ _QUEUED_OPERATIONS = frozenset(
         "dali",
         "siemens_dali",
         "siemens_dca",
+        "mdt_symbols",
     }
 )
 
@@ -444,7 +445,10 @@ class ProjectPlugin:
         from editor_gui.plugins.project.ui.native_plugin import NativePluginPanel
 
         self._native_plugin_panel = NativePluginPanel()
-        self._mdt_dca_panel = MdtDcaPanel(self._queue_bus_action)
+        self._mdt_dca_panel = MdtDcaPanel(
+            self._queue_bus_action,
+            connected=lambda: api.connection.xknx is not None,
+        )
         self._siemens_dali_panel = SiemensDaliPanel(
             self._run_siemens_dali, _generation=lambda: api.project.generation
         )
@@ -1185,6 +1189,8 @@ class ProjectPlugin:
             return None
         conn = self._api.connection
         start: Callable[[Device], Future[Any] | None]
+        finish: Callable[[Any], Any] | None = None
+        target = None
         match kind:
             case "restart":
                 text, start = S.BTN_RESTART_DEVICE, conn.restart_device
@@ -1220,6 +1226,12 @@ class ProjectPlugin:
                 text = S.PLUGIN_PARAMS_PROGRAM_DCA
                 start = functools.partial(
                     conn.run_siemens_dca_program, blob_xml=options["data"]
+                )
+            case "read_mdt_symbols":
+                target = self._api.project.prepare_mdt_symbol_read(node_id)
+                text, start = S.MDT_READ_SYMBOLS, conn.read_mdt_symbols
+                finish = functools.partial(
+                    self._api.project.apply_mdt_symbol_read, target
                 )
             case "mdt_symbols":
                 text = (
@@ -1262,6 +1274,7 @@ class ProjectPlugin:
                 "dali",
                 "siemens_dali",
                 "mdt_symbols",
+                "read_mdt_symbols",
             ) and (
                 self._api.project.generation != generation
                 or current.individual_address != item.address
@@ -1291,6 +1304,11 @@ class ProjectPlugin:
                 )
                 if symbols != options["symbols"]:
                     raise ValueError("Symbols changed while the operation was queued")
+            elif (
+                kind == "read_mdt_symbols"
+                and self._api.project.prepare_mdt_symbol_read(node_id) != target
+            ):
+                raise ValueError("Symbols changed while the operation was queued")
             future = start(current)
             if future is None and conn.xknx is None:
                 item.message = S.SCRIPT_NOT_CONNECTED
@@ -1315,8 +1333,10 @@ class ProjectPlugin:
                 "dali",
                 "siemens_dali",
                 "mdt_symbols",
+                "read_mdt_symbols",
             )
             else begin,
+            finish=finish,
         )
         if ended is not None:
             assert item.ended is not None

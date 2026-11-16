@@ -64,6 +64,17 @@ def test_a_snapshot_reads_back_into_the_same_device() -> None:
     assert devices_from_snapshot(snapshots_json([device])) == [device]
 
 
+def test_addin_attachments_survive_a_snapshot_and_legacy_snapshots_still_read() -> None:
+    device = replace(_device(), addin_data={"test": {"pixels": b"\x00\xff\x80"}})
+    assert devices_from_snapshot(snapshots_json([device])) == [device]
+    document = json.loads(snapshots_json([device]))
+    del document["devices"][0]["addin_data"]
+    assert devices_from_snapshot(json.dumps(document))[0].addin_data == {}
+    document["devices"][0]["addin_data"] = {"test": {"pixels": "invalid hex"}}
+    with pytest.raises(ValueError, match="snapshot"):
+        devices_from_snapshot(json.dumps(document))
+
+
 def test_observed_identity_survives_a_snapshot_with_another_layout_version() -> None:
     observed = AppId("M-0083", 0x008A, 0x10)
     device = replace(_device(), observed_app_id=observed)
