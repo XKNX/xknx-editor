@@ -42,6 +42,7 @@ from .ip_secure import IpSecureConfig, ip_secure_controls
 from .merge import (
     device_mask_version,
     learn_device_mask,
+    legacy_configuration,
     mask_authorize_levels,
     mask_has_property_services,
     resolve_download_controls,
@@ -478,7 +479,11 @@ def _object_types(
     application: Application, master: MasterData | None
 ) -> dict[int, int]:
     return (
-        mask_object_types(master.raw, device_mask_version(application))
+        mask_object_types(
+            master.raw,
+            device_mask_version(application),
+            legacy=legacy_configuration(application),
+        )
         if master is not None
         else {}
     )
@@ -504,7 +509,11 @@ def _authorize_levels(
         return 0
     if master is None:
         return 0
-    return mask_authorize_levels(master.raw, device_mask_version(application))
+    return mask_authorize_levels(
+        master.raw,
+        device_mask_version(application),
+        legacy=legacy_configuration(application),
+    )
 
 
 def _property_services(application: Application, master: MasterData | None) -> bool:
@@ -523,7 +532,11 @@ def _with_mask_memory(
     """``image`` with the memory segments of the device's mask from the master data."""
     if master is None or getattr(image, "mask_memory", True):
         return image
-    configuration = mask_configuration(master.raw, device_mask_version(application))
+    configuration = mask_configuration(
+        master.raw,
+        device_mask_version(application),
+        legacy=legacy_configuration(application),
+    )
     segments = configuration.memory_segments if configuration is not None else None
     ranges = tuple(
         (segment.location.start_address, segment.length)

@@ -136,28 +136,36 @@ def partial_scope(
 
 
 def mask_configuration(
-    master_data: MasterData | None, mask_version_id: str
+    master_data: MasterData | None, mask_version_id: str, *, legacy: bool = False
 ) -> HawkConfigurationData | None:
-    """Use the current mask configuration for both procedures and object identity."""
+    """The mask configuration for both procedures and object identity: the current one, or
+    with ``legacy`` the one marked ``LegacyVersion`` (see ``merge.legacy_configuration``),
+    the current one when the mask has none."""
     if master_data is not None and master_data.mask_versions is not None:
         for mask in master_data.mask_versions.mask_version:
             if mask.id == mask_version_id:
-                for configuration in mask.hawk_configuration_data:
+                configurations = mask.hawk_configuration_data
+                if legacy:
+                    for configuration in configurations:
+                        if configuration.legacy_version is not None:
+                            return configuration
+                for configuration in configurations:
                     if configuration.legacy_version is None:
                         return configuration
     return None
 
 
 def mask_object_types(
-    master_data: MasterData | None, mask_version_id: str
+    master_data: MasterData | None, mask_version_id: str, *, legacy: bool = False
 ) -> dict[int, int]:
     """Read the mask's explicit index-to-type mapping; never guess conventional indices.
 
     The one exception the device profile knows itself: the BIM M112 MV-0700, whose master
     data lists no interface objects, has the object type of its index for the indices up to 4
     (the device object, the address table, the association table, the application and the
-    PEI program). An index the master data lists keeps the master data's type."""
-    configuration = mask_configuration(master_data, mask_version_id)
+    PEI program). An index the master data lists keeps the master data's type. ``legacy``
+    selects the configuration as for :func:`mask_configuration`."""
+    configuration = mask_configuration(master_data, mask_version_id, legacy=legacy)
     result: dict[int, int] = {}
     if configuration is not None and configuration.interface_objects is not None:
         for item in configuration.interface_objects.interface_object:
