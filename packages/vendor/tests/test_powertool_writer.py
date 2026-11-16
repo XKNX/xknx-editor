@@ -26,6 +26,54 @@ from xknxeditor.vendor.powertool.project_blob import read_project_blob
 from xknxeditor.vendor.powertool.project_writer import write_project_blob
 
 
+def test_missing_timer_matches_original_image_and_reserialized_value():
+    from xknxeditor.vendor.powertool.model import EvaluatedChannel
+
+    with open_archive("reported-samples.zip") as archive:
+        original = archive.read("missing-value.dat")
+        expected = archive.read("original-missing-value/image.pid")
+        assert archive.read("original-python-writeback/image.pid") == expected
+        original_saved = archive.read("original-missing-value/project.blob")
+        channels = json.loads(archive.read("original-missing-value/channels.json"))
+    config = from_original(original)
+    assert not isinstance(config, FamilyConfig)
+    channel = EvaluatedChannel(config.channels[2])
+    field_index = next(
+        i
+        for i, f in enumerate(channel.function.fields)
+        if f.key == "duration_of_long_operation_s"
+    )
+    assert "duration_of_long_operation_s" not in config.channels[2].values
+    assert channel.value(field_index) == 400
+    assert channel.stored_value(field_index) == 80
+    for data in (original, original_saved, write_project_blob(original, config)):
+        compiled = compile_native(from_original(data))
+        assert compiled.pid == expected
+        assert next(r for r in compiled.resources if r.object_index == 4).data[
+            0x31:0x33
+        ] == bytes.fromhex("0050")
+        family = from_saved(data, qualified=True)
+        assert (
+            compile_family(
+                family,
+                program_ids=(bytes.fromhex("0007610822"), bytes.fromhex("0007610832")),
+            ).pid
+            == expected
+        )
+    timer = next(
+        p for p in channels[1]["parameters"] if p["type"].endswith("+Par_ZeitLangBed")
+    )
+    assert timer["value"] == 80
+    saved = read_project_blob(write_project_blob(original, config))
+    timer = next(
+        p for p in saved.channels[2].parameters if p.path.endswith("/application/0/0")
+    )
+    assert timer.value == 80
+    restored = from_original(write_project_blob(original, config))
+    assert not isinstance(restored, FamilyConfig)
+    assert restored.channels[2].values["duration_of_long_operation_s"] == 400
+
+
 @pytest.mark.parametrize("variant", ["01", "02"])
 def test_create_without_original(variant):
     config = default(variant)

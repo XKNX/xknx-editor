@@ -282,9 +282,6 @@ class Device:
     com_object_instance_refs: list[ComObjectInstanceRef] = field(
         default_factory=list["ComObjectInstanceRef"], repr=False, compare=False
     )
-    com_object_flag_overrides: dict[str, dict[str, bool]] | None = field(
-        default=None, repr=False, compare=False
-    )
     # Per-device raw blobs the ETS plug-in stores alongside parameters (e.g. the Siemens
     # N141/03 DCA ``BLOB_PARA`` holds the full sensor commissioning tree). Direct references
     # to the SQLAlchemy-mapped ``DeviceBinaryData`` rows so a mutation on ``.data`` lands in

@@ -161,7 +161,8 @@ no native configuration exists. Reading/exporting this form is side-effect free;
 first edit persists and binds the native configuration atomically. Existing objects
 are matched to the saved configuration by unique catalog number, size and compatible
 explicit DPT. Matching roles retain links on conversion; unmatched links block preparation.
-Saved object flags provide defaults, with explicit project overrides taking precedence.
+Matched project objects supply effective flags, including inherited catalog defaults.
+Saved object flags apply to roles without a matching project object.
 Profiles without an implemented encoder show saved parameter pages and collapsed
 internal values. Recognition alone cannot supply an image.
 

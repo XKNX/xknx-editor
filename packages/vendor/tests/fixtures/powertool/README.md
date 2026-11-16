@@ -6,6 +6,10 @@ that require a missing archive; present but corrupt archives fail normally.
 Set `XKNX_POWERTOOL_FIXTURES` to read the same archives from another directory.
 The runtime schemas are separate from these original-encoder captures.
 
+`reported-samples.zip` contains the three issue #278 blobs, the supplied object-table
+readback and two original Mono captures of the missing-timer case before and after
+Python writeback. Tests cover inherited project flags, reservation size and timer encoding.
+
 `original-images.zip` contains 1,912 complete PID outputs from the unchanged original
 `DeviceImage.CreateImage(true)` encoder, executed locally on Mono:
 

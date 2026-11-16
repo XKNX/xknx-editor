@@ -373,7 +373,9 @@ def test_first_conversion_preserves_compatible_links_and_undo(
     project.close()
 
 
-def test_stored_flags_survive_conversion_and_explicit_override(tmp_path, monkeypatch):
+def test_effective_project_flags_survive_conversion_and_explicit_override(
+    tmp_path, monkeypatch
+):
     project, nid, _ = stored_linked_project(
         tmp_path, monkeypatch, case="modified-flags"
     )
@@ -386,12 +388,12 @@ def test_stored_flags_survive_conversion_and_explicit_override(tmp_path, monkeyp
     assert before is not None
     assert project.import_stored_plugin_config(current(project, nid)) == []
     device = current(project, nid)
-    assert device.com_objects[0].flags.read
+    assert not device.com_objects[0].flags.read
     assert device.com_objects[0].priority == "High"
     assert project.prepared_download(device).image == before.image
-    project.set_flag(device, device.com_objects[0].id, "read", False)
+    project.set_flag(device, device.com_objects[0].id, "read", True)
     project._refresh_device(nid)
-    assert not current(project, nid).com_objects[0].flags.read
+    assert current(project, nid).com_objects[0].flags.read
     assert project.prepared_download(current(project, nid)).image != before.image
     project.close()
 
@@ -401,7 +403,7 @@ def test_stored_live_overrides_convert_and_update_atomically(tmp_path, monkeypat
     device = current(project, nid)
     reference = PROVIDER.read(device).objects[0].reference
     before = project.prepared_download(device)
-    project.set_flag(device, reference, "read", True)
+    project.set_flag(device, reference, "read", False)
     changed = project.prepared_download(device)
     assert changed.image != before.image
     active = assert_current_blob(project, nid)
