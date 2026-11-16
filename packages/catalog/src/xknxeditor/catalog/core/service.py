@@ -21,6 +21,7 @@ from xknxeditor.catalog.core.applications import (
     list_applications,
     load_application_program,
 )
+from xknxeditor.catalog.core.archive_versions import archive_versions
 from xknxeditor.catalog.core.catalog_sections import (
     CatalogSectionNode,
     build_catalog_tree,
@@ -53,7 +54,7 @@ from xknxeditor.catalog.core.products import (
     find_products_for_application,
     list_products,
     product_facts,
-    products_for_path,
+    products_for_versions,
 )
 from xknxeditor.catalog.core.upload import StoreTidying, tidy_store, upload_knxprod
 from xknxeditor.catalog.db import knxprod_dir_for, make_engine
@@ -385,10 +386,12 @@ class CatalogService:
         with Session(self._engine) as db:
             return list_products(db)
 
-    def products_for_path(self, knxprod_path: str) -> list[ProductSummary]:
-        """Every product version ingested from one stored ``.knxprod`` archive (by its path)."""
+    def products_for_archive(self, content: bytes) -> list[ProductSummary]:
+        """Every product version of the catalog that the ``.knxprod`` ``content`` provides,
+        whichever file the catalog has it from."""
+        versions = archive_versions(product_members(content)).versions
         with Session(self._engine) as db:
-            return products_for_path(db, knxprod_path)
+            return products_for_versions(db, versions)
 
     def product_facts(self, program_id: str) -> ProductFacts | None:
         """Mask version, KNX Secure, registration number/date and media for a hardware program."""

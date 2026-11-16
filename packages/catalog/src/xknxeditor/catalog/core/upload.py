@@ -20,6 +20,7 @@ from sqlalchemy.engine import Engine
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
+from xknxeditor.catalog.core.archive_versions import ArchiveVersions, archive_versions
 from xknxeditor.catalog.core.product_members import (
     has_other_members,
     product_members,
@@ -252,6 +253,53 @@ def _referenced(session: Session, path: Path) -> bool:
     )
 
 
+# Ids asked for in one query, well below SQLite's limit of parameters.
+_IDS_PER_QUERY = 500
+
+
+def _chunks(ids: frozenset[str]) -> list[list[str]]:
+    ordered = sorted(ids)
+    return [
+        ordered[start : start + _IDS_PER_QUERY]
+        for start in range(0, len(ordered), _IDS_PER_QUERY)
+    ]
+
+
+def _in_catalog(
+    session: Session, provided: ArchiveVersions, *, project_mode: bool
+) -> bool:
+    """Whether ingesting an archive that provides ``provided`` would change nothing: the catalog
+    has every catalog item of it, and every hardware program as :func:`_ingest_program` keeps it
+    (in project mode any it has; else one with an application whose file is there). An archive
+    without hardware programs is always ingested."""
+    if not provided.programs:
+        return False
+    items = 0
+    for chunk in _chunks(provided.items):
+        items += len(
+            session.scalars(
+                select(CatalogSectionProduct.id).where(
+                    CatalogSectionProduct.id.in_(chunk)
+                )
+            ).all()
+        )
+    if items != len(provided.items):
+        return False
+    programs: list[HardwareProgram] = []
+    for chunk in _chunks(provided.programs):
+        programs.extend(
+            session.scalars(
+                select(HardwareProgram).where(HardwareProgram.id.in_(chunk))
+            ).all()
+        )
+    if len(programs) != len(provided.programs):
+        return False
+    return project_mode or all(
+        program.application_id is not None and Path(program.knxprod_path).exists()
+        for program in programs
+    )
+
+
 def write_stored(path: Path, content: bytes) -> None:
     """Store ``content`` at ``path`` unless it is there already.
 
@@ -291,23 +339,21 @@ def upload_knxprod(
     ``Catalog.xml``): hardware and applications are stored so devices resolve, only the catalog
     browse index is absent for those manufacturers.
 
-    Idempotent: skips the ingest only when this content is already IN THE DATABASE (a hardware
-    program referencing its stored path exists), not merely when the stored file is present. This
-    keeps the store file and the DB in sync — e.g. if the catalog DB was deleted/rebuilt while the
-    file cache remained, re-importing repopulates the DB instead of wrongly skipping. The stored
-    file is (re)written whenever it is missing, since resolution reads it at runtime by path.
+    Idempotent: skips the ingest only when the catalog already has everything the content
+    provides (see :func:`_in_catalog`), not merely when the stored file is present or some of its
+    versions are in the catalog. So a re-import repopulates a catalog whose database was deleted
+    while the file cache remained, and brings back a version deleted from the catalog while the
+    others of the file kept its stored archive. The stored file is (re)written whenever a hardware
+    program refers to it and it is missing, since resolution reads it at runtime by path.
 
     Only the product data is stored (see :func:`product_members`): a ``.knxproj`` is stored without
     its project, and the content hash is that of what is stored.
     """
     content = product_members(content)
     path = _stored_path(dest_dir, content)
+    provided = archive_versions(content, require_catalog=require_catalog)
     with Session(engine) as session:
-        in_db = (
-            session.query(HardwareProgram).filter_by(knxprod_path=str(path)).first()
-            is not None
-        )
-        if not in_db:
+        if not _in_catalog(session, provided, project_mode=not require_catalog):
             registry = load(
                 content,
                 require_catalog=require_catalog,
@@ -340,7 +386,7 @@ def upload_knxprod(
                 write_stored(path, content)
             session.commit()
             logger.debug("catalog import committed: %s", path.name)
-        else:
+        elif _referenced(session, path):
             write_stored(path, content)
     return path
 
