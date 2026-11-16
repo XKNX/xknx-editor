@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from dataclasses import replace
 from typing import TYPE_CHECKING
 
@@ -13,6 +14,7 @@ from editor_gui.device_channels import ComObjectModule
 from editor_gui.dpt import lookup_or_make_dpt
 from xknxeditor.download.scope import DownloadScope
 from xknxeditor.download.tables import com_object_flag_byte, priority_from_bits
+from xknxeditor.namespaces.intermediate import Enable
 from xknxeditor.prod.parser_v2.application_indexer import ApplicationIndexer
 from xknxeditor.vendor.powertool import (
     BLOB_NAME,
@@ -20,6 +22,11 @@ from xknxeditor.vendor.powertool import (
     HostProfile,
 )
 from xknxeditor.vendor.powertool.binding import SIZE_TEXT, bind_catalog
+from xknxeditor.vendor.powertool.model import (
+    EvaluatedChannel,
+    PowerToolConfig,
+    channel_exists,
+)
 from xknxeditor.vendor.powertool.native import (
     Configuration,
     channel_labels,
@@ -64,6 +71,8 @@ if TYPE_CHECKING:
     from xknxeditor.download.prepared import PreparedDownload
 
 from . import NativeConfiguration, NativeObject, PluginCapabilities, compatible_dpt
+
+_LOGGER = logging.getLogger("xknxeditor.vendor.powertool")
 
 FLAGS = {
     "communication": 4,
@@ -178,7 +187,25 @@ def _stored_objects(
             not compatible_dpt(obj.dpt, token) for token in source.datapoint_type
         ):
             continue
-        matched.append(replace(obj, reference=candidates[0]))
+        reference = catalog.com_object_refs[source.ref_id]
+        base = catalog.com_objects[reference.ref_id]
+        flags = {}
+        for name in FLAGS:
+            value = getattr(source, name + "_flag")
+            if value is None:
+                value = getattr(reference, name + "_flag")
+            if value is None:
+                value = getattr(base, name + "_flag")
+            flags[name] = value is Enable.ENABLED
+        priority = source.priority or reference.priority or base.priority
+        matched.append(
+            replace(
+                obj,
+                reference=source.ref_id,
+                flags=flags,
+                priority=priority.value,
+            )
+        )
     return tuple(matched)
 
 
@@ -226,24 +253,10 @@ def _prepare(
             for role, ref in config.bindings.items()
         }
     else:
-        overrides = {r.ref_id: r for r in device.com_object_instance_refs}
-        flags = {}
-        for obj in sources:
-            override = overrides[obj.reference]
-            values = dict(obj.flags)
-            if device.com_object_flag_overrides is not None:
-                values.update(device.com_object_flag_overrides.get(obj.reference, {}))
-            else:
-                for name in FLAGS:
-                    value = getattr(override, name + "_flag")
-                    if value is not None:
-                        values[name] = value.value == "Enabled"
-            flags[obj.key] = com_object_flag_byte(
-                priority=override.priority.value
-                if override.priority is not None
-                else obj.priority,
-                **values,
-            )
+        flags = {
+            obj.key: com_object_flag_byte(priority=obj.priority, **obj.flags)
+            for obj in sources
+        }
     try:
         individual_address = IndividualAddress(device.individual_address).raw
     except CouldNotParseAddress as exc:
@@ -269,11 +282,51 @@ def _prepare(
         domain_address=communication.domain_address or 0 if communication else 0,
         repeater_present=communication.repeater_present if communication else False,
     )
-    return prepare_image(
+    prepared = prepare_image(
         compile_image(config, host, associations, flags),
         secondary_application=secondary,
         application=device.app,
     )
+    if _LOGGER.isEnabledFor(logging.DEBUG):
+        for obj in compiled.objects:
+            effective = flags.get(obj.key, obj.flags)
+            if effective != obj.flags:
+                _LOGGER.debug(
+                    "PowerTool %s: project flags for %s override saved flags %02x -> %02x",
+                    device.individual_address,
+                    obj.key,
+                    obj.flags,
+                    effective,
+                )
+        if isinstance(config, PowerToolConfig):
+            for index, channel in enumerate(config.channels):
+                if not channel_exists(config, index):
+                    continue
+                evaluated = EvaluatedChannel(channel)
+                for field_index, field in enumerate(evaluated.function.fields):
+                    if (
+                        field.kind == "freetimer"
+                        and field.key not in channel.values
+                        and evaluated.exists(field_index)
+                    ):
+                        _LOGGER.debug(
+                            "PowerTool %s: channel %s/%s parameter %s has no stored value; "
+                            "default %s ms, encoded %04x",
+                            device.individual_address,
+                            index,
+                            channel.function,
+                            field.key,
+                            evaluated.value(field_index),
+                            int(evaluated.stored_value(field_index)),
+                        )
+        _LOGGER.debug(
+            "PowerTool %s (%s): prepared payload lengths %s, allocation reservations %s",
+            device.individual_address,
+            device.app.id,
+            dict(prepared.resource_sizes),
+            dict(prepared.image.allocation_sizes),
+        )
+    return prepared
 
 
 class PowerToolProvider:

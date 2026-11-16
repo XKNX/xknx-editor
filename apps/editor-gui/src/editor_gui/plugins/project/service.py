@@ -442,7 +442,6 @@ class _DeviceInputs:
     # ``BLOB_PARA``). Carried through so :func:`_compute_device` can hand the live
     # SQLAlchemy-mapped rows to the ``Device`` without re-querying.
     binary_data: tuple[Any, ...] = ()
-    com_object_flag_overrides: dict[str, dict[str, bool]] | None = None
     # Gives the product's factory image (see Device.factory_image).
     factory_image: Callable[[], FactoryData | None] | None = None
     # Gives the product's second application program (see Device.second_application).
@@ -466,7 +465,6 @@ def _compute_device(inputs: _DeviceInputs, app: Application) -> Device:
         parameter_instance_refs=inputs.parameter_instance_refs,
         module_instances=inputs.module_instances,
         com_object_instance_refs=inputs.com_object_instance_refs,
-        com_object_flag_overrides=inputs.com_object_flag_overrides,
         binary_data=list(inputs.binary_data),
         second_application=inputs.second_application,
         plugin_baggage=inputs.plugin_baggage,
@@ -564,24 +562,6 @@ def _co_instance_ref_from_row(
         update_flag=_e(row.update_flag),
         read_on_init_flag=_e(row.read_on_init_flag),
     )
-
-
-def _raw_object_flags(row: Any, app_id: str) -> dict[str, dict[str, bool]]:
-    return {
-        _qualified_com_object_ref(co, app_id): {
-            name: value
-            for name in (
-                "communication",
-                "read",
-                "write",
-                "transmit",
-                "update",
-                "read_on_init",
-            )
-            if (value := getattr(co, name + "_flag_override")) is not None
-        }
-        for co in row.com_objects
-    }
 
 
 def _effective_flags(
@@ -2612,7 +2592,6 @@ class ProjectService:
                 parameter_instance_refs=pirs,
                 module_instances=mis,
                 com_object_instance_refs=coirs,
-                com_object_flag_overrides=_raw_object_flags(row, app.id),
                 binary_data=list(getattr(row, "binary_data", []) or []),
                 visible=snapshot.visible,
                 second_application=self._second_application_source(program_ref),
@@ -2813,7 +2792,6 @@ class ProjectService:
             parameter_instance_refs=pirs,
             module_instances=mis,
             com_object_instance_refs=coirs,
-            com_object_flag_overrides=_raw_object_flags(row, app_program_id),
             download_plugin_required=not compared
             and self._requires_download_plugin(program_ref),
             binary_data=tuple(getattr(row, "binary_data", []) or []),
@@ -5102,11 +5080,14 @@ class ProjectService:
                 assert source is not None
                 preserved.add(source.id)
                 if previous is None:
-                    fields_["priority"] = source.priority or role.priority
+                    assert old is not None
+                    fields_["priority"] = source.priority or old.priority
                     for name, value in role.flags.items():
-                        effective = getattr(source, name + "_flag_override")
+                        effective = getattr(source, name + "_flag")
                         fields_[name + "_flag"] = fields_[name + "_flag_override"] = (
-                            value if effective is None else effective
+                            old.flags.get(name, value)
+                            if effective is None
+                            else effective
                         )
             else:
                 fields_["priority"] = role.priority
@@ -7946,8 +7927,6 @@ class ProjectService:
         # live dynamic UI — exactly what a rebuild reconstructs from the DB — then bump non-structurally
         # so revision-keyed panels (Health/Cockpit) refresh.
         setattr(co.flags, flag_name, value)
-        if device.com_object_flag_overrides is not None:
-            device.com_object_flag_overrides.setdefault(co_id, {})[flag_name] = value
         device.edited_in_place = True
         row = self._find_com_object_row(co.db_id)
         if row is not None:

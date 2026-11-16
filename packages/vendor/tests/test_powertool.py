@@ -42,6 +42,19 @@ def test_configuration_rejects_unmodelled_profiles() -> None:
         compile_image(default_config("01"), flags={"absent": 1})
 
 
+def test_missing_timer_default_matches_explicit_milliseconds() -> None:
+    from xknxeditor.vendor.powertool.model import edit_config
+    from xknxeditor.vendor.powertool.native import from_original
+    from xknxeditor.vendor.powertool.project_writer import write_project_blob
+
+    config = edit_config(default_config("02"), 2, "function", "blind_rocker")
+    explicit = edit_config(config, 2, "duration_of_long_operation_s", "400")
+    expected = compile_image(explicit).pid
+    assert compile_image(config).pid == expected
+    restored = from_original(write_project_blob(None, config))
+    assert compile_image(restored).pid == expected
+
+
 def test_allocation_holes_are_not_visible_number_offsets() -> None:
     cfg = replace(
         default_config("02"),

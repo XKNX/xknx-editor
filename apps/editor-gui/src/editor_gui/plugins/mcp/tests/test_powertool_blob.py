@@ -15,9 +15,45 @@ from editor_gui.plugins.project.tests.test_powertool_blob import (
     original_blob,
     stored_linked_project,
 )
+from editor_gui.plugins.project.tests.test_powertool_samples import flag_project
 from xknxeditor.vendor.powertool import BLOB_NAME
 
 from .test_server import _build_ctx, _data
+
+
+@pytest.mark.parametrize(
+    "operation", ["import_stored_plugin_config", "set_plugin_parameter"]
+)
+async def test_first_conversion_keeps_effective_flags_via_batch(
+    tmp_path, monkeypatch, operation
+):
+    ctx = _build_ctx(tmp_path)
+    project, nid, original = flag_project(
+        tmp_path, monkeypatch, None, False, service=ctx.api.project
+    )
+    ctx.project_plugin = ProjectPlugin(ctx.api)
+    device = current(project, nid)
+    links = project.group_communication_for(device).links
+    params = {"device_address": "1.1.1"}
+    if operation == "set_plugin_parameter":
+        params.update(ref_id="powertool:0:duration_of_long_operation_s", value="500")
+    cursor = project.cursor
+    async with Client(build_server(ctx)) as client:
+        result = await _data(
+            client, "project_batch", operations=[{"op": operation, "params": params}]
+        )
+        assert result["applied"] == 1
+    assert project.cursor == cursor + 1
+    device = current(project, nid)
+    assert project.prepared_download(device).image.object_segments[3].hex() == (
+        "0006d700d700d700d70047004700"
+    )
+    assert project.group_communication_for(device).links == links
+    assert_current_blob(project, nid)
+    project.undo()
+    assert project.device_binary_data(current(project, nid), "PT2EtsPlugin") == original
+    assert project.group_communication_for(current(project, nid)).links == links
+    project.close()
 
 
 async def test_mcp_imports_stored_blob_and_batch_rolls_back(tmp_path, monkeypatch):
