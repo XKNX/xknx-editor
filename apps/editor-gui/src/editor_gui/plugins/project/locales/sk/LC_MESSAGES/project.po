@@ -3679,6 +3679,105 @@ msgstr "Vlastnosť verzie (surová)"
 msgid "Bootloader version, CRC and encryption are reported as numeric codes. They do not describe KNX Secure."
 msgstr "Verzia zavádzača, CRC a šifrovanie sú uvedené ako číselné kódy. Nepopisujú KNX Secure."
 
+msgid "Turn on flag {flag} of {target}"
+msgstr "Zapnúť príznak {flag}: {target}"
+
+msgid "Turn off flag {flag} of {target}"
+msgstr "Vypnúť príznak {flag}: {target}"
+
+msgid "Reset flag {flag} of {target}"
+msgstr "Obnoviť príznak {flag}: {target}"
+
+msgid "Set datapoint type of {target} to {value}"
+msgstr "Nastaviť typ dátového bodu: {target} → {value}"
+
+msgid "Reset datapoint type of {target}"
+msgstr "Obnoviť typ dátového bodu: {target}"
+
+msgid "Set priority of {target} to {value}"
+msgstr "Nastaviť prioritu: {target} → {value}"
+
+msgid "Reset priority of {target}"
+msgstr "Obnoviť prioritu: {target}"
+
+msgid "Set description of {target}"
+msgstr "Nastaviť popis: {target}"
+
+msgid "Link {target} with {address}"
+msgstr "Prepojiť skupinový objekt: {target} → {address}"
+
+msgid "Unlink {target} from {address}"
+msgstr "Odpojiť skupinový objekt: {target} → {address}"
+
+msgid "Move device {target} to {address}"
+msgstr "Presunúť zariadenie: {target} → {address}"
+
+msgid "Park device {target}"
+msgstr "Odstaviť zariadenie: {target}"
+
+msgid "Unlink device {target}"
+msgstr "Odpojiť zariadenie: {target}"
+
+msgid "Remove device {target}"
+msgstr "Odstrániť zariadenie: {target}"
+
+msgid "Remove area {target}"
+msgstr "Odstrániť oblasť: {target}"
+
+msgid "Remove line {target}"
+msgstr "Odstrániť líniu: {target}"
+
+msgid "Remove segment {target}"
+msgstr "Odstrániť segment: {target}"
+
+msgid "Remove group address {target}"
+msgstr "Odstrániť skupinovú adresu: {target}"
+
+msgid "Remove function {target}"
+msgstr "Odstrániť funkciu: {target}"
+
+msgid "Remove group address {address} from function {target}"
+msgstr "Odstrániť skupinovú adresu {address} z funkcie: {target}"
+
+msgid "Remove building part {target}"
+msgstr "Odstrániť časť budovy: {target}"
+
+msgid "Remove group range {target}"
+msgstr "Odstrániť skupinový rozsah: {target}"
+
+msgid "Remove trade {target}"
+msgstr "Odstrániť profesiu: {target}"
+
+msgid "Remove device {address} from trade {target}"
+msgstr "Odstrániť zariadenie {address} z profesie: {target}"
+
+msgid "Rename area {target} to {name}"
+msgstr "Premenovať oblasť {target} na {name}"
+
+msgid "Rename line {target} to {name}"
+msgstr "Premenovať líniu {target} na {name}"
+
+msgid "Rename device {target} to {name}"
+msgstr "Premenovať zariadenie {target} na {name}"
+
+msgid "Rename group address {target} to {name}"
+msgstr "Premenovať skupinovú adresu {target} na {name}"
+
+msgid "Rename segment {target} to {name}"
+msgstr "Premenovať segment {target} na {name}"
+
+msgid "Rename function {target} to {name}"
+msgstr "Premenovať funkciu {target} na {name}"
+
+msgid "Rename building part {target} to {name}"
+msgstr "Premenovať časť budovy {target} na {name}"
+
+msgid "Rename group range {target} to {name}"
+msgstr "Premenovať skupinový rozsah {target} na {name}"
+
+msgid "Rename trade {target} to {name}"
+msgstr "Premenovať profesiu {target} na {name}"
+
 msgid "The interface did not confirm sending in time ({detail})."
 msgstr "Rozhranie nepotvrdilo odoslanie včas ({detail})."
 

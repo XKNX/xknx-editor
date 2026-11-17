@@ -3600,6 +3600,105 @@ msgstr "Versio-ominaisuus (raaka)"
 msgid "Bootloader version, CRC and encryption are reported as numeric codes. They do not describe KNX Secure."
 msgstr "Käynnistyslataajan versio, CRC ja salaus ilmoitetaan numerokoodeina. Ne eivät kuvaa KNX Securea."
 
+msgid "Turn on flag {flag} of {target}"
+msgstr "Ota merkki {flag} käyttöön: {target}"
+
+msgid "Turn off flag {flag} of {target}"
+msgstr "Poista merkki {flag} käytöstä: {target}"
+
+msgid "Reset flag {flag} of {target}"
+msgstr "Palauta merkki {flag}: {target}"
+
+msgid "Set datapoint type of {target} to {value}"
+msgstr "Aseta tietopisteen tyyppi: {target} → {value}"
+
+msgid "Reset datapoint type of {target}"
+msgstr "Palauta tietopisteen tyyppi: {target}"
+
+msgid "Set priority of {target} to {value}"
+msgstr "Aseta prioriteetti: {target} → {value}"
+
+msgid "Reset priority of {target}"
+msgstr "Palauta prioriteetti: {target}"
+
+msgid "Set description of {target}"
+msgstr "Aseta kuvaus: {target}"
+
+msgid "Link {target} with {address}"
+msgstr "Linkitä ryhmäobjekti: {target} → {address}"
+
+msgid "Unlink {target} from {address}"
+msgstr "Poista ryhmäobjektin linkki: {target} → {address}"
+
+msgid "Move device {target} to {address}"
+msgstr "Siirrä laite: {target} → {address}"
+
+msgid "Park device {target}"
+msgstr "Pysäköi laite: {target}"
+
+msgid "Unlink device {target}"
+msgstr "Poista laitteen linkitys: {target}"
+
+msgid "Remove device {target}"
+msgstr "Poista laite: {target}"
+
+msgid "Remove area {target}"
+msgstr "Poista alue: {target}"
+
+msgid "Remove line {target}"
+msgstr "Poista linja: {target}"
+
+msgid "Remove segment {target}"
+msgstr "Poista segmentti: {target}"
+
+msgid "Remove group address {target}"
+msgstr "Poista ryhmäosoite: {target}"
+
+msgid "Remove function {target}"
+msgstr "Poista toiminto: {target}"
+
+msgid "Remove group address {address} from function {target}"
+msgstr "Poista ryhmäosoite {address} toiminnosta: {target}"
+
+msgid "Remove building part {target}"
+msgstr "Poista rakennuksen osa: {target}"
+
+msgid "Remove group range {target}"
+msgstr "Poista ryhmäalue: {target}"
+
+msgid "Remove trade {target}"
+msgstr "Poista vaihto: {target}"
+
+msgid "Remove device {address} from trade {target}"
+msgstr "Poista laite {address} vaihdosta: {target}"
+
+msgid "Rename area {target} to {name}"
+msgstr "Nimeä alue uudelleen: {target} → {name}"
+
+msgid "Rename line {target} to {name}"
+msgstr "Nimeä linja uudelleen: {target} → {name}"
+
+msgid "Rename device {target} to {name}"
+msgstr "Nimeä laite uudelleen: {target} → {name}"
+
+msgid "Rename group address {target} to {name}"
+msgstr "Nimeä ryhmäosoite uudelleen: {target} → {name}"
+
+msgid "Rename segment {target} to {name}"
+msgstr "Nimeä segmentti uudelleen: {target} → {name}"
+
+msgid "Rename function {target} to {name}"
+msgstr "Nimeä toiminto uudelleen: {target} → {name}"
+
+msgid "Rename building part {target} to {name}"
+msgstr "Nimeä rakennuksen osa uudelleen: {target} → {name}"
+
+msgid "Rename group range {target} to {name}"
+msgstr "Nimeä ryhmäalue uudelleen: {target} → {name}"
+
+msgid "Rename trade {target} to {name}"
+msgstr "Nimeä vaihto uudelleen: {target} → {name}"
+
 msgid "The interface did not confirm sending in time ({detail})."
 msgstr "Liitäntä ei vahvistanut lähetystä ajoissa ({detail})."
 

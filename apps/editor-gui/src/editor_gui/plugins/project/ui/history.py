@@ -2,7 +2,8 @@
 
 A step is selected with a click (or a tap); Restore above the list (a double click, or Restore in
 the step's context menu) brings the project back to it. The current state is marked with an
-arrow in its own column; undone steps after it are grey until a new change drops them.
+arrow in its own column; undone steps after it are grey until a new change drops them. A text
+the row cuts off shows whole in a tooltip and at the top of the step's context menu.
 """
 
 import datetime
@@ -16,6 +17,9 @@ from editor_gui.plugins.project.strings import S
 from editor_gui.theme import status_color
 from editor_gui.widgets.tables import row_selectable
 from editor_gui.widgets.tree import header_arrow, header_title_offset
+
+# Where the step's text in its context menu wraps, in font heights.
+_MENU_TEXT_EMS = 25
 
 
 @dataclass
@@ -137,6 +141,11 @@ class HistoryPanel:
                 self.restore(entry.id)
         if imgui.begin_popup_context_item(f"##history_menu_{entry.id}"):
             self.selected = entry.id
+            # The whole text, also where the row cuts it off (touch screens have no tooltip).
+            imgui.push_text_wrap_pos(imgui.get_font_size() * _MENU_TEXT_EMS)
+            imgui.text_disabled(entry.display_text)
+            imgui.pop_text_wrap_pos()
+            imgui.separator()
             if imgui.menu_item(S.HISTORY_REVERT, "", False, not is_current)[0]:
                 self.restore(entry.id)
             imgui.end_popup()
@@ -159,6 +168,12 @@ class HistoryPanel:
         imgui.set_cursor_screen_pos(
             imgui.ImVec2(imgui.get_cursor_screen_pos().x, text_y)
         )
+        cut_off = (
+            imgui.calc_text_size(entry.display_text).x
+            > imgui.get_content_region_avail().x
+        )
         imgui.text(entry.display_text)
+        if cut_off and imgui.is_item_hovered():
+            imgui.set_tooltip(entry.display_text)
         if entry.reverted:
             imgui.pop_style_color()

@@ -25,12 +25,14 @@ from editor_gui.concurrency import (
     revision_cached_by_args,
 )
 from editor_gui.device import (
+    FLAG_LABELS,
     ComObject,
     ComObjectFlags,
     Device,
     UnloadedDevice,
     address_order,
     device_label,
+    flag_letter,
 )
 from editor_gui.device_info import serial_to_project
 from editor_gui.device_plugins import ConfigurationApp, configuration_apps
@@ -664,6 +666,110 @@ def _quoted(data: dict[str, Any], key: str) -> str:
     return repr(data.get(key, ""))
 
 
+# The history entries that name what they changed. The event holds the target (and the second
+# element of a link) as recorded with the edit; an event stored before, or one with nothing to
+# name, keeps the text without it.
+
+
+def _named(
+    plain: str, named: str, *, second: bool = False
+) -> Callable[[dict[str, Any]], str]:
+    """The label of an event naming its target with the text ``named`` (both are names of
+    strings, looked up when shown, so in the current language); ``second``: it names the second
+    element too."""
+
+    def label(data: dict[str, Any]) -> str:
+        target, detail = data.get("target"), data.get("detail")
+        if not target or (second and not detail):
+            return str(getattr(S, plain))
+        return str(getattr(S, named)).format(target=target, address=detail or "")
+
+    return label
+
+
+def _renamed(
+    plain: str, named: str, key: str = "name"
+) -> Callable[[dict[str, Any]], str]:
+    """The label of a rename: with the element it renamed when the event names it (``plain`` and
+    ``named`` are names of strings, looked up when shown); the new name ``key`` is quoted."""
+
+    def label(data: dict[str, Any]) -> str:
+        target = data.get("target")
+        name = _quoted(data, key)
+        if not target:
+            return str(getattr(S, plain)).format(name=name)
+        return str(getattr(S, named)).format(target=target, name=name)
+
+    return label
+
+
+def _object_history_target(device: Device, co: ComObject) -> str:
+    """A group object as the history names it: the device's individual address (its name
+    without one), the object's number and name ("1.1.5 #1 Step")."""
+    return " ".join(
+        part
+        for part in (
+            device.individual_address or device.display_name,
+            f"#{co.number}",
+            co.name,
+        )
+        if part
+    )
+
+
+def _dpt_text(token: str) -> str:
+    """A datapoint type as the history shows it: ``5.001``, a main type alone as ``5``."""
+    code = dpt_from_token(token).code
+    return code.removesuffix(".000") if code else token
+
+
+def _flag_label(data: dict[str, Any]) -> str:
+    target, flag = data.get("target"), str(data.get("flag", "")).removesuffix("_flag")
+    if not target or flag not in {attr for attr, _letter, _name in FLAG_LABELS}:
+        return S.HISTORY_EV_SET_FLAG
+    value = data.get("value")
+    text = (
+        S.HISTORY_EV_FLAG_RESET_OF
+        if value is None
+        else S.HISTORY_EV_FLAG_ON_OF
+        if value
+        else S.HISTORY_EV_FLAG_OFF_OF
+    )
+    return text.format(flag=flag_letter(flag), target=target)
+
+
+def _dpt_label(data: dict[str, Any]) -> str:
+    target, token = data.get("target"), data.get("datapoint_type")
+    if not target:
+        return S.HISTORY_EV_SET_DPT
+    if not token:
+        return S.HISTORY_EV_RESET_DPT_OF.format(target=target)
+    return S.HISTORY_EV_SET_DPT_OF.format(target=target, value=_dpt_text(str(token)))
+
+
+def _priority_label(data: dict[str, Any]) -> str:
+    from editor_gui.widgets.group_objects_widgets import priority_text
+
+    target, priority = data.get("target"), data.get("priority")
+    if not target:
+        return S.HISTORY_EV_SET_PRIORITY
+    if not priority:
+        return S.HISTORY_EV_RESET_PRIORITY_OF.format(target=target)
+    return S.HISTORY_EV_SET_PRIORITY_OF.format(
+        target=target, value=priority_text(str(priority))
+    )
+
+
+def _move_device_label(data: dict[str, Any]) -> str:
+    if data.get("segment_id") is None:
+        return _named("HISTORY_EV_UNLINK_DEVICE", "HISTORY_EV_UNLINK_DEVICE_OF")(data)
+    if data.get("address") is None:
+        return _named("HISTORY_EV_PARK_DEVICE", "HISTORY_EV_PARK_DEVICE_OF")(data)
+    return _named("HISTORY_EV_MOVE_DEVICE", "HISTORY_EV_MOVE_DEVICE_OF", second=True)(
+        data
+    )
+
+
 # Labels of the events without their own text; each takes the event data.
 _HISTORY_LABELS: dict[str, Callable[[dict[str, Any]], str]] = {
     "AddDevice": lambda d: S.HISTORY_EV_ADD_DEVICE.format(name=_quoted(d, "name")),
@@ -686,48 +792,52 @@ _HISTORY_LABELS: dict[str, Callable[[dict[str, Any]], str]] = {
         address=d.get("address")
     ),
     "ImportGroupAddresses": lambda d: str(d.get("label") or S.HISTORY_EV_IMPORT_GAS),
-    "LinkComObject": lambda d: S.HISTORY_EV_LINK,
-    "UnlinkComObject": lambda d: S.HISTORY_EV_UNLINK,
-    "RenameArea": lambda d: S.HISTORY_EV_RENAME_AREA.format(name=_quoted(d, "name")),
+    "LinkComObject": _named("HISTORY_EV_LINK", "HISTORY_EV_LINK_OF", second=True),
+    "UnlinkComObject": _named("HISTORY_EV_UNLINK", "HISTORY_EV_UNLINK_OF", second=True),
+    "RenameArea": _renamed("HISTORY_EV_RENAME_AREA", "HISTORY_EV_RENAME_AREA_OF"),
     "SetProjectName": lambda d: S.HISTORY_EV_RENAME_PROJECT.format(
         name=_quoted(d, "name")
     ),
     "SetProjectCodePage": lambda d: S.HISTORY_EV_SET_CODE_PAGE.format(
         code_page=code_page_text(d.get("code_page"))
     ),
-    "RenameLine": lambda d: S.HISTORY_EV_RENAME_LINE.format(name=_quoted(d, "name")),
-    "SetDeviceName": lambda d: S.HISTORY_EV_RENAME_DEVICE.format(
-        name=_quoted(d, "name")
+    "RenameLine": _renamed("HISTORY_EV_RENAME_LINE", "HISTORY_EV_RENAME_LINE_OF"),
+    "SetDeviceName": _renamed(
+        "HISTORY_EV_RENAME_DEVICE", "HISTORY_EV_RENAME_DEVICE_OF"
     ),
-    "MoveDevice": lambda d: (
-        S.HISTORY_EV_UNLINK_DEVICE
-        if d.get("segment_id") is None
-        else S.HISTORY_EV_PARK_DEVICE
-        if d.get("address") is None
-        else S.HISTORY_EV_MOVE_DEVICE
-    ),
+    "MoveDevice": _move_device_label,
     "SetDeviceAdditionalAddresses": lambda d: str(
         d.get("label") or S.HISTORY_ADDITIONAL_ADDRESSES
     ),
-    "SetComObjectFlag": lambda d: S.HISTORY_EV_SET_FLAG,
-    "SetComObjectDatapointType": lambda d: S.HISTORY_EV_SET_DPT,
-    "SetComObjectPriority": lambda d: S.HISTORY_EV_SET_PRIORITY,
-    "SetComObjectDescription": lambda d: S.HISTORY_EV_SET_DESCRIPTION,
+    "SetComObjectFlag": _flag_label,
+    "SetComObjectDatapointType": _dpt_label,
+    "SetComObjectPriority": _priority_label,
+    "SetComObjectDescription": _named(
+        "HISTORY_EV_SET_DESCRIPTION", "HISTORY_EV_SET_DESCRIPTION_OF"
+    ),
     "SetComObjectSending": lambda d: S.HISTORY_EV_SET_SENDING,
-    "SetGroupAddressDatapointType": lambda d: S.HISTORY_EV_SET_DPT,
+    "SetGroupAddressDatapointType": _dpt_label,
     "AddInstallation": lambda d: S.HISTORY_EV_ADD_INSTALLATION,
-    "RemoveDevice": lambda d: S.HISTORY_EV_REMOVE_DEVICE,
-    "RemoveArea": lambda d: S.HISTORY_EV_REMOVE_AREA,
-    "RemoveLine": lambda d: S.HISTORY_EV_REMOVE_LINE,
-    "RemoveSegment": lambda d: S.HISTORY_EV_REMOVE_SEGMENT,
-    "RemoveGroupAddress": lambda d: S.HISTORY_EV_REMOVE_GA,
-    "RemoveFunction": lambda d: S.HISTORY_EV_REMOVE_FUNCTION,
+    "RemoveDevice": _named("HISTORY_EV_REMOVE_DEVICE", "HISTORY_EV_REMOVE_DEVICE_OF"),
+    "RemoveArea": _named("HISTORY_EV_REMOVE_AREA", "HISTORY_EV_REMOVE_AREA_OF"),
+    "RemoveLine": _named("HISTORY_EV_REMOVE_LINE", "HISTORY_EV_REMOVE_LINE_OF"),
+    "RemoveSegment": _named(
+        "HISTORY_EV_REMOVE_SEGMENT", "HISTORY_EV_REMOVE_SEGMENT_OF"
+    ),
+    "RemoveGroupAddress": _named("HISTORY_EV_REMOVE_GA", "HISTORY_EV_REMOVE_GA_OF"),
+    "RemoveFunction": _named(
+        "HISTORY_EV_REMOVE_FUNCTION", "HISTORY_EV_REMOVE_FUNCTION_OF"
+    ),
     "MoveFunction": lambda d: S.HISTORY_EV_MOVE_FUNCTION,
     # Only inside a paste, the step the history names after the paste.
     "SetFields": lambda d: S.HISTORY_EV_CHANGE,
-    "RemoveFunctionGroupAddress": lambda d: S.HISTORY_EV_REMOVE_FUNCTION_GA,
-    "RemoveSpace": lambda d: S.HISTORY_EV_REMOVE_SPACE,
-    "RemoveGroupRange": lambda d: S.HISTORY_EV_REMOVE_GROUP_RANGE,
+    "RemoveFunctionGroupAddress": _named(
+        "HISTORY_EV_REMOVE_FUNCTION_GA", "HISTORY_EV_REMOVE_FUNCTION_GA_OF", second=True
+    ),
+    "RemoveSpace": _named("HISTORY_EV_REMOVE_SPACE", "HISTORY_EV_REMOVE_SPACE_OF"),
+    "RemoveGroupRange": _named(
+        "HISTORY_EV_REMOVE_GROUP_RANGE", "HISTORY_EV_REMOVE_GROUP_RANGE_OF"
+    ),
     "UpdateDeviceApplication": lambda d: S.HISTORY_EV_UPDATE_APP,
     "ChangeDeviceApplication": lambda d: S.HISTORY_EV_CHANGE_APP,
     "SetDeviceIpConfig": lambda d: str(d.get("label") or ""),
@@ -742,9 +852,7 @@ _HISTORY_LABELS: dict[str, Callable[[dict[str, Any]], str]] = {
         else S.HISTORY_EV_UNSET_GA_CENTRAL
     ),
     "SetDeviceSecureCommissioning": lambda d: S.HISTORY_EV_SET_SECURE_COMMISSIONING,
-    "RenameGroupAddress": lambda d: S.HISTORY_EV_RENAME_GA.format(
-        name=_quoted(d, "name")
-    ),
+    "RenameGroupAddress": _renamed("HISTORY_EV_RENAME_GA", "HISTORY_EV_RENAME_GA_OF"),
     "SetGroupAddressAddress": lambda d: S.HISTORY_EV_SET_GA_ADDRESS,
     "SetDeviceCertificates": lambda d: S.HISTORY_EV_SET_CERTIFICATES,
     "SetDeviceDescription": lambda d: S.HISTORY_EV_SET_DEVICE_DESCRIPTION,
@@ -779,7 +887,7 @@ _HISTORY_LABELS: dict[str, Callable[[dict[str, Any]], str]] = {
     "SetSegmentBusAccess": lambda d: S.HISTORY_EV_SET_BUS_CONNECTION,
     "CreateTrade": lambda d: S.HISTORY_EV_CREATE_TRADE.format(name=_quoted(d, "name")),
     "SetTradeField": lambda d: (
-        S.HISTORY_EV_RENAME_TRADE.format(name=_quoted(d, "value"))
+        _renamed("HISTORY_EV_RENAME_TRADE", "HISTORY_EV_RENAME_TRADE_OF", "value")(d)
         if d.get("field") == "name"
         else S.HISTORY_EV_SET_TRADE_NUMBER
         if d.get("field") == "number"
@@ -788,12 +896,16 @@ _HISTORY_LABELS: dict[str, Callable[[dict[str, Any]], str]] = {
     "MoveTrade": lambda d: S.HISTORY_EV_MOVE_TRADE,
     "MoveLine": lambda d: S.HISTORY_EV_MOVE_LINE,
     "MoveSegment": lambda d: S.HISTORY_EV_MOVE_SEGMENT,
-    "RemoveTrade": lambda d: S.HISTORY_EV_REMOVE_TRADE,
+    "RemoveTrade": _named("HISTORY_EV_REMOVE_TRADE", "HISTORY_EV_REMOVE_TRADE_OF"),
     "AddTradeDevice": lambda d: S.HISTORY_EV_ADD_TRADE_DEVICE,
-    "RemoveTradeDevice": lambda d: S.HISTORY_EV_REMOVE_TRADE_DEVICE,
+    "RemoveTradeDevice": _named(
+        "HISTORY_EV_REMOVE_TRADE_DEVICE",
+        "HISTORY_EV_REMOVE_TRADE_DEVICE_OF",
+        second=True,
+    ),
     "SetSegmentDomainAddress": lambda d: S.HISTORY_EV_SET_DOMAIN_ADDRESS,
-    "RenameSegment": lambda d: S.HISTORY_EV_RENAME_SEGMENT.format(
-        name=_quoted(d, "name")
+    "RenameSegment": _renamed(
+        "HISTORY_EV_RENAME_SEGMENT", "HISTORY_EV_RENAME_SEGMENT_OF"
     ),
     "SetSegmentMedium": lambda d: S.HISTORY_EV_SET_MEDIUM.format(
         medium=medium_name(str(d.get("medium_type", "")))
@@ -805,13 +917,13 @@ _HISTORY_LABELS: dict[str, Callable[[dict[str, Any]], str]] = {
     "CreateFunctionWithGroupAddresses": lambda d: S.HISTORY_EV_CREATE_FUNCTION.format(
         name=_quoted(d, "name")
     ),
-    "RenameFunction": lambda d: S.HISTORY_EV_RENAME_FUNCTION.format(
-        name=_quoted(d, "name")
+    "RenameFunction": _renamed(
+        "HISTORY_EV_RENAME_FUNCTION", "HISTORY_EV_RENAME_FUNCTION_OF"
     ),
     "SetFunctionType": lambda d: S.HISTORY_EV_SET_FUNCTION_TYPE,
     "AddFunctionGroupAddress": lambda d: S.HISTORY_EV_ADD_FUNCTION_GA,
     "CreateSpace": lambda d: S.HISTORY_EV_CREATE_SPACE.format(name=_quoted(d, "name")),
-    "RenameSpace": lambda d: S.HISTORY_EV_RENAME_SPACE.format(name=_quoted(d, "name")),
+    "RenameSpace": _renamed("HISTORY_EV_RENAME_SPACE", "HISTORY_EV_RENAME_SPACE_OF"),
     "SetSpaceNumber": lambda d: S.HISTORY_EV_SET_SPACE_NUMBER,
     "SetSpaceDescription": lambda d: S.HISTORY_EV_SET_SPACE_DESCRIPTION,
     "SetSpaceType": lambda d: S.HISTORY_EV_SET_SPACE_TYPE,
@@ -821,14 +933,20 @@ _HISTORY_LABELS: dict[str, Callable[[dict[str, Any]], str]] = {
     "CreateGroupRange": lambda d: S.HISTORY_EV_CREATE_GROUP_RANGE.format(
         name=_quoted(d, "name")
     ),
-    "RenameGroupRange": lambda d: S.HISTORY_EV_RENAME_GROUP_RANGE.format(
-        name=_quoted(d, "name")
+    "RenameGroupRange": _renamed(
+        "HISTORY_EV_RENAME_GROUP_RANGE", "HISTORY_EV_RENAME_GROUP_RANGE_OF"
     ),
 }
 
 
 def _history_label(event_type: str, data: dict[str, Any]) -> str:
     if event_type == "Composite":
+        # A step named as one event, worded when shown (see CompositeEvent.label_as).
+        label_as = cast("dict[str, Any] | None", data.get("label_as"))
+        if label_as and label_as.get("type"):
+            return _history_label(
+                str(label_as["type"]), dict(label_as.get("data") or {})
+            )
         if data.get("label"):
             return str(data["label"])
         # A composite is a parameter change plus the com-object re-instantiation it triggered; label
@@ -5175,6 +5293,7 @@ class ProjectService:
         *,
         label: str | None = None,
         object_changes: Mapping[str, Mapping[str, Any]] | None = None,
+        label_as: Mapping[str, Any] | None = None,
     ) -> list[dict[str, Any]]:
         from xknx.telegram import GroupAddress
 
@@ -5301,6 +5420,7 @@ class ProjectService:
             binary_data=persisted.binary_data,
             label=f"{device_label(current)}: "
             + (label or S.HISTORY_EV_STORE_PLUGIN_DATA.format(name=provider.id)),
+            label_as=label_as,
         )
         self._refresh_device(current.node_id)
         self._bump(structural=False)
@@ -8063,14 +8183,21 @@ class ProjectService:
             and getattr(row, column + "_override") == value
         ):
             return
+        target = _object_history_target(device, co)
         if self._set_native_object_fields(
             device,
             co_id,
             {column: value, column + "_override": value},
             S.HISTORY_EV_SET_FLAG,
+            {
+                "type": "SetComObjectFlag",
+                "data": {"target": target, "flag": column, "value": value},
+            },
         ):
             return
-        if not self._svc.set_com_object_flag(self._pid, co.db_id, column, value):
+        if not self._svc.set_com_object_flag(
+            self._pid, co.db_id, column, value, target=target
+        ):
             return
         # In place instead of a full rebuild (which would reset the Configure panel's tree/edit
         # state): reflect on the live com-object and push the com-object's full override set into the
@@ -8098,7 +8225,9 @@ class ProjectService:
         if co is None or co.db_id is None:
             return
         token = normalize_datapoint_type(value) if value else None
-        if not self._svc.set_com_object_datapoint_type(self._pid, co.db_id, token):
+        if not self._svc.set_com_object_datapoint_type(
+            self._pid, co.db_id, token, target=_object_history_target(device, co)
+        ):
             return
         # Reflect on the live com-object. With a value, update the override and the resolved display
         # DPT in place (non-structural bump keeps the Configure tree/edit state). On a clear, the
@@ -8133,11 +8262,21 @@ class ProjectService:
         row = self._find_com_object_row(co.db_id)
         if row is None or row.priority == value:
             return
+        target = _object_history_target(device, co)
         if self._set_native_object_fields(
-            device, co_id, {"priority": value}, S.HISTORY_EV_SET_PRIORITY
+            device,
+            co_id,
+            {"priority": value},
+            S.HISTORY_EV_SET_PRIORITY,
+            {
+                "type": "SetComObjectPriority",
+                "data": {"target": target, "priority": value},
+            },
         ):
             return
-        if not self._svc.set_com_object_priority(self._pid, co.db_id, value):
+        if not self._svc.set_com_object_priority(
+            self._pid, co.db_id, value, target=target
+        ):
             return
         row = self._find_com_object_row(co.db_id)
         if row is not None:
@@ -8153,8 +8292,15 @@ class ProjectService:
         self._bump(structural=value is None)
 
     def _set_native_object_fields(
-        self, device: Device, reference: str, fields: Mapping[str, Any], label: str
+        self,
+        device: Device,
+        reference: str,
+        fields: Mapping[str, Any],
+        label: str,
+        label_as: Mapping[str, Any] | None = None,
     ) -> bool:
+        """Change a group object of a device configured through a plug-in; ``label_as`` names
+        the step in the history as that event (worded when shown)."""
         from editor_gui.plugin_providers import provider_for
 
         with self._io_lock:
@@ -8176,6 +8322,7 @@ class ProjectService:
                 state,
                 label=label,
                 object_changes={target.reference: fields},
+                label_as=label_as,
             )
             return True
 
@@ -8191,7 +8338,9 @@ class ProjectService:
         if co is None or co.db_id is None:
             return
         normalized = value or None
-        if not self._svc.set_com_object_description(self._pid, co.db_id, normalized):
+        if not self._svc.set_com_object_description(
+            self._pid, co.db_id, normalized, target=_object_history_target(device, co)
+        ):
             return
         co.description = normalized or ""
         device.edited_in_place = True
@@ -9027,12 +9176,22 @@ class ProjectService:
                 group_address_id,
                 sending=is_sending,
                 derive_datapoint_type=derive,
+                target=self._object_history_target_of(com_object_id),
             )
         except GroupAddressSecurityError:
             self._log.error(S.GA_SECURE_LINK_REFUSED)
             return None
         self._bump(structural=False)
         return link_id
+
+    def _object_history_target_of(self, co_db_id: int) -> str:
+        """The group object with the database id ``co_db_id`` as the history names it ("" when
+        it is not shown)."""
+        for device in self.devices:
+            for co in device.com_objects:
+                if co.db_id == co_db_id:
+                    return _object_history_target(device, co)
+        return ""
 
     def _com_object_dpt_token(self, co_db_id: int) -> str | None:
         """The ETS DPT token of a com-object (resolved via the cached device view-models)."""
@@ -9076,7 +9235,14 @@ class ProjectService:
     ) -> None:
         if self._pid is None:
             return
-        self._svc.unlink_com_object(self._pid, assignment_id)
+        co_db_id = com_object_id or self._svc.com_object_of_link(
+            self._pid, assignment_id
+        )
+        self._svc.unlink_com_object(
+            self._pid,
+            assignment_id,
+            target=self._object_history_target_of(co_db_id) if co_db_id else "",
+        )
         self._bump(structural=False)
 
     def create_function(

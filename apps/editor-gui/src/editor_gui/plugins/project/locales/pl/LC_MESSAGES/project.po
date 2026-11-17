@@ -3652,6 +3652,105 @@ msgstr "Właściwość wersji (surowa)"
 msgid "Bootloader version, CRC and encryption are reported as numeric codes. They do not describe KNX Secure."
 msgstr "Wersja programu rozruchowego, CRC i szyfrowanie są podawane jako kody liczbowe. Nie opisują KNX Secure."
 
+msgid "Turn on flag {flag} of {target}"
+msgstr "Włącz flagę {flag}: {target}"
+
+msgid "Turn off flag {flag} of {target}"
+msgstr "Wyłącz flagę {flag}: {target}"
+
+msgid "Reset flag {flag} of {target}"
+msgstr "Przywróć flagę {flag}: {target}"
+
+msgid "Set datapoint type of {target} to {value}"
+msgstr "Ustaw typ punktu danych: {target} → {value}"
+
+msgid "Reset datapoint type of {target}"
+msgstr "Przywróć typ punktu danych: {target}"
+
+msgid "Set priority of {target} to {value}"
+msgstr "Ustaw priorytet: {target} → {value}"
+
+msgid "Reset priority of {target}"
+msgstr "Przywróć priorytet: {target}"
+
+msgid "Set description of {target}"
+msgstr "Ustaw opis: {target}"
+
+msgid "Link {target} with {address}"
+msgstr "Połącz obiekt grupy: {target} → {address}"
+
+msgid "Unlink {target} from {address}"
+msgstr "Odłącz obiekt grupy: {target} → {address}"
+
+msgid "Move device {target} to {address}"
+msgstr "Przenieś urządzenie: {target} → {address}"
+
+msgid "Park device {target}"
+msgstr "Zaparkuj urządzenie: {target}"
+
+msgid "Unlink device {target}"
+msgstr "Odłącz urządzenie: {target}"
+
+msgid "Remove device {target}"
+msgstr "Usuń urządzenie: {target}"
+
+msgid "Remove area {target}"
+msgstr "Usuń obszar: {target}"
+
+msgid "Remove line {target}"
+msgstr "Usuń linię: {target}"
+
+msgid "Remove segment {target}"
+msgstr "Usuń segment: {target}"
+
+msgid "Remove group address {target}"
+msgstr "Usuń adres grupowy: {target}"
+
+msgid "Remove function {target}"
+msgstr "Usuń funkcję: {target}"
+
+msgid "Remove group address {address} from function {target}"
+msgstr "Usuń adres grupowy {address} z funkcji: {target}"
+
+msgid "Remove building part {target}"
+msgstr "Usuń część budynku: {target}"
+
+msgid "Remove group range {target}"
+msgstr "Usuń zakres grup: {target}"
+
+msgid "Remove trade {target}"
+msgstr "Usuń zakład: {target}"
+
+msgid "Remove device {address} from trade {target}"
+msgstr "Usuń urządzenie {address} z zakładu: {target}"
+
+msgid "Rename area {target} to {name}"
+msgstr "Zmień nazwę obszaru {target} na {name}"
+
+msgid "Rename line {target} to {name}"
+msgstr "Zmień nazwę linii {target} na {name}"
+
+msgid "Rename device {target} to {name}"
+msgstr "Zmień nazwę urządzenia {target} na {name}"
+
+msgid "Rename group address {target} to {name}"
+msgstr "Zmień nazwę adresu grupowego {target} na {name}"
+
+msgid "Rename segment {target} to {name}"
+msgstr "Zmień nazwę segmentu {target} na {name}"
+
+msgid "Rename function {target} to {name}"
+msgstr "Zmień nazwę funkcji {target} na {name}"
+
+msgid "Rename building part {target} to {name}"
+msgstr "Zmień nazwę części budynku {target} na {name}"
+
+msgid "Rename group range {target} to {name}"
+msgstr "Zmień nazwę zakresu grup {target} na {name}"
+
+msgid "Rename trade {target} to {name}"
+msgstr "Zmień nazwę zakładu {target} na {name}"
+
 msgid "The interface did not confirm sending in time ({detail})."
 msgstr "Interfejs nie potwierdził wysłania na czas ({detail})."
 
