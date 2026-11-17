@@ -5,6 +5,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import pytest
+
 from editor_gui.plugins.catalog.tests.test_delete_product import _project_with_device
 from editor_gui.plugins.project.service import ProjectService
 
@@ -64,3 +66,49 @@ def test_a_plugin_object_keeps_its_value_without_an_edit(tmp_path, monkeypatch) 
     proj.set_com_object_priority(current(proj, node_id), co.id, "Low")
     assert len(proj.history()) == steps + 1
     proj.close()
+
+
+@pytest.mark.parametrize("field", ["flag", "description"])
+@pytest.mark.parametrize("native", [False, True])
+def test_unchanged_values_keep_the_opened_state(tmp_path, monkeypatch, field, native):
+    from editor_gui.plugins.project.tests.test_powertool import current, native_project
+
+    if native:
+        proj, node = native_project(tmp_path, monkeypatch)
+        proj.setup_plugin(current(proj, node))
+        path = tmp_path / "project.xknx"
+    else:
+        proj = _opened(tmp_path)
+        node = proj.devices[0].node_id
+        path = tmp_path / "p.xknx"
+    ref = next(c.id for c in current(proj, node).com_objects if c.db_id is not None)
+    setter = proj.set_flag if field == "flag" else proj.set_com_object_description
+    args = ("read",) if field == "flag" else ()
+    value = False if field == "flag" else "Note"
+    changed = True if field == "flag" else "Changed"
+    setter(current(proj, node), ref, *args, value)
+    proj.record_download(node, "full")
+    proj.close()
+    proj.open(path)
+    try:
+        device = current(proj, node)
+        history, revision = proj.history(), proj.revision
+        pending = proj.pending_downloads()
+        blobs = [(b.name, b.data) for b in device.binary_data]
+        setter(device, ref, *args, value)
+        assert (proj.history(), proj.revision) == (history, revision)
+        assert not proj.edited_since_open()
+        assert not device.edited_in_place
+        assert proj.pending_downloads() == pending
+        assert [(b.name, b.data) for b in current(proj, node).binary_data] == blobs
+        setter(current(proj, node), ref, *args, changed)
+        assert proj.edited_since_open()
+        proj.undo()
+        history, revision = proj.history(), proj.revision
+        setter(current(proj, node), ref, *args, value)
+        assert (proj.history(), proj.revision) == (history, revision)
+        assert not proj.edited_since_open()
+        assert proj.redo()
+        assert proj.edited_since_open()
+    finally:
+        proj.close()

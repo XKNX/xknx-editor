@@ -1977,10 +1977,8 @@ class ProjectService:
             raise ValueError(f"Unknown com-object flag {flag!r}")
         state = self._state(project_id)
         row = state.session.get(ComObject, com_object_id)
-        if (
-            row is not None
-            and getattr(row, flag) == value
-            and getattr(row, f"{flag}_override") == value
+        if row is None or (
+            getattr(row, flag) == value and getattr(row, f"{flag}_override") == value
         ):
             return False
         state.store.append(
@@ -1998,7 +1996,7 @@ class ProjectService:
         token = normalize_datapoint_type(datapoint_type)
         state = self._state(project_id)
         row = state.session.get(ComObject, com_object_id)
-        if row is not None and row.datapoint_type_override == token:
+        if row is None or row.datapoint_type_override == token:
             return False
         state.store.append(
             SetComObjectDatapointType(com_object_id=com_object_id, datapoint_type=token)
@@ -2016,7 +2014,7 @@ class ProjectService:
             raise ValueError(f"Unknown com-object priority {priority!r}")
         state = self._state(project_id)
         row = state.session.get(ComObject, com_object_id)
-        if row is not None and row.priority == priority:
+        if row is None or row.priority == priority:
             return False
         state.store.append(
             SetComObjectPriority(com_object_id=com_object_id, priority=priority)
@@ -2032,7 +2030,7 @@ class ProjectService:
         value = description or None
         state = self._state(project_id)
         row = state.session.get(ComObject, com_object_id)
-        if row is not None and row.description_override == value:
+        if row is None or row.description_override == value:
             return False
         state.store.append(
             SetComObjectDescription(com_object_id=com_object_id, description=value)
@@ -2051,7 +2049,7 @@ class ProjectService:
         token = normalize_datapoint_type(datapoint_type)
         state = self._state(project_id)
         row = state.session.get(GroupAddress, group_address_id)
-        if row is not None and row.datapoint_type == token:
+        if row is None or row.datapoint_type == token:
             return False
         state.store.append(
             SetGroupAddressDatapointType(

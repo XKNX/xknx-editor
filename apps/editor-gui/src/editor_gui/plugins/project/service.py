@@ -41,7 +41,7 @@ from editor_gui.device_snapshot import (
     snapshot_key,
     snapshot_state,
 )
-from editor_gui.dpt import dpt_from_token, lookup_or_make_dpt
+from editor_gui.dpt import dpt_from_token
 from editor_gui.hardware_text import current_text
 from editor_gui.plugin_providers import native_blob_names
 from editor_gui.plugins.project.code_page import code_page_text
@@ -8057,6 +8057,12 @@ class ProjectService:
         column = _FLAG_COLUMNS.get(flag_name)
         if co is None or co.db_id is None or column is None:
             return
+        row = self._find_com_object_row(co.db_id)
+        if row is None or (
+            getattr(row, column) == value
+            and getattr(row, column + "_override") == value
+        ):
+            return
         if self._set_native_object_fields(
             device,
             co_id,
@@ -8105,8 +8111,8 @@ class ProjectService:
                 _co_instance_ref_from_row(row, co_id)
                 or ComObjectInstanceRef(ref_id=co_id),
             )
-        if value:
-            co.dpt = lookup_or_make_dpt(value)
+        if token:
+            co.dpt = dpt_from_token(token)
         device.edited_in_place = True
         self._bump(structural=token is None)
 
@@ -8124,6 +8130,9 @@ class ProjectService:
 
         if value is not None and value not in COM_OBJECT_PRIORITIES:
             raise ValueError(f"Unknown com-object priority {value!r}")
+        row = self._find_com_object_row(co.db_id)
+        if row is None or row.priority == value:
+            return
         if self._set_native_object_fields(
             device, co_id, {"priority": value}, S.HISTORY_EV_SET_PRIORITY
         ):
@@ -8161,11 +8170,6 @@ class ProjectService:
             if source is None:
                 raise ValueError("Group object has no unique compatible native role")
             target = next(obj for obj in state.objects if obj.key == source.key)
-            if self._pid is not None and self._stored_object_has(
-                current, target.reference, fields
-            ):
-                # The value already set: no edit, no undo step.
-                return True
             self._configure_plugin(
                 current,
                 provider,
@@ -8174,31 +8178,6 @@ class ProjectService:
                 object_changes={target.reference: fields},
             )
             return True
-
-    def _stored_object_has(
-        self, device: Device, reference: str, fields: Mapping[str, Any]
-    ) -> bool:
-        """Whether the stored group object ``reference`` of ``device`` holds ``fields`` already."""
-        assert self._pid is not None
-        app_id = device.app.id if device.app else ""
-        row = next(
-            (r for r in self._svc.devices(self._pid) if r.id == device.node_id), None
-        )
-        stored = (
-            None
-            if row is None
-            else next(
-                (
-                    co
-                    for co in row.com_objects
-                    if _qualified_com_object_ref(co, app_id) == reference
-                ),
-                None,
-            )
-        )
-        return stored is not None and all(
-            getattr(stored, name, object()) == value for name, value in fields.items()
-        )
 
     def set_com_object_description(
         self, device: Device, co_id: str, value: str | None

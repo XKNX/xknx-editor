@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import pytest
+
 from xknxeditor.proj import ProjectService
 from xknxeditor.proj.models import ComObject
 
@@ -70,3 +72,33 @@ def test_the_group_address_type_already_set_is_no_edit(tmp_path: Path) -> None:
     assert svc.set_group_address_datapoint_type(pid, ga, "1.001")
     assert not svc.set_group_address_datapoint_type(pid, ga, "DPST-1-1")
     assert len(svc.history(pid)) == steps + 1
+
+
+@pytest.mark.parametrize("field", ["flag", "description", "group_address_dpt"])
+def test_unchanged_values_preserve_redo(tmp_path: Path, field: str) -> None:
+    svc, pid, co = _project(tmp_path)
+    if field == "group_address_dpt":
+        target = svc.create_group_address(pid, 0, 0x0A03, "GA")
+        setter = svc.set_group_address_datapoint_type
+        args = ()
+        value = "DPST-1-1"
+    else:
+        target = co
+        setter = getattr(svc, f"set_com_object_{field}")
+        args = ("read_flag",) if field == "flag" else ()
+        value = True if field == "flag" else "Note"
+    try:
+        assert setter(pid, target, *args, value)
+        before, cursor = svc.history(pid), svc.cursor(pid)
+        assert not setter(pid, target, *args, value)
+        assert (svc.history(pid), svc.cursor(pid)) == (before, cursor)
+        svc.undo(pid)
+        before, cursor = svc.history(pid), svc.cursor(pid)
+        assert not setter(pid, target, *args, None)
+        assert not setter(pid, target + 1000, *args, value)
+        assert (svc.history(pid), svc.cursor(pid)) == (before, cursor)
+        assert svc.can_redo(pid)
+        svc.redo(pid)
+        assert not setter(pid, target, *args, value)
+    finally:
+        svc.close(pid)
