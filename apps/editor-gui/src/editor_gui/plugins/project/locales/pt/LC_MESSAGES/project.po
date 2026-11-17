@@ -3675,3 +3675,30 @@ msgstr "Remover a função {target}"
 
 msgid "Remove device {address} from trade {target}"
 msgstr "Remover o dispositivo {address} da função {target}"
+
+msgid "Rename area {target} to {name}"
+msgstr "Renomear área {target} para {name}"
+
+msgid "Rename line {target} to {name}"
+msgstr "Renomear linha {target} para {name}"
+
+msgid "Rename device {target} to {name}"
+msgstr "Renomear dispositivo {target} para {name}"
+
+msgid "Rename group address {target} to {name}"
+msgstr "Renomear endereço de grupo {target} para {name}"
+
+msgid "Rename segment {target} to {name}"
+msgstr "Renomear segmento {target} para {name}"
+
+msgid "Rename function {target} to {name}"
+msgstr "Renomear função {target} para {name}"
+
+msgid "Rename building part {target} to {name}"
+msgstr "Renomear parte da construção {target} para {name}"
+
+msgid "Rename group range {target} to {name}"
+msgstr "Renomear intervalo de grupos {target} para {name}"
+
+msgid "Rename trade {target} to {name}"
+msgstr "Mudar o nome da função {target} para {name}"

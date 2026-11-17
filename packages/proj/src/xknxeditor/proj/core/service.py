@@ -4647,8 +4647,10 @@ class ProjectService:
         *,
         label: str | None = None,
         binary_data: Mapping[str, bytes] | None = None,
+        label_as: Mapping[str, Any] | None = None,
     ) -> None:
-        """Persist configuration, controls and an explicit object rebind atomically."""
+        """Persist configuration, controls and an explicit object rebind atomically.
+        ``label_as`` names the step in the history as that event (``{"type", "data"}``)."""
         from .events import RebindDeviceComObjects
 
         events: list[Event] = [
@@ -4677,7 +4679,13 @@ class ProjectService:
                     do_not_copy=row.do_not_copy if row else False,
                 )
             )
-        self._state(project_id).store.append(CompositeEvent(events=events, label=label))
+        self._state(project_id).store.append(
+            CompositeEvent(
+                events=events,
+                label=label,
+                label_as=None if label_as is None else dict(label_as),
+            )
+        )
 
     def set_parameters(
         self,

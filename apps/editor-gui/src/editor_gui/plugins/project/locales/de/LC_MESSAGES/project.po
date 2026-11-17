@@ -3813,3 +3813,30 @@ msgstr "Gewerk {target} entfernen"
 
 msgid "Remove device {address} from trade {target}"
 msgstr "Gerät {address} aus dem Gewerk {target} entfernen"
+
+msgid "Rename area {target} to {name}"
+msgstr "Bereich {target} in {name} umbenennen"
+
+msgid "Rename line {target} to {name}"
+msgstr "Linie {target} in {name} umbenennen"
+
+msgid "Rename device {target} to {name}"
+msgstr "Gerät {target} in {name} umbenennen"
+
+msgid "Rename group address {target} to {name}"
+msgstr "Gruppenadresse {target} in {name} umbenennen"
+
+msgid "Rename segment {target} to {name}"
+msgstr "Segment {target} in {name} umbenennen"
+
+msgid "Rename function {target} to {name}"
+msgstr "Funktion {target} in {name} umbenennen"
+
+msgid "Rename building part {target} to {name}"
+msgstr "Gebäudeteil {target} in {name} umbenennen"
+
+msgid "Rename group range {target} to {name}"
+msgstr "Gruppenbereich {target} in {name} umbenennen"
+
+msgid "Rename trade {target} to {name}"
+msgstr "Gewerk {target} in {name} umbenennen"

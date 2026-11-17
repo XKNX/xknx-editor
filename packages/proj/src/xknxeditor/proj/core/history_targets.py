@@ -104,3 +104,9 @@ def removed_texts(session: Session, removed: Base) -> tuple[str, str]:
     if isinstance(removed, ComObjectLink):
         return "", group_address_text(session, removed.group_address)
     return "", ""
+
+
+def element_text(session: Session, element: Base) -> str:
+    """An element as the history names it (a device, area, line, segment, group address or
+    range by its address and name; a building part, function or trade by its name)."""
+    return removed_texts(session, element)[0]

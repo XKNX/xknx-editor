@@ -7,7 +7,7 @@ from typing import Any
 
 from xknxeditor.proj import ProjectService
 from xknxeditor.proj.core.events import deserialize_event
-from xknxeditor.proj.models import ComObject
+from xknxeditor.proj.models import ComObject, Segment
 
 
 def _project(tmp_path: Path) -> tuple[ProjectService, str, int, int, int]:
@@ -120,3 +120,20 @@ def test_an_event_stored_before_has_no_texts() -> None:
     old = {"target_id": 3, "rows": []}
     event = deserialize_event("RemoveDevice", old)
     assert event.to_dict() == old
+
+
+def test_a_rename_names_the_element_before_it(tmp_path: Path) -> None:
+    svc, pid, device, _, segment = _project(tmp_path)
+    svc.set_device_name(pid, device, "Kitchen")
+    assert _last(svc, pid)["target"] == "1.1.5 Dimmer"
+    ga = svc.create_group_address(pid, 0, 1, "Switch")
+    svc.rename_group_address(pid, ga, "Light")
+    assert _last(svc, pid)["target"] == "0/0/1 Switch"
+    trade = svc.create_trade(pid, 0, "Lighting")
+    svc.set_trade_field(pid, trade, "name", "Light")
+    assert _last(svc, pid)["target"] == "Lighting"
+    svc.set_trade_field(pid, trade, "number", "7")
+    assert "target" not in _last(svc, pid)
+    line = svc._state(pid).session.get(Segment, segment).line_id  # type: ignore[attr-defined]
+    svc.rename_line(pid, line, "Ground floor")
+    assert _last(svc, pid)["target"].startswith("1.1")

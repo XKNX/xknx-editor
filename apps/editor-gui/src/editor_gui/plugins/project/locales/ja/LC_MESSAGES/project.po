@@ -3619,3 +3619,30 @@ msgstr "トレードを削除: {target}"
 
 msgid "Remove device {address} from trade {target}"
 msgstr "デバイス {address} をトレードから削除: {target}"
+
+msgid "Rename area {target} to {name}"
+msgstr "エリア名を変更: {target} → {name}"
+
+msgid "Rename line {target} to {name}"
+msgstr "ライン名を変更: {target} → {name}"
+
+msgid "Rename device {target} to {name}"
+msgstr "デバイス名を変更: {target} → {name}"
+
+msgid "Rename group address {target} to {name}"
+msgstr "グループ・アドレス名を変更: {target} → {name}"
+
+msgid "Rename segment {target} to {name}"
+msgstr "セグメント名を変更: {target} → {name}"
+
+msgid "Rename function {target} to {name}"
+msgstr "機能名を変更: {target} → {name}"
+
+msgid "Rename building part {target} to {name}"
+msgstr "構造の一部の名前を変更: {target} → {name}"
+
+msgid "Rename group range {target} to {name}"
+msgstr "グループ範囲名を変更: {target} → {name}"
+
+msgid "Rename trade {target} to {name}"
+msgstr "トレードの名前を変更: {target} → {name}"

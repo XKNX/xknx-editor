@@ -3706,3 +3706,30 @@ msgstr "Technisch gebouw {target} verwijderen"
 
 msgid "Remove device {address} from trade {target}"
 msgstr "Apparaat {address} uit technisch gebouw {target} verwijderen"
+
+msgid "Rename area {target} to {name}"
+msgstr "Gebied {target} hernoemen naar {name}"
+
+msgid "Rename line {target} to {name}"
+msgstr "Lijn {target} hernoemen naar {name}"
+
+msgid "Rename device {target} to {name}"
+msgstr "Apparaat {target} hernoemen naar {name}"
+
+msgid "Rename group address {target} to {name}"
+msgstr "Groepsadres {target} hernoemen naar {name}"
+
+msgid "Rename segment {target} to {name}"
+msgstr "Segment {target} hernoemen naar {name}"
+
+msgid "Rename function {target} to {name}"
+msgstr "Functie {target} hernoemen naar {name}"
+
+msgid "Rename building part {target} to {name}"
+msgstr "Gebouwonderdeel {target} hernoemen naar {name}"
+
+msgid "Rename group range {target} to {name}"
+msgstr "Groepsbereik {target} hernoemen naar {name}"
+
+msgid "Rename trade {target} to {name}"
+msgstr "Technisch gebouw {target} hernoemen naar {name}"

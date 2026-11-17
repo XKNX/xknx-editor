@@ -687,6 +687,22 @@ def _named(
     return label
 
 
+def _renamed(
+    plain: str, named: str, key: str = "name"
+) -> Callable[[dict[str, Any]], str]:
+    """The label of a rename: with the element it renamed when the event names it (``plain`` and
+    ``named`` are names of strings, looked up when shown); the new name ``key`` is quoted."""
+
+    def label(data: dict[str, Any]) -> str:
+        target = data.get("target")
+        name = _quoted(data, key)
+        if not target:
+            return str(getattr(S, plain)).format(name=name)
+        return str(getattr(S, named)).format(target=target, name=name)
+
+    return label
+
+
 def _object_history_target(device: Device, co: ComObject) -> str:
     """A group object as the history names it: the device's individual address (its name
     without one), the object's number and name ("1.1.5 #1 Step")."""
@@ -778,16 +794,16 @@ _HISTORY_LABELS: dict[str, Callable[[dict[str, Any]], str]] = {
     "ImportGroupAddresses": lambda d: str(d.get("label") or S.HISTORY_EV_IMPORT_GAS),
     "LinkComObject": _named("HISTORY_EV_LINK", "HISTORY_EV_LINK_OF", second=True),
     "UnlinkComObject": _named("HISTORY_EV_UNLINK", "HISTORY_EV_UNLINK_OF", second=True),
-    "RenameArea": lambda d: S.HISTORY_EV_RENAME_AREA.format(name=_quoted(d, "name")),
+    "RenameArea": _renamed("HISTORY_EV_RENAME_AREA", "HISTORY_EV_RENAME_AREA_OF"),
     "SetProjectName": lambda d: S.HISTORY_EV_RENAME_PROJECT.format(
         name=_quoted(d, "name")
     ),
     "SetProjectCodePage": lambda d: S.HISTORY_EV_SET_CODE_PAGE.format(
         code_page=code_page_text(d.get("code_page"))
     ),
-    "RenameLine": lambda d: S.HISTORY_EV_RENAME_LINE.format(name=_quoted(d, "name")),
-    "SetDeviceName": lambda d: S.HISTORY_EV_RENAME_DEVICE.format(
-        name=_quoted(d, "name")
+    "RenameLine": _renamed("HISTORY_EV_RENAME_LINE", "HISTORY_EV_RENAME_LINE_OF"),
+    "SetDeviceName": _renamed(
+        "HISTORY_EV_RENAME_DEVICE", "HISTORY_EV_RENAME_DEVICE_OF"
     ),
     "MoveDevice": _move_device_label,
     "SetDeviceAdditionalAddresses": lambda d: str(
@@ -836,9 +852,7 @@ _HISTORY_LABELS: dict[str, Callable[[dict[str, Any]], str]] = {
         else S.HISTORY_EV_UNSET_GA_CENTRAL
     ),
     "SetDeviceSecureCommissioning": lambda d: S.HISTORY_EV_SET_SECURE_COMMISSIONING,
-    "RenameGroupAddress": lambda d: S.HISTORY_EV_RENAME_GA.format(
-        name=_quoted(d, "name")
-    ),
+    "RenameGroupAddress": _renamed("HISTORY_EV_RENAME_GA", "HISTORY_EV_RENAME_GA_OF"),
     "SetGroupAddressAddress": lambda d: S.HISTORY_EV_SET_GA_ADDRESS,
     "SetDeviceCertificates": lambda d: S.HISTORY_EV_SET_CERTIFICATES,
     "SetDeviceDescription": lambda d: S.HISTORY_EV_SET_DEVICE_DESCRIPTION,
@@ -873,7 +887,7 @@ _HISTORY_LABELS: dict[str, Callable[[dict[str, Any]], str]] = {
     "SetSegmentBusAccess": lambda d: S.HISTORY_EV_SET_BUS_CONNECTION,
     "CreateTrade": lambda d: S.HISTORY_EV_CREATE_TRADE.format(name=_quoted(d, "name")),
     "SetTradeField": lambda d: (
-        S.HISTORY_EV_RENAME_TRADE.format(name=_quoted(d, "value"))
+        _renamed("HISTORY_EV_RENAME_TRADE", "HISTORY_EV_RENAME_TRADE_OF", "value")(d)
         if d.get("field") == "name"
         else S.HISTORY_EV_SET_TRADE_NUMBER
         if d.get("field") == "number"
@@ -890,8 +904,8 @@ _HISTORY_LABELS: dict[str, Callable[[dict[str, Any]], str]] = {
         second=True,
     ),
     "SetSegmentDomainAddress": lambda d: S.HISTORY_EV_SET_DOMAIN_ADDRESS,
-    "RenameSegment": lambda d: S.HISTORY_EV_RENAME_SEGMENT.format(
-        name=_quoted(d, "name")
+    "RenameSegment": _renamed(
+        "HISTORY_EV_RENAME_SEGMENT", "HISTORY_EV_RENAME_SEGMENT_OF"
     ),
     "SetSegmentMedium": lambda d: S.HISTORY_EV_SET_MEDIUM.format(
         medium=medium_name(str(d.get("medium_type", "")))
@@ -903,13 +917,13 @@ _HISTORY_LABELS: dict[str, Callable[[dict[str, Any]], str]] = {
     "CreateFunctionWithGroupAddresses": lambda d: S.HISTORY_EV_CREATE_FUNCTION.format(
         name=_quoted(d, "name")
     ),
-    "RenameFunction": lambda d: S.HISTORY_EV_RENAME_FUNCTION.format(
-        name=_quoted(d, "name")
+    "RenameFunction": _renamed(
+        "HISTORY_EV_RENAME_FUNCTION", "HISTORY_EV_RENAME_FUNCTION_OF"
     ),
     "SetFunctionType": lambda d: S.HISTORY_EV_SET_FUNCTION_TYPE,
     "AddFunctionGroupAddress": lambda d: S.HISTORY_EV_ADD_FUNCTION_GA,
     "CreateSpace": lambda d: S.HISTORY_EV_CREATE_SPACE.format(name=_quoted(d, "name")),
-    "RenameSpace": lambda d: S.HISTORY_EV_RENAME_SPACE.format(name=_quoted(d, "name")),
+    "RenameSpace": _renamed("HISTORY_EV_RENAME_SPACE", "HISTORY_EV_RENAME_SPACE_OF"),
     "SetSpaceNumber": lambda d: S.HISTORY_EV_SET_SPACE_NUMBER,
     "SetSpaceDescription": lambda d: S.HISTORY_EV_SET_SPACE_DESCRIPTION,
     "SetSpaceType": lambda d: S.HISTORY_EV_SET_SPACE_TYPE,
@@ -919,14 +933,20 @@ _HISTORY_LABELS: dict[str, Callable[[dict[str, Any]], str]] = {
     "CreateGroupRange": lambda d: S.HISTORY_EV_CREATE_GROUP_RANGE.format(
         name=_quoted(d, "name")
     ),
-    "RenameGroupRange": lambda d: S.HISTORY_EV_RENAME_GROUP_RANGE.format(
-        name=_quoted(d, "name")
+    "RenameGroupRange": _renamed(
+        "HISTORY_EV_RENAME_GROUP_RANGE", "HISTORY_EV_RENAME_GROUP_RANGE_OF"
     ),
 }
 
 
 def _history_label(event_type: str, data: dict[str, Any]) -> str:
     if event_type == "Composite":
+        # A step named as one event, worded when shown (see CompositeEvent.label_as).
+        label_as = cast("dict[str, Any] | None", data.get("label_as"))
+        if label_as and label_as.get("type"):
+            return _history_label(
+                str(label_as["type"]), dict(label_as.get("data") or {})
+            )
         if data.get("label"):
             return str(data["label"])
         # A composite is a parameter change plus the com-object re-instantiation it triggered; label
@@ -5273,6 +5293,7 @@ class ProjectService:
         *,
         label: str | None = None,
         object_changes: Mapping[str, Mapping[str, Any]] | None = None,
+        label_as: Mapping[str, Any] | None = None,
     ) -> list[dict[str, Any]]:
         from xknx.telegram import GroupAddress
 
@@ -5399,6 +5420,7 @@ class ProjectService:
             binary_data=persisted.binary_data,
             label=f"{device_label(current)}: "
             + (label or S.HISTORY_EV_STORE_PLUGIN_DATA.format(name=provider.id)),
+            label_as=label_as,
         )
         self._refresh_device(current.node_id)
         self._bump(structural=False)
@@ -8166,7 +8188,11 @@ class ProjectService:
             device,
             co_id,
             {column: value, column + "_override": value},
-            _flag_label({"target": target, "flag": column, "value": value}),
+            S.HISTORY_EV_SET_FLAG,
+            {
+                "type": "SetComObjectFlag",
+                "data": {"target": target, "flag": column, "value": value},
+            },
         ):
             return
         if not self._svc.set_com_object_flag(
@@ -8241,7 +8267,11 @@ class ProjectService:
             device,
             co_id,
             {"priority": value},
-            _priority_label({"target": target, "priority": value}),
+            S.HISTORY_EV_SET_PRIORITY,
+            {
+                "type": "SetComObjectPriority",
+                "data": {"target": target, "priority": value},
+            },
         ):
             return
         if not self._svc.set_com_object_priority(
@@ -8262,8 +8292,15 @@ class ProjectService:
         self._bump(structural=value is None)
 
     def _set_native_object_fields(
-        self, device: Device, reference: str, fields: Mapping[str, Any], label: str
+        self,
+        device: Device,
+        reference: str,
+        fields: Mapping[str, Any],
+        label: str,
+        label_as: Mapping[str, Any] | None = None,
     ) -> bool:
+        """Change a group object of a device configured through a plug-in; ``label_as`` names
+        the step in the history as that event (worded when shown)."""
         from editor_gui.plugin_providers import provider_for
 
         with self._io_lock:
@@ -8285,6 +8322,7 @@ class ProjectService:
                 state,
                 label=label,
                 object_changes={target.reference: fields},
+                label_as=label_as,
             )
             return True
 

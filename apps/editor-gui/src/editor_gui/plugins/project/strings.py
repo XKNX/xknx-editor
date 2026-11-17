@@ -5387,6 +5387,43 @@ class ProjectStrings:
     def HISTORY_EV_REMOVE_TRADE_DEVICE_OF(self) -> str:
         return _("Remove device {address} from trade {target}")
 
+    # {target} is the element before the rename, {name} its new name (quoted).
+    @property
+    def HISTORY_EV_RENAME_AREA_OF(self) -> str:
+        return _("Rename area {target} to {name}")
+
+    @property
+    def HISTORY_EV_RENAME_LINE_OF(self) -> str:
+        return _("Rename line {target} to {name}")
+
+    @property
+    def HISTORY_EV_RENAME_DEVICE_OF(self) -> str:
+        return _("Rename device {target} to {name}")
+
+    @property
+    def HISTORY_EV_RENAME_GA_OF(self) -> str:
+        return _("Rename group address {target} to {name}")
+
+    @property
+    def HISTORY_EV_RENAME_SEGMENT_OF(self) -> str:
+        return _("Rename segment {target} to {name}")
+
+    @property
+    def HISTORY_EV_RENAME_FUNCTION_OF(self) -> str:
+        return _("Rename function {target} to {name}")
+
+    @property
+    def HISTORY_EV_RENAME_SPACE_OF(self) -> str:
+        return _("Rename building part {target} to {name}")
+
+    @property
+    def HISTORY_EV_RENAME_GROUP_RANGE_OF(self) -> str:
+        return _("Rename group range {target} to {name}")
+
+    @property
+    def HISTORY_EV_RENAME_TRADE_OF(self) -> str:
+        return _("Rename trade {target} to {name}")
+
     @property
     def GA_ACKNOWLEDGE(self) -> str:
         return _("Acknowledge Group Address")

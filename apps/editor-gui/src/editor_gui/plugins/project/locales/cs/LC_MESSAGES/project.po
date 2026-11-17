@@ -3723,3 +3723,30 @@ msgstr "Odstranit činnost: {target}"
 
 msgid "Remove device {address} from trade {target}"
 msgstr "Odebrat zařízení {address} z činnosti: {target}"
+
+msgid "Rename area {target} to {name}"
+msgstr "Přejmenovat oblast {target} na {name}"
+
+msgid "Rename line {target} to {name}"
+msgstr "Přejmenovat linii {target} na {name}"
+
+msgid "Rename device {target} to {name}"
+msgstr "Přejmenovat zařízení {target} na {name}"
+
+msgid "Rename group address {target} to {name}"
+msgstr "Přejmenovat skupinovou adresu {target} na {name}"
+
+msgid "Rename segment {target} to {name}"
+msgstr "Přejmenovat segment {target} na {name}"
+
+msgid "Rename function {target} to {name}"
+msgstr "Přejmenovat funkci {target} na {name}"
+
+msgid "Rename building part {target} to {name}"
+msgstr "Přejmenovat část budovy {target} na {name}"
+
+msgid "Rename group range {target} to {name}"
+msgstr "Přejmenovat skupinový rozsah {target} na {name}"
+
+msgid "Rename trade {target} to {name}"
+msgstr "Přejmenovat činnost {target} na {name}"

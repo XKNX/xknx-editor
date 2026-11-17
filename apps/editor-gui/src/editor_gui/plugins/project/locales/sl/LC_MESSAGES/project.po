@@ -3802,3 +3802,30 @@ msgstr "Odstranitev stroke: {target}"
 
 msgid "Remove device {address} from trade {target}"
 msgstr "Odstranitev naprave {address} iz stroke: {target}"
+
+msgid "Rename area {target} to {name}"
+msgstr "Preimenovanje področja {target} v {name}"
+
+msgid "Rename line {target} to {name}"
+msgstr "Preimenovanje linije {target} v {name}"
+
+msgid "Rename device {target} to {name}"
+msgstr "Preimenovanje naprave {target} v {name}"
+
+msgid "Rename group address {target} to {name}"
+msgstr "Preimenovanje skupinskega naslova {target} v {name}"
+
+msgid "Rename segment {target} to {name}"
+msgstr "Preimenovanje segmenta {target} v {name}"
+
+msgid "Rename function {target} to {name}"
+msgstr "Preimenovanje funkcije {target} v {name}"
+
+msgid "Rename building part {target} to {name}"
+msgstr "Preimenovanje dela stavbe {target} v {name}"
+
+msgid "Rename group range {target} to {name}"
+msgstr "Preimenovanje obsega skupin {target} v {name}"
+
+msgid "Rename trade {target} to {name}"
+msgstr "Preimenovanje stroke {target} v {name}"

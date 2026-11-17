@@ -3673,3 +3673,30 @@ msgstr "Eliminar la función {target}"
 
 msgid "Remove device {address} from trade {target}"
 msgstr "Quitar el dispositivo {address} de la función {target}"
+
+msgid "Rename area {target} to {name}"
+msgstr "Renombrar área {target} a {name}"
+
+msgid "Rename line {target} to {name}"
+msgstr "Renombrar línea {target} a {name}"
+
+msgid "Rename device {target} to {name}"
+msgstr "Renombrar dispositivo {target} a {name}"
+
+msgid "Rename group address {target} to {name}"
+msgstr "Renombrar dirección de grupo {target} a {name}"
+
+msgid "Rename segment {target} to {name}"
+msgstr "Renombrar segmento {target} a {name}"
+
+msgid "Rename function {target} to {name}"
+msgstr "Renombrar función {target} a {name}"
+
+msgid "Rename building part {target} to {name}"
+msgstr "Renombrar parte del edificio {target} a {name}"
+
+msgid "Rename group range {target} to {name}"
+msgstr "Renombrar rango de grupos {target} a {name}"
+
+msgid "Rename trade {target} to {name}"
+msgstr "Cambiar el nombre de la función {target} a {name}"

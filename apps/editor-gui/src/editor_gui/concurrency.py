@@ -17,6 +17,8 @@ from concurrent.futures import Future
 from functools import wraps
 from typing import Any, cast
 
+from editor_gui.strings import get_locale
+
 
 class MainThreadExecutor:
     """Run callables on the imgui main thread and hand their result back to any thread.
@@ -108,17 +110,21 @@ def revision_cached[T](fn: Callable[[Any], T]) -> Callable[[Any], T]:
     ``self._revision_cache`` dict that is cleared when the project closes/opens (so a cache built at
     revision 0 for one project is not reused for the next, which also starts at revision 0). The value
     is returned by shared reference; callers must treat it as read-only, as they already do for the
-    other cached reads. Stack ``@io_guarded`` above this so a cache-miss rebuild stays import-safe."""
+    other cached reads. Stack ``@io_guarded`` above this so a cache-miss rebuild stays import-safe.
+
+    The interface language is part of the key: a read that holds shown texts (the History's
+    labels) is made again after a language switch, not only after the next edit."""
     key = fn.__name__
 
     @wraps(fn)
     def wrapper(self: Any) -> T:
-        cache: dict[str, tuple[int, Any]] = self._revision_cache
+        cache: dict[str, tuple[tuple[int, str], Any]] = self._revision_cache
+        stamp = (self.revision, get_locale())
         hit = cache.get(key)
-        if hit is not None and hit[0] == self.revision:
+        if hit is not None and hit[0] == stamp:
             return cast(T, hit[1])
         value = fn(self)
-        cache[key] = (self.revision, value)
+        cache[key] = (stamp, value)
         return value
 
     return wrapper
@@ -136,11 +142,14 @@ def revision_cached_by_args[T](fn: Callable[..., T]) -> Callable[..., T]:
 
     @wraps(fn)
     def wrapper(self: Any, *args: Any) -> T:
-        cache: dict[str, tuple[int, dict[tuple[Any, ...], Any]]] = self._revision_cache
+        cache: dict[str, tuple[tuple[int, str], dict[tuple[Any, ...], Any]]] = (
+            self._revision_cache
+        )
+        stamp = (self.revision, get_locale())
         hit = cache.get(key)
-        if hit is None or hit[0] != self.revision:
+        if hit is None or hit[0] != stamp:
             bucket: dict[tuple[Any, ...], Any] = {}
-            cache[key] = (self.revision, bucket)
+            cache[key] = (stamp, bucket)
         else:
             bucket = hit[1]
         if args not in bucket:

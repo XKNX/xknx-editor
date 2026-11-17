@@ -3671,3 +3671,30 @@ msgstr "Ta bort anläggningsfunktion {target}"
 
 msgid "Remove device {address} from trade {target}"
 msgstr "Ta bort enhet {address} från anläggningsfunktion {target}"
+
+msgid "Rename area {target} to {name}"
+msgstr "Byt namn på område {target} till {name}"
+
+msgid "Rename line {target} to {name}"
+msgstr "Byt namn på linje {target} till {name}"
+
+msgid "Rename device {target} to {name}"
+msgstr "Byt namn på apparat {target} till {name}"
+
+msgid "Rename group address {target} to {name}"
+msgstr "Byt namn på gruppadress {target} till {name}"
+
+msgid "Rename segment {target} to {name}"
+msgstr "Byt namn på segment {target} till {name}"
+
+msgid "Rename function {target} to {name}"
+msgstr "Byt namn på funktion {target} till {name}"
+
+msgid "Rename building part {target} to {name}"
+msgstr "Byt namn på byggnadsdel {target} till {name}"
+
+msgid "Rename group range {target} to {name}"
+msgstr "Byt namn på gruppintervall {target} till {name}"
+
+msgid "Rename trade {target} to {name}"
+msgstr "Byt namn på anläggningsfunktion {target} till {name}"

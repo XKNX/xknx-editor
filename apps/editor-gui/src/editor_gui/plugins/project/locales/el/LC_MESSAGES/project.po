@@ -3671,3 +3671,30 @@ msgstr "Αφαίρεση λειτουργίας: {target}"
 
 msgid "Remove device {address} from trade {target}"
 msgstr "Αφαίρεση συσκευής {address} από τη λειτουργία: {target}"
+
+msgid "Rename area {target} to {name}"
+msgstr "Μετονομασία περιοχής {target} σε {name}"
+
+msgid "Rename line {target} to {name}"
+msgstr "Μετονομασία γραμμής {target} σε {name}"
+
+msgid "Rename device {target} to {name}"
+msgstr "Μετονομασία συσκευής {target} σε {name}"
+
+msgid "Rename group address {target} to {name}"
+msgstr "Μετονομασία διεύθυνσης ομάδας {target} σε {name}"
+
+msgid "Rename segment {target} to {name}"
+msgstr "Μετονομασία τμήματος {target} σε {name}"
+
+msgid "Rename function {target} to {name}"
+msgstr "Μετονομασία λειτουργίας {target} σε {name}"
+
+msgid "Rename building part {target} to {name}"
+msgstr "Μετονομασία τμήματος κτιρίου {target} σε {name}"
+
+msgid "Rename group range {target} to {name}"
+msgstr "Μετονομασία εύρους ομάδων {target} σε {name}"
+
+msgid "Rename trade {target} to {name}"
+msgstr "Μετονομασία λειτουργίας {target} σε {name}"

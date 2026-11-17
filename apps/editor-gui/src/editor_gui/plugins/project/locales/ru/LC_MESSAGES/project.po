@@ -3723,3 +3723,30 @@ msgstr "Удалить систему: {target}"
 
 msgid "Remove device {address} from trade {target}"
 msgstr "Удалить устройство {address} из системы: {target}"
+
+msgid "Rename area {target} to {name}"
+msgstr "Переименовать область {target} в {name}"
+
+msgid "Rename line {target} to {name}"
+msgstr "Переименовать линию {target} в {name}"
+
+msgid "Rename device {target} to {name}"
+msgstr "Переименовать устройство {target} в {name}"
+
+msgid "Rename group address {target} to {name}"
+msgstr "Переименовать групповой адрес {target} в {name}"
+
+msgid "Rename segment {target} to {name}"
+msgstr "Переименовать сегмент {target} в {name}"
+
+msgid "Rename function {target} to {name}"
+msgstr "Переименовать функцию {target} в {name}"
+
+msgid "Rename building part {target} to {name}"
+msgstr "Переименовать часть здания {target} в {name}"
+
+msgid "Rename group range {target} to {name}"
+msgstr "Переименовать диапазон групп {target} в {name}"
+
+msgid "Rename trade {target} to {name}"
+msgstr "Переименовать систему {target} в {name}"

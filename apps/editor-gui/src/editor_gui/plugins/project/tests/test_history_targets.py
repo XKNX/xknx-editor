@@ -187,3 +187,78 @@ def test_edits_in_the_editor_name_the_group_object(tmp_path: Path) -> None:
     proj.remove_device(device.node_id)
     assert proj.history()[0].display_text.startswith("Remove device ")
     proj.close()
+
+
+@pytest.mark.parametrize(
+    ("event_type", "data", "text"),
+    [
+        (
+            "SetDeviceName",
+            {"name": "Kitchen", "target": "1.1.5 Dimmer"},
+            "Rename device 1.1.5 Dimmer to 'Kitchen'",
+        ),
+        ("SetDeviceName", {"name": "Kitchen"}, "Rename device to 'Kitchen'"),
+        (
+            "RenameGroupAddress",
+            {"name": "Light", "target": "1/2/3 Switch"},
+            "Rename group address 1/2/3 Switch to 'Light'",
+        ),
+        (
+            "SetTradeField",
+            {"field": "name", "value": "Light", "target": "Lighting"},
+            "Rename trade Lighting to 'Light'",
+        ),
+        (
+            "RenameGroupRange",
+            {"name": "Light", "target": "1/ Lights"},
+            "Rename group range 1/ Lights to 'Light'",
+        ),
+    ],
+)
+def test_renames_name_the_element(event_type: str, data: dict, text: str) -> None:
+    assert _history_label(event_type, data) == text
+
+
+def test_a_step_labelled_as_an_event_is_worded_when_shown() -> None:
+    data = {
+        "events": [],
+        "label": "1.1.5  Button: Turn on flag R of 1.1.5 #0 Switch",
+        "label_as": {
+            "type": "SetComObjectFlag",
+            "data": {"target": "1.1.5 #0 Switch", "flag": "read_flag", "value": True},
+        },
+    }
+    assert _history_label("Composite", data) == "Turn on flag R of 1.1.5 #0 Switch"
+    previous = get_locale()
+    try:
+        set_locale("de")
+        assert _history_label("Composite", data) == (
+            "Flag L von 1.1.5 #0 Switch einschalten"
+        )
+    finally:
+        set_locale(previous)
+
+
+def test_a_plugin_device_entry_follows_the_language(tmp_path, monkeypatch) -> None:
+    from editor_gui.plugins.project.tests.test_powertool import current, native_project
+
+    proj, node = native_project(tmp_path, monkeypatch)
+    proj.setup_plugin(current(proj, node))
+    device = current(proj, node)
+    co = device.com_objects[1]
+    target = (
+        f"{device.individual_address or device.display_name} #{co.number} {co.name}"
+    )
+    turn_on = not co.flags.read
+    proj.set_flag(device, co.id, "read", turn_on)
+    english = "Turn on flag R of" if turn_on else "Turn off flag R of"
+    assert proj.history()[0].display_text == f"{english} {target}"
+    previous = get_locale()
+    try:
+        set_locale("de")
+        # No edit in between: the switch alone shows the history in German.
+        german = "einschalten" if turn_on else "ausschalten"
+        assert proj.history()[0].display_text == f"Flag L von {target} {german}"
+    finally:
+        set_locale(previous)
+    proj.close()

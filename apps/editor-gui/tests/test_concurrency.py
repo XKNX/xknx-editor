@@ -66,3 +66,22 @@ def test_clearing_cache_forces_rebuild() -> None:
     f.reset_cache()  # simulates ProjectService._reset on open/close
     assert f.read() == [0]
     assert f.calls == 2  # rebuilt despite the revision still being 0
+
+
+def test_a_language_switch_forces_rebuild() -> None:
+    """A read holding shown texts (the History's labels) is made again in the new language, not
+    only after the next edit."""
+    from editor_gui.strings import get_locale, set_locale
+
+    f = _Fake()
+    previous = get_locale()
+    try:
+        set_locale("en")
+        f.read()
+        set_locale("de")
+        f.read()
+        assert f.calls == 2
+        f.read()
+        assert f.calls == 2
+    finally:
+        set_locale(previous)

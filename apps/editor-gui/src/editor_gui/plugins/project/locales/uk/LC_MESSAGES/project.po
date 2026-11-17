@@ -3723,3 +3723,30 @@ msgstr "Видалити добірку пристроїв: {target}"
 
 msgid "Remove device {address} from trade {target}"
 msgstr "Вилучити пристрій {address} із добірки пристроїв: {target}"
+
+msgid "Rename area {target} to {name}"
+msgstr "Перейменувати область {target} на {name}"
+
+msgid "Rename line {target} to {name}"
+msgstr "Перейменувати лінію {target} на {name}"
+
+msgid "Rename device {target} to {name}"
+msgstr "Перейменувати пристрій {target} на {name}"
+
+msgid "Rename group address {target} to {name}"
+msgstr "Перейменувати групову адресу {target} на {name}"
+
+msgid "Rename segment {target} to {name}"
+msgstr "Перейменувати сегмент {target} на {name}"
+
+msgid "Rename function {target} to {name}"
+msgstr "Перейменувати функцію {target} на {name}"
+
+msgid "Rename building part {target} to {name}"
+msgstr "Перейменувати частину будівлі {target} на {name}"
+
+msgid "Rename group range {target} to {name}"
+msgstr "Перейменувати діапазон груп {target} на {name}"
+
+msgid "Rename trade {target} to {name}"
+msgstr "Перейменувати добірку пристроїв {target} на {name}"

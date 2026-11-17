@@ -3675,3 +3675,30 @@ msgstr "Supprimer le métier {target}"
 
 msgid "Remove device {address} from trade {target}"
 msgstr "Retirer le produit {address} du métier {target}"
+
+msgid "Rename area {target} to {name}"
+msgstr "Renommer la zone {target} en {name}"
+
+msgid "Rename line {target} to {name}"
+msgstr "Renommer la ligne {target} en {name}"
+
+msgid "Rename device {target} to {name}"
+msgstr "Renommer le participant {target} en {name}"
+
+msgid "Rename group address {target} to {name}"
+msgstr "Renommer l'adresse de groupe {target} en {name}"
+
+msgid "Rename segment {target} to {name}"
+msgstr "Renommer le segment {target} en {name}"
+
+msgid "Rename function {target} to {name}"
+msgstr "Renommer la fonction {target} en {name}"
+
+msgid "Rename building part {target} to {name}"
+msgstr "Renommer la partie de bâtiment {target} en {name}"
+
+msgid "Rename group range {target} to {name}"
+msgstr "Renommer la plage de groupes {target} en {name}"
+
+msgid "Rename trade {target} to {name}"
+msgstr "Renommer le métier {target} en {name}"
