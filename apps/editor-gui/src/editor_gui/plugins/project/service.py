@@ -8064,7 +8064,8 @@ class ProjectService:
             S.HISTORY_EV_SET_FLAG,
         ):
             return
-        self._svc.set_com_object_flag(self._pid, co.db_id, column, value)
+        if not self._svc.set_com_object_flag(self._pid, co.db_id, column, value):
+            return
         # In place instead of a full rebuild (which would reset the Configure panel's tree/edit
         # state): reflect on the live com-object and push the com-object's full override set into the
         # live dynamic UI — exactly what a rebuild reconstructs from the DB — then bump non-structurally
@@ -8091,7 +8092,8 @@ class ProjectService:
         if co is None or co.db_id is None:
             return
         token = normalize_datapoint_type(value) if value else None
-        self._svc.set_com_object_datapoint_type(self._pid, co.db_id, token)
+        if not self._svc.set_com_object_datapoint_type(self._pid, co.db_id, token):
+            return
         # Reflect on the live com-object. With a value, update the override and the resolved display
         # DPT in place (non-structural bump keeps the Configure tree/edit state). On a clear, the
         # default DPT is only known after a rebuild, so bump structurally to pull it from the catalog.
@@ -8126,7 +8128,8 @@ class ProjectService:
             device, co_id, {"priority": value}, S.HISTORY_EV_SET_PRIORITY
         ):
             return
-        self._svc.set_com_object_priority(self._pid, co.db_id, value)
+        if not self._svc.set_com_object_priority(self._pid, co.db_id, value):
+            return
         row = self._find_com_object_row(co.db_id)
         if row is not None:
             device.set_com_obj_instance_ref(
@@ -8158,6 +8161,11 @@ class ProjectService:
             if source is None:
                 raise ValueError("Group object has no unique compatible native role")
             target = next(obj for obj in state.objects if obj.key == source.key)
+            if self._pid is not None and self._stored_object_has(
+                current, target.reference, fields
+            ):
+                # The value already set: no edit, no undo step.
+                return True
             self._configure_plugin(
                 current,
                 provider,
@@ -8166,6 +8174,31 @@ class ProjectService:
                 object_changes={target.reference: fields},
             )
             return True
+
+    def _stored_object_has(
+        self, device: Device, reference: str, fields: Mapping[str, Any]
+    ) -> bool:
+        """Whether the stored group object ``reference`` of ``device`` holds ``fields`` already."""
+        assert self._pid is not None
+        app_id = device.app.id if device.app else ""
+        row = next(
+            (r for r in self._svc.devices(self._pid) if r.id == device.node_id), None
+        )
+        stored = (
+            None
+            if row is None
+            else next(
+                (
+                    co
+                    for co in row.com_objects
+                    if _qualified_com_object_ref(co, app_id) == reference
+                ),
+                None,
+            )
+        )
+        return stored is not None and all(
+            getattr(stored, name, object()) == value for name, value in fields.items()
+        )
 
     def set_com_object_description(
         self, device: Device, co_id: str, value: str | None
@@ -8179,7 +8212,8 @@ class ProjectService:
         if co is None or co.db_id is None:
             return
         normalized = value or None
-        self._svc.set_com_object_description(self._pid, co.db_id, normalized)
+        if not self._svc.set_com_object_description(self._pid, co.db_id, normalized):
+            return
         co.description = normalized or ""
         device.edited_in_place = True
         self._bump(structural=False)
@@ -8822,8 +8856,8 @@ class ProjectService:
     def set_group_address_dpt(self, ga_id: int, dpt: str | None) -> None:
         if self._pid is None:
             return
-        self._svc.set_group_address_datapoint_type(self._pid, ga_id, dpt or None)
-        self._bump(structural=False)
+        if self._svc.set_group_address_datapoint_type(self._pid, ga_id, dpt or None):
+            self._bump(structural=False)
 
     def set_element_dpt(self, ga_id: int, dpt: str) -> str | None:
         """Set a group address's data point type ("" for none); the reason it cannot be, or
