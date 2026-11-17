@@ -913,6 +913,57 @@ def test_set_com_object_priority(tmp_path: Path):
         svc.set_com_object_priority(pid, co.id, "Bogus")
 
 
+@pytest.mark.parametrize("field", ["datapoint_type", "priority"])
+def test_unchanged_object_override_preserves_history_and_redo(
+    tmp_path: Path, field: str
+):
+    svc, pid = _new(tmp_path)
+    device = svc.add_device(
+        pid, _backbone_segment(svc, pid), PRODUCT, com_objects=[("O-1_R-1", None)]
+    )
+    co = svc.devices(pid)[0].com_objects[0]
+    setter = getattr(svc, f"set_com_object_{field}")
+    value = "5.001" if field == "datapoint_type" else "High"
+    equivalent = "DPST-5-1" if field == "datapoint_type" else "High"
+    column = "datapoint_type_override" if field == "datapoint_type" else "priority"
+    svc.set_device_commissioning(
+        pid,
+        device,
+        parameters_loaded=True,
+        communication_part_loaded=True,
+        download=True,
+    )
+
+    def unchanged(new_value):
+        before = svc.history(pid)
+        cursor = svc.cursor(pid)
+        row = svc.devices(pid)[0]
+        stamp = row.last_modified
+        loaded = row.communication_part_loaded
+        setter(pid, co.id, new_value)
+        assert svc.history(pid) == before
+        assert svc.cursor(pid) == cursor
+        assert row.last_modified == stamp
+        assert row.communication_part_loaded == loaded
+
+    unchanged(None)
+    setter(pid, co.id, value)
+    unchanged(equivalent)
+    if field == "datapoint_type":
+        unchanged("  dpst-05-01  ")
+    svc.undo(pid)
+    unchanged(None)
+    assert svc.can_redo(pid)
+    svc.redo(pid)
+    assert getattr(co, column) == equivalent
+    history = svc.history(pid)
+    with pytest.raises(ValueError):
+        setter(pid, co.id, "invalid")
+    setter(pid, co.id + 1000, value)
+    assert svc.history(pid) == history
+    svc.close(pid)
+
+
 def test_set_com_object_description(tmp_path: Path):
     svc, pid = _new(tmp_path)
     seg = _backbone_segment(svc, pid)

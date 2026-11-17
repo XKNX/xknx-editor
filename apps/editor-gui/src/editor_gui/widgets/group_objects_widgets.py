@@ -780,14 +780,22 @@ class GroupObjectsTable:
         imgui.set_next_item_width(-1.0)
         if not begin_combo(f"##dpt_{com_object.id}", preview):
             return
-        if imgui.selectable(
-            S.GROUP_OBJECTS_DPT_DEFAULT, com_object.datapoint_type_override is None
-        )[0]:
+        inherited = com_object.datapoint_type_override is None
+        if (
+            imgui.selectable(S.GROUP_OBJECTS_DPT_DEFAULT, inherited)[0]
+            and not inherited
+        ):
             self._on_set_dpt(device, com_object.id, None)
         for dpt in com_object.supported_dpts:
-            selected = dpt.code == current.code
-            if imgui.selectable(f"{dpt.code}  {dpt.name}", selected)[0]:
-                self._on_set_dpt(device, com_object.id, dpt.code)
+            token = dpt.token
+            if token is None:
+                continue
+            selected = token == com_object.datapoint_type_override
+            if (
+                imgui.selectable(f"{dpt.code}  {dpt.name}", selected)[0]
+                and not selected
+            ):
+                self._on_set_dpt(device, com_object.id, token)
         end_combo()
 
     def _render_priority_combo(self, device: Device, com_object: ComObject) -> None:
@@ -801,12 +809,25 @@ class GroupObjectsTable:
             priority_text(current) if current else S.GROUP_OBJECTS_DPT_DEFAULT,
         ):
             return
-        if imgui.selectable(S.GROUP_OBJECTS_DPT_DEFAULT, not current)[0]:
+        override = next(
+            (
+                ref.priority.value if ref.priority is not None else None
+                for ref in device.com_object_instance_refs
+                if ref.ref_id == com_object.id
+            ),
+            None,
+        )
+        if (
+            imgui.selectable(S.GROUP_OBJECTS_DPT_DEFAULT, override is None)[0]
+            and override is not None
+        ):
             self._on_set_priority(device, com_object.id, None)
         for priority in _PRIORITIES:
-            if imgui.selectable(
-                f"{priority_text(priority)}##{priority}", priority == current
-            )[0]:
+            selected = priority == override
+            if (
+                imgui.selectable(f"{priority_text(priority)}##{priority}", selected)[0]
+                and not selected
+            ):
                 self._on_set_priority(device, com_object.id, priority)
         end_combo()
 
