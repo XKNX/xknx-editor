@@ -1968,75 +1968,95 @@ class ProjectService:
 
     def set_com_object_flag(
         self, project_id: str, com_object_id: int, flag: str, value: bool | None
-    ) -> None:
+    ) -> bool:
         """Force a com-object flag (``value`` overrides; ``None`` restores the product default).
 
-        ``flag`` must be one of :data:`~xknxeditor.proj.core.events.COM_OBJECT_FLAGS`."""
+        ``flag`` must be one of :data:`~xknxeditor.proj.core.events.COM_OBJECT_FLAGS`.
+        Returns whether it was an edit: forcing the value already forced records nothing."""
         if flag not in COM_OBJECT_FLAGS:
             raise ValueError(f"Unknown com-object flag {flag!r}")
-        self._state(project_id).store.append(
+        state = self._state(project_id)
+        row = state.session.get(ComObject, com_object_id)
+        if row is None or (
+            getattr(row, flag) == value and getattr(row, f"{flag}_override") == value
+        ):
+            return False
+        state.store.append(
             SetComObjectFlag(com_object_id=com_object_id, flag=flag, value=value)
         )
+        return True
 
     def set_com_object_datapoint_type(
         self, project_id: str, com_object_id: int, datapoint_type: str | None
-    ) -> None:
+    ) -> bool:
         """Pin (or clear with ``None``) the per-instance DatapointType of a group object. The value
         is normalized to ETS token form (``DPST-5-1`` / ``DPT-5``); an unparseable value raises
-        ``ValueError`` rather than being stored."""
+        ``ValueError`` rather than being stored. Returns whether it was an edit: the type already
+        pinned (or clearing no pinned type) records nothing."""
         token = normalize_datapoint_type(datapoint_type)
         state = self._state(project_id)
         row = state.session.get(ComObject, com_object_id)
         if row is None or row.datapoint_type_override == token:
-            return
+            return False
         state.store.append(
-            SetComObjectDatapointType(
-                com_object_id=com_object_id,
-                datapoint_type=token,
-            )
+            SetComObjectDatapointType(com_object_id=com_object_id, datapoint_type=token)
         )
+        return True
 
     def set_com_object_priority(
         self, project_id: str, com_object_id: int, priority: str | None
-    ) -> None:
+    ) -> bool:
         """Set (or clear with ``None``, inherit the default) the per-instance Priority of a group
         object. ``priority`` must be one of
-        :data:`~xknxeditor.proj.core.events.COM_OBJECT_PRIORITIES`."""
+        :data:`~xknxeditor.proj.core.events.COM_OBJECT_PRIORITIES`. Returns whether it was an
+        edit: the priority already set records nothing."""
         if priority is not None and priority not in COM_OBJECT_PRIORITIES:
             raise ValueError(f"Unknown com-object priority {priority!r}")
         state = self._state(project_id)
         row = state.session.get(ComObject, com_object_id)
         if row is None or row.priority == priority:
-            return
+            return False
         state.store.append(
             SetComObjectPriority(com_object_id=com_object_id, priority=priority)
         )
+        return True
 
     def set_com_object_description(
         self, project_id: str, com_object_id: int, description: str | None
-    ) -> None:
+    ) -> bool:
         """Set (or clear with an empty/``None`` value, inherit the default) the per-instance
-        Description of a group object."""
-        self._state(project_id).store.append(
-            SetComObjectDescription(
-                com_object_id=com_object_id, description=description or None
-            )
+        Description of a group object. Returns whether it was an edit: the description already
+        set records nothing."""
+        value = description or None
+        state = self._state(project_id)
+        row = state.session.get(ComObject, com_object_id)
+        if row is None or row.description_override == value:
+            return False
+        state.store.append(
+            SetComObjectDescription(com_object_id=com_object_id, description=value)
         )
+        return True
 
     def set_group_address_datapoint_type(
         self, project_id: str, group_address_id: int, datapoint_type: str | None
-    ) -> None:
+    ) -> bool:
         """Set (or clear with ``None``) a group address' datapoint type.
 
         The value is normalized to ETS token form (``DPST-1-1`` / ``DPT-5``); a value
         that cannot be parsed raises :class:`ValueError` rather than being stored, so a
-        dotted ``1.001`` never reaches the exported archive (ETS fails to open it)."""
-        self._state(project_id).store.append(
+        dotted ``1.001`` never reaches the exported archive (ETS fails to open it).
+        Returns whether it was an edit: the type already set records nothing."""
+        token = normalize_datapoint_type(datapoint_type)
+        state = self._state(project_id)
+        row = state.session.get(GroupAddress, group_address_id)
+        if row is None or row.datapoint_type == token:
+            return False
+        state.store.append(
             SetGroupAddressDatapointType(
-                group_address_id=group_address_id,
-                datapoint_type=normalize_datapoint_type(datapoint_type),
+                group_address_id=group_address_id, datapoint_type=token
             )
         )
+        return True
 
     def set_group_address_security(
         self, project_id: str, group_address_id: int, mode: str | None

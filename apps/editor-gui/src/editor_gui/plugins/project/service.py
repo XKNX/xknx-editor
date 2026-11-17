@@ -8057,6 +8057,12 @@ class ProjectService:
         column = _FLAG_COLUMNS.get(flag_name)
         if co is None or co.db_id is None or column is None:
             return
+        row = self._find_com_object_row(co.db_id)
+        if row is None or (
+            getattr(row, column) == value
+            and getattr(row, column + "_override") == value
+        ):
+            return
         if self._set_native_object_fields(
             device,
             co_id,
@@ -8064,7 +8070,8 @@ class ProjectService:
             S.HISTORY_EV_SET_FLAG,
         ):
             return
-        self._svc.set_com_object_flag(self._pid, co.db_id, column, value)
+        if not self._svc.set_com_object_flag(self._pid, co.db_id, column, value):
+            return
         # In place instead of a full rebuild (which would reset the Configure panel's tree/edit
         # state): reflect on the live com-object and push the com-object's full override set into the
         # live dynamic UI — exactly what a rebuild reconstructs from the DB — then bump non-structurally
@@ -8091,10 +8098,8 @@ class ProjectService:
         if co is None or co.db_id is None:
             return
         token = normalize_datapoint_type(value) if value else None
-        row = self._find_com_object_row(co.db_id)
-        if row is None or row.datapoint_type_override == token:
+        if not self._svc.set_com_object_datapoint_type(self._pid, co.db_id, token):
             return
-        self._svc.set_com_object_datapoint_type(self._pid, co.db_id, token)
         # Reflect on the live com-object. With a value, update the override and the resolved display
         # DPT in place (non-structural bump keeps the Configure tree/edit state). On a clear, the
         # default DPT is only known after a rebuild, so bump structurally to pull it from the catalog.
@@ -8132,7 +8137,8 @@ class ProjectService:
             device, co_id, {"priority": value}, S.HISTORY_EV_SET_PRIORITY
         ):
             return
-        self._svc.set_com_object_priority(self._pid, co.db_id, value)
+        if not self._svc.set_com_object_priority(self._pid, co.db_id, value):
+            return
         row = self._find_com_object_row(co.db_id)
         if row is not None:
             device.set_com_obj_instance_ref(
@@ -8185,7 +8191,8 @@ class ProjectService:
         if co is None or co.db_id is None:
             return
         normalized = value or None
-        self._svc.set_com_object_description(self._pid, co.db_id, normalized)
+        if not self._svc.set_com_object_description(self._pid, co.db_id, normalized):
+            return
         co.description = normalized or ""
         device.edited_in_place = True
         self._bump(structural=False)
@@ -8828,8 +8835,8 @@ class ProjectService:
     def set_group_address_dpt(self, ga_id: int, dpt: str | None) -> None:
         if self._pid is None:
             return
-        self._svc.set_group_address_datapoint_type(self._pid, ga_id, dpt or None)
-        self._bump(structural=False)
+        if self._svc.set_group_address_datapoint_type(self._pid, ga_id, dpt or None):
+            self._bump(structural=False)
 
     def set_element_dpt(self, ga_id: int, dpt: str) -> str | None:
         """Set a group address's data point type ("" for none); the reason it cannot be, or

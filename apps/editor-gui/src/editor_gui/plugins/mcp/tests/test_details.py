@@ -392,6 +392,7 @@ async def test_repeated_object_overrides_are_not_edits(tmp_path: Path) -> None:
         objects = await _data(client, "project_list_com_objects", node_id=node)
         ref = next(o["ref_id"] for o in objects["items"] if o["linkable"])
         for priority, dpt in (("", ""), ("High", "DPST-1-1")):
+            description = "Note" if dpt else ""
             await _data(
                 client,
                 "project_set_com_object_properties",
@@ -399,6 +400,15 @@ async def test_repeated_object_overrides_are_not_edits(tmp_path: Path) -> None:
                 com_object_ref_id=ref,
                 priority=priority,
                 datapoint_type=dpt,
+                description=description,
+            )
+            await _data(
+                client,
+                "project_set_com_object_flag",
+                node_id=node,
+                com_object_ref_id=ref,
+                flag="read",
+                value=bool(dpt),
             )
             project.close()
             project.open(path)
@@ -412,6 +422,15 @@ async def test_repeated_object_overrides_are_not_edits(tmp_path: Path) -> None:
                 com_object_ref_id=ref,
                 priority=priority,
                 datapoint_type="1.001" if dpt else "",
+                description=description,
+            )
+            await _data(
+                client,
+                "project_set_com_object_flag",
+                node_id=node,
+                com_object_ref_id=ref,
+                flag="read",
+                value=bool(dpt),
             )
             assert project.history() == before
             assert (project.revision, project.cursor) == (revision, cursor)
