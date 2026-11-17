@@ -19,6 +19,13 @@ from sqlalchemy.orm import Session
 
 from xknxeditor.namespaces.ids import unpadded_id
 from xknxeditor.proj.core.ga_security import effective_mode, secure_commissioned
+from xknxeditor.proj.core.history_targets import (
+    address_on,
+    device_text,
+    element_text,
+    group_address_text,
+    removed_texts,
+)
 from xknxeditor.proj.core.identity import qualified_com_object_ref
 from xknxeditor.proj.core.skeleton import MEDIUM_IP
 from xknxeditor.proj.models import (
@@ -47,6 +54,14 @@ from xknxeditor.proj.models import (
 )
 
 EVENT_TYPES: dict[str, type[Event]] = {}
+
+
+def _texts(target: str, detail: str = "") -> dict[str, str]:
+    """The history texts of an event for its ``to_dict``, only the ones it has: events stored
+    before them, and ones that name nothing, keep their form."""
+    return {
+        key: value for key, value in (("target", target), ("detail", detail)) if value
+    }
 
 
 def _register[E: Event](cls: type[E]) -> type[E]:
@@ -400,10 +415,13 @@ class RenameSegment(Event):
     segment_id: int
     name: str
     old_name: str | None = None
+    # The element as the history names it before the rename (see history_targets).
+    target: str = ""
 
     def apply(self, session: Session) -> None:
         segment = session.get(Segment, self.segment_id)
         if segment is not None:
+            self.target = element_text(session, segment)
             self.old_name = segment.name
             segment.name = self.name
 
@@ -417,6 +435,7 @@ class RenameSegment(Event):
             "segment_id": self.segment_id,
             "name": self.name,
             "old_name": self.old_name,
+            **_texts(self.target),
         }
 
     @classmethod
@@ -1373,6 +1392,9 @@ class CompositeEvent(Event):
 
     events: list[Event] = field(default_factory=list[Event])
     label: str | None = None
+    # The step as the history names it, as an event {"type", "data"} worded when shown (so in
+    # the language shown); ``label`` stays for a reader that does not know it.
+    label_as: dict[str, Any] | None = None
 
     def apply(self, session: Session) -> None:
         for event in self.events:
@@ -1391,6 +1413,8 @@ class CompositeEvent(Event):
         }
         if self.label is not None:
             data["label"] = self.label
+        if self.label_as is not None:
+            data["label_as"] = self.label_as
         return data
 
     @classmethod
@@ -1400,6 +1424,7 @@ class CompositeEvent(Event):
                 deserialize_event(sub["type"], sub["data"]) for sub in data["events"]
             ],
             label=data.get("label"),
+            label_as=data.get("label_as"),
         )
 
 
@@ -1576,11 +1601,17 @@ class LinkComObject(Event):
     link_id: int | None = None
     # Devices whose group communication was loaded before (see _clear_communication_loaded).
     cleared: dict[str, bool] = field(default_factory=dict[str, bool])
+    # What the history names: the group object (given by the caller) and the group address.
+    target: str = ""
+    detail: str = ""
 
     def apply(self, session: Session) -> None:
         self.cleared = _clear_communication_loaded(
             session, _link_affects(session, self.com_object_id, self.group_address_id)
         )
+        group_address = session.get(GroupAddress, self.group_address_id)
+        if group_address is not None:
+            self.detail = group_address_text(session, group_address)
         link = ComObjectLink(
             com_object_id=self.com_object_id,
             group_address_id=self.group_address_id,
@@ -1605,6 +1636,7 @@ class LinkComObject(Event):
             "is_sending": self.is_sending,
             "link_id": self.link_id,
             "cleared": self.cleared,
+            **_texts(self.target, self.detail),
         }
 
     @classmethod
@@ -1644,6 +1676,8 @@ class SetComObjectFlag(Event):
     old_override: bool | None = None
     # Devices whose group communication was loaded before (see _clear_communication_loaded).
     cleared: dict[str, bool] = field(default_factory=dict[str, bool])
+    # The group object as the history names it (given by the caller).
+    target: str = ""
 
     def apply(self, session: Session) -> None:
         com_object = session.get(ComObject, self.com_object_id)
@@ -1677,6 +1711,7 @@ class SetComObjectFlag(Event):
             "old": self.old,
             "old_override": self.old_override,
             "cleared": self.cleared,
+            **_texts(self.target),
         }
 
     @classmethod
@@ -1696,6 +1731,8 @@ class SetComObjectDatapointType(Event):
     datapoint_type: str | None
     captured: bool = False
     old: str | None = None
+    # The group object as the history names it (given by the caller).
+    target: str = ""
 
     def apply(self, session: Session) -> None:
         com_object = session.get(ComObject, self.com_object_id)
@@ -1715,6 +1752,7 @@ class SetComObjectDatapointType(Event):
             "datapoint_type": self.datapoint_type,
             "captured": self.captured,
             "old": self.old,
+            **_texts(self.target),
         }
 
     @classmethod
@@ -1736,6 +1774,8 @@ class SetComObjectPriority(Event):
     old: str | None = None
     # Devices whose group communication was loaded before (see _clear_communication_loaded).
     cleared: dict[str, bool] = field(default_factory=dict[str, bool])
+    # The group object as the history names it (given by the caller).
+    target: str = ""
 
     def apply(self, session: Session) -> None:
         com_object = session.get(ComObject, self.com_object_id)
@@ -1762,6 +1802,7 @@ class SetComObjectPriority(Event):
             "captured": self.captured,
             "old": self.old,
             "cleared": self.cleared,
+            **_texts(self.target),
         }
 
     @classmethod
@@ -1781,6 +1822,8 @@ class SetComObjectDescription(Event):
     description: str | None
     captured: bool = False
     old: str | None = None
+    # The group object as the history names it (given by the caller).
+    target: str = ""
 
     def apply(self, session: Session) -> None:
         com_object = session.get(ComObject, self.com_object_id)
@@ -1800,6 +1843,7 @@ class SetComObjectDescription(Event):
             "description": self.description,
             "captured": self.captured,
             "old": self.old,
+            **_texts(self.target),
         }
 
     @classmethod
@@ -1816,12 +1860,15 @@ class SetGroupAddressDatapointType(Event):
     datapoint_type: str | None
     captured: bool = False
     old: str | None = None
+    # The group address as the history names it (see history_targets).
+    target: str = ""
 
     def apply(self, session: Session) -> None:
         ga = session.get(GroupAddress, self.group_address_id)
         if ga is not None:
             self.old = ga.datapoint_type
             self.captured = True
+            self.target = group_address_text(session, ga)
             ga.datapoint_type = self.datapoint_type
 
     def revert(self, session: Session) -> None:
@@ -1835,6 +1882,7 @@ class SetGroupAddressDatapointType(Event):
             "datapoint_type": self.datapoint_type,
             "captured": self.captured,
             "old": self.old,
+            **_texts(self.target),
         }
 
     @classmethod
@@ -2251,10 +2299,13 @@ class RenameGroupAddress(Event):
     group_address_id: int
     name: str
     old_name: str | None = None
+    # The element as the history names it before the rename (see history_targets).
+    target: str = ""
 
     def apply(self, session: Session) -> None:
         ga = session.get(GroupAddress, self.group_address_id)
         if ga is not None:
+            self.target = element_text(session, ga)
             self.old_name = ga.name
             ga.name = self.name
 
@@ -2268,6 +2319,7 @@ class RenameGroupAddress(Event):
             "group_address_id": self.group_address_id,
             "name": self.name,
             "old_name": self.old_name,
+            **_texts(self.target),
         }
 
     @classmethod
@@ -2470,10 +2522,17 @@ class _SubtreeDelete(Event):
 
     target_id: int
     rows: list[dict[str, Any]] = field(default_factory=list[dict[str, Any]])
+    # What the history names: the removed element and, for a link of two, the second one (see
+    # history_targets); a target given by the caller is kept.
+    target: str = ""
+    detail: str = ""
 
     def apply(self, session: Session) -> None:
         obj = session.get(self._model, self.target_id)
         if obj is not None:
+            target, detail = removed_texts(session, obj)
+            self.target = self.target or target
+            self.detail = self.detail or detail
             self.rows = _snapshot_subtree(obj)
             session.delete(obj)
 
@@ -2481,7 +2540,11 @@ class _SubtreeDelete(Event):
         _restore_rows(session, self.rows)
 
     def to_dict(self) -> dict[str, Any]:
-        return {"target_id": self.target_id, "rows": self.rows}
+        return {
+            "target_id": self.target_id,
+            "rows": self.rows,
+            **_texts(self.target, self.detail),
+        }
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> _SubtreeDelete:
@@ -2618,10 +2681,13 @@ class RenameArea(Event):
     area_id: int
     name: str
     old_name: str | None = None
+    # The element as the history names it before the rename (see history_targets).
+    target: str = ""
 
     def apply(self, session: Session) -> None:
         area = session.get(Area, self.area_id)
         if area is not None:
+            self.target = element_text(session, area)
             self.old_name = area.name
             area.name = self.name
 
@@ -2631,7 +2697,12 @@ class RenameArea(Event):
             area.name = self.old_name
 
     def to_dict(self) -> dict[str, Any]:
-        return {"area_id": self.area_id, "name": self.name, "old_name": self.old_name}
+        return {
+            "area_id": self.area_id,
+            "name": self.name,
+            "old_name": self.old_name,
+            **_texts(self.target),
+        }
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> RenameArea:
@@ -2830,10 +2901,13 @@ class RenameLine(Event):
     line_id: int
     name: str
     old_name: str | None = None
+    # The element as the history names it before the rename (see history_targets).
+    target: str = ""
 
     def apply(self, session: Session) -> None:
         line = session.get(Line, self.line_id)
         if line is not None:
+            self.target = element_text(session, line)
             self.old_name = line.name
             line.name = self.name
 
@@ -2843,7 +2917,12 @@ class RenameLine(Event):
             line.name = self.old_name
 
     def to_dict(self) -> dict[str, Any]:
-        return {"line_id": self.line_id, "name": self.name, "old_name": self.old_name}
+        return {
+            "line_id": self.line_id,
+            "name": self.name,
+            "old_name": self.old_name,
+            **_texts(self.target),
+        }
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> RenameLine:
@@ -2858,10 +2937,13 @@ class SetDeviceName(Event):
     device_id: int
     name: str
     old_name: str | None = None
+    # The element as the history names it before the rename (see history_targets).
+    target: str = ""
 
     def apply(self, session: Session) -> None:
         device = session.get(Device, self.device_id)
         if device is not None:
+            self.target = element_text(session, device)
             self.old_name = device.name
             device.name = self.name
 
@@ -2875,6 +2957,7 @@ class SetDeviceName(Event):
             "device_id": self.device_id,
             "name": self.name,
             "old_name": self.old_name,
+            **_texts(self.target),
         }
 
     @classmethod
@@ -3352,6 +3435,9 @@ class MoveDevice(Event):
     old_address: int | None = None
     # Whether apply recorded the old place (the old segment may be None: on no line).
     captured: bool = False
+    # The device as the history names it, and its new individual address (see history_targets).
+    target: str = ""
+    detail: str = ""
 
     def apply(self, session: Session) -> None:
         device = session.get(Device, self.device_id)
@@ -3359,6 +3445,8 @@ class MoveDevice(Event):
             self.old_segment_id = device.segment_id
             self.old_address = device.address
             self.captured = True
+            self.target = device_text(device)
+            self.detail = address_on(session, self.segment_id, self.address)
             device.segment_id = self.segment_id
             device.address = self.address
 
@@ -3376,6 +3464,7 @@ class MoveDevice(Event):
             "old_segment_id": self.old_segment_id,
             "old_address": self.old_address,
             "captured": self.captured,
+            **_texts(self.target, self.detail),
         }
 
     @classmethod
@@ -3594,10 +3683,13 @@ class RenameFunction(Event):
     function_id: int
     name: str
     old_name: str | None = None
+    # The element as the history names it before the rename (see history_targets).
+    target: str = ""
 
     def apply(self, session: Session) -> None:
         fn = session.get(Function, self.function_id)
         if fn is not None:
+            self.target = element_text(session, fn)
             self.old_name = fn.name
             fn.name = self.name
 
@@ -3611,6 +3703,7 @@ class RenameFunction(Event):
             "function_id": self.function_id,
             "name": self.name,
             "old_name": self.old_name,
+            **_texts(self.target),
         }
 
     @classmethod
@@ -3865,10 +3958,13 @@ class RenameSpace(Event):
     space_id: int
     name: str
     old_name: str | None = None
+    # The element as the history names it before the rename (see history_targets).
+    target: str = ""
 
     def apply(self, session: Session) -> None:
         space = session.get(Space, self.space_id)
         if space is not None:
+            self.target = element_text(session, space)
             self.old_name = space.name
             space.name = self.name
 
@@ -3882,6 +3978,7 @@ class RenameSpace(Event):
             "space_id": self.space_id,
             "name": self.name,
             "old_name": self.old_name,
+            **_texts(self.target),
         }
 
     @classmethod
@@ -4169,10 +4266,14 @@ class SetTradeField(Event):
     field: str
     value: str
     old_value: str | None = None
+    # The trade as the history names it before a rename (see history_targets).
+    target: str = ""
 
     def apply(self, session: Session) -> None:
         trade = session.get(Trade, self.trade_id)
         if trade is not None and self.field in TRADE_FIELDS:
+            if self.field == "name":
+                self.target = element_text(session, trade)
             self.old_value = getattr(trade, self.field)
             setattr(trade, self.field, self.value)
 
@@ -4187,6 +4288,7 @@ class SetTradeField(Event):
             "field": self.field,
             "value": self.value,
             "old_value": self.old_value,
+            **_texts(self.target),
         }
 
     @classmethod
@@ -4540,6 +4642,7 @@ class RemoveSpace(_SubtreeDelete):
         for device in _devices_in_subtree(space):
             device.space_id = None
         session.flush()
+        self.target = self.target or space.name
         self.rows = _snapshot_subtree(space)
         session.delete(space)
 
@@ -4551,11 +4654,7 @@ class RemoveSpace(_SubtreeDelete):
                 device.space_id = space_id
 
     def to_dict(self) -> dict[str, Any]:
-        return {
-            "target_id": self.target_id,
-            "rows": self.rows,
-            "device_space": self.device_space,
-        }
+        return {**super().to_dict(), "device_space": self.device_space}
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> RemoveSpace:
@@ -4628,10 +4727,13 @@ class RenameGroupRange(Event):
     range_id: int
     name: str
     old_name: str | None = None
+    # The element as the history names it before the rename (see history_targets).
+    target: str = ""
 
     def apply(self, session: Session) -> None:
         group_range = session.get(GroupRange, self.range_id)
         if group_range is not None:
+            self.target = element_text(session, group_range)
             self.old_name = group_range.name
             group_range.name = self.name
 
@@ -4645,6 +4747,7 @@ class RenameGroupRange(Event):
             "range_id": self.range_id,
             "name": self.name,
             "old_name": self.old_name,
+            **_texts(self.target),
         }
 
     @classmethod

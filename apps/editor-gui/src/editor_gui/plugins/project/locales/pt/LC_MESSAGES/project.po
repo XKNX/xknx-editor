@@ -3603,3 +3603,102 @@ msgstr "Propriedade de versão (bruta)"
 
 msgid "Bootloader version, CRC and encryption are reported as numeric codes. They do not describe KNX Secure."
 msgstr "A versão do carregador de arranque, o CRC e a encriptação são apresentados como códigos numéricos. Não descrevem KNX Secure."
+
+msgid "Turn on flag {flag} of {target}"
+msgstr "Ativar o sinalizador {flag} de {target}"
+
+msgid "Turn off flag {flag} of {target}"
+msgstr "Desativar o sinalizador {flag} de {target}"
+
+msgid "Reset flag {flag} of {target}"
+msgstr "Repor o sinalizador {flag} de {target}"
+
+msgid "Set datapoint type of {target} to {value}"
+msgstr "Definir o tipo de datapoint de {target} como {value}"
+
+msgid "Reset datapoint type of {target}"
+msgstr "Repor o tipo de datapoint de {target}"
+
+msgid "Set priority of {target} to {value}"
+msgstr "Definir a prioridade de {target} como {value}"
+
+msgid "Reset priority of {target}"
+msgstr "Repor a prioridade de {target}"
+
+msgid "Set description of {target}"
+msgstr "Definir a descrição de {target}"
+
+msgid "Link {target} with {address}"
+msgstr "Vincular {target} a {address}"
+
+msgid "Unlink {target} from {address}"
+msgstr "Desvincular {target} de {address}"
+
+msgid "Move device {target} to {address}"
+msgstr "Mover o dispositivo {target} para {address}"
+
+msgid "Park device {target}"
+msgstr "Estacionar o dispositivo {target}"
+
+msgid "Unlink device {target}"
+msgstr "Desligar o dispositivo {target}"
+
+msgid "Remove device {target}"
+msgstr "Remover o dispositivo {target}"
+
+msgid "Remove area {target}"
+msgstr "Remover a área {target}"
+
+msgid "Remove line {target}"
+msgstr "Remover a linha {target}"
+
+msgid "Remove segment {target}"
+msgstr "Remover o segmento {target}"
+
+msgid "Remove group address {target}"
+msgstr "Remover o endereço de grupo {target}"
+
+msgid "Remove function {target}"
+msgstr "Remover a função {target}"
+
+msgid "Remove group address {address} from function {target}"
+msgstr "Remover o endereço de grupo {address} da função {target}"
+
+msgid "Remove building part {target}"
+msgstr "Remover a parte da construção {target}"
+
+msgid "Remove group range {target}"
+msgstr "Remover o intervalo de grupos {target}"
+
+msgid "Remove trade {target}"
+msgstr "Remover a função {target}"
+
+msgid "Remove device {address} from trade {target}"
+msgstr "Remover o dispositivo {address} da função {target}"
+
+msgid "Rename area {target} to {name}"
+msgstr "Renomear área {target} para {name}"
+
+msgid "Rename line {target} to {name}"
+msgstr "Renomear linha {target} para {name}"
+
+msgid "Rename device {target} to {name}"
+msgstr "Renomear dispositivo {target} para {name}"
+
+msgid "Rename group address {target} to {name}"
+msgstr "Renomear endereço de grupo {target} para {name}"
+
+msgid "Rename segment {target} to {name}"
+msgstr "Renomear segmento {target} para {name}"
+
+msgid "Rename function {target} to {name}"
+msgstr "Renomear função {target} para {name}"
+
+msgid "Rename building part {target} to {name}"
+msgstr "Renomear parte da construção {target} para {name}"
+
+msgid "Rename group range {target} to {name}"
+msgstr "Renomear intervalo de grupos {target} para {name}"
+
+msgid "Rename trade {target} to {name}"
+msgstr "Mudar o nome da função {target} para {name}"

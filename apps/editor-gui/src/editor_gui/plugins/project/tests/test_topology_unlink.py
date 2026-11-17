@@ -104,7 +104,9 @@ def test_the_project_unlinks_a_device_in_one_undo_step(tmp_path: Path) -> None:
         assert node_id in project.device_segments()
         project.unlink_device(node_id)
         assert node_id not in project.device_segments()
-        assert project.history()[0].display_text == S.HISTORY_EV_UNLINK_DEVICE
+        assert project.history()[
+            0
+        ].display_text == S.HISTORY_EV_UNLINK_DEVICE_OF.format(target="1.1.4 D4")
         project.undo()
         assert node_id in project.device_segments()
     finally:
@@ -163,7 +165,9 @@ def test_the_project_parks_a_device(tmp_path: Path) -> None:
         project.park_device(node_id)
         assert node_id in project.device_segments()
         assert project.parked_address(node_id) == "1.1.-"
-        assert project.history()[0].display_text == S.HISTORY_EV_PARK_DEVICE
+        assert project.history()[0].display_text == S.HISTORY_EV_PARK_DEVICE_OF.format(
+            target="1.1.4 D4"
+        )
         project.undo()
         assert project.parked_address(node_id) == "1.1.-"
         assert project._svc.individual_address(project._pid, node_id) == "1.1.4"  # pyright: ignore[reportPrivateUsage, reportArgumentType]
