@@ -147,3 +147,43 @@ def test_without_steps_the_panel_says_so(
     panel = HistoryPanel(list, lambda: 0, lambda _id: None)
     _frame(panel)
     assert shown == [S.HISTORY_NO_HISTORY]
+
+
+_LONG = "Set datapoint type of 1.1.5 #12 Status of the heating valve position to 5.001"
+
+
+def test_a_cut_off_text_shows_whole_in_a_tooltip_and_the_context_menu(
+    context: None, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    entries = [HistoryEntry(2, _LONG, reverted=False), HistoryEntry(1, "Short", False)]
+    panel = HistoryPanel(lambda: entries, lambda: 2, lambda _id: None)
+    places = _Places(monkeypatch)
+    tooltips: list[str] = []
+    shown: list[str] = []
+    text_disabled = imgui.text_disabled
+    monkeypatch.setattr(imgui, "set_tooltip", tooltips.append)
+
+    def record_disabled(value: str) -> None:
+        shown.append(value)
+        text_disabled(value)
+
+    monkeypatch.setattr(imgui, "text_disabled", record_disabled)
+    _frame(panel)
+    io = imgui.get_io()
+    for text in ("Short", _LONG):
+        at = places.rows[text]
+        io.add_mouse_pos_event(at.x + 2, at.y + 2)
+        _frame(panel)
+        _frame(panel)
+    assert tooltips == [_LONG, _LONG]
+
+    # A right click (a long press on a touch screen) shows the whole text in the menu.
+    at = places.rows[_LONG]
+    io.add_mouse_pos_event(at.x + 2, at.y + 2)
+    _frame(panel)
+    shown.clear()
+    io.add_mouse_button_event(1, True)
+    _frame(panel)
+    io.add_mouse_button_event(1, False)
+    _frame(panel)
+    assert _LONG in shown

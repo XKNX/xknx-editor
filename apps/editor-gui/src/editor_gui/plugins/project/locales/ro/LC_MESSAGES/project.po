@@ -3678,3 +3678,102 @@ msgstr "Proprietatea versiunii (brută)"
 
 msgid "Bootloader version, CRC and encryption are reported as numeric codes. They do not describe KNX Secure."
 msgstr "Versiunea încărcătorului de pornire, CRC și criptarea sunt raportate ca numere de cod. Acestea nu descriu KNX Secure."
+
+msgid "Turn on flag {flag} of {target}"
+msgstr "Activare indicator {flag}: {target}"
+
+msgid "Turn off flag {flag} of {target}"
+msgstr "Dezactivare indicator {flag}: {target}"
+
+msgid "Reset flag {flag} of {target}"
+msgstr "Resetare indicator {flag}: {target}"
+
+msgid "Set datapoint type of {target} to {value}"
+msgstr "Setare tip de punct de date: {target} → {value}"
+
+msgid "Reset datapoint type of {target}"
+msgstr "Resetare tip de punct de date: {target}"
+
+msgid "Set priority of {target} to {value}"
+msgstr "Setare prioritate: {target} → {value}"
+
+msgid "Reset priority of {target}"
+msgstr "Resetare prioritate: {target}"
+
+msgid "Set description of {target}"
+msgstr "Setare descriere: {target}"
+
+msgid "Link {target} with {address}"
+msgstr "Legare obiect de comunicare: {target} → {address}"
+
+msgid "Unlink {target} from {address}"
+msgstr "Dezlegare obiect de comunicare: {target} → {address}"
+
+msgid "Move device {target} to {address}"
+msgstr "Mutare dispozitiv: {target} → {address}"
+
+msgid "Park device {target}"
+msgstr "Parcare dispozitiv: {target}"
+
+msgid "Unlink device {target}"
+msgstr "Dezlegare dispozitiv: {target}"
+
+msgid "Remove device {target}"
+msgstr "Eliminare dispozitiv: {target}"
+
+msgid "Remove area {target}"
+msgstr "Eliminare zonă: {target}"
+
+msgid "Remove line {target}"
+msgstr "Eliminare linie: {target}"
+
+msgid "Remove segment {target}"
+msgstr "Eliminare segment: {target}"
+
+msgid "Remove group address {target}"
+msgstr "Eliminare adresă de grup: {target}"
+
+msgid "Remove function {target}"
+msgstr "Eliminare funcție: {target}"
+
+msgid "Remove group address {address} from function {target}"
+msgstr "Eliminare adresă de grup {address} din funcție: {target}"
+
+msgid "Remove building part {target}"
+msgstr "Eliminare parte de clădire: {target}"
+
+msgid "Remove group range {target}"
+msgstr "Eliminare domeniu de grupuri: {target}"
+
+msgid "Remove trade {target}"
+msgstr "Eliminare specialitate: {target}"
+
+msgid "Remove device {address} from trade {target}"
+msgstr "Eliminare dispozitiv {address} din specialitate: {target}"
+
+msgid "Rename area {target} to {name}"
+msgstr "Redenumire zonă {target} în {name}"
+
+msgid "Rename line {target} to {name}"
+msgstr "Redenumire linie {target} în {name}"
+
+msgid "Rename device {target} to {name}"
+msgstr "Redenumire dispozitiv {target} în {name}"
+
+msgid "Rename group address {target} to {name}"
+msgstr "Redenumire adresă de grup {target} în {name}"
+
+msgid "Rename segment {target} to {name}"
+msgstr "Redenumire segment {target} în {name}"
+
+msgid "Rename function {target} to {name}"
+msgstr "Redenumire funcție {target} în {name}"
+
+msgid "Rename building part {target} to {name}"
+msgstr "Redenumire parte de clădire {target} în {name}"
+
+msgid "Rename group range {target} to {name}"
+msgstr "Redenumire domeniu de grupuri {target} în {name}"
+
+msgid "Rename trade {target} to {name}"
+msgstr "Redenumire specialitate {target} în {name}"

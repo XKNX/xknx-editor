@@ -3599,3 +3599,102 @@ msgstr "Versionsegenskab (rå)"
 
 msgid "Bootloader version, CRC and encryption are reported as numeric codes. They do not describe KNX Secure."
 msgstr "Bootloaderversion, CRC og kryptering angives som numeriske koder. De beskriver ikke KNX Secure."
+
+msgid "Turn on flag {flag} of {target}"
+msgstr "Slå flag {flag} til for {target}"
+
+msgid "Turn off flag {flag} of {target}"
+msgstr "Slå flag {flag} fra for {target}"
+
+msgid "Reset flag {flag} of {target}"
+msgstr "Nulstil flag {flag} for {target}"
+
+msgid "Set datapoint type of {target} to {value}"
+msgstr "Angiv datapunkttype for {target} til {value}"
+
+msgid "Reset datapoint type of {target}"
+msgstr "Nulstil datapunkttype for {target}"
+
+msgid "Set priority of {target} to {value}"
+msgstr "Angiv prioritet for {target} til {value}"
+
+msgid "Reset priority of {target}"
+msgstr "Nulstil prioritet for {target}"
+
+msgid "Set description of {target}"
+msgstr "Angiv beskrivelse for {target}"
+
+msgid "Link {target} with {address}"
+msgstr "Sammenkæd {target} med {address}"
+
+msgid "Unlink {target} from {address}"
+msgstr "Fjern sammenkædning af {target} med {address}"
+
+msgid "Move device {target} to {address}"
+msgstr "Flyt enhed {target} til {address}"
+
+msgid "Park device {target}"
+msgstr "Parkér enhed {target}"
+
+msgid "Unlink device {target}"
+msgstr "Fjern sammenkædning af enhed {target}"
+
+msgid "Remove device {target}"
+msgstr "Fjern enhed {target}"
+
+msgid "Remove area {target}"
+msgstr "Fjern område {target}"
+
+msgid "Remove line {target}"
+msgstr "Fjern linje {target}"
+
+msgid "Remove segment {target}"
+msgstr "Fjern segment {target}"
+
+msgid "Remove group address {target}"
+msgstr "Fjern gruppeadresse {target}"
+
+msgid "Remove function {target}"
+msgstr "Fjern funktion {target}"
+
+msgid "Remove group address {address} from function {target}"
+msgstr "Fjern gruppeadresse {address} fra funktion {target}"
+
+msgid "Remove building part {target}"
+msgstr "Fjern bygningsafsnit {target}"
+
+msgid "Remove group range {target}"
+msgstr "Fjern gruppeområde {target}"
+
+msgid "Remove trade {target}"
+msgstr "Fjern trade {target}"
+
+msgid "Remove device {address} from trade {target}"
+msgstr "Fjern enhed {address} fra trade {target}"
+
+msgid "Rename area {target} to {name}"
+msgstr "Omdøb område {target} til {name}"
+
+msgid "Rename line {target} to {name}"
+msgstr "Omdøb linje {target} til {name}"
+
+msgid "Rename device {target} to {name}"
+msgstr "Omdøb enhed {target} til {name}"
+
+msgid "Rename group address {target} to {name}"
+msgstr "Omdøb gruppeadresse {target} til {name}"
+
+msgid "Rename segment {target} to {name}"
+msgstr "Omdøb segment {target} til {name}"
+
+msgid "Rename function {target} to {name}"
+msgstr "Omdøb funktion {target} til {name}"
+
+msgid "Rename building part {target} to {name}"
+msgstr "Omdøb bygningsafsnit {target} til {name}"
+
+msgid "Rename group range {target} to {name}"
+msgstr "Omdøb gruppeområde {target} til {name}"
+
+msgid "Rename trade {target} to {name}"
+msgstr "Omdøb trade {target} til {name}"

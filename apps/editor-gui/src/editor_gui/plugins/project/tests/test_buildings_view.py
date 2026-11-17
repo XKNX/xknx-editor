@@ -138,5 +138,5 @@ def test_a_trade_shows_its_details(project: ProjectService) -> None:
     )
     assert project.history()[0].display_text == "Set status to Tested"
     assert project.history()[1].display_text == "Set trade description"
-    assert project.history()[2].display_text == "Rename trade to 'Light'"
+    assert project.history()[2].display_text == "Rename trade Lighting to 'Light'"
     assert project.element_details("trade", 999) is None
