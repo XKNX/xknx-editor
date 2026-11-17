@@ -63,3 +63,23 @@ async def test_a_change_counts_without_a_restart(tmp_path: Path) -> None:
         search[0] = False
         names = {tool.name for tool in await client.list_tools()}
         assert "search_tools" not in names and "project_list_devices" in names
+
+
+async def test_every_tool_is_found_by_its_exact_name(tmp_path: Path) -> None:
+    """The hard bar for Tool Discovery: a search for a tool's exact name always returns it (BM25
+    alone splits the name on underscores and misses some). The pinned tools are not searched for."""
+    async with Client(build_server(_build_ctx(tmp_path))) as listing:
+        all_names = {tool.name for tool in await listing.list_tools()}
+    searchable = sorted(n for n in all_names if n not in PINNED_TOOLS)
+    assert len(searchable) > 100
+    async with Client(_server(tmp_path, [True])) as client:
+        for name in searchable:
+            assert name in await _found(client, name), name
+
+
+async def test_a_query_whose_words_are_all_in_a_name_finds_it(tmp_path: Path) -> None:
+    async with Client(_server(tmp_path, [True])) as client:
+        # "program device" -> connection_program_device, even though "program device download"
+        # already works through BM25.
+        assert "connection_program_device" in await _found(client, "program device")
+        assert "project_list_devices" in await _found(client, "list devices")

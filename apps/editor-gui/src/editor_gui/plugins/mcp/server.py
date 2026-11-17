@@ -7,6 +7,7 @@ user clicking in the editor would.
 
 from __future__ import annotations
 
+import re
 from collections.abc import Callable, Sequence
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
@@ -65,7 +66,9 @@ INSTRUCTIONS = (
     "\n"
     "TOOL SEARCH: when the tool list holds only status, search_tools and call_tool (the editor's "
     "setting Tool Discovery is Search), find the tools named below with search_tools (a few "
-    "keywords or a tool name) and run them with call_tool(name, arguments).\n"
+    "keywords or a tool name) and run them with call_tool(name, arguments). Query in English — tool "
+    "names and descriptions are English — or pass an exact tool name; a name (or every word of it) "
+    "is matched before the keyword ranking.\n"
     "\n"
     "DOMAIN MODEL:\n"
     "- An individual address (e.g. 1.1.5) is a device's PHYSICAL address; a group address / GA (e.g. "
@@ -197,12 +200,23 @@ PINNED_TOOLS = ("status",)
 SEARCH_RESULTS = 8
 
 
+def _name_tokens(name: str) -> list[str]:
+    """The lower-case alphanumeric tokens of a tool name or query (``connection_program_device``
+    and "connection program device" both tokenize to the same list)."""
+    return re.findall(r"[a-z0-9]+", name.lower())
+
+
 class ToolSearch(BM25SearchTransform):
     """Tool discovery by search, while ``enabled()`` says so (the setting Tool Discovery):
     the tool list then holds only :data:`PINNED_TOOLS`, ``search_tools`` and ``call_tool``,
     for AI models whose context is too small for the definitions of all tools. Every tool stays
     callable, directly or through ``call_tool``. Asked on every request, so a change counts
-    without restarting the server; a client sees it once it reads the tool list again."""
+    without restarting the server; a client sees it once it reads the tool list again.
+
+    Search puts name matches before the BM25 ranking, so an exact tool name (or a query whose words
+    are all in a tool's name, e.g. "program device" for ``connection_program_device``) always finds
+    it — BM25 alone splits a name on its underscores and can rank an exact name off the first page.
+    """
 
     def __init__(self, enabled: Callable[[], bool]) -> None:
         super().__init__(max_results=SEARCH_RESULTS, always_visible=list(PINNED_TOOLS))
@@ -219,6 +233,34 @@ class ToolSearch(BM25SearchTransform):
         if not self._enabled():
             return await call_next(name, version=version)
         return await super().get_tool(name, call_next, version=version)
+
+    async def _search(self, tools: Sequence[Tool], query: str) -> Sequence[Tool]:
+        """Name matches first (exact name, then every query word is in the name — most specific
+        first), then the BM25 ranking, de-duplicated and capped at :data:`SEARCH_RESULTS`."""
+        query_tokens = _name_tokens(query)
+        exact: list[Tool] = []
+        by_name: list[Tool] = []
+        if query_tokens:
+            wanted = set(query_tokens)
+            joined = "_".join(query_tokens)
+            for tool in tools:
+                tokens = _name_tokens(tool.name)
+                if "_".join(tokens) == joined:
+                    exact.append(tool)
+                elif wanted <= set(tokens):
+                    by_name.append(tool)
+            # Fewer name tokens = a closer match for the query's words.
+            by_name.sort(key=lambda tool: (len(_name_tokens(tool.name)), tool.name))
+        ranked = await super()._search(tools, query)
+        out: list[Tool] = []
+        seen: set[str] = set()
+        for tool in (*exact, *by_name, *ranked):
+            if tool.name not in seen:
+                seen.add(tool.name)
+                out.append(tool)
+            if len(out) >= self._max_results:
+                break
+        return out
 
 
 def build_server(ctx: McpContext, auth: Any = None) -> FastMCP:
