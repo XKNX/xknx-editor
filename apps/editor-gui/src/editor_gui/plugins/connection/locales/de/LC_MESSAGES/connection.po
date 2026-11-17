@@ -311,3 +311,21 @@ msgstr "An diese Gruppenadressen wird nie etwas gesendet, auch keine Lesezugriff
 
 msgid "Not a group address or group: {entries}"
 msgstr "Keine Gruppenadresse oder Gruppe: {entries}"
+
+msgid "Confirmation Timeout (Seconds)"
+msgstr "Bestätigungs-Zeitlimit (Sekunden)"
+
+msgid "How long to wait for the interface to confirm each frame it sends. A slow connection, such as a remote tunnel or a VPN, needs longer."
+msgstr "Wie lange auf die Bestätigung der Schnittstelle für jedes gesendete Telegramm gewartet wird. Eine langsame Verbindung, etwa ein Tunnel über das Internet oder ein VPN, braucht länger."
+
+msgid "Acknowledgement Timeout (Seconds)"
+msgstr "Quittungs-Zeitlimit (Sekunden)"
+
+msgid "How long to wait for a device to acknowledge a frame of a download before sending it again (up to three times). A device closes the connection after 6 seconds without a frame, so a longer wait only helps where the answers are late, not lost."
+msgstr "Wie lange auf die Quittung eines Geräts für ein Telegramm eines Downloads gewartet wird, bevor es erneut gesendet wird (bis zu dreimal). Ein Gerät beendet die Verbindung nach 6 Sekunden ohne Telegramm; eine längere Wartezeit hilft also nur, wenn die Antworten spät kommen, nicht wenn sie verloren gehen."
+
+msgid "Response Timeout (Seconds)"
+msgstr "Antwort-Zeitlimit (Sekunden)"
+
+msgid "How long to wait for a device's answer, e.g. to a memory or property read."
+msgstr "Wie lange auf die Antwort eines Geräts gewartet wird, z. B. beim Lesen von Speicher oder einer Eigenschaft."

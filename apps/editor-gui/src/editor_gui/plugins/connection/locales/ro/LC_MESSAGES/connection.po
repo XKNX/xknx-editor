@@ -312,3 +312,21 @@ msgstr "Nu se trimite niciodată nimic la aceste adrese de grup, nici măcar cit
 
 msgid "Not a group address or group: {entries}"
 msgstr "Nu este o adresă de grup sau un grup: {entries}"
+
+msgid "Confirmation Timeout (Seconds)"
+msgstr "Timp limită de confirmare (secunde)"
+
+msgid "How long to wait for the interface to confirm each frame it sends. A slow connection, such as a remote tunnel or a VPN, needs longer."
+msgstr "Cât se așteaptă ca interfața să confirme fiecare cadru pe care îl trimite. O conexiune lentă, cum ar fi un tunel la distanță sau un VPN, are nevoie de mai mult timp."
+
+msgid "Acknowledgement Timeout (Seconds)"
+msgstr "Timp limită de recunoaștere (secunde)"
+
+msgid "How long to wait for a device to acknowledge a frame of a download before sending it again (up to three times). A device closes the connection after 6 seconds without a frame, so a longer wait only helps where the answers are late, not lost."
+msgstr "Cât se așteaptă ca un dispozitiv să confirme primirea unui cadru al unei programări înainte de a-l trimite din nou (de până la trei ori). Un dispozitiv închide conexiunea după 6 secunde fără cadre, așa că o așteptare mai lungă ajută doar când răspunsurile vin târziu, nu când se pierd."
+
+msgid "Response Timeout (Seconds)"
+msgstr "Timp limită de răspuns (secunde)"
+
+msgid "How long to wait for a device's answer, e.g. to a memory or property read."
+msgstr "Cât se așteaptă răspunsul unui dispozitiv, de ex. la o citire de memorie sau a unei proprietăți."

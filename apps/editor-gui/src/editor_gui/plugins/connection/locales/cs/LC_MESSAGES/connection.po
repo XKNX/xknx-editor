@@ -312,3 +312,21 @@ msgstr "Na tyto skupinové adresy se nikdy nic neodešle, ani čtení, např. ad
 
 msgid "Not a group address or group: {entries}"
 msgstr "Není skupinová adresa ani skupina: {entries}"
+
+msgid "Confirmation Timeout (Seconds)"
+msgstr "Časový limit potvrzení (sekundy)"
+
+msgid "How long to wait for the interface to confirm each frame it sends. A slow connection, such as a remote tunnel or a VPN, needs longer."
+msgstr "Jak dlouho čekat, než rozhraní potvrdí každý odeslaný rámec. Pomalé připojení, například vzdálený tunel nebo VPN, potřebuje déle."
+
+msgid "Acknowledgement Timeout (Seconds)"
+msgstr "Časový limit potvrzení příjmu (sekundy)"
+
+msgid "How long to wait for a device to acknowledge a frame of a download before sending it again (up to three times). A device closes the connection after 6 seconds without a frame, so a longer wait only helps where the answers are late, not lost."
+msgstr "Jak dlouho čekat, než zařízení potvrdí rámec nahrávání, než se odešle znovu (až třikrát). Zařízení ukončí spojení po 6 sekundách bez rámce, takže delší čekání pomůže jen tehdy, když odpovědi přicházejí pozdě, ne když se ztratí."
+
+msgid "Response Timeout (Seconds)"
+msgstr "Časový limit odpovědi (sekundy)"
+
+msgid "How long to wait for a device's answer, e.g. to a memory or property read."
+msgstr "Jak dlouho čekat na odpověď zařízení, např. na čtení paměti nebo vlastnosti."

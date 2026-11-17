@@ -3651,3 +3651,9 @@ msgstr "Vlastnost verze (surová)"
 
 msgid "Bootloader version, CRC and encryption are reported as numeric codes. They do not describe KNX Secure."
 msgstr "Verze zavaděče, CRC a šifrování jsou uvedeny jako číselné kódy. Nepopisují KNX Secure."
+
+msgid "The interface did not confirm sending in time ({detail})."
+msgstr "Rozhraní nepotvrdilo odeslání včas ({detail})."
+
+msgid "A slow connection, such as a remote tunnel or a VPN, needs longer waits: raise the Confirmation Timeout in Settings > Connection."
+msgstr "Pomalé připojení, například vzdálený tunel nebo VPN, potřebuje delší čekání: zvyšte Časový limit potvrzení v Nastavení > Připojení."

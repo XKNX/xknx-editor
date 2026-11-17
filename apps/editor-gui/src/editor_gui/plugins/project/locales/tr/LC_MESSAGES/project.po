@@ -3547,3 +3547,9 @@ msgstr "Sürüm özelliği (ham)"
 
 msgid "Bootloader version, CRC and encryption are reported as numeric codes. They do not describe KNX Secure."
 msgstr "Önyükleyici sürümü, CRC ve şifreleme sayısal kodlarla bildirilir. KNX Secure ayarlarını açıklamazlar."
+
+msgid "The interface did not confirm sending in time ({detail})."
+msgstr "Arabirim gönderimi zamanında onaylamadı ({detail})."
+
+msgid "A slow connection, such as a remote tunnel or a VPN, needs longer waits: raise the Confirmation Timeout in Settings > Connection."
+msgstr "Uzak bir tünel veya VPN gibi yavaş bir bağlantı daha uzun bekleme gerektirir: Ayarlar > Bağlantı altında Onay Zaman Aşımı'nı artırın."

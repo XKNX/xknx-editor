@@ -311,3 +311,21 @@ msgstr "Naar deze groepsadressen wordt nooit iets verstuurd, ook geen leesopdrac
 
 msgid "Not a group address or group: {entries}"
 msgstr "Geen groepsadres of groep: {entries}"
+
+msgid "Confirmation Timeout (Seconds)"
+msgstr "Time-out bevestiging (seconden)"
+
+msgid "How long to wait for the interface to confirm each frame it sends. A slow connection, such as a remote tunnel or a VPN, needs longer."
+msgstr "Hoe lang er wordt gewacht tot de interface elk verzonden telegram bevestigt. Een trage verbinding, zoals een tunnel op afstand of een VPN, heeft meer tijd nodig."
+
+msgid "Acknowledgement Timeout (Seconds)"
+msgstr "Time-out ontvangstbevestiging (seconden)"
+
+msgid "How long to wait for a device to acknowledge a frame of a download before sending it again (up to three times). A device closes the connection after 6 seconds without a frame, so a longer wait only helps where the answers are late, not lost."
+msgstr "Hoe lang er wordt gewacht tot een apparaat een telegram van een download bevestigt, voordat het opnieuw wordt verzonden (tot drie keer). Een apparaat sluit de verbinding na 6 seconden zonder telegram, dus langer wachten helpt alleen als de antwoorden laat komen, niet als ze verloren gaan."
+
+msgid "Response Timeout (Seconds)"
+msgstr "Time-out antwoord (seconden)"
+
+msgid "How long to wait for a device's answer, e.g. to a memory or property read."
+msgstr "Hoe lang er wordt gewacht op het antwoord van een apparaat, bijv. op het lezen van geheugen of een eigenschap."

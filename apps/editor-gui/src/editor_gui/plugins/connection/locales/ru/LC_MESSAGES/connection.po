@@ -312,3 +312,21 @@ msgstr "На эти групповые адреса никогда ничего 
 
 msgid "Not a group address or group: {entries}"
 msgstr "Не групповой адрес и не группа: {entries}"
+
+msgid "Confirmation Timeout (Seconds)"
+msgstr "Тайм-аут подтверждения (секунды)"
+
+msgid "How long to wait for the interface to confirm each frame it sends. A slow connection, such as a remote tunnel or a VPN, needs longer."
+msgstr "Сколько ждать, пока интерфейс подтвердит каждый отправленный кадр. Медленному подключению, например удалённому туннелю или VPN, нужно больше времени."
+
+msgid "Acknowledgement Timeout (Seconds)"
+msgstr "Тайм-аут квитирования (секунды)"
+
+msgid "How long to wait for a device to acknowledge a frame of a download before sending it again (up to three times). A device closes the connection after 6 seconds without a frame, so a longer wait only helps where the answers are late, not lost."
+msgstr "Сколько ждать, пока устройство квитирует кадр загрузки, прежде чем отправить его снова (до трёх раз). Устройство закрывает соединение после 6 секунд без кадров, поэтому более долгое ожидание помогает, только когда ответы приходят поздно, а не теряются."
+
+msgid "Response Timeout (Seconds)"
+msgstr "Тайм-аут ответа (секунды)"
+
+msgid "How long to wait for a device's answer, e.g. to a memory or property read."
+msgstr "Сколько ждать ответа устройства, например на чтение памяти или свойства."

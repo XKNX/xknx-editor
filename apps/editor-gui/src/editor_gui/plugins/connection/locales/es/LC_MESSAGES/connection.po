@@ -311,3 +311,21 @@ msgstr "Nunca se envía nada a estas direcciones de grupo, ni siquiera lecturas,
 
 msgid "Not a group address or group: {entries}"
 msgstr "No es una dirección de grupo ni un grupo: {entries}"
+
+msgid "Confirmation Timeout (Seconds)"
+msgstr "Tiempo de espera de confirmación (segundos)"
+
+msgid "How long to wait for the interface to confirm each frame it sends. A slow connection, such as a remote tunnel or a VPN, needs longer."
+msgstr "Cuánto se espera a que la interfaz confirme cada trama que envía. Una conexión lenta, como un túnel remoto o una VPN, necesita más tiempo."
+
+msgid "Acknowledgement Timeout (Seconds)"
+msgstr "Tiempo de espera de acuse (segundos)"
+
+msgid "How long to wait for a device to acknowledge a frame of a download before sending it again (up to three times). A device closes the connection after 6 seconds without a frame, so a longer wait only helps where the answers are late, not lost."
+msgstr "Cuánto se espera a que un dispositivo acuse recibo de una trama de una programación antes de enviarla de nuevo (hasta tres veces). Un dispositivo cierra la conexión tras 6 segundos sin trama, así que esperar más solo ayuda si las respuestas llegan tarde, no si se pierden."
+
+msgid "Response Timeout (Seconds)"
+msgstr "Tiempo de espera de respuesta (segundos)"
+
+msgid "How long to wait for a device's answer, e.g. to a memory or property read."
+msgstr "Cuánto se espera la respuesta de un dispositivo, p. ej. a una lectura de memoria o de una propiedad."

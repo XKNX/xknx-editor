@@ -311,3 +311,21 @@ msgstr "Asgjë nuk dërgohet kurrë në këto adresa grupi, as lexime, p.sh. ato
 
 msgid "Not a group address or group: {entries}"
 msgstr "Nuk është adresë grupi ose grup: {entries}"
+
+msgid "Confirmation Timeout (Seconds)"
+msgstr "Afati i konfirmimit (sekonda)"
+
+msgid "How long to wait for the interface to confirm each frame it sends. A slow connection, such as a remote tunnel or a VPN, needs longer."
+msgstr "Sa gjatë pritet që ndërfaqja të konfirmojë çdo kornizë që dërgon. Një lidhje e ngadaltë, si një tunel në distancë ose një VPN, ka nevojë për më shumë kohë."
+
+msgid "Acknowledgement Timeout (Seconds)"
+msgstr "Afati i pranimit (sekonda)"
+
+msgid "How long to wait for a device to acknowledge a frame of a download before sending it again (up to three times). A device closes the connection after 6 seconds without a frame, so a longer wait only helps where the answers are late, not lost."
+msgstr "Sa gjatë pritet që një pajisje të pranojë një kornizë të programimit para se të dërgohet përsëri (deri në tri herë). Një pajisje e mbyll lidhjen pas 6 sekondash pa kornizë, prandaj një pritje më e gjatë ndihmon vetëm kur përgjigjet vijnë vonë, jo kur humbasin."
+
+msgid "Response Timeout (Seconds)"
+msgstr "Afati i përgjigjes (sekonda)"
+
+msgid "How long to wait for a device's answer, e.g. to a memory or property read."
+msgstr "Sa gjatë pritet përgjigjja e një pajisjeje, p.sh. për një lexim të memories ose të një vetie."

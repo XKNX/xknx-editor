@@ -3599,3 +3599,9 @@ msgstr "Veti e versionit (e papërpunuar)"
 
 msgid "Bootloader version, CRC and encryption are reported as numeric codes. They do not describe KNX Secure."
 msgstr "Versioni i ngarkuesit të nisjes, CRC dhe enkriptimi raportohen si kode numerike. Ato nuk përshkruajnë KNX Secure."
+
+msgid "The interface did not confirm sending in time ({detail})."
+msgstr "Ndërfaqja nuk e konfirmoi dërgimin në kohë ({detail})."
+
+msgid "A slow connection, such as a remote tunnel or a VPN, needs longer waits: raise the Confirmation Timeout in Settings > Connection."
+msgstr "Një lidhje e ngadaltë, si një tunel në distancë ose një VPN, ka nevojë për pritje më të gjata: rrisni Afatin e konfirmimit te Cilësimet > Lidhja."

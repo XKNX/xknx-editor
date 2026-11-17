@@ -3603,3 +3603,9 @@ msgstr "Propriedade de versão (bruta)"
 
 msgid "Bootloader version, CRC and encryption are reported as numeric codes. They do not describe KNX Secure."
 msgstr "A versão do carregador de arranque, o CRC e a encriptação são apresentados como códigos numéricos. Não descrevem KNX Secure."
+
+msgid "The interface did not confirm sending in time ({detail})."
+msgstr "A interface não confirmou o envio a tempo ({detail})."
+
+msgid "A slow connection, such as a remote tunnel or a VPN, needs longer waits: raise the Confirmation Timeout in Settings > Connection."
+msgstr "Uma ligação lenta, como um túnel remoto ou uma VPN, precisa de esperas mais longas: aumente o Tempo Limite de Confirmação em Configurações > Ligação."

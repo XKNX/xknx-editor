@@ -311,3 +311,21 @@ msgstr "Ingenting sendes noen gang til disse gruppeadressene, heller ikke lesing
 
 msgid "Not a group address or group: {entries}"
 msgstr "Ikke en gruppeadresse eller gruppe: {entries}"
+
+msgid "Confirmation Timeout (Seconds)"
+msgstr "Tidsavbrudd for bekreftelse (sekunder)"
+
+msgid "How long to wait for the interface to confirm each frame it sends. A slow connection, such as a remote tunnel or a VPN, needs longer."
+msgstr "Hvor lenge det ventes på at grensesnittet bekrefter hver ramme det sender. En treg tilkobling, f.eks. en fjerntunnel eller et VPN, trenger lengre tid."
+
+msgid "Acknowledgement Timeout (Seconds)"
+msgstr "Tidsavbrudd for kvittering (sekunder)"
+
+msgid "How long to wait for a device to acknowledge a frame of a download before sending it again (up to three times). A device closes the connection after 6 seconds without a frame, so a longer wait only helps where the answers are late, not lost."
+msgstr "Hvor lenge det ventes på at en enhet kvitterer for en ramme i en nedlasting før den sendes på nytt (opptil tre ganger). En enhet lukker tilkoblingen etter 6 sekunder uten ramme, så lengre venting hjelper bare når svarene kommer sent, ikke når de går tapt."
+
+msgid "Response Timeout (Seconds)"
+msgstr "Tidsavbrudd for svar (sekunder)"
+
+msgid "How long to wait for a device's answer, e.g. to a memory or property read."
+msgstr "Hvor lenge det ventes på svar fra en enhet, f.eks. på en lesing av minne eller en egenskap."

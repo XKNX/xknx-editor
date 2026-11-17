@@ -313,3 +313,21 @@ msgstr "Na te skupinske naslove se nikoli nič ne pošlje, niti branja, npr. nas
 
 msgid "Not a group address or group: {entries}"
 msgstr "Ni skupinski naslov ali skupina: {entries}"
+
+msgid "Confirmation Timeout (Seconds)"
+msgstr "Časovna omejitev potrditve (sekunde)"
+
+msgid "How long to wait for the interface to confirm each frame it sends. A slow connection, such as a remote tunnel or a VPN, needs longer."
+msgstr "Kako dolgo se čaka, da vmesnik potrdi vsak okvir, ki ga pošlje. Počasna povezava, na primer oddaljeni tunel ali VPN, potrebuje več časa."
+
+msgid "Acknowledgement Timeout (Seconds)"
+msgstr "Časovna omejitev potrditve prejema (sekunde)"
+
+msgid "How long to wait for a device to acknowledge a frame of a download before sending it again (up to three times). A device closes the connection after 6 seconds without a frame, so a longer wait only helps where the answers are late, not lost."
+msgstr "Kako dolgo se čaka, da naprava potrdi okvir programiranja, preden se pošlje znova (do trikrat). Naprava zapre povezavo po 6 sekundah brez okvirja, zato daljše čakanje pomaga le, ko odgovori pridejo pozno, ne ko se izgubijo."
+
+msgid "Response Timeout (Seconds)"
+msgstr "Časovna omejitev odgovora (sekunde)"
+
+msgid "How long to wait for a device's answer, e.g. to a memory or property read."
+msgstr "Kako dolgo se čaka na odgovor naprave, npr. na branje pomnilnika ali lastnosti."

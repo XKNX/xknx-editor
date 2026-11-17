@@ -166,7 +166,7 @@ directly in the editor.
 **Programming real devices** — commission a device end-to-end over a live connection (a KNX USB
 interface, or tunneling or routing with gateway discovery), including setting a new device's address. A read-only **preflight**
 and **Test Programming** read the device back and show the exact changes before anything is
-written. Vendor-independent by design.
+written. Longer timeouts in Settings > Connection let it work over slow connections such as a remote tunnel or a VPN. Vendor-independent by design.
 
 <img src="docs/images/programming.png" alt="Programming and preflight" width="384">
 

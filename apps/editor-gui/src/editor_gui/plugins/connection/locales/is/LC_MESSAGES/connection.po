@@ -311,3 +311,21 @@ msgstr "Aldrei er neitt sent á þessi hópvistföng, ekki einu sinni lestur, t.
 
 msgid "Not a group address or group: {entries}"
 msgstr "Hvorki hópvistfang né hópur: {entries}"
+
+msgid "Confirmation Timeout (Seconds)"
+msgstr "Tímamörk staðfestingar (sekúndur)"
+
+msgid "How long to wait for the interface to confirm each frame it sends. A slow connection, such as a remote tunnel or a VPN, needs longer."
+msgstr "Hversu lengi er beðið eftir að viðmótið staðfesti hvern ramma sem það sendir. Hæg tenging, t.d. fjargöng eða VPN, þarf lengri tíma."
+
+msgid "Acknowledgement Timeout (Seconds)"
+msgstr "Tímamörk kvittunar (sekúndur)"
+
+msgid "How long to wait for a device to acknowledge a frame of a download before sending it again (up to three times). A device closes the connection after 6 seconds without a frame, so a longer wait only helps where the answers are late, not lost."
+msgstr "Hversu lengi er beðið eftir að tæki kvitti fyrir ramma í niðurhleðslu áður en hann er sendur aftur (allt að þrisvar). Tæki lokar tengingunni eftir 6 sekúndur án ramma, svo lengri bið hjálpar aðeins þegar svörin berast seint, ekki þegar þau tapast."
+
+msgid "Response Timeout (Seconds)"
+msgstr "Tímamörk svars (sekúndur)"
+
+msgid "How long to wait for a device's answer, e.g. to a memory or property read."
+msgstr "Hversu lengi er beðið eftir svari tækis, t.d. við lestri minnis eða eiginleika."

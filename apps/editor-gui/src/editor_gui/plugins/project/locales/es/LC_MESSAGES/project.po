@@ -3601,3 +3601,9 @@ msgstr "Propiedad de versión (sin procesar)"
 
 msgid "Bootloader version, CRC and encryption are reported as numeric codes. They do not describe KNX Secure."
 msgstr "La versión del gestor de arranque, el CRC y el cifrado se indican mediante códigos numéricos. No describen KNX Secure."
+
+msgid "The interface did not confirm sending in time ({detail})."
+msgstr "La interfaz no confirmó el envío a tiempo ({detail})."
+
+msgid "A slow connection, such as a remote tunnel or a VPN, needs longer waits: raise the Confirmation Timeout in Settings > Connection."
+msgstr "Una conexión lenta, como un túnel remoto o una VPN, necesita esperas más largas: aumente el Tiempo de espera de confirmación en Configuración > Conexión."

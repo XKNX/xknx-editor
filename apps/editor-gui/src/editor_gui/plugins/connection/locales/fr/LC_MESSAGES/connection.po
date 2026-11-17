@@ -311,3 +311,21 @@ msgstr "Rien n'est jamais envoyé à ces adresses de groupe, pas même des lectu
 
 msgid "Not a group address or group: {entries}"
 msgstr "Ni une adresse de groupe ni un groupe : {entries}"
+
+msgid "Confirmation Timeout (Seconds)"
+msgstr "Délai de confirmation (secondes)"
+
+msgid "How long to wait for the interface to confirm each frame it sends. A slow connection, such as a remote tunnel or a VPN, needs longer."
+msgstr "Durée d'attente de la confirmation par l'interface de chaque trame qu'elle envoie. Une connexion lente, comme un tunnel distant ou un VPN, demande plus de temps."
+
+msgid "Acknowledgement Timeout (Seconds)"
+msgstr "Délai d'acquittement (secondes)"
+
+msgid "How long to wait for a device to acknowledge a frame of a download before sending it again (up to three times). A device closes the connection after 6 seconds without a frame, so a longer wait only helps where the answers are late, not lost."
+msgstr "Durée d'attente de l'acquittement d'une trame d'un téléchargement par l'appareil avant de la renvoyer (jusqu'à trois fois). Un appareil ferme la connexion après 6 secondes sans trame : une attente plus longue n'aide donc que si les réponses arrivent en retard, pas si elles sont perdues."
+
+msgid "Response Timeout (Seconds)"
+msgstr "Délai de réponse (secondes)"
+
+msgid "How long to wait for a device's answer, e.g. to a memory or property read."
+msgstr "Durée d'attente de la réponse d'un appareil, par ex. à une lecture de mémoire ou de propriété."

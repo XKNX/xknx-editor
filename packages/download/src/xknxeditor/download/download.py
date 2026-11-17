@@ -645,17 +645,27 @@ async def _device_present(
 
     Opens a point-to-point connection (secured when ``security`` is set) and reads
     the device descriptor. Any connection or verification failure means nothing is
-    reachable there, so a full download may assign the address instead of failing.
+    reachable there, so a full download may assign the address instead of failing;
+    but not a frame the interface did not confirm in time (a slow or broken
+    connection): that tells nothing about the device and raises
+    :class:`InterfaceNotConfirming`.
     """
-    from .errors import DownloadError
+    from .errors import DownloadError, InterfaceNotConfirming
     from .programmer import DeviceProgrammer
+    from .timeouts import bus_timeouts, confirmation_timed_out
 
     manager = _connection_manager(xknx, address, security)
     try:
         connection = await manager.open()
         await DeviceProgrammer(connection).read_device_descriptor()
         return True
-    except (ManagementConnectionError, DownloadError):
+    except (ManagementConnectionError, DownloadError) as exc:
+        if confirmation_timed_out(exc):
+            raise InterfaceNotConfirming(
+                f"{address}: the interface did not confirm sending to the device within "
+                f"{bus_timeouts().confirmation:g} s (L_Data.con), so whether the device "
+                "is there is unknown"
+            ) from exc
         return False
     finally:
         await manager.close()

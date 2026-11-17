@@ -4465,6 +4465,17 @@ class ProjectStrings:
         return _("The device did not respond ({detail}).")
 
     @property
+    def INTERFACE_NOT_CONFIRMING(self) -> str:
+        return _("The interface did not confirm sending in time ({detail}).")
+
+    @property
+    def SLOW_CONNECTION_HINT(self) -> str:
+        return _(
+            "A slow connection, such as a remote tunnel or a VPN, needs longer waits: "
+            "raise the Confirmation Timeout in Settings > Connection."
+        )
+
+    @property
     def NO_RESPONSE_HINT(self) -> str:
         return _(
             "Check that the device is powered and can be reached from this interface "
