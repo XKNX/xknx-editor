@@ -521,7 +521,7 @@ def test_device_parameters_have_a_distinct_section_identity(monkeypatch):
     monkeypatch.setattr(
         powertool,
         "read_project_blob",
-        lambda _: replace(
+        lambda _data, _language: replace(
             saved, parameters=(replace(parameter, path="devices/0/parameters/0"),)
         ),
     )

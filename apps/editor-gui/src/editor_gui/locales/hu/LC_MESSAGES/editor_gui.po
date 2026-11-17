@@ -1757,8 +1757,8 @@ msgstr "Minden eszköz"
 msgid "Search"
 msgstr "Keresés"
 
-msgid "All tools lists every tool to the AI tool. Search lists only a search for the tools and one that calls them, for AI models whose context is too small for the whole list. An AI tool sees a change once it reconnects."
-msgstr "A Minden eszköz az MI-eszköznek minden eszközt felsorol. A Keresés csak az eszközök keresését és egy őket meghívó eszközt sorol fel, olyan MI-modellekhez, amelyek kontextusa túl kicsi a teljes listához. Az MI-eszköz az újracsatlakozás után látja a változást."
+msgid "All tools lists every tool to the AI tool. Search lists only a search for the tools and one that calls them, for AI models whose context is too small for the whole list. Tool catalog adds a compact inventory of every tool. An AI tool sees a change once it reconnects."
+msgstr "A Minden eszköz az MI-eszköznek minden eszközt felsorol. A Keresés csak az eszközök keresését és egy őket meghívó eszközt sorol fel, olyan MI-modellekhez, amelyek kontextusa túl kicsi a teljes listához. Az Eszközkatalógus az összes eszköz tömör áttekintését is megjeleníti. Az MI-eszköz az újracsatlakozás után látja a változást."
 msgid "Delete"
 msgstr "Törlés"
 
@@ -1791,3 +1791,6 @@ msgstr "Utolsó projekt megnyitása indításkor"
 
 msgid "When no project is given at the start, opens the project that was open last. A protected project asks for its password, unless --password-file gives it."
 msgstr "Ha indításkor nincs megadva projekt, megnyitja a legutóbb megnyitott projektet. A védett projekt kéri a jelszavát, hacsak a --password-file meg nem adja."
+
+msgid "Tool catalog"
+msgstr "Eszközkatalógus"

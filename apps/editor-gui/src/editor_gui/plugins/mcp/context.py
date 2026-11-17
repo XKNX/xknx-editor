@@ -112,9 +112,9 @@ _EXPECTED_ERRORS = (
 )
 
 
-def _all_tools() -> bool:
+def _all_tools() -> str:
     """Tool discovery without search: every tool is listed."""
-    return False
+    return "all"
 
 
 @dataclass
@@ -140,8 +140,8 @@ class McpContext:
     recover: RecoverService | None = None
     # The open project in Home Assistant's KNX integration; None where no GUI runs it.
     home_assistant: HomeAssistantService | None = None
-    # Whether clients search for the tools instead of listing all (the setting Tool Discovery).
-    tool_search: Callable[[], bool] = _all_tools
+    # How clients discover tools: "all", "search" or "catalog" (the setting Tool Discovery).
+    tool_discovery: Callable[[], str] = _all_tools
 
     def run_locked(self, fn: Callable[[], T], *, timeout: float = 30.0) -> T:
         """Run ``fn`` on the UI thread while holding the shared project/catalog lock non-blocking.

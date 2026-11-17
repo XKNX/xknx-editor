@@ -1018,14 +1018,14 @@ msgstr "Arviointi epäonnistui"
 msgid "Read-only test: compares what a download would write with what is on the device. Nothing is written to the device."
 msgstr "Vain luku -testi: vertaa sitä, mitä lataus kirjoittaisi, laitteen nykyiseen sisältöön. Laitteeseen ei kirjoiteta mitään."
 
-msgid "Cannot run: the project was changed since it was opened and may no longer match the device. Undo the changes of this session, or save and reopen the project."
-msgstr "Ei voi suorittaa: projektia on muutettu avaamisen jälkeen, eikä se ehkä enää vastaa laitetta. Kumoa tämän istunnon muutokset tai tallenna projekti ja avaa se uudelleen."
+msgid "Cannot run: the project was changed since it was opened and may no longer match the device. Undo the changes of this session, or reopen the project."
+msgstr "Ei voida suorittaa: projektia on muutettu avaamisen jälkeen, eikä se ehkä enää vastaa laitetta. Kumoa tämän istunnon muutokset tai avaa projekti uudelleen."
 
 msgid "Cannot run: no KNX connection. Connect to a gateway ({menu} menu) and make sure the device is reachable at its individual address."
 msgstr "Ei voi suorittaa: ei KNX-yhteyttä. Yhdistä yhdyskäytävään ({menu}-valikko) ja varmista, että laite on tavoitettavissa yksilöllisessä osoitteessaan."
 
-msgid "Match: the generated image is identical to what is on the device."
-msgstr "Vastaa: muodostettu kuva on identtinen laitteessa olevan kanssa."
+msgid "Match: all compared memory bytes and properties match the device."
+msgstr "Täsmää: kaikki verratut muistitavut ja ominaisuudet vastaavat laitetta."
 
 msgid "{matched} matched, {changed} would change"
 msgstr "{matched} vastaa, {changed} muuttuisi"
@@ -3518,3 +3518,84 @@ msgstr "Lue symbolit laitteesta…"
 
 msgid "Read all symbols from {address}? This takes about 2:30 minutes. The images will be saved in this project; the device stays unchanged."
 msgstr "Luetaanko kaikki symbolit laitteesta {address}? Lukeminen kestää noin 2:30 minuuttia. Kuvat tallennetaan tähän projektiin; laite pysyy muuttumattomana."
+
+msgid "Unused reserved memory and PID 27 length/CRC are not compared."
+msgstr "Käyttämätöntä varattua muistia ja PID 27:n pituutta/CRC:tä ei verrata."
+
+msgid "Upper / Rocker"
+msgstr "Ylä / Keinukytkin"
+
+msgid "Lower"
+msgstr "Ala"
+
+msgid "LED"
+msgstr "LED"
+
+msgid "Read Firmware Version"
+msgstr "Lue laiteohjelmistoversio"
+
+msgid "Import Firmware Catalog (.etsapp/.zip)…"
+msgstr "Tuo laiteohjelmistoluettelo (.etsapp/.zip)…"
+
+msgid "Installed Version"
+msgstr "Asennettu versio"
+
+msgid "Read At"
+msgstr "Luettu"
+
+msgid "Catalog: {source} (latest entry: {date})."
+msgstr "Luettelo: {source} (uusin merkintä: {date})."
+
+
+msgid "Latest Compatible Version"
+msgstr "Uusin yhteensopiva versio"
+
+msgid "Not determined"
+msgstr "Ei määritetty"
+msgid "Compares the device's hardware/software identity with this catalog. Does not install firmware. Catalog import: MDT Firmware Update .etsapp or Firmware.zip."
+msgstr "Vertaa laitteen laitteisto-/ohjelmistotunnistetta tähän luetteloon. Ei asenna laiteohjelmistoa. Luettelon tuonti: MDT Firmware Update .etsapp tai Firmware.zip."
+
+msgid "Hardware/software identity could not be determined. Read the device to check compatibility."
+msgstr "Laitteisto-/ohjelmistotunnistetta ei voitu määrittää. Lue laite yhteensopivuuden tarkistamiseksi."
+
+msgid "No compatible firmware in this catalog."
+msgstr "Tässä luettelossa ei ole yhteensopivaa laiteohjelmistoa."
+
+msgid "Installed version could not be determined."
+msgstr "Asennettua versiota ei voitu määrittää."
+
+msgid "A newer compatible version is available in this catalog."
+msgstr "Tässä luettelossa on saatavilla uudempi yhteensopiva versio."
+
+msgid "Up to date with this catalog."
+msgstr "Ajan tasalla tämän luettelon mukaan."
+
+msgid "Hardware/Software Key"
+msgstr "Laitteisto-/ohjelmistoavain"
+
+msgid "Bootloader Version Code"
+msgstr "Käynnistyslataajan versiokoodi"
+
+msgid "Firmware Telegram Limit (Bytes)"
+msgstr "Laiteohjelmiston sanomaraja (tavua)"
+
+msgid "Compatible Firmware File"
+msgstr "Yhteensopiva laiteohjelmistotiedosto"
+
+msgid "Catalog File Modified"
+msgstr "Luettelotiedostoa muokattu"
+
+msgid "CRC Type Code"
+msgstr "CRC-tyyppikoodi"
+
+msgid "Firmware Encryption Type Code"
+msgstr "Laiteohjelmiston salaustyyppikoodi"
+
+msgid "Bootloader Information (Raw)"
+msgstr "Käynnistyslataajan tiedot (raaka)"
+
+msgid "Version Property (Raw)"
+msgstr "Versio-ominaisuus (raaka)"
+
+msgid "Bootloader version, CRC and encryption are reported as numeric codes. They do not describe KNX Secure."
+msgstr "Käynnistyslataajan versio, CRC ja salaus ilmoitetaan numerokoodeina. Ne eivät kuvaa KNX Securea."

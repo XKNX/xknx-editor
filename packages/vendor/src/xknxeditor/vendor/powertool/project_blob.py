@@ -12,6 +12,7 @@ from typing import Any
 
 from .model import PowerToolConfig
 from .nrbf import Document, Record, Value, read_document
+from .presentation import Presentation
 
 PLUGIN_BLOB_NAME = "PT2EtsPlugin"
 _PREFIX = "BJE.toolB.PT2Logic."
@@ -104,6 +105,11 @@ def _display_value(
     value: bool | int | float | str | None, node: dict[str, Any]
 ) -> bool | int | float | str | None:
     kind = node.get("value_kind")
+    if type(value) is int and kind == "V_FREETIMER":
+        factor, exponent = value & 255, value >> 8
+        if not 0 <= exponent <= 23 or factor > 127:
+            return None
+        return factor * (5 << exponent)
     if type(value) is int and kind in ("V_SIGNED", "V_UNSIGNED"):
         size = node["size"]
         if kind == "V_SIGNED" and size in (1, 2, 4, 8):
@@ -391,7 +397,7 @@ class _ProjectReader:
 
 
 @lru_cache(maxsize=4)
-def read_project_blob(data: bytes) -> SavedProject:
+def read_project_blob(data: bytes, language: str = "en") -> SavedProject:
     """Read saved values; label them only when database, version and product match the catalogue.
 
     Values are stored representations, including enum indices and timer codes. This
@@ -424,6 +430,8 @@ def read_project_blob(data: bytes) -> SavedProject:
         ),
         None,
     )
+    if metadata is not None:
+        metadata = Presentation(code, language).schema(metadata)
     reader.metadata = metadata
     roots = reader.array(reader.member(root, "ProjectedDevices"))
     for index, (value, key) in enumerate(

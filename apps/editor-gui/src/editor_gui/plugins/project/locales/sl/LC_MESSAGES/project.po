@@ -220,8 +220,8 @@ msgstr "Preizkus samo za branje: primerja, kaj bi prenos zapisal, s tem, kar je 
 msgid "Cannot run: no KNX connection. Connect to a gateway ({menu} menu) and make sure the device is reachable at its individual address."
 msgstr "Ni mogoče zagnati: ni povezave KNX. Povežite se s prehodom (meni {menu}) in se prepričajte, da je naprava dosegljiva na svojem fizičnem naslovu."
 
-msgid "Match: the generated image is identical to what is on the device."
-msgstr "Ujemanje: ustvarjena slika je enaka tisti v napravi."
+msgid "Match: all compared memory bytes and properties match the device."
+msgstr "Ujemanje: vsi primerjani pomnilniški bajti in lastnosti se ujemajo z napravo."
 
 msgid "{matched} matched, {changed} would change"
 msgstr "Ujemajoči se: {matched}, bi se spremenili: {changed}"
@@ -379,8 +379,8 @@ msgstr "Linija {number} je odstranjena"
 msgid "Line: {old} -> {new}"
 msgstr "Linija: {old} -> {new}"
 
-msgid "Cannot run: the project was changed since it was opened and may no longer match the device. Undo the changes of this session, or save and reopen the project."
-msgstr "Ni mogoče zagnati: projekt je bil od odprtja spremenjen in se morda ne ujema več z napravo. Razveljavite spremembe te seje ali shranite projekt in ga znova odprite."
+msgid "Cannot run: the project was changed since it was opened and may no longer match the device. Undo the changes of this session, or reopen the project."
+msgstr "Ni mogoče zagnati: projekt je bil od odprtja spremenjen in se morda ne ujema več z napravo. Razveljavite spremembe te seje ali znova odprite projekt."
 
 msgid "Duplicate"
 msgstr "Podvoji"
@@ -3649,3 +3649,84 @@ msgstr "Preberi simbole iz naprave…"
 
 msgid "Read all symbols from {address}? This takes about 2:30 minutes. The images will be saved in this project; the device stays unchanged."
 msgstr "Preberem vse simbole iz naprave {address}? Branje traja približno 2 minuti in 30 sekund. Slike bodo shranjene v ta projekt; naprava ostane nespremenjena."
+
+msgid "Unused reserved memory and PID 27 length/CRC are not compared."
+msgstr "Neuporabljen rezerviran pomnilnik in dolžina/CRC PID 27 se ne primerjata."
+
+msgid "Upper / Rocker"
+msgstr "Zgoraj / Prevesna tipka"
+
+msgid "Lower"
+msgstr "Spodaj"
+
+msgid "LED"
+msgstr "LED"
+
+msgid "Read Firmware Version"
+msgstr "Preberi različico strojne programske opreme"
+
+msgid "Import Firmware Catalog (.etsapp/.zip)…"
+msgstr "Uvozi katalog strojne programske opreme (.etsapp/.zip)…"
+
+msgid "Installed Version"
+msgstr "Nameščena različica"
+
+msgid "Read At"
+msgstr "Prebrano"
+
+msgid "Catalog: {source} (latest entry: {date})."
+msgstr "Katalog: {source} (najnovejši vnos: {date})."
+
+
+msgid "Latest Compatible Version"
+msgstr "Najnovejša združljiva različica"
+
+msgid "Not determined"
+msgstr "Ni določeno"
+msgid "Compares the device's hardware/software identity with this catalog. Does not install firmware. Catalog import: MDT Firmware Update .etsapp or Firmware.zip."
+msgstr "Primerja identiteto strojne/programske opreme naprave s tem katalogom. Ne namešča vdelane programske opreme. Uvoz kataloga: MDT Firmware Update .etsapp ali Firmware.zip."
+
+msgid "Hardware/software identity could not be determined. Read the device to check compatibility."
+msgstr "Identitete strojne/programske opreme ni bilo mogoče določiti. Preberite napravo, da preverite združljivost."
+
+msgid "No compatible firmware in this catalog."
+msgstr "V tem katalogu ni združljive vdelane programske opreme."
+
+msgid "Installed version could not be determined."
+msgstr "Nameščene različice ni bilo mogoče določiti."
+
+msgid "A newer compatible version is available in this catalog."
+msgstr "V tem katalogu je na voljo novejša združljiva različica."
+
+msgid "Up to date with this catalog."
+msgstr "Posodobljeno glede na ta katalog."
+
+msgid "Hardware/Software Key"
+msgstr "Ključ strojne/programske opreme"
+
+msgid "Bootloader Version Code"
+msgstr "Koda različice zagonskega nalagalnika"
+
+msgid "Firmware Telegram Limit (Bytes)"
+msgstr "Omejitev telegramov vdelane programske opreme (bajti)"
+
+msgid "Compatible Firmware File"
+msgstr "Združljiva datoteka vdelane programske opreme"
+
+msgid "Catalog File Modified"
+msgstr "Datoteka kataloga spremenjena"
+
+msgid "CRC Type Code"
+msgstr "Koda vrste CRC"
+
+msgid "Firmware Encryption Type Code"
+msgstr "Koda vrste šifriranja vdelane programske opreme"
+
+msgid "Bootloader Information (Raw)"
+msgstr "Podatki zagonskega nalagalnika (surovi)"
+
+msgid "Version Property (Raw)"
+msgstr "Lastnost različice (surova)"
+
+msgid "Bootloader version, CRC and encryption are reported as numeric codes. They do not describe KNX Secure."
+msgstr "Različica zagonskega nalagalnika, CRC in šifriranje so navedeni kot številske kode. Ne opisujejo KNX Secure."

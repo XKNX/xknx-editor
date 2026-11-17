@@ -1018,14 +1018,14 @@ msgstr "Vyhodnocení selhalo"
 msgid "Read-only test: compares what a download would write with what is on the device. Nothing is written to the device."
 msgstr "Test pouze pro čtení: porovná, co by stahování zapsalo, s tím, co je v zařízení. Do zařízení se nic nezapíše."
 
-msgid "Cannot run: the project was changed since it was opened and may no longer match the device. Undo the changes of this session, or save and reopen the project."
-msgstr "Nelze spustit: projekt byl od otevření změněn a nemusí již odpovídat zařízení. Vraťte změny této relace, nebo projekt uložte a znovu otevřete."
+msgid "Cannot run: the project was changed since it was opened and may no longer match the device. Undo the changes of this session, or reopen the project."
+msgstr "Nelze spustit: projekt byl od otevření změněn a nemusí již odpovídat zařízení. Vraťte změny této relace nebo projekt znovu otevřete."
 
 msgid "Cannot run: no KNX connection. Connect to a gateway ({menu} menu) and make sure the device is reachable at its individual address."
 msgstr "Nelze spustit: žádné připojení KNX. Připojte se k bráně (nabídka {menu}) a ujistěte se, že je zařízení dosažitelné na své individuální adrese."
 
-msgid "Match: the generated image is identical to what is on the device."
-msgstr "Shoda: vytvořený obraz je totožný s obsahem zařízení."
+msgid "Match: all compared memory bytes and properties match the device."
+msgstr "Shoda: všechny porovnané bajty paměti a vlastnosti odpovídají zařízení."
 
 msgid "{matched} matched, {changed} would change"
 msgstr "Shodné: {matched}, změnilo by se: {changed}"
@@ -3570,3 +3570,84 @@ msgstr "Načíst symboly ze zařízení…"
 
 msgid "Read all symbols from {address}? This takes about 2:30 minutes. The images will be saved in this project; the device stays unchanged."
 msgstr "Načíst všechny symboly ze zařízení {address}? Čtení trvá přibližně 2:30 minuty. Obrázky se uloží do tohoto projektu; zařízení zůstane beze změny."
+
+msgid "Unused reserved memory and PID 27 length/CRC are not compared."
+msgstr "Nevyužitá rezervovaná paměť a délka/CRC PID 27 se neporovnávají."
+
+msgid "Upper / Rocker"
+msgstr "Nahoře / Kolébka"
+
+msgid "Lower"
+msgstr "Dole"
+
+msgid "LED"
+msgstr "LED"
+
+msgid "Read Firmware Version"
+msgstr "Načíst verzi firmwaru"
+
+msgid "Import Firmware Catalog (.etsapp/.zip)…"
+msgstr "Importovat katalog firmwaru (.etsapp/.zip)…"
+
+msgid "Installed Version"
+msgstr "Nainstalovaná verze"
+
+msgid "Read At"
+msgstr "Načteno"
+
+msgid "Catalog: {source} (latest entry: {date})."
+msgstr "Katalog: {source} (nejnovější záznam: {date})."
+
+
+msgid "Latest Compatible Version"
+msgstr "Nejnovější kompatibilní verze"
+
+msgid "Not determined"
+msgstr "Neurčeno"
+msgid "Compares the device's hardware/software identity with this catalog. Does not install firmware. Catalog import: MDT Firmware Update .etsapp or Firmware.zip."
+msgstr "Porovná identitu hardwaru/softwaru zařízení s tímto katalogem. Neinstaluje firmware. Import katalogu: MDT Firmware Update .etsapp nebo Firmware.zip."
+
+msgid "Hardware/software identity could not be determined. Read the device to check compatibility."
+msgstr "Identitu hardwaru/softwaru se nepodařilo určit. Načtěte zařízení pro ověření kompatibility."
+
+msgid "No compatible firmware in this catalog."
+msgstr "V tomto katalogu není kompatibilní firmware."
+
+msgid "Installed version could not be determined."
+msgstr "Nainstalovanou verzi se nepodařilo určit."
+
+msgid "A newer compatible version is available in this catalog."
+msgstr "V tomto katalogu je k dispozici novější kompatibilní verze."
+
+msgid "Up to date with this catalog."
+msgstr "Aktuální podle tohoto katalogu."
+
+msgid "Hardware/Software Key"
+msgstr "Klíč hardwaru/softwaru"
+
+msgid "Bootloader Version Code"
+msgstr "Kód verze zavaděče"
+
+msgid "Firmware Telegram Limit (Bytes)"
+msgstr "Limit telegramů firmwaru (bajty)"
+
+msgid "Compatible Firmware File"
+msgstr "Kompatibilní soubor firmwaru"
+
+msgid "Catalog File Modified"
+msgstr "Soubor katalogu změněn"
+
+msgid "CRC Type Code"
+msgstr "Kód typu CRC"
+
+msgid "Firmware Encryption Type Code"
+msgstr "Kód typu šifrování firmwaru"
+
+msgid "Bootloader Information (Raw)"
+msgstr "Informace zavaděče (surové)"
+
+msgid "Version Property (Raw)"
+msgstr "Vlastnost verze (surová)"
+
+msgid "Bootloader version, CRC and encryption are reported as numeric codes. They do not describe KNX Secure."
+msgstr "Verze zavaděče, CRC a šifrování jsou uvedeny jako číselné kódy. Nepopisují KNX Secure."

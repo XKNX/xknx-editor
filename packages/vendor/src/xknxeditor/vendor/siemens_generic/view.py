@@ -11,7 +11,7 @@ byte for byte. Nothing here writes anything.
 Settings of extension modules that are not fitted (branches switched off by a "number of
 submodules" parameter) can be shown too, marked as not fitted and not checked: the plug-in fills
 their memory with values of its own. ``compare_views`` lines up two devices' views setting by
-setting. "Percent" numbers are shown scaled (raw / full scale x 100) with the raw value kept.
+setting. "Percent" numbers use the 0..255 scale, with the raw value kept.
 """
 
 from __future__ import annotations
@@ -32,6 +32,7 @@ from .description import (
     TypeKind,
     integer,
 )
+from .presentation import ValueFormat, value_format
 
 # How often the walk is repeated at most for Assign values to settle.
 _MAX_PASSES = 128
@@ -444,23 +445,39 @@ class Evaluator:
             elif ptype.kind in (TypeKind.NUMBER, TypeKind.TIME_S, TypeKind.TIME_MS):
                 with suppress(ValueError):
                     comparison_value = str(integer(value))
+        formatting = (
+            value_format(self.d, ref_id)
+            if ref is not None and ptype is not None
+            else None
+        )
+
+        def formatted(raw: str) -> str:
+            if formatting is not None and (formatting.percent or formatting.time):
+                with suppress(ValueError):
+                    shown = formatting.display(raw)
+                    if formatting.percent:
+                        return f"{shown} %"
+                    unit = "ms" if formatting.kind is TypeKind.TIME_MS else "s"
+                    return f"{shown} ({raw} {unit})"
+            return self.value_text(raw, ptype, param, label)
+
         return Row(
             ref_id=ref_id,
             parameter=param.name if param is not None else "",
             label=label,
             value=value,
-            value_text=self.value_text(value, ptype, param, label),
+            value_text=formatted(value),
             default_value=self.default(ref_id),
             stored=ref_id in self.s.values,
             assigned=ref_id in walk.assigned,
             memory=memory,
             memory_value=memory_value,
-            memory_value_text=self.value_text(memory_value, ptype, param, label)
-            if memory_value
-            else "",
+            memory_value_text=formatted(memory_value) if memory_value else "",
             address=address,
-            scaled=percent_text(value, ptype, param) is not None,
-            clock=clock_text(value, ptype, label) is not None,
+            scaled=bool(formatting and formatting.percent)
+            or percent_text(value, ptype, param) is not None,
+            clock=bool(formatting and formatting.time)
+            or clock_text(value, ptype, label) is not None,
             fitted=fitted,
             comparison_value=comparison_value,
         )
@@ -500,18 +517,16 @@ def clock_text(value: str, ptype: ParameterType | None, label: str) -> str | Non
 def percent_text(
     value: str, ptype: ParameterType | None, param: Parameter | None
 ) -> str | None:
-    """A "Percent" number as a percentage of its full scale ("40 %" for 102 of 255), None for
+    """A "Percent" number on the 0..255 scale ("40 %" for 102), None for
     any other setting or a value that is not a number."""
     if param is None or ptype is None or param.format.lower() != "percent":
         return None
-    if ptype.kind is not TypeKind.NUMBER or ptype.full_scale is None:
+    if ptype.kind is not TypeKind.NUMBER:
         return None
     try:
-        raw = int(value)
+        text = ValueFormat(ptype.kind, format="Percent").display(value)
     except ValueError:
         return None
-    share = round(raw * 100 / ptype.full_scale, 1)
-    text = f"{share:.1f}".removesuffix(".0")
     return f"{text} %"
 
 

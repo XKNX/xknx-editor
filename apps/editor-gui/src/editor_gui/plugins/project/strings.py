@@ -8,6 +8,76 @@ _ = create_translator("project", _locale_dir)
 
 class ProjectStrings:
     @property
+    def MDT_FIRMWARE_READ(self) -> str:
+        return _("Read Firmware Version")
+
+    @property
+    def MDT_FIRMWARE_IMPORT(self) -> str:
+        return _("Import Firmware Catalog (.etsapp/.zip)…")
+
+    @property
+    def MDT_FIRMWARE_INSTALLED(self) -> str:
+        return _("Installed Version")
+
+    @property
+    def MDT_FIRMWARE_COMPATIBLE(self) -> str:
+        return _("Latest Compatible Version")
+
+    @property
+    def MDT_FIRMWARE_UNDETERMINED(self) -> str:
+        return _("Not determined")
+
+    @property
+    def MDT_FIRMWARE_READ_AT(self) -> str:
+        return _("Read At")
+
+    @property
+    def MDT_FIRMWARE_CATALOG(self) -> str:
+        return _("Catalog: {source} (latest entry: {date}).")
+
+    @property
+    def MDT_FIRMWARE_FIELDS(self) -> dict[str, str]:
+        return {
+            "hardware_key": _("Hardware/Software Key"),
+            "version_code": _("Bootloader Version Code"),
+            "max_telegram_length": _("Firmware Telegram Limit (Bytes)"),
+            "filename": _("Compatible Firmware File"),
+            "modified": _("Catalog File Modified"),
+            "crc_type_code": _("CRC Type Code"),
+            "encryption_type_code": _("Firmware Encryption Type Code"),
+            "bsl_info_hex": _("Bootloader Information (Raw)"),
+            "version_property_hex": _("Version Property (Raw)"),
+        }
+
+    @property
+    def MDT_FIRMWARE_CODES_HELP(self) -> str:
+        return _(
+            "Bootloader version, CRC and encryption are reported as numeric codes. They do not describe KNX Secure."
+        )
+
+    @property
+    def MDT_FIRMWARE_HELP(self) -> str:
+        return _(
+            "Compares the device's hardware/software identity with this catalog. Does not install firmware. Catalog import: MDT Firmware Update .etsapp or Firmware.zip."
+        )
+
+    @property
+    def MDT_FIRMWARE_STATUS(self) -> dict[str, str]:
+        return {
+            "hardware_identity_not_read": _(
+                "Hardware/software identity could not be determined. Read the device to check compatibility."
+            ),
+            "no_compatible_release": _("No compatible firmware in this catalog."),
+            "installed_version_unknown": _(
+                "Installed version could not be determined."
+            ),
+            "update_available": _(
+                "A newer compatible version is available in this catalog."
+            ),
+            "up_to_date": _("Up to date with this catalog."),
+        }
+
+    @property
     def MDT_READ_SYMBOLS(self) -> str:
         return _("Read Symbols from Device")
 
@@ -3308,7 +3378,7 @@ class ProjectStrings:
     def PREFLIGHT_PROJECT_MODIFIED(self) -> str:
         return _(
             "Cannot run: the project was changed since it was opened and may no "
-            "longer match the device. Undo the changes of this session, or save and "
+            "longer match the device. Undo the changes of this session, or "
             "reopen the project."
         )
 
@@ -3322,7 +3392,7 @@ class ProjectStrings:
 
     @property
     def PREFLIGHT_MATCH(self) -> str:
-        return _("Match: the generated image is identical to what is on the device.")
+        return _("Match: all compared memory bytes and properties match the device.")
 
     @property
     def PREFLIGHT_WOULD_CHANGE(self) -> str:
@@ -3338,6 +3408,22 @@ class ProjectStrings:
     @property
     def PREFLIGHT_SUMMARY_COUNTS(self) -> str:
         return _("{matched} matched, {changed} would change")
+
+    @property
+    def PREFLIGHT_POWERTOOL_NOTE(self) -> str:
+        return _("Unused reserved memory and PID 27 length/CRC are not compared.")
+
+    @property
+    def POWERTOOL_LED(self) -> str:
+        return _("LED")
+
+    @property
+    def POWERTOOL_UPPER(self) -> str:
+        return _("Upper / Rocker")
+
+    @property
+    def POWERTOOL_LOWER(self) -> str:
+        return _("Lower")
 
     @property
     def PREFLIGHT_ETS6_NOTE(self) -> str:

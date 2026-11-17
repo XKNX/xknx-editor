@@ -12,6 +12,8 @@ from importlib.resources import files
 from types import MappingProxyType
 from typing import Any, Literal
 
+from .presentation import free_timer_label
+
 Variant = Literal["01", "02"]
 Number = int | float
 BLOB_NAME = "PowerTool6108-Config"
@@ -111,7 +113,9 @@ def functions() -> Mapping[str, Function]:
         fields_ = tuple(
             Field(
                 p["key"],
-                p["label"],
+                free_timer_label(p["label"])
+                if p["kind"] == "freetimer"
+                else p["label"],
                 p["kind"],
                 p["storage"],
                 p["address"],

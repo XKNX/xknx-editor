@@ -1018,14 +1018,14 @@ msgstr "Error en la evaluación"
 msgid "Read-only test: compares what a download would write with what is on the device. Nothing is written to the device."
 msgstr "Prueba de solo lectura: compara lo que escribiría una descarga con lo que hay en el dispositivo. No se escribe nada en el dispositivo."
 
-msgid "Cannot run: the project was changed since it was opened and may no longer match the device. Undo the changes of this session, or save and reopen the project."
-msgstr "No se puede ejecutar: el proyecto ha cambiado desde que se abrió y puede que ya no coincida con el dispositivo. Deshaga los cambios de esta sesión o guarde y vuelva a abrir el proyecto."
+msgid "Cannot run: the project was changed since it was opened and may no longer match the device. Undo the changes of this session, or reopen the project."
+msgstr "No se puede ejecutar: el proyecto ha cambiado desde que se abrió y puede no coincidir con el dispositivo. Deshaga los cambios de esta sesión o vuelva a abrir el proyecto."
 
 msgid "Cannot run: no KNX connection. Connect to a gateway ({menu} menu) and make sure the device is reachable at its individual address."
 msgstr "No se puede ejecutar: no hay conexión KNX. Conéctese a una pasarela (menú {menu}) y asegúrese de que el dispositivo es accesible en su dirección individual."
 
-msgid "Match: the generated image is identical to what is on the device."
-msgstr "Coincide: la imagen generada es idéntica a la del dispositivo."
+msgid "Match: all compared memory bytes and properties match the device."
+msgstr "Coincidencia: todos los bytes de memoria y propiedades comparados coinciden con el dispositivo."
 
 msgid "{matched} matched, {changed} would change"
 msgstr "{matched} coinciden, {changed} cambiarían"
@@ -3520,3 +3520,84 @@ msgstr "Leer símbolos del dispositivo…"
 
 msgid "Read all symbols from {address}? This takes about 2:30 minutes. The images will be saved in this project; the device stays unchanged."
 msgstr "¿Leer todos los símbolos de {address}? La lectura tarda aproximadamente 2:30 minutos. Las imágenes se guardarán en este proyecto; el dispositivo no se modificará."
+
+msgid "Unused reserved memory and PID 27 length/CRC are not compared."
+msgstr "No se comparan la memoria reservada sin usar ni la longitud/CRC de PID 27."
+
+msgid "Upper / Rocker"
+msgstr "Arriba / Balancín"
+
+msgid "Lower"
+msgstr "Abajo"
+
+msgid "LED"
+msgstr "LED"
+
+msgid "Read Firmware Version"
+msgstr "Leer versión del firmware"
+
+msgid "Import Firmware Catalog (.etsapp/.zip)…"
+msgstr "Importar catálogo de firmware (.etsapp/.zip)…"
+
+msgid "Installed Version"
+msgstr "Versión instalada"
+
+msgid "Read At"
+msgstr "Leído el"
+
+msgid "Catalog: {source} (latest entry: {date})."
+msgstr "Catálogo: {source} (última entrada: {date})."
+
+
+msgid "Latest Compatible Version"
+msgstr "Última versión compatible"
+
+msgid "Not determined"
+msgstr "No determinada"
+msgid "Compares the device's hardware/software identity with this catalog. Does not install firmware. Catalog import: MDT Firmware Update .etsapp or Firmware.zip."
+msgstr "Compara la identificación de hardware/software del dispositivo con este catálogo. No instala firmware. Importar catálogo: MDT Firmware Update .etsapp o Firmware.zip."
+
+msgid "Hardware/software identity could not be determined. Read the device to check compatibility."
+msgstr "No se pudo determinar la identificación de hardware/software. Lea el dispositivo para comprobar la compatibilidad."
+
+msgid "No compatible firmware in this catalog."
+msgstr "No hay firmware compatible en este catálogo."
+
+msgid "Installed version could not be determined."
+msgstr "No se pudo determinar la versión instalada."
+
+msgid "A newer compatible version is available in this catalog."
+msgstr "Hay una versión compatible más reciente en este catálogo."
+
+msgid "Up to date with this catalog."
+msgstr "Actualizado según este catálogo."
+
+msgid "Hardware/Software Key"
+msgstr "Clave de hardware/software"
+
+msgid "Bootloader Version Code"
+msgstr "Código de versión del gestor de arranque"
+
+msgid "Firmware Telegram Limit (Bytes)"
+msgstr "Límite de telegramas del firmware (bytes)"
+
+msgid "Compatible Firmware File"
+msgstr "Archivo de firmware compatible"
+
+msgid "Catalog File Modified"
+msgstr "Archivo del catálogo modificado"
+
+msgid "CRC Type Code"
+msgstr "Código del tipo de CRC"
+
+msgid "Firmware Encryption Type Code"
+msgstr "Código del tipo de cifrado del firmware"
+
+msgid "Bootloader Information (Raw)"
+msgstr "Información del gestor de arranque (sin procesar)"
+
+msgid "Version Property (Raw)"
+msgstr "Propiedad de versión (sin procesar)"
+
+msgid "Bootloader version, CRC and encryption are reported as numeric codes. They do not describe KNX Secure."
+msgstr "La versión del gestor de arranque, el CRC y el cifrado se indican mediante códigos numéricos. No describen KNX Secure."

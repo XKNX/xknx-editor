@@ -22,11 +22,6 @@ from xknxeditor.vendor.powertool import (
     HostProfile,
 )
 from xknxeditor.vendor.powertool.binding import SIZE_TEXT, bind_catalog
-from xknxeditor.vendor.powertool.model import (
-    EvaluatedChannel,
-    PowerToolConfig,
-    channel_exists,
-)
 from xknxeditor.vendor.powertool.native import (
     Configuration,
     channel_labels,
@@ -98,6 +93,10 @@ def configuration(device: Device) -> Configuration:
 def install_view(device: Device) -> None:
     if not any(r.name == BLOB_NAME for r in device.binary_data):
         return
+    from editor_gui.languages import product_language
+    from xknxeditor.vendor.powertool.family import FamilyConfig, schema_for
+    from xknxeditor.vendor.powertool.presentation import Presentation
+
     device.native_objects = []
     device.native_modules = []
     device.native_error = None
@@ -112,6 +111,13 @@ def install_view(device: Device) -> None:
             raise ValueError("native object bindings disagree with the product")
         catalog = ApplicationIndexer(device.app.program)
         overrides = {r.ref_id: r for r in device.com_object_instance_refs}
+        language = product_language()
+        presentation = Presentation(
+            schema_for(config.profile, config.database_code)["code"]
+            if isinstance(config, FamilyConfig)
+            else 3,
+            language,
+        )
         for role in compiled.objects:
             if not role.visible:
                 continue
@@ -127,7 +133,15 @@ def install_view(device: Device) -> None:
             device.native_objects.append(
                 ComObject(
                     id=ref,
-                    name=role.name,
+                    name=presentation.text(
+                        role.key.rsplit("/", 1)[-1]
+                        if isinstance(config, FamilyConfig)
+                        else presentation.native_node(
+                            config.channels[role.channel].function,
+                            object_key=role.key.rsplit("/", 1)[-1],
+                        ),
+                        role.name,
+                    ),
                     dpt=lookup_or_make_dpt(role.dpt),
                     flags=flags,
                     number=catalog.com_objects[
@@ -140,7 +154,7 @@ def install_view(device: Device) -> None:
                     else priority_from_bits(role.flags),
                 )
             )
-        for channel, label in enumerate(channel_labels(config)):
+        for channel, label in enumerate(channel_labels(config, language)):
             refs = frozenset(
                 bindings[o.key]
                 for o in compiled.objects
@@ -154,6 +168,30 @@ def install_view(device: Device) -> None:
     except ValueError as exc:
         device.native_error = str(exc)
         device.com_objects = []
+
+
+def apply_stored_object_dpts(device: Device) -> None:
+    """Derive default types only for uniquely matched stored object roles."""
+    try:
+        state = PROVIDER.read(device)
+    except ValueError:
+        return
+    explicit = {
+        ref.ref_id for ref in device.com_object_instance_refs if ref.datapoint_type
+    }
+    objects = {obj.id: obj for obj in device.get_visible_com_objects()}
+    for role in state.source_objects or ():
+        obj = objects.get(role.reference)
+        if (
+            obj is None
+            or obj.id in explicit
+            or obj.object_size != role.size
+            or not role.dpt
+        ):
+            continue
+        obj.dpt = lookup_or_make_dpt(role.dpt)
+        if obj.dpt not in obj.supported_dpts:
+            obj.supported_dpts.append(obj.dpt)
 
 
 def _stored_objects(
@@ -298,27 +336,6 @@ def _prepare(
                     obj.flags,
                     effective,
                 )
-        if isinstance(config, PowerToolConfig):
-            for index, channel in enumerate(config.channels):
-                if not channel_exists(config, index):
-                    continue
-                evaluated = EvaluatedChannel(channel)
-                for field_index, field in enumerate(evaluated.function.fields):
-                    if (
-                        field.kind == "freetimer"
-                        and field.key not in channel.values
-                        and evaluated.exists(field_index)
-                    ):
-                        _LOGGER.debug(
-                            "PowerTool %s: channel %s/%s parameter %s has no stored value; "
-                            "default %s ms, encoded %04x",
-                            device.individual_address,
-                            index,
-                            channel.function,
-                            field.key,
-                            evaluated.value(field_index),
-                            int(evaluated.stored_value(field_index)),
-                        )
         _LOGGER.debug(
             "PowerTool %s (%s): prepared payload lengths %s, allocation reservations %s",
             device.individual_address,

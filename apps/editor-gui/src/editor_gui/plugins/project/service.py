@@ -41,7 +41,7 @@ from editor_gui.device_snapshot import (
     snapshot_key,
     snapshot_state,
 )
-from editor_gui.dpt import dpt_from_token, lookup_or_make_dpt
+from editor_gui.dpt import dpt_from_token
 from editor_gui.hardware_text import current_text
 from editor_gui.plugin_providers import native_blob_names
 from editor_gui.plugins.project.code_page import code_page_text
@@ -127,7 +127,7 @@ if TYPE_CHECKING:
         DiffProgress,
         DiffResult,
     )
-    from editor_gui.programming_mdt import SymbolReadTarget
+    from editor_gui.programming_mdt import FirmwareReadTarget, SymbolReadTarget
     from xknxeditor.catalog import ProductDeletion, ProductSummary, ProgramSummary
     from xknxeditor.download.image import GroupCommunication
     from xknxeditor.download.ip_config import IpDeviceConfig
@@ -161,6 +161,7 @@ if TYPE_CHECKING:
     )
     from xknxeditor.proj.models import Device as DeviceRow
     from xknxeditor.vendor.mdt import DcaProfile
+    from xknxeditor.vendor.mdt.firmware import FirmwareCatalog, FirmwareInfo
     from xknxeditor.vendor.mdt.layout import Layout
     from xknxeditor.vendor.triton import DeviceType as TritonDeviceType
 
@@ -392,7 +393,8 @@ def _device_source_key(row: Any) -> tuple[Any, ...]:
         tuple(
             (r.name, bytes(r.data or b""))
             for r in getattr(row, "binary_data", ())
-            if r.name in native_blob_names() or r.name == "BLOB_STRING"
+            if r.name in native_blob_names()
+            or r.name in ("BLOB_STRING", "PT2EtsPlugin")
         ),
     )
 
@@ -670,6 +672,9 @@ _HISTORY_LABELS: dict[str, Callable[[dict[str, Any]], str]] = {
     ),
     "SetDeviceAddinData": lambda d: S.HISTORY_EV_STORE_PLUGIN_DATA.format(
         name=_quoted(d, "app_id")
+    ),
+    "SetProjectUserFile": lambda d: S.HISTORY_EV_STORE_PLUGIN_DATA.format(
+        name=_quoted(d, "filename")
     ),
     "SetParameter": lambda d: S.HISTORY_EV_SET_PARAMETER.format(
         ref=d.get("ref_id", ""), value=_quoted(d, "value")
@@ -1329,6 +1334,9 @@ class ProjectService:
         # Bumped on every new/open/close so a long-running bus operation can tell its originating
         # project from whatever is open when its deferred writes finally run (see persist_script_changes).
         self._generation = 0
+        self._mdt_firmware_reads: dict[
+            int, tuple[FirmwareReadTarget, FirmwareInfo, str]
+        ] = {}
         # ``_path`` is the user-facing "home" (may be on a network share). ``_working_path`` is the
         # local file the SQLite engine actually uses; equal to ``_path`` for a normal local project.
         # They differ only in the SMB/network fallback: the engine works on a local mirror and the
@@ -1417,7 +1425,7 @@ class ProjectService:
         # Reads per device that depend on the catalog too (see _device_read).
         self._device_reads: dict[tuple[str, int], tuple[tuple[int, int], object]] = {}
         self._plugin_reads: dict[tuple[str, int], tuple[Device, object]] = {}
-        self._plugin_read_stamp: tuple[int, int, int, str] | None = None
+        self._plugin_read_stamp: tuple[int, int, int, str, str] | None = None
         # Each lazy cache tracks the project version it was built at, independently. A single shared
         # counter is wrong: after an edit only the first cache read would rebuild (and stamp the
         # shared version), leaving the others returning stale data until the next edit.
@@ -1725,6 +1733,7 @@ class ProjectService:
         self._path = None
         self._working_path = None
         self._generation += 1
+        self._mdt_firmware_reads.clear()
         self._reset()
 
     @staticmethod
@@ -2532,7 +2541,10 @@ class ProjectService:
     def _restore_device(self, row: Any, content: tuple[Any, ...]) -> Device | None:
         """The device of ``row`` from its stored snapshot, without loading its application;
         ``None`` when it has none that matches what the device is now built from."""
-        if any(r.name in native_blob_names() for r in row.binary_data):
+        if any(
+            r.name in native_blob_names() or r.name == "PT2EtsPlugin"
+            for r in row.binary_data
+        ):
             return None
         stored = self._stored_snapshot(row.id)
         program_ref = row.hardware2program_ref_id
@@ -4200,6 +4212,135 @@ class ProjectService:
         self._bump(structural=False)
 
     @staticmethod
+    def has_mdt_firmware(device: Device) -> bool:
+        return device.app is not None and device.app.manufacturer_id == "M-0083"
+
+    def prepare_mdt_firmware_read(self, node_id: int) -> "FirmwareReadTarget":
+        from editor_gui.programming_mdt import FirmwareReadTarget
+
+        device = self.find_device_by_node_id(node_id)
+        if self._pid is None or device is None or not self.has_mdt_firmware(device):
+            raise ValueError("Device is not an MDT device")
+        assert device.app is not None
+        target = FirmwareReadTarget(
+            self.generation,
+            node_id,
+            device.individual_address or "",
+            device.app.id,
+            device.order_number,
+        )
+        stored = self._mdt_firmware_reads.get(node_id)
+        if stored is not None and stored[0] != target:
+            del self._mdt_firmware_reads[node_id]
+        return target
+
+    def apply_mdt_firmware_read(
+        self, target: "FirmwareReadTarget", info: "FirmwareInfo"
+    ) -> dict[str, Any]:
+        """Keep a session readout without changing configuration or history."""
+        if self.prepare_mdt_firmware_read(target.node_id) != target:
+            raise ValueError("Device changed while reading; read it again")
+        self._mdt_firmware_reads[target.node_id] = (
+            target,
+            info,
+            datetime.datetime.now(datetime.UTC).isoformat(),
+        )
+        return self.mdt_firmware(target.node_id)
+
+    @revision_cached
+    def mdt_firmware_catalog(self) -> "FirmwareCatalog":
+        from xknxeditor.vendor.mdt.firmware import bundled_catalog, load_catalog
+
+        data = (
+            self._svc.project_user_file(self._pid, "MDT-Firmware-Catalog.json")
+            if self._pid
+            else None
+        )
+        return load_catalog(data) if data is not None else bundled_catalog()
+
+    def import_mdt_firmware_catalog(self, data: bytes, source: str) -> None:
+        """Store release metadata once for the project; never store firmware payloads."""
+        from xknxeditor.vendor.mdt.firmware import import_catalog
+
+        if self._pid is None:
+            raise ValueError("No project open")
+        catalog = import_catalog(data, source)
+        with self._io_lock:
+            self._svc.set_project_user_file(
+                self._pid,
+                "MDT-Firmware-Catalog.json",
+                catalog.dump(),
+                label=S.MDT_FIRMWARE_IMPORT,
+            )
+        self._bump(structural=False)
+
+    @revision_cached_by_args
+    def _mdt_firmware_releases(
+        self, product: str, info: "FirmwareInfo | None"
+    ) -> dict[str, Any]:
+        from dataclasses import asdict
+
+        from xknxeditor.vendor.mdt.firmware import version_key
+
+        catalog = self.mdt_firmware_catalog()
+        releases = catalog.compatible_releases(product, info) if info else ()
+        latest = releases[-1].version if releases else None
+        if info is None or info.hardware_key is None:
+            status = "hardware_identity_not_read"
+        elif latest is None:
+            status = "no_compatible_release"
+        elif info.version is None or info.version == "0.0":
+            status = "installed_version_unknown"
+        elif version_key(info.version) < version_key(latest):
+            status = "update_available"
+        else:
+            status = "up_to_date"
+        return {
+            "catalog_source": catalog.source,
+            "catalog_latest_modified": catalog.latest_modified,
+            "catalog_variants": [
+                {"hardware_key": key, "releases": [asdict(r) for r in releases]}
+                for key, releases in catalog.variants_for_product(product)
+            ],
+            "compatible_releases": [asdict(r) for r in releases],
+            "latest_compatible_version": latest,
+            "compatibility_status": status,
+            "hardware_compatibility_verified": bool(releases),
+        }
+
+    def mdt_firmware(self, node_id: int) -> dict[str, Any]:
+        """Compare read device identity and version with the project's firmware catalog."""
+        from dataclasses import asdict
+
+        target = self.prepare_mdt_firmware_read(node_id)
+        stored = self._mdt_firmware_reads.get(node_id)
+        info = stored[1] if stored is not None and stored[0] == target else None
+        bootloader = info.bootloader if info else None
+        return {
+            "node_id": node_id,
+            "address": target.address,
+            "product": target.product,
+            "installed_version": info.version if info else None,
+            "read_at": stored[2] if info is not None and stored else None,
+            "order_info_hex": info.order_info.hex()
+            if info and info.order_info
+            else None,
+            "hardware_type_hex": info.hardware_type.hex()
+            if info and info.hardware_type
+            else None,
+            "version_property_hex": info.version_property.hex()
+            if info and info.version_property
+            else None,
+            "hardware_key": info.hardware_key.hex()
+            if info and info.hardware_key
+            else None,
+            "bsl_info_hex": info.bsl_info.hex() if info and info.bsl_info else None,
+            "bootloader": asdict(bootloader) if bootloader is not None else None,
+            "identity_error": info.identity_error if info else None,
+            **self._mdt_firmware_releases(target.product, info),
+        }
+
+    @staticmethod
     def mdt_dca_profile(device: Device) -> "DcaProfile | None":
         from xknxeditor.vendor.mdt import profile_for_application
 
@@ -4900,12 +5041,14 @@ class ProjectService:
 
     def _plugin_read[T](self, name: str, device: Device, read: Callable[[], T]) -> T:
         from editor_gui.languages import product_language
+        from editor_gui.strings import get_locale
 
         stamp = (
             self.generation,
             self.revision,
             self._catalog.generation,
             product_language(),
+            get_locale(),
         )
         if stamp != self._plugin_read_stamp:
             self._plugin_reads.clear()
@@ -7914,6 +8057,12 @@ class ProjectService:
         column = _FLAG_COLUMNS.get(flag_name)
         if co is None or co.db_id is None or column is None:
             return
+        row = self._find_com_object_row(co.db_id)
+        if row is None or (
+            getattr(row, column) == value
+            and getattr(row, column + "_override") == value
+        ):
+            return
         if self._set_native_object_fields(
             device,
             co_id,
@@ -7921,7 +8070,8 @@ class ProjectService:
             S.HISTORY_EV_SET_FLAG,
         ):
             return
-        self._svc.set_com_object_flag(self._pid, co.db_id, column, value)
+        if not self._svc.set_com_object_flag(self._pid, co.db_id, column, value):
+            return
         # In place instead of a full rebuild (which would reset the Configure panel's tree/edit
         # state): reflect on the live com-object and push the com-object's full override set into the
         # live dynamic UI — exactly what a rebuild reconstructs from the DB — then bump non-structurally
@@ -7948,7 +8098,8 @@ class ProjectService:
         if co is None or co.db_id is None:
             return
         token = normalize_datapoint_type(value) if value else None
-        self._svc.set_com_object_datapoint_type(self._pid, co.db_id, token)
+        if not self._svc.set_com_object_datapoint_type(self._pid, co.db_id, token):
+            return
         # Reflect on the live com-object. With a value, update the override and the resolved display
         # DPT in place (non-structural bump keeps the Configure tree/edit state). On a clear, the
         # default DPT is only known after a rebuild, so bump structurally to pull it from the catalog.
@@ -7960,8 +8111,8 @@ class ProjectService:
                 _co_instance_ref_from_row(row, co_id)
                 or ComObjectInstanceRef(ref_id=co_id),
             )
-        if value:
-            co.dpt = lookup_or_make_dpt(value)
+        if token:
+            co.dpt = dpt_from_token(token)
         device.edited_in_place = True
         self._bump(structural=token is None)
 
@@ -7979,11 +8130,15 @@ class ProjectService:
 
         if value is not None and value not in COM_OBJECT_PRIORITIES:
             raise ValueError(f"Unknown com-object priority {value!r}")
+        row = self._find_com_object_row(co.db_id)
+        if row is None or row.priority == value:
+            return
         if self._set_native_object_fields(
             device, co_id, {"priority": value}, S.HISTORY_EV_SET_PRIORITY
         ):
             return
-        self._svc.set_com_object_priority(self._pid, co.db_id, value)
+        if not self._svc.set_com_object_priority(self._pid, co.db_id, value):
+            return
         row = self._find_com_object_row(co.db_id)
         if row is not None:
             device.set_com_obj_instance_ref(
@@ -8036,7 +8191,8 @@ class ProjectService:
         if co is None or co.db_id is None:
             return
         normalized = value or None
-        self._svc.set_com_object_description(self._pid, co.db_id, normalized)
+        if not self._svc.set_com_object_description(self._pid, co.db_id, normalized):
+            return
         co.description = normalized or ""
         device.edited_in_place = True
         self._bump(structural=False)
@@ -8679,8 +8835,8 @@ class ProjectService:
     def set_group_address_dpt(self, ga_id: int, dpt: str | None) -> None:
         if self._pid is None:
             return
-        self._svc.set_group_address_datapoint_type(self._pid, ga_id, dpt or None)
-        self._bump(structural=False)
+        if self._svc.set_group_address_datapoint_type(self._pid, ga_id, dpt or None):
+            self._bump(structural=False)
 
     def set_element_dpt(self, ga_id: int, dpt: str) -> str | None:
         """Set a group address's data point type ("" for none); the reason it cannot be, or

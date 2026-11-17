@@ -132,10 +132,9 @@ class McpServerPlugin:
         settings: SettingsWindow | None = None,
         recover: RecoverService | None = None,
         home_assistant: HomeAssistantService | None = None,
-        tool_search: Callable[[], bool] | None = None,
+        tool_discovery: Callable[[], str] | None = None,
     ) -> None:
-        """``tool_search`` says whether clients search for the tools instead of listing all
-        (the setting Tool Discovery)."""
+        """``tool_discovery`` selects "all", "search" or "catalog" (the setting Tool Discovery)."""
         self._log = Logger(api.log, "mcp")
         self._context_args: dict[str, Any] = {
             "api": api,
@@ -150,8 +149,8 @@ class McpServerPlugin:
             "recover": recover,
             "home_assistant": home_assistant,
         }
-        if tool_search is not None:
-            self._context_args["tool_search"] = tool_search
+        if tool_discovery is not None:
+            self._context_args["tool_discovery"] = tool_discovery
         self._ctx: McpContext | None = None
         self._server: uvicorn.Server | None = None
         self._thread: threading.Thread | None = None

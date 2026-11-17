@@ -1858,8 +1858,8 @@ msgstr "Alle Werkzeuge"
 msgid "Search"
 msgstr "Suche"
 
-msgid "All tools lists every tool to the AI tool. Search lists only a search for the tools and one that calls them, for AI models whose context is too small for the whole list. An AI tool sees a change once it reconnects."
-msgstr "Alle Werkzeuge zeigt dem KI-Programm jedes Werkzeug. Suche zeigt nur eine Suche nach den Werkzeugen und eines, das sie aufruft, für KI-Modelle, deren Kontext für die ganze Liste zu klein ist. Ein KI-Programm sieht eine Änderung, sobald es sich neu verbindet."
+msgid "All tools lists every tool to the AI tool. Search lists only a search for the tools and one that calls them, for AI models whose context is too small for the whole list. Tool catalog adds a compact inventory of every tool. An AI tool sees a change once it reconnects."
+msgstr "Alle Werkzeuge zeigt dem KI-Programm jedes Werkzeug. Suche zeigt nur eine Suche nach den Werkzeugen und eines, das sie aufruft, für KI-Modelle, deren Kontext für die ganze Liste zu klein ist. Werkzeugkatalog ergänzt eine kompakte Übersicht aller Werkzeuge. Ein KI-Programm sieht eine Änderung, sobald es sich neu verbindet."
 msgid "Delete"
 msgstr "Löschen"
 
@@ -1892,3 +1892,6 @@ msgstr "Beim Start letztes Projekt öffnen"
 
 msgid "When no project is given at the start, opens the project that was open last. A protected project asks for its password, unless --password-file gives it."
 msgstr "Wird beim Start kein Projekt angegeben, wird das zuletzt geöffnete Projekt geöffnet. Ein geschütztes Projekt fragt nach seinem Passwort, sofern --password-file es nicht angibt."
+
+msgid "Tool catalog"
+msgstr "Werkzeugkatalog"

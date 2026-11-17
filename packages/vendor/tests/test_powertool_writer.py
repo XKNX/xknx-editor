@@ -412,3 +412,22 @@ def test_reader_writer_keeps_typed_primitive_references_and_cycles():
     restored = read_document(write_document(document))
     assert restored.objects == document.objects
     assert restored.primitives == document.primitives
+
+
+@pytest.mark.parametrize("culture", ["de-DE", "nl-NL", "fr-FR"])
+def test_edit_retains_source_culture(culture):
+    config = default("01")
+    document = read_document(write_project_blob(None, config))
+    root = document.resolve(document.root)
+    assert isinstance(root, Record)
+    reference = root.members["cultureName"]
+    assert isinstance(reference, Reference)
+    document.objects[reference.id] = culture
+    source = write_document(document)
+    updated = edit_native(config, "powertool:0:function", "dim_rocker")
+    result = write_project_blob(source, updated)
+    restored = read_document(result)
+    root = restored.resolve(restored.root)
+    assert isinstance(root, Record)
+    assert restored.resolve(root.members["cultureName"]) == culture
+    assert compile_native(from_original(result)).pid == compile_native(updated).pid

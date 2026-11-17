@@ -1018,14 +1018,14 @@ msgstr "評価に失敗しました"
 msgid "Read-only test: compares what a download would write with what is on the device. Nothing is written to the device."
 msgstr "読み取り専用テスト：ダウンロードで書き込まれる内容とデバイス上の内容を比較します。デバイスには何も書き込まれません。"
 
-msgid "Cannot run: the project was changed since it was opened and may no longer match the device. Undo the changes of this session, or save and reopen the project."
-msgstr "実行できません：プロジェクトは開いた後に変更されているため、デバイスと一致しない可能性があります。このセッションの変更を元に戻すか、プロジェクトを保存して開き直してください。"
+msgid "Cannot run: the project was changed since it was opened and may no longer match the device. Undo the changes of this session, or reopen the project."
+msgstr "実行できません。プロジェクトは開いてから変更されており、デバイスと一致しない可能性があります。このセッションの変更を元に戻すか、プロジェクトを開き直してください。"
 
 msgid "Cannot run: no KNX connection. Connect to a gateway ({menu} menu) and make sure the device is reachable at its individual address."
 msgstr "実行できません：KNX 接続がありません。ゲートウェイに接続し（［{menu}］メニュー）、デバイスがその個別アドレスで到達可能であることを確認してください。"
 
-msgid "Match: the generated image is identical to what is on the device."
-msgstr "一致：生成されたイメージはデバイス上のものと同一です。"
+msgid "Match: all compared memory bytes and properties match the device."
+msgstr "一致：比較したすべてのメモリバイトとプロパティがデバイスと一致します。"
 
 msgid "{matched} matched, {changed} would change"
 msgstr "一致 {matched}、変更予定 {changed}"
@@ -3466,3 +3466,84 @@ msgstr "デバイスからシンボルを読み取り…"
 
 msgid "Read all symbols from {address}? This takes about 2:30 minutes. The images will be saved in this project; the device stays unchanged."
 msgstr "{address} からすべてのシンボルを読み取りますか？読み取りには約2分30秒かかります。画像はこのプロジェクトに保存され、デバイスは変更されません。"
+
+msgid "Unused reserved memory and PID 27 length/CRC are not compared."
+msgstr "未使用の予約メモリと PID 27 の長さ/CRC は比較されません。"
+
+msgid "Upper / Rocker"
+msgstr "上側 / ロッカー"
+
+msgid "Lower"
+msgstr "下側"
+
+msgid "LED"
+msgstr "LED"
+
+msgid "Read Firmware Version"
+msgstr "ファームウェアバージョンを読み取る"
+
+msgid "Import Firmware Catalog (.etsapp/.zip)…"
+msgstr "ファームウェアカタログをインポート (.etsapp/.zip)…"
+
+msgid "Installed Version"
+msgstr "インストール済みバージョン"
+
+msgid "Read At"
+msgstr "読み取り日時"
+
+msgid "Catalog: {source} (latest entry: {date})."
+msgstr "カタログ: {source}（最新項目: {date}）。"
+
+
+msgid "Latest Compatible Version"
+msgstr "最新の互換バージョン"
+
+msgid "Not determined"
+msgstr "未確認"
+msgid "Compares the device's hardware/software identity with this catalog. Does not install firmware. Catalog import: MDT Firmware Update .etsapp or Firmware.zip."
+msgstr "デバイスのハードウェア／ソフトウェア識別情報をこのカタログと比較します。ファームウェアはインストールしません。カタログのインポート: MDT Firmware Update .etsapp または Firmware.zip。"
+
+msgid "Hardware/software identity could not be determined. Read the device to check compatibility."
+msgstr "ハードウェア／ソフトウェア識別情報を確認できませんでした。互換性を確認するにはデバイスを読み取ってください。"
+
+msgid "No compatible firmware in this catalog."
+msgstr "このカタログに互換性のあるファームウェアはありません。"
+
+msgid "Installed version could not be determined."
+msgstr "インストール済みのバージョンを確認できませんでした。"
+
+msgid "A newer compatible version is available in this catalog."
+msgstr "このカタログに互換性のある新しいバージョンがあります。"
+
+msgid "Up to date with this catalog."
+msgstr "このカタログでは最新です。"
+
+msgid "Hardware/Software Key"
+msgstr "ハードウェア／ソフトウェアキー"
+
+msgid "Bootloader Version Code"
+msgstr "ブートローダーバージョンコード"
+
+msgid "Firmware Telegram Limit (Bytes)"
+msgstr "ファームウェア電文の上限（バイト）"
+
+msgid "Compatible Firmware File"
+msgstr "互換ファームウェアファイル"
+
+msgid "Catalog File Modified"
+msgstr "カタログファイル更新日時"
+
+msgid "CRC Type Code"
+msgstr "CRC種類コード"
+
+msgid "Firmware Encryption Type Code"
+msgstr "ファームウェア暗号化種類コード"
+
+msgid "Bootloader Information (Raw)"
+msgstr "ブートローダー情報（生データ）"
+
+msgid "Version Property (Raw)"
+msgstr "バージョンプロパティ（生データ）"
+
+msgid "Bootloader version, CRC and encryption are reported as numeric codes. They do not describe KNX Secure."
+msgstr "ブートローダーバージョン、CRC、暗号化は数値コードで表示されます。KNX Secureを示すものではありません。"

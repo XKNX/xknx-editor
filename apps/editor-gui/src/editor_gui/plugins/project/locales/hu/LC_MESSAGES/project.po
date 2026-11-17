@@ -220,8 +220,8 @@ msgstr "Csak olvasó teszt: összeveti, amit egy letöltés írna, azzal, ami az
 msgid "Cannot run: no KNX connection. Connect to a gateway ({menu} menu) and make sure the device is reachable at its individual address."
 msgstr "Nem futtatható: nincs KNX-kapcsolat. Csatlakozzon egy átjáróhoz ({menu} menü), és győződjön meg róla, hogy a készülék elérhető a fizikai címén."
 
-msgid "Match: the generated image is identical to what is on the device."
-msgstr "Egyezés: az előállított memóriakép megegyezik a készüléken lévővel."
+msgid "Match: all compared memory bytes and properties match the device."
+msgstr "Egyezés: minden összehasonlított memóriabájt és tulajdonság egyezik az eszközzel."
 
 msgid "{matched} matched, {changed} would change"
 msgstr "Egyező: {matched}, változna: {changed}"
@@ -379,8 +379,8 @@ msgstr "Vonal eltávolítva: {number}"
 msgid "Line: {old} -> {new}"
 msgstr "Vonal: {old} -> {new}"
 
-msgid "Cannot run: the project was changed since it was opened and may no longer match the device. Undo the changes of this session, or save and reopen the project."
-msgstr "Nem futtatható: a projekt a megnyitása óta megváltozott, és lehet, hogy már nem egyezik az eszközzel. Vonja vissza a munkamenet módosításait, vagy mentse és nyissa meg újra a projektet."
+msgid "Cannot run: the project was changed since it was opened and may no longer match the device. Undo the changes of this session, or reopen the project."
+msgstr "Nem futtatható: a projekt a megnyitása óta megváltozott, és lehet, hogy már nem felel meg az eszköznek. Vonja vissza a munkamenet módosításait, vagy nyissa meg újra a projektet."
 
 msgid "Duplicate"
 msgstr "Duplikálás"
@@ -3493,3 +3493,84 @@ msgstr "Szimbólumok olvasása az eszközről…"
 
 msgid "Read all symbols from {address}? This takes about 2:30 minutes. The images will be saved in this project; the device stays unchanged."
 msgstr "Beolvassa az összes szimbólumot a(z) {address} eszközről? A beolvasás körülbelül 2 perc 30 másodpercet vesz igénybe. A képek ebbe a projektbe kerülnek; az eszköz változatlan marad."
+
+msgid "Unused reserved memory and PID 27 length/CRC are not compared."
+msgstr "A nem használt lefoglalt memória és a PID 27 hossza/CRC-je nincs összehasonlítva."
+
+msgid "Upper / Rocker"
+msgstr "Felső / Billenőkapcsoló"
+
+msgid "Lower"
+msgstr "Alsó"
+
+msgid "LED"
+msgstr "LED"
+
+msgid "Read Firmware Version"
+msgstr "Firmware-verzió olvasása"
+
+msgid "Import Firmware Catalog (.etsapp/.zip)…"
+msgstr "Firmware-katalógus importálása (.etsapp/.zip)…"
+
+msgid "Installed Version"
+msgstr "Telepített verzió"
+
+msgid "Read At"
+msgstr "Olvasás ideje"
+
+msgid "Catalog: {source} (latest entry: {date})."
+msgstr "Katalógus: {source} (legújabb bejegyzés: {date})."
+
+
+msgid "Latest Compatible Version"
+msgstr "Legújabb kompatibilis verzió"
+
+msgid "Not determined"
+msgstr "Nincs meghatározva"
+msgid "Compares the device's hardware/software identity with this catalog. Does not install firmware. Catalog import: MDT Firmware Update .etsapp or Firmware.zip."
+msgstr "Összehasonlítja az eszköz hardver-/szoftverazonosítóját ezzel a katalógussal. Nem telepít firmware-t. Katalógusimport: MDT Firmware Update .etsapp vagy Firmware.zip."
+
+msgid "Hardware/software identity could not be determined. Read the device to check compatibility."
+msgstr "A hardver-/szoftverazonosító nem határozható meg. Olvassa be az eszközt a kompatibilitás ellenőrzéséhez."
+
+msgid "No compatible firmware in this catalog."
+msgstr "Nincs kompatibilis firmware ebben a katalógusban."
+
+msgid "Installed version could not be determined."
+msgstr "A telepített verzió nem határozható meg."
+
+msgid "A newer compatible version is available in this catalog."
+msgstr "Újabb kompatibilis verzió érhető el ebben a katalógusban."
+
+msgid "Up to date with this catalog."
+msgstr "Naprakész a katalógus szerint."
+
+msgid "Hardware/Software Key"
+msgstr "Hardver-/szoftverkulcs"
+
+msgid "Bootloader Version Code"
+msgstr "Rendszerbetöltő verziókódja"
+
+msgid "Firmware Telegram Limit (Bytes)"
+msgstr "Firmware-táviratkorlát (bájt)"
+
+msgid "Compatible Firmware File"
+msgstr "Kompatibilis firmware-fájl"
+
+msgid "Catalog File Modified"
+msgstr "Katalógusfájl módosítva"
+
+msgid "CRC Type Code"
+msgstr "CRC-típuskód"
+
+msgid "Firmware Encryption Type Code"
+msgstr "Firmware-titkosítás típuskódja"
+
+msgid "Bootloader Information (Raw)"
+msgstr "Rendszerbetöltő adatai (nyers)"
+
+msgid "Version Property (Raw)"
+msgstr "Verziótulajdonság (nyers)"
+
+msgid "Bootloader version, CRC and encryption are reported as numeric codes. They do not describe KNX Secure."
+msgstr "A rendszerbetöltő verziója, a CRC és a titkosítás számkódként jelenik meg. Nem a KNX Secure beállításait írják le."

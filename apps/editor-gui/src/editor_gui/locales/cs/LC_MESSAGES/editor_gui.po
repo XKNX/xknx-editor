@@ -1717,8 +1717,8 @@ msgstr "Všechny nástroje"
 msgid "Search"
 msgstr "Hledání"
 
-msgid "All tools lists every tool to the AI tool. Search lists only a search for the tools and one that calls them, for AI models whose context is too small for the whole list. An AI tool sees a change once it reconnects."
-msgstr "Všechny nástroje: nástroj AI dostane seznam všech nástrojů. Hledání: dostane jen vyhledávání nástrojů a nástroj, který je volá – pro modely AI, jejichž kontext je na celý seznam příliš malý. Nástroj AI uvidí změnu po opětovném připojení."
+msgid "All tools lists every tool to the AI tool. Search lists only a search for the tools and one that calls them, for AI models whose context is too small for the whole list. Tool catalog adds a compact inventory of every tool. An AI tool sees a change once it reconnects."
+msgstr "Všechny nástroje: nástroj AI dostane seznam všech nástrojů. Hledání: dostane jen vyhledávání nástrojů a nástroj, který je volá – pro modely AI, jejichž kontext je na celý seznam příliš malý. Katalog nástrojů přidává stručný přehled všech nástrojů. Nástroj AI uvidí změnu po opětovném připojení."
 msgid "Delete"
 msgstr "Smazat"
 
@@ -1751,3 +1751,6 @@ msgstr "Při spuštění otevřít poslední projekt"
 
 msgid "When no project is given at the start, opens the project that was open last. A protected project asks for its password, unless --password-file gives it."
 msgstr "Pokud při spuštění není zadán žádný projekt, otevře naposledy otevřený projekt. Chráněný projekt se zeptá na heslo, pokud ho nezadává --password-file."
+
+msgid "Tool catalog"
+msgstr "Katalog nástrojů"

@@ -1,5 +1,6 @@
 """Present the native push-button function and dependent parameter tree."""
 
+from editor_gui.languages import product_language
 from editor_gui.plugin_params import PluginParameter, PluginSectionView
 from editor_gui.plugins.project.strings import S
 from xknxeditor.vendor.powertool import BLOB_NAME
@@ -11,6 +12,7 @@ from xknxeditor.vendor.powertool.model import (
     functions,
 )
 from xknxeditor.vendor.powertool.native import load as from_json_bytes
+from xknxeditor.vendor.powertool.presentation import Presentation, free_timer_label
 from xknxeditor.vendor.powertool.project_blob import (
     PLUGIN_BLOB_NAME,
     SavedParameter,
@@ -20,7 +22,7 @@ from xknxeditor.vendor.powertool.project_blob import (
 
 def read_original(data: bytes) -> list[PluginSectionView]:
     """Expose stored values without granting editing or image capabilities."""
-    project = read_project_blob(data)
+    project = read_project_blob(data, product_language())
     section = PLUGIN_BLOB_NAME
     metadata = {
         "database": project.database,
@@ -63,7 +65,7 @@ def read_original(data: bytes) -> list[PluginSectionView]:
             PluginParameter(
                 f"powertool-original:{p.path}",
                 p.path,
-                p.label,
+                free_timer_label(p.label) if p.kind == "V_FREETIMER" else p.label,
                 display(p, p.display_value),
                 display(p, p.default_value),
                 group,
@@ -146,28 +148,34 @@ def read(data: bytes, name: str = BLOB_NAME) -> list[PluginSectionView]:
         return []
     if isinstance(config, FamilyConfig):
         return read_family(config)
+    presentation = Presentation(3, product_language())
     sections: list[PluginSectionView] = []
     for channel, settings in enumerate(config.channels):
         if not channel_exists(config, channel):
             continue
         group = (
-            "LED"
+            S.POWERTOOL_LED
             if config.variant == "01" and channel == 2
-            else f"{channel // 2 + 1}: {'Upper / Rocker' if channel % 2 == 0 else 'Lower'}"
+            else f"{channel // 2 + 1}: {S.POWERTOOL_UPPER if channel % 2 == 0 else S.POWERTOOL_LOWER}"
         )
         evaluated = EvaluatedChannel(settings)
         rows = [
             PluginParameter(
                 ref_id=f"powertool:{channel}:function",
                 name="function",
-                label="Function",
+                label=S.PANEL_FUNCTION,
                 value=settings.function,
                 default_value="",
                 section=group,
                 display_order=0,
                 writable=True,
                 choices=tuple(
-                    (k, functions()[k].label)
+                    (
+                        k,
+                        presentation.text(
+                            presentation.native_node(k), functions()[k].label
+                        ),
+                    )
                     for k in channel_functions(config.variant, channel)
                 ),
             )
@@ -175,18 +183,29 @@ def read(data: bytes, name: str = BLOB_NAME) -> list[PluginSectionView]:
         for index, f in enumerate(evaluated.function.fields):
             if not f.visible or f.kind == "page" or not evaluated.exists(index):
                 continue
+            label = presentation.text(
+                presentation.native_node(settings.function, f.key), f.label
+            )
             rows.append(
                 PluginParameter(
                     ref_id=f"powertool:{channel}:{f.key}",
                     name=f.key,
-                    label=f.label,
+                    label=free_timer_label(label) if f.kind == "freetimer" else label,
                     value=str(evaluated.value(index)),
                     default_value=str(f.default),
                     section=group,
                     display_order=index + 1,
                     writable=True,
                     choices=tuple(
-                        (str(i), label) for i, (label, _value) in enumerate(f.options)
+                        (
+                            str(i),
+                            presentation.text(
+                                presentation.native_node(settings.function, f.key),
+                                label,
+                                option=i,
+                            ),
+                        )
+                        for i, (label, _value) in enumerate(f.options)
                     ),
                 )
             )
@@ -198,7 +217,7 @@ def read_family(config: "FamilyConfig") -> list[PluginSectionView]:
     from xknxeditor.vendor.powertool.family import FamilyEvaluation, Node
     from xknxeditor.vendor.powertool.panel import choices as panel_choices
 
-    evaluated = FamilyEvaluation(config)
+    evaluated = FamilyEvaluation(config, language=product_language())
     sections: list[PluginSectionView] = []
     details: list[PluginSectionView] = []
 
@@ -222,7 +241,9 @@ def read_family(config: "FamilyConfig") -> list[PluginSectionView]:
                 row = PluginParameter(
                     ref_id=f"powertool:family:{parameter.path}",
                     name=parameter.path,
-                    label=spec["label"],
+                    label=free_timer_label(spec["label"])
+                    if spec["value_kind"] == "V_FREETIMER"
+                    else spec["label"],
                     value=str(evaluated.display(parameter)),
                     default_value=str(spec["default"]),
                     section=title,

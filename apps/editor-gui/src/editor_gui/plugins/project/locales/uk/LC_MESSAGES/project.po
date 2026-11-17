@@ -1018,14 +1018,14 @@ msgstr "Помилка оцінювання"
 msgid "Read-only test: compares what a download would write with what is on the device. Nothing is written to the device."
 msgstr "Тест лише для читання: порівнює те, що записало б завантаження, з вмістом пристрою. На пристрій нічого не записується."
 
-msgid "Cannot run: the project was changed since it was opened and may no longer match the device. Undo the changes of this session, or save and reopen the project."
-msgstr "Неможливо виконати: проєкт змінено після відкриття, і він може більше не відповідати пристрою. Скасуйте зміни цього сеансу або збережіть і знову відкрийте проєкт."
+msgid "Cannot run: the project was changed since it was opened and may no longer match the device. Undo the changes of this session, or reopen the project."
+msgstr "Неможливо виконати: проєкт змінено після відкриття, і він може більше не відповідати пристрою. Скасуйте зміни цього сеансу або відкрийте проєкт знову."
 
 msgid "Cannot run: no KNX connection. Connect to a gateway ({menu} menu) and make sure the device is reachable at its individual address."
 msgstr "Неможливо виконати: немає з'єднання KNX. Під'єднайтеся до шлюзу (меню «{menu}») і переконайтеся, що пристрій доступний за своєю індивідуальною адресою."
 
-msgid "Match: the generated image is identical to what is on the device."
-msgstr "Збіг: створений образ ідентичний тому, що в пристрої."
+msgid "Match: all compared memory bytes and properties match the device."
+msgstr "Збіг: усі порівняні байти пам’яті та властивості збігаються з пристроєм."
 
 msgid "{matched} matched, {changed} would change"
 msgstr "Збігається: {matched}, буде змінено: {changed}"
@@ -3570,3 +3570,84 @@ msgstr "Прочитати символи з пристрою…"
 
 msgid "Read all symbols from {address}? This takes about 2:30 minutes. The images will be saved in this project; the device stays unchanged."
 msgstr "Прочитати всі символи з пристрою {address}? Читання триває приблизно 2 хв 30 с. Зображення буде збережено в цьому проєкті; пристрій залишиться без змін."
+
+msgid "Unused reserved memory and PID 27 length/CRC are not compared."
+msgstr "Невикористана зарезервована пам’ять і довжина/CRC PID 27 не порівнюються."
+
+msgid "Upper / Rocker"
+msgstr "Верх / Клавіша"
+
+msgid "Lower"
+msgstr "Низ"
+
+msgid "LED"
+msgstr "LED"
+
+msgid "Read Firmware Version"
+msgstr "Прочитати версію прошивки"
+
+msgid "Import Firmware Catalog (.etsapp/.zip)…"
+msgstr "Імпортувати каталог прошивок (.etsapp/.zip)…"
+
+msgid "Installed Version"
+msgstr "Установлена версія"
+
+msgid "Read At"
+msgstr "Час читання"
+
+msgid "Catalog: {source} (latest entry: {date})."
+msgstr "Каталог: {source} (останній запис: {date})."
+
+
+msgid "Latest Compatible Version"
+msgstr "Остання сумісна версія"
+
+msgid "Not determined"
+msgstr "Не визначена"
+msgid "Compares the device's hardware/software identity with this catalog. Does not install firmware. Catalog import: MDT Firmware Update .etsapp or Firmware.zip."
+msgstr "Порівнює ідентифікатор обладнання/ПЗ пристрою з цим каталогом. Не встановлює прошивку. Імпорт каталогу: MDT Firmware Update .etsapp або Firmware.zip."
+
+msgid "Hardware/software identity could not be determined. Read the device to check compatibility."
+msgstr "Не вдалося визначити ідентифікатор обладнання/ПЗ. Прочитайте пристрій для перевірки сумісності."
+
+msgid "No compatible firmware in this catalog."
+msgstr "У цьому каталозі немає сумісної прошивки."
+
+msgid "Installed version could not be determined."
+msgstr "Не вдалося визначити встановлену версію."
+
+msgid "A newer compatible version is available in this catalog."
+msgstr "У цьому каталозі доступна новіша сумісна версія."
+
+msgid "Up to date with this catalog."
+msgstr "Актуально за цим каталогом."
+
+msgid "Hardware/Software Key"
+msgstr "Ключ обладнання/ПЗ"
+
+msgid "Bootloader Version Code"
+msgstr "Код версії завантажувача"
+
+msgid "Firmware Telegram Limit (Bytes)"
+msgstr "Ліміт телеграм прошивки (байти)"
+
+msgid "Compatible Firmware File"
+msgstr "Сумісний файл прошивки"
+
+msgid "Catalog File Modified"
+msgstr "Файл каталогу змінено"
+
+msgid "CRC Type Code"
+msgstr "Код типу CRC"
+
+msgid "Firmware Encryption Type Code"
+msgstr "Код типу шифрування прошивки"
+
+msgid "Bootloader Information (Raw)"
+msgstr "Інформація завантажувача (необроблена)"
+
+msgid "Version Property (Raw)"
+msgstr "Властивість версії (необроблена)"
+
+msgid "Bootloader version, CRC and encryption are reported as numeric codes. They do not describe KNX Secure."
+msgstr "Версія завантажувача, CRC і шифрування подаються числовими кодами. Вони не описують KNX Secure."

@@ -16,6 +16,48 @@ from .test_server import _build_ctx, _data
 FIXTURES = Path(__file__).parents[5] / "tests/fixtures"
 
 
+async def test_dali_fade_choice_keeps_wire_code_through_mcp(tmp_path, monkeypatch):
+    ctx = _build_ctx(tmp_path)
+    project, node = native_project(tmp_path, monkeypatch, ctx.api.project)
+    ctx.project_plugin = ProjectPlugin(ctx.api)
+    mapping = plugin_params.PluginMapping((), "DALI", (), blob_reader="dali_backup")
+    monkeypatch.setattr(plugin_params, "mapping_for_device", lambda _: mapping)
+    name = "DaliGC16-Backup-Store"
+    original = (FIXTURES / "dali_gc16_backup.dat").read_bytes()
+    project.persist_device_blob(current(project, node), name, original)
+    try:
+        async with Client(build_server(ctx)) as client:
+            listed = await _data(client, "project_plugin_parameters", node_id=node)
+            row = next(
+                p
+                for s in listed["sections"]
+                for p in s["parameters"]
+                if p["ref_id"].endswith(":fadeTime")
+            )
+            assert {v["value"]: v["label"] for v in row["choices"]}["9"] == "10 s"
+            await _data(
+                client,
+                "project_set_plugin_parameter",
+                node_id=node,
+                ref_id=row["ref_id"],
+                value="9",
+            )
+            data = project.device_binary_data(current(project, node), name)
+            from editor_gui.plugin_blob_readers.dali_backup import read
+
+            changed = next(
+                p
+                for s in read(data, name)
+                for p in s.parameters
+                if p.ref_id == row["ref_id"]
+            )
+            assert changed.value == "9"
+            project.undo()
+            assert project.device_binary_data(current(project, node), name) == original
+    finally:
+        project.close()
+
+
 @pytest.mark.parametrize(
     ("filename", "blob_name", "reader"),
     [

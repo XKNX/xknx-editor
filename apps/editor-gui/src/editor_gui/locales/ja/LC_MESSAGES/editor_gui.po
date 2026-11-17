@@ -1685,8 +1685,8 @@ msgstr "すべてのツール"
 msgid "Search"
 msgstr "検索"
 
-msgid "All tools lists every tool to the AI tool. Search lists only a search for the tools and one that calls them, for AI models whose context is too small for the whole list. An AI tool sees a change once it reconnects."
-msgstr "「すべてのツール」はすべてのツールを AI ツールに一覧表示します。「検索」はツールの検索とそれを呼び出すツールだけを表示します。一覧全体には文脈が小さすぎる AI モデル向けです。AI ツールは再接続すると変更を認識します。"
+msgid "All tools lists every tool to the AI tool. Search lists only a search for the tools and one that calls them, for AI models whose context is too small for the whole list. Tool catalog adds a compact inventory of every tool. An AI tool sees a change once it reconnects."
+msgstr "「すべてのツール」はすべてのツールを AI ツールに一覧表示します。「検索」はツールの検索とそれを呼び出すツールだけを表示します。一覧全体には文脈が小さすぎる AI モデル向けです。「ツールカタログ」はすべてのツールの簡潔な一覧を追加します。AI ツールは再接続すると変更を認識します。"
 msgid "Delete"
 msgstr "削除"
 
@@ -1719,3 +1719,6 @@ msgstr "起動時に最後のプロジェクトを開く"
 
 msgid "When no project is given at the start, opens the project that was open last. A protected project asks for its password, unless --password-file gives it."
 msgstr "起動時にプロジェクトが指定されていない場合、最後に開いていたプロジェクトを開きます。保護されたプロジェクトは、--password-file で指定されていない限りパスワードを求めます。"
+
+msgid "Tool catalog"
+msgstr "ツールカタログ"
