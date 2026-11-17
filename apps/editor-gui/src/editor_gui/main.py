@@ -815,8 +815,7 @@ class KnxGuiApp:
         self._mcp_port = str(_mcp_cfg.get("port") or "8765")
         # Optional bearer token; when set, the server requires it on every request. Empty = no auth.
         self._mcp_token = str(_mcp_cfg.get("token") or "")
-        # Tool Discovery: "all" lists every tool, "search" only a search for them (stored on its
-        # own, also where the program that started the editor sets up the server).
+        # Tool discovery is stored separately from the launcher-managed server settings.
         discovery = load_settings(_MCP_TOOLS_SETTINGS).get("discovery")
         self._mcp_discovery = discovery if discovery in _MCP_DISCOVERY else "all"
         options = host.current()
@@ -1090,7 +1089,7 @@ class KnxGuiApp:
             self._settings_window,
             self._recover_plugin.service,
             home_assistant=self._home_assistant_plugin.service,
-            tool_search=lambda: self._mcp_discovery == "search",
+            tool_discovery=lambda: self._mcp_discovery,
         )
 
         self._plugins: list[Any] = [
@@ -7217,9 +7216,11 @@ class KnxGuiApp:
                 "choice",
                 get=lambda: self._mcp_discovery,
                 set=set_discovery,
+                # Approximate initial-context sizes for each discovery mode.
                 choices=lambda: [
-                    ("all", S.MCP_DISCOVERY_ALL),
-                    ("search", S.MCP_DISCOVERY_SEARCH),
+                    ("all", f"{S.MCP_DISCOVERY_ALL} (~63k tokens)"),
+                    ("search", f"{S.MCP_DISCOVERY_SEARCH} (~3k tokens)"),
+                    ("catalog", f"{S.MCP_DISCOVERY_CATALOG} (~12k tokens)"),
                 ],
                 hint=lambda: S.SETTING_MCP_TOOL_DISCOVERY_HINT,
             ),
@@ -7409,7 +7410,7 @@ _ICON_SETTINGS = ""
 _MCP_SETTINGS_PAGE = "mcp"
 # The settings file of the MCP server's Tool Discovery, and its choices.
 _MCP_TOOLS_SETTINGS = "mcp_tools"
-_MCP_DISCOVERY = ("all", "search")
+_MCP_DISCOVERY = ("all", "search", "catalog")
 
 
 # Rows the command palette shows at most.

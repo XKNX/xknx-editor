@@ -1701,8 +1701,8 @@ msgstr "Όλα τα εργαλεία"
 msgid "Search"
 msgstr "Αναζήτηση"
 
-msgid "All tools lists every tool to the AI tool. Search lists only a search for the tools and one that calls them, for AI models whose context is too small for the whole list. An AI tool sees a change once it reconnects."
-msgstr "Με «Όλα τα εργαλεία» το εργαλείο AI βλέπει κάθε εργαλείο. Με «Αναζήτηση» βλέπει μόνο μια αναζήτηση εργαλείων και ένα εργαλείο που τα καλεί, για μοντέλα AI με πολύ μικρό πλαίσιο για ολόκληρη τη λίστα. Ένα εργαλείο AI βλέπει την αλλαγή μόλις επανασυνδεθεί."
+msgid "All tools lists every tool to the AI tool. Search lists only a search for the tools and one that calls them, for AI models whose context is too small for the whole list. Tool catalog adds a compact inventory of every tool. An AI tool sees a change once it reconnects."
+msgstr "Με «Όλα τα εργαλεία» το εργαλείο AI βλέπει κάθε εργαλείο. Με «Αναζήτηση» βλέπει μόνο μια αναζήτηση εργαλείων και ένα εργαλείο που τα καλεί, για μοντέλα AI με πολύ μικρό πλαίσιο για ολόκληρη τη λίστα. Ο κατάλογος εργαλείων προσθέτει μια συνοπτική επισκόπηση όλων των εργαλείων. Ένα εργαλείο AI βλέπει την αλλαγή μόλις επανασυνδεθεί."
 msgid "Delete"
 msgstr "Διαγραφή"
 
@@ -1735,3 +1735,6 @@ msgstr "Άνοιγμα τελευταίου έργου κατά την εκκί�
 
 msgid "When no project is given at the start, opens the project that was open last. A protected project asks for its password, unless --password-file gives it."
 msgstr "Όταν δεν δίνεται έργο κατά την εκκίνηση, ανοίγει το έργο που ήταν ανοιχτό τελευταίο. Ένα προστατευμένο έργο ζητά τον κωδικό του, εκτός αν τον δίνει το --password-file."
+
+msgid "Tool catalog"
+msgstr "Κατάλογος εργαλείων"

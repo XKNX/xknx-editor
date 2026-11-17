@@ -4446,19 +4446,20 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         ``is_sending`` marks the group address an object sends on. Leave it out to do as the
         editor does: the object's first link is its sending one (true when the object has no
-        sending link yet, else false). Every linked object sends on exactly one of its group
-        addresses; it does NOT change the object's flags (the send/receive direction comes from
-        them), but it decides which link takes the object's own slot in the association table of
-        BCU1/BCU2 devices, so a link of an object without one is downloaded as its sending link
-        anyway. Pass true to move the sending address to another link; keep one sending GA per
-        object. Returns {link_id, node_id,
+        sending link yet, else false). Pass true or false to set the new link's sending marker
+        explicitly. This does not change the object's flags or any existing link's sending marker:
+        true can leave several links marked as sending. Keep one sending GA per object;
+        this tool does not enforce that or move the sending marker between links.
+        Returns {link_id, node_id,
         com_object_ref_id, com_object_db_id, group_address_id, is_sending, already_linked} plus, when
         relevant, ``dpt_mismatch`` ({com_object, group_address} — the GA keeps its own DPT, so the
         DPT metadata differs; verify compatibility) and ``other_sending_group_address_ids`` (the
-        object already sends to these, so it now has several sending GAs), and ``hidden: true`` when
-        the device's parameters currently hide the object (the link is kept, but the application
-        does not use the object until a parameter shows it — check the activating parameter).
-        Linking the same pair again is idempotent (``already_linked: true``, no duplicate). Pass
+        other existing links marked as sending when the requested link is sending), and
+        ``hidden: true`` when the device's parameters currently hide the object (the link is kept,
+        but the application does not use the object until a parameter shows it; check the
+        activating parameter).
+        Linking the same pair again is idempotent (``already_linked: true``, no duplicate,
+        existing sending marker returned unchanged even if ``is_sending`` differs). Pass
         link_id as project_unlink_com_object's assignment_id. Program the device to apply the link on
         the bus."""
         require_project(ctx)

@@ -31,6 +31,7 @@ from xknxeditor.vendor.siemens_generic.configuration import (
     validate_value,
     write_values,
 )
+from xknxeditor.vendor.siemens_generic.presentation import value_format
 from xknxeditor.vendor.siemens_generic.view import same_application
 
 from . import NativeConfiguration, NativeObject, PluginCapabilities
@@ -239,10 +240,22 @@ class SiemensGenericProvider:
     def edit(self, device: Device, ref_id: str, value: str) -> NativeConfiguration:
         if not ref_id.startswith(self.parameter_prefix):
             raise ValueError("Invalid Siemens parameter reference")
+        source = sources(device)
+        raw = blob(device)
+        settings = parse_settings(raw)
+        if settings is None:
+            raise ValueError("Invalid Siemens configuration XML")
+        ref = ref_id.removeprefix(self.parameter_prefix)
+        state = evaluate(source.description, settings, _globals(device))
+        if ref not in state.active_refs:
+            raise ValueError(
+                "This parameter is not editable in the current configuration"
+            )
+        value = value_format(source.description, ref).parse(value, state.values[ref])
         data = edit(
-            sources(device).description,
-            blob(device),
-            ref_id.removeprefix(self.parameter_prefix),
+            source.description,
+            raw,
+            ref,
             value,
             _globals(device),
         )
@@ -299,17 +312,21 @@ class SiemensGenericProvider:
                     if e.name not in ref.hidden_enum_values
                     and str(e.value) not in ref.hidden_enum_values
                 )
+                formatting = value_format(source.description, row.ref_id)
                 parameters.append(
                     PluginParameter(
                         self.parameter_prefix + row.ref_id,
                         row.parameter,
                         row.label,
-                        value,
-                        row.default_value,
+                        formatting.display(value),
+                        formatting.display(row.default_value),
                         page.title,
                         index,
                         not row.assigned and not ref.global_variable,
                         choices,
+                        raw_value=value
+                        if formatting.percent or formatting.time
+                        else None,
                     )
                 )
             sections.append(PluginSectionView(page.title, parameters))

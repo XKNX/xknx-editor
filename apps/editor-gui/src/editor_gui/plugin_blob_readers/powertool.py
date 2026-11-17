@@ -12,7 +12,7 @@ from xknxeditor.vendor.powertool.model import (
     functions,
 )
 from xknxeditor.vendor.powertool.native import load as from_json_bytes
-from xknxeditor.vendor.powertool.presentation import Presentation
+from xknxeditor.vendor.powertool.presentation import Presentation, free_timer_label
 from xknxeditor.vendor.powertool.project_blob import (
     PLUGIN_BLOB_NAME,
     SavedParameter,
@@ -65,7 +65,7 @@ def read_original(data: bytes) -> list[PluginSectionView]:
             PluginParameter(
                 f"powertool-original:{p.path}",
                 p.path,
-                p.label,
+                free_timer_label(p.label) if p.kind == "V_FREETIMER" else p.label,
                 display(p, p.display_value),
                 display(p, p.default_value),
                 group,
@@ -183,13 +183,14 @@ def read(data: bytes, name: str = BLOB_NAME) -> list[PluginSectionView]:
         for index, f in enumerate(evaluated.function.fields):
             if not f.visible or f.kind == "page" or not evaluated.exists(index):
                 continue
+            label = presentation.text(
+                presentation.native_node(settings.function, f.key), f.label
+            )
             rows.append(
                 PluginParameter(
                     ref_id=f"powertool:{channel}:{f.key}",
                     name=f.key,
-                    label=presentation.text(
-                        presentation.native_node(settings.function, f.key), f.label
-                    ),
+                    label=free_timer_label(label) if f.kind == "freetimer" else label,
                     value=str(evaluated.value(index)),
                     default_value=str(f.default),
                     section=group,
@@ -240,7 +241,9 @@ def read_family(config: "FamilyConfig") -> list[PluginSectionView]:
                 row = PluginParameter(
                     ref_id=f"powertool:family:{parameter.path}",
                     name=parameter.path,
-                    label=spec["label"],
+                    label=free_timer_label(spec["label"])
+                    if spec["value_kind"] == "V_FREETIMER"
+                    else spec["label"],
                     value=str(evaluated.display(parameter)),
                     default_value=str(spec["default"]),
                     section=title,

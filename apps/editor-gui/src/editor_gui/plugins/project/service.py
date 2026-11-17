@@ -393,7 +393,8 @@ def _device_source_key(row: Any) -> tuple[Any, ...]:
         tuple(
             (r.name, bytes(r.data or b""))
             for r in getattr(row, "binary_data", ())
-            if r.name in native_blob_names() or r.name == "BLOB_STRING"
+            if r.name in native_blob_names()
+            or r.name in ("BLOB_STRING", "PT2EtsPlugin")
         ),
     )
 
@@ -2540,7 +2541,10 @@ class ProjectService:
     def _restore_device(self, row: Any, content: tuple[Any, ...]) -> Device | None:
         """The device of ``row`` from its stored snapshot, without loading its application;
         ``None`` when it has none that matches what the device is now built from."""
-        if any(r.name in native_blob_names() for r in row.binary_data):
+        if any(
+            r.name in native_blob_names() or r.name == "PT2EtsPlugin"
+            for r in row.binary_data
+        ):
             return None
         stored = self._stored_snapshot(row.id)
         program_ref = row.hardware2program_ref_id

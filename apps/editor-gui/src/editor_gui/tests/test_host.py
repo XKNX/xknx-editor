@@ -221,8 +221,9 @@ def test_the_home_assistant_menu_only_inside_home_assistant() -> None:
 
 
 @pytest.mark.parametrize("managed", [False, True])
+@pytest.mark.parametrize("mode", ["all", "search", "catalog"])
 def test_tool_discovery_is_stored_on_its_own(
-    monkeypatch: pytest.MonkeyPatch, managed: bool
+    monkeypatch: pytest.MonkeyPatch, managed: bool, mode: str
 ) -> None:
     saved: list[tuple[str, dict[str, Any]]] = []
     monkeypatch.setattr(
@@ -250,11 +251,15 @@ def test_tool_discovery_is_stored_on_its_own(
     assert setting.get is not None and setting.set is not None
     assert setting.choices is not None
     assert setting.get() == "all"
-    assert [key for key, _label in setting.choices()] == ["all", "search"]
-    setting.set("search")
+    assert setting.choices() == [
+        ("all", f"{S.MCP_DISCOVERY_ALL} (~63k tokens)"),
+        ("search", f"{S.MCP_DISCOVERY_SEARCH} (~3k tokens)"),
+        ("catalog", f"{S.MCP_DISCOVERY_CATALOG} (~12k tokens)"),
+    ]
+    setting.set(mode)
     # Kept also where the launcher sets up the server, whose other fields are not stored.
-    assert stub._mcp_discovery == "search"
-    assert saved == [("mcp_tools", {"discovery": "search"})]
+    assert stub._mcp_discovery == mode
+    assert saved == [("mcp_tools", {"discovery": mode})]
     with pytest.raises(ValueError):
         setting.set("everything")
-    assert stub._mcp_discovery == "search"
+    assert stub._mcp_discovery == mode

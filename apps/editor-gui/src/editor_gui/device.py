@@ -388,7 +388,7 @@ class Device:
         return self.app is not None
 
     def __post_init__(self, visible: list[int] | None) -> None:
-        from editor_gui.plugin_providers import install_view
+        from editor_gui.plugin_providers import apply_stored_object_dpts, install_view
 
         if visible is None:
             install_view(self)
@@ -400,6 +400,7 @@ class Device:
         self._ensure_dynamic_ui()
         if not self.com_objects:
             self.com_objects = self._create_com_objects_from_app()
+        apply_stored_object_dpts(self)
 
     def _ensure_dynamic_ui(self) -> DynamicUI | None:
         """Build the (heavy) DynamicUI evaluator on demand; ``None`` if the app has no dynamic

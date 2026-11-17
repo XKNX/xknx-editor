@@ -1773,8 +1773,8 @@ msgstr "Öll verkfæri"
 msgid "Search"
 msgstr "Leit"
 
-msgid "All tools lists every tool to the AI tool. Search lists only a search for the tools and one that calls them, for AI models whose context is too small for the whole list. An AI tool sees a change once it reconnects."
-msgstr "Öll verkfæri sýnir gervigreindartólinu hvert verkfæri. Leit sýnir aðeins leit að verkfærunum og eitt sem kallar á þau, fyrir gervigreindarlíkön með of lítið samhengi fyrir allan listann. Gervigreindartól sér breytingu þegar það tengist aftur."
+msgid "All tools lists every tool to the AI tool. Search lists only a search for the tools and one that calls them, for AI models whose context is too small for the whole list. Tool catalog adds a compact inventory of every tool. An AI tool sees a change once it reconnects."
+msgstr "Öll verkfæri sýnir gervigreindartólinu hvert verkfæri. Leit sýnir aðeins leit að verkfærunum og eitt sem kallar á þau, fyrir gervigreindarlíkön með of lítið samhengi fyrir allan listann. Verkfæraskrá bætir við stuttu yfirliti yfir öll verkfæri. Gervigreindartól sér breytingu þegar það tengist aftur."
 msgid "Delete"
 msgstr "Eyða"
 
@@ -1807,3 +1807,6 @@ msgstr "Opna síðasta verkefni við ræsingu"
 
 msgid "When no project is given at the start, opens the project that was open last. A protected project asks for its password, unless --password-file gives it."
 msgstr "Þegar ekkert verkefni er gefið við ræsingu er síðasta opna verkefnið opnað. Varið verkefni biður um lykilorð sitt nema --password-file gefi það."
+
+msgid "Tool catalog"
+msgstr "Verkfæraskrá"

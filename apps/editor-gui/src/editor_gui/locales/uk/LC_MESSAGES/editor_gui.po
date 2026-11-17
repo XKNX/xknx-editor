@@ -1717,8 +1717,8 @@ msgstr "Усі інструменти"
 msgid "Search"
 msgstr "Пошук"
 
-msgid "All tools lists every tool to the AI tool. Search lists only a search for the tools and one that calls them, for AI models whose context is too small for the whole list. An AI tool sees a change once it reconnects."
-msgstr "«Усі інструменти» показує AI-інструменту кожен інструмент. «Пошук» показує лише пошук інструментів та інструмент для їх виклику — для моделей AI, контекст яких замалий для всього списку. AI-інструмент побачить зміну після повторного підключення."
+msgid "All tools lists every tool to the AI tool. Search lists only a search for the tools and one that calls them, for AI models whose context is too small for the whole list. Tool catalog adds a compact inventory of every tool. An AI tool sees a change once it reconnects."
+msgstr "«Усі інструменти» показує AI-інструменту кожен інструмент. «Пошук» показує лише пошук інструментів та інструмент для їх виклику — для моделей AI, контекст яких замалий для всього списку. «Каталог інструментів» додає стислий огляд усіх інструментів. AI-інструмент побачить зміну після повторного підключення."
 msgid "Delete"
 msgstr "Видалити"
 
@@ -1751,3 +1751,6 @@ msgstr "Відкривати останній проєкт під час зап�
 
 msgid "When no project is given at the start, opens the project that was open last. A protected project asks for its password, unless --password-file gives it."
 msgstr "Якщо під час запуску проєкт не вказано, відкривається останній відкритий проєкт. Захищений проєкт запитує пароль, якщо його не передає --password-file."
+
+msgid "Tool catalog"
+msgstr "Каталог інструментів"

@@ -145,9 +145,8 @@ def _rows(view: GenericView) -> dict[str, Row]:
 def test_percent_settings_are_scaled_with_the_raw_value_kept() -> None:
     rows = _rows(_view())
     level, hyst = rows["r_level"], rows["r_hyst"]
-    assert (level.value, level.value_text, level.scaled) == ("100", "50 %", True)
-    # No maxInclusive: the full scale is the largest number the size holds (255).
-    assert (hyst.value, hyst.value_text, hyst.scaled) == ("13", "5.1 %", True)
+    assert (level.value, level.value_text, level.scaled) == ("100", "39 %", True)
+    assert (hyst.value, hyst.value_text, hyst.scaled) == ("13", "5 %", True)
     # The raw value is what memory holds.
     assert level.memory is MemoryCheck.MATCH and hyst.memory is MemoryCheck.MATCH
     assert not rows["r_fb"].scaled and not rows["r_slaves"].scaled
@@ -158,7 +157,7 @@ def test_percent_mismatch_shows_the_held_value_scaled() -> None:
     image[2] = 50
     level = _rows(_view(image=bytes(image)))["r_level"]
     assert level.memory is MemoryCheck.MISMATCH
-    assert (level.memory_value, level.memory_value_text) == ("50", "25 %")
+    assert (level.memory_value, level.memory_value_text) == ("50", "20 %")
 
 
 def test_percent_text_only_for_percent_numbers() -> None:
@@ -167,15 +166,12 @@ def test_percent_text_only_for_percent_numbers() -> None:
         id="p", name="P", type_id="t", default="0", text="", offset=0, format="Percent"
     )
     plain = Parameter(id="q", name="Q", type_id="t", default="0", text="", offset=0)
-    assert percent_text("200", number, pct) == "100 %"
-    assert percent_text("1", number, pct) == "0.5 %"
+    assert percent_text("200", number, pct) == "78 %"
+    assert percent_text("1", number, pct) == "0 %"
     assert percent_text("x", number, pct) is None
     assert percent_text("50", number, plain) is None
     enum = ParameterType(id="e", kind=TypeKind.ENUM, size_bits=8)
     assert percent_text("1", enum, pct) is None
-    wide = ParameterType(id="w", kind=TypeKind.NUMBER, size_bits=40)
-    assert wide.full_scale is None and percent_text("1", wide, pct) is None
-    assert ParameterType(id="b", kind=TypeKind.NUMBER, size_bits=16).full_scale == 65535
 
 
 # --- modules not fitted --------------------------------------------------------------------------

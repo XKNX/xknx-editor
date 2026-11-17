@@ -20,6 +20,126 @@ pytestmark = pytest.mark.skipif(
 )
 
 
+async def test_formatted_values_share_gui_mcp_and_raw_import_contracts(tmp_path):
+    from xknxeditor.vendor.siemens_generic import parse_settings
+
+    ctx = _build_ctx(tmp_path)
+    project = ctx.api.project
+    ctx.project_plugin = ProjectPlugin(ctx.api)
+    project.import_knxproj(ARCHIVE, tmp_path / "units.xknx")
+    device = project.devices[0]
+    node = device.node_id
+    ref = PROVIDER.parameter_prefix + "idRef_01_parTimeDirectControl"
+    original = blob(device)
+    cursor = project.cursor
+    try:
+        async with Client(build_server(ctx)) as client:
+            result = await _data(client, "project_plugin_parameters", node_id=node)
+            row = next(
+                p
+                for s in result["sections"]
+                for p in s["parameters"]
+                if p["ref_id"] == ref
+            )
+            assert (row["value"], row["default_value"], row["raw_value"]) == (
+                "15:00",
+                "15:00",
+                "900",
+            )
+            result = await _data(
+                client,
+                "project_set_plugin_parameter",
+                node_id=node,
+                ref_id=ref,
+                value="15:00",
+            )
+            assert not result["changed"] and project.cursor == cursor
+            result = await _data(
+                client,
+                "project_set_plugin_parameter",
+                node_id=node,
+                ref_id=ref,
+                value="02:00",
+            )
+            assert result["changed"] and result["value"] == "02:00"
+            changed = project.find_device_by_node_id(node)
+            assert (
+                parse_settings(blob(changed)).values[
+                    ref.removeprefix(PROVIDER.parameter_prefix)
+                ]
+                == "120"
+            )
+            exported = project.export_plugin_config(changed)
+            assert (
+                json.loads(exported)["values"][
+                    ref.removeprefix(PROVIDER.parameter_prefix)
+                ]
+                == "120"
+            )
+            project.undo()
+            assert blob(project.find_device_by_node_id(node)) == original
+            result = await _data(
+                client,
+                "project_batch",
+                operations=[
+                    {
+                        "op": "set_plugin_parameter",
+                        "params": {"node_id": node, "ref_id": ref, "value": "02:00"},
+                    }
+                ],
+            )
+            assert result["applied"] == 1
+            assert (
+                project.export_plugin_config(project.find_device_by_node_id(node))
+                == exported
+            )
+            from editor_gui.plugin_providers.siemens_generic import sources
+            from xknxeditor.vendor.siemens_generic.presentation import value_format
+
+            percentage = next(
+                (d, p)
+                for d in project.devices
+                for s in PROVIDER.sections(d)
+                for p in s.parameters
+                if p.writable
+                and value_format(
+                    sources(d).description,
+                    p.ref_id.removeprefix(PROVIDER.parameter_prefix),
+                ).percent
+                and p.raw_value == "38"
+            )
+            target, parameter = percentage
+            changed = await _data(
+                client,
+                "project_set_plugin_parameter",
+                node_id=target.node_id,
+                ref_id=parameter.ref_id,
+                value="15.2958",
+            )
+            assert changed["changed"] and changed["value"] == parameter.value == "15"
+            updated = parse_settings(
+                blob(project.find_device_by_node_id(target.node_id))
+            )
+            assert (
+                updated.values[parameter.ref_id.removeprefix(PROVIDER.parameter_prefix)]
+                == "39"
+            )
+            project.undo()
+            project.undo()
+            await _data(
+                client,
+                "project_import_plugin_config",
+                node_id=node,
+                config_json=exported.decode(),
+            )
+            assert (
+                project.export_plugin_config(project.find_device_by_node_id(node))
+                == exported
+            )
+    finally:
+        project.close()
+
+
 async def test_gui_mcp_batch_and_config_import_share_state(tmp_path):
     ctx = _build_ctx(tmp_path)
     project = ctx.api.project

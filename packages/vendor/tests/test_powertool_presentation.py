@@ -117,3 +117,73 @@ def test_shipped_presentation_covers_all_metadata_and_native_keys():
         for channel in range(count):
             for function in channel_functions(variant, channel):
                 assert native.native_node(function) in keys
+
+
+def test_free_timer_labels_cover_all_product_languages():
+    from xknxeditor.vendor.powertool.presentation import _data, free_timer_label
+    from xknxeditor.vendor.powertool.project_blob import _catalog
+
+    for schema in _catalog():
+        for language in ("en", *_data()["languages"]):
+            presentation = Presentation(schema["code"], language)
+            for key, node in schema["nodes"].items():
+                if node.get("value_kind") == "V_FREETIMER":
+                    label = free_timer_label(presentation.text(key, node["label"]))
+                    assert label.count("(ms)") == 1
+                    assert not any(
+                        unit in label for unit in ("(s)", "(mm:ss)", "[mm:ss]", "(min)")
+                    )
+                    assert free_timer_label(label) == label
+    assert free_timer_label("Switch-off interval (s) - LED off") == (
+        "Switch-off interval (ms) - LED off"
+    )
+
+
+def test_saved_timer_display_keeps_raw_code_and_writeback():
+    from xknxeditor.vendor.powertool.native import edit_native
+
+    config = edit_native(default("02"), "powertool:0:function", "dim_rocker")
+    blob = write_project_blob(None, config)
+    for language in ("en", "de-DE"):
+        saved = read_project_blob(blob, language)
+        timer = next(p for p in saved.channels[0].parameters if p.kind == "V_FREETIMER")
+        assert timer.value == 0x50
+        assert timer.display_value == timer.default_value == 400
+    assert compile_native(from_original(blob)).pid == compile_native(config).pid
+
+
+@pytest.mark.parametrize(
+    ("code", "expected"),
+    [
+        (0, 0),
+        (127, 635),
+        (0x177F, 5_326_766_080),
+        (128, None),
+        (0x1801, None),
+        (-1, None),
+    ],
+)
+def test_stored_timer_display_boundaries(code, expected):
+    from xknxeditor.vendor.powertool.project_blob import _display_value
+
+    assert _display_value(code, {"value_kind": "V_FREETIMER"}) == expected
+
+
+def test_invalid_timer_keeps_raw_inspection_and_native_refusal():
+    from xknxeditor.vendor.powertool.native import edit_native
+    from xknxeditor.vendor.powertool.nrbf import Record, read_document, write_document
+
+    config = edit_native(default("02"), "powertool:0:function", "dim_rocker")
+    document = read_document(write_project_blob(None, config))
+    timer = next(
+        r
+        for r in document.objects.values()
+        if isinstance(r, Record) and r.type_name.endswith(".FreeTimerParameter")
+    )
+    timer.members["ParameterValue"] = 0x1801
+    data = write_document(document)
+    saved = read_project_blob(data)
+    parameter = next(p for p in saved.channels[0].parameters if p.kind == "V_FREETIMER")
+    assert parameter.value == 0x1801 and parameter.display_value is None
+    with pytest.raises(ValueError, match="timer code"):
+        from_original(data)

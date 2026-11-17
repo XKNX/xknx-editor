@@ -15,10 +15,55 @@ from editor_gui.plugins.project.tests.test_powertool_blob import (
     original_blob,
     stored_linked_project,
 )
+from editor_gui.plugins.project.tests.test_powertool_dpts import stored_project
 from editor_gui.plugins.project.tests.test_powertool_samples import flag_project
 from xknxeditor.vendor.powertool import BLOB_NAME
 
 from .test_server import _build_ctx, _data
+
+
+async def test_stored_units_and_object_types_match_gui_without_conversion(
+    tmp_path, monkeypatch
+):
+    from editor_gui import languages
+
+    monkeypatch.setattr(languages, "_product_language", "de-DE")
+    ctx = _build_ctx(tmp_path)
+    project, nid, original = stored_project(
+        tmp_path, monkeypatch, service=ctx.api.project
+    )
+    device = current(project, nid)
+    cursor = project.cursor
+    links = project.group_communication_for(device).links
+    async with Client(build_server(ctx)) as client:
+        result = await _data(client, "project_plugin_parameters", node_id=nid)
+        timer = next(
+            p
+            for section in result["sections"]
+            for p in section["parameters"]
+            if p["ref_id"] == "powertool:0:duration_of_long_operation_s"
+        )
+        assert timer["label"] == "Zeit für Langbedienung (ms)"
+        assert timer["value"] == "400"
+        result = await _data(client, "project_list_com_objects", node_id=nid)
+        assert [co["dpt"] for co in result["items"]] == ["1.001", "3.007"]
+        assert project.cursor == cursor
+        assert project.device_binary_data(device, "PT2EtsPlugin") == original
+        assert project.device_binary_data(device, BLOB_NAME) is None
+        await _data(
+            client,
+            "project_set_plugin_parameter",
+            node_id=nid,
+            ref_id=timer["ref_id"],
+            value="500",
+        )
+    device = current(project, nid)
+    assert (
+        configuration(device).channels[0].values["duration_of_long_operation_s"] == 500
+    )
+    assert project.group_communication_for(device).links == links
+    assert project.cursor == cursor + 1
+    project.close()
 
 
 @pytest.mark.parametrize(

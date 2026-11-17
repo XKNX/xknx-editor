@@ -1701,8 +1701,8 @@ msgstr "Alle værktøjer"
 msgid "Search"
 msgstr "Søgning"
 
-msgid "All tools lists every tool to the AI tool. Search lists only a search for the tools and one that calls them, for AI models whose context is too small for the whole list. An AI tool sees a change once it reconnects."
-msgstr "Alle værktøjer viser AI-værktøjet alle værktøjer. Søgning viser kun en søgning efter værktøjerne og ét, der kalder dem, til AI-modeller hvis kontekst er for lille til hele listen. Et AI-værktøj ser en ændring, når det forbinder igen."
+msgid "All tools lists every tool to the AI tool. Search lists only a search for the tools and one that calls them, for AI models whose context is too small for the whole list. Tool catalog adds a compact inventory of every tool. An AI tool sees a change once it reconnects."
+msgstr "Alle værktøjer viser AI-værktøjet alle værktøjer. Søgning viser kun en søgning efter værktøjerne og ét, der kalder dem, til AI-modeller hvis kontekst er for lille til hele listen. Værktøjskatalog tilføjer en kort oversigt over alle værktøjer. Et AI-værktøj ser en ændring, når det forbinder igen."
 msgid "Delete"
 msgstr "Slet"
 
@@ -1735,3 +1735,6 @@ msgstr "Åbn seneste projekt ved opstart"
 
 msgid "When no project is given at the start, opens the project that was open last. A protected project asks for its password, unless --password-file gives it."
 msgstr "Når der ikke angives et projekt ved start, åbnes det projekt, der sidst var åbent. Et beskyttet projekt beder om sin adgangskode, medmindre --password-file angiver den."
+
+msgid "Tool catalog"
+msgstr "Værktøjskatalog"

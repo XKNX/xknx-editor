@@ -1685,8 +1685,8 @@ msgstr "Tüm araçlar"
 msgid "Search"
 msgstr "Arama"
 
-msgid "All tools lists every tool to the AI tool. Search lists only a search for the tools and one that calls them, for AI models whose context is too small for the whole list. An AI tool sees a change once it reconnects."
-msgstr "Tüm araçlar, yapay zekâ aracına her aracı listeler. Arama yalnızca araçlar için bir arama ve onları çağıran bir araç listeler; bağlamı tüm liste için çok küçük olan yapay zekâ modelleri içindir. Yapay zekâ aracı değişikliği yeniden bağlandığında görür."
+msgid "All tools lists every tool to the AI tool. Search lists only a search for the tools and one that calls them, for AI models whose context is too small for the whole list. Tool catalog adds a compact inventory of every tool. An AI tool sees a change once it reconnects."
+msgstr "Tüm araçlar, yapay zekâ aracına her aracı listeler. Arama yalnızca araçlar için bir arama ve onları çağıran bir araç listeler; bağlamı tüm liste için çok küçük olan yapay zekâ modelleri içindir. Araç kataloğu, tüm araçların kısa bir dökümünü ekler. Yapay zekâ aracı değişikliği yeniden bağlandığında görür."
 msgid "Delete"
 msgstr "Sil"
 
@@ -1719,3 +1719,6 @@ msgstr "Başlangıçta son projeyi aç"
 
 msgid "When no project is given at the start, opens the project that was open last. A protected project asks for its password, unless --password-file gives it."
 msgstr "Başlangıçta proje belirtilmezse en son açık olan projeyi açar. Korumalı bir proje, --password-file vermediği sürece parolasını sorar."
+
+msgid "Tool catalog"
+msgstr "Araç kataloğu"
