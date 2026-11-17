@@ -382,6 +382,43 @@ async def test_com_object_properties_links_and_project_name(tmp_path: Path) -> N
         assert info["path"].endswith(".xknx")
 
 
+@_needs_fixture
+async def test_repeated_object_overrides_are_not_edits(tmp_path: Path) -> None:
+    mcp, project = _build(tmp_path)
+    path = tmp_path / "p.xknx"
+    async with Client(mcp) as client:
+        await _data(client, "project_new", path=str(path))
+        node = await _device(client)
+        objects = await _data(client, "project_list_com_objects", node_id=node)
+        ref = next(o["ref_id"] for o in objects["items"] if o["linkable"])
+        for priority, dpt in (("", ""), ("High", "DPST-1-1")):
+            await _data(
+                client,
+                "project_set_com_object_properties",
+                node_id=node,
+                com_object_ref_id=ref,
+                priority=priority,
+                datapoint_type=dpt,
+            )
+            project.close()
+            project.open(path)
+            revision, cursor = project.revision, project.cursor
+            before = project.history()
+            assert not project.edited_since_open()
+            await _data(
+                client,
+                "project_set_com_object_properties",
+                node_id=node,
+                com_object_ref_id=ref,
+                priority=priority,
+                datapoint_type="1.001" if dpt else "",
+            )
+            assert project.history() == before
+            assert (project.revision, project.cursor) == (revision, cursor)
+            assert not project.edited_since_open()
+    project.close()
+
+
 async def test_project_code_page(tmp_path: Path) -> None:
     mcp, project = _build(tmp_path)
     async with Client(mcp) as client:

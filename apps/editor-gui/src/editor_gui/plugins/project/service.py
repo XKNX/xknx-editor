@@ -41,7 +41,7 @@ from editor_gui.device_snapshot import (
     snapshot_key,
     snapshot_state,
 )
-from editor_gui.dpt import dpt_from_token, lookup_or_make_dpt
+from editor_gui.dpt import dpt_from_token
 from editor_gui.hardware_text import current_text
 from editor_gui.plugin_providers import native_blob_names
 from editor_gui.plugins.project.code_page import code_page_text
@@ -8091,6 +8091,9 @@ class ProjectService:
         if co is None or co.db_id is None:
             return
         token = normalize_datapoint_type(value) if value else None
+        row = self._find_com_object_row(co.db_id)
+        if row is None or row.datapoint_type_override == token:
+            return
         self._svc.set_com_object_datapoint_type(self._pid, co.db_id, token)
         # Reflect on the live com-object. With a value, update the override and the resolved display
         # DPT in place (non-structural bump keeps the Configure tree/edit state). On a clear, the
@@ -8103,8 +8106,8 @@ class ProjectService:
                 _co_instance_ref_from_row(row, co_id)
                 or ComObjectInstanceRef(ref_id=co_id),
             )
-        if value:
-            co.dpt = lookup_or_make_dpt(value)
+        if token:
+            co.dpt = dpt_from_token(token)
         device.edited_in_place = True
         self._bump(structural=token is None)
 
@@ -8122,6 +8125,9 @@ class ProjectService:
 
         if value is not None and value not in COM_OBJECT_PRIORITIES:
             raise ValueError(f"Unknown com-object priority {value!r}")
+        row = self._find_com_object_row(co.db_id)
+        if row is None or row.priority == value:
+            return
         if self._set_native_object_fields(
             device, co_id, {"priority": value}, S.HISTORY_EV_SET_PRIORITY
         ):

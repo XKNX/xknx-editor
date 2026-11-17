@@ -1984,10 +1984,15 @@ class ProjectService:
         """Pin (or clear with ``None``) the per-instance DatapointType of a group object. The value
         is normalized to ETS token form (``DPST-5-1`` / ``DPT-5``); an unparseable value raises
         ``ValueError`` rather than being stored."""
-        self._state(project_id).store.append(
+        token = normalize_datapoint_type(datapoint_type)
+        state = self._state(project_id)
+        row = state.session.get(ComObject, com_object_id)
+        if row is None or row.datapoint_type_override == token:
+            return
+        state.store.append(
             SetComObjectDatapointType(
                 com_object_id=com_object_id,
-                datapoint_type=normalize_datapoint_type(datapoint_type),
+                datapoint_type=token,
             )
         )
 
@@ -1999,7 +2004,11 @@ class ProjectService:
         :data:`~xknxeditor.proj.core.events.COM_OBJECT_PRIORITIES`."""
         if priority is not None and priority not in COM_OBJECT_PRIORITIES:
             raise ValueError(f"Unknown com-object priority {priority!r}")
-        self._state(project_id).store.append(
+        state = self._state(project_id)
+        row = state.session.get(ComObject, com_object_id)
+        if row is None or row.priority == priority:
+            return
+        state.store.append(
             SetComObjectPriority(com_object_id=com_object_id, priority=priority)
         )
 
