@@ -3530,3 +3530,72 @@ msgstr "Poshtë"
 
 msgid "LED"
 msgstr "LED"
+
+msgid "Read Firmware Version"
+msgstr "Lexo versionin e firmuerit"
+
+msgid "Import Firmware Catalog (.etsapp/.zip)…"
+msgstr "Importo katalogun e firmuerit (.etsapp/.zip)…"
+
+msgid "Installed Version"
+msgstr "Versioni i instaluar"
+
+msgid "Read At"
+msgstr "Lexuar më"
+
+msgid "Catalog: {source} (latest entry: {date})."
+msgstr "Katalogu: {source} (hyrja më e re: {date})."
+
+
+msgid "Latest Compatible Version"
+msgstr "Versioni më i ri i përputhshëm"
+
+msgid "Not determined"
+msgstr "I papërcaktuar"
+msgid "Compares the device's hardware/software identity with this catalog. Does not install firmware. Catalog import: MDT Firmware Update .etsapp or Firmware.zip."
+msgstr "Krahason identitetin e harduerit/softuerit të pajisjes me këtë katalog. Nuk instalon firmuer. Import katalogu: MDT Firmware Update .etsapp ose Firmware.zip."
+
+msgid "Hardware/software identity could not be determined. Read the device to check compatibility."
+msgstr "Identiteti i harduerit/softuerit nuk mund të përcaktohej. Lexoni pajisjen për të kontrolluar përputhshmërinë."
+
+msgid "No compatible firmware in this catalog."
+msgstr "Nuk ka firmuer të përputhshëm në këtë katalog."
+
+msgid "Installed version could not be determined."
+msgstr "Versioni i instaluar nuk mund të përcaktohej."
+
+msgid "A newer compatible version is available in this catalog."
+msgstr "Një version më i ri i përputhshëm është i disponueshëm në këtë katalog."
+
+msgid "Up to date with this catalog."
+msgstr "I përditësuar sipas këtij katalogu."
+
+msgid "Hardware/Software Key"
+msgstr "Çelësi i harduerit/softuerit"
+
+msgid "Bootloader Version Code"
+msgstr "Kodi i versionit të ngarkuesit të nisjes"
+
+msgid "Firmware Telegram Limit (Bytes)"
+msgstr "Kufiri i telegrameve të firmuerit (bajte)"
+
+msgid "Compatible Firmware File"
+msgstr "Skedar firmueri i përputhshëm"
+
+msgid "Catalog File Modified"
+msgstr "Skedari i katalogut i ndryshuar"
+
+msgid "CRC Type Code"
+msgstr "Kodi i llojit CRC"
+
+msgid "Firmware Encryption Type Code"
+msgstr "Kodi i llojit të enkriptimit të firmuerit"
+
+msgid "Bootloader Information (Raw)"
+msgstr "Informacioni i ngarkuesit të nisjes (i papërpunuar)"
+
+msgid "Version Property (Raw)"
+msgstr "Veti e versionit (e papërpunuar)"
+
+msgid "Bootloader version, CRC and encryption are reported as numeric codes. They do not describe KNX Secure."
+msgstr "Versioni i ngarkuesit të nisjes, CRC dhe enkriptimi raportohen si kode numerike. Ato nuk përshkruajnë KNX Secure."

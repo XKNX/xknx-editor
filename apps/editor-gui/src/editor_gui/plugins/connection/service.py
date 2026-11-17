@@ -1637,6 +1637,46 @@ class ConnectionService:
                 shown=SHOWN_IN_OPERATIONS,
             )
 
+    def read_mdt_firmware(self, device: Device) -> Future[Any] | None:
+        """Read the installed version, validating the manufacturer before connecting."""
+        if (
+            device.app is None
+            or device.app.manufacturer_id != "M-0083"
+            or not device.individual_address
+        ):
+            raise ValueError("Device has no MDT application or address")
+        return self._read_mdt_firmware(device)
+
+    @_connects("mdt_firmware")
+    def _read_mdt_firmware(self, device: Device) -> Future[Any] | None:
+        from editor_gui.programming_mdt import read_firmware_version
+
+        if self.not_connected("mdt_firmware"):
+            return None
+        if not self.begin_operation("mdt_firmware", device.individual_address):
+            return None
+        try:
+            future = self.run_async(
+                read_firmware_version(
+                    self._connected_xknx,
+                    device.individual_address,
+                    self._security_for(device),
+                )
+            )
+        except BaseException:
+            self._clear_busy()
+            raise
+        if future is None:
+            self._clear_busy()
+        else:
+            future.add_done_callback(self._mdt_firmware_done)
+        return future
+
+    def _mdt_firmware_done(self, future: Future[Any]) -> None:
+        self._clear_busy()
+        if not future.cancelled() and (error := future.exception()) is not None:
+            self._log.error("Firmware version read failed", error=str(error))
+
     def read_mdt_symbols(self, device: Device) -> Future[Any] | None:
         """Read symbol pixels without requiring existing project pixels."""
         from xknxeditor.vendor.mdt import profile_for_application

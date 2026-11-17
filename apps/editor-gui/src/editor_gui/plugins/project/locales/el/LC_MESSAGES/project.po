@@ -3530,3 +3530,72 @@ msgstr "Κάτω"
 
 msgid "LED"
 msgstr "LED"
+
+msgid "Read Firmware Version"
+msgstr "Ανάγνωση έκδοσης υλικολογισμικού"
+
+msgid "Import Firmware Catalog (.etsapp/.zip)…"
+msgstr "Εισαγωγή καταλόγου υλικολογισμικού (.etsapp/.zip)…"
+
+msgid "Installed Version"
+msgstr "Εγκατεστημένη έκδοση"
+
+msgid "Read At"
+msgstr "Αναγνώστηκε στις"
+
+msgid "Catalog: {source} (latest entry: {date})."
+msgstr "Κατάλογος: {source} (νεότερη καταχώριση: {date})."
+
+
+msgid "Latest Compatible Version"
+msgstr "Νεότερη συμβατή έκδοση"
+
+msgid "Not determined"
+msgstr "Δεν προσδιορίστηκε"
+msgid "Compares the device's hardware/software identity with this catalog. Does not install firmware. Catalog import: MDT Firmware Update .etsapp or Firmware.zip."
+msgstr "Συγκρίνει την ταυτότητα υλικού/λογισμικού της συσκευής με αυτόν τον κατάλογο. Δεν εγκαθιστά υλικολογισμικό. Εισαγωγή καταλόγου: MDT Firmware Update .etsapp ή Firmware.zip."
+
+msgid "Hardware/software identity could not be determined. Read the device to check compatibility."
+msgstr "Δεν ήταν δυνατός ο προσδιορισμός της ταυτότητας υλικού/λογισμικού. Διαβάστε τη συσκευή για έλεγχο συμβατότητας."
+
+msgid "No compatible firmware in this catalog."
+msgstr "Δεν υπάρχει συμβατό υλικολογισμικό σε αυτόν τον κατάλογο."
+
+msgid "Installed version could not be determined."
+msgstr "Δεν ήταν δυνατός ο προσδιορισμός της εγκατεστημένης έκδοσης."
+
+msgid "A newer compatible version is available in this catalog."
+msgstr "Μια νεότερη συμβατή έκδοση είναι διαθέσιμη σε αυτόν τον κατάλογο."
+
+msgid "Up to date with this catalog."
+msgstr "Ενημερωμένο σύμφωνα με αυτόν τον κατάλογο."
+
+msgid "Hardware/Software Key"
+msgstr "Κλειδί υλικού/λογισμικού"
+
+msgid "Bootloader Version Code"
+msgstr "Κωδικός έκδοσης φορτωτή εκκίνησης"
+
+msgid "Firmware Telegram Limit (Bytes)"
+msgstr "Όριο τηλεγραφημάτων υλικολογισμικού (byte)"
+
+msgid "Compatible Firmware File"
+msgstr "Συμβατό αρχείο υλικολογισμικού"
+
+msgid "Catalog File Modified"
+msgstr "Τροποποίηση αρχείου καταλόγου"
+
+msgid "CRC Type Code"
+msgstr "Κωδικός τύπου CRC"
+
+msgid "Firmware Encryption Type Code"
+msgstr "Κωδικός τύπου κρυπτογράφησης υλικολογισμικού"
+
+msgid "Bootloader Information (Raw)"
+msgstr "Πληροφορίες φορτωτή εκκίνησης (ακατέργαστες)"
+
+msgid "Version Property (Raw)"
+msgstr "Ιδιότητα έκδοσης (ακατέργαστη)"
+
+msgid "Bootloader version, CRC and encryption are reported as numeric codes. They do not describe KNX Secure."
+msgstr "Η έκδοση φορτωτή εκκίνησης, το CRC και η κρυπτογράφηση αναφέρονται ως αριθμητικοί κωδικοί. Δεν περιγράφουν το KNX Secure."

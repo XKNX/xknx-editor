@@ -3478,3 +3478,72 @@ msgstr "下部"
 
 msgid "LED"
 msgstr "LED"
+
+msgid "Read Firmware Version"
+msgstr "读取固件版本"
+
+msgid "Import Firmware Catalog (.etsapp/.zip)…"
+msgstr "导入固件目录 (.etsapp/.zip)…"
+
+msgid "Installed Version"
+msgstr "已安装版本"
+
+msgid "Read At"
+msgstr "读取时间"
+
+msgid "Catalog: {source} (latest entry: {date})."
+msgstr "目录：{source}（最新条目：{date}）。"
+
+
+msgid "Latest Compatible Version"
+msgstr "最新兼容版本"
+
+msgid "Not determined"
+msgstr "尚未确定"
+msgid "Compares the device's hardware/software identity with this catalog. Does not install firmware. Catalog import: MDT Firmware Update .etsapp or Firmware.zip."
+msgstr "将设备的硬件/软件标识与此目录进行比较。不安装固件。目录导入：MDT Firmware Update .etsapp 或 Firmware.zip。"
+
+msgid "Hardware/software identity could not be determined. Read the device to check compatibility."
+msgstr "无法确定硬件/软件标识。请读取设备以检查兼容性。"
+
+msgid "No compatible firmware in this catalog."
+msgstr "此目录中没有兼容固件。"
+
+msgid "Installed version could not be determined."
+msgstr "无法确定已安装版本。"
+
+msgid "A newer compatible version is available in this catalog."
+msgstr "此目录中有更新的兼容版本。"
+
+msgid "Up to date with this catalog."
+msgstr "根据此目录，已是最新版本。"
+
+msgid "Hardware/Software Key"
+msgstr "硬件/软件标识键"
+
+msgid "Bootloader Version Code"
+msgstr "引导加载程序版本代码"
+
+msgid "Firmware Telegram Limit (Bytes)"
+msgstr "固件报文上限（字节）"
+
+msgid "Compatible Firmware File"
+msgstr "兼容固件文件"
+
+msgid "Catalog File Modified"
+msgstr "目录文件修改时间"
+
+msgid "CRC Type Code"
+msgstr "CRC类型代码"
+
+msgid "Firmware Encryption Type Code"
+msgstr "固件加密类型代码"
+
+msgid "Bootloader Information (Raw)"
+msgstr "引导加载程序信息（原始）"
+
+msgid "Version Property (Raw)"
+msgstr "版本属性（原始）"
+
+msgid "Bootloader version, CRC and encryption are reported as numeric codes. They do not describe KNX Secure."
+msgstr "引导加载程序版本、CRC和加密以数字代码显示。这些代码不描述KNX Secure。"

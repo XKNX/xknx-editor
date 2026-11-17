@@ -3672,3 +3672,72 @@ msgstr "Unten"
 
 msgid "LED"
 msgstr "LED"
+
+msgid "Read Firmware Version"
+msgstr "Firmware-Version lesen"
+
+msgid "Import Firmware Catalog (.etsapp/.zip)…"
+msgstr "Firmware-Katalog importieren (.etsapp/.zip)…"
+
+msgid "Installed Version"
+msgstr "Installierte Version"
+
+msgid "Read At"
+msgstr "Ausgelesen am"
+
+msgid "Catalog: {source} (latest entry: {date})."
+msgstr "Katalog: {source} (neuester Eintrag: {date})."
+
+
+msgid "Latest Compatible Version"
+msgstr "Neueste kompatible Version"
+
+msgid "Not determined"
+msgstr "Nicht ermittelt"
+msgid "Compares the device's hardware/software identity with this catalog. Does not install firmware. Catalog import: MDT Firmware Update .etsapp or Firmware.zip."
+msgstr "Vergleicht die Hardware-/Software-Kennung des Geräts mit diesem Katalog. Installiert keine Firmware. Katalogimport: MDT Firmware Update .etsapp oder Firmware.zip."
+
+msgid "Hardware/software identity could not be determined. Read the device to check compatibility."
+msgstr "Die Hardware-/Software-Kennung konnte nicht ermittelt werden. Gerät auslesen, um die Kompatibilität zu prüfen."
+
+msgid "No compatible firmware in this catalog."
+msgstr "Keine kompatible Firmware in diesem Katalog."
+
+msgid "Installed version could not be determined."
+msgstr "Die installierte Version konnte nicht ermittelt werden."
+
+msgid "A newer compatible version is available in this catalog."
+msgstr "Eine neuere kompatible Version ist in diesem Katalog verfügbar."
+
+msgid "Up to date with this catalog."
+msgstr "Aktuell gemäß diesem Katalog."
+
+msgid "Hardware/Software Key"
+msgstr "Hardware-/Software-Schlüssel"
+
+msgid "Bootloader Version Code"
+msgstr "Bootloader-Versionskennung"
+
+msgid "Firmware Telegram Limit (Bytes)"
+msgstr "Firmware-Telegrammgrenze (Bytes)"
+
+msgid "Compatible Firmware File"
+msgstr "Kompatible Firmware-Datei"
+
+msgid "Catalog File Modified"
+msgstr "Katalogdatei geändert"
+
+msgid "CRC Type Code"
+msgstr "CRC-Typcode"
+
+msgid "Firmware Encryption Type Code"
+msgstr "Firmware-Verschlüsselungstypcode"
+
+msgid "Bootloader Information (Raw)"
+msgstr "Bootloader-Informationen (Rohdaten)"
+
+msgid "Version Property (Raw)"
+msgstr "Versionseigenschaft (Rohdaten)"
+
+msgid "Bootloader version, CRC and encryption are reported as numeric codes. They do not describe KNX Secure."
+msgstr "Bootloader-Version, CRC und Verschlüsselung werden als numerische Codes gemeldet. Sie beschreiben nicht KNX Secure."

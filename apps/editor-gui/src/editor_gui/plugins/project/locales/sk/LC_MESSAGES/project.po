@@ -3609,3 +3609,72 @@ msgstr "Dole"
 
 msgid "LED"
 msgstr "LED"
+
+msgid "Read Firmware Version"
+msgstr "Načítať verziu firmvéru"
+
+msgid "Import Firmware Catalog (.etsapp/.zip)…"
+msgstr "Importovať katalóg firmvéru (.etsapp/.zip)…"
+
+msgid "Installed Version"
+msgstr "Nainštalovaná verzia"
+
+msgid "Read At"
+msgstr "Načítané"
+
+msgid "Catalog: {source} (latest entry: {date})."
+msgstr "Katalóg: {source} (najnovší záznam: {date})."
+
+
+msgid "Latest Compatible Version"
+msgstr "Najnovšia kompatibilná verzia"
+
+msgid "Not determined"
+msgstr "Neurčené"
+msgid "Compares the device's hardware/software identity with this catalog. Does not install firmware. Catalog import: MDT Firmware Update .etsapp or Firmware.zip."
+msgstr "Porovná identitu hardvéru/softvéru zariadenia s týmto katalógom. Neinštaluje firmvér. Import katalógu: MDT Firmware Update .etsapp alebo Firmware.zip."
+
+msgid "Hardware/software identity could not be determined. Read the device to check compatibility."
+msgstr "Identitu hardvéru/softvéru sa nepodarilo určiť. Načítajte zariadenie na overenie kompatibility."
+
+msgid "No compatible firmware in this catalog."
+msgstr "V tomto katalógu nie je kompatibilný firmvér."
+
+msgid "Installed version could not be determined."
+msgstr "Nainštalovanú verziu sa nepodarilo určiť."
+
+msgid "A newer compatible version is available in this catalog."
+msgstr "V tomto katalógu je dostupná novšia kompatibilná verzia."
+
+msgid "Up to date with this catalog."
+msgstr "Aktuálne podľa tohto katalógu."
+
+msgid "Hardware/Software Key"
+msgstr "Kľúč hardvéru/softvéru"
+
+msgid "Bootloader Version Code"
+msgstr "Kód verzie zavádzača"
+
+msgid "Firmware Telegram Limit (Bytes)"
+msgstr "Limit telegramov firmvéru (bajty)"
+
+msgid "Compatible Firmware File"
+msgstr "Kompatibilný súbor firmvéru"
+
+msgid "Catalog File Modified"
+msgstr "Súbor katalógu zmenený"
+
+msgid "CRC Type Code"
+msgstr "Kód typu CRC"
+
+msgid "Firmware Encryption Type Code"
+msgstr "Kód typu šifrovania firmvéru"
+
+msgid "Bootloader Information (Raw)"
+msgstr "Informácie zavádzača (surové)"
+
+msgid "Version Property (Raw)"
+msgstr "Vlastnosť verzie (surová)"
+
+msgid "Bootloader version, CRC and encryption are reported as numeric codes. They do not describe KNX Secure."
+msgstr "Verzia zavádzača, CRC a šifrovanie sú uvedené ako číselné kódy. Nepopisujú KNX Secure."

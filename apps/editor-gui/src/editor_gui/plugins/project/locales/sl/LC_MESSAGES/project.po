@@ -3661,3 +3661,72 @@ msgstr "Spodaj"
 
 msgid "LED"
 msgstr "LED"
+
+msgid "Read Firmware Version"
+msgstr "Preberi različico strojne programske opreme"
+
+msgid "Import Firmware Catalog (.etsapp/.zip)…"
+msgstr "Uvozi katalog strojne programske opreme (.etsapp/.zip)…"
+
+msgid "Installed Version"
+msgstr "Nameščena različica"
+
+msgid "Read At"
+msgstr "Prebrano"
+
+msgid "Catalog: {source} (latest entry: {date})."
+msgstr "Katalog: {source} (najnovejši vnos: {date})."
+
+
+msgid "Latest Compatible Version"
+msgstr "Najnovejša združljiva različica"
+
+msgid "Not determined"
+msgstr "Ni določeno"
+msgid "Compares the device's hardware/software identity with this catalog. Does not install firmware. Catalog import: MDT Firmware Update .etsapp or Firmware.zip."
+msgstr "Primerja identiteto strojne/programske opreme naprave s tem katalogom. Ne namešča vdelane programske opreme. Uvoz kataloga: MDT Firmware Update .etsapp ali Firmware.zip."
+
+msgid "Hardware/software identity could not be determined. Read the device to check compatibility."
+msgstr "Identitete strojne/programske opreme ni bilo mogoče določiti. Preberite napravo, da preverite združljivost."
+
+msgid "No compatible firmware in this catalog."
+msgstr "V tem katalogu ni združljive vdelane programske opreme."
+
+msgid "Installed version could not be determined."
+msgstr "Nameščene različice ni bilo mogoče določiti."
+
+msgid "A newer compatible version is available in this catalog."
+msgstr "V tem katalogu je na voljo novejša združljiva različica."
+
+msgid "Up to date with this catalog."
+msgstr "Posodobljeno glede na ta katalog."
+
+msgid "Hardware/Software Key"
+msgstr "Ključ strojne/programske opreme"
+
+msgid "Bootloader Version Code"
+msgstr "Koda različice zagonskega nalagalnika"
+
+msgid "Firmware Telegram Limit (Bytes)"
+msgstr "Omejitev telegramov vdelane programske opreme (bajti)"
+
+msgid "Compatible Firmware File"
+msgstr "Združljiva datoteka vdelane programske opreme"
+
+msgid "Catalog File Modified"
+msgstr "Datoteka kataloga spremenjena"
+
+msgid "CRC Type Code"
+msgstr "Koda vrste CRC"
+
+msgid "Firmware Encryption Type Code"
+msgstr "Koda vrste šifriranja vdelane programske opreme"
+
+msgid "Bootloader Information (Raw)"
+msgstr "Podatki zagonskega nalagalnika (surovi)"
+
+msgid "Version Property (Raw)"
+msgstr "Lastnost različice (surova)"
+
+msgid "Bootloader version, CRC and encryption are reported as numeric codes. They do not describe KNX Secure."
+msgstr "Različica zagonskega nalagalnika, CRC in šifriranje so navedeni kot številske kode. Ne opisujejo KNX Secure."

@@ -50,6 +50,7 @@ packages/*/src/**/*.json
 !packages/download/src/xknxeditor/download/mask_resources.json
 !packages/download/src/xknxeditor/download/suspicious_serials.json
 !packages/vendor/src/xknxeditor/vendor/powertool/schema.json
+!packages/vendor/src/xknxeditor/vendor/mdt/firmware-catalog.json
 !packages/vendor/src/xknxeditor/vendor/mdt/applications.json
 !packages/vendor/src/xknxeditor/vendor/mdt/layout-map.json
 !packages/vendor/src/xknxeditor/vendor/mdt/status-map.json

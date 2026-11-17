@@ -359,3 +359,48 @@ def test_the_group_monitor_refuses_a_write_also_through_home_assistant() -> None
     monitor.send_read("1/2/3")
     assert [type(payload) for _, payload in elsewhere] == [GroupValueRead]
     assert GroupValueWrite not in [type(payload) for _, payload in elsewhere]
+
+
+def test_mdt_identity_exception_is_scoped_to_exact_read_request():
+    from xknx.telegram import Telegram
+
+    from editor_gui.plugins.connection.write_guard import (
+        check_telegram,
+        mdt_firmware_info_read,
+    )
+
+    def command(data=b"\x00\x11\x00", object_index=0, property_id=242):
+        return apci.FunctionPropertyCommand(
+            object_index=object_index, property_id=property_id, data=data
+        )
+
+    assert is_bus_write(_frame(command()))
+    with mdt_firmware_info_read(_DEVICE, 0):
+        assert not is_bus_write(_frame(command()))
+        for payload in [
+            *(
+                command(bytes((0, value, 0)))
+                for value in (1, 2, 3, 4, 5, 6, 18, 19, 20, 33)
+            ),
+            command(b"\x00\x11"),
+            command(b"\x01\x11\x00"),
+            command(b"\x00\x11\x00\x00"),
+            command(b"\x00\x11\x01"),
+            command(object_index=1),
+            command(property_id=241),
+        ]:
+            assert is_bus_write(_frame(payload))
+        for address in [IndividualAddress("1.1.6"), GroupAddress("1/1/5")]:
+            with pytest.raises(BusWritesBlocked):
+                check_telegram(
+                    lambda: True,
+                    Telegram(destination_address=address, payload=command()),
+                )
+        with mdt_firmware_info_read(_DEVICE, 1):
+            assert is_bus_write(_frame(command()))
+            assert not is_bus_write(_frame(command(b"\x00\x11\x01")))
+        assert not is_bus_write(_frame(command()))
+    assert is_bus_write(_frame(command()))
+    for sequence in (-1, 28, 256):
+        with pytest.raises(ValueError), mdt_firmware_info_read(_DEVICE, sequence):
+            pytest.fail("Invalid request allowed")

@@ -188,7 +188,7 @@ unverified. Initial Powerline domain commissioning is not supported.
 
 **Siemens plug-ins** are supported in **Plugin Config**.
 
-**MDT DCAs**: edit GTS layouts and Smart device symbols, or import/export VisuControl Plus configurations, through **Plugin Config** and MCP; recover stored DCA data from devices that allow it to be read.
+**MDT DCAs**: edit GTS layouts and Smart device symbols, or import/export VisuControl Plus configurations, through **Plugin Config** and MCP; recover stored DCA data from devices that allow it to be read. Read installed MDT firmware versions and compare compatible releases from the firmware catalog.
 
 **Cockpit and health checks** — a site-wide device table with live status, plus a panel that flags
 issues (missing or duplicate addresses, applications missing from the catalog, unlinked objects,

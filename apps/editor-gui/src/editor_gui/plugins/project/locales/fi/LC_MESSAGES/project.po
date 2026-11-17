@@ -3530,3 +3530,72 @@ msgstr "Ala"
 
 msgid "LED"
 msgstr "LED"
+
+msgid "Read Firmware Version"
+msgstr "Lue laiteohjelmistoversio"
+
+msgid "Import Firmware Catalog (.etsapp/.zip)…"
+msgstr "Tuo laiteohjelmistoluettelo (.etsapp/.zip)…"
+
+msgid "Installed Version"
+msgstr "Asennettu versio"
+
+msgid "Read At"
+msgstr "Luettu"
+
+msgid "Catalog: {source} (latest entry: {date})."
+msgstr "Luettelo: {source} (uusin merkintä: {date})."
+
+
+msgid "Latest Compatible Version"
+msgstr "Uusin yhteensopiva versio"
+
+msgid "Not determined"
+msgstr "Ei määritetty"
+msgid "Compares the device's hardware/software identity with this catalog. Does not install firmware. Catalog import: MDT Firmware Update .etsapp or Firmware.zip."
+msgstr "Vertaa laitteen laitteisto-/ohjelmistotunnistetta tähän luetteloon. Ei asenna laiteohjelmistoa. Luettelon tuonti: MDT Firmware Update .etsapp tai Firmware.zip."
+
+msgid "Hardware/software identity could not be determined. Read the device to check compatibility."
+msgstr "Laitteisto-/ohjelmistotunnistetta ei voitu määrittää. Lue laite yhteensopivuuden tarkistamiseksi."
+
+msgid "No compatible firmware in this catalog."
+msgstr "Tässä luettelossa ei ole yhteensopivaa laiteohjelmistoa."
+
+msgid "Installed version could not be determined."
+msgstr "Asennettua versiota ei voitu määrittää."
+
+msgid "A newer compatible version is available in this catalog."
+msgstr "Tässä luettelossa on saatavilla uudempi yhteensopiva versio."
+
+msgid "Up to date with this catalog."
+msgstr "Ajan tasalla tämän luettelon mukaan."
+
+msgid "Hardware/Software Key"
+msgstr "Laitteisto-/ohjelmistoavain"
+
+msgid "Bootloader Version Code"
+msgstr "Käynnistyslataajan versiokoodi"
+
+msgid "Firmware Telegram Limit (Bytes)"
+msgstr "Laiteohjelmiston sanomaraja (tavua)"
+
+msgid "Compatible Firmware File"
+msgstr "Yhteensopiva laiteohjelmistotiedosto"
+
+msgid "Catalog File Modified"
+msgstr "Luettelotiedostoa muokattu"
+
+msgid "CRC Type Code"
+msgstr "CRC-tyyppikoodi"
+
+msgid "Firmware Encryption Type Code"
+msgstr "Laiteohjelmiston salaustyyppikoodi"
+
+msgid "Bootloader Information (Raw)"
+msgstr "Käynnistyslataajan tiedot (raaka)"
+
+msgid "Version Property (Raw)"
+msgstr "Versio-ominaisuus (raaka)"
+
+msgid "Bootloader version, CRC and encryption are reported as numeric codes. They do not describe KNX Secure."
+msgstr "Käynnistyslataajan versio, CRC ja salaus ilmoitetaan numerokoodeina. Ne eivät kuvaa KNX Securea."

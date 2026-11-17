@@ -3530,3 +3530,72 @@ msgstr "Nedre"
 
 msgid "LED"
 msgstr "LED"
+
+msgid "Read Firmware Version"
+msgstr "Les fastvareversjon"
+
+msgid "Import Firmware Catalog (.etsapp/.zip)…"
+msgstr "Importer fastvarekatalog (.etsapp/.zip)…"
+
+msgid "Installed Version"
+msgstr "Installert versjon"
+
+msgid "Read At"
+msgstr "Lest den"
+
+msgid "Catalog: {source} (latest entry: {date})."
+msgstr "Katalog: {source} (nyeste oppføring: {date})."
+
+
+msgid "Latest Compatible Version"
+msgstr "Nyeste kompatible versjon"
+
+msgid "Not determined"
+msgstr "Ikke fastslått"
+msgid "Compares the device's hardware/software identity with this catalog. Does not install firmware. Catalog import: MDT Firmware Update .etsapp or Firmware.zip."
+msgstr "Sammenligner enhetens maskinvare-/programvareidentitet med denne katalogen. Installerer ikke fastvare. Katalogimport: MDT Firmware Update .etsapp eller Firmware.zip."
+
+msgid "Hardware/software identity could not be determined. Read the device to check compatibility."
+msgstr "Maskinvare-/programvareidentiteten kunne ikke fastslås. Les enheten for å kontrollere kompatibiliteten."
+
+msgid "No compatible firmware in this catalog."
+msgstr "Ingen kompatibel fastvare i denne katalogen."
+
+msgid "Installed version could not be determined."
+msgstr "Den installerte versjonen kunne ikke fastslås."
+
+msgid "A newer compatible version is available in this catalog."
+msgstr "En nyere kompatibel versjon er tilgjengelig i denne katalogen."
+
+msgid "Up to date with this catalog."
+msgstr "Oppdatert ifølge denne katalogen."
+
+msgid "Hardware/Software Key"
+msgstr "Maskinvare-/programvarenøkkel"
+
+msgid "Bootloader Version Code"
+msgstr "Versjonskode for oppstartslaster"
+
+msgid "Firmware Telegram Limit (Bytes)"
+msgstr "Grense for fastvaretelegrammer (byte)"
+
+msgid "Compatible Firmware File"
+msgstr "Kompatibel fastvarefil"
+
+msgid "Catalog File Modified"
+msgstr "Katalogfil endret"
+
+msgid "CRC Type Code"
+msgstr "CRC-typekode"
+
+msgid "Firmware Encryption Type Code"
+msgstr "Typekode for fastvarekryptering"
+
+msgid "Bootloader Information (Raw)"
+msgstr "Oppstartslasterinformasjon (rå)"
+
+msgid "Version Property (Raw)"
+msgstr "Versjonsegenskap (rå)"
+
+msgid "Bootloader version, CRC and encryption are reported as numeric codes. They do not describe KNX Secure."
+msgstr "Oppstartslasterversjon, CRC og kryptering rapporteres som numeriske koder. De beskriver ikke KNX Secure."
