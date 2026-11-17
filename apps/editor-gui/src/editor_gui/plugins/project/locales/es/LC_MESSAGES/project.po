@@ -3532,3 +3532,72 @@ msgstr "Abajo"
 
 msgid "LED"
 msgstr "LED"
+
+msgid "Read Firmware Version"
+msgstr "Leer versión del firmware"
+
+msgid "Import Firmware Catalog (.etsapp/.zip)…"
+msgstr "Importar catálogo de firmware (.etsapp/.zip)…"
+
+msgid "Installed Version"
+msgstr "Versión instalada"
+
+msgid "Read At"
+msgstr "Leído el"
+
+msgid "Catalog: {source} (latest entry: {date})."
+msgstr "Catálogo: {source} (última entrada: {date})."
+
+
+msgid "Latest Compatible Version"
+msgstr "Última versión compatible"
+
+msgid "Not determined"
+msgstr "No determinada"
+msgid "Compares the device's hardware/software identity with this catalog. Does not install firmware. Catalog import: MDT Firmware Update .etsapp or Firmware.zip."
+msgstr "Compara la identificación de hardware/software del dispositivo con este catálogo. No instala firmware. Importar catálogo: MDT Firmware Update .etsapp o Firmware.zip."
+
+msgid "Hardware/software identity could not be determined. Read the device to check compatibility."
+msgstr "No se pudo determinar la identificación de hardware/software. Lea el dispositivo para comprobar la compatibilidad."
+
+msgid "No compatible firmware in this catalog."
+msgstr "No hay firmware compatible en este catálogo."
+
+msgid "Installed version could not be determined."
+msgstr "No se pudo determinar la versión instalada."
+
+msgid "A newer compatible version is available in this catalog."
+msgstr "Hay una versión compatible más reciente en este catálogo."
+
+msgid "Up to date with this catalog."
+msgstr "Actualizado según este catálogo."
+
+msgid "Hardware/Software Key"
+msgstr "Clave de hardware/software"
+
+msgid "Bootloader Version Code"
+msgstr "Código de versión del gestor de arranque"
+
+msgid "Firmware Telegram Limit (Bytes)"
+msgstr "Límite de telegramas del firmware (bytes)"
+
+msgid "Compatible Firmware File"
+msgstr "Archivo de firmware compatible"
+
+msgid "Catalog File Modified"
+msgstr "Archivo del catálogo modificado"
+
+msgid "CRC Type Code"
+msgstr "Código del tipo de CRC"
+
+msgid "Firmware Encryption Type Code"
+msgstr "Código del tipo de cifrado del firmware"
+
+msgid "Bootloader Information (Raw)"
+msgstr "Información del gestor de arranque (sin procesar)"
+
+msgid "Version Property (Raw)"
+msgstr "Propiedad de versión (sin procesar)"
+
+msgid "Bootloader version, CRC and encryption are reported as numeric codes. They do not describe KNX Secure."
+msgstr "La versión del gestor de arranque, el CRC y el cifrado se indican mediante códigos numéricos. No describen KNX Secure."

@@ -165,6 +165,7 @@ _QUEUED_OPERATIONS = frozenset(
         "siemens_dali",
         "siemens_dca",
         "mdt_symbols",
+        "mdt_firmware",
     }
 )
 
@@ -389,9 +390,7 @@ class ProjectPlugin:
             render_siemens_dali=self._render_siemens_dali_tab,
             render_plugin_params=self._render_plugin_params_tab,
             has_plugin_params=lambda d: (
-                api.project.plugin_mapping(d) is not None
-                or self._has_plugin_comparison(d)
-                or api.project.mdt_dca_profile(d) is not None
+                self._has_plugin_configuration(d) or api.project.has_mdt_firmware(d)
             ),
             plugin_capabilities=api.project.plugin_capabilities,
             on_navigate_ga=self._navigate_to_group_address,
@@ -442,8 +441,10 @@ class ProjectPlugin:
             self._dali_channel_count,
             _generation=lambda: api.project.generation,
         )
+        from editor_gui.plugins.project.ui.mdt_firmware import MdtFirmwarePanel
         from editor_gui.plugins.project.ui.native_plugin import NativePluginPanel
 
+        self._mdt_firmware_panel = MdtFirmwarePanel(self._queue_bus_action)
         self._native_plugin_panel = NativePluginPanel()
         self._mdt_dca_panel = MdtDcaPanel(
             self._queue_bus_action,
@@ -1227,6 +1228,12 @@ class ProjectPlugin:
                 start = functools.partial(
                     conn.run_siemens_dca_program, blob_xml=options["data"]
                 )
+            case "mdt_firmware":
+                target = self._api.project.prepare_mdt_firmware_read(node_id)
+                text, start = S.MDT_FIRMWARE_READ, conn.read_mdt_firmware
+                finish = functools.partial(
+                    self._api.project.apply_mdt_firmware_read, target
+                )
             case "read_mdt_symbols":
                 target = self._api.project.prepare_mdt_symbol_read(node_id)
                 text, start = S.MDT_READ_SYMBOLS, conn.read_mdt_symbols
@@ -1275,6 +1282,7 @@ class ProjectPlugin:
                 "siemens_dali",
                 "mdt_symbols",
                 "read_mdt_symbols",
+                "mdt_firmware",
             ) and (
                 self._api.project.generation != generation
                 or current.individual_address != item.address
@@ -1334,6 +1342,7 @@ class ProjectPlugin:
                 "siemens_dali",
                 "mdt_symbols",
                 "read_mdt_symbols",
+                "mdt_firmware",
             )
             else begin,
             finish=finish,
@@ -1464,11 +1473,23 @@ class ProjectPlugin:
         """Render configuration actions, optional comparison and editable parameters."""
         self._poll_triton_prj_dialog()
         self._poll_triton_prj_save()
+        self._mdt_firmware_panel.render(
+            device,
+            self._api.project,
+            default_open=not self._has_plugin_configuration(device),
+        )
         self._mdt_dca_panel.render(device, self._api.project)
         self._native_plugin_panel.render(device, self._api.project)
         self._generic_plugin_panel.render_section(device)
         if self._api.project.plugin_mapping(device) is not None:
             self._plugin_params_panel.render(device)
+
+    def _has_plugin_configuration(self, device: "Device") -> bool:
+        return (
+            self._api.project.plugin_mapping(device) is not None
+            or self._has_plugin_comparison(device)
+            or self._api.project.mdt_dca_profile(device) is not None
+        )
 
     def _has_plugin_comparison(self, device: "Device") -> bool:
         return self.generic_plugin_view(device) is not None

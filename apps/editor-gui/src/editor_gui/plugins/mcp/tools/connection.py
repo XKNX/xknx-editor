@@ -80,6 +80,7 @@ _OPERATION_NAMES: dict[str, str] = {
     "siemens_dali": "a DALI operation",
     "siemens_dca": "a DALI operation",
     "recover": "a project recovery",
+    "mdt_firmware": "a firmware version read",
 }
 # How long a timed-out operation may take to unwind after it was canceled.
 _UNWIND_TIMEOUT = 10.0

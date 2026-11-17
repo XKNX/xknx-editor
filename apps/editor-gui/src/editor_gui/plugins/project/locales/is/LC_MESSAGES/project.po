@@ -3557,3 +3557,72 @@ msgstr "Neðri"
 
 msgid "LED"
 msgstr "LED"
+
+msgid "Read Firmware Version"
+msgstr "Lesa fastbúnaðarútgáfu"
+
+msgid "Import Firmware Catalog (.etsapp/.zip)…"
+msgstr "Flytja inn fastbúnaðarskrá (.etsapp/.zip)…"
+
+msgid "Installed Version"
+msgstr "Uppsett útgáfa"
+
+msgid "Read At"
+msgstr "Lesið"
+
+msgid "Catalog: {source} (latest entry: {date})."
+msgstr "Skrá: {source} (nýjasta færsla: {date})."
+
+
+msgid "Latest Compatible Version"
+msgstr "Nýjasta samhæfa útgáfa"
+
+msgid "Not determined"
+msgstr "Ekki ákvarðað"
+msgid "Compares the device's hardware/software identity with this catalog. Does not install firmware. Catalog import: MDT Firmware Update .etsapp or Firmware.zip."
+msgstr "Ber auðkenni vélbúnaðar/hugbúnaðar tækisins saman við þessa skrá. Setur ekki upp fastbúnað. Innflutningur skrár: MDT Firmware Update .etsapp eða Firmware.zip."
+
+msgid "Hardware/software identity could not be determined. Read the device to check compatibility."
+msgstr "Ekki tókst að ákvarða auðkenni vélbúnaðar/hugbúnaðar. Lestu tækið til að athuga samhæfni."
+
+msgid "No compatible firmware in this catalog."
+msgstr "Enginn samhæfur fastbúnaður í þessari skrá."
+
+msgid "Installed version could not be determined."
+msgstr "Ekki tókst að ákvarða uppsetta útgáfu."
+
+msgid "A newer compatible version is available in this catalog."
+msgstr "Nýrri samhæf útgáfa er tiltæk í þessari skrá."
+
+msgid "Up to date with this catalog."
+msgstr "Uppfært samkvæmt þessari skrá."
+
+msgid "Hardware/Software Key"
+msgstr "Vélbúnaðar-/hugbúnaðarlykill"
+
+msgid "Bootloader Version Code"
+msgstr "Útgáfukóði ræsiforrits"
+
+msgid "Firmware Telegram Limit (Bytes)"
+msgstr "Hámarksstærð fastbúnaðarskeyta (bæti)"
+
+msgid "Compatible Firmware File"
+msgstr "Samhæf fastbúnaðarskrá"
+
+msgid "Catalog File Modified"
+msgstr "Vörulistaskrá breytt"
+
+msgid "CRC Type Code"
+msgstr "CRC-tegundarkóði"
+
+msgid "Firmware Encryption Type Code"
+msgstr "Tegundarkóði fastbúnaðardulkóðunar"
+
+msgid "Bootloader Information (Raw)"
+msgstr "Upplýsingar ræsiforrits (hráar)"
+
+msgid "Version Property (Raw)"
+msgstr "Útgáfueiginleiki (hrár)"
+
+msgid "Bootloader version, CRC and encryption are reported as numeric codes. They do not describe KNX Secure."
+msgstr "Útgáfa ræsiforrits, CRC og dulkóðun eru sýnd sem tölukóðar. Þau lýsa ekki KNX Secure."

@@ -3582,3 +3582,72 @@ msgstr "Низ"
 
 msgid "LED"
 msgstr "LED"
+
+msgid "Read Firmware Version"
+msgstr "Прочитати версію прошивки"
+
+msgid "Import Firmware Catalog (.etsapp/.zip)…"
+msgstr "Імпортувати каталог прошивок (.etsapp/.zip)…"
+
+msgid "Installed Version"
+msgstr "Установлена версія"
+
+msgid "Read At"
+msgstr "Час читання"
+
+msgid "Catalog: {source} (latest entry: {date})."
+msgstr "Каталог: {source} (останній запис: {date})."
+
+
+msgid "Latest Compatible Version"
+msgstr "Остання сумісна версія"
+
+msgid "Not determined"
+msgstr "Не визначена"
+msgid "Compares the device's hardware/software identity with this catalog. Does not install firmware. Catalog import: MDT Firmware Update .etsapp or Firmware.zip."
+msgstr "Порівнює ідентифікатор обладнання/ПЗ пристрою з цим каталогом. Не встановлює прошивку. Імпорт каталогу: MDT Firmware Update .etsapp або Firmware.zip."
+
+msgid "Hardware/software identity could not be determined. Read the device to check compatibility."
+msgstr "Не вдалося визначити ідентифікатор обладнання/ПЗ. Прочитайте пристрій для перевірки сумісності."
+
+msgid "No compatible firmware in this catalog."
+msgstr "У цьому каталозі немає сумісної прошивки."
+
+msgid "Installed version could not be determined."
+msgstr "Не вдалося визначити встановлену версію."
+
+msgid "A newer compatible version is available in this catalog."
+msgstr "У цьому каталозі доступна новіша сумісна версія."
+
+msgid "Up to date with this catalog."
+msgstr "Актуально за цим каталогом."
+
+msgid "Hardware/Software Key"
+msgstr "Ключ обладнання/ПЗ"
+
+msgid "Bootloader Version Code"
+msgstr "Код версії завантажувача"
+
+msgid "Firmware Telegram Limit (Bytes)"
+msgstr "Ліміт телеграм прошивки (байти)"
+
+msgid "Compatible Firmware File"
+msgstr "Сумісний файл прошивки"
+
+msgid "Catalog File Modified"
+msgstr "Файл каталогу змінено"
+
+msgid "CRC Type Code"
+msgstr "Код типу CRC"
+
+msgid "Firmware Encryption Type Code"
+msgstr "Код типу шифрування прошивки"
+
+msgid "Bootloader Information (Raw)"
+msgstr "Інформація завантажувача (необроблена)"
+
+msgid "Version Property (Raw)"
+msgstr "Властивість версії (необроблена)"
+
+msgid "Bootloader version, CRC and encryption are reported as numeric codes. They do not describe KNX Secure."
+msgstr "Версія завантажувача, CRC і шифрування подаються числовими кодами. Вони не описують KNX Secure."

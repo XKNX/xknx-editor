@@ -3478,3 +3478,72 @@ msgstr "Alt"
 
 msgid "LED"
 msgstr "LED"
+
+msgid "Read Firmware Version"
+msgstr "Donanım yazılımı sürümünü oku"
+
+msgid "Import Firmware Catalog (.etsapp/.zip)…"
+msgstr "Donanım yazılımı kataloğunu içe aktar (.etsapp/.zip)…"
+
+msgid "Installed Version"
+msgstr "Yüklü sürüm"
+
+msgid "Read At"
+msgstr "Okunma zamanı"
+
+msgid "Catalog: {source} (latest entry: {date})."
+msgstr "Katalog: {source} (en yeni kayıt: {date})."
+
+
+msgid "Latest Compatible Version"
+msgstr "En yeni uyumlu sürüm"
+
+msgid "Not determined"
+msgstr "Belirlenmedi"
+msgid "Compares the device's hardware/software identity with this catalog. Does not install firmware. Catalog import: MDT Firmware Update .etsapp or Firmware.zip."
+msgstr "Cihazın donanım/yazılım kimliğini bu katalogla karşılaştırır. Donanım yazılımı yüklemez. Katalog içe aktarımı: MDT Firmware Update .etsapp veya Firmware.zip."
+
+msgid "Hardware/software identity could not be determined. Read the device to check compatibility."
+msgstr "Donanım/yazılım kimliği belirlenemedi. Uyumluluğu kontrol etmek için cihazı okuyun."
+
+msgid "No compatible firmware in this catalog."
+msgstr "Bu katalogda uyumlu donanım yazılımı yok."
+
+msgid "Installed version could not be determined."
+msgstr "Yüklü sürüm belirlenemedi."
+
+msgid "A newer compatible version is available in this catalog."
+msgstr "Bu katalogda daha yeni uyumlu bir sürüm mevcut."
+
+msgid "Up to date with this catalog."
+msgstr "Bu kataloğa göre güncel."
+
+msgid "Hardware/Software Key"
+msgstr "Donanım/yazılım anahtarı"
+
+msgid "Bootloader Version Code"
+msgstr "Önyükleyici sürüm kodu"
+
+msgid "Firmware Telegram Limit (Bytes)"
+msgstr "Donanım yazılımı telegram sınırı (bayt)"
+
+msgid "Compatible Firmware File"
+msgstr "Uyumlu donanım yazılımı dosyası"
+
+msgid "Catalog File Modified"
+msgstr "Katalog dosyası değişikliği"
+
+msgid "CRC Type Code"
+msgstr "CRC tür kodu"
+
+msgid "Firmware Encryption Type Code"
+msgstr "Donanım yazılımı şifreleme tür kodu"
+
+msgid "Bootloader Information (Raw)"
+msgstr "Önyükleyici bilgileri (ham)"
+
+msgid "Version Property (Raw)"
+msgstr "Sürüm özelliği (ham)"
+
+msgid "Bootloader version, CRC and encryption are reported as numeric codes. They do not describe KNX Secure."
+msgstr "Önyükleyici sürümü, CRC ve şifreleme sayısal kodlarla bildirilir. KNX Secure ayarlarını açıklamazlar."

@@ -3609,3 +3609,72 @@ msgstr "Jos"
 
 msgid "LED"
 msgstr "LED"
+
+msgid "Read Firmware Version"
+msgstr "Citește versiunea firmware"
+
+msgid "Import Firmware Catalog (.etsapp/.zip)…"
+msgstr "Importă catalogul firmware (.etsapp/.zip)…"
+
+msgid "Installed Version"
+msgstr "Versiune instalată"
+
+msgid "Read At"
+msgstr "Citit la"
+
+msgid "Catalog: {source} (latest entry: {date})."
+msgstr "Catalog: {source} (cea mai recentă intrare: {date})."
+
+
+msgid "Latest Compatible Version"
+msgstr "Cea mai recentă versiune compatibilă"
+
+msgid "Not determined"
+msgstr "Nedeterminată"
+msgid "Compares the device's hardware/software identity with this catalog. Does not install firmware. Catalog import: MDT Firmware Update .etsapp or Firmware.zip."
+msgstr "Compară identitatea hardware/software a dispozitivului cu acest catalog. Nu instalează firmware. Import catalog: MDT Firmware Update .etsapp sau Firmware.zip."
+
+msgid "Hardware/software identity could not be determined. Read the device to check compatibility."
+msgstr "Identitatea hardware/software nu a putut fi determinată. Citiți dispozitivul pentru a verifica compatibilitatea."
+
+msgid "No compatible firmware in this catalog."
+msgstr "Nu există firmware compatibil în acest catalog."
+
+msgid "Installed version could not be determined."
+msgstr "Versiunea instalată nu a putut fi determinată."
+
+msgid "A newer compatible version is available in this catalog."
+msgstr "O versiune compatibilă mai nouă este disponibilă în acest catalog."
+
+msgid "Up to date with this catalog."
+msgstr "La zi conform acestui catalog."
+
+msgid "Hardware/Software Key"
+msgstr "Cheie hardware/software"
+
+msgid "Bootloader Version Code"
+msgstr "Codul versiunii încărcătorului de pornire"
+
+msgid "Firmware Telegram Limit (Bytes)"
+msgstr "Limita telegramelor firmware (octeți)"
+
+msgid "Compatible Firmware File"
+msgstr "Fișier firmware compatibil"
+
+msgid "Catalog File Modified"
+msgstr "Fișierul catalogului modificat"
+
+msgid "CRC Type Code"
+msgstr "Codul tipului CRC"
+
+msgid "Firmware Encryption Type Code"
+msgstr "Codul tipului de criptare firmware"
+
+msgid "Bootloader Information (Raw)"
+msgstr "Informații încărcător de pornire (brute)"
+
+msgid "Version Property (Raw)"
+msgstr "Proprietatea versiunii (brută)"
+
+msgid "Bootloader version, CRC and encryption are reported as numeric codes. They do not describe KNX Secure."
+msgstr "Versiunea încărcătorului de pornire, CRC și criptarea sunt raportate ca numere de cod. Acestea nu descriu KNX Secure."

@@ -127,7 +127,7 @@ if TYPE_CHECKING:
         DiffProgress,
         DiffResult,
     )
-    from editor_gui.programming_mdt import SymbolReadTarget
+    from editor_gui.programming_mdt import FirmwareReadTarget, SymbolReadTarget
     from xknxeditor.catalog import ProductDeletion, ProductSummary, ProgramSummary
     from xknxeditor.download.image import GroupCommunication
     from xknxeditor.download.ip_config import IpDeviceConfig
@@ -161,6 +161,7 @@ if TYPE_CHECKING:
     )
     from xknxeditor.proj.models import Device as DeviceRow
     from xknxeditor.vendor.mdt import DcaProfile
+    from xknxeditor.vendor.mdt.firmware import FirmwareCatalog, FirmwareInfo
     from xknxeditor.vendor.mdt.layout import Layout
     from xknxeditor.vendor.triton import DeviceType as TritonDeviceType
 
@@ -1332,6 +1333,9 @@ class ProjectService:
         # Bumped on every new/open/close so a long-running bus operation can tell its originating
         # project from whatever is open when its deferred writes finally run (see persist_script_changes).
         self._generation = 0
+        self._mdt_firmware_reads: dict[
+            int, tuple[FirmwareReadTarget, FirmwareInfo, str]
+        ] = {}
         # ``_path`` is the user-facing "home" (may be on a network share). ``_working_path`` is the
         # local file the SQLite engine actually uses; equal to ``_path`` for a normal local project.
         # They differ only in the SMB/network fallback: the engine works on a local mirror and the
@@ -1728,6 +1732,7 @@ class ProjectService:
         self._path = None
         self._working_path = None
         self._generation += 1
+        self._mdt_firmware_reads.clear()
         self._reset()
 
     @staticmethod
@@ -4201,6 +4206,135 @@ class ProjectService:
             )
         self._refresh_device(device.node_id)
         self._bump(structural=False)
+
+    @staticmethod
+    def has_mdt_firmware(device: Device) -> bool:
+        return device.app is not None and device.app.manufacturer_id == "M-0083"
+
+    def prepare_mdt_firmware_read(self, node_id: int) -> "FirmwareReadTarget":
+        from editor_gui.programming_mdt import FirmwareReadTarget
+
+        device = self.find_device_by_node_id(node_id)
+        if self._pid is None or device is None or not self.has_mdt_firmware(device):
+            raise ValueError("Device is not an MDT device")
+        assert device.app is not None
+        target = FirmwareReadTarget(
+            self.generation,
+            node_id,
+            device.individual_address or "",
+            device.app.id,
+            device.order_number,
+        )
+        stored = self._mdt_firmware_reads.get(node_id)
+        if stored is not None and stored[0] != target:
+            del self._mdt_firmware_reads[node_id]
+        return target
+
+    def apply_mdt_firmware_read(
+        self, target: "FirmwareReadTarget", info: "FirmwareInfo"
+    ) -> dict[str, Any]:
+        """Keep a session readout without changing configuration or history."""
+        if self.prepare_mdt_firmware_read(target.node_id) != target:
+            raise ValueError("Device changed while reading; read it again")
+        self._mdt_firmware_reads[target.node_id] = (
+            target,
+            info,
+            datetime.datetime.now(datetime.UTC).isoformat(),
+        )
+        return self.mdt_firmware(target.node_id)
+
+    @revision_cached
+    def mdt_firmware_catalog(self) -> "FirmwareCatalog":
+        from xknxeditor.vendor.mdt.firmware import bundled_catalog, load_catalog
+
+        data = (
+            self._svc.project_user_file(self._pid, "MDT-Firmware-Catalog.json")
+            if self._pid
+            else None
+        )
+        return load_catalog(data) if data is not None else bundled_catalog()
+
+    def import_mdt_firmware_catalog(self, data: bytes, source: str) -> None:
+        """Store release metadata once for the project; never store firmware payloads."""
+        from xknxeditor.vendor.mdt.firmware import import_catalog
+
+        if self._pid is None:
+            raise ValueError("No project open")
+        catalog = import_catalog(data, source)
+        with self._io_lock:
+            self._svc.set_project_user_file(
+                self._pid,
+                "MDT-Firmware-Catalog.json",
+                catalog.dump(),
+                label=S.MDT_FIRMWARE_IMPORT,
+            )
+        self._bump(structural=False)
+
+    @revision_cached_by_args
+    def _mdt_firmware_releases(
+        self, product: str, info: "FirmwareInfo | None"
+    ) -> dict[str, Any]:
+        from dataclasses import asdict
+
+        from xknxeditor.vendor.mdt.firmware import version_key
+
+        catalog = self.mdt_firmware_catalog()
+        releases = catalog.compatible_releases(product, info) if info else ()
+        latest = releases[-1].version if releases else None
+        if info is None or info.hardware_key is None:
+            status = "hardware_identity_not_read"
+        elif latest is None:
+            status = "no_compatible_release"
+        elif info.version is None or info.version == "0.0":
+            status = "installed_version_unknown"
+        elif version_key(info.version) < version_key(latest):
+            status = "update_available"
+        else:
+            status = "up_to_date"
+        return {
+            "catalog_source": catalog.source,
+            "catalog_latest_modified": catalog.latest_modified,
+            "catalog_variants": [
+                {"hardware_key": key, "releases": [asdict(r) for r in releases]}
+                for key, releases in catalog.variants_for_product(product)
+            ],
+            "compatible_releases": [asdict(r) for r in releases],
+            "latest_compatible_version": latest,
+            "compatibility_status": status,
+            "hardware_compatibility_verified": bool(releases),
+        }
+
+    def mdt_firmware(self, node_id: int) -> dict[str, Any]:
+        """Compare read device identity and version with the project's firmware catalog."""
+        from dataclasses import asdict
+
+        target = self.prepare_mdt_firmware_read(node_id)
+        stored = self._mdt_firmware_reads.get(node_id)
+        info = stored[1] if stored is not None and stored[0] == target else None
+        bootloader = info.bootloader if info else None
+        return {
+            "node_id": node_id,
+            "address": target.address,
+            "product": target.product,
+            "installed_version": info.version if info else None,
+            "read_at": stored[2] if info is not None and stored else None,
+            "order_info_hex": info.order_info.hex()
+            if info and info.order_info
+            else None,
+            "hardware_type_hex": info.hardware_type.hex()
+            if info and info.hardware_type
+            else None,
+            "version_property_hex": info.version_property.hex()
+            if info and info.version_property
+            else None,
+            "hardware_key": info.hardware_key.hex()
+            if info and info.hardware_key
+            else None,
+            "bsl_info_hex": info.bsl_info.hex() if info and info.bsl_info else None,
+            "bootloader": asdict(bootloader) if bootloader is not None else None,
+            "identity_error": info.identity_error if info else None,
+            **self._mdt_firmware_releases(target.product, info),
+        }
 
     @staticmethod
     def mdt_dca_profile(device: Device) -> "DcaProfile | None":

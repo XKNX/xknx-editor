@@ -53,6 +53,109 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             node_id, device_address, timeout, False, include_defaults=True
         )
 
+    @tool("read")
+    def project_get_mdt_firmware(
+        node_id: int | None = None,
+        device_address: str | None = None,
+    ) -> dict[str, Any]:
+        """Show the last session firmware readout and catalog variants for an MDT product.
+        Address by node_id OR device_address. No bus access. Includes ISO read time,
+        raw properties, hardware_key, bsl_info_hex and dated catalog_variants grouped
+        by hardware_key. Only compatible_releases and latest_compatible_version match
+        the read identity and additional product/hardware constraints. Status is
+        update_available, up_to_date, installed_version_unknown, no_compatible_release
+        or hardware_identity_not_read. Missing readouts are null; identity_error
+        describes a failed identity read. Comparison uses this catalog snapshot,
+        not a live update server. hardware_compatibility_verified describes catalog
+        matching only, not a tested firmware download.
+        bootloader is null or an object with numeric version_code, crc_type_code,
+        max_telegram_length (bytes) and encryption_type_code from the identity reply.
+        Version and algorithm codes are raw identifiers, not KNX Secure settings.
+        compatible_releases includes filename and modified (ISO timestamp) for the UI.
+        """
+        require_project(ctx)
+        return ctx.run_locked(
+            lambda: project.mdt_firmware(
+                require_device(project, node_id, device_address).node_id
+            )
+        )
+
+    @tool("read", open_world=True)
+    def project_read_mdt_firmware(
+        node_id: int | None = None,
+        device_address: str | None = None,
+        timeout: float = 60,
+    ) -> dict[str, Any]:
+        """Read an MDT device's firmware version and hardware/software identity.
+        Address by node_id OR device_address. Does not start the bootloader, write,
+        restart, download firmware or change project data/history. Saves a transient
+        readout shared with the GUI, discarded for changed device identities. Returns
+        the same view as project_get_mdt_firmware. Unsupported properties remain null.
+        Requires an address and an MDT application; verifies manufacturer on the bus.
+        Uses ordinary properties and the read-only BSL information command (0x11),
+        without switching mode or enabling download. Available with Block Bus Writes.
+        """
+        from editor_gui.plugins.mcp.tools.connection import (
+            await_operation,
+            finished,
+            not_started,
+            wait_for_operation,
+        )
+        from editor_gui.plugins.project.program_queue import ORIGIN_MCP
+
+        require_project(ctx)
+
+        def start() -> tuple[Any, Any, Any]:
+            device = require_device(project, node_id, device_address)
+            target = project.prepare_mdt_firmware_read(device.node_id)
+            if ctx.api.queue_action is not None:
+                return (
+                    target,
+                    ctx.api.queue_action(
+                        device.node_id, "mdt_firmware", origin=ORIGIN_MCP
+                    ),
+                    None,
+                )
+            return target, None, ctx.api.connection.read_mdt_firmware(device)
+
+        target, item, future = ctx.run_locked(start)
+        if item is not None:
+            return finished(wait_for_operation(ctx, item, timeout)).result
+        if future is None:
+            raise not_started(ctx.api.connection, "the firmware version read")
+        info = await_operation(
+            ctx.api.connection, future, timeout, "the firmware version read"
+        )
+        return ctx.run_locked(lambda: project.apply_mdt_firmware_read(target, info))
+
+    @tool("write")
+    def project_import_mdt_firmware_catalog(path: str) -> dict[str, Any]:
+        """Import public firmware metadata and blacklist from an MDT .etsapp or Firmware.zip.
+        Path is on the editor host. One undo step, shared by all MDT devices in this
+        project. Stores metadata only, without firmware binaries or executable code.
+        Does not connect to the bus. Returns source and latest entry date (ISO 8601).
+        """
+        from xknxeditor.vendor.mdt.firmware import MAX_ARCHIVE_SIZE
+
+        require_project(ctx)
+        generation, revision = ctx.run_locked(
+            lambda: (project.generation, project.revision)
+        )
+        with Path(path).open("rb") as stream:
+            data = stream.read(MAX_ARCHIVE_SIZE + 1)
+
+        def apply() -> dict[str, Any]:
+            if (project.generation, project.revision) != (generation, revision):
+                raise ValueError("Project changed while importing the firmware catalog")
+            project.import_mdt_firmware_catalog(data, Path(path).name)
+            catalog = project.mdt_firmware_catalog()
+            return {
+                "source": catalog.source,
+                "latest_modified": catalog.latest_modified,
+            }
+
+        return ctx.run_locked(apply)
+
     @tool("write", open_world=True)
     def project_read_mdt_symbols(
         node_id: int | None = None,

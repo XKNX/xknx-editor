@@ -30,7 +30,14 @@ from dataclasses import dataclass
 
 from xknx.cemi.cemi_frame import CEMIFrame, CEMILData, CEMIMPropReadRequest
 from xknx.exceptions import CouldNotParseAddress, XKNXException
-from xknx.telegram import GroupAddress, Telegram, apci, tpci
+from xknx.telegram import (
+    GroupAddress,
+    IndividualAddress,
+    Telegram,
+    apci,
+    tpci,
+)
+from xknx.telegram.address import InternalGroupAddress
 
 # Services that only ask a device, the interface or the bus for information.
 _READS: tuple[type[apci.APCI], ...] = (
@@ -71,6 +78,23 @@ _TRANSPORT_CONTROL = (tpci.TConnect, tpci.TDisconnect, tpci.TAck, tpci.TNak)
 # Set while the CEMI handler sends a telegram it checked already (before encryption): the
 # interface then lets its frame through, encrypted or not.
 _checked_telegram: ContextVar[bool] = ContextVar("checked_telegram", default=False)
+_mdt_identity_read: ContextVar[tuple[IndividualAddress, bytes] | None] = ContextVar(
+    "mdt_identity_read", default=None
+)
+
+
+@contextmanager
+def mdt_firmware_info_read(
+    address: IndividualAddress, sequence: int
+) -> Generator[None]:
+    """Classify one identity request to a manufacturer-verified MDT device as a read."""
+    if not 0 <= sequence < 28:
+        raise ValueError("Invalid firmware identity sequence")
+    token = _mdt_identity_read.set((address, bytes((0, 0x11, sequence))))
+    try:
+        yield
+    finally:
+        _mdt_identity_read.reset(token)
 
 
 class BusWritesBlocked(XKNXException):
@@ -82,11 +106,23 @@ class BusWritesBlocked(XKNXException):
         )
 
 
-def _is_write(tpci_: tpci.TPCI, payload: apci.APCI | None) -> bool:
+def _is_write(
+    tpci_: tpci.TPCI,
+    payload: apci.APCI | None,
+    destination: IndividualAddress | GroupAddress | InternalGroupAddress,
+) -> bool:
     if isinstance(tpci_, _TRANSPORT_CONTROL):
         return False
     if payload is None:
         return True
+    if (
+        type(payload) is apci.FunctionPropertyCommand
+        and isinstance(destination, IndividualAddress)
+        and payload.object_index == 0
+        and payload.property_id == 242
+        and _mdt_identity_read.get() == (destination, payload.data)
+    ):
+        return False
     return payload.CODE not in _READ_SERVICES
 
 
@@ -98,13 +134,13 @@ def is_bus_write(cemi: CEMIFrame) -> bool:
     if not isinstance(data, CEMILData):
         # Property writes, function property commands and resets of the interface itself.
         return True
-    return _is_write(data.tpci, data.payload)
+    return _is_write(data.tpci, data.payload, data.dst_addr)
 
 
 def is_bus_write_telegram(telegram: Telegram) -> bool:
     """Whether sending ``telegram`` could change something on the bus, judged by its plain
     service before any Data Secure encryption."""
-    return _is_write(telegram.tpci, telegram.payload)
+    return _is_write(telegram.tpci, telegram.payload, telegram.destination_address)
 
 
 def describe_telegram(telegram: Telegram) -> str:

@@ -3582,3 +3582,72 @@ msgstr "Dół"
 
 msgid "LED"
 msgstr "LED"
+
+msgid "Read Firmware Version"
+msgstr "Odczytaj wersję oprogramowania sprzętowego"
+
+msgid "Import Firmware Catalog (.etsapp/.zip)…"
+msgstr "Importuj katalog oprogramowania sprzętowego (.etsapp/.zip)…"
+
+msgid "Installed Version"
+msgstr "Zainstalowana wersja"
+
+msgid "Read At"
+msgstr "Odczytano"
+
+msgid "Catalog: {source} (latest entry: {date})."
+msgstr "Katalog: {source} (najnowszy wpis: {date})."
+
+
+msgid "Latest Compatible Version"
+msgstr "Najnowsza zgodna wersja"
+
+msgid "Not determined"
+msgstr "Nie ustalono"
+msgid "Compares the device's hardware/software identity with this catalog. Does not install firmware. Catalog import: MDT Firmware Update .etsapp or Firmware.zip."
+msgstr "Porównuje identyfikator sprzętu/oprogramowania urządzenia z tym katalogiem. Nie instaluje oprogramowania układowego. Import katalogu: MDT Firmware Update .etsapp lub Firmware.zip."
+
+msgid "Hardware/software identity could not be determined. Read the device to check compatibility."
+msgstr "Nie udało się ustalić identyfikatora sprzętu/oprogramowania. Odczytaj urządzenie, aby sprawdzić zgodność."
+
+msgid "No compatible firmware in this catalog."
+msgstr "Brak zgodnego oprogramowania układowego w tym katalogu."
+
+msgid "Installed version could not be determined."
+msgstr "Nie udało się ustalić zainstalowanej wersji."
+
+msgid "A newer compatible version is available in this catalog."
+msgstr "W tym katalogu dostępna jest nowsza zgodna wersja."
+
+msgid "Up to date with this catalog."
+msgstr "Aktualne według tego katalogu."
+
+msgid "Hardware/Software Key"
+msgstr "Klucz sprzętu/oprogramowania"
+
+msgid "Bootloader Version Code"
+msgstr "Kod wersji programu rozruchowego"
+
+msgid "Firmware Telegram Limit (Bytes)"
+msgstr "Limit telegramów oprogramowania układowego (bajty)"
+
+msgid "Compatible Firmware File"
+msgstr "Zgodny plik oprogramowania układowego"
+
+msgid "Catalog File Modified"
+msgstr "Plik katalogu zmodyfikowany"
+
+msgid "CRC Type Code"
+msgstr "Kod typu CRC"
+
+msgid "Firmware Encryption Type Code"
+msgstr "Kod typu szyfrowania oprogramowania układowego"
+
+msgid "Bootloader Information (Raw)"
+msgstr "Informacje programu rozruchowego (surowe)"
+
+msgid "Version Property (Raw)"
+msgstr "Właściwość wersji (surowa)"
+
+msgid "Bootloader version, CRC and encryption are reported as numeric codes. They do not describe KNX Secure."
+msgstr "Wersja programu rozruchowego, CRC i szyfrowanie są podawane jako kody liczbowe. Nie opisują KNX Secure."
