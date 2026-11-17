@@ -3599,3 +3599,75 @@ msgstr "Versionsegenskap (rå)"
 
 msgid "Bootloader version, CRC and encryption are reported as numeric codes. They do not describe KNX Secure."
 msgstr "Bootloaderversion, CRC och kryptering anges som numeriska koder. De beskriver inte KNX Secure."
+
+msgid "Turn on flag {flag} of {target}"
+msgstr "Slå på flagga {flag} för {target}"
+
+msgid "Turn off flag {flag} of {target}"
+msgstr "Slå av flagga {flag} för {target}"
+
+msgid "Reset flag {flag} of {target}"
+msgstr "Återställ flagga {flag} för {target}"
+
+msgid "Set datapoint type of {target} to {value}"
+msgstr "Ange datapunkttyp för {target} till {value}"
+
+msgid "Reset datapoint type of {target}"
+msgstr "Återställ datapunkttyp för {target}"
+
+msgid "Set priority of {target} to {value}"
+msgstr "Ange prioritet för {target} till {value}"
+
+msgid "Reset priority of {target}"
+msgstr "Återställ prioritet för {target}"
+
+msgid "Set description of {target}"
+msgstr "Ange beskrivning för {target}"
+
+msgid "Link {target} with {address}"
+msgstr "Förbind {target} med {address}"
+
+msgid "Unlink {target} from {address}"
+msgstr "Koppla bort {target} från {address}"
+
+msgid "Move device {target} to {address}"
+msgstr "Flytta apparat {target} till {address}"
+
+msgid "Park device {target}"
+msgstr "Parkera enhet {target}"
+
+msgid "Unlink device {target}"
+msgstr "Ta bort förbindelsen för enhet {target}"
+
+msgid "Remove device {target}"
+msgstr "Ta bort apparat {target}"
+
+msgid "Remove area {target}"
+msgstr "Ta bort område {target}"
+
+msgid "Remove line {target}"
+msgstr "Ta bort linje {target}"
+
+msgid "Remove segment {target}"
+msgstr "Ta bort segment {target}"
+
+msgid "Remove group address {target}"
+msgstr "Ta bort gruppadress {target}"
+
+msgid "Remove function {target}"
+msgstr "Ta bort funktion {target}"
+
+msgid "Remove group address {address} from function {target}"
+msgstr "Ta bort gruppadress {address} från funktion {target}"
+
+msgid "Remove building part {target}"
+msgstr "Ta bort byggnadsdel {target}"
+
+msgid "Remove group range {target}"
+msgstr "Ta bort gruppintervall {target}"
+
+msgid "Remove trade {target}"
+msgstr "Ta bort anläggningsfunktion {target}"
+
+msgid "Remove device {address} from trade {target}"
+msgstr "Ta bort enhet {address} från anläggningsfunktion {target}"

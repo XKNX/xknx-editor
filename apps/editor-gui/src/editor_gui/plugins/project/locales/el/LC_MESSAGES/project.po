@@ -3599,3 +3599,75 @@ msgstr "Ιδιότητα έκδοσης (ακατέργαστη)"
 
 msgid "Bootloader version, CRC and encryption are reported as numeric codes. They do not describe KNX Secure."
 msgstr "Η έκδοση φορτωτή εκκίνησης, το CRC και η κρυπτογράφηση αναφέρονται ως αριθμητικοί κωδικοί. Δεν περιγράφουν το KNX Secure."
+
+msgid "Turn on flag {flag} of {target}"
+msgstr "Ενεργοποίηση flag {flag}: {target}"
+
+msgid "Turn off flag {flag} of {target}"
+msgstr "Απενεργοποίηση flag {flag}: {target}"
+
+msgid "Reset flag {flag} of {target}"
+msgstr "Επαναφορά flag {flag}: {target}"
+
+msgid "Set datapoint type of {target} to {value}"
+msgstr "Ορισμός τύπου datapoint: {target} → {value}"
+
+msgid "Reset datapoint type of {target}"
+msgstr "Επαναφορά τύπου datapoint: {target}"
+
+msgid "Set priority of {target} to {value}"
+msgstr "Ορισμός προτεραιότητας: {target} → {value}"
+
+msgid "Reset priority of {target}"
+msgstr "Επαναφορά προτεραιότητας: {target}"
+
+msgid "Set description of {target}"
+msgstr "Ορισμός περιγραφής: {target}"
+
+msgid "Link {target} with {address}"
+msgstr "Σύνδεση αντικειμένου επικοινωνίας: {target} → {address}"
+
+msgid "Unlink {target} from {address}"
+msgstr "Αποσύνδεση αντικειμένου επικοινωνίας: {target} → {address}"
+
+msgid "Move device {target} to {address}"
+msgstr "Μετακίνηση συσκευής: {target} → {address}"
+
+msgid "Park device {target}"
+msgstr "Στάθμευση συσκευής: {target}"
+
+msgid "Unlink device {target}"
+msgstr "Αποσύνδεση συσκευής: {target}"
+
+msgid "Remove device {target}"
+msgstr "Αφαίρεση συσκευής: {target}"
+
+msgid "Remove area {target}"
+msgstr "Αφαίρεση περιοχής: {target}"
+
+msgid "Remove line {target}"
+msgstr "Αφαίρεση γραμμής: {target}"
+
+msgid "Remove segment {target}"
+msgstr "Αφαίρεση τμήματος: {target}"
+
+msgid "Remove group address {target}"
+msgstr "Αφαίρεση διεύθυνσης ομάδας: {target}"
+
+msgid "Remove function {target}"
+msgstr "Αφαίρεση λειτουργίας: {target}"
+
+msgid "Remove group address {address} from function {target}"
+msgstr "Αφαίρεση διεύθυνσης ομάδας {address} από λειτουργία: {target}"
+
+msgid "Remove building part {target}"
+msgstr "Αφαίρεση τμήματος κτιρίου: {target}"
+
+msgid "Remove group range {target}"
+msgstr "Αφαίρεση εύρους ομάδων: {target}"
+
+msgid "Remove trade {target}"
+msgstr "Αφαίρεση λειτουργίας: {target}"
+
+msgid "Remove device {address} from trade {target}"
+msgstr "Αφαίρεση συσκευής {address} από τη λειτουργία: {target}"

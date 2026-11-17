@@ -3547,3 +3547,75 @@ msgstr "Sürüm özelliği (ham)"
 
 msgid "Bootloader version, CRC and encryption are reported as numeric codes. They do not describe KNX Secure."
 msgstr "Önyükleyici sürümü, CRC ve şifreleme sayısal kodlarla bildirilir. KNX Secure ayarlarını açıklamazlar."
+
+msgid "Turn on flag {flag} of {target}"
+msgstr "{flag} bayrağını aç: {target}"
+
+msgid "Turn off flag {flag} of {target}"
+msgstr "{flag} bayrağını kapat: {target}"
+
+msgid "Reset flag {flag} of {target}"
+msgstr "{flag} bayrağını sıfırla: {target}"
+
+msgid "Set datapoint type of {target} to {value}"
+msgstr "Veri tipini belirle: {target} → {value}"
+
+msgid "Reset datapoint type of {target}"
+msgstr "Veri tipini sıfırla: {target}"
+
+msgid "Set priority of {target} to {value}"
+msgstr "Önceliği belirle: {target} → {value}"
+
+msgid "Reset priority of {target}"
+msgstr "Önceliği sıfırla: {target}"
+
+msgid "Set description of {target}"
+msgstr "Tanımı belirle: {target}"
+
+msgid "Link {target} with {address}"
+msgstr "Grup nesnesini bağla: {target} → {address}"
+
+msgid "Unlink {target} from {address}"
+msgstr "Grup nesnesinin bağlantısını kes: {target} → {address}"
+
+msgid "Move device {target} to {address}"
+msgstr "Cihazı taşı: {target} → {address}"
+
+msgid "Park device {target}"
+msgstr "Cihazı park et: {target}"
+
+msgid "Unlink device {target}"
+msgstr "Cihazın ilişkisini kaldır: {target}"
+
+msgid "Remove device {target}"
+msgstr "Cihazı kaldır: {target}"
+
+msgid "Remove area {target}"
+msgstr "Alanı kaldır: {target}"
+
+msgid "Remove line {target}"
+msgstr "Linyeyi kaldır: {target}"
+
+msgid "Remove segment {target}"
+msgstr "Segmenti kaldır: {target}"
+
+msgid "Remove group address {target}"
+msgstr "Grup adresini kaldır: {target}"
+
+msgid "Remove function {target}"
+msgstr "Fonksiyonu kaldır: {target}"
+
+msgid "Remove group address {address} from function {target}"
+msgstr "Grup adresini ({address}) fonksiyondan kaldır: {target}"
+
+msgid "Remove building part {target}"
+msgstr "Bina bölümünü kaldır: {target}"
+
+msgid "Remove group range {target}"
+msgstr "Grup aralığını kaldır: {target}"
+
+msgid "Remove trade {target}"
+msgstr "Ticareti kaldır: {target}"
+
+msgid "Remove device {address} from trade {target}"
+msgstr "Cihazı ({address}) ticaretten kaldır: {target}"

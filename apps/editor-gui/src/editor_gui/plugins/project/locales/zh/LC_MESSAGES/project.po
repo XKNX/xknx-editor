@@ -3547,3 +3547,75 @@ msgstr "版本属性（原始）"
 
 msgid "Bootloader version, CRC and encryption are reported as numeric codes. They do not describe KNX Secure."
 msgstr "引导加载程序版本、CRC和加密以数字代码显示。这些代码不描述KNX Secure。"
+
+msgid "Turn on flag {flag} of {target}"
+msgstr "打开标志 {flag}：{target}"
+
+msgid "Turn off flag {flag} of {target}"
+msgstr "关闭标志 {flag}：{target}"
+
+msgid "Reset flag {flag} of {target}"
+msgstr "重置标志 {flag}：{target}"
+
+msgid "Set datapoint type of {target} to {value}"
+msgstr "设置数据点类型：{target} → {value}"
+
+msgid "Reset datapoint type of {target}"
+msgstr "重置数据点类型：{target}"
+
+msgid "Set priority of {target} to {value}"
+msgstr "设置优先级：{target} → {value}"
+
+msgid "Reset priority of {target}"
+msgstr "重置优先级：{target}"
+
+msgid "Set description of {target}"
+msgstr "设置说明：{target}"
+
+msgid "Link {target} with {address}"
+msgstr "链接组对象：{target} → {address}"
+
+msgid "Unlink {target} from {address}"
+msgstr "取消链接组对象：{target} → {address}"
+
+msgid "Move device {target} to {address}"
+msgstr "移动设备：{target} → {address}"
+
+msgid "Park device {target}"
+msgstr "停放设备：{target}"
+
+msgid "Unlink device {target}"
+msgstr "取消设备链接：{target}"
+
+msgid "Remove device {target}"
+msgstr "移除设备：{target}"
+
+msgid "Remove area {target}"
+msgstr "移除区域：{target}"
+
+msgid "Remove line {target}"
+msgstr "移除支线：{target}"
+
+msgid "Remove segment {target}"
+msgstr "移除段：{target}"
+
+msgid "Remove group address {target}"
+msgstr "移除组地址：{target}"
+
+msgid "Remove function {target}"
+msgstr "移除功能：{target}"
+
+msgid "Remove group address {address} from function {target}"
+msgstr "从功能中移除组地址 {address}：{target}"
+
+msgid "Remove building part {target}"
+msgstr "移除建筑局部：{target}"
+
+msgid "Remove group range {target}"
+msgstr "移除组范围：{target}"
+
+msgid "Remove trade {target}"
+msgstr "删除工程作业：{target}"
+
+msgid "Remove device {address} from trade {target}"
+msgstr "从工程作业中移除设备 {address}：{target}"

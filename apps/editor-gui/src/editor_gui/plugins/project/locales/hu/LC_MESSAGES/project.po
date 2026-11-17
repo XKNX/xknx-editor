@@ -3574,3 +3574,75 @@ msgstr "Verziótulajdonság (nyers)"
 
 msgid "Bootloader version, CRC and encryption are reported as numeric codes. They do not describe KNX Secure."
 msgstr "A rendszerbetöltő verziója, a CRC és a titkosítás számkódként jelenik meg. Nem a KNX Secure beállításait írják le."
+
+msgid "Turn on flag {flag} of {target}"
+msgstr "Flag bekapcsolása ({flag}): {target}"
+
+msgid "Turn off flag {flag} of {target}"
+msgstr "Flag kikapcsolása ({flag}): {target}"
+
+msgid "Reset flag {flag} of {target}"
+msgstr "Flag visszaállítása ({flag}): {target}"
+
+msgid "Set datapoint type of {target} to {value}"
+msgstr "Adatponttípus beállítása: {target} → {value}"
+
+msgid "Reset datapoint type of {target}"
+msgstr "Adatponttípus visszaállítása: {target}"
+
+msgid "Set priority of {target} to {value}"
+msgstr "Prioritás beállítása: {target} → {value}"
+
+msgid "Reset priority of {target}"
+msgstr "Prioritás visszaállítása: {target}"
+
+msgid "Set description of {target}"
+msgstr "Leírás beállítása: {target}"
+
+msgid "Link {target} with {address}"
+msgstr "Kommunikációs objektum összekapcsolása: {target} → {address}"
+
+msgid "Unlink {target} from {address}"
+msgstr "Kommunikációs objektum összekapcsolásának bontása: {target} → {address}"
+
+msgid "Move device {target} to {address}"
+msgstr "Készülék áthelyezése: {target} → {address}"
+
+msgid "Park device {target}"
+msgstr "Készülék félretétele: {target}"
+
+msgid "Unlink device {target}"
+msgstr "Készülék leválasztása: {target}"
+
+msgid "Remove device {target}"
+msgstr "Készülék eltávolítása: {target}"
+
+msgid "Remove area {target}"
+msgstr "Terület eltávolítása: {target}"
+
+msgid "Remove line {target}"
+msgstr "Vonal eltávolítása: {target}"
+
+msgid "Remove segment {target}"
+msgstr "Szakasz eltávolítása: {target}"
+
+msgid "Remove group address {target}"
+msgstr "Csoportcím eltávolítása: {target}"
+
+msgid "Remove function {target}"
+msgstr "Funkció eltávolítása: {target}"
+
+msgid "Remove group address {address} from function {target}"
+msgstr "Csoportcím ({address}) eltávolítása a funkcióból: {target}"
+
+msgid "Remove building part {target}"
+msgstr "Épületrész eltávolítása: {target}"
+
+msgid "Remove group range {target}"
+msgstr "Csoporttartomány eltávolítása: {target}"
+
+msgid "Remove trade {target}"
+msgstr "Szakág eltávolítása: {target}"
+
+msgid "Remove device {address} from trade {target}"
+msgstr "Készülék ({address}) eltávolítása a szakágból: {target}"

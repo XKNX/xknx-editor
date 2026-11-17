@@ -3547,3 +3547,75 @@ msgstr "バージョンプロパティ（生データ）"
 
 msgid "Bootloader version, CRC and encryption are reported as numeric codes. They do not describe KNX Secure."
 msgstr "ブートローダーバージョン、CRC、暗号化は数値コードで表示されます。KNX Secureを示すものではありません。"
+
+msgid "Turn on flag {flag} of {target}"
+msgstr "フラグ {flag} をオン: {target}"
+
+msgid "Turn off flag {flag} of {target}"
+msgstr "フラグ {flag} をオフ: {target}"
+
+msgid "Reset flag {flag} of {target}"
+msgstr "フラグ {flag} をリセット: {target}"
+
+msgid "Set datapoint type of {target} to {value}"
+msgstr "データポイントタイプを設定: {target} → {value}"
+
+msgid "Reset datapoint type of {target}"
+msgstr "データポイントタイプをリセット: {target}"
+
+msgid "Set priority of {target} to {value}"
+msgstr "優先を設定: {target} → {value}"
+
+msgid "Reset priority of {target}"
+msgstr "優先をリセット: {target}"
+
+msgid "Set description of {target}"
+msgstr "説明を設定: {target}"
+
+msgid "Link {target} with {address}"
+msgstr "グループ・オブジェクトをリンク: {target} → {address}"
+
+msgid "Unlink {target} from {address}"
+msgstr "グループ・オブジェクトのリンクを解除: {target} → {address}"
+
+msgid "Move device {target} to {address}"
+msgstr "デバイスを移動する: {target} → {address}"
+
+msgid "Park device {target}"
+msgstr "デバイスをパーク: {target}"
+
+msgid "Unlink device {target}"
+msgstr "デバイスのリンクを外す: {target}"
+
+msgid "Remove device {target}"
+msgstr "デバイスを削除: {target}"
+
+msgid "Remove area {target}"
+msgstr "エリアを削除: {target}"
+
+msgid "Remove line {target}"
+msgstr "ラインを削除: {target}"
+
+msgid "Remove segment {target}"
+msgstr "セグメントを削除: {target}"
+
+msgid "Remove group address {target}"
+msgstr "グループ・アドレスを削除: {target}"
+
+msgid "Remove function {target}"
+msgstr "機能を削除: {target}"
+
+msgid "Remove group address {address} from function {target}"
+msgstr "機能からグループ・アドレス {address} を削除: {target}"
+
+msgid "Remove building part {target}"
+msgstr "構造の一部を削除: {target}"
+
+msgid "Remove group range {target}"
+msgstr "グループ範囲を削除: {target}"
+
+msgid "Remove trade {target}"
+msgstr "トレードを削除: {target}"
+
+msgid "Remove device {address} from trade {target}"
+msgstr "デバイス {address} をトレードから削除: {target}"

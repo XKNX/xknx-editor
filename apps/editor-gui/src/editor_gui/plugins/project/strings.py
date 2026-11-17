@@ -5288,6 +5288,105 @@ class ProjectStrings:
     def HISTORY_EV_SET_SENDING(self) -> str:
         return _("Set sending group address")
 
+    # The history entries that name what they changed: {target} is the group object ("1.1.5 #1
+    # Step"), device ("1.1.5 Dimmer"), group address ("1/2/3 Light") or other element, {address}
+    # the second element of a link, {flag} a flag letter, {value} the new value.
+    @property
+    def HISTORY_EV_FLAG_ON_OF(self) -> str:
+        return _("Turn on flag {flag} of {target}")
+
+    @property
+    def HISTORY_EV_FLAG_OFF_OF(self) -> str:
+        return _("Turn off flag {flag} of {target}")
+
+    @property
+    def HISTORY_EV_FLAG_RESET_OF(self) -> str:
+        return _("Reset flag {flag} of {target}")
+
+    @property
+    def HISTORY_EV_SET_DPT_OF(self) -> str:
+        return _("Set datapoint type of {target} to {value}")
+
+    @property
+    def HISTORY_EV_RESET_DPT_OF(self) -> str:
+        return _("Reset datapoint type of {target}")
+
+    @property
+    def HISTORY_EV_SET_PRIORITY_OF(self) -> str:
+        return _("Set priority of {target} to {value}")
+
+    @property
+    def HISTORY_EV_RESET_PRIORITY_OF(self) -> str:
+        return _("Reset priority of {target}")
+
+    @property
+    def HISTORY_EV_SET_DESCRIPTION_OF(self) -> str:
+        return _("Set description of {target}")
+
+    @property
+    def HISTORY_EV_LINK_OF(self) -> str:
+        return _("Link {target} with {address}")
+
+    @property
+    def HISTORY_EV_UNLINK_OF(self) -> str:
+        return _("Unlink {target} from {address}")
+
+    @property
+    def HISTORY_EV_MOVE_DEVICE_OF(self) -> str:
+        return _("Move device {target} to {address}")
+
+    @property
+    def HISTORY_EV_PARK_DEVICE_OF(self) -> str:
+        return _("Park device {target}")
+
+    @property
+    def HISTORY_EV_UNLINK_DEVICE_OF(self) -> str:
+        return _("Unlink device {target}")
+
+    @property
+    def HISTORY_EV_REMOVE_DEVICE_OF(self) -> str:
+        return _("Remove device {target}")
+
+    @property
+    def HISTORY_EV_REMOVE_AREA_OF(self) -> str:
+        return _("Remove area {target}")
+
+    @property
+    def HISTORY_EV_REMOVE_LINE_OF(self) -> str:
+        return _("Remove line {target}")
+
+    @property
+    def HISTORY_EV_REMOVE_SEGMENT_OF(self) -> str:
+        return _("Remove segment {target}")
+
+    @property
+    def HISTORY_EV_REMOVE_GA_OF(self) -> str:
+        return _("Remove group address {target}")
+
+    @property
+    def HISTORY_EV_REMOVE_FUNCTION_OF(self) -> str:
+        return _("Remove function {target}")
+
+    @property
+    def HISTORY_EV_REMOVE_FUNCTION_GA_OF(self) -> str:
+        return _("Remove group address {address} from function {target}")
+
+    @property
+    def HISTORY_EV_REMOVE_SPACE_OF(self) -> str:
+        return _("Remove building part {target}")
+
+    @property
+    def HISTORY_EV_REMOVE_GROUP_RANGE_OF(self) -> str:
+        return _("Remove group range {target}")
+
+    @property
+    def HISTORY_EV_REMOVE_TRADE_OF(self) -> str:
+        return _("Remove trade {target}")
+
+    @property
+    def HISTORY_EV_REMOVE_TRADE_DEVICE_OF(self) -> str:
+        return _("Remove device {address} from trade {target}")
+
     @property
     def GA_ACKNOWLEDGE(self) -> str:
         return _("Acknowledge Group Address")

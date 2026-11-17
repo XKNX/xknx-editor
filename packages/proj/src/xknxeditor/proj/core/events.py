@@ -19,6 +19,12 @@ from sqlalchemy.orm import Session
 
 from xknxeditor.namespaces.ids import unpadded_id
 from xknxeditor.proj.core.ga_security import effective_mode, secure_commissioned
+from xknxeditor.proj.core.history_targets import (
+    address_on,
+    device_text,
+    group_address_text,
+    removed_texts,
+)
 from xknxeditor.proj.core.identity import qualified_com_object_ref
 from xknxeditor.proj.core.skeleton import MEDIUM_IP
 from xknxeditor.proj.models import (
@@ -47,6 +53,14 @@ from xknxeditor.proj.models import (
 )
 
 EVENT_TYPES: dict[str, type[Event]] = {}
+
+
+def _texts(target: str, detail: str = "") -> dict[str, str]:
+    """The history texts of an event for its ``to_dict``, only the ones it has: events stored
+    before them, and ones that name nothing, keep their form."""
+    return {
+        key: value for key, value in (("target", target), ("detail", detail)) if value
+    }
 
 
 def _register[E: Event](cls: type[E]) -> type[E]:
@@ -1576,11 +1590,17 @@ class LinkComObject(Event):
     link_id: int | None = None
     # Devices whose group communication was loaded before (see _clear_communication_loaded).
     cleared: dict[str, bool] = field(default_factory=dict[str, bool])
+    # What the history names: the group object (given by the caller) and the group address.
+    target: str = ""
+    detail: str = ""
 
     def apply(self, session: Session) -> None:
         self.cleared = _clear_communication_loaded(
             session, _link_affects(session, self.com_object_id, self.group_address_id)
         )
+        group_address = session.get(GroupAddress, self.group_address_id)
+        if group_address is not None:
+            self.detail = group_address_text(session, group_address)
         link = ComObjectLink(
             com_object_id=self.com_object_id,
             group_address_id=self.group_address_id,
@@ -1605,6 +1625,7 @@ class LinkComObject(Event):
             "is_sending": self.is_sending,
             "link_id": self.link_id,
             "cleared": self.cleared,
+            **_texts(self.target, self.detail),
         }
 
     @classmethod
@@ -1644,6 +1665,8 @@ class SetComObjectFlag(Event):
     old_override: bool | None = None
     # Devices whose group communication was loaded before (see _clear_communication_loaded).
     cleared: dict[str, bool] = field(default_factory=dict[str, bool])
+    # The group object as the history names it (given by the caller).
+    target: str = ""
 
     def apply(self, session: Session) -> None:
         com_object = session.get(ComObject, self.com_object_id)
@@ -1677,6 +1700,7 @@ class SetComObjectFlag(Event):
             "old": self.old,
             "old_override": self.old_override,
             "cleared": self.cleared,
+            **_texts(self.target),
         }
 
     @classmethod
@@ -1696,6 +1720,8 @@ class SetComObjectDatapointType(Event):
     datapoint_type: str | None
     captured: bool = False
     old: str | None = None
+    # The group object as the history names it (given by the caller).
+    target: str = ""
 
     def apply(self, session: Session) -> None:
         com_object = session.get(ComObject, self.com_object_id)
@@ -1715,6 +1741,7 @@ class SetComObjectDatapointType(Event):
             "datapoint_type": self.datapoint_type,
             "captured": self.captured,
             "old": self.old,
+            **_texts(self.target),
         }
 
     @classmethod
@@ -1736,6 +1763,8 @@ class SetComObjectPriority(Event):
     old: str | None = None
     # Devices whose group communication was loaded before (see _clear_communication_loaded).
     cleared: dict[str, bool] = field(default_factory=dict[str, bool])
+    # The group object as the history names it (given by the caller).
+    target: str = ""
 
     def apply(self, session: Session) -> None:
         com_object = session.get(ComObject, self.com_object_id)
@@ -1762,6 +1791,7 @@ class SetComObjectPriority(Event):
             "captured": self.captured,
             "old": self.old,
             "cleared": self.cleared,
+            **_texts(self.target),
         }
 
     @classmethod
@@ -1781,6 +1811,8 @@ class SetComObjectDescription(Event):
     description: str | None
     captured: bool = False
     old: str | None = None
+    # The group object as the history names it (given by the caller).
+    target: str = ""
 
     def apply(self, session: Session) -> None:
         com_object = session.get(ComObject, self.com_object_id)
@@ -1800,6 +1832,7 @@ class SetComObjectDescription(Event):
             "description": self.description,
             "captured": self.captured,
             "old": self.old,
+            **_texts(self.target),
         }
 
     @classmethod
@@ -1816,12 +1849,15 @@ class SetGroupAddressDatapointType(Event):
     datapoint_type: str | None
     captured: bool = False
     old: str | None = None
+    # The group address as the history names it (see history_targets).
+    target: str = ""
 
     def apply(self, session: Session) -> None:
         ga = session.get(GroupAddress, self.group_address_id)
         if ga is not None:
             self.old = ga.datapoint_type
             self.captured = True
+            self.target = group_address_text(session, ga)
             ga.datapoint_type = self.datapoint_type
 
     def revert(self, session: Session) -> None:
@@ -1835,6 +1871,7 @@ class SetGroupAddressDatapointType(Event):
             "datapoint_type": self.datapoint_type,
             "captured": self.captured,
             "old": self.old,
+            **_texts(self.target),
         }
 
     @classmethod
@@ -2470,10 +2507,17 @@ class _SubtreeDelete(Event):
 
     target_id: int
     rows: list[dict[str, Any]] = field(default_factory=list[dict[str, Any]])
+    # What the history names: the removed element and, for a link of two, the second one (see
+    # history_targets); a target given by the caller is kept.
+    target: str = ""
+    detail: str = ""
 
     def apply(self, session: Session) -> None:
         obj = session.get(self._model, self.target_id)
         if obj is not None:
+            target, detail = removed_texts(session, obj)
+            self.target = self.target or target
+            self.detail = self.detail or detail
             self.rows = _snapshot_subtree(obj)
             session.delete(obj)
 
@@ -2481,7 +2525,11 @@ class _SubtreeDelete(Event):
         _restore_rows(session, self.rows)
 
     def to_dict(self) -> dict[str, Any]:
-        return {"target_id": self.target_id, "rows": self.rows}
+        return {
+            "target_id": self.target_id,
+            "rows": self.rows,
+            **_texts(self.target, self.detail),
+        }
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> _SubtreeDelete:
@@ -3352,6 +3400,9 @@ class MoveDevice(Event):
     old_address: int | None = None
     # Whether apply recorded the old place (the old segment may be None: on no line).
     captured: bool = False
+    # The device as the history names it, and its new individual address (see history_targets).
+    target: str = ""
+    detail: str = ""
 
     def apply(self, session: Session) -> None:
         device = session.get(Device, self.device_id)
@@ -3359,6 +3410,8 @@ class MoveDevice(Event):
             self.old_segment_id = device.segment_id
             self.old_address = device.address
             self.captured = True
+            self.target = device_text(device)
+            self.detail = address_on(session, self.segment_id, self.address)
             device.segment_id = self.segment_id
             device.address = self.address
 
@@ -3376,6 +3429,7 @@ class MoveDevice(Event):
             "old_segment_id": self.old_segment_id,
             "old_address": self.old_address,
             "captured": self.captured,
+            **_texts(self.target, self.detail),
         }
 
     @classmethod
@@ -4540,6 +4594,7 @@ class RemoveSpace(_SubtreeDelete):
         for device in _devices_in_subtree(space):
             device.space_id = None
         session.flush()
+        self.target = self.target or space.name
         self.rows = _snapshot_subtree(space)
         session.delete(space)
 
@@ -4551,11 +4606,7 @@ class RemoveSpace(_SubtreeDelete):
                 device.space_id = space_id
 
     def to_dict(self) -> dict[str, Any]:
-        return {
-            "target_id": self.target_id,
-            "rows": self.rows,
-            "device_space": self.device_space,
-        }
+        return {**super().to_dict(), "device_space": self.device_space}
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> RemoveSpace:

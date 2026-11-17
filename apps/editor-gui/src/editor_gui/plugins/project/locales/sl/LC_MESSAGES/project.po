@@ -3730,3 +3730,75 @@ msgstr "Lastnost različice (surova)"
 
 msgid "Bootloader version, CRC and encryption are reported as numeric codes. They do not describe KNX Secure."
 msgstr "Različica zagonskega nalagalnika, CRC in šifriranje so navedeni kot številske kode. Ne opisujejo KNX Secure."
+
+msgid "Turn on flag {flag} of {target}"
+msgstr "Vklop zastavice {flag}: {target}"
+
+msgid "Turn off flag {flag} of {target}"
+msgstr "Izklop zastavice {flag}: {target}"
+
+msgid "Reset flag {flag} of {target}"
+msgstr "Ponastavitev zastavice {flag}: {target}"
+
+msgid "Set datapoint type of {target} to {value}"
+msgstr "Nastavitev tipa podatkovne točke: {target} → {value}"
+
+msgid "Reset datapoint type of {target}"
+msgstr "Ponastavitev tipa podatkovne točke: {target}"
+
+msgid "Set priority of {target} to {value}"
+msgstr "Nastavitev prioritete: {target} → {value}"
+
+msgid "Reset priority of {target}"
+msgstr "Ponastavitev prioritete: {target}"
+
+msgid "Set description of {target}"
+msgstr "Nastavitev opisa: {target}"
+
+msgid "Link {target} with {address}"
+msgstr "Povezava komunikacijskega objekta: {target} → {address}"
+
+msgid "Unlink {target} from {address}"
+msgstr "Prekinitev povezave komunikacijskega objekta: {target} → {address}"
+
+msgid "Move device {target} to {address}"
+msgstr "Premik naprave: {target} → {address}"
+
+msgid "Park device {target}"
+msgstr "Parkiranje naprave: {target}"
+
+msgid "Unlink device {target}"
+msgstr "Prekinitev povezave naprave: {target}"
+
+msgid "Remove device {target}"
+msgstr "Odstranitev naprave: {target}"
+
+msgid "Remove area {target}"
+msgstr "Odstranitev področja: {target}"
+
+msgid "Remove line {target}"
+msgstr "Odstranitev linije: {target}"
+
+msgid "Remove segment {target}"
+msgstr "Odstranitev segmenta: {target}"
+
+msgid "Remove group address {target}"
+msgstr "Odstranitev skupinskega naslova: {target}"
+
+msgid "Remove function {target}"
+msgstr "Odstranitev funkcije: {target}"
+
+msgid "Remove group address {address} from function {target}"
+msgstr "Odstranitev skupinskega naslova {address} iz funkcije: {target}"
+
+msgid "Remove building part {target}"
+msgstr "Odstranitev dela stavbe: {target}"
+
+msgid "Remove group range {target}"
+msgstr "Odstranitev obsega skupin: {target}"
+
+msgid "Remove trade {target}"
+msgstr "Odstranitev stroke: {target}"
+
+msgid "Remove device {address} from trade {target}"
+msgstr "Odstranitev naprave {address} iz stroke: {target}"

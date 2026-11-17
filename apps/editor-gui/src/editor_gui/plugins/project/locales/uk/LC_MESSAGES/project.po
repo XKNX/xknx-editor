@@ -3651,3 +3651,75 @@ msgstr "Властивість версії (необроблена)"
 
 msgid "Bootloader version, CRC and encryption are reported as numeric codes. They do not describe KNX Secure."
 msgstr "Версія завантажувача, CRC і шифрування подаються числовими кодами. Вони не описують KNX Secure."
+
+msgid "Turn on flag {flag} of {target}"
+msgstr "Увімкнути прапорець {flag}: {target}"
+
+msgid "Turn off flag {flag} of {target}"
+msgstr "Вимкнути прапорець {flag}: {target}"
+
+msgid "Reset flag {flag} of {target}"
+msgstr "Скинути прапорець {flag}: {target}"
+
+msgid "Set datapoint type of {target} to {value}"
+msgstr "Задати тип точки даних: {target} → {value}"
+
+msgid "Reset datapoint type of {target}"
+msgstr "Скинути тип точки даних: {target}"
+
+msgid "Set priority of {target} to {value}"
+msgstr "Задати пріоритет: {target} → {value}"
+
+msgid "Reset priority of {target}"
+msgstr "Скинути пріоритет: {target}"
+
+msgid "Set description of {target}"
+msgstr "Задати опис: {target}"
+
+msgid "Link {target} with {address}"
+msgstr "Зв'язати груповий об'єкт: {target} → {address}"
+
+msgid "Unlink {target} from {address}"
+msgstr "Розірвати зв'язок групового об'єкта: {target} → {address}"
+
+msgid "Move device {target} to {address}"
+msgstr "Перемістити пристрій: {target} → {address}"
+
+msgid "Park device {target}"
+msgstr "Відкласти пристрій: {target}"
+
+msgid "Unlink device {target}"
+msgstr "Від'єднати пристрій: {target}"
+
+msgid "Remove device {target}"
+msgstr "Видалити пристрій: {target}"
+
+msgid "Remove area {target}"
+msgstr "Видалити область: {target}"
+
+msgid "Remove line {target}"
+msgstr "Видалити лінію: {target}"
+
+msgid "Remove segment {target}"
+msgstr "Видалити сегмент: {target}"
+
+msgid "Remove group address {target}"
+msgstr "Видалити групову адресу: {target}"
+
+msgid "Remove function {target}"
+msgstr "Видалити функцію: {target}"
+
+msgid "Remove group address {address} from function {target}"
+msgstr "Видалити групову адресу {address} з функції: {target}"
+
+msgid "Remove building part {target}"
+msgstr "Видалити частину будівлі: {target}"
+
+msgid "Remove group range {target}"
+msgstr "Видалити діапазон груп: {target}"
+
+msgid "Remove trade {target}"
+msgstr "Видалити добірку пристроїв: {target}"
+
+msgid "Remove device {address} from trade {target}"
+msgstr "Вилучити пристрій {address} із добірки пристроїв: {target}"

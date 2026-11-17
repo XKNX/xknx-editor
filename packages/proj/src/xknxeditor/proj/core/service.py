@@ -1866,6 +1866,7 @@ class ProjectService:
         *,
         sending: bool = False,
         derive_datapoint_type: str | None = None,
+        target: str = "",
     ) -> int:
         """Attach a com-object to a group address; ``sending`` makes it the transmitting link. Use
         :meth:`set_com_object_sending` to move the sender among a com-object's links.
@@ -1879,6 +1880,7 @@ class ProjectService:
             com_object_id=com_object_id,
             group_address_id=group_address_id,
             is_sending=sending,
+            target=target,
         )
         if derive_datapoint_type:
             state.store.append(
@@ -1967,19 +1969,33 @@ class ProjectService:
         self.set_fields(project_id, rows)
 
     def set_com_object_flag(
-        self, project_id: str, com_object_id: int, flag: str, value: bool | None
+        self,
+        project_id: str,
+        com_object_id: int,
+        flag: str,
+        value: bool | None,
+        *,
+        target: str = "",
     ) -> None:
         """Force a com-object flag (``value`` overrides; ``None`` restores the product default).
 
-        ``flag`` must be one of :data:`~xknxeditor.proj.core.events.COM_OBJECT_FLAGS`."""
+        ``flag`` must be one of :data:`~xknxeditor.proj.core.events.COM_OBJECT_FLAGS`. ``target``
+        names the group object in the history (here and in the other group object setters)."""
         if flag not in COM_OBJECT_FLAGS:
             raise ValueError(f"Unknown com-object flag {flag!r}")
         self._state(project_id).store.append(
-            SetComObjectFlag(com_object_id=com_object_id, flag=flag, value=value)
+            SetComObjectFlag(
+                com_object_id=com_object_id, flag=flag, value=value, target=target
+            )
         )
 
     def set_com_object_datapoint_type(
-        self, project_id: str, com_object_id: int, datapoint_type: str | None
+        self,
+        project_id: str,
+        com_object_id: int,
+        datapoint_type: str | None,
+        *,
+        target: str = "",
     ) -> None:
         """Pin (or clear with ``None``) the per-instance DatapointType of a group object. The value
         is normalized to ETS token form (``DPST-5-1`` / ``DPT-5``); an unparseable value raises
@@ -1991,13 +2007,17 @@ class ProjectService:
             return
         state.store.append(
             SetComObjectDatapointType(
-                com_object_id=com_object_id,
-                datapoint_type=token,
+                com_object_id=com_object_id, datapoint_type=token, target=target
             )
         )
 
     def set_com_object_priority(
-        self, project_id: str, com_object_id: int, priority: str | None
+        self,
+        project_id: str,
+        com_object_id: int,
+        priority: str | None,
+        *,
+        target: str = "",
     ) -> None:
         """Set (or clear with ``None``, inherit the default) the per-instance Priority of a group
         object. ``priority`` must be one of
@@ -2009,17 +2029,26 @@ class ProjectService:
         if row is None or row.priority == priority:
             return
         state.store.append(
-            SetComObjectPriority(com_object_id=com_object_id, priority=priority)
+            SetComObjectPriority(
+                com_object_id=com_object_id, priority=priority, target=target
+            )
         )
 
     def set_com_object_description(
-        self, project_id: str, com_object_id: int, description: str | None
+        self,
+        project_id: str,
+        com_object_id: int,
+        description: str | None,
+        *,
+        target: str = "",
     ) -> None:
         """Set (or clear with an empty/``None`` value, inherit the default) the per-instance
         Description of a group object."""
         self._state(project_id).store.append(
             SetComObjectDescription(
-                com_object_id=com_object_id, description=description or None
+                com_object_id=com_object_id,
+                description=description or None,
+                target=target,
             )
         )
 
@@ -2789,8 +2818,18 @@ class ProjectService:
             RemoveGroupAddress(target_id=group_address_id)
         )
 
-    def unlink_com_object(self, project_id: str, link_id: int) -> None:
-        self._state(project_id).store.append(UnlinkComObject(target_id=link_id))
+    def unlink_com_object(
+        self, project_id: str, link_id: int, *, target: str = ""
+    ) -> None:
+        """Remove a group object's link; ``target`` names the group object in the history."""
+        self._state(project_id).store.append(
+            UnlinkComObject(target_id=link_id, target=target)
+        )
+
+    def com_object_of_link(self, project_id: str, link_id: int) -> int | None:
+        """The group object a link belongs to, ``None`` for an unknown link."""
+        link = self._state(project_id).session.get(ComObjectLink, link_id)
+        return None if link is None else link.com_object_id
 
     def rename_area(self, project_id: str, area_id: int, name: str) -> None:
         self._state(project_id).store.append(RenameArea(area_id=area_id, name=name))

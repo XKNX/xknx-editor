@@ -3626,3 +3626,75 @@ msgstr "Útgáfueiginleiki (hrár)"
 
 msgid "Bootloader version, CRC and encryption are reported as numeric codes. They do not describe KNX Secure."
 msgstr "Útgáfa ræsiforrits, CRC og dulkóðun eru sýnd sem tölukóðar. Þau lýsa ekki KNX Secure."
+
+msgid "Turn on flag {flag} of {target}"
+msgstr "Kveikja á flaggi {flag}: {target}"
+
+msgid "Turn off flag {flag} of {target}"
+msgstr "Slökkva á flaggi {flag}: {target}"
+
+msgid "Reset flag {flag} of {target}"
+msgstr "Endurstilla flagg {flag}: {target}"
+
+msgid "Set datapoint type of {target} to {value}"
+msgstr "Setja gagnapunktsgerð: {target} → {value}"
+
+msgid "Reset datapoint type of {target}"
+msgstr "Endurstilla gagnapunktsgerð: {target}"
+
+msgid "Set priority of {target} to {value}"
+msgstr "Setja forgang: {target} → {value}"
+
+msgid "Reset priority of {target}"
+msgstr "Endurstilla forgang: {target}"
+
+msgid "Set description of {target}"
+msgstr "Setja lýsingu: {target}"
+
+msgid "Link {target} with {address}"
+msgstr "Tengja samskiptahlut: {target} → {address}"
+
+msgid "Unlink {target} from {address}"
+msgstr "Aftengja samskiptahlut: {target} → {address}"
+
+msgid "Move device {target} to {address}"
+msgstr "Færa tæki: {target} → {address}"
+
+msgid "Park device {target}"
+msgstr "Leggja tæki til hliðar: {target}"
+
+msgid "Unlink device {target}"
+msgstr "Aftengja tæki: {target}"
+
+msgid "Remove device {target}"
+msgstr "Fjarlægja tæki: {target}"
+
+msgid "Remove area {target}"
+msgstr "Fjarlægja svæði: {target}"
+
+msgid "Remove line {target}"
+msgstr "Fjarlægja línu: {target}"
+
+msgid "Remove segment {target}"
+msgstr "Fjarlægja bút: {target}"
+
+msgid "Remove group address {target}"
+msgstr "Fjarlægja hópvistfang: {target}"
+
+msgid "Remove function {target}"
+msgstr "Fjarlægja aðgerð: {target}"
+
+msgid "Remove group address {address} from function {target}"
+msgstr "Fjarlægja hópvistfang {address} úr aðgerð: {target}"
+
+msgid "Remove building part {target}"
+msgstr "Fjarlægja byggingarhluta: {target}"
+
+msgid "Remove group range {target}"
+msgstr "Fjarlægja hópasvið: {target}"
+
+msgid "Remove trade {target}"
+msgstr "Fjarlægja iðngrein: {target}"
+
+msgid "Remove device {address} from trade {target}"
+msgstr "Fjarlægja tæki {address} úr iðngrein: {target}"
