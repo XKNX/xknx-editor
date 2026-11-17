@@ -87,10 +87,11 @@ def test_main_type_is_not_changed_to_subtype_zero(monkeypatch):
     )
     monkeypatch.setattr(widgets.imgui, "set_next_item_width", lambda *_: None)
     selected = []
+    clicked = 2
 
     def choose(_label, is_selected):
         selected.append(is_selected)
-        return len(selected) == 2, is_selected
+        return len(selected) == clicked, is_selected
 
     monkeypatch.setattr(widgets.imgui, "selectable", choose)
     monkeypatch.setattr(widgets, "begin_combo", lambda *_: True)
@@ -104,3 +105,10 @@ def test_main_type_is_not_changed_to_subtype_zero(monkeypatch):
     table._render_dpt_combo(device, co)
     assert selected == [False, False, True]
     assert calls == ["DPT-16"]
+    co.datapoint_type_override = "DPT-16"
+    co.dpt = main
+    clicked = 3
+    selected.clear()
+    table._render_dpt_combo(device, co)
+    assert selected == [False, True, False]
+    assert calls == ["DPT-16", "DPST-16-0"]
