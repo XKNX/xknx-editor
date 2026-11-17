@@ -1701,8 +1701,8 @@ msgstr "Të gjitha mjetet"
 msgid "Search"
 msgstr "Kërkim"
 
-msgid "All tools lists every tool to the AI tool. Search lists only a search for the tools and one that calls them, for AI models whose context is too small for the whole list. An AI tool sees a change once it reconnects."
-msgstr "Të gjitha mjetet i tregon mjetit të IA-së çdo mjet. Kërkim tregon vetëm një kërkim të mjeteve dhe një që i thërret, për modele IA me kontekst shumë të vogël për gjithë listën. Mjeti i IA-së e sheh ndryshimin sapo rilidhet."
+msgid "All tools lists every tool to the AI tool. Search lists only a search for the tools and one that calls them, for AI models whose context is too small for the whole list. Tool catalog adds a compact inventory of every tool. An AI tool sees a change once it reconnects."
+msgstr "Të gjitha mjetet i tregon mjetit të IA-së çdo mjet. Kërkim tregon vetëm një kërkim të mjeteve dhe një që i thërret, për modele IA me kontekst shumë të vogël për gjithë listën. Katalogu i mjeteve shton një përmbledhje të shkurtër të të gjitha mjeteve. Mjeti i IA-së e sheh ndryshimin sapo rilidhet."
 msgid "Delete"
 msgstr "Fshi"
 
@@ -1735,3 +1735,6 @@ msgstr "Hap projektin e fundit në nisje"
 
 msgid "When no project is given at the start, opens the project that was open last. A protected project asks for its password, unless --password-file gives it."
 msgstr "Kur në nisje nuk jepet asnjë projekt, hapet projekti që ishte hapur i fundit. Një projekt i mbrojtur kërkon fjalëkalimin e tij, përveç nëse e jep --password-file."
+
+msgid "Tool catalog"
+msgstr "Katalogu i mjeteve"

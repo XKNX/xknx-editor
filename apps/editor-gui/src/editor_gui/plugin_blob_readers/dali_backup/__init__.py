@@ -149,7 +149,25 @@ _TPL_FUNC = {
         "CallScene",
     )
 }
-_EDITABLE_ENUMS: dict[str, dict[str, str]] = {"func": _TPL_FUNC}
+_COLOUR_FADE = {
+    "0": "1 s",
+    "7": "5 s",
+    "9": "10 s",
+    "11": "20 s",
+    "12": "30 s",
+    "14": "60 s",
+    "15": "90 s",
+}
+_EDITABLE_ENUMS: dict[str, dict[str, str]] = {
+    "func": _TPL_FUNC,
+    "fadeTime": _COLOUR_FADE,
+    "fadetime": _COLOUR_FADE,
+    "delay": {str(s): f"{s} s" for s in (0, *range(5, 11), *range(20, 201, 10))},
+}
+_TEMPLATE_FADE = {
+    **{f"CFadeIn{label.split()[0]}": label for label in _COLOUR_FADE.values()},
+    **{f"VFadeIn{s}": f"{s} s" for s in (*range(11), *range(20, 201, 10))},
+}
 
 # Boolean attributes become a True/False select box.
 _BOOL_CHOICES = (("True", "True"), ("False", "False"))
@@ -162,14 +180,11 @@ _EDITABLE_SCALARS = frozenset(
     {
         "description",
         "knxScene",
-        "fadeTime",
         "value",
         "color",
         "setting",
         "time",
         "weekdays",
-        "fadetime",
-        "delay",
     }
 )
 
@@ -204,6 +219,8 @@ def _field(attr: str, value: str) -> tuple[bool, tuple[tuple[str, str], ...], st
     editable select boxes; the curated scalars are editable text; everything else is read-only
     with its raw value.
     """
+    if attr == "fadeIn":
+        return False, (), _TEMPLATE_FADE.get(value, value)
     label_enum = _READONLY_LABEL_ENUMS.get(attr)
     if label_enum is not None:
         return False, (), label_enum.get(value, value)
@@ -244,6 +261,13 @@ def apply_edit(data: bytes, ref_id: str, new_value: str) -> bytes:
         raise ValueError(f"unrecognised dali_backup ref: {ref_id!r}")
     if target is None or attr not in target.attrib:
         raise ValueError(f"target not found: {ref_id!r}")
+    if new_value == target.get(attr):
+        return data
+    if (
+        attr in ("fadeTime", "fadetime", "delay")
+        and new_value not in _EDITABLE_ENUMS[attr]
+    ):
+        raise ValueError("Select a supported time value")
     target.set(attr, new_value)
     return ET.tostring(root, encoding="unicode", short_empty_elements=True).encode(
         "utf-16-le"

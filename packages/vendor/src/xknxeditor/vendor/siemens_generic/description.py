@@ -46,16 +46,6 @@ class ParameterType:
     maximum: int | None = None  # maxInclusive of a number type
     minimum: int | None = None
 
-    @property
-    def full_scale(self) -> int | None:
-        """The raw value that stands for 100 % of a "Percent" number: its maxInclusive, else
-        the largest number its size holds."""
-        if self.maximum is not None and self.maximum > 0:
-            return self.maximum
-        if 0 < self.size_bits <= 32:
-            return (1 << self.size_bits) - 1
-        return None
-
     def enum_by_name(self, name: str) -> Enumeration | None:
         return next((e for e in self.enumerations if e.name == name), None)
 
@@ -81,6 +71,8 @@ class Parameter:
     text: str
     offset: int | None  # memory address, None when the parameter is not in memory
     format: str = ""  # e.g. "Percent"
+    format_string: str = ""
+    pattern: str = ""
 
 
 @dataclass(frozen=True, slots=True)
@@ -94,6 +86,9 @@ class ParameterRef:
     )
     hidden_enum_values: tuple[str, ...] = ()
     download_if: str = ""
+    format: str = ""
+    format_string: str = ""
+    pattern: str = ""
 
 
 class NodeKind(Enum):
@@ -227,6 +222,8 @@ def parse_description(data: bytes) -> Description | None:
             text=clean_text(e.get("Text", "")),
             offset=offset,
             format=e.get("Format", ""),
+            format_string=e.get("FormatString", ""),
+            pattern=e.get("RegEx", ""),
         )
     refs: dict[str, ParameterRef] = {}
     by_parameter: dict[str, list[str]] = {}
@@ -242,6 +239,9 @@ def parse_description(data: bytes) -> Description | None:
                 filter(None, re.split(r"[;,]\s*", e.get("HiddenEnumValues", "")))
             ),
             download_if=e.get("DownloadIfParameterRefId", ""),
+            format=e.get("Format", ""),
+            format_string=e.get("FormatString", ""),
+            pattern=e.get("RegEx", ""),
         )
         refs[rid] = ref
         by_parameter.setdefault(ref.parameter_id, []).append(rid)

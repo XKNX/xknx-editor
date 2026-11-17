@@ -170,6 +170,30 @@ def install_view(device: Device) -> None:
         device.com_objects = []
 
 
+def apply_stored_object_dpts(device: Device) -> None:
+    """Derive default types only for uniquely matched stored object roles."""
+    try:
+        state = PROVIDER.read(device)
+    except ValueError:
+        return
+    explicit = {
+        ref.ref_id for ref in device.com_object_instance_refs if ref.datapoint_type
+    }
+    objects = {obj.id: obj for obj in device.get_visible_com_objects()}
+    for role in state.source_objects or ():
+        obj = objects.get(role.reference)
+        if (
+            obj is None
+            or obj.id in explicit
+            or obj.object_size != role.size
+            or not role.dpt
+        ):
+            continue
+        obj.dpt = lookup_or_make_dpt(role.dpt)
+        if obj.dpt not in obj.supported_dpts:
+            obj.supported_dpts.append(obj.dpt)
+
+
 def _stored_objects(
     device: Device, objects: tuple[NativeObject, ...]
 ) -> tuple[NativeObject, ...]:

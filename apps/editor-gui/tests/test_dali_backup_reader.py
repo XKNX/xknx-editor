@@ -17,6 +17,46 @@ from editor_gui.plugin_blob_readers.dali_backup import PluginParameter, read
 _FIXTURES = Path(__file__).parent / "fixtures"
 
 
+def test_fade_time_choices_use_seconds_and_write_the_code():
+    from editor_gui.plugin_blob_readers.dali_backup import apply_edit
+
+    data = (_FIXTURES / "dali_gc16_backup.dat").read_bytes()
+    row = next(
+        p for s in read(data) for p in s.parameters if p.ref_id.endswith(":fadeTime")
+    )
+    assert dict(row.choices)["9"] == "10 s"
+    assert dict(row.choices)["0"] == "1 s"
+    changed = apply_edit(data, row.ref_id, "9")
+    restored = next(
+        p for s in read(changed) for p in s.parameters if p.ref_id == row.ref_id
+    )
+    assert restored.value == "9"
+    assert apply_edit(changed, row.ref_id, restored.value) == changed
+    with pytest.raises(ValueError, match="supported time"):
+        apply_edit(data, row.ref_id, "10")
+
+
+def test_effect_and_template_timing_are_labelled_from_their_tables():
+    rows = [
+        p
+        for s in read((_FIXTURES / "dali_e64pro_backup.dat").read_bytes())
+        for p in s.parameters
+    ]
+    fade = next(p for p in rows if p.ref_id.endswith(":fadetime"))
+    delay = next(p for p in rows if p.ref_id.endswith(":delay"))
+    assert dict(fade.choices)["14"] == "60 s"
+    assert dict(delay.choices)["20"] == "20 s"
+    assert dict(delay.choices)["5"] == "5 s"
+    assert not {"1", "2", "3", "4"}.intersection(dict(delay.choices))
+    templates = [
+        p
+        for s in read((_FIXTURES / "dali_gc16_backup.dat").read_bytes())
+        for p in s.parameters
+        if p.ref_id.endswith(":fadeIn")
+    ]
+    assert templates and all(p.value.endswith(" s") for p in templates)
+
+
 def _sections(name: str, blob: str = "") -> dict[str, list[PluginParameter]]:
     return {
         s.section: list(s.parameters)

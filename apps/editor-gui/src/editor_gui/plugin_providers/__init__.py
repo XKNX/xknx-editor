@@ -178,6 +178,13 @@ def install_view(device: Device) -> None:
         device.native_error = str(exc)
 
 
+def apply_stored_object_dpts(device: Device) -> None:
+    if any(r.name == "PT2EtsPlugin" for r in device.binary_data):
+        from .powertool import apply_stored_object_dpts as apply_powertool_dpts
+
+        apply_powertool_dpts(device)
+
+
 def prepared_for(
     device: Device, communication: GroupCommunication | None = None
 ) -> PreparedDownload | None:

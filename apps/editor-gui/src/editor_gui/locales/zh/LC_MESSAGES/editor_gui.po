@@ -1685,8 +1685,8 @@ msgstr "所有工具"
 msgid "Search"
 msgstr "搜索"
 
-msgid "All tools lists every tool to the AI tool. Search lists only a search for the tools and one that calls them, for AI models whose context is too small for the whole list. An AI tool sees a change once it reconnects."
-msgstr "“所有工具”向 AI 工具列出每个工具。“搜索”只列出工具搜索和一个调用工具的工具，适用于上下文容不下完整列表的 AI 模型。AI 工具重新连接后才能看到更改。"
+msgid "All tools lists every tool to the AI tool. Search lists only a search for the tools and one that calls them, for AI models whose context is too small for the whole list. Tool catalog adds a compact inventory of every tool. An AI tool sees a change once it reconnects."
+msgstr "“所有工具”向 AI 工具列出每个工具。“搜索”只列出工具搜索和一个调用工具的工具，适用于上下文容不下完整列表的 AI 模型。“工具目录”添加所有工具的简明清单。AI 工具重新连接后才能看到更改。"
 msgid "Delete"
 msgstr "删除"
 
@@ -1719,3 +1719,6 @@ msgstr "启动时打开上次的项目"
 
 msgid "When no project is given at the start, opens the project that was open last. A protected project asks for its password, unless --password-file gives it."
 msgstr "启动时未指定项目时，打开上次打开的项目。受保护的项目会询问其密码，除非 --password-file 已提供。"
+
+msgid "Tool catalog"
+msgstr "工具目录"

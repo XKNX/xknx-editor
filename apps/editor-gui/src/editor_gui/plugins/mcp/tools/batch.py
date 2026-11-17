@@ -585,7 +585,8 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         - setup_plugin: device. Initialize the mapped native provider; returns lost_links.
         - import_stored_plugin_config: device. Convert a verified stored plugin blob; returns lost_links.
         - import_plugin_config: device, config_json. Atomic mapped-provider configuration import.
-        - set_plugin_parameter: device, ref_id, value. Mapped native provider field edit; returns lost_links.
+        - set_plugin_parameter: device, ref_id, value. Native field edit in the displayed unit/format
+          (or a choice's value), not raw_value; returns lost_links.
         - import_mdt_visucontrol: device, path (local .etsvcp). Returns lost_links.
         - set_mdt_symbol: device, slot (zero-based), grayscale_hex (4096 pixels; null removes the override).
         - restore_mdt_symbol: device, slot (zero-based). Store the default from the attached symbol library.

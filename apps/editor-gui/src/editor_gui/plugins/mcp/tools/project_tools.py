@@ -943,7 +943,9 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         default_value, writable, group?, choices?, item_id?, raw_value?} (group: the item the row belongs to,
         e.g. "[2] Group 'Sauna'"; item_id: for project_remove_plugin_item).
         Saved configurations are selected automatically when supported. Internal values remain
-        available in initially collapsed sections. Reading never persists a conversion."""
+        available in initially collapsed sections. Siemens time and percentage fields expose
+        their editable display value; raw_value is the stored number for inspection only.
+        Reading never persists a conversion."""
         require_project(ctx)
 
         def _read() -> dict[str, Any]:
@@ -1198,6 +1200,8 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
     ) -> dict[str, Any]:
         """Set a plugin parameter (ref_id from project_plugin_parameters, writable ones only) as
         the Plugin Parameters tab does; for a parameter with choices pass a choice's value.
+        Otherwise use the displayed unit/format, including Siemens percentages and clock times,
+        not raw_value. Configuration JSON import/export continues to use stored raw values.
         Identify the device by node_id OR device_address. Returns {ref_id, value, changed}:
         value as the device holds it afterwards."""
         require_project(ctx)
@@ -1224,19 +1228,24 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                 _mapping, after = _plugin_sections(
                     require_device(project, device.node_id)
                 )
-                now = next(
-                    (
-                        p.value
-                        for s in after
-                        for p in s.parameters
-                        if p.ref_id == ref_id
-                    ),
-                    parameter.value,
+                current = next(
+                    (p for s in after for p in s.parameters if p.ref_id == ref_id),
+                    parameter,
+                )
+                previous_value = (
+                    parameter.raw_value
+                    if parameter.raw_value is not None
+                    else parameter.value
+                )
+                current_value = (
+                    current.raw_value
+                    if current.raw_value is not None
+                    else current.value
                 )
                 return {
                     "ref_id": ref_id,
-                    "value": now,
-                    "changed": now != parameter.value,
+                    "value": current.value,
+                    "changed": current_value != previous_value,
                     "lost_links": lost,
                 }
             plugin = _plugin()

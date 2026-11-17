@@ -10,15 +10,17 @@ from __future__ import annotations
 import re
 from collections.abc import Callable, Sequence
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from textwrap import shorten
+from typing import TYPE_CHECKING, Annotated, Any
 
-from fastmcp import FastMCP
+from fastmcp import Context, FastMCP
 from fastmcp.server.transforms import GetToolNext
 from fastmcp.server.transforms.search import BM25SearchTransform
 from fastmcp.skills.provider import SkillsDirectoryProvider
 from fastmcp.tools.base import Tool
 from fastmcp.utilities.versions import VersionSpec
 
+from editor_gui.plugins.mcp.context import tool_annotations
 from editor_gui.plugins.mcp.tools import (
     alternative_catalog,
     backups,
@@ -68,7 +70,9 @@ INSTRUCTIONS = (
     "setting Tool Discovery is Search), find the tools named below with search_tools (a few "
     "keywords or a tool name) and run them with call_tool(name, arguments). Query in English — tool "
     "names and descriptions are English — or pass an exact tool name; a name (or every word of it) "
-    "is matched before the keyword ranking.\n"
+    "is matched before the keyword ranking. When tools_catalog is listed (Tool catalog mode), read its description "
+    "or call it to see every tool's name, purpose and effect; use search_tools for its full "
+    "description and input schema, then call_tool to run it.\n"
     "\n"
     "DOMAIN MODEL:\n"
     "- An individual address (e.g. 1.1.5) is a device's PHYSICAL address; a group address / GA (e.g. "
@@ -199,6 +203,45 @@ PINNED_TOOLS = ("status",)
 #: How many tools one search returns.
 SEARCH_RESULTS = 8
 
+_CATALOG_DESCRIPTION = (
+    "List every tool by domain. Pass domain to filter by name prefix (e.g. project or catalog_). "
+    "Use search_tools with a tool name for its full description and schema, then call_tool.\n"
+    "Markers: R=read-only, W=write, D=destructive; O=bus, network or internet access."
+)
+
+
+def _tool_inventory(tools: Sequence[Tool], domain: str | None = None) -> str:
+    lines = [_CATALOG_DESCRIPTION]
+    previous_domain = ""
+    for tool in sorted(tools, key=lambda tool: tool.name):
+        if tool.name in {"search_tools", "call_tool", "tools_catalog"}:
+            continue
+        if domain and not tool.name.startswith(domain):
+            continue
+        tool_domain = tool.name.split("_", 1)[0]
+        if tool_domain != previous_domain:
+            lines.extend(("", f"{tool_domain}:"))
+            previous_domain = tool_domain
+        annotations = tool.annotations
+        if annotations and annotations.read_only_hint:
+            marker = "R"
+        elif annotations and annotations.destructive_hint:
+            marker = "D"
+        else:
+            marker = "W"
+        if annotations and annotations.open_world_hint:
+            marker += ",O"
+        description = " ".join((tool.description or "").split())
+        description = re.sub(r"(?<!\w)(_+)(.+?)\1(?!\w)", r"\2", description)
+        description = description.replace("`", "").replace("*", "")
+        prefix, separator, rest = description.partition(": ")
+        if separator and prefix.split(",", 1)[0].isupper():
+            description = rest
+        purpose = re.split(r"(?<=[.!?])\s+", description, maxsplit=1)[0]
+        purpose = shorten(purpose, width=120, placeholder="...")
+        lines.append(f"{tool.name} [{marker}] - {purpose}")
+    return "\n".join(lines)
+
 
 def _name_tokens(name: str) -> list[str]:
     """The lower-case alphanumeric tokens of a tool name or query (``connection_program_device``
@@ -207,38 +250,64 @@ def _name_tokens(name: str) -> list[str]:
 
 
 class ToolSearch(BM25SearchTransform):
-    """Tool discovery by search, while ``enabled()`` says so (the setting Tool Discovery):
-    the tool list then holds only :data:`PINNED_TOOLS`, ``search_tools`` and ``call_tool``,
-    for AI models whose context is too small for the definitions of all tools. Every tool stays
+    """Tool discovery in "all", "search" or "catalog" mode (the setting Tool Discovery).
+    Search lists :data:`PINNED_TOOLS`, ``search_tools`` and ``call_tool``; catalog also lists
+    ``tools_catalog`` with a compact inventory in its description. Every tool stays
     callable, directly or through ``call_tool``. Asked on every request, so a change counts
     without restarting the server; a client sees it once it reads the tool list again.
 
-    Search puts name matches before the BM25 ranking, so an exact tool name (or a query whose words
-    are all in a tool's name, e.g. "program device" for ``connection_program_device``) always finds
-    it — BM25 alone splits a name on its underscores and can rank an exact name off the first page.
+    Search returns only the matching tool for an exact name. Otherwise it puts name matches
+    before the BM25 ranking, so a query whose words are all in a tool's name, e.g. "program device"
+    for ``connection_program_device``, always finds it.
     """
 
-    def __init__(self, enabled: Callable[[], bool]) -> None:
+    def __init__(self, mode: Callable[[], str]) -> None:
         super().__init__(max_results=SEARCH_RESULTS, always_visible=list(PINNED_TOOLS))
-        self._enabled = enabled
+        self._mode = mode
 
     async def transform_tools(self, tools: Sequence[Tool]) -> Sequence[Tool]:
-        if not self._enabled():
+        mode = self._mode()
+        if mode == "all":
             return tools
-        return await super().transform_tools(tools)
+        discovered = await super().transform_tools(tools)
+        if mode == "catalog":
+            return [*discovered, self._make_catalog_tool(tools)]
+        return discovered
 
     async def get_tool(
         self, name: str, call_next: GetToolNext, *, version: VersionSpec | None = None
     ) -> Tool | None:
-        if not self._enabled():
+        mode = self._mode()
+        if mode == "all":
             return await call_next(name, version=version)
+        if mode == "catalog" and name == "tools_catalog":
+            return self._make_catalog_tool()
         return await super().get_tool(name, call_next, version=version)
 
+    def _make_catalog_tool(self, tools: Sequence[Tool] = ()) -> Tool:
+        async def tools_catalog(
+            ctx: Context,
+            domain: Annotated[
+                str | None, "Filter by tool name prefix; omitted lists every tool"
+            ] = None,
+        ) -> str:
+            return _tool_inventory(await self.get_tool_catalog(ctx), domain)
+
+        return Tool.from_function(
+            tools_catalog,
+            description=_tool_inventory(tools),
+            annotations=tool_annotations("read"),
+        )
+
+    def _make_search_tool(self) -> Tool:
+        tool = super()._make_search_tool()
+        tool.annotations = tool_annotations("read")
+        return tool
+
     async def _search(self, tools: Sequence[Tool], query: str) -> Sequence[Tool]:
-        """Name matches first (exact name, then every query word is in the name — most specific
-        first), then the BM25 ranking, de-duplicated and capped at :data:`SEARCH_RESULTS`."""
+        """Return only an exact name match; otherwise rank name matches before BM25,
+        de-duplicated and capped at :data:`SEARCH_RESULTS`."""
         query_tokens = _name_tokens(query)
-        exact: list[Tool] = []
         by_name: list[Tool] = []
         if query_tokens:
             wanted = set(query_tokens)
@@ -246,15 +315,15 @@ class ToolSearch(BM25SearchTransform):
             for tool in tools:
                 tokens = _name_tokens(tool.name)
                 if "_".join(tokens) == joined:
-                    exact.append(tool)
-                elif wanted <= set(tokens):
+                    return [tool]
+                if wanted <= set(tokens):
                     by_name.append(tool)
             # Fewer name tokens = a closer match for the query's words.
             by_name.sort(key=lambda tool: (len(_name_tokens(tool.name)), tool.name))
         ranked = await super()._search(tools, query)
         out: list[Tool] = []
         seen: set[str] = set()
-        for tool in (*exact, *by_name, *ranked):
+        for tool in (*by_name, *ranked):
             if tool.name not in seen:
                 seen.add(tool.name)
                 out.append(tool)
@@ -268,7 +337,7 @@ def build_server(ctx: McpContext, auth: Any = None) -> FastMCP:
 
     ``auth`` is an optional FastMCP auth provider (e.g. a bearer-token verifier)."""
     mcp: FastMCP = FastMCP("xknx-editor", instructions=INSTRUCTIONS, auth=auth)
-    mcp.add_transform(ToolSearch(ctx.tool_search))
+    mcp.add_transform(ToolSearch(ctx.tool_discovery))
     for module in (
         status,
         project,

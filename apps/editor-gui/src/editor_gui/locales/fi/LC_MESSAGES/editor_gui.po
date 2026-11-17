@@ -1701,8 +1701,8 @@ msgstr "Kaikki työkalut"
 msgid "Search"
 msgstr "Haku"
 
-msgid "All tools lists every tool to the AI tool. Search lists only a search for the tools and one that calls them, for AI models whose context is too small for the whole list. An AI tool sees a change once it reconnects."
-msgstr "Kaikki työkalut näyttää tekoälytyökalulle jokaisen työkalun. Haku näyttää vain työkalujen haun ja työkalun, joka kutsuu niitä, tekoälymalleille, joiden konteksti on liian pieni koko luettelolle. Tekoälytyökalu näkee muutoksen, kun se yhdistää uudelleen."
+msgid "All tools lists every tool to the AI tool. Search lists only a search for the tools and one that calls them, for AI models whose context is too small for the whole list. Tool catalog adds a compact inventory of every tool. An AI tool sees a change once it reconnects."
+msgstr "Kaikki työkalut näyttää tekoälytyökalulle jokaisen työkalun. Haku näyttää vain työkalujen haun ja työkalun, joka kutsuu niitä, tekoälymalleille, joiden konteksti on liian pieni koko luettelolle. Työkaluluettelo lisää tiiviin yleiskatsauksen kaikista työkaluista. Tekoälytyökalu näkee muutoksen, kun se yhdistää uudelleen."
 msgid "Delete"
 msgstr "Poista"
 
@@ -1735,3 +1735,6 @@ msgstr "Avaa viimeisin projekti käynnistyksessä"
 
 msgid "When no project is given at the start, opens the project that was open last. A protected project asks for its password, unless --password-file gives it."
 msgstr "Kun käynnistyksessä ei anneta projektia, avaa viimeksi avoinna olleen projektin. Suojattu projekti kysyy salasanaansa, ellei --password-file anna sitä."
+
+msgid "Tool catalog"
+msgstr "Työkaluluettelo"

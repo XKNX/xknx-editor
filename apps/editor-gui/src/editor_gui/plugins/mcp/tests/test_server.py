@@ -1028,10 +1028,11 @@ async def test_link_feedback_dedup_dpt_and_sending(tmp_path: Path) -> None:
             node_id=node_id,
             com_object_ref_id=co["ref_id"],
             group_address_id=g1,
-            is_sending=True,
+            is_sending=False,
         )
         assert r2["already_linked"] is True
         assert r2["link_id"] == r1["link_id"]
+        assert r2["is_sending"] is True
         links = await _data(
             client,
             "project_get_com_object_links",
@@ -1059,6 +1060,11 @@ async def test_link_feedback_dedup_dpt_and_sending(tmp_path: Path) -> None:
         if co_dpt:
             assert r3["dpt_mismatch"]["group_address"] == other_dpt
         assert g1 in r3.get("other_sending_group_address_ids", [])
+        assert {
+            link.group_address_id
+            for link in _project.get_links_for_com_object(co["db_id"])
+            if link.is_sending
+        } == {g1, g2}
 
 
 @pytest.mark.skipif(not _FIXTURE.exists(), reason="knxprod fixture missing")

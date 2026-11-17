@@ -71,6 +71,63 @@ def test_shared_parameter_cache_follows_edit_and_undo(project):
     assert value() == alternative
 
 
+def test_display_units_edit_raw_blob_and_image_with_undo(project):
+    from xknxeditor.vendor.siemens_generic.codec import encode
+    from xknxeditor.vendor.siemens_generic.image import compile_image
+    from xknxeditor.vendor.siemens_generic.presentation import value_format
+
+    cases = {
+        "mm": ("10", "600"),
+        "mm:ss": ("02:00", "120"),
+        "HH:mm:ss": ("00:00:02", "2000"),
+        "Percent": ("10", "25"),
+    }
+    tested = set()
+    for device in project.devices:
+        source = sources(device)
+        for section in PROVIDER.sections(device):
+            for row in section.parameters:
+                ref = row.ref_id.removeprefix(PROVIDER.parameter_prefix)
+                formatting = value_format(source.description, ref)
+                key = formatting.format or formatting.clock
+                if not row.writable or key not in cases or key in tested:
+                    continue
+                node = device.node_id
+                before = blob(current(project, node))
+                cursor = project.cursor
+                assert row.raw_value is not None
+                assert (
+                    PROVIDER.edit(current(project, node), row.ref_id, row.value).data
+                    == before
+                )
+                entered, stored = cases[key]
+                project.edit_plugin_parameter(
+                    current(project, node), row.ref_id, entered
+                )
+                changed = blob(current(project, node))
+                state = parse_settings(changed)
+                assert state.values[ref] == stored
+                assert project.cursor == cursor + 1
+                param = source.description.parameters[
+                    source.description.refs[ref].parameter_id
+                ]
+                compiled = compile_image(
+                    source.description,
+                    state,
+                    {"DeviceOrderNumber": device.order_number},
+                )
+                expected = encode(stored, source.description.types[param.type_id])
+                offset = param.offset - compiled.base
+                assert compiled.data[offset : offset + len(expected)] == expected
+                project.undo()
+                assert blob(current(project, node)) == before
+                project.redo()
+                assert blob(current(project, node)) == changed
+                project.undo()
+                tested.add(key)
+    assert tested == cases.keys()
+
+
 def test_original_devices_objects_and_edits_roundtrip(project, tmp_path):
     assert len(project.devices) == 7
     with ZipFile(ARCHIVE) as archive:

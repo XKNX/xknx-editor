@@ -105,6 +105,11 @@ def _display_value(
     value: bool | int | float | str | None, node: dict[str, Any]
 ) -> bool | int | float | str | None:
     kind = node.get("value_kind")
+    if type(value) is int and kind == "V_FREETIMER":
+        factor, exponent = value & 255, value >> 8
+        if not 0 <= exponent <= 23 or factor > 127:
+            return None
+        return factor * (5 << exponent)
     if type(value) is int and kind in ("V_SIGNED", "V_UNSIGNED"):
         size = node["size"]
         if kind == "V_SIGNED" and size in (1, 2, 4, 8):

@@ -4,9 +4,18 @@ from __future__ import annotations
 
 import gzip
 import json
+import re
 from functools import lru_cache
 from importlib.resources import files
 from typing import Any, cast
+
+
+def free_timer_label(label: str) -> str:
+    """Label the numeric millisecond value independently of a formatted time unit."""
+    label, count = re.subn(
+        r"\((?:s|n|min|mm:ss|min:sec,msec|min:seg, mseg)\)|\[mm:ss\]", "(ms)", label
+    )
+    return label if count or "(ms)" in label else f"{label} (ms)"
 
 
 @lru_cache(maxsize=1)
