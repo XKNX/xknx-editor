@@ -3840,3 +3840,9 @@ msgstr "Gruppenbereich {target} in {name} umbenennen"
 
 msgid "Rename trade {target} to {name}"
 msgstr "Gewerk {target} in {name} umbenennen"
+
+msgid "The interface did not confirm sending in time ({detail})."
+msgstr "Die Schnittstelle hat das Senden nicht rechtzeitig bestätigt ({detail})."
+
+msgid "A slow connection, such as a remote tunnel or a VPN, needs longer waits: raise the Confirmation Timeout in Settings > Connection."
+msgstr "Eine langsame Verbindung, etwa ein Tunnel über das Internet oder ein VPN, braucht längere Wartezeiten: Erhöhen Sie das Bestätigungs-Zeitlimit unter Einstellungen > Verbindung."

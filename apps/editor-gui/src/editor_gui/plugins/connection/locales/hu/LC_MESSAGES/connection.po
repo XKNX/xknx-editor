@@ -310,3 +310,21 @@ msgstr "Ezekre a csoportcímekre soha semmi sem megy ki, olvasás sem, pl. a kap
 
 msgid "Not a group address or group: {entries}"
 msgstr "Nem csoportcím és nem csoport: {entries}"
+
+msgid "Confirmation Timeout (Seconds)"
+msgstr "Megerősítés időkorlátja (másodperc)"
+
+msgid "How long to wait for the interface to confirm each frame it sends. A slow connection, such as a remote tunnel or a VPN, needs longer."
+msgstr "Mennyi ideig kell várni, hogy az interfész megerősítse az általa küldött összes keretet. Egy lassú kapcsolatnak, például egy távoli alagútnak vagy VPN-nek több idő kell."
+
+msgid "Acknowledgement Timeout (Seconds)"
+msgstr "Nyugtázás időkorlátja (másodperc)"
+
+msgid "How long to wait for a device to acknowledge a frame of a download before sending it again (up to three times). A device closes the connection after 6 seconds without a frame, so a longer wait only helps where the answers are late, not lost."
+msgstr "Mennyi ideig kell várni, hogy egy eszköz nyugtázza a programozás egy keretét, mielőtt újra elküldésre kerül (legfeljebb háromszor). Az eszköz 6 másodperc keret nélküli idő után bontja a kapcsolatot, így a hosszabb várakozás csak akkor segít, ha a válaszok késve érkeznek, nem ha elvesznek."
+
+msgid "Response Timeout (Seconds)"
+msgstr "Válasz időkorlátja (másodperc)"
+
+msgid "How long to wait for a device's answer, e.g. to a memory or property read."
+msgstr "Mennyi ideig kell várni egy eszköz válaszára, pl. memória vagy tulajdonság olvasására."

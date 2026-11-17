@@ -3698,3 +3698,9 @@ msgstr "Byt namn på gruppintervall {target} till {name}"
 
 msgid "Rename trade {target} to {name}"
 msgstr "Byt namn på anläggningsfunktion {target} till {name}"
+
+msgid "The interface did not confirm sending in time ({detail})."
+msgstr "Gränssnittet bekräftade inte sändningen i tid ({detail})."
+
+msgid "A slow connection, such as a remote tunnel or a VPN, needs longer waits: raise the Confirmation Timeout in Settings > Connection."
+msgstr "En långsam anslutning, t.ex. en fjärrtunnel eller ett VPN, behöver längre väntetider: höj Tidsgräns för bekräftelse under Inställningar > Anslutning."

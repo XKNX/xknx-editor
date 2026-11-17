@@ -3343,6 +3343,7 @@ class ProjectPlugin:
             DifferentProgramLoaded,
             IncompatibleMaskVersion,
         )
+        from xknxeditor.download.timeouts import confirmation_timed_out
 
         if isinstance(error, DeviceCertificateRequired):
             return S.DEVICE_CERTIFICATE_REQUIRED
@@ -3359,6 +3360,8 @@ class ProjectPlugin:
             return S.PARTIAL_DOWNLOAD_FAILED.format(
                 cause=ProjectPlugin._program_error_text(cause) or str(cause)
             )
+        if confirmation_timed_out(error):
+            return S.INTERFACE_NOT_CONFIRMING.format(detail=str(error))
         return None
 
     def _describe_program_error(
@@ -3372,12 +3375,15 @@ class ProjectPlugin:
 
         from editor_gui.plugins.connection.service import DeviceCertificateRequired
         from xknxeditor.download.scope import DownloadScope
+        from xknxeditor.download.timeouts import confirmation_timed_out
 
         if isinstance(error, DeviceCertificateRequired):
             device = self._api.project.find_device_by_node_id(item.node_id)
             if device is not None and item.origin is None:
                 self._ask_certificate(device, item)
             return None
+        if confirmation_timed_out(error):
+            return S.SLOW_CONNECTION_HINT
         if isinstance(error, ManagementConnectionTimeout):
             # A full download of a new device first writes its address to the one device in
             # programming mode when nothing answers at the address.

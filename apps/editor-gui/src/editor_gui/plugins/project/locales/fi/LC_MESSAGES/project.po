@@ -3698,3 +3698,9 @@ msgstr "Nimeä ryhmäalue uudelleen: {target} → {name}"
 
 msgid "Rename trade {target} to {name}"
 msgstr "Nimeä vaihto uudelleen: {target} → {name}"
+
+msgid "The interface did not confirm sending in time ({detail})."
+msgstr "Liitäntä ei vahvistanut lähetystä ajoissa ({detail})."
+
+msgid "A slow connection, such as a remote tunnel or a VPN, needs longer waits: raise the Confirmation Timeout in Settings > Connection."
+msgstr "Hidas yhteys, kuten etätunneli tai VPN, tarvitsee pidempiä odotuksia: kasvata Vahvistuksen aikakatkaisua kohdassa Asetukset > Yhteys."

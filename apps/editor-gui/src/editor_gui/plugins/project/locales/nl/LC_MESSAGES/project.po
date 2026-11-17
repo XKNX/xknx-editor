@@ -3733,3 +3733,9 @@ msgstr "Groepsbereik {target} hernoemen naar {name}"
 
 msgid "Rename trade {target} to {name}"
 msgstr "Technisch gebouw {target} hernoemen naar {name}"
+
+msgid "The interface did not confirm sending in time ({detail})."
+msgstr "De interface heeft het verzenden niet op tijd bevestigd ({detail})."
+
+msgid "A slow connection, such as a remote tunnel or a VPN, needs longer waits: raise the Confirmation Timeout in Settings > Connection."
+msgstr "Een trage verbinding, zoals een tunnel op afstand of een VPN, heeft langere wachttijden nodig: verhoog de Time-out bevestiging in Instellingen > Verbinding."

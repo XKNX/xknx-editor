@@ -311,3 +311,21 @@ msgstr "Näihin ryhmäosoitteisiin ei koskaan lähetetä mitään, ei edes lukuj
 
 msgid "Not a group address or group: {entries}"
 msgstr "Ei ryhmäosoite eikä ryhmä: {entries}"
+
+msgid "Confirmation Timeout (Seconds)"
+msgstr "Vahvistuksen aikakatkaisu (sekuntia)"
+
+msgid "How long to wait for the interface to confirm each frame it sends. A slow connection, such as a remote tunnel or a VPN, needs longer."
+msgstr "Kuinka kauan odotetaan, että liitäntä vahvistaa jokaisen lähettämänsä kehyksen. Hidas yhteys, kuten etätunneli tai VPN, tarvitsee enemmän aikaa."
+
+msgid "Acknowledgement Timeout (Seconds)"
+msgstr "Kuittauksen aikakatkaisu (sekuntia)"
+
+msgid "How long to wait for a device to acknowledge a frame of a download before sending it again (up to three times). A device closes the connection after 6 seconds without a frame, so a longer wait only helps where the answers are late, not lost."
+msgstr "Kuinka kauan odotetaan, että laite kuittaa latauksen kehyksen, ennen kuin se lähetetään uudelleen (enintään kolme kertaa). Laite sulkee yhteyden 6 sekunnin jälkeen ilman kehystä, joten pidempi odotus auttaa vain, kun vastaukset tulevat myöhässä, ei kun ne katoavat."
+
+msgid "Response Timeout (Seconds)"
+msgstr "Vastauksen aikakatkaisu (sekuntia)"
+
+msgid "How long to wait for a device's answer, e.g. to a memory or property read."
+msgstr "Kuinka kauan odotetaan laitteen vastausta, esim. muistin tai ominaisuuden lukuun."

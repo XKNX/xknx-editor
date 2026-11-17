@@ -310,3 +310,21 @@ msgstr "绝不向这些组地址发送任何内容，连读取也不发送，例
 
 msgid "Not a group address or group: {entries}"
 msgstr "不是组地址或组：{entries}"
+
+msgid "Confirmation Timeout (Seconds)"
+msgstr "确认超时（秒）"
+
+msgid "How long to wait for the interface to confirm each frame it sends. A slow connection, such as a remote tunnel or a VPN, needs longer."
+msgstr "等待接口确认其发送的每一帧的时间。较慢的连接（例如远程隧道或 VPN）需要更长时间。"
+
+msgid "Acknowledgement Timeout (Seconds)"
+msgstr "应答超时（秒）"
+
+msgid "How long to wait for a device to acknowledge a frame of a download before sending it again (up to three times). A device closes the connection after 6 seconds without a frame, so a longer wait only helps where the answers are late, not lost."
+msgstr "在重新发送下载帧之前（最多三次）等待设备应答该帧的时间。设备在 6 秒内未收到帧就会关闭连接，因此延长等待只在应答迟到时有帮助，而在应答丢失时无效。"
+
+msgid "Response Timeout (Seconds)"
+msgstr "响应超时（秒）"
+
+msgid "How long to wait for a device's answer, e.g. to a memory or property read."
+msgstr "等待设备响应的时间，例如对内存或属性读取的响应。"

@@ -311,3 +311,21 @@ msgstr "Δεν στέλνεται ποτέ τίποτα σε αυτές τις �
 
 msgid "Not a group address or group: {entries}"
 msgstr "Δεν είναι διεύθυνση ομάδας ή ομάδα: {entries}"
+
+msgid "Confirmation Timeout (Seconds)"
+msgstr "Χρονικό όριο επιβεβαίωσης (δευτερόλεπτα)"
+
+msgid "How long to wait for the interface to confirm each frame it sends. A slow connection, such as a remote tunnel or a VPN, needs longer."
+msgstr "Πόσο να περιμένει για την επιβεβαίωση κάθε πλαισίου που στέλνει η διεπαφή. Μια αργή σύνδεση, όπως ένα απομακρυσμένο τούνελ ή ένα VPN, χρειάζεται περισσότερο."
+
+msgid "Acknowledgement Timeout (Seconds)"
+msgstr "Χρονικό όριο αναγνώρισης (δευτερόλεπτα)"
+
+msgid "How long to wait for a device to acknowledge a frame of a download before sending it again (up to three times). A device closes the connection after 6 seconds without a frame, so a longer wait only helps where the answers are late, not lost."
+msgstr "Πόσο να περιμένει μια συσκευή να αναγνωρίσει ένα πλαίσιο μιας φόρτωσης πριν σταλεί ξανά (έως τρεις φορές). Μια συσκευή κλείνει τη σύνδεση μετά από 6 δευτερόλεπτα χωρίς πλαίσιο, οπότε μεγαλύτερη αναμονή βοηθά μόνο όταν οι απαντήσεις αργούν, όχι όταν χάνονται."
+
+msgid "Response Timeout (Seconds)"
+msgstr "Χρονικό όριο απάντησης (δευτερόλεπτα)"
+
+msgid "How long to wait for a device's answer, e.g. to a memory or property read."
+msgstr "Πόσο να περιμένει την απάντηση μιας συσκευής, π.χ. σε ανάγνωση μνήμης ή ιδιότητας."

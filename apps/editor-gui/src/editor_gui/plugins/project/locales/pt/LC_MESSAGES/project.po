@@ -3702,3 +3702,9 @@ msgstr "Renomear intervalo de grupos {target} para {name}"
 
 msgid "Rename trade {target} to {name}"
 msgstr "Mudar o nome da função {target} para {name}"
+
+msgid "The interface did not confirm sending in time ({detail})."
+msgstr "A interface não confirmou o envio a tempo ({detail})."
+
+msgid "A slow connection, such as a remote tunnel or a VPN, needs longer waits: raise the Confirmation Timeout in Settings > Connection."
+msgstr "Uma ligação lenta, como um túnel remoto ou uma VPN, precisa de esperas mais longas: aumente o Tempo Limite de Confirmação em Configurações > Ligação."

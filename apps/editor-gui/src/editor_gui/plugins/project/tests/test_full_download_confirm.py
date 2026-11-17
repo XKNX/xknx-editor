@@ -7,7 +7,11 @@ from concurrent.futures import Future
 from types import SimpleNamespace
 from typing import Any, cast
 
-from xknx.exceptions import ManagementConnectionTimeout
+from xknx.exceptions import (
+    ConfirmationError,
+    ManagementConnectionError,
+    ManagementConnectionTimeout,
+)
 
 from editor_gui.plugins.project.plugin import ProjectPlugin
 from editor_gui.plugins.project.program_queue import (
@@ -120,6 +124,33 @@ def test_a_download_that_failed_after_writing_names_its_cause() -> None:
     )
     # Without its cause the error's own text is shown.
     assert _finish(PartialDownloadError("wrapped"), _error_text).message == "wrapped"
+
+
+def _not_confirmed() -> ManagementConnectionError:
+    """A frame of a download the interface did not confirm, as the transport reports it."""
+    try:
+        try:
+            raise ConfirmationError("L_DATA_CON Data Link Layer confirmation timed out")
+        except ConfirmationError as exc:
+            raise ManagementConnectionError("1.0.1: error sending sequence 13") from exc
+    except ManagementConnectionError as error:
+        return error
+
+
+def test_a_frame_the_interface_did_not_confirm_points_to_the_timeouts() -> None:
+    sent = _not_confirmed()
+    item = _finish(sent, _error_text, None, _describe)
+    assert item.message == (
+        f"{S.INTERFACE_NOT_CONFIRMING.format(detail=str(sent))} "
+        f"{S.SLOW_CONNECTION_HINT}"
+    )
+    # Also when it broke off a download that had begun writing.
+    error = PartialDownloadError("Downloading 1.0.1 failed after ...")
+    error.__cause__ = sent
+    cause = S.INTERFACE_NOT_CONFIRMING.format(detail=str(sent))
+    assert _finish(error, _error_text, None, _describe).message == (
+        f"{S.PARTIAL_DOWNLOAD_FAILED.format(cause=cause)} {S.SLOW_CONNECTION_HINT}"
+    )
 
 
 async def test_the_question_waits_for_the_answer() -> None:

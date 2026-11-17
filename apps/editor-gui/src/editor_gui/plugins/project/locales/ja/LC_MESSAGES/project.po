@@ -3646,3 +3646,9 @@ msgstr "グループ範囲名を変更: {target} → {name}"
 
 msgid "Rename trade {target} to {name}"
 msgstr "トレードの名前を変更: {target} → {name}"
+
+msgid "The interface did not confirm sending in time ({detail})."
+msgstr "インターフェースが送信を時間内に確認しませんでした（{detail}）。"
+
+msgid "A slow connection, such as a remote tunnel or a VPN, needs longer waits: raise the Confirmation Timeout in Settings > Connection."
+msgstr "リモートトンネルや VPN などの低速な接続では、より長い待ち時間が必要です。設定 > 接続 で確認タイムアウトを長くしてください。"

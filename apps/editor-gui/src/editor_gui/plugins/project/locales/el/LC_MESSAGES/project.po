@@ -3698,3 +3698,9 @@ msgstr "Μετονομασία εύρους ομάδων {target} σε {name}"
 
 msgid "Rename trade {target} to {name}"
 msgstr "Μετονομασία λειτουργίας {target} σε {name}"
+
+msgid "The interface did not confirm sending in time ({detail})."
+msgstr "Η διεπαφή δεν επιβεβαίωσε την αποστολή εγκαίρως ({detail})."
+
+msgid "A slow connection, such as a remote tunnel or a VPN, needs longer waits: raise the Confirmation Timeout in Settings > Connection."
+msgstr "Μια αργή σύνδεση, όπως ένα απομακρυσμένο τούνελ ή ένα VPN, χρειάζεται μεγαλύτερες αναμονές: αυξήστε το Χρονικό όριο επιβεβαίωσης στις Ρυθμίσεις > Σύνδεση."

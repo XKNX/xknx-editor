@@ -1397,6 +1397,7 @@ class ConnectionService:
         exc = future.exception()
         if exc is not None:
             from xknxeditor.download.errors import PartialDownloadError
+            from xknxeditor.download.timeouts import confirmation_timed_out
 
             # The operations history shows the failure (with what to do), so these records
             # raise no toast.
@@ -1424,7 +1425,14 @@ class ConnectionService:
                     traceback=_exc_traceback(exc),
                     shown=SHOWN_IN_OPERATIONS,
                 )
-                if isinstance(exc, ManagementConnectionError):
+                if confirmation_timed_out(exc):
+                    self._log.error(
+                        "The interface did not confirm the frames in time; a slow "
+                        "connection (a remote tunnel, a VPN) needs a longer Confirmation "
+                        "Timeout in Settings > Connection",
+                        shown=SHOWN_IN_OPERATIONS,
+                    )
+                elif isinstance(exc, ManagementConnectionError):
                     # A full download of a virgin device first writes its address to the single
                     # device in programming mode; nothing answering here usually means the device
                     # is not in (or more than one device is in) programming mode.

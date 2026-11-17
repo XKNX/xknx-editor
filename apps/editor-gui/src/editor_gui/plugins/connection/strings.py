@@ -103,6 +103,40 @@ class ConnectionStrings:
         )
 
     @property
+    def SETTING_CONFIRMATION_TIMEOUT(self) -> str:
+        return _("Confirmation Timeout (Seconds)")
+
+    @property
+    def SETTING_CONFIRMATION_TIMEOUT_HINT(self) -> str:
+        return _(
+            "How long to wait for the interface to confirm each frame it sends. A slow "
+            "connection, such as a remote tunnel or a VPN, needs longer."
+        )
+
+    @property
+    def SETTING_ACKNOWLEDGEMENT_TIMEOUT(self) -> str:
+        return _("Acknowledgement Timeout (Seconds)")
+
+    @property
+    def SETTING_ACKNOWLEDGEMENT_TIMEOUT_HINT(self) -> str:
+        return _(
+            "How long to wait for a device to acknowledge a frame of a download before "
+            "sending it again (up to three times). A device closes the connection after "
+            "6 seconds without a frame, so a longer wait only helps where the answers "
+            "are late, not lost."
+        )
+
+    @property
+    def SETTING_RESPONSE_TIMEOUT(self) -> str:
+        return _("Response Timeout (Seconds)")
+
+    @property
+    def SETTING_RESPONSE_TIMEOUT_HINT(self) -> str:
+        return _(
+            "How long to wait for a device's answer, e.g. to a memory or property read."
+        )
+
+    @property
     def SECTION_DISCOVERED(self) -> str:
         return _("Discovered Gateways")
 

@@ -11,6 +11,7 @@ import contextlib
 from typing import TYPE_CHECKING
 
 from xknx.exceptions import ManagementConnectionTimeout
+from xknx.management import management
 
 from .response_matching import answers
 
@@ -19,9 +20,6 @@ if TYPE_CHECKING:
     from xknx.management.management import P2PConnectionless
     from xknx.telegram import IndividualAddress, Telegram
     from xknx.telegram.apci import APCI
-
-# Same response timeout as xknx' connection-oriented P2PConnection.
-RESPONSE_TIMEOUT = 6.0
 
 
 class ConnectionlessConnection:
@@ -38,7 +36,9 @@ class ConnectionlessConnection:
         that answers this request, not one to an earlier request (see ``answers``)."""
         await self._connectionless.send(payload)
         async with contextlib.aclosing(
-            self._connectionless.receive(expected, timeout=RESPONSE_TIMEOUT)
+            self._connectionless.receive(
+                expected, timeout=management.MANAGEMENT_CONNECTION_TIMEOUT
+            )
         ) as telegrams:
             async for telegram in telegrams:
                 if answers(payload, telegram.payload):

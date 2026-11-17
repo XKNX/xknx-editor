@@ -3646,3 +3646,9 @@ msgstr "Grup aralığını yeniden adlandır: {target} → {name}"
 
 msgid "Rename trade {target} to {name}"
 msgstr "Ticareti yeniden adlandır: {target} → {name}"
+
+msgid "The interface did not confirm sending in time ({detail})."
+msgstr "Arabirim gönderimi zamanında onaylamadı ({detail})."
+
+msgid "A slow connection, such as a remote tunnel or a VPN, needs longer waits: raise the Confirmation Timeout in Settings > Connection."
+msgstr "Uzak bir tünel veya VPN gibi yavaş bir bağlantı daha uzun bekleme gerektirir: Ayarlar > Bağlantı altında Onay Zaman Aşımı'nı artırın."

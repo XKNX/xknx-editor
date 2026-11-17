@@ -3750,3 +3750,9 @@ msgstr "Zmień nazwę zakresu grup {target} na {name}"
 
 msgid "Rename trade {target} to {name}"
 msgstr "Zmień nazwę zakładu {target} na {name}"
+
+msgid "The interface did not confirm sending in time ({detail})."
+msgstr "Interfejs nie potwierdził wysłania na czas ({detail})."
+
+msgid "A slow connection, such as a remote tunnel or a VPN, needs longer waits: raise the Confirmation Timeout in Settings > Connection."
+msgstr "Wolne połączenie, np. zdalny tunel lub VPN, wymaga dłuższego czekania: zwiększ Limit czasu potwierdzenia w Ustawienia > Połączenie."

@@ -3646,3 +3646,9 @@ msgstr "将组范围 {target} 重命名为 {name}"
 
 msgid "Rename trade {target} to {name}"
 msgstr "将工程作业 {target} 重命名为 {name}"
+
+msgid "The interface did not confirm sending in time ({detail})."
+msgstr "接口未及时确认发送（{detail}）。"
+
+msgid "A slow connection, such as a remote tunnel or a VPN, needs longer waits: raise the Confirmation Timeout in Settings > Connection."
+msgstr "较慢的连接（例如远程隧道或 VPN）需要更长的等待时间：请在 配置 > 连接 中增大确认超时。"

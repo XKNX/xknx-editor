@@ -128,9 +128,10 @@ def test_connectionless_channels_of_two_devices() -> None:
 
 
 def test_connectionless_request_without_answer(monkeypatch: pytest.MonkeyPatch) -> None:
-    from xknxeditor.download import connectionless
+    from xknx.management import management
 
-    monkeypatch.setattr(connectionless, "RESPONSE_TIMEOUT", 0.05)
+    # The response timeout of Settings > Connection, also for connectionless requests.
+    monkeypatch.setattr(management, "MANAGEMENT_CONNECTION_TIMEOUT", 0.05)
     xknx = XKNX()
     xknx.cemi_handler = AsyncMock()
 

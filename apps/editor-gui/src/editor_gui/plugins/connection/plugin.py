@@ -4,6 +4,7 @@ import threading
 import time
 from collections.abc import Awaitable, Callable, Coroutine, Iterable
 from concurrent.futures import Future
+from dataclasses import replace
 from enum import Enum
 from typing import TYPE_CHECKING, Any, cast
 
@@ -75,6 +76,7 @@ from editor_gui.widgets.dpi import label_column_width, px, px_vec2
 from editor_gui.widgets.flow import button_width, same_line_if_fits
 from editor_gui.widgets.spinner import loading, spinner
 from editor_gui.widgets.tree import collapsing_header
+from xknxeditor.download.timeouts import BusTimeouts, bus_timeouts, set_bus_timeouts
 from xknxeditor.prod.app_id import parse_app_id
 
 if TYPE_CHECKING:
@@ -85,6 +87,18 @@ _SETTINGS = "connection"
 SETTINGS_PAGE = "connection"
 # How far the connected gateway's details are indented in the Gateway menu (unscaled pixels).
 _DETAILS_INDENT = 10.0
+# The waits of the bus exchanges in Settings > Connection (``BusTimeouts`` fields), kept as
+# "<name>_timeout", and the seconds they may take.
+_TIMEOUTS = ("confirmation", "acknowledgement", "response")
+_TIMEOUT_BOUNDS = (1, 60)
+
+
+def _timeout_seconds(value: object, default: float) -> float:
+    """``value`` as a wait in seconds within ``_TIMEOUT_BOUNDS``; ``default`` when it is no
+    number (a missing or broken setting)."""
+    if isinstance(value, bool) or not isinstance(value, int | float):
+        return default
+    return float(min(max(value, _TIMEOUT_BOUNDS[0]), _TIMEOUT_BOUNDS[1]))
 
 
 def gateway_services(gateway: GatewayDescriptor) -> list[str]:
@@ -608,6 +622,17 @@ class ConnectionPlugin:
         self._block_bus_writes_setting = bool(data.get("block_bus_writes", False))
         self._apply_block_bus_writes()
         self._load_protected(str(data.get("protected_group_addresses", "")))
+        defaults = BusTimeouts()
+        set_bus_timeouts(
+            BusTimeouts(
+                **{
+                    name: _timeout_seconds(
+                        data.get(f"{name}_timeout"), getattr(defaults, name)
+                    )
+                    for name in _TIMEOUTS
+                }
+            )
+        )
 
     def _save_current_settings(self) -> None:
         save_settings(
@@ -627,6 +652,10 @@ class ConnectionPlugin:
                 "connect_at_startup": self._connect_at_startup,
                 "block_bus_writes": self._block_bus_writes_setting,
                 "protected_group_addresses": " ".join(protected_patterns()),
+                **{
+                    f"{name}_timeout": getattr(bus_timeouts(), name)
+                    for name in _TIMEOUTS
+                },
             },
         )
 
@@ -2429,7 +2458,41 @@ class ConnectionPlugin:
                 set=self._set_use_serial_number,
                 hint=lambda: S.SETTING_USE_SERIAL_NUMBER_HINT,
             ),
+            self._timeout_setting(
+                "confirmation",
+                lambda: S.SETTING_CONFIRMATION_TIMEOUT,
+                lambda: S.SETTING_CONFIRMATION_TIMEOUT_HINT,
+            ),
+            self._timeout_setting(
+                "acknowledgement",
+                lambda: S.SETTING_ACKNOWLEDGEMENT_TIMEOUT,
+                lambda: S.SETTING_ACKNOWLEDGEMENT_TIMEOUT_HINT,
+            ),
+            self._timeout_setting(
+                "response",
+                lambda: S.SETTING_RESPONSE_TIMEOUT,
+                lambda: S.SETTING_RESPONSE_TIMEOUT_HINT,
+            ),
         ]
+
+    def _timeout_setting(
+        self, name: str, label: Callable[[], str], hint: Callable[[], str]
+    ) -> Setting:
+        """A wait of the bus exchanges (``BusTimeouts``) in whole seconds."""
+        return Setting(
+            f"{name}_timeout",
+            label,
+            "int",
+            get=lambda: round(getattr(bus_timeouts(), name)),
+            set=lambda value: self._set_timeout(name, value),
+            bounds=_TIMEOUT_BOUNDS,
+            hint=hint,
+        )
+
+    def _set_timeout(self, name: str, value: object) -> None:
+        seconds = _timeout_seconds(value, getattr(bus_timeouts(), name))
+        set_bus_timeouts(replace(bus_timeouts(), **{name: seconds}))
+        self._save_current_settings()
 
     @property
     def _connection_open(self) -> bool:

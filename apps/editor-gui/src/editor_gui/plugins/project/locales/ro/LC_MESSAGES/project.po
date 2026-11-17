@@ -3777,3 +3777,9 @@ msgstr "Redenumire domeniu de grupuri {target} în {name}"
 
 msgid "Rename trade {target} to {name}"
 msgstr "Redenumire specialitate {target} în {name}"
+
+msgid "The interface did not confirm sending in time ({detail})."
+msgstr "Interfața nu a confirmat trimiterea la timp ({detail})."
+
+msgid "A slow connection, such as a remote tunnel or a VPN, needs longer waits: raise the Confirmation Timeout in Settings > Connection."
+msgstr "O conexiune lentă, cum ar fi un tunel la distanță sau un VPN, are nevoie de așteptări mai lungi: măriți Timpul limită de confirmare în Setări > Conexiune."

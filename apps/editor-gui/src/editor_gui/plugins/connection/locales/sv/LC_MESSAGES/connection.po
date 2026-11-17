@@ -311,3 +311,21 @@ msgstr "Ingenting skickas någonsin till dessa gruppadresser, inte ens läsninga
 
 msgid "Not a group address or group: {entries}"
 msgstr "Inte en gruppadress eller grupp: {entries}"
+
+msgid "Confirmation Timeout (Seconds)"
+msgstr "Tidsgräns för bekräftelse (sekunder)"
+
+msgid "How long to wait for the interface to confirm each frame it sends. A slow connection, such as a remote tunnel or a VPN, needs longer."
+msgstr "Hur länge det ska väntas på att gränssnittet bekräftar varje ram det skickar. En långsam anslutning, t.ex. en fjärrtunnel eller ett VPN, behöver längre tid."
+
+msgid "Acknowledgement Timeout (Seconds)"
+msgstr "Tidsgräns för kvittens (sekunder)"
+
+msgid "How long to wait for a device to acknowledge a frame of a download before sending it again (up to three times). A device closes the connection after 6 seconds without a frame, so a longer wait only helps where the answers are late, not lost."
+msgstr "Hur länge det ska väntas på att en enhet kvitterar en ram i en programmering innan den skickas igen (upp till tre gånger). En enhet stänger anslutningen efter 6 sekunder utan ram, så längre väntan hjälper bara när svaren kommer sent, inte när de går förlorade."
+
+msgid "Response Timeout (Seconds)"
+msgstr "Tidsgräns för svar (sekunder)"
+
+msgid "How long to wait for a device's answer, e.g. to a memory or property read."
+msgstr "Hur länge det ska väntas på en enhets svar, t.ex. på en läsning av minne eller en egenskap."

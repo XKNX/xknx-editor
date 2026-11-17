@@ -310,3 +310,21 @@ msgstr "Bu grup adreslerine hiçbir zaman hiçbir şey gönderilmez, okuma bile:
 
 msgid "Not a group address or group: {entries}"
 msgstr "Grup adresi veya grup değil: {entries}"
+
+msgid "Confirmation Timeout (Seconds)"
+msgstr "Onay Zaman Aşımı (Saniye)"
+
+msgid "How long to wait for the interface to confirm each frame it sends. A slow connection, such as a remote tunnel or a VPN, needs longer."
+msgstr "Arabirimin gönderdiği her çerçeveyi onaylaması için ne kadar bekleneceği. Uzak bir tünel veya VPN gibi yavaş bir bağlantı daha uzun süre gerektirir."
+
+msgid "Acknowledgement Timeout (Seconds)"
+msgstr "Alındı Zaman Aşımı (Saniye)"
+
+msgid "How long to wait for a device to acknowledge a frame of a download before sending it again (up to three times). A device closes the connection after 6 seconds without a frame, so a longer wait only helps where the answers are late, not lost."
+msgstr "Bir cihazın yükleme çerçevesini alındı olarak bildirmesi için, çerçeve yeniden gönderilmeden önce (en fazla üç kez) ne kadar bekleneceği. Cihaz, çerçevesiz 6 saniyeden sonra bağlantıyı kapatır; bu nedenle daha uzun beklemek yalnızca yanıtlar geç geldiğinde yardımcı olur, kaybolduğunda değil."
+
+msgid "Response Timeout (Seconds)"
+msgstr "Yanıt Zaman Aşımı (Saniye)"
+
+msgid "How long to wait for a device's answer, e.g. to a memory or property read."
+msgstr "Bir cihazın yanıtı için ne kadar bekleneceği, ör. bellek veya özellik okumasına."

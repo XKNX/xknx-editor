@@ -310,3 +310,21 @@ msgstr "これらのグループアドレスには読み取りも含めて何も
 
 msgid "Not a group address or group: {entries}"
 msgstr "グループアドレスでもグループでもありません: {entries}"
+
+msgid "Confirmation Timeout (Seconds)"
+msgstr "確認タイムアウト（秒）"
+
+msgid "How long to wait for the interface to confirm each frame it sends. A slow connection, such as a remote tunnel or a VPN, needs longer."
+msgstr "インターフェースが送信した各フレームの確認を待つ時間です。リモートトンネルや VPN などの低速な接続では、より長い時間が必要です。"
+
+msgid "Acknowledgement Timeout (Seconds)"
+msgstr "応答確認タイムアウト（秒）"
+
+msgid "How long to wait for a device to acknowledge a frame of a download before sending it again (up to three times). A device closes the connection after 6 seconds without a frame, so a longer wait only helps where the answers are late, not lost."
+msgstr "ダウンロードのフレームに対するデバイスの応答確認を、再送信する前に待つ時間です（最大 3 回）。デバイスはフレームのない状態が 6 秒続くと接続を閉じるため、待ち時間を長くして役立つのは、応答が失われた場合ではなく遅れて届く場合だけです。"
+
+msgid "Response Timeout (Seconds)"
+msgstr "応答タイムアウト（秒）"
+
+msgid "How long to wait for a device's answer, e.g. to a memory or property read."
+msgstr "メモリやプロパティの読み取りなど、デバイスの応答を待つ時間です。"

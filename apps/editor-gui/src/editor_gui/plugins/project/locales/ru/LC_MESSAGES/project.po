@@ -3750,3 +3750,9 @@ msgstr "Переименовать диапазон групп {target} в {name
 
 msgid "Rename trade {target} to {name}"
 msgstr "Переименовать систему {target} в {name}"
+
+msgid "The interface did not confirm sending in time ({detail})."
+msgstr "Интерфейс не подтвердил отправку вовремя ({detail})."
+
+msgid "A slow connection, such as a remote tunnel or a VPN, needs longer waits: raise the Confirmation Timeout in Settings > Connection."
+msgstr "Медленному подключению, например удалённому туннелю или VPN, нужно более долгое ожидание: увеличьте тайм-аут подтверждения в разделе Установки > Подключение."

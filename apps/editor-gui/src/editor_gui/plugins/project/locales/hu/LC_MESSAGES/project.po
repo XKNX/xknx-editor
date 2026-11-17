@@ -3673,3 +3673,9 @@ msgstr "Csoporttartomány átnevezése: {target} → {name}"
 
 msgid "Rename trade {target} to {name}"
 msgstr "Szakág átnevezése: {target} → {name}"
+
+msgid "The interface did not confirm sending in time ({detail})."
+msgstr "Az interfész nem erősítette meg időben a küldést ({detail})."
+
+msgid "A slow connection, such as a remote tunnel or a VPN, needs longer waits: raise the Confirmation Timeout in Settings > Connection."
+msgstr "Egy lassú kapcsolatnak, például egy távoli alagútnak vagy VPN-nek hosszabb várakozás kell: növelje a Megerősítés időkorlátját a Beállítások > Kapcsolat alatt."
