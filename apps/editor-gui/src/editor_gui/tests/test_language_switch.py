@@ -97,3 +97,23 @@ def test_the_palette_offers_the_other_languages() -> None:
     assert chosen == ["de"]
     next(i for i in product if "Deutsch" in i.label).action()
     assert products == ["de-DE"]
+
+
+def test_own_plugin_texts_rebuild_for_albanian() -> None:
+    app = _switcher()
+    KnxGuiApp._switch_language(app, "sq", None)  # pyright: ignore[reportPrivateUsage]
+    assert languages.product_language() == "en-US"
+    assert languages.plugin_language() == "sq"
+    assert len(app.rebuilt) == 1
+    KnxGuiApp._switch_language(app, "en", None)  # pyright: ignore[reportPrivateUsage]
+    assert languages.plugin_language() == "en"
+    assert len(app.rebuilt) == 2
+
+
+def test_own_plugin_texts_keep_explicit_product_language() -> None:
+    languages.set_product_language("de-DE")
+    set_locale("de")
+    app = _switcher()
+    KnxGuiApp._switch_language(app, "sq", "de-DE")  # pyright: ignore[reportPrivateUsage]
+    assert languages.plugin_language() == "de"
+    assert app.rebuilt == []

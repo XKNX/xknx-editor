@@ -93,7 +93,7 @@ def configuration(device: Device) -> Configuration:
 def install_view(device: Device) -> None:
     if not any(r.name == BLOB_NAME for r in device.binary_data):
         return
-    from editor_gui.languages import product_language
+    from editor_gui.languages import plugin_language
     from xknxeditor.vendor.powertool.family import FamilyConfig, schema_for
     from xknxeditor.vendor.powertool.presentation import Presentation
 
@@ -111,7 +111,7 @@ def install_view(device: Device) -> None:
             raise ValueError("native object bindings disagree with the product")
         catalog = ApplicationIndexer(device.app.program)
         overrides = {r.ref_id: r for r in device.com_object_instance_refs}
-        language = product_language()
+        language = plugin_language()
         presentation = Presentation(
             schema_for(config.profile, config.database_code)["code"]
             if isinstance(config, FamilyConfig)

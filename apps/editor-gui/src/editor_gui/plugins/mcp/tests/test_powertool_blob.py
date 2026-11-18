@@ -43,7 +43,7 @@ async def test_stored_units_and_object_types_match_gui_without_conversion(
             for p in section["parameters"]
             if p["ref_id"] == "powertool:0:duration_of_long_operation_s"
         )
-        assert timer["label"] == "Zeit für Langbedienung (ms)"
+        assert timer["label"] == "Schwelle für langen Tastendruck (ms)"
         assert timer["value"] == "400"
         result = await _data(client, "project_list_com_objects", node_id=nid)
         assert [co["dpt"] for co in result["items"]] == ["1.001", "3.007"]
@@ -272,8 +272,12 @@ async def test_mcp_rtc_pages_raw_values_and_search_match_gui(tmp_path, monkeypat
         assert [(s["section"], len(s["parameters"])) for s in result["sections"]] == [
             (s.section, len(s.parameters)) for s in gui
         ]
-        rtc = next(s for s in result["sections"] if s["section"] == "2: RTC settings")
-        assert any(p.get("group") == "Control heating" for p in rtc["parameters"])
+        rtc = next(
+            s
+            for s in result["sections"]
+            if s["section"] == "2: Room Temperature Control"
+        )
+        assert any(p.get("group") == "Heating Control" for p in rtc["parameters"])
         assert any(s.get("collapsed") for s in result["sections"])
         result = await _data(
             client, "project_plugin_parameters", node_id=nid, search="257"

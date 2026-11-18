@@ -1,6 +1,6 @@
 """Present the native push-button function and dependent parameter tree."""
 
-from editor_gui.languages import product_language
+from editor_gui.languages import plugin_language
 from editor_gui.plugin_params import PluginParameter, PluginSectionView
 from editor_gui.plugins.project.strings import S
 from xknxeditor.vendor.powertool import BLOB_NAME
@@ -22,7 +22,7 @@ from xknxeditor.vendor.powertool.project_blob import (
 
 def read_original(data: bytes) -> list[PluginSectionView]:
     """Expose stored values without granting editing or image capabilities."""
-    project = read_project_blob(data, product_language())
+    project = read_project_blob(data, plugin_language())
     section = PLUGIN_BLOB_NAME
     metadata = {
         "database": project.database,
@@ -148,7 +148,7 @@ def read(data: bytes, name: str = BLOB_NAME) -> list[PluginSectionView]:
         return []
     if isinstance(config, FamilyConfig):
         return read_family(config)
-    presentation = Presentation(3, product_language())
+    presentation = Presentation(3, plugin_language())
     sections: list[PluginSectionView] = []
     for channel, settings in enumerate(config.channels):
         if not channel_exists(config, channel):
@@ -217,7 +217,7 @@ def read_family(config: "FamilyConfig") -> list[PluginSectionView]:
     from xknxeditor.vendor.powertool.family import FamilyEvaluation, Node
     from xknxeditor.vendor.powertool.panel import choices as panel_choices
 
-    evaluated = FamilyEvaluation(config, language=product_language())
+    evaluated = FamilyEvaluation(config, language=plugin_language())
     sections: list[PluginSectionView] = []
     details: list[PluginSectionView] = []
 

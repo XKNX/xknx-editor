@@ -1,5 +1,7 @@
 """Generic product, panel and Powerline configuration paths."""
 
+import json
+
 import pytest
 
 from editor_gui.plugin_providers.powertool import PROVIDER
@@ -96,7 +98,6 @@ def test_generic_export_import_keeps_configuration_and_links(
 ):
     from xknxeditor.proj import export_knxproj, import_knxproj
     from xknxeditor.proj.models import GroupAddress
-    from xknxeditor.vendor.powertool import BLOB_NAME
 
     project, node = generic_project(tmp_path, monkeypatch, powerline=powerline)
     project.setup_plugin(current(project, node))
@@ -117,6 +118,7 @@ def test_generic_export_import_keeps_configuration_and_links(
             project._catalog, "hardware_is_powerline_repeater", lambda _: False
         )
     before = project.export_plugin_config(current(project, node))
+    assert json.loads(before)["format"] == "PowerTool-Config"
     image = project.prepared_download(current(project, node)).image
     project.close()
     export_knxproj(
@@ -129,7 +131,7 @@ def test_generic_export_import_keeps_configuration_and_links(
     project.open(tmp_path / "import.xknx")
     device = project.devices[0]
     assert device.native_error is None
-    assert project.device_binary_data(device, BLOB_NAME) == before
+    assert project.device_binary_data(device, "PowerTool-Config") == before
     assert project.device_binary_data(device, "PT2EtsPlugin") == active
     communication = project.group_communication_for(device)
     assert len(communication.links) == 1

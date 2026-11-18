@@ -1,17 +1,19 @@
-"""Product-language labels, independent of stored values and image encoding."""
+"""Localized interface texts, separate from image metadata."""
 
 from __future__ import annotations
 
-import gzip
+import gettext
 import json
 import re
 from functools import lru_cache
 from importlib.resources import files
-from typing import Any, cast
+from typing import Any
+
+from .metadata import native_nodes
 
 
 def free_timer_label(label: str) -> str:
-    """Label the numeric millisecond value independently of a formatted time unit."""
+    """Describe numeric timer values in milliseconds."""
     label, count = re.subn(
         r"\((?:s|n|min|mm:ss|min:sec,msec|min:seg, mseg)\)|\[mm:ss\]", "(ms)", label
     )
@@ -19,23 +21,28 @@ def free_timer_label(label: str) -> str:
 
 
 @lru_cache(maxsize=1)
-def _data() -> dict[str, Any]:
+def _text_map() -> dict[str, dict[str, Any]]:
     return json.loads(
-        gzip.decompress(
-            files(__package__).joinpath("presentation.json.gz").read_bytes()
-        )
+        files(__package__).joinpath("text-map.json").read_text(encoding="utf-8")
     )
+
+
+@lru_cache(maxsize=25)
+def _translation(language: str) -> gettext.NullTranslations:
+    resource = files(__package__).joinpath(
+        "locales", language, "LC_MESSAGES", "powertool.mo"
+    )
+    if not resource.is_file():
+        return gettext.NullTranslations()
+    with resource.open("rb") as stream:
+        return gettext.GNUTranslations(stream)
 
 
 class Presentation:
     def __init__(self, database_code: int, language: str = "en") -> None:
         language = language.replace("_", "-").split("-")[0].lower()
-        self._data = _data() if language != "en" else {}
-        languages = self._data.get("languages", [])
-        self._language = languages.index(language) if language in languages else None
-        self._nodes: dict[str, int] = self._data.get("databases", {}).get(
-            str(database_code), {}
-        )
+        self._translate = _translation(language).gettext
+        self._nodes = _text_map().get(str(database_code), {})
 
     def text(
         self,
@@ -45,18 +52,21 @@ class Presentation:
         option: int | None = None,
         subsystem: int | None = None,
     ) -> str:
-        index = self._nodes.get(node.removeprefix("BJE.toolB.ProductDatabase."))
-        if index is None or self._language is None:
+        spec = self._nodes.get(node.removeprefix("BJE.toolB.ProductDatabase."))
+        if spec is None:
             return fallback
-        label, options, subsystems = self._data["descriptions"][index]
         if option is not None or subsystem is not None:
             choices, selected = (
-                (options, option) if option is not None else (subsystems, subsystem)
+                (spec.get("options", []), option)
+                if option is not None
+                else (spec.get("subsystems", []), subsystem)
             )
             if selected is None or not 0 <= selected < len(choices):
                 return fallback
-            label = choices[selected]
-        return self._data["texts"][label][self._language] or fallback
+            msgid = choices[selected]
+        else:
+            msgid = spec["label"]
+        return self._translate(msgid) if msgid else fallback
 
     def native_node(
         self,
@@ -64,7 +74,7 @@ class Presentation:
         field: str | None = None,
         object_key: str | None = None,
     ) -> str:
-        spec = _data()["native"][function]
+        spec = native_nodes()[function]
         if field is not None:
             return spec["fields"][field]
         if object_key is not None:
@@ -72,25 +82,21 @@ class Presentation:
         return spec["node"]
 
     def schema(self, schema: dict[str, Any]) -> dict[str, Any]:
-        if self._language is None:
-            return schema
+        """Hydrate a separate view; numeric metadata stays untouched."""
         nodes = {}
         for key, node in schema["nodes"].items():
-            localized = {**node, "label": self.text(key, node["label"])}
+            localized = {**node, "label": self.text(key, "")}
             if "options" in node:
                 localized["options"] = [
-                    {
-                        **value,
-                        "label": self.text(key, cast(str, value["label"]), option=i),
-                    }
+                    {**value, "label": self.text(key, "", option=i)}
                     if isinstance(value, dict)
-                    else self.text(key, value, option=i)
+                    else self.text(key, "", option=i)
                     for i, value in enumerate(node["options"])
                 ]
-            if "subsystem_labels" in node:
+            if "subsystems" in node:
                 localized["subsystem_labels"] = [
-                    self.text(key, value, subsystem=i)
-                    for i, value in enumerate(node["subsystem_labels"])
+                    self.text(key, "", subsystem=i)
+                    for i in range(len(node["subsystems"]))
                 ]
             nodes[key] = localized
         return {**schema, "nodes": nodes}

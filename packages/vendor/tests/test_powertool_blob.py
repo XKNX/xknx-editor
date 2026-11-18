@@ -33,7 +33,11 @@ def test_host_exported_project(case):
 def test_host_rtc_pages_and_internal_values_keep_raw_values():
     with open_archive("host-projects.zip") as archive:
         project = read_project_blob(archive.read("DI-12.blob"))
-    rtc = next(c for c in project.channels if c.label == "RTC settings")
+    rtc = next(
+        c
+        for c in project.channels
+        if c.path == "devices/0/attached/devices/0/channels/1"
+    )
     counter, size, first_object = rtc.parameters[:3]
     assert (counter.value, size.value, first_object.value) == (47, 104, 257)
     assert all(p.internal for p in (counter, size, first_object))
@@ -42,14 +46,14 @@ def test_host_rtc_pages_and_internal_values_keep_raw_values():
         p.group for p in rtc.parameters if p.value is not None and not p.internal
     )
     assert {p.group for p in rtc.parameters} >= {
-        "General",
-        "Operating functions",
-        "Control heating",
+        "Basic Settings",
+        "Available User Actions",
+        "Heating Control",
     }
     value = next(
         p
         for p in rtc.parameters
-        if p.label == "Operating mode after reset" and not p.internal
+        if p.path == rtc.path + "/application/50/18" and not p.internal
     )
     assert value.value == value.display_value == 3
     assert value.default_value == 0
@@ -130,7 +134,7 @@ def test_different_family_is_readable_but_has_no_native_conversion():
     data = blob("generic/ToolBSmartTouchDatabase/SmartTouch")
     saved = read_project_blob(data)
     assert len(saved.channels) > 100
-    assert any(c.label == "System settings" for c in saved.channels)
+    assert any(c.label == "System Settings" for c in saved.channels)
     with pytest.raises(ValueError, match="not verified"):
         config_from_project_blob(data)
 

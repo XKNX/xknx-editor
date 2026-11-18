@@ -26,6 +26,6 @@ validation; read-only preflight stays available and full programming needs expli
 - `all-profile-products.zip` — the `host-products.zip` application XML and the SmartTouch
   `.knxprod` XML, with a source/hash manifest.
 
-Runtime `family-schema.json.gz` is a compact schema (parameter layout plus the B021 firmware
-payload the watcher profiles need), not a capture archive; the payload is device firmware, no
-desktop executable.
+Runtime `device-model.json.gz` contains shared layouts, decision tables and the unchanged
+B021 device module required by watcher profiles. Its format is documented in
+`tools/powertool_model/README.md`; the editor does not execute the module.

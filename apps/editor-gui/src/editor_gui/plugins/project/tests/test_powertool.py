@@ -1,5 +1,6 @@
 """Native role rebinding, roundtrip state and the editor's read/write boundary."""
 
+import json
 from dataclasses import replace
 from pathlib import Path
 from typing import Any, cast
@@ -97,7 +98,9 @@ def test_setup_updates_stored_format_and_undo_restores_original(tmp_path, monkey
     assert len(proj.history()) == before + 1
     assert len(dev.get_visible_com_objects()) == 2
     assert all(co.db_id is not None for co in dev.com_objects)
-    blob = proj.device_binary_data(dev, BLOB_NAME)
+    blob = proj.device_binary_data(dev, "PowerTool-Config")
+    assert blob is not None
+    assert json.loads(blob)["format"] == "PowerTool-Config"
     active = assert_current_blob(proj, nid)
     dev.release_dynamic_ui()
     assert dev.get_com_object_modules()

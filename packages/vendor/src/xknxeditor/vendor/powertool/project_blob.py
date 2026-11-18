@@ -2,14 +2,12 @@
 
 from __future__ import annotations
 
-import gzip
-import json
 import math
 from dataclasses import dataclass
 from functools import lru_cache
-from importlib.resources import files
 from typing import Any
 
+from .metadata import native_nodes, reader_catalog
 from .model import PowerToolConfig
 from .nrbf import Document, Record, Value, read_document
 from .presentation import Presentation
@@ -73,11 +71,8 @@ class SavedProject:
     devices: tuple[SavedDevice, ...]
 
 
-@lru_cache(maxsize=1)
-def _catalog() -> list[dict[str, Any]]:
-    return json.loads(
-        gzip.decompress(files(__package__).joinpath("catalog.json.gz").read_bytes())
-    )
+def _catalog() -> tuple[dict[str, Any], ...]:
+    return reader_catalog()
 
 
 def _record(document: Document, value: Value, kind: str | None = None) -> Record:
@@ -551,9 +546,6 @@ def config_from_project_blob(data: bytes) -> PowerToolConfig:
 def native_application_keys() -> dict[str, str]:
     """Map the push-button function names to their shared product types."""
     return {
-        node["native_function"]: key.removeprefix("BJE.toolB.ProductDatabase.")
-        for catalog in _catalog()
-        if catalog["code"] == 3
-        for key, node in catalog["nodes"].items()
-        if node.get("native_function")
+        function: spec["node"].removeprefix("BJE.toolB.ProductDatabase.")
+        for function, spec in native_nodes().items()
     }

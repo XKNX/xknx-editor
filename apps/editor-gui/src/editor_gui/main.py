@@ -68,6 +68,7 @@ from editor_gui.languages import (
     chosen_product_language,
     culture,
     default_locale,
+    plugin_language,
     product_language,
     product_text_languages,
     set_product_language,
@@ -6608,9 +6609,9 @@ class KnxGuiApp:
         ``product`` (None: in the UI's language). The devices are built again only when that
         changes their texts; cancelling that returns to the languages before."""
         previous, previous_product = get_locale(), chosen_product_language()
-        texts = product_text_languages()
+        texts = (product_text_languages(), plugin_language())
         self._apply_language(code, product)
-        if product_text_languages() == texts:
+        if (product_text_languages(), plugin_language()) == texts:
             return
 
         def undo() -> None:

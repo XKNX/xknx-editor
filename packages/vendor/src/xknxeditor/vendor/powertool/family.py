@@ -2,32 +2,24 @@
 
 from __future__ import annotations
 
-import gzip
-import json
 import math
 from collections.abc import Mapping
 from dataclasses import dataclass, field, replace
 from functools import lru_cache
-from importlib.resources import files
 from types import MappingProxyType
 from typing import Any
 
+from .metadata import decision_tables, family_schemas
 from .model import float32, object_flag_overrides, timer_code
 from .presentation import Presentation
 from .project_blob import read_project_blob, schema_version
+from .rules import decide
 
 type Scalar = int | float | str | None
 
 
-@lru_cache(maxsize=1)
 def schemas() -> tuple[dict[str, Any], ...]:
-    return tuple(
-        json.loads(
-            gzip.decompress(
-                files(__package__).joinpath("family-schema.json.gz").read_bytes()
-            )
-        )
-    )
+    return family_schemas()
 
 
 def schema_for(profile: str, database_code: int | None = None) -> dict[str, Any]:
@@ -136,11 +128,17 @@ class Node:
     objects: list[Node] = field(default_factory=lambda: [])
 
 
+@lru_cache(maxsize=26)
+def _presented_schema(database: str, language: str) -> dict[str, Any]:
+    schema = next(schema for schema in schemas() if schema["database"] == database)
+    return Presentation(schema["code"], language).schema(schema)
+
+
 class FamilyEvaluation:
     def __init__(self, config: FamilyConfig, *, language: str = "en") -> None:
         self.config = config
         schema = schema_for(config.profile, config.database_code)
-        self.schema = Presentation(schema["code"], language).schema(schema)
+        self.schema = _presented_schema(schema["database"], language)
         self.nodes: dict[str, Node] = {}
         self.channels: list[Node] = []
         self.devices: list[Node] = []
@@ -334,49 +332,13 @@ class FamilyEvaluation:
                 )
             self._channels(node)
 
-    def evaluate(self, node: Node, rule: list[Any]) -> Scalar | bool:
-        op = rule[0]
-        if op == "const":
-            return rule[1]
-        if op == "get":
-            return self._get(node, rule[1])
-        if op == "active":
-            return any(
-                device.key == rule[1] and device.parent is node.parent
-                for device in self.devices
-                if "/subsystems/" in device.path
-                and device.path.rsplit("/", 2)[-2] == "subsystems"
-            )
-        if op == "if":
-            return self.evaluate(
-                node, rule[2] if self.evaluate(node, rule[1]) else rule[3]
-            )
-        if op == "all":
-            return all(self.evaluate(node, c) for c in rule[1:])
-        if op == "any":
-            return any(self.evaluate(node, c) for c in rule[1:])
-        if op == "not":
-            return not self.evaluate(node, rule[1])
-        left = self.evaluate(node, rule[1])
-        if op == "neg":
-            if not isinstance(left, (int, float)):
-                raise ValueError("Invalid PowerTool numeric expression")
-            return -left
-        right = self.evaluate(node, rule[2])
-        if op == "eq":
-            return left == right
-        if op == "ne":
-            return left != right
-        if not isinstance(left, (int, float)) or not isinstance(right, (int, float)):
-            raise ValueError("Invalid PowerTool numeric expression")
-        if op == "shl":
-            return int(left) << int(right)
-        return {
-            "gt": left > right,
-            "ge": left >= right,
-            "lt": left < right,
-            "le": left <= right,
-        }[op]
+    def _active_sibling(self, node: Node, key: str) -> bool:
+        return any(
+            device.key == key and device.parent is node.parent
+            for device in self.devices
+            if "/subsystems/" in device.path
+            and device.path.rsplit("/", 2)[-2] == "subsystems"
+        )
 
     def _get(self, node: Node, path: list[str | int]) -> Scalar | bool:
         if path == ["base", "Type"]:
@@ -420,8 +382,13 @@ class FamilyEvaluation:
             raise ValueError("Cyclic PowerTool condition")
         self._evaluating.add(cache_key)
         try:
-            if name in node.spec:
-                result = self.evaluate(node, node.spec[name])
+            if name in node.spec["rules"]:
+                result = decide(
+                    decision_tables(),
+                    node.spec["rules"][name],
+                    lambda path: self._get(node, path),
+                    lambda key: self._active_sibling(node, key),
+                )
             elif name == "Exists":
                 result = (
                     self.property(node.parent, name)

@@ -216,18 +216,20 @@ def test_host_rtc_view_groups_settings_and_collapses_internal_values():
     from editor_gui.plugin_blob_readers.powertool import read_original
 
     sections = read_original(host_blob())
-    rtc = next(s for s in sections if s.section == "2: RTC settings")
+    rtc = next(s for s in sections if s.section == "2: Room Temperature Control")
     assert all(not p.label.startswith("Parameter ") for p in rtc.parameters)
-    assert not any(p.label == "Number of objects" for p in rtc.parameters)
-    assert {p.group for p in rtc.parameters} >= {"General", "Control heating"}
+    assert not any(p.label == "Number of Objects" for p in rtc.parameters)
+    assert {p.group for p in rtc.parameters} >= {"Basic Settings", "Heating Control"}
     internal = next(
-        s for s in sections if s.section.startswith("2: RTC settings:") and s.collapsed
+        s
+        for s in sections
+        if s.section.startswith("2: Room Temperature Control:") and s.collapsed
     )
     assert any(
-        p.label == "Number of objects" and p.value == "47" for p in internal.parameters
+        p.label == "Number of Objects" and p.value == "47" for p in internal.parameters
     )
     assert all(not p.writable for s in sections for p in s.parameters)
-    mode = next(p for p in rtc.parameters if p.label == "Operating mode after reset")
+    mode = next(p for p in rtc.parameters if p.label == "Operating Mode After Reset")
     assert mode.raw_value == "3" and mode.value != "3"
     assert mode.default_value
     ids = [p.ref_id for s in sections for p in s.parameters]
@@ -357,7 +359,7 @@ def test_first_conversion_preserves_compatible_links_and_undo(
         assert project.prepared_download(current(project, nid)).image == prepared.image
     if action == "parameter":
         label = project.history()[0].display_text
-        assert "Button" in label and "Working mode" in label
+        assert "Button" in label and "Rocker Switching Action" in label
     native = project.device_binary_data(current(project, nid), BLOB_NAME)
     active = assert_current_blob(project, nid)
     project.undo()

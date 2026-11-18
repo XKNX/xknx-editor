@@ -12,11 +12,11 @@ from xknxeditor.vendor.powertool.project_writer import write_project_blob
 @pytest.mark.parametrize(
     ("language", "label"),
     [
-        ("de-DE", "Schalten Wippe gesamt"),
-        ("fr-FR", "Commutation du bouton-poussoir général"),
+        ("de-DE", "Schalten mit Wippe"),
+        ("en-US", "Rocker Switching"),
     ],
 )
-def test_original_resource_function_label(language, label):
+def test_own_function_label(language, label):
     presentation = Presentation(3, language)
     assert presentation.text("App_SchaltenWippeTBA", "fallback") == label
     assert presentation.text("missing", "fallback") == "fallback"
@@ -24,7 +24,8 @@ def test_original_resource_function_label(language, label):
         presentation.text("App_SchaltenWippeTBA", "fallback", option=100) == "fallback"
     )
     assert (
-        Presentation(3, "ja-JP").text("App_SchaltenWippeTBA", "fallback") == "fallback"
+        Presentation(3, "xx").text("App_SchaltenWippeTBA", "fallback")
+        == "Rocker Switching"
     )
 
 
@@ -33,11 +34,11 @@ def test_localized_saved_values_keep_image_inputs():
     original = write_project_blob(None, config)
     german = read_project_blob(original, "de-DE")
     english = read_project_blob(original)
-    assert german.channels[0].application == "Schalten Wippe gesamt"
+    assert german.channels[0].application == "Schalten mit Wippe"
     assert german.channels[0].parameters[1].options == (
-        "oben ein, unten aus",
-        "oben aus, unten ein",
-        "abwechselnd ein/aus",
+        "Oben ein, unten aus",
+        "Oben aus, unten ein",
+        "Umschalten",
     )
     assert (
         german.channels[0].parameters[1].value
@@ -66,7 +67,7 @@ def test_family_localization_preserves_schema_and_values():
                 assert [o["value"] for o in node.spec["options"]] == [
                     o["value"] for o in localized.spec["options"]
                 ]
-        assert english.schema is schema
+        assert english.schema is not schema
         assert german.schema is not schema
 
 
@@ -75,68 +76,68 @@ def test_alternate_object_types_keep_distinct_labels():
     whole = presentation.native_node("hvac_button", object_key="object_1")
     comfort = presentation.native_node("hvac_button", object_key="object_2")
     assert whole != comfort
-    assert presentation.text(whole, "fallback") == "Betriebsmodus"
-    assert presentation.text(comfort, "fallback") == "Betriebsmodus Komfort"
+    assert (
+        presentation.text(whole, "fallback")
+        == "Betriebsartvorgabe der Raumtemperaturregelung"
+    )
+    assert presentation.text(comfort, "fallback") == "Komfortvorgabe"
 
 
 def test_shipped_presentation_covers_all_metadata_and_native_keys():
-    import gzip
     import json
     from importlib.resources import files
 
-    from xknxeditor.vendor.powertool.model import channel_functions, functions
+    from xknxeditor.vendor.powertool.metadata import native_nodes
+    from xknxeditor.vendor.powertool.presentation import _text_map
 
     root = files("xknxeditor.vendor.powertool")
-    presentation = json.loads(
-        gzip.decompress(root.joinpath("presentation.json.gz").read_bytes())
-    )
-    for name in ("catalog.json.gz", "family-schema.json.gz"):
-        for schema in json.loads(gzip.decompress(root.joinpath(name).read_bytes())):
-            keys = presentation["databases"][str(schema["code"])]
-            for key, node in schema["nodes"].items():
-                assert isinstance(node["label"], str)
-                description = presentation["descriptions"][
-                    keys[key.removeprefix("BJE.toolB.ProductDatabase.")]
-                ]
-                if "options" in node:
-                    assert len(description[1]) == len(node["options"])
-                if "subsystem_labels" in node:
-                    assert len(description[2]) == len(node["subsystem_labels"])
-    native = Presentation(3, "de")
-    keys = presentation["databases"]["3"]
-    for function in functions().values():
-        mapped = [native.native_node(function.key)]
-        mapped.extend(native.native_node(function.key, f.key) for f in function.fields)
-        mapped.extend(
-            native.native_node(function.key, object_key=o.key) for o in function.objects
-        )
+    assert not root.joinpath("catalog.json.gz").is_file()
+    assert not root.joinpath("presentation.json.gz").is_file()
+    assert not root.joinpath("family-schema.json.gz").is_file()
+    mapping = _text_map()
+    for schema in schemas():
+        descriptions = mapping[str(schema["code"])]
+        for key, node in schema["nodes"].items():
+            assert "label" not in node and "subsystem_labels" not in node
+            description = descriptions[key]
+            assert (
+                description["label"].strip()
+                or (node["kind"] == "parameter" and not node["visible"])
+                or (
+                    node["kind"] == "application"
+                    and not node["parameters"]
+                    and not node["objects"]
+                )
+            )
+            for kind in ("options", "subsystems"):
+                assert len(description.get(kind, [])) == len(node.get(kind, []))
+                assert all(text.strip() for text in description.get(kind, []))
+    for spec in native_nodes().values():
+        keys = [spec["node"], *spec["fields"].values(), *spec["objects"].values()]
         assert all(
-            key.removeprefix("BJE.toolB.ProductDatabase.") in keys for key in mapped
+            key.removeprefix("BJE.toolB.ProductDatabase.") in mapping["3"]
+            for key in keys
         )
-    for variant, count in (("01", 3), ("02", 4)):
-        for channel in range(count):
-            for function in channel_functions(variant, channel):
-                assert native.native_node(function) in keys
+    native = json.loads(root.joinpath("schema.json").read_text())
+    for function in native.values():
+        assert "label" not in function
+        assert all("label" not in field for field in function["fields"])
+        assert all("label" not in obj for obj in function["objects"])
 
 
 def test_free_timer_labels_cover_all_product_languages():
-    from xknxeditor.vendor.powertool.presentation import _data, free_timer_label
-    from xknxeditor.vendor.powertool.project_blob import _catalog
+    from xknxeditor.vendor.powertool.presentation import free_timer_label
 
-    for schema in _catalog():
-        for language in ("en", *_data()["languages"]):
-            presentation = Presentation(schema["code"], language)
-            for key, node in schema["nodes"].items():
-                if node.get("value_kind") == "V_FREETIMER":
-                    label = free_timer_label(presentation.text(key, node["label"]))
-                    assert label.count("(ms)") == 1
-                    assert not any(
-                        unit in label for unit in ("(s)", "(mm:ss)", "[mm:ss]", "(min)")
-                    )
-                    assert free_timer_label(label) == label
-    assert free_timer_label("Switch-off interval (s) - LED off") == (
-        "Switch-off interval (ms) - LED off"
-    )
+    for schema in schemas():
+        presentation = Presentation(schema["code"])
+        for key, node in schema["nodes"].items():
+            if node.get("value_kind") == "V_FREETIMER":
+                label = presentation.text(key, "")
+                assert label.count("(ms)") == 1
+                assert not any(
+                    unit in label for unit in ("(s)", "(mm:ss)", "[mm:ss]", "(min)")
+                )
+                assert free_timer_label(label) == label
 
 
 def test_saved_timer_display_keeps_raw_code_and_writeback():

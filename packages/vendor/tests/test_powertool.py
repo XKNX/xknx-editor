@@ -5,7 +5,11 @@ from dataclasses import replace
 
 import pytest
 
-from packages.vendor.tests.powertool_fixtures import archive_cases, open_archive
+from packages.vendor.tests.powertool_fixtures import (
+    archive_cases,
+    open_archive,
+    reference_config,
+)
 from xknxeditor.vendor.powertool import (
     Association,
     ChannelConfig,
@@ -22,7 +26,7 @@ CASES = archive_cases("original-images.zip", manifest=False)
 @pytest.mark.parametrize("case", CASES)
 def test_original_pid(case: str) -> None:
     with open_archive("original-images.zip") as archive:
-        config = from_json_bytes(archive.read(case + "/config.json"))
+        config = from_json_bytes(reference_config(archive.read(case + "/config.json")))
         host = json.loads(archive.read(case + "/host.json"))
         associations = [Association(**a) for a in host.pop("associations")]
         assert compile_image(

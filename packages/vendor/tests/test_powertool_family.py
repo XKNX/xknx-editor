@@ -5,7 +5,11 @@ from dataclasses import replace
 
 import pytest
 
-from packages.vendor.tests.powertool_fixtures import archive_cases, open_archive
+from packages.vendor.tests.powertool_fixtures import (
+    archive_cases,
+    open_archive,
+    reference_config,
+)
 from xknxeditor.vendor.powertool.family import FamilyEvaluation, edit, from_saved
 from xknxeditor.vendor.powertool.family_codec import compile_family
 from xknxeditor.vendor.powertool.native import dump, load
@@ -17,7 +21,7 @@ SEQUENCES = [r["case"] for r in archive_cases("family-sequences.zip")]
 @pytest.mark.parametrize("case", CASES)
 def test_family_original_pid(case):
     with open_archive("family-images.zip") as archive:
-        config = load(archive.read(case + "/config.json"))
+        config = load(reference_config(archive.read(case + "/config.json")))
         assert compile_family(config).pid == archive.read(case + "/image.pid")
         assert load(dump(config)) == config
 
@@ -25,7 +29,7 @@ def test_family_original_pid(case):
 @pytest.mark.parametrize("case", SEQUENCES)
 def test_original_family_sequence(case):
     with open_archive("family-sequences.zip") as archive:
-        config = load(archive.read(case + "/config.json"))
+        config = load(reference_config(archive.read(case + "/config.json")))
         assert compile_family(config).pid == archive.read(case + "/image.pid")
 
 

@@ -1543,7 +1543,7 @@ class ProjectService:
         # Reads per device that depend on the catalog too (see _device_read).
         self._device_reads: dict[tuple[str, int], tuple[tuple[int, int], object]] = {}
         self._plugin_reads: dict[tuple[str, int], tuple[Device, object]] = {}
-        self._plugin_read_stamp: tuple[int, int, int, str, str] | None = None
+        self._plugin_read_stamp: tuple[int, int, int, str, str, str] | None = None
         # Each lazy cache tracks the project version it was built at, independently. A single shared
         # counter is wrong: after an edit only the first cache read would rebuild (and stamp the
         # shared version), leaving the others returning stale data until the next edit.
@@ -5158,7 +5158,7 @@ class ProjectService:
         return None
 
     def _plugin_read[T](self, name: str, device: Device, read: Callable[[], T]) -> T:
-        from editor_gui.languages import product_language
+        from editor_gui.languages import plugin_language, product_language
         from editor_gui.strings import get_locale
 
         stamp = (
@@ -5166,6 +5166,7 @@ class ProjectService:
             self.revision,
             self._catalog.generation,
             product_language(),
+            plugin_language(),
             get_locale(),
         )
         if stamp != self._plugin_read_stamp:

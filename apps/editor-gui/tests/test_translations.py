@@ -132,3 +132,48 @@ def test_counts_have_every_plural_form(
             assert _placeholders(form) == _placeholders(plural), (
                 f"{language} {domain}: {form!r} lacks placeholders of {plural!r}"
             )
+
+
+@pytest.mark.parametrize("language", _LANGUAGES)
+def test_powertool_texts_are_translated(language: str) -> None:
+    import json
+    from importlib.resources import files
+
+    root = files("xknxeditor.vendor.powertool")
+    mapping = json.loads(root.joinpath("text-map.json").read_text())
+    messages = {
+        text
+        for nodes in mapping.values()
+        for spec in nodes.values()
+        for text in (
+            spec["label"],
+            *spec.get("options", []),
+            *spec.get("subsystems", []),
+        )
+        if text
+    }
+    catalog = root.joinpath("locales", language, "LC_MESSAGES", "powertool.mo")
+    assert catalog.is_file()
+    translations = _read_mo(catalog.read_bytes())
+    for text in messages:
+        assert translations.get(text), f"Missing {language} PowerTool text: {text}"
+        assert _placeholders(translations[text]) == _placeholders(text)
+        for unit in ("(ms)", "(s)"):
+            if unit in text:
+                assert unit in translations[text]
+        if "(ms)" in text:
+            assert translations[text].count("(ms)") == 1
+            assert not any(
+                unit in translations[text]
+                for unit in ("(s)", "(n)", "(min)", "(mm:ss)", "[mm:ss]")
+            )
+    choices = {
+        tuple(spec["options"])
+        for nodes in mapping.values()
+        for spec in nodes.values()
+        if len(spec.get("options", [])) > 1
+    }
+    for options in choices:
+        assert len({translations[text] for text in options}) == len(set(options)), (
+            f"Indistinguishable {language} PowerTool options: {options}"
+        )

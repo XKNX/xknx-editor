@@ -106,6 +106,11 @@ def product_language() -> str:
     return _product_language or culture(get_locale())
 
 
+def plugin_language() -> str:
+    """The chosen product language, otherwise the interface language."""
+    return supported(_product_language or get_locale())
+
+
 def set_product_language(code: str | None) -> None:
     """Prefer product texts in ``code`` ("sk-SK"); None follows the UI language."""
     global _product_language

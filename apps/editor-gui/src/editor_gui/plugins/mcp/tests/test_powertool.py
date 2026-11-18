@@ -1,5 +1,7 @@
 """Native setup, edit and batch use the project service transaction."""
 
+import json
+
 from fastmcp import Client
 
 from editor_gui.plugin_providers.powertool import configuration
@@ -32,6 +34,7 @@ async def test_native_tools_share_project_state(tmp_path, monkeypatch):
         initial = (await _data(client, "project_export_plugin_config", node_id=nid))[
             "config_json"
         ]
+        assert json.loads(initial)["format"] == "PowerTool-Config"
         sections = await _data(client, "project_plugin_parameters", node_id=nid)
         assert "powertool:0:function" in str(sections)
         before = len(proj.history())
@@ -173,11 +176,11 @@ async def test_product_language_in_plugin_parameters(tmp_path, monkeypatch):
         await _data(client, "project_setup_plugin", node_id=nid)
         before = project.cursor
         result = await _data(client, "project_plugin_parameters", node_id=nid)
-        assert "Arbeitsweise der Wippe für Schalten" in str(result)
+        assert "Schaltaktion der Wippe" in str(result)
         assert "Oben / Wippe" in str(result)
         monkeypatch.setattr(strings, "_current_locale", "en")
         result = await _data(client, "project_plugin_parameters", node_id=nid)
-        assert "Arbeitsweise der Wippe für Schalten" in str(result)
+        assert "Schaltaktion der Wippe" in str(result)
         assert "Upper / Rocker" in str(result)
         assert project.cursor == before
     project.close()

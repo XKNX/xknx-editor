@@ -18,15 +18,15 @@ def test_product_language_and_interface_language(monkeypatch):
     german = read(config)
     assert german[0].section == "1: Oben / Wippe"
     assert german[0].parameters[0].label == "Funktion"
-    assert german[0].parameters[0].choices[0][1] == "Schalten Wippe gesamt"
-    assert german[0].parameters[1].label == "Arbeitsweise der Wippe für Schalten"
+    assert german[0].parameters[0].choices[0][1] == "Schalten mit Wippe"
+    assert german[0].parameters[1].label == "Schaltaktion der Wippe"
     monkeypatch.setattr(strings, "_current_locale", "en")
     mixed = read(config)
     assert mixed[0].section == "1: Upper / Rocker"
     assert mixed[0].parameters[0].choices == german[0].parameters[0].choices
     monkeypatch.setattr(languages, "_product_language", "en-US")
     english = read(config)
-    assert english[0].parameters[0].choices[0][1] == "Switching rocker switch total"
+    assert english[0].parameters[0].choices[0][1] == "Rocker Switching"
     for a, b in zip(german, english, strict=True):
         assert [(p.ref_id, p.value) for p in a.parameters] == [
             (p.ref_id, p.value) for p in b.parameters
@@ -57,7 +57,7 @@ def test_language_change_invalidates_plugin_cache_and_localizes_objects(
     device = current(project, nid)
     german = project._plugin_read("test", device, lambda: PROVIDER.sections(device))
     assert german[0].section == "1: Oben / Wippe"
-    assert device.get_visible_com_objects()[0].name == "Schalten"
+    assert device.get_visible_com_objects()[0].name == "Schaltbefehl"
     before = project.cursor
     monkeypatch.setattr(strings, "_current_locale", "en")
     mixed = project._plugin_read("test", device, lambda: PROVIDER.sections(device))
@@ -130,5 +130,32 @@ def test_repetition_timer_is_in_milliseconds(monkeypatch):
         for p in s.parameters
         if p.name == "duration_of_the_telegram_repetition_s"
     )
-    assert timer.label == "Duration of the telegram repetition (ms)"
+    assert timer.label == "Dimming Repeat Interval (ms)"
     assert timer.value == "1000"
+
+
+def test_albanian_cache_switches_to_explicit_english(tmp_path, monkeypatch):
+    monkeypatch.setattr(languages, "_product_language", None)
+    monkeypatch.setattr(strings, "_current_locale", "sq")
+    project, nid = native_project(tmp_path, monkeypatch)
+    try:
+        project.setup_plugin(current(project, nid))
+        device = current(project, nid)
+        before = project.cursor
+        albanian = project._plugin_read(
+            "test", device, lambda: PROVIDER.sections(device)
+        )
+        monkeypatch.setattr(languages, "_product_language", "en-US")
+        english = project._plugin_read(
+            "test", device, lambda: PROVIDER.sections(device)
+        )
+        assert albanian[0].parameters[0].choices != english[0].parameters[0].choices
+        assert english[0].parameters[0].choices[0][1] == "Rocker Switching"
+        monkeypatch.setattr(languages, "_product_language", None)
+        restored = project._plugin_read(
+            "test", device, lambda: PROVIDER.sections(device)
+        )
+        assert restored[0].parameters[0].choices == albanian[0].parameters[0].choices
+        assert project.cursor == before
+    finally:
+        project.close()

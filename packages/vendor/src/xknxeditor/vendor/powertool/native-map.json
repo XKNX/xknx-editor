@@ -1,0 +1,417 @@
+{
+  "switch_rocker": {
+    "node": "App_SchaltenWippeTBA",
+    "fields": {
+      "object_type": "App_SchaltenWippeTBA+Par_Objekttyp",
+      "working_mode_of_the_rocker_switch_for_switching": "App_SchaltenWippeTBA+Par_Arbeitsweise",
+      "value_top": "App_SchaltenWippeTBA+Par_Wert1_1Bit",
+      "value_bottom": "App_SchaltenWippeTBA+Par_Wert2_1Bit"
+    },
+    "objects": {
+      "object_0": "BJE.toolB.ProductDatabase.App_SchaltenWippeTBA+Obj_Wert1Bit"
+    }
+  },
+  "switch_button": {
+    "node": "App_SchaltenTasteTBA",
+    "fields": {
+      "object_type": "App_SchaltenTasteTBA+Par_Objekttyp",
+      "reaction_on_rising_edge": "App_SchaltenTasteTBA+Par_steigende_Flanke",
+      "reaction_on_falling_edge": "App_SchaltenTasteTBA+Par_fallende_Flanke",
+      "state_1": "App_SchaltenTasteTBA+Par_Wert1_1Bit",
+      "state_2": "App_SchaltenTasteTBA+Par_Wert2_1Bit"
+    },
+    "objects": {
+      "object_0": "BJE.toolB.ProductDatabase.App_SchaltenTasteTBA+Obj_Schalten"
+    }
+  },
+  "dim_rocker": {
+    "node": "App_DimmenWippeTBA",
+    "fields": {
+      "general_parameter": "App_DimmenWippeTBA+Pag_Allgemein",
+      "duration_of_long_operation_s": "App_DimmenWippeTBA+Pag_Allgemein+Par_ZeitLangBed",
+      "manner_of_dimming": "App_DimmenWippeTBA+Pag_Allgemein+Par_DimmArt",
+      "step_size_for_step_wise_dimming": "App_DimmenWippeTBA+Pag_Allgemein+Par_Schrittweite_StartStopp",
+      "step_size_for_step_wise_dimming_4": "App_DimmenWippeTBA+Pag_Allgemein+Par_Schrittweite_Schritt",
+      "extended_parameters": "App_DimmenWippeTBA+Pag_Erweitert",
+      "dimming_functionality": "App_DimmenWippeTBA+Pag_Erweitert+Par_DimmFunktion",
+      "working_mode_of_the_rocker_switch_for_switching": "App_DimmenWippeTBA+Pag_Erweitert+Par_ArbeitsweiseSchalt",
+      "working_mode_of_the_rocker_switch_for_dimming": "App_DimmenWippeTBA+Pag_Erweitert+Par_ArbeitsweiseDimm",
+      "dimming_stop_telegram": "App_DimmenWippeTBA+Pag_Erweitert+Par_DimmStopp_StartStopp",
+      "dimming_stop_telegram_10": "App_DimmenWippeTBA+Pag_Erweitert+Par_DimmStopp_Schritt",
+      "cyclical_sending_of_the_dimming_telegrams": "App_DimmenWippeTBA+Pag_Erweitert+Par_SendenDimmTelegramm",
+      "duration_of_the_telegram_repetition_s": "App_DimmenWippeTBA+Pag_Erweitert+Par_ZeitTelegrammWiederholung"
+    },
+    "objects": {
+      "object_0": "BJE.toolB.ProductDatabase.App_DimmenWippeTBA+Obj_Wert1Bit",
+      "object_1": "BJE.toolB.ProductDatabase.App_DimmenWippeTBA+Obj_Wert4Bit"
+    }
+  },
+  "dim_button": {
+    "node": "App_DimmenTasteTBA",
+    "fields": {
+      "duration_of_long_operation_s": "App_DimmenTasteTBA+Par_ZeitLangBed",
+      "working_mode_of_the_rocker_switch_for_switching": "App_DimmenTasteTBA+Par_ArbeitsweiseSchalt",
+      "working_mode_of_the_rocker_switch_for_dimming": "App_DimmenTasteTBA+Par_ArbeitsweiseDimm"
+    },
+    "objects": {
+      "object_0": "BJE.toolB.ProductDatabase.App_DimmenTasteTBA+Obj_Wert1Bit",
+      "object_1": "BJE.toolB.ProductDatabase.App_DimmenTasteTBA+Obj_Wert4Bit"
+    }
+  },
+  "blind_rocker": {
+    "node": "App_JalousieWippeTBA",
+    "fields": {
+      "general_parameter": "App_JalousieWippeTBA+Pag_Allgemein",
+      "duration_of_long_operation_s": "App_JalousieWippeTBA+Pag_Allgemein+Par_ZeitLangBed",
+      "object_type": "App_JalousieWippeTBA+Pag_Allgemein+Par_Objekttyp",
+      "extended_parameters": "App_JalousieWippeTBA+Pag_Erweitert",
+      "working_mode_of_the_rocker_switch": "App_JalousieWippeTBA+Pag_Erweitert+Par_Arbeitsweise",
+      "value_for_move_down": "App_JalousieWippeTBA+Pag_Erweitert+Par_FahrenAb",
+      "text_for_move_up": "App_JalousieWippeTBA+Pag_Erweitert+Par_FahrenAuf",
+      "value_for_adjust_down": "App_JalousieWippeTBA+Pag_Erweitert+Par_VerstellenAb",
+      "value_for_adjust_up": "App_JalousieWippeTBA+Pag_Erweitert+Par_VerstellenAuf",
+      "value_for_position_down": "App_JalousieWippeTBA+Pag_Erweitert+Par_PositionAb",
+      "value_for_position_up": "App_JalousieWippeTBA+Pag_Erweitert+Par_PositionAuf",
+      "value_for_slats_position_down": "App_JalousieWippeTBA+Pag_Erweitert+Par_PositionLamelleAb",
+      "value_for_slats_position_up": "App_JalousieWippeTBA+Pag_Erweitert+Par_PositionLamelleAuf"
+    },
+    "objects": {
+      "object_0": "BJE.toolB.ProductDatabase.App_JalousieWippeTBA+Obj_Fahren",
+      "object_1": "BJE.toolB.ProductDatabase.App_JalousieWippeTBA+Obj_Verstellen"
+    }
+  },
+  "blind_button": {
+    "node": "App_JalousieTasteTBA",
+    "fields": {
+      "general_parameter": "App_JalousieTasteTBA+Pag_Allgemein",
+      "long_operation": "App_JalousieTasteTBA+Pag_Allgemein+Par_LangBedienung",
+      "duration_of_long_operation_s": "App_JalousieTasteTBA+Pag_Allgemein+Par_ZeitLangBed",
+      "telegram_repetition_for_long_operation": "App_JalousieTasteTBA+Pag_Allgemein+Par_TelegrammWiederholungJalousie",
+      "telegram_repetition_for_long_operation_4": "App_JalousieTasteTBA+Pag_Allgemein+Par_TelegrammWiederholungRolllade",
+      "cycle_time_of_the_telegram_repetition_s": "App_JalousieTasteTBA+Pag_Allgemein+Par_ZeitTelWiederholung",
+      "object_type": "App_JalousieTasteTBA+Pag_Allgemein+Par_ObjekttypRolllade",
+      "object_type_7": "App_JalousieTasteTBA+Pag_Allgemein+Par_ObjekttypJalousie",
+      "extended_parameters": "App_JalousieTasteTBA+Pag_Erweitert",
+      "function_switchover_blinds_roller_shutters": "App_JalousieTasteTBA+Pag_Erweitert+Par_Funktion",
+      "value_for_move_down": "App_JalousieTasteTBA+Pag_Erweitert+Par_FahrenAb",
+      "text_for_move_up": "App_JalousieTasteTBA+Pag_Erweitert+Par_FahrenAuf",
+      "value_for_adjust_down": "App_JalousieTasteTBA+Pag_Erweitert+Par_VerstellenAb",
+      "value_for_adjust_up": "App_JalousieTasteTBA+Pag_Erweitert+Par_VerstellenAuf",
+      "value_for_position_down": "App_JalousieTasteTBA+Pag_Erweitert+Par_PositionAb",
+      "value_for_position_up": "App_JalousieTasteTBA+Pag_Erweitert+Par_PositionAuf",
+      "value_for_slats_position_down": "App_JalousieTasteTBA+Pag_Erweitert+Par_PositionLamelleAb",
+      "value_for_slats_position_up": "App_JalousieTasteTBA+Pag_Erweitert+Par_PositionLamelleAuf"
+    },
+    "objects": {
+      "object_0": "BJE.toolB.ProductDatabase.App_JalousieTasteTBA+Obj_Fahren",
+      "object_1": "BJE.toolB.ProductDatabase.App_JalousieTasteTBA+Obj_VerstellenJalousie"
+    }
+  },
+  "value_rocker": {
+    "node": "App_WertWippeTBA",
+    "fields": {
+      "object_type": "App_WertWippeTBA+Par_Objekttyp",
+      "working_mode_of_the_rocker_switch": "App_WertWippeTBA+Par_Arbeitsweise",
+      "value_1": "App_WertWippeTBA+Par_Wert1_1Bit",
+      "value_2": "App_WertWippeTBA+Par_Wert2_1Bit",
+      "value_1_4": "App_WertWippeTBA+Par_Wert1_1ByteProzent",
+      "value_2_5": "App_WertWippeTBA+Par_Wert2_1ByteProzent",
+      "value_1_6": "App_WertWippeTBA+Par_Wert1_1Byte0_255",
+      "value_2_7": "App_WertWippeTBA+Par_Wert2_1Byte0_255",
+      "value_1_8": "App_WertWippeTBA+Par_Wert1_2ByteFloat",
+      "value_2_9": "App_WertWippeTBA+Par_Wert2_2ByteFloat",
+      "value_1_10": "App_WertWippeTBA+Par_Wert1_2ByteSigned",
+      "value_2_11": "App_WertWippeTBA+Par_Wert2_2ByteSigned",
+      "value_1_12": "App_WertWippeTBA+Par_Wert1_2ByteUnsigned",
+      "value_2_13": "App_WertWippeTBA+Par_Wert2_2ByteUnsigned",
+      "value_1_14": "App_WertWippeTBA+Par_Wert1_4ByteFloat",
+      "value_2_15": "App_WertWippeTBA+Par_Wert2_4ByteFloat",
+      "value_1_16": "App_WertWippeTBA+Par_Wert1_4ByteSigned",
+      "value_2_17": "App_WertWippeTBA+Par_Wert2_4ByteSigned",
+      "value_1_18": "App_WertWippeTBA+Par_Wert1_4ByteUnsigned",
+      "value_2_19": "App_WertWippeTBA+Par_Wert2_4ByteUnsigned"
+    },
+    "objects": {
+      "object_0": "BJE.toolB.ProductDatabase.App_WertWippeTBA+Obj_Wert1Bit"
+    }
+  },
+  "value_button": {
+    "node": "App_WertTasteTBA",
+    "fields": {
+      "general_parameter": "App_WertTasteTBA+Pag_Allgemein",
+      "object_type": "App_WertTasteTBA+Pag_Allgemein+Par_Objekttyp",
+      "extended_parameters": "App_WertTasteTBA+Pag_Erweitert",
+      "reaction_on_rising_edge": "App_WertTasteTBA+Pag_Erweitert+Par_steigende_Flanke",
+      "reaction_on_falling_edge": "App_WertTasteTBA+Pag_Erweitert+Par_fallende_Flanke",
+      "value_1": "App_WertTasteTBA+Pag_Erweitert+Par_Wert1_1Bit",
+      "value_2": "App_WertTasteTBA+Pag_Erweitert+Par_Wert2_1Bit",
+      "value_1_7": "App_WertTasteTBA+Pag_Erweitert+Par_Wert1_1ByteProzent",
+      "value_2_8": "App_WertTasteTBA+Pag_Erweitert+Par_Wert2_1ByteProzent",
+      "value_1_9": "App_WertTasteTBA+Pag_Erweitert+Par_Wert1_1Byte0_255",
+      "value_2_10": "App_WertTasteTBA+Pag_Erweitert+Par_Wert2_1Byte0_255",
+      "value_1_11": "App_WertTasteTBA+Pag_Erweitert+Par_Wert1_2ByteFloat",
+      "value_2_12": "App_WertTasteTBA+Pag_Erweitert+Par_Wert2_2ByteFloat",
+      "value_1_13": "App_WertTasteTBA+Pag_Erweitert+Par_Wert1_2ByteSigned",
+      "value_2_14": "App_WertTasteTBA+Pag_Erweitert+Par_Wert2_2ByteSigned",
+      "value_1_15": "App_WertTasteTBA+Pag_Erweitert+Par_Wert1_2ByteUnsigned",
+      "value_2_16": "App_WertTasteTBA+Pag_Erweitert+Par_Wert2_2ByteUnsigned",
+      "value_1_17": "App_WertTasteTBA+Pag_Erweitert+Par_Wert1_4ByteFloat",
+      "value_2_18": "App_WertTasteTBA+Pag_Erweitert+Par_Wert2_4ByteFloat",
+      "value_1_19": "App_WertTasteTBA+Pag_Erweitert+Par_Wert1_4ByteSigned",
+      "value_2_20": "App_WertTasteTBA+Pag_Erweitert+Par_Wert2_4ByteSigned",
+      "value_1_21": "App_WertTasteTBA+Pag_Erweitert+Par_Wert1_4ByteUnsigned",
+      "value_2_22": "App_WertTasteTBA+Pag_Erweitert+Par_Wert2_4ByteUnsigned"
+    },
+    "objects": {
+      "object_0": "BJE.toolB.ProductDatabase.App_WertTasteTBA+Obj_Wert"
+    }
+  },
+  "two_values_button": {
+    "node": "App_Wert_2Obj_TasteTBA",
+    "fields": {
+      "general_parameter": "App_Wert_2Obj_TasteTBA+Pag_Allgemein",
+      "objcet_type_for_rising_edge": "App_Wert_2Obj_TasteTBA+Pag_Allgemein+Par_Objekttyp0",
+      "objcet_type_for_falling_edge": "App_Wert_2Obj_TasteTBA+Pag_Allgemein+Par_Objekttyp1",
+      "extended_parameters": "App_Wert_2Obj_TasteTBA+Pag_Erweitert",
+      "reaction_on_rising_edge": "App_Wert_2Obj_TasteTBA+Pag_Erweitert+Par_steigende_Flanke",
+      "value1_for_rising_edge": "App_Wert_2Obj_TasteTBA+Pag_Erweitert+Par_Wert1_1Bit_steigF",
+      "value2_for_rising_edge": "App_Wert_2Obj_TasteTBA+Pag_Erweitert+Par_Wert2_1Bit_steigF",
+      "value1_for_rising_edge_7": "App_Wert_2Obj_TasteTBA+Pag_Erweitert+Par_Wert1_1ByteProzent_steigF",
+      "value2_for_rising_edge_8": "App_Wert_2Obj_TasteTBA+Pag_Erweitert+Par_Wert2_1ByteProzent_steigF",
+      "value1_for_rising_edge_9": "App_Wert_2Obj_TasteTBA+Pag_Erweitert+Par_Wert1_1Byte0_255_steigF",
+      "value2_for_rising_edge_10": "App_Wert_2Obj_TasteTBA+Pag_Erweitert+Par_Wert2_1Byte0_255_steigF",
+      "value1_for_rising_edge_11": "App_Wert_2Obj_TasteTBA+Pag_Erweitert+Par_Wert1_2ByteFloat_steigF",
+      "value2_for_rising_edge_12": "App_Wert_2Obj_TasteTBA+Pag_Erweitert+Par_Wert2_2ByteFloat_steigF",
+      "value1_for_rising_edge_13": "App_Wert_2Obj_TasteTBA+Pag_Erweitert+Par_Wert1_2ByteSigned_steigF",
+      "value2_for_rising_edge_14": "App_Wert_2Obj_TasteTBA+Pag_Erweitert+Par_Wert2_2ByteSigned_steigF",
+      "value1_for_rising_edge_15": "App_Wert_2Obj_TasteTBA+Pag_Erweitert+Par_Wert1_2ByteUnsigned_steigF",
+      "value2_for_rising_edge_16": "App_Wert_2Obj_TasteTBA+Pag_Erweitert+Par_Wert2_2ByteUnsigned_steigF",
+      "value1_for_rising_edge_17": "App_Wert_2Obj_TasteTBA+Pag_Erweitert+Par_Wert1_4ByteFloat_steigF",
+      "value2_for_rising_edge_18": "App_Wert_2Obj_TasteTBA+Pag_Erweitert+Par_Wert2_4ByteFloat_steigF",
+      "value1_for_rising_edge_19": "App_Wert_2Obj_TasteTBA+Pag_Erweitert+Par_Wert1_4ByteSigned_steigF",
+      "value2_for_rising_edge_20": "App_Wert_2Obj_TasteTBA+Pag_Erweitert+Par_Wert2_4ByteSigned_steigF",
+      "value1_for_rising_edge_21": "App_Wert_2Obj_TasteTBA+Pag_Erweitert+Par_Wert1_4ByteUnsigned_steigF",
+      "value2_for_rising_edge_22": "App_Wert_2Obj_TasteTBA+Pag_Erweitert+Par_Wert2_4ByteUnsigned_steigF",
+      "reaction_on_falling_edge": "App_Wert_2Obj_TasteTBA+Pag_Erweitert+Par_fallende_Flanke",
+      "value1_for_falling_edge": "App_Wert_2Obj_TasteTBA+Pag_Erweitert+Par_Wert1_1Bit_fallF",
+      "value2_for_falling_edge": "App_Wert_2Obj_TasteTBA+Pag_Erweitert+Par_Wert2_1Bit_fallF",
+      "value1_for_falling_edge_26": "App_Wert_2Obj_TasteTBA+Pag_Erweitert+Par_Wert1_1ByteProzent_fallF",
+      "value2_for_falling_edge_27": "App_Wert_2Obj_TasteTBA+Pag_Erweitert+Par_Wert2_1ByteProzent_fallF",
+      "value1_for_falling_edge_28": "App_Wert_2Obj_TasteTBA+Pag_Erweitert+Par_Wert1_1Byte0_255_fallF",
+      "value2_for_falling_edge_29": "App_Wert_2Obj_TasteTBA+Pag_Erweitert+Par_Wert2_1Byte0_255_fallF",
+      "value1_for_falling_edge_30": "App_Wert_2Obj_TasteTBA+Pag_Erweitert+Par_Wert1_2ByteFloat_fallF",
+      "value2_for_falling_edge_31": "App_Wert_2Obj_TasteTBA+Pag_Erweitert+Par_Wert2_2ByteFloat_fallF",
+      "value1_for_falling_edge_32": "App_Wert_2Obj_TasteTBA+Pag_Erweitert+Par_Wert1_2ByteSigned_fallF",
+      "value2_for_falling_edge_33": "App_Wert_2Obj_TasteTBA+Pag_Erweitert+Par_Wert2_2ByteSigned_fallF",
+      "value1_for_falling_edge_34": "App_Wert_2Obj_TasteTBA+Pag_Erweitert+Par_Wert1_2ByteUnsigned_fallF",
+      "value2_for_falling_edge_35": "App_Wert_2Obj_TasteTBA+Pag_Erweitert+Par_Wert2_2ByteUnsigned_fallF",
+      "value1_for_falling_edge_36": "App_Wert_2Obj_TasteTBA+Pag_Erweitert+Par_Wert1_4ByteFloat_fallF",
+      "value2_for_falling_edge_37": "App_Wert_2Obj_TasteTBA+Pag_Erweitert+Par_Wert2_4ByteFloat_fallF",
+      "value1_for_falling_edge_38": "App_Wert_2Obj_TasteTBA+Pag_Erweitert+Par_Wert1_4ByteSigned_fallF",
+      "value2_for_falling_edge_39": "App_Wert_2Obj_TasteTBA+Pag_Erweitert+Par_Wert2_4ByteSigned_fallF",
+      "value1_for_falling_edge_40": "App_Wert_2Obj_TasteTBA+Pag_Erweitert+Par_Wert1_4ByteUnsigned_fallF",
+      "value2_for_falling_edge_41": "App_Wert_2Obj_TasteTBA+Pag_Erweitert+Par_Wert2_4ByteUnsigned_fallF"
+    },
+    "objects": {
+      "object_0": "BJE.toolB.ProductDatabase.App_Wert_2Obj_TasteTBA+Obj_Wert_steigendeFlanke",
+      "object_1": "BJE.toolB.ProductDatabase.App_Wert_2Obj_TasteTBA+Obj_Wert_fallendeFlanke"
+    }
+  },
+  "scene_button": {
+    "node": "App_LszNebenstelleTaste",
+    "fields": {
+      "duration_of_long_operation_s": "App_LszNebenstelleTaste+Par_ZeitLangBed",
+      "storage_function_light_scenes": "App_LszNebenstelleTaste+Par_Speicherung",
+      "number_of_light_scene": "App_LszNebenstelleTaste+Par_LichtszenenNummer"
+    },
+    "objects": {
+      "object_0": "BJE.toolB.ProductDatabase.App_LszNebenstelleTaste+Obj_Lichtszenennummer"
+    }
+  },
+  "step_rocker": {
+    "node": "App_StufenschalterWippeTBA",
+    "fields": {
+      "general_parameter": "App_StufenschalterWippeTBA+Pag_Allgemein",
+      "number_of_objects": "App_StufenschalterWippeTBA+Pag_Allgemein+Par_AnzahlObjekte",
+      "evaluation_period_s": "App_StufenschalterWippeTBA+Pag_Allgemein+Par_ZeitAuswertung",
+      "extended_parameters": "App_StufenschalterWippeTBA+Pag_Erweitert",
+      "working_mode_of_the_rocker_switch": "App_StufenschalterWippeTBA+Pag_Erweitert+Par_Bedienrichtung",
+      "sending_of_objects": "App_StufenschalterWippeTBA+Pag_Erweitert+Par_ObjektSenden",
+      "object_values": "App_StufenschalterWippeTBA+Pag_Erweitert+Par_Objektwerte",
+      "bit_pattern_of_the_object_values": "App_StufenschalterWippeTBA+Pag_Erweitert+Par_Bitmuster"
+    },
+    "objects": {
+      "object_0": "BJE.toolB.ProductDatabase.App_StufenschalterWippeTBA+Obj_Schalten1",
+      "object_1": "BJE.toolB.ProductDatabase.App_StufenschalterWippeTBA+Obj_Schalten2",
+      "object_2": "BJE.toolB.ProductDatabase.App_StufenschalterWippeTBA+Obj_Schalten3",
+      "object_3": "BJE.toolB.ProductDatabase.App_StufenschalterWippeTBA+Obj_Schalten4",
+      "object_4": "BJE.toolB.ProductDatabase.App_StufenschalterWippeTBA+Obj_Schalten5"
+    }
+  },
+  "step_button": {
+    "node": "App_StufenschalterTasteTBA",
+    "fields": {
+      "general_parameter": "App_StufenschalterTasteTBA+Pag_Allgemein",
+      "number_of_objects": "App_StufenschalterTasteTBA+Pag_Allgemein+Par_AnzahlObjekte",
+      "evaluation_period_s": "App_StufenschalterTasteTBA+Pag_Allgemein+Par_ZeitAuswertung",
+      "extended_parameters": "App_StufenschalterTasteTBA+Pag_Erweitert",
+      "long_operation": "App_StufenschalterTasteTBA+Pag_Erweitert+Par_Langbedienung",
+      "duration_of_long_operation_s": "App_StufenschalterTasteTBA+Pag_Erweitert+Par_ZeitLangbedienung",
+      "sending_of_objects": "App_StufenschalterTasteTBA+Pag_Erweitert+Par_ObjektSenden",
+      "object_values": "App_StufenschalterTasteTBA+Pag_Erweitert+Par_Objektwerte",
+      "bit_pattern_of_the_object_values": "App_StufenschalterTasteTBA+Pag_Erweitert+Par_Bitmuster"
+    },
+    "objects": {
+      "object_0": "BJE.toolB.ProductDatabase.App_StufenschalterTasteTBA+Obj_Schalten1",
+      "object_1": "BJE.toolB.ProductDatabase.App_StufenschalterTasteTBA+Obj_Schalten2",
+      "object_2": "BJE.toolB.ProductDatabase.App_StufenschalterTasteTBA+Obj_Schalten3",
+      "object_3": "BJE.toolB.ProductDatabase.App_StufenschalterTasteTBA+Obj_Schalten4",
+      "object_4": "BJE.toolB.ProductDatabase.App_StufenschalterTasteTBA+Obj_Schalten5"
+    }
+  },
+  "short_long_button": {
+    "node": "App_KurzLangTasteTBA",
+    "fields": {
+      "general_parameter": "App_KurzLangTasteTBA+Pag_Allgemein",
+      "object_type": "App_KurzLangTasteTBA+Pag_Allgemein+Par_Objekttyp",
+      "reaction_on_short_operation": "App_KurzLangTasteTBA+Pag_Allgemein+Par_kurzBed",
+      "reaction_on_long_operation": "App_KurzLangTasteTBA+Pag_Allgemein+Par_langBed",
+      "extended_parameters": "App_KurzLangTasteTBA+Pag_Erweitert",
+      "duration_of_long_operation_s": "App_KurzLangTasteTBA+Pag_Erweitert+Par_ZeitLangBed",
+      "value_1_for_short_operation": "App_KurzLangTasteTBA+Pag_Erweitert+Par_KurzBed_Wert1_1Bit",
+      "value_2_for_short_operation": "App_KurzLangTasteTBA+Pag_Erweitert+Par_KurzBed_Wert2_1Bit",
+      "value_1_for_long_operation": "App_KurzLangTasteTBA+Pag_Erweitert+Par_langBed_Wert1_1Bit",
+      "value_2_for_long_operation": "App_KurzLangTasteTBA+Pag_Erweitert+Par_langBedWert2_1Bit",
+      "value_1_for_short_operation_10": "App_KurzLangTasteTBA+Pag_Erweitert+Par_kurzBed_Wert1_1ByteProzent",
+      "value_2_for_short_operation_11": "App_KurzLangTasteTBA+Pag_Erweitert+Par_kurzBed_Wert2_1ByteProzent",
+      "value_1_for_long_operation_12": "App_KurzLangTasteTBA+Pag_Erweitert+Par_langBed_Wert1_1ByteProzent",
+      "value_2_for_long_operation_13": "App_KurzLangTasteTBA+Pag_Erweitert+Par_langBed_Wert2_1ByteProzent",
+      "value_1_for_short_operation_14": "App_KurzLangTasteTBA+Pag_Erweitert+Par_kurzBed_Wert1_1Byte0_255",
+      "value_2_for_short_operation_15": "App_KurzLangTasteTBA+Pag_Erweitert+Par_kurzBed_Wert2_1Byte0_255",
+      "value_1_for_long_operation_16": "App_KurzLangTasteTBA+Pag_Erweitert+Par_langBed_Wert1_1Byte0_255",
+      "value_2_for_long_operation_17": "App_KurzLangTasteTBA+Pag_Erweitert+Par_langBed_Wert2_1Byte0_255",
+      "value_1_for_short_operation_18": "App_KurzLangTasteTBA+Pag_Erweitert+Par_kurzBed_Wert1_2ByteFloat",
+      "value_2_for_short_operation_19": "App_KurzLangTasteTBA+Pag_Erweitert+Par_kurzBed_Wert2_2ByteFloat",
+      "value_1_for_long_operation_20": "App_KurzLangTasteTBA+Pag_Erweitert+Par_langBed_Wert1_2ByteFloat",
+      "value_2_for_long_operation_21": "App_KurzLangTasteTBA+Pag_Erweitert+Par_langBed_Wert2_2ByteFloat",
+      "value_1_for_short_operation_22": "App_KurzLangTasteTBA+Pag_Erweitert+Par_kurzBed_Wert1_2ByteSigned",
+      "value_2_for_short_operation_23": "App_KurzLangTasteTBA+Pag_Erweitert+Par_kurzBed_Wert2_2ByteSigned",
+      "value_1_for_long_operation_24": "App_KurzLangTasteTBA+Pag_Erweitert+Par_langBed_Wert1_2ByteSigned",
+      "value_2_for_long_operation_25": "App_KurzLangTasteTBA+Pag_Erweitert+Par_langBed_Wert2_2ByteSigned",
+      "value_1_for_short_operation_26": "App_KurzLangTasteTBA+Pag_Erweitert+Par_kurzBed_Wert1_2ByteUnsigned",
+      "value_2_for_short_operation_27": "App_KurzLangTasteTBA+Pag_Erweitert+Par_kurzBed_Wert2_2ByteUnsigned",
+      "value_1_for_long_operation_28": "App_KurzLangTasteTBA+Pag_Erweitert+Par_langBed_Wert1_2ByteUnsigned",
+      "value_2_for_long_operation_29": "App_KurzLangTasteTBA+Pag_Erweitert+Par_langBed_Wert2_2ByteUnsigned",
+      "value_1_for_short_operation_30": "App_KurzLangTasteTBA+Pag_Erweitert+Par_kurzBed_Wert1_4ByteFloat",
+      "value_2_for_short_operation_31": "App_KurzLangTasteTBA+Pag_Erweitert+Par_kurzBed_Wert2_4ByteFloat",
+      "value_1_for_long_operation_32": "App_KurzLangTasteTBA+Pag_Erweitert+Par_langBed_Wert1_4ByteFloat",
+      "value_2_for_long_operation_33": "App_KurzLangTasteTBA+Pag_Erweitert+Par_langBed_Wert2_4ByteFloat",
+      "value_1_for_short_operation_34": "App_KurzLangTasteTBA+Pag_Erweitert+Par_kurzBed_Wert1_4ByteSigned",
+      "value_2_for_short_operation_35": "App_KurzLangTasteTBA+Pag_Erweitert+Par_kurzBed_Wert2_4ByteSigned",
+      "value_1_for_long_operation_36": "App_KurzLangTasteTBA+Pag_Erweitert+Par_langBed_Wert1_4ByteSigned",
+      "value_2_for_long_operation_37": "App_KurzLangTasteTBA+Pag_Erweitert+Par_langBed_Wert2_4ByteSigned",
+      "value_1_for_short_operation_38": "App_KurzLangTasteTBA+Pag_Erweitert+Par_kurzBed_Wert1_4ByteUnsigned",
+      "value_2_for_short_operation_39": "App_KurzLangTasteTBA+Pag_Erweitert+Par_kurzBed_Wert2_4ByteUnsigned",
+      "value_1_for_long_operation_40": "App_KurzLangTasteTBA+Pag_Erweitert+Par_langBed_Wert1_4ByteUnsigned",
+      "value_2_for_long_operation_41": "App_KurzLangTasteTBA+Pag_Erweitert+Par_langBed_Wert2_4ByteUnsigned"
+    },
+    "objects": {
+      "object_0": "BJE.toolB.ProductDatabase.App_KurzLangTasteTBA+Obj_Wert_KurzBed",
+      "object_1": "BJE.toolB.ProductDatabase.App_KurzLangTasteTBA+Obj_Wert_LangBed"
+    }
+  },
+  "hvac_button": {
+    "node": "App_RtrBetriebsartTaste",
+    "fields": {
+      "general_parameter": "App_RtrBetriebsartTaste+Pag_Allgemein",
+      "object_type_for_output": "App_RtrBetriebsartTaste+Pag_Allgemein+Par_Ausgabeformat",
+      "operating_mode": "App_RtrBetriebsartTaste+Pag_Allgemein+Par_Betriebsart_1Byte",
+      "operating_mode_3": "App_RtrBetriebsartTaste+Pag_Allgemein+Par_Betriebsart_1Bit",
+      "extended_parameters": "App_RtrBetriebsartTaste+Pag_Erweitert",
+      "enable_object": "App_RtrBetriebsartTaste+Pag_Erweitert+Par_FreigabeAktiv",
+      "object_value_enable_object": "App_RtrBetriebsartTaste+Pag_Erweitert+Par_FreigabeInvers",
+      "enable_object_after_return_of_voltage": "App_RtrBetriebsartTaste+Pag_Erweitert+Par_FreigabeInit",
+      "send_comfort_object": "App_RtrBetriebsartTaste+Pag_Erweitert+Par_Komfortobjekt",
+      "send_eco_object": "App_RtrBetriebsartTaste+Pag_Erweitert+Par_Nachtobjekt",
+      "transmit_frost_object": "App_RtrBetriebsartTaste+Pag_Erweitert+Par_Frostobjekt",
+      "transmit_frost_object_11": "App_RtrBetriebsartTaste+Pag_Erweitert+Par_Frostobjekt_BtrArtFrost"
+    },
+    "objects": {
+      "object_0": "BJE.toolB.ProductDatabase.App_RtrBetriebsartTaste+Obj_Freigabe",
+      "object_1": "BJE.toolB.ProductDatabase.App_RtrBetriebsartTaste+Obj_Betriebsart",
+      "object_2": "BJE.toolB.ProductDatabase.App_RtrBetriebsartTaste+Obj_BetriebsartKomfort",
+      "object_3": "BJE.toolB.ProductDatabase.App_RtrBetriebsartTaste+Obj_BetriebsartNacht",
+      "object_4": "BJE.toolB.ProductDatabase.App_RtrBetriebsartTaste+Obj_BetriebsartFrost"
+    }
+  },
+  "led": {
+    "node": "App_Led_TBA",
+    "fields": {
+      "general_parameter": "App_Led_TBA+Pag_Allgemein",
+      "operating_mode": "App_Led_TBA+Pag_Allgemein+Par_Betriebsart",
+      "object_type_for_status_object": "App_Led_TBA+Pag_Allgemein+Par_StatusObjekttyp",
+      "brigtness_of_the_colours": "App_Led_TBA+Pag_Allgemein+Par_FarbHelligkeit",
+      "colour_of_orientation_illumination": "App_Led_TBA+Pag_Allgemein+Par_FarbeOrientierungAusDunkel",
+      "colour_of_orientation_illumination_5": "App_Led_TBA+Pag_Allgemein+Par_FarbeOrientierungAusHell",
+      "colour_for_off": "App_Led_TBA+Pag_Allgemein+Par_FarbeBereich1_1Bit",
+      "colour_for_0": "App_Led_TBA+Pag_Allgemein+Par_FarbeBereich1_1Byte",
+      "colour_for_zone_1": "App_Led_TBA+Pag_Allgemein+Par_FarbeBereich1AusDunkel",
+      "colour_for_zone_1_9": "App_Led_TBA+Pag_Allgemein+Par_FarbeBereich1RotDunkel",
+      "colour_for_zone_1_10": "App_Led_TBA+Pag_Allgemein+Par_FarbeBereich1GruenDunkel",
+      "colour_for_zone_1_11": "App_Led_TBA+Pag_Allgemein+Par_FarbeBereich1AusHell",
+      "colour_for_zone_1_12": "App_Led_TBA+Pag_Allgemein+Par_FarbeBereich1RotHell",
+      "colour_for_zone_1_13": "App_Led_TBA+Pag_Allgemein+Par_FarbeBereich1GruenHell",
+      "colour_for_zone_2": "App_Led_TBA+Pag_Allgemein+Par_FarbeBereich2AusDunkel",
+      "colour_for_zone_2_15": "App_Led_TBA+Pag_Allgemein+Par_FarbeBereich2RotDunkel",
+      "colour_for_zone_2_16": "App_Led_TBA+Pag_Allgemein+Par_FarbeBereich2GruenDunkel",
+      "colour_for_zone_2_17": "App_Led_TBA+Pag_Allgemein+Par_FarbeBereich2AusHell",
+      "colour_for_zone_2_18": "App_Led_TBA+Pag_Allgemein+Par_FarbeBereich2RotHell",
+      "colour_for_zone_2_19": "App_Led_TBA+Pag_Allgemein+Par_FarbeBereich2GruenHell",
+      "colour_for_zone_3": "App_Led_TBA+Pag_Allgemein+Par_FarbeBereich3AusDunkel",
+      "colour_for_zone_3_21": "App_Led_TBA+Pag_Allgemein+Par_FarbeBereich3RotDunkel",
+      "colour_for_zone_3_22": "App_Led_TBA+Pag_Allgemein+Par_FarbeBereich3GruenDunkel",
+      "colour_for_zone_3_23": "App_Led_TBA+Pag_Allgemein+Par_FarbeBereich3AusHell",
+      "colour_for_zone_3_24": "App_Led_TBA+Pag_Allgemein+Par_FarbeBereich3RotHell",
+      "colour_for_zone_3_25": "App_Led_TBA+Pag_Allgemein+Par_FarbeBereich3GruenHell",
+      "colour_for_zone_4": "App_Led_TBA+Pag_Allgemein+Par_FarbeBereich4AusDunkel",
+      "colour_for_zone_4_27": "App_Led_TBA+Pag_Allgemein+Par_FarbeBereich4RotDunkel",
+      "colour_for_zone_4_28": "App_Led_TBA+Pag_Allgemein+Par_FarbeBereich4GruenDunkel",
+      "colour_for_zone_4_29": "App_Led_TBA+Pag_Allgemein+Par_FarbeBereich4AusHell",
+      "colour_for_zone_4_30": "App_Led_TBA+Pag_Allgemein+Par_FarbeBereich4RotHell",
+      "colour_for_zone_4_31": "App_Led_TBA+Pag_Allgemein+Par_FarbeBereich4GruenHell",
+      "colour_for_on": "App_Led_TBA+Pag_Allgemein+Par_FarbeBereich5_1Bit",
+      "colour_for_1_to_100": "App_Led_TBA+Pag_Allgemein+Par_FarbeBereich5_1Byte",
+      "colour_for_zone_5": "App_Led_TBA+Pag_Allgemein+Par_FarbeBereich5AusDunkel",
+      "colour_for_zone_5_35": "App_Led_TBA+Pag_Allgemein+Par_FarbeBereich5RotDunkel",
+      "colour_for_zone_5_36": "App_Led_TBA+Pag_Allgemein+Par_FarbeBereich5GruenDunkel",
+      "colour_for_zone_5_37": "App_Led_TBA+Pag_Allgemein+Par_FarbeBereich5AusHell",
+      "colour_for_zone_5_38": "App_Led_TBA+Pag_Allgemein+Par_FarbeBereich5RotHell",
+      "colour_for_zone_5_39": "App_Led_TBA+Pag_Allgemein+Par_FarbeBereich5GruenHell",
+      "colour_of_orientation_illumination_40": "App_Led_TBA+Pag_Allgemein+Par_FarbeFunktion",
+      "colour_of_orientation_illumination_41": "App_Led_TBA+Pag_Allgemein+Par_FarbeFunktionAusDunkel",
+      "colour_of_orientation_illumination_42": "App_Led_TBA+Pag_Allgemein+Par_FarbeFunktionRotDunkel",
+      "colour_of_orientation_illumination_43": "App_Led_TBA+Pag_Allgemein+Par_FarbeFunktionGruenDunkel",
+      "colour_of_function_illumination": "App_Led_TBA+Pag_Allgemein+Par_FarbeFunktionAusHell",
+      "colour_of_orientation_illumination_45": "App_Led_TBA+Pag_Allgemein+Par_FarbeFunktionRotHell",
+      "colour_of_orientation_illumination_46": "App_Led_TBA+Pag_Allgemein+Par_FarbeFunktionGruenHell",
+      "extended_parameters": "App_Led_TBA+Pag_Erweitert",
+      "day_night_mode": "App_Led_TBA+Pag_Erweitert+Par_TagNachtBetrieb",
+      "lighting": "App_Led_TBA+Pag_Erweitert+Par_Naeherungsfunktion",
+      "lighting_logic": "App_Led_TBA+Pag_Erweitert+Par_LogikNaeherung",
+      "storage_function_light_scenes": "App_Led_TBA+Pag_Erweitert+Par_SzenenSpeicherung",
+      "alarm_function": "App_Led_TBA+Pag_Erweitert+Par_Alarmfunktion"
+    },
+    "objects": {
+      "object_0": "BJE.toolB.ProductDatabase.App_Led_TBA+Obj_Status",
+      "object_1": "BJE.toolB.ProductDatabase.App_Led_TBA+Obj_TagNacht",
+      "object_2": "BJE.toolB.ProductDatabase.App_Led_TBA+Obj_Naeherung",
+      "object_3": "BJE.toolB.ProductDatabase.App_Led_TBA+Obj_Alarm",
+      "object_4": "BJE.toolB.ProductDatabase.App_Led_TBA+Obj_Szenenspeicherung"
+    }
+  },
+  "inactive": {
+    "node": "App_Inaktiv",
+    "fields": {},
+    "objects": {}
+  }
+}

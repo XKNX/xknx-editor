@@ -8,6 +8,16 @@ from typing import Any
 
 import pytest
 
+from xknxeditor.vendor.powertool import BLOB_NAME
+
+
+def reference_config(data: bytes) -> bytes:
+    """Use the current format identifier for captured configuration inputs."""
+    config = json.loads(data)
+    assert config["format"] in ("PowerTool6108-Config", BLOB_NAME)
+    config["format"] = BLOB_NAME
+    return json.dumps(config).encode()
+
 
 def fixture_path(name: str) -> Path:
     override = os.environ.get("XKNX_POWERTOOL_FIXTURES")

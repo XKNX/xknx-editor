@@ -1,0 +1,11928 @@
+# PowerTool interface translations for XKNX Editor.
+# Copyright (C) 2026 XKNX Editor contributors
+# Distributed under the project license.
+msgid ""
+msgstr ""
+"Project-Id-Version: XKNX Editor \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-11-18 23:24+0100\n"
+"PO-Revision-Date: 2026-11-18 22:26+0000\n"
+"Last-Translator: XKNX Editor contributors\n"
+"Language: zh\n"
+"Language-Team: zh\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.18.0\n"
+
+msgid "%"
+msgstr "%"
+
+msgid "+/- 1 K"
+msgstr "+/- 1 K"
+
+msgid "+/- 10 K"
+msgstr "+/- 10 K"
+
+msgid "+/- 11 K"
+msgstr "+/- 11 K"
+
+msgid "+/- 12 K"
+msgstr "+/- 12 K"
+
+msgid "+/- 13 K"
+msgstr "+/- 13 K"
+
+msgid "+/- 14 K"
+msgstr "+/- 14 K"
+
+msgid "+/- 15 K"
+msgstr "+/- 15 K"
+
+msgid "+/- 2 K"
+msgstr "+/- 2 K"
+
+msgid "+/- 3 K"
+msgstr "+/- 3 K"
+
+msgid "+/- 4 K"
+msgstr "+/- 4 K"
+
+msgid "+/- 5 K"
+msgstr "+/- 5 K"
+
+msgid "+/- 6 K"
+msgstr "+/- 6 K"
+
+msgid "+/- 7 K"
+msgstr "+/- 7 K"
+
+msgid "+/- 8 K"
+msgstr "+/- 8 K"
+
+msgid "+/- 9 K"
+msgstr "+/- 9 K"
+
+msgid "0"
+msgstr "0"
+
+msgid "0 enables lighting, 1 disables it"
+msgstr "0 启用照明，1 禁用照明"
+
+msgid "0 enables, 1 blocks"
+msgstr "0 使能，1 禁止"
+
+msgid "0 to 255"
+msgstr "0 至 255"
+
+msgid "0 to 5"
+msgstr "0 到 5"
+
+msgid "0%"
+msgstr "0%"
+
+msgid "0.1 °C"
+msgstr "0.1 °C"
+
+msgid "0.2 °C"
+msgstr "0.2 °C"
+
+msgid "0.25 s"
+msgstr "0.25 s"
+
+msgid "0.3 s"
+msgstr "0.3 s"
+
+msgid "0.39"
+msgstr "0.39"
+
+msgid "0.4 s"
+msgstr "0.4 s"
+
+msgid "0.5"
+msgstr "0.5"
+
+msgid "0.5 s"
+msgstr "0.5 s"
+
+msgid "0.5 °C"
+msgstr "0.5 °C"
+
+msgid "0.6 s"
+msgstr "0.6 s"
+
+msgid "0.75 s"
+msgstr "0.75 s"
+
+msgid "0.78"
+msgstr "0.78"
+
+msgid "0.8 s"
+msgstr "0.8 s"
+
+msgid "1"
+msgstr "1"
+
+msgid "1 Rocker or 2 Buttons"
+msgstr "1 个摇杆或 2 个按钮"
+
+msgid "1 column"
+msgstr "1 列"
+
+msgid "1 enables lighting, 0 disables it"
+msgstr "1 启用照明，0 禁用照明"
+
+msgid "1 enables, 0 blocks"
+msgstr "1 使能，0 禁止"
+
+msgid "1 min"
+msgstr "1 min"
+
+msgid "1 s"
+msgstr "1 s"
+
+msgid "1 °C"
+msgstr "1 °C"
+
+msgid "1-Position Module Carrier"
+msgstr "1 位模块载体"
+
+msgid "1-Section Control"
+msgstr "1 段控制"
+
+msgid "1-byte value"
+msgstr "1 字节值"
+
+msgid "1.18"
+msgstr "1.18"
+
+msgid "1.2 s"
+msgstr "1.2 s"
+
+msgid "1.25 s"
+msgstr "1.25 s"
+
+msgid "1.5"
+msgstr "1.5"
+
+msgid "1.5 s"
+msgstr "1.5 s"
+
+msgid "1.56%"
+msgstr "1.56%"
+
+msgid "1.5625%"
+msgstr "1.5625%"
+
+msgid "1.96"
+msgstr "1.96"
+
+msgid "10"
+msgstr "10"
+
+msgid "10 min"
+msgstr "10 min"
+
+msgid "10 s"
+msgstr "10 s"
+
+msgid "10%"
+msgstr "10%"
+
+msgid "10.2"
+msgstr "10.2"
+
+msgid "100"
+msgstr "100"
+
+msgid "100%"
+msgstr "100%"
+
+msgid "1000"
+msgstr "1000"
+
+msgid "1001"
+msgstr "1001"
+
+msgid "1003"
+msgstr "1003"
+
+msgid "1007"
+msgstr "1007"
+
+msgid "1008"
+msgstr "1008"
+
+msgid "1009"
+msgstr "1009"
+
+msgid "1010"
+msgstr "1010"
+
+msgid "1011"
+msgstr "1011"
+
+msgid "1012"
+msgstr "1012"
+
+msgid "1013"
+msgstr "1013"
+
+msgid "1014"
+msgstr "1014"
+
+msgid "1015"
+msgstr "1015"
+
+msgid "1016"
+msgstr "1016"
+
+msgid "1017"
+msgstr "1017"
+
+msgid "1018"
+msgstr "1018"
+
+msgid "1019"
+msgstr "1019"
+
+msgid "1020"
+msgstr "1020"
+
+msgid "1021"
+msgstr "1021"
+
+msgid "1022"
+msgstr "1022"
+
+msgid "1023"
+msgstr "1023"
+
+msgid "11"
+msgstr "11"
+
+msgid "12"
+msgstr "12"
+
+msgid "12-hour clock"
+msgstr "12 小时制"
+
+msgid "12.5%"
+msgstr "12.5%"
+
+msgid "120"
+msgstr "120"
+
+msgid "13"
+msgstr "13"
+
+msgid "14"
+msgstr "14"
+
+msgid "14.9"
+msgstr "14.9"
+
+msgid "14000"
+msgstr "14000"
+
+msgid "14001"
+msgstr "14001"
+
+msgid "14002"
+msgstr "14002"
+
+msgid "14003"
+msgstr "14003"
+
+msgid "14004"
+msgstr "14004"
+
+msgid "14005"
+msgstr "14005"
+
+msgid "14006"
+msgstr "14006"
+
+msgid "15"
+msgstr "15"
+
+msgid "15 s"
+msgstr "15 s"
+
+msgid "15001"
+msgstr "15001"
+
+msgid "15002"
+msgstr "15002"
+
+msgid "15003"
+msgstr "15003"
+
+msgid "15004"
+msgstr "15004"
+
+msgid "15005"
+msgstr "15005"
+
+msgid "15006"
+msgstr "15006"
+
+msgid "15007"
+msgstr "15007"
+
+msgid "15008"
+msgstr "15008"
+
+msgid "15009"
+msgstr "15009"
+
+msgid "15010"
+msgstr "15010"
+
+msgid "15011"
+msgstr "15011"
+
+msgid "15012"
+msgstr "15012"
+
+msgid "15017"
+msgstr "15017"
+
+msgid "16"
+msgstr "16"
+
+msgid "17"
+msgstr "17"
+
+msgid "18"
+msgstr "18"
+
+msgid "180°"
+msgstr "180°"
+
+msgid "19"
+msgstr "19"
+
+msgid "2"
+msgstr "2"
+
+msgid "2 Rockers or 4 Buttons"
+msgstr "2 个摇杆或 4 个按钮"
+
+msgid "2 columns"
+msgstr "2 列"
+
+msgid "2 min"
+msgstr "2 min"
+
+msgid "2 s"
+msgstr "2 s"
+
+msgid "2%"
+msgstr "2%"
+
+msgid "2-Position Module Carrier"
+msgstr "2 位模块载体"
+
+msgid "2-Section Control"
+msgstr "2 段控制"
+
+msgid "2.5"
+msgstr "2.5"
+
+msgid "20"
+msgstr "20"
+
+msgid "20 s"
+msgstr "20 s"
+
+msgid "20%"
+msgstr "20%"
+
+msgid "200 ms"
+msgstr "200 ms"
+
+msgid "20000"
+msgstr "20000"
+
+msgid "20001"
+msgstr "20001"
+
+msgid "20002"
+msgstr "20002"
+
+msgid "20003"
+msgstr "20003"
+
+msgid "20004"
+msgstr "20004"
+
+msgid "20005"
+msgstr "20005"
+
+msgid "20006"
+msgstr "20006"
+
+msgid "20007"
+msgstr "20007"
+
+msgid "20008"
+msgstr "20008"
+
+msgid "20009"
+msgstr "20009"
+
+msgid "20010"
+msgstr "20010"
+
+msgid "20011"
+msgstr "20011"
+
+msgid "20012"
+msgstr "20012"
+
+msgid "20013"
+msgstr "20013"
+
+msgid "20014"
+msgstr "20014"
+
+msgid "20015"
+msgstr "20015"
+
+msgid "20016"
+msgstr "20016"
+
+msgid "20017"
+msgstr "20017"
+
+msgid "20018"
+msgstr "20018"
+
+msgid "20019"
+msgstr "20019"
+
+msgid "20020"
+msgstr "20020"
+
+msgid "20021"
+msgstr "20021"
+
+msgid "20022"
+msgstr "20022"
+
+msgid "20023"
+msgstr "20023"
+
+msgid "201"
+msgstr "201"
+
+msgid "202"
+msgstr "202"
+
+msgid "203"
+msgstr "203"
+
+msgid "204"
+msgstr "204"
+
+msgid "205"
+msgstr "205"
+
+msgid "206"
+msgstr "206"
+
+msgid "207"
+msgstr "207"
+
+msgid "208"
+msgstr "208"
+
+msgid "209"
+msgstr "209"
+
+msgid "21"
+msgstr "21"
+
+msgid "210"
+msgstr "210"
+
+msgid "211"
+msgstr "211"
+
+msgid "212"
+msgstr "212"
+
+msgid "213"
+msgstr "213"
+
+msgid "214"
+msgstr "214"
+
+msgid "215"
+msgstr "215"
+
+msgid "216"
+msgstr "216"
+
+msgid "22"
+msgstr "22"
+
+msgid "23"
+msgstr "23"
+
+msgid "24"
+msgstr "24"
+
+msgid "24-hour clock"
+msgstr "24小时制"
+
+msgid "25"
+msgstr "25"
+
+msgid "25%"
+msgstr "25%"
+
+msgid "25.1"
+msgstr "25.1"
+
+msgid "26"
+msgstr "26"
+
+msgid "27"
+msgstr "27"
+
+msgid "270°"
+msgstr "270°"
+
+msgid "276°"
+msgstr "276°"
+
+msgid "28"
+msgstr "28"
+
+msgid "29"
+msgstr "29"
+
+msgid "3"
+msgstr "3"
+
+msgid "3 columns"
+msgstr "3 列"
+
+msgid "3 s"
+msgstr "3 s"
+
+msgid "3 stages"
+msgstr "3个阶段"
+
+msgid "3-Position Module Carrier"
+msgstr "3 位模块载体"
+
+msgid "3-Section Control"
+msgstr "3 段控制"
+
+msgid "3.125%"
+msgstr "3.125%"
+
+msgid "3.13%"
+msgstr "3.13%"
+
+msgid "3.14"
+msgstr "3.14"
+
+msgid "3.5"
+msgstr "3.5"
+
+msgid "3.5-Inch Display"
+msgstr "3.5英寸显示屏"
+
+msgid "30"
+msgstr "30"
+
+msgid "30 min"
+msgstr "30 min"
+
+msgid "30 s"
+msgstr "30 s"
+
+msgid "30%"
+msgstr "30%"
+
+msgid "30.2"
+msgstr "30.2"
+
+msgid "3000"
+msgstr "3000"
+
+msgid "3002"
+msgstr "3002"
+
+msgid "3005"
+msgstr "3005"
+
+msgid "3007"
+msgstr "3007"
+
+msgid "3008"
+msgstr "3008"
+
+msgid "3009"
+msgstr "3009"
+
+msgid "3010"
+msgstr "3010"
+
+msgid "3011"
+msgstr "3011"
+
+msgid "3012"
+msgstr "3012"
+
+msgid "3013"
+msgstr "3013"
+
+msgid "3014"
+msgstr "3014"
+
+msgid "3015"
+msgstr "3015"
+
+msgid "3016"
+msgstr "3016"
+
+msgid "3018"
+msgstr "3018"
+
+msgid "3019"
+msgstr "3019"
+
+msgid "3020"
+msgstr "3020"
+
+msgid "3021"
+msgstr "3021"
+
+msgid "3022"
+msgstr "3022"
+
+msgid "3024"
+msgstr "3024"
+
+msgid "3026"
+msgstr "3026"
+
+msgid "3027"
+msgstr "3027"
+
+msgid "3028"
+msgstr "3028"
+
+msgid "3029"
+msgstr "3029"
+
+msgid "3030"
+msgstr "3030"
+
+msgid "3031"
+msgstr "3031"
+
+msgid "3032"
+msgstr "3032"
+
+msgid "3033"
+msgstr "3033"
+
+msgid "3034"
+msgstr "3034"
+
+msgid "31"
+msgstr "31"
+
+msgid "32"
+msgstr "32"
+
+msgid "33"
+msgstr "33"
+
+msgid "34"
+msgstr "34"
+
+msgid "34.9"
+msgstr "34.9"
+
+msgid "35"
+msgstr "35"
+
+msgid "36"
+msgstr "36"
+
+msgid "360°"
+msgstr "360°"
+
+msgid "37"
+msgstr "37"
+
+msgid "38"
+msgstr "38"
+
+msgid "39"
+msgstr "39"
+
+msgid "4"
+msgstr "4"
+
+msgid "4 Rockers or 8 Buttons"
+msgstr "4 个摇杆或 8 个按钮"
+
+msgid "4 digits"
+msgstr "4位数字"
+
+msgid "4 min"
+msgstr "4 min"
+
+msgid "4 s"
+msgstr "4 s"
+
+msgid "4-Section Control"
+msgstr "4 段控制"
+
+msgid "4-bit value"
+msgstr "4位值"
+
+msgid "40"
+msgstr "40"
+
+msgid "40%"
+msgstr "40%"
+
+msgid "41"
+msgstr "41"
+
+msgid "42"
+msgstr "42"
+
+msgid "43"
+msgstr "43"
+
+msgid "44"
+msgstr "44"
+
+msgid "45"
+msgstr "45"
+
+msgid "45.1"
+msgstr "45.1"
+
+msgid "450°"
+msgstr "450°"
+
+msgid "46"
+msgstr "46"
+
+msgid "47"
+msgstr "47"
+
+msgid "48"
+msgstr "48"
+
+msgid "49"
+msgstr "49"
+
+msgid "5"
+msgstr "5"
+
+msgid "5 digits"
+msgstr "5位数字"
+
+msgid "5 min"
+msgstr "5 min"
+
+msgid "5 s"
+msgstr "5 s"
+
+msgid "5 stages"
+msgstr "5个阶段"
+
+msgid "5%"
+msgstr "5%"
+
+msgid "5.1"
+msgstr "5.1"
+
+msgid "5.88"
+msgstr "5.88"
+
+msgid "50"
+msgstr "50"
+
+msgid "50%"
+msgstr "50%"
+
+msgid "50.2"
+msgstr "50.2"
+
+msgid "500 ms"
+msgstr "500 ms"
+
+msgid "5000"
+msgstr "5000"
+
+msgid "5001"
+msgstr "5001"
+
+msgid "5002"
+msgstr "5002"
+
+msgid "5004"
+msgstr "5004"
+
+msgid "5005"
+msgstr "5005"
+
+msgid "5006"
+msgstr "5006"
+
+msgid "5008"
+msgstr "5008"
+
+msgid "5009"
+msgstr "5009"
+
+msgid "5010"
+msgstr "5010"
+
+msgid "5011"
+msgstr "5011"
+
+msgid "5012"
+msgstr "5012"
+
+msgid "5013"
+msgstr "5013"
+
+msgid "5014"
+msgstr "5014"
+
+msgid "5015"
+msgstr "5015"
+
+msgid "5019"
+msgstr "5019"
+
+msgid "5020"
+msgstr "5020"
+
+msgid "5021"
+msgstr "5021"
+
+msgid "5022"
+msgstr "5022"
+
+msgid "5024"
+msgstr "5024"
+
+msgid "5025"
+msgstr "5025"
+
+msgid "5026"
+msgstr "5026"
+
+msgid "5027"
+msgstr "5027"
+
+msgid "5028"
+msgstr "5028"
+
+msgid "5029"
+msgstr "5029"
+
+msgid "5031"
+msgstr "5031"
+
+msgid "5033"
+msgstr "5033"
+
+msgid "5034"
+msgstr "5034"
+
+msgid "5035"
+msgstr "5035"
+
+msgid "5036"
+msgstr "5036"
+
+msgid "5037"
+msgstr "5037"
+
+msgid "5038"
+msgstr "5038"
+
+msgid "5039"
+msgstr "5039"
+
+msgid "5043"
+msgstr "5043"
+
+msgid "5044"
+msgstr "5044"
+
+msgid "5045"
+msgstr "5045"
+
+msgid "5046"
+msgstr "5046"
+
+msgid "5047"
+msgstr "5047"
+
+msgid "5049"
+msgstr "5049"
+
+msgid "5051"
+msgstr "5051"
+
+msgid "5052"
+msgstr "5052"
+
+msgid "5053"
+msgstr "5053"
+
+msgid "5054"
+msgstr "5054"
+
+msgid "5055"
+msgstr "5055"
+
+msgid "5056"
+msgstr "5056"
+
+msgid "5057"
+msgstr "5057"
+
+msgid "5063"
+msgstr "5063"
+
+msgid "5064"
+msgstr "5064"
+
+msgid "5065"
+msgstr "5065"
+
+msgid "5066"
+msgstr "5066"
+
+msgid "5068"
+msgstr "5068"
+
+msgid "5069"
+msgstr "5069"
+
+msgid "5070"
+msgstr "5070"
+
+msgid "5071"
+msgstr "5071"
+
+msgid "5072"
+msgstr "5072"
+
+msgid "5073"
+msgstr "5073"
+
+msgid "5074"
+msgstr "5074"
+
+msgid "5075"
+msgstr "5075"
+
+msgid "5076"
+msgstr "5076"
+
+msgid "5077"
+msgstr "5077"
+
+msgid "5078"
+msgstr "5078"
+
+msgid "51"
+msgstr "51"
+
+msgid "52"
+msgstr "52"
+
+msgid "53"
+msgstr "53"
+
+msgid "54"
+msgstr "54"
+
+msgid "540°"
+msgstr "540°"
+
+msgid "55"
+msgstr "55"
+
+msgid "56"
+msgstr "56"
+
+msgid "57"
+msgstr "57"
+
+msgid "58"
+msgstr "58"
+
+msgid "59"
+msgstr "59"
+
+msgid "6"
+msgstr "6"
+
+msgid "6 digits"
+msgstr "6位数字"
+
+msgid "6 s"
+msgstr "6 s"
+
+msgid "6-Section Control"
+msgstr "6段控制"
+
+msgid "6.25%"
+msgstr "6.25%"
+
+msgid "60"
+msgstr "60"
+
+msgid "60%"
+msgstr "60%"
+
+msgid "61"
+msgstr "61"
+
+msgid "6108/01 Bus Coupler with One Rocker"
+msgstr "6108/01 带一个摇杆的总线耦合器"
+
+msgid "6108/02 Bus Coupler with Two Rockers"
+msgstr "6108/02 带两个摇杆的总线耦合器"
+
+msgid "62"
+msgstr "62"
+
+msgid "63"
+msgstr "63"
+
+msgid "630°"
+msgstr "630°"
+
+msgid "64"
+msgstr "64"
+
+msgid "65"
+msgstr "65"
+
+msgid "66"
+msgstr "66"
+
+msgid "67"
+msgstr "67"
+
+msgid "68"
+msgstr "68"
+
+msgid "69"
+msgstr "69"
+
+msgid "7"
+msgstr "7"
+
+msgid "7 s"
+msgstr "7 s"
+
+msgid "7.06"
+msgstr "7.06"
+
+msgid "7.84"
+msgstr "7.84"
+
+msgid "70"
+msgstr "70"
+
+msgid "70%"
+msgstr "70%"
+
+msgid "70.2"
+msgstr "70.2"
+
+msgid "72"
+msgstr "72"
+
+msgid "720°"
+msgstr "720°"
+
+msgid "75"
+msgstr "75"
+
+msgid "79"
+msgstr "79"
+
+msgid "8"
+msgstr "8"
+
+msgid "8 s"
+msgstr "8 s"
+
+msgid "80"
+msgstr "80"
+
+msgid "80%"
+msgstr "80%"
+
+msgid "8000"
+msgstr "8000"
+
+msgid "8001"
+msgstr "8001"
+
+msgid "8002"
+msgstr "8002"
+
+msgid "8003"
+msgstr "8003"
+
+msgid "8004"
+msgstr "8004"
+
+msgid "8005"
+msgstr "8005"
+
+msgid "8006"
+msgstr "8006"
+
+msgid "8007"
+msgstr "8007"
+
+msgid "8008"
+msgstr "8008"
+
+msgid "8009"
+msgstr "8009"
+
+msgid "8010"
+msgstr "8010"
+
+msgid "8011"
+msgstr "8011"
+
+msgid "8012"
+msgstr "8012"
+
+msgid "8013"
+msgstr "8013"
+
+msgid "8014"
+msgstr "8014"
+
+msgid "8015"
+msgstr "8015"
+
+msgid "8016"
+msgstr "8016"
+
+msgid "8017"
+msgstr "8017"
+
+msgid "8018"
+msgstr "8018"
+
+msgid "81"
+msgstr "81"
+
+msgid "82"
+msgstr "82"
+
+msgid "9"
+msgstr "9"
+
+msgid "9 s"
+msgstr "9 s"
+
+msgid "9.02"
+msgstr "9.02"
+
+msgid "90%"
+msgstr "90%"
+
+msgid "90.2"
+msgstr "90.2"
+
+msgid "90°"
+msgstr "90°"
+
+msgid "96°"
+msgstr "96°"
+
+msgid "AND"
+msgstr "和"
+
+msgid "Above threshold"
+msgstr "高于阈值"
+
+msgid "Absolute Brightening Rate"
+msgstr "绝对增亮率"
+
+msgid "Absolute Brightening Rate Input Object"
+msgstr "绝对亮度率输入对象"
+
+msgid "Absolute Brightening Rate Segment Count"
+msgstr "绝对增亮率段数"
+
+msgid "Absolute Brightening Transition Rate"
+msgstr "绝对增亮转变率"
+
+msgid "Absolute Brightening Transition Style"
+msgstr "绝对提亮过渡风格"
+
+msgid "Absolute Brightness (1 Byte)"
+msgstr "绝对亮度（1 字节）"
+
+msgid "Absolute Brightness Control"
+msgstr "绝对亮度控制"
+
+msgid "Absolute Covering Position Command"
+msgstr "绝对覆盖位置指令"
+
+msgid "Absolute Dimming Rate"
+msgstr "绝对调光率"
+
+msgid "Absolute Dimming Rate Input Object"
+msgstr "绝对调光率输入对象"
+
+msgid "Absolute Dimming Rate Segment Count"
+msgstr "绝对调光率段数"
+
+msgid "Absolute Dimming Transition Rate"
+msgstr "绝对调光转换率"
+
+msgid "Absolute Dimming Transition Style"
+msgstr "绝对调光过渡方式"
+
+msgid "Absolute temperature"
+msgstr "绝对温度"
+
+msgid "Accepted IR Command Bank"
+msgstr "接受的 IR 命令库"
+
+msgid "Access Code"
+msgstr "访问代码"
+
+msgid "Access Code Digit 1"
+msgstr "访问代码数字 1"
+
+msgid "Access Code Digit 2"
+msgstr "访问代码数字 2"
+
+msgid "Access Code Digit 3"
+msgstr "访问代码数字 3"
+
+msgid "Access Code Digit 4"
+msgstr "访问代码数字 4"
+
+msgid "Access Code Length"
+msgstr "访问码长度"
+
+msgid "Access Code Settings"
+msgstr "访问代码设置"
+
+msgid "Access Level 1 Code"
+msgstr "访问级别 1 代码"
+
+msgid "Access Level 2 Code"
+msgstr "访问级别 2 代码"
+
+msgid "Access Level 3 Code"
+msgstr "访问级别 3 代码"
+
+msgid "Access Level 4 Code"
+msgstr "访问级别 4 代码"
+
+msgid "Access Level 5 Code"
+msgstr "访问级别 5 代码"
+
+msgid "Acknowledge All Messages"
+msgstr "确认所有消息"
+
+msgid "Acknowledgement Text"
+msgstr "致谢文本"
+
+msgid "Acknowledgement Text (14 Bytes)"
+msgstr "确认文本（14 字节）"
+
+msgid "Action Delay"
+msgstr "动作延迟"
+
+msgid "Action on Long Press"
+msgstr "长按动作"
+
+msgid "Action on Press"
+msgstr "按下动作"
+
+msgid "Action on Received Off"
+msgstr "收到关值时的动作"
+
+msgid "Action on Received On"
+msgstr "收到开值时的动作"
+
+msgid "Action on Release"
+msgstr "松开动作"
+
+msgid "Action on Short Press"
+msgstr "短按动作"
+
+msgid "Activation Sensitivity"
+msgstr "激活灵敏度"
+
+msgid "Active Alarm Sound"
+msgstr "主动警报声"
+
+msgid "Active Cooling Setpoint"
+msgstr "主动冷却设定点"
+
+msgid "Active Fan Stage Display"
+msgstr "活动风扇舞台展示"
+
+msgid "Active Heating Setpoint"
+msgstr "主动加热设定点"
+
+msgid "Active Scene Status"
+msgstr "活动场景状态"
+
+msgid "Active Sequence Step Value"
+msgstr "活动序列步值"
+
+msgid "Active Setpoint"
+msgstr "有效设定点"
+
+msgid "Active setpoint"
+msgstr "有效设定值"
+
+msgid "Activity Monitoring Window"
+msgstr "活动监控窗口"
+
+msgid "Actual Fan Stage"
+msgstr "实际粉丝阶段"
+
+msgid "Actuator 1 Feedback"
+msgstr "执行器 1 反馈"
+
+msgid "Actuator 2 Feedback"
+msgstr "执行器 2 反馈"
+
+msgid "Actuator 3 Feedback"
+msgstr "执行器 3 反馈"
+
+msgid "Actuator 4 Feedback"
+msgstr "执行器 4 反馈"
+
+msgid "Actuator 5 Feedback"
+msgstr "执行器 5 反馈"
+
+msgid "Actuator 6 Feedback"
+msgstr "执行器 6 反馈"
+
+msgid "Actuator 7 Feedback"
+msgstr "执行器 7 反馈"
+
+msgid "Actuator 8 Feedback"
+msgstr "执行器 8 反馈"
+
+msgid "Actuator Fault Indication"
+msgstr "执行器故障指示"
+
+msgid "Actuator Feedback"
+msgstr "执行器反馈"
+
+msgid "Actuator Feedback Input Count"
+msgstr "执行器反馈输入计数"
+
+msgid "Actuator Feedback Settings"
+msgstr "执行器反馈设置"
+
+msgid "Actuator Feedback State"
+msgstr "执行器反馈状态"
+
+msgid "Actuator Output Settings"
+msgstr "执行器输出设置"
+
+msgid "Actuator Priority Override"
+msgstr "执行器优先强制控制"
+
+msgid "Actuator Status Objects"
+msgstr "执行器状态对象"
+
+msgid "Actuator Status Settings"
+msgstr "执行器状态设置"
+
+msgid "Additional Functions"
+msgstr "附加功能"
+
+msgid "Additional Settings"
+msgstr "其他设置"
+
+msgid "Additional Text Entry Count"
+msgstr "附加文本输入计数"
+
+msgid "Additional functions"
+msgstr "附加功能"
+
+msgid "Additional page"
+msgstr "附加页"
+
+msgid "Adjust Regulation Rate During Covering Travel"
+msgstr "覆盖旅行期间调整调节率"
+
+msgid "Adjust Slats"
+msgstr "调整板条"
+
+msgid "Adjustable Value with Feedback"
+msgstr "带反馈的可调值"
+
+msgid "Adjustment Step"
+msgstr "调整步骤"
+
+msgid "Advance Switch-Off Warning"
+msgstr "提前关闭警告"
+
+msgid "Advanced External Button Settings"
+msgstr "高级外部按钮设置"
+
+msgid "Advanced Light Measurement Settings"
+msgstr "高级光测量设置"
+
+msgid "Advanced Status Settings"
+msgstr "高级状态设置"
+
+msgid "After the positioning count"
+msgstr "定位计数后"
+
+msgid "Alarm"
+msgstr "警报"
+
+msgid "Alarm (1 bit)"
+msgstr "报警（1位）"
+
+msgid "Alarm Action"
+msgstr "报警动作"
+
+msgid "Alarm Clock"
+msgstr "闹钟"
+
+msgid "Alarm Description"
+msgstr "报警说明"
+
+msgid "Alarm Handling Type"
+msgstr "报警处理类型"
+
+msgid "Alarm Indication"
+msgstr "报警指示"
+
+msgid "Alarm Input"
+msgstr "报警输入"
+
+msgid "Alarm Message Sound"
+msgstr "报警信息声音"
+
+msgid "Alarm Postponement Duration (ms)"
+msgstr "报警延迟持续时间(ms)"
+
+msgid "Alarm Repeat Interval"
+msgstr "警报重复间隔"
+
+msgid "Alarm Settings"
+msgstr "报警设置"
+
+msgid "Alarm Sound Duration"
+msgstr "警报声音持续时间"
+
+msgid "Alarm Text"
+msgstr "报警文本"
+
+msgid "Album"
+msgstr "专辑"
+
+msgid "Allow Automatic Shading Request"
+msgstr "允许自动着色请求"
+
+msgid "Allow Comfort Extension from Protection Mode"
+msgstr "允许舒适扩展保护模式"
+
+msgid "Allow Local Access Code Changes"
+msgstr "允许更改本地访问代码"
+
+msgid "Allow Local Fan Stage Selection"
+msgstr "允许本地风扇阶段选择"
+
+msgid "Allow Local System Settings"
+msgstr "允许本地系统设置"
+
+msgid "Allow Manual Switching During Frost Protection"
+msgstr "允许在防霜期间手动切换"
+
+msgid "Allow Scene Editor to Replace Values"
+msgstr "允许场景编辑器替换值"
+
+msgid "Allow Scene Saving"
+msgstr "允许场景保存"
+
+msgid "Allow Scene Telegram to Replace Values"
+msgstr "允许场景电报替换值"
+
+msgid "Allow Switch-Off by Relative Dimming"
+msgstr "允许通过相对调光关闭"
+
+msgid "Allow Switch-On by Relative Dimming"
+msgstr "允许通过相对调光打开"
+
+msgid "Allow Target Adjustment in Energy-Saving Mode"
+msgstr "允许在节能模式下进行目标调整"
+
+msgid "Allow Threshold Learning via Bus"
+msgstr "允许通过总线进行阈值学习"
+
+msgid "Allowed Setpoint Controls"
+msgstr "允许的设定点控制"
+
+msgid "Alphabetical order"
+msgstr "按字母顺序排列"
+
+msgid "Also on value change"
+msgstr "数值变化时也发送"
+
+msgid "Alternate direction"
+msgstr "交替方向"
+
+msgid "Alternate values 1 and 2"
+msgstr "交替发送值 1 和值 2"
+
+msgid "Alternating On and Off Phases"
+msgstr "交替开启和关闭阶段"
+
+msgid "Always"
+msgstr "总是"
+
+msgid "Always enabled"
+msgstr "始终启用"
+
+msgid "Always off"
+msgstr "始终关闭"
+
+msgid "Always on"
+msgstr "始终开启"
+
+msgid "Ambient Light Functions"
+msgstr "环境光功能"
+
+msgid "Ambient Light Object (lx)"
+msgstr "环境光物体 (lx)"
+
+msgid "Ambient Light Repeat Interval"
+msgstr "环境光重复间隔"
+
+msgid "Ambient Light Result Data Type"
+msgstr "环境光结果数据类型"
+
+msgid "Ambient Light Result Repeat Interval"
+msgstr "环境光结果重复间隔"
+
+msgid "Ambient Light Result Transmission Timing"
+msgstr "环境光结果传输时序"
+
+msgid "Ambient Light Result Transmission Triggers"
+msgstr "环境光结果传输触发"
+
+msgid "Ambient Light Switching Enable Object"
+msgstr "环境光切换启用对象"
+
+msgid "Ambient Light Switching Enable State After Power Return"
+msgstr "电源恢复后环境光切换启用状态"
+
+msgid "Ambient Light Threshold (lx)"
+msgstr "环境光阈值 (lx)"
+
+msgid "Ambient Light Threshold Count"
+msgstr "环境光阈值计数"
+
+msgid "Ambient-Light Threshold 1 Advanced Settings"
+msgstr "环境光阈值 1 高级设置"
+
+msgid "Ambient-Light Threshold 1 Enable"
+msgstr "环境光阈值 1 启用"
+
+msgid "Ambient-Light Threshold 1 Input"
+msgstr "环境光阈值 1 输入"
+
+msgid "Ambient-Light Threshold 1 Result"
+msgstr "环境光阈值 1 结果"
+
+msgid "Ambient-Light Threshold 1 Settings"
+msgstr "环境光阈值 1 设置"
+
+msgid "Ambient-Light Threshold 2 Advanced Settings"
+msgstr "环境光阈值 2 高级设置"
+
+msgid "Ambient-Light Threshold 2 Enable"
+msgstr "环境光阈值 2 启用"
+
+msgid "Ambient-Light Threshold 2 Input"
+msgstr "环境光阈值 2 输入"
+
+msgid "Ambient-Light Threshold 2 Result"
+msgstr "环境光阈值 2 结果"
+
+msgid "Ambient-Light Threshold 2 Settings"
+msgstr "环境光阈值 2 设置"
+
+msgid "Ambient-Light Threshold 3 Advanced Settings"
+msgstr "环境光阈值 3 高级设置"
+
+msgid "Ambient-Light Threshold 3 Enable"
+msgstr "环境光阈值 3 启用"
+
+msgid "Ambient-Light Threshold 3 Input"
+msgstr "环境光阈值 3 输入"
+
+msgid "Ambient-Light Threshold 3 Result"
+msgstr "环境光阈值 3 结果"
+
+msgid "Ambient-Light Threshold 3 Settings"
+msgstr "环境光阈值 3 设置"
+
+msgid "Analog clock"
+msgstr "模拟时钟"
+
+msgid "Any received value"
+msgstr "任何收到的值"
+
+msgid "Application ID"
+msgstr "应用 ID"
+
+msgid "Application Revision"
+msgstr "申请修改"
+
+msgid "Apply Brightness Condition to Auxiliary Input"
+msgstr "将亮度条件应用于辅助输入"
+
+msgid "Apply Detection Inactive Interval to Auxiliary Input"
+msgstr "将检测无效间隔应用于辅助输入"
+
+msgid "Apply Light Condition to Follower Inputs"
+msgstr "将光照条件应用于跟随器输入"
+
+msgid "Arabic"
+msgstr "阿拉伯语"
+
+msgid "Archive Alarm When Cleared"
+msgstr "清除后存档警报"
+
+msgid "Archive Message on Acknowledgement"
+msgstr "确认时归档消息"
+
+msgid "Artificial Light Estimation Weight"
+msgstr "人工光估计重量"
+
+msgid "Artificial Light Measurement Delay"
+msgstr "人造光测量延迟"
+
+msgid "Artist"
+msgstr "艺术家"
+
+msgid "Assigned Audio Output"
+msgstr "分配的音频输出"
+
+msgid "At 00:02"
+msgstr "00:02 时"
+
+msgid "At 00:02 and on daylight-saving changes"
+msgstr "00:02 以及夏令时变更"
+
+msgid "At intervals and on value change"
+msgstr "按时间间隔和值变化"
+
+msgid "At midnight"
+msgstr "午夜时分"
+
+msgid "At midnight and on daylight-saving changes"
+msgstr "午夜和夏令时变更"
+
+msgid "At recurring intervals"
+msgstr "以重复的间隔"
+
+msgid "Atmospheric Pressure"
+msgstr "大气压"
+
+msgid "Atmospheric pressure"
+msgstr "大气压"
+
+msgid "Audible Control Feedback"
+msgstr "声音控制反馈"
+
+msgid "Audio Level Adjustment (%)"
+msgstr "音频电平调整 (%)"
+
+msgid "Audio Playback and Volume Controls"
+msgstr "音频播放和音量控制"
+
+msgid "Audio Volume"
+msgstr "音频音量"
+
+msgid "Audio Volume Adjustment"
+msgstr "音频音量调节"
+
+msgid "Auto/On/Off Selection Object"
+msgstr "自动/开/关选择对象"
+
+msgid "Automatic"
+msgstr "自动"
+
+msgid "Automatic Acknowledgement Delay (ms)"
+msgstr "自动确认延迟(ms)"
+
+msgid "Automatic Fan Indication Source"
+msgstr "自动风扇指示源"
+
+msgid "Automatic Reference Travel"
+msgstr "自动参考行程"
+
+msgid "Automatic Regulation Return Delay (min)"
+msgstr "返回自动调节的延迟 (min)"
+
+msgid "Automatic Resume Delay After Manual Dimming"
+msgstr "手动调光后自动恢复延迟"
+
+msgid "Automatic Resume Delay After Manual Off"
+msgstr "手动关闭后自动恢复延迟"
+
+msgid "Automatic Shading"
+msgstr "自动遮光"
+
+msgid "Automatic and Manual Off Selection Object"
+msgstr "自动和手动关闭选择对象"
+
+msgid "Automatic or Manual Off"
+msgstr "自动或手动关闭"
+
+msgid "Automatic switch off"
+msgstr "自动关闭"
+
+msgid "Automatic switch on"
+msgstr "自动开机"
+
+msgid "Auxiliary Button Action"
+msgstr "辅助按钮动作"
+
+msgid "Auxiliary Combined Demand"
+msgstr "辅助综合需求"
+
+msgid "Auxiliary Combined Demand Data Type"
+msgstr "辅助组合需求数据类型"
+
+msgid "Auxiliary Combined Output"
+msgstr "辅助组合输出"
+
+msgid "Auxiliary Control Input"
+msgstr "辅助控制输入"
+
+msgid "Auxiliary Cooling Controller"
+msgstr "辅助冷却控制器"
+
+msgid "Auxiliary Cooling Data Type"
+msgstr "辅助冷却数据类型"
+
+msgid "Auxiliary Cooling Demand"
+msgstr "辅助冷却需求"
+
+msgid "Auxiliary Cooling Lower Hysteresis"
+msgstr "辅助冷却降低滞后"
+
+msgid "Auxiliary Cooling Polarity"
+msgstr "辅助冷却极性"
+
+msgid "Auxiliary Cooling Stage"
+msgstr "辅助冷却台"
+
+msgid "Auxiliary Cooling Temperature Offset"
+msgstr "辅助冷却温度偏移"
+
+msgid "Auxiliary Cooling Transmission Interval (min)"
+msgstr "辅助制冷发送间隔 (min)"
+
+msgid "Auxiliary Display Quantity"
+msgstr "辅助显示数量"
+
+msgid "Auxiliary Heating Controller"
+msgstr "辅助加热控制器"
+
+msgid "Auxiliary Heating Data Type"
+msgstr "辅助加热数据类型"
+
+msgid "Auxiliary Heating Demand"
+msgstr "辅助供热需求"
+
+msgid "Auxiliary Heating Polarity"
+msgstr "辅助加热极性"
+
+msgid "Auxiliary Heating Stage"
+msgstr "辅助加热台"
+
+msgid "Auxiliary Heating System Type"
+msgstr "辅助加热系统类型"
+
+msgid "Auxiliary Heating Temperature Offset"
+msgstr "辅助加热温度偏移"
+
+msgid "Auxiliary Heating Transmission Interval (min)"
+msgstr "辅助供暖发送间隔 (min)"
+
+msgid "Auxiliary Heating Upper Hysteresis"
+msgstr "辅助加热上部迟滞"
+
+msgid "Auxiliary Menu Graphic"
+msgstr "辅助菜单图"
+
+msgid "Auxiliary Stage Offset (0.1 Degree)"
+msgstr "辅助平台偏移（0.1 度）"
+
+msgid "Available Follower Controls"
+msgstr "可用的跟随器控件"
+
+msgid "Available Temperature Targets"
+msgstr "可用温度目标"
+
+msgid "Available User Actions"
+msgstr "可用的用户操作"
+
+msgid "Average input"
+msgstr "平均输入"
+
+msgid "Awning animation"
+msgstr "雨篷动画"
+
+msgid "Basic Four-Channel Motion Sensor"
+msgstr "基本四通道运动传感器"
+
+msgid "Basic Settings"
+msgstr "基本设置"
+
+msgid "Beaufort"
+msgstr "博福特"
+
+msgid "Behavior After Bus Power Recovery"
+msgstr "总线电源恢复后的行为"
+
+msgid "Below threshold"
+msgstr "低于阈值"
+
+msgid "Binary Output Feedback"
+msgstr "二进制输出反馈"
+
+msgid "Binary State 1"
+msgstr "二元状态1"
+
+msgid "Binary State 2"
+msgstr "二元态2"
+
+msgid "Black"
+msgstr "黑色"
+
+msgid "Blind Command Format"
+msgstr "百叶帘命令格式"
+
+msgid "Blind Control"
+msgstr "盲控"
+
+msgid "Blind Display Control"
+msgstr "盲显控制"
+
+msgid "Blind Travel"
+msgstr "百叶帘升降"
+
+msgid "Blind Travel and Step Input"
+msgstr "盲行程和步进输入"
+
+msgid "Blind animation"
+msgstr "盲人动画"
+
+msgid "Blind with adjustable slats"
+msgstr "可调叶片的百叶帘"
+
+msgid "Block All Schedules"
+msgstr "阻止所有时间表"
+
+msgid "Block Device Controls"
+msgstr "锁定设备操作"
+
+msgid "Block Input"
+msgstr "块输入"
+
+msgid "Block Local Operation"
+msgstr "阻止本地操作"
+
+msgid "Block matching values, delay others"
+msgstr "阻止匹配值，延迟其他值"
+
+msgid "Block off values"
+msgstr "阻止关值"
+
+msgid "Block on values"
+msgstr "阻止开值"
+
+msgid "Blocked"
+msgstr "已阻止"
+
+msgid "Blocking Hour"
+msgstr "封锁时间"
+
+msgid "Blocking Minute"
+msgstr "阻塞分钟"
+
+msgid "Blocking Status"
+msgstr "阻止状态"
+
+msgid "Blue"
+msgstr "蓝色"
+
+msgid "Blue Bank Red IR Memory Key"
+msgstr "蓝色银行红色红外记忆钥匙"
+
+msgid "Blue IR Button Pair 1"
+msgstr "蓝色红外按钮一对 1"
+
+msgid "Blue IR Button Pair 2"
+msgstr "蓝色红外按钮对 2"
+
+msgid "Blue IR Button Pair 3"
+msgstr "蓝色红外按钮对 3"
+
+msgid "Blue IR Button Pair 4"
+msgstr "蓝色红外按钮对 4"
+
+msgid "Blue IR Button Pair 5"
+msgstr "蓝色红外按钮对 5"
+
+msgid "Blue IR Command Bank"
+msgstr "蓝色 IR 命令库"
+
+msgid "Blue IR Memory M1"
+msgstr "蓝色红外存储器 M1"
+
+msgid "Blue IR Memory M2"
+msgstr "蓝色红外存储器 M2"
+
+msgid "Blue IR Memory M3"
+msgstr "蓝色红外存储器 M3"
+
+msgid "Blue IR Memory M4"
+msgstr "蓝色红外存储器 M4"
+
+msgid "Blue IR Pair 1 Contact 2"
+msgstr "蓝色 IR 对 1 触点 2"
+
+msgid "Blue IR Pair 2 Contact 2"
+msgstr "蓝色 IR 对 2 触点 2"
+
+msgid "Blue IR Pair 3 Contact 2"
+msgstr "蓝色 IR 对 3 触点 2"
+
+msgid "Blue IR Pair 4 Contact 2"
+msgstr "蓝色 IR 对 4 触点 2"
+
+msgid "Blue IR Pair 5 Contact 2"
+msgstr "蓝色 IR 对 5 触点 2"
+
+msgid "Blue IR Right Button 1"
+msgstr "蓝色红外右按钮 1"
+
+msgid "Blue IR Right Button 2"
+msgstr "蓝色红外右按钮 2"
+
+msgid "Blue IR Right Button 3"
+msgstr "蓝色红外右按钮 3"
+
+msgid "Blue IR Right Button 4"
+msgstr "蓝色红外右按钮 4"
+
+msgid "Blue IR Right Button 5"
+msgstr "蓝色红外右按钮 5"
+
+msgid "Blue Intensity"
+msgstr "蓝色强度"
+
+msgid "Blue for coverings"
+msgstr "蓝色用于覆盖物"
+
+msgid "Blue, high brightness"
+msgstr "蓝色、高亮度"
+
+msgid "Blue, low brightness"
+msgstr "蓝色、低亮度"
+
+msgid "Boolean Logic"
+msgstr "布尔逻辑"
+
+msgid "Both"
+msgstr "两者都"
+
+msgid "Both directions"
+msgstr "两个方向"
+
+msgid "Boundary Between Ranges 2 and 3"
+msgstr "范围 2 和 3 之间的边界"
+
+msgid "Boundary Between Ranges 3 and 4"
+msgstr "范围 3 和 4 之间的边界"
+
+msgid "Brighten Graphic"
+msgstr "增亮图形"
+
+msgid "Brighten Graphic Position"
+msgstr "增亮图形位置"
+
+msgid "Brightness Change (%)"
+msgstr "亮度变化 (%)"
+
+msgid "Brightness Change for Feedback"
+msgstr "反馈亮度变化"
+
+msgid "Brightness Control Channel 1"
+msgstr "亮度控制通道1"
+
+msgid "Brightness Control Channel 2"
+msgstr "亮度控制通道2"
+
+msgid "Brightness Decrease Step"
+msgstr "亮度降低步长"
+
+msgid "Brightness Filter Coefficient"
+msgstr "亮度滤光系数"
+
+msgid "Brightness Filter Update Interval (ms)"
+msgstr "亮度滤光片更新间隔(ms)"
+
+msgid "Brightness Increase Step"
+msgstr "亮度增加步骤"
+
+msgid "Brightness Output Feedback"
+msgstr "亮度输出反馈"
+
+msgid "Brightness Selection Input"
+msgstr "亮度选择输入"
+
+msgid "Brightness Transition Speed"
+msgstr "亮度转变速度"
+
+msgid "Brightness Value Adjustment"
+msgstr "亮度值调整"
+
+msgid "Brightness control independent of motion"
+msgstr "独立于运动的亮度控制"
+
+msgid "Brightness threshold control"
+msgstr "亮度阈值控制"
+
+msgid "Brightness-Independent Detection After Power Recovery"
+msgstr "电源恢复后与亮度无关的检测"
+
+msgid "Brightness-Independent Detection Enable Object"
+msgstr "与亮度无关的检测启用对象"
+
+msgid "Brightness-Independent Detection Input"
+msgstr "与亮度无关的检测输入"
+
+msgid "Brightness-Independent Detection Polarity"
+msgstr "与亮度无关的检测极性"
+
+msgid "Building Protection"
+msgstr "建筑保护"
+
+msgid "Building protection"
+msgstr "建筑保护"
+
+msgid "Built-In Light Measurement Weight"
+msgstr "内置轻型测量重量"
+
+msgid "Built-In Light Threshold (lx)"
+msgstr "内置光阈值 (lx)"
+
+msgid "Built-In Light Threshold Object"
+msgstr "内置光阈值对象"
+
+msgid "Built-In Temperature Offset (0.1 Degree)"
+msgstr "内置温度偏移（0.1 度）"
+
+msgid "Built-In Temperature Transmission Interval"
+msgstr "内置温度传输间隔"
+
+msgid "Bus Coupler with Buttons"
+msgstr "带按钮的总线耦合器"
+
+msgid "Bus Coupler with Covering or Paired Outputs"
+msgstr "具有覆盖或成对输出的总线耦合器"
+
+msgid "Bus Data Type"
+msgstr "总线数据类型"
+
+msgid "Bus Power Loss Response"
+msgstr "总线断电响应"
+
+msgid "Button Blind Control"
+msgstr "按键百叶帘控制"
+
+msgid "Button Dimming"
+msgstr "按键调光"
+
+msgid "Button Stage Control"
+msgstr "按键级别控制"
+
+msgid "Button Switching"
+msgstr "按键开关"
+
+msgid "Button Value Output"
+msgstr "按键数值输出"
+
+msgid "Byte value"
+msgstr "字节值"
+
+msgid "CD Pause"
+msgstr "CD暂停"
+
+msgid "CD Play"
+msgstr "光盘播放"
+
+msgid "CD Power"
+msgstr "光盘电源"
+
+msgid "CD Stop"
+msgstr "CD停止"
+
+msgid "CD Volume"
+msgstr "光盘容量"
+
+msgid "CO2 Concentration"
+msgstr "二氧化碳浓度"
+
+msgid "CO2 concentration"
+msgstr "二氧化碳浓度"
+
+msgid "CSV Export Filename"
+msgstr "CSV 导出文件名"
+
+msgid "Call Ended"
+msgstr "通话结束"
+
+msgid "Call Started"
+msgstr "通话已开始"
+
+msgid "Call Volume"
+msgstr "通话音量"
+
+msgid "Call Volume Adjustment"
+msgstr "通话音量调节"
+
+msgid "Cancel the sequence"
+msgstr "取消序列"
+
+msgid "Ceiling cooling: 5 K, 240 min"
+msgstr "天花板冷却：5 K，240 分钟"
+
+msgid "Celsius or Fahrenheit"
+msgstr "摄氏度或华氏度"
+
+msgid "Change Object 1 in Scene"
+msgstr "更改场景中的对象 1"
+
+msgid "Change Object 10 in Scene"
+msgstr "更改场景中的对象 10"
+
+msgid "Change Object 11 in Scene"
+msgstr "更改场景中的对象 11"
+
+msgid "Change Object 12 in Scene"
+msgstr "更改场景中的对象 12"
+
+msgid "Change Object 13 in Scene"
+msgstr "更改场景中的对象 13"
+
+msgid "Change Object 14 in Scene"
+msgstr "更改场景中的对象 14"
+
+msgid "Change Object 15 in Scene"
+msgstr "更改场景中的对象 15"
+
+msgid "Change Object 2 in Scene"
+msgstr "更改场景中的对象 2"
+
+msgid "Change Object 3 in Scene"
+msgstr "更改场景中的对象 3"
+
+msgid "Change Object 4 in Scene"
+msgstr "更改场景中的对象 4"
+
+msgid "Change Object 5 in Scene"
+msgstr "更改场景中的对象 5"
+
+msgid "Change Object 6 in Scene"
+msgstr "更改场景中的对象 6"
+
+msgid "Change Object 7 in Scene"
+msgstr "更改场景中的对象 7"
+
+msgid "Change Object 8 in Scene"
+msgstr "更改场景中的对象 8"
+
+msgid "Change Object 9 in Scene"
+msgstr "更改场景中的对象 9"
+
+msgid "Changed values only"
+msgstr "仅在值变化时"
+
+msgid "Channel 1"
+msgstr "频道1"
+
+msgid "Channel 1 Maximum Output"
+msgstr "通道1最大输出"
+
+msgid "Channel 1 Minimum Output"
+msgstr "通道 1 最小输出"
+
+msgid "Channel 10"
+msgstr "10频道"
+
+msgid "Channel 11"
+msgstr "11频道"
+
+msgid "Channel 12"
+msgstr "12频道"
+
+msgid "Channel 13"
+msgstr "13频道"
+
+msgid "Channel 14"
+msgstr "14频道"
+
+msgid "Channel 15"
+msgstr "15频道"
+
+msgid "Channel 16"
+msgstr "16频道"
+
+msgid "Channel 17"
+msgstr "17频道"
+
+msgid "Channel 18"
+msgstr "18频道"
+
+msgid "Channel 19"
+msgstr "19频道"
+
+msgid "Channel 2"
+msgstr "频道2"
+
+msgid "Channel 2 Maximum Output"
+msgstr "通道2最大输出"
+
+msgid "Channel 2 Minimum Output"
+msgstr "通道 2 最小输出"
+
+msgid "Channel 20"
+msgstr "20频道"
+
+msgid "Channel 3"
+msgstr "频道3"
+
+msgid "Channel 4"
+msgstr "频道4"
+
+msgid "Channel 5"
+msgstr "频道5"
+
+msgid "Channel 6"
+msgstr "频道6"
+
+msgid "Channel 7"
+msgstr "7频道"
+
+msgid "Channel 8"
+msgstr "8频道"
+
+msgid "Channel 9"
+msgstr "9频道"
+
+msgid "Channel A"
+msgstr "频道A"
+
+msgid "Channel B"
+msgstr "频道B"
+
+msgid "Channel C"
+msgstr "C频道"
+
+msgid "Channel Count"
+msgstr "通道数"
+
+msgid "Channel D"
+msgstr "频道D"
+
+msgid "Channel E"
+msgstr "E频道"
+
+msgid "Channel F"
+msgstr "F频道"
+
+msgid "Channel and Output Grouping"
+msgstr "通道和输出分组"
+
+msgid "Chinese"
+msgstr "中文"
+
+msgid "Circular Menu Entry Count"
+msgstr "循环菜单条目计数"
+
+msgid "Circular Menu Language"
+msgstr "循环菜单语言"
+
+msgid "Circular Menu List Graphic"
+msgstr "圆形菜单列表图形"
+
+msgid "Circular Menu Settings"
+msgstr "圆形菜单设置"
+
+msgid "Circular Menu Settings Graphic"
+msgstr "圆形菜单设置图形"
+
+msgid "Circular menu"
+msgstr "圆形菜单"
+
+msgid "Circular scale"
+msgstr "圆形刻度"
+
+msgid "Circular-Menu Entry 1"
+msgstr "循环菜单条目 1"
+
+msgid "Circular-Menu Entry 2"
+msgstr "循环菜单条目 2"
+
+msgid "Circular-Menu Entry 3"
+msgstr "循环菜单条目 3"
+
+msgid "Circular-Menu Entry 4"
+msgstr "循环菜单条目 4"
+
+msgid "Circular-Menu Entry 5"
+msgstr "循环菜单条目 5"
+
+msgid "Circular-Menu Entry 6"
+msgstr "循环菜单条目 6"
+
+msgid "Circular-Menu Entry 7"
+msgstr "循环菜单条目 7"
+
+msgid "Circular-Menu Entry 8"
+msgstr "循环菜单条目 8"
+
+msgid "Circular-menu entry 1"
+msgstr "循环菜单条目 1"
+
+msgid "Cleaning Lock Duration"
+msgstr "清洁锁持续时间"
+
+msgid "Cleaning Touch Lock"
+msgstr "清洁触摸锁"
+
+msgid "Clear Adjustment on Mode Change"
+msgstr "模式改变时清除调整值"
+
+msgid "Clear Adjustment on New Reference"
+msgstr "收到新基准值时清除调整值"
+
+msgid "Clear Local Adjustments"
+msgstr "清除局部调整"
+
+msgid "Clear Manual Adjustment on Mode Change"
+msgstr "模式改变时清除手动调整值"
+
+msgid "Clear Manual Adjustment via Object"
+msgstr "通过对象清除手动调整"
+
+msgid "Clear display"
+msgstr "显示清晰"
+
+msgid "Clear night adjustment when leaving night mode"
+msgstr "离开夜间模式时清除夜间调整"
+
+msgid "Clock Display Style"
+msgstr "时钟显示方式"
+
+msgid "Closed State Graphic"
+msgstr "关闭状态图"
+
+msgid "Color and White Channel Selection"
+msgstr "颜色和白色通道选择"
+
+msgid "Color and White-Light Control"
+msgstr "颜色和白光控制"
+
+msgid "Colored symbols"
+msgstr "彩色符号"
+
+msgid "Combine Internal and External Light Evaluation"
+msgstr "结合内部和外部光评估"
+
+msgid "Combined Date and Time Data Type"
+msgstr "组合日期和时间数据类型"
+
+msgid "Combined Demand Data Type"
+msgstr "组合需求数据类型"
+
+msgid "Combined Heating and Cooling Control"
+msgstr "加热和冷却组合控制"
+
+msgid "Combined Heating and Cooling Demand"
+msgstr "供暖和制冷综合需求"
+
+msgid "Combined Heating and Cooling Output"
+msgstr "联合供热和制冷输出"
+
+msgid "Combined Light Measurement"
+msgstr "组合光测量"
+
+msgid "Combined Temperature Measurement"
+msgstr "组合温度测量"
+
+msgid "Comfort"
+msgstr "舒适"
+
+msgid "Comfort Cooling Setpoint"
+msgstr "舒适冷却设定值"
+
+msgid "Comfort Extension Duration (min)"
+msgstr "舒适模式延长时长 (min)"
+
+msgid "Comfort Heating Setpoint"
+msgstr "舒适供暖设定点"
+
+msgid "Comfort Heating and Cooling Target Gap"
+msgstr "舒适模式供暖与制冷设定值之差"
+
+msgid "Comfort Mode"
+msgstr "舒适模式"
+
+msgid "Comfort Mode Command"
+msgstr "舒适模式命令"
+
+msgid "Comfort Mode Output"
+msgstr "舒适模式输出"
+
+msgid "Comfort Setpoint Relationship"
+msgstr "舒适设定点关系"
+
+msgid "Comfort and Economy Changeover"
+msgstr "舒适型与经济型的转换"
+
+msgid "Comfort cooling setpoint"
+msgstr "舒适制冷设定值"
+
+msgid "Comfort heating setpoint"
+msgstr "舒适供暖设定值"
+
+msgid "Comfort setpoint midpoint"
+msgstr "舒适设定点中点"
+
+msgid "Comma"
+msgstr "逗号"
+
+msgid "Command Repeat Interval (ms)"
+msgstr "命令重复间隔 (ms)"
+
+msgid "Communication Object 1"
+msgstr "通讯对象1"
+
+msgid "Communication Object 10"
+msgstr "通讯对象10"
+
+msgid "Communication Object 11"
+msgstr "通讯对象11"
+
+msgid "Communication Object 12"
+msgstr "通讯对象12"
+
+msgid "Communication Object 13"
+msgstr "通讯对象13"
+
+msgid "Communication Object 14"
+msgstr "通讯对象14"
+
+msgid "Communication Object 15"
+msgstr "通讯对象15"
+
+msgid "Communication Object 16"
+msgstr "通讯对象16"
+
+msgid "Communication Object 17"
+msgstr "通讯对象17"
+
+msgid "Communication Object 18"
+msgstr "通讯对象18"
+
+msgid "Communication Object 19"
+msgstr "通讯对象19"
+
+msgid "Communication Object 2"
+msgstr "通讯对象2"
+
+msgid "Communication Object 20"
+msgstr "通讯对象20"
+
+msgid "Communication Object 3"
+msgstr "通讯对象3"
+
+msgid "Communication Object 4"
+msgstr "通讯对象4"
+
+msgid "Communication Object 5"
+msgstr "通讯对象5"
+
+msgid "Communication Object 6"
+msgstr "通讯对象6"
+
+msgid "Communication Object 7"
+msgstr "通讯对象7"
+
+msgid "Communication Object 8"
+msgstr "通讯对象8"
+
+msgid "Communication Object 9"
+msgstr "通讯对象9"
+
+msgid "Compact energy-saving lamp, 150 s settling"
+msgstr "紧凑型节能灯，150 秒稳定"
+
+msgid "Compact fluorescent load"
+msgstr "紧凑型荧光负载"
+
+msgid "Comparison Hysteresis"
+msgstr "比较迟滞"
+
+msgid "Comparison Relationship"
+msgstr "比较关系"
+
+msgid "Compiled Function Code"
+msgstr "编译后的函数代码"
+
+msgid "Condensation Detected"
+msgstr "检测到凝结"
+
+msgid "Condensation Protection Response"
+msgstr "凝露防护响应"
+
+msgid "Conditional Value Selection"
+msgstr "条件值选择"
+
+msgid "Configuration Size (Bytes)"
+msgstr "配置大小（字节）"
+
+msgid "Configured List Entry Count"
+msgstr "配置的列表条目计数"
+
+msgid "Configured constant"
+msgstr "配置常量"
+
+msgid "Configured false value"
+msgstr "配置的假值"
+
+msgid "Configured lower-threshold result"
+msgstr "配置的下阈值结果"
+
+msgid "Configured off value"
+msgstr "配置的关值"
+
+msgid "Configured on value"
+msgstr "配置的开值"
+
+msgid "Configured setting"
+msgstr "配置设置"
+
+msgid "Configured true value"
+msgstr "配置的真实值"
+
+msgid "Configured upper-threshold result"
+msgstr "配置的上阈值结果"
+
+msgid "Configured values"
+msgstr "配置值"
+
+msgid "Confirmation and mode controls"
+msgstr "确认和模式控制"
+
+msgid "Constant Comparison Temperature"
+msgstr "恒定比较温度"
+
+msgid "Constant Light Regulation"
+msgstr "恒定光调节"
+
+msgid "Constant Value Control"
+msgstr "定值控制"
+
+msgid "Contact 1 Value"
+msgstr "触点 1 值"
+
+msgid "Contact 1 brightens, contact 2 dims"
+msgstr "触点 1 变亮，触点 2 变暗"
+
+msgid "Contact 1 dims, contact 2 brightens"
+msgstr "触点 1 变暗，触点 2 变亮"
+
+msgid "Contact 1 lowers, contact 2 raises"
+msgstr "触点 1 降低，触点 2 升高"
+
+msgid "Contact 1 off, contact 2 on"
+msgstr "触点 1 关闭，触点 2 开启"
+
+msgid "Contact 1 on, contact 2 off"
+msgstr "触点 1 打开，触点 2 关闭"
+
+msgid "Contact 1 raises, contact 2 lowers"
+msgstr "触点 1 升高，触点 2 降低"
+
+msgid "Contact 1 value 1, contact 2 value 2"
+msgstr "触点 1 值 1，触点 2 值 2"
+
+msgid "Contact 1 value 2, contact 2 value 1"
+msgstr "触点 1 值 2，触点 2 值 1"
+
+msgid "Contact 2 Value"
+msgstr "触点 2 值"
+
+msgid "Contact Actions"
+msgstr "联系行动"
+
+msgid "Contact Switching Actions"
+msgstr "触点切换动作"
+
+msgid "Continuous Dimming Stop"
+msgstr "连续调光停止"
+
+msgid "Control 1 Indicator"
+msgstr "控制 1 指示灯"
+
+msgid "Control 2"
+msgstr "控制2"
+
+msgid "Control 2 Indicator"
+msgstr "控制 2 指示灯"
+
+msgid "Control 3 Indicator"
+msgstr "控制 3 指示灯"
+
+msgid "Control 4"
+msgstr "控制4"
+
+msgid "Control 4 Indicator"
+msgstr "控制 4 指示灯"
+
+msgid "Control 5 Indicator"
+msgstr "控制 5 指示灯"
+
+msgid "Control 6"
+msgstr "控制6"
+
+msgid "Control 6 Indicator"
+msgstr "控制 6 指示灯"
+
+msgid "Control Action"
+msgstr "控制动作"
+
+msgid "Control Action Text"
+msgstr "控制动作文本"
+
+msgid "Control Another Room Controller"
+msgstr "控制另一个房间控制器"
+
+msgid "Control Component Revision"
+msgstr "控制组件修订"
+
+msgid "Control Component Type Code"
+msgstr "控制元件类型代码"
+
+msgid "Control Dimensions"
+msgstr "控制尺寸"
+
+msgid "Control Element ID"
+msgstr "控制元件 ID"
+
+msgid "Control Element Name"
+msgstr "控制元件名称"
+
+msgid "Control Element Type"
+msgstr "控制元件类型"
+
+msgid "Control Event Scheme"
+msgstr "控制事件方案"
+
+msgid "Control Frame 1"
+msgstr "控制帧1"
+
+msgid "Control Frame 10"
+msgstr "控制框10"
+
+msgid "Control Frame 11"
+msgstr "控制框11"
+
+msgid "Control Frame 12"
+msgstr "控制框12"
+
+msgid "Control Frame 13"
+msgstr "控制框13"
+
+msgid "Control Frame 14"
+msgstr "控制框14"
+
+msgid "Control Frame 15"
+msgstr "控制框15"
+
+msgid "Control Frame 16"
+msgstr "控制帧16"
+
+msgid "Control Frame 2"
+msgstr "控制框2"
+
+msgid "Control Frame 3"
+msgstr "控制框3"
+
+msgid "Control Frame 4"
+msgstr "控制框4"
+
+msgid "Control Frame 5"
+msgstr "控制框5"
+
+msgid "Control Frame 6"
+msgstr "控制帧6"
+
+msgid "Control Frame 7"
+msgstr "控制框7"
+
+msgid "Control Frame 8"
+msgstr "控制帧8"
+
+msgid "Control Frame 9"
+msgstr "控制框9"
+
+msgid "Control Locator Color"
+msgstr "位置指示灯颜色"
+
+msgid "Control Module"
+msgstr "控制模块"
+
+msgid "Control Output Value 1"
+msgstr "控制输出值1"
+
+msgid "Control Output Value 2"
+msgstr "控制输出值2"
+
+msgid "Control Pair 1 and 2"
+msgstr "控制对 1 和 2"
+
+msgid "Control Pair 3 and 4"
+msgstr "控制对 3 和 4"
+
+msgid "Control Pair 5 and 6"
+msgstr "控制对 5 和 6"
+
+msgid "Control Row Count"
+msgstr "控制行数"
+
+msgid "Control element"
+msgstr "控制元件"
+
+msgid "Controlled Value Gate"
+msgstr "受控值门"
+
+msgid "Controller Disable Input"
+msgstr "控制器禁用输入"
+
+msgid "Controller Function After Reset"
+msgstr "复位后控制器功能"
+
+msgid "Controller demand (1 byte)"
+msgstr "控制器需求（1字节）"
+
+msgid "Controller disabled"
+msgstr "控制器已禁用"
+
+msgid "Controller mode selection"
+msgstr "控制器模式选择"
+
+msgid "Cool White Intensity"
+msgstr "冷白强度"
+
+msgid "Cooling"
+msgstr "制冷"
+
+msgid "Cooling Active"
+msgstr "冷却主动"
+
+msgid "Cooling Active Object"
+msgstr "冷却活动对象"
+
+msgid "Cooling Algorithm"
+msgstr "散热算法"
+
+msgid "Cooling Control"
+msgstr "冷却控制"
+
+msgid "Cooling Demand"
+msgstr "冷却需求"
+
+msgid "Cooling Demand Output"
+msgstr "冷却需求输出"
+
+msgid "Cooling Demand Polarity"
+msgstr "制冷需求极性"
+
+msgid "Cooling Demand Transmission Change"
+msgstr "制冷需求传输变化"
+
+msgid "Cooling Fan Automatic Return Delay (min)"
+msgstr "制冷风扇返回自动模式的延迟 (min)"
+
+msgid "Cooling Fault Mode"
+msgstr "冷却故障模式"
+
+msgid "Cooling Hysteresis (0.1 K)"
+msgstr "冷却滞后 (0.1 K)"
+
+msgid "Cooling Integral Time (min)"
+msgstr "制冷积分时间 (min)"
+
+msgid "Cooling PWM Period (min)"
+msgstr "制冷 PWM 周期 (min)"
+
+msgid "Cooling Proportional Band (0.1 Degree)"
+msgstr "冷却比例带（0.1度）"
+
+msgid "Cooling Reference Setpoint"
+msgstr "冷却参考设定点"
+
+msgid "Cooling Setpoints"
+msgstr "冷却设定点"
+
+msgid "Cooling System Type"
+msgstr "冷却系统类型"
+
+msgid "Cooling Transmission Interval (min)"
+msgstr "制冷发送间隔 (min)"
+
+msgid "Cooling disabled"
+msgstr "冷却禁用"
+
+msgid "Cooling reference and neutral band"
+msgstr "冷却参考和中性带"
+
+msgid "Cooling with auxiliary stage"
+msgstr "辅助级冷却"
+
+msgid "Coordinate Group Room Control"
+msgstr "协调群组房间控制"
+
+msgid "Coordinating controller"
+msgstr "协调控制器"
+
+msgid "Coordinator Displayed Setpoint"
+msgstr "协调器显示设定值"
+
+msgid "Coordinator Fan Stage Confirmation"
+msgstr "协调员粉丝阶段确认"
+
+msgid "Coordinator Fan Stage Request"
+msgstr "协调员粉丝舞台请求"
+
+msgid "Coordinator HVAC Status"
+msgstr "协调员 HVAC 状态"
+
+msgid "Coordinator Heating and Cooling Changeover Request"
+msgstr "协调器加热和冷却转换请求"
+
+msgid "Coordinator Manual Fan Control Request"
+msgstr "协调器手动风扇控制请求"
+
+msgid "Coordinator Manual Fan Selection"
+msgstr "协调器手动风扇选择"
+
+msgid "Coordinator Motion Result"
+msgstr "协调器运动结果"
+
+msgid "Coordinator Operating Mode"
+msgstr "协调器运行模式"
+
+msgid "Coordinator Regulation Enable"
+msgstr "协调器调节启用"
+
+msgid "Coordinator Regulation Enable Request"
+msgstr "协调器调节启用请求"
+
+msgid "Coordinator Setpoint Adjustment Request"
+msgstr "协调器设定点调整请求"
+
+msgid "Coordinator Setpoint Confirmation"
+msgstr "协调器设定点确认"
+
+msgid "Coordinator Temperature Fault"
+msgstr "协调器温度故障"
+
+msgid "Coordinator Unit Selection"
+msgstr "协调单位选择"
+
+msgid "Countdown Timer"
+msgstr "倒计时器"
+
+msgid "Covering Actuator"
+msgstr "覆盖执行器"
+
+msgid "Covering Control Assignment"
+msgstr "覆盖控制分配"
+
+msgid "Covering Control Graphic"
+msgstr "覆盖控制图形"
+
+msgid "Covering Display Control"
+msgstr "覆盖显示控制"
+
+msgid "Covering Feedback"
+msgstr "涵盖反馈"
+
+msgid "Covering Fully Lowered"
+msgstr "覆盖物完全降低"
+
+msgid "Covering Fully Raised"
+msgstr "覆盖物完全升起"
+
+msgid "Covering Height Feedback (%)"
+msgstr "覆盖高度反馈 (%)"
+
+msgid "Covering Height Feedback (1 Byte)"
+msgstr "覆盖高度反馈（1字节）"
+
+msgid "Covering Motor Output"
+msgstr "覆盖电机输出"
+
+msgid "Covering Moving"
+msgstr "覆盖移动"
+
+msgid "Covering Position Feedback"
+msgstr "覆盖位置反馈"
+
+msgid "Covering Position Input"
+msgstr "覆盖位置输入"
+
+msgid "Covering Travel Direction"
+msgstr "涵盖行进方向"
+
+msgid "Covering Travel and Slat Step"
+msgstr "覆盖行程和板条台阶"
+
+msgid "Covering Type and Operations"
+msgstr "覆盖类型和操作"
+
+msgid "Covering actuator"
+msgstr "覆盖执行器"
+
+msgid "Covering or Paired Outputs Without Local Controls"
+msgstr "无需本地控制即可覆盖或配对输出"
+
+msgid "Covering or Paired-Output Actuator"
+msgstr "覆盖或成对输出执行器"
+
+msgid "Crossfade"
+msgstr "交叉淡入淡出"
+
+msgid "Current Brightness Feedback"
+msgstr "当前亮度反馈"
+
+msgid "Current State Presentation"
+msgstr "当前状态介绍"
+
+msgid "Current Status"
+msgstr "目前状况"
+
+msgid "Current measurement"
+msgstr "电流测量"
+
+msgid "Current object value"
+msgstr "当前对象值"
+
+msgid "Curtain animation"
+msgstr "窗帘动画"
+
+msgid "Curve Input X0"
+msgstr "曲线输入X0"
+
+msgid "Curve Input X1"
+msgstr "曲线输入X1"
+
+msgid "Curve Input X2"
+msgstr "曲线输入X2"
+
+msgid "Curve Output Y0"
+msgstr "曲线输出Y0"
+
+msgid "Curve Output Y1"
+msgstr "曲线输出Y1"
+
+msgid "Curve Output Y2"
+msgstr "曲线输出Y2"
+
+msgid "Custom settings"
+msgstr "自定义设置"
+
+msgid "Czech"
+msgstr "捷克语"
+
+msgid "Danish"
+msgstr "丹麦语"
+
+msgid "Datapoint Configuration"
+msgstr "数据点配置"
+
+msgid "Date"
+msgstr "日期"
+
+msgid "Date (3 bytes)"
+msgstr "日期（3 字节）"
+
+msgid "Date Format"
+msgstr "日期格式"
+
+msgid "Date Value"
+msgstr "日期值"
+
+msgid "Date and Time Object Selection"
+msgstr "日期和时间对象选择"
+
+msgid "Date and Time Send or Receive Mode"
+msgstr "日期和时间发送或接收模式"
+
+msgid "Date and Time Settings"
+msgstr "日期和时间设置"
+
+msgid "Date and Time Transmission Timing"
+msgstr "日期和时间传输定时"
+
+msgid "Date and time (8 bytes)"
+msgstr "日期和时间（8 字节）"
+
+msgid "Day and Night Indication"
+msgstr "日夜显示"
+
+msgid "Day mode"
+msgstr "日间模式"
+
+msgid "Day-month-year (two-digit year)"
+msgstr "日-月-年（两位数年份）"
+
+msgid "Day.month.year (two-digit year)"
+msgstr "日.月.年（两位数年份）"
+
+msgid "Daylight Compensation Input"
+msgstr "日光补偿输入"
+
+msgid "Daylight compensation"
+msgstr "日光补偿"
+
+msgid "Daylight-Saving Time Adjustment"
+msgstr "夏令时调整"
+
+msgid "Daytime Display Intensity"
+msgstr "白天显示强度"
+
+msgid "Decimal Places"
+msgstr "小数位"
+
+msgid "Decimal Separator"
+msgstr "小数点分隔符"
+
+msgid "Decimal point"
+msgstr "小数点"
+
+msgid "Decrease Command Value"
+msgstr "减少命令值"
+
+msgid "Decrease brightness"
+msgstr "降低亮度"
+
+msgid "Dedicated object"
+msgstr "专用对象"
+
+msgid "Delay (ms)"
+msgstr "延迟 (ms)"
+
+msgid "Delay Off Transition"
+msgstr "延迟切换到关状态"
+
+msgid "Delay On Transition"
+msgstr "延迟切换到开状态"
+
+msgid "Delay and Filter Rule"
+msgstr "延迟和过滤规则"
+
+msgid "Delay matching values, block others"
+msgstr "延迟匹配值，阻止其他值"
+
+msgid "Delay matching values, pass others"
+msgstr "延迟匹配值，传递其他值"
+
+msgid "Demand Output Format"
+msgstr "需求输出格式"
+
+msgid "Demand Output Polarity"
+msgstr "需求输出极性"
+
+msgid "Demand Transmission Interval (min)"
+msgstr "需求发送间隔 (min)"
+
+msgid "Demand-to-PWM Conversion"
+msgstr "需求到 PWM 转换"
+
+msgid "Detection Channel 1"
+msgstr "检测通道1"
+
+msgid "Detection Channel 2"
+msgstr "检测通道2"
+
+msgid "Detection Channel 3"
+msgstr "检测通道3"
+
+msgid "Detection Channel 4"
+msgstr "检测通道4"
+
+msgid "Detection Sensitivity"
+msgstr "检测灵敏度"
+
+msgid "Detection Source 1 Enable"
+msgstr "检测源1使能"
+
+msgid "Detection Source 2 Enable"
+msgstr "检测源2使能"
+
+msgid "Detection Source 3 Enable"
+msgstr "检测源3使能"
+
+msgid "Detection Source 4 Enable"
+msgstr "检测源4使能"
+
+msgid "Detection Source 5 Enable"
+msgstr "检测源5使能"
+
+msgid "Detection Source 6 Enable"
+msgstr "检测源6使能"
+
+msgid "Detection Source 7 Enable"
+msgstr "检测源 7 使能"
+
+msgid "Detection Source 8 Enable"
+msgstr "检测源8使能"
+
+msgid "Detector Enable Object"
+msgstr "检测器启用对象"
+
+msgid "Detents per Second to Start Travel"
+msgstr "每秒启动行程的制动次数"
+
+msgid "Device Configuration Size (Bytes)"
+msgstr "设备配置大小（字节）"
+
+msgid "Device Control Settings"
+msgstr "设备控制设置"
+
+msgid "Device Control and Startup Settings"
+msgstr "设备控制和启动设置"
+
+msgid "Device Function"
+msgstr "设备功能"
+
+msgid "Device Settings"
+msgstr "设备设置"
+
+msgid "Device Time, Display and Environment"
+msgstr "设备时间、显示和环境"
+
+msgid "Device potentiometer"
+msgstr "装置电位器"
+
+msgid "Dew-Point Protection"
+msgstr "露点保护"
+
+msgid "Diagnostic Mode Control Object"
+msgstr "诊断模式控制对象"
+
+msgid "Diagnostic Mode Enable"
+msgstr "诊断模式启用"
+
+msgid "Diagnostic mode"
+msgstr "诊断模式"
+
+msgid "Digital clock"
+msgstr "数字时钟"
+
+msgid "Dim Graphic"
+msgstr "暗淡图形"
+
+msgid "Dim in steps"
+msgstr "步进调光"
+
+msgid "Dim until release"
+msgstr "调光直到松开"
+
+msgid "Dimming Actuator"
+msgstr "调光执行器"
+
+msgid "Dimming Channel 1"
+msgstr "调光通道1"
+
+msgid "Dimming Channel 2"
+msgstr "调光通道2"
+
+msgid "Dimming Channel 3"
+msgstr "调光通道3"
+
+msgid "Dimming Channel 4"
+msgstr "调光通道4"
+
+msgid "Dimming Channel 5"
+msgstr "调光通道5"
+
+msgid "Dimming Channel 6"
+msgstr "调光通道6"
+
+msgid "Dimming Channel Brightness"
+msgstr "调光通道亮度"
+
+msgid "Dimming Command Data Type"
+msgstr "调光命令数据类型"
+
+msgid "Dimming Correction Curve"
+msgstr "调光校正曲线"
+
+msgid "Dimming Direction"
+msgstr "调光方向"
+
+msgid "Dimming Feedback"
+msgstr "调光反馈"
+
+msgid "Dimming Graphic"
+msgstr "调光图"
+
+msgid "Dimming Group 1"
+msgstr "调光组 1"
+
+msgid "Dimming Group 2"
+msgstr "调光组 2"
+
+msgid "Dimming Group 3"
+msgstr "调光组 3"
+
+msgid "Dimming Group 4"
+msgstr "调光组 4"
+
+msgid "Dimming Group 5"
+msgstr "调光组 5"
+
+msgid "Dimming Group 6"
+msgstr "调光组 6"
+
+msgid "Dimming Interaction Scheme"
+msgstr "调光交互方案"
+
+msgid "Dimming Method"
+msgstr "调光方式"
+
+msgid "Dimming Output"
+msgstr "调光输出"
+
+msgid "Dimming Range"
+msgstr "调光范围"
+
+msgid "Dimming Repeat Interval (ms)"
+msgstr "调光重复间隔 (ms)"
+
+msgid "Dimming Step"
+msgstr "调光步长"
+
+msgid "Dimming Text"
+msgstr "调暗文本"
+
+msgid "Direct Main-Function Control"
+msgstr "直接主功能控制"
+
+msgid "Direct main-function control"
+msgstr "直接主功能控制"
+
+msgid "Direction (1 bit)"
+msgstr "方向（1 位）"
+
+msgid "Direction Reversal Pause"
+msgstr "方向反转暂停"
+
+msgid "Direction and step (1 bit)"
+msgstr "方向和步进（1 位）"
+
+msgid "Disable Local Controls"
+msgstr "禁用本地控制"
+
+msgid "Disabled"
+msgstr "禁用"
+
+msgid "Disc Changer Capacity"
+msgstr "换碟机容量"
+
+msgid "Disc Playback Controls"
+msgstr "光盘播放控件"
+
+msgid "Disc Selection"
+msgstr "光盘选择"
+
+msgid "Display Backlight"
+msgstr "显示屏背光"
+
+msgid "Display Behavior Settings"
+msgstr "显示行为设置"
+
+msgid "Display Brightness"
+msgstr "显示亮度"
+
+msgid "Display Channel 1: Room Control"
+msgstr "显示通道 1：房间控制"
+
+msgid "Display Channel 2: Time"
+msgstr "显示通道2：时间"
+
+msgid "Display Channel 3: Date"
+msgstr "显示通道 3：日期"
+
+msgid "Display Channel After Bus Power Recovery"
+msgstr "总线电源恢复后显示通道"
+
+msgid "Display Color Selection"
+msgstr "显示颜色选择"
+
+msgid "Display Contrast"
+msgstr "显示对比度"
+
+msgid "Display Contrast (%)"
+msgstr "显示对比度 (%)"
+
+msgid "Display Element Type"
+msgstr "显示元素类型"
+
+msgid "Display Format"
+msgstr "显示格式"
+
+msgid "Display Heading"
+msgstr "显示标题"
+
+msgid "Display Idle Behavior"
+msgstr "显示空闲行为"
+
+msgid "Display Illumination Color Scheme"
+msgstr "显示照明配色方案"
+
+msgid "Display Illumination Control"
+msgstr "显示照明控制"
+
+msgid "Display Illumination Intensity"
+msgstr "显示照明强度"
+
+msgid "Display Intensity (%)"
+msgstr "显示强度 (%)"
+
+msgid "Display Light Idle Timeout"
+msgstr "显示灯空闲超时"
+
+msgid "Display Lighting After Reset"
+msgstr "重置后显示屏照明"
+
+msgid "Display Lighting Feedback"
+msgstr "显示照明反馈"
+
+msgid "Display Lighting Object"
+msgstr "显示照明对象"
+
+msgid "Display Lighting Switch"
+msgstr "显示照明开关"
+
+msgid "Display Off Idle Timeout"
+msgstr "显示关闭空闲超时"
+
+msgid "Display Options"
+msgstr "显示选项"
+
+msgid "Display Presentation Settings"
+msgstr "显示演示设置"
+
+msgid "Display Scaling"
+msgstr "显示缩放"
+
+msgid "Display Typeface"
+msgstr "显示字体"
+
+msgid "Display Unit"
+msgstr "显示单元"
+
+msgid "Display always active"
+msgstr "显示始终处于活动状态"
+
+msgid "Display and Room Controller Trim with IR and Proximity"
+msgstr "带红外和接近功能的显示和房间控制器装饰"
+
+msgid "Display and Sensor Trim with Rotary Control"
+msgstr "带旋转控制的显示屏和传感器装饰"
+
+msgid "Display and Sensor Trim with Three-Section Buttons"
+msgstr "带三部分按钮的显示屏和传感器装饰"
+
+msgid "Display channel 1: room control"
+msgstr "显示通道1：房间控制"
+
+msgid "Display channel 2: time"
+msgstr "显示通道2：时间"
+
+msgid "Display channel 3: date"
+msgstr "显示通道3：日期"
+
+msgid "Displayed Fan Stage"
+msgstr "展示扇舞台"
+
+msgid "Displayed Heating and Cooling Demand"
+msgstr "显示供暖和制冷需求"
+
+msgid "Displayed Information"
+msgstr "显示信息"
+
+msgid "Displayed Neutral-Band Midpoint"
+msgstr "显示的中性带中点"
+
+msgid "Displayed Room Controller Mode"
+msgstr "显示房间控制器模式"
+
+msgid "Displayed Temperature"
+msgstr "显示温度"
+
+msgid "Distribution-Board Dimming Actuator"
+msgstr "配电板调光执行器"
+
+msgid "Do not repeat"
+msgstr "不重复"
+
+msgid "Do not send"
+msgstr "不发送"
+
+msgid "Do not send stop"
+msgstr "不发送停止信号"
+
+msgid "Do not start"
+msgstr "不要启动"
+
+msgid "Door Calls and Audio"
+msgstr "门铃和音频"
+
+msgid "Door Entry Communication"
+msgstr "门禁通讯"
+
+msgid "Door-Entry Communication"
+msgstr "门禁通讯"
+
+msgid "Down"
+msgstr "下降"
+
+msgid "Down or Close Graphic"
+msgstr "向下或关闭图形"
+
+msgid "Downward Slat Step Text"
+msgstr "向下板条台阶文本"
+
+msgid "Downward Slat Step Value"
+msgstr "向下叶片步进值"
+
+msgid "Downward Travel Text"
+msgstr "向下旅行文本"
+
+msgid "Dutch"
+msgstr "荷兰语"
+
+msgid "Economy"
+msgstr "节能"
+
+msgid "Economy Cooling Increase"
+msgstr "经济降温增加"
+
+msgid "Economy Cooling Offset"
+msgstr "经济冷却补偿"
+
+msgid "Economy Cooling Setpoint"
+msgstr "经济冷却设定值"
+
+msgid "Economy Heating Offset"
+msgstr "经济加热补偿"
+
+msgid "Economy Heating Reduction"
+msgstr "经济减少供暖"
+
+msgid "Economy Heating Setpoint"
+msgstr "经济供暖设定点"
+
+msgid "Economy Mode"
+msgstr "经济模式"
+
+msgid "Economy Mode Command"
+msgstr "节能模式命令"
+
+msgid "Economy Mode Output"
+msgstr "节能模式输出"
+
+msgid "Eight bits in one byte"
+msgstr "一个字节八位"
+
+msgid "Either threshold crossing"
+msgstr "任一阈值跨越"
+
+msgid "Electric heating: 1.5 K, 50 min"
+msgstr "电加热：1.5K，50分钟"
+
+msgid "Enable Activation Delay"
+msgstr "启用激活延迟"
+
+msgid "Enable Condition"
+msgstr "启用条件"
+
+msgid "Enable Control"
+msgstr "启用控制"
+
+msgid "Enable Control Polarity"
+msgstr "启用控制极性"
+
+msgid "Enable Input"
+msgstr "使能输入"
+
+msgid "Enable Input Polarity"
+msgstr "使能输入极性"
+
+msgid "Enable Object Control"
+msgstr "启用对象控制"
+
+msgid "Enable State After Power Recovery"
+msgstr "电源恢复后启用状态"
+
+msgid "Enable State After Power Return"
+msgstr "恢复供电后启用状态"
+
+msgid "Enable on different value"
+msgstr "启用不同的值"
+
+msgid "Enable on equal value"
+msgstr "等值时启用"
+
+msgid "Enable via object"
+msgstr "通过对象启用"
+
+msgid "Enabled"
+msgstr "启用"
+
+msgid "Enabled Detection Sources"
+msgstr "启用的检测源"
+
+msgid "English"
+msgstr "英语"
+
+msgid "Enhanced Four-Channel Motion Sensor"
+msgstr "增强型四通道运动传感器"
+
+msgid "Environmental measurements"
+msgstr "环境测量"
+
+msgid "Estimated Ambient Light"
+msgstr "估计环境光"
+
+msgid "Estonian"
+msgstr "爱沙尼亚语"
+
+msgid "Evaluation Time (ms)"
+msgstr "评估时间(ms)"
+
+msgid "Event Lead Time"
+msgstr "活动准备时间"
+
+msgid "Event Sound"
+msgstr "事件声音"
+
+msgid "Every 12 hours"
+msgstr "每12小时一次"
+
+msgid "Every hour"
+msgstr "每小时"
+
+msgid "Every input telegram"
+msgstr "每个输入电报"
+
+msgid "Every minute"
+msgstr "每分钟"
+
+msgid "Every operation"
+msgstr "每次操作"
+
+msgid "Every qualifying event"
+msgstr "每场资格赛"
+
+msgid "External"
+msgstr "外部"
+
+msgid "External Button Command"
+msgstr "外部按钮命令"
+
+msgid "External Button Function"
+msgstr "外部按钮功能"
+
+msgid "External Button Input"
+msgstr "外部按钮输入"
+
+msgid "External Button Input Object"
+msgstr "外部按钮输入对象"
+
+msgid "External Button Input Polarity"
+msgstr "外部按钮输入极性"
+
+msgid "External Button On Trigger"
+msgstr "外部按钮开启动作的触发报文"
+
+msgid "External Button Selection Polarity"
+msgstr "外部按钮选择极性"
+
+msgid "External Button Selection via Object"
+msgstr "通过对象选择外部按钮"
+
+msgid "External Light Measurement"
+msgstr "外部光测量"
+
+msgid "External Light Source 1"
+msgstr "外部光源1"
+
+msgid "External Light Source 1 Weight"
+msgstr "外部光源 1 重量"
+
+msgid "External Light Source 2"
+msgstr "外部光源2"
+
+msgid "External Light Source 2 Weight"
+msgstr "外部光源2 重量"
+
+msgid "External Light Source Count"
+msgstr "外部光源数量"
+
+msgid "External Light Threshold"
+msgstr "外部光阈值"
+
+msgid "External Light Threshold (lx)"
+msgstr "外部光阈值 (lx)"
+
+msgid "External Light Threshold Input"
+msgstr "外部光阈值输入"
+
+msgid "External Light Threshold Object"
+msgstr "外部光阈值对象"
+
+msgid "External Light Threshold from Object"
+msgstr "来自物体的外部光阈值"
+
+msgid "External Measurement 1 Weight (%)"
+msgstr "外部测量 1 重量 (%)"
+
+msgid "External Measurement 2 Weight (%)"
+msgstr "外部测量 2 重量 (%)"
+
+msgid "External Motion Input"
+msgstr "外部运动输入"
+
+msgid "External Motion Source Transmission"
+msgstr "外部运动源传输"
+
+msgid "External Room Controller Interface"
+msgstr "外部房间控制器接口"
+
+msgid "External Room Temperature"
+msgstr "外部室温"
+
+msgid "External Room Temperature 1"
+msgstr "外部室温 1"
+
+msgid "External Room Temperature 2"
+msgstr "外部室温 2"
+
+msgid "External Temperature"
+msgstr "外部温度"
+
+msgid "External Temperature Offset (0.1 Degree)"
+msgstr "外部温度偏移（0.1 度）"
+
+msgid "External Temperature Source Count"
+msgstr "外部温度源计数"
+
+msgid "Fade to brightness"
+msgstr "淡入亮度"
+
+msgid "False"
+msgstr "错误"
+
+msgid "False is 0"
+msgstr "假为 0"
+
+msgid "False is 1"
+msgstr "假是 1"
+
+msgid "Fan Coil Cooling Settings"
+msgstr "风机盘管冷却设置"
+
+msgid "Fan Coil During Cooling"
+msgstr "冷却过程中的风机盘管"
+
+msgid "Fan Coil During Heating"
+msgstr "供暖期间的风机盘管"
+
+msgid "Fan Coil Heating Settings"
+msgstr "风机盘管加热设置"
+
+msgid "Fan Coil Settings"
+msgstr "风机盘管设置"
+
+msgid "Fan Input Bank Selection"
+msgstr "风扇输入组选择"
+
+msgid "Fan Input Configuration"
+msgstr "风扇输入配置"
+
+msgid "Fan Input Configuration Selection"
+msgstr "风扇输入配置选择"
+
+msgid "Fan Stage 1 Cooling Demand (1 Byte)"
+msgstr "风扇第 1 级冷却需求（1 字节）"
+
+msgid "Fan Stage 1 Heating Demand (1 Byte)"
+msgstr "风扇第 1 阶段加热需求（1 字节）"
+
+msgid "Fan Stage 1 Maximum Cooling Demand"
+msgstr "风扇第 1 级最大冷却需求"
+
+msgid "Fan Stage 1 Maximum Heating Demand"
+msgstr "风扇第 1 阶段最大供暖需求"
+
+msgid "Fan Stage 2 Cooling Demand (1 Byte)"
+msgstr "风扇第 2 级冷却需求（1 字节）"
+
+msgid "Fan Stage 2 Heating Demand (1 Byte)"
+msgstr "风扇第 2 级加热需求（1 字节）"
+
+msgid "Fan Stage 2 Maximum Cooling Demand"
+msgstr "风扇第 2 级最大冷却需求"
+
+msgid "Fan Stage 2 Maximum Heating Demand"
+msgstr "风扇第 2 级最大供暖需求"
+
+msgid "Fan Stage 3 Cooling Demand (1 Byte)"
+msgstr "风扇第 3 级冷却需求（1 字节）"
+
+msgid "Fan Stage 3 Heating Demand (1 Byte)"
+msgstr "风扇第 3 级加热需求（1 字节）"
+
+msgid "Fan Stage 3 Maximum Cooling Demand"
+msgstr "风扇第 3 级最大冷却需求"
+
+msgid "Fan Stage 3 Maximum Heating Demand"
+msgstr "风扇第 3 阶段最大供暖需求"
+
+msgid "Fan Stage 4 Cooling Demand (1 Byte)"
+msgstr "风扇第 4 级冷却需求（1 字节）"
+
+msgid "Fan Stage 4 Heating Demand (1 Byte)"
+msgstr "风扇第 4 级加热需求（1 字节）"
+
+msgid "Fan Stage 4 Maximum Cooling Demand"
+msgstr "风扇第 4 级最大冷却需求"
+
+msgid "Fan Stage 4 Maximum Heating Demand"
+msgstr "风扇第 4 级最大供暖需求"
+
+msgid "Fan Stage 5 Cooling Demand (1 Byte)"
+msgstr "风扇第 5 级冷却需求（1 字节）"
+
+msgid "Fan Stage 5 Heating Demand (1 Byte)"
+msgstr "风扇第 5 级加热需求（1 字节）"
+
+msgid "Fan Stage 5 Maximum Cooling Demand"
+msgstr "风扇第 5 级最大冷却需求"
+
+msgid "Fan Stage 5 Maximum Heating Demand"
+msgstr "风扇第 5 级最大供暖需求"
+
+msgid "Fan Stage Confirmation"
+msgstr "粉丝阶段确认"
+
+msgid "Fan Stage Data Type"
+msgstr "风扇阶段数据类型"
+
+msgid "Fan Stage Display Control"
+msgstr "风扇舞台显示控制"
+
+msgid "Fan Stage Feedback Interpretation"
+msgstr "粉丝舞台反馈解读"
+
+msgid "Fan Stage Output Scheme"
+msgstr "风扇级输出方案"
+
+msgid "Fan Stage Settings"
+msgstr "风扇阶段设置"
+
+msgid "Fan coil"
+msgstr "风机盘管"
+
+msgid "Fan coil: 4 K, 90 min"
+msgstr "风机盘管：4 K，90 分钟"
+
+msgid "Fan input bank 1"
+msgstr "风扇输入组 1"
+
+msgid "Fan input bank 2"
+msgstr "风扇输入组 2"
+
+msgid "Fan stage selection"
+msgstr "粉丝舞台选择"
+
+msgid "Fan-stage objects"
+msgstr "扇形舞台物体"
+
+msgid "Fast response, about 15 s"
+msgstr "响应速度快，约15秒"
+
+msgid "Fast-response lamp, 2 s settling"
+msgstr "快速响应灯，2 秒稳定"
+
+msgid "Fault"
+msgstr "故障"
+
+msgid "Fault Demand (1 Byte)"
+msgstr "故障需求（1字节）"
+
+msgid "Fault Message Sound"
+msgstr "故障信息声音"
+
+msgid "Fault Output (%)"
+msgstr "故障输出(%)"
+
+msgid "Fault Status"
+msgstr "故障状态"
+
+msgid "Fault and Alarm Handling"
+msgstr "故障及报警处理"
+
+msgid "Fault and Alarm Messages"
+msgstr "故障和警报信息"
+
+msgid "Feedback Data Type"
+msgstr "反馈数据类型"
+
+msgid "Filter Match Value"
+msgstr "过滤匹配值"
+
+msgid "Filter Measured Light"
+msgstr "过滤测量光"
+
+msgid "Filter Measured Light Level"
+msgstr "过滤测量光级"
+
+msgid "Filtered Transmission Delay"
+msgstr "过滤传输延迟"
+
+msgid "Fine-line symbols"
+msgstr "细线符号"
+
+msgid "Finish the sequence"
+msgstr "完成序列"
+
+msgid "Finnish"
+msgstr "芬兰语"
+
+msgid "First Weekday"
+msgstr "第一个工作日"
+
+msgid "Fixed text"
+msgstr "固定文本"
+
+msgid "Flashing Indication"
+msgstr "闪烁指示"
+
+msgid "Float (32 bit)"
+msgstr "浮点数（32 位）"
+
+msgid "Float Value (2 Bytes)"
+msgstr "浮点值（2 字节）"
+
+msgid "Floor"
+msgstr "楼层"
+
+msgid "Floor 1"
+msgstr "1楼"
+
+msgid "Floor 10"
+msgstr "10楼"
+
+msgid "Floor 2"
+msgstr "2楼"
+
+msgid "Floor 3"
+msgstr "3楼"
+
+msgid "Floor 4"
+msgstr "4楼"
+
+msgid "Floor 5"
+msgstr "5楼"
+
+msgid "Floor 6"
+msgstr "6楼"
+
+msgid "Floor 7"
+msgstr "7楼"
+
+msgid "Floor 8"
+msgstr "8楼"
+
+msgid "Floor 9"
+msgstr "9楼"
+
+msgid "Floor Graphic"
+msgstr "楼层图"
+
+msgid "Floor Name"
+msgstr "楼层名称"
+
+msgid "Floor Settings"
+msgstr "楼层设置"
+
+msgid "Floor and Room Structure"
+msgstr "楼层及房间结构"
+
+msgid "Floor heating: 4 K, 200 min"
+msgstr "地暖：4K，200分钟"
+
+msgid "Floors"
+msgstr "楼层"
+
+msgid "Fluorescent tube, 300 s settling"
+msgstr "荧光管，300 秒稳定"
+
+msgid "Follow object value"
+msgstr "跟随对象值"
+
+msgid "Follow object value and every operation"
+msgstr "遵循对象值和每一个操作"
+
+msgid "Follow status"
+msgstr "跟随状态"
+
+msgid "Follower Controller"
+msgstr "从动控制器"
+
+msgid "Follower Detector Input"
+msgstr "跟随检测器输入"
+
+msgid "Follower Displayed Setpoint"
+msgstr "从机显示设定值"
+
+msgid "Follower Fan Stage Confirmation"
+msgstr "粉丝阶段确认"
+
+msgid "Follower Fan Stage Request"
+msgstr "追随者粉丝舞台请求"
+
+msgid "Follower HVAC Status"
+msgstr "关注者 HVAC 状态"
+
+msgid "Follower Heating and Cooling Changeover Request"
+msgstr "从动加热和冷却转换请求"
+
+msgid "Follower Manual Fan Control Request"
+msgstr "从动手动风扇控制请求"
+
+msgid "Follower Manual Fan Selection"
+msgstr "从动手动风扇选择"
+
+msgid "Follower Motion Result"
+msgstr "从动结果"
+
+msgid "Follower Operating Mode"
+msgstr "从机运行模式"
+
+msgid "Follower Regulation Enable"
+msgstr "跟随器调节启用"
+
+msgid "Follower Regulation Enable Request"
+msgstr "追随者调节启用请求"
+
+msgid "Follower Setpoint Adjustment Request"
+msgstr "从机设定点调整请求"
+
+msgid "Follower Setpoint Confirmation"
+msgstr "从机设定值确认"
+
+msgid "Follower Temperature Fault"
+msgstr "从机温度故障"
+
+msgid "Follower Transmission Triggers"
+msgstr "跟随者传输触发"
+
+msgid "Follower Unit Selection"
+msgstr "从属单位选择"
+
+msgid "Follower controller"
+msgstr "从动控制器"
+
+msgid "Forced Automatic Switch-Off"
+msgstr "强制自动关闭"
+
+msgid "Four-Channel Dimming Actuator"
+msgstr "四通道调光执行器"
+
+msgid "Four-Channel Motion Sensor"
+msgstr "四通道运动传感器"
+
+msgid "Four-Channel Motion Sensor Revision 1.0"
+msgstr "四通道运动传感器修订版 1.0"
+
+msgid "Four-Channel Motion Sensor Revision 2.0"
+msgstr "四通道运动传感器修订版 2.0"
+
+msgid "Four-Digit Access Code"
+msgstr "四位访问代码"
+
+msgid "French"
+msgstr "法语"
+
+msgid "Friday"
+msgstr "周五"
+
+msgid "Frost Alarm Temperature"
+msgstr "霜冻警报温度"
+
+msgid "Frost Protection"
+msgstr "防冻保护"
+
+msgid "Frost Protection Heating Setpoint"
+msgstr "防霜加热设定值"
+
+msgid "Frost Protection Output Action"
+msgstr "防冻保护输出动作"
+
+msgid "Frost Protection Priority"
+msgstr "防冻优先"
+
+msgid "Frost Protection Setpoint"
+msgstr "防霜保护设定值"
+
+msgid "Frost Protection Settings"
+msgstr "防霜保护设置"
+
+msgid "Frost Sensor Timeout (min)"
+msgstr "霜冻传感器超时 (min)"
+
+msgid "Full Covering Travel Time"
+msgstr "全程覆盖行程时间"
+
+msgid "Full Slat Adjustment Time"
+msgstr "全缝翼调整时间"
+
+msgid "Fully automatic"
+msgstr "全自动"
+
+msgid "Fully lowered"
+msgstr "完全降低"
+
+msgid "Fully manual"
+msgstr "全手动"
+
+msgid "Fully raised"
+msgstr "完全升起"
+
+msgid "Function 1 Enable"
+msgstr "功能1 启用"
+
+msgid "Function 1 Text"
+msgstr "功能1 文本"
+
+msgid "Function 2 Enable"
+msgstr "功能2 启用"
+
+msgid "Function 2 Text"
+msgstr "功能2 文本"
+
+msgid "Function 3 Enable"
+msgstr "功能3 启用"
+
+msgid "Function 3 Text"
+msgstr "功能3 文本"
+
+msgid "Function 4 Enable"
+msgstr "功能4 启用"
+
+msgid "Function 4 Text"
+msgstr "功能 4 文本"
+
+msgid "Function 5 Enable"
+msgstr "功能5 启用"
+
+msgid "Function 6 Enable"
+msgstr "功能6 启用"
+
+msgid "Function Activation Delay"
+msgstr "功能激活延迟"
+
+msgid "Function Channel"
+msgstr "功能频道"
+
+msgid "Function Feedback"
+msgstr "功能反馈"
+
+msgid "Function Identification Color"
+msgstr "功能识别颜色"
+
+msgid "Function Name"
+msgstr "函数名称"
+
+msgid "Function Status"
+msgstr "功能状态"
+
+msgid "Function Status Display"
+msgstr "功能状态显示"
+
+msgid "Function Text"
+msgstr "功能文本"
+
+msgid "Function lighting"
+msgstr "功能照明"
+
+msgid "German"
+msgstr "德语"
+
+msgid "Glare Protection"
+msgstr "眩光防护"
+
+msgid "Gray code"
+msgstr "格雷码"
+
+msgid "Gray for unassigned functions"
+msgstr "灰色表示未分配的功能"
+
+msgid "Greek"
+msgstr "希腊语"
+
+msgid "Green"
+msgstr "绿色"
+
+msgid "Green Intensity"
+msgstr "绿色强度"
+
+msgid "Green for feedback"
+msgstr "绿色表示反馈"
+
+msgid "Green, high brightness"
+msgstr "绿色、高亮度"
+
+msgid "Green, low brightness"
+msgstr "绿色、低亮度"
+
+msgid "Group Reference Setpoint"
+msgstr "组参考设定点"
+
+msgid "HVAC Channel 1"
+msgstr "暖通空调通道 1"
+
+msgid "HVAC Channel 2"
+msgstr "暖通空调频道 2"
+
+msgid "HVAC Command Format"
+msgstr "暖通空调命令格式"
+
+msgid "HVAC Enable Input"
+msgstr "暖通空调使能输入"
+
+msgid "HVAC Mode Bits"
+msgstr "暖通空调模式位"
+
+msgid "HVAC Mode Command"
+msgstr "暖通空调模式命令"
+
+msgid "HVAC Mode Number"
+msgstr "暖通空调模式编号"
+
+msgid "HVAC Mode Selection"
+msgstr "暖通空调模式选择"
+
+msgid "HVAC Processing Enable"
+msgstr "HVAC 处理启用"
+
+msgid "HVAC Status"
+msgstr "暖通空调状态"
+
+msgid "HVAC controller status"
+msgstr "HVAC 控制器状态"
+
+msgid "HVAC mode (1 byte)"
+msgstr "HVAC 模式（1 字节）"
+
+msgid "HVAC mode number (1 byte)"
+msgstr "HVAC 模式编号（1 字节）"
+
+msgid "Heading"
+msgstr "标题"
+
+msgid "Heartbeat Interval (min)"
+msgstr "心跳间隔 (min)"
+
+msgid "Heating"
+msgstr "制热"
+
+msgid "Heating 1, Cooling 0"
+msgstr "加热 1，冷却 0"
+
+msgid "Heating Active"
+msgstr "加热主动"
+
+msgid "Heating Active Object"
+msgstr "加热活动物体"
+
+msgid "Heating Algorithm"
+msgstr "加热算法"
+
+msgid "Heating Control"
+msgstr "加热控制"
+
+msgid "Heating Demand"
+msgstr "供热需求"
+
+msgid "Heating Demand Output"
+msgstr "供热需求输出"
+
+msgid "Heating Demand Polarity"
+msgstr "供暖需求极性"
+
+msgid "Heating Demand Transmission Change"
+msgstr "供暖需求传输变化"
+
+msgid "Heating Fan Automatic Return Delay (min)"
+msgstr "供暖风扇返回自动模式的延迟 (min)"
+
+msgid "Heating Fault Mode"
+msgstr "加热故障模式"
+
+msgid "Heating Hysteresis (0.1 K)"
+msgstr "加热滞后 (0.1 K)"
+
+msgid "Heating Integral Time (min)"
+msgstr "供暖积分时间 (min)"
+
+msgid "Heating PWM Period (min)"
+msgstr "供暖 PWM 周期 (min)"
+
+msgid "Heating Proportional Band (0.1 Degree)"
+msgstr "加热比例带（0.1度）"
+
+msgid "Heating Reference Setpoint"
+msgstr "供暖参考设定值"
+
+msgid "Heating Setpoints"
+msgstr "供暖设定点"
+
+msgid "Heating System Type"
+msgstr "供暖系统类型"
+
+msgid "Heating Transmission Interval (min)"
+msgstr "供暖发送间隔 (min)"
+
+msgid "Heating and Cooling Changeover Hysteresis"
+msgstr "加热和冷却转换滞后"
+
+msgid "Heating and Cooling Functions"
+msgstr "加热和冷却功能"
+
+msgid "Heating and Cooling Neutral Band"
+msgstr "加热和冷却中性带"
+
+msgid "Heating and Cooling Request Object"
+msgstr "供暖和制冷请求对象"
+
+msgid "Heating and Cooling Selection"
+msgstr "加热和冷却选择"
+
+msgid "Heating and Cooling Status Data Type"
+msgstr "加热和冷却状态数据类型"
+
+msgid "Heating and Cooling Status Object"
+msgstr "加热和冷却状态对象"
+
+msgid "Heating and cooling"
+msgstr "加热和冷却"
+
+msgid "Heating and cooling setpoints"
+msgstr "加热和冷却设定点"
+
+msgid "Heating and cooling with auxiliary stages"
+msgstr "带辅助级的加热和冷却"
+
+msgid "Heating and cooling, cooling-based targets"
+msgstr "加热和冷却、基于冷却的目标"
+
+msgid "Heating and cooling, heating-based targets"
+msgstr "加热和冷却、基于加热的目标"
+
+msgid "Heating or Cooling Selection"
+msgstr "加热或冷却选择"
+
+msgid "Heating or cooling selection"
+msgstr "加热或冷却选择"
+
+msgid "Heating reference and neutral band"
+msgstr "加热参考和中性带"
+
+msgid "Heating with auxiliary stage"
+msgstr "辅助加热"
+
+msgid "Heating, Cooling and Ventilation"
+msgstr "供暖、制冷和通风"
+
+msgid "Hebrew"
+msgstr "希伯来语"
+
+msgid "Hidden"
+msgstr "隐藏"
+
+msgid "Hide Reserved Objects"
+msgstr "隐藏保留对象"
+
+msgid "Hide Temperature Unit"
+msgstr "隐藏温度单位"
+
+msgid "High"
+msgstr "高"
+
+msgid "High Sensitivity Preset"
+msgstr "高灵敏度预设"
+
+msgid "Hold Time After Activity"
+msgstr "活动后保持时间"
+
+msgid "Hold Time After Activity (ms)"
+msgstr "活动后保持时间(ms)"
+
+msgid "Hold Time Input"
+msgstr "保持时间输入"
+
+msgid "Hold Time Input Object"
+msgstr "保持时间输入对象"
+
+msgid "Hold Time Source"
+msgstr "保持时间源"
+
+msgid "Hold Time from Object"
+msgstr "物体的保持时间"
+
+msgid "Hours and minutes"
+msgstr "小时和分钟"
+
+msgid "IR Memory M1"
+msgstr "红外内存M1"
+
+msgid "IR Memory M2"
+msgstr "红外内存M2"
+
+msgid "Ignore Brightness During Detection"
+msgstr "检测期间忽略亮度"
+
+msgid "Illuminance (16 bit)"
+msgstr "照度（16 位）"
+
+msgid "Illuminance Data Type"
+msgstr "照度数据类型"
+
+msgid "Illuminated Phase Duration (ms)"
+msgstr "照明阶段持续时间(ms)"
+
+msgid "Illumination Input Polarity"
+msgstr "照明输入极性"
+
+msgid "Illumination Intensity"
+msgstr "光照强度"
+
+msgid "Image sequence"
+msgstr "图像序列"
+
+msgid "Inactive"
+msgstr "未启用"
+
+msgid "Include Actuator Feedback"
+msgstr "包括执行器反馈"
+
+msgid "Include Built-In Light Measurement"
+msgstr "包括内置光测量"
+
+msgid "Include Input State 0"
+msgstr "包括输入状态 0"
+
+msgid "Include Input State 00"
+msgstr "包括输入状态 00"
+
+msgid "Include Input State 000"
+msgstr "包括输入状态 000"
+
+msgid "Include Input State 0000"
+msgstr "包括输入状态 0000"
+
+msgid "Include Input State 0001"
+msgstr "包括输入状态 0001"
+
+msgid "Include Input State 001"
+msgstr "包括输入状态 001"
+
+msgid "Include Input State 0010"
+msgstr "包括输入状态 0010"
+
+msgid "Include Input State 0011"
+msgstr "包括输入状态 0011"
+
+msgid "Include Input State 01"
+msgstr "包括输入状态 01"
+
+msgid "Include Input State 010"
+msgstr "包括输入状态 010"
+
+msgid "Include Input State 0100"
+msgstr "包括输入状态 0100"
+
+msgid "Include Input State 0101"
+msgstr "包括输入状态0101"
+
+msgid "Include Input State 011"
+msgstr "包括输入状态 011"
+
+msgid "Include Input State 0110"
+msgstr "包括输入状态 0110"
+
+msgid "Include Input State 0111"
+msgstr "包括输入状态 0111"
+
+msgid "Include Input State 1"
+msgstr "包括输入状态 1"
+
+msgid "Include Input State 10"
+msgstr "包括输入状态 10"
+
+msgid "Include Input State 100"
+msgstr "包括输入状态 100"
+
+msgid "Include Input State 1000"
+msgstr "包括输入状态 1000"
+
+msgid "Include Input State 1001"
+msgstr "包括输入状态 1001"
+
+msgid "Include Input State 101"
+msgstr "包括输入状态 101"
+
+msgid "Include Input State 1010"
+msgstr "包括输入状态 1010"
+
+msgid "Include Input State 1011"
+msgstr "包括输入状态 1011"
+
+msgid "Include Input State 11"
+msgstr "包括输入状态 11"
+
+msgid "Include Input State 110"
+msgstr "包括输入状态 110"
+
+msgid "Include Input State 1100"
+msgstr "包括输入状态 1100"
+
+msgid "Include Input State 1101"
+msgstr "包括输入状态1101"
+
+msgid "Include Input State 111"
+msgstr "包括输入状态 111"
+
+msgid "Include Input State 1110"
+msgstr "包括输入状态1110"
+
+msgid "Include Input State 1111"
+msgstr "包括输入状态 1111"
+
+msgid "Include Measurement Source 1"
+msgstr "包括测量源 1"
+
+msgid "Include Measurement Source 2"
+msgstr "包括测量源 2"
+
+msgid "Include Measurement Source 3"
+msgstr "包括测量源 3"
+
+msgid "Include Measurement Source 4"
+msgstr "包括测量源 4"
+
+msgid "Include Seconds in Time Output"
+msgstr "在时间输出中包含秒数"
+
+msgid "Include Weekday"
+msgstr "包括工作日"
+
+msgid "Incoming Call Ringing"
+msgstr "来电铃声"
+
+msgid "Increase Command Value"
+msgstr "增加命令值"
+
+msgid "Increase brightness"
+msgstr "增加亮度"
+
+msgid "Increase from left to right"
+msgstr "从左到右增加"
+
+msgid "Increase from right to left"
+msgstr "从右向左增加"
+
+msgid "Independent heating and cooling references"
+msgstr "独立加热和冷却参考"
+
+msgid "Independent of Motion"
+msgstr "独立于运动"
+
+msgid "Independent of brightness"
+msgstr "与亮度无关"
+
+msgid "Independent of motion"
+msgstr "独立于运动"
+
+msgid "Independent setpoint"
+msgstr "独立设定点"
+
+msgid "Indicate switch-on operations only"
+msgstr "仅指示开机操作"
+
+msgid "Indicator Brightness"
+msgstr "指示灯亮度"
+
+msgid "Indicator Color Above 0%"
+msgstr "指示器颜色高于 0%"
+
+msgid "Indicator Color at 0%"
+msgstr "0% 时的指示器颜色"
+
+msgid "Indicator Color for Off"
+msgstr "关闭指示灯颜色"
+
+msgid "Indicator Color for On"
+msgstr "开启指示灯颜色"
+
+msgid "Indicator Lighting"
+msgstr "指示灯照明"
+
+msgid "Indicator Symbol"
+msgstr "指示符号"
+
+msgid "Information"
+msgstr "信息"
+
+msgid "Information Input"
+msgstr "信息输入"
+
+msgid "Information Message Sound"
+msgstr "信息 消息 声音"
+
+msgid "Infrared Functions"
+msgstr "红外线功能"
+
+msgid "Initial Audio Volume (%)"
+msgstr "初始音量 (%)"
+
+msgid "Initial Call Volume (%)"
+msgstr "初始通话量 (%)"
+
+msgid "Initial Control Sound Volume"
+msgstr "初始控制音量"
+
+msgid "Initial Enable Input Value"
+msgstr "使能输入初始值"
+
+msgid "Initial Page Return Delay"
+msgstr "初始页面返回延迟"
+
+msgid "Initial Read Request Delay"
+msgstr "初始读取请求延迟"
+
+msgid "Initial Regulation Output"
+msgstr "初始调节输出"
+
+msgid "Initial Ringtone Volume (%)"
+msgstr "初始铃声音量（%）"
+
+msgid "Initial Selection"
+msgstr "初步选择"
+
+msgid "Initial Text After Power Return"
+msgstr "电源恢复后的初始文本"
+
+msgid "Initial value"
+msgstr "初始值"
+
+msgid "Initial value 0"
+msgstr "初始值 0"
+
+msgid "Initial value 1"
+msgstr "初始值1"
+
+msgid "Input"
+msgstr "输入"
+
+msgid "Input 1"
+msgstr "输入1"
+
+msgid "Input 1 Data Type"
+msgstr "输入 1 数据类型"
+
+msgid "Input 1 Initial Value"
+msgstr "输入1初始值"
+
+msgid "Input 1 Is Least Significant Bit"
+msgstr "输入 1 是最低有效位"
+
+msgid "Input 1 Settings"
+msgstr "输入1设置"
+
+msgid "Input 1 Weight"
+msgstr "输入1重量"
+
+msgid "Input 1 greater than input 2"
+msgstr "输入 1 大于输入 2"
+
+msgid "Input 1 less than input 2"
+msgstr "输入 1 小于输入 2"
+
+msgid "Input 10"
+msgstr "输入10"
+
+msgid "Input 10 Data Type"
+msgstr "输入 10 数据类型"
+
+msgid "Input 10 Initial Value"
+msgstr "输入10初始值"
+
+msgid "Input 10 Settings"
+msgstr "输入10个设置"
+
+msgid "Input 2"
+msgstr "输入2"
+
+msgid "Input 2 Data Type"
+msgstr "输入 2 数据类型"
+
+msgid "Input 2 Initial Value"
+msgstr "输入2初始值"
+
+msgid "Input 2 Settings"
+msgstr "输入2设置"
+
+msgid "Input 2 Weight"
+msgstr "输入2重量"
+
+msgid "Input 3"
+msgstr "输入3"
+
+msgid "Input 3 Data Type"
+msgstr "输入 3 数据类型"
+
+msgid "Input 3 Initial Value"
+msgstr "输入3初始值"
+
+msgid "Input 3 Settings"
+msgstr "输入3设置"
+
+msgid "Input 4"
+msgstr "输入4"
+
+msgid "Input 4 Data Type"
+msgstr "输入 4 数据类型"
+
+msgid "Input 4 Initial Value"
+msgstr "输入4初始值"
+
+msgid "Input 4 Settings"
+msgstr "输入4设置"
+
+msgid "Input 5"
+msgstr "输入5"
+
+msgid "Input 5 Data Type"
+msgstr "输入 5 数据类型"
+
+msgid "Input 5 Initial Value"
+msgstr "输入5初始值"
+
+msgid "Input 5 Settings"
+msgstr "输入5设置"
+
+msgid "Input 6"
+msgstr "输入6"
+
+msgid "Input 6 Data Type"
+msgstr "输入 6 数据类型"
+
+msgid "Input 6 Initial Value"
+msgstr "输入6初始值"
+
+msgid "Input 6 Settings"
+msgstr "输入 6 设置"
+
+msgid "Input 7"
+msgstr "输入7"
+
+msgid "Input 7 Data Type"
+msgstr "输入 7 数据类型"
+
+msgid "Input 7 Initial Value"
+msgstr "输入 7 初始值"
+
+msgid "Input 7 Settings"
+msgstr "输入 7 设置"
+
+msgid "Input 8"
+msgstr "输入8"
+
+msgid "Input 8 Data Type"
+msgstr "输入 8 数据类型"
+
+msgid "Input 8 Initial Value"
+msgstr "输入8初始值"
+
+msgid "Input 8 Settings"
+msgstr "输入 8 设置"
+
+msgid "Input 9"
+msgstr "输入9"
+
+msgid "Input 9 Data Type"
+msgstr "输入 9 数据类型"
+
+msgid "Input 9 Initial Value"
+msgstr "输入 9 初始值"
+
+msgid "Input 9 Settings"
+msgstr "输入 9 设置"
+
+msgid "Input Activity Monitor"
+msgstr "输入活动监视器"
+
+msgid "Input Activity Monitoring"
+msgstr "输入活动监控"
+
+msgid "Input Data Type"
+msgstr "输入数据类型"
+
+msgid "Input Source Count"
+msgstr "输入源数量"
+
+msgid "Input Source Selector"
+msgstr "输入源选择器"
+
+msgid "Input State for Detection at Any Brightness"
+msgstr "任意亮度下检测的输入状态"
+
+msgid "Input Timer Behavior"
+msgstr "输入定时器行为"
+
+msgid "Input activity monitoring"
+msgstr "输入活动监控"
+
+msgid "Input and Output Curve Settings"
+msgstr "输入输出曲线设置"
+
+msgid "Input and Output Data Type"
+msgstr "输入和输出数据类型"
+
+msgid "Input and output, both directions"
+msgstr "输入和输出，双向"
+
+msgid "Input to Output Mapping"
+msgstr "输入到输出映射"
+
+msgid "Input to output"
+msgstr "输入到输出"
+
+msgid "Integral Time (min)"
+msgstr "积分时间 (min)"
+
+msgid "Interface Access Settings"
+msgstr "接口访问设置"
+
+msgid "Interface Configuration"
+msgstr "接口配置"
+
+msgid "Interface Language"
+msgstr "界面语言"
+
+msgid "Interface Pages"
+msgstr "界面页面"
+
+msgid "Intermediate State Graphic"
+msgstr "中间状态图"
+
+msgid "Internal"
+msgstr "内部"
+
+msgid "Internal False Value"
+msgstr "内部错误值"
+
+msgid "Internal Function Code Copy"
+msgstr "内部功能代码复制"
+
+msgid "Internal Light Control Parameters"
+msgstr "内部光控制参数"
+
+msgid "Internal Light Threshold"
+msgstr "内部光阈值"
+
+msgid "Internal Light Threshold (lx)"
+msgstr "内部光阈值 (lx)"
+
+msgid "Internal Light Threshold Input"
+msgstr "内部光阈值输入"
+
+msgid "Internal Light Threshold Timer (s)"
+msgstr "内部照度阈值定时器 (s)"
+
+msgid "Internal Light Threshold from Object"
+msgstr "物体的内部光阈值"
+
+msgid "Internal Measurement Weight"
+msgstr "内部测量重量"
+
+msgid "Internal Measurement Weight (%)"
+msgstr "内部测量重量(%)"
+
+msgid "Internal Priority Override Parameters"
+msgstr "内部优先强制控制参数"
+
+msgid "Internal Switch-On Brightness Copy"
+msgstr "内部开启亮度复制"
+
+msgid "Internal Temperature"
+msgstr "内部温度"
+
+msgid "Internal and external"
+msgstr "内部和外部"
+
+msgid "Internal and one external measurement"
+msgstr "内部测量和一项外部测量"
+
+msgid "Internal and two external measurements"
+msgstr "内部和两个外部测量"
+
+msgid "Internal automatic action"
+msgstr "内部自动动作"
+
+msgid "Internal or external"
+msgstr "内部或外部"
+
+msgid "Invert Output"
+msgstr "反转输出"
+
+msgid "Invert Status Feedback"
+msgstr "反转状态反馈"
+
+msgid "Inverted"
+msgstr "反向"
+
+msgid "Italian"
+msgstr "意大利语"
+
+msgid "KNX Bus Coupler"
+msgstr "KNX 总线耦合器"
+
+msgid "KNX commands"
+msgstr "KNX 命令"
+
+msgid "KNX float (16 bit)"
+msgstr "KNX 浮点数（16 位）"
+
+msgid "Keep Message After Input Change"
+msgstr "输入更改后保留消息"
+
+msgid "Keep current brightness"
+msgstr "保持当前亮度"
+
+msgid "Keep current content"
+msgstr "保留当前内容"
+
+msgid "Keep current value"
+msgstr "保持当前值"
+
+msgid "Keep the latest message"
+msgstr "保留最新消息"
+
+msgid "Keep the selected function"
+msgstr "保留所选功能"
+
+msgid "LED Alarm Input"
+msgstr "LED 报警输入"
+
+msgid "LED Brightness"
+msgstr "LED 亮度"
+
+msgid "LED Color Above 0%"
+msgstr "大于 0% 时的 LED 颜色"
+
+msgid "LED Color at 0%"
+msgstr "0% 时的 LED 颜色"
+
+msgid "LED Color for Off Status"
+msgstr "关闭状态的 LED 颜色"
+
+msgid "LED Color for On Status"
+msgstr "开启状态的 LED 颜色"
+
+msgid "LED Control"
+msgstr "LED 控制"
+
+msgid "LED Control Object"
+msgstr "LED控制对象"
+
+msgid "LED Control Value"
+msgstr "LED控制值"
+
+msgid "LED Day and Night Input"
+msgstr "LED 日夜输入"
+
+msgid "LED Indication"
+msgstr "LED 指示"
+
+msgid "LED Proximity Input"
+msgstr "LED 接近输入"
+
+msgid "LED Scene Save Input"
+msgstr "LED 场景保存输入"
+
+msgid "LED State"
+msgstr "LED状态"
+
+msgid "LED Status Input"
+msgstr "LED 状态输入"
+
+msgid "LED or halogen load"
+msgstr "LED 或卤素负载"
+
+msgid "Lamp Category"
+msgstr "灯具类别"
+
+msgid "Lamp Switch-Off Settling Time"
+msgstr "灯关闭稳定时间"
+
+msgid "Lamp Switch-On Settling Time"
+msgstr "灯开启稳定时间"
+
+msgid "Latitude (Signed Decimal Degrees)"
+msgstr "纬度（有符号十进制）"
+
+msgid "Latvian"
+msgstr "拉脱维亚语"
+
+msgid "Leading-edge dimming"
+msgstr "前沿调光"
+
+msgid "Learn Ambient-Light Threshold 1"
+msgstr "了解环境光阈值 1"
+
+msgid "Learn Ambient-Light Threshold 2"
+msgstr "了解环境光阈值 2"
+
+msgid "Learn Ambient-Light Threshold 3"
+msgstr "了解环境光阈值 3"
+
+msgid "Learn Light Target Command Object"
+msgstr "照度设定值学习命令对象"
+
+msgid "Learn Light Target Object"
+msgstr "照度设定值学习对象"
+
+msgid "Learn Light Threshold Object"
+msgstr "学习光阈值对象"
+
+msgid "Learn Temperature Threshold 1"
+msgstr "学习温度阈值 1"
+
+msgid "Learn Temperature Threshold 2"
+msgstr "了解温度阈值 2"
+
+msgid "Learn Temperature Threshold 3"
+msgstr "了解温度阈值 3"
+
+msgid "Left"
+msgstr "左"
+
+msgid "Left Control Value"
+msgstr "左控制值"
+
+msgid "Left Control Value 1 Graphic"
+msgstr "左控制值1图形"
+
+msgid "Left Control Value 1 Text"
+msgstr "左控制值 1 文本"
+
+msgid "Left Detection Source"
+msgstr "左检测源"
+
+msgid "Left Value 1, Right Value 2"
+msgstr "左值 1，右值 2"
+
+msgid "Left brightens, right dims"
+msgstr "左边变亮，右边变暗"
+
+msgid "Left cancels, right confirms"
+msgstr "左取消，右确认"
+
+msgid "Left confirms, right cancels"
+msgstr "左确认，右取消"
+
+msgid "Left decreases, right increases"
+msgstr "左边减少，右边增加"
+
+msgid "Left dims, right brightens"
+msgstr "左边变暗，右边变亮"
+
+msgid "Left fan stage, right mode"
+msgstr "左风扇阶段，右模式"
+
+msgid "Left increases, right decreases"
+msgstr "左增加，右减少"
+
+msgid "Left lowers, right raises"
+msgstr "左边降低，右边升高"
+
+msgid "Left mode, right fan stage"
+msgstr "左模式，右风扇阶段"
+
+msgid "Left off, right on"
+msgstr "左为关，右为开"
+
+msgid "Left on, right off"
+msgstr "左开右关"
+
+msgid "Left raises, right lowers"
+msgstr "左上升，右下降"
+
+msgid "Left value 1, right value 2"
+msgstr "左值1，右值2"
+
+msgid "Left value 2, right value 1"
+msgstr "左值2，右值1"
+
+msgid "Light Change for Early Update"
+msgstr "提前更新的灯光变化"
+
+msgid "Light Change for Immediate Transmission (%)"
+msgstr "立即传输的光变化 (%)"
+
+msgid "Light Filter Response Preset"
+msgstr "滤光片响应预设"
+
+msgid "Light Level"
+msgstr "光照水平"
+
+msgid "Light Level Input"
+msgstr "光级输入"
+
+msgid "Light Level Setpoint"
+msgstr "光照水平设定点"
+
+msgid "Light Level Source"
+msgstr "光级光源"
+
+msgid "Light Measurement"
+msgstr "光测量"
+
+msgid "Light Measurement Calibration"
+msgstr "光测量校准"
+
+msgid "Light Measurement Filter"
+msgstr "光测量滤光片"
+
+msgid "Light Measurement Offset"
+msgstr "光测量偏移"
+
+msgid "Light Measurement and Thresholds"
+msgstr "光测量和阈值"
+
+msgid "Light Sensor Calibration Object"
+msgstr "光传感器校准对象"
+
+msgid "Light Switching Data Type"
+msgstr "光开关数据类型"
+
+msgid "Light Target Input Object"
+msgstr "照度设定值输入对象"
+
+msgid "Light Threshold (lx)"
+msgstr "光阈值 (lx)"
+
+msgid "Light Threshold Input Object"
+msgstr "光阈值输入对象"
+
+msgid "Light Threshold Setting Object"
+msgstr "光阈值设置对象"
+
+msgid "Light Threshold Source"
+msgstr "光阈值源"
+
+msgid "Light Threshold Switching"
+msgstr "光阈值切换"
+
+msgid "Light Update Timeout"
+msgstr "灯光更新超时"
+
+msgid "Light Update Timeout (ms)"
+msgstr "灯光更新超时(ms)"
+
+msgid "Light gray"
+msgstr "浅灰色"
+
+msgid "Light level"
+msgstr "光照水平"
+
+msgid "Light measurement"
+msgstr "光测量"
+
+msgid "Lighting Enable Input"
+msgstr "照明使能输入"
+
+msgid "Lighting Settings"
+msgstr "灯光设置"
+
+msgid "Limit Economy Cooling Fan Stages"
+msgstr "限制经济型冷却风扇级数"
+
+msgid "Limit Economy Heating Fan Stages"
+msgstr "限制经济型加热风扇阶段"
+
+msgid "Limit Flash Count"
+msgstr "限制闪存数量"
+
+msgid "Limit Night Cooling Fan Stages"
+msgstr "限制夜间冷却风扇的级数"
+
+msgid "Limit Night Heating Fan Stages"
+msgstr "限制夜间加热风扇阶段"
+
+msgid "Linear Curve Point Count"
+msgstr "线性曲线点数"
+
+msgid "Linear curve"
+msgstr "线性曲线"
+
+msgid "Linear scale"
+msgstr "线性标尺"
+
+msgid "Linked Dimming Outputs"
+msgstr "联动调光输出"
+
+msgid "List Arrangement"
+msgstr "名单安排"
+
+msgid "List Entry"
+msgstr "列表条目"
+
+msgid "List Entry 1"
+msgstr "列表条目 1"
+
+msgid "List Entry 10"
+msgstr "列表条目 10"
+
+msgid "List Entry 11"
+msgstr "列表条目 11"
+
+msgid "List Entry 12"
+msgstr "列表条目 12"
+
+msgid "List Entry 13"
+msgstr "列表条目 13"
+
+msgid "List Entry 14"
+msgstr "列表条目 14"
+
+msgid "List Entry 15"
+msgstr "列表条目 15"
+
+msgid "List Entry 2"
+msgstr "列表条目 2"
+
+msgid "List Entry 3"
+msgstr "列表条目 3"
+
+msgid "List Entry 4"
+msgstr "列表条目 4"
+
+msgid "List Entry 5"
+msgstr "列表条目 5"
+
+msgid "List Entry 6"
+msgstr "列表条目 6"
+
+msgid "List Entry 7"
+msgstr "列表条目 7"
+
+msgid "List Entry 8"
+msgstr "列表条目 8"
+
+msgid "List Entry 9"
+msgstr "列表条目 9"
+
+msgid "List Entry Count"
+msgstr "列表条目计数"
+
+msgid "List Language"
+msgstr "列表语言"
+
+msgid "List Layout"
+msgstr "列表布局"
+
+msgid "List with selected entry highlighted"
+msgstr "突出显示所选条目的列表"
+
+msgid "Lithuanian"
+msgstr "立陶宛语"
+
+msgid "Local Comfort and Standby Selection"
+msgstr "本地舒适度和待机选择"
+
+msgid "Local Controls or Display Present"
+msgstr "本地控制或显示存在"
+
+msgid "Local Operation Value (%)"
+msgstr "本地操作值 (%)"
+
+msgid "Local Regulation On/Off Control"
+msgstr "本地调节开/关控制"
+
+msgid "Local Room Control"
+msgstr "本地房间控制"
+
+msgid "Local Room Controller Controls"
+msgstr "本地房间控制器控制"
+
+msgid "Local Settings Menu"
+msgstr "本地设置菜单"
+
+msgid "Local Switch-On Brightness"
+msgstr "本地开启亮度"
+
+msgid "Local Temperature Object"
+msgstr "局部温度对象"
+
+msgid "Local controls"
+msgstr "本地控制"
+
+msgid "Local, auxiliary and object control"
+msgstr "本地、辅助和对象控制"
+
+msgid "Locate the control"
+msgstr "照亮操作位置"
+
+msgid "Location for Astronomical Times"
+msgstr "天文时间的位置"
+
+msgid "Locator Color at High Brightness"
+msgstr "高亮度定位器颜色"
+
+msgid "Locator Color at Low Brightness"
+msgstr "低亮度下的定位器颜色"
+
+msgid "Locator Green Value at High Brightness"
+msgstr "位置指示：高亮度时的绿色值"
+
+msgid "Locator Green Value at Low Brightness"
+msgstr "位置指示：低亮度时的绿色值"
+
+msgid "Locator Red Value at High Brightness"
+msgstr "位置指示：高亮度时的红色值"
+
+msgid "Locator Red Value at Low Brightness"
+msgstr "位置指示：低亮度时的红色值"
+
+msgid "Locator Unlit Value at High Brightness"
+msgstr "位置指示：高亮度时的熄灭值"
+
+msgid "Locator Unlit Value at Low Brightness"
+msgstr "位置指示：低亮度时的熄灭值"
+
+msgid "Locator lighting"
+msgstr "定位照明"
+
+msgid "Logarithmic curve"
+msgstr "对数曲线"
+
+msgid "Logic Function 1"
+msgstr "逻辑功能1"
+
+msgid "Logic Function 10"
+msgstr "逻辑功能10"
+
+msgid "Logic Function 11"
+msgstr "逻辑功能11"
+
+msgid "Logic Function 12"
+msgstr "逻辑功能12"
+
+msgid "Logic Function 13"
+msgstr "逻辑功能13"
+
+msgid "Logic Function 14"
+msgstr "逻辑功能14"
+
+msgid "Logic Function 15"
+msgstr "逻辑功能15"
+
+msgid "Logic Function 16"
+msgstr "逻辑功能16"
+
+msgid "Logic Function 17"
+msgstr "逻辑功能17"
+
+msgid "Logic Function 18"
+msgstr "逻辑函数18"
+
+msgid "Logic Function 19"
+msgstr "逻辑函数19"
+
+msgid "Logic Function 2"
+msgstr "逻辑功能2"
+
+msgid "Logic Function 20"
+msgstr "逻辑函数20"
+
+msgid "Logic Function 21"
+msgstr "逻辑功能21"
+
+msgid "Logic Function 22"
+msgstr "逻辑函数22"
+
+msgid "Logic Function 23"
+msgstr "逻辑函数23"
+
+msgid "Logic Function 24"
+msgstr "逻辑函数24"
+
+msgid "Logic Function 25"
+msgstr "逻辑功能25"
+
+msgid "Logic Function 26"
+msgstr "逻辑功能26"
+
+msgid "Logic Function 27"
+msgstr "逻辑函数27"
+
+msgid "Logic Function 28"
+msgstr "逻辑函数28"
+
+msgid "Logic Function 29"
+msgstr "逻辑函数29"
+
+msgid "Logic Function 3"
+msgstr "逻辑功能3"
+
+msgid "Logic Function 30"
+msgstr "逻辑函数 30"
+
+msgid "Logic Function 4"
+msgstr "逻辑功能4"
+
+msgid "Logic Function 5"
+msgstr "逻辑功能5"
+
+msgid "Logic Function 6"
+msgstr "逻辑功能6"
+
+msgid "Logic Function 7"
+msgstr "逻辑功能7"
+
+msgid "Logic Function 8"
+msgstr "逻辑功能8"
+
+msgid "Logic Function 9"
+msgstr "逻辑功能9"
+
+msgid "Logic Functions"
+msgstr "逻辑函数"
+
+msgid "Logic Input 1"
+msgstr "逻辑输入1"
+
+msgid "Logic Input 10"
+msgstr "逻辑输入10"
+
+msgid "Logic Input 2"
+msgstr "逻辑输入2"
+
+msgid "Logic Input 3"
+msgstr "逻辑输入3"
+
+msgid "Logic Input 4"
+msgstr "逻辑输入4"
+
+msgid "Logic Input 5"
+msgstr "逻辑输入5"
+
+msgid "Logic Input 6"
+msgstr "逻辑输入6"
+
+msgid "Logic Input 7"
+msgstr "逻辑输入7"
+
+msgid "Logic Input 8"
+msgstr "逻辑输入8"
+
+msgid "Logic Input 9"
+msgstr "逻辑输入9"
+
+msgid "Logic Operation"
+msgstr "逻辑运算"
+
+msgid "Long Press Binary State 1"
+msgstr "长按二进制状态1"
+
+msgid "Long Press Binary State 2"
+msgstr "长按二进制状态 2"
+
+msgid "Long Press Recognition"
+msgstr "长按识别"
+
+msgid "Long Press Switch Value"
+msgstr "长按切换数值"
+
+msgid "Long Press Threshold"
+msgstr "长按阈值"
+
+msgid "Long Press Threshold (ms)"
+msgstr "长按阈值 (ms)"
+
+msgid "Long Press Value 1"
+msgstr "长按值 1"
+
+msgid "Long Press Value 1 (%)"
+msgstr "长按值 1 (%)"
+
+msgid "Long Press Value 1 (32 Bit Float)"
+msgstr "长按值 1（32 位浮点数）"
+
+msgid "Long Press Value 1 (8 Bit)"
+msgstr "长按值 1（8 位）"
+
+msgid "Long Press Value 1 (KNX Float)"
+msgstr "长按值 1（KNX 浮点数）"
+
+msgid "Long Press Value 1 (Signed 16 Bit)"
+msgstr "长按值 1（16 位有符号）"
+
+msgid "Long Press Value 1 (Signed 32 Bit)"
+msgstr "长按值 1（32 位有符号）"
+
+msgid "Long Press Value 1 (Unsigned 16 Bit)"
+msgstr "长按值 1（16 位无符号）"
+
+msgid "Long Press Value 1 (Unsigned 32 Bit)"
+msgstr "长按值 1（32 位无符号）"
+
+msgid "Long Press Value 2"
+msgstr "长按值 2"
+
+msgid "Long Press Value 2 (%)"
+msgstr "长按值 2 (%)"
+
+msgid "Long Press Value 2 (32 Bit Float)"
+msgstr "长按值 2（32 位浮点数）"
+
+msgid "Long Press Value 2 (8 Bit)"
+msgstr "长按值 2（8 位）"
+
+msgid "Long Press Value 2 (KNX Float)"
+msgstr "长按值 2（KNX 浮点数）"
+
+msgid "Long Press Value 2 (Signed 16 Bit)"
+msgstr "长按值 2（16 位有符号）"
+
+msgid "Long Press Value 2 (Signed 32 Bit)"
+msgstr "长按值 2（32 位有符号）"
+
+msgid "Long Press Value 2 (Unsigned 16 Bit)"
+msgstr "长按值 2（16 位无符号）"
+
+msgid "Long Press Value 2 (Unsigned 32 Bit)"
+msgstr "长按值 2（32 位无符号）"
+
+msgid "Longitude (Signed Decimal Degrees)"
+msgstr "经度（有符号十进制）"
+
+msgid "Low"
+msgstr "低"
+
+msgid "Low Sensitivity Preset"
+msgstr "低灵敏度预设"
+
+msgid "Low-Light Result Data Type"
+msgstr "弱光结果数据类型"
+
+msgid "Low-Light Result Repeat Interval"
+msgstr "弱光结果重复间隔"
+
+msgid "Low-Light Result Transmission Timing"
+msgstr "弱光结果传输时序"
+
+msgid "Low-Light Result Transmission Triggers"
+msgstr "弱光结果传输触发器"
+
+msgid "Low-Light Switching Enable Object"
+msgstr "低光切换启用对象"
+
+msgid "Low-Light Switching Enable State After Power Return"
+msgstr "电源恢复后低光切换启用状态"
+
+msgid "Lower Command Value"
+msgstr "下降命令值"
+
+msgid "Lower Contact Value"
+msgstr "下侧触点值"
+
+msgid "Lower Control Module"
+msgstr "下控制模块"
+
+msgid "Lower Limit"
+msgstr "下限"
+
+msgid "Lower Range Color"
+msgstr "较低范围的颜色"
+
+msgid "Lower Rocker Long Press Menu Action"
+msgstr "下摇杆长按菜单操作"
+
+msgid "Lower Rocker Short Press Menu Action"
+msgstr "下摇杆 短按菜单操作"
+
+msgid "Lower Rocker Value"
+msgstr "翘板下侧值"
+
+msgid "Lower Threshold"
+msgstr "较低的门槛"
+
+msgid "Lower Trim"
+msgstr "下装饰"
+
+msgid "Lower Wall Insert"
+msgstr "下壁嵌件"
+
+msgid "Lowest Manual Fan Stage"
+msgstr "最低手动风扇阶段"
+
+msgid "Magenta for scenes"
+msgstr "场景为洋红色"
+
+msgid "Manual Adjustment Starting Value"
+msgstr "手动调整起始值"
+
+msgid "Manual Mode Activation Value"
+msgstr "手动模式激活值"
+
+msgid "Manual Mode Input Object"
+msgstr "手动模式输入对象"
+
+msgid "Manual Mode Selection Object"
+msgstr "手动模式选择对象"
+
+msgid "Manual On/Off Status Object"
+msgstr "手动开/关状态对象"
+
+msgid "Manual Operation Input"
+msgstr "手动操作输入"
+
+msgid "Manual Setpoint Adjustment"
+msgstr "手动设定值调整"
+
+msgid "Manual Setpoint Range"
+msgstr "手动设定点范围"
+
+msgid "Manual Switching Feedback"
+msgstr "手动切换反馈"
+
+msgid "Manual Temperature Step"
+msgstr "手动温度步进"
+
+msgid "Manual and automatic operation"
+msgstr "手动和自动操作"
+
+msgid "Manual operation only"
+msgstr "仅限手动操作"
+
+msgid "Manual or Automatic Fan Control"
+msgstr "手动或自动风扇控制"
+
+msgid "Manual start, automatic stop"
+msgstr "手动启动、自动停止"
+
+msgid "Mapped Value Transmission Timing"
+msgstr "映射值传输时序"
+
+msgid "Maximum Brightness"
+msgstr "最大亮度"
+
+msgid "Maximum Bus Value"
+msgstr "总线最大值"
+
+msgid "Maximum Cooling Demand"
+msgstr "最大冷却需求"
+
+msgid "Maximum Cooling Setpoint Reduction"
+msgstr "最大冷却设定值降低"
+
+msgid "Maximum Demand (1 Byte)"
+msgstr "最大需求（1 字节）"
+
+msgid "Maximum Detection Sensitivity"
+msgstr "最大检测灵敏度"
+
+msgid "Maximum Display Value"
+msgstr "最大显示值"
+
+msgid "Maximum Economy Cooling Fan Stage"
+msgstr "最经济的冷却风扇阶段"
+
+msgid "Maximum Economy Heating Fan Stage"
+msgstr "最经济的加热风扇阶段"
+
+msgid "Maximum Heating Demand"
+msgstr "最大供暖需求"
+
+msgid "Maximum Heating Setpoint Increase"
+msgstr "最大供暖设定值增加"
+
+msgid "Maximum Manual Cooling Increase"
+msgstr "最大手动冷却增量"
+
+msgid "Maximum Manual Cooling Reduction"
+msgstr "最大手动冷却减少量"
+
+msgid "Maximum Manual Heating Increase"
+msgstr "最大手动加热增量"
+
+msgid "Maximum Manual Heating Reduction"
+msgstr "最大手动加热减少量"
+
+msgid "Maximum Manual Target"
+msgstr "手动设定值上限"
+
+msgid "Maximum Night Cooling Fan Stage"
+msgstr "最大夜间冷却风扇阶段"
+
+msgid "Maximum Night Heating Fan Stage"
+msgstr "最大夜间加热风扇阶段"
+
+msgid "Maximum available value"
+msgstr "最大可用值"
+
+msgid "Maximum input"
+msgstr "最大输入"
+
+msgid "Measured Brightness Transmission Triggers"
+msgstr "测量亮度传输触发"
+
+msgid "Measured Light Level"
+msgstr "测量的光照水平"
+
+msgid "Measured Light Level Object"
+msgstr "测量光级物体"
+
+msgid "Measured Light Object"
+msgstr "被测光物体"
+
+msgid "Measured Light Repeat Interval"
+msgstr "测得的光重复间隔"
+
+msgid "Measured Light Repeat Interval (ms)"
+msgstr "测得的光重复间隔(ms)"
+
+msgid "Measured Light Transmission Interval"
+msgstr "测得的光传输间隔"
+
+msgid "Measured Temperature"
+msgstr "测量温度"
+
+msgid "Measured Temperature Display Delay"
+msgstr "测量温度显示延迟"
+
+msgid "Measured Temperature Transmission Interval (ms)"
+msgstr "测量温度传输间隔(ms)"
+
+msgid "Measurement Unit System"
+msgstr "测量单位系统"
+
+msgid "Medium"
+msgstr "中等"
+
+msgid "Medium Sensitivity Preset"
+msgstr "中灵敏度预设"
+
+msgid "Medium response, about 40 s"
+msgstr "中等响应，约40秒"
+
+msgid "Message"
+msgstr "消息"
+
+msgid "Message 1"
+msgstr "留言1"
+
+msgid "Message 10"
+msgstr "留言10"
+
+msgid "Message 11"
+msgstr "留言11"
+
+msgid "Message 12"
+msgstr "留言 12"
+
+msgid "Message 13"
+msgstr "留言13"
+
+msgid "Message 14"
+msgstr "留言 14"
+
+msgid "Message 15"
+msgstr "留言 15"
+
+msgid "Message 16"
+msgstr "留言 16"
+
+msgid "Message 17"
+msgstr "留言 17"
+
+msgid "Message 18"
+msgstr "留言 18"
+
+msgid "Message 19"
+msgstr "留言 19"
+
+msgid "Message 2"
+msgstr "留言2"
+
+msgid "Message 20"
+msgstr "留言20"
+
+msgid "Message 21"
+msgstr "留言21"
+
+msgid "Message 22"
+msgstr "留言22"
+
+msgid "Message 23"
+msgstr "留言23"
+
+msgid "Message 24"
+msgstr "留言24"
+
+msgid "Message 25"
+msgstr "留言25"
+
+msgid "Message 26"
+msgstr "留言26"
+
+msgid "Message 27"
+msgstr "留言 27"
+
+msgid "Message 28"
+msgstr "留言 28"
+
+msgid "Message 29"
+msgstr "留言 29"
+
+msgid "Message 3"
+msgstr "留言3"
+
+msgid "Message 30"
+msgstr "留言30"
+
+msgid "Message 31"
+msgstr "留言31"
+
+msgid "Message 32"
+msgstr "留言 32"
+
+msgid "Message 33"
+msgstr "留言33"
+
+msgid "Message 34"
+msgstr "留言 34"
+
+msgid "Message 35"
+msgstr "留言 35"
+
+msgid "Message 36"
+msgstr "留言 36"
+
+msgid "Message 37"
+msgstr "留言 37"
+
+msgid "Message 38"
+msgstr "留言 38"
+
+msgid "Message 39"
+msgstr "留言 39"
+
+msgid "Message 4"
+msgstr "留言4"
+
+msgid "Message 40"
+msgstr "留言 40"
+
+msgid "Message 41"
+msgstr "留言 41"
+
+msgid "Message 42"
+msgstr "留言 42"
+
+msgid "Message 43"
+msgstr "留言 43"
+
+msgid "Message 44"
+msgstr "留言 44"
+
+msgid "Message 45"
+msgstr "留言 45"
+
+msgid "Message 46"
+msgstr "留言 46"
+
+msgid "Message 47"
+msgstr "留言 47"
+
+msgid "Message 48"
+msgstr "留言 48"
+
+msgid "Message 49"
+msgstr "留言 49"
+
+msgid "Message 5"
+msgstr "留言5"
+
+msgid "Message 50"
+msgstr "留言 50"
+
+msgid "Message 51"
+msgstr "消息 51"
+
+msgid "Message 52"
+msgstr "消息 52"
+
+msgid "Message 53"
+msgstr "留言 53"
+
+msgid "Message 54"
+msgstr "留言 54"
+
+msgid "Message 55"
+msgstr "消息 55"
+
+msgid "Message 56"
+msgstr "消息 56"
+
+msgid "Message 57"
+msgstr "留言 57"
+
+msgid "Message 58"
+msgstr "留言 58"
+
+msgid "Message 59"
+msgstr "留言 59"
+
+msgid "Message 6"
+msgstr "留言6"
+
+msgid "Message 60"
+msgstr "留言 60"
+
+msgid "Message 61"
+msgstr "留言 61"
+
+msgid "Message 62"
+msgstr "留言 62"
+
+msgid "Message 63"
+msgstr "留言 63"
+
+msgid "Message 64"
+msgstr "留言 64"
+
+msgid "Message 65"
+msgstr "留言 65"
+
+msgid "Message 66"
+msgstr "留言 66"
+
+msgid "Message 67"
+msgstr "留言 67"
+
+msgid "Message 68"
+msgstr "留言 68"
+
+msgid "Message 69"
+msgstr "留言 69"
+
+msgid "Message 7"
+msgstr "留言7"
+
+msgid "Message 70"
+msgstr "留言 70"
+
+msgid "Message 71"
+msgstr "留言 71"
+
+msgid "Message 72"
+msgstr "留言 72"
+
+msgid "Message 73"
+msgstr "留言73"
+
+msgid "Message 74"
+msgstr "留言 74"
+
+msgid "Message 75"
+msgstr "留言75"
+
+msgid "Message 76"
+msgstr "留言 76"
+
+msgid "Message 77"
+msgstr "留言 77"
+
+msgid "Message 78"
+msgstr "留言 78"
+
+msgid "Message 79"
+msgstr "留言 79"
+
+msgid "Message 8"
+msgstr "留言8"
+
+msgid "Message 80"
+msgstr "留言 80"
+
+msgid "Message 9"
+msgstr "留言9"
+
+msgid "Message Acknowledgement"
+msgstr "消息确认"
+
+msgid "Message Acknowledgement (1 Bit)"
+msgstr "消息确认（1 位）"
+
+msgid "Message Activation Value"
+msgstr "消息激活值"
+
+msgid "Message Category"
+msgstr "留言类别"
+
+msgid "Message Content"
+msgstr "留言内容"
+
+msgid "Message Count (0 to 10)"
+msgstr "消息计数（0 到 10）"
+
+msgid "Message Graphic"
+msgstr "留言图"
+
+msgid "Message Name"
+msgstr "消息名称"
+
+msgid "Message Priority"
+msgstr "消息优先级"
+
+msgid "Message Record Export"
+msgstr "留言记录导出"
+
+msgid "Message Text (14 Bytes)"
+msgstr "消息文本（14 字节）"
+
+msgid "Message Trigger (1 Bit)"
+msgstr "消息触发（1 位）"
+
+msgid "Middle Control Module"
+msgstr "中控模块"
+
+msgid "Middle Range Color"
+msgstr "中色范围"
+
+msgid "Middle Wall Insert"
+msgstr "中墙嵌件"
+
+msgid "Minimum Base Demand"
+msgstr "最低基本需求"
+
+msgid "Minimum Brightness"
+msgstr "最低亮度"
+
+msgid "Minimum Bus Value"
+msgstr "总线最小值"
+
+msgid "Minimum Cooling Demand"
+msgstr "最低冷却需求"
+
+msgid "Minimum Demand"
+msgstr "最低需求"
+
+msgid "Minimum Demand Settings"
+msgstr "最低需求设置"
+
+msgid "Minimum Display Value"
+msgstr "最小显示值"
+
+msgid "Minimum Heating Demand"
+msgstr "最低供暖需求"
+
+msgid "Minimum Inactive Time"
+msgstr "最短非活动时间"
+
+msgid "Minimum Light Intensity (%)"
+msgstr "最小光强度 (%)"
+
+msgid "Minimum Manual Target"
+msgstr "手动设定值下限"
+
+msgid "Minimum Neutral Band"
+msgstr "最小中性带"
+
+msgid "Minimum Retained Demand"
+msgstr "最低保留需求"
+
+msgid "Minimum Value Change"
+msgstr "最小变化值"
+
+msgid "Minimum brightness"
+msgstr "最低亮度"
+
+msgid "Minimum input"
+msgstr "最小输入"
+
+msgid "Minimum, Maximum or Average"
+msgstr "最小值、最大值或平均值"
+
+msgid "Minutes and seconds"
+msgstr "分钟和秒"
+
+msgid "Mode Selection via Object"
+msgstr "通过对象选择模式"
+
+msgid "Mode number (1 byte)"
+msgstr "模式编号（1 字节）"
+
+msgid "Module Carrier"
+msgstr "模块载体"
+
+msgid "Monday"
+msgstr "星期一"
+
+msgid "Monitor Demand Updates"
+msgstr "监控需求更新"
+
+msgid "Monitor Frost Sensor Updates"
+msgstr "监控霜冻传感器更新"
+
+msgid "Monitor Rain Sensor Updates"
+msgstr "监测雨量传感器更新"
+
+msgid "Monitor Wind Sensor Updates"
+msgstr "监控风传感器更新"
+
+msgid "Monitoring Timeout (PWM Periods)"
+msgstr "监控超时（PWM 周期）"
+
+msgid "Monochrome symbols"
+msgstr "单色符号"
+
+msgid "Month/day/year (two-digit year)"
+msgstr "月/日/年（两位数年份）"
+
+msgid "Motion Detection"
+msgstr "运动检测"
+
+msgid "Motion Detection Enable Object"
+msgstr "运动检测启用对象"
+
+msgid "Motion Detection Enable State After Power Return"
+msgstr "电源恢复后运动检测启用状态"
+
+msgid "Motion Detection Sources"
+msgstr "运动检测源"
+
+msgid "Motion Detector Mode"
+msgstr "运动检测器模式"
+
+msgid "Motion Event Input"
+msgstr "运动事件输入"
+
+msgid "Motion Input 1"
+msgstr "运动输入1"
+
+msgid "Motion Input 2"
+msgstr "运动输入2"
+
+msgid "Motion Processing Enable"
+msgstr "运动处理启用"
+
+msgid "Motion Sensitivity"
+msgstr "运动灵敏度"
+
+msgid "Motion Sensor 6131/40"
+msgstr "运动传感器 6131/40"
+
+msgid "Motion Sensor 6179/01"
+msgstr "运动传感器 6179/01"
+
+msgid "Motion Sensor 6179/02"
+msgstr "运动传感器 6179/02"
+
+msgid "Motion Sensor 6179/101"
+msgstr "运动传感器 6179/101"
+
+msgid "Motion Sensor Variant"
+msgstr "运动传感器变体"
+
+msgid "Motion Switching Output"
+msgstr "运动开关输出"
+
+msgid "Motion Trigger"
+msgstr "运动触发"
+
+msgid "Motion detection"
+msgstr "运动检测"
+
+msgid "Move Covering"
+msgstr "移动覆盖物"
+
+msgid "Movements Between Reference Runs"
+msgstr "参考运行之间的移动"
+
+msgid "Multiple active outputs"
+msgstr "多个有源输出"
+
+msgid "Multiple-Press Selection"
+msgstr "多次按下选择"
+
+msgid "Mute"
+msgstr "静音"
+
+msgid "Mute Command Data Type"
+msgstr "静音命令数据类型"
+
+msgid "Mute Command Value"
+msgstr "静音命令值"
+
+msgid "Mute Control"
+msgstr "静音控制"
+
+msgid "Mute Incoming Calls"
+msgstr "来电静音"
+
+msgid "NAND"
+msgstr "与非门"
+
+msgid "NOR"
+msgstr "或非"
+
+msgid "NOT"
+msgstr "不"
+
+msgid "Navigation Destination Page"
+msgstr "导航目的地页面"
+
+msgid "Neither send nor receive"
+msgstr "既不发送也不接收"
+
+msgid "Networked Seven-Inch Touch Panel"
+msgstr "联网七寸触摸屏"
+
+msgid "Neutral-Band Midpoint"
+msgstr "中性带中点"
+
+msgid "Next Disc Track"
+msgstr "下一个光盘曲目"
+
+msgid "Next Item Command Data Type"
+msgstr "下一项命令数据类型"
+
+msgid "Next Item Command Value"
+msgstr "下一项命令值"
+
+msgid "Next Item Control"
+msgstr "下一个项目控制"
+
+msgid "Next Media Item"
+msgstr "下一个媒体项目"
+
+msgid "Night Cooling Offset"
+msgstr "夜间冷却补偿"
+
+msgid "Night Cooling Reference"
+msgstr "夜间降温参考"
+
+msgid "Night Cooling Setpoint"
+msgstr "夜间制冷设定值"
+
+msgid "Night Heating Offset"
+msgstr "夜间供暖补偿"
+
+msgid "Night Heating Reference"
+msgstr "夜间供暖参考"
+
+msgid "Night Heating Setpoint"
+msgstr "夜间供暖设定值"
+
+msgid "Night Reduction"
+msgstr "夜间减少"
+
+msgid "Night Reduction Mode"
+msgstr "夜间减少模式"
+
+msgid "Night reduction"
+msgstr "夜间减少"
+
+msgid "Nighttime Display Intensity"
+msgstr "夜间显示强度"
+
+msgid "No"
+msgstr "否"
+
+msgid "No Rain Text"
+msgstr "没有雨文本"
+
+msgid "No action"
+msgstr "无动作"
+
+msgid "No action assigned"
+msgstr "未分配任何操作"
+
+msgid "No value"
+msgstr "无数值"
+
+msgid "None"
+msgstr "无"
+
+msgid "Normal"
+msgstr "正常"
+
+msgid "Normal transition speed"
+msgstr "正常过渡速度"
+
+msgid "Normally closed"
+msgstr "常闭"
+
+msgid "Normally open"
+msgstr "常开"
+
+msgid "Norwegian"
+msgstr "挪威语"
+
+msgid "Not after the blocking time"
+msgstr "不在阻塞时间之后"
+
+msgid "Not before the blocking time"
+msgstr "不在封锁时间之前"
+
+msgid "Number of Display Values"
+msgstr "显示值数量"
+
+msgid "Number of Fan Stages"
+msgstr "风扇级数"
+
+msgid "Number of Flashes"
+msgstr "闪光次数"
+
+msgid "Number of Inputs"
+msgstr "输入数量"
+
+msgid "Number of Objects"
+msgstr "对象数量"
+
+msgid "Number of Output Groups"
+msgstr "输出组数"
+
+msgid "Number of Outputs or Press Counts"
+msgstr "输出数量或按次数"
+
+msgid "Number of Scenes"
+msgstr "场景数"
+
+msgid "Number of Sequence Entries"
+msgstr "序列条目数"
+
+msgid "Number of Sources"
+msgstr "来源数量"
+
+msgid "Number of Stage Outputs"
+msgstr "级别输出数量"
+
+msgid "Numeric Feedback"
+msgstr "数字反馈"
+
+msgid "Numeric value"
+msgstr "数值"
+
+msgid "OR"
+msgstr "或"
+
+msgid "Object 0 Binary Action"
+msgstr "对象 0 二进制操作"
+
+msgid "Object 0 Data Type"
+msgstr "对象 0 数据类型"
+
+msgid "Object 0 Value"
+msgstr "对象 0 值"
+
+msgid "Object 1 Binary Action"
+msgstr "对象 1 二元操作"
+
+msgid "Object 1 Blue"
+msgstr "对象 1 蓝色"
+
+msgid "Object 1 Data Type"
+msgstr "对象 1 数据类型"
+
+msgid "Object 1 Green"
+msgstr "对象 1 绿色"
+
+msgid "Object 1 Reception"
+msgstr "对象1接收"
+
+msgid "Object 1 Red"
+msgstr "对象 1 红色"
+
+msgid "Object 1 Transmission"
+msgstr "对象1传输"
+
+msgid "Object 1 Value"
+msgstr "对象 1 值"
+
+msgid "Object 10 Blue"
+msgstr "物体 10 蓝色"
+
+msgid "Object 10 Data Type"
+msgstr "对象 10 数据类型"
+
+msgid "Object 10 Green"
+msgstr "对象 10 绿色"
+
+msgid "Object 10 Reception"
+msgstr "对象 10 接待"
+
+msgid "Object 10 Red"
+msgstr "物体 10 红色"
+
+msgid "Object 10 Transmission"
+msgstr "对象 10 传输"
+
+msgid "Object 10 Value"
+msgstr "对象 10 值"
+
+msgid "Object 11 Blue"
+msgstr "对象 11 蓝色"
+
+msgid "Object 11 Data Type"
+msgstr "对象 11 数据类型"
+
+msgid "Object 11 Green"
+msgstr "对象 11 绿色"
+
+msgid "Object 11 Reception"
+msgstr "对象 11 接待"
+
+msgid "Object 11 Red"
+msgstr "物体 11 红色"
+
+msgid "Object 11 Transmission"
+msgstr "对象 11 传输"
+
+msgid "Object 11 Value"
+msgstr "对象 11 值"
+
+msgid "Object 12 Blue"
+msgstr "对象 12 蓝色"
+
+msgid "Object 12 Data Type"
+msgstr "对象 12 数据类型"
+
+msgid "Object 12 Green"
+msgstr "对象 12 绿色"
+
+msgid "Object 12 Reception"
+msgstr "对象 12 接待"
+
+msgid "Object 12 Red"
+msgstr "物体 12 红色"
+
+msgid "Object 12 Transmission"
+msgstr "对象 12 传输"
+
+msgid "Object 12 Value"
+msgstr "对象 12 值"
+
+msgid "Object 13 Blue"
+msgstr "对象 13 蓝色"
+
+msgid "Object 13 Data Type"
+msgstr "对象 13 数据类型"
+
+msgid "Object 13 Green"
+msgstr "对象 13 绿色"
+
+msgid "Object 13 Reception"
+msgstr "对象 13 接待"
+
+msgid "Object 13 Red"
+msgstr "对象 13 红色"
+
+msgid "Object 13 Transmission"
+msgstr "对象 13 传输"
+
+msgid "Object 13 Value"
+msgstr "对象 13 值"
+
+msgid "Object 14 Blue"
+msgstr "对象 14 蓝色"
+
+msgid "Object 14 Data Type"
+msgstr "对象 14 数据类型"
+
+msgid "Object 14 Green"
+msgstr "对象 14 绿色"
+
+msgid "Object 14 Reception"
+msgstr "对象 14 接待"
+
+msgid "Object 14 Red"
+msgstr "对象 14 红色"
+
+msgid "Object 14 Transmission"
+msgstr "对象 14 传输"
+
+msgid "Object 14 Value"
+msgstr "对象 14 值"
+
+msgid "Object 15 Blue"
+msgstr "对象 15 蓝色"
+
+msgid "Object 15 Data Type"
+msgstr "对象 15 数据类型"
+
+msgid "Object 15 Green"
+msgstr "对象 15 绿色"
+
+msgid "Object 15 Reception"
+msgstr "对象 15 接待"
+
+msgid "Object 15 Red"
+msgstr "对象 15 红色"
+
+msgid "Object 15 Transmission"
+msgstr "对象 15 传输"
+
+msgid "Object 15 Value"
+msgstr "对象 15 值"
+
+msgid "Object 16 Data Type"
+msgstr "对象 16 数据类型"
+
+msgid "Object 17 Data Type"
+msgstr "对象 17 数据类型"
+
+msgid "Object 18 Data Type"
+msgstr "对象 18 数据类型"
+
+msgid "Object 19 Data Type"
+msgstr "对象 19 数据类型"
+
+msgid "Object 2 Binary Action"
+msgstr "对象 2 二元动作"
+
+msgid "Object 2 Blue"
+msgstr "对象 2 蓝色"
+
+msgid "Object 2 Data Type"
+msgstr "对象 2 数据类型"
+
+msgid "Object 2 Green"
+msgstr "对象 2 绿色"
+
+msgid "Object 2 Reception"
+msgstr "对象2接收"
+
+msgid "Object 2 Red"
+msgstr "对象 2 红色"
+
+msgid "Object 2 Transmission"
+msgstr "对象2传输"
+
+msgid "Object 2 Value"
+msgstr "对象 2 值"
+
+msgid "Object 20 Data Type"
+msgstr "对象 20 数据类型"
+
+msgid "Object 3 Binary Action"
+msgstr "对象 3 二元动作"
+
+msgid "Object 3 Blue"
+msgstr "对象 3 蓝色"
+
+msgid "Object 3 Data Type"
+msgstr "对象 3 数据类型"
+
+msgid "Object 3 Green"
+msgstr "对象 3 绿色"
+
+msgid "Object 3 Reception"
+msgstr "对象 3 接待"
+
+msgid "Object 3 Red"
+msgstr "物体 3 红色"
+
+msgid "Object 3 Transmission"
+msgstr "对象3传输"
+
+msgid "Object 3 Value"
+msgstr "对象 3 值"
+
+msgid "Object 4 Binary Action"
+msgstr "对象 4 二元动作"
+
+msgid "Object 4 Blue"
+msgstr "对象 4 蓝色"
+
+msgid "Object 4 Data Type"
+msgstr "对象 4 数据类型"
+
+msgid "Object 4 Green"
+msgstr "对象 4 绿色"
+
+msgid "Object 4 Reception"
+msgstr "对象 4 接待"
+
+msgid "Object 4 Red"
+msgstr "对象 4 红色"
+
+msgid "Object 4 Transmission"
+msgstr "对象4传输"
+
+msgid "Object 4 Value"
+msgstr "对象 4 值"
+
+msgid "Object 5 Blue"
+msgstr "对象 5 蓝色"
+
+msgid "Object 5 Data Type"
+msgstr "对象 5 数据类型"
+
+msgid "Object 5 Green"
+msgstr "对象 5 绿色"
+
+msgid "Object 5 Reception"
+msgstr "对象 5 接待"
+
+msgid "Object 5 Red"
+msgstr "对象 5 红色"
+
+msgid "Object 5 Transmission"
+msgstr "对象 5 传输"
+
+msgid "Object 5 Value"
+msgstr "对象 5 值"
+
+msgid "Object 6 Blue"
+msgstr "对象 6 蓝色"
+
+msgid "Object 6 Data Type"
+msgstr "对象 6 数据类型"
+
+msgid "Object 6 Green"
+msgstr "对象 6 绿色"
+
+msgid "Object 6 Reception"
+msgstr "对象 6 接待"
+
+msgid "Object 6 Red"
+msgstr "对象 6 红色"
+
+msgid "Object 6 Transmission"
+msgstr "对象 6 传输"
+
+msgid "Object 6 Value"
+msgstr "对象 6 值"
+
+msgid "Object 7 Blue"
+msgstr "对象 7 蓝色"
+
+msgid "Object 7 Data Type"
+msgstr "对象 7 数据类型"
+
+msgid "Object 7 Green"
+msgstr "对象 7 绿色"
+
+msgid "Object 7 Reception"
+msgstr "对象 7 接待"
+
+msgid "Object 7 Red"
+msgstr "对象 7 红色"
+
+msgid "Object 7 Transmission"
+msgstr "对象 7 传输"
+
+msgid "Object 7 Value"
+msgstr "对象 7 值"
+
+msgid "Object 8 Blue"
+msgstr "对象 8 蓝色"
+
+msgid "Object 8 Data Type"
+msgstr "对象 8 数据类型"
+
+msgid "Object 8 Green"
+msgstr "对象 8 绿色"
+
+msgid "Object 8 Reception"
+msgstr "对象 8 接待"
+
+msgid "Object 8 Red"
+msgstr "对象 8 红色"
+
+msgid "Object 8 Transmission"
+msgstr "对象8传输"
+
+msgid "Object 8 Value"
+msgstr "对象 8 值"
+
+msgid "Object 9 Blue"
+msgstr "对象 9 蓝色"
+
+msgid "Object 9 Data Type"
+msgstr "对象 9 数据类型"
+
+msgid "Object 9 Green"
+msgstr "对象 9 绿色"
+
+msgid "Object 9 Reception"
+msgstr "对象 9 接待"
+
+msgid "Object 9 Red"
+msgstr "对象 9 红色"
+
+msgid "Object 9 Transmission"
+msgstr "对象 9 传输"
+
+msgid "Object 9 Value"
+msgstr "对象 9 值"
+
+msgid "Object Count and Data Type"
+msgstr "对象计数和数据类型"
+
+msgid "Object Values"
+msgstr "对象值"
+
+msgid "Object to Clear Manual Adjustments"
+msgstr "反对清除手动调整"
+
+msgid "Object-Controlled Brightness Independence"
+msgstr "对象控制的亮度独立性"
+
+msgid "Objects to Send"
+msgstr "要发送的对象"
+
+msgid "Occupancy"
+msgstr "入住率"
+
+msgid "Occupancy Detection"
+msgstr "占用检测"
+
+msgid "Occupancy Detection Enable Object"
+msgstr "占用检测启用对象"
+
+msgid "Occupancy Enable State After Power Return"
+msgstr "电源恢复后占用启用状态"
+
+msgid "Occupancy Input"
+msgstr "占用输入"
+
+msgid "Occupancy Processing Enable"
+msgstr "占用处理启用"
+
+msgid "Occupancy Sensor 6131/11"
+msgstr "占用传感器 6131/11"
+
+msgid "Occupancy Sensor 6131/20"
+msgstr "占用传感器 6131/20"
+
+msgid "Occupancy Sensor 6131/21"
+msgstr "占用传感器 6131/21"
+
+msgid "Occupancy Sensor 6131/30"
+msgstr "占用传感器 6131/30"
+
+msgid "Occupancy Sensor 6131/31"
+msgstr "占用传感器 6131/31"
+
+msgid "Occupancy Simulation"
+msgstr "占用模拟"
+
+msgid "Off"
+msgstr "关"
+
+msgid "Off Byte Value"
+msgstr "关闭字节值"
+
+msgid "Off Command Value"
+msgstr "关闭命令值"
+
+msgid "Off Delay Duration"
+msgstr "关闭延迟持续时间"
+
+msgid "Off Graphic"
+msgstr "关状态图形"
+
+msgid "Off State Text"
+msgstr "关闭状态文本"
+
+msgid "Off State Value"
+msgstr "关闭状态值"
+
+msgid "Off Text"
+msgstr "关闭文本"
+
+msgid "Off Transition State"
+msgstr "关闭转换时的状态"
+
+msgid "Off activates"
+msgstr "关值激活"
+
+msgid "Off telegram"
+msgstr "关报文"
+
+msgid "On"
+msgstr "开"
+
+msgid "On Command Value"
+msgstr "开命令值"
+
+msgid "On Delay Duration"
+msgstr "开启延迟时间"
+
+msgid "On Delay Input Object"
+msgstr "开启延迟输入对象"
+
+msgid "On Graphic"
+msgstr "开状态图形"
+
+msgid "On State Text"
+msgstr "开状态文本"
+
+msgid "On Text"
+msgstr "开启文本"
+
+msgid "On Transition State"
+msgstr "开启转换时的状态"
+
+msgid "On activates"
+msgstr "开值激活"
+
+msgid "On and Off Transition Behavior"
+msgstr "开和关转换行为"
+
+msgid "On and off telegrams"
+msgstr "开和关报文"
+
+msgid "On either input state"
+msgstr "在任一输入状态"
+
+msgid "On input 0"
+msgstr "输入值为 0 时"
+
+msgid "On input 1"
+msgstr "输入值为 1 时"
+
+msgid "On operation"
+msgstr "操作时"
+
+msgid "On state change"
+msgstr "状态改变时"
+
+msgid "On telegram"
+msgstr "开报文"
+
+msgid "On/off"
+msgstr "开/关"
+
+msgid "One active output"
+msgstr "1 个有源输出"
+
+msgid "One external measurement"
+msgstr "一项外部测量"
+
+msgid "One internal measurement"
+msgstr "一次内部测量"
+
+msgid "One object"
+msgstr "一个物体"
+
+msgid "One output with daylight and artificial-light compensation"
+msgstr "一种具有日光和人造光补偿的输出"
+
+msgid "One-Minute Time Base"
+msgstr "一分钟时基"
+
+msgid "Open Room Settings with Auxiliary Button"
+msgstr "使用辅助按钮打开房间设置"
+
+msgid "Open State Graphic"
+msgstr "打开状态图"
+
+msgid "Operating Mode"
+msgstr "运行模式"
+
+msgid "Operating Mode After Reset"
+msgstr "复位后的工作模式"
+
+msgid "Operating Mode During Fault"
+msgstr "故障时的工作模式"
+
+msgid "Operating Mode Selection"
+msgstr "运行模式选择"
+
+msgid "Operating Mode Setpoints"
+msgstr "操作模式设定点"
+
+msgid "Operating State After Power Return"
+msgstr "恢复供电后的工作状态"
+
+msgid "Operating Status"
+msgstr "经营状况"
+
+msgid "Optional Functions and Objects"
+msgstr "可选函数和对象"
+
+msgid "Orange for temperature"
+msgstr "橙色代表温度"
+
+msgid "Orientation Unlit Value at High Brightness"
+msgstr "方向指示：高亮度时的熄灭值"
+
+msgid "Orientation Unlit Value at Low Brightness"
+msgstr "方向指示：低亮度时的熄灭值"
+
+msgid "Out-of-Range Text"
+msgstr "超出范围的文本"
+
+msgid "Outdoor Temperature"
+msgstr "室外温度"
+
+msgid "Outdoor Temperature Cooling Adjustment"
+msgstr "室外温度制冷调节"
+
+msgid "Outdoor Temperature Correction (0.1 Degree)"
+msgstr "室外温度修正（0.1度）"
+
+msgid "Outgoing Telegram Delay"
+msgstr "电报发出延迟"
+
+msgid "Output"
+msgstr "输出"
+
+msgid "Output 1"
+msgstr "输出1"
+
+msgid "Output 1 Brightness Compensation"
+msgstr "输出1亮度补偿"
+
+msgid "Output 1 Data Type"
+msgstr "输出 1 数据类型"
+
+msgid "Output 1 Is Least Significant Bit"
+msgstr "输出 1 是最低有效位"
+
+msgid "Output 1 Off Value"
+msgstr "输出 1 关闭值"
+
+msgid "Output 1 On Value"
+msgstr "输出 1 开启值"
+
+msgid "Output 1 Override Value"
+msgstr "输出 1 强制控制值"
+
+msgid "Output 1 Switch-Off Settling Time"
+msgstr "输出 1 关闭稳定时间"
+
+msgid "Output 1 Switch-On Settling Time"
+msgstr "输出 1 开启稳定时间"
+
+msgid "Output 1 Value"
+msgstr "输出1值"
+
+msgid "Output 10"
+msgstr "输出10"
+
+msgid "Output 10 Data Type"
+msgstr "输出 10 数据类型"
+
+msgid "Output 10 Value"
+msgstr "输出 10 值"
+
+msgid "Output 11"
+msgstr "输出11"
+
+msgid "Output 12"
+msgstr "输出12"
+
+msgid "Output 13"
+msgstr "输出13"
+
+msgid "Output 14"
+msgstr "输出14"
+
+msgid "Output 15"
+msgstr "输出15"
+
+msgid "Output 16 Is Most Significant Bit"
+msgstr "输出 16 是最高有效位"
+
+msgid "Output 2"
+msgstr "输出2"
+
+msgid "Output 2 Brightness Compensation"
+msgstr "输出2亮度补偿"
+
+msgid "Output 2 Data Type"
+msgstr "输出 2 数据类型"
+
+msgid "Output 2 Off Value"
+msgstr "输出 2 关闭值"
+
+msgid "Output 2 On Value"
+msgstr "输出 2 开启值"
+
+msgid "Output 2 Override Value"
+msgstr "输出 2 强制控制值"
+
+msgid "Output 2 Switch-Off Settling Time"
+msgstr "输出 2 关闭稳定时间"
+
+msgid "Output 2 Switch-On Settling Time"
+msgstr "输出 2 开启稳定时间"
+
+msgid "Output 2 Value"
+msgstr "输出 2 值"
+
+msgid "Output 2 to Output 1 Ratio"
+msgstr "输出 2 与输出 1 的比率"
+
+msgid "Output 3"
+msgstr "输出3"
+
+msgid "Output 3 Data Type"
+msgstr "输出 3 数据类型"
+
+msgid "Output 3 Switch-Off Settling Time"
+msgstr "输出 3 关断稳定时间"
+
+msgid "Output 3 Switch-On Settling Time"
+msgstr "输出 3 开启稳定时间"
+
+msgid "Output 3 Value"
+msgstr "输出 3 值"
+
+msgid "Output 4"
+msgstr "输出4"
+
+msgid "Output 4 Data Type"
+msgstr "输出 4 数据类型"
+
+msgid "Output 4 Switch-Off Settling Time"
+msgstr "输出 4 关断稳定时间"
+
+msgid "Output 4 Switch-On Settling Time"
+msgstr "输出 4 开启稳定时间"
+
+msgid "Output 4 Value"
+msgstr "输出 4 值"
+
+msgid "Output 5"
+msgstr "输出5"
+
+msgid "Output 5 Data Type"
+msgstr "输出 5 数据类型"
+
+msgid "Output 5 Switch-Off Settling Time"
+msgstr "输出 5 关断稳定时间"
+
+msgid "Output 5 Switch-On Settling Time"
+msgstr "输出 5 开启稳定时间"
+
+msgid "Output 5 Value"
+msgstr "输出 5 值"
+
+msgid "Output 6"
+msgstr "输出6"
+
+msgid "Output 6 Data Type"
+msgstr "输出 6 数据类型"
+
+msgid "Output 6 Switch-Off Settling Time"
+msgstr "输出 6 关断稳定时间"
+
+msgid "Output 6 Switch-On Settling Time"
+msgstr "输出 6 开启稳定时间"
+
+msgid "Output 6 Value"
+msgstr "输出 6 值"
+
+msgid "Output 7"
+msgstr "输出7"
+
+msgid "Output 7 Data Type"
+msgstr "输出 7 数据类型"
+
+msgid "Output 7 Switch-Off Settling Time"
+msgstr "输出 7 关断稳定时间"
+
+msgid "Output 7 Switch-On Settling Time"
+msgstr "输出 7 开启稳定时间"
+
+msgid "Output 7 Value"
+msgstr "输出 7 值"
+
+msgid "Output 8"
+msgstr "输出8"
+
+msgid "Output 8 Data Type"
+msgstr "输出 8 数据类型"
+
+msgid "Output 8 Is Most Significant Bit"
+msgstr "输出 8 是最高有效位"
+
+msgid "Output 8 Switch-Off Settling Time"
+msgstr "输出 8 关闭稳定时间"
+
+msgid "Output 8 Switch-On Settling Time"
+msgstr "输出 8 开启稳定时间"
+
+msgid "Output 8 Value"
+msgstr "输出8值"
+
+msgid "Output 9"
+msgstr "输出9"
+
+msgid "Output 9 Data Type"
+msgstr "输出 9 数据类型"
+
+msgid "Output 9 Value"
+msgstr "输出 9 值"
+
+msgid "Output Activation Delay"
+msgstr "输出激活延迟"
+
+msgid "Output After Bus Power Recovery"
+msgstr "总线电源恢复后输出"
+
+msgid "Output Behavior"
+msgstr "输出行为"
+
+msgid "Output Bit Pattern"
+msgstr "输出位模式"
+
+msgid "Output Data Type"
+msgstr "输出数据类型"
+
+msgid "Output Function"
+msgstr "输出功能"
+
+msgid "Output Group A"
+msgstr "输出组A"
+
+msgid "Output Group A Data Type"
+msgstr "输出 A 组数据类型"
+
+msgid "Output Group A Function"
+msgstr "输出 A 组功能"
+
+msgid "Output Group A Name"
+msgstr "输出组 A 名称"
+
+msgid "Output Group B"
+msgstr "输出组B"
+
+msgid "Output Group B Data Type"
+msgstr "输出 B 组数据类型"
+
+msgid "Output Group B Function"
+msgstr "输出组 B 功能"
+
+msgid "Output Group B Name"
+msgstr "输出组 B 名称"
+
+msgid "Output Group C"
+msgstr "输出组C"
+
+msgid "Output Group C Data Type"
+msgstr "输出 C 组数据类型"
+
+msgid "Output Group C Function"
+msgstr "输出 C 组功能"
+
+msgid "Output Group C Name"
+msgstr "输出组 C 名称"
+
+msgid "Output Group D"
+msgstr "输出组D"
+
+msgid "Output Group D Data Type"
+msgstr "输出 D 组数据类型"
+
+msgid "Output Group D Function"
+msgstr "输出 D 组功能"
+
+msgid "Output Group D Name"
+msgstr "输出 D 组名称"
+
+msgid "Output Group E"
+msgstr "输出组E"
+
+msgid "Output Group E Data Type"
+msgstr "输出 E 组数据类型"
+
+msgid "Output Group E Function"
+msgstr "输出组 E 功能"
+
+msgid "Output Group E Name"
+msgstr "输出组 E 名称"
+
+msgid "Output Group F"
+msgstr "输出组F"
+
+msgid "Output Group F Data Type"
+msgstr "输出组 F 数据类型"
+
+msgid "Output Group F Function"
+msgstr "输出组F功能"
+
+msgid "Output Group F Name"
+msgstr "输出组 F 名称"
+
+msgid "Output Group G"
+msgstr "输出组G"
+
+msgid "Output Group G Data Type"
+msgstr "输出 G 组数据类型"
+
+msgid "Output Group G Function"
+msgstr "输出G组功能"
+
+msgid "Output Group G Name"
+msgstr "输出组 G 名称"
+
+msgid "Output Group H"
+msgstr "输出组 H"
+
+msgid "Output Group H Data Type"
+msgstr "输出 H 组数据类型"
+
+msgid "Output Group H Function"
+msgstr "输出组 H 功能"
+
+msgid "Output Group H Name"
+msgstr "输出组 H 名称"
+
+msgid "Output Group I"
+msgstr "输出组 I"
+
+msgid "Output Group I Function"
+msgstr "输出组 I 功能"
+
+msgid "Output Group I Name"
+msgstr "输出组 I 名称"
+
+msgid "Output Group J"
+msgstr "输出组J"
+
+msgid "Output Group J Function"
+msgstr "输出组 J 功能"
+
+msgid "Output Group J Name"
+msgstr "输出组 J 名称"
+
+msgid "Output Object Settings"
+msgstr "输出对象设置"
+
+msgid "Output Response When Blocked"
+msgstr "阻塞时的输出响应"
+
+msgid "Output Response When Enabled"
+msgstr "启用时的输出响应"
+
+msgid "Output Sequence"
+msgstr "输出序列"
+
+msgid "Output State Reporting"
+msgstr "输出状态报告"
+
+msgid "Output Transmission Events"
+msgstr "输出传输事件"
+
+msgid "Output Transmission Timing"
+msgstr "输出传输时序"
+
+msgid "Output Transmission Trigger"
+msgstr "输出传输触发"
+
+msgid "Output Value"
+msgstr "产值"
+
+msgid "Output Value 1"
+msgstr "输出值1"
+
+msgid "Output Value 2"
+msgstr "输出值2"
+
+msgid "Output Value After Hold Time"
+msgstr "保持时间后的输出值"
+
+msgid "Output Value After Power Return"
+msgstr "恢复供电后输出值"
+
+msgid "Output Value When Permitted"
+msgstr "允许时的输出值"
+
+msgid "Output Value While Inhibited"
+msgstr "抑制时的输出值"
+
+msgid "Output Value on Power Loss"
+msgstr "断电时的输出值"
+
+msgid "Output When Input 1 Is Greater"
+msgstr "输入 1 较大时的输出"
+
+msgid "Output When Input 1 Is Less"
+msgstr "输入 1 小于时的输出"
+
+msgid "Output changing"
+msgstr "输出变化"
+
+msgid "Output for False"
+msgstr "输出为假"
+
+msgid "Output for True"
+msgstr "输出为真"
+
+msgid "Output on Disable"
+msgstr "禁用时的输出"
+
+msgid "Output to input"
+msgstr "输出到输入"
+
+msgid "Outputs 1 through the selected stage"
+msgstr "从输出 1 到所选级别的所有输出"
+
+msgid "Overall Brightness"
+msgstr "整体亮度"
+
+msgid "Overheat Protection Cooling Setpoint"
+msgstr "过热保护冷却设定值"
+
+msgid "Overheat Protection Setpoint"
+msgstr "过热保护设定点"
+
+msgid "Overheat protection"
+msgstr "过热保护"
+
+msgid "Overheating Alarm Temperature"
+msgstr "过热报警温度"
+
+msgid "Override off"
+msgstr "强制关"
+
+msgid "Override on"
+msgstr "强制开"
+
+msgid "PI control with PWM output"
+msgstr "带 PWM 输出的 PI 控制"
+
+msgid "PI control with variable demand"
+msgstr "可变需求的 PI 控制"
+
+msgid "PWM Period (s)"
+msgstr "PWM 周期 (s)"
+
+msgid "Pa"
+msgstr "帕"
+
+msgid "Page"
+msgstr "页面"
+
+msgid "Page 1"
+msgstr "第1页"
+
+msgid "Page 10"
+msgstr "第10页"
+
+msgid "Page 11"
+msgstr "第11页"
+
+msgid "Page 12"
+msgstr "第12页"
+
+msgid "Page 13"
+msgstr "第13页"
+
+msgid "Page 14"
+msgstr "第14页"
+
+msgid "Page 15"
+msgstr "第15页"
+
+msgid "Page 16"
+msgstr "第16页"
+
+msgid "Page 17"
+msgstr "第17页"
+
+msgid "Page 18"
+msgstr "第18页"
+
+msgid "Page 19"
+msgstr "第19页"
+
+msgid "Page 2"
+msgstr "第2页"
+
+msgid "Page 20"
+msgstr "第20页"
+
+msgid "Page 21"
+msgstr "第21页"
+
+msgid "Page 22"
+msgstr "第22页"
+
+msgid "Page 23"
+msgstr "第23页"
+
+msgid "Page 24"
+msgstr "第24页"
+
+msgid "Page 25"
+msgstr "第25页"
+
+msgid "Page 26"
+msgstr "第26页"
+
+msgid "Page 27"
+msgstr "第27页"
+
+msgid "Page 28"
+msgstr "第28页"
+
+msgid "Page 29"
+msgstr "第29页"
+
+msgid "Page 3"
+msgstr "第3页"
+
+msgid "Page 4"
+msgstr "第4页"
+
+msgid "Page 5"
+msgstr "第5页"
+
+msgid "Page 6"
+msgstr "第6页"
+
+msgid "Page 7"
+msgstr "第7页"
+
+msgid "Page 8"
+msgstr "第8页"
+
+msgid "Page 9"
+msgstr "第9页"
+
+msgid "Page Link"
+msgstr "页面链接"
+
+msgid "Page Name"
+msgstr "页面名称"
+
+msgid "Page Settings"
+msgstr "页面设置"
+
+msgid "Page and Controls"
+msgstr "页面和控件"
+
+msgid "Paired Control 1"
+msgstr "配对控制 1"
+
+msgid "Paired Control 1 Right Contact"
+msgstr "配对控制 1 右触点"
+
+msgid "Paired Control 2"
+msgstr "配对控制2"
+
+msgid "Paired Control 2 Right Contact"
+msgstr "配对控制 2 右触点"
+
+msgid "Paired Control 3"
+msgstr "配对控制3"
+
+msgid "Paired Control 3 Right Contact"
+msgstr "配对控制 3 右触点"
+
+msgid "Paired Control 4"
+msgstr "配对控制 4"
+
+msgid "Paired Control 4 Right Contact"
+msgstr "配对控制 4 右触点"
+
+msgid "Paired Control 5"
+msgstr "配对控制 5"
+
+msgid "Paired Control 5 Right Contact"
+msgstr "配对控制 5 右触点"
+
+msgid "Parent Element ID"
+msgstr "父元素 ID"
+
+msgid "Participant 1 Covering Command"
+msgstr "参与者1 掩护指挥"
+
+msgid "Participant 1 Scene Number"
+msgstr "参与者 1 场景编号"
+
+msgid "Participant 1 Switch State"
+msgstr "参与者1切换状态"
+
+msgid "Participant 1 Temperature"
+msgstr "参与者 1 体温"
+
+msgid "Participant 1 Value (%)"
+msgstr "参与者 1 值 (%)"
+
+msgid "Participant 2 Covering Command"
+msgstr "参加者2 掩护指挥"
+
+msgid "Participant 2 Scene Number"
+msgstr "参与者 2 场景编号"
+
+msgid "Participant 2 Switch State"
+msgstr "参与者2切换状态"
+
+msgid "Participant 2 Temperature"
+msgstr "参与者 2 体温"
+
+msgid "Participant 2 Value (%)"
+msgstr "参与者 2 值 (%)"
+
+msgid "Participant 3 Covering Command"
+msgstr "参与者 3 掩护指挥"
+
+msgid "Participant 3 Scene Number"
+msgstr "参与者 3 场景编号"
+
+msgid "Participant 3 Switch State"
+msgstr "参与者3切换状态"
+
+msgid "Participant 3 Temperature"
+msgstr "参与者 3 体温"
+
+msgid "Participant 3 Value (%)"
+msgstr "参与者 3 值 (%)"
+
+msgid "Participant 4 Covering Command"
+msgstr "参与者 4 掩护指挥"
+
+msgid "Participant 4 Scene Number"
+msgstr "参与者 4 场景编号"
+
+msgid "Participant 4 Switch State"
+msgstr "参与者4切换状态"
+
+msgid "Participant 4 Temperature"
+msgstr "参与者 4 体温"
+
+msgid "Participant 4 Value (%)"
+msgstr "参与者 4 值 (%)"
+
+msgid "Participant 5 Covering Command"
+msgstr "参与者5 掩护指挥"
+
+msgid "Participant 5 Scene Number"
+msgstr "参与者 5 场景编号"
+
+msgid "Participant 5 Switch State"
+msgstr "参与者 5 切换状态"
+
+msgid "Participant 5 Temperature"
+msgstr "参与者 5 体温"
+
+msgid "Participant 5 Value (%)"
+msgstr "参与者 5 值 (%)"
+
+msgid "Participant 6 Covering Command"
+msgstr "参与者6 掩护指挥"
+
+msgid "Participant 6 Scene Number"
+msgstr "参与者 6 场景编号"
+
+msgid "Participant 6 Switch State"
+msgstr "参与者 6 切换状态"
+
+msgid "Participant 6 Temperature"
+msgstr "参与者 6 体温"
+
+msgid "Participant 6 Value (%)"
+msgstr "参与者 6 值 (%)"
+
+msgid "Participant 7 Covering Command"
+msgstr "参与者 7 掩护指挥"
+
+msgid "Participant 7 Scene Number"
+msgstr "参与者 7 场景号"
+
+msgid "Participant 7 Switch State"
+msgstr "参与者 7 切换状态"
+
+msgid "Participant 7 Temperature"
+msgstr "参与者 7 体温"
+
+msgid "Participant 7 Value (%)"
+msgstr "参与者 7 值 (%)"
+
+msgid "Participant 8 Covering Command"
+msgstr "参与者 8 掩护指挥"
+
+msgid "Participant 8 Scene Number"
+msgstr "参与者 8 场景号"
+
+msgid "Participant 8 Switch State"
+msgstr "参与者 8 切换状态"
+
+msgid "Participant 8 Temperature"
+msgstr "参与者 8 体温"
+
+msgid "Participant 8 Value (%)"
+msgstr "参与者 8 值 (%)"
+
+msgid "Participating Sources"
+msgstr "参与来源"
+
+msgid "Pass all values"
+msgstr "转发所有值"
+
+msgid "Pass matching values, delay others"
+msgstr "转发匹配的值，延迟其他值"
+
+msgid "Pause"
+msgstr "暂停"
+
+msgid "Percentage"
+msgstr "百分比"
+
+msgid "Percentage (8 bit)"
+msgstr "百分比（8 位）"
+
+msgid "Percentage Status"
+msgstr "百分比状态"
+
+msgid "Persistent Status Graphic"
+msgstr "持久状态图"
+
+msgid "Plain list"
+msgstr "普通列表"
+
+msgid "Play"
+msgstr "玩"
+
+msgid "Playback Pause Command Data Type"
+msgstr "播放暂停命令数据类型"
+
+msgid "Playback Pause Command Value"
+msgstr "播放暂停命令值"
+
+msgid "Playback Pause Control"
+msgstr "播放暂停控制"
+
+msgid "Playback Start Command Data Type"
+msgstr "播放开始命令数据类型"
+
+msgid "Playback Start Command Value"
+msgstr "播放开始命令值"
+
+msgid "Playback Start Control"
+msgstr "播放开始控制"
+
+msgid "Playback Stop Command Data Type"
+msgstr "播放停止命令数据类型"
+
+msgid "Playback Stop Command Value"
+msgstr "播放停止命令值"
+
+msgid "Playback Stop Control"
+msgstr "播放停止控制"
+
+msgid "Polish"
+msgstr "波兰语"
+
+msgid "Portuguese"
+msgstr "葡萄牙语"
+
+msgid "Position for Lower Command (%)"
+msgstr "下降命令位置 (%)"
+
+msgid "Position for Raise Command (%)"
+msgstr "上升命令位置 (%)"
+
+msgid "Position in Parent"
+msgstr "在母公司中的职位"
+
+msgid "Power Switching Command Data Type"
+msgstr "电源切换命令数据类型"
+
+msgid "Power Switching Control"
+msgstr "电源开关控制"
+
+msgid "Pre-Event Switching Output"
+msgstr "事件前切换输出"
+
+msgid "Press Duration"
+msgstr "按压时间"
+
+msgid "Press Output Data Type"
+msgstr "按下输出数据类型"
+
+msgid "Press Value 1"
+msgstr "按下值 1"
+
+msgid "Press Value 1 (%)"
+msgstr "按下值 1 (%)"
+
+msgid "Press Value 1 (32 Bit Float)"
+msgstr "按下值 1（32 位浮点数）"
+
+msgid "Press Value 1 (8 Bit)"
+msgstr "按下值 1（8 位）"
+
+msgid "Press Value 1 (KNX Float)"
+msgstr "按下值 1（KNX 浮点数）"
+
+msgid "Press Value 1 (Signed 16 Bit)"
+msgstr "按下值 1（16 位有符号）"
+
+msgid "Press Value 1 (Signed 32 Bit)"
+msgstr "按下值 1（32 位有符号）"
+
+msgid "Press Value 1 (Unsigned 16 Bit)"
+msgstr "按下值 1（16 位无符号）"
+
+msgid "Press Value 1 (Unsigned 32 Bit)"
+msgstr "按下值 1（32 位无符号）"
+
+msgid "Press Value 1, Release Value 2"
+msgstr "按下值 1，释放值 2"
+
+msgid "Press Value 2"
+msgstr "按下值 2"
+
+msgid "Press Value 2 (%)"
+msgstr "按下值 2 (%)"
+
+msgid "Press Value 2 (32 Bit Float)"
+msgstr "按下值 2（32 位浮点数）"
+
+msgid "Press Value 2 (8 Bit)"
+msgstr "按下值 2（8 位）"
+
+msgid "Press Value 2 (KNX Float)"
+msgstr "按下值 2（KNX 浮点数）"
+
+msgid "Press Value 2 (Signed 16 Bit)"
+msgstr "按下值 2（16 位有符号）"
+
+msgid "Press Value 2 (Signed 32 Bit)"
+msgstr "按下值 2（32 位有符号）"
+
+msgid "Press Value 2 (Unsigned 16 Bit)"
+msgstr "按下值 2（16 位无符号）"
+
+msgid "Press Value 2 (Unsigned 32 Bit)"
+msgstr "按下值 2（32 位无符号）"
+
+msgid "Press to adjust slats, turn to move"
+msgstr "按下可调整板条，转动可移动"
+
+msgid "Press to move, turn to adjust slats"
+msgstr "按下可移动，转动可调整板条"
+
+msgid "Prevent Fan Off Selection"
+msgstr "禁止选择风扇关闭"
+
+msgid "Preview Step Duration"
+msgstr "预览步骤持续时间"
+
+msgid "Previous Disc Track"
+msgstr "上一个光盘曲目"
+
+msgid "Previous Item Command Data Type"
+msgstr "上一项 命令 数据类型"
+
+msgid "Previous Item Command Value"
+msgstr "上一项命令值"
+
+msgid "Previous Item Control"
+msgstr "上一个项目控制"
+
+msgid "Previous Media Item"
+msgstr "上一个媒体项目"
+
+msgid "Previous value"
+msgstr "先前值"
+
+msgid "Primary Cooling Stage"
+msgstr "初级冷却阶段"
+
+msgid "Primary Function"
+msgstr "主要功能"
+
+msgid "Primary Heating Stage"
+msgstr "初级加热阶段"
+
+msgid "Priority"
+msgstr "优先级"
+
+msgid "Priority Command Input"
+msgstr "优先命令输入"
+
+msgid "Priority Operating Mode"
+msgstr "优先运行模式"
+
+msgid "Priority Output Control"
+msgstr "优先输出控制"
+
+msgid "Priority Override"
+msgstr "优先强制控制"
+
+msgid "Priority Override Object"
+msgstr "优先强制控制对象"
+
+msgid "Priority Override Response"
+msgstr "优先强制控制响应"
+
+msgid "Priority Override via Object"
+msgstr "通过对象进行优先强制控制"
+
+msgid "Priority control"
+msgstr "优先控制"
+
+msgid "Priority override (2 bit)"
+msgstr "优先强制控制（2 位）"
+
+msgid "Process Fault and Alarm Messages"
+msgstr "过程故障和警报消息"
+
+msgid "Processing Control Input"
+msgstr "处理控制输入"
+
+msgid "Processing Start Conditions"
+msgstr "处理开始条件"
+
+msgid "Program 1"
+msgstr "方案1"
+
+msgid "Program 2"
+msgstr "方案2"
+
+msgid "Program 3"
+msgstr "方案3"
+
+msgid "Program 4"
+msgstr "方案4"
+
+msgid "Program Count"
+msgstr "节目数"
+
+msgid "Proportional Band (0.1 Degree)"
+msgstr "比例带（0.1 度）"
+
+msgid "Protection Mode Command"
+msgstr "保护模式命令"
+
+msgid "Protection Mode Output"
+msgstr "保护模式输出"
+
+msgid "Protection Mode Output in Protection Mode"
+msgstr "保护模式下的保护模式输出"
+
+msgid "Proximity Detection"
+msgstr "接近检测"
+
+msgid "Proximity Function Polarity"
+msgstr "接近功能 极性"
+
+msgid "Proximity Input Polarity"
+msgstr "接近输入极性"
+
+msgid "Proximity Processing"
+msgstr "邻近处理"
+
+msgid "Proximity Sensitivity"
+msgstr "接近灵敏度"
+
+msgid "Proximity detection"
+msgstr "接近检测"
+
+msgid "RGB"
+msgstr "RGB"
+
+msgid "RGB Switch"
+msgstr "RGB开关"
+
+msgid "RGB Value (3 Bytes)"
+msgstr "RGB 值（3 字节）"
+
+msgid "RGB color (3 bytes)"
+msgstr "RGB 颜色（3 字节）"
+
+msgid "RGB feedback"
+msgstr "RGB反馈"
+
+msgid "RGB with warm and cool white"
+msgstr "RGB 暖白、冷白"
+
+msgid "RGBW"
+msgstr "RGBW"
+
+msgid "Radiator or convector: 1.5 K, 100 min"
+msgstr "散热器或对流器：1.5 K，100 分钟"
+
+msgid "Radio Controls"
+msgstr "无线电控制"
+
+msgid "Radio Power"
+msgstr "无线电电源"
+
+msgid "Radio Station"
+msgstr "广播电台"
+
+msgid "Radio Station Count"
+msgstr "广播电台计数"
+
+msgid "Radio Volume"
+msgstr "收音机音量"
+
+msgid "Rain Detected Text"
+msgstr "检测到雨的文本"
+
+msgid "Rain Protection"
+msgstr "防雨"
+
+msgid "Rain Protection Output Action"
+msgstr "防雨输出动作"
+
+msgid "Rain Protection Priority"
+msgstr "防雨优先"
+
+msgid "Rain Protection Settings"
+msgstr "防雨设置"
+
+msgid "Rain Sensor Timeout (min)"
+msgstr "雨传感器超时 (min)"
+
+msgid "Rainfall"
+msgstr "降雨量"
+
+msgid "Raise Command Value"
+msgstr "上升命令值"
+
+msgid "Random order"
+msgstr "随机顺序"
+
+msgid "Randomize Scheduled Times"
+msgstr "随机安排时间"
+
+msgid "Range 1 Color at 0%"
+msgstr "范围 1 颜色为 0%"
+
+msgid "Range 1 Green Value at High Brightness"
+msgstr "范围 1：高亮度时的绿色值"
+
+msgid "Range 1 Green Value at Low Brightness"
+msgstr "范围 1：低亮度时的绿色值"
+
+msgid "Range 1 Indicator Color"
+msgstr "范围 1 指示器颜色"
+
+msgid "Range 1 Red Value at High Brightness"
+msgstr "范围 1：高亮度时的红色值"
+
+msgid "Range 1 Red Value at Low Brightness"
+msgstr "范围 1：低亮度时的红色值"
+
+msgid "Range 1 Unlit Value at High Brightness"
+msgstr "范围 1：高亮度时的熄灭值"
+
+msgid "Range 1 Unlit Value at Low Brightness"
+msgstr "范围 1：低亮度时的熄灭值"
+
+msgid "Range 1 Value"
+msgstr "范围 1 值"
+
+msgid "Range 2 Color (From 1%)"
+msgstr "范围 2 颜色（1% 起）"
+
+msgid "Range 2 Green Value at High Brightness"
+msgstr "范围 2：高亮度时的绿色值"
+
+msgid "Range 2 Green Value at Low Brightness"
+msgstr "范围 2：低亮度时的绿色值"
+
+msgid "Range 2 Indicator Color"
+msgstr "范围 2 指示器颜色"
+
+msgid "Range 2 Red Value at High Brightness"
+msgstr "范围 2：高亮度时的红色值"
+
+msgid "Range 2 Red Value at Low Brightness"
+msgstr "范围 2：低亮度时的红色值"
+
+msgid "Range 2 Transition Time (s)"
+msgstr "范围 2 过渡时间 (s)"
+
+msgid "Range 2 Unlit Value at High Brightness"
+msgstr "范围 2：高亮度时的熄灭值"
+
+msgid "Range 2 Unlit Value at Low Brightness"
+msgstr "范围 2：低亮度时的熄灭值"
+
+msgid "Range 2 Value"
+msgstr "范围 2 值"
+
+msgid "Range 3 Green Value at High Brightness"
+msgstr "范围 3：高亮度时的绿色值"
+
+msgid "Range 3 Green Value at Low Brightness"
+msgstr "范围 3：低亮度时的绿色值"
+
+msgid "Range 3 Indicator Color"
+msgstr "范围 3 指示器颜色"
+
+msgid "Range 3 Red Value at High Brightness"
+msgstr "范围 3：高亮度时的红色值"
+
+msgid "Range 3 Red Value at Low Brightness"
+msgstr "范围 3：低亮度时的红色值"
+
+msgid "Range 3 Transition Time (s)"
+msgstr "范围 3 过渡时间 (s)"
+
+msgid "Range 3 Unlit Value at High Brightness"
+msgstr "范围 3：高亮度时的熄灭值"
+
+msgid "Range 3 Unlit Value at Low Brightness"
+msgstr "范围 3：低亮度时的熄灭值"
+
+msgid "Range 3 Value"
+msgstr "范围 3 值"
+
+msgid "Range 4 Color (Through 99%)"
+msgstr "范围 4 颜色（通过 99%）"
+
+msgid "Range 4 Green Value at High Brightness"
+msgstr "范围 4：高亮度时的绿色值"
+
+msgid "Range 4 Green Value at Low Brightness"
+msgstr "范围 4：低亮度时的绿色值"
+
+msgid "Range 4 Indicator Color"
+msgstr "范围 4 指示器颜色"
+
+msgid "Range 4 Red Value at High Brightness"
+msgstr "范围 4：高亮度时的红色值"
+
+msgid "Range 4 Red Value at Low Brightness"
+msgstr "范围 4：低亮度时的红色值"
+
+msgid "Range 4 Transition Time (s)"
+msgstr "范围 4 过渡时间 (s)"
+
+msgid "Range 4 Unlit Value at High Brightness"
+msgstr "范围 4：高亮度时的熄灭值"
+
+msgid "Range 4 Unlit Value at Low Brightness"
+msgstr "范围 4：低亮度时的熄灭值"
+
+msgid "Range 4 Value"
+msgstr "范围 4 值"
+
+msgid "Range 5 Color at 100%"
+msgstr "范围 5 颜色为 100%"
+
+msgid "Range 5 Green Value at High Brightness"
+msgstr "范围 5：高亮度时的绿色值"
+
+msgid "Range 5 Green Value at Low Brightness"
+msgstr "范围 5：低亮度时的绿色值"
+
+msgid "Range 5 Indicator Color"
+msgstr "范围 5 指示器颜色"
+
+msgid "Range 5 Red Value at High Brightness"
+msgstr "范围 5：高亮度时的红色值"
+
+msgid "Range 5 Red Value at Low Brightness"
+msgstr "范围 5：低亮度时的红色值"
+
+msgid "Range 5 Transition Time (s)"
+msgstr "范围 5 过渡时间 (s)"
+
+msgid "Range 5 Unlit Value at High Brightness"
+msgstr "范围 5：高亮度时的熄灭值"
+
+msgid "Range 5 Unlit Value at Low Brightness"
+msgstr "范围 5：低亮度时的熄灭值"
+
+msgid "Range 5 Value"
+msgstr "范围 5 值"
+
+msgid "Range 6 Transition Time (s)"
+msgstr "范围 6 过渡时间 (s)"
+
+msgid "Range 6 Value"
+msgstr "范围 6 值"
+
+msgid "Range 7 Transition Time (s)"
+msgstr "范围 7 过渡时间 (s)"
+
+msgid "Range 7 Value"
+msgstr "范围 7 值"
+
+msgid "Range 8 Transition Time (s)"
+msgstr "范围 8 过渡时间 (s)"
+
+msgid "Range 8 Value"
+msgstr "范围 8 值"
+
+msgid "Read Inputs After Reset"
+msgstr "复位后读取输入"
+
+msgid "Recall Scene on Selection"
+msgstr "调用所选场景"
+
+msgid "Recall scene"
+msgstr "回忆场景"
+
+msgid "Receive only"
+msgstr "仅接收"
+
+msgid "Received Value"
+msgstr "接收值"
+
+msgid "Red"
+msgstr "红色"
+
+msgid "Red Intensity"
+msgstr "红色强度"
+
+msgid "Red for alarms"
+msgstr "红色表示警报"
+
+msgid "Red, high brightness"
+msgstr "红色，高亮度"
+
+msgid "Red, low brightness"
+msgstr "红色，低亮度"
+
+msgid "Red-orange"
+msgstr "红橙色"
+
+msgid "Red-orange, high brightness"
+msgstr "红橙色，高亮度"
+
+msgid "Red-orange, low brightness"
+msgstr "红橙色，低亮度"
+
+msgid "Reduce Brightness Before Automatic Off"
+msgstr "自动关闭前降低亮度"
+
+msgid "Reduced Phase Brightness"
+msgstr "降低相位亮度"
+
+msgid "Reduced Phase Hold Time"
+msgstr "减少相位保持时间"
+
+msgid "Reduced Phase Hold Time Object"
+msgstr "减少相位保持时间对象"
+
+msgid "Reduced-Brightness Hold Time"
+msgstr "降低亮度保持时间"
+
+msgid "Reference 1 cooling, reference 2 neutral band"
+msgstr "参考1冷却，参考2中性带"
+
+msgid "Reference 1 heating, reference 2 cooling"
+msgstr "参考1加热，参考2冷却"
+
+msgid "Reference 1 heating, reference 2 neutral band"
+msgstr "参考1加热，参考2中性带"
+
+msgid "Reference Light Level"
+msgstr "参考光级"
+
+msgid "Reference Neutral Band Width"
+msgstr "参考中性带宽"
+
+msgid "Reference Setpoint"
+msgstr "参考设定值"
+
+msgid "Reference Setpoint Meaning"
+msgstr "参考设定点含义"
+
+msgid "Reference Temperature Target"
+msgstr "基准温度设定值"
+
+msgid "Reference Upper End Before Positioning"
+msgstr "定位前参考上端"
+
+msgid "Reference setpoint"
+msgstr "参考设定点"
+
+msgid "Reference setpoint plus offset"
+msgstr "参考设定值加偏移"
+
+msgid "Regular typeface"
+msgstr "常规字体"
+
+msgid "Regulation Settings"
+msgstr "调节设置"
+
+msgid "Regulation Starting Point"
+msgstr "监管起点"
+
+msgid "Regulation Status"
+msgstr "监管状况"
+
+msgid "Regulation Status Object"
+msgstr "监管状态对象"
+
+msgid "Regulation Step Interval"
+msgstr "调节步距"
+
+msgid "Regulation Target Input Object"
+msgstr "调节设定值输入对象"
+
+msgid "Regulation Tuning"
+msgstr "调节调节"
+
+msgid "Regulation Tuning During Covering Travel"
+msgstr "覆盖旅行期间的调节调整"
+
+msgid "Relative Brightening Rate"
+msgstr "相对增白率"
+
+msgid "Relative Brightening Rate Input Object"
+msgstr "相对亮度输入对象"
+
+msgid "Relative Brightening Rate Segment Count"
+msgstr "相对增亮率段数"
+
+msgid "Relative Brightening Transition Rate"
+msgstr "相对增亮转变率"
+
+msgid "Relative Brightening Transition Style"
+msgstr "相对增亮过渡风格"
+
+msgid "Relative Brightness Control"
+msgstr "相对亮度控制"
+
+msgid "Relative Dimming Command"
+msgstr "相对调光命令"
+
+msgid "Relative Dimming Command (4 Bit)"
+msgstr "相对调光命令（4 位）"
+
+msgid "Relative Dimming Input"
+msgstr "相对调光输入"
+
+msgid "Relative Dimming Rate"
+msgstr "相对调光率"
+
+msgid "Relative Dimming Rate Input Object"
+msgstr "相对调光率输入对象"
+
+msgid "Relative Dimming Rate Segment Count"
+msgstr "相对调光率段数"
+
+msgid "Relative Dimming Transition Rate"
+msgstr "相对调光转换率"
+
+msgid "Relative Dimming Transition Style"
+msgstr "相对调光过渡方式"
+
+msgid "Relative Humidity"
+msgstr "相对湿度"
+
+msgid "Relative Light Change for Transmission"
+msgstr "传输的相对光变化"
+
+msgid "Relative dimming (4 bit)"
+msgstr "相对调光（4 位）"
+
+msgid "Relative humidity"
+msgstr "相对湿度"
+
+msgid "Relay Changeover Time High Byte"
+msgstr "继电器转换时间高字节"
+
+msgid "Relay Changeover Time Low Byte"
+msgstr "继电器转换时间低字节"
+
+msgid "Relay Contact Behavior"
+msgstr "继电器触点行为"
+
+msgid "Release Output Data Type"
+msgstr "松开输出数据类型"
+
+msgid "Release Value 1"
+msgstr "松开值 1"
+
+msgid "Release Value 1 (%)"
+msgstr "松开值 1 (%)"
+
+msgid "Release Value 1 (32 Bit Float)"
+msgstr "松开值 1（32 位浮点数）"
+
+msgid "Release Value 1 (8 Bit)"
+msgstr "松开值 1（8 位）"
+
+msgid "Release Value 1 (KNX Float)"
+msgstr "松开值 1（KNX 浮点数）"
+
+msgid "Release Value 1 (Signed 16 Bit)"
+msgstr "松开值 1（16 位有符号）"
+
+msgid "Release Value 1 (Signed 32 Bit)"
+msgstr "松开值 1（32 位有符号）"
+
+msgid "Release Value 1 (Unsigned 16 Bit)"
+msgstr "松开值 1（16 位无符号）"
+
+msgid "Release Value 1 (Unsigned 32 Bit)"
+msgstr "松开值 1（32 位无符号）"
+
+msgid "Release Value 2"
+msgstr "松开值 2"
+
+msgid "Release Value 2 (%)"
+msgstr "松开值 2 (%)"
+
+msgid "Release Value 2 (32 Bit Float)"
+msgstr "松开值 2（32 位浮点数）"
+
+msgid "Release Value 2 (8 Bit)"
+msgstr "松开值 2（8 位）"
+
+msgid "Release Value 2 (KNX Float)"
+msgstr "松开值 2（KNX 浮点数）"
+
+msgid "Release Value 2 (Signed 16 Bit)"
+msgstr "松开值 2（16 位有符号）"
+
+msgid "Release Value 2 (Signed 32 Bit)"
+msgstr "松开值 2（32 位有符号）"
+
+msgid "Release Value 2 (Unsigned 16 Bit)"
+msgstr "松开值 2（16 位无符号）"
+
+msgid "Release Value 2 (Unsigned 32 Bit)"
+msgstr "松开值 2（32 位无符号）"
+
+msgid "Release override"
+msgstr "解除强制控制"
+
+msgid "Repeat"
+msgstr "重复"
+
+msgid "Repeat Blind Commands While Held"
+msgstr "按住时重复百叶帘命令"
+
+msgid "Repeat Dimming While Held"
+msgstr "按住时重复调光"
+
+msgid "Repeat Interval (h:min:s)"
+msgstr "重复间隔（小时：分钟：秒）"
+
+msgid "Repeat Interval (min, s)"
+msgstr "重复间隔（分钟，秒）"
+
+msgid "Repeat Interval (ms)"
+msgstr "重复间隔 (ms)"
+
+msgid "Repeat Interval (s)"
+msgstr "重复间隔 (s)"
+
+msgid "Repeat Interval While Held (ms)"
+msgstr "按住时的重复间隔(ms)"
+
+msgid "Repeat Measured Brightness Transmission"
+msgstr "重复测量亮度传输"
+
+msgid "Repeat Off Value"
+msgstr "重复发送关值"
+
+msgid "Repeat On Value"
+msgstr "重复发送开值"
+
+msgid "Repeat Output Transmission"
+msgstr "重复输出传输"
+
+msgid "Repeat Sequence"
+msgstr "重复序列"
+
+msgid "Repeat Shutter Commands While Held"
+msgstr "按住时重复卷帘命令"
+
+msgid "Repeat Sound While Alarm Is Active"
+msgstr "警报激活时重复声音"
+
+msgid "Repeat Telegram While Held"
+msgstr "保持时重复电报"
+
+msgid "Repeat Without Limit"
+msgstr "无限重复"
+
+msgid "Repeat on telegrams"
+msgstr "重复发送开报文"
+
+msgid "Repeated Telegram Interval"
+msgstr "重复电报间隔"
+
+msgid "Repeated Temperature Value"
+msgstr "重复温度值"
+
+msgid "Repeated Transmission Enable"
+msgstr "重复传输启用"
+
+msgid "Repeated Value (%)"
+msgstr "重复值 (%)"
+
+msgid "Repeated Value Transmission"
+msgstr "重复值传输"
+
+msgid "Replace Bus-Adjusted Delay on Download"
+msgstr "替换总线调整的下载延迟"
+
+msgid "Replace Bus-Adjusted Timer Values on Download"
+msgstr "下载时替换总线调整的计时器值"
+
+msgid "Replace Local Schedules on Download"
+msgstr "下载时替换本地时间表"
+
+msgid "Replace Local Settings on Download"
+msgstr "下载时替换本地设置"
+
+msgid "Replace Saved Scenes on Download"
+msgstr "下载时替换已保存的场景"
+
+msgid "Replace Stored Sequence Values on Programming"
+msgstr "在编程时替换存储的序列值"
+
+msgid "Represent Target as Reference Offset"
+msgstr "将设定值表示为相对基准值的偏移量"
+
+msgid "Requested Fan Stage"
+msgstr "要求粉丝舞台"
+
+msgid "Requested setting"
+msgstr "请求的设置"
+
+msgid "Require Function Access Code"
+msgstr "需要功能访问代码"
+
+msgid "Require Page Access Code"
+msgstr "需要页面访问代码"
+
+msgid "Require access code"
+msgstr "需要访问代码"
+
+msgid "Required Access Level"
+msgstr "所需的访问级别"
+
+msgid "Required Activity in Window"
+msgstr "窗口中所需的活动"
+
+msgid "Required Time Above Threshold"
+msgstr "所需时间高于阈值"
+
+msgid "Required Time Below Threshold"
+msgstr "所需时间低于阈值"
+
+msgid "Reserved Internal Field"
+msgstr "保留内部字段"
+
+msgid "Reserved Object 1"
+msgstr "保留对象1"
+
+msgid "Reserved Object 2"
+msgstr "保留对象2"
+
+msgid "Reserved Object 3"
+msgstr "保留对象3"
+
+msgid "Reserved Object 4"
+msgstr "保留对象4"
+
+msgid "Reserved Object 5"
+msgstr "保留对象5"
+
+msgid "Reset Artificial-Light Estimate"
+msgstr "重置人造光估计"
+
+msgid "Reset Stage on Long Press"
+msgstr "长按复位级别"
+
+msgid "Response on Disable"
+msgstr "禁用响应"
+
+msgid "Restart Timer on New Trigger"
+msgstr "在新触发器上重新启动计时器"
+
+msgid "Restore Component Values on Switch-On"
+msgstr "开机时恢复组件值"
+
+msgid "Restore pre-interruption value"
+msgstr "恢复中断前值"
+
+msgid "Restore value before blocking"
+msgstr "恢复阻塞前的值"
+
+msgid "Result Above Threshold"
+msgstr "结果高于阈值"
+
+msgid "Result Below Threshold"
+msgstr "结果低于阈值"
+
+msgid "Result Object"
+msgstr "结果对象"
+
+msgid "Result Object Transmission"
+msgstr "结果对象传输"
+
+msgid "Result for False"
+msgstr "结果为假"
+
+msgid "Result for True"
+msgstr "结果为真"
+
+msgid "Resume Automatic Control After Cooling Fan Stops"
+msgstr "冷却风扇停止后恢复自动控制"
+
+msgid "Resume Automatic Control After Heating Fan Stops"
+msgstr "加热风机停止后恢复自动控制"
+
+msgid "Retain Input During Blocking"
+msgstr "阻塞期间保留输入"
+
+msgid "Retain Local Adjustments After Restart"
+msgstr "重启后保留本地调整"
+
+msgid "Retain Minimum Demand When Off"
+msgstr "关闭时保持最低需求"
+
+msgid "Return to Automatic After Manual Off"
+msgstr "手动关闭后返回自动"
+
+msgid "Return to Automatic After Manual On"
+msgstr "手动开启后返回自动"
+
+msgid "Return to Initial Page When Idle"
+msgstr "空闲时返回初始页面"
+
+msgid "Return to Main Display After"
+msgstr "之后返回主显示"
+
+msgid "Return to Main Function Delay"
+msgstr "返回主功能延迟"
+
+msgid "Right"
+msgstr "右"
+
+msgid "Right Control Value"
+msgstr "右侧控制值"
+
+msgid "Right Control Value 2 Graphic"
+msgstr "右控制值2图形"
+
+msgid "Right Control Value 2 Text"
+msgstr "右控制值 2 文本"
+
+msgid "Right Detection Source"
+msgstr "右侧检测源"
+
+msgid "Right Rocker Contact"
+msgstr "右摇杆触点"
+
+msgid "Ringtone Volume"
+msgstr "铃声音量"
+
+msgid "Ringtone Volume Adjustment"
+msgstr "铃声音量调节"
+
+msgid "Rocker 1"
+msgstr "摇杆1"
+
+msgid "Rocker 1 Indicator"
+msgstr "摇杆 1 指示灯"
+
+msgid "Rocker 1 Left Indicator"
+msgstr "摇杆 1 左侧指示灯"
+
+msgid "Rocker 1 Lower Contact"
+msgstr "摇杆 1 下触点"
+
+msgid "Rocker 1 Primary Actions"
+msgstr "摇杆 1 主要操作"
+
+msgid "Rocker 1 Right Contact"
+msgstr "摇杆 1 右触点"
+
+msgid "Rocker 1 Right Indicator"
+msgstr "摇杆 1 右指示灯"
+
+msgid "Rocker 2"
+msgstr "摇杆2"
+
+msgid "Rocker 2 Indicator"
+msgstr "摇杆 2 指示灯"
+
+msgid "Rocker 2 Left Indicator"
+msgstr "摇杆 2 左侧指示灯"
+
+msgid "Rocker 2 Lower Contact"
+msgstr "摇杆 2 下触点"
+
+msgid "Rocker 2 Primary Actions"
+msgstr "摇杆 2 主要操作"
+
+msgid "Rocker 2 Right Contact"
+msgstr "摇杆 2 右触点"
+
+msgid "Rocker 2 Right Indicator"
+msgstr "摇杆 2 右指示灯"
+
+msgid "Rocker 3"
+msgstr "摇杆3"
+
+msgid "Rocker 3 Indicator"
+msgstr "摇杆 3 指示灯"
+
+msgid "Rocker 3 Left Indicator"
+msgstr "摇杆 3 左侧指示灯"
+
+msgid "Rocker 3 Primary Actions"
+msgstr "Rocker 3 主要操作"
+
+msgid "Rocker 3 Right Contact"
+msgstr "摇杆 3 右触点"
+
+msgid "Rocker 3 Right Indicator"
+msgstr "摇杆 3 右指示灯"
+
+msgid "Rocker 4"
+msgstr "摇杆4"
+
+msgid "Rocker 4 Left Indicator"
+msgstr "摇杆 4 左指示灯"
+
+msgid "Rocker 4 Right Contact"
+msgstr "摇杆 4 右触点"
+
+msgid "Rocker 4 Right Indicator"
+msgstr "摇杆 4 右指示灯"
+
+msgid "Rocker Blind Control"
+msgstr "翘板百叶帘控制"
+
+msgid "Rocker Brightness Direction"
+msgstr "摇杆亮度方向"
+
+msgid "Rocker Confirm and Cancel Assignment"
+msgstr "摇杆确认和取消分配"
+
+msgid "Rocker Dimming"
+msgstr "翘板调光"
+
+msgid "Rocker Increase and Decrease Assignment"
+msgstr "摇杆增减分配"
+
+msgid "Rocker Indicator"
+msgstr "摇杆指示器"
+
+msgid "Rocker Mode and Fan Assignment"
+msgstr "摇杆模式和风扇分配"
+
+msgid "Rocker Operation"
+msgstr "摇杆操作"
+
+msgid "Rocker Stage Control"
+msgstr "翘板级别控制"
+
+msgid "Rocker Switching"
+msgstr "翘板开关"
+
+msgid "Rocker Switching Action"
+msgstr "翘板开关动作"
+
+msgid "Rocker Travel Direction"
+msgstr "翘板升降方向"
+
+msgid "Rocker Value Output"
+msgstr "翘板数值输出"
+
+msgid "Rocker Value Selection"
+msgstr "翘板数值选择"
+
+msgid "Room"
+msgstr "房间"
+
+msgid "Room 1"
+msgstr "1号房"
+
+msgid "Room 10"
+msgstr "10号房间"
+
+msgid "Room 11"
+msgstr "11号房间"
+
+msgid "Room 12"
+msgstr "12号房间"
+
+msgid "Room 13"
+msgstr "13号房间"
+
+msgid "Room 14"
+msgstr "14号房间"
+
+msgid "Room 15"
+msgstr "15号房间"
+
+msgid "Room 16"
+msgstr "16号房间"
+
+msgid "Room 17"
+msgstr "17号房间"
+
+msgid "Room 18"
+msgstr "18号房间"
+
+msgid "Room 19"
+msgstr "19号房间"
+
+msgid "Room 2"
+msgstr "2号房"
+
+msgid "Room 20"
+msgstr "20号房间"
+
+msgid "Room 21"
+msgstr "21号房间"
+
+msgid "Room 22"
+msgstr "22号房间"
+
+msgid "Room 23"
+msgstr "23号房间"
+
+msgid "Room 24"
+msgstr "24号房间"
+
+msgid "Room 25"
+msgstr "25号房间"
+
+msgid "Room 26"
+msgstr "26号房间"
+
+msgid "Room 27"
+msgstr "27号房间"
+
+msgid "Room 28"
+msgstr "28号房间"
+
+msgid "Room 29"
+msgstr "29号房间"
+
+msgid "Room 3"
+msgstr "3号房"
+
+msgid "Room 4"
+msgstr "4号房"
+
+msgid "Room 5"
+msgstr "5号房间"
+
+msgid "Room 6"
+msgstr "6号房间"
+
+msgid "Room 7"
+msgstr "7号房"
+
+msgid "Room 8"
+msgstr "8号房"
+
+msgid "Room 9"
+msgstr "9号房间"
+
+msgid "Room Control Enable"
+msgstr "房间控制启用"
+
+msgid "Room Control Layout"
+msgstr "房间控制布局"
+
+msgid "Room Control via Objects"
+msgstr "通过对象进行房间控制"
+
+msgid "Room Controller Display Settings"
+msgstr "房间控制器显示设置"
+
+msgid "Room Controller Modes"
+msgstr "房间控制器模式"
+
+msgid "Room Controller Rotary Control"
+msgstr "房间控制器旋转控制"
+
+msgid "Room Controller Settings"
+msgstr "房间控制器设置"
+
+msgid "Room Controller Status"
+msgstr "房间控制器状态"
+
+msgid "Room Controller Without Local Buttons"
+msgstr "不带本地按钮的房间控制器"
+
+msgid "Room Controller and Local Controls"
+msgstr "房间控制器和本地控制"
+
+msgid "Room Controller with Two Control Sections"
+msgstr "带有两个控制部分的房间控制器"
+
+msgid "Room Controller with Two Rockers or Four Buttons"
+msgstr "带两个摇杆或四个按钮的房间控制器"
+
+msgid "Room Graphic"
+msgstr "房间图"
+
+msgid "Room Name"
+msgstr "房间名称"
+
+msgid "Room Settings"
+msgstr "房间设置"
+
+msgid "Room Temperature"
+msgstr "室温"
+
+msgid "Room Temperature Adjustment"
+msgstr "室温调节"
+
+msgid "Room Temperature Control"
+msgstr "室温控制"
+
+msgid "Room Temperature Controller"
+msgstr "室温控制器"
+
+msgid "Room Temperature Fault"
+msgstr "室温故障"
+
+msgid "Room Temperature Repeat Interval (min)"
+msgstr "室温重复发送间隔 (min)"
+
+msgid "Room Temperature Source"
+msgstr "室温源"
+
+msgid "Room Unoccupied"
+msgstr "房间无人居住"
+
+msgid "Room and Outdoor Temperature Display Interval"
+msgstr "室内外温度显示间隔"
+
+msgid "Room controller status"
+msgstr "房间控制器状态"
+
+msgid "Room temperature adjustment"
+msgstr "室温调节"
+
+msgid "Room temperature system settings"
+msgstr "室温系统设置"
+
+msgid "Rooms"
+msgstr "房间"
+
+msgid "Rotary Control"
+msgstr "旋转控制"
+
+msgid "Rotary Control Indicator"
+msgstr "旋转控制指示器"
+
+msgid "Rotary Function Color"
+msgstr "旋转功能 颜色"
+
+msgid "Rotary Increments per Turn"
+msgstr "每转旋转增量"
+
+msgid "Rotary Press Switch Action"
+msgstr "旋转按压开关动作"
+
+msgid "Rotary Press Switching Function"
+msgstr "轮转压力机切换功能"
+
+msgid "Rotary Value Output"
+msgstr "旋转值输出"
+
+msgid "Rotary and Press Control"
+msgstr "旋转和冲压控制"
+
+msgid "Rotation Action"
+msgstr "旋转动作"
+
+msgid "Rotation Brightness Adjustment"
+msgstr "旋转亮度调节"
+
+msgid "Rotation Dimming Function"
+msgstr "旋转调光功能"
+
+msgid "Rotation for Full Brightness Range"
+msgstr "旋转以获得全亮度范围"
+
+msgid "Russian"
+msgstr "俄语"
+
+msgid "Saturday"
+msgstr "星期六"
+
+msgid "Save Scene 1 on Long Press"
+msgstr "长按保存场景 1"
+
+msgid "Save Scene 10 on Long Press"
+msgstr "长按保存场景 10"
+
+msgid "Save Scene 2 on Long Press"
+msgstr "长按保存场景 2"
+
+msgid "Save Scene 3 on Long Press"
+msgstr "长按保存场景 3"
+
+msgid "Save Scene 4 on Long Press"
+msgstr "长按保存场景 4"
+
+msgid "Save Scene 5 on Long Press"
+msgstr "长按保存场景 5"
+
+msgid "Save Scene 6 on Long Press"
+msgstr "长按保存场景 6"
+
+msgid "Save Scene 7 on Long Press"
+msgstr "长按保存场景 7"
+
+msgid "Save Scene 8 on Long Press"
+msgstr "长按保存场景 8"
+
+msgid "Save Scene 9 on Long Press"
+msgstr "长按保存场景 9"
+
+msgid "Save Scene on Long Press"
+msgstr "长按保存场景"
+
+msgid "Save scene"
+msgstr "保存场景"
+
+msgid "Scene 1"
+msgstr "场景1"
+
+msgid "Scene 1 Brightness"
+msgstr "场景1亮度"
+
+msgid "Scene 1 Enable"
+msgstr "场景1启用"
+
+msgid "Scene 1 Name"
+msgstr "场景1名称"
+
+msgid "Scene 1 Number"
+msgstr "场景1号"
+
+msgid "Scene 1 Number (1 to 64)"
+msgstr "场景 1 编号（1 至 64）"
+
+msgid "Scene 1 Settings"
+msgstr "场景1设置"
+
+msgid "Scene 10"
+msgstr "场景10"
+
+msgid "Scene 10 Brightness"
+msgstr "场景 10 亮度"
+
+msgid "Scene 10 Enable"
+msgstr "场景 10 启用"
+
+msgid "Scene 10 Name"
+msgstr "场景 10 名称"
+
+msgid "Scene 10 Number"
+msgstr "场景10号"
+
+msgid "Scene 10 Number (1 to 64)"
+msgstr "场景 10 编号（1 至 64）"
+
+msgid "Scene 10 Settings"
+msgstr "场景10设置"
+
+msgid "Scene 11 Number"
+msgstr "场景11号"
+
+msgid "Scene 12 Number"
+msgstr "场景12号"
+
+msgid "Scene 2"
+msgstr "场景2"
+
+msgid "Scene 2 Brightness"
+msgstr "场景2亮度"
+
+msgid "Scene 2 Enable"
+msgstr "场景2启用"
+
+msgid "Scene 2 Name"
+msgstr "场景2名称"
+
+msgid "Scene 2 Number"
+msgstr "场景2号"
+
+msgid "Scene 2 Number (1 to 64)"
+msgstr "场景 2 编号（1 至 64）"
+
+msgid "Scene 2 Settings"
+msgstr "场景2设置"
+
+msgid "Scene 3"
+msgstr "场景3"
+
+msgid "Scene 3 Brightness"
+msgstr "场景3亮度"
+
+msgid "Scene 3 Enable"
+msgstr "场景3启用"
+
+msgid "Scene 3 Name"
+msgstr "场景 3 名称"
+
+msgid "Scene 3 Number"
+msgstr "场景3号"
+
+msgid "Scene 3 Number (1 to 64)"
+msgstr "场景 3 编号（1 至 64）"
+
+msgid "Scene 3 Settings"
+msgstr "场景3设置"
+
+msgid "Scene 4"
+msgstr "场景4"
+
+msgid "Scene 4 Brightness"
+msgstr "场景4亮度"
+
+msgid "Scene 4 Enable"
+msgstr "场景4启用"
+
+msgid "Scene 4 Name"
+msgstr "场景 4 名称"
+
+msgid "Scene 4 Number"
+msgstr "场景4号"
+
+msgid "Scene 4 Number (1 to 64)"
+msgstr "场景 4 编号（1 至 64）"
+
+msgid "Scene 4 Settings"
+msgstr "场景4设置"
+
+msgid "Scene 5"
+msgstr "场景5"
+
+msgid "Scene 5 Brightness"
+msgstr "场景5亮度"
+
+msgid "Scene 5 Enable"
+msgstr "场景5启用"
+
+msgid "Scene 5 Name"
+msgstr "场景 5 名称"
+
+msgid "Scene 5 Number"
+msgstr "场景5号"
+
+msgid "Scene 5 Number (1 to 64)"
+msgstr "场景 5 编号（1 至 64）"
+
+msgid "Scene 5 Settings"
+msgstr "场景5设置"
+
+msgid "Scene 6"
+msgstr "场景6"
+
+msgid "Scene 6 Brightness"
+msgstr "场景6亮度"
+
+msgid "Scene 6 Enable"
+msgstr "场景6启用"
+
+msgid "Scene 6 Name"
+msgstr "场景 6 名称"
+
+msgid "Scene 6 Number"
+msgstr "场景 6 号"
+
+msgid "Scene 6 Number (1 to 64)"
+msgstr "场景 6 编号（1 至 64）"
+
+msgid "Scene 6 Settings"
+msgstr "场景6设置"
+
+msgid "Scene 7"
+msgstr "场景7"
+
+msgid "Scene 7 Brightness"
+msgstr "场景7亮度"
+
+msgid "Scene 7 Enable"
+msgstr "场景7启用"
+
+msgid "Scene 7 Name"
+msgstr "场景7名称"
+
+msgid "Scene 7 Number"
+msgstr "场景7号"
+
+msgid "Scene 7 Number (1 to 64)"
+msgstr "场景 7 编号（1 至 64）"
+
+msgid "Scene 7 Settings"
+msgstr "场景7设置"
+
+msgid "Scene 8"
+msgstr "场景8"
+
+msgid "Scene 8 Brightness"
+msgstr "场景8亮度"
+
+msgid "Scene 8 Enable"
+msgstr "场景8启用"
+
+msgid "Scene 8 Name"
+msgstr "场景 8 名称"
+
+msgid "Scene 8 Number"
+msgstr "场景8号"
+
+msgid "Scene 8 Number (1 to 64)"
+msgstr "场景 8 编号（1 至 64）"
+
+msgid "Scene 8 Settings"
+msgstr "场景8设置"
+
+msgid "Scene 9"
+msgstr "场景9"
+
+msgid "Scene 9 Brightness"
+msgstr "场景 9 亮度"
+
+msgid "Scene 9 Enable"
+msgstr "场景 9 启用"
+
+msgid "Scene 9 Name"
+msgstr "场景 9 名称"
+
+msgid "Scene 9 Number"
+msgstr "场景9号"
+
+msgid "Scene 9 Number (1 to 64)"
+msgstr "场景 9 编号（1 至 64）"
+
+msgid "Scene 9 Settings"
+msgstr "场景9设置"
+
+msgid "Scene After Sequence"
+msgstr "序列后的场景"
+
+msgid "Scene Command"
+msgstr "场景命令"
+
+msgid "Scene Control"
+msgstr "场景控制"
+
+msgid "Scene Count"
+msgstr "场景数"
+
+msgid "Scene Display Control"
+msgstr "场景显示控制"
+
+msgid "Scene Functions"
+msgstr "场景功能"
+
+msgid "Scene Graphic"
+msgstr "场景图"
+
+msgid "Scene Name"
+msgstr "场景名称"
+
+msgid "Scene Number"
+msgstr "场景编号"
+
+msgid "Scene Output Function Name"
+msgstr "场景输出函数名称"
+
+msgid "Scene Output Participant Count"
+msgstr "场景输出参与者人数"
+
+msgid "Scene Output Storage"
+msgstr "场景输出存储"
+
+msgid "Scene Recall Action"
+msgstr "场景回忆动作"
+
+msgid "Scene Recall or Store Action"
+msgstr "场景调用或存储动作"
+
+msgid "Scene Save Indication"
+msgstr "场景保存指示"
+
+msgid "Scene Value Storage"
+msgstr "场景值存储"
+
+msgid "Scene number"
+msgstr "场景数"
+
+msgid "Scene number or command (1 byte)"
+msgstr "场景号或命令（1字节）"
+
+msgid "Scene on Received Off"
+msgstr "收到关值时的场景"
+
+msgid "Scene on Received On"
+msgstr "收到开值时的场景"
+
+msgid "Scene-Output Unit 1"
+msgstr "场景输出单元1"
+
+msgid "Scene-Output Unit 10"
+msgstr "场景输出单元10"
+
+msgid "Scene-Output Unit 2"
+msgstr "场景输出单元2"
+
+msgid "Scene-Output Unit 3"
+msgstr "场景输出单元3"
+
+msgid "Scene-Output Unit 4"
+msgstr "场景输出单元4"
+
+msgid "Scene-Output Unit 5"
+msgstr "场景输出单元5"
+
+msgid "Scene-Output Unit 6"
+msgstr "场景输出单元6"
+
+msgid "Scene-Output Unit 7"
+msgstr "场景输出单元7"
+
+msgid "Scene-Output Unit 8"
+msgstr "场景输出单元8"
+
+msgid "Scene-Output Unit 9"
+msgstr "场景输出单元9"
+
+msgid "Scheduled Hour"
+msgstr "预定时间"
+
+msgid "Scheduled Minute"
+msgstr "预定分钟数"
+
+msgid "Scheduled Operations and Vacations"
+msgstr "预定的运营和假期"
+
+msgid "Scheduled operation"
+msgstr "预定运行"
+
+msgid "Screensaver Active"
+msgstr "屏幕保护程序激活"
+
+msgid "Screensaver Enable"
+msgstr "启用屏幕保护程序"
+
+msgid "Screensaver Idle Timeout"
+msgstr "屏幕保护程序空闲超时"
+
+msgid "Screensaver Presentation"
+msgstr "屏保演示"
+
+msgid "Screensaver Start Delay"
+msgstr "屏幕保护程序启动延迟"
+
+msgid "Screensaver disabled"
+msgstr "屏幕保护程序已禁用"
+
+msgid "Scroll Text"
+msgstr "滚动文字"
+
+msgid "Scrolling and Display Return Delay"
+msgstr "滚动和显示返回延迟"
+
+msgid "Scrolling text"
+msgstr "滚动文字"
+
+msgid "Second Output Data Type"
+msgstr "第二输出数据类型"
+
+msgid "Select Auto/On/Off with Slide Switch"
+msgstr "使用滑动开关选择自动/开/关"
+
+msgid "Selected stage output only"
+msgstr "仅所选级别输出"
+
+msgid "Send Active Setpoint"
+msgstr "发送活动设定值"
+
+msgid "Send Automatic Switch-Off"
+msgstr "发送自动关闭"
+
+msgid "Send Comfort Mode State"
+msgstr "发送舒适模式状态"
+
+msgid "Send Dimming Stop"
+msgstr "发送调光停止"
+
+msgid "Send Initial Enable State"
+msgstr "发送初始启用状态"
+
+msgid "Send Measurements"
+msgstr "发送测量值"
+
+msgid "Send Minimum Cooling Demand"
+msgstr "发送最低冷却需求"
+
+msgid "Send Minimum Heating Demand"
+msgstr "发送最低供热需求"
+
+msgid "Send Off Value"
+msgstr "发送关值"
+
+msgid "Send On Value"
+msgstr "发送开值"
+
+msgid "Send Protection Object"
+msgstr "发送保护对象"
+
+msgid "Send Text on Acknowledgement"
+msgstr "确认时发送文本"
+
+msgid "Send Value"
+msgstr "发送值"
+
+msgid "Send Value 1"
+msgstr "发送值1"
+
+msgid "Send Value 2"
+msgstr "发送值2"
+
+msgid "Send Zero on Acknowledgement"
+msgstr "确认时发送零"
+
+msgid "Send nothing"
+msgstr "不发送任何内容"
+
+msgid "Send off"
+msgstr "发送关"
+
+msgid "Send off value once"
+msgstr "发送一次关值"
+
+msgid "Send on"
+msgstr "发送开"
+
+msgid "Send on Disable"
+msgstr "禁用时发送"
+
+msgid "Send on Enable"
+msgstr "启用时发送"
+
+msgid "Send on operation"
+msgstr "操作时发送"
+
+msgid "Send on slider release"
+msgstr "在滑块释放时发送"
+
+msgid "Send on value once"
+msgstr "发送一次开值"
+
+msgid "Send only"
+msgstr "仅发送"
+
+msgid "Send stop"
+msgstr "发送停止"
+
+msgid "Send value"
+msgstr "发送值"
+
+msgid "Send value 1"
+msgstr "发送值 1"
+
+msgid "Send value 2"
+msgstr "发送值 2"
+
+msgid "Sensor 1"
+msgstr "传感器1"
+
+msgid "Sensor 2"
+msgstr "传感器2"
+
+msgid "Sensor 3"
+msgstr "传感器3"
+
+msgid "Sensor 4"
+msgstr "传感器4"
+
+msgid "Sensor 5"
+msgstr "传感器5"
+
+msgid "Sensor 6"
+msgstr "传感器6"
+
+msgid "Sensor 7"
+msgstr "传感器7"
+
+msgid "Sensor 8"
+msgstr "传感器8"
+
+msgid "Sensor Operating Scheme"
+msgstr "传感器工作方案"
+
+msgid "Separate Alarm Object"
+msgstr "单独的警报对象"
+
+msgid "Separate Dimming Feedback Object"
+msgstr "单独的调光反馈对象"
+
+msgid "Separate Mode Reference Objects"
+msgstr "分离模式参考对象"
+
+msgid "Separate Reference and Comfort Targets"
+msgstr "单独的参考目标和舒适目标"
+
+msgid "Separate Symbol Feedback Object"
+msgstr "单独的符号反馈对象"
+
+msgid "Separate Symbol and Text Feedback Object"
+msgstr "单独的符号和文本反馈对象"
+
+msgid "Separate Value Feedback Object"
+msgstr "单独的值反馈对象"
+
+msgid "Separate Values on Press and Release"
+msgstr "按下和松开时分别发送数值"
+
+msgid "Separate input and output (1 bit)"
+msgstr "独立的输入和输出（1位）"
+
+msgid "Separate input and output (1 byte)"
+msgstr "独立的输入和输出（1字节）"
+
+msgid "Separate mode bits"
+msgstr "独立模式位"
+
+msgid "Separate objects"
+msgstr "单独的对象"
+
+msgid "Separate on and off delays"
+msgstr "单独的开启和关闭延迟"
+
+msgid "Separate press and release actions"
+msgstr "单独的按下和释放动作"
+
+msgid "Separate short and long press actions"
+msgstr "单独的短按和长按操作"
+
+msgid "Sequence Entry 1"
+msgstr "序列输入1"
+
+msgid "Sequence Entry 10"
+msgstr "序列条目 10"
+
+msgid "Sequence Entry 11"
+msgstr "序列条目 11"
+
+msgid "Sequence Entry 12"
+msgstr "序列输入 12"
+
+msgid "Sequence Entry 2"
+msgstr "序列输入2"
+
+msgid "Sequence Entry 3"
+msgstr "序列输入3"
+
+msgid "Sequence Entry 4"
+msgstr "序列输入4"
+
+msgid "Sequence Entry 5"
+msgstr "序列输入 5"
+
+msgid "Sequence Entry 6"
+msgstr "序列输入 6"
+
+msgid "Sequence Entry 7"
+msgstr "序列输入 7"
+
+msgid "Sequence Entry 8"
+msgstr "序列输入 8"
+
+msgid "Sequence Entry 9"
+msgstr "序列输入 9"
+
+msgid "Sequence Execution Settings"
+msgstr "序列执行设置"
+
+msgid "Sequence Name"
+msgstr "序列名称"
+
+msgid "Sequence Start Input"
+msgstr "序列开始输入"
+
+msgid "Sequence Start Input Polarity"
+msgstr "序列开始输入极性"
+
+msgid "Sequence Start and Stop"
+msgstr "顺序启动和停止"
+
+msgid "Sequence State Value"
+msgstr "序列状态值"
+
+msgid "Sequence Status"
+msgstr "序列状态"
+
+msgid "Sequence Step 1 Active Time (s)"
+msgstr "序列步骤 1 激活时长 (s)"
+
+msgid "Sequence Step 1 Duration (s)"
+msgstr "序列步骤 1 持续时间 (s)"
+
+msgid "Sequence Step 1 Value"
+msgstr "序列步骤 1 值"
+
+msgid "Sequence Step 10 Active Time (s)"
+msgstr "序列步骤 10 激活时长 (s)"
+
+msgid "Sequence Step 10 Duration (s)"
+msgstr "序列步骤 10 持续时间 (s)"
+
+msgid "Sequence Step 10 Value"
+msgstr "序列步骤 10 值"
+
+msgid "Sequence Step 11 Active Time (s)"
+msgstr "序列步骤 11 激活时长 (s)"
+
+msgid "Sequence Step 11 Duration (s)"
+msgstr "序列步骤 11 持续时间 (s)"
+
+msgid "Sequence Step 11 Value"
+msgstr "序列步骤 11 值"
+
+msgid "Sequence Step 12 Active Time (s)"
+msgstr "序列步骤 12 激活时长 (s)"
+
+msgid "Sequence Step 12 Duration (s)"
+msgstr "序列步骤 12 持续时间 (s)"
+
+msgid "Sequence Step 12 Value"
+msgstr "序列步骤 12 值"
+
+msgid "Sequence Step 2 Active Time (s)"
+msgstr "序列步骤 2 激活时长 (s)"
+
+msgid "Sequence Step 2 Duration (s)"
+msgstr "序列步骤 2 持续时间 (s)"
+
+msgid "Sequence Step 2 Value"
+msgstr "序列步骤 2 值"
+
+msgid "Sequence Step 3 Active Time (s)"
+msgstr "序列步骤 3 激活时长 (s)"
+
+msgid "Sequence Step 3 Duration (s)"
+msgstr "序列步骤 3 持续时间 (s)"
+
+msgid "Sequence Step 3 Value"
+msgstr "序列步骤 3 值"
+
+msgid "Sequence Step 4 Active Time (s)"
+msgstr "序列步骤 4 激活时长 (s)"
+
+msgid "Sequence Step 4 Duration (s)"
+msgstr "序列步骤 4 持续时间 (s)"
+
+msgid "Sequence Step 4 Value"
+msgstr "序列步骤 4 值"
+
+msgid "Sequence Step 5 Active Time (s)"
+msgstr "序列步骤 5 激活时长 (s)"
+
+msgid "Sequence Step 5 Duration (s)"
+msgstr "序列步骤 5 持续时间 (s)"
+
+msgid "Sequence Step 5 Value"
+msgstr "序列步骤 5 值"
+
+msgid "Sequence Step 6 Active Time (s)"
+msgstr "序列步骤 6 激活时长 (s)"
+
+msgid "Sequence Step 6 Duration (s)"
+msgstr "序列步骤 6 持续时间 (s)"
+
+msgid "Sequence Step 6 Value"
+msgstr "序列步骤 6 值"
+
+msgid "Sequence Step 7 Active Time (s)"
+msgstr "序列步骤 7 激活时长 (s)"
+
+msgid "Sequence Step 7 Duration (s)"
+msgstr "序列步骤 7 持续时间 (s)"
+
+msgid "Sequence Step 7 Value"
+msgstr "序列步骤 7 值"
+
+msgid "Sequence Step 8 Active Time (s)"
+msgstr "序列步骤 8 激活时长 (s)"
+
+msgid "Sequence Step 8 Duration (s)"
+msgstr "序列步骤 8 持续时间 (s)"
+
+msgid "Sequence Step 8 Value"
+msgstr "序列步骤 8 值"
+
+msgid "Sequence Step 9 Active Time (s)"
+msgstr "序列步骤 9 激活时长 (s)"
+
+msgid "Sequence Step 9 Duration (s)"
+msgstr "序列步骤 9 持续时间 (s)"
+
+msgid "Sequence Step 9 Value"
+msgstr "序列步骤 9 值"
+
+msgid "Sequence Step Count"
+msgstr "序列步数"
+
+msgid "Sequence Time Entry Format"
+msgstr "序列时间输入格式"
+
+msgid "Sequence Value and Time Settings"
+msgstr "序列值和时间设置"
+
+msgid "Set Hold Time with Potentiometer"
+msgstr "使用电位器设置保持时间"
+
+msgid "Set Light Threshold with Potentiometer"
+msgstr "使用电位器设置光阈值"
+
+msgid "Set RGB Components to Zero on Switch-Off"
+msgstr "关闭时将 RGB 分量设置为零"
+
+msgid "Set brightness immediately"
+msgstr "立即设置亮度"
+
+msgid "Set output to 0"
+msgstr "将输出设置为 0"
+
+msgid "Set output to 1"
+msgstr "将输出设置为 1"
+
+msgid "Setpoint"
+msgstr "设定值"
+
+msgid "Setpoint Change Request"
+msgstr "设定点变更请求"
+
+msgid "Setpoint Confirmation"
+msgstr "设定点确认"
+
+msgid "Setpoint Reached"
+msgstr "达到设定点"
+
+msgid "Setpoint Reached Object"
+msgstr "设定值已达到对象"
+
+msgid "Setpoint Reference Scheme"
+msgstr "设定点参考方案"
+
+msgid "Setpoint Settings"
+msgstr "设定点设置"
+
+msgid "Setpoint Transmission Interval (min)"
+msgstr "设定值发送间隔 (min)"
+
+msgid "Setpoint adjustment"
+msgstr "设定值调整"
+
+msgid "Setting feedback"
+msgstr "设置反馈"
+
+msgid "Settling Time After Switch Off"
+msgstr "关闭后的稳定时间"
+
+msgid "Settling Time After Switch On"
+msgstr "开启后的稳定时间"
+
+msgid "Shading Device Type"
+msgstr "遮阳设备类型"
+
+msgid "Shading Request Setpoint"
+msgstr "着色请求设定点"
+
+msgid "Shading Travel"
+msgstr "遮阳设备升降"
+
+msgid "Shared Comfort Reference"
+msgstr "共享舒适度参考"
+
+msgid "Shared Condensation Alarm"
+msgstr "共享冷凝警报"
+
+msgid "Shared Functions"
+msgstr "共享功能"
+
+msgid "Shared Input and Output"
+msgstr "共享输入和输出"
+
+msgid "Shared Occupancy State"
+msgstr "共享占用状态"
+
+msgid "Shared Priority Mode"
+msgstr "共享优先模式"
+
+msgid "Shared Window Contact"
+msgstr "共享窗口联系方式"
+
+msgid "Shared input and output (1 bit)"
+msgstr "共享输入和输出（1 位）"
+
+msgid "Shared object"
+msgstr "共享对象"
+
+msgid "Short Press Binary State 1"
+msgstr "短按二进制状态 1"
+
+msgid "Short Press Binary State 2"
+msgstr "短按二进制状态 2"
+
+msgid "Short Press Switch Value"
+msgstr "短按开关值"
+
+msgid "Short Press Value 1"
+msgstr "短按值 1"
+
+msgid "Short Press Value 1 (%)"
+msgstr "短按值 1 (%)"
+
+msgid "Short Press Value 1 (32 Bit Float)"
+msgstr "短按值 1（32 位浮点数）"
+
+msgid "Short Press Value 1 (8 Bit)"
+msgstr "短按值 1（8 位）"
+
+msgid "Short Press Value 1 (KNX Float)"
+msgstr "短按值 1（KNX 浮点数）"
+
+msgid "Short Press Value 1 (Signed 16 Bit)"
+msgstr "短按值 1（16 位有符号）"
+
+msgid "Short Press Value 1 (Signed 32 Bit)"
+msgstr "短按值 1（32 位有符号）"
+
+msgid "Short Press Value 1 (Unsigned 16 Bit)"
+msgstr "短按值 1（16 位无符号）"
+
+msgid "Short Press Value 1 (Unsigned 32 Bit)"
+msgstr "短按值 1（32 位无符号）"
+
+msgid "Short Press Value 1, Long Press Value 2"
+msgstr "短按值1，长按值2"
+
+msgid "Short Press Value 2"
+msgstr "短按值 2"
+
+msgid "Short Press Value 2 (%)"
+msgstr "短按值 2 (%)"
+
+msgid "Short Press Value 2 (32 Bit Float)"
+msgstr "短按值 2（32 位浮点数）"
+
+msgid "Short Press Value 2 (8 Bit)"
+msgstr "短按值 2（8 位）"
+
+msgid "Short Press Value 2 (KNX Float)"
+msgstr "短按值 2（KNX 浮点数）"
+
+msgid "Short Press Value 2 (Signed 16 Bit)"
+msgstr "短按值 2（16 位有符号）"
+
+msgid "Short Press Value 2 (Signed 32 Bit)"
+msgstr "短按值 2（32 位有符号）"
+
+msgid "Short Press Value 2 (Unsigned 16 Bit)"
+msgstr "短按值 2（16 位无符号）"
+
+msgid "Short Press Value 2 (Unsigned 32 Bit)"
+msgstr "短按值 2（32 位无符号）"
+
+msgid "Short and Long Press Actions"
+msgstr "短按和长按动作"
+
+msgid "Short press adjusts or stops, long press moves"
+msgstr "短按调整或停止，长按移动"
+
+msgid "Short press dims, long press switches"
+msgstr "短按调光，长按开关"
+
+msgid "Short press moves or stops"
+msgstr "短按移动或停止"
+
+msgid "Short press moves or stops, long press adjusts slats"
+msgstr "短按移动或停止，长按调整板条"
+
+msgid "Short press switches, long press dims"
+msgstr "短按开关，长按调光"
+
+msgid "Show Active Operating Mode"
+msgstr "显示活动操作模式"
+
+msgid "Show Advanced Settings"
+msgstr "显示高级设置"
+
+msgid "Show Clock Seconds"
+msgstr "显示时钟秒数"
+
+msgid "Show Clock Seconds Hand"
+msgstr "显示时钟秒针"
+
+msgid "Show Date"
+msgstr "演出日期"
+
+msgid "Show Date in Status Strip"
+msgstr "在状态条中显示日期"
+
+msgid "Show Feedback as Text"
+msgstr "将反馈显示为文本"
+
+msgid "Show Floor in Navigation"
+msgstr "在导航中显示楼层"
+
+msgid "Show Heating and Cooling Symbols"
+msgstr "显示加热和冷却符号"
+
+msgid "Show Measured Light Level"
+msgstr "显示测量的光照水平"
+
+msgid "Show Measured Room Temperature"
+msgstr "显示测量的室温"
+
+msgid "Show Measured Temperature in Energy-Saving Mode"
+msgstr "在节能模式下显示测量温度"
+
+msgid "Show Outdoor Temperature"
+msgstr "显示室外温度"
+
+msgid "Show Rain State"
+msgstr "显示雨状态"
+
+msgid "Show Room Controller Status"
+msgstr "显示房间控制器状态"
+
+msgid "Show Room Temperature"
+msgstr "显示室温"
+
+msgid "Show Room in Navigation"
+msgstr "导航中显示房间"
+
+msgid "Show Temperature"
+msgstr "显示温度"
+
+msgid "Show Text on Data Update"
+msgstr "显示数据更新文本"
+
+msgid "Show Time"
+msgstr "演出时间"
+
+msgid "Show Time in Status Strip"
+msgstr "在状态条中显示时间"
+
+msgid "Show Value on Control"
+msgstr "在控件上显示数值"
+
+msgid "Show Weekday in Status Strip"
+msgstr "在状态条中显示工作日"
+
+msgid "Show Wind Speed"
+msgstr "显示风速"
+
+msgid "Shutter"
+msgstr "卷帘"
+
+msgid "Shutter Command Format"
+msgstr "卷帘命令格式"
+
+msgid "Shutter animation"
+msgstr "快门动画"
+
+msgid "Sidus Button Sensor"
+msgstr "Sidus 按钮传感器"
+
+msgid "Sidus Four-Rocker or Eight-Button Sensor"
+msgstr "Sidus 四摇杆或八按钮传感器"
+
+msgid "Sidus Motion Sensor"
+msgstr "Sidus 运动传感器"
+
+msgid "Sidus One-Rocker or Two-Button Sensor"
+msgstr "Sidus 一摇杆或两按钮传感器"
+
+msgid "Sidus Room Controller"
+msgstr "Sidus 房间控制器"
+
+msgid "Sidus Room Controller with Two Rockers or Four Buttons"
+msgstr "带两个摇杆或四个按钮的 Sidus 房间控制器"
+
+msgid "Sidus Two-Rocker or Four-Button Sensor"
+msgstr "Sidus 二摇杆或四按钮传感器"
+
+msgid "Signal Sound Pattern"
+msgstr "信号声音模式"
+
+msgid "Signed Value (1 Byte)"
+msgstr "有符号值（1 字节）"
+
+msgid "Signed Value (2 Bytes)"
+msgstr "有符号值（2 字节）"
+
+msgid "Signed Value (4 Bytes)"
+msgstr "有符号值（4 字节）"
+
+msgid "Signed integer (16 bit)"
+msgstr "有符号整数（16 位）"
+
+msgid "Signed integer (32 bit)"
+msgstr "有符号整数（32 位）"
+
+msgid "Signed integer (8 bit)"
+msgstr "有符号整数（8 位）"
+
+msgid "Single image"
+msgstr "单幅图像"
+
+msgid "Single measurement"
+msgstr "单次测量"
+
+msgid "Single-Output Dimming Actuator"
+msgstr "单输出调光执行器"
+
+msgid "Single-Output Distribution-Board Dimmer"
+msgstr "单输出配电板调光器"
+
+msgid "Single-Output Switching Actuator"
+msgstr "单输出开关执行器"
+
+msgid "Six-Channel Dimming Actuator"
+msgstr "六通道调光执行器"
+
+msgid "Six-Section Control with IR"
+msgstr "带红外的六段控制"
+
+msgid "Sixteen bits in two bytes"
+msgstr "两个字节中的十六位"
+
+msgid "Slat Adjustment"
+msgstr "叶片调节"
+
+msgid "Slat Angle Feedback"
+msgstr "板条角度反馈"
+
+msgid "Slat Position for Lower Command (%)"
+msgstr "下降命令的叶片位置 (%)"
+
+msgid "Slat Position for Raise Command (%)"
+msgstr "上升命令的叶片位置 (%)"
+
+msgid "Slat Step Duration"
+msgstr "板条步进持续时间"
+
+msgid "Slat Step or Stop"
+msgstr "板条步进或停止"
+
+msgid "Slat step or stop (1 bit)"
+msgstr "板条步进或停止（1 位）"
+
+msgid "Slide in from the right"
+msgstr "从右侧滑入"
+
+msgid "Slide-Switch Mode"
+msgstr "滑动开关模式"
+
+msgid "Slider Increase Direction"
+msgstr "滑块增加方向"
+
+msgid "Slider Text"
+msgstr "滑块文本"
+
+msgid "Slider Transmission Trigger"
+msgstr "滑块传输触发器"
+
+msgid "Slideshow Image Duration"
+msgstr "幻灯片图像持续时间"
+
+msgid "Slideshow Image Hold Time"
+msgstr "幻灯片图像保持时间"
+
+msgid "Slideshow Image Order"
+msgstr "幻灯片图像顺序"
+
+msgid "Slideshow Image Source"
+msgstr "幻灯片图像源"
+
+msgid "Slideshow Transition"
+msgstr "幻灯片过渡"
+
+msgid "Slovak"
+msgstr "斯洛伐克语"
+
+msgid "Slow response, about 75 s"
+msgstr "响应慢，约75秒"
+
+msgid "SmartTouch Panel"
+msgstr "智能触控面板"
+
+msgid "Snooze Alarm"
+msgstr "贪睡闹钟"
+
+msgid "Sound Pattern Duration (ms)"
+msgstr "声音模式持续时间(ms)"
+
+msgid "Source 1"
+msgstr "来源1"
+
+msgid "Source 1 Data Type"
+msgstr "源 1 数据类型"
+
+msgid "Source 1 Name"
+msgstr "来源 1 名称"
+
+msgid "Source 1 Value"
+msgstr "来源 1 值"
+
+msgid "Source 2"
+msgstr "来源2"
+
+msgid "Source 2 Data Type"
+msgstr "源 2 数据类型"
+
+msgid "Source 2 Name"
+msgstr "来源 2 名称"
+
+msgid "Source 2 Value"
+msgstr "来源 2 值"
+
+msgid "Source 3"
+msgstr "来源3"
+
+msgid "Source 3 Data Type"
+msgstr "源 3 数据类型"
+
+msgid "Source 3 Name"
+msgstr "来源 3 名称"
+
+msgid "Source 3 Value"
+msgstr "来源 3 值"
+
+msgid "Source 4"
+msgstr "来源4"
+
+msgid "Source 4 Data Type"
+msgstr "来源 4 数据类型"
+
+msgid "Source 4 Name"
+msgstr "来源 4 名称"
+
+msgid "Source 4 Value"
+msgstr "来源 4 值"
+
+msgid "Source 5"
+msgstr "来源5"
+
+msgid "Source 5 Data Type"
+msgstr "来源 5 数据类型"
+
+msgid "Source 5 Name"
+msgstr "来源 5 名称"
+
+msgid "Source 5 Value"
+msgstr "来源 5 值"
+
+msgid "Source 6"
+msgstr "来源6"
+
+msgid "Source 6 Data Type"
+msgstr "来源 6 数据类型"
+
+msgid "Source 6 Name"
+msgstr "来源 6 名称"
+
+msgid "Source 6 Value"
+msgstr "来源 6 值"
+
+msgid "Source 7"
+msgstr "来源7"
+
+msgid "Source 7 Data Type"
+msgstr "来源 7 数据类型"
+
+msgid "Source 7 Name"
+msgstr "来源 7 名称"
+
+msgid "Source 7 Value"
+msgstr "来源 7 值"
+
+msgid "Source 8"
+msgstr "来源8"
+
+msgid "Source 8 Data Type"
+msgstr "来源 8 数据类型"
+
+msgid "Source 8 Name"
+msgstr "来源 8 名称"
+
+msgid "Source 8 Value"
+msgstr "来源 8 值"
+
+msgid "Spanish"
+msgstr "西班牙语"
+
+msgid "Stage 0"
+msgstr "阶段0"
+
+msgid "Stage 1"
+msgstr "第一阶段"
+
+msgid "Stage 1 Content"
+msgstr "第一阶段内容"
+
+msgid "Stage 1 Switch Value"
+msgstr "第一阶段开关值"
+
+msgid "Stage 2"
+msgstr "第二阶段"
+
+msgid "Stage 2 Content"
+msgstr "第二阶段内容"
+
+msgid "Stage 2 Switch Value"
+msgstr "第 2 阶段开关值"
+
+msgid "Stage 3"
+msgstr "第三阶段"
+
+msgid "Stage 3 Content"
+msgstr "第三阶段内容"
+
+msgid "Stage 3 Switch Value"
+msgstr "第 3 阶段开关值"
+
+msgid "Stage 4"
+msgstr "第四阶段"
+
+msgid "Stage 4 Content"
+msgstr "第四阶段内容"
+
+msgid "Stage 4 Switch Value"
+msgstr "第 4 阶段开关值"
+
+msgid "Stage 5"
+msgstr "第五阶段"
+
+msgid "Stage 5 Content"
+msgstr "第五阶段内容"
+
+msgid "Stage 5 Switch Value"
+msgstr "第 5 阶段开关值"
+
+msgid "Stage 6 Content"
+msgstr "第六阶段内容"
+
+msgid "Stage 7 Content"
+msgstr "第七阶段内容"
+
+msgid "Stage 8 Content"
+msgstr "第 8 阶段内容"
+
+msgid "Stage Control"
+msgstr "舞台控制"
+
+msgid "Stage Count"
+msgstr "阶段数"
+
+msgid "Stage Decrease Graphic"
+msgstr "阶段减少图形"
+
+msgid "Stage Direction"
+msgstr "级别变化方向"
+
+msgid "Stage Evaluation Time (ms)"
+msgstr "级别判断时间 (ms)"
+
+msgid "Stage Increase Graphic"
+msgstr "舞台增加图形"
+
+msgid "Stage Increase Graphic Position"
+msgstr "舞台增加图形位置"
+
+msgid "Stage Output"
+msgstr "级输出"
+
+msgid "Stage Output 1"
+msgstr "级别输出 1"
+
+msgid "Stage Output 2"
+msgstr "级别输出 2"
+
+msgid "Stage Output 3"
+msgstr "级别输出 3"
+
+msgid "Stage Output 4"
+msgstr "级别输出 4"
+
+msgid "Stage Output 5"
+msgstr "级别输出 5"
+
+msgid "Stage Output Pattern"
+msgstr "级别输出组合"
+
+msgid "Stage Output Polarity"
+msgstr "级别输出极性"
+
+msgid "Stage Output Update"
+msgstr "级别输出更新"
+
+msgid "Stage Selection Bit Pattern"
+msgstr "阶段选择位模式"
+
+msgid "Standalone controller"
+msgstr "独立控制器"
+
+msgid "Standard preset"
+msgstr "标准预设"
+
+msgid "Standby"
+msgstr "待机"
+
+msgid "Standby Cooling Increase"
+msgstr "待机冷却增加"
+
+msgid "Standby Cooling Offset"
+msgstr "待机冷却偏移"
+
+msgid "Standby Cooling Setpoint"
+msgstr "待机冷却设定值"
+
+msgid "Standby Heating Offset"
+msgstr "待机加热补偿"
+
+msgid "Standby Heating Reduction"
+msgstr "减少待机发热"
+
+msgid "Standby Heating Setpoint"
+msgstr "备用加热设定点"
+
+msgid "Start Cleaning Lock on Rotary Long Press"
+msgstr "旋转长按开始清洁锁"
+
+msgid "Start Command Value"
+msgstr "启动命令值"
+
+msgid "Start Page"
+msgstr "起始页"
+
+msgid "Start and stop"
+msgstr "启动和停止"
+
+msgid "Start and stop dimming"
+msgstr "开始和停止调光"
+
+msgid "Start from configured brightness"
+msgstr "从配置的亮度开始"
+
+msgid "Start from current brightness"
+msgstr "从当前亮度开始"
+
+msgid "Start from off brightness"
+msgstr "从关闭亮度开始"
+
+msgid "Start or Enable Input"
+msgstr "启动或启用输入"
+
+msgid "Start page"
+msgstr "起始页"
+
+msgid "Start the sequence"
+msgstr "开始序列"
+
+msgid "State Pattern Conversion"
+msgstr "状态模式转换"
+
+msgid "State-dependent text"
+msgstr "依赖于状态的文本"
+
+msgid "Station 1 Name"
+msgstr "站 1 名称"
+
+msgid "Station 2 Name"
+msgstr "站 2 名称"
+
+msgid "Station 3 Name"
+msgstr "站 3 名称"
+
+msgid "Station 4 Name"
+msgstr "站 4 名称"
+
+msgid "Station 5 Name"
+msgstr "站 5 名称"
+
+msgid "Station 6 Name"
+msgstr "站 6 名称"
+
+msgid "Status Area"
+msgstr "状态区"
+
+msgid "Status Decimal Places"
+msgstr "状态小数位"
+
+msgid "Status Feedback Data Type"
+msgstr "状态反馈数据类型"
+
+msgid "Status Feedback Input"
+msgstr "状态反馈输入"
+
+msgid "Status Graphic"
+msgstr "状态图"
+
+msgid "Status Graphic 1"
+msgstr "状态图1"
+
+msgid "Status Graphic 2"
+msgstr "状态图2"
+
+msgid "Status Graphic 3"
+msgstr "状态图3"
+
+msgid "Status Graphic 4"
+msgstr "状态图4"
+
+msgid "Status Graphic 5"
+msgstr "状态图5"
+
+msgid "Status Graphic Count (0 to 5)"
+msgstr "状态图形计数（0 到 5）"
+
+msgid "Status Graphic Value"
+msgstr "状态图形值"
+
+msgid "Status Indication"
+msgstr "状态指示"
+
+msgid "Status Indication Data Type"
+msgstr "状态指示数据类型"
+
+msgid "Status Indication Source"
+msgstr "状态指示源"
+
+msgid "Status Indicator Output"
+msgstr "状态指示灯输出"
+
+msgid "Status Input Data Type"
+msgstr "状态输入数据类型"
+
+msgid "Status Object"
+msgstr "状态对象"
+
+msgid "Status indication"
+msgstr "状态指示"
+
+msgid "Status lighting"
+msgstr "状态照明"
+
+msgid "Status object"
+msgstr "状态对象"
+
+msgid "Step or Stop Command Repeat Interval"
+msgstr "步进或停止命令重复间隔"
+
+msgid "Stop"
+msgstr "停止"
+
+msgid "Stop Action Text"
+msgstr "停止操作文本"
+
+msgid "Stop Dimming on Release"
+msgstr "松开时停止调光"
+
+msgid "Stopped"
+msgstr "已停止"
+
+msgid "Store Current Target"
+msgstr "保存当前设定值"
+
+msgid "Stored Position Valid"
+msgstr "存储位置有效"
+
+msgid "Structure Size (Bytes)"
+msgstr "结构大小（字节）"
+
+msgid "Summer Compensation Active"
+msgstr "夏季补偿激活"
+
+msgid "Summer Compensation End Temperature"
+msgstr "夏季补偿结束温度"
+
+msgid "Summer Compensation Lower-End Offset (0.1 Degree)"
+msgstr "夏季补偿下端偏移（0.1 度）"
+
+msgid "Summer Compensation Outdoor Temperature"
+msgstr "夏季补偿室外温度"
+
+msgid "Summer Compensation Start Temperature"
+msgstr "夏季补偿起始温度"
+
+msgid "Summer Compensation Upper-End Offset (0.1 Degree)"
+msgstr "夏季补偿上限偏移（0.1 度）"
+
+msgid "Summer Entry Setpoint Offset (0.1 Degree)"
+msgstr "夏季进入设定点偏移（0.1 度）"
+
+msgid "Summer Exit Setpoint Offset (0.1 Degree)"
+msgstr "夏季退出设定点偏移（0.1 度）"
+
+msgid "Sunday"
+msgstr "周日"
+
+msgid "Sunrise and Sunset Adjustment"
+msgstr "日出日落调整"
+
+msgid "Swedish"
+msgstr "瑞典语"
+
+msgid "Switch Command"
+msgstr "开关命令"
+
+msgid "Switch Command Input"
+msgstr "开关指令输入"
+
+msgid "Switch Control"
+msgstr "开关控制"
+
+msgid "Switch Control Graphic"
+msgstr "开关控制图形"
+
+msgid "Switch Control Text"
+msgstr "开关控制文本"
+
+msgid "Switch Graphic"
+msgstr "切换图形"
+
+msgid "Switch Object"
+msgstr "切换对象"
+
+msgid "Switch State Feedback"
+msgstr "开关状态反馈"
+
+msgid "Switch Value"
+msgstr "开关值"
+
+msgid "Switch Value 1"
+msgstr "开关值 1"
+
+msgid "Switch Value 2"
+msgstr "开关值 2"
+
+msgid "Switch Value After 1 Press"
+msgstr "按 1 次后切换值"
+
+msgid "Switch Value After 2 Presses"
+msgstr "按 2 次后切换值"
+
+msgid "Switch Value After 3 Presses"
+msgstr "按 3 次后切换值"
+
+msgid "Switch Value After 4 Presses"
+msgstr "按 4 次后切换值"
+
+msgid "Switch Value After 5 Presses"
+msgstr "按 5 次后切换值"
+
+msgid "Switch Value on Demand Change"
+msgstr "需求变化时的开关值"
+
+msgid "Switch and Value Display Control"
+msgstr "开关和数值显示控制"
+
+msgid "Switch between fan input banks 1 and 2"
+msgstr "在风扇输入组 1 和 2 之间切换"
+
+msgid "Switch object"
+msgstr "切换对象"
+
+msgid "Switch off"
+msgstr "关闭"
+
+msgid "Switch off after the hold time"
+msgstr "保持时间后关闭"
+
+msgid "Switch off immediately"
+msgstr "立即关闭"
+
+msgid "Switch on"
+msgstr "开启"
+
+msgid "Switch or Value Control with Feedback"
+msgstr "带反馈的开关或值控制"
+
+msgid "Switch-Off Delay"
+msgstr "关闭延迟"
+
+msgid "Switch-Off Fade Rate"
+msgstr "关闭淡入淡出率"
+
+msgid "Switch-Off Light Threshold Delay"
+msgstr "关灯阈值延迟"
+
+msgid "Switch-Off Rate Input Object"
+msgstr "关闭率输入对象"
+
+msgid "Switch-Off Rate Segment Count"
+msgstr "关闭率段数"
+
+msgid "Switch-Off Transition Rate"
+msgstr "关断转换率"
+
+msgid "Switch-Off Transition Style"
+msgstr "关闭过渡风格"
+
+msgid "Switch-Off Warning Brightness (%)"
+msgstr "关闭警告亮度 (%)"
+
+msgid "Switch-Off Warning Duration"
+msgstr "关闭警告持续时间"
+
+msgid "Switch-Off Warning Time"
+msgstr "关闭警告时间"
+
+msgid "Switch-On Brightness"
+msgstr "开机亮度"
+
+msgid "Switch-On Delay"
+msgstr "开启延迟"
+
+msgid "Switch-On Fade Rate"
+msgstr "开启淡入淡出率"
+
+msgid "Switch-On Rate Input Object"
+msgstr "接通率输入对象"
+
+msgid "Switch-On Rate Segment Count"
+msgstr "开启速率段计数"
+
+msgid "Switch-On Transition Rate"
+msgstr "开启转换率"
+
+msgid "Switch-On Transition Style"
+msgstr "开启过渡风格"
+
+msgid "Switchable local and KNX control"
+msgstr "可切换本地和 KNX 控制"
+
+msgid "Switching"
+msgstr "切换"
+
+msgid "Switching Action"
+msgstr "开关动作"
+
+msgid "Switching Actuator"
+msgstr "开关执行器"
+
+msgid "Switching Hold Time"
+msgstr "切换保持时间"
+
+msgid "Switching Output"
+msgstr "开关量输出"
+
+msgid "Switching actuator"
+msgstr "开关执行器"
+
+msgid "Switching and Dimming Display Control"
+msgstr "切换和调光显示控制"
+
+msgid "Switching and Relative Dimming"
+msgstr "开关和相对调光"
+
+msgid "Switching on Press"
+msgstr "按下时切换开关"
+
+msgid "Switching on Release"
+msgstr "松开时切换开关"
+
+msgid "Symbol"
+msgstr "符号"
+
+msgid "Symbol Illumination"
+msgstr "符号照明"
+
+msgid "Symbol Style"
+msgstr "符号样式"
+
+msgid "System Menu Entry Count"
+msgstr "系统菜单条目计数"
+
+msgid "System Menu Graphic"
+msgstr "系统菜单图"
+
+msgid "System Menu Language"
+msgstr "系统菜单语言"
+
+msgid "System Settings"
+msgstr "系统设置"
+
+msgid "System Settings Code (4 Digits)"
+msgstr "系统设置代码（4 位）"
+
+msgid "System Settings Code (5 Digits)"
+msgstr "系统设置代码（5 位）"
+
+msgid "System Settings Code (6 Digits)"
+msgstr "系统设置代码（6 位）"
+
+msgid "Target Covering Position"
+msgstr "目标覆盖位置"
+
+msgid "Target Light Level (lx)"
+msgstr "目标照度 (lx)"
+
+msgid "Target Slat Angle"
+msgstr "目标板条角度"
+
+msgid "Target position (%)"
+msgstr "目标位置 (%)"
+
+msgid "Target positions (%)"
+msgstr "目标位置组 (%)"
+
+msgid "Telegram Repeat Interval (ms)"
+msgstr "电报重复间隔(ms)"
+
+msgid "Telegram Transmission Delay (ms)"
+msgstr "电报传输延迟(ms)"
+
+msgid "Telegram Transmission Trigger"
+msgstr "电报传输触发"
+
+msgid "Temperature"
+msgstr "温度"
+
+msgid "Temperature (16 bit)"
+msgstr "温度（16 位）"
+
+msgid "Temperature Change for Early Transmission"
+msgstr "早期传播的温度变化"
+
+msgid "Temperature Change for Extra Transmission (0.1 Degree)"
+msgstr "额外传输的温度变化（0.1 度）"
+
+msgid "Temperature Change for Transmission"
+msgstr "传输温度变化"
+
+msgid "Temperature Comparison"
+msgstr "温度比较"
+
+msgid "Temperature Comparison Threshold"
+msgstr "温度比较阈值"
+
+msgid "Temperature Correction (0.1 K)"
+msgstr "温度校正 (0.1 K)"
+
+msgid "Temperature Display Settings"
+msgstr "温度显示设置"
+
+msgid "Temperature Hysteresis (0.1 Degree)"
+msgstr "温度滞后（0.1度）"
+
+msgid "Temperature Hysteresis (0.1 K)"
+msgstr "温度滞后 (0.1 K)"
+
+msgid "Temperature Measurement"
+msgstr "温度测量"
+
+msgid "Temperature Monitoring Timeout (min, 0 = Disabled)"
+msgstr "温度监控超时（分钟，0 = 禁用）"
+
+msgid "Temperature Object (°C)"
+msgstr "温度对象（°C）"
+
+msgid "Temperature Protection Mode"
+msgstr "温度保护模式"
+
+msgid "Temperature Repeat Interval"
+msgstr "温度重复间隔"
+
+msgid "Temperature Result Data Type"
+msgstr "温度结果数据类型"
+
+msgid "Temperature Result Repeat Interval"
+msgstr "温度结果重复间隔"
+
+msgid "Temperature Result Transmission Timing"
+msgstr "温度结果传输时序"
+
+msgid "Temperature Result Transmission Triggers"
+msgstr "温度结果传输触发器"
+
+msgid "Temperature Sensor"
+msgstr "温度传感器"
+
+msgid "Temperature Sensor Offset"
+msgstr "温度传感器偏移"
+
+msgid "Temperature Sources"
+msgstr "温度源"
+
+msgid "Temperature Switching Enable Object"
+msgstr "温度切换启用对象"
+
+msgid "Temperature Switching Enable State After Power Return"
+msgstr "电源恢复后温度切换启用状态"
+
+msgid "Temperature Target Menu"
+msgstr "温度设定值菜单"
+
+msgid "Temperature Threshold 1 Advanced Settings"
+msgstr "温度阈值 1 高级设置"
+
+msgid "Temperature Threshold 1 Enable"
+msgstr "温度阈值 1 启用"
+
+msgid "Temperature Threshold 1 Input"
+msgstr "温度阈值 1 输入"
+
+msgid "Temperature Threshold 1 Result"
+msgstr "温度阈值 1 结果"
+
+msgid "Temperature Threshold 1 Settings"
+msgstr "温度阈值 1 设置"
+
+msgid "Temperature Threshold 2 Advanced Settings"
+msgstr "温度阈值 2 高级设置"
+
+msgid "Temperature Threshold 2 Enable"
+msgstr "温度阈值 2 启用"
+
+msgid "Temperature Threshold 2 Input"
+msgstr "温度阈值2输入"
+
+msgid "Temperature Threshold 2 Result"
+msgstr "温度阈值 2 结果"
+
+msgid "Temperature Threshold 2 Settings"
+msgstr "温度阈值 2 设置"
+
+msgid "Temperature Threshold 3 Advanced Settings"
+msgstr "温度阈值 3 高级设置"
+
+msgid "Temperature Threshold 3 Enable"
+msgstr "温度阈值 3 启用"
+
+msgid "Temperature Threshold 3 Input"
+msgstr "温度阈值 3 输入"
+
+msgid "Temperature Threshold 3 Result"
+msgstr "温度阈值 3 结果"
+
+msgid "Temperature Threshold 3 Settings"
+msgstr "温度阈值 3 设置"
+
+msgid "Temperature Threshold Count"
+msgstr "温度阈值计数"
+
+msgid "Temperature Threshold Input Object"
+msgstr "温度阈值输入对象"
+
+msgid "Temperature Threshold Switching"
+msgstr "温度阈值切换"
+
+msgid "Temperature Unit"
+msgstr "温度单位"
+
+msgid "Temperature Unit Selection Object"
+msgstr "温度单位选择对象"
+
+msgid "Temperature Unit Selection via Object"
+msgstr "通过对象选择温度单位"
+
+msgid "Temperature Update Timeout (min)"
+msgstr "温度更新超时 (min)"
+
+msgid "Temperature Update Timeout (ms)"
+msgstr "温度更新超时(ms)"
+
+msgid "Temperature compared with constant"
+msgstr "温度与常温比较"
+
+msgid "Temperature difference"
+msgstr "温差"
+
+msgid "Temperature display only"
+msgstr "仅温度显示"
+
+msgid "Temperature output"
+msgstr "温度输出"
+
+msgid "Temporary Comfort Extension"
+msgstr "临时舒适扩展"
+
+msgid "Temporary Local Operation Duration"
+msgstr "临时本地运营时间"
+
+msgid "Temporary Local Operation Duration (ms)"
+msgstr "临时本地操作持续时间(ms)"
+
+msgid "Text"
+msgstr "文字"
+
+msgid "Text (14 bytes)"
+msgstr "文本（14 字节）"
+
+msgid "Text 1 Selection Value"
+msgstr "文本 1 选择值"
+
+msgid "Text 10 Selection Value"
+msgstr "文本 10 选择值"
+
+msgid "Text 11 Selection Value"
+msgstr "文本 11 选择值"
+
+msgid "Text 12 Selection Value"
+msgstr "文本 12 选择值"
+
+msgid "Text 13 Selection Value"
+msgstr "文本 13 选择值"
+
+msgid "Text 14 Selection Value"
+msgstr "文本 14 选择值"
+
+msgid "Text 15 Selection Value"
+msgstr "文本 15 选择值"
+
+msgid "Text 16 Selection Value"
+msgstr "文本 16 选择值"
+
+msgid "Text 2 Selection Value"
+msgstr "文本 2 选择值"
+
+msgid "Text 3 Selection Value"
+msgstr "文本 3 选择值"
+
+msgid "Text 4 Selection Value"
+msgstr "文本 4 选择值"
+
+msgid "Text 5 Selection Value"
+msgstr "文本 5 选择值"
+
+msgid "Text 6 Selection Value"
+msgstr "文本 6 选择值"
+
+msgid "Text 7 Selection Value"
+msgstr "文本 7 选择值"
+
+msgid "Text 8 Selection Value"
+msgstr "文本 8 选择值"
+
+msgid "Text 9 Selection Value"
+msgstr "文本 9 选择值"
+
+msgid "Text Above Threshold 2"
+msgstr "文本高于阈值 2"
+
+msgid "Text Below Threshold 1"
+msgstr "文本低于阈值 1"
+
+msgid "Text Between Thresholds 1 and 2"
+msgstr "阈值 1 和 2 之间的文本"
+
+msgid "Text Line"
+msgstr "文本行"
+
+msgid "Text Mapping Count"
+msgstr "文本映射计数"
+
+msgid "Text Scrolling Rocker Assignment"
+msgstr "文本滚动摇杆分配"
+
+msgid "Text Slot 1"
+msgstr "文本槽 1"
+
+msgid "Text Slot 10"
+msgstr "文本槽 10"
+
+msgid "Text Slot 11"
+msgstr "文本槽 11"
+
+msgid "Text Slot 12"
+msgstr "文本槽 12"
+
+msgid "Text Slot 13"
+msgstr "文本槽 13"
+
+msgid "Text Slot 14"
+msgstr "文本槽 14"
+
+msgid "Text Slot 15"
+msgstr "文本槽 15"
+
+msgid "Text Slot 16"
+msgstr "文本槽 16"
+
+msgid "Text Slot 2"
+msgstr "文本槽 2"
+
+msgid "Text Slot 3"
+msgstr "文本槽 3"
+
+msgid "Text Slot 4"
+msgstr "文本槽 4"
+
+msgid "Text Slot 5"
+msgstr "文本槽 5"
+
+msgid "Text Slot 6"
+msgstr "文本槽 6"
+
+msgid "Text Slot 7"
+msgstr "文本槽 7"
+
+msgid "Text Slot 8"
+msgstr "文本槽 8"
+
+msgid "Text Slot 9"
+msgstr "文本槽 9"
+
+msgid "Text and Symbol Display"
+msgstr "文字及符号显示"
+
+msgid "Text and Value Content"
+msgstr "文本和值内容"
+
+msgid "Text and Value Display"
+msgstr "文本和值显示"
+
+msgid "Text by threshold range"
+msgstr "按阈值范围显示的文本"
+
+msgid "Text for Input State 0"
+msgstr "输入状态 0 的文本"
+
+msgid "Text for Input State 00"
+msgstr "输入状态 00 的文本"
+
+msgid "Text for Input State 000"
+msgstr "输入状态 000 的文本"
+
+msgid "Text for Input State 0000"
+msgstr "输入状态 0000 的文本"
+
+msgid "Text for Input State 0001"
+msgstr "输入状态 0001 的文本"
+
+msgid "Text for Input State 001"
+msgstr "输入状态 001 的文本"
+
+msgid "Text for Input State 0010"
+msgstr "输入状态 0010 的文本"
+
+msgid "Text for Input State 0011"
+msgstr "输入状态 0011 的文本"
+
+msgid "Text for Input State 01"
+msgstr "输入状态 01 的文本"
+
+msgid "Text for Input State 010"
+msgstr "输入状态 010 的文本"
+
+msgid "Text for Input State 0100"
+msgstr "输入状态 0100 的文本"
+
+msgid "Text for Input State 0101"
+msgstr "输入状态 0101 的文本"
+
+msgid "Text for Input State 011"
+msgstr "输入状态 011 的文本"
+
+msgid "Text for Input State 0110"
+msgstr "输入状态 0110 的文本"
+
+msgid "Text for Input State 0111"
+msgstr "输入状态 0111 的文本"
+
+msgid "Text for Input State 1"
+msgstr "输入状态 1 的文本"
+
+msgid "Text for Input State 10"
+msgstr "输入状态 10 的文本"
+
+msgid "Text for Input State 100"
+msgstr "输入状态 100 的文本"
+
+msgid "Text for Input State 1000"
+msgstr "输入状态 1000 的文本"
+
+msgid "Text for Input State 1001"
+msgstr "输入状态 1001 的文本"
+
+msgid "Text for Input State 101"
+msgstr "输入状态 101 的文本"
+
+msgid "Text for Input State 1010"
+msgstr "输入状态 1010 的文本"
+
+msgid "Text for Input State 1011"
+msgstr "输入状态 1011 的文本"
+
+msgid "Text for Input State 11"
+msgstr "输入状态 11 的文本"
+
+msgid "Text for Input State 110"
+msgstr "输入状态110的文本"
+
+msgid "Text for Input State 1100"
+msgstr "输入状态1100的文本"
+
+msgid "Text for Input State 1101"
+msgstr "输入状态1101的文本"
+
+msgid "Text for Input State 111"
+msgstr "输入状态111的文本"
+
+msgid "Text for Input State 1110"
+msgstr "输入状态1110的文本"
+
+msgid "Text for Input State 1111"
+msgstr "输入状态1111的文本"
+
+msgid "Text for State 0"
+msgstr "状态 0 的文本"
+
+msgid "Text for State 1"
+msgstr "状态 1 的文本"
+
+msgid "Text selected by 1-bit input"
+msgstr "通过 1 位输入选择的文本"
+
+msgid "Text selected by 1-byte input"
+msgstr "通过 1 字节输入选择的文本"
+
+msgid "Thousands Separator"
+msgstr "千位分隔符"
+
+msgid "Three separate bits"
+msgstr "三个独立的位"
+
+msgid "Three-Section Control with IR"
+msgstr "带红外的三段控制"
+
+msgid "Threshold Comparison with Hysteresis"
+msgstr "阈值与迟滞比较"
+
+msgid "Threshold Hysteresis (%)"
+msgstr "阈值迟滞 (%)"
+
+msgid "Threshold Range 1 Value"
+msgstr "阈值范围 1 值"
+
+msgid "Threshold Range 2 Value"
+msgstr "阈值范围 2 值"
+
+msgid "Throughout the operating mode"
+msgstr "整个运行模式"
+
+msgid "Thursday"
+msgstr "星期四"
+
+msgid "Time"
+msgstr "时间"
+
+msgid "Time (3 bytes)"
+msgstr "时间（3字节）"
+
+msgid "Time Block 1"
+msgstr "时间块 1"
+
+msgid "Time Block 2"
+msgstr "时间块2"
+
+msgid "Time Block 3"
+msgstr "时间块 3"
+
+msgid "Time Block 4"
+msgstr "时间块 4"
+
+msgid "Time Format"
+msgstr "时间格式"
+
+msgid "Time Interval"
+msgstr "时间间隔"
+
+msgid "Time Schedules"
+msgstr "时间表"
+
+msgid "Time Value"
+msgstr "时间值"
+
+msgid "Timed Output Hold Duration"
+msgstr "定时输出保持持续时间"
+
+msgid "Timed Output Sequence"
+msgstr "定时输出序列"
+
+msgid "Timed Switch Output"
+msgstr "定时开关量输出"
+
+msgid "Timed Switching and Values"
+msgstr "定时切换和值"
+
+msgid "Timed switch-off"
+msgstr "定时关闭"
+
+msgid "Timer Active"
+msgstr "定时器激活"
+
+msgid "Timer End Value"
+msgstr "定时器终值"
+
+msgid "Timer Start Value"
+msgstr "定时器起始值"
+
+msgid "Toggle"
+msgstr "切换"
+
+msgid "Trailing-edge dimming"
+msgstr "后沿调光"
+
+msgid "Transmission Delay (ms)"
+msgstr "传输延迟(ms)"
+
+msgid "Transmission Filter Enable"
+msgstr "传输滤波器启用"
+
+msgid "Transmission Repeat Interval (s)"
+msgstr "重复发送间隔 (s)"
+
+msgid "Transmit Ambient Light"
+msgstr "传输环境光"
+
+msgid "Transmit Built-In Temperature"
+msgstr "传输内置温度"
+
+msgid "Transmit Energy-Saving Mode"
+msgstr "发射节能模式"
+
+msgid "Transmit Inactive Bit Outputs"
+msgstr "发送无效位输出"
+
+msgid "Transmit Night Mode"
+msgstr "传输夜间模式"
+
+msgid "Transmit Sequence Enable State After Reset"
+msgstr "复位后的发送序列使能状态"
+
+msgid "Transmit Temperature"
+msgstr "传输温度"
+
+msgid "Transmit When Entering Manual Fan Mode"
+msgstr "进入手动风扇模式时发送"
+
+msgid "Travel direction (1 bit)"
+msgstr "行进方向（1位）"
+
+msgid "Trigger on 0"
+msgstr "0 触发"
+
+msgid "Trigger on 1"
+msgstr "触发 1"
+
+msgid "Triggered by motion"
+msgstr "由运动触发"
+
+msgid "Trim"
+msgstr "修剪"
+
+msgid "Trim with IR and Proximity Sensors"
+msgstr "使用红外和接近传感器进行修剪"
+
+msgid "Trim with Temperature Sensor"
+msgstr "带温度传感器的修剪"
+
+msgid "True"
+msgstr "真实"
+
+msgid "True is 0"
+msgstr "真为0"
+
+msgid "True is 1"
+msgstr "真为 1"
+
+msgid "Tuesday"
+msgstr "星期二"
+
+msgid "Tune for the selected system"
+msgstr "针对所选系统进行调整"
+
+msgid "Turkish"
+msgstr "土耳其语"
+
+msgid "Turn to adjust slats, turn quickly to move"
+msgstr "转动调节板条，快速转动移动"
+
+msgid "Twilight"
+msgstr "暮光之城"
+
+msgid "Twilight Status"
+msgstr "黄昏状态"
+
+msgid "Twilight Switching"
+msgstr "黄昏切换"
+
+msgid "Twilight control"
+msgstr "暮光控制"
+
+msgid "Twilight status"
+msgstr "黄昏状态"
+
+msgid "Two controls with two RGB indicators"
+msgstr "两个控件带有两个 RGB 指示灯"
+
+msgid "Two external measurements"
+msgstr "两次外部测量"
+
+msgid "Two objects"
+msgstr "两个物体"
+
+msgid "Two outputs with daylight and artificial-light compensation"
+msgstr "具有日光和人造光补偿的两个输出"
+
+msgid "Two separate bits"
+msgstr "两个独立的位"
+
+msgid "Two separate bytes"
+msgstr "两个独立的字节"
+
+msgid "Two temperatures"
+msgstr "两种温度"
+
+msgid "Two-Contact Control"
+msgstr "两触点控制"
+
+msgid "Two-Object Value Output"
+msgstr "二对象值输出"
+
+msgid "Two-position control (1 bit)"
+msgstr "两位控制（1位）"
+
+msgid "Two-position control (1 byte)"
+msgstr "两位控制（1字节）"
+
+msgid "Unassigned"
+msgstr "未分配"
+
+msgid "Unit System Selection"
+msgstr "单位制选择"
+
+msgid "Unit Text"
+msgstr "单元正文"
+
+msgid "Unlit Phase Duration (ms)"
+msgstr "熄灭阶段持续时间(ms)"
+
+msgid "Unmute Command Value"
+msgstr "取消静音命令值"
+
+msgid "Unsigned Value (1 Byte)"
+msgstr "无符号值（1 字节）"
+
+msgid "Unsigned Value (2 Bytes)"
+msgstr "无符号值（2 字节）"
+
+msgid "Unsigned Value (4 Bytes)"
+msgstr "无符号值（4 字节）"
+
+msgid "Unsigned integer (16 bit)"
+msgstr "无符号整数（16 位）"
+
+msgid "Unsigned integer (32 bit)"
+msgstr "无符号整数（32 位）"
+
+msgid "Unsigned integer (8 bit)"
+msgstr "无符号整数（8 位）"
+
+msgid "Unused Internal Fan Coil Settings"
+msgstr "未使用的内部风机盘管设置"
+
+msgid "Up"
+msgstr "上升"
+
+msgid "Up or Open Graphic"
+msgstr "向上或打开图形"
+
+msgid "Up or Open Graphic Position"
+msgstr "向上或打开图形位置"
+
+msgid "Update locally without sending"
+msgstr "本地更新，无需发送"
+
+msgid "Upper Contact Value"
+msgstr "上侧触点值"
+
+msgid "Upper Control Module"
+msgstr "上位控制模块"
+
+msgid "Upper Limit"
+msgstr "上限"
+
+msgid "Upper Range Color"
+msgstr "上限颜色"
+
+msgid "Upper Rocker Long Press Menu Action"
+msgstr "上摇杆长按菜单操作"
+
+msgid "Upper Rocker Short Press Menu Action"
+msgstr "上摇杆 短按菜单操作"
+
+msgid "Upper Rocker Value"
+msgstr "翘板上侧值"
+
+msgid "Upper Threshold"
+msgstr "上限"
+
+msgid "Upper Trim"
+msgstr "鞋面装饰"
+
+msgid "Upper Wall Insert"
+msgstr "上墙嵌件"
+
+msgid "Upper brightens, lower dims"
+msgstr "上侧增亮，下侧调暗"
+
+msgid "Upper decreases, lower increases"
+msgstr "上侧降低，下侧增加"
+
+msgid "Upper dims, lower brightens"
+msgstr "上侧调暗，下侧增亮"
+
+msgid "Upper increases, lower decreases"
+msgstr "上侧增加，下侧降低"
+
+msgid "Upper lowers, lower raises"
+msgstr "上侧下降，下侧上升"
+
+msgid "Upper off, lower on"
+msgstr "上侧关，下侧开"
+
+msgid "Upper on, lower off"
+msgstr "上侧开，下侧关"
+
+msgid "Upper raises, lower lowers"
+msgstr "上侧上升，下侧下降"
+
+msgid "Upper value 1, lower value 2"
+msgstr "上侧值 1，下侧值 2"
+
+msgid "Upper value 2, lower value 1"
+msgstr "上侧值 2，下侧值 1"
+
+msgid "Upper-Right Control"
+msgstr "右上角控制"
+
+msgid "Upward Slat Step Text"
+msgstr "向上板条台阶文本"
+
+msgid "Upward Slat Step Value"
+msgstr "向上叶片步进值"
+
+msgid "Upward Travel Text"
+msgstr "向上旅行文本"
+
+msgid "Use Built-In Temperature Measurement"
+msgstr "使用内置温度测量"
+
+msgid "Use External Button Input"
+msgstr "使用外部按钮输入"
+
+msgid "Use Second Output"
+msgstr "使用第二个输出"
+
+msgid "Use configured detector settings"
+msgstr "使用配置的检测器设置"
+
+msgid "User Interaction Settings"
+msgstr "用户交互设置"
+
+msgid "Vacation Mode Active"
+msgstr "假期模式激活"
+
+msgid "Vacation Mode Enable"
+msgstr "假期模式启用"
+
+msgid "Value"
+msgstr "值"
+
+msgid "Value 1"
+msgstr "值 1"
+
+msgid "Value 1 (%)"
+msgstr "值 1 (%)"
+
+msgid "Value 1 (32 Bit Float)"
+msgstr "值 1（32 位浮点数）"
+
+msgid "Value 1 (8 Bit)"
+msgstr "值 1（8 位）"
+
+msgid "Value 1 (KNX Float)"
+msgstr "值 1（KNX 浮点数）"
+
+msgid "Value 1 (Signed 16 Bit)"
+msgstr "值 1（16 位有符号）"
+
+msgid "Value 1 (Signed 32 Bit)"
+msgstr "值 1（32 位有符号）"
+
+msgid "Value 1 (Unsigned 16 Bit)"
+msgstr "值 1（16 位无符号）"
+
+msgid "Value 1 (Unsigned 32 Bit)"
+msgstr "值 1（32 位无符号）"
+
+msgid "Value 1 Data Type"
+msgstr "值 1 数据类型"
+
+msgid "Value 10"
+msgstr "值 10"
+
+msgid "Value 10 (%)"
+msgstr "值 10 (%)"
+
+msgid "Value 11"
+msgstr "值11"
+
+msgid "Value 11 (%)"
+msgstr "值 11 (%)"
+
+msgid "Value 12"
+msgstr "值 12"
+
+msgid "Value 12 (%)"
+msgstr "值 12 (%)"
+
+msgid "Value 2"
+msgstr "值 2"
+
+msgid "Value 2 (%)"
+msgstr "值 2 (%)"
+
+msgid "Value 2 (32 Bit Float)"
+msgstr "值 2（32 位浮点数）"
+
+msgid "Value 2 (8 Bit)"
+msgstr "值 2（8 位）"
+
+msgid "Value 2 (KNX Float)"
+msgstr "值 2（KNX 浮点数）"
+
+msgid "Value 2 (Signed 16 Bit)"
+msgstr "值 2（16 位有符号）"
+
+msgid "Value 2 (Signed 32 Bit)"
+msgstr "值 2（32 位有符号）"
+
+msgid "Value 2 (Unsigned 16 Bit)"
+msgstr "值 2（16 位无符号）"
+
+msgid "Value 2 (Unsigned 32 Bit)"
+msgstr "值 2（32 位无符号）"
+
+msgid "Value 2 Data Type"
+msgstr "值 2 数据类型"
+
+msgid "Value 3"
+msgstr "值3"
+
+msgid "Value 3 (%)"
+msgstr "值3（%）"
+
+msgid "Value 4"
+msgstr "值4"
+
+msgid "Value 4 (%)"
+msgstr "值 4 (%)"
+
+msgid "Value 5"
+msgstr "值5"
+
+msgid "Value 5 (%)"
+msgstr "值5（%）"
+
+msgid "Value 6"
+msgstr "值 6"
+
+msgid "Value 6 (%)"
+msgstr "值 6 (%)"
+
+msgid "Value 7"
+msgstr "值 7"
+
+msgid "Value 7 (%)"
+msgstr "值 7 (%)"
+
+msgid "Value 8"
+msgstr "值8"
+
+msgid "Value 8 (%)"
+msgstr "值 8 (%)"
+
+msgid "Value 9"
+msgstr "值 9"
+
+msgid "Value 9 (%)"
+msgstr "值 9 (%)"
+
+msgid "Value Above Upper Threshold"
+msgstr "值高于阈值上限"
+
+msgid "Value After Sequence"
+msgstr "序列后的值"
+
+msgid "Value Below Lower Threshold"
+msgstr "值低于下限阈值"
+
+msgid "Value Distribution"
+msgstr "数值分配"
+
+msgid "Value During Priority Override"
+msgstr "优先强制控制期间的值"
+
+msgid "Value Feedback"
+msgstr "数值反馈"
+
+msgid "Value Graphic"
+msgstr "数值图形"
+
+msgid "Value Input"
+msgstr "值输入"
+
+msgid "Value Object"
+msgstr "值对象"
+
+msgid "Value Object Settings"
+msgstr "值对象设置"
+
+msgid "Value Output"
+msgstr "数值输出"
+
+msgid "Value Sent When Enabled"
+msgstr "启用时发送的值"
+
+msgid "Value Shown During Setpoint Adjustment"
+msgstr "设定点调整期间显示的值"
+
+msgid "Value Slider"
+msgstr "值滑块"
+
+msgid "Value Transfer Direction"
+msgstr "数值传输方向"
+
+msgid "Value for Entire Input Range"
+msgstr "整个输入范围的值"
+
+msgid "Value for Repeated Transmission"
+msgstr "重复发送的数值"
+
+msgid "Value for the current state"
+msgstr "当前状态的值"
+
+msgid "Value object"
+msgstr "值对象"
+
+msgid "Value on Long Press"
+msgstr "长按时的值"
+
+msgid "Value on Press"
+msgstr "按下时的值"
+
+msgid "Value on Received Off (%)"
+msgstr "收到关值时的数值 (%)"
+
+msgid "Value on Received On (%)"
+msgstr "收到开值时的数值 (%)"
+
+msgid "Value on Release"
+msgstr "松开时的值"
+
+msgid "Value on Short Press"
+msgstr "短按时的值"
+
+msgid "Value on Switch Off"
+msgstr "关闭时的值"
+
+msgid "Value on Switch On"
+msgstr "开启时的值"
+
+msgid "Value or Status Display"
+msgstr "值或状态显示"
+
+msgid "Value with unit"
+msgstr "带单位的值"
+
+msgid "Value-Based Gauge Color"
+msgstr "基于值的仪表颜色"
+
+msgid "Values on Short and Long Press"
+msgstr "短按和长按时的值"
+
+msgid "Ventilation"
+msgstr "通风"
+
+msgid "Very high"
+msgstr "非常高"
+
+msgid "Via communication object"
+msgstr "通过通讯对象"
+
+msgid "Video Pause"
+msgstr "视频暂停"
+
+msgid "Video Play"
+msgstr "视频播放"
+
+msgid "Video Playback Controls"
+msgstr "视频播放控件"
+
+msgid "Video Power"
+msgstr "视频电源"
+
+msgid "Video Seek Backward"
+msgstr "视频向后搜索"
+
+msgid "Video Seek Forward"
+msgstr "视频向前搜索"
+
+msgid "Video Stop"
+msgstr "视频停止"
+
+msgid "Video Volume"
+msgstr "视频音量"
+
+msgid "Violet"
+msgstr "紫罗兰色"
+
+msgid "Violet, high brightness"
+msgstr "紫罗兰色，高亮度"
+
+msgid "Violet, low brightness"
+msgstr "紫罗兰色，低亮度"
+
+msgid "Visible"
+msgstr "可见"
+
+msgid "Volume"
+msgstr "体积"
+
+msgid "Volume Adjustment Command Data Type"
+msgstr "音量调节命令数据类型"
+
+msgid "Volume Adjustment Control"
+msgstr "音量调节控制"
+
+msgid "Volume Down"
+msgstr "调低音量"
+
+msgid "Volume Up"
+msgstr "调高音量"
+
+msgid "Wall Insert"
+msgstr "墙插"
+
+msgid "Warm White Intensity"
+msgstr "暖白强度"
+
+msgid "Warm and cool white"
+msgstr "暖白色和冷白色"
+
+msgid "Warning"
+msgstr "警告"
+
+msgid "Warning Input"
+msgstr "警告输入"
+
+msgid "Wednesday"
+msgstr "星期三"
+
+msgid "Weekly Schedule"
+msgstr "每周日程"
+
+msgid "Weekly Schedule Settings"
+msgstr "每周日程设置"
+
+msgid "Weighted Temperature"
+msgstr "加权温度"
+
+msgid "Weighted Temperature Sources"
+msgstr "加权温度源"
+
+msgid "Weighted measurements"
+msgstr "加权测量"
+
+msgid "When absent"
+msgstr "缺席时"
+
+msgid "When an input changes"
+msgstr "当输入改变时"
+
+msgid "When daylight-saving time changes"
+msgstr "当夏令时改变时"
+
+msgid "When present"
+msgstr "当存在时"
+
+msgid "When the output changes"
+msgstr "当输出改变时"
+
+msgid "When the value changes"
+msgstr "当值改变时"
+
+msgid "Whenever an input is assigned"
+msgstr "每当分配输入时"
+
+msgid "While demand is above zero"
+msgstr "虽然需求高于零"
+
+msgid "White"
+msgstr "白色"
+
+msgid "White Bank Red IR Memory Key"
+msgstr "白色银行红色红外记忆钥匙"
+
+msgid "White Channel Object Scheme"
+msgstr "白色通道对象方案"
+
+msgid "White Color Temperature"
+msgstr "白色色温"
+
+msgid "White IR Button Pair 1"
+msgstr "白色红外按钮一对 1"
+
+msgid "White IR Button Pair 2"
+msgstr "白色红外按钮对 2"
+
+msgid "White IR Button Pair 3"
+msgstr "白色红外按钮对 3"
+
+msgid "White IR Button Pair 4"
+msgstr "白色红外按钮对 4"
+
+msgid "White IR Button Pair 5"
+msgstr "白色红外按钮对 5"
+
+msgid "White IR Command Bank"
+msgstr "白色 IR 命令库"
+
+msgid "White IR Memory M1"
+msgstr "白色红外内存M1"
+
+msgid "White IR Memory M2"
+msgstr "白色红外内存 M2"
+
+msgid "White IR Memory M3"
+msgstr "白色红外内存M3"
+
+msgid "White IR Memory M4"
+msgstr "白色红外内存M4"
+
+msgid "White IR Pair 1 Contact 2"
+msgstr "白色 IR 对 1 触点 2"
+
+msgid "White IR Pair 2 Contact 2"
+msgstr "白色 IR 对 2 触点 2"
+
+msgid "White IR Pair 3 Contact 2"
+msgstr "白色 IR 对 3 触点 2"
+
+msgid "White IR Pair 4 Contact 2"
+msgstr "白色 IR 对 4 触点 2"
+
+msgid "White IR Pair 5 Contact 2"
+msgstr "白色 IR 对 5 触点 2"
+
+msgid "White IR Right Button 1"
+msgstr "白色红外右按钮 1"
+
+msgid "White IR Right Button 2"
+msgstr "白色红外右按钮 2"
+
+msgid "White IR Right Button 3"
+msgstr "白色红外右按钮 3"
+
+msgid "White IR Right Button 4"
+msgstr "白色红外右按钮 4"
+
+msgid "White IR Right Button 5"
+msgstr "白色红外右按钮 5"
+
+msgid "White Intensity"
+msgstr "白色强度"
+
+msgid "White and blue IR commands"
+msgstr "白色和蓝色 IR 命令"
+
+msgid "White for neutral functions"
+msgstr "白色代表中性功能"
+
+msgid "White through temperature and brightness"
+msgstr "白色通过温度和亮度"
+
+msgid "White through warm and cool channels"
+msgstr "白色通过暖色和冷色通道"
+
+msgid "White, high brightness"
+msgstr "白色、高亮度"
+
+msgid "White, low brightness"
+msgstr "白色、低亮度"
+
+msgid "White, orange and blue indication"
+msgstr "白色、橙色和蓝色指示"
+
+msgid "White-Light Switch"
+msgstr "白光开关"
+
+msgid "Wind Protection"
+msgstr "防风"
+
+msgid "Wind Protection Output Action"
+msgstr "防风输出动作"
+
+msgid "Wind Protection Priority"
+msgstr "防风优先"
+
+msgid "Wind Protection Settings"
+msgstr "防风设置"
+
+msgid "Wind Sensor Timeout (min)"
+msgstr "风传感器超时 (min)"
+
+msgid "Wind Speed"
+msgstr "风速"
+
+msgid "Wind direction"
+msgstr "风向"
+
+msgid "Wind speed"
+msgstr "风速"
+
+msgid "Window Contact Status"
+msgstr "窗口联系状态"
+
+msgid "XNOR"
+msgstr "同或异或"
+
+msgid "XOR"
+msgstr "异或"
+
+msgid "Year-month-day (two-digit year)"
+msgstr "年-月-日（两位数年份）"
+
+msgid "Year.month.day (two-digit year)"
+msgstr "年.月.日（两位数年份）"
+
+msgid "Yellow"
+msgstr "黄色"
+
+msgid "Yellow for lighting"
+msgstr "黄色用于照明"
+
+msgid "Yellow, high brightness"
+msgstr "黄色、高亮度"
+
+msgid "Yellow, low brightness"
+msgstr "黄色、低亮度"
+
+msgid "Yes"
+msgstr "是"
+
+msgid "klx"
+msgstr "克勒克斯"
+
+msgid "km/h"
+msgstr "公里/小时"
+
+msgid "lx"
+msgstr "勒克斯"
+
+msgid "ms"
+msgstr "女士"
+
+msgid "ppm"
+msgstr "百万分之一"
+
+msgid "solo Basic 1-Section Button Sensor"
+msgstr "独奏基本 1 节按钮传感器"
+
+msgid "solo Basic 2-Section Button Sensor"
+msgstr "独奏基本 2 部分按钮传感器"
+
+msgid "solo Basic 4-Section Button Sensor"
+msgstr "独奏基本 4 部分按钮传感器"
+
+msgid "solo Basic Button Sensors"
+msgstr "独奏基本按钮传感器"
+
+msgid "solo Basic Motion Sensor"
+msgstr "独奏基本运动传感器"
+
+msgid "solo Enhanced 1-Section Button Sensor"
+msgstr "独奏增强型 1 节按钮传感器"
+
+msgid "solo Enhanced 2-Section Button Sensor"
+msgstr "独奏增强型 2 部分按钮传感器"
+
+msgid "solo Enhanced 4-Section Button Sensor"
+msgstr "独奏增强型 4 部分按钮传感器"
+
+msgid "solo Enhanced Button Sensors"
+msgstr "独奏增强型按钮传感器"
+
+msgid "solo Enhanced Motion Sensor"
+msgstr "独奏增强型运动传感器"
+
+msgid "solo Enhanced Three-Section Control with IR"
+msgstr "独奏增强型三段红外控制"
+
+msgid "solo Motion Sensor"
+msgstr "单独的运动传感器"
+
+msgid "solo Three-Section Control with IR"
+msgstr "带红外的独奏三段控制"
+
+msgid "°C"
+msgstr "℃"
+
+msgid "°F"
+msgstr "°F"
+

@@ -12,11 +12,12 @@ from importlib.resources import files
 from types import MappingProxyType
 from typing import Any, Literal
 
-from .presentation import free_timer_label
+from .metadata import native_nodes
+from .presentation import Presentation, free_timer_label
 
 Variant = Literal["01", "02"]
 Number = int | float
-BLOB_NAME = "PowerTool6108-Config"
+BLOB_NAME = "PowerTool-Config"
 DATABASE_VERSION = "1.1.2.85"
 
 
@@ -107,15 +108,20 @@ class Function:
 
 @lru_cache(maxsize=1)
 def functions() -> Mapping[str, Function]:
-    raw = json.loads(files(__package__).joinpath("schema.json").read_text())
+    raw = json.loads(
+        files(__package__).joinpath("schema.json").read_text(encoding="utf-8")
+    )
+    presentation = Presentation(3)
+    mappings = native_nodes()
     result: dict[str, Function] = {}
     for key, data in raw.items():
+        mapped = mappings[key]
         fields_ = tuple(
             Field(
                 p["key"],
-                free_timer_label(p["label"])
+                free_timer_label(presentation.text(mapped["fields"][p["key"]], ""))
                 if p["kind"] == "freetimer"
-                else p["label"],
+                else presentation.text(mapped["fields"][p["key"]], ""),
                 p["kind"],
                 p["storage"],
                 p["address"],
@@ -126,7 +132,13 @@ def functions() -> Mapping[str, Function]:
                 p["visible"],
                 Condition.parse(p["condition"]),
                 p["parent"],
-                tuple((o["label"], int(o["value"])) for o in p["options"]),
+                tuple(
+                    (
+                        presentation.text(mapped["fields"][p["key"]], "", option=i),
+                        int(o["value"]),
+                    )
+                    for i, o in enumerate(p["options"])
+                ),
                 MappingProxyType(p["constraints"]),
             )
             for p in data["fields"]
@@ -134,7 +146,7 @@ def functions() -> Mapping[str, Function]:
         objects = tuple(
             ObjectSpec(
                 o["key"],
-                o["label"],
+                presentation.text(mapped["objects"][o["key"]], ""),
                 o["position"],
                 o["visible"],
                 o["flags"],
@@ -146,7 +158,12 @@ def functions() -> Mapping[str, Function]:
             for o in data["objects"]
         )
         result[key] = Function(
-            key, data["label"], data["code"], data["config_offset"], fields_, objects
+            key,
+            presentation.text(mapped["node"], ""),
+            data["code"],
+            data["config_offset"],
+            fields_,
+            objects,
         )
     return MappingProxyType(result)
 
