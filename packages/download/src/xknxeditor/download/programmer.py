@@ -1522,7 +1522,9 @@ class DeviceProgrammer:
                 f"no function property response for object type {object_type} "
                 f"instance {instance} property {property_id}"
             )
-        return bytes([payload.return_code.value]) + payload.data
+        # an enum member, or a function-specific code as an int (newer xknx)
+        code = int(getattr(payload.return_code, "value", payload.return_code))
+        return bytes([code]) + payload.data
 
     async def read_user_memory(self, address: int, size: int) -> bytes:
         """Read ``size`` octets of the user memory with A_UserMemory_Read, whatever the
