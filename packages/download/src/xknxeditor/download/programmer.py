@@ -1523,7 +1523,8 @@ class DeviceProgrammer:
                 f"instance {instance} property {property_id}"
             )
         # an enum member, or a function-specific code as an int (newer xknx)
-        code = int(getattr(payload.return_code, "value", payload.return_code))
+        raw = payload.return_code
+        code: int = raw if isinstance(raw, int) else raw.value
         return bytes([code]) + payload.data
 
     async def read_user_memory(self, address: int, size: int) -> bytes:
