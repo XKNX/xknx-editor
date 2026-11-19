@@ -227,7 +227,7 @@ async def test_the_dialog(
     entered: list[bool] = []
     shown: list[str] = []
     real_button, real_input = imgui.button, imgui.input_text
-    real_text, real_combo = imgui.text, imgui.begin_combo
+    real_text, real_combo = imgui.text, plugin_module.begin_combo
     real_selectable = imgui.selectable
 
     def button(label: str, *args: Any) -> bool:
@@ -261,8 +261,8 @@ async def test_the_dialog(
     monkeypatch.setattr(imgui, "button", button)
     monkeypatch.setattr(imgui, "input_text", input_text)
     monkeypatch.setattr(imgui, "text", text)
-    monkeypatch.setattr(imgui, "begin_combo", begin_combo)
-    monkeypatch.setattr(imgui, "end_combo", lambda: None)
+    monkeypatch.setattr(plugin_module, "begin_combo", begin_combo)
+    monkeypatch.setattr(plugin_module, "end_combo", lambda: None)
     monkeypatch.setattr(imgui, "selectable", selectable)
 
     def frames(count: int = 2) -> None:

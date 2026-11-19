@@ -70,6 +70,7 @@ from editor_gui.strings import S as app_strings
 from editor_gui.theme import status_color
 from editor_gui.widgets.animation import animation_time
 from editor_gui.widgets.checkbox import radio_button
+from editor_gui.widgets.combo import begin_combo, end_combo
 from editor_gui.widgets.dialog import (
     begin_dialog,
     begin_tool_window,
@@ -2272,12 +2273,12 @@ class ConnectionPlugin:
             imgui.text(S.USB_DOMAIN_ADDRESS_FROM_LINE)
             imgui.same_line()
             imgui.set_next_item_width(min(px(260), imgui.get_content_region_avail().x))
-            if imgui.begin_combo("##usb_domain_line", ""):
+            if begin_combo("##usb_domain_line", ""):
                 for index, (label, text) in enumerate(lines):
                     item = f"{label}  ({text})##usb_domain_line_{index}"
                     if imgui.selectable(item, text == self._usb_domain_text)[0]:
                         self._usb_domain_text = text
-                imgui.end_combo()
+                end_combo()
         imgui.end_disabled()
         if self._usb_domain_busy:
             loading("##usb_domain_spinner", S.USB_DOMAIN_ADDRESS_SETTING)
