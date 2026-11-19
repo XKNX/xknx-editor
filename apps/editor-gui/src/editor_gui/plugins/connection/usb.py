@@ -36,8 +36,9 @@ _RECONNECT_SECONDS = 3
 
 # USB vendors whose HID devices the scan offers whatever their product id, as the KNX USB
 # interfaces of these vendors (and the manufacturers using their ids) are not all among the
-# known ones: Weinzierl Engineering, Insta, Tapko Technologies, ise.
-KNX_USB_VENDOR_IDS = (0x0E77, 0x135E, 0x28C2, 0x2A07)
+# known ones: Weinzierl Engineering, Insta, Tapko Technologies, ise, and 36CE (Video-Star's,
+# also used by Legrand, Arlight and others).
+KNX_USB_VENDOR_IDS = (0x0E77, 0x135E, 0x28C2, 0x2A07, 0x36CE)
 
 # USB interfaces (vendor id, product id) that forget their individual address when unplugged: the
 # Siemens Interface OCI700 USB. The editor keeps the address such an interface had when it was

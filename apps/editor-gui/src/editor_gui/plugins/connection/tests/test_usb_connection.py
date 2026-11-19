@@ -875,14 +875,17 @@ async def test_search_offers_any_interface_of_a_knx_usb_vendor(
         device(b"insta-known", 0x135E, 0x0020),
         device(b"other-vendor", 0x1234, 0x0001),
         device(b"video-star-known", 0x36CE, 0x0001),
-        device(b"video-star-unlisted", 0x36CE, 0x0002),
+        device(b"legrand-known", 0x36CE, 0x0002),
+        device(b"video-star-unlisted", 0x36CE, 0x0009),
     ]
     # the known ones first, each once; another vendor's HID device is no interface
     assert [d.path for d in await search_usb_interfaces()] == [
         b"usb-path-1",
         b"insta-known",
         b"video-star-known",
+        b"legrand-known",
         b"weinzierl-unlisted",
+        b"video-star-unlisted",
     ]
 
 
