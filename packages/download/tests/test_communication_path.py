@@ -512,3 +512,20 @@ def test_a_session_without_its_inner_one() -> None:
     )
     with pytest.raises(AttributeError):
         _ = manager.device_sequence_number
+
+
+async def test_a_coupler_with_access_protection_is_authorized(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    device = FakeDevice()
+    _couplers(monkeypatch, {_DOWN: device})
+    paths = CommunicationPaths(
+        _xknx(),
+        _installation(Coupler(_DOWN, block_unicast=True, access_key=0x11223344)),
+    )
+    request = paths.unicast(_DEVICE)
+    assert request is not None
+    await paths.add(request)
+    await paths.remove(request)
+    # before enabling and before setting back
+    assert device.authorize_keys == [0x11223344, 0x11223344]

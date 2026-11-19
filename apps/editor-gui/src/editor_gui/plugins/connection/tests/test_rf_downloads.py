@@ -179,6 +179,7 @@ def test_the_projects_couplers_reach_the_connection(
     coupler = _Coupler()
     service.project_device = lambda address: coupler if address == "1.6.0" else None
     monkeypatch.setattr(service, "_security_for", lambda device: f"keys of {device}")
+    service.project_access_key = lambda: 0x01020304
     installation = service._installation()  # pyright: ignore[reportPrivateUsage]
     media = installation.couplers[IndividualAddress("1.2.0")]
     assert (media.primary, media.secondary) == (KnxMedium.TP, KnxMedium.RF)
@@ -187,8 +188,9 @@ def test_the_projects_couplers_reach_the_connection(
     secure = installation.couplers[IndividualAddress("1.6.0")]
     assert secure.primary is KnxMedium.IP
     assert secure.block_unicast and secure.block_broadcast
-    # reached with the coupler's own keys
+    # reached with the coupler's own keys, and the project's access key
     assert secure.security == f"keys of {coupler}"
+    assert secure.access_key == 0x01020304
     assert installation.rf_connection is rf_connection
     # given to the connection before an operation
     service._update_installation()  # pyright: ignore[reportPrivateUsage]

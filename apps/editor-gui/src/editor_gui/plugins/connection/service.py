@@ -1348,7 +1348,8 @@ class ConnectionService:
         set_installation(xknx, self._installation())
 
     def _installation(self) -> Installation:
-        """The project's couplers with the Data Secure material they are reached with."""
+        """The project's couplers with the Data Secure material and the access key they are
+        reached with."""
         from xknx.telegram import IndividualAddress
 
         from editor_gui.device import Device as ProjectDevice
@@ -1356,6 +1357,7 @@ class ConnectionService:
         from xknxeditor.download.communication_path import Coupler, Installation
 
         couplers: dict[IndividualAddress, Coupler] = {}
+        access_key = self._access_key()
         lookup = self.project_route_couplers
         for address, primary, secondary, blocking in lookup() if lookup else []:
             device = (
@@ -1376,6 +1378,7 @@ class ConnectionService:
                 security=security,
                 block_unicast=blocking,
                 block_broadcast=blocking,
+                access_key=access_key,
             )
         xknx = self._xknx
         return Installation(

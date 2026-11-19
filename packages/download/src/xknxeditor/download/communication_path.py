@@ -111,8 +111,9 @@ class CommunicationPathError(DownloadError):
 @dataclass(frozen=True, slots=True)
 class Coupler:
     """A coupler of the installation: the media on its primary and its secondary side, the
-    Data Secure material it is reached with, and whether it blocks point-to-point and
-    broadcast messages (a coupler with the security extensions used as Security Proxy)."""
+    Data Secure material it is reached with, whether it blocks point-to-point and broadcast
+    messages (a coupler with the security extensions used as Security Proxy), and the access
+    key it is authorized with (the project's; the free one: none)."""
 
     address: IndividualAddress
     primary: KnxMedium = KnxMedium.TP
@@ -120,6 +121,7 @@ class Coupler:
     security: DeviceSecurity | None = None
     block_unicast: bool = False
     block_broadcast: bool = False
+    access_key: int = 0xFFFFFFFF
 
 
 @dataclass(frozen=True)
@@ -348,7 +350,7 @@ class CommunicationPaths:
     ) -> None:
         """Enable (or retrigger, or disable) a coupler's actions over a connection of its own;
         when enabling fails, the actions already set are set back."""
-        from .programmer import DeviceProgrammer
+        from .programmer import FREE_ACCESS_KEY, DeviceProgrammer
         from .session import management_session
 
         coupler, actions = applied.coupler, applied.actions
@@ -358,6 +360,8 @@ class CommunicationPaths:
         undo: list[Callable[[], Awaitable[object]]] = []
         try:
             programmer = DeviceProgrammer(await manager.open())
+            if coupler.access_key != FREE_ACCESS_KEY:
+                await programmer.authorize(coupler.access_key)
             if (
                 actions & (CouplerAction.BROADCAST | CouplerAction.SYSTEM_BROADCAST)
                 and coupler.secondary is KnxMedium.RF
