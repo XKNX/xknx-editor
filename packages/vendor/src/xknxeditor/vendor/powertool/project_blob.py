@@ -207,7 +207,7 @@ class _ProjectReader:
                     group_key,
                     hidden,
                     _display_value(stored, node),
-                    node.get("default"),
+                    node.get("default_text", node.get("default")),
                     node.get("display_order", 0),
                 )
             )

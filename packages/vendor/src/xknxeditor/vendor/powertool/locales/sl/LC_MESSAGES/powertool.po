@@ -1223,6 +1223,69 @@ msgstr "90°"
 msgid "96°"
 msgstr "96°"
 
+msgid "< Text >"
+msgstr "< Besedilo >"
+
+msgid "<Scene 10>"
+msgstr "<10. prizor>"
+
+msgid "<Scene 1>"
+msgstr "<1. prizor>"
+
+msgid "<Scene 2>"
+msgstr "<2. prizor>"
+
+msgid "<Scene 3>"
+msgstr "<3. prizor>"
+
+msgid "<Scene 4>"
+msgstr "<4. prizor>"
+
+msgid "<Scene 5>"
+msgstr "<5. prizor>"
+
+msgid "<Scene 6>"
+msgstr "<6. prizor>"
+
+msgid "<Scene 7>"
+msgstr "<7. prizor>"
+
+msgid "<Scene 8>"
+msgstr "<8. prizor>"
+
+msgid "<Scene 9>"
+msgstr "<9. prizor>"
+
+msgid "<Source 1>"
+msgstr "<Vir 1>"
+
+msgid "<Source 2>"
+msgstr "<Vir 2>"
+
+msgid "<Source 3>"
+msgstr "<Vir 3>"
+
+msgid "<Source 4>"
+msgstr "<Vir 4>"
+
+msgid "<Source 5>"
+msgstr "<Vir 5>"
+
+msgid "<Source 6>"
+msgstr "<Vir 6>"
+
+msgid "<Source 7>"
+msgstr "<Vir 7>"
+
+msgid "<Source 8>"
+msgstr "<Vir 8>"
+
+msgid "<Text>"
+msgstr "<Besedilo>"
+
+msgid "<text>"
+msgstr "<Besedilo>"
+
 msgid "AND"
 msgstr "AND"
 
@@ -1340,6 +1403,12 @@ msgstr "Dejanje ob sprostitvi tipke"
 msgid "Action on Short Press"
 msgstr "Dejanje ob kratkem pritisku"
 
+msgid "Activate scene"
+msgstr "Prikliči sceno"
+
+msgid "Activated"
+msgstr "Vklopljeno"
+
 msgid "Activation Sensitivity"
 msgstr "Aktivacijska občutljivost"
 
@@ -1372,6 +1441,9 @@ msgstr "Okno za spremljanje dejavnosti"
 
 msgid "Actual Fan Stage"
 msgstr "Dejanski navijaški oder"
+
+msgid "Actuator 1"
+msgstr "Aktuator 1"
 
 msgid "Actuator 1 Feedback"
 msgstr "Povratna informacija aktuatorja 1"
@@ -1423,6 +1495,39 @@ msgstr "Objekti stanja aktuatorja"
 
 msgid "Actuator Status Settings"
 msgstr "Nastavitve stanja aktuatorja"
+
+msgid "Actuator group A"
+msgstr "Skupina aktuatorjev A"
+
+msgid "Actuator group B"
+msgstr "Skupina aktuatorjev B"
+
+msgid "Actuator group C"
+msgstr "Skupina aktuatorjev C"
+
+msgid "Actuator group D"
+msgstr "Skupina aktuatorjev D"
+
+msgid "Actuator group E"
+msgstr "Skupina aktuatorjev E"
+
+msgid "Actuator group F"
+msgstr "Skupina aktuatorjev F"
+
+msgid "Actuator group G"
+msgstr "Skupina aktuatorjev G"
+
+msgid "Actuator group H"
+msgstr "Skupina aktuatorjev H"
+
+msgid "Actuator group I"
+msgstr "Skupina aktuatorjev I"
+
+msgid "Actuator group J"
+msgstr "Skupina aktuatorjev J"
+
+msgid "Actuator settings"
+msgstr "Nastavitve aktuatorjev"
 
 msgid "Additional Functions"
 msgstr "Dodatne funkcije"
@@ -1739,6 +1844,9 @@ msgstr "Glasnost zvoka"
 msgid "Audio Volume Adjustment"
 msgstr "Prilagoditev glasnosti zvoka"
 
+msgid "Audiocontrol"
+msgstr "Upravljanje zvoka"
+
 msgid "Auto/On/Off Selection Object"
 msgstr "Samodejni/Vklop/Izklop Izbirni predmet"
 
@@ -1894,6 +2002,9 @@ msgstr "Binarno stanje 2"
 
 msgid "Black"
 msgstr "Črna"
+
+msgid "Blind"
+msgstr "Žaluzija"
 
 msgid "Blind Command Format"
 msgstr "Oblika ukaza za žaluzijo"
@@ -2159,6 +2270,9 @@ msgstr "CD Premor"
 msgid "CD Play"
 msgstr "Predvajanje CD-ja"
 
+msgid "CD Player"
+msgstr "Predvajalnik CD"
+
 msgid "CD Power"
 msgstr "CD moč"
 
@@ -2245,6 +2359,9 @@ msgstr "Spremenite objekt 9 v prizoru"
 
 msgid "Changed values only"
 msgstr "Samo spremenjene vrednosti"
+
+msgid "Channel"
+msgstr "Kanal"
 
 msgid "Channel 1"
 msgstr "Kanal 1"
@@ -2570,6 +2687,9 @@ msgstr "Kompaktna varčna svetilka, 150 s umirjanja"
 msgid "Compact fluorescent load"
 msgstr "Kompaktna fluorescenčna obremenitev"
 
+msgid "Comparator 1"
+msgstr "Primerjalnik 1"
+
 msgid "Comparison Hysteresis"
 msgstr "Primerjalna histereza"
 
@@ -2821,6 +2941,9 @@ msgstr "Krmilnik onemogočen"
 
 msgid "Controller mode selection"
 msgstr "Izbira načina krmilnika"
+
+msgid "Converter 1"
+msgstr "Pretvornik 1"
 
 msgid "Cool White Intensity"
 msgstr "Intenzivnost hladne bele barve"
@@ -3242,6 +3365,15 @@ msgstr "Zatemnjuj po korakih"
 msgid "Dim until release"
 msgstr "Zatemnjuj do sprostitve tipke"
 
+msgid "Dimmer"
+msgstr "Zatemnilnik"
+
+msgid "Dimmerslider"
+msgstr "Drsnik zatemnitve"
+
+msgid "Dimming"
+msgstr "Zatemnjevanje"
+
 msgid "Dimming Actuator"
 msgstr "Zatemnitveni aktuator"
 
@@ -3349,6 +3481,9 @@ msgstr "Kontrole predvajanja diska"
 
 msgid "Disc Selection"
 msgstr "Izbira diska"
+
+msgid "Display"
+msgstr "Prikaz"
 
 msgid "Display Backlight"
 msgstr "Osvetlitev zaslona"
@@ -3866,6 +4001,9 @@ msgstr "Izbira stopnje ventilatorja"
 msgid "Fan-stage objects"
 msgstr "Fan-scenski objekti"
 
+msgid "FanSwitch"
+msgstr "Upravljanje ventilatorja"
+
 msgid "Fast response, about 15 s"
 msgstr "Hiter odziv, približno 15 s"
 
@@ -4118,11 +4256,20 @@ msgstr "Popolnoma ročno"
 msgid "Fully raised"
 msgstr "Popolnoma dvignjen"
 
+msgid "Function"
+msgstr "Funkcija"
+
+msgid "Function 1"
+msgstr "Funkcija 1"
+
 msgid "Function 1 Enable"
 msgstr "Funkcija 1 Omogoči"
 
 msgid "Function 1 Text"
 msgstr "Funkcija 1 Besedilo"
+
+msgid "Function 2"
+msgstr "Funkcija 2"
 
 msgid "Function 2 Enable"
 msgstr "Funkcija 2 Omogoči"
@@ -4130,11 +4277,17 @@ msgstr "Funkcija 2 Omogoči"
 msgid "Function 2 Text"
 msgstr "Funkcija 2 Besedilo"
 
+msgid "Function 3"
+msgstr "Funkcija 3"
+
 msgid "Function 3 Enable"
 msgstr "Funkcija 3 Omogoči"
 
 msgid "Function 3 Text"
 msgstr "Funkcija 3 Besedilo"
+
+msgid "Function 4"
+msgstr "Funkcija 4"
 
 msgid "Function 4 Enable"
 msgstr "Funkcija 4 Omogoči"
@@ -4174,6 +4327,9 @@ msgstr "Besedilo funkcije"
 
 msgid "Function lighting"
 msgstr "Funkcijska osvetlitev"
+
+msgid "Gate 1"
+msgstr "Vrata 1"
 
 msgid "German"
 msgstr "Nemščina"
@@ -4399,6 +4555,9 @@ msgstr "Zadrži vir časa"
 
 msgid "Hold Time from Object"
 msgstr "Zadrži čas od predmeta"
+
+msgid "Homepage"
+msgstr "Začetna stran"
 
 msgid "Hours and minutes"
 msgstr "Ure in minute"
@@ -4913,6 +5072,12 @@ msgstr "Obrni povratne informacije o stanju"
 msgid "Inverted"
 msgstr "Obrnjena"
 
+msgid "It's dry"
+msgstr "Suho"
+
+msgid "It's raining"
+msgstr "Dež"
+
 msgid "Italian"
 msgstr "Italijanščina"
 
@@ -5203,6 +5368,9 @@ msgstr "Linearna lestvica"
 
 msgid "Linked Dimming Outputs"
 msgstr "Povezani izhodi za zatemnitev"
+
+msgid "List"
+msgstr "Seznam"
 
 msgid "List Arrangement"
 msgstr "Ureditev seznama"
@@ -5602,6 +5770,9 @@ msgstr "Najnižja stopnja ročnega ventilatorja"
 
 msgid "Magenta for scenes"
 msgstr "Magenta za prizore"
+
+msgid "Main menu"
+msgstr "Glavni meni"
 
 msgid "Manual Adjustment Starting Value"
 msgstr "Začetna vrednost ročne prilagoditve"
@@ -6182,6 +6353,12 @@ msgstr "Zaznavanje gibanja"
 msgid "Move Covering"
 msgstr "Premakni se"
 
+msgid "Move down"
+msgstr "Premakni dol"
+
+msgid "Move up"
+msgstr "Premakni gor"
+
 msgid "Movements Between Reference Runs"
 msgstr "Premiki med referenčnimi zagoni"
 
@@ -6190,6 +6367,12 @@ msgstr "Več aktivnih izhodov"
 
 msgid "Multiple-Press Selection"
 msgstr "Večkratna izbira"
+
+msgid "Multiplexer 1"
+msgstr "Multiplekser 1"
+
+msgid "Multiplier 1"
+msgstr "Množilnik telegramov 1"
 
 msgid "Mute"
 msgstr "Mute"
@@ -7445,6 +7628,9 @@ msgstr "Nastavitve strani"
 msgid "Page and Controls"
 msgstr "Stran in kontrolniki"
 
+msgid "PageLink"
+msgstr "Povezava na stran"
+
 msgid "Paired Control 1"
 msgstr "Parni nadzor 1"
 
@@ -7679,6 +7865,9 @@ msgstr "Nadzor preklapljanja moči"
 msgid "Pre-Event Switching Output"
 msgstr "Preklopni izhod pred dogodkom"
 
+msgid "Presence"
+msgstr "Prisotnost"
+
 msgid "Press Duration"
 msgstr "Pritisnite Trajanje"
 
@@ -7886,8 +8075,20 @@ msgstr "RGB s toplo in hladno belo"
 msgid "RGBW"
 msgstr "RGBW"
 
+msgid "RGBWControl"
+msgstr "Upravljanje RGBW"
+
+msgid "RTC"
+msgstr "Sobna temperatura"
+
+msgid "RTCControlframe"
+msgstr "Termostat"
+
 msgid "Radiator or convector: 1.5 K, 100 min"
 msgstr "Radiator ali konvektor: 1,5 K, 100 min"
+
+msgid "Radio"
+msgstr "Radio"
 
 msgid "Radio Controls"
 msgstr "Radijske kontrole"
@@ -8675,6 +8876,9 @@ msgstr "Izhod vrednosti s prevesno tipko"
 msgid "Rocker Value Selection"
 msgstr "Izbira vrednosti s prevesno tipko"
 
+msgid "RockerSwitch"
+msgstr "Prevesno stikalo"
+
 msgid "Room"
 msgstr "Prostor"
 
@@ -8926,6 +9130,9 @@ msgstr "Shrani sceno z dolgim pritiskom"
 
 msgid "Save scene"
 msgstr "Shrani prizor"
+
+msgid "Scene"
+msgstr "Scena"
 
 msgid "Scene 1"
 msgstr "1. prizor"
@@ -9443,6 +9650,9 @@ msgstr "Ločena dejanja pritiska in sprostitve"
 msgid "Separate short and long press actions"
 msgstr "Ločite dejanja kratkega in dolgega pritiska"
 
+msgid "Sequence"
+msgstr "Zaporedje"
+
 msgid "Sequence Entry 1"
 msgstr "Vnos zaporedja 1"
 
@@ -9616,6 +9826,9 @@ msgstr "Format vnosa časa zaporedja"
 
 msgid "Sequence Value and Time Settings"
 msgstr "Vrednost zaporedja in nastavitve časa"
+
+msgid "Set"
+msgstr "Nastavi"
 
 msgid "Set Hold Time with Potentiometer"
 msgstr "Nastavite čas zadrževanja s potenciometrom"
@@ -10358,6 +10571,36 @@ msgstr "Statusna osvetlitev"
 msgid "Status object"
 msgstr "Objekt stanja"
 
+msgid "Step 1"
+msgstr "Stopnja 1"
+
+msgid "Step 2"
+msgstr "Stopnja 2"
+
+msgid "Step 3"
+msgstr "Stopnja 3"
+
+msgid "Step 4"
+msgstr "Stopnja 4"
+
+msgid "Step 5"
+msgstr "Stopnja 5"
+
+msgid "Step 6"
+msgstr "Stopnja 6"
+
+msgid "Step 7"
+msgstr "Stopnja 7"
+
+msgid "Step 8"
+msgstr "Stopnja 8"
+
+msgid "Step Down"
+msgstr "Korak dol"
+
+msgid "Step Up"
+msgstr "Korak gor"
+
 msgid "Step or Stop Command Repeat Interval"
 msgstr "Interval ponovitve ukaza Step ali Stop"
 
@@ -10414,6 +10657,9 @@ msgstr "Prilagoditev sončnega vzhoda in zahoda"
 
 msgid "Swedish"
 msgstr "Švedščina"
+
+msgid "Switch"
+msgstr "Stikalo"
 
 msgid "Switch Command"
 msgstr "Preklopni ukaz"
@@ -10544,6 +10790,9 @@ msgstr "Vklopni prehodni slog"
 msgid "Switchable local and KNX control"
 msgstr "Preklopno lokalno in KNX krmiljenje"
 
+msgid "Switched off"
+msgstr "Izklopljeno"
+
 msgid "Switching"
 msgstr "Preklapljanje"
 
@@ -10582,6 +10831,9 @@ msgstr "Osvetlitev simbola"
 
 msgid "Symbol Style"
 msgstr "Slog simbola"
+
+msgid "System"
+msgstr "Sistem"
 
 msgid "System Menu Entry Count"
 msgstr "Število vnosov v sistemski meni"
@@ -11087,6 +11339,9 @@ msgstr "Časovni razporedi"
 msgid "Time Value"
 msgstr "Časovna vrednost"
 
+msgid "Time function 1"
+msgstr "Časovna funkcija 1"
+
 msgid "Timed Output Hold Duration"
 msgstr "Časovno določeno trajanje zadrževanja izhoda"
 
@@ -11111,8 +11366,14 @@ msgstr "Končna vrednost časovnika"
 msgid "Timer Start Value"
 msgstr "Začetna vrednost časovnika"
 
+msgid "Title"
+msgstr "Naslov"
+
 msgid "Toggle"
 msgstr "Preklopi"
+
+msgid "Tools"
+msgstr "Orodja"
 
 msgid "Trailing-edge dimming"
 msgstr "Zatemnitev zadnjega roba"
@@ -11149,6 +11410,24 @@ msgstr "Prenosna temperatura"
 
 msgid "Transmit When Entering Manual Fan Mode"
 msgstr "Prenos ob vstopu v ročni način ventilatorja"
+
+msgid "Transmitter 1"
+msgstr "Postaja 1"
+
+msgid "Transmitter 2"
+msgstr "Postaja 2"
+
+msgid "Transmitter 3"
+msgstr "Postaja 3"
+
+msgid "Transmitter 4"
+msgstr "Postaja 4"
+
+msgid "Transmitter 5"
+msgstr "Postaja 5"
+
+msgid "Transmitter 6"
+msgstr "Postaja 6"
 
 msgid "Travel direction (1 bit)"
 msgstr "Smer potovanja (1 bit)"
@@ -11242,6 +11521,9 @@ msgstr "Dvopoložajni nadzor (1 bajt)"
 
 msgid "Unassigned"
 msgstr "Nedodeljeno"
+
+msgid "Unit"
+msgstr "Enota"
 
 msgid "Unit System Selection"
 msgstr "Izbira sistema enot"
@@ -11549,6 +11831,15 @@ msgstr "Drsnik vrednosti"
 msgid "Value Transfer Direction"
 msgstr "Smer prenosa vrednosti"
 
+msgid "Value between minimum and threshold 1"
+msgstr "Vrednost med minimumom in pragom 1"
+
+msgid "Value between threshold 1 and threshold 2"
+msgstr "Vrednost med pragoma 1 in 2"
+
+msgid "Value between threshold 2 and maximum"
+msgstr "Vrednost med pragom 2 in maksimumom"
+
 msgid "Value for Entire Input Range"
 msgstr "Vrednost za celoten obseg vnosa"
 
@@ -11588,6 +11879,9 @@ msgstr "Vrednost pri vklopu"
 msgid "Value or Status Display"
 msgstr "Prikaz vrednosti ali stanja"
 
+msgid "Value sender"
+msgstr "Oddajnik vrednosti"
+
 msgid "Value with unit"
 msgstr "Vrednost z enoto"
 
@@ -11596,6 +11890,9 @@ msgstr "Barva merilnika na podlagi vrednosti"
 
 msgid "Values on Short and Long Press"
 msgstr "Vrednosti ob kratkem in dolgem pritisku"
+
+msgid "Valueslider"
+msgstr "Drsnik vrednosti"
 
 msgid "Ventilation"
 msgstr "Prezračevanje"
@@ -11629,6 +11926,9 @@ msgstr "Video Stop"
 
 msgid "Video Volume"
 msgstr "Glasnost videa"
+
+msgid "Video player"
+msgstr "Predvajalnik videa"
 
 msgid "Violet"
 msgstr "Vijolična"

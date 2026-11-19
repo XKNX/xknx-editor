@@ -1222,6 +1222,69 @@ msgstr "90°"
 msgid "96°"
 msgstr "96°"
 
+msgid "< Text >"
+msgstr "< Κείμενο >"
+
+msgid "<Scene 10>"
+msgstr "<Σκηνή 10>"
+
+msgid "<Scene 1>"
+msgstr "<Σκηνή 1>"
+
+msgid "<Scene 2>"
+msgstr "<Σκηνή 2>"
+
+msgid "<Scene 3>"
+msgstr "<Σκηνή 3>"
+
+msgid "<Scene 4>"
+msgstr "<Σκηνή 4>"
+
+msgid "<Scene 5>"
+msgstr "<Σκηνή 5>"
+
+msgid "<Scene 6>"
+msgstr "<Σκηνή 6>"
+
+msgid "<Scene 7>"
+msgstr "<Σκηνή 7>"
+
+msgid "<Scene 8>"
+msgstr "<Σκηνή 8>"
+
+msgid "<Scene 9>"
+msgstr "<Σκηνή 9>"
+
+msgid "<Source 1>"
+msgstr "<Πηγή 1>"
+
+msgid "<Source 2>"
+msgstr "<Πηγή 2>"
+
+msgid "<Source 3>"
+msgstr "<Πηγή 3>"
+
+msgid "<Source 4>"
+msgstr "<Πηγή 4>"
+
+msgid "<Source 5>"
+msgstr "<Πηγή 5>"
+
+msgid "<Source 6>"
+msgstr "<Πηγή 6>"
+
+msgid "<Source 7>"
+msgstr "<Πηγή 7>"
+
+msgid "<Source 8>"
+msgstr "<Πηγή 8>"
+
+msgid "<Text>"
+msgstr "<Κείμενο>"
+
+msgid "<text>"
+msgstr "<Κείμενο>"
+
 msgid "AND"
 msgstr "AND"
 
@@ -1339,6 +1402,12 @@ msgstr "Ενέργεια κατά την απελευθέρωση"
 msgid "Action on Short Press"
 msgstr "Ενέργεια με σύντομο πάτημα"
 
+msgid "Activate scene"
+msgstr "Ανάκληση σκηνής"
+
+msgid "Activated"
+msgstr "Ενεργοποιημένη"
+
 msgid "Activation Sensitivity"
 msgstr "Ευαισθησία ενεργοποίησης"
 
@@ -1371,6 +1440,9 @@ msgstr "Παράθυρο παρακολούθησης δραστηριότητα
 
 msgid "Actual Fan Stage"
 msgstr "Πραγματική οπαδική σκηνή"
+
+msgid "Actuator 1"
+msgstr "Ενεργοποιητής 1"
 
 msgid "Actuator 1 Feedback"
 msgstr "Ενεργοποιητής 1 Σχόλια"
@@ -1422,6 +1494,39 @@ msgstr "Αντικείμενα κατάστασης ενεργοποιητή"
 
 msgid "Actuator Status Settings"
 msgstr "Ρυθμίσεις κατάστασης ενεργοποιητή"
+
+msgid "Actuator group A"
+msgstr "Ομάδα ενεργοποιητών A"
+
+msgid "Actuator group B"
+msgstr "Ομάδα ενεργοποιητών B"
+
+msgid "Actuator group C"
+msgstr "Ομάδα ενεργοποιητών C"
+
+msgid "Actuator group D"
+msgstr "Ομάδα ενεργοποιητών D"
+
+msgid "Actuator group E"
+msgstr "Ομάδα ενεργοποιητών E"
+
+msgid "Actuator group F"
+msgstr "Ομάδα ενεργοποιητών F"
+
+msgid "Actuator group G"
+msgstr "Ομάδα ενεργοποιητών G"
+
+msgid "Actuator group H"
+msgstr "Ομάδα ενεργοποιητών H"
+
+msgid "Actuator group I"
+msgstr "Ομάδα ενεργοποιητών I"
+
+msgid "Actuator group J"
+msgstr "Ομάδα ενεργοποιητών J"
+
+msgid "Actuator settings"
+msgstr "Ρυθμίσεις ενεργοποιητών"
 
 msgid "Additional Functions"
 msgstr "Πρόσθετες Λειτουργίες"
@@ -1738,6 +1843,9 @@ msgstr "Ένταση ήχου"
 msgid "Audio Volume Adjustment"
 msgstr "Ρύθμιση έντασης ήχου"
 
+msgid "Audiocontrol"
+msgstr "Έλεγχος ήχου"
+
 msgid "Auto/On/Off Selection Object"
 msgstr "Αντικείμενο επιλογής Auto/On/Off"
 
@@ -1893,6 +2001,9 @@ msgstr "Δυαδική κατάσταση 2"
 
 msgid "Black"
 msgstr "Μαύρο"
+
+msgid "Blind"
+msgstr "Περσίδα"
 
 msgid "Blind Command Format"
 msgstr "Μορφή εντολής περσίδας"
@@ -2158,6 +2269,9 @@ msgstr "Παύση CD"
 msgid "CD Play"
 msgstr "Αναπαραγωγή CD"
 
+msgid "CD Player"
+msgstr "Συσκευή CD"
+
 msgid "CD Power"
 msgstr "Ισχύς CD"
 
@@ -2244,6 +2358,9 @@ msgstr "Αλλάξτε το αντικείμενο 9 στη σκηνή"
 
 msgid "Changed values only"
 msgstr "Μόνο αλλαγμένες τιμές"
+
+msgid "Channel"
+msgstr "Κανάλι"
 
 msgid "Channel 1"
 msgstr "Κανάλι 1"
@@ -2569,6 +2686,9 @@ msgstr "Συμπαγής λάμπα εξοικονόμησης ενέργεια�
 msgid "Compact fluorescent load"
 msgstr "Συμπαγές φορτίο φθορισμού"
 
+msgid "Comparator 1"
+msgstr "Συγκριτής 1"
+
 msgid "Comparison Hysteresis"
 msgstr "Σύγκριση υστέρησης"
 
@@ -2820,6 +2940,9 @@ msgstr "Ο ελεγκτής απενεργοποιήθηκε"
 
 msgid "Controller mode selection"
 msgstr "Επιλογή λειτουργίας ελεγκτή"
+
+msgid "Converter 1"
+msgstr "Μετατροπέας 1"
 
 msgid "Cool White Intensity"
 msgstr "Δροσερή ένταση λευκού"
@@ -3241,6 +3364,15 @@ msgstr "Ρύθμιση φωτεινότητας σε βήματα"
 msgid "Dim until release"
 msgstr "Ρύθμιση φωτεινότητας μέχρι την απελευθέρωση"
 
+msgid "Dimmer"
+msgstr "Ρυθμιστής φωτισμού"
+
+msgid "Dimmerslider"
+msgstr "Ολισθητής φωτισμού"
+
+msgid "Dimming"
+msgstr "Ρύθμιση φωτισμού"
+
 msgid "Dimming Actuator"
 msgstr "Ενεργοποιητής Dimming"
 
@@ -3348,6 +3480,9 @@ msgstr "Χειριστήρια αναπαραγωγής δίσκου"
 
 msgid "Disc Selection"
 msgstr "Επιλογή δίσκου"
+
+msgid "Display"
+msgstr "Οθόνη"
 
 msgid "Display Backlight"
 msgstr "Οπίσθιος φωτισμός οθόνης"
@@ -3865,6 +4000,9 @@ msgstr "Επιλογή σκηνής θαυμαστών"
 msgid "Fan-stage objects"
 msgstr "Αντικείμενα οπαδικής σκηνής"
 
+msgid "FanSwitch"
+msgstr "Έλεγχος ανεμιστήρα"
+
 msgid "Fast response, about 15 s"
 msgstr "Γρήγορη απόκριση, περίπου 15 δευτερόλεπτα"
 
@@ -4117,11 +4255,20 @@ msgstr "Πλήρως χειροκίνητο"
 msgid "Fully raised"
 msgstr "Πλήρως ανυψωμένο"
 
+msgid "Function"
+msgstr "Λειτουργία"
+
+msgid "Function 1"
+msgstr "Λειτουργία 1"
+
 msgid "Function 1 Enable"
 msgstr "Λειτουργία 1 Ενεργοποίηση"
 
 msgid "Function 1 Text"
 msgstr "Λειτουργία 1 Κείμενο"
+
+msgid "Function 2"
+msgstr "Λειτουργία 2"
 
 msgid "Function 2 Enable"
 msgstr "Λειτουργία 2 Ενεργοποίηση"
@@ -4129,11 +4276,17 @@ msgstr "Λειτουργία 2 Ενεργοποίηση"
 msgid "Function 2 Text"
 msgstr "Λειτουργία 2 Κείμενο"
 
+msgid "Function 3"
+msgstr "Λειτουργία 3"
+
 msgid "Function 3 Enable"
 msgstr "Λειτουργία 3 Ενεργοποίηση"
 
 msgid "Function 3 Text"
 msgstr "Λειτουργία 3 Κείμενο"
+
+msgid "Function 4"
+msgstr "Λειτουργία 4"
 
 msgid "Function 4 Enable"
 msgstr "Λειτουργία 4 Ενεργοποίηση"
@@ -4173,6 +4326,9 @@ msgstr "Κείμενο συνάρτησης"
 
 msgid "Function lighting"
 msgstr "Λειτουργικός φωτισμός"
+
+msgid "Gate 1"
+msgstr "Πύλη 1"
 
 msgid "German"
 msgstr "Γερμανικά"
@@ -4398,6 +4554,9 @@ msgstr "Πηγή χρόνου αναμονής"
 
 msgid "Hold Time from Object"
 msgstr "Κρατήστε χρόνο από το αντικείμενο"
+
+msgid "Homepage"
+msgstr "Αρχική σελίδα"
 
 msgid "Hours and minutes"
 msgstr "Ώρες και λεπτά"
@@ -4912,6 +5071,12 @@ msgstr "Αντιστροφή σχολίων κατάστασης"
 msgid "Inverted"
 msgstr "Ανεστραμμένη"
 
+msgid "It's dry"
+msgstr "Ξηρός καιρός"
+
+msgid "It's raining"
+msgstr "Βροχή"
+
 msgid "Italian"
 msgstr "Ιταλικά"
 
@@ -5202,6 +5367,9 @@ msgstr "Γραμμική κλίμακα"
 
 msgid "Linked Dimming Outputs"
 msgstr "Συνδεδεμένες έξοδοι θαμπώματος"
+
+msgid "List"
+msgstr "Λίστα"
 
 msgid "List Arrangement"
 msgstr "Διάταξη λίστας"
@@ -5601,6 +5769,9 @@ msgstr "Χαμηλότερη Χειροκίνητη Σκηνή Ανεμιστή�
 
 msgid "Magenta for scenes"
 msgstr "Ματζέντα για σκηνές"
+
+msgid "Main menu"
+msgstr "Κύριο μενού"
 
 msgid "Manual Adjustment Starting Value"
 msgstr "Χειροκίνητη Προσαρμογή Τιμή εκκίνησης"
@@ -6181,6 +6352,12 @@ msgstr "Ανίχνευση κίνησης"
 msgid "Move Covering"
 msgstr "Μετακινήστε το κάλυμμα"
 
+msgid "Move down"
+msgstr "Μετακίνηση Κάτω"
+
+msgid "Move up"
+msgstr "Μετακίνηση Πάνω"
+
 msgid "Movements Between Reference Runs"
 msgstr "Κινήσεις μεταξύ διαδρομών αναφοράς"
 
@@ -6189,6 +6366,12 @@ msgstr "Πολλαπλές ενεργές έξοδοι"
 
 msgid "Multiple-Press Selection"
 msgstr "Επιλογή πολλαπλών πιέσεων"
+
+msgid "Multiplexer 1"
+msgstr "Πολυπλέκτης 1"
+
+msgid "Multiplier 1"
+msgstr "Πολλαπλασιαστής τηλεγραφημάτων 1"
 
 msgid "Mute"
 msgstr "Σίγαση"
@@ -7444,6 +7627,9 @@ msgstr "Ρυθμίσεις σελίδας"
 msgid "Page and Controls"
 msgstr "Σελίδα και Στοιχεία ελέγχου"
 
+msgid "PageLink"
+msgstr "Σύνδεσμος σελίδας"
+
 msgid "Paired Control 1"
 msgstr "Σύζευξη ελέγχου 1"
 
@@ -7678,6 +7864,9 @@ msgstr "Έλεγχος εναλλαγής ισχύος"
 msgid "Pre-Event Switching Output"
 msgstr "Έξοδος μεταγωγής πριν από το συμβάν"
 
+msgid "Presence"
+msgstr "Παρουσία"
+
 msgid "Press Duration"
 msgstr "Πατήστε Διάρκεια"
 
@@ -7885,8 +8074,20 @@ msgstr "RGB με ζεστό και ψυχρό λευκό"
 msgid "RGBW"
 msgstr "RGBW"
 
+msgid "RGBWControl"
+msgstr "Έλεγχος RGBW"
+
+msgid "RTC"
+msgstr "Θερμοκρασία χώρου"
+
+msgid "RTCControlframe"
+msgstr "Θερμοστάτης"
+
 msgid "Radiator or convector: 1.5 K, 100 min"
 msgstr "Καλοριφέρ ή convector: 1,5 K, 100 min"
+
+msgid "Radio"
+msgstr "Ραδιόφωνο"
 
 msgid "Radio Controls"
 msgstr "Ραδιοχειριστήρια"
@@ -8674,6 +8875,9 @@ msgstr "Έξοδος τιμής με πλήκτρο δύο θέσεων"
 msgid "Rocker Value Selection"
 msgstr "Επιλογή τιμής με πλήκτρο δύο θέσεων"
 
+msgid "RockerSwitch"
+msgstr "Διακόπτης δύο θέσεων"
+
 msgid "Room"
 msgstr "Δωμάτιο"
 
@@ -8925,6 +9129,9 @@ msgstr "Αποθήκευση σκηνής με παρατεταμένο πάτη
 
 msgid "Save scene"
 msgstr "Αποθήκευση σκηνής"
+
+msgid "Scene"
+msgstr "Σκηνή"
 
 msgid "Scene 1"
 msgstr "Σκηνή 1"
@@ -9442,6 +9649,9 @@ msgstr "Διαχωρίστε τις ενέργειες τύπου και απε�
 msgid "Separate short and long press actions"
 msgstr "Διαχωρίστε τις ενέργειες σύντομου και παρατεταμένου τύπου"
 
+msgid "Sequence"
+msgstr "Ακολουθία"
+
 msgid "Sequence Entry 1"
 msgstr "Καταχώριση ακολουθίας 1"
 
@@ -9615,6 +9825,9 @@ msgstr "Μορφή εισαγωγής χρόνου ακολουθίας"
 
 msgid "Sequence Value and Time Settings"
 msgstr "Ρυθμίσεις τιμής ακολουθίας και χρόνου"
+
+msgid "Set"
+msgstr "Ρύθμιση"
 
 msgid "Set Hold Time with Potentiometer"
 msgstr "Ρυθμίστε το χρόνο αναμονής με το ποτενσιόμετρο"
@@ -10357,6 +10570,36 @@ msgstr "Φωτισμός κατάστασης"
 msgid "Status object"
 msgstr "Αντικείμενο κατάστασης"
 
+msgid "Step 1"
+msgstr "Βαθμίδα 1"
+
+msgid "Step 2"
+msgstr "Βαθμίδα 2"
+
+msgid "Step 3"
+msgstr "Βαθμίδα 3"
+
+msgid "Step 4"
+msgstr "Βαθμίδα 4"
+
+msgid "Step 5"
+msgstr "Βαθμίδα 5"
+
+msgid "Step 6"
+msgstr "Βαθμίδα 6"
+
+msgid "Step 7"
+msgstr "Βαθμίδα 7"
+
+msgid "Step 8"
+msgstr "Βαθμίδα 8"
+
+msgid "Step Down"
+msgstr "Βήμα κάτω"
+
+msgid "Step Up"
+msgstr "Βήμα πάνω"
+
 msgid "Step or Stop Command Repeat Interval"
 msgstr "Εντολή βήματος ή διακοπής Διάστημα επανάληψης"
 
@@ -10413,6 +10656,9 @@ msgstr "Προσαρμογή ανατολής και δύσης ηλίου"
 
 msgid "Swedish"
 msgstr "Σουηδικά"
+
+msgid "Switch"
+msgstr "Διακόπτης"
 
 msgid "Switch Command"
 msgstr "Εντολή ενεργοποίησης/απενεργοποίησης"
@@ -10543,6 +10789,9 @@ msgstr "Στυλ μετάβασης ενεργοποίησης"
 msgid "Switchable local and KNX control"
 msgstr "Με δυνατότητα εναλλαγής τοπικού και KNX ελέγχου"
 
+msgid "Switched off"
+msgstr "Απενεργοποιημένο"
+
 msgid "Switching"
 msgstr "Εναλλαγή"
 
@@ -10581,6 +10830,9 @@ msgstr "Φωτισμός συμβόλων"
 
 msgid "Symbol Style"
 msgstr "Στυλ συμβόλων"
+
+msgid "System"
+msgstr "Σύστημα"
 
 msgid "System Menu Entry Count"
 msgstr "Πλήθος εισόδων στο μενού συστήματος"
@@ -11086,6 +11338,9 @@ msgstr "Χρονοδιάγραμμα"
 msgid "Time Value"
 msgstr "Χρονική Αξία"
 
+msgid "Time function 1"
+msgstr "Χρονική λειτουργία 1"
+
 msgid "Timed Output Hold Duration"
 msgstr "Χρονισμένη διάρκεια αναμονής εξόδου"
 
@@ -11110,8 +11365,14 @@ msgstr "Τιμή λήξης χρονοδιακόπτη"
 msgid "Timer Start Value"
 msgstr "Τιμή έναρξης χρονοδιακόπτη"
 
+msgid "Title"
+msgstr "Τίτλος"
+
 msgid "Toggle"
 msgstr "Εναλλαγή κατάστασης"
+
+msgid "Tools"
+msgstr "Εργαλεία"
 
 msgid "Trailing-edge dimming"
 msgstr "Ρύθμιση του οπισθίου άκρου"
@@ -11148,6 +11409,24 @@ msgstr "Θερμοκρασία μετάδοσης"
 
 msgid "Transmit When Entering Manual Fan Mode"
 msgstr "Μετάδοση κατά την είσοδο στη λειτουργία χειροκίνητου ανεμιστήρα"
+
+msgid "Transmitter 1"
+msgstr "Σταθμός 1"
+
+msgid "Transmitter 2"
+msgstr "Σταθμός 2"
+
+msgid "Transmitter 3"
+msgstr "Σταθμός 3"
+
+msgid "Transmitter 4"
+msgstr "Σταθμός 4"
+
+msgid "Transmitter 5"
+msgstr "Σταθμός 5"
+
+msgid "Transmitter 6"
+msgstr "Σταθμός 6"
 
 msgid "Travel direction (1 bit)"
 msgstr "Κατεύθυνση ταξιδιού (1 bit)"
@@ -11241,6 +11520,9 @@ msgstr "Έλεγχος δύο θέσεων (1 byte)"
 
 msgid "Unassigned"
 msgstr "Χωρίς αντιστοίχιση"
+
+msgid "Unit"
+msgstr "Μονάδα"
 
 msgid "Unit System Selection"
 msgstr "Επιλογή συστήματος μονάδας"
@@ -11548,6 +11830,15 @@ msgstr "Ρυθμιστικό τιμής"
 msgid "Value Transfer Direction"
 msgstr "Κατεύθυνση Μεταφοράς Αξίας"
 
+msgid "Value between minimum and threshold 1"
+msgstr "Τιμή μεταξύ ελαχίστου και ορίου 1"
+
+msgid "Value between threshold 1 and threshold 2"
+msgstr "Τιμή μεταξύ ορίων 1 και 2"
+
+msgid "Value between threshold 2 and maximum"
+msgstr "Τιμή μεταξύ ορίου 2 και μεγίστου"
+
 msgid "Value for Entire Input Range"
 msgstr "Τιμή για ολόκληρο το εύρος εισαγωγής"
 
@@ -11587,6 +11878,9 @@ msgstr "Τιμή κατά την ενεργοποίηση"
 msgid "Value or Status Display"
 msgstr "Εμφάνιση τιμής ή κατάστασης"
 
+msgid "Value sender"
+msgstr "Πομπός τιμής"
+
 msgid "Value with unit"
 msgstr "Αξία με μονάδα"
 
@@ -11595,6 +11889,9 @@ msgstr "Χρώμα μετρητή με βάση την αξία"
 
 msgid "Values on Short and Long Press"
 msgstr "Τιμές με σύντομο και παρατεταμένο πάτημα"
+
+msgid "Valueslider"
+msgstr "Ολισθητής τιμής"
 
 msgid "Ventilation"
 msgstr "Εξαερισμός"
@@ -11628,6 +11925,9 @@ msgstr "Διακοπή βίντεο"
 
 msgid "Video Volume"
 msgstr "Όγκος βίντεο"
+
+msgid "Video player"
+msgstr "Συσκευή βίντεο"
 
 msgid "Violet"
 msgstr "Βιολετί"

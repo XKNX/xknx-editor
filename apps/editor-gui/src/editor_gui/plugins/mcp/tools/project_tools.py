@@ -945,6 +945,8 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         Saved configurations are selected automatically when supported. Internal values remain
         available in initially collapsed sections. Siemens time and percentage fields expose
         their editable display value; raw_value is the stored number for inspection only.
+        PowerTool default_value includes translated text suggestions; value and raw_value
+        retain the configured device text when the language changes.
         Reading never persists a conversion."""
         require_project(ctx)
 

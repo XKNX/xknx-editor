@@ -1222,6 +1222,69 @@ msgstr "90°"
 msgid "96°"
 msgstr "96°"
 
+msgid "< Text >"
+msgstr "< 文字 >"
+
+msgid "<Scene 10>"
+msgstr "<场景10>"
+
+msgid "<Scene 1>"
+msgstr "<场景1>"
+
+msgid "<Scene 2>"
+msgstr "<场景2>"
+
+msgid "<Scene 3>"
+msgstr "<场景3>"
+
+msgid "<Scene 4>"
+msgstr "<场景4>"
+
+msgid "<Scene 5>"
+msgstr "<场景5>"
+
+msgid "<Scene 6>"
+msgstr "<场景6>"
+
+msgid "<Scene 7>"
+msgstr "<场景7>"
+
+msgid "<Scene 8>"
+msgstr "<场景8>"
+
+msgid "<Scene 9>"
+msgstr "<场景9>"
+
+msgid "<Source 1>"
+msgstr "<来源1>"
+
+msgid "<Source 2>"
+msgstr "<来源2>"
+
+msgid "<Source 3>"
+msgstr "<来源3>"
+
+msgid "<Source 4>"
+msgstr "<来源4>"
+
+msgid "<Source 5>"
+msgstr "<来源5>"
+
+msgid "<Source 6>"
+msgstr "<来源6>"
+
+msgid "<Source 7>"
+msgstr "<来源7>"
+
+msgid "<Source 8>"
+msgstr "<来源8>"
+
+msgid "<Text>"
+msgstr "<文字>"
+
+msgid "<text>"
+msgstr "<文字>"
+
 msgid "AND"
 msgstr "和"
 
@@ -1339,6 +1402,12 @@ msgstr "松开动作"
 msgid "Action on Short Press"
 msgstr "短按动作"
 
+msgid "Activate scene"
+msgstr "调用场景"
+
+msgid "Activated"
+msgstr "已激活"
+
 msgid "Activation Sensitivity"
 msgstr "激活灵敏度"
 
@@ -1371,6 +1440,9 @@ msgstr "活动监控窗口"
 
 msgid "Actual Fan Stage"
 msgstr "实际粉丝阶段"
+
+msgid "Actuator 1"
+msgstr "执行器1"
 
 msgid "Actuator 1 Feedback"
 msgstr "执行器 1 反馈"
@@ -1422,6 +1494,39 @@ msgstr "执行器状态对象"
 
 msgid "Actuator Status Settings"
 msgstr "执行器状态设置"
+
+msgid "Actuator group A"
+msgstr "执行器组A"
+
+msgid "Actuator group B"
+msgstr "执行器组B"
+
+msgid "Actuator group C"
+msgstr "执行器组C"
+
+msgid "Actuator group D"
+msgstr "执行器组D"
+
+msgid "Actuator group E"
+msgstr "执行器组E"
+
+msgid "Actuator group F"
+msgstr "执行器组F"
+
+msgid "Actuator group G"
+msgstr "执行器组G"
+
+msgid "Actuator group H"
+msgstr "执行器组H"
+
+msgid "Actuator group I"
+msgstr "执行器组I"
+
+msgid "Actuator group J"
+msgstr "执行器组J"
+
+msgid "Actuator settings"
+msgstr "执行器设置"
 
 msgid "Additional Functions"
 msgstr "附加功能"
@@ -1738,6 +1843,9 @@ msgstr "音频音量"
 msgid "Audio Volume Adjustment"
 msgstr "音频音量调节"
 
+msgid "Audiocontrol"
+msgstr "音频控制"
+
 msgid "Auto/On/Off Selection Object"
 msgstr "自动/开/关选择对象"
 
@@ -1893,6 +2001,9 @@ msgstr "二元态2"
 
 msgid "Black"
 msgstr "黑色"
+
+msgid "Blind"
+msgstr "百叶帘"
 
 msgid "Blind Command Format"
 msgstr "百叶帘命令格式"
@@ -2158,6 +2269,9 @@ msgstr "CD暂停"
 msgid "CD Play"
 msgstr "光盘播放"
 
+msgid "CD Player"
+msgstr "CD播放器"
+
 msgid "CD Power"
 msgstr "光盘电源"
 
@@ -2244,6 +2358,9 @@ msgstr "更改场景中的对象 9"
 
 msgid "Changed values only"
 msgstr "仅在值变化时"
+
+msgid "Channel"
+msgstr "通道"
 
 msgid "Channel 1"
 msgstr "频道1"
@@ -2569,6 +2686,9 @@ msgstr "紧凑型节能灯，150 秒稳定"
 msgid "Compact fluorescent load"
 msgstr "紧凑型荧光负载"
 
+msgid "Comparator 1"
+msgstr "比较器1"
+
 msgid "Comparison Hysteresis"
 msgstr "比较迟滞"
 
@@ -2820,6 +2940,9 @@ msgstr "控制器已禁用"
 
 msgid "Controller mode selection"
 msgstr "控制器模式选择"
+
+msgid "Converter 1"
+msgstr "转换器1"
 
 msgid "Cool White Intensity"
 msgstr "冷白强度"
@@ -3241,6 +3364,15 @@ msgstr "步进调光"
 msgid "Dim until release"
 msgstr "调光直到松开"
 
+msgid "Dimmer"
+msgstr "调光器"
+
+msgid "Dimmerslider"
+msgstr "调光滑块"
+
+msgid "Dimming"
+msgstr "调光"
+
 msgid "Dimming Actuator"
 msgstr "调光执行器"
 
@@ -3348,6 +3480,9 @@ msgstr "光盘播放控件"
 
 msgid "Disc Selection"
 msgstr "光盘选择"
+
+msgid "Display"
+msgstr "显示"
 
 msgid "Display Backlight"
 msgstr "显示屏背光"
@@ -3865,6 +4000,9 @@ msgstr "粉丝舞台选择"
 msgid "Fan-stage objects"
 msgstr "扇形舞台物体"
 
+msgid "FanSwitch"
+msgstr "风扇控制"
+
 msgid "Fast response, about 15 s"
 msgstr "响应速度快，约15秒"
 
@@ -4117,11 +4255,20 @@ msgstr "全手动"
 msgid "Fully raised"
 msgstr "完全升起"
 
+msgid "Function"
+msgstr "功能"
+
+msgid "Function 1"
+msgstr "功能1"
+
 msgid "Function 1 Enable"
 msgstr "功能1 启用"
 
 msgid "Function 1 Text"
 msgstr "功能1 文本"
+
+msgid "Function 2"
+msgstr "功能2"
 
 msgid "Function 2 Enable"
 msgstr "功能2 启用"
@@ -4129,11 +4276,17 @@ msgstr "功能2 启用"
 msgid "Function 2 Text"
 msgstr "功能2 文本"
 
+msgid "Function 3"
+msgstr "功能3"
+
 msgid "Function 3 Enable"
 msgstr "功能3 启用"
 
 msgid "Function 3 Text"
 msgstr "功能3 文本"
+
+msgid "Function 4"
+msgstr "功能4"
 
 msgid "Function 4 Enable"
 msgstr "功能4 启用"
@@ -4173,6 +4326,9 @@ msgstr "功能文本"
 
 msgid "Function lighting"
 msgstr "功能照明"
+
+msgid "Gate 1"
+msgstr "逻辑门1"
 
 msgid "German"
 msgstr "德语"
@@ -4398,6 +4554,9 @@ msgstr "保持时间源"
 
 msgid "Hold Time from Object"
 msgstr "物体的保持时间"
+
+msgid "Homepage"
+msgstr "主页"
 
 msgid "Hours and minutes"
 msgstr "小时和分钟"
@@ -4912,6 +5071,12 @@ msgstr "反转状态反馈"
 msgid "Inverted"
 msgstr "反向"
 
+msgid "It's dry"
+msgstr "干燥"
+
+msgid "It's raining"
+msgstr "下雨"
+
 msgid "Italian"
 msgstr "意大利语"
 
@@ -5202,6 +5367,9 @@ msgstr "线性标尺"
 
 msgid "Linked Dimming Outputs"
 msgstr "联动调光输出"
+
+msgid "List"
+msgstr "列表"
 
 msgid "List Arrangement"
 msgstr "名单安排"
@@ -5601,6 +5769,9 @@ msgstr "最低手动风扇阶段"
 
 msgid "Magenta for scenes"
 msgstr "场景为洋红色"
+
+msgid "Main menu"
+msgstr "主菜单"
 
 msgid "Manual Adjustment Starting Value"
 msgstr "手动调整起始值"
@@ -6181,6 +6352,12 @@ msgstr "运动检测"
 msgid "Move Covering"
 msgstr "移动覆盖物"
 
+msgid "Move down"
+msgstr "下移"
+
+msgid "Move up"
+msgstr "上移"
+
 msgid "Movements Between Reference Runs"
 msgstr "参考运行之间的移动"
 
@@ -6189,6 +6366,12 @@ msgstr "多个有源输出"
 
 msgid "Multiple-Press Selection"
 msgstr "多次按下选择"
+
+msgid "Multiplexer 1"
+msgstr "多路选择器1"
+
+msgid "Multiplier 1"
+msgstr "报文分发器1"
 
 msgid "Mute"
 msgstr "静音"
@@ -7444,6 +7627,9 @@ msgstr "页面设置"
 msgid "Page and Controls"
 msgstr "页面和控件"
 
+msgid "PageLink"
+msgstr "页面链接"
+
 msgid "Paired Control 1"
 msgstr "配对控制 1"
 
@@ -7678,6 +7864,9 @@ msgstr "电源开关控制"
 msgid "Pre-Event Switching Output"
 msgstr "事件前切换输出"
 
+msgid "Presence"
+msgstr "有人"
+
 msgid "Press Duration"
 msgstr "按压时间"
 
@@ -7885,8 +8074,20 @@ msgstr "RGB 暖白、冷白"
 msgid "RGBW"
 msgstr "RGBW"
 
+msgid "RGBWControl"
+msgstr "RGBW控制"
+
+msgid "RTC"
+msgstr "室温"
+
+msgid "RTCControlframe"
+msgstr "温控器"
+
 msgid "Radiator or convector: 1.5 K, 100 min"
 msgstr "散热器或对流器：1.5 K，100 分钟"
+
+msgid "Radio"
+msgstr "收音机"
 
 msgid "Radio Controls"
 msgstr "无线电控制"
@@ -8674,6 +8875,9 @@ msgstr "翘板数值输出"
 msgid "Rocker Value Selection"
 msgstr "翘板数值选择"
 
+msgid "RockerSwitch"
+msgstr "翘板开关"
+
 msgid "Room"
 msgstr "房间"
 
@@ -8925,6 +9129,9 @@ msgstr "长按保存场景"
 
 msgid "Save scene"
 msgstr "保存场景"
+
+msgid "Scene"
+msgstr "场景"
 
 msgid "Scene 1"
 msgstr "场景1"
@@ -9442,6 +9649,9 @@ msgstr "单独的按下和释放动作"
 msgid "Separate short and long press actions"
 msgstr "单独的短按和长按操作"
 
+msgid "Sequence"
+msgstr "序列"
+
 msgid "Sequence Entry 1"
 msgstr "序列输入1"
 
@@ -9615,6 +9825,9 @@ msgstr "序列时间输入格式"
 
 msgid "Sequence Value and Time Settings"
 msgstr "序列值和时间设置"
+
+msgid "Set"
+msgstr "设置"
 
 msgid "Set Hold Time with Potentiometer"
 msgstr "使用电位器设置保持时间"
@@ -10357,6 +10570,36 @@ msgstr "状态照明"
 msgid "Status object"
 msgstr "状态对象"
 
+msgid "Step 1"
+msgstr "档位1"
+
+msgid "Step 2"
+msgstr "档位2"
+
+msgid "Step 3"
+msgstr "档位3"
+
+msgid "Step 4"
+msgstr "档位4"
+
+msgid "Step 5"
+msgstr "档位5"
+
+msgid "Step 6"
+msgstr "档位6"
+
+msgid "Step 7"
+msgstr "档位7"
+
+msgid "Step 8"
+msgstr "档位8"
+
+msgid "Step Down"
+msgstr "向下一步"
+
+msgid "Step Up"
+msgstr "向上一步"
+
 msgid "Step or Stop Command Repeat Interval"
 msgstr "步进或停止命令重复间隔"
 
@@ -10413,6 +10656,9 @@ msgstr "日出日落调整"
 
 msgid "Swedish"
 msgstr "瑞典语"
+
+msgid "Switch"
+msgstr "开关"
 
 msgid "Switch Command"
 msgstr "开关命令"
@@ -10543,6 +10789,9 @@ msgstr "开启过渡风格"
 msgid "Switchable local and KNX control"
 msgstr "可切换本地和 KNX 控制"
 
+msgid "Switched off"
+msgstr "已关闭"
+
 msgid "Switching"
 msgstr "切换"
 
@@ -10581,6 +10830,9 @@ msgstr "符号照明"
 
 msgid "Symbol Style"
 msgstr "符号样式"
+
+msgid "System"
+msgstr "系统"
 
 msgid "System Menu Entry Count"
 msgstr "系统菜单条目计数"
@@ -11086,6 +11338,9 @@ msgstr "时间表"
 msgid "Time Value"
 msgstr "时间值"
 
+msgid "Time function 1"
+msgstr "定时功能1"
+
 msgid "Timed Output Hold Duration"
 msgstr "定时输出保持持续时间"
 
@@ -11110,8 +11365,14 @@ msgstr "定时器终值"
 msgid "Timer Start Value"
 msgstr "定时器起始值"
 
+msgid "Title"
+msgstr "标题"
+
 msgid "Toggle"
 msgstr "切换"
+
+msgid "Tools"
+msgstr "工具"
 
 msgid "Trailing-edge dimming"
 msgstr "后沿调光"
@@ -11148,6 +11409,24 @@ msgstr "传输温度"
 
 msgid "Transmit When Entering Manual Fan Mode"
 msgstr "进入手动风扇模式时发送"
+
+msgid "Transmitter 1"
+msgstr "电台1"
+
+msgid "Transmitter 2"
+msgstr "电台2"
+
+msgid "Transmitter 3"
+msgstr "电台3"
+
+msgid "Transmitter 4"
+msgstr "电台4"
+
+msgid "Transmitter 5"
+msgstr "电台5"
+
+msgid "Transmitter 6"
+msgstr "电台6"
 
 msgid "Travel direction (1 bit)"
 msgstr "行进方向（1位）"
@@ -11241,6 +11520,9 @@ msgstr "两位控制（1字节）"
 
 msgid "Unassigned"
 msgstr "未分配"
+
+msgid "Unit"
+msgstr "单位"
 
 msgid "Unit System Selection"
 msgstr "单位制选择"
@@ -11548,6 +11830,15 @@ msgstr "值滑块"
 msgid "Value Transfer Direction"
 msgstr "数值传输方向"
 
+msgid "Value between minimum and threshold 1"
+msgstr "最小值与阈值1之间的值"
+
+msgid "Value between threshold 1 and threshold 2"
+msgstr "阈值1与阈值2之间的值"
+
+msgid "Value between threshold 2 and maximum"
+msgstr "阈值2与最大值之间的值"
+
 msgid "Value for Entire Input Range"
 msgstr "整个输入范围的值"
 
@@ -11587,6 +11878,9 @@ msgstr "开启时的值"
 msgid "Value or Status Display"
 msgstr "值或状态显示"
 
+msgid "Value sender"
+msgstr "数值发送器"
+
 msgid "Value with unit"
 msgstr "带单位的值"
 
@@ -11595,6 +11889,9 @@ msgstr "基于值的仪表颜色"
 
 msgid "Values on Short and Long Press"
 msgstr "短按和长按时的值"
+
+msgid "Valueslider"
+msgstr "数值滑块"
 
 msgid "Ventilation"
 msgstr "通风"
@@ -11628,6 +11925,9 @@ msgstr "视频停止"
 
 msgid "Video Volume"
 msgstr "视频音量"
+
+msgid "Video player"
+msgstr "视频播放器"
 
 msgid "Violet"
 msgstr "紫罗兰色"

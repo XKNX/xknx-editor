@@ -1222,6 +1222,69 @@ msgstr "90°"
 msgid "96°"
 msgstr "96°"
 
+msgid "< Text >"
+msgstr "< Text >"
+
+msgid "<Scene 10>"
+msgstr "<Scéna 10>"
+
+msgid "<Scene 1>"
+msgstr "<Scéna 1>"
+
+msgid "<Scene 2>"
+msgstr "<Scéna 2>"
+
+msgid "<Scene 3>"
+msgstr "<Scéna 3>"
+
+msgid "<Scene 4>"
+msgstr "<Scéna 4>"
+
+msgid "<Scene 5>"
+msgstr "<Scéna 5>"
+
+msgid "<Scene 6>"
+msgstr "<Scéna 6>"
+
+msgid "<Scene 7>"
+msgstr "<Scéna 7>"
+
+msgid "<Scene 8>"
+msgstr "<Scéna 8>"
+
+msgid "<Scene 9>"
+msgstr "<Scéna 9>"
+
+msgid "<Source 1>"
+msgstr "<Zdroj 1>"
+
+msgid "<Source 2>"
+msgstr "<Zdroj 2>"
+
+msgid "<Source 3>"
+msgstr "<Zdroj 3>"
+
+msgid "<Source 4>"
+msgstr "<Zdroj 4>"
+
+msgid "<Source 5>"
+msgstr "<Zdroj 5>"
+
+msgid "<Source 6>"
+msgstr "<Zdroj 6>"
+
+msgid "<Source 7>"
+msgstr "<Zdroj 7>"
+
+msgid "<Source 8>"
+msgstr "<Zdroj 8>"
+
+msgid "<Text>"
+msgstr "<Text>"
+
+msgid "<text>"
+msgstr "<Text>"
+
 msgid "AND"
 msgstr "AND"
 
@@ -1339,6 +1402,12 @@ msgstr "Akce při uvolnění"
 msgid "Action on Short Press"
 msgstr "Akce při krátkém stisku"
 
+msgid "Activate scene"
+msgstr "Vyvolat scénu"
+
+msgid "Activated"
+msgstr "Aktivováno"
+
 msgid "Activation Sensitivity"
 msgstr "Citlivost aktivace"
 
@@ -1371,6 +1440,9 @@ msgstr "Okno sledování aktivity"
 
 msgid "Actual Fan Stage"
 msgstr "Skutečný stupeň ventilátoru"
+
+msgid "Actuator 1"
+msgstr "Akční člen 1"
 
 msgid "Actuator 1 Feedback"
 msgstr "Zpětná vazba akčního členu 1"
@@ -1422,6 +1494,39 @@ msgstr "Stavové objekty akčního členu"
 
 msgid "Actuator Status Settings"
 msgstr "Nastavení stavu akčního členu"
+
+msgid "Actuator group A"
+msgstr "Skupina akčních členů A"
+
+msgid "Actuator group B"
+msgstr "Skupina akčních členů B"
+
+msgid "Actuator group C"
+msgstr "Skupina akčních členů C"
+
+msgid "Actuator group D"
+msgstr "Skupina akčních členů D"
+
+msgid "Actuator group E"
+msgstr "Skupina akčních členů E"
+
+msgid "Actuator group F"
+msgstr "Skupina akčních členů F"
+
+msgid "Actuator group G"
+msgstr "Skupina akčních členů G"
+
+msgid "Actuator group H"
+msgstr "Skupina akčních členů H"
+
+msgid "Actuator group I"
+msgstr "Skupina akčních členů I"
+
+msgid "Actuator group J"
+msgstr "Skupina akčních členů J"
+
+msgid "Actuator settings"
+msgstr "Nastavení akčních členů"
 
 msgid "Additional Functions"
 msgstr "Další funkce"
@@ -1738,6 +1843,9 @@ msgstr "Hlasitost zvuku"
 msgid "Audio Volume Adjustment"
 msgstr "Úprava hlasitosti zvuku"
 
+msgid "Audiocontrol"
+msgstr "Ovládání zvuku"
+
 msgid "Auto/On/Off Selection Object"
 msgstr "Objekt výběru automaticky/zapnuto/vypnuto"
 
@@ -1893,6 +2001,9 @@ msgstr "Binární stav 2"
 
 msgid "Black"
 msgstr "Černá"
+
+msgid "Blind"
+msgstr "Žaluzie"
 
 msgid "Blind Command Format"
 msgstr "Formát příkazu pro žaluzii"
@@ -2158,6 +2269,9 @@ msgstr "Pozastavení CD"
 msgid "CD Play"
 msgstr "Přehrávání CD"
 
+msgid "CD Player"
+msgstr "Přehrávač CD"
+
 msgid "CD Power"
 msgstr "Napájení CD"
 
@@ -2244,6 +2358,9 @@ msgstr "Změnit objekt 9 ve scéně"
 
 msgid "Changed values only"
 msgstr "Pouze změněné hodnoty"
+
+msgid "Channel"
+msgstr "Kanál"
 
 msgid "Channel 1"
 msgstr "Kanál 1"
@@ -2569,6 +2686,9 @@ msgstr "Kompaktní úsporná zářivka, ustálení 150 s"
 msgid "Compact fluorescent load"
 msgstr "Kompaktní zářivková zátěž"
 
+msgid "Comparator 1"
+msgstr "Komparátor 1"
+
 msgid "Comparison Hysteresis"
 msgstr "Hystereze porovnání"
 
@@ -2820,6 +2940,9 @@ msgstr "Regulátor deaktivován"
 
 msgid "Controller mode selection"
 msgstr "Výběr režimu regulátoru"
+
+msgid "Converter 1"
+msgstr "Převodník 1"
 
 msgid "Cool White Intensity"
 msgstr "Intenzita studené bílé"
@@ -3241,6 +3364,15 @@ msgstr "Stmívat po krocích"
 msgid "Dim until release"
 msgstr "Stmívat až do uvolnění"
 
+msgid "Dimmer"
+msgstr "Stmívač"
+
+msgid "Dimmerslider"
+msgstr "Posuvník stmívání"
+
+msgid "Dimming"
+msgstr "Stmívání"
+
 msgid "Dimming Actuator"
 msgstr "Stmívací akční člen"
 
@@ -3348,6 +3480,9 @@ msgstr "Ovládání přehrávání disků"
 
 msgid "Disc Selection"
 msgstr "Výběr disku"
+
+msgid "Display"
+msgstr "Displej"
 
 msgid "Display Backlight"
 msgstr "Podsvícení displeje"
@@ -3865,6 +4000,9 @@ msgstr "Výběr stupně ventilátoru"
 msgid "Fan-stage objects"
 msgstr "Objekty stupňů ventilátoru"
 
+msgid "FanSwitch"
+msgstr "Ovládání ventilátoru"
+
 msgid "Fast response, about 15 s"
 msgstr "Rychlá odezva, přibližně 15 s"
 
@@ -4117,11 +4255,20 @@ msgstr "Plně ruční"
 msgid "Fully raised"
 msgstr "Zcela vytaženo"
 
+msgid "Function"
+msgstr "Funkce"
+
+msgid "Function 1"
+msgstr "Funkce 1"
+
 msgid "Function 1 Enable"
 msgstr "Povolení funkce 1"
 
 msgid "Function 1 Text"
 msgstr "Text funkce 1"
+
+msgid "Function 2"
+msgstr "Funkce 2"
 
 msgid "Function 2 Enable"
 msgstr "Povolení funkce 2"
@@ -4129,11 +4276,17 @@ msgstr "Povolení funkce 2"
 msgid "Function 2 Text"
 msgstr "Text funkce 2"
 
+msgid "Function 3"
+msgstr "Funkce 3"
+
 msgid "Function 3 Enable"
 msgstr "Povolení funkce 3"
 
 msgid "Function 3 Text"
 msgstr "Text funkce 3"
+
+msgid "Function 4"
+msgstr "Funkce 4"
 
 msgid "Function 4 Enable"
 msgstr "Povolení funkce 4"
@@ -4173,6 +4326,9 @@ msgstr "Text funkce"
 
 msgid "Function lighting"
 msgstr "Funkční osvětlení"
+
+msgid "Gate 1"
+msgstr "Hradlo 1"
 
 msgid "German"
 msgstr "Německy"
@@ -4398,6 +4554,9 @@ msgstr "Zdroj doby doběhu"
 
 msgid "Hold Time from Object"
 msgstr "Doba doběhu z objektu"
+
+msgid "Homepage"
+msgstr "Úvodní stránka"
 
 msgid "Hours and minutes"
 msgstr "Hodiny a minuty"
@@ -4912,6 +5071,12 @@ msgstr "Invertovat stavovou zpětnou vazbu"
 msgid "Inverted"
 msgstr "Invertovaná"
 
+msgid "It's dry"
+msgstr "Sucho"
+
+msgid "It's raining"
+msgstr "Déšť"
+
 msgid "Italian"
 msgstr "Italsky"
 
@@ -5202,6 +5367,9 @@ msgstr "Lineární stupnice"
 
 msgid "Linked Dimming Outputs"
 msgstr "Propojené stmívací výstupy"
+
+msgid "List"
+msgstr "Seznam"
 
 msgid "List Arrangement"
 msgstr "Uspořádání seznamu"
@@ -5601,6 +5769,9 @@ msgstr "Nejnižší ruční stupeň ventilátoru"
 
 msgid "Magenta for scenes"
 msgstr "Purpurová pro scény"
+
+msgid "Main menu"
+msgstr "Hlavní nabídka"
 
 msgid "Manual Adjustment Starting Value"
 msgstr "Počáteční hodnota ruční korekce"
@@ -6181,6 +6352,12 @@ msgstr "Detekce pohybu"
 msgid "Move Covering"
 msgstr "Pohybovat stíněním"
 
+msgid "Move down"
+msgstr "Posunout dolů"
+
+msgid "Move up"
+msgstr "Posunout nahoru"
+
 msgid "Movements Between Reference Runs"
 msgstr "Pohyby mezi referenčními jízdami"
 
@@ -6189,6 +6366,12 @@ msgstr "Více aktivních výstupů"
 
 msgid "Multiple-Press Selection"
 msgstr "Výběr opakovaným stiskem"
+
+msgid "Multiplexer 1"
+msgstr "Multiplexor 1"
+
+msgid "Multiplier 1"
+msgstr "Rozdělovač telegramů 1"
 
 msgid "Mute"
 msgstr "Ztlumit"
@@ -7444,6 +7627,9 @@ msgstr "Nastavení stránky"
 msgid "Page and Controls"
 msgstr "Stránka a ovládací prvky"
 
+msgid "PageLink"
+msgstr "Odkaz na stránku"
+
 msgid "Paired Control 1"
 msgstr "Párový ovládací prvek 1"
 
@@ -7678,6 +7864,9 @@ msgstr "Ovládání spínání napájení"
 msgid "Pre-Event Switching Output"
 msgstr "Spínací výstup před událostí"
 
+msgid "Presence"
+msgstr "Přítomnost"
+
 msgid "Press Duration"
 msgstr "Délka stisku"
 
@@ -7885,8 +8074,20 @@ msgstr "RGB s teplou a studenou bílou"
 msgid "RGBW"
 msgstr "RGBW"
 
+msgid "RGBWControl"
+msgstr "Ovládání RGBW"
+
+msgid "RTC"
+msgstr "Pokojová teplota"
+
+msgid "RTCControlframe"
+msgstr "Termostat"
+
 msgid "Radiator or convector: 1.5 K, 100 min"
 msgstr "Radiátor nebo konvektor: 1.5 K, 100 min"
+
+msgid "Radio"
+msgstr "Rádio"
 
 msgid "Radio Controls"
 msgstr "Ovládání rádia"
@@ -8674,6 +8875,9 @@ msgstr "Výstup hodnoty kolébkou"
 msgid "Rocker Value Selection"
 msgstr "Výběr hodnoty kolébkou"
 
+msgid "RockerSwitch"
+msgstr "Kolébkový spínač"
+
 msgid "Room"
 msgstr "Místnost"
 
@@ -8925,6 +9129,9 @@ msgstr "Uložit scénu dlouhým stiskem"
 
 msgid "Save scene"
 msgstr "Uložit scénu"
+
+msgid "Scene"
+msgstr "Scéna"
 
 msgid "Scene 1"
 msgstr "Scéna 1"
@@ -9442,6 +9649,9 @@ msgstr "Samostatné akce stisku a uvolnění"
 msgid "Separate short and long press actions"
 msgstr "Samostatné akce krátkého a dlouhého stisku"
 
+msgid "Sequence"
+msgstr "Sekvence"
+
 msgid "Sequence Entry 1"
 msgstr "Položka sekvence 1"
 
@@ -9615,6 +9825,9 @@ msgstr "Formát zadávání času sekvence"
 
 msgid "Sequence Value and Time Settings"
 msgstr "Nastavení hodnot a času sekvence"
+
+msgid "Set"
+msgstr "Nastavit"
 
 msgid "Set Hold Time with Potentiometer"
 msgstr "Nastavit dobu doběhu potenciometrem"
@@ -10357,6 +10570,36 @@ msgstr "Stavové osvětlení"
 msgid "Status object"
 msgstr "Stavový objekt"
 
+msgid "Step 1"
+msgstr "Stupeň 1"
+
+msgid "Step 2"
+msgstr "Stupeň 2"
+
+msgid "Step 3"
+msgstr "Stupeň 3"
+
+msgid "Step 4"
+msgstr "Stupeň 4"
+
+msgid "Step 5"
+msgstr "Stupeň 5"
+
+msgid "Step 6"
+msgstr "Stupeň 6"
+
+msgid "Step 7"
+msgstr "Stupeň 7"
+
+msgid "Step 8"
+msgstr "Stupeň 8"
+
+msgid "Step Down"
+msgstr "Krok dolů"
+
+msgid "Step Up"
+msgstr "Krok nahoru"
+
 msgid "Step or Stop Command Repeat Interval"
 msgstr "Interval opakování příkazu kroku nebo zastavení"
 
@@ -10413,6 +10656,9 @@ msgstr "Korekce východu a západu slunce"
 
 msgid "Swedish"
 msgstr "Švédsky"
+
+msgid "Switch"
+msgstr "Spínač"
 
 msgid "Switch Command"
 msgstr "Spínací příkaz"
@@ -10543,6 +10789,9 @@ msgstr "Průběh přechodu zapnutí"
 msgid "Switchable local and KNX control"
 msgstr "Přepínatelné místní a KNX ovládání"
 
+msgid "Switched off"
+msgstr "Vypnuto"
+
 msgid "Switching"
 msgstr "Spínání"
 
@@ -10581,6 +10830,9 @@ msgstr "Osvětlení symbolu"
 
 msgid "Symbol Style"
 msgstr "Styl symbolu"
+
+msgid "System"
+msgstr "Systém"
 
 msgid "System Menu Entry Count"
 msgstr "Počet položek systémové nabídky"
@@ -11086,6 +11338,9 @@ msgstr "Časové plány"
 msgid "Time Value"
 msgstr "Hodnota času"
 
+msgid "Time function 1"
+msgstr "Časová funkce 1"
+
 msgid "Timed Output Hold Duration"
 msgstr "Doba držení časovaného výstupu"
 
@@ -11110,8 +11365,14 @@ msgstr "Koncová hodnota časovače"
 msgid "Timer Start Value"
 msgstr "Počáteční hodnota časovače"
 
+msgid "Title"
+msgstr "Název"
+
 msgid "Toggle"
 msgstr "Přepnout"
+
+msgid "Tools"
+msgstr "Nástroje"
 
 msgid "Trailing-edge dimming"
 msgstr "Stmívání sestupnou hranou"
@@ -11148,6 +11409,24 @@ msgstr "Odeslat teplotu"
 
 msgid "Transmit When Entering Manual Fan Mode"
 msgstr "Odeslat při přechodu do ručního režimu ventilátoru"
+
+msgid "Transmitter 1"
+msgstr "Stanice 1"
+
+msgid "Transmitter 2"
+msgstr "Stanice 2"
+
+msgid "Transmitter 3"
+msgstr "Stanice 3"
+
+msgid "Transmitter 4"
+msgstr "Stanice 4"
+
+msgid "Transmitter 5"
+msgstr "Stanice 5"
+
+msgid "Transmitter 6"
+msgstr "Stanice 6"
 
 msgid "Travel direction (1 bit)"
 msgstr "Směr pohybu (1 bit)"
@@ -11241,6 +11520,9 @@ msgstr "Dvoupolohová regulace (1 bajt)"
 
 msgid "Unassigned"
 msgstr "nepřiřazeno"
+
+msgid "Unit"
+msgstr "Jednotka"
 
 msgid "Unit System Selection"
 msgstr "Výběr soustavy jednotek"
@@ -11548,6 +11830,15 @@ msgstr "Posuvník hodnoty"
 msgid "Value Transfer Direction"
 msgstr "Směr přenosu hodnoty"
 
+msgid "Value between minimum and threshold 1"
+msgstr "Hodnota mezi minimem a prahem 1"
+
+msgid "Value between threshold 1 and threshold 2"
+msgstr "Hodnota mezi prahy 1 a 2"
+
+msgid "Value between threshold 2 and maximum"
+msgstr "Hodnota mezi prahem 2 a maximem"
+
 msgid "Value for Entire Input Range"
 msgstr "Hodnota pro celý vstupní rozsah"
 
@@ -11587,6 +11878,9 @@ msgstr "Hodnota při zapnutí"
 msgid "Value or Status Display"
 msgstr "Zobrazení hodnoty nebo stavu"
 
+msgid "Value sender"
+msgstr "Vysílač hodnoty"
+
 msgid "Value with unit"
 msgstr "Hodnota s jednotkou"
 
@@ -11595,6 +11889,9 @@ msgstr "Barva ukazatele podle hodnoty"
 
 msgid "Values on Short and Long Press"
 msgstr "Hodnoty při krátkém a dlouhém stisku"
+
+msgid "Valueslider"
+msgstr "Posuvník hodnoty"
 
 msgid "Ventilation"
 msgstr "Větrání"
@@ -11628,6 +11925,9 @@ msgstr "Zastavení videa"
 
 msgid "Video Volume"
 msgstr "Hlasitost videa"
+
+msgid "Video player"
+msgstr "Přehrávač videa"
 
 msgid "Violet"
 msgstr "Fialová"

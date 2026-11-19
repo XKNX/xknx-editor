@@ -1222,6 +1222,69 @@ msgstr "90°"
 msgid "96°"
 msgstr "96°"
 
+msgid "< Text >"
+msgstr "< Szöveg >"
+
+msgid "<Scene 10>"
+msgstr "<10. jelenet>"
+
+msgid "<Scene 1>"
+msgstr "<1. jelenet>"
+
+msgid "<Scene 2>"
+msgstr "<2. jelenet>"
+
+msgid "<Scene 3>"
+msgstr "<3. jelenet>"
+
+msgid "<Scene 4>"
+msgstr "<4. jelenet>"
+
+msgid "<Scene 5>"
+msgstr "<5. jelenet>"
+
+msgid "<Scene 6>"
+msgstr "<6. jelenet>"
+
+msgid "<Scene 7>"
+msgstr "<7. jelenet>"
+
+msgid "<Scene 8>"
+msgstr "<8. jelenet>"
+
+msgid "<Scene 9>"
+msgstr "<9. jelenet>"
+
+msgid "<Source 1>"
+msgstr "<1. forrás>"
+
+msgid "<Source 2>"
+msgstr "<2. forrás>"
+
+msgid "<Source 3>"
+msgstr "<3. forrás>"
+
+msgid "<Source 4>"
+msgstr "<4. forrás>"
+
+msgid "<Source 5>"
+msgstr "<5. forrás>"
+
+msgid "<Source 6>"
+msgstr "<6. forrás>"
+
+msgid "<Source 7>"
+msgstr "<7. forrás>"
+
+msgid "<Source 8>"
+msgstr "<8. forrás>"
+
+msgid "<Text>"
+msgstr "<Szöveg>"
+
+msgid "<text>"
+msgstr "<Szöveg>"
+
 msgid "AND"
 msgstr "AND"
 
@@ -1339,6 +1402,12 @@ msgstr "Művelet felengedéskor"
 msgid "Action on Short Press"
 msgstr "Művelet rövid megnyomáskor"
 
+msgid "Activate scene"
+msgstr "Jelenet előhívása"
+
+msgid "Activated"
+msgstr "Bekapcsolva"
+
 msgid "Activation Sensitivity"
 msgstr "Aktiválási érzékenység"
 
@@ -1371,6 +1440,9 @@ msgstr "Tevékenységfigyelő ablak"
 
 msgid "Actual Fan Stage"
 msgstr "Aktuális rajongói színpad"
+
+msgid "Actuator 1"
+msgstr "Beavatkozó 1"
 
 msgid "Actuator 1 Feedback"
 msgstr "1. aktuátor Visszajelzés"
@@ -1422,6 +1494,39 @@ msgstr "Működtető állapot objektumok"
 
 msgid "Actuator Status Settings"
 msgstr "Aktor állapot beállításai"
+
+msgid "Actuator group A"
+msgstr "Beavatkozócsoport A"
+
+msgid "Actuator group B"
+msgstr "Beavatkozócsoport B"
+
+msgid "Actuator group C"
+msgstr "Beavatkozócsoport C"
+
+msgid "Actuator group D"
+msgstr "Beavatkozócsoport D"
+
+msgid "Actuator group E"
+msgstr "Beavatkozócsoport E"
+
+msgid "Actuator group F"
+msgstr "Beavatkozócsoport F"
+
+msgid "Actuator group G"
+msgstr "Beavatkozócsoport G"
+
+msgid "Actuator group H"
+msgstr "Beavatkozócsoport H"
+
+msgid "Actuator group I"
+msgstr "Beavatkozócsoport I"
+
+msgid "Actuator group J"
+msgstr "Beavatkozócsoport J"
+
+msgid "Actuator settings"
+msgstr "Beavatkozók beállításai"
 
 msgid "Additional Functions"
 msgstr "További funkciók"
@@ -1738,6 +1843,9 @@ msgstr "Hangerő"
 msgid "Audio Volume Adjustment"
 msgstr "Hangerő beállítása"
 
+msgid "Audiocontrol"
+msgstr "Hangvezérlés"
+
 msgid "Auto/On/Off Selection Object"
 msgstr "Automatikus/be/ki módválasztó objektum"
 
@@ -1893,6 +2001,9 @@ msgstr "Bináris állapot 2"
 
 msgid "Black"
 msgstr "Fekete"
+
+msgid "Blind"
+msgstr "Zsaluzia"
 
 msgid "Blind Command Format"
 msgstr "Zsaluparancs formátuma"
@@ -2158,6 +2269,9 @@ msgstr "CD szünet"
 msgid "CD Play"
 msgstr "CD lejátszás"
 
+msgid "CD Player"
+msgstr "CD-lejátszó"
+
 msgid "CD Power"
 msgstr "CD teljesítmény"
 
@@ -2244,6 +2358,9 @@ msgstr "Változtassa meg a 9. objektumot a jelenetben"
 
 msgid "Changed values only"
 msgstr "Csak a megváltozott értékek"
+
+msgid "Channel"
+msgstr "Csatorna"
 
 msgid "Channel 1"
 msgstr "1. csatorna"
@@ -2569,6 +2686,9 @@ msgstr "Kompakt energiatakarékos lámpa, 150 s ülepítés"
 msgid "Compact fluorescent load"
 msgstr "Kompakt fluoreszcens terhelés"
 
+msgid "Comparator 1"
+msgstr "Komparátor 1"
+
 msgid "Comparison Hysteresis"
 msgstr "Összehasonlítási hiszterézis"
 
@@ -2820,6 +2940,9 @@ msgstr "Vezérlő letiltva"
 
 msgid "Controller mode selection"
 msgstr "Vezérlő mód kiválasztása"
+
+msgid "Converter 1"
+msgstr "Átalakító 1"
 
 msgid "Cool White Intensity"
 msgstr "Hideg fehér intenzitás"
@@ -3241,6 +3364,15 @@ msgstr "Fényerő szabályozása lépésenként"
 msgid "Dim until release"
 msgstr "Fényerő szabályozása felengedésig"
 
+msgid "Dimmer"
+msgstr "Fényerőszabályzó"
+
+msgid "Dimmerslider"
+msgstr "Fényerőcsúszka"
+
+msgid "Dimming"
+msgstr "Fényerő-szabályozás"
+
 msgid "Dimming Actuator"
 msgstr "Tompító működtető"
 
@@ -3348,6 +3480,9 @@ msgstr "Lemez lejátszási vezérlők"
 
 msgid "Disc Selection"
 msgstr "Lemez kiválasztása"
+
+msgid "Display"
+msgstr "Kijelző"
 
 msgid "Display Backlight"
 msgstr "Kijelző háttérvilágítása"
@@ -3865,6 +4000,9 @@ msgstr "Szurkolói színpad kiválasztása"
 msgid "Fan-stage objects"
 msgstr "Rajongói színpadi tárgyak"
 
+msgid "FanSwitch"
+msgstr "Ventilátorvezérlés"
+
 msgid "Fast response, about 15 s"
 msgstr "Gyors válasz, körülbelül 15 másodperc"
 
@@ -4117,11 +4255,20 @@ msgstr "Teljesen manuális"
 msgid "Fully raised"
 msgstr "Teljesen felemelve"
 
+msgid "Function"
+msgstr "Funkció"
+
+msgid "Function 1"
+msgstr "Funkció 1"
+
 msgid "Function 1 Enable"
 msgstr "Funkció 1 Engedélyezés"
 
 msgid "Function 1 Text"
 msgstr "Funkció 1 Szöveg"
+
+msgid "Function 2"
+msgstr "Funkció 2"
 
 msgid "Function 2 Enable"
 msgstr "2. funkció Engedélyezés"
@@ -4129,11 +4276,17 @@ msgstr "2. funkció Engedélyezés"
 msgid "Function 2 Text"
 msgstr "2. funkció Szöveg"
 
+msgid "Function 3"
+msgstr "Funkció 3"
+
 msgid "Function 3 Enable"
 msgstr "3. funkció Engedélyezés"
 
 msgid "Function 3 Text"
 msgstr "3. funkció Szöveg"
+
+msgid "Function 4"
+msgstr "Funkció 4"
 
 msgid "Function 4 Enable"
 msgstr "4. funkció Engedélyezés"
@@ -4173,6 +4326,9 @@ msgstr "Funkció szövege"
 
 msgid "Function lighting"
 msgstr "Funkció világítás"
+
+msgid "Gate 1"
+msgstr "Kapu 1"
 
 msgid "German"
 msgstr "Német"
@@ -4398,6 +4554,9 @@ msgstr "Utánfutási idő forrása"
 
 msgid "Hold Time from Object"
 msgstr "Tartsa az időt az objektumtól"
+
+msgid "Homepage"
+msgstr "Kezdőlap"
 
 msgid "Hours and minutes"
 msgstr "Órák és percek"
@@ -4912,6 +5071,12 @@ msgstr "Az állapot visszajelzés megfordítása"
 msgid "Inverted"
 msgstr "Fordított"
 
+msgid "It's dry"
+msgstr "Száraz idő"
+
+msgid "It's raining"
+msgstr "Eső"
+
 msgid "Italian"
 msgstr "Olasz"
 
@@ -5202,6 +5367,9 @@ msgstr "Lineáris skála"
 
 msgid "Linked Dimming Outputs"
 msgstr "Kapcsolt fényerő-szabályozó kimenetek"
+
+msgid "List"
+msgstr "Lista"
 
 msgid "List Arrangement"
 msgstr "Lista elrendezése"
@@ -5603,6 +5771,9 @@ msgstr "A legalacsonyabb manuális ventilátor fokozat"
 
 msgid "Magenta for scenes"
 msgstr "Magenta a jelenetekhez"
+
+msgid "Main menu"
+msgstr "Főmenü"
 
 msgid "Manual Adjustment Starting Value"
 msgstr "Kézi beállítás kezdőérték"
@@ -6183,6 +6354,12 @@ msgstr "Mozgásérzékelés"
 msgid "Move Covering"
 msgstr "Árnyékoló mozgatása"
 
+msgid "Move down"
+msgstr "Lejjebb"
+
+msgid "Move up"
+msgstr "Feljebb"
+
 msgid "Movements Between Reference Runs"
 msgstr "Mozgások a referenciafutások között"
 
@@ -6191,6 +6368,12 @@ msgstr "Több aktív kimenet"
 
 msgid "Multiple-Press Selection"
 msgstr "Többnyomásos kijelölés"
+
+msgid "Multiplexer 1"
+msgstr "Multiplexer 1"
+
+msgid "Multiplier 1"
+msgstr "Táviratsokszorozó 1"
 
 msgid "Mute"
 msgstr "Némítás"
@@ -7446,6 +7629,9 @@ msgstr "Oldalbeállítások"
 msgid "Page and Controls"
 msgstr "Oldal és vezérlők"
 
+msgid "PageLink"
+msgstr "Oldalhivatkozás"
+
 msgid "Paired Control 1"
 msgstr "Párosított vezérlés 1"
 
@@ -7680,6 +7866,9 @@ msgstr "Tápellátás kapcsolásának vezérlése"
 msgid "Pre-Event Switching Output"
 msgstr "Esemény előtti kapcsolási kimenet"
 
+msgid "Presence"
+msgstr "Jelenlét"
+
 msgid "Press Duration"
 msgstr "Nyomja meg az Időtartam gombot"
 
@@ -7887,8 +8076,20 @@ msgstr "RGB meleg és hideg fehérrel"
 msgid "RGBW"
 msgstr "RGBW"
 
+msgid "RGBWControl"
+msgstr "RGBW-vezérlés"
+
+msgid "RTC"
+msgstr "Szobahőmérséklet"
+
+msgid "RTCControlframe"
+msgstr "Termosztát"
+
 msgid "Radiator or convector: 1.5 K, 100 min"
 msgstr "Radiátor vagy konvektor: 1,5 K, 100 perc"
+
+msgid "Radio"
+msgstr "Rádió"
 
 msgid "Radio Controls"
 msgstr "Rádióvezérlők"
@@ -8676,6 +8877,9 @@ msgstr "Értékküldés billenőgombbal"
 msgid "Rocker Value Selection"
 msgstr "Értékválasztás billenőgombbal"
 
+msgid "RockerSwitch"
+msgstr "Billenőkapcsoló"
+
 msgid "Room"
 msgstr "Helyiség"
 
@@ -8927,6 +9131,9 @@ msgstr "Jelenet mentése hosszú megnyomáskor"
 
 msgid "Save scene"
 msgstr "Jelenet mentése"
+
+msgid "Scene"
+msgstr "Jelenet"
 
 msgid "Scene 1"
 msgstr "1. jelenet"
@@ -9444,6 +9651,9 @@ msgstr "Külön sajtó- és kiadási akciók"
 msgid "Separate short and long press actions"
 msgstr "Különítse el a rövid és hosszú megnyomási műveleteket"
 
+msgid "Sequence"
+msgstr "Szekvencia"
+
 msgid "Sequence Entry 1"
 msgstr "Sorozat bejegyzés 1"
 
@@ -9617,6 +9827,9 @@ msgstr "Sorozatidő beviteli formátum"
 
 msgid "Sequence Value and Time Settings"
 msgstr "Sorozatérték és időbeállítások"
+
+msgid "Set"
+msgstr "Beállítás"
 
 msgid "Set Hold Time with Potentiometer"
 msgstr "Állítsa be a tartási időt potenciométerrel"
@@ -10359,6 +10572,36 @@ msgstr "Állapotvilágítás"
 msgid "Status object"
 msgstr "Állapot objektum"
 
+msgid "Step 1"
+msgstr "Fokozat 1"
+
+msgid "Step 2"
+msgstr "Fokozat 2"
+
+msgid "Step 3"
+msgstr "Fokozat 3"
+
+msgid "Step 4"
+msgstr "Fokozat 4"
+
+msgid "Step 5"
+msgstr "Fokozat 5"
+
+msgid "Step 6"
+msgstr "Fokozat 6"
+
+msgid "Step 7"
+msgstr "Fokozat 7"
+
+msgid "Step 8"
+msgstr "Fokozat 8"
+
+msgid "Step Down"
+msgstr "Lépés le"
+
+msgid "Step Up"
+msgstr "Lépés fel"
+
 msgid "Step or Stop Command Repeat Interval"
 msgstr "Lépés vagy leállítás parancs ismétlési időköze"
 
@@ -10415,6 +10658,9 @@ msgstr "Napkelte és napnyugta beállítása"
 
 msgid "Swedish"
 msgstr "Svéd"
+
+msgid "Switch"
+msgstr "Kapcsoló"
 
 msgid "Switch Command"
 msgstr "Kapcsolási parancs"
@@ -10545,6 +10791,9 @@ msgstr "Bekapcsolási átmenet stílus"
 msgid "Switchable local and KNX control"
 msgstr "Kapcsolható helyi és KNX vezérlés"
 
+msgid "Switched off"
+msgstr "Kikapcsolva"
+
 msgid "Switching"
 msgstr "Váltás"
 
@@ -10583,6 +10832,9 @@ msgstr "Szimbólum megvilágítás"
 
 msgid "Symbol Style"
 msgstr "Szimbólum stílus"
+
+msgid "System"
+msgstr "Rendszer"
 
 msgid "System Menu Entry Count"
 msgstr "Rendszermenü-bejegyzések száma"
@@ -11088,6 +11340,9 @@ msgstr "Időbeosztások"
 msgid "Time Value"
 msgstr "Időérték"
 
+msgid "Time function 1"
+msgstr "Időfunkció 1"
+
 msgid "Timed Output Hold Duration"
 msgstr "Időzített kimenet tartási időtartama"
 
@@ -11112,8 +11367,14 @@ msgstr "Időzítő vége érték"
 msgid "Timer Start Value"
 msgstr "Időzítő indítási értéke"
 
+msgid "Title"
+msgstr "Cím"
+
 msgid "Toggle"
 msgstr "Átváltás"
+
+msgid "Tools"
+msgstr "Eszközök"
 
 msgid "Trailing-edge dimming"
 msgstr "Lefutó élű fázishasításos fényerő-szabályozás"
@@ -11150,6 +11411,24 @@ msgstr "Átviteli hőmérséklet"
 
 msgid "Transmit When Entering Manual Fan Mode"
 msgstr "Átvitel kézi ventilátor módba lépéskor"
+
+msgid "Transmitter 1"
+msgstr "Állomás 1"
+
+msgid "Transmitter 2"
+msgstr "Állomás 2"
+
+msgid "Transmitter 3"
+msgstr "Állomás 3"
+
+msgid "Transmitter 4"
+msgstr "Állomás 4"
+
+msgid "Transmitter 5"
+msgstr "Állomás 5"
+
+msgid "Transmitter 6"
+msgstr "Állomás 6"
 
 msgid "Travel direction (1 bit)"
 msgstr "Menetirány (1 bit)"
@@ -11243,6 +11522,9 @@ msgstr "Kétállású vezérlés (1 bájt)"
 
 msgid "Unassigned"
 msgstr "Nincs hozzárendelve"
+
+msgid "Unit"
+msgstr "Mértékegység"
 
 msgid "Unit System Selection"
 msgstr "Egységrendszer kiválasztása"
@@ -11550,6 +11832,15 @@ msgstr "Értékcsúszka"
 msgid "Value Transfer Direction"
 msgstr "Értékátviteli irány"
 
+msgid "Value between minimum and threshold 1"
+msgstr "Érték a minimum és az 1. küszöb között"
+
+msgid "Value between threshold 1 and threshold 2"
+msgstr "Érték az 1. és 2. küszöb között"
+
+msgid "Value between threshold 2 and maximum"
+msgstr "Érték a 2. küszöb és a maximum között"
+
 msgid "Value for Entire Input Range"
 msgstr "A teljes bemeneti tartomány értéke"
 
@@ -11589,6 +11880,9 @@ msgstr "Érték a bekapcsoláskor"
 msgid "Value or Status Display"
 msgstr "Érték vagy állapot kijelző"
 
+msgid "Value sender"
+msgstr "Értékküldő"
+
 msgid "Value with unit"
 msgstr "Érték mértékegységgel"
 
@@ -11597,6 +11891,9 @@ msgstr "Értékalapú mérőműszer színe"
 
 msgid "Values on Short and Long Press"
 msgstr "Értékek rövid és hosszú megnyomáskor"
+
+msgid "Valueslider"
+msgstr "Értékcsúszka"
 
 msgid "Ventilation"
 msgstr "Szellőztetés"
@@ -11630,6 +11927,9 @@ msgstr "Videó Stop"
 
 msgid "Video Volume"
 msgstr "Videó hangereje"
+
+msgid "Video player"
+msgstr "Videolejátszó"
 
 msgid "Violet"
 msgstr "Ibolya"

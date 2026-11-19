@@ -1222,6 +1222,69 @@ msgstr "90°"
 msgid "96°"
 msgstr "96°"
 
+msgid "< Text >"
+msgstr "< Teksti >"
+
+msgid "<Scene 10>"
+msgstr "<Kohtaus 10>"
+
+msgid "<Scene 1>"
+msgstr "<Kohtaus 1>"
+
+msgid "<Scene 2>"
+msgstr "<Kohtaus 2>"
+
+msgid "<Scene 3>"
+msgstr "<Kohtaus 3>"
+
+msgid "<Scene 4>"
+msgstr "<Kohtaus 4>"
+
+msgid "<Scene 5>"
+msgstr "<Kohtaus 5>"
+
+msgid "<Scene 6>"
+msgstr "<Kohtaus 6>"
+
+msgid "<Scene 7>"
+msgstr "<Kohtaus 7>"
+
+msgid "<Scene 8>"
+msgstr "<Kohtaus 8>"
+
+msgid "<Scene 9>"
+msgstr "<Kohtaus 9>"
+
+msgid "<Source 1>"
+msgstr "<Lähde 1>"
+
+msgid "<Source 2>"
+msgstr "<Lähde 2>"
+
+msgid "<Source 3>"
+msgstr "<Lähde 3>"
+
+msgid "<Source 4>"
+msgstr "<Lähde 4>"
+
+msgid "<Source 5>"
+msgstr "<Lähde 5>"
+
+msgid "<Source 6>"
+msgstr "<Lähde 6>"
+
+msgid "<Source 7>"
+msgstr "<Lähde 7>"
+
+msgid "<Source 8>"
+msgstr "<Lähde 8>"
+
+msgid "<Text>"
+msgstr "<Teksti>"
+
+msgid "<text>"
+msgstr "<Teksti>"
+
 msgid "AND"
 msgstr "JA"
 
@@ -1339,6 +1402,12 @@ msgstr "Vapautuksen toiminto"
 msgid "Action on Short Press"
 msgstr "Lyhyen painalluksen toiminto"
 
+msgid "Activate scene"
+msgstr "Kutsu tilanne"
+
+msgid "Activated"
+msgstr "Aktivoitu"
+
 msgid "Activation Sensitivity"
 msgstr "Aktivointiherkkyys"
 
@@ -1371,6 +1440,9 @@ msgstr "Toiminnan valvontaikkuna"
 
 msgid "Actual Fan Stage"
 msgstr "Todellinen fanivaihe"
+
+msgid "Actuator 1"
+msgstr "Toimilaite 1"
 
 msgid "Actuator 1 Feedback"
 msgstr "Toimilaite 1 Palaute"
@@ -1422,6 +1494,39 @@ msgstr "Toimilaitteen tilaobjektit"
 
 msgid "Actuator Status Settings"
 msgstr "Toimilaitteen tilan asetukset"
+
+msgid "Actuator group A"
+msgstr "Toimilaiteryhmä A"
+
+msgid "Actuator group B"
+msgstr "Toimilaiteryhmä B"
+
+msgid "Actuator group C"
+msgstr "Toimilaiteryhmä C"
+
+msgid "Actuator group D"
+msgstr "Toimilaiteryhmä D"
+
+msgid "Actuator group E"
+msgstr "Toimilaiteryhmä E"
+
+msgid "Actuator group F"
+msgstr "Toimilaiteryhmä F"
+
+msgid "Actuator group G"
+msgstr "Toimilaiteryhmä G"
+
+msgid "Actuator group H"
+msgstr "Toimilaiteryhmä H"
+
+msgid "Actuator group I"
+msgstr "Toimilaiteryhmä I"
+
+msgid "Actuator group J"
+msgstr "Toimilaiteryhmä J"
+
+msgid "Actuator settings"
+msgstr "Toimilaitteen asetukset"
 
 msgid "Additional Functions"
 msgstr "Lisätoiminnot"
@@ -1738,6 +1843,9 @@ msgstr "Äänenvoimakkuus"
 msgid "Audio Volume Adjustment"
 msgstr "Äänenvoimakkuuden säätö"
 
+msgid "Audiocontrol"
+msgstr "Äänen ohjaus"
+
 msgid "Auto/On/Off Selection Object"
 msgstr "Automaatti/päälle/pois-valintaobjekti"
 
@@ -1893,6 +2001,9 @@ msgstr "Binääritila 2"
 
 msgid "Black"
 msgstr "Musta"
+
+msgid "Blind"
+msgstr "Sälekaihdin"
 
 msgid "Blind Command Format"
 msgstr "Sälekaihtimen komentomuoto"
@@ -2158,6 +2269,9 @@ msgstr "CD tauko"
 msgid "CD Play"
 msgstr "CD-toisto"
 
+msgid "CD Player"
+msgstr "CD-soitin"
+
 msgid "CD Power"
 msgstr "CD-virta"
 
@@ -2244,6 +2358,9 @@ msgstr "Vaihda kohtauksen kohde 9"
 
 msgid "Changed values only"
 msgstr "Vain muuttuneet arvot"
+
+msgid "Channel"
+msgstr "Kanava"
 
 msgid "Channel 1"
 msgstr "Kanava 1"
@@ -2569,6 +2686,9 @@ msgstr "Kompakti energiansäästölamppu, 150 s laskeutuminen"
 msgid "Compact fluorescent load"
 msgstr "Kompakti fluoresoiva kuorma"
 
+msgid "Comparator 1"
+msgstr "Vertailija 1"
+
 msgid "Comparison Hysteresis"
 msgstr "Vertailuhystereesi"
 
@@ -2820,6 +2940,9 @@ msgstr "Ohjain pois käytöstä"
 
 msgid "Controller mode selection"
 msgstr "Ohjaustilan valinta"
+
+msgid "Converter 1"
+msgstr "Muunnin 1"
 
 msgid "Cool White Intensity"
 msgstr "Kylmä valkoinen intensiteetti"
@@ -3241,6 +3364,15 @@ msgstr "Himmennä askelittain"
 msgid "Dim until release"
 msgstr "Himmennä vapautukseen asti"
 
+msgid "Dimmer"
+msgstr "Himmennin"
+
+msgid "Dimmerslider"
+msgstr "Himmennyksen liukusäädin"
+
+msgid "Dimming"
+msgstr "Himmennys"
+
 msgid "Dimming Actuator"
 msgstr "Himmennystoimilaite"
 
@@ -3348,6 +3480,9 @@ msgstr "Levyn toiston säätimet"
 
 msgid "Disc Selection"
 msgstr "Levyn valinta"
+
+msgid "Display"
+msgstr "Näyttö"
 
 msgid "Display Backlight"
 msgstr "Näytön taustavalo"
@@ -3865,6 +4000,9 @@ msgstr "Fanilavan valinta"
 msgid "Fan-stage objects"
 msgstr "Viuhkalavan esineitä"
 
+msgid "FanSwitch"
+msgstr "Puhaltimen ohjaus"
+
 msgid "Fast response, about 15 s"
 msgstr "Nopea vastaus, noin 15 s"
 
@@ -4117,11 +4255,20 @@ msgstr "Täysin manuaalinen"
 msgid "Fully raised"
 msgstr "Täysin kohotettu"
 
+msgid "Function"
+msgstr "Toiminto"
+
+msgid "Function 1"
+msgstr "Toiminto 1"
+
 msgid "Function 1 Enable"
 msgstr "Toiminto 1 Ota käyttöön"
 
 msgid "Function 1 Text"
 msgstr "Toiminto 1 Teksti"
+
+msgid "Function 2"
+msgstr "Toiminto 2"
 
 msgid "Function 2 Enable"
 msgstr "Toiminto 2 Ota käyttöön"
@@ -4129,11 +4276,17 @@ msgstr "Toiminto 2 Ota käyttöön"
 msgid "Function 2 Text"
 msgstr "Toiminto 2 Teksti"
 
+msgid "Function 3"
+msgstr "Toiminto 3"
+
 msgid "Function 3 Enable"
 msgstr "Toiminto 3 Ota käyttöön"
 
 msgid "Function 3 Text"
 msgstr "Toiminto 3 Teksti"
+
+msgid "Function 4"
+msgstr "Toiminto 4"
 
 msgid "Function 4 Enable"
 msgstr "Toiminto 4 Ota käyttöön"
@@ -4173,6 +4326,9 @@ msgstr "Toimintoteksti"
 
 msgid "Function lighting"
 msgstr "Toimiva valaistus"
+
+msgid "Gate 1"
+msgstr "Portti 1"
 
 msgid "German"
 msgstr "Saksa"
@@ -4398,6 +4554,9 @@ msgstr "Pitoajan lähde"
 
 msgid "Hold Time from Object"
 msgstr "Pitoaika objektilta"
+
+msgid "Homepage"
+msgstr "Aloitussivu"
 
 msgid "Hours and minutes"
 msgstr "Tunteja ja minuutteja"
@@ -4912,6 +5071,12 @@ msgstr "Käänteinen tilapalaute"
 msgid "Inverted"
 msgstr "Käänteinen"
 
+msgid "It's dry"
+msgstr "Kuivaa"
+
+msgid "It's raining"
+msgstr "Sadetta"
+
 msgid "Italian"
 msgstr "Italia"
 
@@ -5202,6 +5367,9 @@ msgstr "Lineaarinen asteikko"
 
 msgid "Linked Dimming Outputs"
 msgstr "Linkitetty himmennyslähdöt"
+
+msgid "List"
+msgstr "Luettelo"
 
 msgid "List Arrangement"
 msgstr "Listan järjestely"
@@ -5601,6 +5769,9 @@ msgstr "Alin manuaalinen tuuletinaste"
 
 msgid "Magenta for scenes"
 msgstr "Magenta kohtauksiin"
+
+msgid "Main menu"
+msgstr "Päävalikko"
 
 msgid "Manual Adjustment Starting Value"
 msgstr "Manuaalinen säätö aloitusarvo"
@@ -6181,6 +6352,12 @@ msgstr "Liiketunnistus"
 msgid "Move Covering"
 msgstr "Liikuta varjostinta"
 
+msgid "Move down"
+msgstr "Siirrä alas"
+
+msgid "Move up"
+msgstr "Siirrä ylös"
+
 msgid "Movements Between Reference Runs"
 msgstr "Liikkeet vertailuajojen välillä"
 
@@ -6189,6 +6366,12 @@ msgstr "Useita aktiivisia lähtöjä"
 
 msgid "Multiple-Press Selection"
 msgstr "Usean painalluksen valinta"
+
+msgid "Multiplexer 1"
+msgstr "Multiplekseri 1"
+
+msgid "Multiplier 1"
+msgstr "Sanomamonistin 1"
 
 msgid "Mute"
 msgstr "Mykistä"
@@ -7444,6 +7627,9 @@ msgstr "Sivun asetukset"
 msgid "Page and Controls"
 msgstr "Sivu ja säätimet"
 
+msgid "PageLink"
+msgstr "Sivulinkki"
+
 msgid "Paired Control 1"
 msgstr "Paritettu ohjaus 1"
 
@@ -7678,6 +7864,9 @@ msgstr "Virrankytkennän ohjaus"
 msgid "Pre-Event Switching Output"
 msgstr "Tapahtumaa edeltävä kytkentälähtö"
 
+msgid "Presence"
+msgstr "Läsnäolo"
+
 msgid "Press Duration"
 msgstr "Paina Kesto"
 
@@ -7885,8 +8074,20 @@ msgstr "RGB lämpimällä ja kylmällä valkoisella"
 msgid "RGBW"
 msgstr "RGBW"
 
+msgid "RGBWControl"
+msgstr "RGBW-ohjaus"
+
+msgid "RTC"
+msgstr "Huonelämpötila"
+
+msgid "RTCControlframe"
+msgstr "Termostaatti"
+
 msgid "Radiator or convector: 1.5 K, 100 min"
 msgstr "Patteri tai konvektori: 1,5 K, 100 min"
+
+msgid "Radio"
+msgstr "Radio"
 
 msgid "Radio Controls"
 msgstr "Radioohjaimet"
@@ -8674,6 +8875,9 @@ msgstr "Arvon lähetys keinupainikkeella"
 msgid "Rocker Value Selection"
 msgstr "Keinupainikkeen arvovalinta"
 
+msgid "RockerSwitch"
+msgstr "Keinukytkin"
+
 msgid "Room"
 msgstr "Huone"
 
@@ -8925,6 +9129,9 @@ msgstr "Tallenna tilanne pitkällä painalluksella"
 
 msgid "Save scene"
 msgstr "Tallenna kohtaus"
+
+msgid "Scene"
+msgstr "Tilanne"
 
 msgid "Scene 1"
 msgstr "Kohtaus 1"
@@ -9442,6 +9649,9 @@ msgstr "Erilliset lehdistö- ja tiedotustoimet"
 msgid "Separate short and long press actions"
 msgstr "Erottele lyhyt ja pitkä painallus"
 
+msgid "Sequence"
+msgstr "Jakso"
+
 msgid "Sequence Entry 1"
 msgstr "Jakson syöttö 1"
 
@@ -9615,6 +9825,9 @@ msgstr "Sekvenssiajan syöttömuoto"
 
 msgid "Sequence Value and Time Settings"
 msgstr "Jakson arvo ja aika -asetukset"
+
+msgid "Set"
+msgstr "Aseta"
 
 msgid "Set Hold Time with Potentiometer"
 msgstr "Aseta pitoaika potentiometrillä"
@@ -10357,6 +10570,36 @@ msgstr "Tilan valaistus"
 msgid "Status object"
 msgstr "Statusobjekti"
 
+msgid "Step 1"
+msgstr "Taso 1"
+
+msgid "Step 2"
+msgstr "Taso 2"
+
+msgid "Step 3"
+msgstr "Taso 3"
+
+msgid "Step 4"
+msgstr "Taso 4"
+
+msgid "Step 5"
+msgstr "Taso 5"
+
+msgid "Step 6"
+msgstr "Taso 6"
+
+msgid "Step 7"
+msgstr "Taso 7"
+
+msgid "Step 8"
+msgstr "Taso 8"
+
+msgid "Step Down"
+msgstr "Askel alas"
+
+msgid "Step Up"
+msgstr "Askel ylös"
+
 msgid "Step or Stop Command Repeat Interval"
 msgstr "Askel- tai Stop-komennon toistoväli"
 
@@ -10413,6 +10656,9 @@ msgstr "Auringonnousun ja auringonlaskun säätö"
 
 msgid "Swedish"
 msgstr "Ruotsi"
+
+msgid "Switch"
+msgstr "Kytkin"
 
 msgid "Switch Command"
 msgstr "Kytkentäkomento"
@@ -10543,6 +10789,9 @@ msgstr "Käynnistyksen siirtymistyyli"
 msgid "Switchable local and KNX control"
 msgstr "Kytkettävä paikallinen ja KNX-ohjaus"
 
+msgid "Switched off"
+msgstr "Pois päältä"
+
 msgid "Switching"
 msgstr "Vaihtaminen"
 
@@ -10581,6 +10830,9 @@ msgstr "Symbolin valaistus"
 
 msgid "Symbol Style"
 msgstr "Symboli Tyyli"
+
+msgid "System"
+msgstr "Järjestelmä"
 
 msgid "System Menu Entry Count"
 msgstr "Järjestelmävalikon merkintöjen määrä"
@@ -11086,6 +11338,9 @@ msgstr "Aikataulut"
 msgid "Time Value"
 msgstr "Aika-arvo"
 
+msgid "Time function 1"
+msgstr "Aikatoiminto 1"
+
 msgid "Timed Output Hold Duration"
 msgstr "Ajastetun lähdön pitoaika"
 
@@ -11110,8 +11365,14 @@ msgstr "Ajastimen loppuarvo"
 msgid "Timer Start Value"
 msgstr "Ajastimen aloitusarvo"
 
+msgid "Title"
+msgstr "Otsikko"
+
 msgid "Toggle"
 msgstr "Vaihda tilaa"
+
+msgid "Tools"
+msgstr "Työkalut"
 
 msgid "Trailing-edge dimming"
 msgstr "Takareunahimmennys"
@@ -11148,6 +11409,24 @@ msgstr "Lähetyslämpötila"
 
 msgid "Transmit When Entering Manual Fan Mode"
 msgstr "Lähetys siirryttäessä manuaaliseen tuuletintilaan"
+
+msgid "Transmitter 1"
+msgstr "Asema 1"
+
+msgid "Transmitter 2"
+msgstr "Asema 2"
+
+msgid "Transmitter 3"
+msgstr "Asema 3"
+
+msgid "Transmitter 4"
+msgstr "Asema 4"
+
+msgid "Transmitter 5"
+msgstr "Asema 5"
+
+msgid "Transmitter 6"
+msgstr "Asema 6"
 
 msgid "Travel direction (1 bit)"
 msgstr "Ajosuunta (1 bitti)"
@@ -11241,6 +11520,9 @@ msgstr "Kaksiasentoinen ohjaus (1 tavu)"
 
 msgid "Unassigned"
 msgstr "Kohdistamaton"
+
+msgid "Unit"
+msgstr "Yksikkö"
 
 msgid "Unit System Selection"
 msgstr "Yksikköjärjestelmän valinta"
@@ -11548,6 +11830,15 @@ msgstr "Arvon liukusäädin"
 msgid "Value Transfer Direction"
 msgstr "Arvonsiirron suunta"
 
+msgid "Value between minimum and threshold 1"
+msgstr "Arvo minimin ja kynnyksen 1 välissä"
+
+msgid "Value between threshold 1 and threshold 2"
+msgstr "Arvo kynnysten 1 ja 2 välissä"
+
+msgid "Value between threshold 2 and maximum"
+msgstr "Arvo kynnyksen 2 ja maksimin välissä"
+
 msgid "Value for Entire Input Range"
 msgstr "Arvo koko syöttöalueelle"
 
@@ -11587,6 +11878,9 @@ msgstr "Arvo päällekytkennässä"
 msgid "Value or Status Display"
 msgstr "Arvon tai tilan näyttö"
 
+msgid "Value sender"
+msgstr "Arvolähetin"
+
 msgid "Value with unit"
 msgstr "Arvo yksikön kanssa"
 
@@ -11595,6 +11889,9 @@ msgstr "Arvopohjainen mittarin väri"
 
 msgid "Values on Short and Long Press"
 msgstr "Lyhyen ja pitkän painalluksen arvot"
+
+msgid "Valueslider"
+msgstr "Arvon liukusäädin"
 
 msgid "Ventilation"
 msgstr "Ilmanvaihto"
@@ -11628,6 +11925,9 @@ msgstr "Videon pysäytys"
 
 msgid "Video Volume"
 msgstr "Videon äänenvoimakkuus"
+
+msgid "Video player"
+msgstr "Videosoitin"
 
 msgid "Violet"
 msgstr "Violetti"

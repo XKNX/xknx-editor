@@ -1222,6 +1222,69 @@ msgstr "90°"
 msgid "96°"
 msgstr "96°"
 
+msgid "< Text >"
+msgstr "< Tekst >"
+
+msgid "<Scene 10>"
+msgstr "<Scène 10>"
+
+msgid "<Scene 1>"
+msgstr "<Scène 1>"
+
+msgid "<Scene 2>"
+msgstr "<Scène 2>"
+
+msgid "<Scene 3>"
+msgstr "<Scène 3>"
+
+msgid "<Scene 4>"
+msgstr "<Scène 4>"
+
+msgid "<Scene 5>"
+msgstr "<Scène 5>"
+
+msgid "<Scene 6>"
+msgstr "<Scène 6>"
+
+msgid "<Scene 7>"
+msgstr "<Scène 7>"
+
+msgid "<Scene 8>"
+msgstr "<Scène 8>"
+
+msgid "<Scene 9>"
+msgstr "<Scène 9>"
+
+msgid "<Source 1>"
+msgstr "<Bron 1>"
+
+msgid "<Source 2>"
+msgstr "<Bron 2>"
+
+msgid "<Source 3>"
+msgstr "<Bron 3>"
+
+msgid "<Source 4>"
+msgstr "<Bron 4>"
+
+msgid "<Source 5>"
+msgstr "<Bron 5>"
+
+msgid "<Source 6>"
+msgstr "<Bron 6>"
+
+msgid "<Source 7>"
+msgstr "<Bron 7>"
+
+msgid "<Source 8>"
+msgstr "<Bron 8>"
+
+msgid "<Text>"
+msgstr "<Tekst>"
+
+msgid "<text>"
+msgstr "<Tekst>"
+
 msgid "AND"
 msgstr "EN"
 
@@ -1339,6 +1402,12 @@ msgstr "Actie bij loslaten"
 msgid "Action on Short Press"
 msgstr "Actie bij kort indrukken"
 
+msgid "Activate scene"
+msgstr "Scène oproepen"
+
+msgid "Activated"
+msgstr "Geactiveerd"
+
 msgid "Activation Sensitivity"
 msgstr "Activeringsgevoeligheid"
 
@@ -1371,6 +1440,9 @@ msgstr "Venster Activiteitscontrole"
 
 msgid "Actual Fan Stage"
 msgstr "Actuele ventilatorstand"
+
+msgid "Actuator 1"
+msgstr "Actor 1"
 
 msgid "Actuator 1 Feedback"
 msgstr "Actuator 1 Terugmelding"
@@ -1422,6 +1494,39 @@ msgstr "Actuatorstatusobjecten"
 
 msgid "Actuator Status Settings"
 msgstr "Actuatorstatusinstellingen"
+
+msgid "Actuator group A"
+msgstr "Actorgroep A"
+
+msgid "Actuator group B"
+msgstr "Actorgroep B"
+
+msgid "Actuator group C"
+msgstr "Actorgroep C"
+
+msgid "Actuator group D"
+msgstr "Actorgroep D"
+
+msgid "Actuator group E"
+msgstr "Actorgroep E"
+
+msgid "Actuator group F"
+msgstr "Actorgroep F"
+
+msgid "Actuator group G"
+msgstr "Actorgroep G"
+
+msgid "Actuator group H"
+msgstr "Actorgroep H"
+
+msgid "Actuator group I"
+msgstr "Actorgroep I"
+
+msgid "Actuator group J"
+msgstr "Actorgroep J"
+
+msgid "Actuator settings"
+msgstr "Actorinstellingen"
 
 msgid "Additional Functions"
 msgstr "Extra functies"
@@ -1738,6 +1843,9 @@ msgstr "Audiovolume"
 msgid "Audio Volume Adjustment"
 msgstr "Aanpassing van het audiovolume"
 
+msgid "Audiocontrol"
+msgstr "Audiobediening"
+
 msgid "Auto/On/Off Selection Object"
 msgstr "Auto/Aan/Uit selectieobject"
 
@@ -1893,6 +2001,9 @@ msgstr "Binaire staat 2"
 
 msgid "Black"
 msgstr "Zwart"
+
+msgid "Blind"
+msgstr "Jaloezie"
 
 msgid "Blind Command Format"
 msgstr "Opdrachtformaat jaloezie"
@@ -2158,6 +2269,9 @@ msgstr "CD-pauze"
 msgid "CD Play"
 msgstr "CD afspelen"
 
+msgid "CD Player"
+msgstr "Cd-speler"
+
 msgid "CD Power"
 msgstr "CD-kracht"
 
@@ -2244,6 +2358,9 @@ msgstr "Wijzig object 9 in scène"
 
 msgid "Changed values only"
 msgstr "Alleen gewijzigde waarden"
+
+msgid "Channel"
+msgstr "Kanaal"
 
 msgid "Channel 1"
 msgstr "Kanaal 1"
@@ -2569,6 +2686,9 @@ msgstr "Compacte spaarlamp, 150 s bezinking"
 msgid "Compact fluorescent load"
 msgstr "Compacte fluorescentiebelasting"
 
+msgid "Comparator 1"
+msgstr "Vergelijker 1"
+
 msgid "Comparison Hysteresis"
 msgstr "Vergelijking Hysteresis"
 
@@ -2820,6 +2940,9 @@ msgstr "Controller uitgeschakeld"
 
 msgid "Controller mode selection"
 msgstr "Selectie van controllermodus"
+
+msgid "Converter 1"
+msgstr "Omzetter 1"
 
 msgid "Cool White Intensity"
 msgstr "Koele witte intensiteit"
@@ -3241,6 +3364,15 @@ msgstr "Stapsgewijs dimmen"
 msgid "Dim until release"
 msgstr "Dimmen tot loslaten"
 
+msgid "Dimmer"
+msgstr "Dimmer"
+
+msgid "Dimmerslider"
+msgstr "Dimschuifregelaar"
+
+msgid "Dimming"
+msgstr "Dimmen"
+
 msgid "Dimming Actuator"
 msgstr "Dim-actor"
 
@@ -3348,6 +3480,9 @@ msgstr "Bedieningselementen voor het afspelen van schijven"
 
 msgid "Disc Selection"
 msgstr "Schijfselectie"
+
+msgid "Display"
+msgstr "Weergave"
 
 msgid "Display Backlight"
 msgstr "Achtergrondverlichting weergeven"
@@ -3865,6 +4000,9 @@ msgstr "Keuze van ventilatorstand"
 msgid "Fan-stage objects"
 msgstr "Objecten voor ventilatorstanden"
 
+msgid "FanSwitch"
+msgstr "Ventilatorbediening"
+
 msgid "Fast response, about 15 s"
 msgstr "Snelle reactie, ongeveer 15 s"
 
@@ -4117,11 +4255,20 @@ msgstr "Volledig handmatig"
 msgid "Fully raised"
 msgstr "Volledig verhoogd"
 
+msgid "Function"
+msgstr "Functie"
+
+msgid "Function 1"
+msgstr "Functie 1"
+
 msgid "Function 1 Enable"
 msgstr "Functie 1 Inschakelen"
 
 msgid "Function 1 Text"
 msgstr "Functie 1 Tekst"
+
+msgid "Function 2"
+msgstr "Functie 2"
 
 msgid "Function 2 Enable"
 msgstr "Functie 2 Inschakelen"
@@ -4129,11 +4276,17 @@ msgstr "Functie 2 Inschakelen"
 msgid "Function 2 Text"
 msgstr "Functie 2 Tekst"
 
+msgid "Function 3"
+msgstr "Functie 3"
+
 msgid "Function 3 Enable"
 msgstr "Functie 3 Inschakelen"
 
 msgid "Function 3 Text"
 msgstr "Functie 3 Tekst"
+
+msgid "Function 4"
+msgstr "Functie 4"
 
 msgid "Function 4 Enable"
 msgstr "Functie 4 Inschakelen"
@@ -4173,6 +4326,9 @@ msgstr "Functie Tekst"
 
 msgid "Function lighting"
 msgstr "Functie verlichting"
+
+msgid "Gate 1"
+msgstr "Poort 1"
 
 msgid "German"
 msgstr "Duits"
@@ -4398,6 +4554,9 @@ msgstr "Bron van de nalooptijd"
 
 msgid "Hold Time from Object"
 msgstr "Nalooptijd uit object"
+
+msgid "Homepage"
+msgstr "Startpagina"
 
 msgid "Hours and minutes"
 msgstr "Uren en minuten"
@@ -4912,6 +5071,12 @@ msgstr "Statusterugmelding omkeren"
 msgid "Inverted"
 msgstr "Omgekeerd"
 
+msgid "It's dry"
+msgstr "Droog"
+
+msgid "It's raining"
+msgstr "Regen"
+
 msgid "Italian"
 msgstr "Italiaans"
 
@@ -5202,6 +5367,9 @@ msgstr "Lineaire schaal"
 
 msgid "Linked Dimming Outputs"
 msgstr "Gekoppelde dimuitgangen"
+
+msgid "List"
+msgstr "Lijst"
 
 msgid "List Arrangement"
 msgstr "Lijstregeling"
@@ -5601,6 +5769,9 @@ msgstr "Laagste handmatige ventilatorstand"
 
 msgid "Magenta for scenes"
 msgstr "Magenta voor scènes"
+
+msgid "Main menu"
+msgstr "Hoofdmenu"
 
 msgid "Manual Adjustment Starting Value"
 msgstr "Handmatige aanpassing startwaarde"
@@ -6181,6 +6352,12 @@ msgstr "Bewegingsdetectie"
 msgid "Move Covering"
 msgstr "Zonwering bewegen"
 
+msgid "Move down"
+msgstr "Omlaag"
+
+msgid "Move up"
+msgstr "Omhoog"
+
 msgid "Movements Between Reference Runs"
 msgstr "Bewegingen tussen referentieruns"
 
@@ -6189,6 +6366,12 @@ msgstr "Meerdere actieve uitgangen"
 
 msgid "Multiple-Press Selection"
 msgstr "Keuze door meervoudig indrukken"
+
+msgid "Multiplexer 1"
+msgstr "Multiplexer 1"
+
+msgid "Multiplier 1"
+msgstr "Telegramvermenigvuldiger 1"
 
 msgid "Mute"
 msgstr "Dempen"
@@ -7444,6 +7627,9 @@ msgstr "Pagina-instellingen"
 msgid "Page and Controls"
 msgstr "Pagina en bedieningselementen"
 
+msgid "PageLink"
+msgstr "Paginalink"
+
 msgid "Paired Control 1"
 msgstr "Gekoppelde bediening 1"
 
@@ -7678,6 +7864,9 @@ msgstr "Vermogensschakelaarbediening"
 msgid "Pre-Event Switching Output"
 msgstr "Schakeluitgang vóór gebeurtenis"
 
+msgid "Presence"
+msgstr "Aanwezigheid"
+
 msgid "Press Duration"
 msgstr "Indrukduur"
 
@@ -7885,8 +8074,20 @@ msgstr "RGB met warm en koel wit"
 msgid "RGBW"
 msgstr "RGBW"
 
+msgid "RGBWControl"
+msgstr "RGBW-bediening"
+
+msgid "RTC"
+msgstr "Kamertemperatuur"
+
+msgid "RTCControlframe"
+msgstr "Thermostaat"
+
 msgid "Radiator or convector: 1.5 K, 100 min"
 msgstr "Radiator of convector: 1,5 K, 100 min"
+
+msgid "Radio"
+msgstr "Radio"
 
 msgid "Radio Controls"
 msgstr "Radiobediening"
@@ -8674,6 +8875,9 @@ msgstr "Waarde-uitvoer met wip"
 msgid "Rocker Value Selection"
 msgstr "Waardekeuze van de wip"
 
+msgid "RockerSwitch"
+msgstr "Wipschakelaar"
+
 msgid "Room"
 msgstr "Kamer"
 
@@ -8925,6 +9129,9 @@ msgstr "Scène opslaan bij lang indrukken"
 
 msgid "Save scene"
 msgstr "Scène opslaan"
+
+msgid "Scene"
+msgstr "Scène"
 
 msgid "Scene 1"
 msgstr "Scène 1"
@@ -9442,6 +9649,9 @@ msgstr "Afzonderlijke acties bij indrukken en loslaten"
 msgid "Separate short and long press actions"
 msgstr "Afzonderlijke acties bij kort en lang indrukken"
 
+msgid "Sequence"
+msgstr "Reeks"
+
 msgid "Sequence Entry 1"
 msgstr "Sequentie-invoer 1"
 
@@ -9615,6 +9825,9 @@ msgstr "Volgorde tijdinvoerformaat"
 
 msgid "Sequence Value and Time Settings"
 msgstr "Sequentiewaarde en tijdinstellingen"
+
+msgid "Set"
+msgstr "Instellen"
 
 msgid "Set Hold Time with Potentiometer"
 msgstr "Stel de houdtijd in met de potentiometer"
@@ -10357,6 +10570,36 @@ msgstr "Statusverlichting"
 msgid "Status object"
 msgstr "Statusobject"
 
+msgid "Step 1"
+msgstr "Stand 1"
+
+msgid "Step 2"
+msgstr "Stand 2"
+
+msgid "Step 3"
+msgstr "Stand 3"
+
+msgid "Step 4"
+msgstr "Stand 4"
+
+msgid "Step 5"
+msgstr "Stand 5"
+
+msgid "Step 6"
+msgstr "Stand 6"
+
+msgid "Step 7"
+msgstr "Stand 7"
+
+msgid "Step 8"
+msgstr "Stand 8"
+
+msgid "Step Down"
+msgstr "Stap omlaag"
+
+msgid "Step Up"
+msgstr "Stap omhoog"
+
 msgid "Step or Stop Command Repeat Interval"
 msgstr "Stap- of stopopdracht Herhalingsinterval"
 
@@ -10413,6 +10656,9 @@ msgstr "Aanpassing van zonsopgang en zonsondergang"
 
 msgid "Swedish"
 msgstr "Zweeds"
+
+msgid "Switch"
+msgstr "Schakelaar"
 
 msgid "Switch Command"
 msgstr "Schakelopdracht"
@@ -10543,6 +10789,9 @@ msgstr "Overgangsstijl voor inschakelen"
 msgid "Switchable local and KNX control"
 msgstr "Schakelbare lokale en KNX-besturing"
 
+msgid "Switched off"
+msgstr "Uitgeschakeld"
+
 msgid "Switching"
 msgstr "Schakelen"
 
@@ -10581,6 +10830,9 @@ msgstr "Symbool verlichting"
 
 msgid "Symbol Style"
 msgstr "Symboolstijl"
+
+msgid "System"
+msgstr "Systeem"
 
 msgid "System Menu Entry Count"
 msgstr "Aantal systeemmenu-items"
@@ -11086,6 +11338,9 @@ msgstr "Tijdschema's"
 msgid "Time Value"
 msgstr "Tijdwaarde"
 
+msgid "Time function 1"
+msgstr "Tijdfunctie 1"
+
 msgid "Timed Output Hold Duration"
 msgstr "Getimede uitvoerduur"
 
@@ -11110,8 +11365,14 @@ msgstr "Eindwaarde timer"
 msgid "Timer Start Value"
 msgstr "Timerstartwaarde"
 
+msgid "Title"
+msgstr "Titel"
+
 msgid "Toggle"
 msgstr "Omschakelen"
+
+msgid "Tools"
+msgstr "Hulpmiddelen"
 
 msgid "Trailing-edge dimming"
 msgstr "Dimmen met faseafsnijding"
@@ -11148,6 +11409,24 @@ msgstr "Temperatuur verzenden"
 
 msgid "Transmit When Entering Manual Fan Mode"
 msgstr "Verzenden bij het openen van de handmatige ventilatormodus"
+
+msgid "Transmitter 1"
+msgstr "Zender 1"
+
+msgid "Transmitter 2"
+msgstr "Zender 2"
+
+msgid "Transmitter 3"
+msgstr "Zender 3"
+
+msgid "Transmitter 4"
+msgstr "Zender 4"
+
+msgid "Transmitter 5"
+msgstr "Zender 5"
+
+msgid "Transmitter 6"
+msgstr "Zender 6"
 
 msgid "Travel direction (1 bit)"
 msgstr "Rijrichting (1 bit)"
@@ -11241,6 +11520,9 @@ msgstr "Tweestandenbesturing (1 byte)"
 
 msgid "Unassigned"
 msgstr "Niet toegewezen"
+
+msgid "Unit"
+msgstr "Eenheid"
 
 msgid "Unit System Selection"
 msgstr "Eenheidssysteemselectie"
@@ -11548,6 +11830,15 @@ msgstr "Waardeschuifregelaar"
 msgid "Value Transfer Direction"
 msgstr "Richting waardeoverdracht"
 
+msgid "Value between minimum and threshold 1"
+msgstr "Waarde tussen minimum en drempel 1"
+
+msgid "Value between threshold 1 and threshold 2"
+msgstr "Waarde tussen drempels 1 en 2"
+
+msgid "Value between threshold 2 and maximum"
+msgstr "Waarde tussen drempel 2 en maximum"
+
 msgid "Value for Entire Input Range"
 msgstr "Waarde voor het gehele invoerbereik"
 
@@ -11587,6 +11878,9 @@ msgstr "Waarde bij inschakelen"
 msgid "Value or Status Display"
 msgstr "Waarde- of statusweergave"
 
+msgid "Value sender"
+msgstr "Waardezender"
+
 msgid "Value with unit"
 msgstr "Waarde met eenheid"
 
@@ -11595,6 +11889,9 @@ msgstr "Op waarde gebaseerde meterkleur"
 
 msgid "Values on Short and Long Press"
 msgstr "Waarden bij kort en lang indrukken"
+
+msgid "Valueslider"
+msgstr "Waardeschuifregelaar"
 
 msgid "Ventilation"
 msgstr "Ventilatie"
@@ -11628,6 +11925,9 @@ msgstr "Video-stop"
 
 msgid "Video Volume"
 msgstr "Videovolume"
+
+msgid "Video player"
+msgstr "Videospeler"
 
 msgid "Violet"
 msgstr "Violet"

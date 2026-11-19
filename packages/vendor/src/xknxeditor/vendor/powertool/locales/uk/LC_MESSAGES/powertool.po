@@ -1223,6 +1223,69 @@ msgstr "90°"
 msgid "96°"
 msgstr "96°"
 
+msgid "< Text >"
+msgstr "< Текст >"
+
+msgid "<Scene 10>"
+msgstr "<Сцена 10>"
+
+msgid "<Scene 1>"
+msgstr "<Сцена 1>"
+
+msgid "<Scene 2>"
+msgstr "<Сцена 2>"
+
+msgid "<Scene 3>"
+msgstr "<Сцена 3>"
+
+msgid "<Scene 4>"
+msgstr "<Сцена 4>"
+
+msgid "<Scene 5>"
+msgstr "<Сцена 5>"
+
+msgid "<Scene 6>"
+msgstr "<Сцена 6>"
+
+msgid "<Scene 7>"
+msgstr "<Сцена 7>"
+
+msgid "<Scene 8>"
+msgstr "<Сцена 8>"
+
+msgid "<Scene 9>"
+msgstr "<Сцена 9>"
+
+msgid "<Source 1>"
+msgstr "<Джерело 1>"
+
+msgid "<Source 2>"
+msgstr "<Джерело 2>"
+
+msgid "<Source 3>"
+msgstr "<Джерело 3>"
+
+msgid "<Source 4>"
+msgstr "<Джерело 4>"
+
+msgid "<Source 5>"
+msgstr "<Джерело 5>"
+
+msgid "<Source 6>"
+msgstr "<Джерело 6>"
+
+msgid "<Source 7>"
+msgstr "<Джерело 7>"
+
+msgid "<Source 8>"
+msgstr "<Джерело 8>"
+
+msgid "<Text>"
+msgstr "<Текст>"
+
+msgid "<text>"
+msgstr "<Текст>"
+
 msgid "AND"
 msgstr "AND"
 
@@ -1340,6 +1403,12 @@ msgstr "Дія під час відпускання"
 msgid "Action on Short Press"
 msgstr "Дія під час короткого натискання"
 
+msgid "Activate scene"
+msgstr "Викликати сцену"
+
+msgid "Activated"
+msgstr "Активовано"
+
 msgid "Activation Sensitivity"
 msgstr "Чутливість активації"
 
@@ -1372,6 +1441,9 @@ msgstr "Вікно контролю активності"
 
 msgid "Actual Fan Stage"
 msgstr "Фактичний ступінь вентилятора"
+
+msgid "Actuator 1"
+msgstr "Актуатор 1"
 
 msgid "Actuator 1 Feedback"
 msgstr "Зворотний зв'язок виконавчого пристрою 1"
@@ -1423,6 +1495,39 @@ msgstr "Об'єкти стану виконавчого пристрою"
 
 msgid "Actuator Status Settings"
 msgstr "Налаштування стану виконавчого пристрою"
+
+msgid "Actuator group A"
+msgstr "Група актуаторів A"
+
+msgid "Actuator group B"
+msgstr "Група актуаторів B"
+
+msgid "Actuator group C"
+msgstr "Група актуаторів C"
+
+msgid "Actuator group D"
+msgstr "Група актуаторів D"
+
+msgid "Actuator group E"
+msgstr "Група актуаторів E"
+
+msgid "Actuator group F"
+msgstr "Група актуаторів F"
+
+msgid "Actuator group G"
+msgstr "Група актуаторів G"
+
+msgid "Actuator group H"
+msgstr "Група актуаторів H"
+
+msgid "Actuator group I"
+msgstr "Група актуаторів I"
+
+msgid "Actuator group J"
+msgstr "Група актуаторів J"
+
+msgid "Actuator settings"
+msgstr "Налаштування актуаторів"
 
 msgid "Additional Functions"
 msgstr "Додаткові функції"
@@ -1739,6 +1844,9 @@ msgstr "Гучність звуку"
 msgid "Audio Volume Adjustment"
 msgstr "Регулювання гучності звуку"
 
+msgid "Audiocontrol"
+msgstr "Керування звуком"
+
 msgid "Auto/On/Off Selection Object"
 msgstr "Об'єкт вибору авто/увімк./вимк."
 
@@ -1894,6 +2002,9 @@ msgstr "Двійковий стан 2"
 
 msgid "Black"
 msgstr "Чорний"
+
+msgid "Blind"
+msgstr "Жалюзі"
 
 msgid "Blind Command Format"
 msgstr "Формат команди жалюзі"
@@ -2159,6 +2270,9 @@ msgstr "Пауза CD"
 msgid "CD Play"
 msgstr "Відтворення CD"
 
+msgid "CD Player"
+msgstr "CD-програвач"
+
 msgid "CD Power"
 msgstr "Живлення CD"
 
@@ -2245,6 +2359,9 @@ msgstr "Змінити об'єкт 9 у сцені"
 
 msgid "Changed values only"
 msgstr "Лише змінені значення"
+
+msgid "Channel"
+msgstr "Канал"
 
 msgid "Channel 1"
 msgstr "Канал 1"
@@ -2570,6 +2687,9 @@ msgstr "Компактна енергоощадна лампа, усталенн
 msgid "Compact fluorescent load"
 msgstr "Навантаження компактної люмінесцентної лампи"
 
+msgid "Comparator 1"
+msgstr "Компаратор 1"
+
 msgid "Comparison Hysteresis"
 msgstr "Гістерезис порівняння"
 
@@ -2821,6 +2941,9 @@ msgstr "Регулятор вимкнено"
 
 msgid "Controller mode selection"
 msgstr "Вибір режиму регулятора"
+
+msgid "Converter 1"
+msgstr "Перетворювач 1"
 
 msgid "Cool White Intensity"
 msgstr "Інтенсивність холодного білого"
@@ -3242,6 +3365,15 @@ msgstr "Змінювати яскравість кроками"
 msgid "Dim until release"
 msgstr "Змінювати яскравість до відпускання"
 
+msgid "Dimmer"
+msgstr "Димер"
+
+msgid "Dimmerslider"
+msgstr "Повзунок яскравості"
+
+msgid "Dimming"
+msgstr "Димування"
+
 msgid "Dimming Actuator"
 msgstr "Димерний виконавчий модуль"
 
@@ -3349,6 +3481,9 @@ msgstr "Керування відтворенням дисків"
 
 msgid "Disc Selection"
 msgstr "Вибір диска"
+
+msgid "Display"
+msgstr "Дисплей"
 
 msgid "Display Backlight"
 msgstr "Підсвічування дисплея"
@@ -3866,6 +4001,9 @@ msgstr "Вибір ступеня вентилятора"
 msgid "Fan-stage objects"
 msgstr "Об'єкти ступенів вентилятора"
 
+msgid "FanSwitch"
+msgstr "Керування вентилятором"
+
 msgid "Fast response, about 15 s"
 msgstr "Швидкий відгук, близько 15 s"
 
@@ -4118,11 +4256,20 @@ msgstr "Повністю вручну"
 msgid "Fully raised"
 msgstr "Повністю піднято"
 
+msgid "Function"
+msgstr "Функція"
+
+msgid "Function 1"
+msgstr "Функція 1"
+
 msgid "Function 1 Enable"
 msgstr "Дозвіл функції 1"
 
 msgid "Function 1 Text"
 msgstr "Текст функції 1"
+
+msgid "Function 2"
+msgstr "Функція 2"
 
 msgid "Function 2 Enable"
 msgstr "Дозвіл функції 2"
@@ -4130,11 +4277,17 @@ msgstr "Дозвіл функції 2"
 msgid "Function 2 Text"
 msgstr "Текст функції 2"
 
+msgid "Function 3"
+msgstr "Функція 3"
+
 msgid "Function 3 Enable"
 msgstr "Дозвіл функції 3"
 
 msgid "Function 3 Text"
 msgstr "Текст функції 3"
+
+msgid "Function 4"
+msgstr "Функція 4"
 
 msgid "Function 4 Enable"
 msgstr "Дозвіл функції 4"
@@ -4174,6 +4327,9 @@ msgstr "Текст функції"
 
 msgid "Function lighting"
 msgstr "Функціональне підсвічування"
+
+msgid "Gate 1"
+msgstr "Вентиль 1"
 
 msgid "German"
 msgstr "Німецька"
@@ -4399,6 +4555,9 @@ msgstr "Джерело часу утримання"
 
 msgid "Hold Time from Object"
 msgstr "Час утримання з об'єкта"
+
+msgid "Homepage"
+msgstr "Початкова сторінка"
 
 msgid "Hours and minutes"
 msgstr "Години й хвилини"
@@ -4913,6 +5072,12 @@ msgstr "Інвертувати зворотний зв'язок стану"
 msgid "Inverted"
 msgstr "Інверсна"
 
+msgid "It's dry"
+msgstr "Сухо"
+
+msgid "It's raining"
+msgstr "Дощ"
+
 msgid "Italian"
 msgstr "Італійська"
 
@@ -5203,6 +5368,9 @@ msgstr "Лінійна шкала"
 
 msgid "Linked Dimming Outputs"
 msgstr "Пов'язані виходи димування"
+
+msgid "List"
+msgstr "Список"
 
 msgid "List Arrangement"
 msgstr "Упорядкування списку"
@@ -5602,6 +5770,9 @@ msgstr "Найнижчий ручний ступінь вентилятора"
 
 msgid "Magenta for scenes"
 msgstr "Пурпуровий для сцен"
+
+msgid "Main menu"
+msgstr "Головне меню"
 
 msgid "Manual Adjustment Starting Value"
 msgstr "Початкове значення ручної корекції"
@@ -6182,6 +6353,12 @@ msgstr "Виявлення руху"
 msgid "Move Covering"
 msgstr "Перемістити сонцезахист"
 
+msgid "Move down"
+msgstr "Перемістити вниз"
+
+msgid "Move up"
+msgstr "Перемістити вверх"
+
 msgid "Movements Between Reference Runs"
 msgstr "Переміщення між опорними ходами"
 
@@ -6190,6 +6367,12 @@ msgstr "Кілька активних виходів"
 
 msgid "Multiple-Press Selection"
 msgstr "Вибір багаторазовим натисканням"
+
+msgid "Multiplexer 1"
+msgstr "Мультиплексор 1"
+
+msgid "Multiplier 1"
+msgstr "Розподільник телеграм 1"
 
 msgid "Mute"
 msgstr "Вимкнути звук"
@@ -7445,6 +7628,9 @@ msgstr "Налаштування сторінки"
 msgid "Page and Controls"
 msgstr "Сторінка й елементи керування"
 
+msgid "PageLink"
+msgstr "Посилання на сторінку"
+
 msgid "Paired Control 1"
 msgstr "Парний елемент керування 1"
 
@@ -7679,6 +7865,9 @@ msgstr "Керування перемиканням живлення"
 msgid "Pre-Event Switching Output"
 msgstr "Вихід перемикання перед подією"
 
+msgid "Presence"
+msgstr "Присутність"
+
 msgid "Press Duration"
 msgstr "Тривалість натискання"
 
@@ -7886,8 +8075,20 @@ msgstr "RGB із теплим і холодним білим"
 msgid "RGBW"
 msgstr "RGBW"
 
+msgid "RGBWControl"
+msgstr "Керування RGBW"
+
+msgid "RTC"
+msgstr "Температура приміщення"
+
+msgid "RTCControlframe"
+msgstr "Термостат"
+
 msgid "Radiator or convector: 1.5 K, 100 min"
 msgstr "Радіатор або конвектор: 1.5 K, 100 min"
+
+msgid "Radio"
+msgstr "Радіо"
 
 msgid "Radio Controls"
 msgstr "Керування радіо"
@@ -8675,6 +8876,9 @@ msgstr "Видавання значення клавішею"
 msgid "Rocker Value Selection"
 msgstr "Вибір значення клавішею"
 
+msgid "RockerSwitch"
+msgstr "Клавішний вимикач"
+
 msgid "Room"
 msgstr "Кімната"
 
@@ -8926,6 +9130,9 @@ msgstr "Зберігати сцену довгим натисканням"
 
 msgid "Save scene"
 msgstr "Зберегти сцену"
+
+msgid "Scene"
+msgstr "Сцена"
 
 msgid "Scene 1"
 msgstr "Сцена 1"
@@ -9443,6 +9650,9 @@ msgstr "Окремі дії натискання й відпускання"
 msgid "Separate short and long press actions"
 msgstr "Окремі дії короткого й довгого натискання"
 
+msgid "Sequence"
+msgstr "Послідовність"
+
 msgid "Sequence Entry 1"
 msgstr "Елемент послідовності 1"
 
@@ -9616,6 +9826,9 @@ msgstr "Формат введення часу послідовності"
 
 msgid "Sequence Value and Time Settings"
 msgstr "Налаштування значень і часу послідовності"
+
+msgid "Set"
+msgstr "Задати"
 
 msgid "Set Hold Time with Potentiometer"
 msgstr "Задати час утримання потенціометром"
@@ -10358,6 +10571,36 @@ msgstr "Підсвічування стану"
 msgid "Status object"
 msgstr "Об'єкт стану"
 
+msgid "Step 1"
+msgstr "Ступінь 1"
+
+msgid "Step 2"
+msgstr "Ступінь 2"
+
+msgid "Step 3"
+msgstr "Ступінь 3"
+
+msgid "Step 4"
+msgstr "Ступінь 4"
+
+msgid "Step 5"
+msgstr "Ступінь 5"
+
+msgid "Step 6"
+msgstr "Ступінь 6"
+
+msgid "Step 7"
+msgstr "Ступінь 7"
+
+msgid "Step 8"
+msgstr "Ступінь 8"
+
+msgid "Step Down"
+msgstr "Крок униз"
+
+msgid "Step Up"
+msgstr "Крок угору"
+
 msgid "Step or Stop Command Repeat Interval"
 msgstr "Інтервал повторення команди кроку або зупинки"
 
@@ -10414,6 +10657,9 @@ msgstr "Корекція сходу й заходу сонця"
 
 msgid "Swedish"
 msgstr "Шведська"
+
+msgid "Switch"
+msgstr "Вимикач"
 
 msgid "Switch Command"
 msgstr "Команда перемикання"
@@ -10544,6 +10790,9 @@ msgstr "Характер переходу ввімкнення"
 msgid "Switchable local and KNX control"
 msgstr "Перемикане місцеве керування та KNX"
 
+msgid "Switched off"
+msgstr "Вимкнено"
+
 msgid "Switching"
 msgstr "Перемикання"
 
@@ -10582,6 +10831,9 @@ msgstr "Освітлення символу"
 
 msgid "Symbol Style"
 msgstr "Стиль символу"
+
+msgid "System"
+msgstr "Система"
 
 msgid "System Menu Entry Count"
 msgstr "Кількість пунктів системного меню"
@@ -11087,6 +11339,9 @@ msgstr "Розклади"
 msgid "Time Value"
 msgstr "Значення часу"
 
+msgid "Time function 1"
+msgstr "Часова функція 1"
+
 msgid "Timed Output Hold Duration"
 msgstr "Тривалість утримання часового виходу"
 
@@ -11111,8 +11366,14 @@ msgstr "Кінцеве значення таймера"
 msgid "Timer Start Value"
 msgstr "Початкове значення таймера"
 
+msgid "Title"
+msgstr "Заголовок"
+
 msgid "Toggle"
 msgstr "Перемкнути"
+
+msgid "Tools"
+msgstr "Інструменти"
 
 msgid "Trailing-edge dimming"
 msgstr "Димування за заднім фронтом"
@@ -11149,6 +11410,24 @@ msgstr "Передати температуру"
 
 msgid "Transmit When Entering Manual Fan Mode"
 msgstr "Передати під час переходу в ручний режим вентилятора"
+
+msgid "Transmitter 1"
+msgstr "Станція 1"
+
+msgid "Transmitter 2"
+msgstr "Станція 2"
+
+msgid "Transmitter 3"
+msgstr "Станція 3"
+
+msgid "Transmitter 4"
+msgstr "Станція 4"
+
+msgid "Transmitter 5"
+msgstr "Станція 5"
+
+msgid "Transmitter 6"
+msgstr "Станція 6"
 
 msgid "Travel direction (1 bit)"
 msgstr "Напрямок руху (1 біт)"
@@ -11242,6 +11521,9 @@ msgstr "Двопозиційне регулювання (1 байт)"
 
 msgid "Unassigned"
 msgstr "Не призначено"
+
+msgid "Unit"
+msgstr "Одиниця"
 
 msgid "Unit System Selection"
 msgstr "Вибір системи одиниць"
@@ -11549,6 +11831,15 @@ msgstr "Повзунок значення"
 msgid "Value Transfer Direction"
 msgstr "Напрямок передавання значення"
 
+msgid "Value between minimum and threshold 1"
+msgstr "Значення між мінімумом і порогом 1"
+
+msgid "Value between threshold 1 and threshold 2"
+msgstr "Значення між порогами 1 і 2"
+
+msgid "Value between threshold 2 and maximum"
+msgstr "Значення між порогом 2 і максимумом"
+
 msgid "Value for Entire Input Range"
 msgstr "Значення для всього вхідного діапазону"
 
@@ -11588,6 +11879,9 @@ msgstr "Значення під час увімкнення"
 msgid "Value or Status Display"
 msgstr "Відображення значення або стану"
 
+msgid "Value sender"
+msgstr "Передавач значення"
+
 msgid "Value with unit"
 msgstr "Значення з одиницею"
 
@@ -11596,6 +11890,9 @@ msgstr "Колір шкали за значенням"
 
 msgid "Values on Short and Long Press"
 msgstr "Значення під час короткого й довгого натискання"
+
+msgid "Valueslider"
+msgstr "Повзунок значення"
 
 msgid "Ventilation"
 msgstr "Вентиляція"
@@ -11629,6 +11926,9 @@ msgstr "Зупинка відео"
 
 msgid "Video Volume"
 msgstr "Гучність відео"
+
+msgid "Video player"
+msgstr "Відеопрогравач"
 
 msgid "Violet"
 msgstr "Фіолетовий"

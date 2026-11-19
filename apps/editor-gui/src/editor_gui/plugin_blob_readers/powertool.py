@@ -245,7 +245,7 @@ def read_family(config: "FamilyConfig") -> list[PluginSectionView]:
                     if spec["value_kind"] == "V_FREETIMER"
                     else spec["label"],
                     value=str(evaluated.display(parameter)),
-                    default_value=str(spec["default"]),
+                    default_value=str(spec.get("default_text", spec["default"])),
                     section=title,
                     display_order=len(rows) + len(internal),
                     writable=visible,

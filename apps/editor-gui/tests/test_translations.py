@@ -140,13 +140,14 @@ def test_powertool_texts_are_translated(language: str) -> None:
     from importlib.resources import files
 
     root = files("xknxeditor.vendor.powertool")
-    mapping = json.loads(root.joinpath("text-map.json").read_text())
+    mapping = json.loads(root.joinpath("text-map.json").read_text(encoding="utf-8"))
     messages = {
         text
         for nodes in mapping.values()
         for spec in nodes.values()
         for text in (
             spec["label"],
+            spec.get("default_text", ""),
             *spec.get("options", []),
             *spec.get("subsystems", []),
         )
@@ -157,6 +158,7 @@ def test_powertool_texts_are_translated(language: str) -> None:
     translations = _read_mo(catalog.read_bytes())
     for text in messages:
         assert translations.get(text), f"Missing {language} PowerTool text: {text}"
+        assert "\ufffd" not in translations[text]
         assert _placeholders(translations[text]) == _placeholders(text)
         for unit in ("(ms)", "(s)"):
             if unit in text:
@@ -177,3 +179,13 @@ def test_powertool_texts_are_translated(language: str) -> None:
         assert len({translations[text] for text in options}) == len(set(options)), (
             f"Indistinguishable {language} PowerTool options: {options}"
         )
+
+
+def test_powertool_catalog_read_ignores_locale_encoding(monkeypatch) -> None:
+    read_text = Path.read_text
+
+    def windows_read_text(path, encoding=None, errors=None, *, newline=None):
+        return read_text(path, encoding or "cp1252", errors, newline=newline)
+
+    monkeypatch.setattr(Path, "read_text", windows_read_text)
+    test_powertool_texts_are_translated("de")

@@ -1222,6 +1222,69 @@ msgstr "90°"
 msgid "96°"
 msgstr "96°"
 
+msgid "< Text >"
+msgstr "< Text >"
+
+msgid "<Scene 10>"
+msgstr "<Scen 10>"
+
+msgid "<Scene 1>"
+msgstr "<Scen 1>"
+
+msgid "<Scene 2>"
+msgstr "<Scen 2>"
+
+msgid "<Scene 3>"
+msgstr "<Scen 3>"
+
+msgid "<Scene 4>"
+msgstr "<Scen 4>"
+
+msgid "<Scene 5>"
+msgstr "<Scen 5>"
+
+msgid "<Scene 6>"
+msgstr "<Scen 6>"
+
+msgid "<Scene 7>"
+msgstr "<Scen 7>"
+
+msgid "<Scene 8>"
+msgstr "<Scen 8>"
+
+msgid "<Scene 9>"
+msgstr "<Scen 9>"
+
+msgid "<Source 1>"
+msgstr "<Källa 1>"
+
+msgid "<Source 2>"
+msgstr "<Källa 2>"
+
+msgid "<Source 3>"
+msgstr "<Källa 3>"
+
+msgid "<Source 4>"
+msgstr "<Källa 4>"
+
+msgid "<Source 5>"
+msgstr "<Källa 5>"
+
+msgid "<Source 6>"
+msgstr "<Källa 6>"
+
+msgid "<Source 7>"
+msgstr "<Källa 7>"
+
+msgid "<Source 8>"
+msgstr "<Källa 8>"
+
+msgid "<Text>"
+msgstr "<Text>"
+
+msgid "<text>"
+msgstr "<Text>"
+
 msgid "AND"
 msgstr "OCH"
 
@@ -1339,6 +1402,12 @@ msgstr "Åtgärd när knappen släpps"
 msgid "Action on Short Press"
 msgstr "Åtgärd vid kort tryck"
 
+msgid "Activate scene"
+msgstr "Aktivera scen"
+
+msgid "Activated"
+msgstr "Aktiverad"
+
 msgid "Activation Sensitivity"
 msgstr "Aktiveringskänslighet"
 
@@ -1371,6 +1440,9 @@ msgstr "Fönster för aktivitetsövervakning"
 
 msgid "Actual Fan Stage"
 msgstr "Aktuellt fläktsteg"
+
+msgid "Actuator 1"
+msgstr "Ställdon 1"
 
 msgid "Actuator 1 Feedback"
 msgstr "Ställdon 1 Feedback"
@@ -1422,6 +1494,39 @@ msgstr "Aktuatorstatusobjekt"
 
 msgid "Actuator Status Settings"
 msgstr "Ställdonsstatusinställningar"
+
+msgid "Actuator group A"
+msgstr "Ställdonsgrupp A"
+
+msgid "Actuator group B"
+msgstr "Ställdonsgrupp B"
+
+msgid "Actuator group C"
+msgstr "Ställdonsgrupp C"
+
+msgid "Actuator group D"
+msgstr "Ställdonsgrupp D"
+
+msgid "Actuator group E"
+msgstr "Ställdonsgrupp E"
+
+msgid "Actuator group F"
+msgstr "Ställdonsgrupp F"
+
+msgid "Actuator group G"
+msgstr "Ställdonsgrupp G"
+
+msgid "Actuator group H"
+msgstr "Ställdonsgrupp H"
+
+msgid "Actuator group I"
+msgstr "Ställdonsgrupp I"
+
+msgid "Actuator group J"
+msgstr "Ställdonsgrupp J"
+
+msgid "Actuator settings"
+msgstr "Ställdonsinställningar"
 
 msgid "Additional Functions"
 msgstr "Ytterligare funktioner"
@@ -1738,6 +1843,9 @@ msgstr "Ljudvolym"
 msgid "Audio Volume Adjustment"
 msgstr "Justering av ljudvolym"
 
+msgid "Audiocontrol"
+msgstr "Ljudstyrning"
+
 msgid "Auto/On/Off Selection Object"
 msgstr "Auto/På/Av Valobjekt"
 
@@ -1893,6 +2001,9 @@ msgstr "Binär tillstånd 2"
 
 msgid "Black"
 msgstr "Svart"
+
+msgid "Blind"
+msgstr "Persienn"
 
 msgid "Blind Command Format"
 msgstr "Kommandoformat för persienn"
@@ -2158,6 +2269,9 @@ msgstr "CD-paus"
 msgid "CD Play"
 msgstr "CD-spelning"
 
+msgid "CD Player"
+msgstr "CD-spelare"
+
 msgid "CD Power"
 msgstr "CD-ström"
 
@@ -2244,6 +2358,9 @@ msgstr "Ändra Objekt 9 i Scene"
 
 msgid "Changed values only"
 msgstr "Endast ändrade värden"
+
+msgid "Channel"
+msgstr "Kanal"
 
 msgid "Channel 1"
 msgstr "Kanal 1"
@@ -2569,6 +2686,9 @@ msgstr "Kompakt energisnål lampa, 150 s sättning"
 msgid "Compact fluorescent load"
 msgstr "Kompakt fluorescerande belastning"
 
+msgid "Comparator 1"
+msgstr "Jämförare 1"
+
 msgid "Comparison Hysteresis"
 msgstr "Jämförelse Hysteres"
 
@@ -2820,6 +2940,9 @@ msgstr "Styrenheten inaktiverad"
 
 msgid "Controller mode selection"
 msgstr "Val av styrenhetsläge"
+
+msgid "Converter 1"
+msgstr "Omvandlare 1"
 
 msgid "Cool White Intensity"
 msgstr "Kallvit intensitet"
@@ -3241,6 +3364,15 @@ msgstr "Dimra stegvis"
 msgid "Dim until release"
 msgstr "Dimra tills knappen släpps"
 
+msgid "Dimmer"
+msgstr "Dimmer"
+
+msgid "Dimmerslider"
+msgstr "Dimmerreglage"
+
+msgid "Dimming"
+msgstr "Dimring"
+
 msgid "Dimming Actuator"
 msgstr "Dimningsställdon"
 
@@ -3348,6 +3480,9 @@ msgstr "Skivuppspelningskontroller"
 
 msgid "Disc Selection"
 msgstr "Skivval"
+
+msgid "Display"
+msgstr "Visning"
 
 msgid "Display Backlight"
 msgstr "Display Bakgrundsbelysning"
@@ -3865,6 +4000,9 @@ msgstr "Val av fläktsteg"
 msgid "Fan-stage objects"
 msgstr "Objekt för fläktsteg"
 
+msgid "FanSwitch"
+msgstr "Fläktstyrning"
+
 msgid "Fast response, about 15 s"
 msgstr "Snabbt svar, ca 15 s"
 
@@ -4117,11 +4255,20 @@ msgstr "Helt manuellt"
 msgid "Fully raised"
 msgstr "Helt upphöjd"
 
+msgid "Function"
+msgstr "Funktion"
+
+msgid "Function 1"
+msgstr "Funktion 1"
+
 msgid "Function 1 Enable"
 msgstr "Funktion 1 Aktivera"
 
 msgid "Function 1 Text"
 msgstr "Funktion 1 Text"
+
+msgid "Function 2"
+msgstr "Funktion 2"
 
 msgid "Function 2 Enable"
 msgstr "Funktion 2 Aktivera"
@@ -4129,11 +4276,17 @@ msgstr "Funktion 2 Aktivera"
 msgid "Function 2 Text"
 msgstr "Funktion 2 Text"
 
+msgid "Function 3"
+msgstr "Funktion 3"
+
 msgid "Function 3 Enable"
 msgstr "Funktion 3 Aktivera"
 
 msgid "Function 3 Text"
 msgstr "Funktion 3 Text"
+
+msgid "Function 4"
+msgstr "Funktion 4"
 
 msgid "Function 4 Enable"
 msgstr "Funktion 4 Aktivera"
@@ -4173,6 +4326,9 @@ msgstr "Funktionstext"
 
 msgid "Function lighting"
 msgstr "Funktionsbelysning"
+
+msgid "Gate 1"
+msgstr "Grind 1"
 
 msgid "German"
 msgstr "Tyska"
@@ -4398,6 +4554,9 @@ msgstr "Källa för eftergångstid"
 
 msgid "Hold Time from Object"
 msgstr "Eftergångstid från objekt"
+
+msgid "Homepage"
+msgstr "Startsida"
 
 msgid "Hours and minutes"
 msgstr "Timmar och minuter"
@@ -4912,6 +5071,12 @@ msgstr "Invertera statusåterkoppling"
 msgid "Inverted"
 msgstr "Inverterad"
 
+msgid "It's dry"
+msgstr "Torrt"
+
+msgid "It's raining"
+msgstr "Regn"
+
 msgid "Italian"
 msgstr "Italienska"
 
@@ -5202,6 +5367,9 @@ msgstr "Linjär skala"
 
 msgid "Linked Dimming Outputs"
 msgstr "Länkade dimutgångar"
+
+msgid "List"
+msgstr "Lista"
 
 msgid "List Arrangement"
 msgstr "Listarrangemang"
@@ -5601,6 +5769,9 @@ msgstr "Lägsta manuella fläktsteg"
 
 msgid "Magenta for scenes"
 msgstr "Magenta för scener"
+
+msgid "Main menu"
+msgstr "Huvudmeny"
 
 msgid "Manual Adjustment Starting Value"
 msgstr "Manuell justering Startvärde"
@@ -6181,6 +6352,12 @@ msgstr "Rörelsedetektering"
 msgid "Move Covering"
 msgstr "Flytta solskyddet"
 
+msgid "Move down"
+msgstr "Flytta ner"
+
+msgid "Move up"
+msgstr "Flytta upp"
+
 msgid "Movements Between Reference Runs"
 msgstr "Rörelser mellan referenskörningar"
 
@@ -6189,6 +6366,12 @@ msgstr "Flera aktiva utgångar"
 
 msgid "Multiple-Press Selection"
 msgstr "Val genom flera tryck"
+
+msgid "Multiplexer 1"
+msgstr "Multiplexer 1"
+
+msgid "Multiplier 1"
+msgstr "Telegramfördelare 1"
 
 msgid "Mute"
 msgstr "Ljud av"
@@ -7444,6 +7627,9 @@ msgstr "Sidinställningar"
 msgid "Page and Controls"
 msgstr "Sida och kontroller"
 
+msgid "PageLink"
+msgstr "Sidlänk"
+
 msgid "Paired Control 1"
 msgstr "Parad kontroll 1"
 
@@ -7678,6 +7864,9 @@ msgstr "Strömbrytarkontroll"
 msgid "Pre-Event Switching Output"
 msgstr "Kopplingsutgång före händelse"
 
+msgid "Presence"
+msgstr "Närvaro"
+
 msgid "Press Duration"
 msgstr "Tryckvaraktighet"
 
@@ -7885,8 +8074,20 @@ msgstr "RGB med varmt och kallt vitt"
 msgid "RGBW"
 msgstr "RGBW"
 
+msgid "RGBWControl"
+msgstr "RGBW-styrning"
+
+msgid "RTC"
+msgstr "Rumstemperatur"
+
+msgid "RTCControlframe"
+msgstr "Termostat"
+
 msgid "Radiator or convector: 1.5 K, 100 min"
 msgstr "Kylare eller konvektor: 1,5 K, 100 min"
+
+msgid "Radio"
+msgstr "Radio"
 
 msgid "Radio Controls"
 msgstr "Radiokontroller"
@@ -8674,6 +8875,9 @@ msgstr "Värdeutgång med vippa"
 msgid "Rocker Value Selection"
 msgstr "Vippans värdeval"
 
+msgid "RockerSwitch"
+msgstr "Vippströmställare"
+
 msgid "Room"
 msgstr "Rum"
 
@@ -8925,6 +9129,9 @@ msgstr "Spara scen vid långt tryck"
 
 msgid "Save scene"
 msgstr "Spara scen"
+
+msgid "Scene"
+msgstr "Scen"
 
 msgid "Scene 1"
 msgstr "Scen 1"
@@ -9442,6 +9649,9 @@ msgstr "Separata åtgärder vid tryck och släpp"
 msgid "Separate short and long press actions"
 msgstr "Separata åtgärder vid kort och långt tryck"
 
+msgid "Sequence"
+msgstr "Sekvens"
+
 msgid "Sequence Entry 1"
 msgstr "Sekvenspost 1"
 
@@ -9615,6 +9825,9 @@ msgstr "Inmatningsformat för sekvenstid"
 
 msgid "Sequence Value and Time Settings"
 msgstr "Sekvensvärde och tidsinställningar"
+
+msgid "Set"
+msgstr "Ställ in"
 
 msgid "Set Hold Time with Potentiometer"
 msgstr "Ställ in hålltid med potentiometer"
@@ -10357,6 +10570,36 @@ msgstr "Statusbelysning"
 msgid "Status object"
 msgstr "Statusobjekt"
 
+msgid "Step 1"
+msgstr "Steg 1"
+
+msgid "Step 2"
+msgstr "Steg 2"
+
+msgid "Step 3"
+msgstr "Steg 3"
+
+msgid "Step 4"
+msgstr "Steg 4"
+
+msgid "Step 5"
+msgstr "Steg 5"
+
+msgid "Step 6"
+msgstr "Steg 6"
+
+msgid "Step 7"
+msgstr "Steg 7"
+
+msgid "Step 8"
+msgstr "Steg 8"
+
+msgid "Step Down"
+msgstr "Steg ned"
+
+msgid "Step Up"
+msgstr "Steg upp"
+
 msgid "Step or Stop Command Repeat Interval"
 msgstr "Steg- eller stoppkommando Upprepningsintervall"
 
@@ -10413,6 +10656,9 @@ msgstr "Justering av soluppgång och solnedgång"
 
 msgid "Swedish"
 msgstr "Svenska"
+
+msgid "Switch"
+msgstr "Strömställare"
 
 msgid "Switch Command"
 msgstr "Kopplingskommando"
@@ -10543,6 +10789,9 @@ msgstr "Övergång vid tillslag"
 msgid "Switchable local and KNX control"
 msgstr "Omkopplingsbar lokal och KNX styrning"
 
+msgid "Switched off"
+msgstr "Avstängd"
+
 msgid "Switching"
 msgstr "Byter"
 
@@ -10581,6 +10830,9 @@ msgstr "Symbol belysning"
 
 msgid "Symbol Style"
 msgstr "Symbol stil"
+
+msgid "System"
+msgstr "System"
 
 msgid "System Menu Entry Count"
 msgstr "Antal systemmenyposter"
@@ -11086,6 +11338,9 @@ msgstr "Tidsscheman"
 msgid "Time Value"
 msgstr "Tidsvärde"
 
+msgid "Time function 1"
+msgstr "Tidsfunktion 1"
+
 msgid "Timed Output Hold Duration"
 msgstr "Hålltid för tidsstyrd utgång"
 
@@ -11110,8 +11365,14 @@ msgstr "Timer slutvärde"
 msgid "Timer Start Value"
 msgstr "Timer startvärde"
 
+msgid "Title"
+msgstr "Titel"
+
 msgid "Toggle"
 msgstr "Växla tillstånd"
+
+msgid "Tools"
+msgstr "Verktyg"
 
 msgid "Trailing-edge dimming"
 msgstr "Bakkantsdimring"
@@ -11148,6 +11409,24 @@ msgstr "Sändningstemperatur"
 
 msgid "Transmit When Entering Manual Fan Mode"
 msgstr "Sänd när man går in i manuellt fläktläge"
+
+msgid "Transmitter 1"
+msgstr "Station 1"
+
+msgid "Transmitter 2"
+msgstr "Station 2"
+
+msgid "Transmitter 3"
+msgstr "Station 3"
+
+msgid "Transmitter 4"
+msgstr "Station 4"
+
+msgid "Transmitter 5"
+msgstr "Station 5"
+
+msgid "Transmitter 6"
+msgstr "Station 6"
 
 msgid "Travel direction (1 bit)"
 msgstr "Färdriktning (1 bit)"
@@ -11241,6 +11520,9 @@ msgstr "Tvålägeskontroll (1 byte)"
 
 msgid "Unassigned"
 msgstr "Ej tilldelad"
+
+msgid "Unit"
+msgstr "Enhet"
 
 msgid "Unit System Selection"
 msgstr "Val av enhetssystem"
@@ -11548,6 +11830,15 @@ msgstr "Värdereglage"
 msgid "Value Transfer Direction"
 msgstr "Riktning för värdeöverföring"
 
+msgid "Value between minimum and threshold 1"
+msgstr "Värde mellan minimum och tröskel 1"
+
+msgid "Value between threshold 1 and threshold 2"
+msgstr "Värde mellan tröskel 1 och 2"
+
+msgid "Value between threshold 2 and maximum"
+msgstr "Värde mellan tröskel 2 och maximum"
+
 msgid "Value for Entire Input Range"
 msgstr "Värde för hela inmatningsområdet"
 
@@ -11587,6 +11878,9 @@ msgstr "Värde vid Slå på"
 msgid "Value or Status Display"
 msgstr "Värde eller statusvisning"
 
+msgid "Value sender"
+msgstr "Värdesändare"
+
 msgid "Value with unit"
 msgstr "Värde med enhet"
 
@@ -11595,6 +11889,9 @@ msgstr "Värdebaserad mätarfärg"
 
 msgid "Values on Short and Long Press"
 msgstr "Värden vid kort och långt tryck"
+
+msgid "Valueslider"
+msgstr "Värdereglage"
 
 msgid "Ventilation"
 msgstr "Ventilation"
@@ -11628,6 +11925,9 @@ msgstr "Video Stopp"
 
 msgid "Video Volume"
 msgstr "Videovolym"
+
+msgid "Video player"
+msgstr "Videospelare"
 
 msgid "Violet"
 msgstr "Violett"

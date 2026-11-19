@@ -1222,6 +1222,69 @@ msgstr "90°"
 msgid "96°"
 msgstr "96°"
 
+msgid "< Text >"
+msgstr "< Texti >"
+
+msgid "<Scene 10>"
+msgstr "<Atriði 10>"
+
+msgid "<Scene 1>"
+msgstr "<Atriði 1>"
+
+msgid "<Scene 2>"
+msgstr "<Atriði 2>"
+
+msgid "<Scene 3>"
+msgstr "<Atriði 3>"
+
+msgid "<Scene 4>"
+msgstr "<Atriði 4>"
+
+msgid "<Scene 5>"
+msgstr "<Atriði 5>"
+
+msgid "<Scene 6>"
+msgstr "<Atriði 6>"
+
+msgid "<Scene 7>"
+msgstr "<Atriði 7>"
+
+msgid "<Scene 8>"
+msgstr "<Atriði 8>"
+
+msgid "<Scene 9>"
+msgstr "<Atriði 9>"
+
+msgid "<Source 1>"
+msgstr "<Heimild 1>"
+
+msgid "<Source 2>"
+msgstr "<Heimild 2>"
+
+msgid "<Source 3>"
+msgstr "<Heimild 3>"
+
+msgid "<Source 4>"
+msgstr "<Heimild 4>"
+
+msgid "<Source 5>"
+msgstr "<Heimild 5>"
+
+msgid "<Source 6>"
+msgstr "<Heimild 6>"
+
+msgid "<Source 7>"
+msgstr "<Heimild 7>"
+
+msgid "<Source 8>"
+msgstr "<Heimild 8>"
+
+msgid "<Text>"
+msgstr "<Texti>"
+
+msgid "<text>"
+msgstr "<Texti>"
+
 msgid "AND"
 msgstr "AND"
 
@@ -1339,6 +1402,12 @@ msgstr "Aðgerð þegar sleppt er"
 msgid "Action on Short Press"
 msgstr "Aðgerð við stutta ýtingu"
 
+msgid "Activate scene"
+msgstr "Virkja senu"
+
+msgid "Activated"
+msgstr "Virkt"
+
 msgid "Activation Sensitivity"
 msgstr "Virkjunarnæmi"
 
@@ -1371,6 +1440,9 @@ msgstr "Aðgerðarvöktunargluggi"
 
 msgid "Actual Fan Stage"
 msgstr "Raunverulegt Fan Stage"
+
+msgid "Actuator 1"
+msgstr "Stýrieining 1"
 
 msgid "Actuator 1 Feedback"
 msgstr "Endurgjöf stýribúnaðar 1"
@@ -1422,6 +1494,39 @@ msgstr "Stöðuhlutir stýribúnaðar"
 
 msgid "Actuator Status Settings"
 msgstr "Stillingar stýrisbúnaðar"
+
+msgid "Actuator group A"
+msgstr "Stýrieiningahópur A"
+
+msgid "Actuator group B"
+msgstr "Stýrieiningahópur B"
+
+msgid "Actuator group C"
+msgstr "Stýrieiningahópur C"
+
+msgid "Actuator group D"
+msgstr "Stýrieiningahópur D"
+
+msgid "Actuator group E"
+msgstr "Stýrieiningahópur E"
+
+msgid "Actuator group F"
+msgstr "Stýrieiningahópur F"
+
+msgid "Actuator group G"
+msgstr "Stýrieiningahópur G"
+
+msgid "Actuator group H"
+msgstr "Stýrieiningahópur H"
+
+msgid "Actuator group I"
+msgstr "Stýrieiningahópur I"
+
+msgid "Actuator group J"
+msgstr "Stýrieiningahópur J"
+
+msgid "Actuator settings"
+msgstr "Stillingar stýrieininga"
 
 msgid "Additional Functions"
 msgstr "Viðbótaraðgerðir"
@@ -1738,6 +1843,9 @@ msgstr "Hljóðstyrkur"
 msgid "Audio Volume Adjustment"
 msgstr "Stilling hljóðstyrks"
 
+msgid "Audiocontrol"
+msgstr "Hljóðstýring"
+
 msgid "Auto/On/Off Selection Object"
 msgstr "Sjálfvirk/Kveikt/Slökkt valhlutur"
 
@@ -1893,6 +2001,9 @@ msgstr "Tvöfaldur ríki 2"
 
 msgid "Black"
 msgstr "Svartur"
+
+msgid "Blind"
+msgstr "Rimlagardína"
 
 msgid "Blind Command Format"
 msgstr "Snið skipunar fyrir rimlagluggatjöld"
@@ -2158,6 +2269,9 @@ msgstr "Hlé á geisladiski"
 msgid "CD Play"
 msgstr "Geisladiskaspilun"
 
+msgid "CD Player"
+msgstr "Geislaspilari"
+
 msgid "CD Power"
 msgstr "Kveikja eða slökkva á geislaspilara"
 
@@ -2244,6 +2358,9 @@ msgstr "Breyttu hlut 9 í senu"
 
 msgid "Changed values only"
 msgstr "Aðeins breytt gildi"
+
+msgid "Channel"
+msgstr "Rás"
 
 msgid "Channel 1"
 msgstr "Rás 1"
@@ -2569,6 +2686,9 @@ msgstr "Fyrirferðarlítill sparpera, 150 sek"
 msgid "Compact fluorescent load"
 msgstr "Samningur flúrljómandi álag"
 
+msgid "Comparator 1"
+msgstr "Samanburður 1"
+
 msgid "Comparison Hysteresis"
 msgstr "Samanburður Hysteresis"
 
@@ -2820,6 +2940,9 @@ msgstr "Stýribúnaður óvirkur"
 
 msgid "Controller mode selection"
 msgstr "Val á stjórnunarstillingu"
+
+msgid "Converter 1"
+msgstr "Breytir 1"
 
 msgid "Cool White Intensity"
 msgstr "Ljósstyrkur kaldhvíts ljóss"
@@ -3241,6 +3364,15 @@ msgstr "Stilla birtu í skrefum"
 msgid "Dim until release"
 msgstr "Stilla birtu þar til sleppt er"
 
+msgid "Dimmer"
+msgstr "Ljósdeyfir"
+
+msgid "Dimmerslider"
+msgstr "Sleði fyrir ljósdeyfingu"
+
+msgid "Dimming"
+msgstr "Ljósdeyfing"
+
 msgid "Dimming Actuator"
 msgstr "Dimmvirki"
 
@@ -3348,6 +3480,9 @@ msgstr "Diskspilunarstýringar"
 
 msgid "Disc Selection"
 msgstr "Val á diskum"
+
+msgid "Display"
+msgstr "Skjár"
 
 msgid "Display Backlight"
 msgstr "Skjár Baklýsing"
@@ -3865,6 +4000,9 @@ msgstr "Aðdáandi sviðsval"
 msgid "Fan-stage objects"
 msgstr "Hlutir á viftustigi"
 
+msgid "FanSwitch"
+msgstr "Viftustýring"
+
 msgid "Fast response, about 15 s"
 msgstr "Hröð viðbrögð, um 15 sek"
 
@@ -4117,11 +4255,20 @@ msgstr "Alveg handvirkt"
 msgid "Fully raised"
 msgstr "Alveg upphækkuð"
 
+msgid "Function"
+msgstr "Aðgerð"
+
+msgid "Function 1"
+msgstr "Aðgerð 1"
+
 msgid "Function 1 Enable"
 msgstr "Virka 1 Virkja"
 
 msgid "Function 1 Text"
 msgstr "Fall 1 Texti"
+
+msgid "Function 2"
+msgstr "Aðgerð 2"
 
 msgid "Function 2 Enable"
 msgstr "Virka 2 Virkja"
@@ -4129,11 +4276,17 @@ msgstr "Virka 2 Virkja"
 msgid "Function 2 Text"
 msgstr "Fall 2 Texti"
 
+msgid "Function 3"
+msgstr "Aðgerð 3"
+
 msgid "Function 3 Enable"
 msgstr "Virka 3 Virkja"
 
 msgid "Function 3 Text"
 msgstr "Fall 3 Texti"
+
+msgid "Function 4"
+msgstr "Aðgerð 4"
 
 msgid "Function 4 Enable"
 msgstr "Virka 4 Virkja"
@@ -4173,6 +4326,9 @@ msgstr "Aðgerðartexti"
 
 msgid "Function lighting"
 msgstr "Virka lýsing"
+
+msgid "Gate 1"
+msgstr "Hlið 1"
 
 msgid "German"
 msgstr "Þýska"
@@ -4398,6 +4554,9 @@ msgstr "Uppruni biðtíma"
 
 msgid "Hold Time from Object"
 msgstr "Haltu tíma frá hlut"
+
+msgid "Homepage"
+msgstr "Upphafssíða"
 
 msgid "Hours and minutes"
 msgstr "Klukkutímar og mínútur"
@@ -4912,6 +5071,12 @@ msgstr "Snúa stöðuviðbrögð"
 msgid "Inverted"
 msgstr "Viðsnúin"
 
+msgid "It's dry"
+msgstr "Þurrt"
+
+msgid "It's raining"
+msgstr "Rigning"
+
 msgid "Italian"
 msgstr "Ítalska"
 
@@ -5202,6 +5367,9 @@ msgstr "Línulegur mælikvarði"
 
 msgid "Linked Dimming Outputs"
 msgstr "Tengd dimmuútgangur"
+
+msgid "List"
+msgstr "Listi"
 
 msgid "List Arrangement"
 msgstr "Fyrirkomulag lista"
@@ -5601,6 +5769,9 @@ msgstr "Lægsta handvirka viftustigið"
 
 msgid "Magenta for scenes"
 msgstr "Magenta fyrir senur"
+
+msgid "Main menu"
+msgstr "Aðalvalmynd"
 
 msgid "Manual Adjustment Starting Value"
 msgstr "Handvirk stilling upphafsgildi"
@@ -6181,6 +6352,12 @@ msgstr "Hreyfingarskynjun"
 msgid "Move Covering"
 msgstr "Færa Covering"
 
+msgid "Move down"
+msgstr "Færa niður"
+
+msgid "Move up"
+msgstr "Færa upp"
+
 msgid "Movements Between Reference Runs"
 msgstr "Hreyfingar milli viðmiðunarhlaupa"
 
@@ -6189,6 +6366,12 @@ msgstr "Margar virkar útgangar"
 
 msgid "Multiple-Press Selection"
 msgstr "Margþýtt val"
+
+msgid "Multiplexer 1"
+msgstr "Fléttari 1"
+
+msgid "Multiplier 1"
+msgstr "Skeytadreifir 1"
 
 msgid "Mute"
 msgstr "Þagga"
@@ -7444,6 +7627,9 @@ msgstr "Síðustillingar"
 msgid "Page and Controls"
 msgstr "Síða og stýringar"
 
+msgid "PageLink"
+msgstr "Síðutengill"
+
 msgid "Paired Control 1"
 msgstr "Pöruð stjórn 1"
 
@@ -7678,6 +7864,9 @@ msgstr "Aflrofisstýring"
 msgid "Pre-Event Switching Output"
 msgstr "Skiptaúttak fyrir viðburð"
 
+msgid "Presence"
+msgstr "Viðvera"
+
 msgid "Press Duration"
 msgstr "Ýttu á Lengd"
 
@@ -7885,8 +8074,20 @@ msgstr "RGB með heitu og köldu hvítu"
 msgid "RGBW"
 msgstr "RGBW"
 
+msgid "RGBWControl"
+msgstr "RGBW-stýring"
+
+msgid "RTC"
+msgstr "Herbergishiti"
+
+msgid "RTCControlframe"
+msgstr "Hitastillir"
+
 msgid "Radiator or convector: 1.5 K, 100 min"
 msgstr "Ofn eða convector: 1,5 K, 100 mín"
+
+msgid "Radio"
+msgstr "Útvarp"
 
 msgid "Radio Controls"
 msgstr "Útvarpsstýringar"
@@ -8674,6 +8875,9 @@ msgstr "Gildisúttak með vippurofa"
 msgid "Rocker Value Selection"
 msgstr "Gildisval með vippurofa"
 
+msgid "RockerSwitch"
+msgstr "Velturofi"
+
 msgid "Room"
 msgstr "Herbergi"
 
@@ -8925,6 +9129,9 @@ msgstr "Vista senu með langri ýtingu"
 
 msgid "Save scene"
 msgstr "Vista atriði"
+
+msgid "Scene"
+msgstr "Sena"
 
 msgid "Scene 1"
 msgstr "Atriði 1"
@@ -9442,6 +9649,9 @@ msgstr "Aðskildar frétta- og útgáfuaðgerðir"
 msgid "Separate short and long press actions"
 msgstr "Aðskilja stuttar og langar stuttar aðgerðir"
 
+msgid "Sequence"
+msgstr "Runa"
+
 msgid "Sequence Entry 1"
 msgstr "Röð færsla 1"
 
@@ -9615,6 +9825,9 @@ msgstr "Röð tímafærslusnið"
 
 msgid "Sequence Value and Time Settings"
 msgstr "Raðgildi og tímastillingar"
+
+msgid "Set"
+msgstr "Stilla"
 
 msgid "Set Hold Time with Potentiometer"
 msgstr "Stilltu biðtíma með kraftmæli"
@@ -10357,6 +10570,36 @@ msgstr "Stöðulýsing"
 msgid "Status object"
 msgstr "Stöðuhlutur"
 
+msgid "Step 1"
+msgstr "Stig 1"
+
+msgid "Step 2"
+msgstr "Stig 2"
+
+msgid "Step 3"
+msgstr "Stig 3"
+
+msgid "Step 4"
+msgstr "Stig 4"
+
+msgid "Step 5"
+msgstr "Stig 5"
+
+msgid "Step 6"
+msgstr "Stig 6"
+
+msgid "Step 7"
+msgstr "Stig 7"
+
+msgid "Step 8"
+msgstr "Stig 8"
+
+msgid "Step Down"
+msgstr "Skref niður"
+
+msgid "Step Up"
+msgstr "Skref upp"
+
 msgid "Step or Stop Command Repeat Interval"
 msgstr "Skref eða stöðva skipun endurtekningarbil"
 
@@ -10413,6 +10656,9 @@ msgstr "Aðlögun sólarupprásar og sólseturs"
 
 msgid "Swedish"
 msgstr "Sænska"
+
+msgid "Switch"
+msgstr "Rofi"
 
 msgid "Switch Command"
 msgstr "Kveiki- og slökkviskipun"
@@ -10543,6 +10789,9 @@ msgstr "Kveikt á umbreytingarstíll"
 msgid "Switchable local and KNX control"
 msgstr "Skipanleg staðbundin og KNX stjórn"
 
+msgid "Switched off"
+msgstr "Slökkt"
+
 msgid "Switching"
 msgstr "Skipti"
 
@@ -10581,6 +10830,9 @@ msgstr "Táknlýsing"
 
 msgid "Symbol Style"
 msgstr "Táknstíll"
+
+msgid "System"
+msgstr "Kerfi"
 
 msgid "System Menu Entry Count"
 msgstr "Fjöldi innfærslukerfisvalmyndar"
@@ -11086,6 +11338,9 @@ msgstr "Tímaáætlanir"
 msgid "Time Value"
 msgstr "Tímagildi"
 
+msgid "Time function 1"
+msgstr "Tímavirkni 1"
+
 msgid "Timed Output Hold Duration"
 msgstr "Tímasett úttakshaldslengd"
 
@@ -11110,8 +11365,14 @@ msgstr "Lokagildi tímamælis"
 msgid "Timer Start Value"
 msgstr "Upphafsgildi tímamælis"
 
+msgid "Title"
+msgstr "Titill"
+
 msgid "Toggle"
 msgstr "Víxla stöðu"
+
+msgid "Tools"
+msgstr "Verkfæri"
 
 msgid "Trailing-edge dimming"
 msgstr "Ljósdeyfing með skurði í lok hálfbylgju"
@@ -11148,6 +11409,24 @@ msgstr "Senda hitastig"
 
 msgid "Transmit When Entering Manual Fan Mode"
 msgstr "Senda þegar farið er í handvirka viftuham"
+
+msgid "Transmitter 1"
+msgstr "Stöð 1"
+
+msgid "Transmitter 2"
+msgstr "Stöð 2"
+
+msgid "Transmitter 3"
+msgstr "Stöð 3"
+
+msgid "Transmitter 4"
+msgstr "Stöð 4"
+
+msgid "Transmitter 5"
+msgstr "Stöð 5"
+
+msgid "Transmitter 6"
+msgstr "Stöð 6"
 
 msgid "Travel direction (1 bit)"
 msgstr "Ferðastefna (1 biti)"
@@ -11241,6 +11520,9 @@ msgstr "Tveggja staða stjórn (1 bæti)"
 
 msgid "Unassigned"
 msgstr "Óúthlutað"
+
+msgid "Unit"
+msgstr "Eining"
 
 msgid "Unit System Selection"
 msgstr "Val á einingakerfi"
@@ -11548,6 +11830,15 @@ msgstr "Gildi renna"
 msgid "Value Transfer Direction"
 msgstr "Verðmiðlunarstefna"
 
+msgid "Value between minimum and threshold 1"
+msgstr "Gildi milli lágmarks og þröskulds 1"
+
+msgid "Value between threshold 1 and threshold 2"
+msgstr "Gildi milli þröskulda 1 og 2"
+
+msgid "Value between threshold 2 and maximum"
+msgstr "Gildi milli þröskulds 2 og hámarks"
+
 msgid "Value for Entire Input Range"
 msgstr "Gildi fyrir allt inntakssviðið"
 
@@ -11587,6 +11878,9 @@ msgstr "Gildi þegar kveikt er á"
 msgid "Value or Status Display"
 msgstr "Gildi eða stöðuskjár"
 
+msgid "Value sender"
+msgstr "Gildissendir"
+
 msgid "Value with unit"
 msgstr "Gildi með einingu"
 
@@ -11595,6 +11889,9 @@ msgstr "Gildi-Based Gauge Litur"
 
 msgid "Values on Short and Long Press"
 msgstr "Gildi við stutta og langa ýtingu"
+
+msgid "Valueslider"
+msgstr "Gildissleði"
 
 msgid "Ventilation"
 msgstr "Loftræsting"
@@ -11628,6 +11925,9 @@ msgstr "Myndband Stöðva"
 
 msgid "Video Volume"
 msgstr "Hljóðstyrkur myndbands"
+
+msgid "Video player"
+msgstr "Myndspilari"
 
 msgid "Violet"
 msgstr "Fjólublá"

@@ -61,7 +61,7 @@ def test_family_localization_preserves_schema_and_values():
                 assert english.stored(node) == german.stored(localized)
                 assert english.display(node) == german.display(localized)
             for key, value in node.spec.items():
-                if key not in ("label", "options", "subsystem_labels"):
+                if key not in ("label", "options", "subsystem_labels", "default_text"):
                     assert localized.spec[key] == value
             if "options" in node.spec:
                 assert [o["value"] for o in node.spec["options"]] == [
@@ -112,17 +112,90 @@ def test_shipped_presentation_covers_all_metadata_and_native_keys():
             for kind in ("options", "subsystems"):
                 assert len(description.get(kind, [])) == len(node.get(kind, []))
                 assert all(text.strip() for text in description.get(kind, []))
+            if (
+                node.get("value_kind") in ("V_STRING", "V_STRINGPTR")
+                and node["extension"] != "DatapointConfig"
+                and node.get("default")
+                and any(c.isalpha() for c in node["default"])
+            ):
+                assert description["default_text"] == node["default"]
+            else:
+                assert "default_text" not in description
     for spec in native_nodes().values():
         keys = [spec["node"], *spec["fields"].values(), *spec["objects"].values()]
         assert all(
             key.removeprefix("BJE.toolB.ProductDatabase.") in mapping["3"]
             for key in keys
         )
-    native = json.loads(root.joinpath("schema.json").read_text())
+    native = json.loads(root.joinpath("schema.json").read_text(encoding="utf-8"))
     for function in native.values():
         assert "label" not in function
         assert all("label" not in field for field in function["fields"])
         assert all("label" not in obj for obj in function["objects"])
+
+
+def test_text_map_has_sorted_nodes_on_separate_lines():
+    import json
+    from importlib.resources import files
+
+    text = (
+        files("xknxeditor.vendor.powertool")
+        .joinpath("text-map.json")
+        .read_text(encoding="utf-8")
+    )
+    mapping = json.loads(text)
+    assert list(mapping) == sorted(mapping)
+    lines = [line.strip().removesuffix(",") for line in text.splitlines()]
+    node_lines = [line for line in lines if ": {" in line and line.endswith("}")]
+    assert len(node_lines) == sum(len(nodes) for nodes in mapping.values())
+    for line in node_lines:
+        node = json.loads("{" + line + "}")
+        spec = next(iter(node.values()))
+        assert list(spec) == sorted(spec)
+    for nodes in mapping.values():
+        assert list(nodes) == sorted(nodes)
+
+
+@pytest.mark.parametrize("value", [None, "Homepage", "My menu", ""])
+def test_translated_text_default_keeps_saved_value_and_image(value):
+    from dataclasses import replace
+
+    from xknxeditor.vendor.powertool.family import from_saved
+
+    config = FamilyConfig(
+        "SmartTouch", database_code=20, program_ids=("0007610840", "0007610850")
+    )
+    state = FamilyEvaluation(config)
+    home = next(
+        n for n in state.nodes.values() if n.key == "App_HomePage1+Par_ControlName"
+    )
+    config = replace(config, values={home.path: value})
+    image = compile_native(config).pid
+    blob = write_project_blob(None, config)
+    for language, expected in (("en", "Homepage"), ("de-DE", "Startseite")):
+        localized = FamilyEvaluation(config, language=language)
+        node = localized.nodes[home.path]
+        assert node.spec["default"] == "Homepage"
+        assert node.spec["default_text"] == expected
+        assert localized.display(node) == ("Homepage" if value is None else value)
+        saved = read_project_blob(blob, language)
+        parameter = next(
+            p for c in saved.channels for p in c.parameters if p.path == home.path
+        )
+        assert parameter.default_value == expected
+        assert parameter.value == localized.stored(node)
+    assert compile_native(config).pid == image
+    restored = replace(from_saved(blob, qualified=True), program_ids=config.program_ids)
+    assert compile_native(restored).pid == image
+
+
+def test_hidden_text_default_is_translated_without_changing_encoding_metadata():
+    schema = next(s for s in schemas() if s["code"] == 1)
+    key = "GUI_ListeKreismenue+Par_OffsetListtext"
+    translated = Presentation(1, "de-DE").schema(schema)
+    assert translated["nodes"][key]["default_text"] == "Hauptmenü"
+    assert translated["nodes"][key]["default"] == "Main menu"
+    assert "default_text" not in schema["nodes"][key]
 
 
 def test_free_timer_labels_cover_all_product_languages():

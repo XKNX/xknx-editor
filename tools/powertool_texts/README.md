@@ -3,6 +3,10 @@
 The vendor package's `powertool/text-map.json` maps technical node identifiers to
 independently written English labels and ordered choices. Encoding metadata is
 separate. Keep option order and units unchanged when editing the texts.
+The updater formats UTF-8 JSON with sorted keys and one node per line.
+`default_text` keeps the original English device text as the translation key for
+the suggested default. Stored text values and image defaults remain unchanged
+when the product language changes.
 
 Translations use the `powertool` gettext domain in the same package. After changing
 English texts, update the catalogs, translate the new entries in every language,

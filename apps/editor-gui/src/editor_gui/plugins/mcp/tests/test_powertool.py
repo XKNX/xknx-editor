@@ -184,3 +184,29 @@ async def test_product_language_in_plugin_parameters(tmp_path, monkeypatch):
         assert "Upper / Rocker" in str(result)
         assert project.cursor == before
     project.close()
+
+
+async def test_text_default_suggestions_match_gui(tmp_path, monkeypatch):
+    from editor_gui import languages
+    from editor_gui.plugin_blob_readers.powertool import read_family
+    from xknxeditor.vendor.powertool.family import FamilyConfig
+
+    ctx = _build_ctx(tmp_path)
+    project, nid = native_project(tmp_path, monkeypatch, ctx.api.project)
+    config = FamilyConfig("SmartTouch", database_code=20)
+    monkeypatch.setattr(project, "plugin_sections", lambda *args: read_family(config))
+    before = project.cursor
+    async with Client(build_server(ctx)) as client:
+        for language, expected in (("de-DE", "Startseite"), ("en-US", "Homepage")):
+            monkeypatch.setattr(languages, "_product_language", language)
+            result = await _data(client, "project_plugin_parameters", node_id=nid)
+            row = next(
+                p
+                for section in result["sections"]
+                for p in section["parameters"]
+                if p["value"] == "Homepage"
+            )
+            assert row["default_value"] == expected
+            assert row["raw_value"] == "Homepage"
+    assert project.cursor == before
+    project.close()

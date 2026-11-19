@@ -1223,6 +1223,69 @@ msgstr "90°"
 msgid "96°"
 msgstr "96°"
 
+msgid "< Text >"
+msgstr "< Tekst >"
+
+msgid "<Scene 10>"
+msgstr "<Scena 10>"
+
+msgid "<Scene 1>"
+msgstr "<Scena 1>"
+
+msgid "<Scene 2>"
+msgstr "<Scena 2>"
+
+msgid "<Scene 3>"
+msgstr "<Scena 3>"
+
+msgid "<Scene 4>"
+msgstr "<Scena 4>"
+
+msgid "<Scene 5>"
+msgstr "<Scena 5>"
+
+msgid "<Scene 6>"
+msgstr "<Scena 6>"
+
+msgid "<Scene 7>"
+msgstr "<Scena 7>"
+
+msgid "<Scene 8>"
+msgstr "<Scena 8>"
+
+msgid "<Scene 9>"
+msgstr "<Scena 9>"
+
+msgid "<Source 1>"
+msgstr "<Źródło 1>"
+
+msgid "<Source 2>"
+msgstr "<Źródło 2>"
+
+msgid "<Source 3>"
+msgstr "<Źródło 3>"
+
+msgid "<Source 4>"
+msgstr "<Źródło 4>"
+
+msgid "<Source 5>"
+msgstr "<Źródło 5>"
+
+msgid "<Source 6>"
+msgstr "<Źródło 6>"
+
+msgid "<Source 7>"
+msgstr "<Źródło 7>"
+
+msgid "<Source 8>"
+msgstr "<Źródło 8>"
+
+msgid "<Text>"
+msgstr "<Tekst>"
+
+msgid "<text>"
+msgstr "<Tekst>"
+
 msgid "AND"
 msgstr "AND"
 
@@ -1340,6 +1403,12 @@ msgstr "Działanie po zwolnieniu"
 msgid "Action on Short Press"
 msgstr "Działanie po krótkim naciśnięciu"
 
+msgid "Activate scene"
+msgstr "Wywołaj scenę"
+
+msgid "Activated"
+msgstr "Aktywowane"
+
 msgid "Activation Sensitivity"
 msgstr "Czułość aktywacji"
 
@@ -1372,6 +1441,9 @@ msgstr "Okno monitorowania aktywności"
 
 msgid "Actual Fan Stage"
 msgstr "Rzeczywisty stopień wentylatora"
+
+msgid "Actuator 1"
+msgstr "Aktor 1"
 
 msgid "Actuator 1 Feedback"
 msgstr "Informacja zwrotna aktora 1"
@@ -1423,6 +1495,39 @@ msgstr "Obiekty stanu aktora"
 
 msgid "Actuator Status Settings"
 msgstr "Ustawienia stanu aktora"
+
+msgid "Actuator group A"
+msgstr "Grupa aktorów A"
+
+msgid "Actuator group B"
+msgstr "Grupa aktorów B"
+
+msgid "Actuator group C"
+msgstr "Grupa aktorów C"
+
+msgid "Actuator group D"
+msgstr "Grupa aktorów D"
+
+msgid "Actuator group E"
+msgstr "Grupa aktorów E"
+
+msgid "Actuator group F"
+msgstr "Grupa aktorów F"
+
+msgid "Actuator group G"
+msgstr "Grupa aktorów G"
+
+msgid "Actuator group H"
+msgstr "Grupa aktorów H"
+
+msgid "Actuator group I"
+msgstr "Grupa aktorów I"
+
+msgid "Actuator group J"
+msgstr "Grupa aktorów J"
+
+msgid "Actuator settings"
+msgstr "Ustawienia aktorów"
 
 msgid "Additional Functions"
 msgstr "Funkcje dodatkowe"
@@ -1739,6 +1844,9 @@ msgstr "Głośność dźwięku"
 msgid "Audio Volume Adjustment"
 msgstr "Regulacja głośności dźwięku"
 
+msgid "Audiocontrol"
+msgstr "Sterowanie dźwiękiem"
+
 msgid "Auto/On/Off Selection Object"
 msgstr "Obiekt wyboru automatycznie/włączone/wyłączone"
 
@@ -1894,6 +2002,9 @@ msgstr "Stan binarny 2"
 
 msgid "Black"
 msgstr "Czarny"
+
+msgid "Blind"
+msgstr "Żaluzja"
 
 msgid "Blind Command Format"
 msgstr "Format polecenia żaluzji"
@@ -2159,6 +2270,9 @@ msgstr "Pauza CD"
 msgid "CD Play"
 msgstr "Odtwarzanie CD"
 
+msgid "CD Player"
+msgstr "Odtwarzacz CD"
+
 msgid "CD Power"
 msgstr "Zasilanie CD"
 
@@ -2245,6 +2359,9 @@ msgstr "Zmień obiekt 9 w scenie"
 
 msgid "Changed values only"
 msgstr "Tylko zmienione wartości"
+
+msgid "Channel"
+msgstr "Kanał"
 
 msgid "Channel 1"
 msgstr "Kanał 1"
@@ -2570,6 +2687,9 @@ msgstr "Kompaktowa lampa energooszczędna, stabilizacja 150 s"
 msgid "Compact fluorescent load"
 msgstr "Obciążenie świetlówką kompaktową"
 
+msgid "Comparator 1"
+msgstr "Komparator 1"
+
 msgid "Comparison Hysteresis"
 msgstr "Histereza porównania"
 
@@ -2821,6 +2941,9 @@ msgstr "Regulator wyłączony"
 
 msgid "Controller mode selection"
 msgstr "Wybór trybu regulatora"
+
+msgid "Converter 1"
+msgstr "Konwerter 1"
 
 msgid "Cool White Intensity"
 msgstr "Natężenie zimnej bieli"
@@ -3242,6 +3365,15 @@ msgstr "Ściemniaj stopniowo"
 msgid "Dim until release"
 msgstr "Ściemniaj do zwolnienia"
 
+msgid "Dimmer"
+msgstr "Ściemniacz"
+
+msgid "Dimmerslider"
+msgstr "Suwak ściemniania"
+
+msgid "Dimming"
+msgstr "Ściemnianie"
+
 msgid "Dimming Actuator"
 msgstr "Aktor ściemniający"
 
@@ -3349,6 +3481,9 @@ msgstr "Sterowanie odtwarzaniem płyt"
 
 msgid "Disc Selection"
 msgstr "Wybór płyty"
+
+msgid "Display"
+msgstr "Wyświetlacz"
 
 msgid "Display Backlight"
 msgstr "Podświetlenie wyświetlacza"
@@ -3866,6 +4001,9 @@ msgstr "Wybór stopnia wentylatora"
 msgid "Fan-stage objects"
 msgstr "Obiekty stopni wentylatora"
 
+msgid "FanSwitch"
+msgstr "Sterowanie wentylatorem"
+
 msgid "Fast response, about 15 s"
 msgstr "Szybka reakcja, około 15 s"
 
@@ -4118,11 +4256,20 @@ msgstr "W pełni ręczne"
 msgid "Fully raised"
 msgstr "Całkowicie podniesione"
 
+msgid "Function"
+msgstr "Funkcja"
+
+msgid "Function 1"
+msgstr "Funkcja 1"
+
 msgid "Function 1 Enable"
 msgstr "Zezwolenie na funkcję 1"
 
 msgid "Function 1 Text"
 msgstr "Tekst funkcji 1"
+
+msgid "Function 2"
+msgstr "Funkcja 2"
 
 msgid "Function 2 Enable"
 msgstr "Zezwolenie na funkcję 2"
@@ -4130,11 +4277,17 @@ msgstr "Zezwolenie na funkcję 2"
 msgid "Function 2 Text"
 msgstr "Tekst funkcji 2"
 
+msgid "Function 3"
+msgstr "Funkcja 3"
+
 msgid "Function 3 Enable"
 msgstr "Zezwolenie na funkcję 3"
 
 msgid "Function 3 Text"
 msgstr "Tekst funkcji 3"
+
+msgid "Function 4"
+msgstr "Funkcja 4"
 
 msgid "Function 4 Enable"
 msgstr "Zezwolenie na funkcję 4"
@@ -4174,6 +4327,9 @@ msgstr "Tekst funkcji"
 
 msgid "Function lighting"
 msgstr "Podświetlenie funkcji"
+
+msgid "Gate 1"
+msgstr "Bramka 1"
 
 msgid "German"
 msgstr "Niemiecki"
@@ -4399,6 +4555,9 @@ msgstr "Źródło czasu podtrzymania"
 
 msgid "Hold Time from Object"
 msgstr "Czas podtrzymania z obiektu"
+
+msgid "Homepage"
+msgstr "Strona główna"
 
 msgid "Hours and minutes"
 msgstr "Godziny i minuty"
@@ -4913,6 +5072,12 @@ msgstr "Odwróć informację zwrotną stanu"
 msgid "Inverted"
 msgstr "Odwrócona"
 
+msgid "It's dry"
+msgstr "Sucho"
+
+msgid "It's raining"
+msgstr "Deszcz"
+
 msgid "Italian"
 msgstr "Włoski"
 
@@ -5203,6 +5368,9 @@ msgstr "Skala liniowa"
 
 msgid "Linked Dimming Outputs"
 msgstr "Połączone wyjścia ściemniania"
+
+msgid "List"
+msgstr "Lista"
 
 msgid "List Arrangement"
 msgstr "Uporządkowanie listy"
@@ -5602,6 +5770,9 @@ msgstr "Najniższy ręczny stopień wentylatora"
 
 msgid "Magenta for scenes"
 msgstr "Purpurowy dla scen"
+
+msgid "Main menu"
+msgstr "Menu główne"
 
 msgid "Manual Adjustment Starting Value"
 msgstr "Początkowa wartość korekty ręcznej"
@@ -6182,6 +6353,12 @@ msgstr "Wykrywanie ruchu"
 msgid "Move Covering"
 msgstr "Przesuń osłonę"
 
+msgid "Move down"
+msgstr "Przesuń w dół"
+
+msgid "Move up"
+msgstr "Przesuń w górę"
+
 msgid "Movements Between Reference Runs"
 msgstr "Ruchy między przejazdami referencyjnymi"
 
@@ -6190,6 +6367,12 @@ msgstr "Wiele aktywnych wyjść"
 
 msgid "Multiple-Press Selection"
 msgstr "Wybór wielokrotnym naciśnięciem"
+
+msgid "Multiplexer 1"
+msgstr "Multiplekser 1"
+
+msgid "Multiplier 1"
+msgstr "Powielacz telegramów 1"
 
 msgid "Mute"
 msgstr "Wycisz"
@@ -7445,6 +7628,9 @@ msgstr "Ustawienia strony"
 msgid "Page and Controls"
 msgstr "Strona i elementy sterujące"
 
+msgid "PageLink"
+msgstr "Łącze do strony"
+
 msgid "Paired Control 1"
 msgstr "Podwójny element sterujący 1"
 
@@ -7679,6 +7865,9 @@ msgstr "Sterowanie przełączaniem zasilania"
 msgid "Pre-Event Switching Output"
 msgstr "Wyjście przełączające przed zdarzeniem"
 
+msgid "Presence"
+msgstr "Obecność"
+
 msgid "Press Duration"
 msgstr "Czas naciśnięcia"
 
@@ -7886,8 +8075,20 @@ msgstr "RGB z ciepłą i zimną bielą"
 msgid "RGBW"
 msgstr "RGBW"
 
+msgid "RGBWControl"
+msgstr "Sterowanie RGBW"
+
+msgid "RTC"
+msgstr "Temperatura pokojowa"
+
+msgid "RTCControlframe"
+msgstr "Termostat"
+
 msgid "Radiator or convector: 1.5 K, 100 min"
 msgstr "Grzejnik lub konwektor: 1.5 K, 100 min"
+
+msgid "Radio"
+msgstr "Radio"
 
 msgid "Radio Controls"
 msgstr "Sterowanie radiem"
@@ -8675,6 +8876,9 @@ msgstr "Wysyłanie wartości klawiszem kołyskowym"
 msgid "Rocker Value Selection"
 msgstr "Wybór wartości klawiszem kołyskowym"
 
+msgid "RockerSwitch"
+msgstr "Przełącznik kołyskowy"
+
 msgid "Room"
 msgstr "Pokój"
 
@@ -8926,6 +9130,9 @@ msgstr "Zapisz scenę długim naciśnięciem"
 
 msgid "Save scene"
 msgstr "Zapisz scenę"
+
+msgid "Scene"
+msgstr "Scena"
 
 msgid "Scene 1"
 msgstr "Scena 1"
@@ -9443,6 +9650,9 @@ msgstr "Osobne działania naciśnięcia i zwolnienia"
 msgid "Separate short and long press actions"
 msgstr "Osobne działania krótkiego i długiego naciśnięcia"
 
+msgid "Sequence"
+msgstr "Sekwencja"
+
 msgid "Sequence Entry 1"
 msgstr "Pozycja sekwencji 1"
 
@@ -9616,6 +9826,9 @@ msgstr "Format wprowadzania czasu sekwencji"
 
 msgid "Sequence Value and Time Settings"
 msgstr "Ustawienia wartości i czasu sekwencji"
+
+msgid "Set"
+msgstr "Ustaw"
 
 msgid "Set Hold Time with Potentiometer"
 msgstr "Ustaw czas podtrzymania potencjometrem"
@@ -10358,6 +10571,36 @@ msgstr "Podświetlenie stanu"
 msgid "Status object"
 msgstr "Obiekt stanu"
 
+msgid "Step 1"
+msgstr "Stopień 1"
+
+msgid "Step 2"
+msgstr "Stopień 2"
+
+msgid "Step 3"
+msgstr "Stopień 3"
+
+msgid "Step 4"
+msgstr "Stopień 4"
+
+msgid "Step 5"
+msgstr "Stopień 5"
+
+msgid "Step 6"
+msgstr "Stopień 6"
+
+msgid "Step 7"
+msgstr "Stopień 7"
+
+msgid "Step 8"
+msgstr "Stopień 8"
+
+msgid "Step Down"
+msgstr "Krok w dół"
+
+msgid "Step Up"
+msgstr "Krok w górę"
+
 msgid "Step or Stop Command Repeat Interval"
 msgstr "Odstęp powtarzania polecenia kroku lub zatrzymania"
 
@@ -10414,6 +10657,9 @@ msgstr "Korekta wschodu i zachodu słońca"
 
 msgid "Swedish"
 msgstr "Szwedzki"
+
+msgid "Switch"
+msgstr "Przełącznik"
 
 msgid "Switch Command"
 msgstr "Polecenie przełączania"
@@ -10544,6 +10790,9 @@ msgstr "Przebieg przejścia włączenia"
 msgid "Switchable local and KNX control"
 msgstr "Przełączane sterowanie lokalne i KNX"
 
+msgid "Switched off"
+msgstr "Wyłączone"
+
 msgid "Switching"
 msgstr "Przełączanie"
 
@@ -10582,6 +10831,9 @@ msgstr "Podświetlenie symbolu"
 
 msgid "Symbol Style"
 msgstr "Styl symbolu"
+
+msgid "System"
+msgstr "System"
 
 msgid "System Menu Entry Count"
 msgstr "Liczba pozycji menu systemowego"
@@ -11087,6 +11339,9 @@ msgstr "Harmonogramy"
 msgid "Time Value"
 msgstr "Wartość czasu"
 
+msgid "Time function 1"
+msgstr "Funkcja czasowa 1"
+
 msgid "Timed Output Hold Duration"
 msgstr "Czas podtrzymania wyjścia czasowego"
 
@@ -11111,8 +11366,14 @@ msgstr "Końcowa wartość czasomierza"
 msgid "Timer Start Value"
 msgstr "Początkowa wartość czasomierza"
 
+msgid "Title"
+msgstr "Tytuł"
+
 msgid "Toggle"
 msgstr "Przełącz"
+
+msgid "Tools"
+msgstr "Narzędzia"
 
 msgid "Trailing-edge dimming"
 msgstr "Ściemnianie zboczem opadającym"
@@ -11149,6 +11410,24 @@ msgstr "Wyślij temperaturę"
 
 msgid "Transmit When Entering Manual Fan Mode"
 msgstr "Wyślij przy przejściu do ręcznego trybu wentylatora"
+
+msgid "Transmitter 1"
+msgstr "Stacja 1"
+
+msgid "Transmitter 2"
+msgstr "Stacja 2"
+
+msgid "Transmitter 3"
+msgstr "Stacja 3"
+
+msgid "Transmitter 4"
+msgstr "Stacja 4"
+
+msgid "Transmitter 5"
+msgstr "Stacja 5"
+
+msgid "Transmitter 6"
+msgstr "Stacja 6"
 
 msgid "Travel direction (1 bit)"
 msgstr "Kierunek ruchu (1 bit)"
@@ -11242,6 +11521,9 @@ msgstr "Regulacja dwupołożeniowa (1 bajt)"
 
 msgid "Unassigned"
 msgstr "Nieprzypisane"
+
+msgid "Unit"
+msgstr "Jednostka"
 
 msgid "Unit System Selection"
 msgstr "Wybór systemu jednostek"
@@ -11549,6 +11831,15 @@ msgstr "Suwak wartości"
 msgid "Value Transfer Direction"
 msgstr "Kierunek przesyłania wartości"
 
+msgid "Value between minimum and threshold 1"
+msgstr "Wartość między minimum a progiem 1"
+
+msgid "Value between threshold 1 and threshold 2"
+msgstr "Wartość między progami 1 i 2"
+
+msgid "Value between threshold 2 and maximum"
+msgstr "Wartość między progiem 2 a maksimum"
+
 msgid "Value for Entire Input Range"
 msgstr "Wartość dla całego zakresu wejściowego"
 
@@ -11588,6 +11879,9 @@ msgstr "Wartość przy włączeniu"
 msgid "Value or Status Display"
 msgstr "Wyświetlanie wartości lub stanu"
 
+msgid "Value sender"
+msgstr "Nadajnik wartości"
+
 msgid "Value with unit"
 msgstr "Wartość z jednostką"
 
@@ -11596,6 +11890,9 @@ msgstr "Kolor wskaźnika zależny od wartości"
 
 msgid "Values on Short and Long Press"
 msgstr "Wartości po krótkim i długim naciśnięciu"
+
+msgid "Valueslider"
+msgstr "Suwak wartości"
 
 msgid "Ventilation"
 msgstr "Wentylacja"
@@ -11629,6 +11926,9 @@ msgstr "Zatrzymanie wideo"
 
 msgid "Video Volume"
 msgstr "Głośność wideo"
+
+msgid "Video player"
+msgstr "Odtwarzacz wideo"
 
 msgid "Violet"
 msgstr "Fioletowy"

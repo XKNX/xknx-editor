@@ -47,6 +47,32 @@ def test_family_uses_product_language(monkeypatch):
     ]
 
 
+@pytest.mark.parametrize("value", [None, "Homepage", "Mein Menü", ""])
+def test_text_suggestions_do_not_translate_device_values(monkeypatch, value):
+    from dataclasses import replace
+
+    from editor_gui.plugin_blob_readers.powertool import read_original
+    from xknxeditor.vendor.powertool.family import FamilyEvaluation
+    from xknxeditor.vendor.powertool.project_writer import write_project_blob
+
+    config = FamilyConfig("SmartTouch", database_code=20)
+    state = FamilyEvaluation(config)
+    node = next(
+        n for n in state.nodes.values() if n.key == "App_HomePage1+Par_ControlName"
+    )
+    config = replace(config, values={node.path: value})
+    original = write_project_blob(None, config)
+    for language, expected in (("de-DE", "Startseite"), ("en-US", "Homepage")):
+        monkeypatch.setattr(languages, "_product_language", language)
+        for sections in (read_family(config), read_original(original)):
+            row = next(p for s in sections for p in s.parameters if p.name == node.path)
+            assert row.default_value == expected
+            assert (
+                row.value == row.raw_value == ("Homepage" if value is None else value)
+            )
+    assert config.values[node.path] == value
+
+
 def test_language_change_invalidates_plugin_cache_and_localizes_objects(
     tmp_path, monkeypatch
 ):

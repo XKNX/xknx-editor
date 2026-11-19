@@ -1,4 +1,4 @@
-"""Update gettext catalogs from the independently authored PowerTool text map."""
+"""Update gettext catalogs from PowerTool interface and default texts."""
 
 from __future__ import annotations
 
@@ -15,12 +15,23 @@ def main() -> None:
         / "packages/vendor/src/xknxeditor/vendor/powertool"
     )
     mapping = json.loads((root / "text-map.json").read_text(encoding="utf-8"))
+    databases = []
+    for code, nodes in sorted(mapping.items()):
+        lines = [
+            f"    {json.dumps(key)}: {json.dumps(spec, ensure_ascii=False, sort_keys=True)}"
+            for key, spec in sorted(nodes.items())
+        ]
+        databases.append(f"  {json.dumps(code)}: {{\n" + ",\n".join(lines) + "\n  }")
+    (root / "text-map.json").write_text(
+        "{\n" + ",\n".join(databases) + "\n}\n", encoding="utf-8", newline="\n"
+    )
     messages = {
         text
         for nodes in mapping.values()
         for spec in nodes.values()
         for text in (
             spec["label"],
+            spec.get("default_text", ""),
             *spec.get("options", []),
             *spec.get("subsystems", []),
         )

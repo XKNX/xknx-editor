@@ -81,11 +81,21 @@ class Presentation:
             return spec["objects"][object_key]
         return spec["node"]
 
+    def default_text(self, node: str, fallback: str) -> str:
+        """Translate a suggested default, never a stored device value."""
+        spec = self._nodes.get(node.removeprefix("BJE.toolB.ProductDatabase."), {})
+        msgid = spec.get("default_text")
+        return self._translate(msgid) if msgid else fallback
+
     def schema(self, schema: dict[str, Any]) -> dict[str, Any]:
         """Hydrate a separate view; numeric metadata stays untouched."""
         nodes = {}
         for key, node in schema["nodes"].items():
             localized = {**node, "label": self.text(key, "")}
+            if node.get("value_kind") in ("V_STRING", "V_STRINGPTR") and (
+                default_text := self.default_text(key, "")
+            ):
+                localized["default_text"] = default_text
             if "options" in node:
                 localized["options"] = [
                     {**value, "label": self.text(key, "", option=i)}

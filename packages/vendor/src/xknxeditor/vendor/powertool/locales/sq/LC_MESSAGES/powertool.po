@@ -1222,6 +1222,69 @@ msgstr "90°"
 msgid "96°"
 msgstr "96°"
 
+msgid "< Text >"
+msgstr "< Teksti >"
+
+msgid "<Scene 10>"
+msgstr "<Skena 10>"
+
+msgid "<Scene 1>"
+msgstr "<Skena 1>"
+
+msgid "<Scene 2>"
+msgstr "<Skena 2>"
+
+msgid "<Scene 3>"
+msgstr "<Skena 3>"
+
+msgid "<Scene 4>"
+msgstr "<Skena 4>"
+
+msgid "<Scene 5>"
+msgstr "<Skena 5>"
+
+msgid "<Scene 6>"
+msgstr "<Skena 6>"
+
+msgid "<Scene 7>"
+msgstr "<Skena 7>"
+
+msgid "<Scene 8>"
+msgstr "<Skena 8>"
+
+msgid "<Scene 9>"
+msgstr "<Skena 9>"
+
+msgid "<Source 1>"
+msgstr "<Burimi 1>"
+
+msgid "<Source 2>"
+msgstr "<Burimi 2>"
+
+msgid "<Source 3>"
+msgstr "<Burimi 3>"
+
+msgid "<Source 4>"
+msgstr "<Burimi 4>"
+
+msgid "<Source 5>"
+msgstr "<Burimi 5>"
+
+msgid "<Source 6>"
+msgstr "<Burimi 6>"
+
+msgid "<Source 7>"
+msgstr "<Burimi 7>"
+
+msgid "<Source 8>"
+msgstr "<Burimi 8>"
+
+msgid "<Text>"
+msgstr "<Teksti>"
+
+msgid "<text>"
+msgstr "<Teksti>"
+
 msgid "AND"
 msgstr "AND"
 
@@ -1339,6 +1402,12 @@ msgstr "Veprimi gjatë lëshimit"
 msgid "Action on Short Press"
 msgstr "Veprimi gjatë shtypjes së shkurtër"
 
+msgid "Activate scene"
+msgstr "Aktivizo skenën"
+
+msgid "Activated"
+msgstr "Aktivizuar"
+
 msgid "Activation Sensitivity"
 msgstr "Ndjeshmëria e aktivizimit"
 
@@ -1371,6 +1440,9 @@ msgstr "Dritarja e Monitorimit të Aktivitetit"
 
 msgid "Actual Fan Stage"
 msgstr "Faza aktuale e tifozëve"
+
+msgid "Actuator 1"
+msgstr "Aktuator 1"
 
 msgid "Actuator 1 Feedback"
 msgstr "Aktivizuesi 1 Reagime"
@@ -1422,6 +1494,39 @@ msgstr "Objektet e statusit të aktivizuesit"
 
 msgid "Actuator Status Settings"
 msgstr "Cilësimet e statusit të aktivizuesit"
+
+msgid "Actuator group A"
+msgstr "Grup aktuatorësh A"
+
+msgid "Actuator group B"
+msgstr "Grup aktuatorësh B"
+
+msgid "Actuator group C"
+msgstr "Grup aktuatorësh C"
+
+msgid "Actuator group D"
+msgstr "Grup aktuatorësh D"
+
+msgid "Actuator group E"
+msgstr "Grup aktuatorësh E"
+
+msgid "Actuator group F"
+msgstr "Grup aktuatorësh F"
+
+msgid "Actuator group G"
+msgstr "Grup aktuatorësh G"
+
+msgid "Actuator group H"
+msgstr "Grup aktuatorësh H"
+
+msgid "Actuator group I"
+msgstr "Grup aktuatorësh I"
+
+msgid "Actuator group J"
+msgstr "Grup aktuatorësh J"
+
+msgid "Actuator settings"
+msgstr "Cilësimet e aktuatorëve"
 
 msgid "Additional Functions"
 msgstr "Funksionet Shtesë"
@@ -1738,6 +1843,9 @@ msgstr "Volumi i audios"
 msgid "Audio Volume Adjustment"
 msgstr "Rregullimi i volumit të audios"
 
+msgid "Audiocontrol"
+msgstr "Kontrolli i audios"
+
 msgid "Auto/On/Off Selection Object"
 msgstr "Objekti i përzgjedhjes Auto/On/Off"
 
@@ -1893,6 +2001,9 @@ msgstr "Gjendja binare 2"
 
 msgid "Black"
 msgstr "E zezë"
+
+msgid "Blind"
+msgstr "Grilë"
 
 msgid "Blind Command Format"
 msgstr "Formati i komandës së grilës"
@@ -2158,6 +2269,9 @@ msgstr "CD Pauzë"
 msgid "CD Play"
 msgstr "Play CD"
 
+msgid "CD Player"
+msgstr "Luajtës CD"
+
 msgid "CD Power"
 msgstr "Fuqia e CD-së"
 
@@ -2244,6 +2358,9 @@ msgstr "Ndrysho objektin 9 në skenë"
 
 msgid "Changed values only"
 msgstr "Vetëm vlerat e ndryshuara"
+
+msgid "Channel"
+msgstr "Kanal"
 
 msgid "Channel 1"
 msgstr "Kanali 1"
@@ -2569,6 +2686,9 @@ msgstr "Llambë kompakte e kursimit të energjisë, vendosje 150 s"
 msgid "Compact fluorescent load"
 msgstr "Ngarkesa kompakte fluoreshente"
 
+msgid "Comparator 1"
+msgstr "Krahasues 1"
+
 msgid "Comparison Hysteresis"
 msgstr "Krahasimi i histerezës"
 
@@ -2820,6 +2940,9 @@ msgstr "Kontrolluesi është çaktivizuar"
 
 msgid "Controller mode selection"
 msgstr "Zgjedhja e mënyrës së kontrolluesit"
+
+msgid "Converter 1"
+msgstr "Konvertues 1"
 
 msgid "Cool White Intensity"
 msgstr "Intensiteti i ftohtë i bardhë"
@@ -3241,6 +3364,15 @@ msgstr "Rregullo ndriçimin me hapa"
 msgid "Dim until release"
 msgstr "Rregullo ndriçimin deri në lëshim"
 
+msgid "Dimmer"
+msgstr "Rregullues ndriçimi"
+
+msgid "Dimmerslider"
+msgstr "Rrëshqitës ndriçimi"
+
+msgid "Dimming"
+msgstr "Rregullimi i ndriçimit"
+
 msgid "Dimming Actuator"
 msgstr "Aktivizuesi i errësimit"
 
@@ -3348,6 +3480,9 @@ msgstr "Kontrollet e riprodhimit të diskut"
 
 msgid "Disc Selection"
 msgstr "Zgjedhja e diskut"
+
+msgid "Display"
+msgstr "Ekran"
 
 msgid "Display Backlight"
 msgstr "Ekrani i dritës së prapme"
@@ -3865,6 +4000,9 @@ msgstr "Zgjedhja e skenës së tifozëve"
 msgid "Fan-stage objects"
 msgstr "Objekte të skenës së tifozëve"
 
+msgid "FanSwitch"
+msgstr "Kontrolli i ventilatorit"
+
 msgid "Fast response, about 15 s"
 msgstr "Përgjigje e shpejtë, rreth 15 s"
 
@@ -4117,11 +4255,20 @@ msgstr "Plotësisht manual"
 msgid "Fully raised"
 msgstr "I ngritur plotësisht"
 
+msgid "Function"
+msgstr "Funksioni"
+
+msgid "Function 1"
+msgstr "Funksion 1"
+
 msgid "Function 1 Enable"
 msgstr "Funksioni 1 Aktivizo"
 
 msgid "Function 1 Text"
 msgstr "Funksioni 1 Teksti"
+
+msgid "Function 2"
+msgstr "Funksion 2"
 
 msgid "Function 2 Enable"
 msgstr "Funksioni 2 Aktivizo"
@@ -4129,11 +4276,17 @@ msgstr "Funksioni 2 Aktivizo"
 msgid "Function 2 Text"
 msgstr "Teksti i funksionit 2"
 
+msgid "Function 3"
+msgstr "Funksion 3"
+
 msgid "Function 3 Enable"
 msgstr "Funksioni 3 Aktivizo"
 
 msgid "Function 3 Text"
 msgstr "Teksti i funksionit 3"
+
+msgid "Function 4"
+msgstr "Funksion 4"
 
 msgid "Function 4 Enable"
 msgstr "Funksioni 4 Aktivizo"
@@ -4173,6 +4326,9 @@ msgstr "Teksti i funksionit"
 
 msgid "Function lighting"
 msgstr "Ndriçimi funksional"
+
+msgid "Gate 1"
+msgstr "Portë 1"
 
 msgid "German"
 msgstr "Gjermanisht"
@@ -4398,6 +4554,9 @@ msgstr "Burimi i kohës së pritjes"
 
 msgid "Hold Time from Object"
 msgstr "Mbajtja e kohës nga objekti"
+
+msgid "Homepage"
+msgstr "Faqja kryesore"
 
 msgid "Hours and minutes"
 msgstr "Orë dhe minuta"
@@ -4912,6 +5071,12 @@ msgstr "Përmbysja e komenteve të statusit"
 msgid "Inverted"
 msgstr "I përmbysur"
 
+msgid "It's dry"
+msgstr "Thatë"
+
+msgid "It's raining"
+msgstr "Shi"
+
 msgid "Italian"
 msgstr "Italisht"
 
@@ -5202,6 +5367,9 @@ msgstr "Shkallë lineare"
 
 msgid "Linked Dimming Outputs"
 msgstr "Daljet e lidhura të zbehjes"
+
+msgid "List"
+msgstr "Listë"
 
 msgid "List Arrangement"
 msgstr "Rregullimi i listës"
@@ -5601,6 +5769,9 @@ msgstr "Faza më e ulët e ventilatorit manual"
 
 msgid "Magenta for scenes"
 msgstr "Magenta për skena"
+
+msgid "Main menu"
+msgstr "Menyja kryesore"
 
 msgid "Manual Adjustment Starting Value"
 msgstr "Vlera fillestare e rregullimit manual"
@@ -6181,6 +6352,12 @@ msgstr "Zbulimi i lëvizjes"
 msgid "Move Covering"
 msgstr "Lëvizni Mbulesën"
 
+msgid "Move down"
+msgstr "Lëviz poshtë"
+
+msgid "Move up"
+msgstr "Lëviz lart"
+
 msgid "Movements Between Reference Runs"
 msgstr "Lëvizjet ndërmjet vrapimeve të referencës"
 
@@ -6189,6 +6366,12 @@ msgstr "Shumë dalje aktive"
 
 msgid "Multiple-Press Selection"
 msgstr "Përzgjedhja me shtypje të shumëfishtë"
+
+msgid "Multiplexer 1"
+msgstr "Multipleksues 1"
+
+msgid "Multiplier 1"
+msgstr "Shumëzues telegramësh 1"
 
 msgid "Mute"
 msgstr "Hesht"
@@ -7444,6 +7627,9 @@ msgstr "Cilësimet e faqes"
 msgid "Page and Controls"
 msgstr "Faqja dhe Kontrollet"
 
+msgid "PageLink"
+msgstr "Lidhje te faqja"
+
 msgid "Paired Control 1"
 msgstr "Kontrolli i çiftuar 1"
 
@@ -7678,6 +7864,9 @@ msgstr "Kontrolli i ndërrimit të energjisë"
 msgid "Pre-Event Switching Output"
 msgstr "Dalja e ndërrimit para ngjarjes"
 
+msgid "Presence"
+msgstr "Prani"
+
 msgid "Press Duration"
 msgstr "Shtypni Kohëzgjatja"
 
@@ -7885,8 +8074,20 @@ msgstr "RGB me të bardhë të ngrohtë dhe të ftohtë"
 msgid "RGBW"
 msgstr "RGBW"
 
+msgid "RGBWControl"
+msgstr "Kontrolli RGBW"
+
+msgid "RTC"
+msgstr "Temperatura e dhomës"
+
+msgid "RTCControlframe"
+msgstr "Termostat"
+
 msgid "Radiator or convector: 1.5 K, 100 min"
 msgstr "Radiator ose konvektor: 1.5 K, 100 min"
+
+msgid "Radio"
+msgstr "Radio"
 
 msgid "Radio Controls"
 msgstr "Kontrollet e radios"
@@ -8674,6 +8875,9 @@ msgstr "Dalja e vlerës me buton lëkundës"
 msgid "Rocker Value Selection"
 msgstr "Zgjedhja e vlerës me buton lëkundës"
 
+msgid "RockerSwitch"
+msgstr "Çelës lëkundës"
+
 msgid "Room"
 msgstr "Dhoma"
 
@@ -8925,6 +9129,9 @@ msgstr "Ruaj skenën me shtypje të gjatë"
 
 msgid "Save scene"
 msgstr "Ruaj skenën"
+
+msgid "Scene"
+msgstr "Skena"
 
 msgid "Scene 1"
 msgstr "Skena 1"
@@ -9442,6 +9649,9 @@ msgstr "Veprime të ndara për shtyp dhe njoftim"
 msgid "Separate short and long press actions"
 msgstr "Ndani veprimet e shtypit të shkurtër dhe të gjatë"
 
+msgid "Sequence"
+msgstr "Sekuencë"
+
 msgid "Sequence Entry 1"
 msgstr "Hyrja e sekuencës 1"
 
@@ -9615,6 +9825,9 @@ msgstr "Formati i hyrjes së kohës së sekuencës"
 
 msgid "Sequence Value and Time Settings"
 msgstr "Cilësimet e vlerës së sekuencës dhe kohës"
+
+msgid "Set"
+msgstr "Cakto"
 
 msgid "Set Hold Time with Potentiometer"
 msgstr "Vendosni kohën e mbajtjes me potenciometër"
@@ -10357,6 +10570,36 @@ msgstr "Ndriçimi i statusit"
 msgid "Status object"
 msgstr "Objekti i statusit"
 
+msgid "Step 1"
+msgstr "Shkallë 1"
+
+msgid "Step 2"
+msgstr "Shkallë 2"
+
+msgid "Step 3"
+msgstr "Shkallë 3"
+
+msgid "Step 4"
+msgstr "Shkallë 4"
+
+msgid "Step 5"
+msgstr "Shkallë 5"
+
+msgid "Step 6"
+msgstr "Shkallë 6"
+
+msgid "Step 7"
+msgstr "Shkallë 7"
+
+msgid "Step 8"
+msgstr "Shkallë 8"
+
+msgid "Step Down"
+msgstr "Hap poshtë"
+
+msgid "Step Up"
+msgstr "Hap lart"
+
 msgid "Step or Stop Command Repeat Interval"
 msgstr "Komanda e hapit ose ndalimit Intervali i përsëritjes"
 
@@ -10413,6 +10656,9 @@ msgstr "Rregullimi i lindjes dhe perëndimit të diellit"
 
 msgid "Swedish"
 msgstr "Suedisht"
+
+msgid "Switch"
+msgstr "Çelës"
 
 msgid "Switch Command"
 msgstr "Komanda e kyçjes dhe shkyçjes"
@@ -10543,6 +10789,9 @@ msgstr "Stili i tranzicionit të ndezjes"
 msgid "Switchable local and KNX control"
 msgstr "Kontroll lokal i ndërrueshëm dhe KNX"
 
+msgid "Switched off"
+msgstr "Fikur"
+
 msgid "Switching"
 msgstr "Ndërrimi"
 
@@ -10581,6 +10830,9 @@ msgstr "Ndriçimi i simboleve"
 
 msgid "Symbol Style"
 msgstr "Stili i simboleve"
+
+msgid "System"
+msgstr "Sistem"
 
 msgid "System Menu Entry Count"
 msgstr "Numri i hyrjeve në menunë e sistemit"
@@ -11086,6 +11338,9 @@ msgstr "Oraret kohore"
 msgid "Time Value"
 msgstr "Vlera kohore"
 
+msgid "Time function 1"
+msgstr "Funksion kohor 1"
+
 msgid "Timed Output Hold Duration"
 msgstr "Kohëzgjatja e mbajtjes së daljes në kohë"
 
@@ -11110,8 +11365,14 @@ msgstr "Vlera e përfundimit të kohëmatësit"
 msgid "Timer Start Value"
 msgstr "Vlera e fillimit të kohëmatësit"
 
+msgid "Title"
+msgstr "Titull"
+
 msgid "Toggle"
 msgstr "Ndërro gjendjen"
+
+msgid "Tools"
+msgstr "Veglat"
 
 msgid "Trailing-edge dimming"
 msgstr "Zvogëlimi i skajeve të pasme"
@@ -11148,6 +11409,24 @@ msgstr "Temperatura e transmetimit"
 
 msgid "Transmit When Entering Manual Fan Mode"
 msgstr "Transmetoni kur hyni në modalitetin manual të ventilatorit"
+
+msgid "Transmitter 1"
+msgstr "Stacion 1"
+
+msgid "Transmitter 2"
+msgstr "Stacion 2"
+
+msgid "Transmitter 3"
+msgstr "Stacion 3"
+
+msgid "Transmitter 4"
+msgstr "Stacion 4"
+
+msgid "Transmitter 5"
+msgstr "Stacion 5"
+
+msgid "Transmitter 6"
+msgstr "Stacion 6"
 
 msgid "Travel direction (1 bit)"
 msgstr "Drejtimi i udhëtimit (1 bit)"
@@ -11241,6 +11520,9 @@ msgstr "Kontroll me dy pozicione (1 bajt)"
 
 msgid "Unassigned"
 msgstr "Pa caktuar"
+
+msgid "Unit"
+msgstr "Njësi"
 
 msgid "Unit System Selection"
 msgstr "Zgjedhja e sistemit të njësisë"
@@ -11548,6 +11830,15 @@ msgstr "Rrëshqitësi i vlerës"
 msgid "Value Transfer Direction"
 msgstr "Drejtimi i transferimit të vlerës"
 
+msgid "Value between minimum and threshold 1"
+msgstr "Vlerë midis minimumit dhe pragut 1"
+
+msgid "Value between threshold 1 and threshold 2"
+msgstr "Vlerë midis pragjeve 1 dhe 2"
+
+msgid "Value between threshold 2 and maximum"
+msgstr "Vlerë midis pragut 2 dhe maksimumit"
+
 msgid "Value for Entire Input Range"
 msgstr "Vlera për të gjithë gamën e hyrjes"
 
@@ -11587,6 +11878,9 @@ msgstr "Vlera në Ndezje"
 msgid "Value or Status Display"
 msgstr "Shfaqja e vlerës ose e statusit"
 
+msgid "Value sender"
+msgstr "Dërgues vlere"
+
 msgid "Value with unit"
 msgstr "Vlera me njësi"
 
@@ -11595,6 +11889,9 @@ msgstr "Ngjyra e matësit të bazuar në vlerë"
 
 msgid "Values on Short and Long Press"
 msgstr "Vlerat gjatë shtypjes së shkurtër dhe të gjatë"
+
+msgid "Valueslider"
+msgstr "Rrëshqitës vlere"
 
 msgid "Ventilation"
 msgstr "Ventilimi"
@@ -11628,6 +11925,9 @@ msgstr "Video Stop"
 
 msgid "Video Volume"
 msgstr "Vëllimi i videos"
+
+msgid "Video player"
+msgstr "Luajtës video"
 
 msgid "Violet"
 msgstr "vjollce"

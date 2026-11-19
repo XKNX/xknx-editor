@@ -1223,6 +1223,69 @@ msgstr "90°"
 msgid "96°"
 msgstr "96°"
 
+msgid "< Text >"
+msgstr "< Text >"
+
+msgid "<Scene 10>"
+msgstr "<Scena 10>"
+
+msgid "<Scene 1>"
+msgstr "<Scena 1>"
+
+msgid "<Scene 2>"
+msgstr "<Scena 2>"
+
+msgid "<Scene 3>"
+msgstr "<Scena 3>"
+
+msgid "<Scene 4>"
+msgstr "<Scena 4>"
+
+msgid "<Scene 5>"
+msgstr "<Scena 5>"
+
+msgid "<Scene 6>"
+msgstr "<Scena 6>"
+
+msgid "<Scene 7>"
+msgstr "<Scena 7>"
+
+msgid "<Scene 8>"
+msgstr "<Scena 8>"
+
+msgid "<Scene 9>"
+msgstr "<Scena 9>"
+
+msgid "<Source 1>"
+msgstr "<Sursa 1>"
+
+msgid "<Source 2>"
+msgstr "<Sursa 2>"
+
+msgid "<Source 3>"
+msgstr "<Sursa 3>"
+
+msgid "<Source 4>"
+msgstr "<Sursa 4>"
+
+msgid "<Source 5>"
+msgstr "<Sursa 5>"
+
+msgid "<Source 6>"
+msgstr "<Sursa 6>"
+
+msgid "<Source 7>"
+msgstr "<Sursa 7>"
+
+msgid "<Source 8>"
+msgstr "<Sursa 8>"
+
+msgid "<Text>"
+msgstr "<Text>"
+
+msgid "<text>"
+msgstr "<Text>"
+
 msgid "AND"
 msgstr "AND"
 
@@ -1340,6 +1403,12 @@ msgstr "Acțiune la eliberare"
 msgid "Action on Short Press"
 msgstr "Acțiune la apăsare scurtă"
 
+msgid "Activate scene"
+msgstr "Activează scena"
+
+msgid "Activated"
+msgstr "Activată"
+
 msgid "Activation Sensitivity"
 msgstr "Sensibilitate de activare"
 
@@ -1372,6 +1441,9 @@ msgstr "Fereastra de monitorizare a activității"
 
 msgid "Actual Fan Stage"
 msgstr "Etapa reală a fanilor"
+
+msgid "Actuator 1"
+msgstr "Actuator 1"
 
 msgid "Actuator 1 Feedback"
 msgstr "Actuator 1 Feedback"
@@ -1423,6 +1495,39 @@ msgstr "Obiecte de stare a actuatorului"
 
 msgid "Actuator Status Settings"
 msgstr "Setări de stare a actuatorului"
+
+msgid "Actuator group A"
+msgstr "Grup de actuatoare A"
+
+msgid "Actuator group B"
+msgstr "Grup de actuatoare B"
+
+msgid "Actuator group C"
+msgstr "Grup de actuatoare C"
+
+msgid "Actuator group D"
+msgstr "Grup de actuatoare D"
+
+msgid "Actuator group E"
+msgstr "Grup de actuatoare E"
+
+msgid "Actuator group F"
+msgstr "Grup de actuatoare F"
+
+msgid "Actuator group G"
+msgstr "Grup de actuatoare G"
+
+msgid "Actuator group H"
+msgstr "Grup de actuatoare H"
+
+msgid "Actuator group I"
+msgstr "Grup de actuatoare I"
+
+msgid "Actuator group J"
+msgstr "Grup de actuatoare J"
+
+msgid "Actuator settings"
+msgstr "Setări actuatoare"
 
 msgid "Additional Functions"
 msgstr "Funcții suplimentare"
@@ -1739,6 +1844,9 @@ msgstr "Volumul audio"
 msgid "Audio Volume Adjustment"
 msgstr "Reglarea volumului audio"
 
+msgid "Audiocontrol"
+msgstr "Control audio"
+
 msgid "Auto/On/Off Selection Object"
 msgstr "Obiect de selecție Auto/Pornit/Oprit"
 
@@ -1894,6 +2002,9 @@ msgstr "Stare binară 2"
 
 msgid "Black"
 msgstr "negru"
+
+msgid "Blind"
+msgstr "Jaluzea"
 
 msgid "Blind Command Format"
 msgstr "Formatul comenzii pentru jaluzea"
@@ -2159,6 +2270,9 @@ msgstr "Pauză CD"
 msgid "CD Play"
 msgstr "Redare CD"
 
+msgid "CD Player"
+msgstr "Player CD"
+
 msgid "CD Power"
 msgstr "Putere CD"
 
@@ -2245,6 +2359,9 @@ msgstr "Schimbați obiectul 9 în scenă"
 
 msgid "Changed values only"
 msgstr "Doar valorile modificate"
+
+msgid "Channel"
+msgstr "Canal"
 
 msgid "Channel 1"
 msgstr "Canalul 1"
@@ -2570,6 +2687,9 @@ msgstr "Lampă compactă de economisire a energiei, timp de 150 s"
 msgid "Compact fluorescent load"
 msgstr "Încărcătură fluorescentă compactă"
 
+msgid "Comparator 1"
+msgstr "Comparator 1"
+
 msgid "Comparison Hysteresis"
 msgstr "Histerezis de comparație"
 
@@ -2821,6 +2941,9 @@ msgstr "Controller dezactivat"
 
 msgid "Controller mode selection"
 msgstr "Selectarea modului controlerului"
+
+msgid "Converter 1"
+msgstr "Convertor 1"
 
 msgid "Cool White Intensity"
 msgstr "Intensitate alb rece"
@@ -3242,6 +3365,15 @@ msgstr "Reglează luminozitatea în pași"
 msgid "Dim until release"
 msgstr "Reglează luminozitatea până la eliberare"
 
+msgid "Dimmer"
+msgstr "Variator"
+
+msgid "Dimmerslider"
+msgstr "Glisor de reglare a luminii"
+
+msgid "Dimming"
+msgstr "Reglare a luminii"
+
 msgid "Dimming Actuator"
 msgstr "Actuator de reglare"
 
@@ -3349,6 +3481,9 @@ msgstr "Controale pentru redarea discului"
 
 msgid "Disc Selection"
 msgstr "Selectarea discului"
+
+msgid "Display"
+msgstr "Afișaj"
 
 msgid "Display Backlight"
 msgstr "Iluminare de fundal a afișajului"
@@ -3866,6 +4001,9 @@ msgstr "Selectarea etapei fanilor"
 msgid "Fan-stage objects"
 msgstr "Obiecte pe scena fanilor"
 
+msgid "FanSwitch"
+msgstr "Control ventilator"
+
 msgid "Fast response, about 15 s"
 msgstr "Răspuns rapid, aproximativ 15 s"
 
@@ -4118,11 +4256,20 @@ msgstr "Complet manual"
 msgid "Fully raised"
 msgstr "Ridicat complet"
 
+msgid "Function"
+msgstr "Funcție"
+
+msgid "Function 1"
+msgstr "Funcție 1"
+
 msgid "Function 1 Enable"
 msgstr "Funcția 1 Activare"
 
 msgid "Function 1 Text"
 msgstr "Funcția 1 Text"
+
+msgid "Function 2"
+msgstr "Funcție 2"
 
 msgid "Function 2 Enable"
 msgstr "Funcția 2 Activare"
@@ -4130,11 +4277,17 @@ msgstr "Funcția 2 Activare"
 msgid "Function 2 Text"
 msgstr "Funcția 2 Text"
 
+msgid "Function 3"
+msgstr "Funcție 3"
+
 msgid "Function 3 Enable"
 msgstr "Funcția 3 Activare"
 
 msgid "Function 3 Text"
 msgstr "Funcția 3 Text"
+
+msgid "Function 4"
+msgstr "Funcție 4"
 
 msgid "Function 4 Enable"
 msgstr "Funcția 4 Activare"
@@ -4174,6 +4327,9 @@ msgstr "Textul funcției"
 
 msgid "Function lighting"
 msgstr "Iluminare funcțională"
+
+msgid "Gate 1"
+msgstr "Poartă 1"
 
 msgid "German"
 msgstr "Germană"
@@ -4399,6 +4555,9 @@ msgstr "Țineți sursa timpului"
 
 msgid "Hold Time from Object"
 msgstr "Țineți timp de la obiect"
+
+msgid "Homepage"
+msgstr "Pagina de start"
 
 msgid "Hours and minutes"
 msgstr "Ore și minute"
@@ -4913,6 +5072,12 @@ msgstr "Feedback de stare inversă"
 msgid "Inverted"
 msgstr "Inversată"
 
+msgid "It's dry"
+msgstr "Uscat"
+
+msgid "It's raining"
+msgstr "Ploaie"
+
 msgid "Italian"
 msgstr "Italiană"
 
@@ -5203,6 +5368,9 @@ msgstr "Scară liniară"
 
 msgid "Linked Dimming Outputs"
 msgstr "Ieșiri de estompare legate"
+
+msgid "List"
+msgstr "Listă"
 
 msgid "List Arrangement"
 msgstr "Aranjamentul listei"
@@ -5602,6 +5770,9 @@ msgstr "Cea mai joasă treaptă manuală a ventilatorului"
 
 msgid "Magenta for scenes"
 msgstr "Magenta pentru scene"
+
+msgid "Main menu"
+msgstr "Meniu principal"
 
 msgid "Manual Adjustment Starting Value"
 msgstr "Valoarea de pornire a reglajului manual"
@@ -6182,6 +6353,12 @@ msgstr "Detectarea mișcării"
 msgid "Move Covering"
 msgstr "Mutați Acoperirea"
 
+msgid "Move down"
+msgstr "Mutare în jos"
+
+msgid "Move up"
+msgstr "Mutare în sus"
+
 msgid "Movements Between Reference Runs"
 msgstr "Mișcări între runde de referință"
 
@@ -6190,6 +6367,12 @@ msgstr "Ieșiri active multiple"
 
 msgid "Multiple-Press Selection"
 msgstr "Selectare prin apăsare multiplă"
+
+msgid "Multiplexer 1"
+msgstr "Multiplexor 1"
+
+msgid "Multiplier 1"
+msgstr "Multiplicator de telegrame 1"
 
 msgid "Mute"
 msgstr "Mut"
@@ -7445,6 +7628,9 @@ msgstr "Setări pagină"
 msgid "Page and Controls"
 msgstr "Pagina și comenzile"
 
+msgid "PageLink"
+msgstr "Legătură către pagină"
+
 msgid "Paired Control 1"
 msgstr "Control împerecheat 1"
 
@@ -7679,6 +7865,9 @@ msgstr "Controlul comutării puterii"
 msgid "Pre-Event Switching Output"
 msgstr "Ieșire de comutare pre-eveniment"
 
+msgid "Presence"
+msgstr "Prezență"
+
 msgid "Press Duration"
 msgstr "Apăsați pe Durata"
 
@@ -7886,8 +8075,20 @@ msgstr "RGB cu alb cald și rece"
 msgid "RGBW"
 msgstr "RGBW"
 
+msgid "RGBWControl"
+msgstr "Control RGBW"
+
+msgid "RTC"
+msgstr "Temperatură ambiantă"
+
+msgid "RTCControlframe"
+msgstr "Termostat"
+
 msgid "Radiator or convector: 1.5 K, 100 min"
 msgstr "Radiator sau convector: 1,5 K, 100 min"
+
+msgid "Radio"
+msgstr "Radio"
 
 msgid "Radio Controls"
 msgstr "Comenzi radio"
@@ -8675,6 +8876,9 @@ msgstr "Trimiterea valorii cu tastă basculantă"
 msgid "Rocker Value Selection"
 msgstr "Selectarea valorii cu tastă basculantă"
 
+msgid "RockerSwitch"
+msgstr "Comutator basculant"
+
 msgid "Room"
 msgstr "Cameră"
 
@@ -8926,6 +9130,9 @@ msgstr "Salvează scena la apăsare lungă"
 
 msgid "Save scene"
 msgstr "Salvați scena"
+
+msgid "Scene"
+msgstr "Scenă"
 
 msgid "Scene 1"
 msgstr "Scena 1"
@@ -9443,6 +9650,9 @@ msgstr "Acțiuni separate de presă și de lansare"
 msgid "Separate short and long press actions"
 msgstr "Separați acțiunile de apăsare scurtă și lungă"
 
+msgid "Sequence"
+msgstr "Secvență"
+
 msgid "Sequence Entry 1"
 msgstr "Intrarea secvenței 1"
 
@@ -9616,6 +9826,9 @@ msgstr "Format de introducere a timpului secvenței"
 
 msgid "Sequence Value and Time Settings"
 msgstr "Setări de valoare și timp pentru secvență"
+
+msgid "Set"
+msgstr "Setează"
 
 msgid "Set Hold Time with Potentiometer"
 msgstr "Setați timpul de menținere cu potențiometrul"
@@ -10358,6 +10571,36 @@ msgstr "Iluminare de stare"
 msgid "Status object"
 msgstr "Obiect de stare"
 
+msgid "Step 1"
+msgstr "Treaptă 1"
+
+msgid "Step 2"
+msgstr "Treaptă 2"
+
+msgid "Step 3"
+msgstr "Treaptă 3"
+
+msgid "Step 4"
+msgstr "Treaptă 4"
+
+msgid "Step 5"
+msgstr "Treaptă 5"
+
+msgid "Step 6"
+msgstr "Treaptă 6"
+
+msgid "Step 7"
+msgstr "Treaptă 7"
+
+msgid "Step 8"
+msgstr "Treaptă 8"
+
+msgid "Step Down"
+msgstr "Pas în jos"
+
+msgid "Step Up"
+msgstr "Pas în sus"
+
 msgid "Step or Stop Command Repeat Interval"
 msgstr "Interval de repetare a comenzii de pas sau oprire"
 
@@ -10414,6 +10657,9 @@ msgstr "Ajustarea răsăritului și apusului"
 
 msgid "Swedish"
 msgstr "Suedeză"
+
+msgid "Switch"
+msgstr "Comutator"
 
 msgid "Switch Command"
 msgstr "Comandă de comutare"
@@ -10544,6 +10790,9 @@ msgstr "Stilul de tranziție de pornire"
 msgid "Switchable local and KNX control"
 msgstr "Control local și KNX comutabil"
 
+msgid "Switched off"
+msgstr "Oprit"
+
 msgid "Switching"
 msgstr "Comutare"
 
@@ -10582,6 +10831,9 @@ msgstr "Iluminare simbol"
 
 msgid "Symbol Style"
 msgstr "Stil simbol"
+
+msgid "System"
+msgstr "Sistem"
 
 msgid "System Menu Entry Count"
 msgstr "Număr de intrări în meniul sistemului"
@@ -11087,6 +11339,9 @@ msgstr "Orare"
 msgid "Time Value"
 msgstr "Valoarea timpului"
 
+msgid "Time function 1"
+msgstr "Funcție temporală 1"
+
 msgid "Timed Output Hold Duration"
 msgstr "Durata de reținere a ieșirii temporizate"
 
@@ -11111,8 +11366,14 @@ msgstr "Valoarea finală a temporizatorului"
 msgid "Timer Start Value"
 msgstr "Valoarea de pornire a temporizatorului"
 
+msgid "Title"
+msgstr "Titlu"
+
 msgid "Toggle"
 msgstr "Comută"
+
+msgid "Tools"
+msgstr "Instrumente"
 
 msgid "Trailing-edge dimming"
 msgstr "Reducerea luminii la marginea trasă"
@@ -11149,6 +11410,24 @@ msgstr "Temperatura de transmisie"
 
 msgid "Transmit When Entering Manual Fan Mode"
 msgstr "Transmite la intrarea în modul ventilator manual"
+
+msgid "Transmitter 1"
+msgstr "Post 1"
+
+msgid "Transmitter 2"
+msgstr "Post 2"
+
+msgid "Transmitter 3"
+msgstr "Post 3"
+
+msgid "Transmitter 4"
+msgstr "Post 4"
+
+msgid "Transmitter 5"
+msgstr "Post 5"
+
+msgid "Transmitter 6"
+msgstr "Post 6"
 
 msgid "Travel direction (1 bit)"
 msgstr "Direcția de deplasare (1 bit)"
@@ -11242,6 +11521,9 @@ msgstr "Control în două poziții (1 octet)"
 
 msgid "Unassigned"
 msgstr "Nealocat"
+
+msgid "Unit"
+msgstr "Unitate"
 
 msgid "Unit System Selection"
 msgstr "Selectarea sistemului de unitate"
@@ -11549,6 +11831,15 @@ msgstr "Glisor de valoare"
 msgid "Value Transfer Direction"
 msgstr "Direcția de transfer al valorii"
 
+msgid "Value between minimum and threshold 1"
+msgstr "Valoare între minim și pragul 1"
+
+msgid "Value between threshold 1 and threshold 2"
+msgstr "Valoare între pragurile 1 și 2"
+
+msgid "Value between threshold 2 and maximum"
+msgstr "Valoare între pragul 2 și maxim"
+
 msgid "Value for Entire Input Range"
 msgstr "Valoare pentru întregul interval de intrare"
 
@@ -11588,6 +11879,9 @@ msgstr "Valoare la pornire"
 msgid "Value or Status Display"
 msgstr "Afișarea valorii sau a stării"
 
+msgid "Value sender"
+msgstr "Emițător de valoare"
+
 msgid "Value with unit"
 msgstr "Valoare cu unitate"
 
@@ -11596,6 +11890,9 @@ msgstr "Culoarea indicatorului bazată pe valoare"
 
 msgid "Values on Short and Long Press"
 msgstr "Valori la apăsare scurtă și lungă"
+
+msgid "Valueslider"
+msgstr "Glisor de valoare"
 
 msgid "Ventilation"
 msgstr "Ventilatie"
@@ -11629,6 +11926,9 @@ msgstr "Oprire video"
 
 msgid "Video Volume"
 msgstr "Volumul video"
+
+msgid "Video player"
+msgstr "Player video"
 
 msgid "Violet"
 msgstr "violet"

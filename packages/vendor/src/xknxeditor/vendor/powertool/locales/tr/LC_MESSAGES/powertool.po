@@ -1222,6 +1222,69 @@ msgstr "90°"
 msgid "96°"
 msgstr "96°"
 
+msgid "< Text >"
+msgstr "< Metin >"
+
+msgid "<Scene 10>"
+msgstr "<Sahne 10>"
+
+msgid "<Scene 1>"
+msgstr "<Sahne 1>"
+
+msgid "<Scene 2>"
+msgstr "<Sahne 2>"
+
+msgid "<Scene 3>"
+msgstr "<Sahne 3>"
+
+msgid "<Scene 4>"
+msgstr "<Sahne 4>"
+
+msgid "<Scene 5>"
+msgstr "<Sahne 5>"
+
+msgid "<Scene 6>"
+msgstr "<Sahne 6>"
+
+msgid "<Scene 7>"
+msgstr "<Sahne 7>"
+
+msgid "<Scene 8>"
+msgstr "<Sahne 8>"
+
+msgid "<Scene 9>"
+msgstr "<Sahne 9>"
+
+msgid "<Source 1>"
+msgstr "<Kaynak 1>"
+
+msgid "<Source 2>"
+msgstr "<Kaynak 2>"
+
+msgid "<Source 3>"
+msgstr "<Kaynak 3>"
+
+msgid "<Source 4>"
+msgstr "<Kaynak 4>"
+
+msgid "<Source 5>"
+msgstr "<Kaynak 5>"
+
+msgid "<Source 6>"
+msgstr "<Kaynak 6>"
+
+msgid "<Source 7>"
+msgstr "<Kaynak 7>"
+
+msgid "<Source 8>"
+msgstr "<Kaynak 8>"
+
+msgid "<Text>"
+msgstr "<Metin>"
+
+msgid "<text>"
+msgstr "<Metin>"
+
 msgid "AND"
 msgstr "AND"
 
@@ -1339,6 +1402,12 @@ msgstr "Bırakma Eylemi"
 msgid "Action on Short Press"
 msgstr "Kısa Basma Eylemi"
 
+msgid "Activate scene"
+msgstr "Sahneyi çağır"
+
+msgid "Activated"
+msgstr "Etkinleştirildi"
+
 msgid "Activation Sensitivity"
 msgstr "Etkinleştirme Hassasiyeti"
 
@@ -1371,6 +1440,9 @@ msgstr "Etkinlik İzleme Penceresi"
 
 msgid "Actual Fan Stage"
 msgstr "Gerçek Fan Aşaması"
+
+msgid "Actuator 1"
+msgstr "Aktüatör 1"
 
 msgid "Actuator 1 Feedback"
 msgstr "Aktüatör 1 Geri Bildirimi"
@@ -1422,6 +1494,39 @@ msgstr "Aktüatör Durumu Nesneleri"
 
 msgid "Actuator Status Settings"
 msgstr "Aktüatör Durum Ayarları"
+
+msgid "Actuator group A"
+msgstr "Aktüatör grubu A"
+
+msgid "Actuator group B"
+msgstr "Aktüatör grubu B"
+
+msgid "Actuator group C"
+msgstr "Aktüatör grubu C"
+
+msgid "Actuator group D"
+msgstr "Aktüatör grubu D"
+
+msgid "Actuator group E"
+msgstr "Aktüatör grubu E"
+
+msgid "Actuator group F"
+msgstr "Aktüatör grubu F"
+
+msgid "Actuator group G"
+msgstr "Aktüatör grubu G"
+
+msgid "Actuator group H"
+msgstr "Aktüatör grubu H"
+
+msgid "Actuator group I"
+msgstr "Aktüatör grubu I"
+
+msgid "Actuator group J"
+msgstr "Aktüatör grubu J"
+
+msgid "Actuator settings"
+msgstr "Aktüatör ayarları"
 
 msgid "Additional Functions"
 msgstr "Ek Fonksiyonlar"
@@ -1738,6 +1843,9 @@ msgstr "Ses Seviyesi"
 msgid "Audio Volume Adjustment"
 msgstr "Ses Düzeyi Ayarı"
 
+msgid "Audiocontrol"
+msgstr "Ses kontrolü"
+
 msgid "Auto/On/Off Selection Object"
 msgstr "Otomatik/Açık/Kapalı Seçim Nesnesi"
 
@@ -1893,6 +2001,9 @@ msgstr "İkili Durum 2"
 
 msgid "Black"
 msgstr "Siyah"
+
+msgid "Blind"
+msgstr "Jaluzi"
 
 msgid "Blind Command Format"
 msgstr "Jaluzi Komut Biçimi"
@@ -2158,6 +2269,9 @@ msgstr "CD Duraklatma"
 msgid "CD Play"
 msgstr "CD Çalma"
 
+msgid "CD Player"
+msgstr "CD çalar"
+
 msgid "CD Power"
 msgstr "CD Gücü"
 
@@ -2244,6 +2358,9 @@ msgstr "Sahnedeki Nesne 9'u Değiştir"
 
 msgid "Changed values only"
 msgstr "Yalnızca değişen değerler"
+
+msgid "Channel"
+msgstr "Kanal"
 
 msgid "Channel 1"
 msgstr "Kanal 1"
@@ -2569,6 +2686,9 @@ msgstr "Kompakt enerji tasarruflu lamba, 150 saniyede sabitlenen"
 msgid "Compact fluorescent load"
 msgstr "Kompakt floresan yükü"
 
+msgid "Comparator 1"
+msgstr "Karşılaştırıcı 1"
+
 msgid "Comparison Hysteresis"
 msgstr "Karşılaştırma Histerezisi"
 
@@ -2820,6 +2940,9 @@ msgstr "Denetleyici devre dışı"
 
 msgid "Controller mode selection"
 msgstr "Denetleyici modu seçimi"
+
+msgid "Converter 1"
+msgstr "Dönüştürücü 1"
 
 msgid "Cool White Intensity"
 msgstr "Soğuk Beyaz Yoğunluğu"
@@ -3241,6 +3364,15 @@ msgstr "Parlaklığı adım adım ayarla"
 msgid "Dim until release"
 msgstr "Bırakılana kadar parlaklığı ayarla"
 
+msgid "Dimmer"
+msgstr "Dimmer"
+
+msgid "Dimmerslider"
+msgstr "Parlaklık kaydırıcısı"
+
+msgid "Dimming"
+msgstr "Karartma"
+
 msgid "Dimming Actuator"
 msgstr "Karartma Aktüatörü"
 
@@ -3348,6 +3480,9 @@ msgstr "Disk Oynatma Kontrolleri"
 
 msgid "Disc Selection"
 msgstr "Disk Seçimi"
+
+msgid "Display"
+msgstr "Ekran"
 
 msgid "Display Backlight"
 msgstr "Ekran Arka Işığı"
@@ -3865,6 +4000,9 @@ msgstr "Fan sahne seçimi"
 msgid "Fan-stage objects"
 msgstr "Hayran sahnesi nesneleri"
 
+msgid "FanSwitch"
+msgstr "Fan kontrolü"
+
 msgid "Fast response, about 15 s"
 msgstr "Hızlı yanıt, yaklaşık 15 saniye"
 
@@ -4117,11 +4255,20 @@ msgstr "Tamamen manuel"
 msgid "Fully raised"
 msgstr "Tamamen yükseltilmiş"
 
+msgid "Function"
+msgstr "Fonksiyon"
+
+msgid "Function 1"
+msgstr "İşlev 1"
+
 msgid "Function 1 Enable"
 msgstr "İşlev 1 Etkinleştir"
 
 msgid "Function 1 Text"
 msgstr "İşlev 1 Metin"
+
+msgid "Function 2"
+msgstr "İşlev 2"
 
 msgid "Function 2 Enable"
 msgstr "İşlev 2 Etkinleştir"
@@ -4129,11 +4276,17 @@ msgstr "İşlev 2 Etkinleştir"
 msgid "Function 2 Text"
 msgstr "İşlev 2 Metni"
 
+msgid "Function 3"
+msgstr "İşlev 3"
+
 msgid "Function 3 Enable"
 msgstr "İşlev 3 Etkinleştir"
 
 msgid "Function 3 Text"
 msgstr "İşlev 3 Metni"
+
+msgid "Function 4"
+msgstr "İşlev 4"
 
 msgid "Function 4 Enable"
 msgstr "İşlev 4 Etkinleştir"
@@ -4173,6 +4326,9 @@ msgstr "Fonksiyon Metni"
 
 msgid "Function lighting"
 msgstr "Fonksiyon aydınlatması"
+
+msgid "Gate 1"
+msgstr "Kapı 1"
 
 msgid "German"
 msgstr "Almanca"
@@ -4398,6 +4554,9 @@ msgstr "Bekleme Süresi Kaynağı"
 
 msgid "Hold Time from Object"
 msgstr "Nesneden Zaman Tutma"
+
+msgid "Homepage"
+msgstr "Ana sayfa"
 
 msgid "Hours and minutes"
 msgstr "Saatler ve dakikalar"
@@ -4912,6 +5071,12 @@ msgstr "Durum Geri Bildirimini Ters Çevir"
 msgid "Inverted"
 msgstr "Ters"
 
+msgid "It's dry"
+msgstr "Kuru"
+
+msgid "It's raining"
+msgstr "Yağmur"
+
 msgid "Italian"
 msgstr "İtalyanca"
 
@@ -5202,6 +5367,9 @@ msgstr "Doğrusal ölçek"
 
 msgid "Linked Dimming Outputs"
 msgstr "Bağlantılı Karartma Çıkışları"
+
+msgid "List"
+msgstr "Liste"
 
 msgid "List Arrangement"
 msgstr "Liste Düzenlemesi"
@@ -5601,6 +5769,9 @@ msgstr "En Düşük Manuel Fan Kademesi"
 
 msgid "Magenta for scenes"
 msgstr "Sahneler için macenta"
+
+msgid "Main menu"
+msgstr "Ana menü"
 
 msgid "Manual Adjustment Starting Value"
 msgstr "Manuel Ayar Başlangıç Değeri"
@@ -6181,6 +6352,12 @@ msgstr "Hareket algılama"
 msgid "Move Covering"
 msgstr "Kaplamayı Taşı"
 
+msgid "Move down"
+msgstr "Aşağı Taşı"
+
+msgid "Move up"
+msgstr "Yukarı Taşı"
+
 msgid "Movements Between Reference Runs"
 msgstr "Referans Çalıştırmaları Arasındaki Hareketler"
 
@@ -6189,6 +6366,12 @@ msgstr "Çoklu aktif çıkışlar"
 
 msgid "Multiple-Press Selection"
 msgstr "Çoklu Basma Seçimi"
+
+msgid "Multiplexer 1"
+msgstr "Çoklayıcı 1"
+
+msgid "Multiplier 1"
+msgstr "Telegram çoğaltıcı 1"
 
 msgid "Mute"
 msgstr "Sessiz"
@@ -7444,6 +7627,9 @@ msgstr "Sayfa Ayarları"
 msgid "Page and Controls"
 msgstr "Sayfa ve Kontroller"
 
+msgid "PageLink"
+msgstr "Sayfa bağlantısı"
+
 msgid "Paired Control 1"
 msgstr "Eşleştirilmiş Kontrol 1"
 
@@ -7678,6 +7864,9 @@ msgstr "Güç Anahtarlama Kontrolü"
 msgid "Pre-Event Switching Output"
 msgstr "Olay Öncesi Anahtarlama Çıkışı"
 
+msgid "Presence"
+msgstr "Varlık"
+
 msgid "Press Duration"
 msgstr "Basın Süresi"
 
@@ -7885,8 +8074,20 @@ msgstr "Sıcak ve soğuk beyazlı RGB"
 msgid "RGBW"
 msgstr "RGBW"
 
+msgid "RGBWControl"
+msgstr "RGBW kontrolü"
+
+msgid "RTC"
+msgstr "Oda sıcaklığı"
+
+msgid "RTCControlframe"
+msgstr "Termostat"
+
 msgid "Radiator or convector: 1.5 K, 100 min"
 msgstr "Radyatör veya konvektör: 1,5 K, 100 dk"
+
+msgid "Radio"
+msgstr "Radyo"
 
 msgid "Radio Controls"
 msgstr "Radyo Kontrolleri"
@@ -8674,6 +8875,9 @@ msgstr "Çift Yönlü Düğmeyle Değer Çıkışı"
 msgid "Rocker Value Selection"
 msgstr "Çift Yönlü Düğmeyle Değer Seçimi"
 
+msgid "RockerSwitch"
+msgstr "Basmalı anahtar"
+
 msgid "Room"
 msgstr "Oda"
 
@@ -8925,6 +9129,9 @@ msgstr "Uzun Basmada Sahneyi Kaydet"
 
 msgid "Save scene"
 msgstr "Sahneyi kaydet"
+
+msgid "Scene"
+msgstr "Sahne"
 
 msgid "Scene 1"
 msgstr "Sahne 1"
@@ -9442,6 +9649,9 @@ msgstr "Basma ve bırakma için ayrı eylemler"
 msgid "Separate short and long press actions"
 msgstr "Kısa ve uzun basma eylemlerini ayırın"
 
+msgid "Sequence"
+msgstr "Sıra"
+
 msgid "Sequence Entry 1"
 msgstr "Sıra Girişi 1"
 
@@ -9615,6 +9825,9 @@ msgstr "Sıra Zaman Giriş Formatı"
 
 msgid "Sequence Value and Time Settings"
 msgstr "Sıra Değeri ve Zaman Ayarları"
+
+msgid "Set"
+msgstr "Ayarla"
 
 msgid "Set Hold Time with Potentiometer"
 msgstr "Potansiyometre ile Tutma Süresini Ayarlayın"
@@ -10357,6 +10570,36 @@ msgstr "Durum aydınlatması"
 msgid "Status object"
 msgstr "Durum nesnesi"
 
+msgid "Step 1"
+msgstr "Kademe 1"
+
+msgid "Step 2"
+msgstr "Kademe 2"
+
+msgid "Step 3"
+msgstr "Kademe 3"
+
+msgid "Step 4"
+msgstr "Kademe 4"
+
+msgid "Step 5"
+msgstr "Kademe 5"
+
+msgid "Step 6"
+msgstr "Kademe 6"
+
+msgid "Step 7"
+msgstr "Kademe 7"
+
+msgid "Step 8"
+msgstr "Kademe 8"
+
+msgid "Step Down"
+msgstr "Adım aşağı"
+
+msgid "Step Up"
+msgstr "Adım yukarı"
+
 msgid "Step or Stop Command Repeat Interval"
 msgstr "Adım veya Durdurma Komutu Tekrar Aralığı"
 
@@ -10413,6 +10656,9 @@ msgstr "Gün Doğumu ve Gün Batımı Ayarı"
 
 msgid "Swedish"
 msgstr "İsveççe"
+
+msgid "Switch"
+msgstr "Anahtar"
 
 msgid "Switch Command"
 msgstr "Anahtarlama Komutu"
@@ -10543,6 +10789,9 @@ msgstr "Açılış Geçiş Stili"
 msgid "Switchable local and KNX control"
 msgstr "Değiştirilebilir yerel ve KNX kontrolü"
 
+msgid "Switched off"
+msgstr "Kapalı"
+
 msgid "Switching"
 msgstr "Anahtarlama"
 
@@ -10581,6 +10830,9 @@ msgstr "Sembol Aydınlatması"
 
 msgid "Symbol Style"
 msgstr "Sembol Stili"
+
+msgid "System"
+msgstr "Sistem"
 
 msgid "System Menu Entry Count"
 msgstr "Sistem Menüsü Giriş Sayısı"
@@ -11086,6 +11338,9 @@ msgstr "Zaman Programları"
 msgid "Time Value"
 msgstr "Zaman Değeri"
 
+msgid "Time function 1"
+msgstr "Zaman işlevi 1"
+
 msgid "Timed Output Hold Duration"
 msgstr "Zamanlanmış Çıkış Tutma Süresi"
 
@@ -11110,8 +11365,14 @@ msgstr "Zamanlayıcı Bitiş Değeri"
 msgid "Timer Start Value"
 msgstr "Zamanlayıcı Başlangıç Değeri"
 
+msgid "Title"
+msgstr "Başlık"
+
 msgid "Toggle"
 msgstr "Durumu değiştir"
+
+msgid "Tools"
+msgstr "Araçlar"
 
 msgid "Trailing-edge dimming"
 msgstr "Arka kenar karartma"
@@ -11148,6 +11409,24 @@ msgstr "İletim Sıcaklığı"
 
 msgid "Transmit When Entering Manual Fan Mode"
 msgstr "Manuel Fan Moduna Girerken İletim"
+
+msgid "Transmitter 1"
+msgstr "İstasyon 1"
+
+msgid "Transmitter 2"
+msgstr "İstasyon 2"
+
+msgid "Transmitter 3"
+msgstr "İstasyon 3"
+
+msgid "Transmitter 4"
+msgstr "İstasyon 4"
+
+msgid "Transmitter 5"
+msgstr "İstasyon 5"
+
+msgid "Transmitter 6"
+msgstr "İstasyon 6"
 
 msgid "Travel direction (1 bit)"
 msgstr "Seyahat yönü (1 bit)"
@@ -11241,6 +11520,9 @@ msgstr "İki konumlu kontrol (1 bayt)"
 
 msgid "Unassigned"
 msgstr "Atanmamış"
+
+msgid "Unit"
+msgstr "Birim"
 
 msgid "Unit System Selection"
 msgstr "Birim Sistem Seçimi"
@@ -11548,6 +11830,15 @@ msgstr "Değer Kaydırıcısı"
 msgid "Value Transfer Direction"
 msgstr "Değer Aktarım Yönü"
 
+msgid "Value between minimum and threshold 1"
+msgstr "Minimum ile eşik 1 arasındaki değer"
+
+msgid "Value between threshold 1 and threshold 2"
+msgstr "Eşik 1 ile eşik 2 arasındaki değer"
+
+msgid "Value between threshold 2 and maximum"
+msgstr "Eşik 2 ile maksimum arasındaki değer"
+
 msgid "Value for Entire Input Range"
 msgstr "Tüm Giriş Aralığı Değeri"
 
@@ -11587,6 +11878,9 @@ msgstr "Açılıştaki Değer"
 msgid "Value or Status Display"
 msgstr "Değer veya Durum Göstergesi"
 
+msgid "Value sender"
+msgstr "Değer gönderici"
+
 msgid "Value with unit"
 msgstr "Birimli değer"
 
@@ -11595,6 +11889,9 @@ msgstr "Değere Dayalı Gösterge Rengi"
 
 msgid "Values on Short and Long Press"
 msgstr "Kısa ve Uzun Basma Değerleri"
+
+msgid "Valueslider"
+msgstr "Değer kaydırıcısı"
 
 msgid "Ventilation"
 msgstr "Havalandırma"
@@ -11628,6 +11925,9 @@ msgstr "Videoyu Durdurma"
 
 msgid "Video Volume"
 msgstr "Video Sesi"
+
+msgid "Video player"
+msgstr "Video oynatıcı"
 
 msgid "Violet"
 msgstr "Menekşe"
