@@ -329,3 +329,30 @@ msgstr "Délai de réponse (secondes)"
 
 msgid "How long to wait for a device's answer, e.g. to a memory or property read."
 msgstr "Durée d'attente de la réponse d'un appareil, par ex. à une lecture de mémoire ou de propriété."
+
+msgid "Medium: {medium}"
+msgstr "Media : {medium}"
+
+msgid "Domain Address"
+msgstr "Adresse de Domaine"
+
+msgid "From Line"
+msgstr "Depuis la Ligne"
+
+msgid "The interface sends with this domain address and receives only the telegrams of devices with it."
+msgstr "L'interface émet avec cette adresse de domaine et ne reçoit que les télégrammes des appareils qui l'ont."
+
+msgid "{address} is not an RF domain address (4 and 8 hexadecimal digits, e.g. 0001:23456789)."
+msgstr "{address} n'est pas une adresse de domaine RF (4 et 8 chiffres hexadécimaux, p. ex. 0001:23456789)."
+
+msgid "The domain address of the interface is being set."
+msgstr "L'adresse de domaine de l'interface est en cours de définition."
+
+msgid "The connected USB interface is not a KNX RF interface."
+msgstr "L'interface USB connectée n'est pas une interface KNX RF."
+
+msgid "The domain address could not be set: {error}"
+msgstr "L'adresse de domaine n'a pas pu être définie : {error}"
+
+msgid "Setting the domain address…"
+msgstr "Définition de l'adresse de domaine…"

@@ -330,3 +330,30 @@ msgstr "Timp limită de răspuns (secunde)"
 
 msgid "How long to wait for a device's answer, e.g. to a memory or property read."
 msgstr "Cât se așteaptă răspunsul unui dispozitiv, de ex. la o citire de memorie sau a unei proprietăți."
+
+msgid "Medium: {medium}"
+msgstr "Mediu: {medium}"
+
+msgid "Domain Address"
+msgstr "Adresă de domeniu"
+
+msgid "From Line"
+msgstr "Din Linie"
+
+msgid "The interface sends with this domain address and receives only the telegrams of devices with it."
+msgstr "Interfața transmite cu această adresă de domeniu și primește doar telegramele dispozitivelor care o au."
+
+msgid "{address} is not an RF domain address (4 and 8 hexadecimal digits, e.g. 0001:23456789)."
+msgstr "{address} nu este o adresă de domeniu RF (4 și 8 cifre hexazecimale, de ex. 0001:23456789)."
+
+msgid "The domain address of the interface is being set."
+msgstr "Adresa de domeniu a interfeței este în curs de setare."
+
+msgid "The connected USB interface is not a KNX RF interface."
+msgstr "Interfața USB conectată nu este o interfață KNX RF."
+
+msgid "The domain address could not be set: {error}"
+msgstr "Adresa de domeniu nu a putut fi setată: {error}"
+
+msgid "Setting the domain address…"
+msgstr "Se setează adresa de domeniu…"

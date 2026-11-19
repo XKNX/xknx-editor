@@ -9,16 +9,18 @@ dropped for ``xknx.io.usb`` once the editor requires an xknx release with it.
 from .hid_device import (
     USBDeviceInfo,
     find_usb_interfaces,
-    import_hidapi_backends,
     is_knx_usb_interface,
 )
+from .rf import RFMediumInfo, RFSignalStrength, rf_medium_info
 from .tunnel import USBInterfaceInfo, USBTunnel
 
 __all__ = [
+    "RFMediumInfo",
+    "RFSignalStrength",
     "USBDeviceInfo",
     "USBInterfaceInfo",
     "USBTunnel",
     "find_usb_interfaces",
-    "import_hidapi_backends",
     "is_knx_usb_interface",
+    "rf_medium_info",
 ]

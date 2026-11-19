@@ -413,11 +413,17 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         (``keeps_address`` false for an interface that forgets its individual address when
         unplugged: the editor sets it again on connect), and while connected also has
         {individual_address, max_apdu_length, bus_connected, emi_type, supported_emi_types,
-        mask_version} (``individual_address`` null when the interface's could not be read, see
+        mask_version, medium} and for a KNX RF interface ``rf_domain_address`` ("0001:23456789"
+        as lines show it, null when it could not be read; see
+        connection_set_usb_interface_domain_address) (``individual_address`` null when the
+        interface's could not be read, see
         connection_set_usb_interface_address to set it; while ``bus_connected`` is false nothing
         can be sent; ``emi_type`` the message format used with it: "cEMI", "EMI2" or "EMI1";
         ``supported_emi_types`` those it supports, preferred first; ``mask_version`` four
-        hexadecimal digits like "07B0", null when unknown)."""
+        hexadecimal digits like "07B0", null when unknown; ``medium`` "TP" or "RF", as lines
+        name their medium)."""
+        from xknx.knxip.knxip_enum import KNXMedium
+
         from editor_gui.plugins.connection.plugin import (
             connection_type_name,
             gateway_services,
@@ -425,6 +431,8 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         from editor_gui.plugins.connection.usb import (
             emi_type_name,
             mask_version_text,
+            medium_name,
+            rf_domain_address_text,
             supported_emi_type_names,
         )
 
@@ -472,6 +480,11 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                     info.supported_emi_types
                 )
                 usb["mask_version"] = mask_version_text(info.mask_version) or None
+                usb["medium"] = medium_name(info.medium)
+                if info.medium is KNXMedium.RF:
+                    usb["rf_domain_address"] = (
+                        rf_domain_address_text(info.rf_domain_address) or None
+                    )
             status["usb_interface"] = usb
         return status
 
@@ -627,6 +640,38 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         return {
             "individual_address": individual_address.strip(),
             "usb_interface": connection_status().get("usb_interface"),
+        }
+
+    @tool("write", open_world=True)
+    def connection_set_usb_interface_domain_address(
+        domain_address: str, timeout: float = 30.0
+    ) -> dict[str, Any]:
+        """Set the domain address of the connected KNX RF USB interface, as the Domain Address
+        row of Gateway menu > USB Interface… does. ``domain_address`` is written as lines show
+        it, 4 and 8 hexadecimal digits like "0001:23456789" (project_topology lists the RF
+        lines' ones). The connection is opened again and sets it on the interface, which keeps
+        it; the interface then sends with it and receives only the telegrams of devices with
+        it. Nothing is written when the interface has that address already. Waits for the
+        result and returns ``{rf_domain_address, usb_interface}``, the latter as in
+        connection_status. Fails with the reason when it is no domain address, no USB interface
+        or one that is not a KNX RF interface is connected, or the interface did not take it
+        (then it is connected again with its domain address as it was)."""
+        try:
+            future = conn.set_usb_interface_domain_address(domain_address)
+        except ValueError as err:
+            raise ToolError(str(err)) from err
+        try:
+            future.result(timeout)
+        except TimeoutError as err:
+            raise ToolError(
+                f"the domain address was not set within {timeout:g} s"
+            ) from err
+        except ConnectionError as err:
+            raise ToolError(str(err)) from err
+        usb: dict[str, Any] = connection_status().get("usb_interface") or {}
+        return {
+            "rf_domain_address": usb.get("rf_domain_address"),
+            "usb_interface": usb or None,
         }
 
     @tool("read", open_world=True)

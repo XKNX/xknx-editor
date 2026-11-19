@@ -520,6 +520,9 @@ def format_cells(record: MonitorRecord, index: ProjectIndex) -> tuple[str, ...]:
     frame = record.frame
     if frame is None:
         return tuple(cells)
+    if frame.rf is not None and not cells[idx["medium_info"]]:
+        # A KNX RF frame of the bus monitor: its RF fields, as an RF medium information
+        cells[idx["medium_info"]] = frame.rf.medium_info.hex(" ").upper()
     if frame.malformed or frame.checksum_error:
         cells[idx["service"]] = S.ROW_INVALID_FRAME
     cells[idx["flags"]] = frame.link_flags

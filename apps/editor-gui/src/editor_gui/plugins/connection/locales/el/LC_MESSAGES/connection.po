@@ -329,3 +329,30 @@ msgstr "Χρονικό όριο απάντησης (δευτερόλεπτα)"
 
 msgid "How long to wait for a device's answer, e.g. to a memory or property read."
 msgstr "Πόσο να περιμένει την απάντηση μιας συσκευής, π.χ. σε ανάγνωση μνήμης ή ιδιότητας."
+
+msgid "Medium: {medium}"
+msgstr "Μέσο: {medium}"
+
+msgid "Domain Address"
+msgstr "Διεύθυνση Τομέα"
+
+msgid "From Line"
+msgstr "Από Γραμμή"
+
+msgid "The interface sends with this domain address and receives only the telegrams of devices with it."
+msgstr "Η διεπαφή στέλνει με αυτή τη διεύθυνση τομέα και λαμβάνει μόνο τα τηλεγραφήματα συσκευών που την έχουν."
+
+msgid "{address} is not an RF domain address (4 and 8 hexadecimal digits, e.g. 0001:23456789)."
+msgstr "Η {address} δεν είναι διεύθυνση τομέα RF (4 και 8 δεκαεξαδικά ψηφία, π.χ. 0001:23456789)."
+
+msgid "The domain address of the interface is being set."
+msgstr "Η διεύθυνση τομέα της διεπαφής ορίζεται αυτή τη στιγμή."
+
+msgid "The connected USB interface is not a KNX RF interface."
+msgstr "Η συνδεδεμένη διεπαφή USB δεν είναι διεπαφή KNX RF."
+
+msgid "The domain address could not be set: {error}"
+msgstr "Δεν ήταν δυνατό να οριστεί η διεύθυνση τομέα: {error}"
+
+msgid "Setting the domain address…"
+msgstr "Ορισμός της διεύθυνσης τομέα…"

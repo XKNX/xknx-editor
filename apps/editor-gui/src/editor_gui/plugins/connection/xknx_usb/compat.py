@@ -1,8 +1,9 @@
 """
 What ``xknx.io.usb`` takes from other parts of xknx that xknx 4.1.1 lacks.
 
-These come with the xknx PR #2025 (KNX USB interfaces): ``xknx.exceptions.CouldNotParseUSBFrame``
-and ``ResourceCEMIServerPropertyId.PID_CEMI_SERVER_SNA``. Drop this module for them once the
+These come with the xknx PR #2025 (KNX USB interfaces): ``xknx.exceptions.CouldNotParseUSBFrame``,
+``ResourceCEMIServerPropertyId.PID_CEMI_SERVER_SNA`` and
+``ResourceRFMediumPropertyId.PID_RF_DOMAIN_ADDRESS``. Drop this module for them once the
 editor requires an xknx release with that PR.
 """
 
@@ -29,3 +30,9 @@ class CEMIServerPropertyId(ResourcePropertyId):
     """The cEMI Server Object property xknx 4.1.1's ``ResourceCEMIServerPropertyId`` lacks."""
 
     PID_CEMI_SERVER_SNA = 57  # PDT_UNSIGNED_CHAR
+
+
+class RFMediumPropertyId(ResourcePropertyId):
+    """The RF Medium Object property xknx 4.1.1's ``ResourceRFMediumPropertyId`` lacks."""
+
+    PID_RF_DOMAIN_ADDRESS = 56  # PDT_GENERIC_06

@@ -9,6 +9,7 @@ from typing import Any
 
 import pytest
 from fastmcp import Client
+from xknx.knxip.knxip_enum import KNXMedium
 from xknx.telegram import IndividualAddress
 
 from editor_gui.plugins.connection.plugin import ConnectionState
@@ -110,6 +111,7 @@ async def test_connecting_through_a_usb_interface(tmp_path: Path) -> None:
         "emi_type": "cEMI",
         "supported_emi_types": ["cEMI"],
         "mask_version": None,
+        "medium": "TP",
     }
 
 
@@ -150,6 +152,36 @@ async def test_an_emi1_interface(tmp_path: Path) -> None:
     assert usb["mask_version"] == "0012"
 
 
+async def test_an_rf_interface(tmp_path: Path) -> None:
+    conn = _UsbConnection()
+    conn.connect_to_usb_by_serial("")
+    info = USBInterfaceInfo(
+        device=_DEVICE,
+        individual_address=IndividualAddress("1.0.2"),
+        max_apdu_length=55,
+        supported_emi_types=SupportedEMIType.CEMI,
+        bus_connected=True,
+        mask_version=0x2311,
+        medium=KNXMedium.RF,
+        rf_domain_address=bytes.fromhex("00fa12345678"),
+    )
+    conn.usb_info = info
+    async with Client(_server(tmp_path, conn)) as client:
+        status = await _data(client, "connection_status")
+        conn.usb_info = USBInterfaceInfo(
+            device=_DEVICE,
+            individual_address=IndividualAddress("1.0.2"),
+            max_apdu_length=55,
+            supported_emi_types=SupportedEMIType.CEMI,
+            bus_connected=True,
+            medium=KNXMedium.RF,
+        )
+        unknown = await _data(client, "connection_status")
+    assert status["usb_interface"]["medium"] == "RF"
+    assert status["usb_interface"]["rf_domain_address"] == "00FA:12345678"
+    assert unknown["usb_interface"]["rf_domain_address"] is None
+
+
 async def test_an_unknown_usb_interface_is_refused(tmp_path: Path) -> None:
     conn = _UsbConnection()
     async with Client(_server(tmp_path, conn)) as client:
@@ -184,6 +216,23 @@ class _AddressConnection(_UsbConnection):
         self.requests.append(("set", text))
         if text == "x":
             raise ValueError("x is not an individual address (area.line.device).")
+        return self.outcome
+
+    def set_usb_interface_domain_address(self, text: str) -> Future[Any]:
+        self.requests.append(("domain", text))
+        if text == "x":
+            raise ValueError("x is not an RF domain address.")
+        if self.outcome.done() and self.outcome.exception() is None:
+            assert self.usb_info is not None
+            self.usb_info = USBInterfaceInfo(
+                device=_DEVICE,
+                individual_address=self.usb_info.individual_address,
+                max_apdu_length=55,
+                supported_emi_types=SupportedEMIType.CEMI,
+                bus_connected=True,
+                medium=KNXMedium.RF,
+                rf_domain_address=bytes.fromhex("00fa00000042"),
+            )
         return self.outcome
 
     def check_usb_interface_address(self, text: str) -> Future[Any]:
@@ -221,6 +270,39 @@ async def test_setting_the_interface_address(tmp_path: Path) -> None:
     assert result["individual_address"] == "1.0.2"
     assert result["usb_interface"]["individual_address"] == "1.0.2"
     assert conn.requests[0] == ("set", "1.0.2 ")
+
+
+async def test_setting_the_rf_domain_address(tmp_path: Path) -> None:
+    conn = _AddressConnection()
+    conn.outcome.set_result(None)
+    async with Client(_server(tmp_path, conn)) as client:
+        result = await _data(
+            client,
+            "connection_set_usb_interface_domain_address",
+            domain_address="00FA:00000042",
+        )
+        with pytest.raises(Exception, match="x is not an RF domain address"):
+            await client.call_tool(
+                "connection_set_usb_interface_domain_address", {"domain_address": "x"}
+            )
+        conn.outcome = Future()
+        conn.outcome.set_exception(
+            ConnectionError("The domain address could not be set: refused")
+        )
+        with pytest.raises(Exception, match="could not be set: refused"):
+            await client.call_tool(
+                "connection_set_usb_interface_domain_address",
+                {"domain_address": "00FA:00000043"},
+            )
+        conn.outcome = Future()
+        with pytest.raises(Exception, match=r"was not set within 0\.1 s"):
+            await client.call_tool(
+                "connection_set_usb_interface_domain_address",
+                {"domain_address": "00FA:00000043", "timeout": 0.1},
+            )
+    assert result["rf_domain_address"] == "00FA:00000042"
+    assert result["usb_interface"]["medium"] == "RF"
+    assert conn.requests[0] == ("domain", "00FA:00000042")
 
 
 async def test_checking_an_individual_address(tmp_path: Path) -> None:

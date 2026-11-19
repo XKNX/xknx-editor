@@ -13,6 +13,7 @@ from xknx import XKNX
 from xknx.core.connection_state import XknxConnectionState
 from xknx.exceptions import CommunicationError
 from xknx.io.connection import ConnectionConfig
+from xknx.knxip.knxip_enum import KNXMedium
 from xknx.secure.data_secure import DataSecure
 from xknx.telegram import IndividualAddress
 
@@ -24,6 +25,11 @@ from editor_gui.plugins.connection.xknx_usb import (
     find_usb_interfaces,
 )
 from editor_gui.plugins.connection.xknx_usb.const import EMIID, SupportedEMIType
+from xknxeditor.proj.core.medium import (
+    MEDIUM_RF,
+    format_domain_address,
+    parse_domain_address,
+)
 
 # Seconds between the attempts to open an unplugged interface again.
 _RECONNECT_SECONDS = 3
@@ -66,6 +72,39 @@ def supported_emi_type_names(supported: SupportedEMIType) -> list[str]:
 def mask_version_text(mask_version: int | None) -> str:
     """A mask version as four hexadecimal digits (``07B0``); empty when it is unknown."""
     return "" if mask_version is None else f"{mask_version:04X}"
+
+
+# The media of interfaces by the names lines and segments have.
+_MEDIUM_NAMES = {
+    KNXMedium.TP1: "TP",
+    KNXMedium.PL110: "PL",
+    KNXMedium.RF: "RF",
+    KNXMedium.KNX_IP: "IP",
+}
+
+
+def medium_name(medium: KNXMedium) -> str:
+    """The medium of an interface as lines and segments name it: TP, PL, RF or IP."""
+    return _MEDIUM_NAMES[medium]
+
+
+def rf_domain_address_text(domain_address: bytes | None) -> str:
+    """An RF domain address as lines show it (``0001:23456789``); empty when it is unknown."""
+    if domain_address is None:
+        return ""
+    return format_domain_address(MEDIUM_RF, int.from_bytes(domain_address, "big"))
+
+
+def parse_rf_domain_address(text: str) -> bytes:
+    """The 6 octets of the RF domain address ``text`` (as lines show it). Raises ``ValueError``
+    for text that is none."""
+    try:
+        value = parse_domain_address(MEDIUM_RF, text)
+    except ValueError as err:
+        raise ValueError(text) from err
+    if not 0 <= value < 1 << 48:
+        raise ValueError(text)
+    return value.to_bytes(6, "big")
 
 
 def cancel_hidapi_atexit() -> None:
@@ -199,7 +238,7 @@ async def search_usb_interfaces(
 class ObservableUSBInterfaceThreaded(ObservableKNXIPInterfaceThreaded):
     """A connection through a KNX USB interface, observable as the KNXnet/IP ones are."""
 
-    __slots__ = ("_data_secure", "_individual_address", "_target")
+    __slots__ = ("_data_secure", "_individual_address", "_rf_domain_address", "_target")
 
     def __init__(
         self,
@@ -210,11 +249,13 @@ class ObservableUSBInterfaceThreaded(ObservableKNXIPInterfaceThreaded):
         data_secure: DataSecure | None = None,
         individual_address: IndividualAddress | None = None,
         writes_blocked: Callable[[], bool] | None = None,
+        rf_domain_address: bytes | None = None,
     ) -> None:
         """``data_secure`` is in place while the interface is set up, so an interface Data Secure
         can't work with (unknown individual address, EMI1/EMI2 only) is noticed on connect as
         after its reset or a reconnect. With ``individual_address`` the interface's own address is
-        set to it on connect when it has another one; the connect fails when that can't be done."""
+        set to it on connect when it has another one; the connect fails when that can't be done.
+        ``rf_domain_address`` sets the domain address of a KNX RF interface the same way."""
         super().__init__(
             xknx,
             ConnectionConfig(threaded=True),
@@ -225,6 +266,7 @@ class ObservableUSBInterfaceThreaded(ObservableKNXIPInterfaceThreaded):
         self._target = target
         self._data_secure = data_secure
         self._individual_address = individual_address
+        self._rf_domain_address = rf_domain_address
 
     async def _start(self) -> None:
         """Open the interface (in the connection thread)."""
@@ -240,6 +282,7 @@ class ObservableUSBInterfaceThreaded(ObservableKNXIPInterfaceThreaded):
             auto_reconnect=True,
             auto_reconnect_wait=_RECONNECT_SECONDS,
             individual_address=self._individual_address,
+            rf_domain_address=self._rf_domain_address,
         )
         await self._interface.connect()
 

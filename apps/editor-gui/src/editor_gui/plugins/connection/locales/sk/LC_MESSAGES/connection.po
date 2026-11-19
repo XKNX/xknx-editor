@@ -330,3 +330,30 @@ msgstr "Časový limit odpovede (sekundy)"
 
 msgid "How long to wait for a device's answer, e.g. to a memory or property read."
 msgstr "Ako dlho čakať na odpoveď zariadenia, napr. na čítanie pamäte alebo vlastnosti."
+
+msgid "Medium: {medium}"
+msgstr "Médium: {medium}"
+
+msgid "Domain Address"
+msgstr "Adresa domény"
+
+msgid "From Line"
+msgstr "Z línie"
+
+msgid "The interface sends with this domain address and receives only the telegrams of devices with it."
+msgstr "Rozhranie vysiela s touto adresou domény a prijíma len telegramy zariadení, ktoré ju majú."
+
+msgid "{address} is not an RF domain address (4 and 8 hexadecimal digits, e.g. 0001:23456789)."
+msgstr "{address} nie je adresa domény RF (4 a 8 šestnástkových číslic, napr. 0001:23456789)."
+
+msgid "The domain address of the interface is being set."
+msgstr "Adresa domény rozhrania sa práve nastavuje."
+
+msgid "The connected USB interface is not a KNX RF interface."
+msgstr "Pripojené rozhranie USB nie je rozhranie KNX RF."
+
+msgid "The domain address could not be set: {error}"
+msgstr "Adresu domény sa nepodarilo nastaviť: {error}"
+
+msgid "Setting the domain address…"
+msgstr "Nastavuje sa adresa domény…"

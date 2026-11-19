@@ -42,6 +42,7 @@ from xknx.exceptions import (
     UnsupportedCEMIMessage,
 )
 from xknx.io.interface import CEMIBytesCallbackType, Interface
+from xknx.knxip.knxip_enum import KNXMedium
 from xknx.profile.const import (
     ResourceCEMIServerPropertyId,
     ResourceDevicePropertyId,
@@ -53,7 +54,11 @@ from xknx.secure.keyring import InterfaceType, Keyring
 from xknx.telegram import IndividualAddress
 
 from . import emi
-from .compat import CEMIServerPropertyId, CouldNotParseUSBFrame
+from .compat import (
+    CEMIServerPropertyId,
+    CouldNotParseUSBFrame,
+    RFMediumPropertyId,
+)
 from .const import (
     BCU_ADDRESS_MASKS,
     CEMI_SERVER_ADDRESS_MASKS,
@@ -71,8 +76,8 @@ from .hid_device import (
     HIDDevice,
     USBDeviceInfo,
     find_usb_interfaces,
-    import_hidapi_backends,
 )
+from .rf import medium_of_mask_version, with_rf_medium_info
 
 if TYPE_CHECKING:
     from xknx.xknx import XKNX
@@ -158,7 +163,9 @@ class USBInterfaceInfo:
     What a connected KNX USB interface reported about itself.
 
     `individual_address` is None when it could not be read. `max_apdu_length` is
-    informational: xknx doesn't limit the telegrams it sends by it.
+    informational: xknx doesn't limit the telegrams it sends by it. `medium` is the
+    one of the mask version; an RF interface reports its `rf_domain_address`, None
+    when it could not be read.
     """
 
     device: USBDeviceInfo
@@ -170,6 +177,8 @@ class USBInterfaceInfo:
     mask_version: int | None = None
     # the EMI format used with the interface
     emi_type: EMIID = EMIID.CEMI
+    medium: KNXMedium = KNXMedium.TP1
+    rf_domain_address: bytes | None = None
 
 
 class USBTunnel(Interface):
@@ -182,6 +191,11 @@ class USBTunnel(Interface):
     While the interface reports no bus connection, the connection state is
     DISCONNECTED and nothing can be sent; it is CONNECTED again as soon as the
     interface reports the bus back.
+
+    Through a KNX RF interface every L_Data.req gets void RF medium information,
+    so the interface sends it with its own Domain Address and frame number (see
+    `xknx.io.usb.rf`); `xknx.io.usb.rf.rf_medium_info()` reads the one of a received
+    frame.
     """
 
     __slots__ = (
@@ -194,6 +208,7 @@ class USBTunnel(Interface):
         "_identify",
         "_info",
         "_last_request_source",
+        "_medium",
         "_memory",
         "_original_system_status",
         "_properties",
@@ -211,6 +226,7 @@ class USBTunnel(Interface):
         "keyring",
         "path",
         "product_id",
+        "rf_domain_address",
         "serial_number",
         "vendor_id",
         "xknx",
@@ -235,6 +251,7 @@ class USBTunnel(Interface):
         busmonitor: bool = False,
         keyring: Keyring | None = None,
         individual_address: IndividualAddress | None = None,
+        rf_domain_address: bytes | None = None,
     ) -> None:
         """
         Initialize USBTunnel.
@@ -260,6 +277,11 @@ class USBTunnel(Interface):
         it on connect when the interface has another one (see
         `_write_individual_address()`). The change persists in the interface. When
         it fails, the connect fails. Without it, the address is only read.
+
+        With `rf_domain_address` (6 octets) the Domain Address of a KNX RF interface
+        is set to it on connect when the interface has another one, the same way
+        (see `_write_rf_domain_address()`). Other interfaces have none; it is
+        ignored for them.
         """
         self.xknx = xknx
         self.busmonitor = busmonitor
@@ -272,6 +294,7 @@ class USBTunnel(Interface):
         self.auto_reconnect_wait = auto_reconnect_wait
         self.keyring = keyring
         self.individual_address = individual_address
+        self.rf_domain_address = rf_domain_address
         self.device_info: USBDeviceInfo | None = None
 
         self._assembler = ReportAssembler()
@@ -284,6 +307,7 @@ class USBTunnel(Interface):
         self._identify: _PendingRequests[None, int] = _PendingRequests()
         self._info: USBInterfaceInfo | None = None
         self._last_request_source: IndividualAddress | None = None
+        self._medium = KNXMedium.TP1
         self._memory: _PendingRequests[int, bytes] = _PendingRequests()
         self._original_system_status: int | None = None
         self._properties: _PendingRequests[_PropertyKey, CEMIFrame] = _PendingRequests()
@@ -360,8 +384,6 @@ class USBTunnel(Interface):
 
     async def _open(self) -> None:
         """Find and open the interface."""
-        # on this thread, not in the executor - see import_hidapi_backends()
-        import_hidapi_backends()
         loop = asyncio.get_running_loop()
         device_info = await loop.run_in_executor(None, self._find_device)
         self._device = HIDDevice(
@@ -409,11 +431,24 @@ class USBTunnel(Interface):
         # §3.5.3.3.3: before any local device management
         mask_version = await self._get_mask_version()
 
+        rf_domain_address: bytes | None = None
         if self._emi is EMIID.CEMI:
+            # KNX v02.01.01 - Configuration Procedures 03.05.03 - §3.13.2.2; an RF
+            # interface only speaks cEMI (§3.13.2.1)
+            self._medium = medium_of_mask_version(mask_version)
             await self._set_communication_mode()
             individual_address = await self._read_cemi_individual_address(mask_version)
             max_apdu_length = await self._read_max_apdu_length()
+            if self._medium is KNXMedium.RF:
+                rf_domain_address = await self._read_rf_domain_address()
+                if (
+                    self.rf_domain_address is not None
+                    and rf_domain_address != self.rf_domain_address
+                ):
+                    await self._write_rf_domain_address(rf_domain_address)
+                    rf_domain_address = self.rf_domain_address
         else:
+            self._medium = KNXMedium.TP1
             self._warn_emi_data_secure()
             await self._switch_emi_layer(
                 EMILayer.BUSMONITOR if self.busmonitor else EMILayer.DATA_LINK_LAYER
@@ -438,6 +473,8 @@ class USBTunnel(Interface):
             manufacturer_code=manufacturer_code,
             mask_version=mask_version,
             emi_type=self._emi,
+            medium=self._medium,
+            rf_domain_address=rf_domain_address,
         )
 
     async def _get_supported_emi_types(self) -> SupportedEMIType:
@@ -573,6 +610,67 @@ class USBTunnel(Interface):
         device = await self._property_read(object_type, device_property)
         # a confirmation without data can't be parsed - it is no answer
         return IndividualAddress((subnet[0] << 8) | device[0])
+
+    async def _read_rf_domain_address(self) -> bytes | None:
+        """
+        Read the Domain Address of an RF interface; None when it can't be read.
+
+        It is in the RF Medium Object, and may be in the Device Object as well -
+        KNX v01.10.01 - Resources 03.05.01 - §4.15.8, §4.3.32.
+        """
+        for object_type, property_id in (
+            (
+                ResourceObjectType.OBJECT_RF_MEDIUM_OBJECT,
+                RFMediumPropertyId.PID_RF_DOMAIN_ADDRESS,
+            ),
+            (
+                ResourceObjectType.OBJECT_DEVICE,
+                ResourceDevicePropertyId.PID_RF_DOMAIN_ADDRESS,
+            ),
+        ):
+            try:
+                data = await self._property_read(object_type, property_id)
+            except CommunicationError as ex:
+                logger.debug(
+                    "Could not read the RF Domain Address from object type %s: %s",
+                    object_type.value,
+                    ex,
+                )
+                continue
+            if len(data) == 6:
+                return bytes(data)
+        logger.warning("Could not read the RF Domain Address of the KNX USB interface")
+        return None
+
+    async def _write_rf_domain_address(self, current: bytes | None) -> None:
+        """
+        Set the Domain Address of an RF interface to `rf_domain_address`. Raise CommunicationError when that fails.
+
+        M_PropWrite of the RF Medium Object, where it is mandatory - KNX v01.10.01 -
+        Resources 03.05.01 - §4.15.8; the interface keeps a copy in the Device Object
+        in step. A positive M_PropWrite.con is the confirmation, and the address
+        applies at once - KNX v02.01.01 - Configuration Procedures 03.05.03 -
+        §3.13.3.2.
+        """
+        assert self.rf_domain_address is not None
+        new = self.rf_domain_address
+        try:
+            await self._property_write(
+                ResourceObjectType.OBJECT_RF_MEDIUM_OBJECT,
+                RFMediumPropertyId.PID_RF_DOMAIN_ADDRESS,
+                new,
+            )
+        except CommunicationError as ex:
+            raise CommunicationError(
+                f"Could not set the RF Domain Address of KNX USB interface "
+                f"{self.device_info} to {new.hex()}: {ex}"
+            ) from ex
+        logger.info(
+            "Changed the RF Domain Address of KNX USB interface %s from %s to %s",
+            self.device_info,
+            current.hex() if current is not None else "unknown",
+            new.hex(),
+        )
 
     async def _read_max_apdu_length(self) -> int:
         """Read the maximum APDU length of the interface, 15 when it isn't available."""
@@ -1085,6 +1183,8 @@ class USBTunnel(Interface):
                 "Data Secure telegrams can't be sent"
             )
         raw_cemi = cemi.to_knx()
+        if self._medium is KNXMedium.RF:
+            raw_cemi = with_rf_medium_info(raw_cemi)
         if self._emi is EMIID.CEMI:
             self._last_request_source = _l_data_source(raw_cemi)
             await self._send_tunnel_frame(raw_cemi)

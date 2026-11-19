@@ -331,3 +331,30 @@ msgstr "Časovna omejitev odgovora (sekunde)"
 
 msgid "How long to wait for a device's answer, e.g. to a memory or property read."
 msgstr "Kako dolgo se čaka na odgovor naprave, npr. na branje pomnilnika ali lastnosti."
+
+msgid "Medium: {medium}"
+msgstr "Medij: {medium}"
+
+msgid "Domain Address"
+msgstr "Naslov domene"
+
+msgid "From Line"
+msgstr "Iz linije"
+
+msgid "The interface sends with this domain address and receives only the telegrams of devices with it."
+msgstr "Vmesnik oddaja s tem naslovom domene in sprejema le telegrame naprav, ki ga imajo."
+
+msgid "{address} is not an RF domain address (4 and 8 hexadecimal digits, e.g. 0001:23456789)."
+msgstr "{address} ni naslov domene RF (4 in 8 šestnajstiških števk, npr. 0001:23456789)."
+
+msgid "The domain address of the interface is being set."
+msgstr "Naslov domene vmesnika se nastavlja."
+
+msgid "The connected USB interface is not a KNX RF interface."
+msgstr "Povezani vmesnik USB ni vmesnik KNX RF."
+
+msgid "The domain address could not be set: {error}"
+msgstr "Naslova domene ni bilo mogoče nastaviti: {error}"
+
+msgid "Setting the domain address…"
+msgstr "Nastavljanje naslova domene…"

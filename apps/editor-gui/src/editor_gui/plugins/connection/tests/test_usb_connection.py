@@ -98,6 +98,10 @@ def _plugin() -> Any:
     plugin._usb_address_checking = False
     plugin._usb_address_error = None
     plugin._usb_address_free = None
+    plugin._usb_domain_text = ""
+    plugin._usb_domain_write = None
+    plugin._usb_domain_busy = False
+    plugin._usb_domain_error = None
     plugin._controller_ip = "192.168.1.10"
     plugin._multicast_group = "224.0.23.12"
     plugin._connection_type = ConnectionType.TUNNELING_TCP

@@ -329,3 +329,30 @@ msgstr "Antwort-Zeitlimit (Sekunden)"
 
 msgid "How long to wait for a device's answer, e.g. to a memory or property read."
 msgstr "Wie lange auf die Antwort eines Geräts gewartet wird, z. B. beim Lesen von Speicher oder einer Eigenschaft."
+
+msgid "Medium: {medium}"
+msgstr "Medientyp: {medium}"
+
+msgid "Domain Address"
+msgstr "Domänenadresse"
+
+msgid "From Line"
+msgstr "Von Linie"
+
+msgid "The interface sends with this domain address and receives only the telegrams of devices with it."
+msgstr "Die Schnittstelle sendet mit dieser Domänenadresse und empfängt nur die Telegramme von Geräten mit dieser Adresse."
+
+msgid "{address} is not an RF domain address (4 and 8 hexadecimal digits, e.g. 0001:23456789)."
+msgstr "{address} ist keine RF-Domänenadresse (4 und 8 Hexadezimalziffern, z. B. 0001:23456789)."
+
+msgid "The domain address of the interface is being set."
+msgstr "Die Domänenadresse der Schnittstelle wird gerade gesetzt."
+
+msgid "The connected USB interface is not a KNX RF interface."
+msgstr "Die verbundene USB-Schnittstelle ist keine KNX RF-Schnittstelle."
+
+msgid "The domain address could not be set: {error}"
+msgstr "Die Domänenadresse konnte nicht gesetzt werden: {error}"
+
+msgid "Setting the domain address…"
+msgstr "Domänenadresse wird gesetzt…"
