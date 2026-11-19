@@ -968,7 +968,7 @@ msgid "Hardware"
 msgstr "Hardueri"
 
 msgid "Firmware"
-msgstr "Firmware"
+msgstr "Firmueri"
 
 msgid "Com Flags ({count})"
 msgstr "Flamujt e komunikimit ({count})"
@@ -1019,13 +1019,13 @@ msgid "Read-only test: compares what a download would write with what is on the 
 msgstr "Test vetëm për lexim: krahason të dhënat që do të shkruheshin në pajisje gjatë programimit me të dhënat që ndodhen aktualisht në të. Asgjë nuk shkruhet në pajisje."
 
 msgid "Cannot run: the project was changed since it was opened and may no longer match the device. Undo the changes of this session, or reopen the project."
-msgstr "Nuk mund të ekzekutohet: projekti është ndryshuar që kur u hap dhe mund të mos përputhet më me pajisjen. Zhbëni ndryshimet e këtij sesioni ose rihapni projektin."
+msgstr "Nuk mund të ekzekutohet: projekti është ndryshuar që kur u hap dhe mund të mos përputhet më me pajisjen. Zhbëni ndryshimet e kësaj seance ose rihapeni projektin."
 
 msgid "Cannot run: no KNX connection. Connect to a gateway ({menu} menu) and make sure the device is reachable at its individual address."
 msgstr "Nuk mund të ekzekutohet: pa lidhje KNX. Lidhuni me një gateway (menyja {menu}) dhe sigurohuni që pajisja arrihet në adresën e saj individuale."
 
 msgid "Match: all compared memory bytes and properties match the device."
-msgstr "Përputhje: të gjithë bajtet e kujtesës dhe vetitë e krahasuara përputhen me pajisjen."
+msgstr "Përputhje: të gjithë bajtet e memories dhe vetitë e krahasuara përputhen me pajisjen."
 
 msgid "{matched} matched, {changed} would change"
 msgstr "{matched} përputhen, {changed} do të ndryshonin"
@@ -1335,7 +1335,7 @@ msgid "Device Manufacturer"
 msgstr "Prodhuesi i pajisjes"
 
 msgid "Firmware Version"
-msgstr "Versioni i firmware-it"
+msgstr "Versioni i firmuerit"
 
 msgid "Programming Mode"
 msgstr "Modaliteti i programimit"
@@ -1698,7 +1698,7 @@ msgid "Use 'Scan Bus' to read the DALI bus."
 msgstr "Përdorni 'Skano busin' për të lexuar busin DALI."
 
 msgid "Firmware {version}"
-msgstr "Firmware {version}"
+msgstr "Firmueri {version}"
 
 msgid "Confirm DALI Programming"
 msgstr "Konfirmo programimin DALI"
@@ -2106,7 +2106,7 @@ msgid "Read DALI Bus"
 msgstr "Lexo busin DALI"
 
 msgid "Read-only snapshot. Writing group assignments, scenes or firmware is not available yet and remains in the manufacturer's plugin."
-msgstr "Pamje e çastit vetëm për lexim. Shkrimi i caktimeve të grupeve, skenave ose firmware-it nuk është ende i disponueshëm dhe mbetet në plugin-in e prodhuesit."
+msgstr "Pamje e çastit vetëm për lexim. Shkrimi i caktimeve të grupeve, skenave ose firmuerit nuk është ende i disponueshëm dhe mbetet në plugin-in e prodhuesit."
 
 msgid "Read-only view. The hierarchy is a best-effort reconstruction from parameter name prefixes; names and groupings may be rough. Writing values is not available yet."
 msgstr "Pamje vetëm për lexim. Hierarkia është një rindërtim sa më i mirë i mundshëm nga parashtesat e emrave të parametrave; emrat dhe grupimet mund të jenë të përafërta. Shkrimi i vlerave nuk është ende i disponueshëm."
@@ -3227,7 +3227,7 @@ msgid "Acknowledge Group Address"
 msgstr "Konfirmo adresën e grupit"
 
 msgid "Select another step in the list to bring the project back to it"
-msgstr "Zgjidhni një hap tjetër në listë për ta kthyer projektin në të"
+msgstr "Zgjidhni një hap tjetër në listë për ta kthyer projektin në atë hap"
 
 msgid "Current state of the project"
 msgstr "Gjendja aktuale e projektit"
@@ -3246,23 +3246,23 @@ msgstr "Përputhen: {match} · Nuk përputhen: {mismatch} · Të pakontrolluara:
 
 #, python-brace-format
 msgid "Last download: {date}"
-msgstr "Shkarkimi i fundit: {date}"
+msgstr "Programimi i fundit: {date}"
 
 msgid "No memory image is stored, so the values are not checked."
-msgstr "Nuk është ruajtur asnjë imazh i kujtesës, prandaj vlerat nuk kontrollohen."
+msgstr "Nuk është ruajtur asnjë imazh i memories, prandaj vlerat nuk kontrollohen."
 
 msgid "The memory image does not fit the layout of the description, so the values are not checked."
-msgstr "Imazhi i kujtesës nuk përshtatet me strukturën e përshkrimit, prandaj vlerat nuk kontrollohen."
+msgstr "Imazhi i memories nuk përshtatet me strukturën e përshkrimit, prandaj vlerat nuk kontrollohen."
 
 #, python-brace-format
 msgid "The stored settings name another application ({stored})."
-msgstr "Cilësimet e ruajtura tregojnë një aplikacion tjetër ({stored})."
+msgstr "Cilësimet e ruajtura tregojnë një program aplikativ tjetër ({stored})."
 
 msgid "Only values that differ from the memory image"
-msgstr "Vetëm vlerat që ndryshojnë nga imazhi i kujtesës"
+msgstr "Vetëm vlerat që ndryshojnë nga imazhi i memories"
 
 msgid "Memory Image"
-msgstr "Imazhi i Kujtesës"
+msgstr "Imazhi i memories"
 
 msgid "Matches"
 msgstr "Përputhet"
@@ -3272,7 +3272,7 @@ msgid "Image holds {value}"
 msgstr "Imazhi përmban {value}"
 
 msgid "Not in memory"
-msgstr "Jo në kujtesë"
+msgstr "Nuk është në memorie"
 
 msgid "Not checked"
 msgstr "E pakontrolluar"
@@ -3332,7 +3332,7 @@ msgid "Memory layout changed during the read. Read again to compare."
 msgstr "Struktura e memories ndryshoi gjatë leximit. Lexoni përsëri për ta krahasuar."
 
 msgid "Compared with device memory read in this session."
-msgstr "Krahasuar me memorien e pajisjes të lexuar në këtë sesion."
+msgstr "Krahasuar me memorien e pajisjes, e lexuar gjatë kësaj seance."
 
 msgid "Select a device"
 msgstr "Zgjidhni një pajisje"
@@ -3358,7 +3358,7 @@ msgid "Draw pixels"
 msgstr "Vizato pikselë"
 
 msgid "No custom symbol is stored in this slot."
-msgstr "Në këtë vend nuk është ruajtur asnjë simbol i personalizuar."
+msgstr "Në këtë pozicion nuk është ruajtur asnjë simbol i personalizuar."
 
 msgid "Page"
 msgstr "Faqe"
@@ -3382,7 +3382,7 @@ msgid "Write the custom symbols to this device and restart it?"
 msgstr "Të shkruhen simbolet e personalizuara në këtë pajisje dhe të riniset ajo?"
 
 msgid "Select the device type and enable a page in Parameters to edit its layout."
-msgstr "Zgjidh llojin e pajisjes dhe aktivizo një faqe te Parametrat për të ndryshuar paraqitjen."
+msgstr "Zgjidhni llojin e pajisjes dhe aktivizoni një faqe te Parametrat për të ndryshuar paraqitjen e saj."
 
 msgid "Restore Default Symbol"
 msgstr "Rikthe simbolin e parazgjedhur"
@@ -3430,31 +3430,31 @@ msgid "Normal Symbols"
 msgstr "Simbole normale"
 
 msgid "This symbol is fixed and cannot be changed."
-msgstr "Ky simbol është i pandryshueshëm dhe nuk mund të ndryshohet."
+msgstr "Ky simbol është i pandryshueshëm."
 
 msgid "No symbol preview is available in this project."
 msgstr "Në këtë projekt nuk ka pamje paraprake të simbolit."
 
 msgid "Import: PNG/BMP, exactly 64 x 64 pixels, or MDT .data."
-msgstr "Import: PNG/BMP, saktësisht 64 x 64 pikselë, ose MDT .data."
+msgstr "Importi: PNG/BMP, saktësisht 64 x 64 pikselë, ose MDT .data."
 
 msgid "Format Details"
 msgstr "Hollësitë e formatit"
 
 msgid "Images are not resized. Use black and white with a solid white background. Transparency is ignored."
-msgstr "Madhësia e imazheve nuk ndryshohet. Përdor bardh e zi me sfond të bardhë të patejdukshëm. Tejdukshmëria shpërfillet."
+msgstr "Madhësia e imazheve nuk ndryshohet. Përdorni imazhe bardhezi me sfond të bardhë të patejdukshëm. Tejdukshmëria shpërfillet."
 
 msgid "Colors are converted to the average of red, green and blue. Values below 128 appear black on the device; 128 and above appear white."
-msgstr "Ngjyrat kthehen në mesataren e së kuqes, së gjelbrës dhe blusë. Vlerat nën 128 shfaqen të zeza në pajisje; nga 128 e lart të bardha."
+msgstr "Ngjyrat kthehen në mesataren e vlerave të kanaleve të kuqe, të gjelbra dhe blu. Vlerat nën 128 shfaqen të zeza në pajisje; vlerat 128 e lart shfaqen të bardha."
 
 msgid "MDT .data contains one symbol: 514 bytes including a valid checksum."
-msgstr "MDT .data përmban një simbol: 514 bajte me një shumë kontrolli të vlefshme."
+msgstr "MDT .data përmban një simbol: 514 bajte, përfshirë një shumë kontrolli të vlefshme."
 
 msgid "Export saves the selected symbol as a 64 x 64 PNG. Imported grayscale values are preserved."
 msgstr "Eksporti ruan simbolin e zgjedhur si PNG 64 x 64. Vlerat e importuara të grisë ruhen."
 
 msgid "Import replaces only the selected symbol in the project. To transfer it to the device, use {button}."
-msgstr "Importi zëvendëson vetëm simbolin e zgjedhur në projekt. Për ta transferuar në pajisje, përdor {button}."
+msgstr "Importi zëvendëson vetëm simbolin e zgjedhur në projekt. Për ta transferuar në pajisje, përdorni {button}."
 
 msgid "Load Default Symbols"
 msgstr "Ngarko simbolet e parazgjedhura"
@@ -3472,7 +3472,7 @@ msgid "Export Symbol Library…"
 msgstr "Eksporto bibliotekën e simboleve…"
 
 msgid "Invert imported library"
-msgstr "Përmbys bibliotekën e importuar"
+msgstr "Përmbys ngjyrat e bibliotekës së importuar"
 
 msgid "Include default symbols when programming"
 msgstr "Përfshi simbolet e parazgjedhura gjatë programimit"
@@ -3481,13 +3481,13 @@ msgid "Synchronize Symbols"
 msgstr "Sinkronizo simbolet"
 
 msgid "Loading defaults replaces all custom symbols in the project. Undo restores them. Program with defaults included to transfer the entire library."
-msgstr "Ngarkimi i simboleve të parazgjedhura zëvendëson të gjitha simbolet e personalizuara në projekt. Zhbërja i rikthen. Përfshi të parazgjedhurat gjatë programimit për të transferuar të gjithë bibliotekën."
+msgstr "Ngarkimi i simboleve të parazgjedhura zëvendëson të gjitha simbolet e personalizuara në projekt. Zhbërja i rikthen. Për ta transferuar të gjithë bibliotekën, programoni pajisjen duke përfshirë simbolet e parazgjedhura."
 
 msgid "ZIP: Symbol_{first}.bmp through Symbol_{last}.bmp at the archive root, each 64 x 64 pixels. Import replaces all editable symbols; export saves their black-and-white device pixels."
-msgstr "ZIP: Symbol_{first}.bmp deri te Symbol_{last}.bmp në rrënjën e arkivit, secili 64 x 64 pikselë. Importi zëvendëson të gjitha simbolet e redaktueshme; eksporti ruan pikselët bardhezi të pajisjes."
+msgstr "ZIP: Symbol_{first}.bmp deri te Symbol_{last}.bmp në rrënjën e arkivit, secili 64 x 64 pikselë. Importi zëvendëson të gjitha simbolet e ndryshueshme; eksporti ruan pikselët bardhezi të pajisjes."
 
 msgid "Compare only reads checksums. Synchronize also refreshes Smart device checksums, without changing pixels or the project."
-msgstr "Krahasimi vetëm lexon shumat e kontrollit. Sinkronizimi gjithashtu rifreskon shumat e pajisjes Smart, pa ndryshuar pikselët apo projektin."
+msgstr "Krahasimi vetëm lexon shumat e kontrollit. Sinkronizimi gjithashtu rifreskon shumat e kontrollit të pajisjes Smart, pa ndryshuar pikselët apo projektin."
 
 msgid "Write the entire symbol library, including defaults, to this device and restart it?"
 msgstr "Të shkruhet e gjithë biblioteka e simboleve, përfshirë të parazgjedhurat, në këtë pajisje dhe të riniset ajo?"
@@ -3496,7 +3496,7 @@ msgid "The complete default library is not attached to this project."
 msgstr "Biblioteka e plotë e parazgjedhur nuk është bashkëngjitur këtij projekti."
 
 msgid "The project changed while choosing the library. Please import it again."
-msgstr "Projekti ndryshoi gjatë zgjedhjes së bibliotekës. Importoje përsëri."
+msgstr "Projekti ndryshoi gjatë zgjedhjes së bibliotekës. Importojeni përsëri."
 
 msgid "Read Symbols from Device"
 msgstr "Lexo simbolet nga pajisja"
@@ -3511,7 +3511,7 @@ msgid "Reads the device's images into this project. Reading takes about 2:30 min
 msgstr "Lexon imazhet e pajisjes në këtë projekt. Leximi zgjat rreth 2 minuta e 30 sekonda. Zhbërja rikthen simbolet e mëparshme; pajisja mbetet e pandryshuar."
 
 msgid "Choose the MDT .etsapp file. Only symbol resources are added; custom symbols and library selections stay unchanged."
-msgstr "Zgjidh skedarin MDT .etsapp. Shtohen vetëm burimet e simboleve; simbolet e personalizuara dhe zgjedhjet e bibliotekës mbeten të pandryshuara."
+msgstr "Zgjidhni skedarin MDT .etsapp. Shtohen vetëm burimet e simboleve; simbolet e personalizuara dhe zgjedhjet e bibliotekës mbeten të pandryshuara."
 
 msgid "Read Symbols from Device…"
 msgstr "Lexo simbolet nga pajisja…"
@@ -3520,7 +3520,7 @@ msgid "Read all symbols from {address}? This takes about 2:30 minutes. The image
 msgstr "Të lexohen të gjitha simbolet nga {address}? Leximi zgjat rreth 2 minuta e 30 sekonda. Imazhet do të ruhen në këtë projekt; pajisja mbetet e pandryshuar."
 
 msgid "Unused reserved memory and PID 27 length/CRC are not compared."
-msgstr "Kujtesa e rezervuar e papërdorur dhe gjatësia/CRC e PID 27 nuk krahasohen."
+msgstr "Memoria e rezervuar e papërdorur dhe gjatësia/CRC e PID 27 nuk krahasohen."
 
 msgid "Upper / Rocker"
 msgstr "Sipër / Çelës lëkundës"
@@ -3553,7 +3553,7 @@ msgstr "Versioni më i ri i përputhshëm"
 msgid "Not determined"
 msgstr "I papërcaktuar"
 msgid "Compares the device's hardware/software identity with this catalog. Does not install firmware. Catalog import: MDT Firmware Update .etsapp or Firmware.zip."
-msgstr "Krahason identitetin e harduerit/softuerit të pajisjes me këtë katalog. Nuk instalon firmuer. Import katalogu: MDT Firmware Update .etsapp ose Firmware.zip."
+msgstr "Krahason identitetin e harduerit/softuerit të pajisjes me këtë katalog. Nuk instalon firmuer. Importi i katalogut: MDT Firmware Update .etsapp ose Firmware.zip."
 
 msgid "Hardware/software identity could not be determined. Read the device to check compatibility."
 msgstr "Identiteti i harduerit/softuerit nuk mund të përcaktohej. Lexoni pajisjen për të kontrolluar përputhshmërinë."
@@ -3583,7 +3583,7 @@ msgid "Compatible Firmware File"
 msgstr "Skedar firmueri i përputhshëm"
 
 msgid "Catalog File Modified"
-msgstr "Skedari i katalogut i ndryshuar"
+msgstr "Data e ndryshimit të skedarit të katalogut"
 
 msgid "CRC Type Code"
 msgstr "Kodi i llojit CRC"
@@ -3601,7 +3601,7 @@ msgid "Bootloader version, CRC and encryption are reported as numeric codes. The
 msgstr "Versioni i ngarkuesit të nisjes, CRC dhe enkriptimi raportohen si kode numerike. Ato nuk përshkruajnë KNX Secure."
 
 msgid "Turn on flag {flag} of {target}"
-msgstr "Aktivo flamurin {flag}: {target}"
+msgstr "Aktivizo flamurin {flag}: {target}"
 
 msgid "Turn off flag {flag} of {target}"
 msgstr "Çaktivizo flamurin {flag}: {target}"

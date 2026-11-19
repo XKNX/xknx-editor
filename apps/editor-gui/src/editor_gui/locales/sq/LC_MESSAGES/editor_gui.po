@@ -1702,7 +1702,7 @@ msgid "Search"
 msgstr "Kërkim"
 
 msgid "All tools lists every tool to the AI tool. Search lists only a search for the tools and one that calls them, for AI models whose context is too small for the whole list. Tool catalog adds a compact inventory of every tool. An AI tool sees a change once it reconnects."
-msgstr "Të gjitha mjetet i tregon mjetit të IA-së çdo mjet. Kërkim tregon vetëm një kërkim të mjeteve dhe një që i thërret, për modele IA me kontekst shumë të vogël për gjithë listën. Katalogu i mjeteve shton një përmbledhje të shkurtër të të gjitha mjeteve. Mjeti i IA-së e sheh ndryshimin sapo rilidhet."
+msgstr "Opsioni “Të gjitha mjetet” ia paraqet mjetit të IA-së listën e plotë të mjeteve. “Kërkim” paraqet vetëm një mjet për kërkimin e mjeteve dhe një për thirrjen e tyre, për modelet e IA-së me kontekst tepër të vogël për listën e plotë. “Katalogu i mjeteve” shton një inventar të përmbledhur të të gjitha mjeteve. Mjeti i IA-së e sheh ndryshimin sapo rilidhet."
 msgid "Delete"
 msgstr "Fshi"
 
@@ -1713,7 +1713,7 @@ msgid "Delete {name} from the server? This cannot be undone."
 msgstr "Të fshihet {name} nga serveri? Ky veprim nuk mund të zhbëhet."
 
 msgid "{name} belongs to the open project and is not deleted."
-msgstr "{name} i përket projektit të hapur dhe nuk fshihet."
+msgstr "{name} i përket projektit të hapur dhe nuk mund të fshihet."
 
 msgid "{name} could not be deleted: {error}"
 msgstr "{name} nuk u fshi dot: {error}"
@@ -1734,7 +1734,7 @@ msgid "Open Last Project on Startup"
 msgstr "Hap projektin e fundit në nisje"
 
 msgid "When no project is given at the start, opens the project that was open last. A protected project asks for its password, unless --password-file gives it."
-msgstr "Kur në nisje nuk jepet asnjë projekt, hapet projekti që ishte hapur i fundit. Një projekt i mbrojtur kërkon fjalëkalimin e tij, përveç nëse e jep --password-file."
+msgstr "Kur në nisje nuk jepet asnjë projekt, hapet projekti që ishte hapur i fundit. Një projekt i mbrojtur kërkon fjalëkalimin e tij, përveç rastit kur fjalëkalimi jepet përmes --password-file."
 
 msgid "Tool catalog"
 msgstr "Katalogu i mjeteve"

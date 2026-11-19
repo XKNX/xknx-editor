@@ -32,7 +32,7 @@ msgid "Bus writes blocked"
 msgstr "Shkrimet në bus të bllokuara"
 
 msgid "Block Bus Writes is on: the editor reads from the bus but changes nothing there. Click to change it in the settings."
-msgstr "Bllokimi i shkrimeve në bus është aktiv: redaktori lexon nga busi, por nuk ndryshon asgjë atje. Klikoni për ta ndryshuar te cilësimet."
+msgstr "Bllokimi i shkrimeve në bus është aktiv: editori lexon nga busi, por nuk dërgon asgjë që mund të ndryshojë gjendjen e busit. Klikoni për ta ndryshuar këtë cilësim."
 
 msgid "Use Serial Number for Downloads"
 msgstr "Përdor numrin serial për programim"
@@ -304,13 +304,13 @@ msgid "This interface forgets its individual address when unplugged, so it is se
 msgstr "Kjo ndërfaqe nuk e ruan adresën e saj individuale pas shkëputjes, prandaj adresa vendoset sërish në çdo lidhje."
 
 msgid "Protected Group Addresses"
-msgstr "Adresa Grupi të Mbrojtura"
+msgstr "Adresa grupi të mbrojtura"
 
 msgid "Nothing is ever sent to these group addresses, not even reads, e.g. the ones of gates or an alarm system: addresses like 1/2/3, or groups ending with a slash like 7/0/, separated by spaces. MCP clients can add to the list but not take anything out."
-msgstr "Asgjë nuk dërgohet kurrë në këto adresa grupi, as lexime, p.sh. ato të portave ose të një sistemi alarmi: adresa si 1/2/3 ose grupe që mbarojnë me vijë të pjerrët si 7/0/, të ndara me hapësira. Klientët MCP mund të shtojnë në listë, por jo të heqin diçka."
+msgstr "Asgjë nuk dërgohet kurrë në këto adresa grupi, madje as kërkesa leximi. Këtu mund të vendosen, për shembull, adresat e portave ose të një sistemi alarmi: adresa si 1/2/3 ose grupe që mbarojnë me vijë të pjerrët, si 7/0/. Ndajini me hapësira. Klientët MCP mund të shtojnë adresa në listë, por nuk mund të heqin asnjë."
 
 msgid "Not a group address or group: {entries}"
-msgstr "Nuk është adresë grupi ose grup: {entries}"
+msgstr "Këto hyrje nuk janë as adresa grupi, as grupe: {entries}"
 
 msgid "Confirmation Timeout (Seconds)"
 msgstr "Afati i konfirmimit (sekonda)"
