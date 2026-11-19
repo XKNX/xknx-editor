@@ -270,15 +270,19 @@ def _commissioning_bus(
         **kwargs: Any,
     ) -> tuple[IndividualAddress, bytes | None]:
         calls.append(("write2", (domain_address, address, kwargs.get("restart", True))))
+        if not kwargs.get("system_broadcast", True):
+            calls.append(("as broadcast", address))
         check = kwargs.get("check")
         if check is not None:
             check(found)
         return found, _SERIAL
 
     async def fake_domain_by_serial(
-        xknx: XKNX, serial: bytes, domain_address: bytes
+        xknx: XKNX, serial: bytes, domain_address: bytes, **kwargs: Any
     ) -> None:
         calls.append(("domain by serial", (serial, domain_address)))
+        if not kwargs.get("system_broadcast", True):
+            calls.append(("as broadcast", serial))
 
     async def fake_serial_write(
         xknx: XKNX, address: IndividualAddress, serial: bytes
@@ -562,3 +566,61 @@ async def test_the_serial_number_read(monkeypatch: pytest.MonkeyPatch) -> None:
     read = rf._serial_number_read  # pyright: ignore[reportPrivateUsage]
     assert await read(cast("XKNX", None), _SERIAL) == _NEW
     assert await read(cast("XKNX", None), bytes(6)) is None
+
+
+async def test_an_rf_interface_on_a_domain_of_its_own_uses_broadcasts(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    couplers = RFCouplers(
+        IndividualAddress("1.2.0"), (), local=IndividualAddress("1.6.0")
+    )
+    calls = _commissioning_bus(monkeypatch)
+    await commissioning.download_individual_address(
+        cast("XKNX", None), _NEW, domain_address=DOMAIN_ADDRESS, rf_couplers=couplers
+    )
+    assert ("as broadcast", _NEW) in calls
+    calls = _commissioning_bus(monkeypatch)
+    await commissioning.download_individual_address(
+        cast("XKNX", None),
+        _NEW,
+        serial_number=_SERIAL,
+        domain_address=DOMAIN_ADDRESS,
+        rf_couplers=couplers,
+    )
+    assert ("as broadcast", _SERIAL) in calls
+    calls = _commissioning_bus(monkeypatch)
+    await commissioning.program_individual_address(
+        cast("XKNX", None), _NEW, domain_address=DOMAIN_ADDRESS, rf_couplers=couplers
+    )
+    assert ("as broadcast", _NEW) in calls
+    calls = _commissioning_bus(monkeypatch)
+    await commissioning.program_individual_address(
+        cast("XKNX", None),
+        _NEW,
+        serial_number=_SERIAL,
+        domain_address=DOMAIN_ADDRESS,
+        rf_couplers=couplers,
+    )
+    assert ("as broadcast", _SERIAL) in calls
+
+
+async def test_write2_as_broadcast(monkeypatch: pytest.MonkeyPatch) -> None:
+    device = FakeDevice(descriptor=0x2705)
+    xknx, bus, _ = _fake_bus(monkeypatch, [[_FACTORY]], device)
+    broadcasts: list[apci.APCI] = []
+
+    async def broadcast_send(self: object, payload: apci.APCI) -> None:
+        broadcasts.append(payload)
+        await bus.send(xknx, payload)
+
+    monkeypatch.setattr(type(xknx.management.broadcast), "send", broadcast_send)
+    await rf.domain_and_individual_address_write2(
+        xknx, DOMAIN_ADDRESS, _NEW, system_broadcast=False
+    )
+    # the same services, as broadcasts for the tool's own coupler to route on
+    assert broadcasts == bus.sent
+    assert [type(p) for p in broadcasts] == [
+        apci.IndividualAddressRead,
+        apci.DomainAddressWrite,
+        apci.IndividualAddressWrite,
+    ]

@@ -768,10 +768,19 @@ def test_the_media_couplers_towards_an_rf_device(
     roles = {"C": (True, "MV-2920"), "S": (False, "MV-2705")}
     monkeypatch.setattr(project._catalog, "program_roles", lambda ids: roles)
 
-    def couplers(node_id: int) -> tuple[str | None, list[str]]:
-        return project.device_rf_couplers(SimpleNamespace(node_id=node_id))  # type: ignore[arg-type]
+    def couplers(
+        node_id: int, interface: str | None = None
+    ) -> tuple[str | None, list[str], str | None]:
+        return project.device_rf_couplers(SimpleNamespace(node_id=node_id), interface)  # type: ignore[arg-type]
 
-    assert couplers(sensor) == ("1.5.0", ["1.6.0"])
+    assert couplers(sensor) == ("1.5.0", ["1.6.0"], None)
     # a device on a line without a media coupler: none towards it, the others all
-    assert couplers(tp_device) == (None, ["1.5.0", "1.6.0"])
-    assert couplers(999) == (None, ["1.5.0", "1.6.0"])
+    assert couplers(tp_device) == (None, ["1.5.0", "1.6.0"], None)
+    assert couplers(999) == (None, ["1.5.0", "1.6.0"], None)
+    assert project.set_element_domain_address("line", garden, "00FA:00000001") is None
+    assert project.set_element_domain_address("line", pond, "00FA:00000002") is None
+    # an RF interface on the other RF line: its coupler routes the broadcasts to it
+    assert couplers(sensor, "1.6.250") == ("1.5.0", [], "1.6.0")
+    # on the device's own line, a TP line, or with no individual address to place it
+    for interface in ("1.5.250", "1.1.250", "1.9.250", "x"):
+        assert couplers(sensor, interface) == ("1.5.0", ["1.6.0"], None)

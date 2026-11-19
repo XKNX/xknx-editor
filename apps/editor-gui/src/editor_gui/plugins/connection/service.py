@@ -260,7 +260,8 @@ class ConnectionService:
         # ProjectService.device_rf_couplers); they route the system broadcasts to a new RF device
         # when the connection is not on its RF domain.
         self.project_rf_couplers: (
-            Callable[[Device], tuple[str | None, list[str]]] | None
+            Callable[[Device, str | None], tuple[str | None, list[str], str | None]]
+            | None
         ) = None
         # The open project's device at an individual address (or None): a download reads the
         # maximum APDU length only of couplers on the route that the project has.
@@ -1289,7 +1290,7 @@ class ConnectionService:
         future = self.run_async(
             _in_rf_domain(
                 self._connected_xknx,
-                domain_address,
+                self._interface_domain_address(device),
                 download_individual_address(
                     self._connected_xknx,
                     device.individual_address,
@@ -1335,23 +1336,40 @@ class ConnectionService:
 
     def _rf_couplers(self, device: Device) -> RFCouplers | None:
         """The TP1/RF Media Couplers that route system broadcasts to ``device`` (read here, not
-        on the bus thread): none when the connection is a KNX RF USB interface, which reaches the
-        device's RF domain itself, or the project has no coupler towards it."""
+        on the bus thread). None when the project has no coupler towards it, or the connection is
+        a KNX RF USB interface that reaches the device's domain itself, i.e. one not on an RF line
+        of another domain with a coupler of its own (then that one is ``local``)."""
         from xknx.telegram import IndividualAddress
 
         from editor_gui.plugins.connection.usb import is_rf_usb_connection
         from xknxeditor.download.rf_couplers import RFCouplers
 
         lookup = self.project_rf_couplers
-        if lookup is None or is_rf_usb_connection(self._connected_xknx):
+        if lookup is None:
             return None
-        towards, others = lookup(device)
-        if towards is None:
+        rf_interface = is_rf_usb_connection(self._connected_xknx)
+        towards, others, local = lookup(
+            device, str(self._connected_xknx.current_address) if rf_interface else None
+        )
+        if towards is None or (rf_interface and local is None):
             return None
         return RFCouplers(
             IndividualAddress(towards),
             tuple(IndividualAddress(other) for other in others),
+            IndividualAddress(local) if local is not None else None,
         )
+
+    def _interface_domain_address(self, device: Device) -> bytes | None:
+        """The domain address a KNX RF USB interface needs to reach ``device``: the one of its
+        RF line, unless the interface is on an RF line of another domain behind a coupler of its
+        own, which routes to the device (read here, not on the bus thread)."""
+        domain_address = self._rf_domain_address(device)
+        if domain_address is None:
+            return None
+        couplers = self._rf_couplers(device)
+        if couplers is not None and couplers.local is not None:
+            return None
+        return domain_address
 
     def _access_key(self) -> int:
         """The project's access key, read here (not on the bus thread)."""

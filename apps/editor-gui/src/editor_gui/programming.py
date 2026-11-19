@@ -628,7 +628,10 @@ async def download_device(
     interface_max_apdu_length = await _route_limited(
         xknx, route_couplers, interface_max_apdu_length
     )
-    if rf_domain_address is not None:
+    # An RF interface on a domain of its own reaches the device through its coupler instead.
+    if rf_domain_address is not None and (
+        rf_couplers is None or rf_couplers.local is None
+    ):
         await ensure_rf_domain_address(xknx, rf_domain_address)
     result = await download(
         xknx,

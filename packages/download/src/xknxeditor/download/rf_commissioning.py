@@ -97,11 +97,22 @@ async def _send_frame(xknx: XKNX, data: CEMILData) -> None:
             ) from None
 
 
-async def _devices_in_programming_mode(xknx: XKNX) -> list[IndividualAddress]:
+async def _send(xknx: XKNX, payload: APCI, system_broadcast: bool) -> None:
+    """Send ``payload`` as system broadcast, or as broadcast for a coupler of the tool's own RF
+    domain that routes it on (03.05.03 §2.3.1.4)."""
+    if system_broadcast:
+        await send_system_broadcast(xknx, payload)
+    else:
+        await xknx.management.broadcast.send(payload)
+
+
+async def _devices_in_programming_mode(
+    xknx: XKNX, system_broadcast: bool = True
+) -> list[IndividualAddress]:
     """The individual addresses of the devices in programming mode (a system broadcast
     A_IndividualAddress_Read), collected for one poll interval."""
     async with xknx.management.broadcast.context() as context:
-        await send_system_broadcast(xknx, apci.IndividualAddressRead())
+        await _send(xknx, apci.IndividualAddressRead(), system_broadcast)
         return [
             telegram.source_address
             async for telegram in context.receive(
@@ -111,13 +122,13 @@ async def _devices_in_programming_mode(xknx: XKNX) -> list[IndividualAddress]:
 
 
 async def wait_for_rf_programming_mode(
-    xknx: XKNX, waiting: Callable[[], None] | None
+    xknx: XKNX, waiting: Callable[[], None] | None, *, system_broadcast: bool = True
 ) -> IndividualAddress:
     """Poll until exactly one device is in programming mode, also one of another or no Domain
     Address; without ``waiting``, poll once. ``waiting`` is called once while none is."""
     notified = False
     while True:
-        devices = await _devices_in_programming_mode(xknx)
+        devices = await _devices_in_programming_mode(xknx, system_broadcast)
         if len(devices) > 1:
             raise ProgrammingModeError("More than one device is in programming mode.")
         if devices:
@@ -138,14 +149,16 @@ async def domain_and_individual_address_write2(
     check: Callable[[IndividualAddress], None] | None = None,
     security: DeviceSecurity | None = None,
     restart: bool = True,
+    system_broadcast: bool = True,
 ) -> tuple[IndividualAddress, bytes | None]:
     """Give the device in programming mode ``domain_address`` and ``individual_address``.
 
     Waits until exactly one device is in programming mode (``waiting`` is called once while none
     is); ``check`` may refuse it by raising, before anything is written. The Domain Address is
     written, then the individual address where the device has another one, both as system
-    broadcast. The device is verified connectionless at its new address (its serial number read
-    to record it) and, with ``restart``, restarted, which ends its programming mode.
+    broadcast (without ``system_broadcast`` as broadcast, for a coupler of the tool's own RF
+    domain to route on). The device is verified connectionless at its new address (its serial
+    number read to record it) and, with ``restart``, restarted, which ends its programming mode.
 
     Returns the individual address the device had and its serial number (``None`` when it could
     not be read). Raises ``ManagementConnectionError`` when no device answers at the new address.
@@ -153,16 +166,20 @@ async def domain_and_individual_address_write2(
     from .programmer import DeviceProgrammer
     from .session import apdu_overhead, management_session
 
-    current = await wait_for_rf_programming_mode(xknx, waiting)
+    current = await wait_for_rf_programming_mode(
+        xknx, waiting, system_broadcast=system_broadcast
+    )
     if check is not None:
         check(current)
-    await send_system_broadcast(
-        xknx, apci.DomainAddressWrite(domain_address=domain_address)
+    await _send(
+        xknx, apci.DomainAddressWrite(domain_address=domain_address), system_broadcast
     )
     logger.debug("Wrote domain address %s to %s.", domain_address.hex(), current)
     if current != individual_address:
-        await send_system_broadcast(
-            xknx, apci.IndividualAddressWrite(address=individual_address)
+        await _send(
+            xknx,
+            apci.IndividualAddressWrite(address=individual_address),
+            system_broadcast,
         )
         logger.debug("Wrote address %s to %s.", individual_address, current)
     await asyncio.sleep(_ADDRESS_ADOPTION_DELAY_S)
@@ -189,20 +206,26 @@ async def domain_and_individual_address_write2(
 
 
 async def domain_address_serial_number_write(
-    xknx: XKNX, serial_number: bytes, domain_address: bytes
+    xknx: XKNX,
+    serial_number: bytes,
+    domain_address: bytes,
+    *,
+    system_broadcast: bool = True,
 ) -> None:
     """Give the device with ``serial_number`` ``domain_address``, then verify it answers by
-    serial number (in that domain). Raises ``SerialNumberNotFoundError`` when it does not."""
+    serial number (in that domain). Raises ``SerialNumberNotFoundError`` when it does not.
+    ``system_broadcast`` as for :func:`domain_and_individual_address_write2`."""
     from xknx.management.procedures.network.nm_individual_address_serial_number_read import (
         nm_individual_address_serial_number_read,
     )
 
     for _ in range(_SERIAL_NUMBER_ATTEMPTS):
-        await send_system_broadcast(
+        await _send(
             xknx,
             apci.DomainAddressSerialNumberWrite(
                 serial=serial_number, domain_address=domain_address
             ),
+            system_broadcast,
         )
         await asyncio.sleep(_SERIAL_NUMBER_VERIFY_DELAY_S)
         if (

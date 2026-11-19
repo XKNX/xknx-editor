@@ -8461,18 +8461,25 @@ class ProjectService:
                 return domain.to_bytes(6, "big")
         return None
 
-    def device_rf_couplers(self, device: Device) -> tuple[str | None, list[str]]:
+    def device_rf_couplers(
+        self, device: Device, interface_address: str | None = None
+    ) -> tuple[str | None, list[str], str | None]:
         """The project's KNX TP1/RF Media Couplers (mask 2920h), as individual addresses: the one
         towards ``device``'s RF line or segment (``None`` when its line has none; the line's own
-        coupler, x.y.0, first) and all the others. Before a new RF device behind one gets its
-        domain address, that one routes system broadcasts and the others must not."""
+        coupler, x.y.0, first), all the others, and the one on the line of the KNX RF interface at
+        ``interface_address`` when that is an RF line of another domain (``None`` otherwise).
+        Before a new RF device behind one gets its domain address, that one routes system
+        broadcasts, the interface's own routes them to it as broadcasts, and the others must not
+        (03.05.03 §2.3.1.4)."""
         if self._pid is None:
-            return None, []
+            return None, [], None
         programs = self._svc.device_programs(self._pid)
         roles = self._catalog.program_roles(sorted(set(programs.values())))
         segments = self.device_segments()
-        line_segments = self._line_segment_ids(segments.get(device.node_id))
+        device_segments = self._line_segment_ids(segments.get(device.node_id))
+        local_segments = self._interface_line_segments(device, interface_address)
         on_line: list[str] = []
+        local: list[str] = []
         others: list[str] = []
         for node_id, program in programs.items():
             if program not in roles or roles[program][1] != _TP_RF_COUPLER_MASK:
@@ -8480,13 +8487,48 @@ class ProjectService:
             address = self._device_address(node_id, segments.get(node_id))
             if address is None:
                 continue
-            if segments.get(node_id) in line_segments:
+            segment = segments.get(node_id)
+            if segment in device_segments:
                 on_line.append(address)
+            elif segment in local_segments:
+                local.append(address)
             else:
                 others.append(address)
         on_line.sort(key=lambda address: not address.endswith(".0"))
+        local.sort(key=lambda address: not address.endswith(".0"))
         towards = on_line[0] if on_line else None
-        return towards, sorted(others + on_line[1:])
+        own = local[0] if local else None
+        return towards, sorted(others + on_line[1:] + local[1:]), own
+
+    def _interface_line_segments(
+        self, device: Device, interface_address: str | None
+    ) -> set[int]:
+        """The segments of the RF line of the interface at ``interface_address`` when its domain
+        is not the one of ``device``'s line; empty otherwise."""
+        if interface_address is None:
+            return set()
+        parts = interface_address.split(".")
+        if len(parts) != 3 or not all(part.isdigit() for part in parts):
+            return set()
+        area_number, line_number = int(parts[0]), int(parts[1])
+        self._ensure_topology_cache()
+        areas = {area.id: area.area_number for area in self._areas_cache or []}
+        for area_id, lines in (self._lines_cache or {}).items():
+            if areas.get(area_id) != area_number:
+                continue
+            for line in lines:
+                if line.line_number != line_number or line.medium_type != MEDIUM_RF:
+                    continue
+                domain = line.domain_address
+                if domain is None or (
+                    domain.to_bytes(6, "big") == self.device_rf_domain_address(device)
+                ):
+                    return set()
+                ids = {s.id for s in line.segments}
+                if line.main_segment_id is not None:
+                    ids.add(line.main_segment_id)
+                return ids
+        return set()
 
     def _line_segment_ids(self, segment_id: int | None) -> set[int]:
         """The segments of the line ``segment_id`` belongs to: its main segment and the others."""

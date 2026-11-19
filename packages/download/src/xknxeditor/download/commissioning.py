@@ -110,7 +110,12 @@ async def program_individual_address(
     if domain_address is not None:
         async with system_broadcast_routing(xknx, rf_couplers):
             await _program_rf_addresses(
-                xknx, address, domain_address, serial_number, security
+                xknx,
+                address,
+                domain_address,
+                serial_number,
+                security,
+                system_broadcast=rf_couplers is None or rf_couplers.system_broadcast,
             )
         return
     if serial_number is not None:
@@ -125,20 +130,29 @@ async def _program_rf_addresses(
     domain_address: bytes,
     serial_number: bytes | None,
     security: DeviceSecurity | None,
+    *,
+    system_broadcast: bool,
 ) -> None:
-    """The domain and individual address of a KNX RF device for its first download."""
+    """The domain and individual address of a KNX RF device for its first download; the plain
+    services as system broadcasts or (``system_broadcast`` false) broadcasts."""
     if serial_number is not None and security is not None:
         await secure_addresses_by_serial_number(
             xknx, serial_number, address, security, domain_address=domain_address
         )
         return
     if serial_number is not None:
-        await domain_address_serial_number_write(xknx, serial_number, domain_address)
+        await domain_address_serial_number_write(
+            xknx, serial_number, domain_address, system_broadcast=system_broadcast
+        )
         await nm_individual_address_serial_number_write(xknx, serial_number, address)
         return
     # Left running, as the TP path, so the download can connect right away.
     await domain_and_individual_address_write2(
-        xknx, domain_address, address, restart=False
+        xknx,
+        domain_address,
+        address,
+        restart=False,
+        system_broadcast=system_broadcast,
     )
 
 
@@ -289,6 +303,7 @@ async def download_individual_address(
                 master=master,
                 waiting=waiting,
                 serial_number=serial_number,
+                system_broadcast=rf_couplers is None or rf_couplers.system_broadcast,
             )
     if serial_number is not None:
         await _write_by_serial_number(xknx, address, serial_number)
@@ -337,11 +352,13 @@ async def _download_rf(
     master: MasterData | None,
     waiting: Callable[[], None] | None,
     serial_number: bytes | None,
+    system_broadcast: bool,
 ) -> bytes | None:
     """The address download of a KNX RF device: by serial number (secured with ``security``
     when given), as a secured overwrite of a device that uses ``current_security`` (a device in
     Security Mode takes a new address only secured, 03.05.03 §1.5.4.3.2), else through
-    programming mode."""
+    programming mode. The plain services go as system broadcasts or (``system_broadcast``
+    false) broadcasts."""
 
     async def address_in_use() -> bool:
         return await nm_individual_address_check(xknx, address)
@@ -358,7 +375,7 @@ async def _download_rf(
             )
         else:
             await domain_address_serial_number_write(
-                xknx, serial_number, domain_address
+                xknx, serial_number, domain_address, system_broadcast=system_broadcast
             )
             await _write_by_serial_number(xknx, address, serial_number)
         return serial_number
@@ -392,6 +409,7 @@ async def _download_rf(
         security=security,
         current_security=current_security,
         master=master,
+        system_broadcast=system_broadcast,
     )
 
 
@@ -432,6 +450,7 @@ async def _download_rf_addresses(
     security: DeviceSecurity | None,
     current_security: DeviceSecurity | None,
     master: MasterData | None,
+    system_broadcast: bool = True,
 ) -> bytes | None:
     """The domain and individual address of the KNX RF device in programming mode, with the
     checks of the TP path: the device switched by ``current`` must be the one, and a device that
@@ -455,6 +474,7 @@ async def _download_rf_addresses(
             waiting=waiting if current is None else None,
             check=check,
             security=security,
+            system_broadcast=system_broadcast,
         )
     except ProgrammingModeError:
         if current is not None:

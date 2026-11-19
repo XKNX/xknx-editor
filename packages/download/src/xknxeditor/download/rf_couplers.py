@@ -59,11 +59,18 @@ class CouplerRoutingError(DownloadError):
 
 @dataclass(frozen=True, slots=True)
 class RFCouplers:
-    """The TP1/RF Media Couplers of the installation: the one towards the RF device and the
-    others."""
+    """The TP1/RF Media Couplers of the installation: the one towards the RF device, the others,
+    and ``local``, the one of the tool's own RF domain when it is connected to another one."""
 
     towards: IndividualAddress
     others: Sequence[IndividualAddress] = ()
+    local: IndividualAddress | None = None
+
+    @property
+    def system_broadcast(self) -> bool:
+        """Whether the tool sends the services as system broadcasts: on an RF domain of its own
+        it uses broadcasts, which its coupler routes on (03.05.03 §2.3.1.4)."""
+        return self.local is None
 
 
 async def set_rf_sbc_control(
@@ -101,19 +108,35 @@ async def system_broadcast_routing(
     xknx: XKNX, couplers: RFCouplers | None
 ) -> AsyncGenerator[None]:
     """Let the coupler towards an RF device route system broadcasts while the context is open,
-    and no other one. Without ``couplers`` nothing is set. When a coupler can't be prepared, the
-    one already set is set back and :class:`CouplerRoutingError` names the coupler that failed."""
+    the tool's own (``local``) route them as broadcasts, and no other one. Without ``couplers``
+    nothing is set. When a coupler can't be prepared, the ones already set are set back and
+    :class:`CouplerRoutingError` names the coupler that failed."""
     if couplers is None:
         yield
         return
     for other in couplers.others:
         await set_rf_sbc_control(xknx, other, RFSBCMode.DISABLED)
-    await set_rf_sbc_control(xknx, couplers.towards, RFSBCMode.SYSTEM_BROADCAST)
+    prepared: list[IndividualAddress] = []
+    try:
+        if couplers.local is not None:
+            await set_rf_sbc_control(xknx, couplers.local, RFSBCMode.BROADCAST)
+            prepared.append(couplers.local)
+        await set_rf_sbc_control(xknx, couplers.towards, RFSBCMode.SYSTEM_BROADCAST)
+        prepared.append(couplers.towards)
+    except CouplerRoutingError:
+        await _disable(xknx, prepared)
+        raise
     try:
         yield
     finally:
+        await _disable(xknx, prepared)
+
+
+async def _disable(xknx: XKNX, couplers: Sequence[IndividualAddress]) -> None:
+    """Set ``couplers`` back to route no system broadcasts; one that fails is only warned
+    about, as it ends by itself after 10 minutes (03.05.01 §4.5.15.1)."""
+    for coupler in reversed(couplers):
         try:
-            await set_rf_sbc_control(xknx, couplers.towards, RFSBCMode.DISABLED)
+            await set_rf_sbc_control(xknx, coupler, RFSBCMode.DISABLED)
         except CouplerRoutingError as exc:
-            # It ends by itself after 10 minutes (03.05.01 §4.5.15.1).
             logger.warning("%s", exc)

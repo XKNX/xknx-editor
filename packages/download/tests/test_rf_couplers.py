@@ -148,3 +148,28 @@ async def test_a_coupler_that_can_not_be_set_back(
             pass
     # it ends by itself after 10 minutes: only a warning
     assert "1.2.0 could not be set to route system broadcasts: failed" in caplog.text
+
+
+async def test_the_routing_with_a_coupler_of_the_tools_own(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    local = IndividualAddress("1.6.0")
+    calls = _recorded(monkeypatch, set())
+    couplers = RFCouplers(_COUPLER, (_OTHER,), local)
+    assert not couplers.system_broadcast
+    assert RFCouplers(_COUPLER).system_broadcast
+    async with system_broadcast_routing(cast("XKNX", None), couplers):
+        pass
+    assert calls == [
+        (_OTHER, RFSBCMode.DISABLED),
+        (local, RFSBCMode.BROADCAST),
+        (_COUPLER, RFSBCMode.SYSTEM_BROADCAST),
+        (_COUPLER, RFSBCMode.DISABLED),
+        (local, RFSBCMode.DISABLED),
+    ]
+    # the coupler towards the device can't be prepared: the tool's own is set back
+    calls = _recorded(monkeypatch, {(_COUPLER, RFSBCMode.SYSTEM_BROADCAST)})
+    with pytest.raises(CouplerRoutingError):
+        async with system_broadcast_routing(cast("XKNX", None), couplers):
+            pytest.fail("the addresses must not be written")
+    assert calls[-1] == (local, RFSBCMode.DISABLED)
