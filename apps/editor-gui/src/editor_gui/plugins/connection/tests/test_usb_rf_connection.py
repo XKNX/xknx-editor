@@ -326,6 +326,7 @@ async def test_the_interface_gets_a_devices_domain_address(
     new = bytes.fromhex("00fa00000042")
     try:
         fake_hid.interface.written.clear()
+        assert usb.is_rf_usb_connection(plugin._xknx)
         assert await ensure_rf_domain_address(plugin._xknx, new)
         assert _property_writes(fake_hid) == ["f6001301381001" + new.hex()]
         assert plugin.usb_info.rf_domain_address == new
@@ -335,11 +336,13 @@ async def test_the_interface_gets_a_devices_domain_address(
     finally:
         await plugin._disconnect_async()
     # no USB connection: nothing to do
+    assert not usb.is_rf_usb_connection(XKNX())
     assert not await ensure_rf_domain_address(XKNX(), new)
     # a TP interface: nothing to do
     fake_hid.interface.features[DeviceFeature.DEVICE_DESCRIPTOR_TYPE_0] = b"\x07\xb0"
     plugin = await _connected(fake_hid)
     try:
+        assert not usb.is_rf_usb_connection(plugin._xknx)
         assert not await ensure_rf_domain_address(plugin._xknx, new)
     finally:
         await plugin._disconnect_async()

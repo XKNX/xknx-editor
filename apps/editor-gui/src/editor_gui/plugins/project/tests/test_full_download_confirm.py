@@ -167,3 +167,15 @@ async def test_the_question_waits_for_the_answer() -> None:
     question.set_result(True)
     assert await ask is True
     assert item.full_download_question is None
+
+
+def test_a_media_coupler_that_could_not_be_prepared_is_named() -> None:
+    from xknx.telegram import IndividualAddress
+
+    from xknxeditor.download.rf_couplers import CouplerRoutingError
+
+    error = CouplerRoutingError(IndividualAddress("1.2.0"), "disabled: no answer")
+    item = _finish(error, _error_text, None, _describe)
+    assert item.message == S.MEDIA_COUPLER_NOT_PREPARED.format(
+        coupler="1.2.0", detail="disabled: no answer"
+    )

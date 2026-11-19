@@ -166,7 +166,7 @@ directly in the editor.
 **Programming real devices** — commission a device end-to-end over a live connection (a KNX USB
 interface, also a KNX RF one with its domain address set from a line, or tunneling or routing with
 gateway discovery), including setting a new device's address (and a new KNX RF device's domain
-address). A read-only **preflight**
+address, also behind a TP/RF media coupler and with KNX Data Secure). A read-only **preflight**
 and **Test Programming** read the device back and show the exact changes before anything is
 written. Longer timeouts in Settings > Connection let it work over slow connections such as a remote tunnel or a VPN. Vendor-independent by design.
 

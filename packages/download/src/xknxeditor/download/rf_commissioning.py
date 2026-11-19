@@ -33,15 +33,20 @@ from xknx.exceptions import ConfirmationError, ManagementConnectionError
 from xknx.telegram import GroupAddress, IndividualAddress, apci
 from xknx.telegram.tpci import TDataBroadcast
 
-from .errors import DownloadError, ProgrammingModeError, SerialNumberNotFoundError
+from .errors import (
+    AddressInUseError,
+    DownloadError,
+    ProgrammingModeError,
+    SerialNumberNotFoundError,
+)
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
+    from collections.abc import Awaitable, Callable
 
     from xknx import XKNX
     from xknx.telegram.apci import APCI
 
-    from .data_secure import DeviceSecurity
+    from .data_secure import CemiSecurer, DeviceSecurity, SecureManagement
 
 logger = logging.getLogger(__name__)
 
@@ -56,20 +61,27 @@ _SERIAL_NUMBER_ATTEMPTS = 2
 _PID_SERIAL_NUMBER = 11
 
 
+def _system_broadcast_frame(xknx: XKNX, payload: APCI) -> CEMILData:
+    """The L_Data of ``payload`` as system broadcast from this connection."""
+    return CEMILData(
+        flags=CEMIFlags(priority=CEMIPriority.SYSTEM, system_broadcast=True),
+        src_addr=xknx.current_address,
+        dst_addr=GroupAddress(0),
+        tpci=TDataBroadcast(),
+        payload=payload,
+    )
+
+
 async def send_system_broadcast(xknx: XKNX, payload: APCI) -> None:
     """Send ``payload`` as system broadcast and wait for the interface's L_Data.con, as xknx's
     ``CEMIHandler.send_telegram`` does for any other telegram. Raises ``ConfirmationError`` when
     the interface does not confirm it."""
-    cemi = CEMIFrame(
-        code=CEMIMessageCode.L_DATA_REQ,
-        data=CEMILData(
-            flags=CEMIFlags(priority=CEMIPriority.SYSTEM, system_broadcast=True),
-            src_addr=xknx.current_address,
-            dst_addr=GroupAddress(0),
-            tpci=TDataBroadcast(),
-            payload=payload,
-        ),
-    )
+    await _send_frame(xknx, _system_broadcast_frame(xknx, payload))
+
+
+async def _send_frame(xknx: XKNX, data: CEMILData) -> None:
+    """Send the L_Data ``data`` as it is and wait for the interface's L_Data.con."""
+    cemi = CEMIFrame(code=CEMIMessageCode.L_DATA_REQ, data=data)
     handler = xknx.cemi_handler
     # The handler's own lock and confirmation event, so this frame takes its turn with the others.
     async with handler._send_lock:  # pyright: ignore[reportPrivateUsage]
@@ -207,3 +219,169 @@ async def domain_address_serial_number_write(
         f"The device with the serial number {serial_number.hex().upper()} "
         "could not be found."
     )
+
+
+# Seconds to wait for the answer to a system broadcast S-A_Sync request.
+_SYNC_TIMEOUT_S = 3.0
+_SYNC_POLL_S = 0.05
+
+
+class _BroadcastSecurer:
+    """The ``xknx.cemi_handler.data_secure`` hook while a device is reached by secured system
+    broadcasts: the device's secured answers to them (to the broadcast address) are taken by the
+    session, everything else goes to the securer that was installed before."""
+
+    def __init__(
+        self, management: SecureManagement, previous: CemiSecurer | None
+    ) -> None:
+        self._management = management
+        self._previous = previous
+
+    def outgoing_cemi(self, cemi_data: CEMILData) -> CEMILData:
+        if self._previous is None:
+            return cemi_data
+        return self._previous.outgoing_cemi(cemi_data)
+
+    def received_cemi(self, cemi_data: CEMILData) -> CEMILData:
+        from xknx.exceptions import DataSecureError
+        from xknx.secure.data_secure_asdu import SecurityALService
+
+        from .data_secure import SecureProgrammingError
+
+        payload = cemi_data.payload
+        if (
+            cemi_data.dst_addr == GroupAddress(0)
+            and isinstance(payload, apci.SecureAPDU)
+            and payload.scf.tool_access
+        ):
+            try:
+                if payload.scf.service is SecurityALService.S_A_SYNC_RES:
+                    self._management.decode_sync_response_cemi(cemi_data)
+                    return cemi_data
+                return self._management.unwrap_cemi(cemi_data)
+            except SecureProgrammingError as exc:
+                raise DataSecureError(str(exc)) from exc
+        if self._previous is None:
+            return cemi_data
+        return self._previous.received_cemi(cemi_data)
+
+
+async def secure_addresses_by_serial_number(
+    xknx: XKNX,
+    serial_number: bytes,
+    individual_address: IndividualAddress,
+    security: DeviceSecurity,
+    *,
+    domain_address: bytes | None = None,
+    address_in_use: Callable[[], Awaitable[bool]] | None = None,
+) -> None:
+    """Give the device with ``serial_number`` ``domain_address`` and ``individual_address``
+    with KNX Data Secure (KNX v02.01.01 - Configuration Procedures 03.05.03 - §1.5.4.3): the
+    Sequence Numbers are synchronised by system broadcast (DM_SecureSync_SBC, KNX v02.01.02 -
+    Management Procedures 03.05.02 - §4.1) with the Tool Key, else its alternatives such as the
+    FDSK, then A_DomainAddressSerialNumber_Write and A_IndividualAddressSerialNumber_Write go
+    as S-A_Data with the SBC flag set (NM_DomainAddressSerialNumber_Secure_Write, §2.13). Each
+    is verified by serial number; an individual address the device has already is not written
+    again, and with ``address_in_use`` one another device uses is refused
+    (``AddressInUseError``). Raises ``SecureProgrammingError`` when the device answers the
+    synchronisation with none of the keys, ``SerialNumberNotFoundError`` when it is not found
+    with its new domain address, ``ManagementConnectionError`` when it does not take the
+    individual address."""
+    from .data_secure import SecureManagement
+
+    management = SecureManagement(
+        device=security, tool_address=xknx.current_address, serial_number=serial_number
+    )
+    handler = xknx.cemi_handler
+    previous = handler.data_secure
+    handler.data_secure = _BroadcastSecurer(management, previous)  # type: ignore[assignment]
+    try:
+        await _secure_sync(xknx, management, security, serial_number)
+        if domain_address is not None:
+            await _send_frame(
+                xknx,
+                management.wrap_cemi(
+                    _system_broadcast_frame(
+                        xknx,
+                        apci.DomainAddressSerialNumberWrite(
+                            serial=serial_number, domain_address=domain_address
+                        ),
+                    )
+                ),
+            )
+            await asyncio.sleep(_SERIAL_NUMBER_VERIFY_DELAY_S)
+        current = await _serial_number_read(xknx, serial_number)
+        if current is None:
+            raise SerialNumberNotFoundError(
+                f"The device with the serial number {serial_number.hex().upper()} "
+                "could not be found."
+            )
+        if current == individual_address:
+            return
+        if address_in_use is not None and await address_in_use():
+            raise AddressInUseError(
+                f"The individual address {individual_address} is already in use by "
+                "another device."
+            )
+        await _send_frame(
+            xknx,
+            management.wrap_cemi(
+                _system_broadcast_frame(
+                    xknx,
+                    apci.IndividualAddressSerialWrite(
+                        address=individual_address, serial=serial_number
+                    ),
+                )
+            ),
+        )
+        await asyncio.sleep(_ADDRESS_ADOPTION_DELAY_S)
+        found = await _serial_number_read(xknx, serial_number)
+        if found != individual_address:
+            raise ManagementConnectionError(
+                f"The device with the serial number {serial_number.hex().upper()} answers "
+                f"at {found} instead of {individual_address}."
+            )
+    finally:
+        handler.data_secure = previous  # type: ignore[assignment]
+
+
+async def _secure_sync(
+    xknx: XKNX,
+    management: SecureManagement,
+    security: DeviceSecurity,
+    serial_number: bytes,
+) -> None:
+    """Synchronise the Sequence Numbers by system broadcast with the first key the device
+    answers to."""
+    from .data_secure import SecureProgrammingError
+
+    loop = asyncio.get_running_loop()
+    for key in security.keys:
+        management.use_key(key)
+        management.arm_sync()
+        await _send_frame(
+            xknx,
+            management.build_sync_request_cemi(
+                _system_broadcast_frame(xknx, apci.IndividualAddressRead())
+            ),
+        )
+        deadline = loop.time() + _SYNC_TIMEOUT_S
+        while not management.synchronized and loop.time() < deadline:
+            await asyncio.sleep(_SYNC_POLL_S)
+        if management.synchronized:
+            return
+    raise SecureProgrammingError(
+        f"The device with the serial number {serial_number.hex().upper()} did not answer "
+        "the secure synchronisation with its Tool Key or FDSK."
+    )
+
+
+async def _serial_number_read(
+    xknx: XKNX, serial_number: bytes
+) -> IndividualAddress | None:
+    """The individual address the device with ``serial_number`` answers with (None: none)."""
+    from xknx.management.procedures.network.nm_individual_address_serial_number_read import (
+        nm_individual_address_serial_number_read,
+    )
+
+    return await nm_individual_address_serial_number_read(xknx, serial_number)

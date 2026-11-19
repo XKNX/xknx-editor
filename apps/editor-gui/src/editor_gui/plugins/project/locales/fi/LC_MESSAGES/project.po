@@ -3704,3 +3704,6 @@ msgstr "Liitäntä ei vahvistanut lähetystä ajoissa ({detail})."
 
 msgid "A slow connection, such as a remote tunnel or a VPN, needs longer waits: raise the Confirmation Timeout in Settings > Connection."
 msgstr "Hidas yhteys, kuten etätunneli tai VPN, tarvitsee pidempiä odotuksia: kasvata Vahvistuksen aikakatkaisua kohdassa Asetukset > Yhteys."
+
+msgid "The media coupler {coupler} could not be set to pass the commissioning on to the RF device ({detail}). Check the coupler, or connect through a KNX RF USB interface near the device."
+msgstr "Mediakytkintä {coupler} ei voitu asettaa välittämään käyttöönottoa RF-laitteelle ({detail}). Tarkista kytkin tai yhdistä laitteen lähellä olevan KNX RF USB -liitännän kautta."

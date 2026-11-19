@@ -82,6 +82,7 @@ if TYPE_CHECKING:
     from .preflight import PreflightReport
     from .programmer import ConnectionManager
     from .project_data import SeedDevice
+    from .rf_couplers import RFCouplers
 
 
 def _apdu_settings(
@@ -718,6 +719,7 @@ async def download(
     commission: bool = False,
     commission_serial_number: bytes | None = None,
     commission_domain_address: bytes | None = None,
+    commission_rf_couplers: RFCouplers | None = None,
     progress: Callable[[int, int], None] | None = None,
     confirm_full_download: Callable[[str], Awaitable[bool]] | None = None,
     ip_config: IpDeviceConfig | None = None,
@@ -760,7 +762,9 @@ async def download(
     ``individual_address``, the address is written to the single device currently
     in programming mode before the application is downloaded - or, with
     ``commission_serial_number``, to the device with that KNX serial number. A KNX RF
-    device gets ``commission_domain_address`` as well (see :mod:`.rf_commissioning`).
+    device gets ``commission_domain_address`` as well (see :mod:`.rf_commissioning`), secured
+    with ``security`` when it is addressed by serial number; ``commission_rf_couplers`` route
+    the system broadcasts to it through TP1/RF Media Couplers.
     Without it, the device must already carry ``individual_address`` (a partial
     download always requires that). ``xknx`` has to be started.
 
@@ -889,6 +893,8 @@ async def download(
             address,
             serial_number=commission_serial_number,
             domain_address=commission_domain_address,
+            security=security,
+            rf_couplers=commission_rf_couplers,
         )
     if prepared is not None:
         await _check_prepared_association_format(xknx, address, security, prepared)

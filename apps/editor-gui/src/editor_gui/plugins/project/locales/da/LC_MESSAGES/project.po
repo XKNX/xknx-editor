@@ -3704,3 +3704,6 @@ msgstr "Interfacet bekræftede ikke afsendelsen i tide ({detail})."
 
 msgid "A slow connection, such as a remote tunnel or a VPN, needs longer waits: raise the Confirmation Timeout in Settings > Connection."
 msgstr "En langsom forbindelse, f.eks. en fjerntunnel eller et VPN, kræver længere ventetider: øg Timeout for bekræftelse under Indstillinger > Forbindelse."
+
+msgid "The media coupler {coupler} could not be set to pass the commissioning on to the RF device ({detail}). Check the coupler, or connect through a KNX RF USB interface near the device."
+msgstr "Mediekobleren {coupler} kunne ikke indstilles til at videregive idriftsættelsen til RF-enheden ({detail}). Kontrollér kobleren, eller tilslut via et KNX RF USB-interface tæt på enheden."

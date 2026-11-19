@@ -3343,6 +3343,7 @@ class ProjectPlugin:
             DifferentProgramLoaded,
             IncompatibleMaskVersion,
         )
+        from xknxeditor.download.rf_couplers import CouplerRoutingError
         from xknxeditor.download.timeouts import confirmation_timed_out
 
         if isinstance(error, DeviceCertificateRequired):
@@ -3362,6 +3363,10 @@ class ProjectPlugin:
             )
         if confirmation_timed_out(error):
             return S.INTERFACE_NOT_CONFIRMING.format(detail=str(error))
+        if isinstance(error, CouplerRoutingError):
+            return S.MEDIA_COUPLER_NOT_PREPARED.format(
+                coupler=str(error.coupler), detail=error.reason
+            )
         return None
 
     def _describe_program_error(

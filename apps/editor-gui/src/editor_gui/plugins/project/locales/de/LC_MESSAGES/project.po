@@ -3846,3 +3846,6 @@ msgstr "Die Schnittstelle hat das Senden nicht rechtzeitig bestätigt ({detail})
 
 msgid "A slow connection, such as a remote tunnel or a VPN, needs longer waits: raise the Confirmation Timeout in Settings > Connection."
 msgstr "Eine langsame Verbindung, etwa ein Tunnel über das Internet oder ein VPN, braucht längere Wartezeiten: Erhöhen Sie das Bestätigungs-Zeitlimit unter Einstellungen > Verbindung."
+
+msgid "The media coupler {coupler} could not be set to pass the commissioning on to the RF device ({detail}). Check the coupler, or connect through a KNX RF USB interface near the device."
+msgstr "Der Medienkoppler {coupler} konnte nicht so eingestellt werden, dass er die Inbetriebnahme an das RF-Gerät weiterleitet ({detail}). Prüfen Sie den Koppler, oder verbinden Sie sich über eine KNX RF USB-Schnittstelle in der Nähe des Geräts."

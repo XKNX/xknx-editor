@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import contextlib
 import importlib
+from collections.abc import AsyncGenerator
 from typing import Any, cast
 
 import pytest
@@ -22,6 +24,7 @@ from xknxeditor.download.errors import (
     ProgrammingModeError,
     SerialNumberNotFoundError,
 )
+from xknxeditor.download.rf_couplers import RFCouplers
 
 from .conftest import FakeDevice
 
@@ -295,13 +298,54 @@ def _commissioning_bus(
     monkeypatch.setattr(
         commissioning, "domain_address_serial_number_write", fake_domain_by_serial
     )
+
+    async def fake_secure(
+        xknx: XKNX,
+        serial: bytes,
+        address: IndividualAddress,
+        security: object,
+        **kwargs: Any,
+    ) -> None:
+        in_use = kwargs.get("address_in_use")
+        calls.append(
+            ("secure", (serial, address, security, kwargs.get("domain_address")))
+        )
+        if in_use is not None:
+            calls.append(("in use", await in_use()))
+
+    async def fake_read_serial(
+        xknx: XKNX, address: IndividualAddress, security: object
+    ) -> bytes:
+        calls.append(("read serial", (address, security)))
+        return _SERIAL
+
+    async def fake_verify(
+        xknx: XKNX, address: IndividualAddress, security: object
+    ) -> bytes:
+        calls.append(("verify", (address, security)))
+        return _SERIAL
+
+    @contextlib.asynccontextmanager
+    async def fake_routing(xknx: XKNX, couplers: Any) -> AsyncGenerator[None]:
+        calls.append(("routing", couplers))
+        yield
+        calls.append(("routing end", couplers))
+
     monkeypatch.setattr(commissioning, "_write_by_serial_number", fake_serial_write)
     monkeypatch.setattr(
         commissioning,
         "nm_individual_address_serial_number_write",
         fake_nm_serial_write,
     )
+    monkeypatch.setattr(commissioning, "secure_addresses_by_serial_number", fake_secure)
+    monkeypatch.setattr(commissioning, "_read_serial_number", fake_read_serial)
+    monkeypatch.setattr(commissioning, "_verify_and_restart", fake_verify)
+    monkeypatch.setattr(commissioning, "system_broadcast_routing", fake_routing)
     return calls
+
+
+def _without_routing(calls: list[tuple[str, object]]) -> list[tuple[str, object]]:
+    return [call for call in calls if not call[0].startswith("routing")]
 
 
 async def test_an_rf_address_download(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -310,7 +354,10 @@ async def test_an_rf_address_download(monkeypatch: pytest.MonkeyPatch) -> None:
         cast("XKNX", None), _NEW, domain_address=DOMAIN_ADDRESS
     )
     assert serial == _SERIAL
-    assert calls == [("check", _NEW), ("write2", (DOMAIN_ADDRESS, _NEW, True))]
+    assert _without_routing(calls) == [
+        ("check", _NEW),
+        ("write2", (DOMAIN_ADDRESS, _NEW, True)),
+    ]
 
 
 async def test_an_rf_address_download_refuses_an_address_in_use(
@@ -326,7 +373,7 @@ async def test_an_rf_address_download_refuses_an_address_in_use(
     await commissioning.download_individual_address(
         cast("XKNX", None), _NEW, domain_address=DOMAIN_ADDRESS
     )
-    assert calls[-1][0] == "write2"
+    assert _without_routing(calls)[-1][0] == "write2"
 
 
 async def test_an_rf_overwrite(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -338,7 +385,7 @@ async def test_an_rf_overwrite(monkeypatch: pytest.MonkeyPatch) -> None:
         current_address=current,
         domain_address=DOMAIN_ADDRESS,
     )
-    assert calls[:2] == [("check", _NEW), ("switch", (current, True))]
+    assert _without_routing(calls)[:2] == [("check", _NEW), ("switch", (current, True))]
     # another device in programming mode: switched back, refused
     calls = _commissioning_bus(monkeypatch, found=_FACTORY)
     with pytest.raises(ProgrammingModeError, match=r"instead of 1\.2\.9"):
@@ -348,7 +395,7 @@ async def test_an_rf_overwrite(monkeypatch: pytest.MonkeyPatch) -> None:
             current_address=current,
             domain_address=DOMAIN_ADDRESS,
         )
-    assert calls[-1] == ("switch", (current, False))
+    assert _without_routing(calls)[-1] == ("switch", (current, False))
 
 
 async def test_an_rf_download_by_serial_number(
@@ -358,7 +405,7 @@ async def test_an_rf_download_by_serial_number(
     await commissioning.download_individual_address(
         cast("XKNX", None), _NEW, serial_number=_SERIAL, domain_address=DOMAIN_ADDRESS
     )
-    assert calls == [
+    assert _without_routing(calls) == [
         ("domain by serial", (_SERIAL, DOMAIN_ADDRESS)),
         ("address by serial", (_NEW, _SERIAL)),
     ]
@@ -372,12 +419,146 @@ async def test_commissioning_an_rf_device_for_a_full_download(
         cast("XKNX", None), _NEW, domain_address=DOMAIN_ADDRESS
     )
     # left running for the download
-    assert calls == [("write2", (DOMAIN_ADDRESS, _NEW, False))]
+    assert _without_routing(calls) == [("write2", (DOMAIN_ADDRESS, _NEW, False))]
     calls.clear()
     await commissioning.program_individual_address(
         cast("XKNX", None), _NEW, serial_number=_SERIAL, domain_address=DOMAIN_ADDRESS
     )
-    assert calls == [
+    assert _without_routing(calls) == [
         ("domain by serial", (_SERIAL, DOMAIN_ADDRESS)),
         ("address by serial", (_NEW, _SERIAL)),
     ]
+
+
+class _Security:
+    """A device's Data Secure keys, as the commissioning passes them on."""
+
+
+async def test_a_secured_rf_address_download_by_serial_number(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    calls = _commissioning_bus(monkeypatch)
+    security = _Security()
+    couplers = RFCouplers(IndividualAddress("1.2.0"))
+    serial = await commissioning.download_individual_address(
+        cast("XKNX", None),
+        _NEW,
+        serial_number=_SERIAL,
+        security=cast(Any, security),
+        domain_address=DOMAIN_ADDRESS,
+        rf_couplers=couplers,
+    )
+    assert serial == _SERIAL
+    assert calls == [
+        ("routing", couplers),
+        ("secure", (_SERIAL, _NEW, security, DOMAIN_ADDRESS)),
+        ("check", _NEW),
+        ("in use", False),
+        ("routing end", couplers),
+    ]
+
+
+async def test_a_secured_rf_overwrite(monkeypatch: pytest.MonkeyPatch) -> None:
+    current = IndividualAddress("1.2.9")
+    calls = _commissioning_bus(monkeypatch)
+    security, current_security = _Security(), _Security()
+    serial = await commissioning.download_individual_address(
+        cast("XKNX", None),
+        _NEW,
+        current_address=current,
+        security=cast(Any, security),
+        current_security=cast(Any, current_security),
+        domain_address=DOMAIN_ADDRESS,
+    )
+    assert serial == _SERIAL
+    # a device in Security Mode takes its new addresses only secured, by serial number
+    assert _without_routing(calls) == [
+        ("read serial", (current, current_security)),
+        ("secure", (_SERIAL, _NEW, current_security, DOMAIN_ADDRESS)),
+        ("check", _NEW),
+        ("in use", False),
+        ("verify", (_NEW, security)),
+    ]
+
+
+async def test_a_secured_commissioning_for_a_full_download(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    calls = _commissioning_bus(monkeypatch)
+    security = _Security()
+    couplers = RFCouplers(IndividualAddress("1.2.0"))
+    await commissioning.program_individual_address(
+        cast("XKNX", None),
+        _NEW,
+        serial_number=_SERIAL,
+        domain_address=DOMAIN_ADDRESS,
+        security=cast(Any, security),
+        rf_couplers=couplers,
+    )
+    assert calls == [
+        ("routing", couplers),
+        ("secure", (_SERIAL, _NEW, security, DOMAIN_ADDRESS)),
+        ("routing end", couplers),
+    ]
+
+
+async def test_the_serial_number_of_the_device_to_overwrite(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    device = FakeDevice(descriptor=0x2705)
+    device.properties[(0, 11)] = _SERIAL
+    opened: list[Any] = []
+
+    class _Manager:
+        def __init__(self, device: FakeDevice | None) -> None:
+            self.device = device
+
+        async def open(self) -> FakeDevice:
+            if self.device is None:
+                raise ManagementConnectionError("no answer")
+            return self.device
+
+        async def close(self) -> None:
+            opened.append("closed")
+
+    devices: list[FakeDevice | None] = [device, None, FakeDevice()]
+    monkeypatch.setattr(
+        session, "management_session", lambda *args, **kwargs: _Manager(devices.pop(0))
+    )
+    current = IndividualAddress("1.2.9")
+    read = commissioning._read_serial_number  # pyright: ignore[reportPrivateUsage]
+    assert await read(cast("XKNX", None), current, cast(Any, None)) == _SERIAL
+    with pytest.raises(SerialNumberNotFoundError, match="could not be read"):
+        await read(cast("XKNX", None), current, cast(Any, None))
+    with pytest.raises(SerialNumberNotFoundError, match="no serial number"):
+        await read(cast("XKNX", None), current, cast(Any, None))
+    assert opened == ["closed"] * 3
+
+
+async def test_an_rf_overwrite_refuses_an_address_in_use(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _commissioning_bus(monkeypatch, occupied=True)
+    with pytest.raises(AddressInUseError):
+        await commissioning.download_individual_address(
+            cast("XKNX", None),
+            _NEW,
+            current_address=IndividualAddress("1.2.9"),
+            domain_address=DOMAIN_ADDRESS,
+        )
+
+
+async def test_the_serial_number_read(monkeypatch: pytest.MonkeyPatch) -> None:
+    read_module = importlib.import_module(
+        "xknx.management.procedures.network.nm_individual_address_serial_number_read"
+    )
+
+    async def serial_read(xknx: XKNX, serial: bytes) -> IndividualAddress | None:
+        return _NEW if serial == _SERIAL else None
+
+    monkeypatch.setattr(
+        read_module, "nm_individual_address_serial_number_read", serial_read
+    )
+    read = rf._serial_number_read  # pyright: ignore[reportPrivateUsage]
+    assert await read(cast("XKNX", None), _SERIAL) == _NEW
+    assert await read(cast("XKNX", None), bytes(6)) is None

@@ -783,8 +783,10 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         ``use_serial_number`` addresses the device by its project serial (project_set_serial_number)
         instead of programming mode — for INDIVIDUAL_ADDRESS, or a FULL commissioning download of a
         device that does not answer at its address yet. A device on a KNX RF line gets the line's
-        domain address with its individual address (also when its own is unknown), and a KNX RF
-        USB interface gets that domain address before the download. A device whose hardware is
+        domain address with its individual address (also when its own is unknown; by serial number
+        and with Data Secure keys secured), and a KNX RF USB interface gets that domain address
+        before the download; over another connection the project's TP/RF media coupler towards
+        the device passes the commissioning on for that time. A device whose hardware is
         NoDownloadWithoutPlugin is refused unless ``without_plugin=true``, set only after the user
         explicitly confirmed programming it without the manufacturer's plugin.
 

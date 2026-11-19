@@ -151,3 +151,37 @@ async def test_download_device_sets_the_domain_address_first(
         f"download {DOMAIN_ADDRESS!r}",
         "download None",
     ]
+
+
+@pytest.mark.parametrize("rf_connection", [False, True])
+def test_the_media_couplers_reach_the_downloads(
+    monkeypatch: pytest.MonkeyPatch, rf_connection: bool
+) -> None:
+    from xknxeditor.download.rf_couplers import RFCouplers
+
+    service, calls, _ = _service(monkeypatch, DOMAIN_ADDRESS)
+    monkeypatch.setattr(usb, "is_rf_usb_connection", lambda xknx: rf_connection)
+    service.project_rf_couplers = lambda device: ("1.2.0", ["1.3.0"])
+    service.program_device(cast(Any, _DEVICE), DownloadScope.FULL)
+    service.program_device(cast(Any, _DEVICE), DownloadScope.INDIVIDUAL_ADDRESS)
+    # through an RF interface on the device's domain no coupler is needed
+    expected = (
+        None
+        if rf_connection
+        else RFCouplers(IndividualAddress("1.2.0"), (IndividualAddress("1.3.0"),))
+    )
+    assert calls[0]["rf_couplers"] == expected
+    assert calls[1]["rf_couplers"] == expected
+
+
+def test_no_media_coupler_towards_the_device(monkeypatch: pytest.MonkeyPatch) -> None:
+    service, calls, _ = _service(monkeypatch, DOMAIN_ADDRESS)
+    monkeypatch.setattr(usb, "is_rf_usb_connection", lambda xknx: False)
+    service.project_rf_couplers = lambda device: (None, ["1.3.0"])
+    service.program_device(cast(Any, _DEVICE), DownloadScope.FULL)
+    assert calls[0]["rf_couplers"] is None
+    # not an RF device: no couplers for its address download
+    service, calls, _ = _service(monkeypatch, None)
+    service.project_rf_couplers = lambda device: ("1.2.0", [])
+    service.program_device(cast(Any, _DEVICE), DownloadScope.INDIVIDUAL_ADDRESS)
+    assert calls[0]["rf_couplers"] is None

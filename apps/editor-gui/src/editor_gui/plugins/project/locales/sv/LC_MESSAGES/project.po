@@ -3704,3 +3704,6 @@ msgstr "Gränssnittet bekräftade inte sändningen i tid ({detail})."
 
 msgid "A slow connection, such as a remote tunnel or a VPN, needs longer waits: raise the Confirmation Timeout in Settings > Connection."
 msgstr "En långsam anslutning, t.ex. en fjärrtunnel eller ett VPN, behöver längre väntetider: höj Tidsgräns för bekräftelse under Inställningar > Anslutning."
+
+msgid "The media coupler {coupler} could not be set to pass the commissioning on to the RF device ({detail}). Check the coupler, or connect through a KNX RF USB interface near the device."
+msgstr "Mediekopplaren {coupler} kunde inte ställas in att föra idrifttagningen vidare till RF-enheten ({detail}). Kontrollera kopplaren, eller anslut via ett KNX RF USB-gränssnitt nära enheten."

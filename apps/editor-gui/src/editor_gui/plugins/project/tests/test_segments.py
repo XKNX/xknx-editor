@@ -734,3 +734,44 @@ def test_the_domain_address_of_a_device_on_an_rf_line(project: ProjectService) -
     assert domain(segment_device) == bytes.fromhex("000200000001")
     assert domain(rf_device) == bytes.fromhex("00fa12345678")
     assert domain(999) is None
+
+
+def test_the_media_couplers_towards_an_rf_device(
+    project: ProjectService, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from types import SimpleNamespace
+
+    pid = project._pid
+    assert pid is not None
+    area = next(a for a in project.get_areas() if a.area_number == 1)
+    garden = project.create_line(area.id, 5, "Garden", MEDIUM_RF)
+    pond = project.create_line(area.id, 6, "Pond", MEDIUM_RF)
+    assert garden is not None and pond is not None
+    garden_line, pond_line = project.find_line(garden), project.find_line(pond)
+    assert garden_line is not None and garden_line.main_segment_id is not None
+    assert pond_line is not None and pond_line.main_segment_id is not None
+    project._svc.add_device(
+        pid, garden_line.main_segment_id, "P-C", address=0, hardware2program_ref_id="C"
+    )
+    sensor = project._svc.add_device(
+        pid, garden_line.main_segment_id, "P-S", address=3, hardware2program_ref_id="S"
+    )
+    project._svc.add_device(
+        pid, pond_line.main_segment_id, "P-C", address=0, hardware2program_ref_id="C"
+    )
+    line = project.find_line(_line_1_1(project))
+    assert line is not None and line.main_segment_id is not None
+    tp_device = project._svc.add_device(
+        pid, line.main_segment_id, "P-S", address=1, hardware2program_ref_id="S"
+    )
+    project._bump()
+    roles = {"C": (True, "MV-2920"), "S": (False, "MV-2705")}
+    monkeypatch.setattr(project._catalog, "program_roles", lambda ids: roles)
+
+    def couplers(node_id: int) -> tuple[str | None, list[str]]:
+        return project.device_rf_couplers(SimpleNamespace(node_id=node_id))  # type: ignore[arg-type]
+
+    assert couplers(sensor) == ("1.5.0", ["1.6.0"])
+    # a device on a line without a media coupler: none towards it, the others all
+    assert couplers(tp_device) == (None, ["1.5.0", "1.6.0"])
+    assert couplers(999) == (None, ["1.5.0", "1.6.0"])

@@ -15,8 +15,10 @@ from typing import Any, cast
 
 import pytest
 from xknx import XKNX
+from xknx.telegram import IndividualAddress
 
 import xknxeditor.download.commissioning as commissioning
+from xknxeditor.download.rf_couplers import RFCouplers
 from xknxeditor.download.scope import DownloadScope
 
 # The package re-exports the ``download`` function, which shadows the submodule name on
@@ -33,6 +35,7 @@ async def _run(
     secure: bool = False,
     memory_progress: Any = None,
     domain_address: bytes | None = None,
+    rf_couplers: RFCouplers | None = None,
 ) -> list[str]:
     """Run ``download`` with the network stack faked out, returning the event trace."""
     trace: list[str] = []
@@ -47,10 +50,14 @@ async def _run(
         *,
         serial_number: bytes | None = None,
         domain_address: bytes | None = None,
+        security: Any = None,
+        rf_couplers: Any = None,
     ) -> None:
         trace.append(f"assign:{address}")
         if domain_address is not None:
             trace.append(f"domain:{domain_address.hex()}")
+        if rf_couplers is not None:
+            trace.append(f"couplers:{rf_couplers.towards}")
 
     async def fake_after_unload(
         *args: Any, unload_address: bool, **kwargs: Any
@@ -103,6 +110,7 @@ async def _run(
         scope=scope,
         commission=commission,
         commission_domain_address=domain_address,
+        commission_rf_couplers=rf_couplers,
         memory_progress=memory_progress,
     )
     return trace
@@ -126,8 +134,15 @@ async def test_full_download_gives_a_new_rf_device_its_domain_address(
         scope=DownloadScope.FULL,
         commission=True,
         domain_address=bytes.fromhex("00fa12345678"),
+        rf_couplers=RFCouplers(IndividualAddress("1.1.0")),
     )
-    assert trace == ["probe", "assign:1.1.24", "domain:00fa12345678", "run"]
+    assert trace == [
+        "probe",
+        "assign:1.1.24",
+        "domain:00fa12345678",
+        "couplers:1.1.0",
+        "run",
+    ]
 
 
 async def test_full_download_skips_assign_when_present(

@@ -43,6 +43,7 @@ if TYPE_CHECKING:
         PropertyDiff,
         SegmentDiff,
     )
+    from xknxeditor.download.rf_couplers import RFCouplers
     from xknxeditor.prod import Application, MasterData
 
 
@@ -580,6 +581,7 @@ async def download_device(
     route_couplers: Sequence[IndividualAddress] = (),
     memory_progress: Callable[[int, int], None] | None = None,
     rf_domain_address: bytes | None = None,
+    rf_couplers: RFCouplers | None = None,
 ) -> DownloadResult:
     """Program ``device``: build its image and run the load procedure on the bus.
 
@@ -611,7 +613,9 @@ async def download_device(
     :func:`xknxeditor.download.download`). ``route_couplers`` are the couplers between the
     interface and the device; the frames stay within what they pass. A device on a KNX RF line
     has the line's ``rf_domain_address``: a KNX RF USB interface gets it first, so it reaches the
-    device, and a new device gets it with its individual address.
+    device, and a new device gets it with its individual address; ``rf_couplers`` are the TP1/RF
+    Media Couplers that route the system broadcasts to it when the connection is not on its RF
+    domain.
     """
     from editor_gui.plugin_providers import prepared_for, programming_error
     from editor_gui.plugins.connection.usb import ensure_rf_domain_address
@@ -639,6 +643,7 @@ async def download_device(
         commission=True,
         commission_serial_number=serial_number,
         commission_domain_address=rf_domain_address,
+        commission_rf_couplers=rf_couplers,
         progress=progress,
         security=security,
         tool_key=tool_key,

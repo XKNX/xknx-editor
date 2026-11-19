@@ -973,6 +973,9 @@ class KnxGuiApp:
         self._connection_service.project_rf_domain_address = (
             self._project_service.device_rf_domain_address
         )
+        self._connection_service.project_rf_couplers = (
+            self._project_service.device_rf_couplers
+        )
         self._connection_service.project_device = (
             self._project_service.find_device_by_address
         )

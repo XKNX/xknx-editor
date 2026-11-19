@@ -40,6 +40,7 @@ if TYPE_CHECKING:
     from xknxeditor.download.image import GroupCommunication
     from xknxeditor.download.ip_config import IpDeviceConfig
     from xknxeditor.download.ip_secure import IpSecureConfig
+    from xknxeditor.download.rf_couplers import RFCouplers
     from xknxeditor.download.scope import DownloadScope
     from xknxeditor.prod import Application, MasterData
     from xknxeditor.proj.core.service import DeviceKeys
@@ -255,6 +256,12 @@ class ConnectionService:
         # The domain address of a device's KNX RF line (or None): a KNX RF USB interface gets it
         # before the device's download, and a new device gets it with its individual address.
         self.project_rf_domain_address: Callable[[Device], bytes | None] | None = None
+        # The project's KNX TP1/RF Media Couplers: the one towards a device and the others (see
+        # ProjectService.device_rf_couplers); they route the system broadcasts to a new RF device
+        # when the connection is not on its RF domain.
+        self.project_rf_couplers: (
+            Callable[[Device], tuple[str | None, list[str]]] | None
+        ) = None
         # The open project's device at an individual address (or None): a download reads the
         # maximum APDU length only of couplers on the route that the project has.
         self.project_device: Callable[[str], object | None] | None = None
@@ -1201,6 +1208,7 @@ class ConnectionService:
                 waiting=waiting,
                 route_couplers=self._route_couplers(device),
                 rf_domain_address=self._rf_domain_address(device),
+                rf_couplers=self._rf_couplers(device),
             )
         )
         if future is not None:
@@ -1292,6 +1300,9 @@ class ConnectionService:
                     waiting=waiting,
                     serial_number=serial_number,
                     domain_address=domain_address,
+                    rf_couplers=self._rf_couplers(device)
+                    if domain_address is not None
+                    else None,
                 ),
             )
         )
@@ -1321,6 +1332,26 @@ class ConnectionService:
         """The domain address of the device's KNX RF line, read here (not on the bus thread)."""
         getter = self.project_rf_domain_address
         return getter(device) if getter is not None else None
+
+    def _rf_couplers(self, device: Device) -> RFCouplers | None:
+        """The TP1/RF Media Couplers that route system broadcasts to ``device`` (read here, not
+        on the bus thread): none when the connection is a KNX RF USB interface, which reaches the
+        device's RF domain itself, or the project has no coupler towards it."""
+        from xknx.telegram import IndividualAddress
+
+        from editor_gui.plugins.connection.usb import is_rf_usb_connection
+        from xknxeditor.download.rf_couplers import RFCouplers
+
+        lookup = self.project_rf_couplers
+        if lookup is None or is_rf_usb_connection(self._connected_xknx):
+            return None
+        towards, others = lookup(device)
+        if towards is None:
+            return None
+        return RFCouplers(
+            IndividualAddress(towards),
+            tuple(IndividualAddress(other) for other in others),
+        )
 
     def _access_key(self) -> int:
         """The project's access key, read here (not on the bus thread)."""

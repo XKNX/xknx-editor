@@ -4469,6 +4469,15 @@ class ProjectStrings:
         return _("The interface did not confirm sending in time ({detail}).")
 
     @property
+    def MEDIA_COUPLER_NOT_PREPARED(self) -> str:
+        # {coupler}: the individual address of a TP/RF media coupler; {detail}: why
+        return _(
+            "The media coupler {coupler} could not be set to pass the commissioning on to "
+            "the RF device ({detail}). Check the coupler, or connect through a KNX RF USB "
+            "interface near the device."
+        )
+
+    @property
     def SLOW_CONNECTION_HINT(self) -> str:
         return _(
             "A slow connection, such as a remote tunnel or a VPN, needs longer waits: "

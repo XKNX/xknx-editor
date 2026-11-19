@@ -169,6 +169,8 @@ if TYPE_CHECKING:
     from xknxeditor.vendor.triton import DeviceType as TritonDeviceType
 
 _INSTALLATION = 0
+# The mask version of a KNX TP1/RF Media Coupler (Coupler Model 2.0, 06.02.42).
+_TP_RF_COUPLER_MASK = "MV-2920"
 # How often the evaluation in the background looks whether the user paused (seconds).
 _RECHECK_IDLE_POLL = 0.1
 
@@ -8458,6 +8460,68 @@ class ProjectService:
                     return None
                 return domain.to_bytes(6, "big")
         return None
+
+    def device_rf_couplers(self, device: Device) -> tuple[str | None, list[str]]:
+        """The project's KNX TP1/RF Media Couplers (mask 2920h), as individual addresses: the one
+        towards ``device``'s RF line or segment (``None`` when its line has none; the line's own
+        coupler, x.y.0, first) and all the others. Before a new RF device behind one gets its
+        domain address, that one routes system broadcasts and the others must not."""
+        if self._pid is None:
+            return None, []
+        programs = self._svc.device_programs(self._pid)
+        roles = self._catalog.program_roles(sorted(set(programs.values())))
+        segments = self.device_segments()
+        line_segments = self._line_segment_ids(segments.get(device.node_id))
+        on_line: list[str] = []
+        others: list[str] = []
+        for node_id, program in programs.items():
+            if program not in roles or roles[program][1] != _TP_RF_COUPLER_MASK:
+                continue
+            address = self._device_address(node_id, segments.get(node_id))
+            if address is None:
+                continue
+            if segments.get(node_id) in line_segments:
+                on_line.append(address)
+            else:
+                others.append(address)
+        on_line.sort(key=lambda address: not address.endswith(".0"))
+        towards = on_line[0] if on_line else None
+        return towards, sorted(others + on_line[1:])
+
+    def _line_segment_ids(self, segment_id: int | None) -> set[int]:
+        """The segments of the line ``segment_id`` belongs to: its main segment and the others."""
+        found = self._line_of_segment(segment_id)
+        if found is None:
+            return set()
+        line = found[1]
+        ids = {s.id for s in line.segments}
+        if line.main_segment_id is not None:
+            ids.add(line.main_segment_id)
+        return ids
+
+    def _line_of_segment(self, segment_id: int | None) -> tuple[int, _Line] | None:
+        """The area number and the line of the segment ``segment_id``."""
+        if segment_id is None:
+            return None
+        self._ensure_topology_cache()
+        areas = {area.id: area.area_number for area in self._areas_cache or []}
+        for area_id, lines in (self._lines_cache or {}).items():
+            for line in lines:
+                if segment_id == line.main_segment_id or any(
+                    s.id == segment_id for s in line.segments
+                ):
+                    return areas.get(area_id, 0), line
+        return None
+
+    def _device_address(self, node_id: int, segment_id: int | None) -> str | None:
+        """The individual address of the device ``node_id`` on ``segment_id``."""
+        found = self._line_of_segment(segment_id)
+        if found is None or self._pid is None:
+            return None
+        number = self._svc.device_placement(self._pid, node_id).address
+        if number is None:
+            return None
+        return f"{found[0]}.{found[1].line_number}.{number}"
 
     def find_line(self, line_id: int) -> _Line | None:
         """The line ``line_id`` with its medium and its sub-segments."""

@@ -3783,3 +3783,6 @@ msgstr "Rozhranie nepotvrdilo odoslanie včas ({detail})."
 
 msgid "A slow connection, such as a remote tunnel or a VPN, needs longer waits: raise the Confirmation Timeout in Settings > Connection."
 msgstr "Pomalé pripojenie, napríklad vzdialený tunel alebo VPN, potrebuje dlhšie čakanie: zvýšte Časový limit potvrdenia v Nastavenia > Pripojenie."
+
+msgid "The media coupler {coupler} could not be set to pass the commissioning on to the RF device ({detail}). Check the coupler, or connect through a KNX RF USB interface near the device."
+msgstr "Mediálny väzobný člen {coupler} sa nepodarilo nastaviť tak, aby odovzdal uvedenie do prevádzky zariadeniu RF ({detail}). Skontrolujte väzobný člen alebo sa pripojte cez rozhranie KNX RF USB v blízkosti zariadenia."

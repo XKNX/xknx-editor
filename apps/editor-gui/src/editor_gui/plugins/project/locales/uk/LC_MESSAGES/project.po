@@ -3756,3 +3756,6 @@ msgstr "Інтерфейс не підтвердив надсилання вча
 
 msgid "A slow connection, such as a remote tunnel or a VPN, needs longer waits: raise the Confirmation Timeout in Settings > Connection."
 msgstr "Повільному підключенню, наприклад віддаленому тунелю або VPN, потрібне довше очікування: збільште тайм-аут підтвердження в розділі Налаштування > Підключення."
+
+msgid "The media coupler {coupler} could not be set to pass the commissioning on to the RF device ({detail}). Check the coupler, or connect through a KNX RF USB interface near the device."
+msgstr "Не вдалося налаштувати медіаконвертер {coupler} на передачу введення в експлуатацію пристрою RF ({detail}). Перевірте конвертер або підключіться через інтерфейс KNX RF USB поруч із пристроєм."
