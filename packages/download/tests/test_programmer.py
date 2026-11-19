@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any, cast
+
 import pytest
 from xknx.telegram.apci import (
     MemoryRead,
@@ -716,3 +718,59 @@ async def test_a_short_reply_mid_read_is_followed_by_full_blocks() -> None:
         12,
         12,
     ]  # not single octets after the short one
+
+
+class _ExtConnection:
+    """A connection that answers every request with ``response``."""
+
+    def __init__(self, response: object) -> None:
+        self.response = response
+        self.sent: list[object] = []
+
+    async def request(self, payload: object, expected: object) -> object:
+        from xknx.telegram import IndividualAddress, Telegram
+
+        self.sent.append(payload)
+        return Telegram(
+            destination_address=IndividualAddress("1.1.1"),
+            payload=cast("Any", self.response),
+        )
+
+
+async def test_a_raw_function_property_of_an_extended_object() -> None:
+    from xknx.telegram.apci import (
+        FunctionPropertyExtCommand,
+        FunctionPropertyExtStateRead,
+        FunctionPropertyExtStateResponse,
+        ReturnCode,
+    )
+
+    from xknxeditor.download.programmer import extended_object_index
+
+    response = FunctionPropertyExtStateResponse(
+        interface_object_type=6,
+        object_instance=2,
+        property_id=84,
+        return_code=ReturnCode.E_COMMAND_INVALID,
+        data=b"\x01",
+    )
+    connection = _ExtConnection(response)
+    programmer = DeviceProgrammer(cast("Any", connection))
+    index = extended_object_index(6, 2)
+    # the return code comes first, also when it is a refusal
+    assert (
+        await programmer.function_property_raw(index, 84, b"\x00\x01\x01", command=True)
+        == b"\xf2\x01"
+    )
+    assert connection.sent[-1] == FunctionPropertyExtCommand(
+        interface_object_type=6, object_instance=2, property_id=84, data=b"\x00\x01\x01"
+    )
+    await programmer.function_property_raw(index, 84, b"\x00\x01", command=False)
+    assert connection.sent[-1] == FunctionPropertyExtStateRead(
+        interface_object_type=6, object_instance=2, property_id=84, data=b"\x00\x01"
+    )
+    # the answer of another object is no answer
+    with pytest.raises(VerificationError, match="object type 6 instance 1"):
+        await programmer.function_property_raw(
+            extended_object_index(6, 1), 84, b"", command=True
+        )

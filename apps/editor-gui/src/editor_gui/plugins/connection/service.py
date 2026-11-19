@@ -36,11 +36,11 @@ if TYPE_CHECKING:
     from editor_gui.plugins.base import Logger
     from editor_gui.plugins.keyring.service import KeyringService
     from xknxeditor.catalog.core.hardware import FactoryData
+    from xknxeditor.download.communication_path import Installation, KnxMedium
     from xknxeditor.download.data_secure import DeviceSecurity
     from xknxeditor.download.image import GroupCommunication
     from xknxeditor.download.ip_config import IpDeviceConfig
     from xknxeditor.download.ip_secure import IpSecureConfig
-    from xknxeditor.download.rf_couplers import RFCouplers
     from xknxeditor.download.scope import DownloadScope
     from xknxeditor.prod import Application, MasterData
     from xknxeditor.proj.core.service import DeviceKeys
@@ -256,12 +256,11 @@ class ConnectionService:
         # The domain address of a device's KNX RF line (or None): a KNX RF USB interface gets it
         # before the device's download, and a new device gets it with its individual address.
         self.project_rf_domain_address: Callable[[Device], bytes | None] | None = None
-        # The project's KNX TP1/RF Media Couplers: the one towards a device and the others (see
-        # ProjectService.device_rf_couplers); they route the system broadcasts to a new RF device
-        # when the connection is not on its RF domain.
-        self.project_rf_couplers: (
-            Callable[[Device, str | None], tuple[str | None, list[str], str | None]]
-            | None
+        # The project's couplers on the routes to devices: address, media of the primary and
+        # the secondary side, and whether they block point-to-point and broadcast messages (see
+        # ProjectService.route_couplers). Every bus operation prepares those on its way.
+        self.project_route_couplers: (
+            Callable[[], list[tuple[str, str, str, bool]]] | None
         ) = None
         # The open project's device at an individual address (or None): a download reads the
         # maximum APDU length only of couplers on the route that the project has.
@@ -1209,7 +1208,7 @@ class ConnectionService:
                 waiting=waiting,
                 route_couplers=self._route_couplers(device),
                 rf_domain_address=self._rf_domain_address(device),
-                rf_couplers=self._rf_couplers(device),
+                rf_interface_domain=self._interface_domain_address(device) is not None,
             )
         )
         if future is not None:
@@ -1301,9 +1300,6 @@ class ConnectionService:
                     waiting=waiting,
                     serial_number=serial_number,
                     domain_address=domain_address,
-                    rf_couplers=self._rf_couplers(device)
-                    if domain_address is not None
-                    else None,
                 ),
             )
         )
@@ -1334,40 +1330,77 @@ class ConnectionService:
         getter = self.project_rf_domain_address
         return getter(device) if getter is not None else None
 
-    def _rf_couplers(self, device: Device) -> RFCouplers | None:
-        """The TP1/RF Media Couplers that route system broadcasts to ``device`` (read here, not
-        on the bus thread). None when the project has no coupler towards it, or the connection is
-        a KNX RF USB interface that reaches the device's domain itself, i.e. one not on an RF line
-        of another domain with a coupler of its own (then that one is ``local``)."""
+    def _update_installation(self) -> None:
+        """Give the connection the project's couplers before an operation is scheduled (read
+        here, not on the bus thread), so its paths go through them (see
+        :mod:`xknxeditor.download.communication_path`)."""
+        from xknxeditor.download.communication_path import set_installation
+
+        xknx = self._xknx
+        if xknx is None or self.project_route_couplers is None:
+            return
+        try:
+            running = asyncio.get_running_loop()
+        except RuntimeError:
+            running = None
+        if running is not None and running is self._loop:
+            return
+        set_installation(xknx, self._installation())
+
+    def _installation(self) -> Installation:
+        """The project's couplers with the Data Secure material they are reached with."""
         from xknx.telegram import IndividualAddress
 
+        from editor_gui.device import Device as ProjectDevice
         from editor_gui.plugins.connection.usb import is_rf_usb_connection
-        from xknxeditor.download.rf_couplers import RFCouplers
+        from xknxeditor.download.communication_path import Coupler, Installation
 
-        lookup = self.project_rf_couplers
-        if lookup is None:
-            return None
-        rf_interface = is_rf_usb_connection(self._connected_xknx)
-        towards, others, local = lookup(
-            device, str(self._connected_xknx.current_address) if rf_interface else None
-        )
-        if towards is None or (rf_interface and local is None):
-            return None
-        return RFCouplers(
-            IndividualAddress(towards),
-            tuple(IndividualAddress(other) for other in others),
-            IndividualAddress(local) if local is not None else None,
+        couplers: dict[IndividualAddress, Coupler] = {}
+        lookup = self.project_route_couplers
+        for address, primary, secondary, blocking in lookup() if lookup else []:
+            device = (
+                self.project_device(address)
+                if self.project_device is not None
+                else None
+            )
+            security = (
+                self._security_for(device)
+                if isinstance(device, ProjectDevice)
+                else None
+            )
+            key = IndividualAddress(address)
+            couplers[key] = Coupler(
+                key,
+                _knx_medium(primary),
+                _knx_medium(secondary),
+                security=security,
+                block_unicast=blocking,
+                block_broadcast=blocking,
+            )
+        xknx = self._xknx
+        return Installation(
+            couplers, rf_connection=xknx is not None and is_rf_usb_connection(xknx)
         )
 
     def _interface_domain_address(self, device: Device) -> bytes | None:
         """The domain address a KNX RF USB interface needs to reach ``device``: the one of its
         RF line, unless the interface is on an RF line of another domain behind a coupler of its
         own, which routes to the device (read here, not on the bus thread)."""
+        from xknx.telegram import IndividualAddress
+
+        from xknxeditor.download.communication_path import KnxMedium
+
         domain_address = self._rf_domain_address(device)
-        if domain_address is None:
+        if domain_address is None or not device.individual_address:
             return None
-        couplers = self._rf_couplers(device)
-        if couplers is not None and couplers.local is not None:
+        installation = self._installation()
+        if installation.rf_connection and any(
+            coupler.secondary is KnxMedium.RF and not downwards
+            for coupler, downwards in installation.path(
+                self._connected_xknx.current_address,
+                IndividualAddress(device.individual_address),
+            )
+        ):
             return None
         return domain_address
 
@@ -2041,6 +2074,7 @@ class ConnectionService:
         if self._loop is None:
             coro.close()
             return None
+        self._update_installation()
         # The task the coroutine runs in, for cancel_operation.
         started: list[asyncio.Task[Any]] = []
 
@@ -2092,6 +2126,20 @@ async def _in_rf_domain(
         operation.close()
         raise
     return await operation
+
+
+# The project's media (``MT-…``) as the couplers' sides.
+_KNX_MEDIA: dict[str, KnxMedium] = {}
+
+
+def _knx_medium(medium: str) -> KnxMedium:
+    from xknxeditor.download.communication_path import KnxMedium
+
+    if not _KNX_MEDIA:
+        _KNX_MEDIA.update(
+            {"MT-1": KnxMedium.PL, "MT-2": KnxMedium.RF, "MT-5": KnxMedium.IP}
+        )
+    return _KNX_MEDIA.get(medium, KnxMedium.TP)
 
 
 def _factory_image(device: Device) -> FactoryData | None:

@@ -169,8 +169,6 @@ if TYPE_CHECKING:
     from xknxeditor.vendor.triton import DeviceType as TritonDeviceType
 
 _INSTALLATION = 0
-# The mask version of a KNX TP1/RF Media Coupler (Coupler Model 2.0, 06.02.42).
-_TP_RF_COUPLER_MASK = "MV-2920"
 # How often the evaluation in the background looks whether the user paused (seconds).
 _RECHECK_IDLE_POLL = 0.1
 
@@ -8461,85 +8459,44 @@ class ProjectService:
                 return domain.to_bytes(6, "big")
         return None
 
-    def device_rf_couplers(
-        self, device: Device, interface_address: str | None = None
-    ) -> tuple[str | None, list[str], str | None]:
-        """The project's KNX TP1/RF Media Couplers (mask 2920h), as individual addresses: the one
-        towards ``device``'s RF line or segment (``None`` when its line has none; the line's own
-        coupler, x.y.0, first), all the others, and the one on the line of the KNX RF interface at
-        ``interface_address`` when that is an RF line of another domain (``None`` otherwise).
-        Before a new RF device behind one gets its domain address, that one routes system
-        broadcasts, the interface's own routes them to it as broadcasts, and the others must not
-        (03.05.03 §2.3.1.4)."""
+    def route_couplers(self) -> list[tuple[str, str, str, bool]]:
+        """The couplers frames to a device can pass, as the project has them: every device at
+        a line's coupler address ``a.l.0`` (between the area's main line and the line) and at
+        an area's ``a.0.0`` (between the backbone and the main line), with the medium of its
+        primary side, of its secondary side, and whether a download makes it block
+        point-to-point and broadcast messages (see :meth:`download_routing_blocking`)."""
         if self._pid is None:
-            return None, [], None
-        programs = self._svc.device_programs(self._pid)
-        roles = self._catalog.program_roles(sorted(set(programs.values())))
-        segments = self.device_segments()
-        device_segments = self._line_segment_ids(segments.get(device.node_id))
-        local_segments = self._interface_line_segments(device, interface_address)
-        on_line: list[str] = []
-        local: list[str] = []
-        others: list[str] = []
-        for node_id, program in programs.items():
-            if program not in roles or roles[program][1] != _TP_RF_COUPLER_MASK:
-                continue
-            address = self._device_address(node_id, segments.get(node_id))
-            if address is None:
-                continue
-            segment = segments.get(node_id)
-            if segment in device_segments:
-                on_line.append(address)
-            elif segment in local_segments:
-                local.append(address)
-            else:
-                others.append(address)
-        on_line.sort(key=lambda address: not address.endswith(".0"))
-        local.sort(key=lambda address: not address.endswith(".0"))
-        towards = on_line[0] if on_line else None
-        own = local[0] if local else None
-        return towards, sorted(others + on_line[1:] + local[1:]), own
-
-    def _interface_line_segments(
-        self, device: Device, interface_address: str | None
-    ) -> set[int]:
-        """The segments of the RF line of the interface at ``interface_address`` when its domain
-        is not the one of ``device``'s line; empty otherwise."""
-        if interface_address is None:
-            return set()
-        parts = interface_address.split(".")
-        if len(parts) != 3 or not all(part.isdigit() for part in parts):
-            return set()
-        area_number, line_number = int(parts[0]), int(parts[1])
+            return []
         self._ensure_topology_cache()
         areas = {area.id: area.area_number for area in self._areas_cache or []}
+        media: dict[tuple[int, int], str] = {}
         for area_id, lines in (self._lines_cache or {}).items():
-            if areas.get(area_id) != area_number:
-                continue
             for line in lines:
-                if line.line_number != line_number or line.medium_type != MEDIUM_RF:
-                    continue
-                domain = line.domain_address
-                if domain is None or (
-                    domain.to_bytes(6, "big") == self.device_rf_domain_address(device)
-                ):
-                    return set()
-                ids = {s.id for s in line.segments}
-                if line.main_segment_id is not None:
-                    ids.add(line.main_segment_id)
-                return ids
-        return set()
-
-    def _line_segment_ids(self, segment_id: int | None) -> set[int]:
-        """The segments of the line ``segment_id`` belongs to: its main segment and the others."""
-        found = self._line_of_segment(segment_id)
-        if found is None:
-            return set()
-        line = found[1]
-        ids = {s.id for s in line.segments}
-        if line.main_segment_id is not None:
-            ids.add(line.main_segment_id)
-        return ids
+                media[(areas.get(area_id, 0), line.line_number)] = line.medium_type
+        nodes: dict[str, int] = {}
+        for node_id, segment_id in self.device_segments().items():
+            address = self._device_address(node_id, segment_id)
+            if address is not None:
+                nodes.setdefault(address, node_id)
+        couplers: list[tuple[str, str, str, bool]] = []
+        for (area, line), medium in sorted(media.items()):
+            if line:
+                address = f"{area}.{line}.0"
+                primary = media.get((area, 0), MEDIUM_TP)
+            elif area:
+                address = f"{area}.0.0"
+                primary = media.get((0, 0), MEDIUM_TP)
+            else:
+                continue
+            node_id = nodes.get(address)
+            if node_id is None:
+                continue
+            device = self.find_device_by_node_id(node_id)
+            blocking = device is not None and bool(
+                self.download_routing_blocking(device)
+            )
+            couplers.append((address, primary, medium, blocking))
+        return couplers
 
     def _line_of_segment(self, segment_id: int | None) -> tuple[int, _Line] | None:
         """The area number and the line of the segment ``segment_id``."""

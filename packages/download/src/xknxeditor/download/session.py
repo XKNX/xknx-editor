@@ -77,24 +77,30 @@ def management_session(
     security: DeviceSecurity | None,
     *,
     connectionless: bool = False,
+    routed: bool = True,
 ) -> ConnectionManager:
-    """A connection manager for ``address``, secured with the Tool Key when ``security`` is set."""
+    """A connection manager for ``address``, secured with the Tool Key when ``security`` is set.
+    While it is connected, the couplers on the way pass its frames (see
+    :mod:`.communication_path`; not ``routed`` for the sessions that prepare them)."""
+    from .communication_path import routed_manager
     from .connectionless import ConnectionlessManager
 
     transport: ConnectionManager | None = (
         ConnectionlessManager(xknx, address) if connectionless else None
     )
     if security is None:
-        return transport or XknxConnectionManager(xknx, address)
-    from .data_secure import SecureProgrammingError
-    from .secure_session import SecureConnectionManager
+        manager = transport or XknxConnectionManager(xknx, address)
+    else:
+        from .data_secure import SecureProgrammingError
+        from .secure_session import SecureConnectionManager
 
-    if security.address != address:
-        raise SecureProgrammingError(
-            f"security material is for {security.address}, not the download "
-            f"target {address}"
-        )
-    return SecureConnectionManager(xknx, address, security, transport=transport)
+        if security.address != address:
+            raise SecureProgrammingError(
+                f"security material is for {security.address}, not the download "
+                f"target {address}"
+            )
+        manager = SecureConnectionManager(xknx, address, security, transport=transport)
+    return routed_manager(xknx, address, manager) if routed else manager
 
 
 def apdu_overhead(security: DeviceSecurity | None) -> int:

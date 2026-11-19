@@ -43,14 +43,22 @@ def route_couplers(
 
     A coupler at either end is reached on its own side and is not part of the route.
     """
+    return [coupler for coupler, _downwards in route_steps(interface, device)]
+
+
+def route_steps(
+    interface: IndividualAddress, device: IndividualAddress
+) -> list[tuple[IndividualAddress, bool]]:
+    """The couplers of :func:`route_couplers`, each with whether the frame passes it
+    downwards, from its primary side (the backbone's) to its secondary one."""
     if (interface.area, interface.main) == (device.area, device.main):
         return []
     shared_area = interface.area == device.area
     route = [
-        *_couplers_up(interface, shared_area),
-        *reversed(_couplers_up(device, shared_area)),
+        *((coupler, False) for coupler in _couplers_up(interface, shared_area)),
+        *((coupler, True) for coupler in reversed(_couplers_up(device, shared_area))),
     ]
-    return [coupler for coupler in route if coupler not in (interface, device)]
+    return [step for step in route if step[0] not in (interface, device)]
 
 
 async def route_max_apdu_length(

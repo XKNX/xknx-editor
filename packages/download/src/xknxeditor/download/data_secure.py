@@ -122,6 +122,24 @@ class CemiSecurer(Protocol):
         ...
 
 
+def remove_securer(handler: object, securer: object) -> None:
+    """Take ``securer`` out of the chain of securers on ``handler.data_secure`` (each holds
+    the one installed before it as ``_previous``), wherever it is in it: sessions to two
+    devices that overlap end in any order, and the one ending last must not put back a
+    securer of the other."""
+    current = getattr(handler, "data_secure", None)
+    previous = getattr(securer, "_previous", None)
+    if current is securer:
+        handler.data_secure = previous  # type: ignore[attr-defined]
+        return
+    while current is not None:
+        before = getattr(current, "_previous", None)
+        if before is securer:
+            current._previous = previous  # type: ignore[attr-defined]
+            return
+        current = before
+
+
 class DeviceSecurity:
     """Tool Key security material for programming one device.
 

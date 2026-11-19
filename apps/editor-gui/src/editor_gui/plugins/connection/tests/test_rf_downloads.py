@@ -153,69 +153,110 @@ async def test_download_device_sets_the_domain_address_first(
     ]
 
 
+class _Coupler:
+    """A coupler device of the project."""
+
+    individual_address = "1.6.0"
+
+
 @pytest.mark.parametrize("rf_connection", [False, True])
-def test_the_media_couplers_reach_the_downloads(
+def test_the_projects_couplers_reach_the_connection(
     monkeypatch: pytest.MonkeyPatch, rf_connection: bool
 ) -> None:
-    from xknxeditor.download.rf_couplers import RFCouplers
-
-    service, calls, _ = _service(monkeypatch, DOMAIN_ADDRESS)
-    monkeypatch.setattr(usb, "is_rf_usb_connection", lambda xknx: rf_connection)
-    service.project_rf_couplers = lambda device, interface: ("1.2.0", ["1.3.0"], None)
-    service.program_device(cast(Any, _DEVICE), DownloadScope.FULL)
-    service.program_device(cast(Any, _DEVICE), DownloadScope.INDIVIDUAL_ADDRESS)
-    # through an RF interface on the device's domain no coupler is needed
-    expected = (
-        None
-        if rf_connection
-        else RFCouplers(IndividualAddress("1.2.0"), (IndividualAddress("1.3.0"),))
+    from editor_gui import device as device_module
+    from xknxeditor.download.communication_path import (
+        KnxMedium,
+        communication_paths,
     )
-    assert calls[0]["rf_couplers"] == expected
-    assert calls[1]["rf_couplers"] == expected
+
+    service, _calls, _ = _service(monkeypatch, DOMAIN_ADDRESS)
+    monkeypatch.setattr(usb, "is_rf_usb_connection", lambda xknx: rf_connection)
+    monkeypatch.setattr(device_module, "Device", _Coupler)
+    service.project_route_couplers = lambda: [
+        ("1.2.0", "MT-0", "MT-2", False),
+        ("1.6.0", "MT-5", "MT-0", True),
+    ]
+    coupler = _Coupler()
+    service.project_device = lambda address: coupler if address == "1.6.0" else None
+    monkeypatch.setattr(service, "_security_for", lambda device: f"keys of {device}")
+    installation = service._installation()  # pyright: ignore[reportPrivateUsage]
+    media = installation.couplers[IndividualAddress("1.2.0")]
+    assert (media.primary, media.secondary) == (KnxMedium.TP, KnxMedium.RF)
+    assert media.security is None
+    assert not media.block_unicast
+    secure = installation.couplers[IndividualAddress("1.6.0")]
+    assert secure.primary is KnxMedium.IP
+    assert secure.block_unicast and secure.block_broadcast
+    # reached with the coupler's own keys
+    assert secure.security == f"keys of {coupler}"
+    assert installation.rf_connection is rf_connection
+    # given to the connection before an operation
+    service._update_installation()  # pyright: ignore[reportPrivateUsage]
+    paths = communication_paths(cast(Any, service._xknx))  # pyright: ignore[reportPrivateUsage]
+    assert paths is not None
+    assert paths.installation == installation
 
 
-def test_no_media_coupler_towards_the_device(monkeypatch: pytest.MonkeyPatch) -> None:
-    service, calls, _ = _service(monkeypatch, DOMAIN_ADDRESS)
-    monkeypatch.setattr(usb, "is_rf_usb_connection", lambda xknx: False)
-    service.project_rf_couplers = lambda device, interface: (None, ["1.3.0"], None)
-    service.program_device(cast(Any, _DEVICE), DownloadScope.FULL)
-    assert calls[0]["rf_couplers"] is None
-    # not an RF device: no couplers for its address download
-    service, calls, _ = _service(monkeypatch, None)
-    service.project_rf_couplers = lambda device, interface: ("1.2.0", [], None)
-    service.program_device(cast(Any, _DEVICE), DownloadScope.INDIVIDUAL_ADDRESS)
-    assert calls[0]["rf_couplers"] is None
+async def test_the_couplers_are_not_read_on_the_bus_thread(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from xknxeditor.download.communication_path import communication_paths
+
+    service, _calls, _ = _service(monkeypatch, DOMAIN_ADDRESS)
+    service._xknx = MagicMock(current_address=IndividualAddress("1.2.250"))  # pyright: ignore[reportPrivateUsage]
+    read: list[bool] = []
+
+    def couplers() -> list[tuple[str, str, str, bool]]:
+        read.append(True)
+        return []
+
+    service.project_route_couplers = couplers
+    service._loop = asyncio.get_running_loop()  # pyright: ignore[reportPrivateUsage]
+    service._update_installation()  # pyright: ignore[reportPrivateUsage]
+    assert read == []
+    assert communication_paths(cast(Any, service._xknx)) is None  # pyright: ignore[reportPrivateUsage]
+    # without a connection or a project nothing is read
+    service._loop = None  # pyright: ignore[reportPrivateUsage]
+    service._xknx = None  # pyright: ignore[reportPrivateUsage]
+    service._update_installation()  # pyright: ignore[reportPrivateUsage]
+    assert read == []
 
 
 def test_an_rf_interface_on_a_domain_of_its_own(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    from xknxeditor.download.rf_couplers import RFCouplers
-
     service, calls, ensured = _service(monkeypatch, DOMAIN_ADDRESS)
     monkeypatch.setattr(usb, "is_rf_usb_connection", lambda xknx: True)
-    asked: list[str | None] = []
-
-    def couplers(device: object, interface: str | None) -> tuple[str, list[str], str]:
-        asked.append(interface)
-        return "1.2.0", [], "1.6.0"
-
-    service.project_rf_couplers = couplers
+    service._xknx = MagicMock(current_address=IndividualAddress("1.6.250"))  # pyright: ignore[reportPrivateUsage]
+    service.project_device = lambda address: None
+    service.project_route_couplers = lambda: [
+        ("1.2.0", "MT-0", "MT-2", False),
+        ("1.6.0", "MT-0", "MT-2", False),
+    ]
     service.program_device(cast(Any, _DEVICE), DownloadScope.FULL)
     service.program_device(cast(Any, _DEVICE), DownloadScope.INDIVIDUAL_ADDRESS)
-    expected = RFCouplers(IndividualAddress("1.2.0"), (), IndividualAddress("1.6.0"))
-    assert calls[0]["rf_couplers"] == expected
-    assert calls[1]["rf_couplers"] == expected
-    # asked with the interface's own address; it keeps its own domain address
-    assert set(asked) == {"1.2.250"}
+    # it keeps its own domain address: its coupler routes to the device
+    assert calls[0]["rf_interface_domain"] is False
     assert ensured == []
+    # on the device's own line it takes the device's
+    service._xknx = MagicMock(current_address=IndividualAddress("1.2.250"))  # pyright: ignore[reportPrivateUsage]
+    service.program_device(cast(Any, _DEVICE), DownloadScope.FULL)
+    assert calls[2]["rf_interface_domain"] is True
+    # not an RF device: nothing to take
+    service.project_rf_domain_address = lambda device: None
+    service.program_device(cast(Any, _DEVICE), DownloadScope.FULL)
+    assert calls[3]["rf_interface_domain"] is False
+    device = SimpleNamespace(**{**vars(_DEVICE), "individual_address": ""})
+    service.project_rf_domain_address = lambda device: DOMAIN_ADDRESS
+    assert (
+        service._interface_domain_address(cast(Any, device))  # pyright: ignore[reportPrivateUsage]
+        is None
+    )
 
 
 async def test_download_device_keeps_a_local_interfaces_domain(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    from xknxeditor.download.rf_couplers import RFCouplers
-
     ensured: list[bytes] = []
 
     async def ensure(xknx: object, domain_address: bytes) -> bool:
@@ -242,8 +283,6 @@ async def test_download_device_keeps_a_local_interfaces_domain(
         cast(Any, None),
         cast(Any, _DEVICE),
         rf_domain_address=DOMAIN_ADDRESS,
-        rf_couplers=RFCouplers(
-            IndividualAddress("1.2.0"), (), IndividualAddress("1.6.0")
-        ),
+        rf_interface_domain=False,
     )
     assert ensured == []

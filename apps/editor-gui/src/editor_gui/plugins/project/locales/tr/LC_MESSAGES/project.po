@@ -3653,5 +3653,5 @@ msgstr "Arabirim gönderimi zamanında onaylamadı ({detail})."
 msgid "A slow connection, such as a remote tunnel or a VPN, needs longer waits: raise the Confirmation Timeout in Settings > Connection."
 msgstr "Uzak bir tünel veya VPN gibi yavaş bir bağlantı daha uzun bekleme gerektirir: Ayarlar > Bağlantı altında Onay Zaman Aşımı'nı artırın."
 
-msgid "The media coupler {coupler} could not be set to pass the commissioning on to the RF device ({detail}). Check the coupler, or connect through a KNX RF USB interface near the device."
-msgstr "Ortam kuplörü {coupler}, devreye almayı RF cihazına iletecek şekilde ayarlanamadı ({detail}). Kuplörü kontrol edin veya cihazın yakınındaki bir KNX RF USB arayüzü üzerinden bağlanın."
+msgid "The communication path through the coupler {coupler} could not be opened ({detail}). Check the coupler and its security settings."
+msgstr "{coupler} kuplörü üzerinden iletişim yolu açılamadı ({detail}). Kuplörü ve güvenlik ayarlarını kontrol edin."

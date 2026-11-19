@@ -471,3 +471,32 @@ def test_device_security_alternative_keys() -> None:
     other = bytes(range(16, 32))
     security = DeviceSecurity(DEVICE, TOOL_KEY, [other, TOOL_KEY, other.hex()])
     assert security.keys == (TOOL_KEY, other)
+
+
+class _Securer:
+    def __init__(self, previous: object | None) -> None:
+        self._previous = previous
+
+
+class _Handler:
+    def __init__(self) -> None:
+        self.data_secure: object | None = None
+
+
+def test_a_securer_is_taken_out_wherever_it_is() -> None:
+    from xknxeditor.download.data_secure import remove_securer
+
+    handler = _Handler()
+    group = _Securer(None)
+    first = _Securer(group)
+    second = _Securer(first)
+    handler.data_secure = second
+    # the first session ends before the second
+    remove_securer(handler, first)
+    assert handler.data_secure is second
+    assert second._previous is group
+    remove_securer(handler, second)
+    assert handler.data_secure is group
+    # one that is not installed (any more) changes nothing
+    remove_securer(handler, first)
+    assert handler.data_secure is group

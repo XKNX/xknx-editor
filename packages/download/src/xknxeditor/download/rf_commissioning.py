@@ -61,10 +61,15 @@ _SERIAL_NUMBER_ATTEMPTS = 2
 _PID_SERIAL_NUMBER = 11
 
 
-def _system_broadcast_frame(xknx: XKNX, payload: APCI) -> CEMILData:
-    """The L_Data of ``payload`` as system broadcast from this connection."""
+def _system_broadcast_frame(
+    xknx: XKNX, payload: APCI, system_broadcast: bool = True
+) -> CEMILData:
+    """The L_Data of ``payload`` as system broadcast from this connection (without
+    ``system_broadcast`` as broadcast, for a coupler that routes it on)."""
     return CEMILData(
-        flags=CEMIFlags(priority=CEMIPriority.SYSTEM, system_broadcast=True),
+        flags=CEMIFlags(
+            priority=CEMIPriority.SYSTEM, system_broadcast=system_broadcast
+        ),
         src_addr=xknx.current_address,
         dst_addr=GroupAddress(0),
         tpci=TDataBroadcast(),
@@ -297,6 +302,7 @@ async def secure_addresses_by_serial_number(
     *,
     domain_address: bytes | None = None,
     address_in_use: Callable[[], Awaitable[bool]] | None = None,
+    system_broadcast: bool = True,
 ) -> None:
     """Give the device with ``serial_number`` ``domain_address`` and ``individual_address``
     with KNX Data Secure (KNX v02.01.01 - Configuration Procedures 03.05.03 - §1.5.4.3): the
@@ -309,17 +315,18 @@ async def secure_addresses_by_serial_number(
     (``AddressInUseError``). Raises ``SecureProgrammingError`` when the device answers the
     synchronisation with none of the keys, ``SerialNumberNotFoundError`` when it is not found
     with its new domain address, ``ManagementConnectionError`` when it does not take the
-    individual address."""
-    from .data_secure import SecureManagement
+    individual address. Without ``system_broadcast`` the services go as broadcasts, for a
+    coupler that routes them on."""
+    from .data_secure import SecureManagement, remove_securer
 
     management = SecureManagement(
         device=security, tool_address=xknx.current_address, serial_number=serial_number
     )
     handler = xknx.cemi_handler
-    previous = handler.data_secure
-    handler.data_secure = _BroadcastSecurer(management, previous)  # type: ignore[assignment]
+    securer = _BroadcastSecurer(management, handler.data_secure)
+    handler.data_secure = securer  # type: ignore[assignment]
     try:
-        await _secure_sync(xknx, management, security, serial_number)
+        await _secure_sync(xknx, management, security, serial_number, system_broadcast)
         if domain_address is not None:
             await _send_frame(
                 xknx,
@@ -329,6 +336,7 @@ async def secure_addresses_by_serial_number(
                         apci.DomainAddressSerialNumberWrite(
                             serial=serial_number, domain_address=domain_address
                         ),
+                        system_broadcast,
                     )
                 ),
             )
@@ -354,6 +362,7 @@ async def secure_addresses_by_serial_number(
                     apci.IndividualAddressSerialWrite(
                         address=individual_address, serial=serial_number
                     ),
+                    system_broadcast,
                 )
             ),
         )
@@ -365,7 +374,7 @@ async def secure_addresses_by_serial_number(
                 f"at {found} instead of {individual_address}."
             )
     finally:
-        handler.data_secure = previous  # type: ignore[assignment]
+        remove_securer(handler, securer)
 
 
 async def _secure_sync(
@@ -373,9 +382,10 @@ async def _secure_sync(
     management: SecureManagement,
     security: DeviceSecurity,
     serial_number: bytes,
+    system_broadcast: bool = True,
 ) -> None:
-    """Synchronise the Sequence Numbers by system broadcast with the first key the device
-    answers to."""
+    """Synchronise the Sequence Numbers by system broadcast (or broadcast) with the first key
+    the device answers to."""
     from .data_secure import SecureProgrammingError
 
     loop = asyncio.get_running_loop()
@@ -385,7 +395,9 @@ async def _secure_sync(
         await _send_frame(
             xknx,
             management.build_sync_request_cemi(
-                _system_broadcast_frame(xknx, apci.IndividualAddressRead())
+                _system_broadcast_frame(
+                    xknx, apci.IndividualAddressRead(), system_broadcast
+                )
             ),
         )
         deadline = loop.time() + _SYNC_TIMEOUT_S

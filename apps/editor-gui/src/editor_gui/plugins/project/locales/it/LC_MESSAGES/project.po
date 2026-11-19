@@ -3709,5 +3709,5 @@ msgstr "L'interfaccia non ha confermato l'invio in tempo ({detail})."
 msgid "A slow connection, such as a remote tunnel or a VPN, needs longer waits: raise the Confirmation Timeout in Settings > Connection."
 msgstr "Una connessione lenta, come un tunnel remoto o una VPN, richiede attese più lunghe: aumentare il Timeout di conferma in Impostazioni > Connessione."
 
-msgid "The media coupler {coupler} could not be set to pass the commissioning on to the RF device ({detail}). Check the coupler, or connect through a KNX RF USB interface near the device."
-msgstr "Non è stato possibile impostare l'accoppiatore di mezzo {coupler} per inoltrare la messa in servizio al dispositivo RF ({detail}). Controllare l'accoppiatore o connettersi tramite un'interfaccia KNX RF USB vicina al dispositivo."
+msgid "The communication path through the coupler {coupler} could not be opened ({detail}). Check the coupler and its security settings."
+msgstr "Non è stato possibile aprire il percorso di comunicazione attraverso l'accoppiatore {coupler} ({detail}). Controllare l'accoppiatore e le sue impostazioni di sicurezza."

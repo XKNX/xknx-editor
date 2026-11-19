@@ -4469,12 +4469,11 @@ class ProjectStrings:
         return _("The interface did not confirm sending in time ({detail}).")
 
     @property
-    def MEDIA_COUPLER_NOT_PREPARED(self) -> str:
-        # {coupler}: the individual address of a TP/RF media coupler; {detail}: why
+    def COMMUNICATION_PATH_NOT_OPENED(self) -> str:
+        # {coupler}: the individual address of a coupler on the way to the device; {detail}: why
         return _(
-            "The media coupler {coupler} could not be set to pass the commissioning on to "
-            "the RF device ({detail}). Check the coupler, or connect through a KNX RF USB "
-            "interface near the device."
+            "The communication path through the coupler {coupler} could not be opened "
+            "({detail}). Check the coupler and its security settings."
         )
 
     @property

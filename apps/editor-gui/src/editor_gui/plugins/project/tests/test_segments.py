@@ -42,7 +42,13 @@ from editor_gui.plugins.project.ui.topology import (
 from editor_gui.plugins.project.ui.tree_drag import Dragged
 from editor_gui.strings import get_locale, set_locale
 from xknxeditor.catalog import ProductSummary
-from xknxeditor.proj.core.medium import MEDIUM_IOT, MEDIUM_RF, MEDIUM_TP, MediumError
+from xknxeditor.proj.core.medium import (
+    MEDIUM_IOT,
+    MEDIUM_IP,
+    MEDIUM_RF,
+    MEDIUM_TP,
+    MediumError,
+)
 
 from ._drops import drop_on
 
@@ -736,7 +742,7 @@ def test_the_domain_address_of_a_device_on_an_rf_line(project: ProjectService) -
     assert domain(999) is None
 
 
-def test_the_media_couplers_towards_an_rf_device(
+def test_the_couplers_on_the_routes(
     project: ProjectService, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     from types import SimpleNamespace
@@ -750,37 +756,34 @@ def test_the_media_couplers_towards_an_rf_device(
     garden_line, pond_line = project.find_line(garden), project.find_line(pond)
     assert garden_line is not None and garden_line.main_segment_id is not None
     assert pond_line is not None and pond_line.main_segment_id is not None
-    project._svc.add_device(
-        pid, garden_line.main_segment_id, "P-C", address=0, hardware2program_ref_id="C"
+    project._svc.add_device(pid, garden_line.main_segment_id, "P-C", address=0)
+    project._svc.add_device(pid, garden_line.main_segment_id, "P-S", address=3)
+    pond_coupler = project._svc.add_device(
+        pid, pond_line.main_segment_id, "P-C", address=0
     )
-    sensor = project._svc.add_device(
-        pid, garden_line.main_segment_id, "P-S", address=3, hardware2program_ref_id="S"
+    # the area coupler, on the area's main line
+    project._ensure_topology_cache()
+    main = next(
+        line for line in (project._lines_cache or {})[area.id] if line.line_number == 0
     )
-    project._svc.add_device(
-        pid, pond_line.main_segment_id, "P-C", address=0, hardware2program_ref_id="C"
-    )
-    line = project.find_line(_line_1_1(project))
-    assert line is not None and line.main_segment_id is not None
-    tp_device = project._svc.add_device(
-        pid, line.main_segment_id, "P-S", address=1, hardware2program_ref_id="S"
-    )
+    assert main.main_segment_id is not None
+    project._svc.add_device(pid, main.main_segment_id, "P-A", address=0)
     project._bump()
-    roles = {"C": (True, "MV-2920"), "S": (False, "MV-2705")}
-    monkeypatch.setattr(project._catalog, "program_roles", lambda ids: roles)
-
-    def couplers(
-        node_id: int, interface: str | None = None
-    ) -> tuple[str | None, list[str], str | None]:
-        return project.device_rf_couplers(SimpleNamespace(node_id=node_id), interface)  # type: ignore[arg-type]
-
-    assert couplers(sensor) == ("1.5.0", ["1.6.0"], None)
-    # a device on a line without a media coupler: none towards it, the others all
-    assert couplers(tp_device) == (None, ["1.5.0", "1.6.0"], None)
-    assert couplers(999) == (None, ["1.5.0", "1.6.0"], None)
-    assert project.set_element_domain_address("line", garden, "00FA:00000001") is None
-    assert project.set_element_domain_address("line", pond, "00FA:00000002") is None
-    # an RF interface on the other RF line: its coupler routes the broadcasts to it
-    assert couplers(sensor, "1.6.250") == ("1.5.0", [], "1.6.0")
-    # on the device's own line, a TP line, or with no individual address to place it
-    for interface in ("1.5.250", "1.1.250", "1.9.250", "x"):
-        assert couplers(sensor, interface) == ("1.5.0", ["1.6.0"], None)
+    monkeypatch.setattr(
+        project,
+        "find_device_by_node_id",
+        lambda node_id: SimpleNamespace(node_id=node_id),
+    )
+    monkeypatch.setattr(
+        project,
+        "download_routing_blocking",
+        lambda device: True if device.node_id == pond_coupler else None,
+    )
+    couplers = project.route_couplers()
+    # the line 1.1 has no coupler in the project; the RF lines hang on the IP main line, the
+    # main line on the IP backbone
+    assert couplers == [
+        ("1.0.0", MEDIUM_IP, MEDIUM_IP, False),
+        ("1.5.0", MEDIUM_IP, MEDIUM_RF, False),
+        ("1.6.0", MEDIUM_IP, MEDIUM_RF, True),
+    ]

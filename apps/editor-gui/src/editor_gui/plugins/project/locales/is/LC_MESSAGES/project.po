@@ -3732,5 +3732,5 @@ msgstr "Viðmótið staðfesti ekki sendinguna í tæka tíð ({detail})."
 msgid "A slow connection, such as a remote tunnel or a VPN, needs longer waits: raise the Confirmation Timeout in Settings > Connection."
 msgstr "Hæg tenging, t.d. fjargöng eða VPN, þarf lengri bið: hækkaðu Tímamörk staðfestingar í Stillingar > Tenging."
 
-msgid "The media coupler {coupler} could not be set to pass the commissioning on to the RF device ({detail}). Check the coupler, or connect through a KNX RF USB interface near the device."
-msgstr "Ekki tókst að stilla miðlatengilinn {coupler} til að koma gangsetningunni áfram til RF-tækisins ({detail}). Athugaðu tengilinn eða tengstu í gegnum KNX RF USB-viðmót nálægt tækinu."
+msgid "The communication path through the coupler {coupler} could not be opened ({detail}). Check the coupler and its security settings."
+msgstr "Ekki tókst að opna samskiptaleiðina um tengilinn {coupler} ({detail}). Athugaðu tengilinn og öryggisstillingar hans."

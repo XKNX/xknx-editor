@@ -3680,5 +3680,5 @@ msgstr "Az interfész nem erősítette meg időben a küldést ({detail})."
 msgid "A slow connection, such as a remote tunnel or a VPN, needs longer waits: raise the Confirmation Timeout in Settings > Connection."
 msgstr "Egy lassú kapcsolatnak, például egy távoli alagútnak vagy VPN-nek hosszabb várakozás kell: növelje a Megerősítés időkorlátját a Beállítások > Kapcsolat alatt."
 
-msgid "The media coupler {coupler} could not be set to pass the commissioning on to the RF device ({detail}). Check the coupler, or connect through a KNX RF USB interface near the device."
-msgstr "A(z) {coupler} médiacsatolót nem sikerült úgy beállítani, hogy továbbítsa az üzembe helyezést az RF eszközhöz ({detail}). Ellenőrizze a csatolót, vagy csatlakozzon az eszköz közelében lévő KNX RF USB interfészen keresztül."
+msgid "The communication path through the coupler {coupler} could not be opened ({detail}). Check the coupler and its security settings."
+msgstr "A(z) {coupler} csatolón keresztüli kommunikációs útvonalat nem sikerült megnyitni ({detail}). Ellenőrizze a csatolót és annak biztonsági beállításait."

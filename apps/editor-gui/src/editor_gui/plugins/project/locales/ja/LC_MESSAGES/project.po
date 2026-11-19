@@ -3653,5 +3653,5 @@ msgstr "インターフェースが送信を時間内に確認しませんでし
 msgid "A slow connection, such as a remote tunnel or a VPN, needs longer waits: raise the Confirmation Timeout in Settings > Connection."
 msgstr "リモートトンネルや VPN などの低速な接続では、より長い待ち時間が必要です。設定 > 接続 で確認タイムアウトを長くしてください。"
 
-msgid "The media coupler {coupler} could not be set to pass the commissioning on to the RF device ({detail}). Check the coupler, or connect through a KNX RF USB interface near the device."
-msgstr "メディアカプラー {coupler} を、RF デバイスへのコミッショニングを中継するように設定できませんでした（{detail}）。カプラーを確認するか、デバイスの近くにある KNX RF USB インターフェース経由で接続してください。"
+msgid "The communication path through the coupler {coupler} could not be opened ({detail}). Check the coupler and its security settings."
+msgstr "カプラー {coupler} を経由する通信経路を開けませんでした（{detail}）。カプラーとそのセキュリティ設定を確認してください。"

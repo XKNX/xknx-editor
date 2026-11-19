@@ -6,7 +6,11 @@ import pytest
 from xknx.exceptions import ManagementConnectionTimeout
 from xknx.telegram import IndividualAddress
 
-from xknxeditor.download.route import route_couplers, route_max_apdu_length
+from xknxeditor.download.route import (
+    route_couplers,
+    route_max_apdu_length,
+    route_steps,
+)
 
 from .conftest import FakeDevice
 
@@ -100,3 +104,14 @@ async def test_a_coupler_without_an_answer_does_not_limit_the_route() -> None:
 
 async def test_no_coupler_no_limit() -> None:
     assert (await _route_limit({}))[0] is None
+
+
+def test_the_direction_on_the_route() -> None:
+    # up from the interface's line, down to the device's
+    assert route_steps(IndividualAddress("1.2.7"), IndividualAddress("2.4.1")) == [
+        (IndividualAddress("1.2.0"), False),
+        (IndividualAddress("1.0.0"), False),
+        (IndividualAddress("2.0.0"), True),
+        (IndividualAddress("2.4.0"), True),
+    ]
+    assert route_steps(IndividualAddress("1.3.5"), IndividualAddress("1.3.39")) == []

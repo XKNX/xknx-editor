@@ -34,6 +34,7 @@ from .data_secure import (
     SecureManagement,
     SecureProgrammingError,
     ToolKeyCemiSecure,
+    remove_securer,
 )
 from .errors import ManagementAckTimeout
 from .session import connect
@@ -112,7 +113,7 @@ class SecureConnectionManager:
         )
         self._connection: BusConnection | None = None
         self._previous_secure: CemiSecurer | None = None
-        self._installed = False
+        self._hook: ToolKeyCemiSecure | None = None
 
     async def open(self) -> BusConnection:
         """Install the securer, open the connection and run S-A_Sync."""
@@ -147,12 +148,12 @@ class SecureConnectionManager:
             self._management, self._address, previous=self._previous_secure
         )
         self._xknx.cemi_handler.data_secure = hook  # type: ignore[assignment]
-        self._installed = True
+        self._hook = hook
 
     def _restore(self) -> None:
-        if self._installed:
-            self._xknx.cemi_handler.data_secure = self._previous_secure  # type: ignore[assignment]
-            self._installed = False
+        if self._hook is not None:
+            remove_securer(self._xknx.cemi_handler, self._hook)
+            self._hook = None
 
     @property
     def active_key(self) -> bytes:

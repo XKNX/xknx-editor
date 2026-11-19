@@ -3836,5 +3836,5 @@ msgstr "Vmesnik pošiljanja ni pravočasno potrdil ({detail})."
 msgid "A slow connection, such as a remote tunnel or a VPN, needs longer waits: raise the Confirmation Timeout in Settings > Connection."
 msgstr "Počasna povezava, na primer oddaljeni tunel ali VPN, potrebuje daljše čakanje: povečajte Časovno omejitev potrditve v Nastavitve > Povezava."
 
-msgid "The media coupler {coupler} could not be set to pass the commissioning on to the RF device ({detail}). Check the coupler, or connect through a KNX RF USB interface near the device."
-msgstr "Medijskega spojnika {coupler} ni bilo mogoče nastaviti, da bi zagon posredoval napravi RF ({detail}). Preverite spojnik ali se povežite prek vmesnika KNX RF USB v bližini naprave."
+msgid "The communication path through the coupler {coupler} could not be opened ({detail}). Check the coupler and its security settings."
+msgstr "Komunikacijske poti prek spojnika {coupler} ni bilo mogoče odpreti ({detail}). Preverite spojnik in njegove varnostne nastavitve."
