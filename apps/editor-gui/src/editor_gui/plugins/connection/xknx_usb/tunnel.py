@@ -711,6 +711,31 @@ class USBTunnel(Interface):
             self._info = replace(self._info, rf_domain_address=rf_domain_address)
         self.rf_domain_address = rf_domain_address
 
+    async def set_rf_multi_type(self, rf_multi: bool) -> None:
+        """
+        Set whether the connected KNX RF interface operates as a KNX RF Multi device.
+
+        M_PropWrite of PID_RF_MULTI_TYPE in the RF Medium Object - KNX v01.10.01 -
+        Resources 03.05.01 - §4.15.3.2, on the open connection. Raise
+        CommunicationError when no KNX RF interface is connected or it refuses it.
+        """
+        if not self._established or self._info is None:
+            raise CommunicationError("KNX USB interface not connected")
+        if self._medium is not KNXMedium.RF:
+            raise CommunicationError("KNX USB interface is no KNX RF interface")
+        try:
+            await self._property_write(
+                ResourceObjectType.OBJECT_RF_MEDIUM_OBJECT,
+                RFMediumPropertyId.PID_RF_MULTI_TYPE,
+                bytes((int(rf_multi),)),
+            )
+        except CommunicationError as ex:
+            raise CommunicationError(
+                f"Could not set the RF Multi type of KNX USB interface "
+                f"{self.device_info}: {ex}"
+            ) from ex
+        self._info = replace(self._info, rf_multi=rf_multi)
+
     async def _write_rf_domain_address(self, new: bytes, current: bytes | None) -> None:
         """
         Set the Domain Address of an RF interface to `new`. Raise CommunicationError when that fails.

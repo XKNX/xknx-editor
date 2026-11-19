@@ -375,3 +375,26 @@ def test_an_rf_multi_usb_connection(monkeypatch: pytest.MonkeyPatch) -> None:
     assert not usb_module.is_rf_multi_usb_connection(xknx)
     xknx.knxip_interface = object()
     assert not usb_module.is_rf_multi_usb_connection(xknx)
+
+
+async def test_an_rf_multi_interface_is_switched(fake_hid: FakeHIDModule) -> None:
+    from xknx import XKNX
+
+    _rf(fake_hid)
+    fake_hid.interface.properties[(19, 51)] = bytes((1,))
+    plugin = await _connected(fake_hid)
+    try:
+        switch = usb.rf_multi_switch(plugin._xknx)
+        assert switch is not None
+        fake_hid.interface.written.clear()
+        await switch(False)
+        # PID_RF_MULTI_TYPE of the RF Medium Object, on the open connection
+        assert _property_writes(fake_hid) == ["f6001301331001" + "00"]
+        assert not plugin.usb_info.rf_multi
+        # a KNX RF Ready interface now: nothing to switch
+        assert usb.rf_multi_switch(plugin._xknx) is None
+    finally:
+        await plugin._disconnect_async()
+    interface = usb.ObservableUSBInterfaceThreaded(XKNX(), usb.UsbTarget(1, 2, "", "x"))
+    with pytest.raises(CommunicationError, match="not connected"):
+        await interface.set_rf_multi_type(True)

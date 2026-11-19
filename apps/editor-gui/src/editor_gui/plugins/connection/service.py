@@ -1364,7 +1364,10 @@ class ConnectionService:
         from xknx.telegram import IndividualAddress
 
         from editor_gui.device import Device as ProjectDevice
-        from editor_gui.plugins.connection.usb import is_rf_multi_usb_connection
+        from editor_gui.plugins.connection.usb import (
+            is_rf_multi_usb_connection,
+            rf_multi_switch,
+        )
         from xknxeditor.download.communication_path import (
             Coupler,
             Installation,
@@ -1406,6 +1409,7 @@ class ConnectionService:
             couplers,
             connection_medium=_connection_medium(xknx),
             rf_multi_connection=xknx is not None and is_rf_multi_usb_connection(xknx),
+            rf_multi_switch=rf_multi_switch(xknx) if xknx is not None else None,
             rf_modes={
                 IndividualAddress(address): RFMode.MULTI_FAST
                 if mode == "MultiFast"

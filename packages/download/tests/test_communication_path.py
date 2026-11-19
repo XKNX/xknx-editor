@@ -868,3 +868,22 @@ def test_the_error_of_a_coupler_without_secured_system_broadcasts() -> None:
     error = SecureSystemBroadcastBlocked(_DOWN)
     assert error.coupler == _DOWN
     assert "coupler 1.2.0 does not pass secured system broadcasts" in str(error)
+
+
+async def test_an_rf_multi_interface_on_the_devices_domain_switches_itself() -> None:
+    switched: list[bool] = []
+
+    async def switch(multi: bool) -> None:
+        switched.append(multi)
+
+    xknx = cast("XKNX", _RFXknx())
+    set_installation(xknx, _installation(rf_connection=True, rf_multi_switch=switch))
+    device = IndividualAddress("1.6.7")
+    async with broadcast_path(xknx, device, system_broadcast=True) as path:
+        assert path.system_broadcast
+        assert path.switch_rf_mode is switch
+    # not for a device of another medium
+    async with broadcast_path(
+        xknx, device, system_broadcast=False, medium=KnxMedium.TP
+    ) as path:
+        assert path.switch_rf_mode is None

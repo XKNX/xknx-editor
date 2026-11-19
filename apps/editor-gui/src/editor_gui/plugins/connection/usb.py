@@ -5,7 +5,7 @@ from __future__ import annotations
 import asyncio
 import sys
 import weakref
-from collections.abc import Callable
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 from typing import Any, cast
 
@@ -304,6 +304,16 @@ class ObservableUSBInterfaceThreaded(ObservableKNXIPInterfaceThreaded):
         )
         self._rf_domain_address = rf_domain_address
 
+    async def set_rf_multi_type(self, rf_multi: bool) -> None:
+        """Set whether the connected KNX RF interface operates as a KNX RF Multi device, on
+        the open connection. Raises ``CommunicationError`` when no KNX RF interface is connected
+        or it refuses it."""
+        if not isinstance(self._interface, USBTunnel) or self._thread_loop is None:
+            raise CommunicationError("KNX USB interface not connected")
+        await self._await_from_connection_thread(
+            self._interface.set_rf_multi_type(rf_multi)
+        )
+
     async def read_max_apdu_length(self) -> int | None:
         """The maximum APDU length the interface reported."""
         info = self.usb_info()
@@ -327,6 +337,16 @@ def is_rf_multi_usb_connection(xknx: XKNX) -> bool:
         return False
     info = interface.usb_info()
     return info is not None and info.medium is KNXMedium.RF and info.rf_multi
+
+
+def rf_multi_switch(xknx: XKNX) -> Callable[[bool], Awaitable[None]] | None:
+    """For a connection through a KNX RF USB interface that operates as a KNX RF Multi
+    device: a function that switches it to KNX RF Multi (True) or Ready, so it reaches the
+    devices of its own domain of either kind; None for any other connection."""
+    if not is_rf_multi_usb_connection(xknx):
+        return None
+    interface = cast("ObservableUSBInterfaceThreaded", xknx.knxip_interface)
+    return interface.set_rf_multi_type
 
 
 async def ensure_rf_domain_address(xknx: XKNX, rf_domain_address: bytes) -> bool:

@@ -170,6 +170,8 @@ class Installation:
     rf_modes: Mapping[IndividualAddress, RFMode] = field(
         default_factory=dict[IndividualAddress, RFMode]
     )
+    # Switches a KNX RF Multi interface between KNX RF Multi (True) and Ready.
+    rf_multi_switch: Callable[[bool], Awaitable[None]] | None = None
 
     @property
     def rf_connection(self) -> bool:
@@ -882,9 +884,11 @@ async def broadcast_path(
         request, system_broadcast=system_broadcast, medium=medium
     )
     if request is None:
-        yield BroadcastPath(
-            local, switch_rf_mode=paths.rf_mode_switch(paths.path_to(target))
-        )
+        switch = paths.rf_mode_switch(paths.path_to(target))
+        if switch is None and local and medium is KnxMedium.RF:
+            # a KNX RF Multi interface on the device's own domain switches itself
+            switch = paths.installation.rf_multi_switch
+        yield BroadcastPath(local, switch_rf_mode=switch)
         return
     await paths.add(request)
     try:
