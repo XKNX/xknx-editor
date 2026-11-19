@@ -785,9 +785,12 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         device that does not answer at its address yet. A device on a KNX RF line gets the line's
         domain address with its individual address (also when its own is unknown; by serial number
         and with Data Secure keys secured), and a KNX RF USB interface gets that domain address
-        before the download. The project's couplers on the way are opened for that time: a TP/RF
-        media coupler passes the commissioning on, and a coupler that blocks traffic as Security
-        Proxy lets it through (a coupler that can't be reached fails it). A device whose hardware is
+        before the download; a new KNX IP device addressed by serial number gets the routing
+        multicast address (with the backbone key when it is secured). The project's couplers on
+        the way are opened for that time: a TP/RF media coupler passes the commissioning on (in
+        KNX RF Multi towards RF Multi devices), a KNXnet/IP router routes its system broadcasts,
+        and a coupler that blocks traffic as Security Proxy lets it through (a coupler that can't
+        be reached fails it). A device whose hardware is
         NoDownloadWithoutPlugin is refused unless ``without_plugin=true``, set only after the user
         explicitly confirmed programming it without the manufacturer's plugin.
 

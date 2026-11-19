@@ -3707,3 +3707,6 @@ msgstr "En treg tilkobling, f.eks. en fjerntunnel eller et VPN, trenger lengre v
 
 msgid "The communication path through the coupler {coupler} could not be opened ({detail}). Check the coupler and its security settings."
 msgstr "Kommunikasjonsveien gjennom kobleren {coupler} kunne ikke åpnes ({detail}). Kontroller kobleren og sikkerhetsinnstillingene for den."
+
+msgid "The domain address of this secure device could not be loaded because the coupler {coupler} does not support security."
+msgstr "Domeneadressen til denne sikre enheten kunne ikke lastes inn fordi kobleren {coupler} ikke støtter sikkerhet."

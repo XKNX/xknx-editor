@@ -3759,3 +3759,6 @@ msgstr "Медленному подключению, например удалё
 
 msgid "The communication path through the coupler {coupler} could not be opened ({detail}). Check the coupler and its security settings."
 msgstr "Не удалось открыть путь связи через соединяющее устройство {coupler} ({detail}). Проверьте соединяющее устройство и его настройки безопасности."
+
+msgid "The domain address of this secure device could not be loaded because the coupler {coupler} does not support security."
+msgstr "Не удалось загрузить адрес домена этого защищённого устройства, поскольку соединяющее устройство {coupler} не поддерживает защиту."

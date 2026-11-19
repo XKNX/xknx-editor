@@ -3734,3 +3734,6 @@ msgstr "Hæg tenging, t.d. fjargöng eða VPN, þarf lengri bið: hækkaðu Tím
 
 msgid "The communication path through the coupler {coupler} could not be opened ({detail}). Check the coupler and its security settings."
 msgstr "Ekki tókst að opna samskiptaleiðina um tengilinn {coupler} ({detail}). Athugaðu tengilinn og öryggisstillingar hans."
+
+msgid "The domain address of this secure device could not be loaded because the coupler {coupler} does not support security."
+msgstr "Ekki tókst að hlaða lénsvistfangi þessa örugga tækis vegna þess að tengillinn {coupler} styður ekki öryggi."

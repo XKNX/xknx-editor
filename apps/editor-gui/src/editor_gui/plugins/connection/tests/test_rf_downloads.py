@@ -19,6 +19,7 @@ import xknxeditor.download.commissioning as commissioning
 from editor_gui.plugins.connection import service as service_module
 from editor_gui.plugins.connection import usb
 from editor_gui.plugins.connection.service import ConnectionService
+from editor_gui.plugins.project.service import RouteCoupler
 from xknxeditor.download.scope import DownloadScope
 
 DOMAIN_ADDRESS = bytes.fromhex("00fa12345678")
@@ -173,8 +174,15 @@ def test_the_projects_couplers_reach_the_connection(
     monkeypatch.setattr(usb, "is_rf_usb_connection", lambda xknx: rf_connection)
     monkeypatch.setattr(device_module, "Device", _Coupler)
     service.project_route_couplers = lambda: [
-        ("1.2.0", "MT-0", "MT-2", False),
-        ("1.6.0", "MT-5", "MT-0", True),
+        RouteCoupler("1.2.0", "MT-0", "MT-2", False, rf_multi=True),
+        RouteCoupler(
+            "1.6.0",
+            "MT-5",
+            "MT-0",
+            True,
+            ip_system_broadcast=True,
+            secure_system_broadcast=True,
+        ),
     ]
     coupler = _Coupler()
     service.project_device = lambda address: coupler if address == "1.6.0" else None
@@ -208,7 +216,7 @@ async def test_the_couplers_are_not_read_on_the_bus_thread(
     service._xknx = MagicMock(current_address=IndividualAddress("1.2.250"))  # pyright: ignore[reportPrivateUsage]
     read: list[bool] = []
 
-    def couplers() -> list[tuple[str, str, str, bool]]:
+    def couplers() -> list[RouteCoupler]:
         read.append(True)
         return []
 
@@ -232,8 +240,8 @@ def test_an_rf_interface_on_a_domain_of_its_own(
     service._xknx = MagicMock(current_address=IndividualAddress("1.6.250"))  # pyright: ignore[reportPrivateUsage]
     service.project_device = lambda address: None
     service.project_route_couplers = lambda: [
-        ("1.2.0", "MT-0", "MT-2", False),
-        ("1.6.0", "MT-0", "MT-2", False),
+        RouteCoupler("1.2.0", "MT-0", "MT-2", False),
+        RouteCoupler("1.6.0", "MT-0", "MT-2", False),
     ]
     service.program_device(cast(Any, _DEVICE), DownloadScope.FULL)
     service.program_device(cast(Any, _DEVICE), DownloadScope.INDIVIDUAL_ADDRESS)
@@ -288,3 +296,98 @@ async def test_download_device_keeps_a_local_interfaces_domain(
         rf_interface_domain=False,
     )
     assert ensured == []
+
+
+def test_the_medium_of_the_connection(monkeypatch: pytest.MonkeyPatch) -> None:
+    from xknx.io import ConnectionConfig, ConnectionType
+
+    from xknxeditor.download.communication_path import KnxMedium
+
+    medium = service_module._connection_medium  # pyright: ignore[reportPrivateUsage]
+    assert medium(None) is KnxMedium.TP
+    monkeypatch.setattr(usb, "is_rf_usb_connection", lambda xknx: False)
+    routing = MagicMock()
+    routing.knxip_interface.connection_config = ConnectionConfig(
+        connection_type=ConnectionType.ROUTING
+    )
+    assert medium(routing) is KnxMedium.IP
+    tunnel = MagicMock()
+    tunnel.knxip_interface.connection_config = ConnectionConfig(
+        connection_type=ConnectionType.TUNNELING
+    )
+    assert medium(tunnel) is KnxMedium.TP
+    monkeypatch.setattr(usb, "is_rf_usb_connection", lambda xknx: True)
+    assert medium(tunnel) is KnxMedium.RF
+
+
+def test_the_rf_modes_and_the_rf_multi_interface(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from xknxeditor.download.communication_path import RFMode
+
+    service, _calls, _ = _service(monkeypatch, DOMAIN_ADDRESS)
+    monkeypatch.setattr(usb, "is_rf_usb_connection", lambda xknx: True)
+    monkeypatch.setattr(usb, "is_rf_multi_usb_connection", lambda xknx: True)
+    service.project_rf_device_modes = lambda: {"1.2.20": "MultiFast", "1.2.21": "Ready"}
+    installation = service._installation()  # pyright: ignore[reportPrivateUsage]
+    assert installation.rf_multi_connection
+    assert installation.rf_modes == {
+        IndividualAddress("1.2.20"): RFMode.MULTI_FAST,
+        IndividualAddress("1.2.21"): RFMode.READY,
+    }
+
+
+def test_the_domain_address_of_an_ip_device_reaches_the_downloads(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    service, calls, _ = _service(monkeypatch, None)
+    domain = bytes((224, 0, 23, 12))
+    service.project_ip_domain_address = lambda device: (domain, True)
+    service.program_device(cast(Any, _DEVICE), DownloadScope.FULL)
+    service.program_device(cast(Any, _DEVICE), DownloadScope.INDIVIDUAL_ADDRESS)
+    assert (calls[0]["ip_domain_address"], calls[0]["ip_system_broadcast"]) == (
+        domain,
+        True,
+    )
+    assert (calls[1]["domain_address"], calls[1]["ip_system_broadcast"]) == (
+        domain,
+        True,
+    )
+    # not for the interface the connection runs through
+    service._xknx = MagicMock(current_address=IndividualAddress("1.2.20"))  # pyright: ignore[reportPrivateUsage]
+    assert service._ip_domain_address(cast(Any, _DEVICE)) == (None, False)  # pyright: ignore[reportPrivateUsage]
+    service.project_ip_domain_address = None
+    service._xknx = None  # pyright: ignore[reportPrivateUsage]
+    assert service._ip_domain_address(cast(Any, _DEVICE)) == (None, False)  # pyright: ignore[reportPrivateUsage]
+
+
+async def test_download_device_commissions_an_ip_device(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    seen: list[Any] = []
+
+    async def download(*args: Any, **kwargs: Any) -> object:
+        seen.append(kwargs)
+        return SimpleNamespace()
+
+    async def no_route(xknx: object, couplers: object, limit: int | None) -> int | None:
+        return limit
+
+    monkeypatch.setattr(programming, "download", download)
+    monkeypatch.setattr(programming, "_route_limited", no_route)
+    monkeypatch.setattr(programming, "_image_for", lambda *args: None)
+    monkeypatch.setattr(programming, "_application", lambda device: None)
+    monkeypatch.setattr(programming, "_address", lambda device: "1.2.20")
+    from editor_gui import plugin_providers
+
+    monkeypatch.setattr(plugin_providers, "programming_error", lambda device: None)
+    monkeypatch.setattr(plugin_providers, "prepared_for", lambda *args: None)
+    domain = bytes((224, 0, 23, 12))
+    await programming.download_device(
+        cast(Any, None),
+        cast(Any, _DEVICE),
+        ip_domain_address=domain,
+        ip_system_broadcast=True,
+    )
+    assert seen[0]["commission_domain_address"] == domain
+    assert seen[0]["commission_ip_system_broadcast"] is True

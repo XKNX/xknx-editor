@@ -3655,3 +3655,6 @@ msgstr "较慢的连接（例如远程隧道或 VPN）需要更长的等待时�
 
 msgid "The communication path through the coupler {coupler} could not be opened ({detail}). Check the coupler and its security settings."
 msgstr "无法打开经过耦合器 {coupler} 的通信路径（{detail}）。请检查耦合器及其安全设置。"
+
+msgid "The domain address of this secure device could not be loaded because the coupler {coupler} does not support security."
+msgstr "无法加载此安全设备的域地址，因为耦合器 {coupler} 不支持安全功能。"

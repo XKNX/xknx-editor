@@ -19,6 +19,7 @@ from xknx.telegram.tpci import TDataBroadcast
 import xknxeditor.download.commissioning as commissioning
 import xknxeditor.download.rf_commissioning as rf
 import xknxeditor.download.session as session
+from xknxeditor.download.communication_path import BroadcastPath, KnxMedium
 from xknxeditor.download.errors import (
     AddressInUseError,
     ProgrammingModeError,
@@ -333,10 +334,14 @@ def _commissioning_bus(
 
     @contextlib.asynccontextmanager
     async def fake_routing(
-        xknx: XKNX, target: IndividualAddress, *, system_broadcast: bool
-    ) -> AsyncGenerator[bool]:
+        xknx: XKNX,
+        target: IndividualAddress,
+        *,
+        system_broadcast: bool,
+        medium: KnxMedium = KnxMedium.RF,
+    ) -> AsyncGenerator[BroadcastPath]:
         calls.append(("routing", (target, system_broadcast)))
-        yield system_broadcast and local_system_broadcast
+        yield BroadcastPath(system_broadcast and local_system_broadcast)
         calls.append(("routing end", target))
 
     monkeypatch.setattr(commissioning, "_write_by_serial_number", fake_serial_write)

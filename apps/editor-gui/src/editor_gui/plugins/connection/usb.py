@@ -319,6 +319,16 @@ def is_rf_usb_connection(xknx: XKNX) -> bool:
     return info is not None and info.medium is KNXMedium.RF
 
 
+def is_rf_multi_usb_connection(xknx: XKNX) -> bool:
+    """Whether ``xknx`` is connected through a KNX RF USB interface that operates as a KNX RF
+    Multi device."""
+    interface = xknx.knxip_interface
+    if not isinstance(interface, ObservableUSBInterfaceThreaded):
+        return False
+    info = interface.usb_info()
+    return info is not None and info.medium is KNXMedium.RF and info.rf_multi
+
+
 async def ensure_rf_domain_address(xknx: XKNX, rf_domain_address: bytes) -> bool:
     """Give the connected KNX RF USB interface ``rf_domain_address`` when it has another one, so
     it reaches and receives the devices of that domain; whether it had to be set. Nothing happens

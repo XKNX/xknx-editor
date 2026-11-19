@@ -3786,3 +3786,6 @@ msgstr "O conexiune lentă, cum ar fi un tunel la distanță sau un VPN, are nev
 
 msgid "The communication path through the coupler {coupler} could not be opened ({detail}). Check the coupler and its security settings."
 msgstr "Calea de comunicare prin cuplorul {coupler} nu a putut fi deschisă ({detail}). Verificați cuplorul și setările sale de securitate."
+
+msgid "The domain address of this secure device could not be loaded because the coupler {coupler} does not support security."
+msgstr "Adresa de domeniu a acestui dispozitiv securizat nu a putut fi încărcată, deoarece cuplorul {coupler} nu acceptă securitatea."

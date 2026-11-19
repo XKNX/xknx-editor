@@ -3711,3 +3711,6 @@ msgstr "Uma ligação lenta, como um túnel remoto ou uma VPN, precisa de espera
 
 msgid "The communication path through the coupler {coupler} could not be opened ({detail}). Check the coupler and its security settings."
 msgstr "Não foi possível abrir o caminho de comunicação através do acoplador {coupler} ({detail}). Verifique o acoplador e as respetivas definições de segurança."
+
+msgid "The domain address of this secure device could not be loaded because the coupler {coupler} does not support security."
+msgstr "Não foi possível carregar o endereço de domínio deste dispositivo seguro porque o acoplador {coupler} não suporta segurança."

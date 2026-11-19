@@ -3707,3 +3707,6 @@ msgstr "Një lidhje e ngadaltë, si një tunel në distancë ose një VPN, ka ne
 
 msgid "The communication path through the coupler {coupler} could not be opened ({detail}). Check the coupler and its security settings."
 msgstr "Rruga e komunikimit përmes bashkuesit {coupler} nuk mund të hapej ({detail}). Kontrolloni bashkuesin dhe cilësimet e tij të sigurisë."
+
+msgid "The domain address of this secure device could not be loaded because the coupler {coupler} does not support security."
+msgstr "Adresa e domenit e kësaj pajisjeje të sigurt nuk mund të ngarkohej, sepse bashkuesi {coupler} nuk mbështet sigurinë."

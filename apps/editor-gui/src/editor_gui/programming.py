@@ -581,6 +581,8 @@ async def download_device(
     memory_progress: Callable[[int, int], None] | None = None,
     rf_domain_address: bytes | None = None,
     rf_interface_domain: bool = True,
+    ip_domain_address: bytes | None = None,
+    ip_system_broadcast: bool = False,
 ) -> DownloadResult:
     """Program ``device``: build its image and run the load procedure on the bus.
 
@@ -614,7 +616,10 @@ async def download_device(
     has the line's ``rf_domain_address``: a KNX RF USB interface gets it first, so it reaches the
     device (not without ``rf_interface_domain``: an interface on an RF line of another domain
     reaches it through the couplers), and a new device gets it with its individual address. The
-    couplers on the way pass the frames (see :mod:`xknxeditor.download.communication_path`).
+    couplers on the way pass the frames (see :mod:`xknxeditor.download.communication_path`). A
+    new KNX IP device addressed by serial number gets ``ip_domain_address`` (its routing
+    multicast address, also with the backbone key), by system broadcast with
+    ``ip_system_broadcast``.
     """
     from editor_gui.plugin_providers import prepared_for, programming_error
     from editor_gui.plugins.connection.usb import ensure_rf_domain_address
@@ -642,7 +647,8 @@ async def download_device(
         scope=scope,
         commission=True,
         commission_serial_number=serial_number,
-        commission_domain_address=rf_domain_address,
+        commission_domain_address=rf_domain_address or ip_domain_address,
+        commission_ip_system_broadcast=ip_system_broadcast,
         progress=progress,
         security=security,
         tool_key=tool_key,

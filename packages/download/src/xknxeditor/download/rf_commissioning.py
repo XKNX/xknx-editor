@@ -127,12 +127,23 @@ async def _devices_in_programming_mode(
 
 
 async def wait_for_rf_programming_mode(
-    xknx: XKNX, waiting: Callable[[], None] | None, *, system_broadcast: bool = True
+    xknx: XKNX,
+    waiting: Callable[[], None] | None,
+    *,
+    system_broadcast: bool = True,
+    switch_rf_mode: Callable[[bool], Awaitable[None]] | None = None,
 ) -> IndividualAddress:
     """Poll until exactly one device is in programming mode, also one of another or no Domain
-    Address; without ``waiting``, poll once. ``waiting`` is called once while none is."""
+    Address; without ``waiting``, poll once. ``waiting`` is called once while none is. Behind
+    a media coupler that speaks KNX RF Multi, ``switch_rf_mode`` sets it to KNX RF Ready before
+    the first poll and to KNX RF Multi (True) and back for each next one, so a device of either
+    kind answers."""
     notified = False
+    multi = False
     while True:
+        if switch_rf_mode is not None:
+            await switch_rf_mode(multi)
+            multi = not multi
         devices = await _devices_in_programming_mode(xknx, system_broadcast)
         if len(devices) > 1:
             raise ProgrammingModeError("More than one device is in programming mode.")
@@ -155,6 +166,7 @@ async def domain_and_individual_address_write2(
     security: DeviceSecurity | None = None,
     restart: bool = True,
     system_broadcast: bool = True,
+    switch_rf_mode: Callable[[bool], Awaitable[None]] | None = None,
 ) -> tuple[IndividualAddress, bytes | None]:
     """Give the device in programming mode ``domain_address`` and ``individual_address``.
 
@@ -172,7 +184,10 @@ async def domain_and_individual_address_write2(
     from .session import apdu_overhead, management_session
 
     current = await wait_for_rf_programming_mode(
-        xknx, waiting, system_broadcast=system_broadcast
+        xknx,
+        waiting,
+        system_broadcast=system_broadcast,
+        switch_rf_mode=switch_rf_mode,
     )
     if check is not None:
         check(current)
@@ -226,11 +241,7 @@ async def domain_address_serial_number_write(
 
     for _ in range(_SERIAL_NUMBER_ATTEMPTS):
         await _send(
-            xknx,
-            apci.DomainAddressSerialNumberWrite(
-                serial=serial_number, domain_address=domain_address
-            ),
-            system_broadcast,
+            xknx, domain_address_apdu(serial_number, domain_address), system_broadcast
         )
         await asyncio.sleep(_SERIAL_NUMBER_VERIFY_DELAY_S)
         if (
@@ -246,6 +257,107 @@ async def domain_address_serial_number_write(
     raise SerialNumberNotFoundError(
         f"The device with the serial number {serial_number.hex().upper()} "
         "could not be found."
+    )
+
+
+# The domain address of a KNX IP device: its routing multicast address, also with the routing
+# security version and the backbone key (KNX v02.01.01 - Application Layer 03.03.07 - §3.3.7).
+_IP_DOMAIN_LENGTHS = (4, 21)
+_ROUTING_SECURITY_VERSION = 1
+# An IP device is waited for by serial number a second after its domain address, every half
+# second for up to a minute.
+_IP_DOMAIN_ADDRESS_DELAY_S = 1.0
+_SERIAL_NUMBER_POLL_S = 0.5
+_SERIAL_NUMBER_WAIT_S = 60.0
+
+
+def ip_domain_address(multicast_address: bytes, backbone_key: bytes | None) -> bytes:
+    """The domain address of a KNX IP device: its 4-octet routing multicast address, with the
+    backbone key of KNX IP Secure the 21 octets of the multicast address, the routing security
+    version 1 and the key."""
+    if len(multicast_address) != 4:
+        raise ValueError("A routing multicast address has 4 octets")
+    if backbone_key is None:
+        return multicast_address
+    if len(backbone_key) != 16:
+        raise ValueError("A backbone key has 16 octets")
+    return multicast_address + bytes((_ROUTING_SECURITY_VERSION,)) + backbone_key
+
+
+def domain_address_apdu(
+    serial_number: bytes, domain_address: bytes
+) -> apci.DomainAddressSerialNumberWrite:
+    """A_DomainAddressSerialNumber_Write of ``domain_address`` (2, 4, 6 or 21 octets)."""
+    if len(domain_address) == 21:
+        return apci.DomainAddressSerialNumberWrite(
+            serial=serial_number,
+            domain_address=domain_address[:4],
+            routing_security_version=domain_address[4],
+            backbone_key=domain_address[5:],
+        )
+    return apci.DomainAddressSerialNumberWrite(
+        serial=serial_number, domain_address=domain_address
+    )
+
+
+async def wait_by_serial_number(
+    xknx: XKNX, serial_number: bytes
+) -> IndividualAddress | None:
+    """The individual address the device with ``serial_number`` answers with, asked every half
+    second for up to a minute; None, with a warning, when it does not answer in that time."""
+    loop = asyncio.get_running_loop()
+    deadline = loop.time() + _SERIAL_NUMBER_WAIT_S
+    while True:
+        found: IndividualAddress | None = None
+        with contextlib.suppress(ManagementConnectionError, ConfirmationError):
+            found = await _serial_number_read(xknx, serial_number)
+        if found is not None:
+            return found
+        if loop.time() >= deadline:
+            logger.warning(
+                "The device with the serial number %s still does not answer after %d s",
+                serial_number.hex().upper(),
+                int(_SERIAL_NUMBER_WAIT_S),
+            )
+            return None
+        await asyncio.sleep(_SERIAL_NUMBER_POLL_S)
+
+
+async def ip_addresses_by_serial_number(
+    xknx: XKNX,
+    serial_number: bytes,
+    individual_address: IndividualAddress,
+    domain_address: bytes,
+    *,
+    system_broadcast: bool,
+    close_system_broadcast: Callable[[], Awaitable[None]] | None = None,
+) -> None:
+    """Give the KNX IP device with ``serial_number`` its 4-octet ``domain_address`` (its
+    routing multicast address) and ``individual_address``: A_DomainAddressSerialNumber_Write as
+    system broadcast (without ``system_broadcast`` as broadcast); a second later
+    ``close_system_broadcast`` ends the system broadcast routing on the way, the device is
+    waited for by serial number (:func:`wait_by_serial_number`), then it gets the individual
+    address by serial number unless it has it already. The secured form with the backbone key
+    goes through :func:`secure_addresses_by_serial_number`."""
+    await _send(
+        xknx, domain_address_apdu(serial_number, domain_address), system_broadcast
+    )
+    logger.debug(
+        "Wrote domain address %s to the device with serial number %s.",
+        domain_address.hex(),
+        serial_number.hex(),
+    )
+    await asyncio.sleep(_IP_DOMAIN_ADDRESS_DELAY_S)
+    if close_system_broadcast is not None:
+        await close_system_broadcast()
+    current = await wait_by_serial_number(xknx, serial_number)
+    if current == individual_address:
+        logger.debug("The device has the individual address %s already.", current)
+        return
+    await xknx.management.broadcast.send(
+        apci.IndividualAddressSerialWrite(
+            address=individual_address, serial=serial_number
+        )
     )
 
 
@@ -303,6 +415,7 @@ async def secure_addresses_by_serial_number(
     domain_address: bytes | None = None,
     address_in_use: Callable[[], Awaitable[bool]] | None = None,
     system_broadcast: bool = True,
+    close_system_broadcast: Callable[[], Awaitable[None]] | None = None,
 ) -> None:
     """Give the device with ``serial_number`` ``domain_address`` and ``individual_address``
     with KNX Data Secure (KNX v02.01.01 - Configuration Procedures 03.05.03 - §1.5.4.3): the
@@ -316,7 +429,12 @@ async def secure_addresses_by_serial_number(
     synchronisation with none of the keys, ``SerialNumberNotFoundError`` when it is not found
     with its new domain address, ``ManagementConnectionError`` when it does not take the
     individual address. Without ``system_broadcast`` the services go as broadcasts, for a
-    coupler that routes them on."""
+    coupler that routes them on.
+
+    The domain address of a KNX IP device (see :func:`ip_domain_address`, here the secured one
+    with the backbone key) is not read back: a second later ``close_system_broadcast`` ends
+    the system broadcast routing on the way, and the device is waited for by serial number
+    (:func:`wait_by_serial_number`); its individual address is not verified either."""
     from .data_secure import SecureManagement, remove_securer
 
     management = SecureManagement(
@@ -327,26 +445,32 @@ async def secure_addresses_by_serial_number(
     handler.data_secure = securer  # type: ignore[assignment]
     try:
         await _secure_sync(xknx, management, security, serial_number, system_broadcast)
+        ip = domain_address is not None and len(domain_address) in _IP_DOMAIN_LENGTHS
         if domain_address is not None:
             await _send_frame(
                 xknx,
                 management.wrap_cemi(
                     _system_broadcast_frame(
                         xknx,
-                        apci.DomainAddressSerialNumberWrite(
-                            serial=serial_number, domain_address=domain_address
-                        ),
+                        domain_address_apdu(serial_number, domain_address),
                         system_broadcast,
                     )
                 ),
             )
-            await asyncio.sleep(_SERIAL_NUMBER_VERIFY_DELAY_S)
-        current = await _serial_number_read(xknx, serial_number)
-        if current is None:
-            raise SerialNumberNotFoundError(
-                f"The device with the serial number {serial_number.hex().upper()} "
-                "could not be found."
-            )
+        if ip:
+            await asyncio.sleep(_IP_DOMAIN_ADDRESS_DELAY_S)
+            if close_system_broadcast is not None:
+                await close_system_broadcast()
+            current = await wait_by_serial_number(xknx, serial_number)
+        else:
+            if domain_address is not None:
+                await asyncio.sleep(_SERIAL_NUMBER_VERIFY_DELAY_S)
+            current = await _serial_number_read(xknx, serial_number)
+            if current is None:
+                raise SerialNumberNotFoundError(
+                    f"The device with the serial number {serial_number.hex().upper()} "
+                    "could not be found."
+                )
         if current == individual_address:
             return
         if address_in_use is not None and await address_in_use():
@@ -366,6 +490,8 @@ async def secure_addresses_by_serial_number(
                 )
             ),
         )
+        if ip:
+            return
         await asyncio.sleep(_ADDRESS_ADOPTION_DELAY_S)
         found = await _serial_number_read(xknx, serial_number)
         if found != individual_address:

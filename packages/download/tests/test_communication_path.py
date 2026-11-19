@@ -20,6 +20,8 @@ from xknxeditor.download.communication_path import (
     CouplerAction,
     Installation,
     KnxMedium,
+    RFMode,
+    SecureSystemBroadcastBlocked,
     broadcast_path,
     communication_paths,
     routed_manager,
@@ -86,9 +88,15 @@ def _couplers(
     return opened
 
 
-def _installation(*couplers: Coupler, rf_connection: bool = False) -> Installation:
+def _installation(
+    *couplers: Coupler, rf_connection: bool = False, **kwargs: Any
+) -> Installation:
     return Installation(
-        {coupler.address: coupler for coupler in couplers}, rf_connection=rf_connection
+        {coupler.address: coupler for coupler in couplers},
+        **{
+            "connection_medium": KnxMedium.RF if rf_connection else KnxMedium.TP,
+            **kwargs,
+        },
     )
 
 
@@ -170,7 +178,7 @@ async def test_a_media_coupler_routes_the_broadcasts(
     xknx = _xknx()
     set_installation(xknx, _installation(Coupler(_DOWN, secondary=KnxMedium.RF)))
     async with broadcast_path(xknx, _DEVICE, system_broadcast=True) as local:
-        assert not local
+        assert not local.system_broadcast
         # PID_RF_SBC_CONTROL of the second Router Object
         assert device.function_properties[(3, 112)] == b"\x02"
     assert device.function_properties[(3, 112)] == b"\x00"
@@ -423,10 +431,10 @@ async def test_the_installation_can_be_taken_away() -> None:
     assert paths.unicast(_DEVICE) is None
     # without couplers the services go as they were asked for
     async with broadcast_path(xknx, _DEVICE, system_broadcast=True) as local:
-        assert not local
+        assert not local.system_broadcast
     other = _xknx()
     async with broadcast_path(other, _DEVICE, system_broadcast=True) as local:
-        assert local
+        assert local.system_broadcast
     # a stand-in for a connection that has none
     assert communication_paths(cast("XKNX", None)) is None
 
@@ -529,3 +537,334 @@ async def test_a_coupler_with_access_protection_is_authorized(
     await paths.remove(request)
     # before enabling and before setting back
     assert device.authorize_keys == [0x11223344, 0x11223344]
+
+
+# ---- IP routers, closing, restriction, RF Multi --------------------------------------------
+
+_ROUTER = IndividualAddress("1.0.0")
+_IP_DEVICE = IndividualAddress("0.0.5")
+
+
+def _ip_router() -> FakeDevice:
+    # Device Object, the Router Object of the Primary Side (IP), of the Secondary Side
+    return FakeDevice(object_types={0: 0, 1: 6, 2: 6})
+
+
+async def test_an_ip_router_routes_the_system_broadcasts(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    router = _ip_router()
+    _couplers(monkeypatch, {_ROUTER: router})
+    xknx = _xknx()
+    router_coupler = Coupler(_ROUTER, primary=KnxMedium.IP, ip_system_broadcast=True)
+    set_installation(xknx, _installation(router_coupler))
+    # the tool on line 1.1 reaches the IP device on the backbone upwards through 1.0.0
+    async with broadcast_path(
+        xknx, _IP_DEVICE, system_broadcast=True, medium=KnxMedium.IP
+    ) as path:
+        # PID_IP_SBC_CONTROL of the first Router Object
+        assert router.function_properties[(1, 120)] == b"\x00\x00\x01"
+        # the tool is on TP: it sends broadcasts
+        assert not path.system_broadcast
+        await path.close_system_broadcast()
+        assert router.function_properties[(1, 120)] == b"\x00\x00\x00"
+    assert router.function_properties[(1, 120)] == b"\x00\x00\x00"
+    # without system broadcasts nothing is set
+    plain = _ip_router()
+    _couplers(monkeypatch, {_ROUTER: plain})
+    async with broadcast_path(
+        xknx, _IP_DEVICE, system_broadcast=False, medium=KnxMedium.IP
+    ):
+        pass
+    assert (1, 120) not in plain.function_properties
+
+
+async def test_closing_keeps_what_else_is_needed(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    media = _media_coupler()
+    _couplers(monkeypatch, {_DOWN: media})
+    xknx = _xknx()
+    set_installation(
+        xknx,
+        _installation(Coupler(_DOWN, secondary=KnxMedium.RF, block_unicast=True)),
+    )
+    async with broadcast_path(xknx, _DEVICE, system_broadcast=True) as path:
+        assert media.function_properties[(3, 112)] == b"\x02"
+        await path.close_system_broadcast()
+        # the media coupler routes broadcasts only now
+        assert media.function_properties[(3, 112)] == b"\x01"
+    assert media.function_properties[(3, 112)] == b"\x00"
+
+
+async def test_closing_a_coupler_that_refuses(
+    monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
+) -> None:
+    devices: dict[IndividualAddress, FakeDevice | None] = {_DOWN: _media_coupler()}
+    _couplers(monkeypatch, devices)
+    xknx = _xknx()
+    set_installation(
+        xknx,
+        _installation(Coupler(_DOWN, secondary=KnxMedium.RF, block_unicast=True)),
+    )
+    with caplog.at_level(logging.WARNING):
+        async with broadcast_path(xknx, _DEVICE, system_broadcast=True) as path:
+            devices[_DOWN] = None
+            await path.close_system_broadcast()
+    assert "1.2.0 could not be opened" in caplog.text
+
+
+def test_the_system_broadcasts_from_the_connection() -> None:
+    paths = CommunicationPaths(_xknx(), _installation(connection_medium=KnxMedium.IP))
+    # an IP connection sends them to an IP device that takes them, a PL one to PL devices
+    assert paths.local_system_broadcast(None, medium=KnxMedium.IP)
+    assert not paths.local_system_broadcast(
+        None, system_broadcast=False, medium=KnxMedium.IP
+    )
+    assert not paths.local_system_broadcast(None, medium=KnxMedium.RF)
+    paths.installation = _installation(connection_medium=KnxMedium.PL)
+    assert paths.local_system_broadcast(None, medium=KnxMedium.PL)
+    # never from TP1
+    paths.installation = _installation()
+    assert not paths.local_system_broadcast(None, medium=KnxMedium.TP)
+
+
+def test_the_coupler_that_stops_secured_system_broadcasts() -> None:
+    media = Coupler(_DOWN, secondary=KnxMedium.RF, secure_system_broadcast=True)
+    paths = CommunicationPaths(_xknx(), _installation(media))
+    request = paths.broadcast(_DEVICE, system_broadcast=True)
+    # a media coupler passed downwards onto RF
+    assert paths.secure_restriction(request) == _DOWN
+    assert paths.secure_restriction(None) is None
+    plain = paths.broadcast(_DEVICE, system_broadcast=False)
+    assert paths.secure_restriction(plain) is None
+    # a coupler that does not pass secured system broadcasts
+    router = Coupler(_ROUTER, primary=KnxMedium.IP, ip_system_broadcast=True)
+    paths.installation = _installation(router)
+    request = paths.broadcast(_IP_DEVICE, system_broadcast=True, medium=KnxMedium.IP)
+    assert paths.secure_restriction(request) == _ROUTER
+    # an IP router passed upwards from TP1 onto IP
+    paths.installation = _installation(
+        Coupler(
+            _ROUTER,
+            primary=KnxMedium.IP,
+            ip_system_broadcast=True,
+            secure_system_broadcast=True,
+        )
+    )
+    request = paths.broadcast(_IP_DEVICE, system_broadcast=True, medium=KnxMedium.IP)
+    assert paths.secure_restriction(request) == _ROUTER
+    # one passed upwards onto IP from another medium passes them
+    paths.installation = _installation(
+        Coupler(
+            _ROUTER,
+            primary=KnxMedium.IP,
+            secondary=KnxMedium.RF,
+            ip_system_broadcast=True,
+            secure_system_broadcast=True,
+        )
+    )
+    request = paths.broadcast(_IP_DEVICE, system_broadcast=True, medium=KnxMedium.IP)
+    assert paths.secure_restriction(request) is None
+
+
+_LOCAL = IndividualAddress("1.6.0")
+_RF_TOOL = IndividualAddress("1.6.250")
+
+
+class _RFXknx:
+    def __init__(self) -> None:
+        self.current_address = _RF_TOOL
+
+
+async def test_the_rf_modes_towards_a_knx_rf_multi_device(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    local, towards = _media_coupler(), _media_coupler()
+    opened = _couplers(monkeypatch, {_LOCAL: local, _DOWN: towards})
+    xknx = cast("XKNX", _RFXknx())
+    set_installation(
+        xknx,
+        _installation(
+            Coupler(_LOCAL, secondary=KnxMedium.RF, rf_multi=True),
+            Coupler(_DOWN, secondary=KnxMedium.RF, rf_multi=True),
+            rf_connection=True,
+            rf_multi_connection=True,
+            rf_modes={_DEVICE: RFMode.MULTI_FAST},
+        ),
+    )
+
+    class _Inner:
+        async def open(self) -> object:
+            return "connection"
+
+        async def close(self) -> None:
+            pass
+
+    manager = routed_manager(xknx, _DEVICE, cast("Any", _Inner()))
+    await manager.open()
+    # the coupler of the connection's own line speaks RF Multi towards it, the one towards
+    # the device the device's mode (PID 79 of the RF Router Object)
+    assert local.function_properties[(3, 79)] == b"\x00\x00\x09"
+    assert towards.function_properties[(3, 79)] == b"\x00\x00\x09"
+    await manager.close()
+    # every connection sets them again
+    local.function_properties.clear()
+    towards.function_properties.clear()
+    await manager.open()
+    await manager.close()
+    assert local.function_properties[(3, 79)] == b"\x00\x00\x09"
+    assert towards.function_properties[(3, 79)] == b"\x00\x00\x09"
+    assert opened
+
+
+def test_the_rf_modes_of_other_paths() -> None:
+    paths = CommunicationPaths(
+        cast("XKNX", _RFXknx()),
+        _installation(
+            Coupler(_LOCAL, secondary=KnxMedium.RF),
+            Coupler(_DOWN, secondary=KnxMedium.RF),
+            rf_connection=True,
+            rf_modes={_DEVICE: RFMode.READY},
+        ),
+    )
+    # Ready towards a coupler that does not speak RF Multi: nothing to set
+    assert paths.unicast(_DEVICE) is None
+    request = communication_path._Request(
+        paths.path_to(_DEVICE).path, frozenset({_DEVICE})
+    )
+    assert paths._rf_mode_couplers(request) == []
+    # a broadcast, a device without a mode, a path upwards
+    assert paths._rf_mode_couplers(paths.path_to(_DEVICE)) == []
+    assert (
+        paths._rf_mode_couplers(communication_path._Request((), frozenset({_DEVICE})))
+        == []
+    )
+    other = IndividualAddress("1.2.9")
+    assert (
+        paths._rf_mode_couplers(
+            communication_path._Request(paths.path_to(other).path, frozenset({other}))
+        )
+        == []
+    )
+    upwards = communication_path._Request(
+        ((Coupler(_LOCAL, secondary=KnxMedium.RF), False),), frozenset({_DEVICE})
+    )
+    assert paths._rf_mode_couplers(upwards) == []
+
+
+async def test_setting_an_rf_mode(
+    monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
+) -> None:
+    coupler = _media_coupler()
+    _couplers(monkeypatch, {_DOWN: coupler})
+    paths = CommunicationPaths(_xknx(), _installation())
+    media = Coupler(_DOWN, secondary=KnxMedium.RF, rf_multi=True, access_key=0x1)
+    with caplog.at_level(logging.INFO):
+        await paths.set_rf_mode(
+            media, unicast=RFMode.MULTI_SLOW, broadcast=RFMode.MULTI_SLOW
+        )
+    # broadcasts know Ready and Multi only
+    assert coupler.function_properties[(3, 79)] == b"\x00\x00\x0a"
+    assert coupler.function_properties[(3, 114)] == b"\x00\x00\x09"
+    assert coupler.authorize_keys == [1]
+    assert "unicast MULTI_SLOW, broadcast MULTI_SLOW" in caplog.text
+    await paths.set_rf_mode(media, broadcast=RFMode.READY)
+    assert coupler.function_properties[(3, 114)] == b"\x00\x00\x24"
+    _couplers(monkeypatch, {_DOWN: None})
+    with pytest.raises(CommunicationPathError, match="no answer"):
+        await paths.set_rf_mode(media, unicast=RFMode.READY)
+
+
+async def test_switching_the_rf_mode_while_a_device_is_looked_for(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    coupler = _media_coupler()
+    _couplers(monkeypatch, {_DOWN: coupler})
+    xknx = _xknx()
+    set_installation(
+        xknx,
+        _installation(Coupler(_DOWN, secondary=KnxMedium.RF, rf_multi=True)),
+    )
+    async with broadcast_path(xknx, _DEVICE, system_broadcast=True) as path:
+        assert path.switch_rf_mode is not None
+        await path.switch_rf_mode(True)
+        assert coupler.function_properties[(3, 79)] == b"\x00\x00\x09"
+        assert coupler.function_properties[(3, 114)] == b"\x00\x00\x09"
+        await path.switch_rf_mode(False)
+        assert coupler.function_properties[(3, 114)] == b"\x00\x00\x24"
+    paths = communication_paths(xknx)
+    assert paths is not None
+    assert paths.rf_mode_switch(None) is None
+    # a coupler without RF Multi, or a path upwards, has nothing to switch
+    paths.installation = _installation(Coupler(_DOWN, secondary=KnxMedium.RF))
+    assert paths.rf_mode_switch(paths.path_to(_DEVICE)) is None
+    upwards = communication_path._Request(
+        ((Coupler(_LOCAL, secondary=KnxMedium.RF, rf_multi=True), False),),
+        frozenset({_DEVICE}),
+    )
+    assert paths.rf_mode_switch(upwards) is None
+
+
+async def test_without_couplers_to_set_the_rf_mode_switch_still_works(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    coupler = _media_coupler()
+    _couplers(monkeypatch, {_DOWN: coupler})
+    xknx = _xknx()
+    # an RF connection on another domain behind a coupler without settings: none are needed
+    set_installation(
+        xknx,
+        _installation(
+            Coupler(_DOWN, primary=KnxMedium.TP, secondary=KnxMedium.TP),
+        ),
+    )
+    async with broadcast_path(xknx, _DEVICE, system_broadcast=False) as path:
+        assert path.switch_rf_mode is None
+        assert path.secure_restriction is None
+        await path.close_system_broadcast()
+
+
+def test_the_rf_connection_of_an_installation() -> None:
+    assert _installation(rf_connection=True).rf_connection
+    assert not _installation().rf_connection
+
+
+async def test_closing_with_another_path_open(monkeypatch: pytest.MonkeyPatch) -> None:
+    proxy, media = FakeDevice(), _media_coupler()
+    _couplers(monkeypatch, {_UP: proxy, _DOWN: media})
+    paths = CommunicationPaths(
+        _xknx(),
+        _installation(
+            Coupler(_UP, block_broadcast=True),
+            Coupler(_DOWN, secondary=KnxMedium.RF),
+        ),
+    )
+    first = paths.broadcast(_DEVICE, system_broadcast=True)
+    second = paths.broadcast(_DEVICE, system_broadcast=True)
+    assert first is not None and second is not None
+    await paths.add(first)
+    await paths.add(second)
+    await paths.close_system_broadcast(first)
+    # still needed by the second: the media coupler keeps routing system broadcasts
+    assert media.function_properties[(3, 112)] == b"\x02"
+    await paths.close_system_broadcast(second)
+    assert media.function_properties[(3, 112)] == b"\x01"
+    await paths.remove(first)
+    await paths.remove(second)
+
+
+async def test_an_rf_connection_behind_a_coupler_without_rf_multi() -> None:
+    paths = CommunicationPaths(
+        cast("XKNX", _RFXknx()),
+        _installation(Coupler(_LOCAL, secondary=KnxMedium.RF), rf_connection=True),
+    )
+    # nothing is set: the coupler does not speak RF Multi
+    await paths._rf_multi_interface(paths.path_to(_DEVICE))
+    assert not paths._rf_multi_set
+
+
+def test_the_error_of_a_coupler_without_secured_system_broadcasts() -> None:
+    error = SecureSystemBroadcastBlocked(_DOWN)
+    assert error.coupler == _DOWN
+    assert "coupler 1.2.0 does not pass secured system broadcasts" in str(error)

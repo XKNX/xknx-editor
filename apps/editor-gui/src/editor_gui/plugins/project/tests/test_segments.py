@@ -6,6 +6,7 @@ from __future__ import annotations
 
 from collections.abc import Iterator
 from pathlib import Path
+from typing import Any, cast
 
 import pytest
 from imgui_bundle import imgui
@@ -772,7 +773,7 @@ def test_the_couplers_on_the_routes(
     monkeypatch.setattr(
         project,
         "find_device_by_node_id",
-        lambda node_id: SimpleNamespace(node_id=node_id),
+        lambda node_id: SimpleNamespace(node_id=node_id, app=None),
     )
     monkeypatch.setattr(
         project,
@@ -782,8 +783,156 @@ def test_the_couplers_on_the_routes(
     couplers = project.route_couplers()
     # the line 1.1 has no coupler in the project; the RF lines hang on the IP main line, the
     # main line on the IP backbone
-    assert couplers == [
+    assert [tuple(coupler[:4]) for coupler in couplers] == [
         ("1.0.0", MEDIUM_IP, MEDIUM_IP, False),
         ("1.5.0", MEDIUM_IP, MEDIUM_RF, False),
         ("1.6.0", MEDIUM_IP, MEDIUM_RF, True),
     ]
+    # without a product in the catalog: no IP routing, security or RF Multi
+    assert not any(coupler[4:] != (False, False, False) for coupler in couplers)
+
+
+def _app(*, secure: bool = False, ip_system_broadcast: bool = False) -> object:
+    from types import SimpleNamespace
+
+    return SimpleNamespace(
+        program=SimpleNamespace(
+            is_secure_enabled=secure,
+            mask_version="MV-57B0",
+            static=SimpleNamespace(
+                options=SimpleNamespace(
+                    supports_ip_system_broadcast=ip_system_broadcast
+                )
+            ),
+        )
+    )
+
+
+def test_what_the_couplers_on_the_routes_support(
+    project: ProjectService, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from types import SimpleNamespace
+
+    pid = project._pid
+    assert pid is not None
+    area = next(a for a in project.get_areas() if a.area_number == 1)
+    garden = project.create_line(area.id, 5, "Garden", MEDIUM_RF)
+    assert garden is not None
+    garden_line = project.find_line(garden)
+    assert garden_line is not None and garden_line.main_segment_id is not None
+    coupler = project._svc.add_device(
+        pid, garden_line.main_segment_id, "P-C", address=0, hardware2program_ref_id="C"
+    )
+    project._bump()
+    monkeypatch.setattr(
+        project,
+        "find_device_by_node_id",
+        lambda node_id: SimpleNamespace(
+            node_id=node_id, app=_app(secure=True, ip_system_broadcast=True)
+        ),
+    )
+    monkeypatch.setattr(project, "download_routing_blocking", lambda device: None)
+    monkeypatch.setattr(
+        project._catalog,
+        "rf_capabilities",
+        lambda ref: ("ReadyFastSlow", "ReadyFastSlow") if ref == "C" else (None, None),
+    )
+    (route,) = [c for c in project.route_couplers() if c.address == "1.5.0"]
+    assert (
+        route.ip_system_broadcast and route.secure_system_broadcast and route.rf_multi
+    )
+    # the hardware program of a device that is gone
+    monkeypatch.setattr(
+        project._svc,
+        "device",
+        lambda pid, node_id: (_ for _ in ()).throw(KeyError(node_id)),
+    )
+    assert project._rf_capabilities(coupler) == (None, None)
+
+
+def test_the_rf_modes_of_rf_multi_devices(
+    project: ProjectService, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    pid = project._pid
+    assert pid is not None
+    area = next(a for a in project.get_areas() if a.area_number == 1)
+    garden = project.create_line(area.id, 5, "Garden", MEDIUM_RF)
+    assert garden is not None
+    line = project.find_line(garden)
+    assert line is not None and line.main_segment_id is not None
+    for address, ref in ((3, "FAST"), (4, "READY"), (5, "MULTI"), (6, "")):
+        project._svc.add_device(
+            pid,
+            line.main_segment_id,
+            "P-S",
+            address=address,
+            hardware2program_ref_id=ref,
+        )
+    project._bump()
+    capabilities = {
+        "FAST": ("ReadyFastSlow", "ReadyFast"),
+        "READY": ("Ready", "Ready"),
+        "MULTI": ("ReadyFastSlow", "Ready"),
+    }
+    monkeypatch.setattr(
+        project._catalog,
+        "rf_capabilities",
+        lambda ref: capabilities.get(ref, (None, None)),
+    )
+    # KNX RF Ready devices are left out
+    assert project.rf_device_modes() == {"1.5.3": "MultiFast", "1.5.5": "Ready"}
+
+
+def test_the_domain_address_of_an_ip_device(
+    project: ProjectService, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from types import SimpleNamespace
+
+    pid = project._pid
+    assert pid is not None
+    line = project.find_line(_line_1_1(project))
+    assert line is not None and line.main_segment_id is not None
+    node = project._svc.add_device(
+        pid, line.main_segment_id, "P-I", address=9, hardware2program_ref_id="IP"
+    )
+    project._bump()
+    monkeypatch.setattr(
+        project._catalog, "hardware_is_ip_enabled", lambda ref: ref == "IP"
+    )
+    monkeypatch.setattr(project._catalog, "ip_config", lambda ref: "Tool")
+    monkeypatch.setattr(project, "secure_backbone", lambda: (bytes(range(16)), 2000))
+
+    def device(app: object | None, node_id: int = node) -> Any:
+        return SimpleNamespace(node_id=node_id, app=app)
+
+    # the default routing multicast address
+    assert project.device_ip_domain_address(device(_app())) == (
+        bytes((224, 0, 23, 12)),
+        False,
+    )
+    # a secure device gets the backbone key, and takes system broadcasts
+    assert project.device_ip_domain_address(device(_app(secure=True))) == (
+        bytes((224, 0, 23, 12, 1)) + bytes(range(16)),
+        True,
+    )
+    assert project.device_ip_domain_address(device(_app(ip_system_broadcast=True)))[1]
+    # the IP configuration set by the device itself, a device without an application or
+    # one that is gone, and a broken multicast address
+    monkeypatch.setattr(project._catalog, "ip_config", lambda ref: "Custom")
+    assert project.device_ip_domain_address(device(_app())) == (None, False)
+    monkeypatch.setattr(project._catalog, "ip_config", lambda ref: "Tool")
+    assert project.device_ip_domain_address(device(None)) == (None, False)
+    assert project.device_ip_domain_address(device(_app(), 99999)) == (None, False)
+    monkeypatch.setattr(
+        project._svc,
+        "installation_attributes",
+        lambda pid: {"IPRoutingMulticastAddress": "not an address"},
+    )
+    assert project.device_ip_domain_address(device(_app())) == (None, False)
+    # not an IP device
+    monkeypatch.setattr(project._catalog, "hardware_is_ip_enabled", lambda ref: False)
+    tp = SimpleNamespace(
+        node_id=node,
+        app=SimpleNamespace(program=SimpleNamespace(mask_version="MV-07B0")),
+    )
+    assert project.device_ip_domain_address(cast(Any, tp)) == (None, False)

@@ -17,7 +17,7 @@ import zipfile
 from collections.abc import Callable, Collection, Generator, Iterable, Mapping
 from dataclasses import dataclass, field, replace
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Literal, cast
+from typing import TYPE_CHECKING, Any, Literal, NamedTuple, cast
 
 from editor_gui.concurrency import (
     io_guarded,
@@ -1150,6 +1150,31 @@ class _Line:
     # Its sub-segments, in their order (the main segment is not among them).
     segments: list[_Segment] = field(default_factory=list[_Segment])
     main_segment_id: int | None = None
+
+
+class RouteCoupler(NamedTuple):
+    """A coupler of the project on the routes to devices (see
+    :meth:`ProjectService.route_couplers`): its individual address, the medium of its primary
+    and of its secondary side (``MT-…``), whether a download makes it block point-to-point and
+    broadcast messages; whether it routes system broadcasts onto IP (a KNXnet/IP router whose
+    application supports it), passes secured system broadcasts (its application is secure
+    enabled), and speaks KNX RF Multi (a TP1/RF Media Coupler)."""
+
+    address: str
+    primary: str
+    secondary: str
+    blocking: bool
+    ip_system_broadcast: bool = False
+    secure_system_broadcast: bool = False
+    rf_multi: bool = False
+
+
+def _program_options(device: Device | None) -> Any:
+    """The ``Static/Options`` of the device's application program, or ``None``."""
+    if device is None or device.app is None:
+        return None
+    static = getattr(device.app.program, "static", None)
+    return getattr(static, "options", None)
 
 
 @dataclass
@@ -8459,12 +8484,13 @@ class ProjectService:
                 return domain.to_bytes(6, "big")
         return None
 
-    def route_couplers(self) -> list[tuple[str, str, str, bool]]:
+    def route_couplers(self) -> list[RouteCoupler]:
         """The couplers frames to a device can pass, as the project has them: every device at
         a line's coupler address ``a.l.0`` (between the area's main line and the line) and at
         an area's ``a.0.0`` (between the backbone and the main line), with the medium of its
-        primary side, of its secondary side, and whether a download makes it block
-        point-to-point and broadcast messages (see :meth:`download_routing_blocking`)."""
+        primary side, of its secondary side, whether a download makes it block point-to-point
+        and broadcast messages (see :meth:`download_routing_blocking`), and what its product
+        supports (see :class:`RouteCoupler`)."""
         if self._pid is None:
             return []
         self._ensure_topology_cache()
@@ -8478,7 +8504,7 @@ class ProjectService:
             address = self._device_address(node_id, segment_id)
             if address is not None:
                 nodes.setdefault(address, node_id)
-        couplers: list[tuple[str, str, str, bool]] = []
+        couplers: list[RouteCoupler] = []
         for (area, line), medium in sorted(media.items()):
             if line:
                 address = f"{area}.{line}.0"
@@ -8495,8 +8521,98 @@ class ProjectService:
             blocking = device is not None and bool(
                 self.download_routing_blocking(device)
             )
-            couplers.append((address, primary, medium, blocking))
+            options = _program_options(device)
+            tx, _rx = self._rf_capabilities(node_id)
+            couplers.append(
+                RouteCoupler(
+                    address,
+                    primary,
+                    medium,
+                    blocking,
+                    ip_system_broadcast=bool(
+                        options is not None and options.supports_ip_system_broadcast
+                    ),
+                    secure_system_broadcast=bool(
+                        device is not None
+                        and device.app is not None
+                        and device.app.program.is_secure_enabled
+                    ),
+                    rf_multi=tx not in (None, "Ready"),
+                )
+            )
         return couplers
+
+    def _rf_capabilities(self, node_id: int) -> tuple[str | None, str | None]:
+        """The RFTxCapabilities and RFRxCapabilities of the device's hardware program."""
+        assert self._pid is not None
+        try:
+            ref = self._svc.device(self._pid, node_id).hardware2program_ref_id
+        except KeyError:
+            return None, None
+        if not ref:
+            return None, None
+        return self._catalog.rf_capabilities(ref)
+
+    def rf_device_modes(self) -> dict[str, str]:
+        """The project's KNX RF Multi devices (whose hardware program's RF capabilities are
+        not Ready), by individual address, with the RF mode a media coupler uses towards them:
+        ``MultiFast`` for one that receives fast or slow, else ``Ready``."""
+        if self._pid is None:
+            return {}
+        modes: dict[str, str] = {}
+        for node_id, segment_id in self.device_segments().items():
+            tx, rx = self._rf_capabilities(node_id)
+            if tx in (None, "Ready") and rx in (None, "Ready"):
+                continue
+            address = self._device_address(node_id, segment_id)
+            if address is None:
+                continue
+            modes[address] = "MultiFast" if rx in ("ReadyFast", "Slow") else "Ready"
+        return modes
+
+    def device_ip_domain_address(self, device: Device) -> tuple[bytes | None, bool]:
+        """The domain address a KNX IP device gets by serial number with its individual
+        address, and whether it takes the commissioning as system broadcasts. The domain
+        address is the installation's routing multicast address, with the backbone key when
+        the device supports KNX IP Secure and the installation routes secured; ``None`` for a
+        device that is no IP device or whose IP configuration is not set by the tool."""
+        import ipaddress
+
+        from xknxeditor.download.ip_config import DEFAULT_ROUTING_MULTICAST_ADDRESS
+        from xknxeditor.download.rf_commissioning import ip_domain_address
+
+        if self._pid is None or device.app is None:
+            return None, False
+        try:
+            ref = self._svc.device(self._pid, device.node_id).hardware2program_ref_id
+        except KeyError:
+            return None, False
+        program = device.app.program
+        mask = str(getattr(program, "mask_version", "") or "")
+        if not ref or not (
+            self._catalog.hardware_is_ip_enabled(ref)
+            or mask.startswith("MV-5")
+            or mask == "MV-091A"
+        ):
+            return None, False
+        if self._catalog.ip_config(ref) == "Custom":
+            return None, False
+        options = _program_options(device)
+        secure = bool(program.is_secure_enabled)
+        system_broadcast = secure or bool(
+            options is not None and options.supports_ip_system_broadcast
+        )
+        installation = self._svc.installation_attributes(self._pid)
+        text = installation.get("IPRoutingMulticastAddress") or (
+            DEFAULT_ROUTING_MULTICAST_ADDRESS
+        )
+        try:
+            multicast = ipaddress.IPv4Address(text).packed
+        except ValueError:
+            return None, False
+        backbone = self.secure_backbone() if secure else None
+        key = backbone[0] if backbone is not None else None
+        return ip_domain_address(multicast, key), system_broadcast
 
     def _line_of_segment(self, segment_id: int | None) -> tuple[int, _Line] | None:
         """The area number and the line of the segment ``segment_id``."""

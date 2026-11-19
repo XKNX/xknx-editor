@@ -976,6 +976,12 @@ class KnxGuiApp:
         self._connection_service.project_route_couplers = (
             self._project_service.route_couplers
         )
+        self._connection_service.project_rf_device_modes = (
+            self._project_service.rf_device_modes
+        )
+        self._connection_service.project_ip_domain_address = (
+            self._project_service.device_ip_domain_address
+        )
         self._connection_service.project_device = (
             self._project_service.find_device_by_address
         )

@@ -282,3 +282,58 @@ async def test_other_frames_go_to_the_securer_before(
 
     with pytest.raises(DataSecureError):
         alone.received_cemi(broken)
+
+
+async def test_the_secured_domain_address_of_an_ip_device(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    backbone = bytes(range(16))
+    domain = rf.ip_domain_address(bytes((224, 0, 23, 12)), backbone)
+    xknx, device = _bus(monkeypatch, TOOL_KEY, [None, _DEVICE])
+    monkeypatch.setattr(rf, "_IP_DOMAIN_ADDRESS_DELAY_S", 0)
+    monkeypatch.setattr(rf, "_SERIAL_NUMBER_POLL_S", 0)
+    closed: list[bool] = []
+
+    async def close() -> None:
+        closed.append(True)
+
+    await rf.secure_addresses_by_serial_number(
+        xknx,
+        SERIAL,
+        _NEW,
+        _security(TOOL_KEY),
+        domain_address=domain,
+        close_system_broadcast=close,
+    )
+    # the multicast address with the routing security version and the backbone key
+    assert device.received == [
+        apci.DomainAddressSerialNumberWrite(
+            serial=SERIAL,
+            domain_address=bytes((224, 0, 23, 12)),
+            routing_security_version=1,
+            backbone_key=backbone,
+        ),
+        apci.IndividualAddressSerialWrite(address=_NEW, serial=SERIAL),
+    ]
+    # the system broadcast routing is closed, the device waited for until it answers; the
+    # individual address is not read back
+    assert closed == [True]
+
+
+async def test_an_ip_device_that_has_its_address(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    xknx, device = _bus(monkeypatch, TOOL_KEY, [_NEW])
+    monkeypatch.setattr(rf, "_IP_DOMAIN_ADDRESS_DELAY_S", 0)
+    await rf.secure_addresses_by_serial_number(
+        xknx,
+        SERIAL,
+        _NEW,
+        _security(TOOL_KEY),
+        domain_address=bytes((224, 0, 23, 12)),
+    )
+    assert device.received == [
+        apci.DomainAddressSerialNumberWrite(
+            serial=SERIAL, domain_address=bytes((224, 0, 23, 12))
+        )
+    ]

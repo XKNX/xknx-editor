@@ -350,3 +350,28 @@ async def test_the_interface_gets_a_devices_domain_address(
     interface = usb.ObservableUSBInterfaceThreaded(XKNX(), usb.UsbTarget(1, 2, "", "x"))
     with pytest.raises(CommunicationError, match="not connected"):
         await interface.set_rf_domain_address(new)
+
+
+def test_an_rf_multi_usb_connection(monkeypatch: pytest.MonkeyPatch) -> None:
+    from types import SimpleNamespace
+    from unittest.mock import MagicMock
+
+    from editor_gui.plugins.connection import usb as usb_module
+
+    class _Interface:
+        def __init__(self, info: object) -> None:
+            self.info = info
+
+        def usb_info(self) -> object:
+            return self.info
+
+    monkeypatch.setattr(usb_module, "ObservableUSBInterfaceThreaded", _Interface)
+    xknx = MagicMock()
+    xknx.knxip_interface = _Interface(
+        SimpleNamespace(medium=usb_module.KNXMedium.RF, rf_multi=True)
+    )
+    assert usb_module.is_rf_multi_usb_connection(xknx)
+    xknx.knxip_interface = _Interface(None)
+    assert not usb_module.is_rf_multi_usb_connection(xknx)
+    xknx.knxip_interface = object()
+    assert not usb_module.is_rf_multi_usb_connection(xknx)

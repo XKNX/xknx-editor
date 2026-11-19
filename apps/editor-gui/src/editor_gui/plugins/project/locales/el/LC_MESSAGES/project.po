@@ -3707,3 +3707,6 @@ msgstr "Μια αργή σύνδεση, όπως ένα απομακρυσμέν
 
 msgid "The communication path through the coupler {coupler} could not be opened ({detail}). Check the coupler and its security settings."
 msgstr "Η διαδρομή επικοινωνίας μέσω του συζεύκτη {coupler} δεν ήταν δυνατό να ανοίξει ({detail}). Ελέγξτε τον συζεύκτη και τις ρυθμίσεις ασφαλείας του."
+
+msgid "The domain address of this secure device could not be loaded because the coupler {coupler} does not support security."
+msgstr "Η διεύθυνση τομέα αυτής της ασφαλούς συσκευής δεν ήταν δυνατό να φορτωθεί, επειδή ο συζεύκτης {coupler} δεν υποστηρίζει ασφάλεια."
