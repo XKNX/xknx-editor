@@ -5,7 +5,7 @@ from __future__ import annotations
 import asyncio
 import sys
 import weakref
-from collections.abc import Callable
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 from typing import Any, cast
 
@@ -13,6 +13,7 @@ from xknx import XKNX
 from xknx.core.connection_state import XknxConnectionState
 from xknx.exceptions import CommunicationError
 from xknx.io.connection import ConnectionConfig
+from xknx.knxip.knxip_enum import KNXMedium
 from xknx.secure.data_secure import DataSecure
 from xknx.telegram import IndividualAddress
 
@@ -24,14 +25,20 @@ from editor_gui.plugins.connection.xknx_usb import (
     find_usb_interfaces,
 )
 from editor_gui.plugins.connection.xknx_usb.const import EMIID, SupportedEMIType
+from xknxeditor.proj.core.medium import (
+    MEDIUM_RF,
+    format_domain_address,
+    parse_domain_address,
+)
 
 # Seconds between the attempts to open an unplugged interface again.
 _RECONNECT_SECONDS = 3
 
 # USB vendors whose HID devices the scan offers whatever their product id, as the KNX USB
 # interfaces of these vendors (and the manufacturers using their ids) are not all among the
-# known ones: Weinzierl Engineering, Insta, Tapko Technologies, ise.
-KNX_USB_VENDOR_IDS = (0x0E77, 0x135E, 0x28C2, 0x2A07)
+# known ones: Weinzierl Engineering, Insta, Tapko Technologies, ise, and 36CE (Video-Star's,
+# also used by Legrand, Arlight and others).
+KNX_USB_VENDOR_IDS = (0x0E77, 0x135E, 0x28C2, 0x2A07, 0x36CE)
 
 # USB interfaces (vendor id, product id) that forget their individual address when unplugged: the
 # Siemens Interface OCI700 USB. The editor keeps the address such an interface had when it was
@@ -66,6 +73,39 @@ def supported_emi_type_names(supported: SupportedEMIType) -> list[str]:
 def mask_version_text(mask_version: int | None) -> str:
     """A mask version as four hexadecimal digits (``07B0``); empty when it is unknown."""
     return "" if mask_version is None else f"{mask_version:04X}"
+
+
+# The media of interfaces by the names lines and segments have.
+_MEDIUM_NAMES = {
+    KNXMedium.TP1: "TP",
+    KNXMedium.PL110: "PL",
+    KNXMedium.RF: "RF",
+    KNXMedium.KNX_IP: "IP",
+}
+
+
+def medium_name(medium: KNXMedium) -> str:
+    """The medium of an interface as lines and segments name it: TP, PL, RF or IP."""
+    return _MEDIUM_NAMES[medium]
+
+
+def rf_domain_address_text(domain_address: bytes | None) -> str:
+    """An RF domain address as lines show it (``0001:23456789``); empty when it is unknown."""
+    if domain_address is None:
+        return ""
+    return format_domain_address(MEDIUM_RF, int.from_bytes(domain_address, "big"))
+
+
+def parse_rf_domain_address(text: str) -> bytes:
+    """The 6 octets of the RF domain address ``text`` (as lines show it). Raises ``ValueError``
+    for text that is none."""
+    try:
+        value = parse_domain_address(MEDIUM_RF, text)
+    except ValueError as err:
+        raise ValueError(text) from err
+    if not 0 <= value < 1 << 48:
+        raise ValueError(text)
+    return value.to_bytes(6, "big")
 
 
 def cancel_hidapi_atexit() -> None:
@@ -199,7 +239,7 @@ async def search_usb_interfaces(
 class ObservableUSBInterfaceThreaded(ObservableKNXIPInterfaceThreaded):
     """A connection through a KNX USB interface, observable as the KNXnet/IP ones are."""
 
-    __slots__ = ("_data_secure", "_individual_address", "_target")
+    __slots__ = ("_data_secure", "_individual_address", "_rf_domain_address", "_target")
 
     def __init__(
         self,
@@ -210,11 +250,13 @@ class ObservableUSBInterfaceThreaded(ObservableKNXIPInterfaceThreaded):
         data_secure: DataSecure | None = None,
         individual_address: IndividualAddress | None = None,
         writes_blocked: Callable[[], bool] | None = None,
+        rf_domain_address: bytes | None = None,
     ) -> None:
         """``data_secure`` is in place while the interface is set up, so an interface Data Secure
         can't work with (unknown individual address, EMI1/EMI2 only) is noticed on connect as
         after its reset or a reconnect. With ``individual_address`` the interface's own address is
-        set to it on connect when it has another one; the connect fails when that can't be done."""
+        set to it on connect when it has another one; the connect fails when that can't be done.
+        ``rf_domain_address`` sets the domain address of a KNX RF interface the same way."""
         super().__init__(
             xknx,
             ConnectionConfig(threaded=True),
@@ -225,6 +267,7 @@ class ObservableUSBInterfaceThreaded(ObservableKNXIPInterfaceThreaded):
         self._target = target
         self._data_secure = data_secure
         self._individual_address = individual_address
+        self._rf_domain_address = rf_domain_address
 
     async def _start(self) -> None:
         """Open the interface (in the connection thread)."""
@@ -240,6 +283,7 @@ class ObservableUSBInterfaceThreaded(ObservableKNXIPInterfaceThreaded):
             auto_reconnect=True,
             auto_reconnect_wait=_RECONNECT_SECONDS,
             individual_address=self._individual_address,
+            rf_domain_address=self._rf_domain_address,
         )
         await self._interface.connect()
 
@@ -249,10 +293,78 @@ class ObservableUSBInterfaceThreaded(ObservableKNXIPInterfaceThreaded):
             return self._interface.info
         return None
 
+    async def set_rf_domain_address(self, rf_domain_address: bytes) -> None:
+        """Set the domain address of the connected KNX RF interface on the open connection; it
+        applies at once, and a reconnect sets it again. Raises ``CommunicationError`` when no KNX
+        RF interface is connected or it refuses the address."""
+        if not isinstance(self._interface, USBTunnel) or self._thread_loop is None:
+            raise CommunicationError("KNX USB interface not connected")
+        await self._await_from_connection_thread(
+            self._interface.set_rf_domain_address(rf_domain_address)
+        )
+        self._rf_domain_address = rf_domain_address
+
+    async def set_rf_multi_type(self, rf_multi: bool) -> None:
+        """Set whether the connected KNX RF interface operates as a KNX RF Multi device, on
+        the open connection. Raises ``CommunicationError`` when no KNX RF interface is connected
+        or it refuses it."""
+        if not isinstance(self._interface, USBTunnel) or self._thread_loop is None:
+            raise CommunicationError("KNX USB interface not connected")
+        await self._await_from_connection_thread(
+            self._interface.set_rf_multi_type(rf_multi)
+        )
+
     async def read_max_apdu_length(self) -> int | None:
         """The maximum APDU length the interface reported."""
         info = self.usb_info()
         return info.max_apdu_length if info is not None else None
+
+
+def is_rf_usb_connection(xknx: XKNX) -> bool:
+    """Whether ``xknx`` is connected through a KNX RF USB interface."""
+    interface = xknx.knxip_interface
+    if not isinstance(interface, ObservableUSBInterfaceThreaded):
+        return False
+    info = interface.usb_info()
+    return info is not None and info.medium is KNXMedium.RF
+
+
+def is_rf_multi_usb_connection(xknx: XKNX) -> bool:
+    """Whether ``xknx`` is connected through a KNX RF USB interface that operates as a KNX RF
+    Multi device."""
+    interface = xknx.knxip_interface
+    if not isinstance(interface, ObservableUSBInterfaceThreaded):
+        return False
+    info = interface.usb_info()
+    return info is not None and info.medium is KNXMedium.RF and info.rf_multi
+
+
+def rf_multi_switch(xknx: XKNX) -> Callable[[bool], Awaitable[None]] | None:
+    """For a connection through a KNX RF USB interface that operates as a KNX RF Multi
+    device: a function that switches it to KNX RF Multi (True) or Ready, so it reaches the
+    devices of its own domain of either kind; None for any other connection."""
+    if not is_rf_multi_usb_connection(xknx):
+        return None
+    interface = cast("ObservableUSBInterfaceThreaded", xknx.knxip_interface)
+    return interface.set_rf_multi_type
+
+
+async def ensure_rf_domain_address(xknx: XKNX, rf_domain_address: bytes) -> bool:
+    """Give the connected KNX RF USB interface ``rf_domain_address`` when it has another one, so
+    it reaches and receives the devices of that domain; whether it had to be set. Nothing happens
+    for any other connection. Raises ``CommunicationError`` when the interface refuses it."""
+    interface = xknx.knxip_interface
+    if not isinstance(interface, ObservableUSBInterfaceThreaded):
+        return False
+    info = interface.usb_info()
+    if (
+        info is None
+        or info.medium is not KNXMedium.RF
+        or info.rf_domain_address == rf_domain_address
+    ):
+        return False
+    await interface.set_rf_domain_address(rf_domain_address)
+    return True
 
 
 class UsbBusmonitorConnection:

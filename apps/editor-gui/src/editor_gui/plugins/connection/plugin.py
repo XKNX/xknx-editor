@@ -12,6 +12,7 @@ from imgui_bundle import imgui
 from xknx import XKNX
 from xknx.core.connection_state import XknxConnectionState
 from xknx.exceptions import (
+    CommunicationError,
     ConfirmationError,
     CouldNotParseAddress,
     RequestResponseError,
@@ -20,6 +21,7 @@ from xknx.io.connection import ConnectionConfig, ConnectionType
 from xknx.io.const import DEFAULT_MCAST_GRP
 from xknx.io.gateway_scanner import GatewayDescriptor, GatewayScanner
 from xknx.io.self_description import request_description
+from xknx.knxip.knxip_enum import KNXMedium
 from xknx.telegram import IndividualAddress
 
 from editor_gui.cemi_diagnostics import DiagnosticCEMIHandler
@@ -44,6 +46,9 @@ from editor_gui.plugins.connection.usb import (
     cancel_hidapi_atexit,
     emi_type_name,
     mask_version_text,
+    medium_name,
+    parse_rf_domain_address,
+    rf_domain_address_text,
     search_usb_interfaces,
     supported_emi_type_names,
     usb_device_name,
@@ -66,6 +71,7 @@ from editor_gui.strings import S as app_strings
 from editor_gui.theme import status_color
 from editor_gui.widgets.animation import animation_time
 from editor_gui.widgets.checkbox import radio_button
+from editor_gui.widgets.combo import begin_combo, end_combo
 from editor_gui.widgets.dialog import (
     begin_dialog,
     begin_tool_window,
@@ -78,6 +84,7 @@ from editor_gui.widgets.spinner import loading, spinner
 from editor_gui.widgets.tree import collapsing_header
 from xknxeditor.download.timeouts import BusTimeouts, bus_timeouts, set_bus_timeouts
 from xknxeditor.prod.app_id import parse_app_id
+from xknxeditor.proj.core.medium import MEDIUM_RF, format_domain_address
 
 if TYPE_CHECKING:
     from xknxeditor.catalog import ProductSummary
@@ -373,6 +380,10 @@ class ConnectionPlugin:
         self._usb_address_checking = False
         self._usb_address_error: str | None = None
         self._usb_address_free: tuple[str, bool] | None = None
+        # The same for the domain address of a KNX RF interface (set_usb_interface_domain_address).
+        self._usb_domain_text = ""
+        self._usb_domain_busy = False
+        self._usb_domain_error: str | None = None
         # Whether the editor looks for interfaces at start and connects to one (Settings >
         # Connection); off, it connects only when the user asks.
         self._connect_at_startup = True
@@ -770,6 +781,8 @@ class ConnectionPlugin:
             raise ValueError(S.USB_NOT_CONNECTED_HERE)
         if self._usb_address_busy or self._usb_address_checking:
             raise ValueError(S.USB_ADDRESS_BUSY)
+        if self._usb_domain_busy:
+            raise ValueError(S.USB_DOMAIN_ADDRESS_BUSY)
         self._usb_address_error = None
         self._usb_address_free = None
         info = self.usb_info
@@ -788,29 +801,91 @@ class ConnectionPlugin:
         """Open the USB connection again with ``address`` set on the interface (see
         ``_usb_address_to_set``); when that fails, open it again without."""
         try:
-            await self._disconnect_async(reopen=True)
-            self._api.connection.dispatch_link_state(False)
-            self._state = ConnectionState.CONNECTING
-            self._error_message = None
             self._usb_address_write = address
-            try:
-                await self._connect_async(reopen=True)
-            finally:
-                self._usb_address_write = None
-            if self.connected:
+            error = await self._reopen_usb_writing(session)
+            if error is None:
                 self._log.info(
                     "USB interface individual address set", address=str(address)
                 )
                 return
-            self._usb_address_error = S.USB_ADDRESS_FAILED.format(
-                error=self._error_message or ""
-            )
-            if session == self._session:
-                # The interface as it is, without the address.
-                self._run_async(self._reopen(session))
+            self._usb_address_error = S.USB_ADDRESS_FAILED.format(error=error)
             raise ConnectionError(self._usb_address_error)
         finally:
+            self._usb_address_write = None
             self._usb_address_busy = False
+
+    async def _reopen_usb_writing(self, session: int) -> str | None:
+        """Open the USB connection again, writing the individual address ``_usb_address_write``
+        holds on connect; ``None`` when it is connected, else the reason it is not, and then it is
+        opened again as the interface is, without writing."""
+        await self._disconnect_async(reopen=True)
+        self._api.connection.dispatch_link_state(False)
+        self._state = ConnectionState.CONNECTING
+        self._error_message = None
+        try:
+            await self._connect_async(reopen=True)
+        finally:
+            self._usb_address_write = None
+        if self.connected:
+            return None
+        if session == self._session:
+            self._run_async(self._reopen(session))
+        return self._error_message or ""
+
+    @property
+    def usb_domain_address_busy(self) -> bool:
+        """Whether the connected USB interface's domain address is being set."""
+        return self._usb_domain_busy
+
+    def set_usb_interface_domain_address(self, text: str) -> Future[None]:
+        """Set the domain address of the connected KNX RF USB interface to ``text`` (as lines show
+        it, ``0001:23456789``) on the open connection; the interface keeps it, and it applies at
+        once. Nothing is written when the interface has that address already. Raises
+        ``ValueError`` with the reason when it can't start; the future fails with the reason when
+        the address could not be set."""
+        try:
+            domain_address = parse_rf_domain_address(text)
+        except ValueError:
+            raise ValueError(
+                S.USB_DOMAIN_ADDRESS_INVALID.format(address=text.strip())
+            ) from None
+        info = self.usb_info
+        if not self.connected or self._usb_target is None or info is None:
+            raise ValueError(S.USB_NOT_CONNECTED_HERE)
+        if info.medium is not KNXMedium.RF:
+            raise ValueError(S.USB_NOT_RF)
+        if self._usb_address_busy or self._usb_address_checking:
+            raise ValueError(S.USB_ADDRESS_BUSY)
+        if self._usb_domain_busy:
+            raise ValueError(S.USB_DOMAIN_ADDRESS_BUSY)
+        self._usb_domain_error = None
+        if info.rf_domain_address == domain_address:
+            unchanged: Future[None] = Future()
+            unchanged.set_result(None)
+            return unchanged
+        self._usb_domain_busy = True
+        return asyncio.run_coroutine_threadsafe(
+            self._write_usb_domain_address(domain_address), self._ensure_async_loop()
+        )
+
+    async def _write_usb_domain_address(self, domain_address: bytes) -> None:
+        """Write ``domain_address`` to the connected interface; the reason it could not be set is
+        kept for the dialog."""
+        try:
+            interface = self._interface
+            try:
+                if not isinstance(interface, ObservableUSBInterfaceThreaded):
+                    raise CommunicationError(S.USB_NOT_CONNECTED_HERE)
+                await interface.set_rf_domain_address(domain_address)
+            except CommunicationError as err:
+                self._usb_domain_error = S.USB_DOMAIN_ADDRESS_FAILED.format(error=err)
+                raise ConnectionError(self._usb_domain_error) from err
+            self._log.info(
+                "USB interface domain address set",
+                domain_address=rf_domain_address_text(domain_address),
+            )
+        finally:
+            self._usb_domain_busy = False
 
     def check_usb_interface_address(self, text: str) -> Future[Any]:
         """Check whether a device on the bus answers at the individual address ``text`` (the
@@ -1049,6 +1124,10 @@ class ConnectionPlugin:
                         self._usb_info.supported_emi_types
                     ),
                     mask_version=mask_version_text(self._usb_info.mask_version),
+                    medium=medium_name(self._usb_info.medium),
+                    domain_address=rf_domain_address_text(
+                        self._usb_info.rf_domain_address
+                    ),
                 )
                 self._keep_usb_address()
             if self._gateway_info:
@@ -1638,6 +1717,7 @@ class ConnectionPlugin:
                 else "",
                 port=0,
                 connector="Usb",
+                medium="Rf" if usb is not None and usb.medium is KNXMedium.RF else "Tp",
             )
         name = ""
         if self._gateway_info is not None and self._gateway_info.name:
@@ -2048,12 +2128,17 @@ class ConnectionPlugin:
         self._usb_address_text = str(address) if address is not None else ""
         self._usb_address_error = None
         self._usb_address_free = None
+        self._usb_domain_text = rf_domain_address_text(
+            info.rf_domain_address if info is not None else None
+        )
+        self._usb_domain_error = None
         self._usb_interface_open = True
 
     def _render_usb_interface(self) -> None:
         """The "USB Interface" dialog: what the connected USB interface reported, and its
         individual address, set on the interface with Apply (or Enter in the field), with a check
-        whether a device on the bus uses an address."""
+        whether a device on the bus uses an address; a KNX RF interface's domain address the
+        same way, also taken from one of the project's RF lines."""
         title = f"{S.USB_INTERFACE_TITLE}###usb_interface"
         if self._usb_interface_open and not self._usb_interface_shown:
             imgui.open_popup(title)
@@ -2086,8 +2171,13 @@ class ConnectionPlugin:
                 imgui.text(
                     S.USB_MASK_VERSION.format(mask=mask_version_text(info.mask_version))
                 )
+            imgui.text(S.USB_MEDIUM.format(medium=medium_name(info.medium)))
         imgui.separator()
-        busy = self._usb_address_busy or self._usb_address_checking
+        busy = (
+            self._usb_address_busy
+            or self._usb_address_checking
+            or self._usb_domain_busy
+        )
         imgui.begin_disabled(busy or not self.connected)
         imgui.align_text_to_frame_padding()
         imgui.text(S.USB_ADDRESS_LABEL)
@@ -2145,10 +2235,81 @@ class ConnectionPlugin:
             )
             imgui.text_wrapped(S.USB_ADDRESS_HINT_VOLATILE)
             imgui.pop_style_color()
+        if info is not None and info.medium is KNXMedium.RF:
+            self._render_usb_domain_address(info.rf_domain_address, busy)
         if dialog_buttons(S.USB_INTERFACE_CLOSE) == 0:
             self._usb_interface_open = False
             imgui.close_current_popup()
         end_dialog()
+
+    def _render_usb_domain_address(self, current: bytes | None, busy: bool) -> None:
+        """The domain address row of the USB Interface dialog, for a KNX RF interface."""
+        imgui.separator()
+        imgui.begin_disabled(busy or not self.connected)
+        imgui.align_text_to_frame_padding()
+        imgui.text(S.USB_DOMAIN_ADDRESS_LABEL)
+        imgui.same_line()
+        imgui.set_next_item_width(px(130))
+        entered, self._usb_domain_text = imgui.input_text(
+            "##usb_domain",
+            self._usb_domain_text,
+            imgui.InputTextFlags_.enter_returns_true,
+        )
+        changed = self._usb_domain_text.strip().upper() != rf_domain_address_text(
+            current
+        )
+        imgui.begin_disabled(not changed)
+        applied = _row_button(f"{S.USB_ADDRESS_APPLY}##usb_domain_apply")
+        imgui.end_disabled()
+        if applied or (entered and changed):
+            self._start_usb_domain_address()
+        lines = self.project_rf_domain_addresses()
+        if lines:
+            imgui.align_text_to_frame_padding()
+            imgui.text(S.USB_DOMAIN_ADDRESS_FROM_LINE)
+            imgui.same_line()
+            imgui.set_next_item_width(min(px(260), imgui.get_content_region_avail().x))
+            if begin_combo("##usb_domain_line", ""):
+                for index, (label, text) in enumerate(lines):
+                    item = f"{label}  ({text})##usb_domain_line_{index}"
+                    if imgui.selectable(item, text == self._usb_domain_text)[0]:
+                        self._usb_domain_text = text
+                end_combo()
+        imgui.end_disabled()
+        if self._usb_domain_busy:
+            loading("##usb_domain_spinner", S.USB_DOMAIN_ADDRESS_SETTING)
+        elif self._usb_domain_error:
+            imgui.push_style_color(imgui.Col_.text, status_color("error"))
+            imgui.text_wrapped(self._usb_domain_error)
+            imgui.pop_style_color()
+        imgui.push_style_color(
+            imgui.Col_.text, imgui.get_style().color_(imgui.Col_.text_disabled)
+        )
+        imgui.text_wrapped(S.USB_DOMAIN_ADDRESS_HINT)
+        imgui.pop_style_color()
+
+    def _start_usb_domain_address(self) -> None:
+        """Set the domain address in the dialog's field; a reason it can't is shown there."""
+        try:
+            self.set_usb_interface_domain_address(self._usb_domain_text)
+        except ValueError as err:
+            self._usb_domain_error = str(err)
+
+    def project_rf_domain_addresses(self) -> list[tuple[str, str]]:
+        """The RF lines of the open project with a domain address, as (line, domain address)
+        pairs: the line's address and name, and its domain address as lines show it."""
+        project = self._api.project
+        result: list[tuple[str, str]] = []
+        for area in project.get_areas():
+            for line in project.get_lines(area.id):
+                if line.medium_type != MEDIUM_RF or line.domain_address is None:
+                    continue
+                address = f"{area.area_number}.{line.line_number}"
+                label = f"{address} {line.name}".strip()
+                result.append(
+                    (label, format_domain_address(MEDIUM_RF, line.domain_address))
+                )
+        return result
 
     def _start_usb_address(self, start: Callable[[str], Future[Any]]) -> None:
         """Set or check the address in the dialog's field; a reason it can't is shown there."""

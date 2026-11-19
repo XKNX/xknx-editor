@@ -137,6 +137,13 @@ def _forget_stored_language() -> None:
         (config_dir() / f"{_CATALOG_SETTINGS}.json").unlink()
 
 
+def _capability_name(value: object) -> str | None:
+    """The XML name of an RF capability enum value."""
+    if value is None:
+        return None
+    return str(getattr(value, "value", value))
+
+
 class CatalogService:
     def __init__(
         self,
@@ -163,6 +170,7 @@ class CatalogService:
         self._factory_images: dict[str, FactoryData | None] = {}
         # Second application programs (PEI programs) by hardware program id, read once.
         self._second_applications: dict[str, Application | None] = {}
+        self._rf_capabilities: dict[str, tuple[str | None, str | None]] = {}
         # Shared with the project service so a background import can hold both while it writes.
         self._io_lock = io_lock or threading.RLock()
         # Manufacturer list from the KNX online catalog service (cached next to the db), named from
@@ -610,6 +618,35 @@ class CatalogService:
                 return hardware.hardware[hardware_id].raw.is_power_line_repeater
         raise ValueError("Powerline hardware program is missing")
 
+    @io_guarded(lambda: (None, None))
+    def rf_capabilities(
+        self, hardware2program_id: str
+    ) -> tuple[str | None, str | None]:
+        """The KNX RF capabilities of a hardware program, as its ``RFTxCapabilities`` and
+        ``RFRxCapabilities`` name them (e.g. ``Ready``, ``ReadyFastSlow``); ``None`` when it has
+        none or the catalog lacks it. Read from the product's archive, cached."""
+        cached = self._rf_capabilities.get(hardware2program_id)
+        if cached is not None:
+            return cached
+        from xknxeditor.prod import parse_hardware_xml
+        from xknxeditor.prod.archive import Archive
+
+        result: tuple[str | None, str | None] = (None, None)
+        source = self.get_program_source(hardware2program_id)
+        if source is not None:
+            path, manufacturer = source
+            with Archive(path, require_catalog=False) as archive:
+                hardware = parse_hardware_xml(archive.get_hardware_xml(manufacturer))
+            program = hardware.programs.get(hardware2program_id)
+            if program is not None:
+                raw = program.raw
+                result = (
+                    _capability_name(raw.rftx_capabilities),
+                    _capability_name(raw.rfrx_capabilities),
+                )
+        self._rf_capabilities[hardware2program_id] = result
+        return result
+
     @io_guarded(lambda: None)
     def ip_config(self, hardware2program_id: str) -> str | None:
         """Who sets the IP configuration of a product's application: "Tool" or "Custom"
@@ -675,3 +712,4 @@ class CatalogService:
         self._programs = {}
         self._replaces = {}
         self._sources = {}
+        self._rf_capabilities = {}

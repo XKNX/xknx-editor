@@ -328,3 +328,30 @@ msgstr "応答タイムアウト（秒）"
 
 msgid "How long to wait for a device's answer, e.g. to a memory or property read."
 msgstr "メモリやプロパティの読み取りなど、デバイスの応答を待つ時間です。"
+
+msgid "Medium: {medium}"
+msgstr "ミディアム: {medium}"
+
+msgid "Domain Address"
+msgstr "ドメインアドレス"
+
+msgid "From Line"
+msgstr "ラインから"
+
+msgid "The interface sends with this domain address and receives only the telegrams of devices with it."
+msgstr "インターフェースはこのドメインアドレスで送信し、このアドレスを持つデバイスのテレグラムのみを受信します。"
+
+msgid "{address} is not an RF domain address (4 and 8 hexadecimal digits, e.g. 0001:23456789)."
+msgstr "{address} は RF ドメインアドレスではありません（4 桁と 8 桁の 16 進数、例: 0001:23456789）。"
+
+msgid "The domain address of the interface is being set."
+msgstr "インターフェースのドメインアドレスを設定中です。"
+
+msgid "The connected USB interface is not a KNX RF interface."
+msgstr "接続されている USB インターフェースは KNX RF インターフェースではありません。"
+
+msgid "The domain address could not be set: {error}"
+msgstr "ドメインアドレスを設定できませんでした: {error}"
+
+msgid "Setting the domain address…"
+msgstr "ドメインアドレスを設定しています…"

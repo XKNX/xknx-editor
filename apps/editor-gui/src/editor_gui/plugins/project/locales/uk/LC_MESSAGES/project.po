@@ -3756,3 +3756,9 @@ msgstr "Інтерфейс не підтвердив надсилання вча
 
 msgid "A slow connection, such as a remote tunnel or a VPN, needs longer waits: raise the Confirmation Timeout in Settings > Connection."
 msgstr "Повільному підключенню, наприклад віддаленому тунелю або VPN, потрібне довше очікування: збільште тайм-аут підтвердження в розділі Налаштування > Підключення."
+
+msgid "The communication path through the coupler {coupler} could not be opened ({detail}). Check the coupler and its security settings."
+msgstr "Не вдалося відкрити шлях зв'язку через з'єднувач {coupler} ({detail}). Перевірте з'єднувач і його налаштування безпеки."
+
+msgid "The domain address of this secure device could not be loaded because the coupler {coupler} does not support security."
+msgstr "Не вдалося завантажити адресу домену цього захищеного пристрою, оскільки з'єднувач {coupler} не підтримує захист."

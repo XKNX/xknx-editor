@@ -167,3 +167,25 @@ async def test_the_question_waits_for_the_answer() -> None:
     question.set_result(True)
     assert await ask is True
     assert item.full_download_question is None
+
+
+def test_a_coupler_on_the_way_that_could_not_be_prepared_is_named() -> None:
+    from xknx.telegram import IndividualAddress
+
+    from xknxeditor.download.communication_path import CommunicationPathError
+
+    error = CommunicationPathError(IndividualAddress("1.2.0"), "no answer")
+    item = _finish(error, _error_text, None, _describe)
+    assert item.message == S.COMMUNICATION_PATH_NOT_OPENED.format(
+        coupler="1.2.0", detail="no answer"
+    )
+
+
+def test_a_coupler_that_stops_the_secured_domain_address_is_named() -> None:
+    from xknx.telegram import IndividualAddress
+
+    from xknxeditor.download.communication_path import SecureSystemBroadcastBlocked
+
+    error = SecureSystemBroadcastBlocked(IndividualAddress("1.0.0"))
+    item = _finish(error, _error_text, None, _describe)
+    assert item.message == S.SECURE_SYSTEM_BROADCAST_BLOCKED.format(coupler="1.0.0")

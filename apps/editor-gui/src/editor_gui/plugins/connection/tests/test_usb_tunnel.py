@@ -418,10 +418,11 @@ class TestUSBTunnel:
         )
         return CEMIFrame(code=CEMIMessageCode.L_DATA_REQ, data=secure_data)
 
-    async def test_backends_imported_on_the_loop_thread(
-        self, fake_hid: FakeHIDModule, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
-        """Test hidapi is imported on the event loop's thread, not in the executor."""
+    @staticmethod
+    def _note_hid_imports(
+        fake_hid: FakeHIDModule, monkeypatch: pytest.MonkeyPatch
+    ) -> list[threading.Thread]:
+        """Make `hid` importable as the fake module again; return the importing threads."""
         threads: list[threading.Thread] = []
 
         class Loader(importlib.abc.Loader):
@@ -451,12 +452,80 @@ class TestUSBTunnel:
 
         monkeypatch.delitem(sys.modules, "hid")
         monkeypatch.setattr(sys, "meta_path", [Finder(), *sys.meta_path])
+        return threads
+
+    async def test_backends_imported_on_a_kept_thread_on_macos(
+        self, fake_hid: FakeHIDModule, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Test hidapi is first imported on a thread that is kept, on macOS."""
+        threads = self._note_hid_imports(fake_hid, monkeypatch)
+        monkeypatch.setattr(sys, "platform", "darwin")
         tunnel = self.tunnel()
         await tunnel.connect()
         await tunnel.disconnect()
-        # on macOS hidapi crashes the interpreter at exit when imported in a thread
-        # that has ended by then
+        await tunnel.connect()
+        await tunnel.disconnect()
+        # hidapi crashes the interpreter at exit when the thread that imported it has
+        # ended by then: imported once, on a daemon thread that is still running
+        assert len(threads) == 1
+        thread = threads[0]
+        assert thread.name == "xknx-hid-import"
+        assert thread.daemon
+        assert thread.is_alive()
+        assert thread is not threading.current_thread()
+
+    def test_backends_imported_on_the_calling_thread_elsewhere(
+        self, fake_hid: FakeHIDModule, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Test hidapi is imported on the calling thread on other platforms."""
+        threads = self._note_hid_imports(fake_hid, monkeypatch)
+        monkeypatch.setattr(sys, "platform", "linux")
+        assert hid_device._backend("hid") is fake_hid
         assert threads == [threading.current_thread()]
+
+    def test_backend_imported_meanwhile_on_macos(
+        self, fake_hid: FakeHIDModule, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Test an import waiting for the lock uses the module another thread imported."""
+        threads = self._note_hid_imports(fake_hid, monkeypatch)
+        monkeypatch.setattr(sys, "platform", "darwin")
+
+        class ImportedMeanwhile:
+            """A lock another thread held while it imported hidapi."""
+
+            def __enter__(self) -> None:
+                sys.modules["hid"] = fake_hid
+
+            def __exit__(self, *args: object) -> None:
+                """Release nothing."""
+
+        monkeypatch.setattr(hid_device, "_IMPORT_LOCK", ImportedMeanwhile())
+        assert hid_device._backend("hid") is fake_hid
+        # found imported: no thread of its own
+        assert not threads
+
+    def test_missing_backend_on_macos(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        """Test a missing hidapi is reported from the import thread on macOS."""
+
+        class Missing(importlib.abc.MetaPathFinder):
+            """Fail the import of hidapi as if it was not installed."""
+
+            def find_spec(
+                self,
+                fullname: str,
+                path: Sequence[str] | None,
+                target: ModuleType | None = None,
+            ) -> ModuleSpec | None:
+                """Raise for `hid`."""
+                if fullname != "hid":
+                    return None
+                raise ModuleNotFoundError(fullname)
+
+        monkeypatch.setattr(sys, "platform", "darwin")
+        monkeypatch.delitem(sys.modules, "hid", raising=False)
+        monkeypatch.setattr(sys, "meta_path", [Missing(), *sys.meta_path])
+        with pytest.raises(CommunicationError, match="pip install xknx"):
+            hid_device._backend("hid")
 
     @pytest.mark.parametrize(("address", "warned"), [(b"\x0c", False), (b"\x02", True)])
     async def test_data_secure_keyring_address(
@@ -995,6 +1064,7 @@ class TestDiscovery:
         assert not find_usb_interfaces(path=b"kbd")
         assert not find_usb_interfaces(serial_number="nope")
         assert is_knx_usb_interface(0x135E, 0x0022)
+        assert is_knx_usb_interface(0x28C2, 0x001E)
         assert not is_knx_usb_interface(0x135E, 0x4711)
         assert not is_knx_usb_interface(0x16DE, 0x0001)
 

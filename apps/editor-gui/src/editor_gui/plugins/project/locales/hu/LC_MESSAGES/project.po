@@ -3679,3 +3679,9 @@ msgstr "Az interfész nem erősítette meg időben a küldést ({detail})."
 
 msgid "A slow connection, such as a remote tunnel or a VPN, needs longer waits: raise the Confirmation Timeout in Settings > Connection."
 msgstr "Egy lassú kapcsolatnak, például egy távoli alagútnak vagy VPN-nek hosszabb várakozás kell: növelje a Megerősítés időkorlátját a Beállítások > Kapcsolat alatt."
+
+msgid "The communication path through the coupler {coupler} could not be opened ({detail}). Check the coupler and its security settings."
+msgstr "A(z) {coupler} csatolón keresztüli kommunikációs útvonalat nem sikerült megnyitni ({detail}). Ellenőrizze a csatolót és annak biztonsági beállításait."
+
+msgid "The domain address of this secure device could not be loaded because the coupler {coupler} does not support security."
+msgstr "Ennek a biztonságos eszköznek a tartománycímét nem sikerült betölteni, mert a(z) {coupler} csatoló nem támogatja a biztonságot."

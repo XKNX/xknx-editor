@@ -328,3 +328,30 @@ msgstr "Yanıt Zaman Aşımı (Saniye)"
 
 msgid "How long to wait for a device's answer, e.g. to a memory or property read."
 msgstr "Bir cihazın yanıtı için ne kadar bekleneceği, ör. bellek veya özellik okumasına."
+
+msgid "Medium: {medium}"
+msgstr "Ortam: {medium}"
+
+msgid "Domain Address"
+msgstr "Domain Adres"
+
+msgid "From Line"
+msgstr "Linyeden"
+
+msgid "The interface sends with this domain address and receives only the telegrams of devices with it."
+msgstr "Arayüz bu domain adresiyle gönderir ve yalnızca bu adrese sahip cihazların telgraflarını alır."
+
+msgid "{address} is not an RF domain address (4 and 8 hexadecimal digits, e.g. 0001:23456789)."
+msgstr "{address} bir RF domain adresi değil (4 ve 8 onaltılık basamak, ör. 0001:23456789)."
+
+msgid "The domain address of the interface is being set."
+msgstr "Arayüzün domain adresi ayarlanıyor."
+
+msgid "The connected USB interface is not a KNX RF interface."
+msgstr "Bağlı USB arayüzü bir KNX RF arayüzü değil."
+
+msgid "The domain address could not be set: {error}"
+msgstr "Domain adresi ayarlanamadı: {error}"
+
+msgid "Setting the domain address…"
+msgstr "Domain adresi ayarlanıyor…"

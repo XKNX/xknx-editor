@@ -717,6 +717,8 @@ async def download(
     security: DeviceSecurity | None = None,
     commission: bool = False,
     commission_serial_number: bytes | None = None,
+    commission_domain_address: bytes | None = None,
+    commission_ip_system_broadcast: bool = False,
     progress: Callable[[int, int], None] | None = None,
     confirm_full_download: Callable[[str], Awaitable[bool]] | None = None,
     ip_config: IpDeviceConfig | None = None,
@@ -758,7 +760,11 @@ async def download(
     :data:`~.scope.DownloadScope.FULL` download, if no device answers at
     ``individual_address``, the address is written to the single device currently
     in programming mode before the application is downloaded - or, with
-    ``commission_serial_number``, to the device with that KNX serial number.
+    ``commission_serial_number``, to the device with that KNX serial number. A KNX RF
+    device gets ``commission_domain_address`` as well (see :mod:`.rf_commissioning`), secured
+    with ``security`` when it is addressed by serial number; a KNX IP device its routing
+    multicast address (also with the backbone key) by serial number, by system broadcast with
+    ``commission_ip_system_broadcast``.
     Without it, the device must already carry ``individual_address`` (a partial
     download always requires that). ``xknx`` has to be started.
 
@@ -883,7 +889,12 @@ async def download(
         from .commissioning import program_individual_address
 
         await program_individual_address(
-            xknx, address, serial_number=commission_serial_number
+            xknx,
+            address,
+            serial_number=commission_serial_number,
+            domain_address=commission_domain_address,
+            security=security,
+            ip_system_broadcast=commission_ip_system_broadcast,
         )
     if prepared is not None:
         await _check_prepared_association_format(xknx, address, security, prepared)

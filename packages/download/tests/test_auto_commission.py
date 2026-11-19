@@ -32,6 +32,7 @@ async def _run(
     commission: bool,
     secure: bool = False,
     memory_progress: Any = None,
+    domain_address: bytes | None = None,
 ) -> list[str]:
     """Run ``download`` with the network stack faked out, returning the event trace."""
     trace: list[str] = []
@@ -41,9 +42,17 @@ async def _run(
         return present
 
     async def fake_program(
-        xknx: XKNX, address: Any, *, serial_number: bytes | None = None
+        xknx: XKNX,
+        address: Any,
+        *,
+        serial_number: bytes | None = None,
+        domain_address: bytes | None = None,
+        security: Any = None,
+        ip_system_broadcast: bool = False,
     ) -> None:
         trace.append(f"assign:{address}")
+        if domain_address is not None:
+            trace.append(f"domain:{domain_address.hex()}")
 
     async def fake_after_unload(
         *args: Any, unload_address: bool, **kwargs: Any
@@ -95,6 +104,7 @@ async def _run(
         image=cast("Any", object()),
         scope=scope,
         commission=commission,
+        commission_domain_address=domain_address,
         memory_progress=memory_progress,
     )
     return trace
@@ -107,6 +117,24 @@ async def test_full_download_assigns_address_when_absent(
         monkeypatch, present=False, scope=DownloadScope.FULL, commission=True
     )
     assert trace == ["probe", "assign:1.1.24", "run"]
+
+
+async def test_full_download_gives_a_new_rf_device_its_domain_address(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    trace = await _run(
+        monkeypatch,
+        present=False,
+        scope=DownloadScope.FULL,
+        commission=True,
+        domain_address=bytes.fromhex("00fa12345678"),
+    )
+    assert trace == [
+        "probe",
+        "assign:1.1.24",
+        "domain:00fa12345678",
+        "run",
+    ]
 
 
 async def test_full_download_skips_assign_when_present(

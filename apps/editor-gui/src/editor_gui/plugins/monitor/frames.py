@@ -24,9 +24,12 @@ from editor_gui.plugins.connection.busmonitor import (
     L_BUSMON_IND,
     CEMIBusmonitorStatus,
     CEMIInfo,
+    RFDataFrame,
     TP1Acknowledgement,
     TP1DataFrame,
     busmon_frame_from_knx,
+    is_rf_frame,
+    parse_rf_frame,
     parse_tp1_frame,
 )
 
@@ -80,6 +83,8 @@ class FrameInfo:
     # Bus monitor details.
     busmon_info: CEMIInfo | None = None
     tp1: TP1DataFrame | None = None
+    # A KNX RF frame of the bus monitor.
+    rf: RFDataFrame | None = None
     ack: TP1Acknowledgement | None = None
     # The frame could not be decoded (truncated or unknown).
     malformed: bool = False
@@ -155,7 +160,8 @@ class FrameInfo:
 
     @property
     def checksum_error(self) -> bool:
-        return self.tp1 is not None and not self.tp1.checksum_valid
+        frame = self.tp1 or self.rf
+        return frame is not None and not frame.checksum_valid
 
     @property
     def is_group_value_service(self) -> bool:
@@ -282,8 +288,13 @@ def decode_cemi(raw: bytes) -> FrameInfo | None:
 
 def _decode_busmon(raw: bytes) -> FrameInfo:
     busmon = busmon_frame_from_knx(raw)
+    raw_frame = busmon.data.raw_frame
     try:
-        decoded = parse_tp1_frame(busmon.data.raw_frame)
+        decoded = (
+            parse_rf_frame(raw_frame)
+            if is_rf_frame(raw_frame)
+            else parse_tp1_frame(raw_frame)
+        )
     except XKNXException:
         return FrameInfo(
             message_code=L_BUSMON_IND, busmon_info=busmon.info, malformed=True
@@ -304,7 +315,8 @@ def _decode_busmon(raw: bytes) -> FrameInfo:
         apci=info.apci,
         apci_code=info.apci_code,
         busmon_info=busmon.info,
-        tp1=decoded,
+        tp1=decoded if isinstance(decoded, TP1DataFrame) else None,
+        rf=decoded if isinstance(decoded, RFDataFrame) else None,
         decrypted=info.decrypted,
     )
 

@@ -3739,3 +3739,9 @@ msgstr "De interface heeft het verzenden niet op tijd bevestigd ({detail})."
 
 msgid "A slow connection, such as a remote tunnel or a VPN, needs longer waits: raise the Confirmation Timeout in Settings > Connection."
 msgstr "Een trage verbinding, zoals een tunnel op afstand of een VPN, heeft langere wachttijden nodig: verhoog de Time-out bevestiging in Instellingen > Verbinding."
+
+msgid "The communication path through the coupler {coupler} could not be opened ({detail}). Check the coupler and its security settings."
+msgstr "Het communicatiepad via de koppelaar {coupler} kon niet worden geopend ({detail}). Controleer de koppelaar en de beveiligingsinstellingen ervan."
+
+msgid "The domain address of this secure device could not be loaded because the coupler {coupler} does not support security."
+msgstr "Het domeinadres van dit beveiligde apparaat kon niet worden geladen, omdat de koppelaar {coupler} geen beveiliging ondersteunt."

@@ -3704,3 +3704,9 @@ msgstr "Interfacet bekræftede ikke afsendelsen i tide ({detail})."
 
 msgid "A slow connection, such as a remote tunnel or a VPN, needs longer waits: raise the Confirmation Timeout in Settings > Connection."
 msgstr "En langsom forbindelse, f.eks. en fjerntunnel eller et VPN, kræver længere ventetider: øg Timeout for bekræftelse under Indstillinger > Forbindelse."
+
+msgid "The communication path through the coupler {coupler} could not be opened ({detail}). Check the coupler and its security settings."
+msgstr "Kommunikationsvejen gennem kobleren {coupler} kunne ikke åbnes ({detail}). Kontrollér kobleren og dens sikkerhedsindstillinger."
+
+msgid "The domain address of this secure device could not be loaded because the coupler {coupler} does not support security."
+msgstr "Domæneadressen for denne sikre enhed kunne ikke indlæses, fordi kobleren {coupler} ikke understøtter sikkerhed."

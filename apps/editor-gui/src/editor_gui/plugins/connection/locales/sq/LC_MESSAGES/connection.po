@@ -329,3 +329,30 @@ msgstr "Afati i përgjigjes (sekonda)"
 
 msgid "How long to wait for a device's answer, e.g. to a memory or property read."
 msgstr "Sa gjatë pritet përgjigjja e një pajisjeje, p.sh. për një lexim të memories ose të një vetie."
+
+msgid "Medium: {medium}"
+msgstr "Mediumi: {medium}"
+
+msgid "Domain Address"
+msgstr "Adresa e domenit"
+
+msgid "From Line"
+msgstr "Nga Linja"
+
+msgid "The interface sends with this domain address and receives only the telegrams of devices with it."
+msgstr "Ndërfaqja dërgon me këtë adresë domeni dhe merr vetëm telegramet e pajisjeve që e kanë atë."
+
+msgid "{address} is not an RF domain address (4 and 8 hexadecimal digits, e.g. 0001:23456789)."
+msgstr "{address} nuk është adresë domeni RF (4 dhe 8 shifra heksadecimale, p.sh. 0001:23456789)."
+
+msgid "The domain address of the interface is being set."
+msgstr "Adresa e domenit të ndërfaqes po vendoset."
+
+msgid "The connected USB interface is not a KNX RF interface."
+msgstr "Ndërfaqja USB e lidhur nuk është ndërfaqe KNX RF."
+
+msgid "The domain address could not be set: {error}"
+msgstr "Adresa e domenit nuk mund të vendosej: {error}"
+
+msgid "Setting the domain address…"
+msgstr "Po vendoset adresa e domenit…"

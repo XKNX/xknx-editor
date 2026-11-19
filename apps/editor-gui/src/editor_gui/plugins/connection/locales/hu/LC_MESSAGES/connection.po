@@ -328,3 +328,30 @@ msgstr "Válasz időkorlátja (másodperc)"
 
 msgid "How long to wait for a device's answer, e.g. to a memory or property read."
 msgstr "Mennyi ideig kell várni egy eszköz válaszára, pl. memória vagy tulajdonság olvasására."
+
+msgid "Medium: {medium}"
+msgstr "Átviteli közeg: {medium}"
+
+msgid "Domain Address"
+msgstr "Domaincím"
+
+msgid "From Line"
+msgstr "Vonalból"
+
+msgid "The interface sends with this domain address and receives only the telegrams of devices with it."
+msgstr "Az interfész ezzel a domaincímmel küld, és csak az ezzel rendelkező eszközök táviratait fogadja."
+
+msgid "{address} is not an RF domain address (4 and 8 hexadecimal digits, e.g. 0001:23456789)."
+msgstr "A(z) {address} nem RF domaincím (4 és 8 hexadecimális számjegy, pl. 0001:23456789)."
+
+msgid "The domain address of the interface is being set."
+msgstr "Az interfész domaincímének beállítása folyamatban van."
+
+msgid "The connected USB interface is not a KNX RF interface."
+msgstr "A csatlakoztatott USB-interfész nem KNX RF interfész."
+
+msgid "The domain address could not be set: {error}"
+msgstr "A domaincímet nem sikerült beállítani: {error}"
+
+msgid "Setting the domain address…"
+msgstr "A domaincím beállítása…"

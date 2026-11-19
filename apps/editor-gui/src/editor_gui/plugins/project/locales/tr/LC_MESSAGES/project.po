@@ -3652,3 +3652,9 @@ msgstr "Arabirim gönderimi zamanında onaylamadı ({detail})."
 
 msgid "A slow connection, such as a remote tunnel or a VPN, needs longer waits: raise the Confirmation Timeout in Settings > Connection."
 msgstr "Uzak bir tünel veya VPN gibi yavaş bir bağlantı daha uzun bekleme gerektirir: Ayarlar > Bağlantı altında Onay Zaman Aşımı'nı artırın."
+
+msgid "The communication path through the coupler {coupler} could not be opened ({detail}). Check the coupler and its security settings."
+msgstr "{coupler} kuplörü üzerinden iletişim yolu açılamadı ({detail}). Kuplörü ve güvenlik ayarlarını kontrol edin."
+
+msgid "The domain address of this secure device could not be loaded because the coupler {coupler} does not support security."
+msgstr "{coupler} kuplörü güvenliği desteklemediği için bu güvenli cihazın alan adresi yüklenemedi."

@@ -329,3 +329,30 @@ msgstr "Tímamörk svars (sekúndur)"
 
 msgid "How long to wait for a device's answer, e.g. to a memory or property read."
 msgstr "Hversu lengi er beðið eftir svari tækis, t.d. við lestri minnis eða eiginleika."
+
+msgid "Medium: {medium}"
+msgstr "Miðill: {medium}"
+
+msgid "Domain Address"
+msgstr "Lénsvistfang"
+
+msgid "From Line"
+msgstr "Frá Línu"
+
+msgid "The interface sends with this domain address and receives only the telegrams of devices with it."
+msgstr "Viðmótið sendir með þessu lénsvistfangi og tekur aðeins við skeytum frá tækjum sem hafa það."
+
+msgid "{address} is not an RF domain address (4 and 8 hexadecimal digits, e.g. 0001:23456789)."
+msgstr "{address} er ekki RF-lénsvistfang (4 og 8 sextándakerfistölustafir, t.d. 0001:23456789)."
+
+msgid "The domain address of the interface is being set."
+msgstr "Verið er að stilla lénsvistfang viðmótsins."
+
+msgid "The connected USB interface is not a KNX RF interface."
+msgstr "Tengda USB-viðmótið er ekki KNX RF-viðmót."
+
+msgid "The domain address could not be set: {error}"
+msgstr "Ekki tókst að stilla lénsvistfangið: {error}"
+
+msgid "Setting the domain address…"
+msgstr "Stillir lénsvistfangið…"

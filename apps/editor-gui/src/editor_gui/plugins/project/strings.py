@@ -4469,6 +4469,22 @@ class ProjectStrings:
         return _("The interface did not confirm sending in time ({detail}).")
 
     @property
+    def SECURE_SYSTEM_BROADCAST_BLOCKED(self) -> str:
+        # {coupler}: the individual address of the coupler on the way to the device
+        return _(
+            "The domain address of this secure device could not be loaded because the coupler "
+            "{coupler} does not support security."
+        )
+
+    @property
+    def COMMUNICATION_PATH_NOT_OPENED(self) -> str:
+        # {coupler}: the individual address of a coupler on the way to the device; {detail}: why
+        return _(
+            "The communication path through the coupler {coupler} could not be opened "
+            "({detail}). Check the coupler and its security settings."
+        )
+
+    @property
     def SLOW_CONNECTION_HINT(self) -> str:
         return _(
             "A slow connection, such as a remote tunnel or a VPN, needs longer waits: "

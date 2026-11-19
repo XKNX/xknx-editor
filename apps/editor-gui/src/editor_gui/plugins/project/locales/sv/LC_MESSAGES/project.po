@@ -3704,3 +3704,9 @@ msgstr "Gränssnittet bekräftade inte sändningen i tid ({detail})."
 
 msgid "A slow connection, such as a remote tunnel or a VPN, needs longer waits: raise the Confirmation Timeout in Settings > Connection."
 msgstr "En långsam anslutning, t.ex. en fjärrtunnel eller ett VPN, behöver längre väntetider: höj Tidsgräns för bekräftelse under Inställningar > Anslutning."
+
+msgid "The communication path through the coupler {coupler} could not be opened ({detail}). Check the coupler and its security settings."
+msgstr "Kommunikationsvägen genom kopplaren {coupler} kunde inte öppnas ({detail}). Kontrollera kopplaren och dess säkerhetsinställningar."
+
+msgid "The domain address of this secure device could not be loaded because the coupler {coupler} does not support security."
+msgstr "Domänadressen för den här säkra enheten kunde inte läsas in eftersom kopplaren {coupler} inte stöder säkerhet."

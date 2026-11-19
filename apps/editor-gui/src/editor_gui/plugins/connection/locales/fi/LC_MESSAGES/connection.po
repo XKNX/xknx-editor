@@ -329,3 +329,30 @@ msgstr "Vastauksen aikakatkaisu (sekuntia)"
 
 msgid "How long to wait for a device's answer, e.g. to a memory or property read."
 msgstr "Kuinka kauan odotetaan laitteen vastausta, esim. muistin tai ominaisuuden lukuun."
+
+msgid "Medium: {medium}"
+msgstr "Media: {medium}"
+
+msgid "Domain Address"
+msgstr "Toimialue Osoite"
+
+msgid "From Line"
+msgstr "Linjalta"
+
+msgid "The interface sends with this domain address and receives only the telegrams of devices with it."
+msgstr "Liitäntä lähettää tällä toimialueen osoitteella ja vastaanottaa vain niiden laitteiden sähkeet, joilla se on."
+
+msgid "{address} is not an RF domain address (4 and 8 hexadecimal digits, e.g. 0001:23456789)."
+msgstr "{address} ei ole RF-toimialueen osoite (4 ja 8 heksadesimaalinumeroa, esim. 0001:23456789)."
+
+msgid "The domain address of the interface is being set."
+msgstr "Liitännän toimialueen osoitetta asetetaan parhaillaan."
+
+msgid "The connected USB interface is not a KNX RF interface."
+msgstr "Liitetty USB-liitäntä ei ole KNX RF -liitäntä."
+
+msgid "The domain address could not be set: {error}"
+msgstr "Toimialueen osoitetta ei voitu asettaa: {error}"
+
+msgid "Setting the domain address…"
+msgstr "Asetetaan toimialueen osoitetta…"

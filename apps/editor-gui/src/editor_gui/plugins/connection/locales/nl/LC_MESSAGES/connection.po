@@ -329,3 +329,30 @@ msgstr "Time-out antwoord (seconden)"
 
 msgid "How long to wait for a device's answer, e.g. to a memory or property read."
 msgstr "Hoe lang er wordt gewacht op het antwoord van een apparaat, bijv. op het lezen van geheugen of een eigenschap."
+
+msgid "Medium: {medium}"
+msgstr "Medium: {medium}"
+
+msgid "Domain Address"
+msgstr "Domeinadres"
+
+msgid "From Line"
+msgstr "Van Lijn"
+
+msgid "The interface sends with this domain address and receives only the telegrams of devices with it."
+msgstr "De interface verzendt met dit domeinadres en ontvangt alleen de telegrammen van apparaten die het hebben."
+
+msgid "{address} is not an RF domain address (4 and 8 hexadecimal digits, e.g. 0001:23456789)."
+msgstr "{address} is geen RF-domeinadres (4 en 8 hexadecimale cijfers, bijv. 0001:23456789)."
+
+msgid "The domain address of the interface is being set."
+msgstr "Het domeinadres van de interface wordt ingesteld."
+
+msgid "The connected USB interface is not a KNX RF interface."
+msgstr "De verbonden USB-interface is geen KNX RF-interface."
+
+msgid "The domain address could not be set: {error}"
+msgstr "Het domeinadres kon niet worden ingesteld: {error}"
+
+msgid "Setting the domain address…"
+msgstr "Domeinadres instellen…"

@@ -3783,3 +3783,9 @@ msgstr "Rozhranie nepotvrdilo odoslanie včas ({detail})."
 
 msgid "A slow connection, such as a remote tunnel or a VPN, needs longer waits: raise the Confirmation Timeout in Settings > Connection."
 msgstr "Pomalé pripojenie, napríklad vzdialený tunel alebo VPN, potrebuje dlhšie čakanie: zvýšte Časový limit potvrdenia v Nastavenia > Pripojenie."
+
+msgid "The communication path through the coupler {coupler} could not be opened ({detail}). Check the coupler and its security settings."
+msgstr "Komunikačnú cestu cez väzobný člen {coupler} sa nepodarilo otvoriť ({detail}). Skontrolujte väzobný člen a jeho nastavenia zabezpečenia."
+
+msgid "The domain address of this secure device could not be loaded because the coupler {coupler} does not support security."
+msgstr "Adresu domény tohto zabezpečeného zariadenia sa nepodarilo nahrať, pretože väzobný člen {coupler} nepodporuje zabezpečenie."

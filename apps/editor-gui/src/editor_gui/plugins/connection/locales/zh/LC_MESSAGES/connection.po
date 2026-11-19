@@ -328,3 +328,30 @@ msgstr "响应超时（秒）"
 
 msgid "How long to wait for a device's answer, e.g. to a memory or property read."
 msgstr "等待设备响应的时间，例如对内存或属性读取的响应。"
+
+msgid "Medium: {medium}"
+msgstr "介质: {medium}"
+
+msgid "Domain Address"
+msgstr "域地址"
+
+msgid "From Line"
+msgstr "来自支线"
+
+msgid "The interface sends with this domain address and receives only the telegrams of devices with it."
+msgstr "接口使用此域地址发送，并且只接收具有该域地址的设备的报文。"
+
+msgid "{address} is not an RF domain address (4 and 8 hexadecimal digits, e.g. 0001:23456789)."
+msgstr "{address} 不是 RF 域地址（4 位和 8 位十六进制数字，例如 0001:23456789）。"
+
+msgid "The domain address of the interface is being set."
+msgstr "正在设置接口的域地址。"
+
+msgid "The connected USB interface is not a KNX RF interface."
+msgstr "已连接的 USB 接口不是 KNX RF 接口。"
+
+msgid "The domain address could not be set: {error}"
+msgstr "无法设置域地址: {error}"
+
+msgid "Setting the domain address…"
+msgstr "正在设置域地址…"

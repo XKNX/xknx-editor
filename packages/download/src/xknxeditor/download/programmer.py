@@ -1459,7 +1459,14 @@ class DeviceProgrammer:
     async def function_property_raw(
         self, object_index: int, property_id: int, data: bytes, *, command: bool
     ) -> bytes:
-        """Return the result octets unchanged, including an empty response."""
+        """Return the result octets unchanged, including an empty response. An object past the
+        one-octet index (see :func:`extended_object_index`) takes A_FunctionPropertyExtCommand
+        or A_FunctionPropertyExtState_Read; its return code comes first all the same."""
+        target = extended_object(object_index)
+        if target is not None:
+            return await self._extended_function_property_raw(
+                target, property_id, data, command=command
+            )
         request: APCI = (
             FunctionPropertyCommand(
                 object_index=object_index, property_id=property_id, data=data
@@ -1479,6 +1486,46 @@ class DeviceProgrammer:
         if isinstance(payload, EmptyFunctionPropertyStateResponse):
             return b""
         return bytes([payload.return_code]) + payload.data
+
+    async def _extended_function_property_raw(
+        self, target: tuple[int, int], property_id: int, data: bytes, *, command: bool
+    ) -> bytes:
+        """:meth:`function_property_raw` over the extended services, for object type and
+        instance ``target``."""
+        object_type, instance = target
+        request: FunctionPropertyExtCommand | FunctionPropertyExtStateRead = (
+            FunctionPropertyExtCommand(
+                interface_object_type=object_type,
+                object_instance=instance,
+                property_id=property_id,
+                data=data,
+            )
+            if command
+            else FunctionPropertyExtStateRead(
+                interface_object_type=object_type,
+                object_instance=instance,
+                property_id=property_id,
+                data=data,
+            )
+        )
+        telegram = await self.connection.request(
+            request, FunctionPropertyExtStateResponse
+        )
+        payload = telegram.payload
+        if (
+            not isinstance(payload, FunctionPropertyExtStateResponse)
+            or payload.interface_object_type != object_type
+            or payload.object_instance != instance
+            or payload.property_id != property_id
+        ):
+            raise VerificationError(
+                f"no function property response for object type {object_type} "
+                f"instance {instance} property {property_id}"
+            )
+        # an enum member, or a function-specific code as an int (newer xknx)
+        raw = payload.return_code
+        code: int = raw if isinstance(raw, int) else raw.value
+        return bytes([code]) + payload.data
 
     async def read_user_memory(self, address: int, size: int) -> bytes:
         """Read ``size`` octets of the user memory with A_UserMemory_Read, whatever the

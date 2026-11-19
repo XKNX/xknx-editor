@@ -3338,6 +3338,10 @@ class ProjectPlugin:
         from xknx.exceptions import ManagementConnectionTimeout
 
         from editor_gui.plugins.connection.service import DeviceCertificateRequired
+        from xknxeditor.download.communication_path import (
+            CommunicationPathError,
+            SecureSystemBroadcastBlocked,
+        )
         from xknxeditor.download.errors import PartialDownloadError
         from xknxeditor.download.partial import (
             DifferentProgramLoaded,
@@ -3362,6 +3366,12 @@ class ProjectPlugin:
             )
         if confirmation_timed_out(error):
             return S.INTERFACE_NOT_CONFIRMING.format(detail=str(error))
+        if isinstance(error, SecureSystemBroadcastBlocked):
+            return S.SECURE_SYSTEM_BROADCAST_BLOCKED.format(coupler=str(error.coupler))
+        if isinstance(error, CommunicationPathError):
+            return S.COMMUNICATION_PATH_NOT_OPENED.format(
+                coupler=str(error.coupler), detail=error.reason
+            )
         return None
 
     def _describe_program_error(

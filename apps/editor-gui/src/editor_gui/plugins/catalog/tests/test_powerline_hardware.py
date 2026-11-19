@@ -32,3 +32,46 @@ def test_actual_hardware_repeater_flag(tmp_path, monkeypatch):
     monkeypatch.setattr(catalog, "get_program_source", lambda _: None)
     with pytest.raises(ValueError, match="data is missing"):
         catalog.hardware_is_powerline_repeater("missing")
+
+
+def test_the_rf_capabilities_of_a_hardware_program(tmp_path, monkeypatch):
+    from contextlib import nullcontext
+    from enum import Enum
+    from types import SimpleNamespace
+
+    import xknxeditor.prod as prod
+    import xknxeditor.prod.archive as archive
+
+    class Capability(Enum):
+        READY_FAST_SLOW = "ReadyFastSlow"
+
+    hardware = SimpleNamespace(
+        programs={
+            "P": SimpleNamespace(
+                raw=SimpleNamespace(
+                    rftx_capabilities=Capability.READY_FAST_SLOW, rfrx_capabilities=None
+                )
+            )
+        }
+    )
+    opened = []
+    monkeypatch.setattr(
+        archive,
+        "Archive",
+        lambda path, require_catalog: nullcontext(
+            SimpleNamespace(get_hardware_xml=lambda manufacturer: opened.append(path))
+        ),
+    )
+    monkeypatch.setattr(prod, "parse_hardware_xml", lambda xml: hardware)
+    catalog = CatalogService(tmp_path / "catalog.xknxcatalog")
+    monkeypatch.setattr(
+        catalog, "get_program_source", lambda _: ("product.knxprod", "M-0001")
+    )
+    assert catalog.rf_capabilities("P") == ("ReadyFastSlow", None)
+    # cached: the archive is read once
+    assert catalog.rf_capabilities("P") == ("ReadyFastSlow", None)
+    assert opened == ["product.knxprod"]
+    # a program the archive lacks, and one without a source
+    assert catalog.rf_capabilities("Q") == (None, None)
+    monkeypatch.setattr(catalog, "get_program_source", lambda _: None)
+    assert catalog.rf_capabilities("R") == (None, None)

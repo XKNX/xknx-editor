@@ -3756,3 +3756,9 @@ msgstr "Interfejs nie potwierdził wysłania na czas ({detail})."
 
 msgid "A slow connection, such as a remote tunnel or a VPN, needs longer waits: raise the Confirmation Timeout in Settings > Connection."
 msgstr "Wolne połączenie, np. zdalny tunel lub VPN, wymaga dłuższego czekania: zwiększ Limit czasu potwierdzenia w Ustawienia > Połączenie."
+
+msgid "The communication path through the coupler {coupler} could not be opened ({detail}). Check the coupler and its security settings."
+msgstr "Nie udało się otworzyć ścieżki komunikacji przez sprzęgło {coupler} ({detail}). Sprawdź sprzęgło i jego ustawienia zabezpieczeń."
+
+msgid "The domain address of this secure device could not be loaded because the coupler {coupler} does not support security."
+msgstr "Nie udało się załadować adresu domeny tego zabezpieczonego urządzenia, ponieważ sprzęgło {coupler} nie obsługuje zabezpieczeń."

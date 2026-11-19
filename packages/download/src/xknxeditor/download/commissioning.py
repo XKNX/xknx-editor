@@ -9,6 +9,9 @@ management procedures:
 - via serial number: the target device is addressed by its serial number, so no
   programming mode is required and several devices may be on the bus.
 
+A KNX RF device (``domain_address`` given) gets its domain address the same way, with system
+broadcasts (see :mod:`.rf_commissioning`).
+
 :func:`download_individual_address` is the stand-alone address download; it can
 also switch a device to programming mode by its current address first, to
 overwrite that address without pressing the programming button.
@@ -40,15 +43,28 @@ from xknx.telegram.address import IndividualAddress
 
 from xknxeditor.namespaces.intermediate.resource_name_t import ResourceName
 
+from .communication_path import (
+    BroadcastPath,
+    KnxMedium,
+    SecureSystemBroadcastBlocked,
+    broadcast_path,
+)
 from .errors import (
     AddressInUseError,
     ProgrammingModeError,
     SerialNumberNotFoundError,
     UnsupportedProcedureError,
 )
+from .rf_commissioning import (
+    domain_address_serial_number_write,
+    domain_and_individual_address_write2,
+    ip_addresses_by_serial_number,
+    secure_addresses_by_serial_number,
+)
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
+    from collections.abc import Awaitable, Callable, Coroutine
+    from typing import Any
 
     from xknx import XKNX
     from xknx.telegram.address import IndividualAddressableType
@@ -85,18 +101,190 @@ async def program_individual_address(
     individual_address: IndividualAddressableType,
     *,
     serial_number: bytes | None = None,
+    domain_address: bytes | None = None,
+    security: DeviceSecurity | None = None,
+    ip_system_broadcast: bool = False,
 ) -> None:
     """Program ``individual_address`` into a device.
 
     With ``serial_number`` the device is addressed by serial number; otherwise
-    the single device currently in programming mode is addressed. ``xknx`` has to
-    be started.
+    the single device currently in programming mode is addressed. A KNX RF device
+    gets ``domain_address`` first: by serial number with ``security`` secured with
+    KNX Data Secure. A KNX IP device gets its ``domain_address`` (see
+    :func:`.rf_commissioning.ip_domain_address`) by serial number only, by system broadcast
+    when it takes them (``ip_system_broadcast``). The couplers on the way pass the
+    broadcasts meanwhile (see :func:`.communication_path.broadcast_path`). ``xknx`` has to be
+    started.
     """
     address = IndividualAddress(individual_address)
+    medium = _domain_medium(domain_address, serial_number)
+    async with broadcast_path(
+        xknx,
+        address,
+        system_broadcast=_system_broadcast(medium, ip_system_broadcast),
+        medium=medium,
+    ) as path:
+        if medium is KnxMedium.IP and domain_address is not None:
+            assert serial_number is not None
+            await _ip_addresses(
+                xknx, address, domain_address, serial_number, security, path
+            )
+        elif domain_address is not None and medium is KnxMedium.RF:
+            await _program_rf_addresses(
+                xknx, address, domain_address, serial_number, security, path
+            )
+        elif serial_number is not None:
+            await nm_individual_address_serial_number_write(
+                xknx, serial_number, address
+            )
+        else:
+            await _write_address_via_programming_mode(xknx, address)
+
+
+async def _program_rf_addresses(
+    xknx: XKNX,
+    address: IndividualAddress,
+    domain_address: bytes,
+    serial_number: bytes | None,
+    security: DeviceSecurity | None,
+    path: BroadcastPath,
+) -> None:
+    """The domain and individual address of a KNX RF device for its first download; the plain
+    services as system broadcasts or broadcasts, as ``path`` says."""
+    system_broadcast = path.system_broadcast
     if serial_number is not None:
-        await nm_individual_address_serial_number_write(xknx, serial_number, address)
+        serial = serial_number
+
+        async def plain() -> None:
+            await domain_address_serial_number_write(
+                xknx, serial, domain_address, system_broadcast=system_broadcast
+            )
+            await nm_individual_address_serial_number_write(xknx, serial, address)
+
+        if security is None:
+            await plain()
+            return
+        await _secured(
+            path,
+            domain_address,
+            secure_addresses_by_serial_number(
+                xknx,
+                serial,
+                address,
+                security,
+                domain_address=domain_address,
+                system_broadcast=system_broadcast,
+            ),
+            plain,
+        )
         return
-    await _write_address_via_programming_mode(xknx, address)
+    # Left running, as the TP path, so the download can connect right away.
+    await domain_and_individual_address_write2(
+        xknx,
+        domain_address,
+        address,
+        restart=False,
+        system_broadcast=system_broadcast,
+        switch_rf_mode=path.switch_rf_mode,
+    )
+
+
+def _domain_medium(
+    domain_address: bytes | None, serial_number: bytes | None
+) -> KnxMedium:
+    """The medium of a device by its domain address: 6 octets KNX RF, 4 or 21 octets KNX IP
+    (written by serial number only, so without one the device is commissioned as on TP)."""
+    if domain_address is None:
+        return KnxMedium.TP
+    if len(domain_address) == 6:
+        return KnxMedium.RF
+    if len(domain_address) in (4, 21) and serial_number is not None:
+        return KnxMedium.IP
+    return KnxMedium.TP
+
+
+def _system_broadcast(medium: KnxMedium, ip_system_broadcast: bool) -> bool:
+    """Whether the commissioning services are system broadcasts: towards KNX RF, and towards a
+    KNX IP device that takes them."""
+    if medium is KnxMedium.RF:
+        return True
+    return medium is KnxMedium.IP and ip_system_broadcast
+
+
+async def _secured(
+    path: BroadcastPath,
+    domain_address: bytes | None,
+    secured: Coroutine[Any, Any, None],
+    plain: Callable[[], Awaitable[None]],
+) -> None:
+    """Run the ``secured`` commissioning. When the device answers none of its keys because a
+    coupler on the way does not pass secured system broadcasts, the addresses are written in
+    the clear (``plain``) instead; a domain address with a key (the backbone key of an IP
+    device) never is: :class:`SecureSystemBroadcastBlocked` names the coupler."""
+    from .data_secure import SecureProgrammingError
+
+    try:
+        await secured
+    except SecureProgrammingError:
+        blocker = path.secure_restriction
+        if blocker is None:
+            raise
+        if domain_address is not None and len(domain_address) == 21:
+            raise SecureSystemBroadcastBlocked(blocker) from None
+        logger.warning(
+            "The coupler %s does not pass secured system broadcasts: the addresses are "
+            "written in the clear",
+            blocker,
+        )
+        await plain()
+
+
+async def _ip_addresses(
+    xknx: XKNX,
+    address: IndividualAddress,
+    domain_address: bytes,
+    serial_number: bytes,
+    security: DeviceSecurity | None,
+    path: BroadcastPath,
+    address_in_use: Callable[[], Awaitable[bool]] | None = None,
+) -> None:
+    """The domain and individual address of a KNX IP device by serial number: secured with
+    ``security`` when given (the domain address with the backbone key is never written in the
+    clear), else in the clear."""
+    from .data_secure import SecureProgrammingError
+
+    async def plain() -> None:
+        await ip_addresses_by_serial_number(
+            xknx,
+            serial_number,
+            address,
+            domain_address[:4],
+            system_broadcast=path.system_broadcast,
+            close_system_broadcast=path.close_system_broadcast,
+        )
+
+    if security is None:
+        if len(domain_address) == 21:
+            raise SecureProgrammingError(
+                "The backbone key is only written to a device secured with its Tool Key."
+            )
+        await plain()
+        return
+    await _secured(
+        path,
+        domain_address,
+        secure_addresses_by_serial_number(
+            xknx,
+            serial_number,
+            address,
+            security,
+            domain_address=domain_address,
+            address_in_use=address_in_use,
+            system_broadcast=path.system_broadcast,
+            close_system_broadcast=path.close_system_broadcast,
+        ),
+        plain,
+    )
 
 
 async def _write_address_via_programming_mode(
@@ -203,6 +391,8 @@ async def download_individual_address(
     master: MasterData | None = None,
     waiting: Callable[[], None] | None = None,
     serial_number: bytes | None = None,
+    domain_address: bytes | None = None,
+    ip_system_broadcast: bool = False,
 ) -> bytes | None:
     """Download ``individual_address`` to the single device in programming mode.
 
@@ -218,15 +408,85 @@ async def download_individual_address(
     With ``serial_number`` the device is addressed by its KNX serial number
     instead, without programming mode and without a restart.
 
+    A KNX RF device gets ``domain_address`` as well, and is reached by system
+    broadcasts, also with another or no domain address (see :mod:`.rf_commissioning`). By
+    serial number with ``security``, and for the overwrite of a device that uses
+    ``current_security``, the addresses are written secured with KNX Data Secure. A KNX IP
+    device gets its ``domain_address`` (its routing multicast address, also with the backbone
+    key) by serial number, also when it is overwritten secured, by system broadcast when it
+    takes them (``ip_system_broadcast``). The couplers on the way pass the broadcasts meanwhile
+    (see :func:`.communication_path.broadcast_path`).
+
     Returns the device's serial number when it could be read, else ``None``.
     """
     address = IndividualAddress(individual_address)
     current = IndividualAddress(current_address) if current_address else None
     if current == address:
         raise ValueError(f"the device already has the address {address}")
+    if serial_number is not None and current is not None:
+        raise ValueError("an overwrite addresses the device by its current address")
+    by_serial = serial_number is not None or (
+        current is not None and current_security is not None
+    )
+    medium = _domain_medium(domain_address, serial_number if by_serial else None)
+    if by_serial and domain_address is not None and len(domain_address) in (4, 21):
+        medium = KnxMedium.IP
+    async with broadcast_path(
+        xknx,
+        address,
+        system_broadcast=_system_broadcast(medium, ip_system_broadcast),
+        medium=medium,
+    ) as path:
+        if medium is KnxMedium.IP and domain_address is not None:
+            return await _download_ip(
+                xknx,
+                address,
+                domain_address,
+                current=current,
+                security=security,
+                current_security=current_security,
+                serial_number=serial_number,
+                path=path,
+            )
+        if medium is KnxMedium.RF and domain_address is not None:
+            return await _download_rf(
+                xknx,
+                address,
+                domain_address,
+                current=current,
+                security=security,
+                current_security=current_security,
+                master=master,
+                waiting=waiting,
+                serial_number=serial_number,
+                path=path,
+            )
+        return await _download_tp(
+            xknx,
+            address,
+            current=current,
+            security=security,
+            current_security=current_security,
+            master=master,
+            waiting=waiting,
+            serial_number=serial_number,
+        )
+
+
+async def _download_tp(
+    xknx: XKNX,
+    address: IndividualAddress,
+    *,
+    current: IndividualAddress | None,
+    security: DeviceSecurity | None,
+    current_security: DeviceSecurity | None,
+    master: MasterData | None,
+    waiting: Callable[[], None] | None,
+    serial_number: bytes | None,
+) -> bytes | None:
+    """The address download of any other device: by serial number, else through programming
+    mode (see :func:`download_individual_address`)."""
     if serial_number is not None:
-        if current is not None:
-            raise ValueError("an overwrite addresses the device by its current address")
         await _write_by_serial_number(xknx, address, serial_number)
         return serial_number
     occupied = await nm_individual_address_check(xknx, address)
@@ -260,6 +520,202 @@ async def download_individual_address(
         logger.debug("Wrote address %s to device %s.", address, devices[0])
         await asyncio.sleep(_ADDRESS_ADOPTION_DELAY_S)
     return await _verify_and_restart(xknx, address, security)
+
+
+async def _download_rf(
+    xknx: XKNX,
+    address: IndividualAddress,
+    domain_address: bytes,
+    *,
+    current: IndividualAddress | None,
+    security: DeviceSecurity | None,
+    current_security: DeviceSecurity | None,
+    master: MasterData | None,
+    waiting: Callable[[], None] | None,
+    serial_number: bytes | None,
+    path: BroadcastPath,
+) -> bytes | None:
+    """The address download of a KNX RF device: by serial number (secured with ``security``
+    when given), as a secured overwrite of a device that uses ``current_security`` (a device in
+    Security Mode takes a new address only secured, 03.05.03 §1.5.4.3.2), else through
+    programming mode. The plain services go as system broadcasts or broadcasts, as ``path``
+    says."""
+    system_broadcast = path.system_broadcast
+
+    async def address_in_use() -> bool:
+        return await nm_individual_address_check(xknx, address)
+
+    def plain(serial: bytes) -> Callable[[], Awaitable[None]]:
+        async def write() -> None:
+            await domain_address_serial_number_write(
+                xknx, serial, domain_address, system_broadcast=system_broadcast
+            )
+            await _write_by_serial_number(xknx, address, serial)
+
+        return write
+
+    if serial_number is not None:
+        if security is None:
+            await plain(serial_number)()
+            return serial_number
+        await _secured(
+            path,
+            domain_address,
+            secure_addresses_by_serial_number(
+                xknx,
+                serial_number,
+                address,
+                security,
+                domain_address=domain_address,
+                address_in_use=address_in_use,
+                system_broadcast=system_broadcast,
+            ),
+            plain(serial_number),
+        )
+        return serial_number
+    if current is not None and current_security is not None:
+        serial = await _read_serial_number(xknx, current, current_security)
+        await _secured(
+            path,
+            domain_address,
+            secure_addresses_by_serial_number(
+                xknx,
+                serial,
+                address,
+                current_security,
+                domain_address=domain_address,
+                address_in_use=address_in_use,
+                system_broadcast=system_broadcast,
+            ),
+            plain(serial),
+        )
+        return await _verify_and_restart(xknx, address, security or current_security)
+    occupied = await address_in_use()
+    if occupied and current is not None:
+        raise AddressInUseError(
+            f"The individual address {address} is already in use by another device."
+        )
+    if current is not None:
+        await switch_programming_mode(
+            xknx, current, True, security=current_security, master=master
+        )
+    return await _download_rf_addresses(
+        xknx,
+        domain_address,
+        address,
+        current=current,
+        occupied=occupied,
+        waiting=waiting,
+        security=security,
+        current_security=current_security,
+        master=master,
+        path=path,
+    )
+
+
+async def _download_ip(
+    xknx: XKNX,
+    address: IndividualAddress,
+    domain_address: bytes,
+    *,
+    current: IndividualAddress | None,
+    security: DeviceSecurity | None,
+    current_security: DeviceSecurity | None,
+    serial_number: bytes | None,
+    path: BroadcastPath,
+) -> bytes | None:
+    """The address download of a KNX IP device by serial number: the given one, or for the
+    overwrite of a device that uses ``current_security`` the one read from it; it is then
+    verified at its new address and restarted."""
+
+    async def address_in_use() -> bool:
+        return await nm_individual_address_check(xknx, address)
+
+    if serial_number is not None:
+        await _ip_addresses(
+            xknx, address, domain_address, serial_number, security, path, address_in_use
+        )
+        return serial_number
+    assert current is not None and current_security is not None
+    serial = await _read_serial_number(xknx, current, current_security)
+    await _ip_addresses(
+        xknx, address, domain_address, serial, current_security, path, address_in_use
+    )
+    return await _verify_and_restart(xknx, address, security or current_security)
+
+
+async def _read_serial_number(
+    xknx: XKNX, address: IndividualAddress, security: DeviceSecurity
+) -> bytes:
+    """The KNX Serial Number of the device at ``address``, read secured."""
+    from .errors import DownloadError
+    from .programmer import DeviceProgrammer
+    from .session import apdu_overhead, management_session
+
+    manager = management_session(xknx, address, security)
+    try:
+        connection = await manager.open()
+        programmer = DeviceProgrammer(connection, apdu_overhead=apdu_overhead(security))
+        serial = await programmer.read_property(0, _PID_SERIAL_NUMBER)
+    except (ManagementConnectionError, DownloadError) as exc:
+        raise SerialNumberNotFoundError(
+            f"The serial number of the device at {address} could not be read: {exc}"
+        ) from exc
+    finally:
+        await manager.close()
+    if not serial:
+        raise SerialNumberNotFoundError(
+            f"The device at {address} has no serial number to address it by."
+        )
+    return serial
+
+
+async def _download_rf_addresses(
+    xknx: XKNX,
+    domain_address: bytes,
+    address: IndividualAddress,
+    *,
+    current: IndividualAddress | None,
+    occupied: bool,
+    waiting: Callable[[], None] | None,
+    security: DeviceSecurity | None,
+    current_security: DeviceSecurity | None,
+    master: MasterData | None,
+    path: BroadcastPath,
+) -> bytes | None:
+    """The domain and individual address of the KNX RF device in programming mode, with the
+    checks of the TP path: the device switched by ``current`` must be the one, and a device that
+    uses ``address`` must be the one in programming mode."""
+
+    def check(found: IndividualAddress) -> None:
+        if current is not None and found != current:
+            raise ProgrammingModeError(
+                f"Device {found} is in programming mode instead of {current}."
+            )
+        if occupied and found != address:
+            raise AddressInUseError(
+                f"The individual address {address} is already in use by another device."
+            )
+
+    try:
+        _, serial = await domain_and_individual_address_write2(
+            xknx,
+            domain_address,
+            address,
+            waiting=waiting if current is None else None,
+            check=check,
+            security=security,
+            system_broadcast=path.system_broadcast,
+            switch_rf_mode=path.switch_rf_mode,
+        )
+    except ProgrammingModeError:
+        if current is not None:
+            with contextlib.suppress(ManagementConnectionError, asyncio.TimeoutError):
+                await switch_programming_mode(
+                    xknx, current, False, security=current_security, master=master
+                )
+        raise
+    return serial
 
 
 async def _write_by_serial_number(

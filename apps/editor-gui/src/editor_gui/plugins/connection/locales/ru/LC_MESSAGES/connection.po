@@ -330,3 +330,30 @@ msgstr "Тайм-аут ответа (секунды)"
 
 msgid "How long to wait for a device's answer, e.g. to a memory or property read."
 msgstr "Сколько ждать ответа устройства, например на чтение памяти или свойства."
+
+msgid "Medium: {medium}"
+msgstr "Носитель: {medium}"
+
+msgid "Domain Address"
+msgstr "Адрес домена"
+
+msgid "From Line"
+msgstr "Из линии"
+
+msgid "The interface sends with this domain address and receives only the telegrams of devices with it."
+msgstr "Интерфейс передаёт с этим адресом домена и принимает только телеграммы устройств, у которых он такой же."
+
+msgid "{address} is not an RF domain address (4 and 8 hexadecimal digits, e.g. 0001:23456789)."
+msgstr "{address} не является адресом домена RF (4 и 8 шестнадцатеричных цифр, например 0001:23456789)."
+
+msgid "The domain address of the interface is being set."
+msgstr "Адрес домена интерфейса сейчас устанавливается."
+
+msgid "The connected USB interface is not a KNX RF interface."
+msgstr "Подключённый интерфейс USB не является интерфейсом KNX RF."
+
+msgid "The domain address could not be set: {error}"
+msgstr "Не удалось установить адрес домена: {error}"
+
+msgid "Setting the domain address…"
+msgstr "Установка адреса домена…"

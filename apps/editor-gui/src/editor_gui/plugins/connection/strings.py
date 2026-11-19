@@ -300,6 +300,11 @@ class ConnectionStrings:
         return _("Mask Version: {mask}")
 
     @property
+    def USB_MEDIUM(self) -> str:
+        # {medium}: TP or RF, as lines name their medium
+        return _("Medium: {medium}")
+
+    @property
     def USB_ADDRESS_LABEL(self) -> str:
         return _("Individual Address")
 
@@ -356,6 +361,45 @@ class ConnectionStrings:
             "This interface forgets its individual address when unplugged, so it is set "
             "again on every connect."
         )
+
+    @property
+    def USB_DOMAIN_ADDRESS_LABEL(self) -> str:
+        return _("Domain Address")
+
+    @property
+    def USB_DOMAIN_ADDRESS_FROM_LINE(self) -> str:
+        # a drop-down of the project's RF lines; choosing one fills in its domain address
+        return _("From Line")
+
+    @property
+    def USB_DOMAIN_ADDRESS_HINT(self) -> str:
+        return _(
+            "The interface sends with this domain address and receives only the telegrams of "
+            "devices with it."
+        )
+
+    @property
+    def USB_DOMAIN_ADDRESS_INVALID(self) -> str:
+        return _(
+            "{address} is not an RF domain address (4 and 8 hexadecimal digits, e.g. "
+            "0001:23456789)."
+        )
+
+    @property
+    def USB_DOMAIN_ADDRESS_BUSY(self) -> str:
+        return _("The domain address of the interface is being set.")
+
+    @property
+    def USB_NOT_RF(self) -> str:
+        return _("The connected USB interface is not a KNX RF interface.")
+
+    @property
+    def USB_DOMAIN_ADDRESS_FAILED(self) -> str:
+        return _("The domain address could not be set: {error}")
+
+    @property
+    def USB_DOMAIN_ADDRESS_SETTING(self) -> str:
+        return _("Setting the domain address…")
 
     @property
     def SECTION_MANUAL(self) -> str:

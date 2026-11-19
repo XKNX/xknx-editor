@@ -12,6 +12,9 @@ this module can be replaced by xknx imports later:
   information following EMI/IMI 03.06.03 §4.1.4.3 and §4.1.5.8;
 - :func:`parse_tp1_frame` decodes the raw TP1 frame: standard and extended data frames with their
   check octet, and the short acknowledgement characters (Communication Medium TP1 03.02.02 §2.2).
+- :func:`parse_rf_frame` decodes a raw KNX RF frame: its blocks with their CRCs, the RF-info,
+  KNX Serial Number or Domain Address and the L_Data fields (Communication Medium RF 03.02.05
+  §6.1.2).
 """
 
 from __future__ import annotations
@@ -522,3 +525,179 @@ def encode_tp1(
             + tpdu
         )
     return body + bytes((tp1_checksum(body),))
+
+
+# --- KNX RF frames ----------------------------------------------------------------------------
+
+# The fixed C and Esc fields of a KNX RF frame's first block (Communication Medium RF 03.02.05
+# §6.1.2.4).
+RF_C_FIELD = 0x44
+RF_ESC_FIELD = 0xFF
+_RF_FIRST_BLOCK = 10
+_RF_BLOCK = 16
+
+
+def rf_crc(octets: bytes) -> int:
+    """The CRC of an RF frame's block: FT3 of IEC 870-5-1, generator 3D65h, starting with zero,
+    complemented (Communication Medium RF 03.02.05 §6.1.2.4)."""
+    crc = 0
+    for octet in octets:
+        crc ^= octet << 8
+        for _ in range(8):
+            crc = ((crc << 1) ^ 0x3D65) if crc & 0x8000 else crc << 1
+            crc &= 0xFFFF
+    return crc ^ 0xFFFF
+
+
+def _rf_blocks(length: int) -> list[int]:
+    """The data octets of each block of an RF frame whose Length field is ``length``."""
+    remaining = length + 1
+    sizes = [min(_RF_FIRST_BLOCK, remaining)]
+    remaining -= sizes[0]
+    while remaining > 0:
+        sizes.append(min(_RF_BLOCK, remaining))
+        remaining -= sizes[-1]
+    return sizes
+
+
+def is_rf_frame(raw: bytes) -> bool:
+    """Whether a bus monitor frame is a KNX RF frame: the fixed C and Esc fields, and as many
+    octets as its Length field gives with a CRC after each block. A TP1 frame never has both."""
+    if len(raw) < 3 or raw[1] != RF_C_FIELD or raw[2] != RF_ESC_FIELD:
+        return False
+    sizes = _rf_blocks(raw[0])
+    return len(raw) == sum(sizes) + 2 * len(sizes)
+
+
+@dataclass(frozen=True, slots=True)
+class RFDataFrame:
+    """A KNX RF L_Data frame as received on the medium (Communication Medium RF 03.02.05 §6.1.2).
+    Like :class:`TP1DataFrame`, :meth:`cemi_l_data` and :meth:`telegram` parse the TPDU."""
+
+    # The RF-info field: route last, signal strengths, battery state, unidirectional.
+    rf_info: int
+    # The sender's KNX Serial Number (``system_broadcast``) or the Domain Address.
+    serial_number_or_domain_address: bytes
+    system_broadcast: bool
+    src_addr: IndividualAddress
+    dst_addr: GroupAddress | IndividualAddress
+    # TPCI octet onwards.
+    tpdu: bytes
+    hop_count: int
+    # The Data Link Layer frame number (LFN).
+    frame_number: int
+    # The CRC of every block is right.
+    checksum_valid: bool
+
+    @property
+    def medium_info(self) -> bytes:
+        """The frame's RF fields as a cEMI RF medium information holds them: RF-info, KNX Serial
+        Number or Domain Address, frame number."""
+        return (
+            bytes((self.rf_info,))
+            + self.serial_number_or_domain_address
+            + bytes((self.frame_number,))
+        )
+
+    def control_fields(self) -> tuple[int, int]:
+        """The frame's Ctrl1 and Ctrl2 in cEMI form: a standard frame, not repeated, priority low
+        (RF frames carry neither), the system broadcast flag from the address extension type."""
+        ctrl1 = 0x80 | 0x20 | (0 if self.system_broadcast else 0x10) | 0x0C
+        group = isinstance(self.dst_addr, GroupAddress)
+        ctrl2 = (0x80 if group else 0) | (self.hop_count & 0x07) << 4
+        return ctrl1, ctrl2
+
+    def cemi_ldata_raw(self) -> bytes:
+        """The frame's fields in cEMI L_Data form: Ctrl1 Ctrl2 SA DA L TPDU."""
+        ctrl1, ctrl2 = self.control_fields()
+        return (
+            bytes((ctrl1, ctrl2))
+            + self.src_addr.to_knx()
+            + self.dst_addr.to_knx()
+            + bytes((max(len(self.tpdu) - 1, 0),))
+            + self.tpdu
+        )
+
+    def cemi_l_data(self) -> CEMILData:
+        return CEMILData.from_knx(self.cemi_ldata_raw())
+
+    def telegram(self) -> Telegram:
+        return self.cemi_l_data().telegram()
+
+
+def parse_rf_frame(raw: bytes) -> RFDataFrame:
+    """Decode a raw KNX RF frame (blocks with their CRCs). Raises ``CouldNotParseCEMI`` for
+    malformed frames and ``UnsupportedCEMIMessage`` for LTE frames."""
+    if not is_rf_frame(raw):
+        raise CouldNotParseCEMI("not a KNX RF frame")
+    data = b""
+    valid = True
+    position = 0
+    for size in _rf_blocks(raw[0]):
+        block = raw[position : position + size]
+        crc = int.from_bytes(raw[position + size : position + size + 2], "big")
+        valid = valid and rf_crc(block) == crc
+        data += block
+        position += size + 2
+    # Second block: KNX-Ctrl, source, destination, L/NPCI, then the TPDU.
+    second = data[_RF_FIRST_BLOCK:]
+    if len(second) < 7:
+        raise CouldNotParseCEMI("RF frame without a TPDU")
+    if second[0] & 0x0F:
+        raise UnsupportedCEMIMessage("LTE frames are not supported")
+    lpci = second[5]
+    destination = int.from_bytes(second[3:5], "big")
+    return RFDataFrame(
+        rf_info=data[3],
+        serial_number_or_domain_address=bytes(data[4:10]),
+        system_broadcast=not lpci & 0x01,
+        src_addr=IndividualAddress(int.from_bytes(second[1:3], "big")),
+        dst_addr=GroupAddress(destination)
+        if lpci & 0x80
+        else IndividualAddress(destination),
+        tpdu=bytes(second[6:]),
+        hop_count=(lpci >> 4) & 0x07,
+        frame_number=(lpci >> 1) & 0x07,
+        checksum_valid=valid,
+    )
+
+
+def encode_rf(
+    *,
+    source: int,
+    destination: int,
+    group: bool,
+    tpdu: bytes,
+    serial_number_or_domain_address: bytes = bytes(6),
+    system_broadcast: bool = False,
+    rf_info: int = 0x02,
+    hop_count: int = 6,
+    frame_number: int = 0,
+) -> bytes:
+    """A KNX RF standard frame with the CRC after each block."""
+    lpci = (
+        (0x80 if group else 0)
+        | (hop_count & 0x07) << 4
+        | (frame_number & 0x07) << 1
+        | (0 if system_broadcast else 0x01)
+    )
+    second = (
+        b"\x00"
+        + source.to_bytes(2, "big")
+        + destination.to_bytes(2, "big")
+        + bytes((lpci,))
+        + tpdu
+    )
+    length = _RF_FIRST_BLOCK - 1 + len(second)
+    data = (
+        bytes((length, RF_C_FIELD, RF_ESC_FIELD, rf_info))
+        + serial_number_or_domain_address
+        + second
+    )
+    frame = b""
+    position = 0
+    for size in _rf_blocks(length):
+        block = data[position : position + size]
+        frame += block + rf_crc(block).to_bytes(2, "big")
+        position += size
+    return frame

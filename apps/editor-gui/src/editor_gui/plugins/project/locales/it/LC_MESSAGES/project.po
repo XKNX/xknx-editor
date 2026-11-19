@@ -3708,3 +3708,9 @@ msgstr "L'interfaccia non ha confermato l'invio in tempo ({detail})."
 
 msgid "A slow connection, such as a remote tunnel or a VPN, needs longer waits: raise the Confirmation Timeout in Settings > Connection."
 msgstr "Una connessione lenta, come un tunnel remoto o una VPN, richiede attese più lunghe: aumentare il Timeout di conferma in Impostazioni > Connessione."
+
+msgid "The communication path through the coupler {coupler} could not be opened ({detail}). Check the coupler and its security settings."
+msgstr "Non è stato possibile aprire il percorso di comunicazione attraverso l'accoppiatore {coupler} ({detail}). Controllare l'accoppiatore e le sue impostazioni di sicurezza."
+
+msgid "The domain address of this secure device could not be loaded because the coupler {coupler} does not support security."
+msgstr "Non è stato possibile caricare l'indirizzo di dominio di questo dispositivo sicuro perché l'accoppiatore {coupler} non supporta la sicurezza."

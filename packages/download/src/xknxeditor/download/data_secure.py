@@ -122,6 +122,24 @@ class CemiSecurer(Protocol):
         ...
 
 
+def remove_securer(handler: object, securer: object) -> None:
+    """Take ``securer`` out of the chain of securers on ``handler.data_secure`` (each holds
+    the one installed before it as ``_previous``), wherever it is in it: sessions to two
+    devices that overlap end in any order, and the one ending last must not put back a
+    securer of the other."""
+    current = getattr(handler, "data_secure", None)
+    previous = getattr(securer, "_previous", None)
+    if current is securer:
+        handler.data_secure = previous  # type: ignore[attr-defined]
+        return
+    while current is not None:
+        before = getattr(current, "_previous", None)
+        if before is securer:
+            current._previous = previous  # type: ignore[attr-defined]
+            return
+        current = before
+
+
 class DeviceSecurity:
     """Tool Key security material for programming one device.
 
@@ -290,6 +308,7 @@ class SecureManagement:
         *,
         device: DeviceSecurity,
         tool_address: IndividualAddress,
+        serial_number: bytes | None = None,
     ) -> None:
         """Initialize for the device's Tool Key.
 
@@ -297,8 +316,17 @@ class SecureManagement:
         (e.g. ``xknx.current_address``); it is bound into the secured data like
         every other frame field, so it must be the address the frames actually
         carry.
+
+        With the device's ``serial_number`` the session reaches it by system
+        broadcast instead (DM_SecureSync_SBC, 3/5/2 4.1): the S-A_Sync request names
+        it, and every frame has the SBC flag of the Security Control Field set
+        (3/3/7 5.2.1.3, Table 8).
         """
         self._device = device
+        system_broadcast = serial_number is not None
+        self._serial_number = serial_number if serial_number is not None else bytes(6)
+        self._data_scf = _with_sbc(DATA_SCF, system_broadcast)
+        self._sync_req_scf = _with_sbc(SYNC_REQ_SCF, system_broadcast)
         self._key = device.tool_key
         # The new Tool Key while its write is on its way: the device answers that write
         # already with it (3/5/1 6.3.10.4), and every later frame uses it (6.3.10.5).
@@ -387,17 +415,17 @@ class SecureManagement:
         if self._sync_request is not None:
             secured.payload = self._sync_request
             return secured
-        serial_number = b"\x00" * 6
+        serial_number = self._serial_number
         nonce = self._sync_sequence.to_bytes(6, "big")
         cipher, mac = _encrypt(
             key=self._key,
             fields=_BlockFields(secured),
             nonce=nonce,
-            additional_data=SYNC_REQ_SCF.to_knx() + serial_number,
+            additional_data=self._sync_req_scf.to_knx() + serial_number,
             payload=self._sync_challenge,
         )
         self._sync_request = SecureAPDU(
-            scf=SYNC_REQ_SCF,
+            scf=self._sync_req_scf,
             secured_data=SecureData(
                 sequence_number_bytes=nonce,
                 secured_apdu=serial_number + cipher,
@@ -497,11 +525,11 @@ class SecureManagement:
             key=self._key,
             fields=_BlockFields(secured),
             nonce=nonce,
-            additional_data=DATA_SCF.to_knx(),
+            additional_data=self._data_scf.to_knx(),
             payload=bytes(cemi.payload.to_knx()),
         )
         secured.payload = SecureAPDU(
-            scf=DATA_SCF,
+            scf=self._data_scf,
             secured_data=SecureData(
                 sequence_number_bytes=nonce,
                 secured_apdu=cipher,
@@ -669,6 +697,18 @@ class ToolKeyCemiSecure:
                 f"(possible spoofed response)"
             )
         return cemi_data
+
+
+def _with_sbc(
+    scf: SecurityControlField, system_broadcast: bool
+) -> SecurityControlField:
+    """``scf`` with its SBC flag (system broadcast) set as given."""
+    return SecurityControlField(
+        tool_access=scf.tool_access,
+        algorithm=scf.algorithm,
+        system_broadcast=system_broadcast,
+        service=scf.service,
+    )
 
 
 def _is_tool_scheme(scf: SecurityControlField, service: SecurityALService) -> bool:

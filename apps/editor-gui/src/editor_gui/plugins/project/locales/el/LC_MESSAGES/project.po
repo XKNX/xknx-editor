@@ -3704,3 +3704,9 @@ msgstr "Η διεπαφή δεν επιβεβαίωσε την αποστολή 
 
 msgid "A slow connection, such as a remote tunnel or a VPN, needs longer waits: raise the Confirmation Timeout in Settings > Connection."
 msgstr "Μια αργή σύνδεση, όπως ένα απομακρυσμένο τούνελ ή ένα VPN, χρειάζεται μεγαλύτερες αναμονές: αυξήστε το Χρονικό όριο επιβεβαίωσης στις Ρυθμίσεις > Σύνδεση."
+
+msgid "The communication path through the coupler {coupler} could not be opened ({detail}). Check the coupler and its security settings."
+msgstr "Η διαδρομή επικοινωνίας μέσω του συζεύκτη {coupler} δεν ήταν δυνατό να ανοίξει ({detail}). Ελέγξτε τον συζεύκτη και τις ρυθμίσεις ασφαλείας του."
+
+msgid "The domain address of this secure device could not be loaded because the coupler {coupler} does not support security."
+msgstr "Η διεύθυνση τομέα αυτής της ασφαλούς συσκευής δεν ήταν δυνατό να φορτωθεί, επειδή ο συζεύκτης {coupler} δεν υποστηρίζει ασφάλεια."

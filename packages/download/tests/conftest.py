@@ -14,6 +14,8 @@ from xknx.telegram.apci import (
     DeviceDescriptorRead,
     DeviceDescriptorResponse,
     FunctionPropertyCommand,
+    FunctionPropertyExtCommand,
+    FunctionPropertyExtStateResponse,
     FunctionPropertyStateRead,
     FunctionPropertyStateResponse,
     MemoryExtendedRead,
@@ -31,6 +33,7 @@ from xknx.telegram.apci import (
     Restart,
     RestartMasterReset,
     RestartMasterResetResponse,
+    ReturnCode,
     UserMemoryRead,
     UserMemoryResponse,
     UserMemoryWrite,
@@ -91,6 +94,9 @@ class FakeDevice:
         # Function property command/read state, keyed by (object, property).
         self.function_properties: dict[tuple[int, int], bytes] = {}
         self.function_property_return_code = 0
+        # Extended function property commands: (object type, instance, property, data); they
+        # are answered with the return code above and the ServiceID of the data.
+        self.ext_function_commands: list[tuple[int, int, int, bytes]] = []
         # Access level the device grants for an A_Authorize, and the keys it saw.
         self.authorize_level = 0
         self.authorize_keys: list[int] = []
@@ -233,6 +239,24 @@ class FakeDevice:
             return self._telegram(self._function_property_response(payload))
         if isinstance(payload, FunctionPropertyStateRead):
             return self._telegram(self._function_property_response(payload))
+        if isinstance(payload, FunctionPropertyExtCommand):
+            self.ext_function_commands.append(
+                (
+                    payload.interface_object_type,
+                    payload.object_instance,
+                    payload.property_id,
+                    payload.data,
+                )
+            )
+            return self._telegram(
+                FunctionPropertyExtStateResponse(
+                    interface_object_type=payload.interface_object_type,
+                    object_instance=payload.object_instance,
+                    property_id=payload.property_id,
+                    return_code=ReturnCode(self.function_property_return_code),
+                    data=payload.data[1:2],
+                )
+            )
         if isinstance(payload, RestartMasterReset):
             self.master_reset = (payload.erase_code, payload.channel_number)
             self.restarted = True
