@@ -699,3 +699,38 @@ def test_bus_current_texts() -> None:
     product.bus_current = 640.0
     assert bus_current_text(product, "(est)") == "640 mA"
     assert current_text(0.0, True, "(est)") == "-"
+
+
+def test_the_domain_address_of_a_device_on_an_rf_line(project: ProjectService) -> None:
+    from types import SimpleNamespace
+
+    def domain(node_id: int) -> bytes | None:
+        return project.device_rf_domain_address(SimpleNamespace(node_id=node_id))  # type: ignore[arg-type]
+
+    pid = project._pid
+    assert pid is not None
+    line_id = _line_1_1(project)
+    line = project.find_line(line_id)
+    assert line is not None and line.main_segment_id is not None
+    tp_device = project._svc.add_device(pid, line.main_segment_id, "P-1", address=1)
+    # an RF sub-segment of the TP line, with its own domain address
+    segment = project.add_segment(line_id)
+    assert segment is not None
+    assert project.set_element_medium("segment", segment, MEDIUM_RF) is None
+    assert (
+        project.set_element_domain_address("segment", segment, "0002:00000001") is None
+    )
+    segment_device = project._svc.add_device(pid, segment, "P-2", address=2)
+    # an RF line
+    area = next(a for a in project.get_areas() if a.area_number == 1)
+    rf_line = project.create_line(area.id, 5, "Garden", MEDIUM_RF)
+    assert rf_line is not None
+    assert project.set_element_domain_address("line", rf_line, "00FA:12345678") is None
+    rf = project.find_line(rf_line)
+    assert rf is not None and rf.main_segment_id is not None
+    rf_device = project._svc.add_device(pid, rf.main_segment_id, "P-3", address=3)
+    project._bump()
+    assert domain(tp_device) is None
+    assert domain(segment_device) == bytes.fromhex("000200000001")
+    assert domain(rf_device) == bytes.fromhex("00fa12345678")
+    assert domain(999) is None

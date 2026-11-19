@@ -252,6 +252,9 @@ class ConnectionService:
         self.project_keys: Callable[[Device], DeviceKeys | None] | None = None
         # The open project's access key (BCU key) for devices with access protection.
         self.project_access_key: Callable[[], int] | None = None
+        # The domain address of a device's KNX RF line (or None): a KNX RF USB interface gets it
+        # before the device's download, and a new device gets it with its individual address.
+        self.project_rf_domain_address: Callable[[Device], bytes | None] | None = None
         # The open project's device at an individual address (or None): a download reads the
         # maximum APDU length only of couplers on the route that the project has.
         self.project_device: Callable[[str], object | None] | None = None
@@ -1197,6 +1200,7 @@ class ConnectionService:
                 in_programming_mode=in_programming_mode,
                 waiting=waiting,
                 route_couplers=self._route_couplers(device),
+                rf_domain_address=self._rf_domain_address(device),
             )
         )
         if future is not None:
@@ -1273,16 +1277,22 @@ class ConnectionService:
             serial=serial_number.hex().upper() if serial_number else None,
             secure=(current_security or security) is not None,
         )
+        domain_address = self._rf_domain_address(device)
         future = self.run_async(
-            download_individual_address(
+            _in_rf_domain(
                 self._connected_xknx,
-                device.individual_address,
-                current_address=current_address,
-                security=security,
-                current_security=current_security,
-                master=self.master,
-                waiting=waiting,
-                serial_number=serial_number,
+                domain_address,
+                download_individual_address(
+                    self._connected_xknx,
+                    device.individual_address,
+                    current_address=current_address,
+                    security=security,
+                    current_security=current_security,
+                    master=self.master,
+                    waiting=waiting,
+                    serial_number=serial_number,
+                    domain_address=domain_address,
+                ),
             )
         )
         if future is not None:
@@ -1306,6 +1316,11 @@ class ConnectionService:
             IndividualAddress(device.individual_address),
         )
         return [coupler for coupler in couplers if lookup(str(coupler)) is not None]
+
+    def _rf_domain_address(self, device: Device) -> bytes | None:
+        """The domain address of the device's KNX RF line, read here (not on the bus thread)."""
+        getter = self.project_rf_domain_address
+        return getter(device) if getter is not None else None
 
     def _access_key(self) -> int:
         """The project's access key, read here (not on the bus thread)."""
@@ -2012,6 +2027,22 @@ class ConnectionService:
             self._loop.call_soon_threadsafe(started[0].cancel)
         else:
             future.cancel()
+
+
+async def _in_rf_domain(
+    xknx: XKNX, domain_address: bytes | None, operation: Coroutine[Any, Any, Any]
+) -> Any:
+    """Run ``operation`` after a KNX RF USB interface got ``domain_address`` (the domain of a
+    device on a KNX RF line), so it reaches the device; without one, as it is."""
+    from editor_gui.plugins.connection.usb import ensure_rf_domain_address
+
+    try:
+        if domain_address is not None:
+            await ensure_rf_domain_address(xknx, domain_address)
+    except BaseException:
+        operation.close()
+        raise
+    return await operation
 
 
 def _factory_image(device: Device) -> FactoryData | None:

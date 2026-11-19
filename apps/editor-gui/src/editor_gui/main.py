@@ -970,6 +970,9 @@ class KnxGuiApp:
         self._connection_service.keyring = self._keyring_plugin.service
         self._connection_service.project_keys = self._project_service.device_keys
         self._connection_service.project_access_key = self._project_service.access_key
+        self._connection_service.project_rf_domain_address = (
+            self._project_service.device_rf_domain_address
+        )
         self._connection_service.project_device = (
             self._project_service.find_device_by_address
         )

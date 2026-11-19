@@ -10,9 +10,11 @@ from typing import Any
 
 import pytest
 from imgui_bundle import imgui
+from xknx.exceptions import CommunicationError
 from xknx.knxip.knxip_enum import KNXMedium
 
 from editor_gui.plugins.connection import plugin as plugin_module
+from editor_gui.plugins.connection import usb
 from editor_gui.plugins.connection.plugin import ConnectionPlugin, ConnectionState
 from editor_gui.plugins.connection.usb import (
     medium_name,
@@ -85,14 +87,11 @@ class TestDomainAddress:
                 plugin.set_usb_interface_domain_address("00FA:00000043")
             await asyncio.wrap_future(future)
             assert not plugin.usb_domain_address_busy
-            # the connection was opened again and set it in the RF Medium Object
-            assert _property_writes(fake_hid)[-1] == "f6001301381001" + "00fa00000042"
+            # set in the RF Medium Object on the open connection
+            assert _property_writes(fake_hid) == ["f6001301381001" + "00fa00000042"]
             assert plugin._state is ConnectionState.CONNECTED
             assert plugin.usb_info.rf_domain_address == bytes.fromhex("00fa00000042")
-            assert "link False" in plugin.test_events
-            assert "disconnected" not in plugin.test_events
-            # the next connect only reads it
-            assert plugin._usb_domain_write is None
+            assert "link False" not in plugin.test_events
         finally:
             await plugin._disconnect_async()
 
@@ -111,11 +110,6 @@ class TestDomainAddress:
     async def test_refused(self, fake_hid: FakeHIDModule) -> None:
         _rf(fake_hid)
         plugin = await _connected(fake_hid)
-        reopened: list[str] = []
-        plugin._run_async = lambda coro: (
-            reopened.append(coro.cr_code.co_name),
-            coro.close(),
-        )
         fake_hid.interface.refused_writes[(19, 56)] = 0x0B
         try:
             with pytest.raises(ConnectionError, match="could not be set"):
@@ -124,9 +118,15 @@ class TestDomainAddress:
                 )
             assert not plugin.usb_domain_address_busy
             assert "Could not set the RF Domain Address" in plugin._usb_domain_error
-            # connected again with the domain address as it was
-            assert reopened == ["_reopen"]
+            # still connected, with the domain address as it was
+            assert plugin._state is ConnectionState.CONNECTED
+            assert plugin.usb_info.rf_domain_address == DOMAIN_ADDRESS
             assert fake_hid.interface.properties[(19, 56)] == DOMAIN_ADDRESS
+            # the connection went away meanwhile
+            interface, plugin._interface = plugin._interface, None
+            with pytest.raises(ConnectionError, match="Not connected"):
+                await plugin._write_usb_domain_address(bytes(6))
+            plugin._interface = interface
         finally:
             await plugin._disconnect_async()
 
@@ -312,3 +312,38 @@ async def test_the_dialog(
     finally:
         imgui.destroy_context(ctx)
         await plugin._disconnect_async()
+
+
+async def test_the_interface_gets_a_devices_domain_address(
+    fake_hid: FakeHIDModule,
+) -> None:
+    from xknx import XKNX
+
+    from editor_gui.plugins.connection.usb import ensure_rf_domain_address
+
+    _rf(fake_hid)
+    plugin = await _connected(fake_hid)
+    new = bytes.fromhex("00fa00000042")
+    try:
+        fake_hid.interface.written.clear()
+        assert await ensure_rf_domain_address(plugin._xknx, new)
+        assert _property_writes(fake_hid) == ["f6001301381001" + new.hex()]
+        assert plugin.usb_info.rf_domain_address == new
+        # the one it has: nothing is written
+        assert not await ensure_rf_domain_address(plugin._xknx, new)
+        assert len(_property_writes(fake_hid)) == 1
+    finally:
+        await plugin._disconnect_async()
+    # no USB connection: nothing to do
+    assert not await ensure_rf_domain_address(XKNX(), new)
+    # a TP interface: nothing to do
+    fake_hid.interface.features[DeviceFeature.DEVICE_DESCRIPTOR_TYPE_0] = b"\x07\xb0"
+    plugin = await _connected(fake_hid)
+    try:
+        assert not await ensure_rf_domain_address(plugin._xknx, new)
+    finally:
+        await plugin._disconnect_async()
+    # the interface is gone meanwhile
+    interface = usb.ObservableUSBInterfaceThreaded(XKNX(), usb.UsbTarget(1, 2, "", "x"))
+    with pytest.raises(CommunicationError, match="not connected"):
+        await interface.set_rf_domain_address(new)

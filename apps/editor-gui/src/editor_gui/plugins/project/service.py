@@ -95,6 +95,7 @@ from xknxeditor.proj.core.manufacturer_xml import DeviceProduct as ProductRefs
 from xknxeditor.proj.core.medium import (
     IP_ROUTER_MASKS,
     MEDIUM_NAMES,
+    MEDIUM_RF,
     MEDIUM_TP,
     MediumError,
     device_fits,
@@ -8431,6 +8432,32 @@ class ProjectService:
         if self._pid is None:
             return {}
         return self._svc.device_segments(self._pid)
+
+    def device_rf_domain_address(self, device: Device) -> bytes | None:
+        """The domain address of the KNX RF line or segment ``device`` is on, as its 6 octets;
+        ``None`` on any other medium or without a domain address. A sub-segment without one of its
+        own has its RF line's."""
+        segment_id = self.device_segments().get(device.node_id)
+        if segment_id is None:
+            return None
+        self._ensure_topology_cache()
+        for lines in (self._lines_cache or {}).values():
+            for line in lines:
+                if line.main_segment_id == segment_id:
+                    medium, domain = line.medium_type, line.domain_address
+                else:
+                    segment = next(
+                        (s for s in line.segments if s.id == segment_id), None
+                    )
+                    if segment is None:
+                        continue
+                    medium, domain = segment.medium_type, segment.domain_address
+                    if domain is None and line.medium_type == MEDIUM_RF:
+                        domain = line.domain_address
+                if medium != MEDIUM_RF or domain is None:
+                    return None
+                return domain.to_bytes(6, "big")
+        return None
 
     def find_line(self, line_id: int) -> _Line | None:
         """The line ``line_id`` with its medium and its sub-segments."""

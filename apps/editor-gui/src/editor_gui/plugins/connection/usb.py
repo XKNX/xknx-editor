@@ -292,10 +292,39 @@ class ObservableUSBInterfaceThreaded(ObservableKNXIPInterfaceThreaded):
             return self._interface.info
         return None
 
+    async def set_rf_domain_address(self, rf_domain_address: bytes) -> None:
+        """Set the domain address of the connected KNX RF interface on the open connection; it
+        applies at once, and a reconnect sets it again. Raises ``CommunicationError`` when no KNX
+        RF interface is connected or it refuses the address."""
+        if not isinstance(self._interface, USBTunnel) or self._thread_loop is None:
+            raise CommunicationError("KNX USB interface not connected")
+        await self._await_from_connection_thread(
+            self._interface.set_rf_domain_address(rf_domain_address)
+        )
+        self._rf_domain_address = rf_domain_address
+
     async def read_max_apdu_length(self) -> int | None:
         """The maximum APDU length the interface reported."""
         info = self.usb_info()
         return info.max_apdu_length if info is not None else None
+
+
+async def ensure_rf_domain_address(xknx: XKNX, rf_domain_address: bytes) -> bool:
+    """Give the connected KNX RF USB interface ``rf_domain_address`` when it has another one, so
+    it reaches and receives the devices of that domain; whether it had to be set. Nothing happens
+    for any other connection. Raises ``CommunicationError`` when the interface refuses it."""
+    interface = xknx.knxip_interface
+    if not isinstance(interface, ObservableUSBInterfaceThreaded):
+        return False
+    info = interface.usb_info()
+    if (
+        info is None
+        or info.medium is not KNXMedium.RF
+        or info.rf_domain_address == rf_domain_address
+    ):
+        return False
+    await interface.set_rf_domain_address(rf_domain_address)
+    return True
 
 
 class UsbBusmonitorConnection:

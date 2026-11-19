@@ -9,6 +9,9 @@ management procedures:
 - via serial number: the target device is addressed by its serial number, so no
   programming mode is required and several devices may be on the bus.
 
+A KNX RF device (``domain_address`` given) gets its domain address the same way, with system
+broadcasts (see :mod:`.rf_commissioning`).
+
 :func:`download_individual_address` is the stand-alone address download; it can
 also switch a device to programming mode by its current address first, to
 overwrite that address without pressing the programming button.
@@ -45,6 +48,10 @@ from .errors import (
     ProgrammingModeError,
     SerialNumberNotFoundError,
     UnsupportedProcedureError,
+)
+from .rf_commissioning import (
+    domain_address_serial_number_write,
+    domain_and_individual_address_write2,
 )
 
 if TYPE_CHECKING:
@@ -85,16 +92,27 @@ async def program_individual_address(
     individual_address: IndividualAddressableType,
     *,
     serial_number: bytes | None = None,
+    domain_address: bytes | None = None,
 ) -> None:
     """Program ``individual_address`` into a device.
 
     With ``serial_number`` the device is addressed by serial number; otherwise
-    the single device currently in programming mode is addressed. ``xknx`` has to
-    be started.
+    the single device currently in programming mode is addressed. A KNX RF device
+    gets ``domain_address`` first. ``xknx`` has to be started.
     """
     address = IndividualAddress(individual_address)
     if serial_number is not None:
+        if domain_address is not None:
+            await domain_address_serial_number_write(
+                xknx, serial_number, domain_address
+            )
         await nm_individual_address_serial_number_write(xknx, serial_number, address)
+        return
+    if domain_address is not None:
+        # Left running, as the TP path below, so the download can connect right away.
+        await domain_and_individual_address_write2(
+            xknx, domain_address, address, restart=False
+        )
         return
     await _write_address_via_programming_mode(xknx, address)
 
@@ -203,6 +221,7 @@ async def download_individual_address(
     master: MasterData | None = None,
     waiting: Callable[[], None] | None = None,
     serial_number: bytes | None = None,
+    domain_address: bytes | None = None,
 ) -> bytes | None:
     """Download ``individual_address`` to the single device in programming mode.
 
@@ -218,6 +237,9 @@ async def download_individual_address(
     With ``serial_number`` the device is addressed by its KNX serial number
     instead, without programming mode and without a restart.
 
+    A KNX RF device gets ``domain_address`` as well, and is reached by system
+    broadcasts, also with another or no domain address (see :mod:`.rf_commissioning`).
+
     Returns the device's serial number when it could be read, else ``None``.
     """
     address = IndividualAddress(individual_address)
@@ -227,6 +249,10 @@ async def download_individual_address(
     if serial_number is not None:
         if current is not None:
             raise ValueError("an overwrite addresses the device by its current address")
+        if domain_address is not None:
+            await domain_address_serial_number_write(
+                xknx, serial_number, domain_address
+            )
         await _write_by_serial_number(xknx, address, serial_number)
         return serial_number
     occupied = await nm_individual_address_check(xknx, address)
@@ -237,6 +263,18 @@ async def download_individual_address(
     if current is not None:
         await switch_programming_mode(
             xknx, current, True, security=current_security, master=master
+        )
+    if domain_address is not None:
+        return await _download_rf_addresses(
+            xknx,
+            domain_address,
+            address,
+            current=current,
+            occupied=occupied,
+            waiting=waiting,
+            security=security,
+            current_security=current_security,
+            master=master,
         )
     devices = await wait_for_programming_mode(
         xknx, waiting if current is None else None
@@ -260,6 +298,51 @@ async def download_individual_address(
         logger.debug("Wrote address %s to device %s.", address, devices[0])
         await asyncio.sleep(_ADDRESS_ADOPTION_DELAY_S)
     return await _verify_and_restart(xknx, address, security)
+
+
+async def _download_rf_addresses(
+    xknx: XKNX,
+    domain_address: bytes,
+    address: IndividualAddress,
+    *,
+    current: IndividualAddress | None,
+    occupied: bool,
+    waiting: Callable[[], None] | None,
+    security: DeviceSecurity | None,
+    current_security: DeviceSecurity | None,
+    master: MasterData | None,
+) -> bytes | None:
+    """The domain and individual address of the KNX RF device in programming mode, with the
+    checks of the TP path: the device switched by ``current`` must be the one, and a device that
+    uses ``address`` must be the one in programming mode."""
+
+    def check(found: IndividualAddress) -> None:
+        if current is not None and found != current:
+            raise ProgrammingModeError(
+                f"Device {found} is in programming mode instead of {current}."
+            )
+        if occupied and found != address:
+            raise AddressInUseError(
+                f"The individual address {address} is already in use by another device."
+            )
+
+    try:
+        _, serial = await domain_and_individual_address_write2(
+            xknx,
+            domain_address,
+            address,
+            waiting=waiting if current is None else None,
+            check=check,
+            security=security,
+        )
+    except ProgrammingModeError:
+        if current is not None:
+            with contextlib.suppress(ManagementConnectionError, asyncio.TimeoutError):
+                await switch_programming_mode(
+                    xknx, current, False, security=current_security, master=master
+                )
+        raise
+    return serial
 
 
 async def _write_by_serial_number(

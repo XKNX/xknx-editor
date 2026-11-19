@@ -12,6 +12,7 @@ from imgui_bundle import imgui
 from xknx import XKNX
 from xknx.core.connection_state import XknxConnectionState
 from xknx.exceptions import (
+    CommunicationError,
     ConfirmationError,
     CouldNotParseAddress,
     RequestResponseError,
@@ -381,7 +382,6 @@ class ConnectionPlugin:
         self._usb_address_free: tuple[str, bool] | None = None
         # The same for the domain address of a KNX RF interface (set_usb_interface_domain_address).
         self._usb_domain_text = ""
-        self._usb_domain_write: bytes | None = None
         self._usb_domain_busy = False
         self._usb_domain_error: str | None = None
         # Whether the editor looks for interfaces at start and connects to one (Settings >
@@ -815,9 +815,9 @@ class ConnectionPlugin:
             self._usb_address_busy = False
 
     async def _reopen_usb_writing(self, session: int) -> str | None:
-        """Open the USB connection again, writing what ``_usb_address_write`` and
-        ``_usb_domain_write`` hold on connect; ``None`` when it is connected, else the reason it
-        is not, and then it is opened again as the interface is, without writing."""
+        """Open the USB connection again, writing the individual address ``_usb_address_write``
+        holds on connect; ``None`` when it is connected, else the reason it is not, and then it is
+        opened again as the interface is, without writing."""
         await self._disconnect_async(reopen=True)
         self._api.connection.dispatch_link_state(False)
         self._state = ConnectionState.CONNECTING
@@ -826,7 +826,6 @@ class ConnectionPlugin:
             await self._connect_async(reopen=True)
         finally:
             self._usb_address_write = None
-            self._usb_domain_write = None
         if self.connected:
             return None
         if session == self._session:
@@ -840,10 +839,10 @@ class ConnectionPlugin:
 
     def set_usb_interface_domain_address(self, text: str) -> Future[None]:
         """Set the domain address of the connected KNX RF USB interface to ``text`` (as lines show
-        it, ``0001:23456789``): the connection is opened again and sets it on the interface, which
-        keeps it. Nothing is written when the interface has that address already. Raises
+        it, ``0001:23456789``) on the open connection; the interface keeps it, and it applies at
+        once. Nothing is written when the interface has that address already. Raises
         ``ValueError`` with the reason when it can't start; the future fails with the reason when
-        the address could not be set, and the interface is then connected again as it is."""
+        the address could not be set."""
         try:
             domain_address = parse_rf_domain_address(text)
         except ValueError:
@@ -866,28 +865,26 @@ class ConnectionPlugin:
             return unchanged
         self._usb_domain_busy = True
         return asyncio.run_coroutine_threadsafe(
-            self._write_usb_domain_address(self._session, domain_address),
-            self._ensure_async_loop(),
+            self._write_usb_domain_address(domain_address), self._ensure_async_loop()
         )
 
-    async def _write_usb_domain_address(
-        self, session: int, domain_address: bytes
-    ) -> None:
-        """Open the USB connection again with ``domain_address`` set on the interface; when that
-        fails, open it again without."""
+    async def _write_usb_domain_address(self, domain_address: bytes) -> None:
+        """Write ``domain_address`` to the connected interface; the reason it could not be set is
+        kept for the dialog."""
         try:
-            self._usb_domain_write = domain_address
-            error = await self._reopen_usb_writing(session)
-            if error is None:
-                self._log.info(
-                    "USB interface domain address set",
-                    domain_address=rf_domain_address_text(domain_address),
-                )
-                return
-            self._usb_domain_error = S.USB_DOMAIN_ADDRESS_FAILED.format(error=error)
-            raise ConnectionError(self._usb_domain_error)
+            interface = self._interface
+            try:
+                if not isinstance(interface, ObservableUSBInterfaceThreaded):
+                    raise CommunicationError(S.USB_NOT_CONNECTED_HERE)
+                await interface.set_rf_domain_address(domain_address)
+            except CommunicationError as err:
+                self._usb_domain_error = S.USB_DOMAIN_ADDRESS_FAILED.format(error=err)
+                raise ConnectionError(self._usb_domain_error) from err
+            self._log.info(
+                "USB interface domain address set",
+                domain_address=rf_domain_address_text(domain_address),
+            )
         finally:
-            self._usb_domain_write = None
             self._usb_domain_busy = False
 
     def check_usb_interface_address(self, text: str) -> Future[Any]:
@@ -1002,7 +999,6 @@ class ConnectionPlugin:
                     ),
                     individual_address=self._usb_address_to_set(usb),
                     writes_blocked=self._api.connection.writes_blocked,
-                    rf_domain_address=self._usb_domain_write,
                 )
                 self._interface = usb_interface
                 config = usb_interface.connection_config
