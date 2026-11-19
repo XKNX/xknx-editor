@@ -33,6 +33,8 @@ class CEMIServerPropertyId(ResourcePropertyId):
 
 
 class RFMediumPropertyId(ResourcePropertyId):
-    """The RF Medium Object property xknx 4.1.1's ``ResourceRFMediumPropertyId`` lacks."""
+    """The RF Medium Object properties of the copy, as xknx 4.1.1's
+    ``ResourceRFMediumPropertyId`` lacks PID_RF_DOMAIN_ADDRESS."""
 
+    PID_RF_MULTI_TYPE = 51  # PDT_GENERIC_01
     PID_RF_DOMAIN_ADDRESS = 56  # PDT_GENERIC_06

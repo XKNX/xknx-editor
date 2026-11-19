@@ -171,7 +171,8 @@ class USBInterfaceInfo:
     `individual_address` is None when it could not be read. `max_apdu_length` is
     informational: xknx doesn't limit the telegrams it sends by it. `medium` is the
     one of the mask version; an RF interface reports its `rf_domain_address`, None
-    when it could not be read.
+    when it could not be read, and `rf_multi` whether it operates as a KNX RF Multi
+    device (KNX v01.10.01 - Resources 03.05.01 - §4.15.3 PID_RF_MULTI_TYPE).
     """
 
     device: USBDeviceInfo
@@ -185,6 +186,7 @@ class USBInterfaceInfo:
     emi_type: EMIID = EMIID.CEMI
     medium: KNXMedium = KNXMedium.TP1
     rf_domain_address: bytes | None = None
+    rf_multi: bool = False
 
 
 class USBTunnel(Interface):
@@ -446,6 +448,7 @@ class USBTunnel(Interface):
         mask_version = await self._get_mask_version()
 
         rf_domain_address: bytes | None = None
+        rf_multi = False
         if self._emi is EMIID.CEMI:
             # KNX v02.01.01 - Configuration Procedures 03.05.03 - §3.13.2.2; an RF
             # interface only speaks cEMI (§3.13.2.1)
@@ -463,6 +466,7 @@ class USBTunnel(Interface):
                         self.rf_domain_address, rf_domain_address
                     )
                     rf_domain_address = self.rf_domain_address
+                rf_multi = await self._read_rf_multi_type()
         else:
             self._medium = KNXMedium.TP1
             self._warn_emi_data_secure()
@@ -491,6 +495,7 @@ class USBTunnel(Interface):
             emi_type=self._emi,
             medium=self._medium,
             rf_domain_address=rf_domain_address,
+            rf_multi=rf_multi,
         )
 
     async def _get_supported_emi_types(self) -> SupportedEMIType:
@@ -733,6 +738,22 @@ class USBTunnel(Interface):
             current.hex() if current is not None else "unknown",
             new.hex(),
         )
+
+    async def _read_rf_multi_type(self) -> bool:
+        """
+        Read whether an RF interface operates as a KNX RF Multi device.
+
+        A KNX RF Ready interface has no PID_RF_MULTI_TYPE - KNX v01.10.01 - Resources
+        03.05.01 - §4.15.3.
+        """
+        try:
+            data = await self._property_read(
+                ResourceObjectType.OBJECT_RF_MEDIUM_OBJECT,
+                RFMediumPropertyId.PID_RF_MULTI_TYPE,
+            )
+        except CommunicationError:
+            return False
+        return bool(data[:1]) and bool(data[0] & 0x01)
 
     async def _read_max_apdu_length(self) -> int:
         """Read the maximum APDU length of the interface, 15 when it isn't available."""
