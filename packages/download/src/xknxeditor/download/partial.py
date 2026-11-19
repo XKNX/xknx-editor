@@ -9,7 +9,6 @@ application, using the locations the mask version's resources define.
 from __future__ import annotations
 
 import logging
-import re
 from typing import TYPE_CHECKING
 
 from xknxeditor.namespaces.intermediate.resource_addr_space_t import ResourceAddrSpace
@@ -59,17 +58,10 @@ class FullDownloadDeclined(DownloadError):
 
 
 def program_manufacturer(application: Application) -> int:
-    """The manufacturer of the program id ``application`` loads: the original manufacturer of an
-    application another manufacturer sells (``OriginalManufacturer``, the ``-Oxxxx`` of its id;
-    the device runs that manufacturer's firmware, as the product data's own program ids of such
-    applications show), else the application's own."""
-    original = getattr(application.program, "original_manufacturer", None)
-    if not (isinstance(original, str) and _MANUFACTURER.fullmatch(original)):
-        original = application.manufacturer_id
-    return int(original.split("-")[-1], 16)
-
-
-_MANUFACTURER = re.compile(r"M-[0-9A-Fa-f]{4}")
+    """The manufacturer of the program id ``application`` loads: the application's own, also
+    for an application another manufacturer developed (``OriginalManufacturer``, the
+    ``-Oxxxx`` of its id), e.g. 0004 for a Jung ``M-0004_A-1152-12-F55A-O000A``."""
+    return int(application.manufacturer_id.split("-")[-1], 16)
 
 
 def application_id(application: Application, length: int = 5) -> bytes:

@@ -32,9 +32,16 @@ BUSCH_JAEGER = 0x0007
 
 def firmware_manufacturer(application: Application) -> int:
     """The manufacturer the device's program ids carry: the original manufacturer of an
-    application another manufacturer sells (ABB sells Busch-Jaeger devices), else the
-    application's own (see ``program_manufacturer``)."""
+    application another manufacturer sells (ABB sells Busch-Jaeger devices, the product data
+    writes ``0007610821`` for an ABB ``M-0002_A-6108-23-...-O0007``), else the application's
+    own."""
+    original = getattr(application.program, "original_manufacturer", None)
+    if isinstance(original, str) and _MANUFACTURER.fullmatch(original):
+        return int(original[2:], 16)
     return program_manufacturer(application)
+
+
+_MANUFACTURER = re.compile(r"M-[0-9A-Fa-f]{4}")
 
 
 def program_identity(application: Application) -> tuple[int, int] | None:
