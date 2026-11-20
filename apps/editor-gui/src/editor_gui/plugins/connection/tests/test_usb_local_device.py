@@ -464,10 +464,17 @@ class TestUi:
         monkeypatch.setattr(imgui, "checkbox", checkbox)
         texts: list[str] = []
         real_text = imgui.text_wrapped
+        real_disabled = imgui.text_disabled
         monkeypatch.setattr(
             imgui,
             "text_wrapped",
             lambda text, *a: (texts.append(text), real_text(text)),
+        )
+        # the hint below the checkbox (control_hint)
+        monkeypatch.setattr(
+            imgui,
+            "text_disabled",
+            lambda text, *a: (texts.append(text), real_disabled(text)),
         )
         plugin._select_open = plugin._select_shown = plugin._progmode_open = False
 
@@ -550,7 +557,11 @@ class TestUi:
             imgui.destroy_context(ctx)
             await plugin._disconnect_async()
 
-    def test_the_gateway_menu_offers_it(self, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_the_gateway_menu_does_not_offer_it(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """The choice is in the connection settings and the USB Interface dialog; the menu's list
+        of interfaces stays short."""
         plugin = _plugin()
         plugin._usb_devices = [_DEVICE]
         plugin._gateways = []
@@ -561,12 +572,10 @@ class TestUi:
         plugin.open_settings = None
         ctx = _imgui()
         real_checkbox = imgui.checkbox
-        ticked = ["Connect to the interface's own device (local device access)"]
+        drawn: list[str] = []
 
         def checkbox(label: str, value: bool) -> tuple[bool, bool]:
-            if label.split("##")[0] in ticked:
-                ticked.clear()
-                return True, not value
+            drawn.append(label)
             return real_checkbox(label, value)
 
         monkeypatch.setattr(imgui, "checkbox", checkbox)
@@ -579,4 +588,5 @@ class TestUi:
             imgui.end_frame()
         finally:
             imgui.destroy_context(ctx)
-        assert plugin.usb_local_device
+        assert not any(S.USB_LOCAL_DEVICE_OPTION in label for label in drawn)
+        assert not plugin.usb_local_device
