@@ -56,6 +56,7 @@ UV monorepo: `packages/` holds eight core libraries; `apps/` holds applications.
 - Test coverage is measured in CI and should keep growing. Whenever you change code, check the code you touched and the code around it (the rest of the function, class or module) for behaviour no test covers, and add tests where they are useful — also when the change itself needed none.
 - Prefer tests of behaviour over tests of implementation details; GUI code can be tested headless with an imgui context (see `apps/editor-gui/src/editor_gui/widgets/tests/test_dialog_placement.py`) or by calling methods on a stub (see `apps/editor-gui/src/editor_gui/tests/test_exit.py`).
 
+- Code that keeps data per xknx object (`XKNX`, its interface, management, …) is tested with the real object, not a stand-in: they use `__slots__` (no weak references, no extra attributes), which a `MagicMock` or a plain class hides.
 - Keep large capture fixtures optional, Git-ignored and excluded from distributions.
 
 ## UI Texts
