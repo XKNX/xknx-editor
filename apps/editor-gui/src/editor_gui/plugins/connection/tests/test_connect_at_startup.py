@@ -14,6 +14,7 @@ from xknx.io.connection import ConnectionType
 from editor_gui import main
 from editor_gui import settings as app_settings
 from editor_gui.plugins.connection import plugin as plugin_module
+from editor_gui.plugins.connection.ip_server import IpServer, IpServerSettings
 from editor_gui.plugins.connection.plugin import (
     _DEFAULT_CONTROLLER_IP,  # pyright: ignore[reportPrivateUsage]
     ConnectionPlugin,
@@ -34,6 +35,14 @@ def _plugin() -> Any:
     plugin._usb_target = None
     plugin._usb_addresses = {}
     plugin._usb_local_device = False
+    plugin._ip_settings = IpServerSettings()
+    plugin._ip_server = IpServer()
+    plugin._ip_busy = False
+    plugin._ip_port_text = ""
+    plugin._ip_addresses_text = ""
+    plugin._ip_name_text = ""
+    plugin._ip_draft = None
+    plugin._ip_error = None
     plugin._controller_ip = _DEFAULT_CONTROLLER_IP
     plugin._multicast_group = "224.0.23.12"
     plugin._connection_type = ConnectionType.TUNNELING

@@ -833,6 +833,99 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         ]
         return _frame_item(sent[-1]) if sent else {"status": "sent"}
 
+    def _ip_server_state() -> dict[str, Any]:
+        settings = conn.ip_server_settings
+        return {
+            "settings": {
+                "enabled": settings.enabled,
+                "port": settings.port,
+                "listen": settings.listen,
+                "discovery": settings.discovery,
+                "tcp": settings.tcp,
+                "tunnel_addresses": list(settings.tunnel_addresses),
+                "name": settings.name,
+            },
+            "running": conn.ip_server_running,
+            "port": conn.ip_server_port,
+            "error": conn.ip_server_error,
+            "refusal": conn.ip_server_refusal(),
+            "tunnels": [
+                {
+                    "channel": tunnel.channel,
+                    "client": tunnel.client,
+                    "protocol": tunnel.protocol,
+                    "individual_address": tunnel.address,
+                }
+                for tunnel in conn.ip_server_tunnels()
+            ],
+            "suggested_tunnel_addresses": conn.suggest_ip_server_addresses(),
+        }
+
+    @tool("read")
+    def connection_ip_server() -> dict[str, Any]:
+        """The KNXnet/IP server ("USB to IP bridge") as the "KNXnet/IP Server" section of
+        Gateway menu > USB Interface… shows it: other tools use the KNX USB interface the
+        editor is connected through as a KNXnet/IP interface. Returns {settings {enabled, port,
+        listen ("all": every network interface, "localhost": this computer only), discovery
+        (answers searches), tcp (offers TCP besides UDP), tunnel_addresses, name}, running,
+        port (while it runs), error (why it, turned on, does not run, else null), refusal (why it
+        can't run with the connection chosen: not a USB interface, or local device access;
+        else null), tunnels [{channel, client ("ip:port"), protocol ("UDP"/"TCP"),
+        individual_address}], suggested_tunnel_addresses (free addresses of the interface's
+        line)}."""
+        return _ip_server_state()
+
+    @tool("write", open_world=True)
+    def connection_set_ip_server(
+        enabled: bool | None = None,
+        port: int | None = None,
+        listen: Literal["all", "localhost"] | None = None,
+        discovery: bool | None = None,
+        tcp: bool | None = None,
+        tunnel_addresses: list[str] | None = None,
+        name: str | None = None,
+        timeout: float = 15.0,
+    ) -> dict[str, Any]:
+        """Change the KNXnet/IP server's settings, as Apply in the "KNXnet/IP Server" section of
+        Gateway menu > USB Interface… does; parameters left out keep their value. ``enabled``
+        turns it on or off: on, it opens a network listener on ``port`` (3671 by default) of
+        every network interface (``listen`` "all") or of this computer only ("localhost"), and
+        runs while the editor is connected to the bus through a KNX USB interface (not with
+        local device access); it starts at once when connected, and again on every connect.
+        ``tunnel_addresses`` are the individual addresses of its tunnels, one per tunnel: free
+        addresses of the interface's line, no device of the project (see
+        suggested_tunnel_addresses of connection_ip_server). The settings are kept. Waits until
+        it runs or stopped and returns the state as connection_ip_server. Fails with the reason
+        for settings that can't be used, or when it does not start (e.g. the port is in use)."""
+        from dataclasses import replace
+
+        current = conn.ip_server_settings
+        settings = replace(
+            current,
+            enabled=current.enabled if enabled is None else enabled,
+            port=current.port if port is None else port,
+            listen=current.listen if listen is None else listen,
+            discovery=current.discovery if discovery is None else discovery,
+            tcp=current.tcp if tcp is None else tcp,
+            tunnel_addresses=current.tunnel_addresses
+            if tunnel_addresses is None
+            else tuple(address.strip() for address in tunnel_addresses),
+            name=current.name if name is None or not name.strip() else name.strip(),
+        )
+        try:
+            future = conn.configure_ip_server(settings)
+        except ValueError as err:
+            raise ToolError(str(err)) from err
+        try:
+            future.result(timeout)
+        except TimeoutError as err:
+            raise ToolError(
+                f"the KNXnet/IP server did not start or stop within {timeout:g} s"
+            ) from err
+        except ConnectionError as err:
+            raise ToolError(str(err)) from err
+        return _ip_server_state()
+
     @tool("write", open_world=True)
     def connection_switch_type(
         connection_type: str, timeout: float = 15.0

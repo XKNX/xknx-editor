@@ -19,6 +19,7 @@ from xknx.telegram import GroupAddress, IndividualAddress
 
 from editor_gui import settings as app_settings
 from editor_gui.plugins.connection import plugin as plugin_module
+from editor_gui.plugins.connection.ip_server import IpServer, IpServerSettings
 from editor_gui.plugins.connection.mbus_batibus import MbusBatibusFrameLog
 from editor_gui.plugins.connection.plugin import ConnectionPlugin, ConnectionState
 from editor_gui.plugins.connection.service import LinkInfo
@@ -104,6 +105,14 @@ def _plugin() -> Any:
     plugin._usb_domain_busy = False
     plugin._usb_domain_error = None
     plugin._usb_local_device = False
+    plugin._ip_settings = IpServerSettings()
+    plugin._ip_server = IpServer()
+    plugin._ip_busy = False
+    plugin._ip_port_text = ""
+    plugin._ip_addresses_text = ""
+    plugin._ip_name_text = ""
+    plugin._ip_draft = None
+    plugin._ip_error = None
     plugin._usb_local_busy = False
     plugin._usb_local_error = None
     plugin._mbus_frames = MbusBatibusFrameLog()

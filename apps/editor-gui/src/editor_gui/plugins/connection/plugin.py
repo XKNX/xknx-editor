@@ -38,6 +38,15 @@ from editor_gui.plugins.connection.interface import (
     ObservableKNXIPInterfaceThreaded,
     interface_apdu_limit,
 )
+from editor_gui.plugins.connection.ip_server import (
+    IpServer,
+    IpServerSettings,
+    OpenTunnel,
+    check_tunnel_addresses,
+    parse_tunnel_addresses,
+    suggest_tunnel_addresses,
+    valid_port,
+)
 from editor_gui.plugins.connection.mbus_batibus import (
     PROTOCOLS,
     MbusBatibusFrame,
@@ -416,6 +425,17 @@ class ConnectionPlugin:
         self._mbus_data_text = ""
         self._mbus_sending = False
         self._mbus_error: str | None = None
+        # The KNXnet/IP server in front of a USB connection ("USB to IP bridge"): its settings as
+        # kept (off unless the user turns it on), the server, and the fields of its section of
+        # the USB Interface dialog as typed until applied, with why they were not.
+        self._ip_settings = IpServerSettings()
+        self._ip_server = IpServer()
+        self._ip_busy = False
+        self._ip_port_text = ""
+        self._ip_addresses_text = ""
+        self._ip_name_text = ""
+        self._ip_draft: IpServerSettings | None = None
+        self._ip_error: str | None = None
         # Whether the editor looks for interfaces at start and connects to one (Settings >
         # Connection); off, it connects only when the user asks.
         self._connect_at_startup = True
@@ -682,6 +702,7 @@ class ConnectionPlugin:
             self._preferred_gateway_ip = pref
         self._usb_target = UsbTarget.from_settings(data.get("usb_interface"))
         self._usb_local_device = data.get("usb_local_device") is True
+        self._ip_settings = IpServerSettings.from_settings(data.get("ip_server"))
         addresses = data.get("usb_interface_addresses")
         if isinstance(addresses, dict):
             self._usb_addresses = {
@@ -722,6 +743,7 @@ class ConnectionPlugin:
                 ),
                 "usb_interface_addresses": dict(self._usb_addresses),
                 "usb_local_device": self._usb_local_device,
+                "ip_server": self._ip_settings.to_settings(),
                 "serial_number_downloads": self._api.connection.use_serial_number,
                 "connect_at_startup": self._connect_at_startup,
                 "block_bus_writes": self._block_bus_writes_setting,
@@ -956,6 +978,160 @@ class ConnectionPlugin:
             raise ConnectionError(self._usb_local_error)
         finally:
             self._usb_local_busy = False
+
+    # --- the KNXnet/IP server ---------------------------------------------------
+
+    @property
+    def ip_server_settings(self) -> IpServerSettings:
+        """The settings of the KNXnet/IP server, as kept."""
+        return self._ip_settings
+
+    @property
+    def ip_server_running(self) -> bool:
+        return self._ip_server.running
+
+    @property
+    def ip_server_port(self) -> int | None:
+        """The port the KNXnet/IP server listens on while it runs."""
+        return self._ip_server.port
+
+    @property
+    def ip_server_error(self) -> str | None:
+        """Why the KNXnet/IP server, turned on, does not run (None: it does, or it is off)."""
+        return self._ip_server.error if self._ip_settings.enabled else None
+
+    @property
+    def ip_server_busy(self) -> bool:
+        """Whether the KNXnet/IP server is being started or stopped for new settings."""
+        return self._ip_busy
+
+    def ip_server_tunnels(self) -> list[OpenTunnel]:
+        """The open tunnels of the KNXnet/IP server."""
+        return self._ip_server.tunnels()
+
+    def ip_server_refusal(self) -> str | None:
+        """Why the KNXnet/IP server can't run with the connection chosen: only in front of a KNX
+        USB interface's connection to the bus. None when it can."""
+        if self._usb_target is None:
+            return S.IP_SERVER_NEEDS_USB
+        if self._usb_local_device:
+            return S.IP_SERVER_NOT_LOCAL
+        return None
+
+    def _project_device_at(self, address: str) -> str | None:
+        """The name of the open project's device at ``address``, None for none."""
+        project = self._api.project
+        if not project.is_open:
+            return None
+        device = project.find_device_by_address(address)
+        return device.name if device is not None else None
+
+    def _interface_address(self) -> IndividualAddress | None:
+        info = self.usb_info
+        return info.individual_address if info is not None else None
+
+    def suggest_ip_server_addresses(self) -> list[str]:
+        """Free addresses of the interface's line for the tunnels (none while its individual
+        address is unknown)."""
+        return suggest_tunnel_addresses(
+            self._interface_address(), self._project_device_at
+        )
+
+    def check_ip_server_settings(
+        self, settings: IpServerSettings
+    ) -> list[IndividualAddress]:
+        """The tunnel addresses of ``settings``. Raises ``ValueError`` with the reason for a port
+        that is none, or tunnel addresses that can't be used (see ``check_tunnel_addresses``)."""
+        if not valid_port(settings.port):
+            raise ValueError(S.IP_SERVER_PORT_INVALID.format(port=settings.port))
+        return check_tunnel_addresses(
+            settings.tunnel_addresses,
+            self._interface_address(),
+            self._project_device_at,
+        )
+
+    def configure_ip_server(self, settings: IpServerSettings) -> Future[None]:
+        """Keep ``settings`` of the KNXnet/IP server (checked when it is turned on) and, while
+        connected, start it again with them or stop it. Raises ``ValueError`` with the reason
+        when they can't be used; the future fails with the reason when it does not start."""
+        if self._ip_busy:
+            raise ValueError(S.IP_SERVER_BUSY)
+        if settings.enabled:
+            self.check_ip_server_settings(settings)
+        elif not valid_port(settings.port):
+            raise ValueError(S.IP_SERVER_PORT_INVALID.format(port=settings.port))
+        changed = settings != self._ip_settings
+        self._ip_settings = settings
+        if changed:
+            self._save_current_settings()
+            self._log.info(
+                "KNXnet/IP server settings",
+                enabled=settings.enabled,
+                port=settings.port,
+                listen=settings.listen,
+                discovery=settings.discovery,
+                tcp=settings.tcp,
+                tunnel_addresses=" ".join(settings.tunnel_addresses),
+            )
+        if not self.connected or (
+            not changed and settings.enabled == self._ip_server.running
+        ):
+            done: Future[None] = Future()
+            done.set_result(None)
+            return done
+        self._ip_busy = True
+        return asyncio.run_coroutine_threadsafe(
+            self._restart_ip_server(), self._ensure_async_loop()
+        )
+
+    async def _restart_ip_server(self) -> None:
+        """Start the KNXnet/IP server again with its settings, or stop it when it is off."""
+        try:
+            await self._ip_server.stop()
+            await self._start_ip_server()
+            if self._ip_settings.enabled and not self._ip_server.running:
+                raise ConnectionError(self._ip_server.error or "")
+        finally:
+            self._ip_busy = False
+
+    async def _start_ip_server(self) -> None:
+        """Start the KNXnet/IP server on the open connection, when it is on and can run; why it
+        does not is its ``error``."""
+        settings = self._ip_settings
+        xknx = self._xknx
+        if not settings.enabled or xknx is None:
+            return
+        if (reason := self.ip_server_refusal()) is not None:
+            self._ip_server.fail(reason)
+            self._log.warning("KNXnet/IP server not started", reason=reason)
+            return
+        try:
+            addresses = await self._on_main_thread(
+                lambda: self.check_ip_server_settings(settings)
+            )
+        except ValueError as err:
+            self._ip_server.fail(str(err))
+            self._log.warning("KNXnet/IP server not started", reason=str(err))
+            return
+        if await self._ip_server.start(xknx, settings, addresses):
+            self._log.info(
+                "KNXnet/IP server started",
+                port=self._ip_server.port,
+                listen=settings.local_ip,
+                tunnel_addresses=" ".join(str(a) for a in addresses),
+            )
+        else:
+            self._log.error(
+                "KNXnet/IP server not started", reason=self._ip_server.error or ""
+            )
+
+    def ip_server_status_text(self) -> str | None:
+        """The KNXnet/IP server as the status bar and the Gateway menu show it while it runs."""
+        port = self._ip_server.port
+        if port is None:
+            return None
+        count = len(self._ip_server.tunnels())
+        return S.IP_SERVER_RUNNING(count).format(port=port, count=count)
 
     @property
     def usb_domain_address_busy(self) -> bool:
@@ -1307,6 +1483,7 @@ class ConnectionPlugin:
                     core_version=str(self._gateway_info.core_version),
                     services=",".join(services),
                 )
+            await self._start_ip_server()
         except Exception as e:
             startup, self._startup_connect = self._startup_connect, False
             if isinstance(e, MissingCredentialsError):
@@ -1741,6 +1918,8 @@ class ConnectionPlugin:
         was_connected = self._xknx is not None
         self._keep_usb_address()
         try:
+            # its clients first, while the connection they use is still open
+            await self._ip_server.stop()
             if self._interface is not None:
                 await self._interface.stop()
         finally:
@@ -2206,6 +2385,9 @@ class ConnectionPlugin:
                 if name:
                     target = f"{name} @ {target}"
             imgui.text(S.STATUS_CONNECTED.format(ip=target))
+            if (server := self.ip_server_status_text()) is not None:
+                imgui.same_line()
+                imgui.text_disabled(f"|  {server}")
         elif self._state == ConnectionState.CONNECTING:
             spin = (animation_time() * 4) % 1.0
             draw_list.add_circle_filled(
@@ -2304,7 +2486,189 @@ class ConnectionPlugin:
             info.rf_domain_address if info is not None else None
         )
         self._usb_domain_error = None
+        self._reset_ip_server_fields()
         self._usb_interface_open = True
+
+    def _reset_ip_server_fields(self) -> None:
+        """The fields of the KNXnet/IP Server section as kept; free addresses of the interface's
+        line suggested while none are."""
+        settings = self._ip_settings
+        self._ip_draft = settings
+        self._ip_port_text = str(settings.port)
+        self._ip_addresses_text = " ".join(
+            settings.tunnel_addresses or self.suggest_ip_server_addresses()
+        )
+        self._ip_name_text = settings.name
+        self._ip_error = None
+
+    def _ip_server_draft(self) -> IpServerSettings | None:
+        """The settings of the KNXnet/IP Server section as entered; None when the port is no
+        number."""
+        draft = self._ip_draft or self._ip_settings
+        try:
+            port = int(self._ip_port_text.strip())
+        except ValueError:
+            return None
+        return replace(
+            draft,
+            port=port,
+            tunnel_addresses=tuple(parse_tunnel_addresses(self._ip_addresses_text)),
+            name=self._ip_name_text.strip() or draft.name,
+        )
+
+    def _render_ip_server(self) -> None:
+        """The "KNXnet/IP Server" section of the USB Interface dialog: its settings, applied
+        with Apply (which starts or stops it while connected), its state and its tunnels."""
+        imgui.push_id("ip_server")
+        if not collapsing_header(f"{S.IP_SERVER_HEADER}###ip_server"):
+            imgui.pop_id()
+            return
+        draft = self._ip_draft or self._ip_settings
+        imgui.begin_disabled(self._ip_busy)
+        changed, enabled = wrapped_checkbox(
+            f"{S.IP_SERVER_ENABLED}##ip_enabled", draft.enabled
+        )
+        if changed:
+            draft = replace(draft, enabled=enabled)
+        imgui.push_style_color(
+            imgui.Col_.text, imgui.get_style().color_(imgui.Col_.text_disabled)
+        )
+        imgui.text_wrapped(S.IP_SERVER_HINT)
+        imgui.pop_style_color()
+        imgui.align_text_to_frame_padding()
+        imgui.text(S.IP_SERVER_PORT)
+        imgui.same_line()
+        imgui.set_next_item_width(px(70))
+        _, self._ip_port_text = imgui.input_text("##ip_port", self._ip_port_text)
+        same_line_if_fits(px(190) + imgui.calc_text_size(S.IP_SERVER_LISTEN).x)
+        imgui.align_text_to_frame_padding()
+        imgui.text(S.IP_SERVER_LISTEN)
+        imgui.same_line()
+        listen_names = {
+            "all": S.IP_SERVER_LISTEN_ALL,
+            "localhost": S.IP_SERVER_LISTEN_LOCAL,
+        }
+        imgui.set_next_item_width(px(180))
+        if begin_combo("##ip_listen", listen_names[draft.listen]):
+            for key, name in listen_names.items():
+                if imgui.selectable(f"{name}##ip_listen_{key}", key == draft.listen)[0]:
+                    draft = replace(
+                        draft, listen="localhost" if key == "localhost" else "all"
+                    )
+            end_combo()
+        changed, discovery = checkbox(
+            f"{S.IP_SERVER_DISCOVERY}##ip_discovery", draft.discovery
+        )
+        if changed:
+            draft = replace(draft, discovery=discovery)
+        same_line_if_fits(button_width(S.IP_SERVER_TCP) + px(24))
+        changed, tcp = checkbox(f"{S.IP_SERVER_TCP}##ip_tcp", draft.tcp)
+        if changed:
+            draft = replace(draft, tcp=tcp)
+        imgui.align_text_to_frame_padding()
+        imgui.text(S.IP_SERVER_ADDRESSES)
+        imgui.same_line()
+        imgui.set_next_item_width(
+            max(
+                px(120),
+                imgui.get_content_region_avail().x
+                - button_width(S.IP_SERVER_SUGGEST)
+                - imgui.get_style().item_spacing.x,
+            )
+        )
+        _, self._ip_addresses_text = imgui.input_text(
+            "##ip_addresses", self._ip_addresses_text
+        )
+        if _row_button(f"{S.IP_SERVER_SUGGEST}##ip_suggest"):
+            suggested = self.suggest_ip_server_addresses()
+            if suggested:
+                self._ip_addresses_text = " ".join(suggested)
+        imgui.align_text_to_frame_padding()
+        imgui.text(S.IP_SERVER_NAME)
+        imgui.same_line()
+        imgui.set_next_item_width(px(200))
+        _, self._ip_name_text = imgui.input_text("##ip_name", self._ip_name_text)
+        self._ip_draft = draft
+        entered = self._ip_server_draft()
+        imgui.begin_disabled(entered is None or entered == self._ip_settings)
+        applied = imgui.button(f"{S.IP_SERVER_APPLY}##ip_apply")
+        imgui.end_disabled()
+        imgui.end_disabled()
+        if applied and entered is not None:
+            self._apply_ip_server(entered)
+        error = (
+            S.IP_SERVER_PORT_INVALID.format(port=self._ip_port_text.strip())
+            if entered is None
+            else self._ip_error
+        )
+        if self._ip_busy:
+            loading("##ip_spinner", S.IP_SERVER_BUSY)
+        elif error:
+            imgui.push_style_color(imgui.Col_.text, status_color("error"))
+            imgui.text_wrapped(error)
+            imgui.pop_style_color()
+        self._render_ip_server_state()
+        imgui.pop_id()
+
+    def _apply_ip_server(self, settings: IpServerSettings) -> None:
+        """Apply the section's settings; a reason they can't be is shown below them."""
+        self._ip_error = None
+        try:
+            future = self.configure_ip_server(settings)
+        except ValueError as err:
+            self._ip_error = str(err)
+            return
+
+        def done(result: Future[None]) -> None:
+            error = result.exception() if not result.cancelled() else None
+            if error is not None:
+                self._ip_error = str(error)
+
+        future.add_done_callback(done)
+
+    def _render_ip_server_state(self) -> None:
+        """Whether the KNXnet/IP server runs, on which port, and its open tunnels."""
+        status = self.ip_server_status_text()
+        if status is None:
+            error = self.ip_server_error
+            if error and not self._ip_error:
+                imgui.push_style_color(imgui.Col_.text, status_color("error"))
+                imgui.text_wrapped(error)
+                imgui.pop_style_color()
+            else:
+                imgui.text_disabled(S.IP_SERVER_STOPPED)
+            return
+        imgui.text_colored(status_color("success"), status)
+        tunnels = self.ip_server_tunnels()
+        if not tunnels:
+            imgui.text_disabled(S.IP_SERVER_NO_TUNNELS)
+            return
+        flags = (
+            imgui.TableFlags_.borders_inner_v
+            | imgui.TableFlags_.row_bg
+            | imgui.TableFlags_.resizable
+        )
+        if not begin_data_table("##ip_tunnels", 4, flags):
+            return
+        fixed = imgui.TableColumnFlags_.width_fixed
+        imgui.table_setup_column(S.IP_SERVER_CHANNEL, fixed)
+        imgui.table_setup_column(
+            S.IP_SERVER_CLIENT, imgui.TableColumnFlags_.width_stretch
+        )
+        imgui.table_setup_column(S.IP_SERVER_PROTOCOL, fixed)
+        imgui.table_setup_column(S.IP_SERVER_ADDRESS, fixed)
+        data_table_headers()
+        for tunnel in tunnels:
+            imgui.table_next_row()
+            imgui.table_set_column_index(0)
+            imgui.text(str(tunnel.channel))
+            imgui.table_set_column_index(1)
+            text_clipped_tooltip(tunnel.client)
+            imgui.table_set_column_index(2)
+            imgui.text(tunnel.protocol)
+            imgui.table_set_column_index(3)
+            imgui.text(tunnel.address)
+        imgui.end_table()
 
     def _render_usb_interface(self) -> None:
         """The "USB Interface" dialog: what the connected USB interface reported, and its
@@ -2418,6 +2782,7 @@ class ConnectionPlugin:
             self._render_usb_domain_address(info.rf_domain_address, busy)
         imgui.separator()
         self._render_mbus_batibus_frames()
+        self._render_ip_server()
         if dialog_buttons(S.USB_INTERFACE_CLOSE) == 0:
             self._usb_interface_open = False
             imgui.close_current_popup()
@@ -2954,6 +3319,12 @@ class ConnectionPlugin:
                 imgui.text_colored(status_color("warning"), S.USB_LOCAL_DEVICE_DETAILS)
             elif not usb.bus_connected:
                 imgui.text_colored(status_color("warning"), S.USB_NOT_ON_BUS)
+            if (server := self.ip_server_status_text()) is not None:
+                imgui.text(server)
+            elif (error := self.ip_server_error) is not None:
+                imgui.push_text_wrap_pos(imgui.get_cursor_pos_x() + px(320))
+                imgui.text_colored(status_color("error"), error)
+                imgui.pop_text_wrap_pos()
             return
         gateway = self._gateway_info
         if gateway is None:

@@ -550,6 +550,148 @@ class ConnectionStrings:
         return _("The frame could not be sent: {error}")
 
     @property
+    def IP_SERVER_HEADER(self) -> str:
+        return _("KNXnet/IP Server")
+
+    @property
+    def IP_SERVER_ENABLED(self) -> str:
+        # a checkbox
+        return _("Run a KNXnet/IP server for other tools (USB to IP bridge)")
+
+    @property
+    def IP_SERVER_HINT(self) -> str:
+        return _(
+            "Other tools (another editor, Home Assistant, a commissioning tool) connect to it "
+            "over the network and use this USB interface as a KNXnet/IP interface. Each tunnel "
+            "gets one of the tunnel addresses, which have to be free addresses of the "
+            "interface's line. It runs while the editor is connected to the bus through the "
+            "interface, and opens a network port: turn it on only where that is wanted."
+        )
+
+    @property
+    def IP_SERVER_PORT(self) -> str:
+        return _("Port")
+
+    @property
+    def IP_SERVER_LISTEN(self) -> str:
+        return _("Listen On")
+
+    @property
+    def IP_SERVER_LISTEN_ALL(self) -> str:
+        return _("All network interfaces")
+
+    @property
+    def IP_SERVER_LISTEN_LOCAL(self) -> str:
+        return _("This computer only")
+
+    @property
+    def IP_SERVER_DISCOVERY(self) -> str:
+        # a checkbox: the server answers the searches of KNXnet/IP clients
+        return _("Answer searches (discovery)")
+
+    @property
+    def IP_SERVER_TCP(self) -> str:
+        # a checkbox: tunnels over TCP besides UDP
+        return _("Offer TCP")
+
+    @property
+    def IP_SERVER_ADDRESSES(self) -> str:
+        return _("Tunnel Addresses")
+
+    @property
+    def IP_SERVER_SUGGEST(self) -> str:
+        # fills in free addresses of the interface's line
+        return _("Suggest")
+
+    @property
+    def IP_SERVER_NAME(self) -> str:
+        return _("Name")
+
+    @property
+    def IP_SERVER_APPLY(self) -> str:
+        return _("Apply")
+
+    def IP_SERVER_RUNNING(self, count: int) -> str:
+        # {port}: the network port; {count}: the open tunnels
+        return _.plural(
+            "KNXnet/IP server on port {port}, {count} tunnel",
+            "KNXnet/IP server on port {port}, {count} tunnels",
+            count,
+        )
+
+    @property
+    def IP_SERVER_STOPPED(self) -> str:
+        return _("The KNXnet/IP server is not running.")
+
+    @property
+    def IP_SERVER_NO_TUNNELS(self) -> str:
+        return _("No tunnels open")
+
+    @property
+    def IP_SERVER_CHANNEL(self) -> str:
+        # the communication channel of a tunnel
+        return _("Channel")
+
+    @property
+    def IP_SERVER_CLIENT(self) -> str:
+        return _("Client")
+
+    @property
+    def IP_SERVER_PROTOCOL(self) -> str:
+        return _("Protocol")
+
+    @property
+    def IP_SERVER_ADDRESS(self) -> str:
+        return _("Address")
+
+    @property
+    def IP_SERVER_NO_ADDRESSES(self) -> str:
+        return _("At least one tunnel address is needed.")
+
+    @property
+    def IP_SERVER_ADDRESS_TWICE(self) -> str:
+        return _("The tunnel address {address} is given twice.")
+
+    @property
+    def IP_SERVER_ADDRESS_INTERFACE(self) -> str:
+        return _("{address} is the individual address of the interface itself.")
+
+    @property
+    def IP_SERVER_ADDRESS_LINE(self) -> str:
+        # {line}: the line of the interface, e.g. 1.1
+        return _("{address} is not on the line of the interface ({line}).")
+
+    @property
+    def IP_SERVER_ADDRESS_USED(self) -> str:
+        return _("{address} is the individual address of the device {name}.")
+
+    @property
+    def IP_SERVER_PORT_INVALID(self) -> str:
+        return _("{port} is not a port (1 to 65535).")
+
+    @property
+    def IP_SERVER_NEEDS_USB(self) -> str:
+        return _(
+            "The KNXnet/IP server runs only while the editor is connected through a KNX USB "
+            "interface."
+        )
+
+    @property
+    def IP_SERVER_NOT_LOCAL(self) -> str:
+        return _(
+            "The KNXnet/IP server doesn't run with local device access: the connection "
+            "reaches only the interface's own device."
+        )
+
+    @property
+    def IP_SERVER_BUSY(self) -> str:
+        return _("The KNXnet/IP server is being started or stopped.")
+
+    @property
+    def IP_SERVER_FAILED(self) -> str:
+        return _("The KNXnet/IP server could not start: {error}")
+
+    @property
     def MBUS_FRAME_WRITES_BLOCKED(self) -> str:
         return _("Block Bus Writes is on (Settings > Connection): nothing is sent.")
 

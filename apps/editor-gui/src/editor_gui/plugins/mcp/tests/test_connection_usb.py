@@ -12,6 +12,7 @@ from fastmcp import Client
 from xknx.knxip.knxip_enum import KNXMedium
 from xknx.telegram import IndividualAddress
 
+from editor_gui.plugins.connection.ip_server import IpServerSettings, OpenTunnel
 from editor_gui.plugins.connection.mbus_batibus import (
     MbusBatibusFrame,
     MbusBatibusFrameLog,
@@ -511,3 +512,85 @@ async def test_no_group_telegrams_through_local_device_access(tmp_path: Path) ->
     async with Client(build_server(ctx)) as client:
         with pytest.raises(Exception, match="group telegrams can't be sent"):
             await client.call_tool("monitor_send_read", {"address": "1/2/3"})
+
+
+class _IpServerConnection(_UsbConnection):
+    """A connected USB interface with a KNXnet/IP server that starts as told."""
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.connect_to_usb_by_serial("")
+        self.ip_server_settings = IpServerSettings()
+        self.ip_server_running = False
+        self.ip_server_port: int | None = None
+        self.ip_server_error: str | None = None
+        self.outcome: Future[Any] = Future()
+        self.outcome.set_result(None)
+
+    def ip_server_refusal(self) -> str | None:
+        return None
+
+    def ip_server_tunnels(self) -> list[OpenTunnel]:
+        if not self.ip_server_running:
+            return []
+        return [OpenTunnel(1, "127.0.0.1:50000", "TCP", "1.0.240")]
+
+    def suggest_ip_server_addresses(self) -> list[str]:
+        return ["1.0.250", "1.0.249"]
+
+    def configure_ip_server(self, settings: IpServerSettings) -> Future[Any]:
+        if settings.enabled and not settings.tunnel_addresses:
+            raise ValueError("At least one tunnel address is needed.")
+        self.ip_server_settings = settings
+        if self.outcome.done() and self.outcome.exception() is None:
+            self.ip_server_running = settings.enabled
+            self.ip_server_port = settings.port if settings.enabled else None
+        return self.outcome
+
+
+async def test_the_knxnet_ip_server(tmp_path: Path) -> None:
+    conn = _IpServerConnection()
+    async with Client(_server(tmp_path, conn)) as client:
+        off = await _data(client, "connection_ip_server")
+        started = await _data(
+            client,
+            "connection_set_ip_server",
+            enabled=True,
+            port=3700,
+            listen="localhost",
+            tunnel_addresses=[" 1.0.240 ", "1.0.241"],
+        )
+        with pytest.raises(Exception, match="At least one tunnel address"):
+            await client.call_tool("connection_set_ip_server", {"tunnel_addresses": []})
+        conn.outcome = Future()
+        conn.outcome.set_exception(
+            ConnectionError("The KNXnet/IP server could not start: port in use")
+        )
+        with pytest.raises(Exception, match="could not start: port in use"):
+            await client.call_tool("connection_set_ip_server", {"port": 3671})
+        conn.outcome = Future()
+        with pytest.raises(Exception, match=r"within 0\.1 s"):
+            await client.call_tool(
+                "connection_set_ip_server", {"enabled": False, "timeout": 0.1}
+            )
+    assert off["running"] is False and off["settings"]["enabled"] is False
+    assert off["suggested_tunnel_addresses"] == ["1.0.250", "1.0.249"]
+    assert off["tunnels"] == [] and off["refusal"] is None
+    assert started["running"] is True and started["port"] == 3700
+    assert started["settings"] == {
+        "enabled": True,
+        "port": 3700,
+        "listen": "localhost",
+        "discovery": True,
+        "tcp": True,
+        "tunnel_addresses": ["1.0.240", "1.0.241"],
+        "name": "XKNX Editor",
+    }
+    assert started["tunnels"] == [
+        {
+            "channel": 1,
+            "client": "127.0.0.1:50000",
+            "protocol": "TCP",
+            "individual_address": "1.0.240",
+        }
+    ]
