@@ -12,10 +12,22 @@ from fastmcp import Client
 from xknx.knxip.knxip_enum import KNXMedium
 from xknx.telegram import IndividualAddress
 
+from editor_gui.plugins.connection.mbus_batibus import (
+    MbusBatibusFrame,
+    MbusBatibusFrameLog,
+)
 from editor_gui.plugins.connection.plugin import ConnectionState
 from editor_gui.plugins.connection.usb import UsbTarget
-from editor_gui.plugins.connection.xknx_usb import USBDeviceInfo, USBInterfaceInfo
-from editor_gui.plugins.connection.xknx_usb.const import EMIID, SupportedEMIType
+from editor_gui.plugins.connection.xknx_usb import (
+    USBDeviceInfo,
+    USBInterfaceInfo,
+    USBTransferFrame,
+)
+from editor_gui.plugins.connection.xknx_usb.const import (
+    EMIID,
+    ProtocolID,
+    SupportedEMIType,
+)
 from editor_gui.plugins.mcp.server import build_server
 
 from .test_server import _build_ctx, _data
@@ -47,14 +59,19 @@ class _UsbConnection:
         self.usb_target: UsbTarget | None = None
         self.usb_info: USBInterfaceInfo | None = None
         self.connect_requests: list[str] = []
+        self.usb_local_device = False
 
     def scan(self) -> None:
         pass
 
-    def connect_to_usb_by_serial(self, serial_number: str) -> bool:
+    def connect_to_usb_by_serial(
+        self, serial_number: str, *, local_device: bool | None = None
+    ) -> bool:
         self.connect_requests.append(serial_number)
         if serial_number not in ("", _DEVICE.serial_number):
             return False
+        if local_device is not None:
+            self.usb_local_device = local_device
         self.usb_target = UsbTarget.of(_DEVICE)
         self.connection_type = "usb"
         self.state = ConnectionState.CONNECTED
@@ -65,6 +82,7 @@ class _UsbConnection:
             max_apdu_length=55,
             supported_emi_types=SupportedEMIType.CEMI,
             bus_connected=True,
+            transport_layer=self.usb_local_device,
         )
         return True
 
@@ -112,7 +130,10 @@ async def test_connecting_through_a_usb_interface(tmp_path: Path) -> None:
         "supported_emi_types": ["cEMI"],
         "mask_version": None,
         "medium": "TP",
+        "local_device": False,
+        "local_device_access": False,
     }
+    assert status["local_device"] is None
 
 
 async def test_an_unknown_address_and_no_bus(tmp_path: Path) -> None:
@@ -200,6 +221,7 @@ async def test_an_unknown_usb_interface_is_refused(tmp_path: Path) -> None:
         "vendor_id": 0x16DE,
         "product_id": 0x008E,
         "keeps_address": True,
+        "local_device": False,
     }
 
 
@@ -335,3 +357,157 @@ async def test_checking_an_individual_address(tmp_path: Path) -> None:
             )
     assert used == {"individual_address": "1.1.9", "free": False}
     assert free == {"individual_address": "1.1.9", "free": True}
+
+
+async def test_connecting_to_the_interfaces_own_device(tmp_path: Path) -> None:
+    conn = _UsbConnection()
+    async with Client(_server(tmp_path, conn)) as client:
+        await _data(client, "connection_connect_usb", local_device=True, timeout=1)
+        status = await _data(client, "connection_status")
+    assert conn.usb_local_device
+    assert status["usb_interface"]["local_device"] is True
+    assert status["usb_interface"]["local_device_access"] is True
+    assert status["local_device"] == "1.0.2"
+
+
+class _LocalDeviceConnection(_UsbConnection):
+    """A connected USB interface whose connection is switched to local device access."""
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.connect_to_usb_by_serial("")
+        self.outcome: Future[Any] = Future()
+        self.requests: list[bool] = []
+        self.busy = False
+
+    def set_usb_local_device(self, local_device: bool) -> Future[Any]:
+        self.requests.append(local_device)
+        if self.busy:
+            raise ValueError("The connection of the interface is being switched.")
+        if self.outcome.done() and self.outcome.exception() is None:
+            self.usb_local_device = local_device
+        return self.outcome
+
+
+async def test_switching_local_device_access(tmp_path: Path) -> None:
+    conn = _LocalDeviceConnection()
+    conn.outcome.set_result(None)
+    async with Client(_server(tmp_path, conn)) as client:
+        result = await _data(
+            client, "connection_set_usb_local_device", local_device=True
+        )
+        conn.outcome = Future()
+        conn.outcome.set_exception(
+            ConnectionError(
+                "The connection could not be switched: does not support the cEMI "
+                "transport layer"
+            )
+        )
+        with pytest.raises(Exception, match="could not be switched"):
+            await client.call_tool(
+                "connection_set_usb_local_device", {"local_device": False}
+            )
+        conn.outcome = Future()
+        with pytest.raises(Exception, match=r"not switched within 0\.1 s"):
+            await client.call_tool(
+                "connection_set_usb_local_device",
+                {"local_device": False, "timeout": 0.1},
+            )
+        conn.busy = True
+        with pytest.raises(Exception, match="being switched"):
+            await client.call_tool(
+                "connection_set_usb_local_device", {"local_device": True}
+            )
+    assert result["local_device"] is True
+    assert result["usb_interface"]["local_device"] is True
+    assert conn.requests == [True, False, False, True]
+
+
+class _FramesConnection(_UsbConnection):
+    """A connected USB interface with M-Bus and BatiBus tunnels."""
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.connect_to_usb_by_serial("")
+        self.log = MbusBatibusFrameLog()
+        self.blocked = False
+
+    def mbus_batibus_frames(
+        self, *, since: int = 0, limit: int | None = None
+    ) -> list[MbusBatibusFrame]:
+        return self.log.frames(since=since, limit=limit)
+
+    @property
+    def mbus_batibus_last_id(self) -> int:
+        return self.log.last_id
+
+    def send_mbus_batibus_frame(
+        self, protocol: int, service: int, body: bytes
+    ) -> Future[None]:
+        if self.blocked:
+            raise ValueError(
+                "Block Bus Writes is on (Settings > Connection): nothing is sent."
+            )
+        self.log.add(
+            USBTransferFrame(protocol=protocol, service=service, body=body), sent=True
+        )
+        done: Future[None] = Future()
+        done.set_result(None)
+        return done
+
+
+async def test_mbus_and_batibus_frames(tmp_path: Path) -> None:
+    conn = _FramesConnection()
+    conn.log.add(
+        USBTransferFrame(
+            protocol=ProtocolID.M_BUS_TUNNEL, service=0, body=bytes.fromhex("44ae0c")
+        ),
+        sent=False,
+    )
+    async with Client(_server(tmp_path, conn)) as client:
+        sent = await _data(
+            client,
+            "connection_send_mbus_batibus_frame",
+            protocol="batibus",
+            data="01 02",
+            service=7,
+        )
+        listed = await _data(client, "connection_mbus_batibus_frames")
+        newer = await _data(client, "connection_mbus_batibus_frames", since=1)
+        newest = await _data(client, "connection_mbus_batibus_frames", limit=1)
+        with pytest.raises(Exception, match="not hexadecimal data"):
+            await client.call_tool(
+                "connection_send_mbus_batibus_frame",
+                {"protocol": "m_bus", "data": "xyz"},
+            )
+        conn.blocked = True
+        with pytest.raises(Exception, match="Block Bus Writes is on"):
+            await client.call_tool(
+                "connection_send_mbus_batibus_frame",
+                {"protocol": "m_bus", "data": "01"},
+            )
+    assert sent["direction"] == "sent"
+    assert (sent["protocol"], sent["service"], sent["data"]) == ("batibus", 7, "0102")
+    assert listed["count"] == 2 and listed["last_id"] == 2
+    received = listed["frames"][0]
+    assert received["direction"] == "received"
+    assert received["protocol"] == "m_bus"
+    assert received["data"] == "44ae0c"
+    assert received["manufacturer_code"] == 0
+    assert received["time"].startswith("20")
+    assert [frame["id"] for frame in newer["frames"]] == [2]
+    assert [frame["id"] for frame in newest["frames"]] == [2]
+
+
+async def test_no_group_telegrams_through_local_device_access(tmp_path: Path) -> None:
+    from xknx import XKNX
+
+    from editor_gui.plugins.connection.service import LocalDevice
+
+    ctx = _build_ctx(tmp_path)
+    ctx.connection_plugin = _UsbConnection()
+    ctx.api.connection.set_connection(XKNX(), None)
+    ctx.api.connection.local_device = LocalDevice("1.0.2")
+    async with Client(build_server(ctx)) as client:
+        with pytest.raises(Exception, match="group telegrams can't be sent"):
+            await client.call_tool("monitor_send_read", {"address": "1/2/3"})

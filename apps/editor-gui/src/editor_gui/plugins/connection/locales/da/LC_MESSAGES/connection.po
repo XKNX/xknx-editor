@@ -356,3 +356,93 @@ msgstr "Domæneadressen kunne ikke indstilles: {error}"
 
 msgid "Setting the domain address…"
 msgstr "Indstiller domæneadressen…"
+
+msgid "Local Device Access"
+msgstr "Lokal enhedsadgang"
+
+msgid "Connects to the KNX device the USB interface is part of (e.g. an actuator with a USB port of its own) instead of the bus. Only this device can then be reached, for downloads and readouts; group telegrams, broadcasts and the bus monitor are not available. Needs a cEMI interface."
+msgstr "Forbinder til den KNX-enhed, som USB-interfacet er en del af (f.eks. en aktuator med sin egen USB-port), i stedet for til bussen. Kun denne enhed kan så nås, til downloads og udlæsninger; gruppetelegrammer, broadcasts og busovervågningen er ikke tilgængelige. Kræver et cEMI-interface."
+
+msgid "Connect to the interface's own device (local device access)"
+msgstr "Forbind til interfacets egen enhed (lokal enhedsadgang)"
+
+msgid "{target}, local device access to {address}"
+msgstr "{target}, lokal enhedsadgang til {address}"
+
+msgid "(address unknown)"
+msgstr "(adresse ukendt)"
+
+msgid "Local device access: only this device is reached"
+msgstr "Lokal enhedsadgang: kun denne enhed nås"
+
+msgid "Switching the connection…"
+msgstr "Skifter forbindelsen…"
+
+msgid "The connection could not be switched: {error}"
+msgstr "Forbindelsen kunne ikke skiftes: {error}"
+
+msgid "The connection of the interface is being switched."
+msgstr "Interfacets forbindelse er ved at blive skiftet."
+
+msgid "Through local device access only the USB interface's own device {local} can be reached, not {address}."
+msgstr "Via lokal enhedsadgang kan kun USB-interfacets egen enhed {local} nås, ikke {address}."
+
+msgid "Through local device access only the USB interface's own device {local} can be reached: group telegrams can't be sent."
+msgstr "Via lokal enhedsadgang kan kun USB-interfacets egen enhed {local} nås: gruppetelegrammer kan ikke sendes."
+
+msgid "Through local device access only the USB interface's own device {local} can be reached: broadcasts can't be sent."
+msgstr "Via lokal enhedsadgang kan kun USB-interfacets egen enhed {local} nås: broadcasts kan ikke sendes."
+
+msgid "Through local device access only the USB interface's own device {local} can be reached: the bus monitor can't run."
+msgstr "Via lokal enhedsadgang kan kun USB-interfacets egen enhed {local} nås: busovervågningen kan ikke køre."
+
+msgid "Through local device access only the USB interface's own device {local} can be reached: scan from {local} to {local}."
+msgstr "Via lokal enhedsadgang kan kun USB-interfacets egen enhed {local} nås: scan fra {local} til {local}."
+
+msgid "M-Bus and BatiBus Frames"
+msgstr "M-Bus- og BatiBus-rammer"
+
+msgid "The frames of the interface's M-Bus and BatiBus tunnels (e.g. of a KNX RF USB stick that also receives wireless M-Bus meters), passed through as they are. The last 500 are kept."
+msgstr "Rammerne fra interfacets M-Bus- og BatiBus-tunneler (f.eks. fra en KNX RF USB-stick, der også modtager trådløse M-Bus-målere), videregivet uændret. De seneste 500 gemmes."
+
+msgid "No M-Bus or BatiBus frames yet"
+msgstr "Ingen M-Bus- eller BatiBus-rammer endnu"
+
+msgid "Clear"
+msgstr "Ryd"
+
+msgid "Time"
+msgstr "Tid"
+
+msgid "Direction"
+msgstr "Retning"
+
+msgid "Protocol"
+msgstr "Protokol"
+
+msgid "Service"
+msgstr "Tjeneste"
+
+msgid "Data"
+msgstr "Data"
+
+msgid "Sent"
+msgstr "Sendt"
+
+msgid "Received"
+msgstr "Modtaget"
+
+msgid "Send"
+msgstr "Send"
+
+msgid "{data} is not hexadecimal data (e.g. 44 AE 0C)."
+msgstr "{data} er ikke hexadecimale data (f.eks. 44 AE 0C)."
+
+msgid "{service} is not a hexadecimal octet (00 to FF)."
+msgstr "{service} er ikke en hexadecimal oktet (00 til FF)."
+
+msgid "The frame could not be sent: {error}"
+msgstr "Rammen kunne ikke sendes: {error}"
+
+msgid "Block Bus Writes is on (Settings > Connection): nothing is sent."
+msgstr "Bloker skrivning til bussen er slået til (Indstillinger > Forbindelse): der sendes intet."

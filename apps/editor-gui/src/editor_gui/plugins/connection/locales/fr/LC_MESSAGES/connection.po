@@ -356,3 +356,93 @@ msgstr "L'adresse de domaine n'a pas pu être définie : {error}"
 
 msgid "Setting the domain address…"
 msgstr "Définition de l'adresse de domaine…"
+
+msgid "Local Device Access"
+msgstr "Accès à l'appareil local"
+
+msgid "Connects to the KNX device the USB interface is part of (e.g. an actuator with a USB port of its own) instead of the bus. Only this device can then be reached, for downloads and readouts; group telegrams, broadcasts and the bus monitor are not available. Needs a cEMI interface."
+msgstr "Se connecte à l'appareil KNX dont l'interface USB fait partie (p. ex. un actionneur doté de son propre port USB) au lieu du bus. Seul cet appareil est alors joignable, pour les téléchargements et les lectures ; les télégrammes de groupe, les broadcasts et le moniteur de bus ne sont pas disponibles. Nécessite une interface cEMI."
+
+msgid "Connect to the interface's own device (local device access)"
+msgstr "Se connecter à l'appareil propre de l'interface (accès à l'appareil local)"
+
+msgid "{target}, local device access to {address}"
+msgstr "{target}, accès à l'appareil local {address}"
+
+msgid "(address unknown)"
+msgstr "(adresse inconnue)"
+
+msgid "Local device access: only this device is reached"
+msgstr "Accès à l'appareil local : seul cet appareil est joint"
+
+msgid "Switching the connection…"
+msgstr "Changement de la connexion…"
+
+msgid "The connection could not be switched: {error}"
+msgstr "La connexion n'a pas pu être changée : {error}"
+
+msgid "The connection of the interface is being switched."
+msgstr "La connexion de l'interface est en cours de changement."
+
+msgid "Through local device access only the USB interface's own device {local} can be reached, not {address}."
+msgstr "Par l'accès à l'appareil local, seul l'appareil propre {local} de l'interface USB est joignable, pas {address}."
+
+msgid "Through local device access only the USB interface's own device {local} can be reached: group telegrams can't be sent."
+msgstr "Par l'accès à l'appareil local, seul l'appareil propre {local} de l'interface USB est joignable : les télégrammes de groupe ne peuvent pas être envoyés."
+
+msgid "Through local device access only the USB interface's own device {local} can be reached: broadcasts can't be sent."
+msgstr "Par l'accès à l'appareil local, seul l'appareil propre {local} de l'interface USB est joignable : les broadcasts ne peuvent pas être envoyés."
+
+msgid "Through local device access only the USB interface's own device {local} can be reached: the bus monitor can't run."
+msgstr "Par l'accès à l'appareil local, seul l'appareil propre {local} de l'interface USB est joignable : le moniteur de bus ne peut pas fonctionner."
+
+msgid "Through local device access only the USB interface's own device {local} can be reached: scan from {local} to {local}."
+msgstr "Par l'accès à l'appareil local, seul l'appareil propre {local} de l'interface USB est joignable : analysez de {local} à {local}."
+
+msgid "M-Bus and BatiBus Frames"
+msgstr "Trames M-Bus et BatiBus"
+
+msgid "The frames of the interface's M-Bus and BatiBus tunnels (e.g. of a KNX RF USB stick that also receives wireless M-Bus meters), passed through as they are. The last 500 are kept."
+msgstr "Les trames des tunnels M-Bus et BatiBus de l'interface (p. ex. d'une clé USB KNX RF qui reçoit aussi des compteurs M-Bus sans fil), transmises telles quelles. Les 500 dernières sont conservées."
+
+msgid "No M-Bus or BatiBus frames yet"
+msgstr "Aucune trame M-Bus ou BatiBus pour l'instant"
+
+msgid "Clear"
+msgstr "Effacer"
+
+msgid "Time"
+msgstr "Heure"
+
+msgid "Direction"
+msgstr "Direction"
+
+msgid "Protocol"
+msgstr "Protocole"
+
+msgid "Service"
+msgstr "Service"
+
+msgid "Data"
+msgstr "Données"
+
+msgid "Sent"
+msgstr "Envoyée"
+
+msgid "Received"
+msgstr "Reçue"
+
+msgid "Send"
+msgstr "Envoyer"
+
+msgid "{data} is not hexadecimal data (e.g. 44 AE 0C)."
+msgstr "{data} n'est pas une donnée hexadécimale (p. ex. 44 AE 0C)."
+
+msgid "{service} is not a hexadecimal octet (00 to FF)."
+msgstr "{service} n'est pas un octet hexadécimal (00 à FF)."
+
+msgid "The frame could not be sent: {error}"
+msgstr "La trame n'a pas pu être envoyée : {error}"
+
+msgid "Block Bus Writes is on (Settings > Connection): nothing is sent."
+msgstr "Bloquer les écritures sur le bus est activé (Paramètres > Connexion) : rien n'est envoyé."

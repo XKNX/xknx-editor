@@ -216,6 +216,7 @@ def _test_plugin(
             can_reach_bus=lambda: True,
             evaluate_device=evaluate_device,
             xknx=object(),
+            take_refusal=lambda: None,
         ),
         project=SimpleNamespace(
             edited_since_open=lambda: False,

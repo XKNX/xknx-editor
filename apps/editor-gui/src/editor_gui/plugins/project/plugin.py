@@ -3514,6 +3514,16 @@ class ProjectPlugin:
         return products[0].name if products else None
 
     def _start_program(self, item: QueueItem) -> "Future[Any] | None":
+        """Start one queued operation (see ``_start_queued``); one the connection refused
+        before it started (e.g. a device it can't reach) gets the reason as its message."""
+        connection = self._api.connection
+        connection.take_refusal()  # an older refusal is not this operation's
+        future = self._start_queued(item)
+        if future is None and (reason := connection.take_refusal()) is not None:
+            item.message = reason
+        return future
+
+    def _start_queued(self, item: QueueItem) -> "Future[Any] | None":
         """Start one queued programming via the normal single-device path (slot, progress, notice,
         commissioning all handled by ``program_device`` + the commissioning callback). Returns the
         Future, or None if it could not start (not connected / device gone)."""

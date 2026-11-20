@@ -355,3 +355,93 @@ msgstr "A domaincímet nem sikerült beállítani: {error}"
 
 msgid "Setting the domain address…"
 msgstr "A domaincím beállítása…"
+
+msgid "Local Device Access"
+msgstr "Helyi eszközhozzáférés"
+
+msgid "Connects to the KNX device the USB interface is part of (e.g. an actuator with a USB port of its own) instead of the bus. Only this device can then be reached, for downloads and readouts; group telegrams, broadcasts and the bus monitor are not available. Needs a cEMI interface."
+msgstr "A busz helyett ahhoz a KNX-eszközhöz csatlakozik, amelynek az USB-interfész része (pl. egy saját USB-porttal rendelkező aktorhoz). Ekkor csak ez az eszköz érhető el, programozáshoz és kiolvasáshoz; csoporttáviratok, üzenetszórások és a buszmonitor nem érhetők el. cEMI-interfészt igényel."
+
+msgid "Connect to the interface's own device (local device access)"
+msgstr "Csatlakozás az interfész saját eszközéhez (helyi eszközhozzáférés)"
+
+msgid "{target}, local device access to {address}"
+msgstr "{target}, helyi eszközhozzáférés: {address}"
+
+msgid "(address unknown)"
+msgstr "(ismeretlen cím)"
+
+msgid "Local device access: only this device is reached"
+msgstr "Helyi eszközhozzáférés: csak ez az eszköz érhető el"
+
+msgid "Switching the connection…"
+msgstr "A kapcsolat átváltása…"
+
+msgid "The connection could not be switched: {error}"
+msgstr "A kapcsolatot nem sikerült átváltani: {error}"
+
+msgid "The connection of the interface is being switched."
+msgstr "Az interfész kapcsolatának átváltása folyamatban van."
+
+msgid "Through local device access only the USB interface's own device {local} can be reached, not {address}."
+msgstr "Helyi eszközhozzáféréssel csak az USB-interfész saját eszköze ({local}) érhető el, a(z) {address} nem."
+
+msgid "Through local device access only the USB interface's own device {local} can be reached: group telegrams can't be sent."
+msgstr "Helyi eszközhozzáféréssel csak az USB-interfész saját eszköze ({local}) érhető el: csoporttáviratok nem küldhetők."
+
+msgid "Through local device access only the USB interface's own device {local} can be reached: broadcasts can't be sent."
+msgstr "Helyi eszközhozzáféréssel csak az USB-interfész saját eszköze ({local}) érhető el: üzenetszórások nem küldhetők."
+
+msgid "Through local device access only the USB interface's own device {local} can be reached: the bus monitor can't run."
+msgstr "Helyi eszközhozzáféréssel csak az USB-interfész saját eszköze ({local}) érhető el: a buszmonitor nem futtatható."
+
+msgid "Through local device access only the USB interface's own device {local} can be reached: scan from {local} to {local}."
+msgstr "Helyi eszközhozzáféréssel csak az USB-interfész saját eszköze ({local}) érhető el: a keresést {local} és {local} között végezze."
+
+msgid "M-Bus and BatiBus Frames"
+msgstr "M-Bus- és BatiBus-keretek"
+
+msgid "The frames of the interface's M-Bus and BatiBus tunnels (e.g. of a KNX RF USB stick that also receives wireless M-Bus meters), passed through as they are. The last 500 are kept."
+msgstr "Az interfész M-Bus- és BatiBus-alagútjainak keretei (pl. egy vezeték nélküli M-Bus-mérőket is fogadó KNX RF USB-stickről), változatlanul továbbítva. Az utolsó 500 marad meg."
+
+msgid "No M-Bus or BatiBus frames yet"
+msgstr "Még nincsenek M-Bus- vagy BatiBus-keretek"
+
+msgid "Clear"
+msgstr "Törlés"
+
+msgid "Time"
+msgstr "Idő"
+
+msgid "Direction"
+msgstr "Irány"
+
+msgid "Protocol"
+msgstr "Protokoll"
+
+msgid "Service"
+msgstr "Szolgáltatás"
+
+msgid "Data"
+msgstr "Adat"
+
+msgid "Sent"
+msgstr "Elküldve"
+
+msgid "Received"
+msgstr "Fogadva"
+
+msgid "Send"
+msgstr "Küldés"
+
+msgid "{data} is not hexadecimal data (e.g. 44 AE 0C)."
+msgstr "A(z) {data} nem hexadecimális adat (pl. 44 AE 0C)."
+
+msgid "{service} is not a hexadecimal octet (00 to FF)."
+msgstr "A(z) {service} nem hexadecimális oktett (00–FF)."
+
+msgid "The frame could not be sent: {error}"
+msgstr "A keretet nem sikerült elküldeni: {error}"
+
+msgid "Block Bus Writes is on (Settings > Connection): nothing is sent."
+msgstr "A busz írásának tiltása be van kapcsolva (Beállítások > Kapcsolat): semmi nem kerül elküldésre."

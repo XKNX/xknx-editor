@@ -595,6 +595,9 @@ class MonitorService:
             "group write"
         ):
             return False
+        # Through the editor's own connection to a USB interface's own device, none is sent.
+        if self._connection.local_device_refused("group telegram", reaches="group"):
+            return False
         # Without a connection of its own: through another program's (Home Assistant's), which
         # shows the telegram as its own (see on_foreign_cemi).
         if (
@@ -637,6 +640,10 @@ class MonitorService:
                 if (reason := protected_allows(CEMIFrame.from_knx(item.raw)))
             ),
             "",
+        )
+        # Group telegrams don't reach the bus while only the USB interface's own device is.
+        refused = (
+            refused or self._connection.local_device_refusal(reaches="group") or ""
         )
         if refused:
             self._warn("replay not started", reason=refused)

@@ -6,7 +6,7 @@ from __future__ import annotations
 import time
 from concurrent.futures import Future
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 import pytest
 from fastmcp import Client
@@ -27,6 +27,11 @@ class _Service:
         self.busy = busy
         self.xknx = xknx
         self.canceled: list[Future[Any]] = []
+        self.refusal: str | None = None
+
+    def take_refusal(self) -> str | None:
+        refusal, self.refusal = self.refusal, None
+        return refusal
 
     @property
     def busy_operation(self) -> tuple[str, str] | None:
@@ -58,6 +63,12 @@ def test_a_missing_connection_and_other_reasons() -> None:
     )
     assert "see the editor log" in str(
         not_started(_Service(xknx=object()), "the reset")
+    )
+    # the reason the connection refused it with, e.g. local device access
+    service = _Service(xknx=object())
+    service.refusal = "only the own device 1.0.2 can be reached, not 1.1.9."
+    assert str(not_started(cast(Any, service), "the reset")) == (
+        "the reset could not start: only the own device 1.0.2 can be reached, not 1.1.9."
     )
 
 

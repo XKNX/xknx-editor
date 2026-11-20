@@ -402,6 +402,158 @@ class ConnectionStrings:
         return _("Setting the domain address…")
 
     @property
+    def SETTING_USB_LOCAL_DEVICE(self) -> str:
+        return _("Local Device Access")
+
+    @property
+    def SETTING_USB_LOCAL_DEVICE_HINT(self) -> str:
+        return _(
+            "Connects to the KNX device the USB interface is part of (e.g. an actuator with a "
+            "USB port of its own) instead of the bus. Only this device can then be reached, "
+            "for downloads and readouts; group telegrams, broadcasts and the bus monitor are "
+            "not available. Needs a cEMI interface."
+        )
+
+    @property
+    def USB_LOCAL_DEVICE_OPTION(self) -> str:
+        # a checkbox: connect through the cEMI transport layer instead of to the bus
+        return _("Connect to the interface's own device (local device access)")
+
+    @property
+    def STATUS_LOCAL_DEVICE(self) -> str:
+        # {target}: the USB interface, e.g. "KNX-USB Interface (USB)"; {address}: the
+        # individual address of its own device
+        return _("{target}, local device access to {address}")
+
+    @property
+    def LOCAL_DEVICE_ADDRESS_UNKNOWN(self) -> str:
+        # stands for the individual address of the interface's own device when it is unknown
+        return _("(address unknown)")
+
+    @property
+    def USB_LOCAL_DEVICE_DETAILS(self) -> str:
+        return _("Local device access: only this device is reached")
+
+    @property
+    def USB_LOCAL_DEVICE_SWITCHING(self) -> str:
+        return _("Switching the connection…")
+
+    @property
+    def USB_LOCAL_DEVICE_FAILED(self) -> str:
+        return _("The connection could not be switched: {error}")
+
+    @property
+    def USB_LOCAL_DEVICE_BUSY(self) -> str:
+        return _("The connection of the interface is being switched.")
+
+    @property
+    def LOCAL_DEVICE_OTHER_DEVICE(self) -> str:
+        # {local}: the individual address of the USB interface's own device
+        return _(
+            "Through local device access only the USB interface's own device {local} can be "
+            "reached, not {address}."
+        )
+
+    @property
+    def LOCAL_DEVICE_NO_GROUP_TELEGRAMS(self) -> str:
+        return _(
+            "Through local device access only the USB interface's own device {local} can be "
+            "reached: group telegrams can't be sent."
+        )
+
+    @property
+    def LOCAL_DEVICE_NO_BROADCASTS(self) -> str:
+        return _(
+            "Through local device access only the USB interface's own device {local} can be "
+            "reached: broadcasts can't be sent."
+        )
+
+    @property
+    def LOCAL_DEVICE_NO_BUS_MONITOR(self) -> str:
+        return _(
+            "Through local device access only the USB interface's own device {local} can be "
+            "reached: the bus monitor can't run."
+        )
+
+    @property
+    def LOCAL_DEVICE_SCAN_RANGE(self) -> str:
+        return _(
+            "Through local device access only the USB interface's own device {local} can be "
+            "reached: scan from {local} to {local}."
+        )
+
+    @property
+    def MBUS_FRAMES_HEADER(self) -> str:
+        return _("M-Bus and BatiBus Frames")
+
+    @property
+    def MBUS_FRAMES_HINT(self) -> str:
+        return _(
+            "The frames of the interface's M-Bus and BatiBus tunnels (e.g. of a KNX RF USB "
+            "stick that also receives wireless M-Bus meters), passed through as they are. The "
+            "last 500 are kept."
+        )
+
+    @property
+    def MBUS_FRAMES_NONE(self) -> str:
+        return _("No M-Bus or BatiBus frames yet")
+
+    @property
+    def MBUS_FRAMES_CLEAR(self) -> str:
+        return _("Clear")
+
+    @property
+    def MBUS_FRAME_TIME(self) -> str:
+        return _("Time")
+
+    @property
+    def MBUS_FRAME_DIRECTION(self) -> str:
+        return _("Direction")
+
+    @property
+    def MBUS_FRAME_PROTOCOL(self) -> str:
+        return _("Protocol")
+
+    @property
+    def MBUS_FRAME_SERVICE(self) -> str:
+        # header octet 6 of a KNX USB transfer frame, in hexadecimal
+        return _("Service")
+
+    @property
+    def MBUS_FRAME_DATA(self) -> str:
+        return _("Data")
+
+    @property
+    def MBUS_FRAME_SENT(self) -> str:
+        # the direction of a frame: sent by the editor
+        return _("Sent")
+
+    @property
+    def MBUS_FRAME_RECEIVED(self) -> str:
+        # the direction of a frame: received from the interface
+        return _("Received")
+
+    @property
+    def MBUS_FRAME_SEND(self) -> str:
+        return _("Send")
+
+    @property
+    def MBUS_FRAME_INVALID_DATA(self) -> str:
+        return _("{data} is not hexadecimal data (e.g. 44 AE 0C).")
+
+    @property
+    def MBUS_FRAME_INVALID_SERVICE(self) -> str:
+        return _("{service} is not a hexadecimal octet (00 to FF).")
+
+    @property
+    def MBUS_FRAME_FAILED(self) -> str:
+        return _("The frame could not be sent: {error}")
+
+    @property
+    def MBUS_FRAME_WRITES_BLOCKED(self) -> str:
+        return _("Block Bus Writes is on (Settings > Connection): nothing is sent.")
+
+    @property
     def SECTION_MANUAL(self) -> str:
         return _("Manual Connection")
 

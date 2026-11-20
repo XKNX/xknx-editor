@@ -37,6 +37,13 @@ class _Connection:
         self.futures.append(Future())
         return self.futures[-1]
 
+    # why the connection refused the last operation before it started (take_refusal)
+    refusal: str | None = None
+
+    def take_refusal(self) -> str | None:
+        refusal, self.refusal = self.refusal, None
+        return refusal
+
     def restart_device(self, device: Any) -> Future[Any] | None:
         self.calls.append(("restart", device.node_id))
         return self._future() if self.xknx is not None else None
@@ -212,6 +219,21 @@ def test_without_a_connection_the_history_says_so() -> None:
         OperationState.FAILED,
         S.SCRIPT_NOT_CONNECTED,
     )
+
+
+def test_a_refused_operation_names_the_reason() -> None:
+    """One the connection refused before it started (e.g. a device that local device access
+    can't reach) has the reason in its history."""
+    plugin, connection, _ = _plugin()
+    connection.refusal = "an older one"
+
+    def refused(device: Any) -> None:
+        connection.refusal = "not 1.1.9"
+
+    connection.restart_device = refused  # type: ignore[method-assign]
+    plugin._restart_device(SimpleNamespace(node_id=1))
+    item = _queue(plugin).history[0]
+    assert (item.state, item.message) == (OperationState.FAILED, "not 1.1.9")
 
 
 def test_a_device_not_in_the_project_is_not_queued() -> None:

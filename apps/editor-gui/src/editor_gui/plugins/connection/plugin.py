@@ -27,6 +27,7 @@ from xknx.telegram import IndividualAddress
 from editor_gui.cemi_diagnostics import DiagnosticCEMIHandler
 from editor_gui.color import color_u32
 from editor_gui.device_info import application_version_text
+from editor_gui.local_time import time_text
 from editor_gui.plugins.base import Logger, PanelDefinition, PluginAPI
 from editor_gui.plugins.connection.busmonitor import (
     DEFAULT_GATEWAY_PORT,
@@ -37,7 +38,15 @@ from editor_gui.plugins.connection.interface import (
     ObservableKNXIPInterfaceThreaded,
     interface_apdu_limit,
 )
-from editor_gui.plugins.connection.service import BusmonitorState, LinkInfo
+from editor_gui.plugins.connection.mbus_batibus import (
+    PROTOCOLS,
+    MbusBatibusFrame,
+    MbusBatibusFrameLog,
+    parse_hex,
+    parse_octet,
+    protocol_name,
+)
+from editor_gui.plugins.connection.service import BusmonitorState, LinkInfo, LocalDevice
 from editor_gui.plugins.connection.strings import S
 from editor_gui.plugins.connection.usb import (
     ObservableUSBInterfaceThreaded,
@@ -59,7 +68,13 @@ from editor_gui.plugins.connection.write_guard import (
     protected_patterns,
     set_protected,
 )
-from editor_gui.plugins.connection.xknx_usb import USBDeviceInfo, USBInterfaceInfo
+from editor_gui.plugins.connection.xknx_usb import (
+    EXTRANEOUS_PROTOCOLS,
+    ProtocolID,
+    USBDeviceInfo,
+    USBInterfaceInfo,
+    USBTransferFrame,
+)
 from editor_gui.programming import (
     DEFAULT_INDIVIDUAL_ADDRESS,
     DeviceOverview,
@@ -70,7 +85,7 @@ from editor_gui.settings_window import Setting
 from editor_gui.strings import S as app_strings
 from editor_gui.theme import status_color
 from editor_gui.widgets.animation import animation_time
-from editor_gui.widgets.checkbox import radio_button
+from editor_gui.widgets.checkbox import checkbox, radio_button, wrapped_checkbox
 from editor_gui.widgets.combo import begin_combo, end_combo
 from editor_gui.widgets.dialog import (
     begin_dialog,
@@ -81,6 +96,8 @@ from editor_gui.widgets.dialog import (
 from editor_gui.widgets.dpi import label_column_width, px, px_vec2
 from editor_gui.widgets.flow import button_width, same_line_if_fits
 from editor_gui.widgets.spinner import loading, spinner
+from editor_gui.widgets.tables import begin_data_table, data_table_headers
+from editor_gui.widgets.text_util import text_clipped_tooltip
 from editor_gui.widgets.tree import collapsing_header
 from xknxeditor.download.timeouts import BusTimeouts, bus_timeouts, set_bus_timeouts
 from xknxeditor.prod.app_id import parse_app_id
@@ -384,6 +401,21 @@ class ConnectionPlugin:
         self._usb_domain_text = ""
         self._usb_domain_busy = False
         self._usb_domain_error: str | None = None
+        # Local device access (Settings > Connection, the Gateway menu, the USB Interface
+        # dialog): a USB connection reaches the interface's own device through its cEMI
+        # Transport Layer instead of the bus; whether the dialog switches it, and why it failed.
+        self._usb_local_device = False
+        self._usb_local_busy = False
+        self._usb_local_error: str | None = None
+        # The frames of the USB interface's M-Bus and BatiBus tunnels, and the Send row of the
+        # USB Interface dialog: protocol, service and data as typed, whether a frame is being
+        # sent, and why the last one was not.
+        self._mbus_frames = MbusBatibusFrameLog()
+        self._mbus_protocol: int = ProtocolID.M_BUS_TUNNEL
+        self._mbus_service_text = "00"
+        self._mbus_data_text = ""
+        self._mbus_sending = False
+        self._mbus_error: str | None = None
         # Whether the editor looks for interfaces at start and connects to one (Settings >
         # Connection); off, it connects only when the user asks.
         self._connect_at_startup = True
@@ -431,9 +463,11 @@ class ConnectionPlugin:
         api.connection.set_busmonitor_controller(
             start=self.start_busmonitor,
             stop=self.stop_busmonitor,
-            supported=lambda: not self.is_routing,
+            supported=lambda: not self.is_routing and not self.local_device_chosen,
+            local_device=lambda: self.local_device_chosen,
         )
         api.connection.set_reopen_controller(self.reopen)
+        api.connection.set_local_address_writer(self.set_usb_interface_address)
         api.connection.set_device_ip_finder(
             lambda serial: asyncio.run_coroutine_threadsafe(
                 find_by_serial(serial), self._ensure_async_loop()
@@ -531,6 +565,33 @@ class ConnectionPlugin:
         return self._usb_info
 
     @property
+    def local_device_chosen(self) -> bool:
+        """Whether the connection goes through a KNX USB interface to its own device (local
+        device access) instead of to the bus, as chosen."""
+        return self._usb_target is not None and self._usb_local_device
+
+    @property
+    def usb_local_device(self) -> bool:
+        """The choice of local device access for USB connections (Settings > Connection)."""
+        return self._usb_local_device
+
+    @property
+    def local_device_connected(self) -> bool:
+        """Whether the open connection reaches only the USB interface's own device."""
+        info = self.usb_info
+        return (
+            self.connected
+            and self._usb_target is not None
+            and info is not None
+            and info.transport_layer
+        )
+
+    @property
+    def usb_local_busy(self) -> bool:
+        """Whether the connection is being switched to or from local device access."""
+        return self._usb_local_busy
+
+    @property
     def connection_type(self) -> str:
         """The configured transport as an MCP name: "tunneling", "tunneling_tcp", "routing" or
         "usb"."""
@@ -620,6 +681,7 @@ class ConnectionPlugin:
         if isinstance(pref, str) and pref:
             self._preferred_gateway_ip = pref
         self._usb_target = UsbTarget.from_settings(data.get("usb_interface"))
+        self._usb_local_device = data.get("usb_local_device") is True
         addresses = data.get("usb_interface_addresses")
         if isinstance(addresses, dict):
             self._usb_addresses = {
@@ -659,6 +721,7 @@ class ConnectionPlugin:
                     else None
                 ),
                 "usb_interface_addresses": dict(self._usb_addresses),
+                "usb_local_device": self._usb_local_device,
                 "serial_number_downloads": self._api.connection.use_serial_number,
                 "connect_at_startup": self._connect_at_startup,
                 "block_bus_writes": self._block_bus_writes_setting,
@@ -729,9 +792,15 @@ class ConnectionPlugin:
         self._run_async(self._connect_async())
 
     def connect_to_usb(
-        self, device: USBDeviceInfo | UsbTarget, *, startup: bool = False
+        self,
+        device: USBDeviceInfo | UsbTarget,
+        *,
+        startup: bool = False,
+        local_device: bool | None = None,
     ) -> None:
-        """Connect through a KNX USB interface. ``startup``: the connection made at startup."""
+        """Connect through a KNX USB interface. ``startup``: the connection made at startup.
+        ``local_device`` chooses local device access (kept as the setting is); None connects as
+        chosen."""
         if self._state in (ConnectionState.CONNECTING, ConnectionState.CONNECTED):
             return
         if self._busmonitor_blocks("connect"):
@@ -739,6 +808,8 @@ class ConnectionPlugin:
         self._usb_target = (
             device if isinstance(device, UsbTarget) else UsbTarget.of(device)
         )
+        if local_device is not None:
+            self._usb_local_device = local_device
         self._selected_gateway = None
         self._session += 1
         self._retry_on_credentials = False
@@ -749,9 +820,12 @@ class ConnectionPlugin:
         self._save_current_settings()
         self._run_async(self._connect_async())
 
-    def connect_to_usb_by_serial(self, serial_number: str) -> bool:
+    def connect_to_usb_by_serial(
+        self, serial_number: str, *, local_device: bool | None = None
+    ) -> bool:
         """Connect through the plugged-in KNX USB interface with ``serial_number`` (the first one
-        found when empty). ``False`` if the last scan found none that matches."""
+        found when empty), with ``local_device`` as in ``connect_to_usb``. ``False`` if the last
+        scan found none that matches."""
         device = next(
             (
                 d
@@ -762,7 +836,7 @@ class ConnectionPlugin:
         )
         if device is None:
             return False
-        self.connect_to_usb(device)
+        self.connect_to_usb(device, local_device=local_device)
         return True
 
     @property
@@ -783,6 +857,8 @@ class ConnectionPlugin:
             raise ValueError(S.USB_ADDRESS_BUSY)
         if self._usb_domain_busy:
             raise ValueError(S.USB_DOMAIN_ADDRESS_BUSY)
+        if self._usb_local_busy:
+            raise ValueError(S.USB_LOCAL_DEVICE_BUSY)
         self._usb_address_error = None
         self._usb_address_free = None
         info = self.usb_info
@@ -832,6 +908,55 @@ class ConnectionPlugin:
             self._run_async(self._reopen(session))
         return self._error_message or ""
 
+    def set_usb_local_device(self, local_device: bool) -> Future[None]:
+        """Choose local device access for USB connections (kept as the setting is). While a USB
+        interface is connected the connection is opened again that way; when that fails, it is
+        opened again as it was, the choice unchanged, and the future fails with the reason.
+        Raises ``ValueError`` with the reason when it can't start."""
+        if (
+            self._usb_address_busy
+            or self._usb_address_checking
+            or self._usb_domain_busy
+            or self._usb_local_busy
+        ):
+            raise ValueError(S.USB_LOCAL_DEVICE_BUSY)
+        self._usb_local_error = None
+        info = self.usb_info
+        if (
+            not self.connected
+            or self._usb_target is None
+            or (info is not None and info.transport_layer == local_device)
+        ):
+            if local_device != self._usb_local_device:
+                self._usb_local_device = local_device
+                self._save_current_settings()
+            unchanged: Future[None] = Future()
+            unchanged.set_result(None)
+            return unchanged
+        self._usb_local_busy = True
+        return asyncio.run_coroutine_threadsafe(
+            self._switch_usb_local_device(self._session, local_device),
+            self._ensure_async_loop(),
+        )
+
+    async def _switch_usb_local_device(self, session: int, local_device: bool) -> None:
+        """Open the USB connection again with local device access on or off; when that fails,
+        open it again as it was."""
+        previous = self._usb_local_device
+        try:
+            self._usb_local_device = local_device
+            error = await self._reopen_usb_writing(session)
+            if error is None:
+                self._save_current_settings()
+                self._log.info("local device access", on=local_device)
+                return
+            # the reopen started on the failure uses the choice as it was
+            self._usb_local_device = previous
+            self._usb_local_error = S.USB_LOCAL_DEVICE_FAILED.format(error=error)
+            raise ConnectionError(self._usb_local_error)
+        finally:
+            self._usb_local_busy = False
+
     @property
     def usb_domain_address_busy(self) -> bool:
         """Whether the connected USB interface's domain address is being set."""
@@ -858,6 +983,8 @@ class ConnectionPlugin:
             raise ValueError(S.USB_ADDRESS_BUSY)
         if self._usb_domain_busy:
             raise ValueError(S.USB_DOMAIN_ADDRESS_BUSY)
+        if self._usb_local_busy:
+            raise ValueError(S.USB_LOCAL_DEVICE_BUSY)
         self._usb_domain_error = None
         if info.rf_domain_address == domain_address:
             unchanged: Future[None] = Future()
@@ -894,6 +1021,10 @@ class ConnectionPlugin:
         address = _parse_individual_address(text)
         if self._usb_address_busy or self._usb_address_checking:
             raise ValueError(S.USB_ADDRESS_BUSY)
+        if self._usb_local_busy:
+            raise ValueError(S.USB_LOCAL_DEVICE_BUSY)
+        if reason := self._api.connection.local_device_refusal(str(address)):
+            raise ValueError(reason)
         future = self._api.connection.individual_address_occupied(str(address))
         if future is None:
             raise ValueError(S.USB_NOT_CONNECTED_HERE)
@@ -969,6 +1100,21 @@ class ConnectionPlugin:
         self._run_async(self._reopen(self._session, retry=False))
 
     @property
+    def shown_target(self) -> str:
+        """The connection target as the status bar and the Gateway menu show it: with local
+        device access through a USB interface, also that and the device's address."""
+        target = self._connection_target
+        if not self.local_device_connected:
+            return target
+        info = self.usb_info
+        address = (
+            str(info.individual_address)
+            if info is not None and info.individual_address is not None
+            else S.LOCAL_DEVICE_ADDRESS_UNKNOWN
+        )
+        return S.STATUS_LOCAL_DEVICE.format(target=target, address=address)
+
+    @property
     def _connection_target(self) -> str:
         if self._usb_target is not None:
             return self._usb_target.label
@@ -999,6 +1145,8 @@ class ConnectionPlugin:
                     ),
                     individual_address=self._usb_address_to_set(usb),
                     writes_blocked=self._api.connection.writes_blocked,
+                    transport_layer=self._usb_local_device,
+                    extraneous_frame_callback=self._mbus_frame_received,
                 )
                 self._interface = usb_interface
                 config = usb_interface.connection_config
@@ -1071,6 +1219,16 @@ class ConnectionPlugin:
                 if usb is not None
                 else self._connection_target
             )
+            # Before the connection is offered: an operation then finds only the own device.
+            self._api.connection.local_device = (
+                LocalDevice(
+                    str(self._usb_info.individual_address)
+                    if self._usb_info.individual_address is not None
+                    else None
+                )
+                if self._usb_info is not None and self._usb_info.transport_layer
+                else None
+            )
             self._api.connection.set_connection(self._xknx, asyncio.get_running_loop())
             self._api.connection.link_info = self._link_info()
             usb_address = (
@@ -1128,6 +1286,7 @@ class ConnectionPlugin:
                     domain_address=rf_domain_address_text(
                         self._usb_info.rf_domain_address
                     ),
+                    local_device=self._usb_info.transport_layer,
                 )
                 self._keep_usb_address()
             if self._gateway_info:
@@ -1718,6 +1877,11 @@ class ConnectionPlugin:
                 port=0,
                 connector="Usb",
                 medium="Rf" if usb is not None and usb.medium is KNXMedium.RF else "Tp",
+                local_device=(
+                    str(usb.individual_address or "")
+                    if usb is not None and usb.transport_layer
+                    else None
+                ),
             )
         name = ""
         if self._gateway_info is not None and self._gateway_info.name:
@@ -1769,6 +1933,10 @@ class ConnectionPlugin:
             return
         if self.is_routing:
             service.set_busmonitor_state(BusmonitorState.OFF, error="routing")
+            return
+        if self.local_device_chosen:
+            # The interface's own device is all the connection reaches.
+            service.set_busmonitor_state(BusmonitorState.OFF, error="local_device")
             return
         service.set_busmonitor_state(BusmonitorState.STARTING)
         self._run_async(self._start_busmonitor_async())
@@ -2026,7 +2194,7 @@ class ConnectionPlugin:
             draw_list.add_circle_filled(center, px(4), color_u32(0.2, 0.8, 0.3, 1.0))
             imgui.dummy(px_vec2(12, 0))
             imgui.same_line()
-            target = self._connection_target
+            target = self.shown_target
             if self._gateway_info and self._gateway_info.name:
                 name = "".join(
                     c for c in self._gateway_info.name if c.isprintable()
@@ -2172,12 +2340,16 @@ class ConnectionPlugin:
                     S.USB_MASK_VERSION.format(mask=mask_version_text(info.mask_version))
                 )
             imgui.text(S.USB_MEDIUM.format(medium=medium_name(info.medium)))
-        imgui.separator()
         busy = (
             self._usb_address_busy
             or self._usb_address_checking
             or self._usb_domain_busy
+            or self._usb_local_busy
         )
+        imgui.separator()
+        self._render_usb_local_device(busy)
+        local = info is not None and info.transport_layer
+        imgui.separator()
         imgui.begin_disabled(busy or not self.connected)
         imgui.align_text_to_frame_padding()
         imgui.text(S.USB_ADDRESS_LABEL)
@@ -2198,7 +2370,8 @@ class ConnectionPlugin:
         changed = self._usb_address_text.strip() != current
         imgui.begin_disabled(not changed)
         applied = _row_button(f"{S.USB_ADDRESS_APPLY}##usb_address_apply")
-        checked = _row_button(f"{S.USB_ADDRESS_FREE}##usb_address_free")
+        # the own device is all the connection reaches: no other one can be asked
+        checked = not local and _row_button(f"{S.USB_ADDRESS_FREE}##usb_address_free")
         imgui.end_disabled()
         # Enter in the field applies it too
         if applied or (entered and changed):
@@ -2206,7 +2379,9 @@ class ConnectionPlugin:
         if checked:
             self._start_usb_address(self.check_usb_interface_address)
         imgui.end_disabled()
-        if busy or (self._state == ConnectionState.CONNECTING):
+        if self._usb_local_busy:
+            pass  # shown at the local device access
+        elif busy or (self._state == ConnectionState.CONNECTING):
             loading(
                 "##usb_address_spinner",
                 S.USB_ADDRESS_CHECKING
@@ -2237,6 +2412,8 @@ class ConnectionPlugin:
             imgui.pop_style_color()
         if info is not None and info.medium is KNXMedium.RF:
             self._render_usb_domain_address(info.rf_domain_address, busy)
+        imgui.separator()
+        self._render_mbus_batibus_frames()
         if dialog_buttons(S.USB_INTERFACE_CLOSE) == 0:
             self._usb_interface_open = False
             imgui.close_current_popup()
@@ -2317,6 +2494,247 @@ class ConnectionPlugin:
             start(self._usb_address_text)
         except ValueError as err:
             self._usb_address_error = str(err)
+
+    def _render_usb_local_device(self, busy: bool) -> None:
+        """The local device access row of the USB Interface dialog: switches the open
+        connection between the bus and the interface's own device."""
+        info = self.usb_info
+        connected_local = info is not None and info.transport_layer
+        imgui.begin_disabled(busy or not self.connected)
+        changed, local_device = wrapped_checkbox(
+            f"{S.USB_LOCAL_DEVICE_OPTION}##usb_interface_local", connected_local
+        )
+        imgui.end_disabled()
+        if changed:
+            try:
+                self.set_usb_local_device(local_device)
+            except ValueError as err:
+                self._usb_local_error = str(err)
+        if self._usb_local_busy:
+            loading("##usb_local_spinner", S.USB_LOCAL_DEVICE_SWITCHING)
+        elif self._usb_local_error:
+            imgui.push_style_color(imgui.Col_.text, status_color("error"))
+            imgui.text_wrapped(self._usb_local_error)
+            imgui.pop_style_color()
+        imgui.push_style_color(
+            imgui.Col_.text, imgui.get_style().color_(imgui.Col_.text_disabled)
+        )
+        imgui.text_wrapped(S.SETTING_USB_LOCAL_DEVICE_HINT)
+        imgui.pop_style_color()
+
+    # --- the M-Bus and BatiBus tunnels ------------------------------------------
+
+    def _mbus_frame_received(self, frame: USBTransferFrame) -> None:
+        """A frame of the USB interface's M-Bus or BatiBus tunnel (in the connection thread)."""
+        self._mbus_frames.add(frame, sent=False)
+
+    def mbus_batibus_frames(
+        self, *, since: int = 0, limit: int | None = None
+    ) -> list[MbusBatibusFrame]:
+        """The kept frames of the M-Bus and BatiBus tunnels after the one numbered ``since``,
+        oldest first; with ``limit`` only the newest that many."""
+        return self._mbus_frames.frames(since=since, limit=limit)
+
+    @property
+    def mbus_batibus_last_id(self) -> int:
+        """The number of the newest frame of the M-Bus and BatiBus tunnels (0: none yet)."""
+        return self._mbus_frames.last_id
+
+    def clear_mbus_batibus_frames(self) -> None:
+        self._mbus_frames.clear()
+
+    def send_mbus_batibus_frame(
+        self, protocol: int, service: int, body: bytes
+    ) -> Future[None]:
+        """Send a frame through the connected USB interface's M-Bus or BatiBus tunnel
+        (``protocol``), as it is: ``service`` is its header octet 6, ``body`` its data. It is kept
+        with the received ones once sent. Raises ``ValueError`` with the reason when it can't
+        start (also while Block Bus Writes is on); the future fails with the reason when the
+        interface did not take it."""
+        if protocol not in EXTRANEOUS_PROTOCOLS:
+            raise ValueError(f"not an M-Bus or BatiBus protocol: {protocol}")
+        if not 0 <= service <= 0xFF:
+            raise ValueError(S.MBUS_FRAME_INVALID_SERVICE.format(service=service))
+        interface = self._interface
+        if (
+            not self.connected
+            or self._usb_target is None
+            or not isinstance(interface, ObservableUSBInterfaceThreaded)
+        ):
+            raise ValueError(S.USB_NOT_CONNECTED_HERE)
+        if self._api.connection.writes_refused("M-Bus/BatiBus frame"):
+            raise ValueError(S.MBUS_FRAME_WRITES_BLOCKED)
+        frame = USBTransferFrame(
+            protocol=ProtocolID(protocol), service=service, body=bytes(body)
+        )
+        return asyncio.run_coroutine_threadsafe(
+            self._send_mbus_frame(interface, frame), self._ensure_async_loop()
+        )
+
+    async def _send_mbus_frame(
+        self, interface: ObservableUSBInterfaceThreaded, frame: USBTransferFrame
+    ) -> None:
+        try:
+            await interface.send_extraneous_frame(frame)
+        except (CommunicationError, ValueError) as err:
+            raise ConnectionError(S.MBUS_FRAME_FAILED.format(error=err)) from err
+        self._mbus_frames.add(frame, sent=True)
+        self._log.info(
+            "M-Bus/BatiBus frame sent",
+            protocol=protocol_name(frame.protocol),
+            service=f"{frame.service:02X}",
+            data=frame.body.hex(" ").upper(),
+        )
+
+    def _render_mbus_batibus_frames(self) -> None:
+        """The "M-Bus and BatiBus Frames" section of the USB Interface dialog: the frames of the
+        interface's tunnels, and a row to send one."""
+        imgui.push_id("mbus_batibus")
+        if not collapsing_header(
+            f"{S.MBUS_FRAMES_HEADER} ({len(self._mbus_frames)})###mbus_frames"
+        ):
+            imgui.pop_id()
+            return
+        imgui.push_style_color(
+            imgui.Col_.text, imgui.get_style().color_(imgui.Col_.text_disabled)
+        )
+        imgui.text_wrapped(S.MBUS_FRAMES_HINT)
+        imgui.pop_style_color()
+        frames = self._mbus_frames.frames()
+        if frames:
+            self._render_mbus_table(frames)
+            if imgui.button(f"{S.MBUS_FRAMES_CLEAR}##mbus_clear"):
+                self._mbus_frames.clear()
+        else:
+            imgui.text_disabled(S.MBUS_FRAMES_NONE)
+        self._render_mbus_send()
+        imgui.pop_id()
+
+    def _render_mbus_table(self, frames: list[MbusBatibusFrame]) -> None:
+        flags = (
+            imgui.TableFlags_.borders_inner_v
+            | imgui.TableFlags_.row_bg
+            | imgui.TableFlags_.resizable
+            | imgui.TableFlags_.scroll_y
+        )
+        rows = min(len(frames), 8) + 1
+        height = rows * imgui.get_text_line_height_with_spacing() + px(8)
+        if not begin_data_table(
+            "##mbus_frame_table", 5, flags, imgui.ImVec2(0.0, height)
+        ):
+            return
+        fixed = imgui.TableColumnFlags_.width_fixed
+        imgui.table_setup_column(S.MBUS_FRAME_TIME, fixed)
+        imgui.table_setup_column(S.MBUS_FRAME_DIRECTION, fixed)
+        imgui.table_setup_column(S.MBUS_FRAME_PROTOCOL, fixed)
+        imgui.table_setup_column(S.MBUS_FRAME_SERVICE, fixed)
+        imgui.table_setup_column(
+            S.MBUS_FRAME_DATA, imgui.TableColumnFlags_.width_stretch
+        )
+        data_table_headers()
+        clipper = imgui.ListClipper()
+        clipper.begin(len(frames))
+        while clipper.step():
+            for index in range(clipper.display_start, clipper.display_end):
+                frame = frames[index]
+                imgui.table_next_row()
+                imgui.table_set_column_index(0)
+                imgui.text(time_text(frame.time, millis=True))
+                imgui.table_set_column_index(1)
+                imgui.text(S.MBUS_FRAME_SENT if frame.sent else S.MBUS_FRAME_RECEIVED)
+                imgui.table_set_column_index(2)
+                imgui.text(protocol_name(frame.protocol))
+                imgui.table_set_column_index(3)
+                imgui.text(f"{frame.service:02X}")
+                imgui.table_set_column_index(4)
+                text_clipped_tooltip(frame.body.hex(" ").upper())
+        imgui.end_table()
+
+    def _render_mbus_send(self) -> None:
+        """The row sending a frame: protocol, service, data, Send."""
+        names = {int(protocol): name for protocol, name, _ in PROTOCOLS}
+        imgui.align_text_to_frame_padding()
+        imgui.text(S.MBUS_FRAME_PROTOCOL)
+        imgui.same_line()
+        imgui.set_next_item_width(px(100))
+        if begin_combo("##mbus_protocol", names.get(self._mbus_protocol, "")):
+            for protocol, name in names.items():
+                if imgui.selectable(
+                    f"{name}##mbus_protocol_{protocol}", protocol == self._mbus_protocol
+                )[0]:
+                    self._mbus_protocol = protocol
+            end_combo()
+        same_line_if_fits(px(50) + imgui.calc_text_size(S.MBUS_FRAME_SERVICE).x)
+        imgui.align_text_to_frame_padding()
+        imgui.text(S.MBUS_FRAME_SERVICE)
+        imgui.same_line()
+        imgui.set_next_item_width(px(40))
+        _, self._mbus_service_text = imgui.input_text(
+            "##mbus_service", self._mbus_service_text
+        )
+        imgui.align_text_to_frame_padding()
+        imgui.text(S.MBUS_FRAME_DATA)
+        imgui.same_line()
+        blocked = self._api.connection.block_bus_writes
+        imgui.set_next_item_width(
+            max(
+                px(80),
+                imgui.get_content_region_avail().x
+                - button_width(S.MBUS_FRAME_SEND)
+                - imgui.get_style().item_spacing.x,
+            )
+        )
+        entered, self._mbus_data_text = imgui.input_text(
+            "##mbus_data",
+            self._mbus_data_text,
+            imgui.InputTextFlags_.enter_returns_true,
+        )
+        can_send = self.connected and not blocked and not self._mbus_sending
+        imgui.begin_disabled(not can_send)
+        send = _row_button(f"{S.MBUS_FRAME_SEND}##mbus_send")
+        imgui.end_disabled()
+        if blocked and imgui.is_item_hovered(imgui.HoveredFlags_.allow_when_disabled):
+            imgui.set_tooltip(S.MBUS_FRAME_WRITES_BLOCKED)
+        if send or (entered and can_send):
+            self._start_mbus_send()
+        if self._mbus_sending:
+            loading("##mbus_spinner", S.MBUS_FRAME_SEND)
+        elif self._mbus_error:
+            imgui.push_style_color(imgui.Col_.text, status_color("error"))
+            imgui.text_wrapped(self._mbus_error)
+            imgui.pop_style_color()
+
+    def _start_mbus_send(self) -> None:
+        """Send the frame of the Send row; a reason it can't is shown below it."""
+        self._mbus_error = None
+        try:
+            service = parse_octet(self._mbus_service_text)
+        except ValueError:
+            self._mbus_error = S.MBUS_FRAME_INVALID_SERVICE.format(
+                service=self._mbus_service_text.strip()
+            )
+            return
+        try:
+            body = parse_hex(self._mbus_data_text)
+        except ValueError:
+            self._mbus_error = S.MBUS_FRAME_INVALID_DATA.format(
+                data=self._mbus_data_text.strip()
+            )
+            return
+        try:
+            future = self.send_mbus_batibus_frame(self._mbus_protocol, service, body)
+        except ValueError as err:
+            self._mbus_error = str(err)
+            return
+        self._mbus_sending = True
+
+        def sent(done: Future[None]) -> None:
+            self._mbus_sending = False
+            error = done.exception() if not done.cancelled() else None
+            if error is not None:
+                self._mbus_error = str(error)
+
+        future.add_done_callback(sent)
 
     def _render_progmode_contents(self) -> None:
         imgui.begin_disabled(self._progmode_scanning)
@@ -2487,7 +2905,7 @@ class ConnectionPlugin:
         elif self._state == ConnectionState.CONNECTED:
             # The gateway connected to: its address as the heading, what it is below it, and the
             # connection types it offers to switch between.
-            imgui.text(S.STATUS_CONNECTED_TO.format(ip=self._connection_target))
+            imgui.text(S.STATUS_CONNECTED_TO.format(ip=self.shown_target))
             imgui.indent(px(_DETAILS_INDENT))
             self._render_gateway_details()
             self._render_connected_transport()
@@ -2527,7 +2945,10 @@ class ConnectionPlugin:
                 imgui.text(S.GATEWAY_ADDRESS.format(address=usb.individual_address))
             if usb.device.serial_number:
                 imgui.text(S.USB_SERIAL_NUMBER.format(serial=usb.device.serial_number))
-            if not usb.bus_connected:
+            if usb.transport_layer:
+                # the bus connection doesn't matter then
+                imgui.text_colored(status_color("warning"), S.USB_LOCAL_DEVICE_DETAILS)
+            elif not usb.bus_connected:
                 imgui.text_colored(status_color("warning"), S.USB_NOT_ON_BUS)
             return
         gateway = self._gateway_info
@@ -2571,6 +2992,17 @@ class ConnectionPlugin:
                     for target in self._usb_interface_targets()
                 ],
                 shown=lambda: self._usb_target is not None,
+                read_only=lambda: self._connection_open,
+            ),
+            Setting(
+                "usb_local_device",
+                lambda: S.SETTING_USB_LOCAL_DEVICE,
+                "bool",
+                get=lambda: self._usb_local_device,
+                set=self._set_usb_local_device,
+                hint=lambda: S.SETTING_USB_LOCAL_DEVICE_HINT,
+                shown=lambda: self._usb_target is not None,
+                # switched on the open connection in the USB Interface dialog
                 read_only=lambda: self._connection_open,
             ),
             Setting(
@@ -2725,6 +3157,14 @@ class ConnectionPlugin:
             self._usb_target = target
             self._save_current_settings()
 
+    def _set_usb_local_device(self, value: object) -> None:
+        """Store the choice of local device access for the next connect; nothing changes while
+        a connection is open (the USB Interface dialog switches that one)."""
+        if self._connection_open or bool(value) == self._usb_local_device:
+            return
+        self._usb_local_device = bool(value)
+        self._save_current_settings()
+
     def _set_controller_ip(self, value: object) -> None:
         self._controller_ip = str(value).strip() or self._controller_ip
         self._save_current_settings()
@@ -2821,6 +3261,15 @@ class ConnectionPlugin:
                 self.connect_to_usb(device)
         if not self._usb_devices and not self._scanning:
             imgui.text_disabled(S.NO_USB_INTERFACES)
+        if self._usb_devices:
+            # applies to the interface picked above
+            changed, local_device = checkbox(
+                f"{S.USB_LOCAL_DEVICE_OPTION}##usb_local_device", self._usb_local_device
+            )
+            if changed:
+                self._set_usb_local_device(local_device)
+            if imgui.is_item_hovered():
+                imgui.set_tooltip(S.SETTING_USB_LOCAL_DEVICE_HINT)
 
         imgui.separator()
         imgui.text_disabled(S.SECTION_MANUAL)

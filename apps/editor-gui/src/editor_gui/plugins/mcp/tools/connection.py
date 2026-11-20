@@ -142,7 +142,10 @@ def _download_progress(
 
 def not_started(service: ConnectionService, what: str) -> ToolError:
     """Why the connection service did not start an operation: another one holds the bus, or
-    there is no connection."""
+    there is no connection, or the connection refused it (e.g. a device it can't reach)."""
+    refusal = service.take_refusal()
+    if refusal is not None:
+        return ToolError(f"{what} could not start: {refusal}")
     busy = service.busy_operation
     if busy is not None:
         kind, address = busy
@@ -421,7 +424,13 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         can be sent; ``emi_type`` the message format used with it: "cEMI", "EMI2" or "EMI1";
         ``supported_emi_types`` those it supports, preferred first; ``mask_version`` four
         hexadecimal digits like "07B0", null when unknown; ``medium`` "TP" or "RF", as lines
-        name their medium)."""
+        name their medium). ``usb_interface.local_device`` is the choice of local device access
+        (see connection_set_usb_local_device); while connected ``local_device_access`` tells
+        whether the connection reaches only the interface's own device (the KNX device the
+        interface is part of, at ``individual_address``) through its cEMI Transport Layer:
+        operations on any other device, group telegrams, broadcasts and the bus monitor are
+        refused then. ``local_device`` (top level) is that device's individual address while
+        so connected ("" when it is unknown), else null."""
         from xknx.knxip.knxip_enum import KNXMedium
 
         from editor_gui.plugins.connection.plugin import (
@@ -444,6 +453,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             "routing": conn.is_routing,
             "connection_type": conn.connection_type,
             "busmonitor": ctx.api.connection.busmonitor_state.value,
+            "local_device": None,
         }
         gateway = conn.gateway_info if conn.connected else None
         if gateway is not None:
@@ -465,6 +475,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                 "vendor_id": target.vendor_id,
                 "product_id": target.product_id,
                 "keeps_address": target.keeps_address,
+                "local_device": conn.usb_local_device,
             }
             info = conn.usb_info if conn.connected else None
             if info is not None:
@@ -481,6 +492,9 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                 )
                 usb["mask_version"] = mask_version_text(info.mask_version) or None
                 usb["medium"] = medium_name(info.medium)
+                usb["local_device_access"] = info.transport_layer
+                if info.transport_layer:
+                    status["local_device"] = usb["individual_address"] or ""
                 if info.medium is KNXMedium.RF:
                     usb["rf_domain_address"] = (
                         rf_domain_address_text(info.rf_domain_address) or None
@@ -600,12 +614,28 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     @tool("write", open_world=True)
     def connection_connect_usb(
-        serial_number: str = "", timeout: float = 15.0
+        serial_number: str = "",
+        timeout: float = 15.0,
+        local_device: bool | None = None,
     ) -> dict[str, Any]:
         """Connect through a KNX USB interface plugged into this computer (run connection_scan
         first): the one with ``serial_number``, the first one found when empty. Waits for the
-        result; the interface is then also the one connected at the next start."""
-        if not conn.connect_to_usb_by_serial(serial_number.strip()):
+        result; the interface is then also the one connected at the next start.
+
+        ``local_device`` true connects to the interface's own device (the KNX device the
+        interface is part of, e.g. an actuator with a USB port of its own) through its cEMI
+        Transport Layer instead of to the bus (local device access, needs a cEMI interface):
+        only that device can then be downloaded and read, at the ``individual_address`` that
+        connection_status reports. false connects to the bus; null (default) as chosen in
+        Settings > Connection. A value given is kept as that choice, as the Gateway menu's
+        checkbox does."""
+        serial = serial_number.strip()
+        connected = (
+            conn.connect_to_usb_by_serial(serial)
+            if local_device is None
+            else conn.connect_to_usb_by_serial(serial, local_device=local_device)
+        )
+        if not connected:
             raise ToolError(
                 "no scanned KNX USB interface"
                 + (f" with serial number {serial_number!r}" if serial_number else "")
@@ -694,6 +724,114 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         except Exception as err:
             raise ToolError(f"the check failed: {err}") from err
         return {"individual_address": individual_address.strip(), "free": not occupied}
+
+    @tool("write", open_world=True)
+    def connection_set_usb_local_device(
+        local_device: bool, timeout: float = 30.0
+    ) -> dict[str, Any]:
+        """Choose local device access for USB connections, as the checkbox of Gateway menu >
+        USB Interface… (and the Local Device Access setting) does: true connects to the
+        interface's own device (the KNX device the interface is part of) through its cEMI
+        Transport Layer instead of to the bus, false to the bus. While a USB interface is
+        connected the connection is opened again that way; when that fails it is opened again
+        as it was and the choice stays. Waits for the result and returns ``{local_device,
+        usb_interface}``, the latter as in connection_status. Fails with the reason (e.g. the
+        interface does not support the cEMI transport layer)."""
+        try:
+            future = conn.set_usb_local_device(local_device)
+        except ValueError as err:
+            raise ToolError(str(err)) from err
+        try:
+            future.result(timeout)
+        except TimeoutError as err:
+            raise ToolError(
+                f"the connection was not switched within {timeout:g} s"
+            ) from err
+        except ConnectionError as err:
+            raise ToolError(str(err)) from err
+        return {
+            "local_device": conn.usb_local_device,
+            "usb_interface": connection_status().get("usb_interface"),
+        }
+
+    def _frame_item(frame: Any) -> dict[str, Any]:
+        from editor_gui.plugins.connection.mbus_batibus import protocol_key
+
+        return {
+            "id": frame.id,
+            "time": frame.time.isoformat(),
+            "direction": "sent" if frame.sent else "received",
+            "protocol": protocol_key(frame.protocol),
+            "service": frame.service,
+            "manufacturer_code": frame.manufacturer_code,
+            "data": frame.body.hex(),
+        }
+
+    @tool("read")
+    def connection_mbus_batibus_frames(
+        limit: int = 100, since: int = 0
+    ) -> dict[str, Any]:
+        """The frames of the connected KNX USB interface's M-Bus and BatiBus tunnels (e.g. of a
+        KNX RF USB stick that also receives wireless M-Bus meters), as the "M-Bus and BatiBus
+        Frames" section of Gateway menu > USB Interface… lists them: received ones and those
+        sent with connection_send_mbus_batibus_frame, the last 500, oldest first. ``since``
+        returns only those after the frame with that ``id`` (pass ``last_id`` of the previous
+        call to get the new ones); ``limit`` the newest that many (<=0: all). Returns
+        ``{frames, count, last_id}``; each frame has {id (counting up), time (ISO 8601),
+        direction ("received" or "sent"), protocol ("m_bus" or "batibus"), service (header
+        octet 6, 0-255), manufacturer_code, data (the body in hex, as it is)}. Reads only what
+        the editor received; nothing is sent."""
+        frames = conn.mbus_batibus_frames(
+            since=max(since, 0), limit=limit if limit > 0 else None
+        )
+        items = [_frame_item(frame) for frame in frames]
+        return {
+            "frames": items,
+            "count": len(items),
+            "last_id": conn.mbus_batibus_last_id,
+        }
+
+    @tool("write", open_world=True)
+    def connection_send_mbus_batibus_frame(
+        protocol: Literal["m_bus", "batibus"],
+        data: str,
+        service: int = 0,
+        timeout: float = 10.0,
+    ) -> dict[str, Any]:
+        """Send a frame through the connected KNX USB interface's M-Bus or BatiBus tunnel, as
+        the Send row of the "M-Bus and BatiBus Frames" section of Gateway menu > USB Interface…
+        does: ``protocol`` "m_bus" or "batibus", ``data`` its body in hex ("44 AE 0C" or
+        "44ae0c", passed on as it is), ``service`` header octet 6 (0-255). Refused while Block
+        Bus Writes is on, and without a USB connection. Waits until the interface took it and
+        returns the frame as connection_mbus_batibus_frames lists it."""
+        from editor_gui.plugins.connection.mbus_batibus import parse_hex, parse_protocol
+
+        try:
+            kind = parse_protocol(protocol)
+        except ValueError as err:
+            raise ToolError(
+                f"unknown protocol {protocol!r}; use m_bus or batibus"
+            ) from err
+        try:
+            body = parse_hex(data)
+        except ValueError as err:
+            raise ToolError(f"{data!r} is not hexadecimal data") from err
+        try:
+            future = conn.send_mbus_batibus_frame(kind, service, body)
+        except ValueError as err:
+            raise ToolError(str(err)) from err
+        try:
+            future.result(timeout)
+        except TimeoutError as err:
+            raise ToolError(f"the frame was not sent within {timeout:g} s") from err
+        except ConnectionError as err:
+            raise ToolError(str(err)) from err
+        sent = [
+            frame
+            for frame in conn.mbus_batibus_frames()
+            if frame.sent and frame.body == body and frame.protocol == kind
+        ]
+        return _frame_item(sent[-1]) if sent else {"status": "sent"}
 
     @tool("write", open_world=True)
     def connection_switch_type(

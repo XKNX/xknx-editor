@@ -437,6 +437,14 @@ class TelegramView:
         error = self._connection.busmonitor_error
         if error == "routing":
             return S.BUSMON_UNSUPPORTED_CONNECTION
+        if error == "local_device":
+            from editor_gui.plugins.connection.strings import S as connection_strings
+
+            local = self._connection.local_device
+            return connection_strings.LOCAL_DEVICE_NO_BUS_MONITOR.format(
+                local=(local.address if local is not None else None)
+                or connection_strings.LOCAL_DEVICE_ADDRESS_UNKNOWN
+            )
         text = {
             "unsupported": S.BUSMON_UNSUPPORTED,
             "busy": S.BUSMON_BUSY,
@@ -612,7 +620,9 @@ class TelegramView:
             self._service.start(self.kind)
             return
         if not self._connection.busmonitor_supported():
-            self._connection.busmonitor_error = "routing"
+            self._connection.busmonitor_error = (
+                self._connection.busmonitor_unsupported_error()
+            )
             return
         self._question = _Question(
             S.BUSMON_CONFIRM_TITLE,
