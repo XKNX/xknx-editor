@@ -447,3 +447,90 @@ msgstr "Rámec sa nepodarilo odoslať: {error}"
 
 msgid "Block Bus Writes is on (Settings > Connection): nothing is sent."
 msgstr "Blokovať zápisy na zbernicu je zapnuté (Nastavenia > Pripojenie): nič sa neodosiela."
+
+msgid "KNXnet/IP Server"
+msgstr "Server KNXnet/IP"
+
+msgid "Run a KNXnet/IP server for other tools (USB to IP bridge)"
+msgstr "Prevádzkovať server KNXnet/IP pre iné nástroje (most USB na IP)"
+
+msgid "Other tools (another editor, Home Assistant, a commissioning tool) connect to it over the network and use this USB interface as a KNXnet/IP interface. Each tunnel gets one of the tunnel addresses, which have to be free addresses of the interface's line. It runs while the editor is connected to the bus through the interface, and opens a network port: turn it on only where that is wanted."
+msgstr "Iné nástroje (ďalší editor, Home Assistant, nástroj na uvedenie do prevádzky) sa k nemu pripoja cez sieť a použijú toto rozhranie USB ako rozhranie KNXnet/IP. Každý tunel dostane jednu z adries tunelov, ktoré musia byť voľnými adresami linky rozhrania. Beží, kým je editor cez rozhranie pripojený k zbernici, a otvára sieťový port: zapnite ho len tam, kde je to žiaduce."
+
+msgid "Port"
+msgstr "Port"
+
+msgid "Listen On"
+msgstr "Počúvať na"
+
+msgid "All network interfaces"
+msgstr "Všetky sieťové rozhrania"
+
+msgid "This computer only"
+msgstr "Iba tento počítač"
+
+msgid "Answer searches (discovery)"
+msgstr "Odpovedať na vyhľadávanie (discovery)"
+
+msgid "Offer TCP"
+msgstr "Ponúkať TCP"
+
+msgid "Tunnel Addresses"
+msgstr "Adresy tunelov"
+
+msgid "Suggest"
+msgstr "Navrhnúť"
+
+msgid "Name"
+msgstr "Názov"
+
+msgid "KNXnet/IP server on port {port}, {count} tunnel"
+msgid_plural "KNXnet/IP server on port {port}, {count} tunnels"
+msgstr[0] "Server KNXnet/IP na porte {port}, {count} tunel"
+msgstr[1] "Server KNXnet/IP na porte {port}, {count} tunely"
+msgstr[2] "Server KNXnet/IP na porte {port}, {count} tunelov"
+
+msgid "The KNXnet/IP server is not running."
+msgstr "Server KNXnet/IP nebeží."
+
+msgid "No tunnels open"
+msgstr "Žiadne otvorené tunely"
+
+msgid "Channel"
+msgstr "Kanál"
+
+msgid "Client"
+msgstr "Klient"
+
+msgid "Address"
+msgstr "Adresa"
+
+msgid "At least one tunnel address is needed."
+msgstr "Je potrebná aspoň jedna adresa tunela."
+
+msgid "The tunnel address {address} is given twice."
+msgstr "Adresa tunela {address} je zadaná dvakrát."
+
+msgid "{address} is the individual address of the interface itself."
+msgstr "{address} je individuálna adresa samotného rozhrania."
+
+msgid "{address} is not on the line of the interface ({line})."
+msgstr "{address} nie je na linke rozhrania ({line})."
+
+msgid "{address} is the individual address of the device {name}."
+msgstr "{address} je individuálna adresa zariadenia {name}."
+
+msgid "{port} is not a port (1 to 65535)."
+msgstr "{port} nie je port (1 až 65535)."
+
+msgid "The KNXnet/IP server runs only while the editor is connected through a KNX USB interface."
+msgstr "Server KNXnet/IP beží len vtedy, keď je editor pripojený cez rozhranie KNX USB."
+
+msgid "The KNXnet/IP server doesn't run with local device access: the connection reaches only the interface's own device."
+msgstr "Server KNXnet/IP nebeží s miestnym prístupom k zariadeniu: pripojenie dosiahne iba vlastné zariadenie rozhrania."
+
+msgid "The KNXnet/IP server is being started or stopped."
+msgstr "Server KNXnet/IP sa práve spúšťa alebo zastavuje."
+
+msgid "The KNXnet/IP server could not start: {error}"
+msgstr "Server KNXnet/IP sa nepodarilo spustiť: {error}"

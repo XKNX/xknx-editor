@@ -446,3 +446,89 @@ msgstr "Ekki tókst að senda rammann: {error}"
 
 msgid "Block Bus Writes is on (Settings > Connection): nothing is sent."
 msgstr "„Loka á skrif á bus“ er virkt (Stillingar > Tenging): ekkert er sent."
+
+msgid "KNXnet/IP Server"
+msgstr "KNXnet/IP-þjónn"
+
+msgid "Run a KNXnet/IP server for other tools (USB to IP bridge)"
+msgstr "Keyra KNXnet/IP-þjón fyrir önnur verkfæri (brú frá USB yfir í IP)"
+
+msgid "Other tools (another editor, Home Assistant, a commissioning tool) connect to it over the network and use this USB interface as a KNXnet/IP interface. Each tunnel gets one of the tunnel addresses, which have to be free addresses of the interface's line. It runs while the editor is connected to the bus through the interface, and opens a network port: turn it on only where that is wanted."
+msgstr "Önnur verkfæri (annar ritill, Home Assistant, gangsetningarverkfæri) tengjast honum um netið og nota þetta USB-viðmót sem KNXnet/IP-viðmót. Hver göng fá eitt af gangavistföngunum, sem verða að vera laus vistföng á línu viðmótsins. Hann keyrir á meðan ritillinn er tengdur við tengibrautina um viðmótið og opnar netgátt: kveiktu aðeins á honum þar sem það er æskilegt."
+
+msgid "Port"
+msgstr "Gátt"
+
+msgid "Listen On"
+msgstr "Hlusta á"
+
+msgid "All network interfaces"
+msgstr "Öll netviðmót"
+
+msgid "This computer only"
+msgstr "Aðeins þessi tölva"
+
+msgid "Answer searches (discovery)"
+msgstr "Svara leitum (discovery)"
+
+msgid "Offer TCP"
+msgstr "Bjóða TCP"
+
+msgid "Tunnel Addresses"
+msgstr "Gangavistföng"
+
+msgid "Suggest"
+msgstr "Stinga upp á"
+
+msgid "Name"
+msgstr "Heiti"
+
+msgid "KNXnet/IP server on port {port}, {count} tunnel"
+msgid_plural "KNXnet/IP server on port {port}, {count} tunnels"
+msgstr[0] "KNXnet/IP-þjónn á gátt {port}, {count} göng"
+msgstr[1] "KNXnet/IP-þjónn á gátt {port}, {count} göng"
+
+msgid "The KNXnet/IP server is not running."
+msgstr "KNXnet/IP-þjónninn er ekki í gangi."
+
+msgid "No tunnels open"
+msgstr "Engin göng opin"
+
+msgid "Channel"
+msgstr "Rás"
+
+msgid "Client"
+msgstr "Biðlari"
+
+msgid "Address"
+msgstr "Vistfang"
+
+msgid "At least one tunnel address is needed."
+msgstr "Að minnsta kosti eitt gangavistfang þarf."
+
+msgid "The tunnel address {address} is given twice."
+msgstr "Gangavistfangið {address} er gefið tvisvar."
+
+msgid "{address} is the individual address of the interface itself."
+msgstr "{address} er einstaklingsvistfang viðmótsins sjálfs."
+
+msgid "{address} is not on the line of the interface ({line})."
+msgstr "{address} er ekki á línu viðmótsins ({line})."
+
+msgid "{address} is the individual address of the device {name}."
+msgstr "{address} er einstaklingsvistfang tækisins {name}."
+
+msgid "{port} is not a port (1 to 65535)."
+msgstr "{port} er ekki gátt (1 til 65535)."
+
+msgid "The KNXnet/IP server runs only while the editor is connected through a KNX USB interface."
+msgstr "KNXnet/IP-þjónninn keyrir aðeins á meðan ritillinn er tengdur um KNX USB-viðmót."
+
+msgid "The KNXnet/IP server doesn't run with local device access: the connection reaches only the interface's own device."
+msgstr "KNXnet/IP-þjónninn keyrir ekki með aðgangi að staðbundnu tæki: tengingin nær aðeins í eigið tæki viðmótsins."
+
+msgid "The KNXnet/IP server is being started or stopped."
+msgstr "Verið er að ræsa eða stöðva KNXnet/IP-þjóninn."
+
+msgid "The KNXnet/IP server could not start: {error}"
+msgstr "Ekki tókst að ræsa KNXnet/IP-þjóninn: {error}"

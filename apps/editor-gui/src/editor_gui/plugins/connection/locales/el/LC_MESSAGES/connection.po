@@ -446,3 +446,89 @@ msgstr "Δεν ήταν δυνατή η αποστολή του πλαισίου
 
 msgid "Block Bus Writes is on (Settings > Connection): nothing is sent."
 msgstr "Ο αποκλεισμός εγγραφών στο bus είναι ενεργός (Ρυθμίσεις > Σύνδεση): δεν αποστέλλεται τίποτα."
+
+msgid "KNXnet/IP Server"
+msgstr "Διακομιστής KNXnet/IP"
+
+msgid "Run a KNXnet/IP server for other tools (USB to IP bridge)"
+msgstr "Εκτέλεση διακομιστή KNXnet/IP για άλλα εργαλεία (γέφυρα USB σε IP)"
+
+msgid "Other tools (another editor, Home Assistant, a commissioning tool) connect to it over the network and use this USB interface as a KNXnet/IP interface. Each tunnel gets one of the tunnel addresses, which have to be free addresses of the interface's line. It runs while the editor is connected to the bus through the interface, and opens a network port: turn it on only where that is wanted."
+msgstr "Άλλα εργαλεία (άλλος επεξεργαστής, Home Assistant, εργαλείο θέσης σε λειτουργία) συνδέονται σε αυτόν μέσω δικτύου και χρησιμοποιούν αυτή τη διεπαφή USB ως διεπαφή KNXnet/IP. Κάθε σήραγγα λαμβάνει μία από τις διευθύνσεις σηράγγων, οι οποίες πρέπει να είναι ελεύθερες διευθύνσεις της γραμμής της διεπαφής. Εκτελείται όσο ο επεξεργαστής είναι συνδεδεμένος στο bus μέσω της διεπαφής και ανοίγει μια θύρα δικτύου: ενεργοποιήστε τον μόνο όπου αυτό είναι επιθυμητό."
+
+msgid "Port"
+msgstr "Θύρα"
+
+msgid "Listen On"
+msgstr "Ακρόαση Σε"
+
+msgid "All network interfaces"
+msgstr "Όλες οι διεπαφές δικτύου"
+
+msgid "This computer only"
+msgstr "Μόνο αυτός ο υπολογιστής"
+
+msgid "Answer searches (discovery)"
+msgstr "Απάντηση σε αναζητήσεις (discovery)"
+
+msgid "Offer TCP"
+msgstr "Προσφορά TCP"
+
+msgid "Tunnel Addresses"
+msgstr "Διευθύνσεις Σηράγγων"
+
+msgid "Suggest"
+msgstr "Πρόταση"
+
+msgid "Name"
+msgstr "Όνομα"
+
+msgid "KNXnet/IP server on port {port}, {count} tunnel"
+msgid_plural "KNXnet/IP server on port {port}, {count} tunnels"
+msgstr[0] "Διακομιστής KNXnet/IP στη θύρα {port}, {count} σήραγγα"
+msgstr[1] "Διακομιστής KNXnet/IP στη θύρα {port}, {count} σήραγγες"
+
+msgid "The KNXnet/IP server is not running."
+msgstr "Ο διακομιστής KNXnet/IP δεν εκτελείται."
+
+msgid "No tunnels open"
+msgstr "Καμία ανοιχτή σήραγγα"
+
+msgid "Channel"
+msgstr "Κανάλι"
+
+msgid "Client"
+msgstr "Πελάτης"
+
+msgid "Address"
+msgstr "Διεύθυνση"
+
+msgid "At least one tunnel address is needed."
+msgstr "Απαιτείται τουλάχιστον μία διεύθυνση σήραγγας."
+
+msgid "The tunnel address {address} is given twice."
+msgstr "Η διεύθυνση σήραγγας {address} δίνεται δύο φορές."
+
+msgid "{address} is the individual address of the interface itself."
+msgstr "Η {address} είναι η ατομική διεύθυνση της ίδιας της διεπαφής."
+
+msgid "{address} is not on the line of the interface ({line})."
+msgstr "Η {address} δεν βρίσκεται στη γραμμή της διεπαφής ({line})."
+
+msgid "{address} is the individual address of the device {name}."
+msgstr "Η {address} είναι η ατομική διεύθυνση της συσκευής {name}."
+
+msgid "{port} is not a port (1 to 65535)."
+msgstr "Η {port} δεν είναι θύρα (1 έως 65535)."
+
+msgid "The KNXnet/IP server runs only while the editor is connected through a KNX USB interface."
+msgstr "Ο διακομιστής KNXnet/IP εκτελείται μόνο όσο ο επεξεργαστής είναι συνδεδεμένος μέσω διεπαφής KNX USB."
+
+msgid "The KNXnet/IP server doesn't run with local device access: the connection reaches only the interface's own device."
+msgstr "Ο διακομιστής KNXnet/IP δεν εκτελείται με τοπική πρόσβαση συσκευής: η σύνδεση φτάνει μόνο στη δική συσκευή της διεπαφής."
+
+msgid "The KNXnet/IP server is being started or stopped."
+msgstr "Ο διακομιστής KNXnet/IP εκκινείται ή σταματά αυτή τη στιγμή."
+
+msgid "The KNXnet/IP server could not start: {error}"
+msgstr "Δεν ήταν δυνατή η εκκίνηση του διακομιστή KNXnet/IP: {error}"

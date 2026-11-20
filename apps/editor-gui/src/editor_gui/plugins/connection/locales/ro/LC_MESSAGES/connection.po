@@ -447,3 +447,90 @@ msgstr "Cadrul nu a putut fi trimis: {error}"
 
 msgid "Block Bus Writes is on (Settings > Connection): nothing is sent."
 msgstr "Blocare scrieri pe magistrală este activă (Setări > Conexiune): nu se trimite nimic."
+
+msgid "KNXnet/IP Server"
+msgstr "Server KNXnet/IP"
+
+msgid "Run a KNXnet/IP server for other tools (USB to IP bridge)"
+msgstr "Rulează un server KNXnet/IP pentru alte instrumente (punte USB către IP)"
+
+msgid "Other tools (another editor, Home Assistant, a commissioning tool) connect to it over the network and use this USB interface as a KNXnet/IP interface. Each tunnel gets one of the tunnel addresses, which have to be free addresses of the interface's line. It runs while the editor is connected to the bus through the interface, and opens a network port: turn it on only where that is wanted."
+msgstr "Alte instrumente (un alt editor, Home Assistant, un instrument de punere în funcțiune) se conectează la el prin rețea și folosesc această interfață USB ca interfață KNXnet/IP. Fiecare tunel primește una dintre adresele de tunel, care trebuie să fie adrese libere ale liniei interfeței. Rulează cât timp editorul este conectat la magistrală prin interfață și deschide un port de rețea: activați-l doar acolo unde se dorește acest lucru."
+
+msgid "Port"
+msgstr "Port"
+
+msgid "Listen On"
+msgstr "Ascultare pe"
+
+msgid "All network interfaces"
+msgstr "Toate interfețele de rețea"
+
+msgid "This computer only"
+msgstr "Doar acest computer"
+
+msgid "Answer searches (discovery)"
+msgstr "Răspunde la căutări (discovery)"
+
+msgid "Offer TCP"
+msgstr "Oferă TCP"
+
+msgid "Tunnel Addresses"
+msgstr "Adrese de tunel"
+
+msgid "Suggest"
+msgstr "Sugerează"
+
+msgid "Name"
+msgstr "Nume"
+
+msgid "KNXnet/IP server on port {port}, {count} tunnel"
+msgid_plural "KNXnet/IP server on port {port}, {count} tunnels"
+msgstr[0] "Server KNXnet/IP pe portul {port}, {count} tunel"
+msgstr[1] "Server KNXnet/IP pe portul {port}, {count} tuneluri"
+msgstr[2] "Server KNXnet/IP pe portul {port}, {count} de tuneluri"
+
+msgid "The KNXnet/IP server is not running."
+msgstr "Serverul KNXnet/IP nu rulează."
+
+msgid "No tunnels open"
+msgstr "Niciun tunel deschis"
+
+msgid "Channel"
+msgstr "Canal"
+
+msgid "Client"
+msgstr "Client"
+
+msgid "Address"
+msgstr "Adresă"
+
+msgid "At least one tunnel address is needed."
+msgstr "Este necesară cel puțin o adresă de tunel."
+
+msgid "The tunnel address {address} is given twice."
+msgstr "Adresa de tunel {address} este dată de două ori."
+
+msgid "{address} is the individual address of the interface itself."
+msgstr "{address} este adresa fizică a interfeței înseși."
+
+msgid "{address} is not on the line of the interface ({line})."
+msgstr "{address} nu se află pe linia interfeței ({line})."
+
+msgid "{address} is the individual address of the device {name}."
+msgstr "{address} este adresa fizică a dispozitivului {name}."
+
+msgid "{port} is not a port (1 to 65535)."
+msgstr "{port} nu este un port (1 până la 65535)."
+
+msgid "The KNXnet/IP server runs only while the editor is connected through a KNX USB interface."
+msgstr "Serverul KNXnet/IP rulează doar cât timp editorul este conectat printr-o interfață KNX USB."
+
+msgid "The KNXnet/IP server doesn't run with local device access: the connection reaches only the interface's own device."
+msgstr "Serverul KNXnet/IP nu rulează cu acces la dispozitivul local: conexiunea ajunge doar la dispozitivul propriu al interfeței."
+
+msgid "The KNXnet/IP server is being started or stopped."
+msgstr "Serverul KNXnet/IP este în curs de pornire sau oprire."
+
+msgid "The KNXnet/IP server could not start: {error}"
+msgstr "Serverul KNXnet/IP nu a putut porni: {error}"

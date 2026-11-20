@@ -446,3 +446,89 @@ msgstr "Ramen kunde inte skickas: {error}"
 
 msgid "Block Bus Writes is on (Settings > Connection): nothing is sent."
 msgstr "Blockera skrivning till bussen är på (Inställningar > Anslutning): inget skickas."
+
+msgid "KNXnet/IP Server"
+msgstr "KNXnet/IP-server"
+
+msgid "Run a KNXnet/IP server for other tools (USB to IP bridge)"
+msgstr "Kör en KNXnet/IP-server för andra verktyg (USB-till-IP-brygga)"
+
+msgid "Other tools (another editor, Home Assistant, a commissioning tool) connect to it over the network and use this USB interface as a KNXnet/IP interface. Each tunnel gets one of the tunnel addresses, which have to be free addresses of the interface's line. It runs while the editor is connected to the bus through the interface, and opens a network port: turn it on only where that is wanted."
+msgstr "Andra verktyg (en annan redigerare, Home Assistant, ett driftsättningsverktyg) ansluter till den över nätverket och använder det här USB-gränssnittet som ett KNXnet/IP-gränssnitt. Varje tunnel får en av tunneladresserna, som måste vara lediga adresser på gränssnittets linje. Den körs medan redigeraren är ansluten till bussen via gränssnittet och öppnar en nätverksport: slå bara på den där det är önskat."
+
+msgid "Port"
+msgstr "Port"
+
+msgid "Listen On"
+msgstr "Lyssna på"
+
+msgid "All network interfaces"
+msgstr "Alla nätverksgränssnitt"
+
+msgid "This computer only"
+msgstr "Endast den här datorn"
+
+msgid "Answer searches (discovery)"
+msgstr "Svara på sökningar (discovery)"
+
+msgid "Offer TCP"
+msgstr "Erbjud TCP"
+
+msgid "Tunnel Addresses"
+msgstr "Tunneladresser"
+
+msgid "Suggest"
+msgstr "Föreslå"
+
+msgid "Name"
+msgstr "Namn"
+
+msgid "KNXnet/IP server on port {port}, {count} tunnel"
+msgid_plural "KNXnet/IP server on port {port}, {count} tunnels"
+msgstr[0] "KNXnet/IP-server på port {port}, {count} tunnel"
+msgstr[1] "KNXnet/IP-server på port {port}, {count} tunnlar"
+
+msgid "The KNXnet/IP server is not running."
+msgstr "KNXnet/IP-servern körs inte."
+
+msgid "No tunnels open"
+msgstr "Inga öppna tunnlar"
+
+msgid "Channel"
+msgstr "Kanal"
+
+msgid "Client"
+msgstr "Klient"
+
+msgid "Address"
+msgstr "Adress"
+
+msgid "At least one tunnel address is needed."
+msgstr "Minst en tunneladress behövs."
+
+msgid "The tunnel address {address} is given twice."
+msgstr "Tunneladressen {address} har angetts två gånger."
+
+msgid "{address} is the individual address of the interface itself."
+msgstr "{address} är gränssnittets egen individuella adress."
+
+msgid "{address} is not on the line of the interface ({line})."
+msgstr "{address} ligger inte på gränssnittets linje ({line})."
+
+msgid "{address} is the individual address of the device {name}."
+msgstr "{address} är den individuella adressen för enheten {name}."
+
+msgid "{port} is not a port (1 to 65535)."
+msgstr "{port} är ingen port (1 till 65535)."
+
+msgid "The KNXnet/IP server runs only while the editor is connected through a KNX USB interface."
+msgstr "KNXnet/IP-servern körs bara medan redigeraren är ansluten via ett KNX USB-gränssnitt."
+
+msgid "The KNXnet/IP server doesn't run with local device access: the connection reaches only the interface's own device."
+msgstr "KNXnet/IP-servern körs inte med lokal enhetsåtkomst: anslutningen når bara gränssnittets egen enhet."
+
+msgid "The KNXnet/IP server is being started or stopped."
+msgstr "KNXnet/IP-servern håller på att startas eller stoppas."
+
+msgid "The KNXnet/IP server could not start: {error}"
+msgstr "KNXnet/IP-servern kunde inte starta: {error}"

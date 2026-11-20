@@ -446,3 +446,89 @@ msgstr "No se pudo enviar la trama: {error}"
 
 msgid "Block Bus Writes is on (Settings > Connection): nothing is sent."
 msgstr "Bloquear escrituras en el bus está activado (Ajustes > Conexión): no se envía nada."
+
+msgid "KNXnet/IP Server"
+msgstr "Servidor KNXnet/IP"
+
+msgid "Run a KNXnet/IP server for other tools (USB to IP bridge)"
+msgstr "Ejecutar un servidor KNXnet/IP para otras herramientas (puente de USB a IP)"
+
+msgid "Other tools (another editor, Home Assistant, a commissioning tool) connect to it over the network and use this USB interface as a KNXnet/IP interface. Each tunnel gets one of the tunnel addresses, which have to be free addresses of the interface's line. It runs while the editor is connected to the bus through the interface, and opens a network port: turn it on only where that is wanted."
+msgstr "Otras herramientas (otro editor, Home Assistant, una herramienta de puesta en marcha) se conectan a él por la red y usan esta interfaz USB como interfaz KNXnet/IP. Cada túnel recibe una de las direcciones de túnel, que tienen que ser direcciones libres de la línea de la interfaz. Funciona mientras el editor está conectado al bus a través de la interfaz y abre un puerto de red: actívelo solo donde se desee."
+
+msgid "Port"
+msgstr "Puerto"
+
+msgid "Listen On"
+msgstr "Escuchar en"
+
+msgid "All network interfaces"
+msgstr "Todas las interfaces de red"
+
+msgid "This computer only"
+msgstr "Solo este equipo"
+
+msgid "Answer searches (discovery)"
+msgstr "Responder a búsquedas (discovery)"
+
+msgid "Offer TCP"
+msgstr "Ofrecer TCP"
+
+msgid "Tunnel Addresses"
+msgstr "Direcciones de Túnel"
+
+msgid "Suggest"
+msgstr "Sugerir"
+
+msgid "Name"
+msgstr "Nombre"
+
+msgid "KNXnet/IP server on port {port}, {count} tunnel"
+msgid_plural "KNXnet/IP server on port {port}, {count} tunnels"
+msgstr[0] "Servidor KNXnet/IP en el puerto {port}, {count} túnel"
+msgstr[1] "Servidor KNXnet/IP en el puerto {port}, {count} túneles"
+
+msgid "The KNXnet/IP server is not running."
+msgstr "El servidor KNXnet/IP no está en ejecución."
+
+msgid "No tunnels open"
+msgstr "No hay túneles abiertos"
+
+msgid "Channel"
+msgstr "Canal"
+
+msgid "Client"
+msgstr "Cliente"
+
+msgid "Address"
+msgstr "Dirección"
+
+msgid "At least one tunnel address is needed."
+msgstr "Se necesita al menos una dirección de túnel."
+
+msgid "The tunnel address {address} is given twice."
+msgstr "La dirección de túnel {address} se ha indicado dos veces."
+
+msgid "{address} is the individual address of the interface itself."
+msgstr "{address} es la dirección individual de la propia interfaz."
+
+msgid "{address} is not on the line of the interface ({line})."
+msgstr "{address} no está en la línea de la interfaz ({line})."
+
+msgid "{address} is the individual address of the device {name}."
+msgstr "{address} es la dirección individual del dispositivo {name}."
+
+msgid "{port} is not a port (1 to 65535)."
+msgstr "{port} no es un puerto (1 a 65535)."
+
+msgid "The KNXnet/IP server runs only while the editor is connected through a KNX USB interface."
+msgstr "El servidor KNXnet/IP solo funciona mientras el editor está conectado a través de una interfaz KNX USB."
+
+msgid "The KNXnet/IP server doesn't run with local device access: the connection reaches only the interface's own device."
+msgstr "El servidor KNXnet/IP no funciona con el acceso al dispositivo local: la conexión solo llega al propio dispositivo de la interfaz."
+
+msgid "The KNXnet/IP server is being started or stopped."
+msgstr "El servidor KNXnet/IP se está iniciando o deteniendo."
+
+msgid "The KNXnet/IP server could not start: {error}"
+msgstr "No se pudo iniciar el servidor KNXnet/IP: {error}"

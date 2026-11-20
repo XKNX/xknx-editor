@@ -445,3 +445,88 @@ msgstr "フレームを送信できませんでした: {error}"
 
 msgid "Block Bus Writes is on (Settings > Connection): nothing is sent."
 msgstr "「バスへの書き込みをブロック」がオンです（設定 > 接続）。何も送信されません。"
+
+msgid "KNXnet/IP Server"
+msgstr "KNXnet/IP サーバー"
+
+msgid "Run a KNXnet/IP server for other tools (USB to IP bridge)"
+msgstr "他のツール向けに KNXnet/IP サーバーを実行する（USB-IP ブリッジ）"
+
+msgid "Other tools (another editor, Home Assistant, a commissioning tool) connect to it over the network and use this USB interface as a KNXnet/IP interface. Each tunnel gets one of the tunnel addresses, which have to be free addresses of the interface's line. It runs while the editor is connected to the bus through the interface, and opens a network port: turn it on only where that is wanted."
+msgstr "他のツール（別のエディター、Home Assistant、コミッショニングツール）がネットワーク経由で接続し、この USB インターフェイスを KNXnet/IP インターフェイスとして使用します。各トンネルにはトンネルアドレスの 1 つが割り当てられます。トンネルアドレスはインターフェイスのラインの空きアドレスである必要があります。エディターがインターフェイス経由でバスに接続されている間に動作し、ネットワークポートを開きます。必要な場合にのみオンにしてください。"
+
+msgid "Port"
+msgstr "ポート"
+
+msgid "Listen On"
+msgstr "待ち受け先"
+
+msgid "All network interfaces"
+msgstr "すべてのネットワークインターフェイス"
+
+msgid "This computer only"
+msgstr "このコンピューターのみ"
+
+msgid "Answer searches (discovery)"
+msgstr "検索に応答する（ディスカバリー）"
+
+msgid "Offer TCP"
+msgstr "TCP を提供する"
+
+msgid "Tunnel Addresses"
+msgstr "トンネルアドレス"
+
+msgid "Suggest"
+msgstr "提案"
+
+msgid "Name"
+msgstr "名前"
+
+msgid "KNXnet/IP server on port {port}, {count} tunnel"
+msgid_plural "KNXnet/IP server on port {port}, {count} tunnels"
+msgstr[0] "ポート {port} の KNXnet/IP サーバー、トンネル {count} 個"
+
+msgid "The KNXnet/IP server is not running."
+msgstr "KNXnet/IP サーバーは実行されていません。"
+
+msgid "No tunnels open"
+msgstr "開いているトンネルはありません"
+
+msgid "Channel"
+msgstr "チャネル"
+
+msgid "Client"
+msgstr "クライアント"
+
+msgid "Address"
+msgstr "アドレス"
+
+msgid "At least one tunnel address is needed."
+msgstr "トンネルアドレスが少なくとも 1 つ必要です。"
+
+msgid "The tunnel address {address} is given twice."
+msgstr "トンネルアドレス {address} が 2 回指定されています。"
+
+msgid "{address} is the individual address of the interface itself."
+msgstr "{address} はインターフェイス自体の個別アドレスです。"
+
+msgid "{address} is not on the line of the interface ({line})."
+msgstr "{address} はインターフェイスのライン（{line}）上にありません。"
+
+msgid "{address} is the individual address of the device {name}."
+msgstr "{address} はデバイス {name} の個別アドレスです。"
+
+msgid "{port} is not a port (1 to 65535)."
+msgstr "{port} はポートではありません（1 から 65535）。"
+
+msgid "The KNXnet/IP server runs only while the editor is connected through a KNX USB interface."
+msgstr "KNXnet/IP サーバーは、エディターが KNX USB インターフェイス経由で接続されている間のみ動作します。"
+
+msgid "The KNXnet/IP server doesn't run with local device access: the connection reaches only the interface's own device."
+msgstr "KNXnet/IP サーバーはローカルデバイスアクセスでは動作しません。接続はインターフェイス自身のデバイスにのみ到達します。"
+
+msgid "The KNXnet/IP server is being started or stopped."
+msgstr "KNXnet/IP サーバーを起動または停止しています。"
+
+msgid "The KNXnet/IP server could not start: {error}"
+msgstr "KNXnet/IP サーバーを起動できませんでした: {error}"

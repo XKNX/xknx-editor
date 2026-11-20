@@ -446,3 +446,89 @@ msgstr "Kehystä ei voitu lähettää: {error}"
 
 msgid "Block Bus Writes is on (Settings > Connection): nothing is sent."
 msgstr "Estä kirjoitukset väylälle on päällä (Asetukset > Yhteys): mitään ei lähetetä."
+
+msgid "KNXnet/IP Server"
+msgstr "KNXnet/IP-palvelin"
+
+msgid "Run a KNXnet/IP server for other tools (USB to IP bridge)"
+msgstr "Käytä KNXnet/IP-palvelinta muille työkaluille (USB–IP-silta)"
+
+msgid "Other tools (another editor, Home Assistant, a commissioning tool) connect to it over the network and use this USB interface as a KNXnet/IP interface. Each tunnel gets one of the tunnel addresses, which have to be free addresses of the interface's line. It runs while the editor is connected to the bus through the interface, and opens a network port: turn it on only where that is wanted."
+msgstr "Muut työkalut (toinen editori, Home Assistant, käyttöönottotyökalu) yhdistävät siihen verkon kautta ja käyttävät tätä USB-liitäntää KNXnet/IP-liitäntänä. Jokainen tunneli saa yhden tunneliosoitteista, joiden on oltava liitännän linjan vapaita osoitteita. Palvelin toimii, kun editori on yhteydessä väylään liitännän kautta, ja se avaa verkkoportin: ota se käyttöön vain siellä, missä sitä halutaan."
+
+msgid "Port"
+msgstr "Portti"
+
+msgid "Listen On"
+msgstr "Kuuntele"
+
+msgid "All network interfaces"
+msgstr "Kaikki verkkoliitännät"
+
+msgid "This computer only"
+msgstr "Vain tämä tietokone"
+
+msgid "Answer searches (discovery)"
+msgstr "Vastaa hakuihin (discovery)"
+
+msgid "Offer TCP"
+msgstr "Tarjoa TCP"
+
+msgid "Tunnel Addresses"
+msgstr "Tunneliosoitteet"
+
+msgid "Suggest"
+msgstr "Ehdota"
+
+msgid "Name"
+msgstr "Nimi"
+
+msgid "KNXnet/IP server on port {port}, {count} tunnel"
+msgid_plural "KNXnet/IP server on port {port}, {count} tunnels"
+msgstr[0] "KNXnet/IP-palvelin portissa {port}, {count} tunneli"
+msgstr[1] "KNXnet/IP-palvelin portissa {port}, {count} tunnelia"
+
+msgid "The KNXnet/IP server is not running."
+msgstr "KNXnet/IP-palvelin ei ole käynnissä."
+
+msgid "No tunnels open"
+msgstr "Ei avoimia tunneleita"
+
+msgid "Channel"
+msgstr "Kanava"
+
+msgid "Client"
+msgstr "Asiakas"
+
+msgid "Address"
+msgstr "Osoite"
+
+msgid "At least one tunnel address is needed."
+msgstr "Vähintään yksi tunneliosoite tarvitaan."
+
+msgid "The tunnel address {address} is given twice."
+msgstr "Tunneliosoite {address} on annettu kahdesti."
+
+msgid "{address} is the individual address of the interface itself."
+msgstr "{address} on itse liitännän yksilöllinen osoite."
+
+msgid "{address} is not on the line of the interface ({line})."
+msgstr "{address} ei ole liitännän linjalla ({line})."
+
+msgid "{address} is the individual address of the device {name}."
+msgstr "{address} on laitteen {name} yksilöllinen osoite."
+
+msgid "{port} is not a port (1 to 65535)."
+msgstr "{port} ei ole portti (1–65535)."
+
+msgid "The KNXnet/IP server runs only while the editor is connected through a KNX USB interface."
+msgstr "KNXnet/IP-palvelin toimii vain, kun editori on yhteydessä KNX USB -liitännän kautta."
+
+msgid "The KNXnet/IP server doesn't run with local device access: the connection reaches only the interface's own device."
+msgstr "KNXnet/IP-palvelin ei toimi paikallisen laiteyhteyden kanssa: yhteys tavoittaa vain liitännän oman laitteen."
+
+msgid "The KNXnet/IP server is being started or stopped."
+msgstr "KNXnet/IP-palvelinta käynnistetään tai pysäytetään."
+
+msgid "The KNXnet/IP server could not start: {error}"
+msgstr "KNXnet/IP-palvelinta ei voitu käynnistää: {error}"

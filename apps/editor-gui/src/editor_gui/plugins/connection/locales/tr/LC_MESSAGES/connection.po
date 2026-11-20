@@ -445,3 +445,88 @@ msgstr "Çerçeve gönderilemedi: {error}"
 
 msgid "Block Bus Writes is on (Settings > Connection): nothing is sent."
 msgstr "Hatta Yazmayı Engelle açık (Ayarlar > Bağlantı): hiçbir şey gönderilmez."
+
+msgid "KNXnet/IP Server"
+msgstr "KNXnet/IP Sunucusu"
+
+msgid "Run a KNXnet/IP server for other tools (USB to IP bridge)"
+msgstr "Diğer araçlar için bir KNXnet/IP sunucusu çalıştır (USB'den IP'ye köprü)"
+
+msgid "Other tools (another editor, Home Assistant, a commissioning tool) connect to it over the network and use this USB interface as a KNXnet/IP interface. Each tunnel gets one of the tunnel addresses, which have to be free addresses of the interface's line. It runs while the editor is connected to the bus through the interface, and opens a network port: turn it on only where that is wanted."
+msgstr "Diğer araçlar (başka bir düzenleyici, Home Assistant, bir devreye alma aracı) ağ üzerinden ona bağlanır ve bu USB arayüzünü bir KNXnet/IP arayüzü olarak kullanır. Her tünel, arayüzün hattındaki boş adreslerden olması gereken tünel adreslerinden birini alır. Düzenleyici arayüz üzerinden hatta bağlıyken çalışır ve bir ağ portu açar: yalnızca istendiği yerde açın."
+
+msgid "Port"
+msgstr "Port"
+
+msgid "Listen On"
+msgstr "Dinlenecek Yer"
+
+msgid "All network interfaces"
+msgstr "Tüm ağ arayüzleri"
+
+msgid "This computer only"
+msgstr "Yalnızca bu bilgisayar"
+
+msgid "Answer searches (discovery)"
+msgstr "Aramaları yanıtla (discovery)"
+
+msgid "Offer TCP"
+msgstr "TCP sun"
+
+msgid "Tunnel Addresses"
+msgstr "Tünel Adresleri"
+
+msgid "Suggest"
+msgstr "Öner"
+
+msgid "Name"
+msgstr "Ad"
+
+msgid "KNXnet/IP server on port {port}, {count} tunnel"
+msgid_plural "KNXnet/IP server on port {port}, {count} tunnels"
+msgstr[0] "{port} portunda KNXnet/IP sunucusu, {count} tünel"
+
+msgid "The KNXnet/IP server is not running."
+msgstr "KNXnet/IP sunucusu çalışmıyor."
+
+msgid "No tunnels open"
+msgstr "Açık tünel yok"
+
+msgid "Channel"
+msgstr "Kanal"
+
+msgid "Client"
+msgstr "İstemci"
+
+msgid "Address"
+msgstr "Adres"
+
+msgid "At least one tunnel address is needed."
+msgstr "En az bir tünel adresi gerekli."
+
+msgid "The tunnel address {address} is given twice."
+msgstr "{address} tünel adresi iki kez verilmiş."
+
+msgid "{address} is the individual address of the interface itself."
+msgstr "{address}, arayüzün kendi bireysel adresidir."
+
+msgid "{address} is not on the line of the interface ({line})."
+msgstr "{address}, arayüzün hattında ({line}) değil."
+
+msgid "{address} is the individual address of the device {name}."
+msgstr "{address}, {name} cihazının bireysel adresidir."
+
+msgid "{port} is not a port (1 to 65535)."
+msgstr "{port} bir port değil (1 ile 65535 arası)."
+
+msgid "The KNXnet/IP server runs only while the editor is connected through a KNX USB interface."
+msgstr "KNXnet/IP sunucusu yalnızca düzenleyici bir KNX USB arayüzü üzerinden bağlıyken çalışır."
+
+msgid "The KNXnet/IP server doesn't run with local device access: the connection reaches only the interface's own device."
+msgstr "KNXnet/IP sunucusu yerel cihaz erişimiyle çalışmaz: bağlantı yalnızca arayüzün kendi cihazına ulaşır."
+
+msgid "The KNXnet/IP server is being started or stopped."
+msgstr "KNXnet/IP sunucusu başlatılıyor veya durduruluyor."
+
+msgid "The KNXnet/IP server could not start: {error}"
+msgstr "KNXnet/IP sunucusu başlatılamadı: {error}"

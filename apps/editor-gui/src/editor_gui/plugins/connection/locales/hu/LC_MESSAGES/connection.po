@@ -445,3 +445,88 @@ msgstr "A keretet nem sikerült elküldeni: {error}"
 
 msgid "Block Bus Writes is on (Settings > Connection): nothing is sent."
 msgstr "A busz írásának tiltása be van kapcsolva (Beállítások > Kapcsolat): semmi nem kerül elküldésre."
+
+msgid "KNXnet/IP Server"
+msgstr "KNXnet/IP-szerver"
+
+msgid "Run a KNXnet/IP server for other tools (USB to IP bridge)"
+msgstr "KNXnet/IP-szerver futtatása más eszközök számára (USB–IP híd)"
+
+msgid "Other tools (another editor, Home Assistant, a commissioning tool) connect to it over the network and use this USB interface as a KNXnet/IP interface. Each tunnel gets one of the tunnel addresses, which have to be free addresses of the interface's line. It runs while the editor is connected to the bus through the interface, and opens a network port: turn it on only where that is wanted."
+msgstr "Más eszközök (egy másik szerkesztő, a Home Assistant, egy üzembe helyező eszköz) a hálózaton keresztül csatlakoznak hozzá, és ezt az USB-interfészt KNXnet/IP-interfészként használják. Minden alagút megkapja az egyik alagútcímet; ezeknek az interfész vonalán szabad címeknek kell lenniük. Addig fut, amíg a szerkesztő az interfészen keresztül csatlakozik a buszhoz, és megnyit egy hálózati portot: csak ott kapcsolja be, ahol ez kívánatos."
+
+msgid "Port"
+msgstr "Port"
+
+msgid "Listen On"
+msgstr "Figyelés itt"
+
+msgid "All network interfaces"
+msgstr "Minden hálózati interfész"
+
+msgid "This computer only"
+msgstr "Csak ez a számítógép"
+
+msgid "Answer searches (discovery)"
+msgstr "Válasz a keresésekre (discovery)"
+
+msgid "Offer TCP"
+msgstr "TCP felkínálása"
+
+msgid "Tunnel Addresses"
+msgstr "Alagútcímek"
+
+msgid "Suggest"
+msgstr "Javaslat"
+
+msgid "Name"
+msgstr "Név"
+
+msgid "KNXnet/IP server on port {port}, {count} tunnel"
+msgid_plural "KNXnet/IP server on port {port}, {count} tunnels"
+msgstr[0] "KNXnet/IP-szerver a(z) {port} porton, {count} alagút"
+
+msgid "The KNXnet/IP server is not running."
+msgstr "A KNXnet/IP-szerver nem fut."
+
+msgid "No tunnels open"
+msgstr "Nincs nyitott alagút"
+
+msgid "Channel"
+msgstr "Csatorna"
+
+msgid "Client"
+msgstr "Kliens"
+
+msgid "Address"
+msgstr "Cím"
+
+msgid "At least one tunnel address is needed."
+msgstr "Legalább egy alagútcím szükséges."
+
+msgid "The tunnel address {address} is given twice."
+msgstr "A(z) {address} alagútcím kétszer van megadva."
+
+msgid "{address} is the individual address of the interface itself."
+msgstr "A(z) {address} magának az interfésznek a fizikai címe."
+
+msgid "{address} is not on the line of the interface ({line})."
+msgstr "A(z) {address} nincs az interfész vonalán ({line})."
+
+msgid "{address} is the individual address of the device {name}."
+msgstr "A(z) {address} a(z) {name} eszköz fizikai címe."
+
+msgid "{port} is not a port (1 to 65535)."
+msgstr "A(z) {port} nem port (1–65535)."
+
+msgid "The KNXnet/IP server runs only while the editor is connected through a KNX USB interface."
+msgstr "A KNXnet/IP-szerver csak addig fut, amíg a szerkesztő KNX USB-interfészen keresztül csatlakozik."
+
+msgid "The KNXnet/IP server doesn't run with local device access: the connection reaches only the interface's own device."
+msgstr "A KNXnet/IP-szerver nem fut helyi eszközhozzáféréssel: a kapcsolat csak az interfész saját eszközét éri el."
+
+msgid "The KNXnet/IP server is being started or stopped."
+msgstr "A KNXnet/IP-szerver indítása vagy leállítása folyamatban van."
+
+msgid "The KNXnet/IP server could not start: {error}"
+msgstr "A KNXnet/IP-szervert nem sikerült elindítani: {error}"

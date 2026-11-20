@@ -445,3 +445,88 @@ msgstr "无法发送帧: {error}"
 
 msgid "Block Bus Writes is on (Settings > Connection): nothing is sent."
 msgstr "阻止写入总线已开启（设置 > 连接）：不发送任何内容。"
+
+msgid "KNXnet/IP Server"
+msgstr "KNXnet/IP 服务器"
+
+msgid "Run a KNXnet/IP server for other tools (USB to IP bridge)"
+msgstr "为其他工具运行 KNXnet/IP 服务器（USB 到 IP 网桥）"
+
+msgid "Other tools (another editor, Home Assistant, a commissioning tool) connect to it over the network and use this USB interface as a KNXnet/IP interface. Each tunnel gets one of the tunnel addresses, which have to be free addresses of the interface's line. It runs while the editor is connected to the bus through the interface, and opens a network port: turn it on only where that is wanted."
+msgstr "其他工具（另一个编辑器、Home Assistant、调试工具）通过网络连接到它，并将此 USB 接口用作 KNXnet/IP 接口。每个隧道获得一个隧道地址，这些地址必须是接口所在线路的空闲地址。它在编辑器通过该接口连接到总线时运行，并会打开一个网络端口：请仅在需要时开启。"
+
+msgid "Port"
+msgstr "端口"
+
+msgid "Listen On"
+msgstr "监听"
+
+msgid "All network interfaces"
+msgstr "所有网络接口"
+
+msgid "This computer only"
+msgstr "仅本机"
+
+msgid "Answer searches (discovery)"
+msgstr "响应搜索（发现）"
+
+msgid "Offer TCP"
+msgstr "提供 TCP"
+
+msgid "Tunnel Addresses"
+msgstr "隧道地址"
+
+msgid "Suggest"
+msgstr "建议"
+
+msgid "Name"
+msgstr "名称"
+
+msgid "KNXnet/IP server on port {port}, {count} tunnel"
+msgid_plural "KNXnet/IP server on port {port}, {count} tunnels"
+msgstr[0] "端口 {port} 上的 KNXnet/IP 服务器，{count} 个隧道"
+
+msgid "The KNXnet/IP server is not running."
+msgstr "KNXnet/IP 服务器未运行。"
+
+msgid "No tunnels open"
+msgstr "没有打开的隧道"
+
+msgid "Channel"
+msgstr "通道"
+
+msgid "Client"
+msgstr "客户端"
+
+msgid "Address"
+msgstr "地址"
+
+msgid "At least one tunnel address is needed."
+msgstr "至少需要一个隧道地址。"
+
+msgid "The tunnel address {address} is given twice."
+msgstr "隧道地址 {address} 重复指定。"
+
+msgid "{address} is the individual address of the interface itself."
+msgstr "{address} 是接口本身的物理地址。"
+
+msgid "{address} is not on the line of the interface ({line})."
+msgstr "{address} 不在接口所在的线路 ({line}) 上。"
+
+msgid "{address} is the individual address of the device {name}."
+msgstr "{address} 是设备 {name} 的物理地址。"
+
+msgid "{port} is not a port (1 to 65535)."
+msgstr "{port} 不是端口（1 到 65535）。"
+
+msgid "The KNXnet/IP server runs only while the editor is connected through a KNX USB interface."
+msgstr "KNXnet/IP 服务器仅在编辑器通过 KNX USB 接口连接时运行。"
+
+msgid "The KNXnet/IP server doesn't run with local device access: the connection reaches only the interface's own device."
+msgstr "KNXnet/IP 服务器无法在本地设备访问模式下运行：该连接只能访问接口自身的设备。"
+
+msgid "The KNXnet/IP server is being started or stopped."
+msgstr "正在启动或停止 KNXnet/IP 服务器。"
+
+msgid "The KNXnet/IP server could not start: {error}"
+msgstr "无法启动 KNXnet/IP 服务器: {error}"
