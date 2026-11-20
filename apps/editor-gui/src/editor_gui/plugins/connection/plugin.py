@@ -2965,25 +2965,38 @@ class ConnectionPlugin:
         ):
             imgui.pop_id()
             return
-        imgui.push_style_color(
-            imgui.Col_.text, imgui.get_style().color_(imgui.Col_.text_disabled)
-        )
-        imgui.text_wrapped(S.MBUS_FRAMES_HINT)
-        imgui.pop_style_color()
         frames = self._mbus_frames.frames()
+        self._render_mbus_hint_and_clear(bool(frames))
         if frames:
-            # Clear at the top right, above the list it empties
-            clear = f"{S.MBUS_FRAMES_CLEAR}##mbus_clear"
-            room = imgui.get_content_region_avail().x - button_width(clear)
-            if room > 0:
-                imgui.set_cursor_pos_x(imgui.get_cursor_pos_x() + room)
-            if imgui.button(clear):
-                self._mbus_frames.clear()
             self._render_mbus_table(frames)
         else:
             imgui.text_disabled(S.MBUS_FRAMES_NONE)
         self._render_mbus_send()
         imgui.pop_id()
+
+    def _render_mbus_hint_and_clear(self, any_frames: bool) -> None:
+        """The hint on the left, wrapped, and Clear at the top right of the same row, above the
+        list it empties: always shown, disabled while there is nothing to clear."""
+        clear = f"{S.MBUS_FRAMES_CLEAR}##mbus_clear"
+        start = imgui.get_cursor_pos()
+        clear_width = button_width(clear)
+        right = start.x + imgui.get_content_region_avail().x
+        imgui.set_cursor_pos(imgui.ImVec2(right - clear_width, start.y))
+        imgui.begin_disabled(not any_frames)
+        if imgui.button(clear):
+            self._mbus_frames.clear()
+        imgui.end_disabled()
+        below_button = imgui.get_cursor_pos_y()
+        imgui.set_cursor_pos(start)
+        imgui.push_text_wrap_pos(right - clear_width - imgui.get_style().item_spacing.x)
+        imgui.text_disabled(S.MBUS_FRAMES_HINT)
+        imgui.pop_text_wrap_pos()
+        # below the taller of the two
+        rest = (
+            below_button - imgui.get_cursor_pos_y() - imgui.get_style().item_spacing.y
+        )
+        if rest > 0:
+            imgui.dummy(imgui.ImVec2(0.0, rest))
 
     def _render_mbus_table(self, frames: list[MbusBatibusFrame]) -> None:
         flags = (
