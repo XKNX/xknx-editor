@@ -355,9 +355,16 @@ class TelegramView:
             self._copy()
         if self.kind is MonitorKind.GROUP:
             replaying = self._service.replaying
-            can_replay = not replaying and self._service.is_connected() and has_records
+            # nothing is replayed through local device access: its reason as the hint
+            local = self._service.local_device_reason()
+            can_replay = (
+                not replaying
+                and not local
+                and self._service.is_connected()
+                and has_records
+            )
             if self._icon_button(
-                ICON_REPLAY, S.TOOL_REPLAY, S.TOOL_REPLAY_HINT, can_replay
+                ICON_REPLAY, S.TOOL_REPLAY, local or S.TOOL_REPLAY_HINT, can_replay
             ):
                 self._replay()
             if self._icon_button(
@@ -725,7 +732,10 @@ class TelegramView:
                 )
             )
         if plan.refused:
-            messages.append(S.REPLAY_PROTECTED)
+            local = self._service.local_device_reason()
+            messages.append(
+                plan.refused if local and plan.refused == local else S.REPLAY_PROTECTED
+            )
         elif not plan.items:
             messages.append(S.REPLAY_NOTHING)
         self._message = (". ".join(messages), True) if messages else None

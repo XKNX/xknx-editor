@@ -562,6 +562,11 @@ class MonitorService:
         it may: it is a protected group address (Settings > Connection)."""
         return protected_reason(address)
 
+    def local_device_reason(self) -> str:
+        """Why no group telegram is sent through the editor's connection, "" when they are:
+        it reaches only a USB interface's own device (local device access)."""
+        return self._connection.local_device_refusal(reaches="group") or ""
+
     def send_write(self, address: str, dpt: str | None, text: str) -> bool:
         """Encode ``text`` per the group address' DPT and send a GroupValueWrite. Returns success."""
         transcoder = transcoder_for(dpt)
