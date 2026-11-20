@@ -2123,9 +2123,6 @@ msgstr "Slot"
 msgid "The application has no static parameters."
 msgstr "Aplikace nemá žádné statické parametry."
 
-msgid "This gateway's commissioning protocol has not been verified against a capture; writes may misbehave. Proceed with care."
-msgstr "Protokol uvedení této gateway do provozu nebyl ověřen vůči záznamu; zápisy se mohou chovat chybně. Postupujte opatrně."
-
 msgid "Program DCA State"
 msgstr "Naprogramovat stav DCA"
 
@@ -3286,6 +3283,11 @@ msgstr "Aktuální stav projektu"
 msgid "Configuration Comparison"
 msgstr "Porovnání konfigurace"
 
+msgid "Current state of the project"
+msgstr "Aktuální stav projektu"
+msgid "Configuration Comparison"
+msgstr "Porovnání konfigurace"
+
 msgid "Compare settings with another device or the stored image from the last download."
 msgstr "Porovnejte nastavení s jiným zařízením nebo s uloženým obrazem z posledního nahrání."
 
@@ -3391,6 +3393,11 @@ msgstr "Vyberte zařízení"
 
 msgid "Select the two devices to compare."
 msgstr "Vyberte dvě zařízení k porovnání."
+
+msgid "Loading application programs… {done}/{total}"
+msgstr "Načítání aplikačních programů… {done}/{total}"
+msgid "Symbol"
+msgstr "Symbol"
 
 msgid "Loading application programs… {done}/{total}"
 msgstr "Načítání aplikačních programů… {done}/{total}"
@@ -3601,6 +3608,11 @@ msgstr "Katalog: {source} (nejnovější záznam: {date})."
 
 msgid "Latest Compatible Version"
 msgstr "Nejnovější kompatibilní verze"
+
+msgid "Not determined"
+msgstr "Neurčeno"
+msgid "Compares the device's hardware/software identity with this catalog. Does not install firmware. Catalog import: MDT Firmware Update .etsapp or Firmware.zip."
+msgstr "Porovná identitu hardwaru/softwaru zařízení s tímto katalogem. Neinstaluje firmware. Import katalogu: MDT Firmware Update .etsapp nebo Firmware.zip."
 
 msgid "Not determined"
 msgstr "Neurčeno"
@@ -4116,3 +4128,112 @@ msgstr "Celkový podíl poruch"
 
 msgid "Value input"
 msgstr "Hodnotový vstup"
+
+
+msgid "Call scene"
+msgstr "Vyvolat scénu"
+
+msgid "Call effect"
+msgstr "Vyvolat efekt"
+
+msgid "Start"
+msgstr "Spustit"
+
+msgid "Controlled by effect object"
+msgstr "Řízeno objektem efektu"
+
+msgid "Import Descriptions…"
+msgstr "Importovat popisy…"
+
+msgid "Export Descriptions…"
+msgstr "Exportovat popisy…"
+
+msgid "Replace the descriptions included in the file? You can undo this change."
+msgstr "Nahradit popisy obsažené v souboru? Tuto změnu lze vrátit zpět."
+
+msgid "Clear Descriptions"
+msgstr "Vymazat popisy"
+
+msgid "These descriptions cannot be preserved as TXT. Choose XML."
+msgstr "Tyto popisy nelze zachovat ve formátu TXT. Zvolte XML."
+
+msgid "Insert Before"
+msgstr "Vložit před"
+
+msgid "Sort by Time"
+msgstr "Seřadit podle času"
+
+msgid "Sort by Function"
+msgstr "Seřadit podle funkce"
+
+msgid "Clear Actions"
+msgstr "Vymazat akce"
+
+msgid "Discover Inputs"
+msgstr "Vyhledat vstupy"
+
+msgid "Stop Blinking"
+msgstr "Zastavit blikání"
+
+msgid "Function Test"
+msgstr "Funkční test"
+
+msgid "Duration Test"
+msgstr "Test výdrže"
+
+msgid "Battery Test"
+msgstr "Test baterie"
+
+msgid "Read Calibration"
+msgstr "Načíst kalibraci"
+
+msgid "Set Calibration Level"
+msgstr "Nastavit úroveň kalibrace"
+
+msgid "Save Calibration"
+msgstr "Uložit kalibraci"
+
+msgid "Read Memory Byte"
+msgstr "Číst bajt paměti"
+
+msgid "Write Memory Byte"
+msgstr "Zapsat bajt paměti"
+
+msgid "Read Names"
+msgstr "Načíst názvy"
+
+msgid "Write Names"
+msgstr "Zapsat názvy"
+
+msgid "Read Motion Diagnostics"
+msgstr "Načíst diagnostiku pohybu"
+
+msgid "Inhibit Converters"
+msgstr "Blokovat konvertory"
+
+msgid "Replace ECGs…"
+msgstr "Vyměnit předřadníky…"
+
+msgid "Service"
+msgstr "Servis"
+
+msgid "Calibration"
+msgstr "Kalibrace"
+
+msgid "Memory Bank"
+msgstr "Paměťová banka"
+
+msgid "Measured Illuminance (lx)"
+msgstr "Naměřená osvětlenost (lx)"
+
+msgid "Enable memory write lock"
+msgstr "Povolit zámek zápisu do paměti"
+
+msgid "Start automatic ECG replacement on this gateway? This changes the DALI assignments and cannot be undone in the project."
+msgstr "Spustit automatickou výměnu předřadníků na této bráně? Změní se přiřazení DALI a v projektu to nelze vrátit zpět."
+
+msgid "Restore Gateway…"
+msgstr "Obnovit bránu…"
+
+msgid "Restore the saved physical inventory and configuration to this gateway and restart it? This overwrites its DALI state and cannot be undone in the project."
+msgstr "Obnovit uložená fyzická zařízení a konfiguraci do této brány a restartovat ji? Přepíše se stav DALI a v projektu to nelze vrátit zpět."

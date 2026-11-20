@@ -1589,9 +1589,6 @@ msgstr "Del podatkov naprave ni na voljo."
 msgid "Connect to a KNX interface to commission the DALI bus."
 msgstr "Za zagon vodila DALI se povežite z vmesnikom KNX."
 
-msgid "This gateway's commissioning protocol has not been verified against a capture; writes may misbehave. Proceed with care."
-msgstr "Protokol zagona tega prehoda ni bil preverjen s posnetkom; zapisovanje se lahko obnaša nepravilno. Nadaljujte previdno."
-
 msgid "DALI commissioning writes the gateway on the bus but does not update the project parameters; re-export the .knxproj after a DCA-side edit."
 msgstr "Zagon DALI zapiše v prehod na vodilu, ne posodobi pa parametrov projekta; po spremembi na strani DCA znova izvozite .knxproj."
 
@@ -3365,6 +3362,11 @@ msgstr "Trenutno stanje projekta"
 msgid "Configuration Comparison"
 msgstr "Primerjava konfiguracije"
 
+msgid "Current state of the project"
+msgstr "Trenutno stanje projekta"
+msgid "Configuration Comparison"
+msgstr "Primerjava konfiguracije"
+
 msgid "Compare settings with another device or the stored image from the last download."
 msgstr "Primerjajte nastavitve z drugo napravo ali s shranjeno sliko zadnjega programiranja."
 
@@ -3470,6 +3472,11 @@ msgstr "Izberite napravo"
 
 msgid "Select the two devices to compare."
 msgstr "Izberite napravi za primerjavo."
+
+msgid "Loading application programs… {done}/{total}"
+msgstr "Nalaganje aplikacijskih programov… {done}/{total}"
+msgid "Symbol"
+msgstr "Simbol"
 
 msgid "Loading application programs… {done}/{total}"
 msgstr "Nalaganje aplikacijskih programov… {done}/{total}"
@@ -3680,6 +3687,11 @@ msgstr "Katalog: {source} (najnovejši vnos: {date})."
 
 msgid "Latest Compatible Version"
 msgstr "Najnovejša združljiva različica"
+
+msgid "Not determined"
+msgstr "Ni določeno"
+msgid "Compares the device's hardware/software identity with this catalog. Does not install firmware. Catalog import: MDT Firmware Update .etsapp or Firmware.zip."
+msgstr "Primerja identiteto strojne/programske opreme naprave s tem katalogom. Ne namešča vdelane programske opreme. Uvoz kataloga: MDT Firmware Update .etsapp ali Firmware.zip."
 
 msgid "Not determined"
 msgstr "Ni določeno"
@@ -4195,3 +4207,112 @@ msgstr "Skupni delež napak"
 
 msgid "Value input"
 msgstr "Vhod vrednosti"
+
+
+msgid "Call scene"
+msgstr "Prikliči sceno"
+
+msgid "Call effect"
+msgstr "Prikliči učinek"
+
+msgid "Start"
+msgstr "Zaženi"
+
+msgid "Controlled by effect object"
+msgstr "Upravlja objekt učinka"
+
+msgid "Import Descriptions…"
+msgstr "Uvozi opise…"
+
+msgid "Export Descriptions…"
+msgstr "Izvozi opise…"
+
+msgid "Replace the descriptions included in the file? You can undo this change."
+msgstr "Zamenjam opise v datoteki? To spremembo lahko razveljavite."
+
+msgid "Clear Descriptions"
+msgstr "Počisti opise"
+
+msgid "These descriptions cannot be preserved as TXT. Choose XML."
+msgstr "Teh opisov ni mogoče ohraniti v obliki TXT. Izberite XML."
+
+msgid "Insert Before"
+msgstr "Vstavi pred"
+
+msgid "Sort by Time"
+msgstr "Razvrsti po času"
+
+msgid "Sort by Function"
+msgstr "Razvrsti po funkciji"
+
+msgid "Clear Actions"
+msgstr "Počisti dejanja"
+
+msgid "Discover Inputs"
+msgstr "Poišči vhode"
+
+msgid "Stop Blinking"
+msgstr "Ustavi utripanje"
+
+msgid "Function Test"
+msgstr "Preizkus delovanja"
+
+msgid "Duration Test"
+msgstr "Preizkus trajanja"
+
+msgid "Battery Test"
+msgstr "Preizkus baterije"
+
+msgid "Read Calibration"
+msgstr "Preberi kalibracijo"
+
+msgid "Set Calibration Level"
+msgstr "Nastavi raven kalibracije"
+
+msgid "Save Calibration"
+msgstr "Shrani kalibracijo"
+
+msgid "Read Memory Byte"
+msgstr "Preberi bajt pomnilnika"
+
+msgid "Write Memory Byte"
+msgstr "Zapiši bajt pomnilnika"
+
+msgid "Read Names"
+msgstr "Preberi imena"
+
+msgid "Write Names"
+msgstr "Zapiši imena"
+
+msgid "Read Motion Diagnostics"
+msgstr "Preberi diagnostiko gibanja"
+
+msgid "Inhibit Converters"
+msgstr "Blokiraj pretvornike"
+
+msgid "Replace ECGs…"
+msgstr "Zamenjaj predstikalne naprave…"
+
+msgid "Service"
+msgstr "Servis"
+
+msgid "Calibration"
+msgstr "Kalibracija"
+
+msgid "Memory Bank"
+msgstr "Pomnilniška banka"
+
+msgid "Measured Illuminance (lx)"
+msgstr "Izmerjena osvetljenost (lx)"
+
+msgid "Enable memory write lock"
+msgstr "Omogoči zaklep pisanja v pomnilnik"
+
+msgid "Start automatic ECG replacement on this gateway? This changes the DALI assignments and cannot be undone in the project."
+msgstr "Začnem samodejno zamenjavo predstikalnih naprav na tem prehodu? To spremeni dodelitve DALI in tega v projektu ni mogoče razveljaviti."
+
+msgid "Restore Gateway…"
+msgstr "Obnovi prehod…"
+
+msgid "Restore the saved physical inventory and configuration to this gateway and restart it? This overwrites its DALI state and cannot be undone in the project."
+msgstr "Obnovim shranjene fizične naprave in konfiguracijo na tem prehodu ter ga znova zaženem? To prepiše stanje DALI in tega v projektu ni mogoče razveljaviti."

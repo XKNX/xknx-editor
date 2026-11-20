@@ -1589,9 +1589,6 @@ msgstr "A készülékadatok egy része nem érhető el."
 msgid "Connect to a KNX interface to commission the DALI bus."
 msgstr "A DALI-busz üzembe helyezéséhez csatlakozzon egy KNX-interfészhez."
 
-msgid "This gateway's commissioning protocol has not been verified against a capture; writes may misbehave. Proceed with care."
-msgstr "Az átjáró üzembe helyezési protokollja nincs felvétellel ellenőrizve; az írási műveletek hibásan működhetnek. Óvatosan folytassa."
-
 msgid "DALI commissioning writes the gateway on the bus but does not update the project parameters; re-export the .knxproj after a DCA-side edit."
 msgstr "A DALI üzembe helyezése a buszon lévő átjárót írja, de a projekt paramétereit nem frissíti; DCA-oldali módosítás után exportálja újra a .knxproj fájlt."
 
@@ -3209,6 +3206,11 @@ msgstr "A projekt jelenlegi állapota"
 msgid "Configuration Comparison"
 msgstr "Konfiguráció összehasonlítása"
 
+msgid "Current state of the project"
+msgstr "A projekt jelenlegi állapota"
+msgid "Configuration Comparison"
+msgstr "Konfiguráció összehasonlítása"
+
 msgid "Compare settings with another device or the stored image from the last download."
 msgstr "Hasonlítsa össze a beállításokat egy másik eszközzel vagy az utolsó letöltés mentett memóriaképével."
 
@@ -3314,6 +3316,11 @@ msgstr "Válasszon eszközt"
 
 msgid "Select the two devices to compare."
 msgstr "Válassza ki a két összehasonlítandó eszközt."
+
+msgid "Loading application programs… {done}/{total}"
+msgstr "Alkalmazási programok betöltése… {done}/{total}"
+msgid "Symbol"
+msgstr "Szimbólum"
 
 msgid "Loading application programs… {done}/{total}"
 msgstr "Alkalmazási programok betöltése… {done}/{total}"
@@ -3524,6 +3531,11 @@ msgstr "Katalógus: {source} (legújabb bejegyzés: {date})."
 
 msgid "Latest Compatible Version"
 msgstr "Legújabb kompatibilis verzió"
+
+msgid "Not determined"
+msgstr "Nincs meghatározva"
+msgid "Compares the device's hardware/software identity with this catalog. Does not install firmware. Catalog import: MDT Firmware Update .etsapp or Firmware.zip."
+msgstr "Összehasonlítja az eszköz hardver-/szoftverazonosítóját ezzel a katalógussal. Nem telepít firmware-t. Katalógusimport: MDT Firmware Update .etsapp vagy Firmware.zip."
 
 msgid "Not determined"
 msgstr "Nincs meghatározva"
@@ -4039,3 +4051,112 @@ msgstr "Összesített hibaarány"
 
 msgid "Value input"
 msgstr "Értékbemenet"
+
+
+msgid "Call scene"
+msgstr "Jelenet meghívása"
+
+msgid "Call effect"
+msgstr "Effekt meghívása"
+
+msgid "Start"
+msgstr "Indítás"
+
+msgid "Controlled by effect object"
+msgstr "Effektobjektum által vezérelve"
+
+msgid "Import Descriptions…"
+msgstr "Leírások importálása…"
+
+msgid "Export Descriptions…"
+msgstr "Leírások exportálása…"
+
+msgid "Replace the descriptions included in the file? You can undo this change."
+msgstr "Lecseréli a fájlban szereplő leírásokat? Ez a módosítás visszavonható."
+
+msgid "Clear Descriptions"
+msgstr "Leírások törlése"
+
+msgid "These descriptions cannot be preserved as TXT. Choose XML."
+msgstr "Ezek a leírások nem őrizhetők meg TXT formátumban. Válassza az XML-t."
+
+msgid "Insert Before"
+msgstr "Beszúrás elé"
+
+msgid "Sort by Time"
+msgstr "Rendezés idő szerint"
+
+msgid "Sort by Function"
+msgstr "Rendezés funkció szerint"
+
+msgid "Clear Actions"
+msgstr "Műveletek törlése"
+
+msgid "Discover Inputs"
+msgstr "Bemenetek keresése"
+
+msgid "Stop Blinking"
+msgstr "Villogás leállítása"
+
+msgid "Function Test"
+msgstr "Működési teszt"
+
+msgid "Duration Test"
+msgstr "Időtartamteszt"
+
+msgid "Battery Test"
+msgstr "Akkumulátorteszt"
+
+msgid "Read Calibration"
+msgstr "Kalibrálás olvasása"
+
+msgid "Set Calibration Level"
+msgstr "Kalibrálási szint beállítása"
+
+msgid "Save Calibration"
+msgstr "Kalibrálás mentése"
+
+msgid "Read Memory Byte"
+msgstr "Memóriabájt olvasása"
+
+msgid "Write Memory Byte"
+msgstr "Memóriabájt írása"
+
+msgid "Read Names"
+msgstr "Nevek olvasása"
+
+msgid "Write Names"
+msgstr "Nevek írása"
+
+msgid "Read Motion Diagnostics"
+msgstr "Mozgásdiagnosztika olvasása"
+
+msgid "Inhibit Converters"
+msgstr "Átalakítók tiltása"
+
+msgid "Replace ECGs…"
+msgstr "Előtétek cseréje…"
+
+msgid "Service"
+msgstr "Szerviz"
+
+msgid "Calibration"
+msgstr "Kalibrálás"
+
+msgid "Memory Bank"
+msgstr "Memóriabank"
+
+msgid "Measured Illuminance (lx)"
+msgstr "Mért megvilágítás (lx)"
+
+msgid "Enable memory write lock"
+msgstr "Memóriaírás zárolásának engedélyezése"
+
+msgid "Start automatic ECG replacement on this gateway? This changes the DALI assignments and cannot be undone in the project."
+msgstr "Elindítja az előtétek automatikus cseréjét ezen az átjárón? Ez módosítja a DALI-hozzárendeléseket, és a projektben nem vonható vissza."
+
+msgid "Restore Gateway…"
+msgstr "Átjáró visszaállítása…"
+
+msgid "Restore the saved physical inventory and configuration to this gateway and restart it? This overwrites its DALI state and cannot be undone in the project."
+msgstr "Visszaállítja a mentett fizikai eszközöket és konfigurációt ezen az átjárón, majd újraindítja? Ez felülírja a DALI-állapotot, és a projektben nem vonható vissza."

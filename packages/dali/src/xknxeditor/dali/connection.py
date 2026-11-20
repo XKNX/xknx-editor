@@ -21,6 +21,7 @@ from xknxeditor.dali.properties import (
     PropertyType,
     element_size_for,
     object_index,
+    property_id_for,
 )
 from xknxeditor.dali.structs import Command, ExtCommand
 
@@ -37,6 +38,8 @@ class DaliCommissioningError(Exception):
 
 class Programmer(Protocol):
     """The subset of ``xknxeditor.download.Programmer`` this package needs."""
+
+    def property_chunk_size(self, element_size: int) -> int: ...
 
     async def read_property(
         self,
@@ -71,12 +74,17 @@ class MdtDaliConnection:
         self,
         programmer: Programmer,
         channel: int = 0,
-        object_index_base: int = DEFAULT_OBJECT_INDEX_BASE,
+        object_index_base: int | None = None,
         profile: DaliProfile | None = None,
     ) -> None:
         self._prog = programmer
         self.channel = channel
-        self.object_index = object_index(channel, object_index_base)
+        base = (
+            object_index_base
+            if object_index_base is not None
+            else (profile.object_index_base if profile else DEFAULT_OBJECT_INDEX_BASE)
+        )
+        self.object_index = object_index(channel, base)
         self.profile = profile
 
     async def read_firmware(self) -> tuple[int, int, int] | None:
@@ -88,23 +96,38 @@ class MdtDaliConnection:
             return (data[0], data[1], data[2])
         return None
 
-    async def read_table(self, prop: PropertyType, count: int) -> bytes:
-        """Read ``count`` elements of ``prop``, chunking across APDUs.
-
-        A_PropertyValue_Read encodes the element count in 4 bits, so at most 15 elements
-        can be requested per telegram; a 64-element table needs several reads. Also stops
-        early if the device caps a response below the requested count. Element size comes
-        from :func:`element_size_for` so vendor overrides (e.g. Theben's 10-byte
-        Group_Status) apply.
-        """
+    async def read_table(
+        self,
+        prop: PropertyType,
+        count: int,
+        *,
+        terminator: bytes | None = None,
+        start_index: int = 1,
+    ) -> bytes:
+        """Read a complete table, or stop after its aligned terminator if supplied."""
         size = element_size_for(prop, self.profile)
+        if (
+            not 1 <= start_index <= 4095
+            or not 0 <= count <= 4096 - start_index
+            or (terminator is not None and not 1 <= len(terminator) <= size)
+        ):
+            raise DaliCommissioningError("invalid table read bounds or terminator")
+        wire_id = property_id_for(prop, self.profile)
+        chunk_size = min(
+            1 if terminator is not None else _MAX_PROPERTY_ELEMENTS,
+            self._prog.property_chunk_size(size),
+        )
+        if chunk_size < 1:
+            raise DaliCommissioningError(
+                "property element does not fit the negotiated APDU"
+            )
         out = b""
-        start = 1
+        start = start_index
         remaining = count
         while remaining > 0:
-            request = min(remaining, _MAX_PROPERTY_ELEMENTS)
+            request = min(remaining, chunk_size)
             chunk = await self._prog.read_property(
-                self.object_index, prop, count=request, start_index=start
+                self.object_index, wire_id, count=request, start_index=start
             )
             if len(chunk) % size:
                 raise DaliCommissioningError(
@@ -112,6 +135,10 @@ class MdtDaliConnection:
                     f"expected multiples of {size} bytes, got {len(chunk)} bytes"
                 )
             got = len(chunk) // size
+            if got > request:
+                raise DaliCommissioningError(
+                    f"oversized response for property {wire_id}: requested {request} elements, got {got}"
+                )
             if got == 0:
                 # Device returned less than one element: the response is a short/partial
                 # read and continuing would mis-align subsequent elements. Raise so
@@ -126,12 +153,18 @@ class MdtDaliConnection:
                     f"short read for property {int(prop)}: expected {remaining} more "
                     f"elements of {size} bytes, got {len(chunk)} bytes"
                 )
-            out += chunk[: got * size]
+            if terminator is not None:
+                for offset in range(0, len(chunk), size):
+                    if chunk[offset : offset + size].startswith(terminator):
+                        return out + chunk[: offset + size]
+            out += chunk
             start += got
             remaining -= got
         return out
 
-    async def write_table(self, prop: PropertyType, data: bytes, count: int) -> None:
+    async def write_table(
+        self, prop: PropertyType, data: bytes, count: int, *, start_index: int = 1
+    ) -> None:
         """Write ``count`` elements of ``prop`` (the programmer fragments across APDUs).
 
         Validates ``data`` against the per-profile element size up front so a payload
@@ -139,33 +172,50 @@ class MdtDaliConnection:
         10-byte Group_Status) fails here instead of being silently misaligned on-wire.
         """
         size = element_size_for(prop, self.profile)
-        if len(data) != count * size:
+        if (
+            not 1 <= start_index <= 4095
+            or not 1 <= count <= 4096 - start_index
+            or len(data) != count * size
+        ):
             raise DaliCommissioningError(
                 f"write payload size mismatch for property {int(prop)}: expected "
                 f"{count * size} bytes ({count} elements of {size}), got {len(data)}"
             )
         await self._prog.write_property(
-            self.object_index, prop, data, count=count, start_index=1
+            self.object_index,
+            property_id_for(prop, self.profile),
+            data,
+            count=count,
+            start_index=start_index,
         )
 
     async def read_table_size(self, prop: PropertyType) -> int | None:
         """Read the property's element-count descriptor (array element 0).
 
-        Returns ``None`` when the property is absent/unsupported (a short or empty response) — which
+        Returns ``None`` when the property is absent/unsupported (an empty response) — which
         must be distinguished from a real size of 0, so callers don't then try to write it.
         """
         data = await self._prog.read_property(
-            self.object_index, prop, count=1, start_index=0
+            self.object_index,
+            property_id_for(prop, self.profile),
+            count=1,
+            start_index=0,
         )
-        if len(data) < 2:
+        if not data:
             return None
+        if len(data) != 2:
+            raise DaliCommissioningError(
+                f"invalid table size response for property {int(prop)}"
+            )
         return (data[0] << 8) | data[1]
 
     async def write_table_size(self, prop: PropertyType, size: int) -> None:
         """Write the property's element-count descriptor (array element 0), 2 bytes big-endian."""
+        if not 0 <= size <= 4095:
+            raise DaliCommissioningError("invalid table size")
         await self._prog.write_property(
             self.object_index,
-            prop,
+            property_id_for(prop, self.profile),
             bytes(((size >> 8) & 0xFF, size & 0xFF)),
             count=1,
             start_index=0,

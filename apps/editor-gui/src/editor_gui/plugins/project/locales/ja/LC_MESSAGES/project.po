@@ -2123,9 +2123,6 @@ msgstr "スロット"
 msgid "The application has no static parameters."
 msgstr "このアプリケーションには静的パラメーターがありません。"
 
-msgid "This gateway's commissioning protocol has not been verified against a capture; writes may misbehave. Proceed with care."
-msgstr "このゲートウェイのコミッショニング・プロトコルはキャプチャに対して検証されていません。書き込みが誤動作する場合があります。慎重に進めてください。"
-
 msgid "Program DCA State"
 msgstr "DCA状態をプログラム"
 
@@ -3182,6 +3179,11 @@ msgstr "プロジェクトの現在の状態"
 msgid "Configuration Comparison"
 msgstr "設定の比較"
 
+msgid "Current state of the project"
+msgstr "プロジェクトの現在の状態"
+msgid "Configuration Comparison"
+msgstr "設定の比較"
+
 msgid "Compare settings with another device or the stored image from the last download."
 msgstr "設定を別のデバイス、または前回のダウンロード時に保存されたイメージと比較します。"
 
@@ -3287,6 +3289,11 @@ msgstr "デバイスを選択"
 
 msgid "Select the two devices to compare."
 msgstr "比較する2台のデバイスを選択してください。"
+
+msgid "Loading application programs… {done}/{total}"
+msgstr "アプリケーションプログラムを読み込み中… {done}/{total}"
+msgid "Symbol"
+msgstr "シンボル"
 
 msgid "Loading application programs… {done}/{total}"
 msgstr "アプリケーションプログラムを読み込み中… {done}/{total}"
@@ -3497,6 +3504,11 @@ msgstr "カタログ: {source}（最新項目: {date}）。"
 
 msgid "Latest Compatible Version"
 msgstr "最新の互換バージョン"
+
+msgid "Not determined"
+msgstr "未確認"
+msgid "Compares the device's hardware/software identity with this catalog. Does not install firmware. Catalog import: MDT Firmware Update .etsapp or Firmware.zip."
+msgstr "デバイスのハードウェア／ソフトウェア識別情報をこのカタログと比較します。ファームウェアはインストールしません。カタログのインポート: MDT Firmware Update .etsapp または Firmware.zip。"
 
 msgid "Not determined"
 msgstr "未確認"
@@ -4012,3 +4024,112 @@ msgstr "総故障率"
 
 msgid "Value input"
 msgstr "値入力"
+
+
+msgid "Call scene"
+msgstr "シーンを呼び出す"
+
+msgid "Call effect"
+msgstr "エフェクトを呼び出す"
+
+msgid "Start"
+msgstr "開始"
+
+msgid "Controlled by effect object"
+msgstr "エフェクトオブジェクトで制御"
+
+msgid "Import Descriptions…"
+msgstr "説明をインポート…"
+
+msgid "Export Descriptions…"
+msgstr "説明をエクスポート…"
+
+msgid "Replace the descriptions included in the file? You can undo this change."
+msgstr "ファイルに含まれる説明を置き換えますか？この変更は元に戻せます。"
+
+msgid "Clear Descriptions"
+msgstr "説明をクリア"
+
+msgid "These descriptions cannot be preserved as TXT. Choose XML."
+msgstr "これらの説明はTXT形式では保持できません。XMLを選択してください。"
+
+msgid "Insert Before"
+msgstr "前に挿入"
+
+msgid "Sort by Time"
+msgstr "時刻で並べ替え"
+
+msgid "Sort by Function"
+msgstr "機能で並べ替え"
+
+msgid "Clear Actions"
+msgstr "アクションをクリア"
+
+msgid "Discover Inputs"
+msgstr "入力を検出"
+
+msgid "Stop Blinking"
+msgstr "点滅を停止"
+
+msgid "Function Test"
+msgstr "機能テスト"
+
+msgid "Duration Test"
+msgstr "持続時間テスト"
+
+msgid "Battery Test"
+msgstr "バッテリーテスト"
+
+msgid "Read Calibration"
+msgstr "校正を読み込む"
+
+msgid "Set Calibration Level"
+msgstr "校正レベルを設定"
+
+msgid "Save Calibration"
+msgstr "校正を保存"
+
+msgid "Read Memory Byte"
+msgstr "メモリバイトを読み込む"
+
+msgid "Write Memory Byte"
+msgstr "メモリバイトを書き込む"
+
+msgid "Read Names"
+msgstr "名前を読み込む"
+
+msgid "Write Names"
+msgstr "名前を書き込む"
+
+msgid "Read Motion Diagnostics"
+msgstr "動作診断を読み込む"
+
+msgid "Inhibit Converters"
+msgstr "コンバーターを抑止"
+
+msgid "Replace ECGs…"
+msgstr "安定器を交換…"
+
+msgid "Service"
+msgstr "保守"
+
+msgid "Calibration"
+msgstr "校正"
+
+msgid "Memory Bank"
+msgstr "メモリバンク"
+
+msgid "Measured Illuminance (lx)"
+msgstr "測定照度 (lx)"
+
+msgid "Enable memory write lock"
+msgstr "メモリ書き込みロックを有効にする"
+
+msgid "Start automatic ECG replacement on this gateway? This changes the DALI assignments and cannot be undone in the project."
+msgstr "このゲートウェイで安定器の自動交換を開始しますか？DALIの割り当てが変更され、プロジェクトでは元に戻せません。"
+
+msgid "Restore Gateway…"
+msgstr "ゲートウェイを復元…"
+
+msgid "Restore the saved physical inventory and configuration to this gateway and restart it? This overwrites its DALI state and cannot be undone in the project."
+msgstr "保存された物理デバイスと設定をこのゲートウェイに復元して再起動しますか？DALIの状態が上書きされ、プロジェクトでは元に戻せません。"

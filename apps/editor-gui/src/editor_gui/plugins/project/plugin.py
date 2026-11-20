@@ -1443,12 +1443,12 @@ class ProjectPlugin:
         assignments: "list[EcgAssignment]",
         scenes: "list[Scene]",
         channel: int,
-    ) -> None:
+    ) -> bool:
         """Write a DALI channel's state back into the project blob after a bus commissioning
         run (see :func:`editor_gui.programming_dali.persist_dali_backup`)."""
         from editor_gui.programming_dali import persist_dali_backup
 
-        persist_dali_backup(
+        return persist_dali_backup(
             self._api.project,
             device,
             scan,
@@ -2782,18 +2782,11 @@ class ProjectPlugin:
         try:
             from editor_gui.plugin_blob_readers.dali_backup import e64pro
 
-            if (
-                len(parts) == 5
-                and parts[4] == "description"
-                and blob_name == e64pro.BACKUP_NAME
-                and e64pro.supports(device)
-            ):
-                self._api.project.edit_e64pro(
-                    device,
-                    bytes(entry.data),
-                    e64pro.Edit(parts[2], parts[3], "description", value=new_value),
-                )
-                return
+            if blob_name == e64pro.BACKUP_NAME and e64pro.supports(device):
+                edit = e64pro.edit_from_ref(bytes(entry.data), ref_id, new_value)
+                if edit is not None:
+                    self._api.project.edit_e64pro(device, bytes(entry.data), edit)
+                    return
             new_blob = apply_edit(entry.data, ref_id, new_value)
         except ValueError as exc:
             self._api.log.warning(

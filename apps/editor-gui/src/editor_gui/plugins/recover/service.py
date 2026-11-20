@@ -430,6 +430,7 @@ class RecoverService:
             self.recover_stage = ""
             try:
                 from editor_gui.plugin_providers import device_reader
+                from editor_gui.plugins.recover import dali
                 from editor_gui.plugins.recover.mdt import (
                     addin_reader,
                     editable_parameter_refs,
@@ -444,7 +445,8 @@ class RecoverService:
                     entry.address,
                     entry.application,
                     native_read=reader.read_device if reader is not None else None,
-                    addin_read=addin_reader(entry.application.id),
+                    addin_read=dali.addin_reader(entry.application)
+                    or addin_reader(entry.application.id),
                     editable_parameter_refs=editable_parameter_refs(entry.application),
                     parameter_candidates=parameter_candidates(entry.application),
                     interface_max_apdu_length=self._api.connection.interface_max_apdu_length,
@@ -1324,10 +1326,21 @@ class RecoverService:
                     )
                 if device_id is None or device is None:
                     raise RuntimeError(f"{entry.address} was not added")
+                from xknxeditor.dali.profiles import profile_for as dali_profile
                 from xknxeditor.vendor.mdt import profile_for_application
 
                 mdt_refs = None
-                if recovered.addin_data or profile_for_application(application.id):
+                if dali_profile(application.id) is not None:
+                    from editor_gui.plugins.recover.dali import apply_recovered
+
+                    if not recovered.addin_data and self._log is not None:
+                        self._log.warning(
+                            "recovery snapshot contains no DALI configuration",
+                            address=entry.address,
+                        )
+                    apply_recovered(project, device, recovered)
+                    device = project.find_device_by_node_id(device_id) or device
+                elif recovered.addin_data or profile_for_application(application.id):
                     mdt_refs = project.recover_mdt_dca(device_id, recovered.addin_data)
                     device = project.find_device_by_node_id(device_id) or device
                 # Prefer the device-matched map computed during recovery (module

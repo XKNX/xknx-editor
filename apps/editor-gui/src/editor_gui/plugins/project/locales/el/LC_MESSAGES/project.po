@@ -2123,9 +2123,6 @@ msgstr "Υποδοχή"
 msgid "The application has no static parameters."
 msgstr "Η εφαρμογή δεν διαθέτει στατικές παραμέτρους."
 
-msgid "This gateway's commissioning protocol has not been verified against a capture; writes may misbehave. Proceed with care."
-msgstr "Το πρωτόκολλο έναρξης λειτουργίας αυτού του gateway δεν έχει επαληθευτεί έναντι καταγραφής· οι εγγραφές ενδέχεται να έχουν ακατάλληλη συμπεριφορά. Προχωρήστε με προσοχή."
-
 msgid "Program DCA State"
 msgstr "Προγραμματισμός κατάστασης DCA"
 
@@ -3234,6 +3231,11 @@ msgstr "Τρέχουσα κατάσταση του έργου"
 msgid "Configuration Comparison"
 msgstr "Σύγκριση ρυθμίσεων"
 
+msgid "Current state of the project"
+msgstr "Τρέχουσα κατάσταση του έργου"
+msgid "Configuration Comparison"
+msgstr "Σύγκριση ρυθμίσεων"
+
 msgid "Compare settings with another device or the stored image from the last download."
 msgstr "Συγκρίνετε τις ρυθμίσεις με μια άλλη συσκευή ή με την αποθηκευμένη εικόνα από τον τελευταίο προγραμματισμό."
 
@@ -3339,6 +3341,11 @@ msgstr "Επιλέξτε συσκευή"
 
 msgid "Select the two devices to compare."
 msgstr "Επιλέξτε τις δύο συσκευές για σύγκριση."
+
+msgid "Loading application programs… {done}/{total}"
+msgstr "Φόρτωση προγραμμάτων εφαρμογής… {done}/{total}"
+msgid "Symbol"
+msgstr "Σύμβολο"
 
 msgid "Loading application programs… {done}/{total}"
 msgstr "Φόρτωση προγραμμάτων εφαρμογής… {done}/{total}"
@@ -3549,6 +3556,11 @@ msgstr "Κατάλογος: {source} (νεότερη καταχώριση: {date
 
 msgid "Latest Compatible Version"
 msgstr "Νεότερη συμβατή έκδοση"
+
+msgid "Not determined"
+msgstr "Δεν προσδιορίστηκε"
+msgid "Compares the device's hardware/software identity with this catalog. Does not install firmware. Catalog import: MDT Firmware Update .etsapp or Firmware.zip."
+msgstr "Συγκρίνει την ταυτότητα υλικού/λογισμικού της συσκευής με αυτόν τον κατάλογο. Δεν εγκαθιστά υλικολογισμικό. Εισαγωγή καταλόγου: MDT Firmware Update .etsapp ή Firmware.zip."
 
 msgid "Not determined"
 msgstr "Δεν προσδιορίστηκε"
@@ -4064,3 +4076,114 @@ msgstr "Συνολικό ποσοστό βλαβών"
 
 msgid "Value input"
 msgstr "Είσοδος τιμής"
+
+
+msgid "Call scene"
+msgstr "Κλήση σκηνής"
+
+msgid "Call effect"
+msgstr "Κλήση εφέ"
+
+msgid "Start"
+msgstr "Έναρξη"
+
+msgid "Controlled by effect object"
+msgstr "Έλεγχος από αντικείμενο εφέ"
+
+msgid "Import Descriptions…"
+msgstr "Εισαγωγή περιγραφών…"
+
+msgid "Export Descriptions…"
+msgstr "Εξαγωγή περιγραφών…"
+
+msgid "Replace the descriptions included in the file? You can undo this change."
+msgstr ""
+"Αντικατάσταση των περιγραφών που περιέχονται στο αρχείο; Μπορείτε να "
+"αναιρέσετε αυτήν την αλλαγή."
+
+msgid "Clear Descriptions"
+msgstr "Εκκαθάριση περιγραφών"
+
+msgid "These descriptions cannot be preserved as TXT. Choose XML."
+msgstr "Αυτές οι περιγραφές δεν μπορούν να διατηρηθούν ως TXT. Επιλέξτε XML."
+
+msgid "Insert Before"
+msgstr "Εισαγωγή πριν"
+
+msgid "Sort by Time"
+msgstr "Ταξινόμηση κατά ώρα"
+
+msgid "Sort by Function"
+msgstr "Ταξινόμηση κατά λειτουργία"
+
+msgid "Clear Actions"
+msgstr "Εκκαθάριση ενεργειών"
+
+msgid "Discover Inputs"
+msgstr "Αναζήτηση εισόδων"
+
+msgid "Stop Blinking"
+msgstr "Διακοπή αναβοσβήματος"
+
+msgid "Function Test"
+msgstr "Δοκιμή λειτουργίας"
+
+msgid "Duration Test"
+msgstr "Δοκιμή διάρκειας"
+
+msgid "Battery Test"
+msgstr "Δοκιμή μπαταρίας"
+
+msgid "Read Calibration"
+msgstr "Ανάγνωση βαθμονόμησης"
+
+msgid "Set Calibration Level"
+msgstr "Ρύθμιση επιπέδου βαθμονόμησης"
+
+msgid "Save Calibration"
+msgstr "Αποθήκευση βαθμονόμησης"
+
+msgid "Read Memory Byte"
+msgstr "Ανάγνωση byte μνήμης"
+
+msgid "Write Memory Byte"
+msgstr "Εγγραφή byte μνήμης"
+
+msgid "Read Names"
+msgstr "Ανάγνωση ονομάτων"
+
+msgid "Write Names"
+msgstr "Εγγραφή ονομάτων"
+
+msgid "Read Motion Diagnostics"
+msgstr "Ανάγνωση διαγνωστικών κίνησης"
+
+msgid "Inhibit Converters"
+msgstr "Αναστολή μετατροπέων"
+
+msgid "Replace ECGs…"
+msgstr "Αντικατάσταση στραγγαλιστικών πηνίων…"
+
+msgid "Service"
+msgstr "Συντήρηση"
+
+msgid "Calibration"
+msgstr "Βαθμονόμηση"
+
+msgid "Memory Bank"
+msgstr "Τράπεζα μνήμης"
+
+msgid "Measured Illuminance (lx)"
+msgstr "Μετρημένος φωτισμός (lx)"
+
+msgid "Enable memory write lock"
+msgstr "Ενεργοποίηση κλειδώματος εγγραφής μνήμης"
+
+msgid "Start automatic ECG replacement on this gateway? This changes the DALI assignments and cannot be undone in the project."
+msgstr "Έναρξη αυτόματης αντικατάστασης στραγγαλιστικών πηνίων σε αυτήν την πύλη; Αυτό αλλάζει τις αντιστοιχίσεις DALI και δεν μπορεί να αναιρεθεί στο έργο."
+
+msgid "Restore Gateway…"
+msgstr "Επαναφορά πύλης…"
+
+msgid "Restore the saved physical inventory and configuration to this gateway and restart it? This overwrites its DALI state and cannot be undone in the project."
+msgstr "Επαναφορά των αποθηκευμένων φυσικών συσκευών και ρυθμίσεων σε αυτήν την πύλη και επανεκκίνησή της; Αυτό αντικαθιστά την κατάσταση DALI και δεν μπορεί να αναιρεθεί στο έργο."

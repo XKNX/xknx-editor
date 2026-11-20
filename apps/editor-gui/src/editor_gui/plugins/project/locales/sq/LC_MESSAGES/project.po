@@ -2123,9 +2123,6 @@ msgstr "Slot"
 msgid "The application has no static parameters."
 msgstr "Programi aplikativ nuk ka parametra statikë."
 
-msgid "This gateway's commissioning protocol has not been verified against a capture; writes may misbehave. Proceed with care."
-msgstr "Protokolli i vënies në punë i këtij gateway-i nuk është verifikuar me një regjistrim; shkrimet mund të sillen gabim. Vazhdoni me kujdes."
-
 msgid "Program DCA State"
 msgstr "Programo gjendjen DCA"
 
@@ -3234,6 +3231,11 @@ msgstr "Gjendja aktuale e projektit"
 msgid "Configuration Comparison"
 msgstr "Krahasimi i konfigurimit"
 
+msgid "Current state of the project"
+msgstr "Gjendja aktuale e projektit"
+msgid "Configuration Comparison"
+msgstr "Krahasimi i konfigurimit"
+
 msgid "Compare settings with another device or the stored image from the last download."
 msgstr "Krahasoni cilësimet me një pajisje tjetër ose me imazhin e ruajtur nga programimi i fundit."
 
@@ -3339,6 +3341,11 @@ msgstr "Zgjidhni një pajisje"
 
 msgid "Select the two devices to compare."
 msgstr "Zgjidhni dy pajisjet për t'i krahasuar."
+
+msgid "Loading application programs… {done}/{total}"
+msgstr "Po ngarkohen programet aplikative… {done}/{total}"
+msgid "Symbol"
+msgstr "Simbol"
 
 msgid "Loading application programs… {done}/{total}"
 msgstr "Po ngarkohen programet aplikative… {done}/{total}"
@@ -3549,6 +3556,11 @@ msgstr "Katalogu: {source} (hyrja më e re: {date})."
 
 msgid "Latest Compatible Version"
 msgstr "Versioni më i ri i përputhshëm"
+
+msgid "Not determined"
+msgstr "I papërcaktuar"
+msgid "Compares the device's hardware/software identity with this catalog. Does not install firmware. Catalog import: MDT Firmware Update .etsapp or Firmware.zip."
+msgstr "Krahason identitetin e harduerit/softuerit të pajisjes me këtë katalog. Nuk instalon firmuer. Import katalogu: MDT Firmware Update .etsapp ose Firmware.zip."
 
 msgid "Not determined"
 msgstr "I papërcaktuar"
@@ -4064,3 +4076,114 @@ msgstr "Përqindja totale e defekteve"
 
 msgid "Value input"
 msgstr "Hyrje vlere"
+
+
+msgid "Call scene"
+msgstr "Thirr skenën"
+
+msgid "Call effect"
+msgstr "Thirr efektin"
+
+msgid "Start"
+msgstr "Nis"
+
+msgid "Controlled by effect object"
+msgstr "Kontrollohet nga objekti i efektit"
+
+msgid "Import Descriptions…"
+msgstr "Importo përshkrimet…"
+
+msgid "Export Descriptions…"
+msgstr "Eksporto përshkrimet…"
+
+msgid "Replace the descriptions included in the file? You can undo this change."
+msgstr ""
+"Të zëvendësohen përshkrimet e përfshira në skedar? Mund ta zhbëni këtë "
+"ndryshim."
+
+msgid "Clear Descriptions"
+msgstr "Pastro përshkrimet"
+
+msgid "These descriptions cannot be preserved as TXT. Choose XML."
+msgstr "Këto përshkrime nuk mund të ruhen si TXT. Zgjidhni XML."
+
+msgid "Insert Before"
+msgstr "Fut përpara"
+
+msgid "Sort by Time"
+msgstr "Rendit sipas kohës"
+
+msgid "Sort by Function"
+msgstr "Rendit sipas funksionit"
+
+msgid "Clear Actions"
+msgstr "Pastro veprimet"
+
+msgid "Discover Inputs"
+msgstr "Kërko hyrjet"
+
+msgid "Stop Blinking"
+msgstr "Ndalo pulsimin"
+
+msgid "Function Test"
+msgstr "Test funksioni"
+
+msgid "Duration Test"
+msgstr "Test kohëzgjatjeje"
+
+msgid "Battery Test"
+msgstr "Test baterie"
+
+msgid "Read Calibration"
+msgstr "Lexo kalibrimin"
+
+msgid "Set Calibration Level"
+msgstr "Vendos nivelin e kalibrimit"
+
+msgid "Save Calibration"
+msgstr "Ruaj kalibrimin"
+
+msgid "Read Memory Byte"
+msgstr "Lexo bajtin e memories"
+
+msgid "Write Memory Byte"
+msgstr "Shkruaj bajtin e memories"
+
+msgid "Read Names"
+msgstr "Lexo emrat"
+
+msgid "Write Names"
+msgstr "Shkruaj emrat"
+
+msgid "Read Motion Diagnostics"
+msgstr "Lexo diagnostikimin e lëvizjes"
+
+msgid "Inhibit Converters"
+msgstr "Blloko konvertuesit"
+
+msgid "Replace ECGs…"
+msgstr "Zëvendëso balastet…"
+
+msgid "Service"
+msgstr "Shërbimi"
+
+msgid "Calibration"
+msgstr "Kalibrimi"
+
+msgid "Memory Bank"
+msgstr "Banka e memories"
+
+msgid "Measured Illuminance (lx)"
+msgstr "Ndriçimi i matur (lx)"
+
+msgid "Enable memory write lock"
+msgstr "Aktivizo bllokimin e shkrimit në memorie"
+
+msgid "Start automatic ECG replacement on this gateway? This changes the DALI assignments and cannot be undone in the project."
+msgstr "Të fillojë zëvendësimi automatik i balasteve në këtë portë? Kjo ndryshon caktimet DALI dhe nuk mund të zhbëhet në projekt."
+
+msgid "Restore Gateway…"
+msgstr "Rikthe portën…"
+
+msgid "Restore the saved physical inventory and configuration to this gateway and restart it? This overwrites its DALI state and cannot be undone in the project."
+msgstr "Të rikthehen pajisjet fizike dhe konfigurimi i ruajtur në këtë portë dhe të riniset ajo? Kjo mbishkruan gjendjen DALI dhe nuk mund të zhbëhet në projekt."

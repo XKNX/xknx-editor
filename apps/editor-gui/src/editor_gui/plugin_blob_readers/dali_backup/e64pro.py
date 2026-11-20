@@ -156,9 +156,13 @@ def _import_slot(root: ET.Element, section: str, index: str, data: str) -> None:
                 imported.set(name, old.attrib[name])
             else:
                 imported.attrib.pop(name, None)
+    if section == "templates":
+        for command in imported.findall("Commands/TplCmd"):
+            if command.get("func") == "SetMaxOnValue" and command.get("value") == "0":
+                command.set("value", "100")
     _validate_slot(imported, section, root)
     if imported.get("description", "") != old.get("description", ""):
-        validate_description(section, imported.get("description", ""))
+        _validate_description(imported.get("description", ""))
     imported.set("index", index)
     imported.set("isDirty", "True")
     parent = root.find(section)
@@ -176,14 +180,14 @@ def _validate_slot(slot: ET.Element, section: str, root: ET.Element) -> None:
     headers = {
         "scenes": ("knxScene", "fadeTime"),
         "effects": ("mode",),
-        "templates": ("isOverwritable", "resetOnMidnight"),
+        "templates": ("mode", "isOverwritable", "resetOnMidnight"),
     }
     for key in headers[section]:
         if key in slot.attrib:
             _set(deepcopy(slot), key, slot.attrib[key], section, True)
     for item in rows(slot, section):
         fields = (
-            ("func", "value", "fadeIn", "time", "weekdays")
+            ("func", "value", "fadeIn", "time", "weekdays", "scaleMode")
             if section == "templates"
             else ("value", "fadetime", "delay")
             if section == "effects"
@@ -217,7 +221,7 @@ DESCRIPTION_SECTIONS = (
 def _description(root: ET.Element, section: str, index: str, value: str) -> None:
     from editor_gui.plugins.project.strings import S
 
-    if section not in DESCRIPTION_SECTIONS:
+    if section not in (*DESCRIPTION_SECTIONS, "inputs"):
         raise ValueError(S.E64_INVALID_SELECTION)
     found = [e for e in root.findall(section + "/*") if e.get("index") == index]
     if len(found) != 1:
@@ -225,7 +229,7 @@ def _description(root: ET.Element, section: str, index: str, value: str) -> None
     if found[0].get("description", "") == value:
         return
     _xml_text(value)
-    validate_description(section, value)
+    _validate_description(value)
     found[0].set("description", value)
     if section in SLOTS:
         found[0].set("isDirty", "True")
@@ -249,9 +253,17 @@ def description_parameters(
                 changed[section, index] = value
     if not changed:
         return []
+    return [
+        (ref, changed[key])
+        for key, ref in _description_bindings(device).items()
+        if key in changed and device.get_param_value(ref) != changed[key]
+    ]
+
+
+def _description_bindings(device: Device) -> dict[tuple[str, str], str]:
     dynamic = device.dynamic_ui
     if dynamic is None or device.app is None:
-        return []
+        return {}
     definitions = device.app.tree_builder().idx.module_defs
     arguments = device.get_module_instance_arguments()
     bindings: dict[tuple[str, str], str] = {}
@@ -275,11 +287,82 @@ def description_parameters(
         param = dynamic.find_parameter_ref("name", f"DPB{index + 1}-Description")
         if param is not None:
             bindings["pbs", str(index)] = param
-    return [
-        (ref, changed[key])
-        for key, ref in bindings.items()
-        if key in changed and device.get_param_value(ref) != changed[key]
-    ]
+    return bindings
+
+
+def template_mode_parameters(
+    device: Device,
+    before: bytes | None,
+    after: bytes,
+    *,
+    imported_slots: frozenset[str] = frozenset(),
+) -> list[tuple[str, str]]:
+    """Resolve changed template modes to their application parameters."""
+    dynamic = device.dynamic_ui
+    if dynamic is None:
+        return []
+    previous = (
+        {
+            e.get("index"): e.get("mode")
+            for e in document(before).findall("templates/Tpl")
+        }
+        if before
+        else {}
+    )
+    edits: list[tuple[str, str]] = []
+    for template in document(after).findall("templates/Tpl"):
+        index, mode = template.get("index", ""), template.get("mode")
+        if mode is None or (
+            previous.get(index) == mode and index not in imported_slots
+        ):
+            continue
+        _number(index, 15)
+        if mode not in TEMPLATE_MODES:
+            from editor_gui.plugins.project.strings import S
+
+            raise ValueError(S.E64_INVALID_VALUE)
+        ref = dynamic.find_parameter_ref("name", f"PROP-TEMPLATE_MODE.{int(index) + 1}")
+        if ref is not None and device.get_param_value(ref) != TEMPLATE_MODES[mode]:
+            edits.append((ref, TEMPLATE_MODES[mode]))
+    return edits
+
+
+def sync_parameters(device: Device, values: dict[str, str]) -> bytes | None:
+    """Update stored descriptions and template modes affected by parameter edits."""
+    entry = backup(device)
+    if entry is None or device.dynamic_ui is None or not values:
+        return None
+    root = deepcopy(document(entry[1]))
+    modes = {v: k for k, v in TEMPLATE_MODES.items()}
+    changed = False
+    for template in root.findall("templates/Tpl"):
+        index = template.get("index", "")
+        if not index.isdecimal() or not 0 <= int(index) < 16:
+            continue
+        ref = device.dynamic_ui.find_parameter_ref(
+            "name", f"PROP-TEMPLATE_MODE.{int(index) + 1}"
+        )
+        value = values.get(ref) if ref is not None else None
+        if value is None:
+            continue
+        if value not in modes:
+            from editor_gui.plugins.project.strings import S
+
+            raise ValueError(S.E64_INVALID_VALUE)
+        if template.get("mode") != modes[value]:
+            template.set("mode", modes[value])
+            template.set("isDirty", "True")
+            changed = True
+    for (section, index), ref in _description_bindings(device).items():
+        value = values.get(ref)
+        if value is None:
+            continue
+        row = root.find(f"{section}/*[@index='{index}']")
+        if row is not None and row.get("description", "") != value:
+            _xml_text(value)
+            row.set("description", value)
+            changed = True
+    return ET.tostring(root, encoding="utf-16le") if changed else None
 
 
 def ecg_names(device: Device) -> dict[int, str]:
@@ -315,6 +398,33 @@ class Edit:
     value: str = ""
     target: str = ""
     index: str = ""
+
+
+def edit_from_ref(data: bytes, ref_id: str, value: str) -> Edit | None:
+    """Translate a detail row reference to the structured edit addressing."""
+    from editor_gui.plugins.project.strings import S
+
+    from . import nested_leaves
+
+    parts = ref_id.split(":")
+    if len(parts) not in (5, 7) or parts[0] != "dali_backup":
+        raise ValueError(S.E64_INVALID_SELECTION)
+    section, index = parts[2:4]
+    if len(parts) == 5 and parts[4] == "description":
+        return Edit(section, index, "description", value=value)
+    if section not in SLOTS:
+        return None
+    if len(parts) == 5:
+        return Edit(section, index, "header", field=parts[4], value=value)
+    slot = slot_element(document(data), section, index)
+    leaves = nested_leaves(slot)
+    if parts[4] != "leaf" or not parts[5].isdecimal() or int(parts[5]) >= len(leaves):
+        raise ValueError(S.E64_INVALID_SELECTION)
+    target = leaves[int(parts[5])]
+    sequence = rows(slot, section)
+    if target not in sequence:
+        raise ValueError(S.E64_UNSUPPORTED_OPERATION)
+    return Edit(section, index, "set", sequence.index(target), parts[6], value)
 
 
 def rows(slot: ET.Element, section: str) -> list[ET.Element]:
@@ -368,8 +478,7 @@ TEMPLATE_COLOURS = {
 }
 # A transition between command types must initialise a compatible value and fade family.
 COMMAND_DEFAULTS = {
-    name: ("0", "VFadeIn0")
-    for name in ("SetValue", "SetMinValue", "SetMaxValue", "SetMaxOnValue")
+    name: ("0", "VFadeIn0") for name in ("SetValue", "SetMinValue", "SetMaxValue")
 }
 COMMAND_DEFAULTS.update(
     {
@@ -377,6 +486,17 @@ COMMAND_DEFAULTS.update(
         for func, mode in TEMPLATE_COLOURS.items()
     }
 )
+COMMAND_DEFAULTS.update(
+    SetMaxOnValue=("100", "VFadeIn0"),
+    CallScene=("0", "VFadeIn0"),
+    CallEffect=("0", "VFadeIn0"),
+)
+CALL_FUNCTIONS = {"CallScene": "scenes", "CallEffect": "effects"}
+TEMPLATE_MODES = {"Disabled": "0", "Enabled": "1", "Controlled": "2"}
+SCALE_MODES = {
+    "CallScene": ("ScaleNoneScene",),
+    "CallEffect": ("ScaleNoneEffectStop", "ScaleNoneEffectStart"),
+}
 LEGACY_KELVIN_SUFFIX = ";0;0;0"
 
 
@@ -447,10 +567,10 @@ def _check_capacity(root: ET.Element, section: str, additional: int = 0) -> None
         raise ValueError(message)
 
 
-def validate_description(section: str, value: str) -> None:
+def _validate_description(value: str) -> None:
     from editor_gui.plugins.project.strings import S
 
-    maximum = 60 if section == "templates" else 20
+    maximum = 60
     if len(value.encode("utf-16le")) // 2 > maximum:
         raise ValueError(S.E64_DESCRIPTION_LIMIT.format(maximum=maximum))
 
@@ -464,19 +584,20 @@ def _set(
         allowed = {
             "scenes": {"description", "knxScene", "fadeTime"},
             "effects": {"description", "mode"},
-            "templates": {"description", "isOverwritable", "resetOnMidnight"},
+            "templates": {"description", "mode", "isOverwritable", "resetOnMidnight"},
         }
     else:
         allowed = {
-            "scenes": {"value", "keepValue", "keepColor"},
+            "scenes": {"value", "keepValue", "keepColor", "setting"},
             "effects": {
                 "value",
                 "keepValue",
                 "keepColor",
                 "fadetime",
                 "delay",
+                "setting",
             },
-            "templates": {"value", "time", "weekdays", "func", "fadeIn"},
+            "templates": {"value", "time", "weekdays", "func", "fadeIn", "scaleMode"},
         }
     if field not in allowed[section]:
         raise ValueError(S.E64_UNSUPPORTED_OPERATION)
@@ -496,7 +617,9 @@ def _set(
         element.set("setting", str(flags | mask if value == "True" else flags & ~mask))
         return
     if field == "description":
-        validate_description(section, value)
+        _validate_description(value)
+    if field == "setting":
+        _number(value, 255)
     if field == "knxScene":
         _number(value, 64, 1)
     if field == "value" and (
@@ -504,8 +627,16 @@ def _set(
         or element.get("func")
         in ("SetValue", "SetMaxOnValue", "SetMinValue", "SetMaxValue")
     ):
-        _number(value, 100)
-    if field == "mode" and value not in ("0", "1"):
+        _number(
+            value,
+            100,
+            1
+            if section == "templates" and element.get("func") == "SetMaxOnValue"
+            else 0,
+        )
+    if field == "mode" and value not in (
+        TEMPLATE_MODES if section == "templates" else ("0", "1")
+    ):
         raise ValueError(S.E64_INVALID_VALUE)
     if (
         field in ("fadeTime", "fadetime", "delay", "func")
@@ -522,8 +653,18 @@ def _set(
         if value not in COMMAND_DEFAULTS:
             raise ValueError(S.E64_UNSUPPORTED_OPERATION)
         level, fade = COMMAND_DEFAULTS[value]
-        element.attrib.update(value=level, fadeIn=fade, scaleMode="ScaleNormal")
+        element.attrib.update(
+            value=level,
+            fadeIn=fade,
+            scaleMode=SCALE_MODES.get(value, ("ScaleNormal",))[0],
+        )
+    if field == "scaleMode" and value not in SCALE_MODES.get(
+        element.get("func", ""), ("ScaleNormal",)
+    ):
+        raise ValueError(S.E64_INVALID_VALUE)
     if field == "value" and section == "templates":
+        if element.get("func") in CALL_FUNCTIONS:
+            _number(value, 15)
         mode = TEMPLATE_COLOURS.get(element.get("func", ""))
         if mode == "2":
             keep_suffix = value.endswith(LEGACY_KELVIN_SUFFIX) or element.get(
@@ -550,9 +691,27 @@ def apply(data: bytes, edit: Edit) -> bytes:
     from editor_gui.plugins.project.strings import S
 
     root = deepcopy(document(data))
-    if edit.action in ("description", "assign", "import"):
+    if edit.action in (
+        "description",
+        "assign",
+        "import",
+        "import_descriptions",
+        "clear_descriptions",
+    ):
         if edit.action == "description":
             _description(root, edit.section, edit.slot, edit.value)
+        elif edit.action == "import_descriptions":
+            from .e64pro_descriptions import parse_descriptions
+
+            for index, value in parse_descriptions(
+                root, edit.section, edit.value, edit.field
+            ).items():
+                _description(root, edit.section, index, value)
+        elif edit.action == "clear_descriptions":
+            if edit.section not in DESCRIPTION_SECTIONS:
+                raise ValueError(S.E64_INVALID_SELECTION)
+            for item in root.findall(edit.section + "/*"):
+                _description(root, edit.section, item.get("index", ""), "")
         elif edit.action == "assign":
             from .e64pro_inputs import assign
 
@@ -571,7 +730,7 @@ def apply(data: bytes, edit: Edit) -> bytes:
     members = section == "templates" and action == "member"
     parent = slot
     if (section in ("effects", "templates") and action == "add") or (
-        section == "templates" and action == "copy"
+        section == "templates" and action in ("copy", "insert")
     ):
         _check_capacity(root, section, additional=1)
     if section == "templates" and action != "header":
@@ -581,10 +740,56 @@ def apply(data: bytes, edit: Edit) -> bytes:
     children = parent.findall("TplItem" if members else ROW_TAG[section])
     if action == "header":
         _set(slot, edit.field, edit.value, section, True)
-    elif action in ("add", "member"):
+    elif section == "templates" and action in ("clear", "sort_time", "sort_function"):
+        if action == "clear":
+            for child in children:
+                parent.remove(child)
+        else:
+            functions = {
+                name: n
+                for n, name in enumerate(
+                    (
+                        "None",
+                        "SetValue",
+                        "SetMinValue",
+                        "SetMaxValue",
+                        "ColourTemp",
+                        "ColourXY",
+                        "ColourRGBW",
+                        "ColourRGB",
+                        "ColourHSV",
+                        "ColourHSVW",
+                        "SetMaxOnValue",
+                        "CallScene",
+                        "CallEffect",
+                    )
+                )
+            }
+
+            def key(child: ET.Element) -> tuple[int, ...]:
+                value = child.get("time", "")
+                _set(deepcopy(child), "time", value, section, False)
+                if child.get("func", "") not in functions:
+                    raise ValueError(S.E64_INVALID_VALUE)
+                hour, minute = (int(part) for part in value.split(":"))
+                func = functions[child.get("func", "")]
+                return (
+                    (func, hour, minute)
+                    if action == "sort_function"
+                    else (hour, minute, func)
+                )
+
+            ordered = iter(sorted(children, key=key))
+            parent[:] = [
+                next(ordered) if child in children else child for child in parent
+            ]
+    elif action in ("add", "member", "insert"):
+        if action == "insert" and (
+            section != "templates" or not 0 <= edit.row < len(children)
+        ):
+            raise ValueError(S.E64_INVALID_SELECTION)
         if section == "templates" and not members:
-            ET.SubElement(
-                parent,
+            command = ET.Element(
                 "TplCmd",
                 func="SetValue",
                 value="0",
@@ -593,6 +798,10 @@ def apply(data: bytes, edit: Edit) -> bytes:
                 time="00:00",
                 weekdays="1111111",
             )
+            if action == "insert":
+                parent.insert(list(parent).index(children[edit.row]), command)
+            else:
+                parent.append(command)
         else:
             if edit.target not in TARGETS or not any(
                 e.get("index") == edit.index for e in root.findall(edit.target + "/*")

@@ -1589,9 +1589,6 @@ msgstr "Časť údajov zariadenia nie je k dispozícii."
 msgid "Connect to a KNX interface to commission the DALI bus."
 msgstr "Na uvedenie zbernice DALI do prevádzky sa pripojte k rozhraniu KNX."
 
-msgid "This gateway's commissioning protocol has not been verified against a capture; writes may misbehave. Proceed with care."
-msgstr "Protokol uvedenia tejto brány do prevádzky nebol overený voči záznamu; zápisy sa môžu správať chybne. Postupujte opatrne."
-
 msgid "DALI commissioning writes the gateway on the bus but does not update the project parameters; re-export the .knxproj after a DCA-side edit."
 msgstr "Uvedenie DALI do prevádzky zapíše bránu na zbernici, ale neaktualizuje parametre projektu; po úprave v DCA znova exportujte .knxproj."
 
@@ -3313,6 +3310,11 @@ msgstr "Aktuálny stav projektu"
 msgid "Configuration Comparison"
 msgstr "Porovnanie konfigurácie"
 
+msgid "Current state of the project"
+msgstr "Aktuálny stav projektu"
+msgid "Configuration Comparison"
+msgstr "Porovnanie konfigurácie"
+
 msgid "Compare settings with another device or the stored image from the last download."
 msgstr "Porovnajte nastavenia s iným zariadením alebo s uloženým obrazom z posledného nahrávania."
 
@@ -3418,6 +3420,11 @@ msgstr "Vyberte zariadenie"
 
 msgid "Select the two devices to compare."
 msgstr "Vyberte dve zariadenia na porovnanie."
+
+msgid "Loading application programs… {done}/{total}"
+msgstr "Načítavajú sa aplikačné programy… {done}/{total}"
+msgid "Symbol"
+msgstr "Symbol"
 
 msgid "Loading application programs… {done}/{total}"
 msgstr "Načítavajú sa aplikačné programy… {done}/{total}"
@@ -3628,6 +3635,11 @@ msgstr "Katalóg: {source} (najnovší záznam: {date})."
 
 msgid "Latest Compatible Version"
 msgstr "Najnovšia kompatibilná verzia"
+
+msgid "Not determined"
+msgstr "Neurčené"
+msgid "Compares the device's hardware/software identity with this catalog. Does not install firmware. Catalog import: MDT Firmware Update .etsapp or Firmware.zip."
+msgstr "Porovná identitu hardvéru/softvéru zariadenia s týmto katalógom. Neinštaluje firmvér. Import katalógu: MDT Firmware Update .etsapp alebo Firmware.zip."
 
 msgid "Not determined"
 msgstr "Neurčené"
@@ -4143,3 +4155,112 @@ msgstr "Celkový podiel porúch"
 
 msgid "Value input"
 msgstr "Hodnotový vstup"
+
+
+msgid "Call scene"
+msgstr "Vyvolať scénu"
+
+msgid "Call effect"
+msgstr "Vyvolať efekt"
+
+msgid "Start"
+msgstr "Spustiť"
+
+msgid "Controlled by effect object"
+msgstr "Riadené objektom efektu"
+
+msgid "Import Descriptions…"
+msgstr "Importovať popisy…"
+
+msgid "Export Descriptions…"
+msgstr "Exportovať popisy…"
+
+msgid "Replace the descriptions included in the file? You can undo this change."
+msgstr "Nahradiť popisy obsiahnuté v súbore? Túto zmenu možno vrátiť späť."
+
+msgid "Clear Descriptions"
+msgstr "Vymazať popisy"
+
+msgid "These descriptions cannot be preserved as TXT. Choose XML."
+msgstr "Tieto popisy nemožno zachovať vo formáte TXT. Vyberte XML."
+
+msgid "Insert Before"
+msgstr "Vložiť pred"
+
+msgid "Sort by Time"
+msgstr "Zoradiť podľa času"
+
+msgid "Sort by Function"
+msgstr "Zoradiť podľa funkcie"
+
+msgid "Clear Actions"
+msgstr "Vymazať akcie"
+
+msgid "Discover Inputs"
+msgstr "Vyhľadať vstupy"
+
+msgid "Stop Blinking"
+msgstr "Zastaviť blikanie"
+
+msgid "Function Test"
+msgstr "Funkčný test"
+
+msgid "Duration Test"
+msgstr "Test výdrže"
+
+msgid "Battery Test"
+msgstr "Test batérie"
+
+msgid "Read Calibration"
+msgstr "Načítať kalibráciu"
+
+msgid "Set Calibration Level"
+msgstr "Nastaviť úroveň kalibrácie"
+
+msgid "Save Calibration"
+msgstr "Uložiť kalibráciu"
+
+msgid "Read Memory Byte"
+msgstr "Čítať bajt pamäte"
+
+msgid "Write Memory Byte"
+msgstr "Zapísať bajt pamäte"
+
+msgid "Read Names"
+msgstr "Načítať názvy"
+
+msgid "Write Names"
+msgstr "Zapísať názvy"
+
+msgid "Read Motion Diagnostics"
+msgstr "Načítať diagnostiku pohybu"
+
+msgid "Inhibit Converters"
+msgstr "Blokovať konvertory"
+
+msgid "Replace ECGs…"
+msgstr "Vymeniť predradníky…"
+
+msgid "Service"
+msgstr "Servis"
+
+msgid "Calibration"
+msgstr "Kalibrácia"
+
+msgid "Memory Bank"
+msgstr "Pamäťová banka"
+
+msgid "Measured Illuminance (lx)"
+msgstr "Nameraná osvetlenosť (lx)"
+
+msgid "Enable memory write lock"
+msgstr "Povoliť zámok zápisu do pamäte"
+
+msgid "Start automatic ECG replacement on this gateway? This changes the DALI assignments and cannot be undone in the project."
+msgstr "Spustiť automatickú výmenu predradníkov na tejto bráne? Zmení sa priradenie DALI a v projekte to nemožno vrátiť späť."
+
+msgid "Restore Gateway…"
+msgstr "Obnoviť bránu…"
+
+msgid "Restore the saved physical inventory and configuration to this gateway and restart it? This overwrites its DALI state and cannot be undone in the project."
+msgstr "Obnoviť uložené fyzické zariadenia a konfiguráciu do tejto brány a reštartovať ju? Prepíše sa stav DALI a v projekte to nemožno vrátiť späť."

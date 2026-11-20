@@ -242,12 +242,11 @@ def test_import_export_capacity_and_repair(section, limit):
     assert document(export_configuration(imported)).get("IndividualAddress") == "1.1.1"
 
 
-@pytest.mark.parametrize(
-    "section,maximum", [("scenes", 20), ("effects", 20), ("templates", 60)]
-)
-def test_description_limit_in_workspace_and_details(section, maximum):
+@pytest.mark.parametrize("section", ["scenes", "effects", "templates"])
+def test_description_limit_in_workspace_and_details(section):
     from editor_gui.plugin_blob_readers.dali_backup import apply_edit
 
+    maximum = 60
     data = FIXTURE.read_bytes()
     valid = "ä" * maximum
     updated = apply(
@@ -308,10 +307,10 @@ def test_details_description_limit_for_controller_items(section, tag):
     ).encode()
     ref = f"dali_backup:Dalie64-Backup-Store:{section}:0:description"
     assert apply_edit(data, ref, "Existing long imported description") == data
-    changed = apply_edit(data, ref, "a" * 20)
-    assert document(changed).find(f"{section}/{tag}").get("description") == "a" * 20
-    with pytest.raises(ValueError, match="20"):
-        apply_edit(data, ref, "b" * 21)
+    changed = apply_edit(data, ref, "a" * 60)
+    assert document(changed).find(f"{section}/{tag}").get("description") == "a" * 60
+    with pytest.raises(ValueError, match="60"):
+        apply_edit(data, ref, "b" * 61)
 
 
 def test_dca_errors_are_translated():

@@ -88,7 +88,7 @@ _DALI_DEVICE_TYPE = {
     "8": "Colour control",
     "9": "Sequencer",
 }
-_TPL_MODE = {"Disabled": "Disabled", "Enabled": "Enabled"}
+_TPL_MODE = {"Disabled": "Disabled", "Enabled": "Enabled", "Controlled": "Controlled"}
 # Group colour mode (GroupCMode) and the group's ETS colour type (EtsColorType).
 _GROUP_COLOUR_MODE = {"0": "Normal", "1": "Master", "2": "Slave"}
 _GROUP_COLOUR_TYPE = {
@@ -148,6 +148,7 @@ _TPL_FUNC = {
         "ColourHSVW",
         "SetMaxOnValue",
         "CallScene",
+        "CallEffect",
     )
 }
 COLOUR_FADE = {
@@ -163,7 +164,7 @@ EDITABLE_ENUMS: dict[str, dict[str, str]] = {
     "func": _TPL_FUNC,
     "fadeTime": COLOUR_FADE,
     "fadetime": COLOUR_FADE,
-    "delay": {str(s): f"{s} s" for s in (0, *range(5, 11), *range(20, 201, 10))},
+    "delay": {str(s): f"{s} s" for s in (*range(11), *range(20, 201, 10))},
 }
 _TEMPLATE_FADE = {
     **{f"CFadeIn{label.split()[0]}": label for label in COLOUR_FADE.values()},
@@ -256,7 +257,7 @@ def apply_edit(data: bytes, ref_id: str, new_value: str) -> bytes:
     elif len(parts) == 7 and parts[4] == "leaf":  # nested scene item / step / command
         _, _name, container, index, _leaf, n, attr = parts
         item = root.find(f"{container}/*[@index='{index}']")
-        leaves = _nested_leaves(item) if item is not None else []
+        leaves = nested_leaves(item) if item is not None else []
         target = leaves[int(n)] if n.isdigit() and int(n) < len(leaves) else None
     else:
         raise ValueError(f"unrecognised dali_backup ref: {ref_id!r}")
@@ -264,46 +265,12 @@ def apply_edit(data: bytes, ref_id: str, new_value: str) -> bytes:
         raise ValueError(f"target not found: {ref_id!r}")
     if new_value == target.get(attr):
         return data
-    if (
-        root.get("type") == "e64pro"
-        and len(parts) == 7
-        and container in ("scenes", "effects")
-        and attr == "color"
-    ):
-        from .e64pro import Edit, apply, rows
+    if root.get("type") == "e64pro":
+        from .e64pro import apply, edit_from_ref
 
-        slot = root.find(f"{container}/*[@index='{index}']")
-        if slot is not None:
-            return apply(
-                data,
-                Edit(
-                    container,
-                    index,
-                    "set",
-                    rows(slot, container).index(target),
-                    attr,
-                    new_value,
-                ),
-            )
-    if (
-        root.get("type") == "e64pro"
-        and attr == "description"
-        and container
-        in (
-            "groups",
-            "ecgs",
-            "mds",
-            "pbs",
-            "gis",
-            "inputs",
-            "scenes",
-            "effects",
-            "templates",
-        )
-    ):
-        from .e64pro import validate_description
-
-        validate_description(container, new_value)
+        edit = edit_from_ref(data, ref_id, new_value)
+        if edit is not None:
+            return apply(data, edit)
     if (
         attr in ("fadeTime", "fadetime", "delay")
         and new_value not in EDITABLE_ENUMS[attr]
@@ -369,7 +336,7 @@ def _short_target(e: ET.Element) -> str:
     return f"{kind} {e.get('itemindex', '?')}"
 
 
-def _nested_leaves(item: ET.Element) -> list[ET.Element]:
+def nested_leaves(item: ET.Element) -> list[ET.Element]:
     leaves: list[ET.Element] = []
     for child in item:
         if not isinstance(cast("object", child.tag), str):
@@ -442,12 +409,14 @@ def _container_rows(
         # Nested scene items / effect steps / template commands: one row per attribute, so the
         # value, colour, time and weekday schedule are individually readable (and editable where
         # they are plain config) instead of one cryptic "key=value, key=value" dump.
-        for n, leaf in enumerate(_nested_leaves(item)):
+        for n, leaf in enumerate(nested_leaves(item)):
             target = _short_target(leaf)
             for key, value in leaf.attrib.items():
                 if key in _TARGET_ATTRS:
                     continue
                 writable, choices, shown = _field(key, value)
+                if key == "func" and root.get("type") != "e64pro":
+                    choices = tuple((k, v) for k, v in choices if k != "CallEffect")
                 ref = (
                     f"{_REF_PREFIX}:{name}:{tag}:{idx}:leaf:{n}:{key}"
                     if writable

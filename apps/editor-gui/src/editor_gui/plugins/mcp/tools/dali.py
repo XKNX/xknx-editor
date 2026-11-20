@@ -7,13 +7,13 @@ installation, and program the groups and scenes; a programmed channel is saved i
 backup data in the project, as the tab does. Siemens KNX/DALI Gateway plus N 141/03: a read-only
 scan and programming the DALI device data the project holds for it.
 
-As in the tab, programming the groups needs a scan of the channel first: the plan keeps every
-present ECG's number and takes the group from the scan unless the call changes it.
+As in the tab, programming groups needs a scan first. Only requested ECGs enter the plan;
+the commissioner reads the other assignments immediately before writing.
 """
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, Literal
 
 from fastmcp.exceptions import ToolError
@@ -31,7 +31,7 @@ if TYPE_CHECKING:
     from fastmcp import FastMCP
 
     from editor_gui.device import Device
-    from xknxeditor.dali import DaliBusState, Scene
+    from xknxeditor.dali import DaliBusState, EcgAssignment, Scene
     from xknxeditor.dali.siemens import SiemensN141BusState
 
 IdentifyAction = Literal["blink", "stop_blink", "on", "off"]
@@ -41,10 +41,9 @@ GroupChoice = int | Literal["single", "unassigned"]
 
 @dataclass
 class _Channel:
-    """What the tools know of one DALI channel: the last scan and the scenes written last."""
+    """The last scan of one DALI channel."""
 
     scan: DaliBusState | None = None
-    scenes: list[Scene] = field(default_factory=list["Scene"])
 
 
 def _group_value(group_index: int) -> int | str | None:
@@ -132,6 +131,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
     tool = make_tool(mcp, ctx)
     service = ctx.api.connection
     channels: dict[tuple[int, int], _Channel] = {}
+    channel_generation: int | None = None
 
     @tool("read")
     def project_e64pro_read(
@@ -222,6 +222,12 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             "colour",
             "assign",
             "description",
+            "import_descriptions",
+            "clear_descriptions",
+            "insert",
+            "sort_time",
+            "sort_function",
+            "clear",
         ],
         row: int = -1,
         field: str = "",
@@ -237,12 +243,23 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         or effect, or inserts a default template command. member sets a template target True/False.
         Template weekdays is seven binary digits, Sunday to Monday from left to right:
         0000001 = Monday, 1000000 = Sunday, 0011111 = Monday to Friday.
+        Template func also supports CallScene/CallEffect: value is the zero-based target (0-15).
+        CallEffect scaleMode is ScaleNoneEffectStart or ScaleNoneEffectStop (default stop).
+        Template header mode is Disabled, Enabled or Controlled; it updates the KNX parameter too.
+        SetMaxOnValue uses 1-100, default 100. Effect delay allows 0-10 and 20-200 in steps of 10.
         colour sets a supported colour space (field) and its encoded value together.
         remove/copy/up/down address a zero-based row. description sets the slot description
         (groups/ecgs/mds/pbs/gis/scenes/effects/templates). assign links an existing logical
         input row in mds/pbs/gis to physical instance index, or unlinks with index="".
         Read available logical and physical instances from project_e64pro_read XML.
         For multiple edits in one undo step use project_batch edit_e64pro. No bus connection.
+        For templates, insert adds a default command before row, sort_time/sort_function
+        order commands by time/function (then the other key), and clear removes all commands,
+        keeping members and settings. clear_descriptions clears only the selected category.
+        import_descriptions takes field=xml/txt and the file content in value, with slot="";
+        categories groups/ecgs/mds/pbs/gis use GRP_TEXT/ECG_TEXT/MD_TEXT/PB_TEXT/GI_TEXT
+        XML roots and one-based text@index. TXT lines map to successive slots, '' clears a slot.
+        Entries omitted from an import remain unchanged. Invalid input is rejected atomically.
         """
 
         from editor_gui.plugin_blob_readers.dali_backup import e64pro
@@ -260,6 +277,33 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             return e64pro.revision(data)
 
         return ctx.run_locked(change)
+
+    @tool("read")
+    def project_e64pro_export_descriptions(
+        section: Literal["groups", "ecgs", "mds", "pbs", "gis"],
+        format: Literal["xml", "txt"] = "xml",
+        node_id: int | None = None,
+        device_address: str | None = None,
+    ) -> str:
+        """Export a category's saved descriptions as XML or UTF-8 text, without bus access.
+
+        XML uses one-based text@index and description attributes. TXT has one line per slot;
+        '' represents an empty description. Text that TXT cannot preserve requires XML.
+        Import with project_e64pro_edit import_descriptions, or project_batch edit_e64pro.
+        """
+        from editor_gui.plugin_blob_readers.dali_backup import e64pro
+        from editor_gui.plugin_blob_readers.dali_backup.e64pro_descriptions import (
+            export_descriptions,
+        )
+
+        def read() -> str:
+            device = require_device(ctx.api.project, node_id, device_address)
+            entry = e64pro.backup(device)
+            if entry is None:
+                raise ValueError("No DALI backup available")
+            return export_descriptions(entry[1], section, format).decode("utf-8-sig")
+
+        return ctx.run_locked(read)
 
     @tool("read")
     def project_e64pro_export_slot(
@@ -392,6 +436,11 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             order = getattr(info, "order_number", "") if info is not None else ""
             return device, dali_channel_count(order if isinstance(order, str) else "")
 
+        nonlocal channel_generation
+        generation = ctx.run_locked(lambda: ctx.api.project.generation)
+        if generation != channel_generation:
+            channels.clear()
+            channel_generation = generation
         device, count = ctx.run_locked(_read)
         if device.app is None or not is_dali_dca_app(device.app.id):
             raise ToolError(
@@ -415,6 +464,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         """Run ``op`` in the Operations queue, named ``text`` there as the tab's button;
         ``writes``: whether it changes something (all but a scan)."""
         _ensure_connected()
+        generation = ctx.run_locked(lambda: ctx.api.project.generation)
         ended = run_queued_action(
             ctx,
             device.node_id,
@@ -426,15 +476,220 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             writes=writes,
         )
         if ended is not None:
-            return ended.result
-        future = ctx.run_locked(
-            lambda: service.run_dali(device, op, channel=channel, writes=writes)
-        )
-        if future is None:
-            raise not_started(service, "the DALI operation")
-        return await_operation(service, future, timeout, "the DALI operation")
+            result = ended.result
+        else:
+            future = ctx.run_locked(
+                lambda: service.run_dali(device, op, channel=channel, writes=writes)
+            )
+            if future is None:
+                raise not_started(service, "the DALI operation")
+            result = await_operation(service, future, timeout, "the DALI operation")
+        if ctx.run_locked(lambda: ctx.api.project.generation) != generation:
+            raise ToolError(
+                "the project changed during the DALI operation; its result was not saved"
+            )
+        return result
 
-    def _persist(device: Device, channel: int) -> bool:
+    @tool("write", open_world=True)
+    def connection_dali_program_configuration(
+        revision: str,
+        channel: int = 0,
+        node_id: int | None = None,
+        device_address: str | None = None,
+        timeout: float = 900,
+    ) -> dict[str, Any]:
+        """Program the saved DCA state: mapped ECGs, full colour scenes and schedules,
+        plus effects and input assignments on IPAS/Theben gateways. All tables are validated
+        before connecting. Pass the current backup revision from project_e64pro_read.
+        This changes hardware; project undo cannot undo the bus writes. A failure can leave
+        earlier tables applied. Returns the fresh scan and clears saved dirty flags after
+        successful programming and project synchronization. If the project or backup changed
+        during programming, reports an error and preserves those newer edits; the hardware
+        may already contain the programmed revision.
+        """
+        from editor_gui.plugin_blob_readers.dali_backup.e64pro import (
+            revision as backup_revision,
+        )
+        from editor_gui.programming_dali import (
+            GuardedDaliOperation,
+            complete_dali_configuration,
+            prepare_dali_configuration,
+        )
+        from xknxeditor.dali import MdtDaliCommissioner
+
+        device = _gateway(node_id, device_address, channel)
+        generation = ctx.run_locked(lambda: ctx.api.project.generation)
+        expected, configuration = ctx.run_locked(
+            lambda: prepare_dali_configuration(device, channel)
+        )
+        if backup_revision(expected) != revision:
+            raise ValueError("DALI revision changed")
+
+        async def program(commissioner: MdtDaliCommissioner) -> DaliBusState:
+            return await commissioner.write_configuration(configuration)
+
+        result = _run(
+            device,
+            GuardedDaliOperation(
+                ctx.api.project, device, expected, generation, program, channel
+            ),
+            channel,
+            timeout,
+            S.PLUGIN_PARAMS_PROGRAM_DCA,
+        )
+        ctx.run_locked(
+            lambda: complete_dali_configuration(
+                ctx.api.project, device, expected, generation, channel
+            )
+        )
+        channels[device.node_id, channel] = _Channel(scan=result)
+        return scan_dict(device.node_id, channel, result)
+
+    def _workspace_operation(
+        device: Device,
+        revision: str,
+        action: str,
+        section: str,
+        index: int,
+        row: int,
+        value: int,
+        secondary: int,
+        bank: int,
+        lock: bool,
+        timeout: float,
+    ) -> dict[str, Any]:
+        from editor_gui.plugin_blob_readers.dali_backup.e64pro import (
+            revision as backup_revision,
+        )
+        from editor_gui.programming_dali import (
+            GuardedDaliOperation,
+            finish_workspace_operation,
+            prepare_workspace_operation,
+        )
+
+        generation = ctx.run_locked(lambda: ctx.api.project.generation)
+        plan = ctx.run_locked(
+            lambda: prepare_workspace_operation(
+                device,
+                action,
+                section,
+                index,
+                row,
+                value,
+                secondary,
+                bank,
+                lock,
+            )
+        )
+        if backup_revision(plan.expected) != revision:
+            raise ToolError("DALI revision changed")
+        operation = GuardedDaliOperation(
+            ctx.api.project, device, plan.expected, generation, plan.execute
+        )
+        result = _run(
+            device, operation, 0, timeout, S.EDITOR_TAB_DALI, writes=plan.writes
+        )
+        return ctx.run_locked(
+            lambda: finish_workspace_operation(
+                ctx.api.project,
+                device,
+                plan,
+                generation,
+                result,
+            )
+        )
+
+    @tool("write", open_world=True)
+    def connection_dali_workspace(
+        revision: str,
+        action: str,
+        section: str = "scenes",
+        index: int = 0,
+        row: int = 0,
+        value: int = 0,
+        secondary: int = 0,
+        bank: int = 2,
+        lock: bool = False,
+        node_id: int | None = None,
+        device_address: str | None = None,
+        timeout: float = 900,
+    ) -> dict[str, Any]:
+        """Run a saved IPAS/Theben DCA workspace operation using its current backup revision.
+
+        read/write: all slots of section scenes/effects/templates/inputs. Reading replaces that
+        project section in one undo step; writing verifies readback before clearing dirty flags.
+        test: scene index 0..15, or template index and zero-based command row. start/stop: effect
+        index. discover: address newly found inputs; identify/stop_identify: input address 0..63.
+        function/duration/battery: emergency test on physical ECG index 0..63.
+        read_calibration/set_calibration/save_calibration: motion controller index 0..7; value is
+        percent (10..25 or 70..100, step5), secondary is measured lux for save.
+        read_memory/write_memory: motion index, bank 2..199, secondary byte address 0..255,
+        value byte to write, lock enables the device's write-lock command option.
+        read_names/write_names: section ecgs/groups/mds; write uses saved descriptions (max20
+        UTF-8 bytes). read_motion: all motion diagnostics. inhibit: converter inhibit command.
+        Returns operation-specific values, devices, controllers or names. Project changes use
+        atomic undo; hardware writes cannot be undone by project undo. Call project_e64pro_read
+        again for the new revision. Replacement uses connection_dali_replace instead.
+        """
+        if action in ("replace", "restore"):
+            raise ToolError("use connection_dali_replace or connection_dali_restore")
+        device = _gateway(node_id, device_address, 0)
+        return _workspace_operation(
+            device,
+            revision,
+            action,
+            section,
+            index,
+            row,
+            value,
+            secondary,
+            bank,
+            lock,
+            timeout,
+        )
+
+    @tool("destructive", open_world=True)
+    def connection_dali_replace(
+        revision: str,
+        node_id: int | None = None,
+        device_address: str | None = None,
+        timeout: float = 180,
+    ) -> dict[str, Any]:
+        """Start the IPAS/Theben gateway's automatic ECG replacement process.
+        This changes physical DALI assignments and cannot be undone through project undo.
+        Requires the current revision from project_e64pro_read. Returns gateway result/detail.
+        """
+        device = _gateway(node_id, device_address, 0)
+        return _workspace_operation(
+            device, revision, "replace", "inputs", 0, 0, 0, 0, 2, False, timeout
+        )
+
+    @tool("destructive", open_world=True)
+    def connection_dali_restore(
+        revision: str,
+        node_id: int | None = None,
+        device_address: str | None = None,
+        timeout: float = 900,
+    ) -> dict[str, Any]:
+        """Restore an IPAS/Theben gateway from the current DCA backup's physical inventory.
+        Requires CanRestore=True and no pending assignments. Validates all tables before
+        connecting; restores ECG properties, input inventory, GTIN, calibration, assignments,
+        scenes, effects and templates, verifies readback and restarts the gateway.
+        This overwrites physical DALI state; project undo cannot reverse hardware changes.
+        Partial failure may leave preceding tables applied. Pass project_e64pro_read revision.
+        Returns an empty object after successful completion; re-read the project for its revision.
+        """
+        device = _gateway(node_id, device_address, 0)
+        return _workspace_operation(
+            device, revision, "restore", "ecgs", 0, 0, 0, 0, 2, False, timeout
+        )
+
+    def _persist(
+        device: Device,
+        channel: int,
+        assignments: list[EcgAssignment],
+        scenes: list[Scene],
+    ) -> bool:
         """Save the channel's state into the project's backup data, as the tab does after a
         groups or scenes write; False without a scan to save."""
         from editor_gui.programming_dali import persist_dali_backup
@@ -443,21 +698,21 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         if state is None or state.scan is None:
             return False
         scan = state.scan
-        assignments = _assignments(scan, {})
 
-        def _save() -> None:
-            persist_dali_backup(
+        def _save() -> bool:
+            if ctx.api.project.generation != channel_generation:
+                return False
+            return persist_dali_backup(
                 ctx.api.project,
                 device,
                 scan,
                 assignments,
-                state.scenes,
+                scenes,
                 channel,
                 label=S.DALI_PERSIST_LABEL,
             )
 
-        ctx.run_locked(_save)
-        return True
+        return ctx.run_locked(_save)
 
     def _assignments(scan: DaliBusState, groups: dict[int, int]) -> list[Any]:
         from xknxeditor.dali.model import EcgAssignment
@@ -466,9 +721,10 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             EcgAssignment(
                 slot=e.slot,
                 ets_index=e.ets_ecg_index,
-                group_index=groups.get(e.slot, e.group_index),
+                group_index=groups[e.slot],
             )
             for e in scan.present_ecgs
+            if e.slot in groups
         ]
 
     @tool("read", open_world=True)
@@ -510,6 +766,10 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         of the channel (broadcast). Returns {node_id, channel, action, slot, group}."""
         if slot is not None and group is not None:
             raise ToolError("pass slot or group, not both")
+        if slot is not None and not 0 <= slot < 64:
+            raise ToolError("slot must be 0-63")
+        if group is not None and not 0 <= group < 16:
+            raise ToolError("group must be 0-15")
         device = _gateway(node_id, device_address, channel)
         start = action in ("blink", "on")
         if slot is not None:
@@ -594,10 +854,11 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         timeout: float = 300.0,
     ) -> dict[str, Any]:
         """CHANGES THE DALI BUS: program the group of the ECGs of a channel of an MDT or Theben
-        gateway (by ``node_id`` OR ``device_address``). Needs a connection_dali_scan of the channel first: every present ECG keeps its
-        number, ``groups`` changes the group of some: a list of {slot, group} with group 0-15,
-        "single" or "unassigned"; the others keep the group of the scan. The channel's state is
-        then saved into the device's backup data in the project (one undo step). Returns {node_id,
+        gateway (by ``node_id`` OR ``device_address``). Needs a connection_dali_scan of the channel first.
+        ``groups`` is a nonempty list of {slot, group} with group 0-15, "single" or "unassigned".
+        Requested ECGs keep their scanned logical number; all other assignments are read from
+        the device immediately before writing. Completed edits are saved in the project's
+        backup data (one undo step). Returns {node_id,
         channel, programmed, saved}."""
         device = _gateway(node_id, device_address, channel)
         state = channels.get((device.node_id, channel))
@@ -612,7 +873,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             changes[slot] = _group_index(entry.get("group"))
         assignments = _assignments(state.scan, changes)
         if not assignments:
-            raise ToolError("the last scan found no ECG to program")
+            raise ToolError("no group changes to program")
 
         def op(c: Any) -> Any:
             return c.commission(assignments)
@@ -621,7 +882,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         for e in state.scan.present_ecgs:
             if e.slot in changes:
                 e.group_index = changes[e.slot]
-        saved = _persist(device, channel)
+        saved = _persist(device, channel, assignments, [])
         return {
             "node_id": device.node_id,
             "channel": channel,
@@ -638,8 +899,8 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         timeout: float = 300.0,
     ) -> dict[str, Any]:
         """CHANGES THE DALI BUS: program scenes on a channel of an MDT or Theben gateway (by
-        ``node_id`` OR ``device_address``). ``scenes`` is a list of {scene (0-15), levels: [{group (0-15), level (0-255)}]}; scene n
-        is KNX scene n+1. After a connection_dali_scan of the channel, its state is then saved
+        ``node_id`` OR ``device_address``). ``scenes`` is a list of {scene (0-15), levels: [{group (0-15), level (0-255)}]}; each scene
+        keeps its KNX mapping, fade time, other targets and colours. After a connection_dali_scan of the channel, these edits are saved
         into the device's backup data in the project (one undo step). Returns {node_id, channel,
         programmed, saved}."""
         from xknxeditor.dali.model import MAX_GROUP, MAX_SCENES, Scene, SceneValue
@@ -673,12 +934,10 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         planned.sort(key=lambda s: s.index)
 
         def op(c: Any) -> Any:
-            return c.write_scenes(planned)
+            return c.write_scenes(planned, levels_only=True)
 
         _run(device, op, channel, timeout, S.DALI_PROGRAM_SCENES)
-        state = channels.setdefault((device.node_id, channel), _Channel())
-        state.scenes = planned
-        saved = _persist(device, channel)
+        saved = _persist(device, channel, [], planned)
         return {
             "node_id": device.node_id,
             "channel": channel,

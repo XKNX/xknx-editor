@@ -14,6 +14,84 @@ from xknxeditor.prod.application import Application
 from .test_server import _build_ctx, _data
 
 
+async def test_dali_workspace_mcp_uses_revision_and_shared_operations(
+    tmp_path, monkeypatch
+):
+    import asyncio
+    from concurrent.futures import Future
+    from types import SimpleNamespace
+    from unittest.mock import AsyncMock
+
+    root = Path(__file__).parents[7]
+    data = (root / "packages/dali/tests/fixtures/ipas_e64pro_backup.dat").read_bytes()
+    ctx = _build_ctx(tmp_path)
+    project = ctx.api.project
+    gateway = SimpleNamespace(
+        node_id=7,
+        individual_address="1.1.20",
+        app=SimpleNamespace(id="M-00EF_A-DA11-22-A545"),
+        binary_data=[SimpleNamespace(name="Dalie64-Backup-Store", data=data)],
+    )
+    monkeypatch.setattr(project, "find_device_by_node_id", lambda _: gateway)
+    monkeypatch.setattr(type(project), "devices", property(lambda _: [gateway]))
+    monkeypatch.setattr(
+        project, "get_device_info", lambda _: SimpleNamespace(order_number="")
+    )
+    monkeypatch.setattr(ctx.api.connection, "_xknx", object())
+    commissioner = SimpleNamespace(
+        test_scene=AsyncMock(), read_inputs=AsyncMock(return_value=())
+    )
+    calls = []
+    saved = []
+
+    def run_dali(device, op, *, channel=0, writes=True):
+        op.validate_device(device)
+        calls.append(writes)
+        future = Future()
+        future.set_result(asyncio.run(op(commissioner)))
+        return future
+
+    monkeypatch.setattr(ctx.api.connection, "run_dali", run_dali)
+    monkeypatch.setattr(
+        project, "apply_e64pro_readback", lambda *args: saved.append(args)
+    )
+    async with Client(build_server(ctx)) as client:
+        revision = e64pro.revision(data)
+        await _data(
+            client,
+            "connection_dali_workspace",
+            node_id=7,
+            revision=revision,
+            action="test",
+            section="scenes",
+            index=15,
+        )
+        commissioner.test_scene.assert_awaited_once_with(15)
+        await _data(
+            client,
+            "connection_dali_workspace",
+            device_address="1.1.20",
+            revision=revision,
+            action="read",
+            section="inputs",
+        )
+        assert calls == [True, False] and len(saved) == 1
+        for action, rev in [
+            ("test", "stale"),
+            ("replace", revision),
+            ("restore", revision),
+        ]:
+            with pytest.raises(Exception, match=r"revision|use connection"):
+                await _data(
+                    client,
+                    "connection_dali_workspace",
+                    node_id=7,
+                    revision=rev,
+                    action=action,
+                )
+        assert len(calls) == 2
+
+
 async def test_e64pro_mcp_round_trip(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -136,6 +214,57 @@ async def test_e64pro_mcp_round_trip(
                 await _data(client, "project_e64pro_read", node_id=node_id) == updated
             )
 
+            latest = await _data(client, "project_e64pro_read", node_id=node_id)
+            before_calls = project.cursor
+            await _data(
+                client,
+                "project_batch",
+                operations=[
+                    {
+                        "op": "edit_e64pro",
+                        "params": {
+                            "node_id": node_id,
+                            "revision": latest["revision"],
+                            "edits": [
+                                {
+                                    "section": "templates",
+                                    "slot": "0",
+                                    "action": "set",
+                                    "row": 0,
+                                    "field": "func",
+                                    "value": "CallEffect",
+                                },
+                                {
+                                    "section": "templates",
+                                    "slot": "0",
+                                    "action": "set",
+                                    "row": 0,
+                                    "field": "value",
+                                    "value": "15",
+                                },
+                                {
+                                    "section": "templates",
+                                    "slot": "0",
+                                    "action": "set",
+                                    "row": 0,
+                                    "field": "scaleMode",
+                                    "value": "ScaleNoneEffectStart",
+                                },
+                            ],
+                        },
+                    }
+                ],
+            )
+            latest = await _data(client, "project_e64pro_read", node_id=node_id)
+            command = ET.fromstring(latest["xml"]).find("templates/Tpl/Commands/TplCmd")
+            assert (
+                command.get("func"),
+                command.get("value"),
+                command.get("scaleMode"),
+            ) == ("CallEffect", "15", "ScaleNoneEffectStart")
+            assert project.cursor == before_calls + 1
+            project.undo()
+
             for section in ("scenes", "effects", "templates"):
                 slot_xml = await _data(
                     client,
@@ -178,7 +307,7 @@ async def test_e64pro_mcp_round_trip(
                                     "section": "groups",
                                     "slot": "0",
                                     "action": "description",
-                                    "value": "Entry",
+                                    "value": "x" * 60,
                                 },
                                 {
                                     "section": "ecgs",
@@ -193,8 +322,25 @@ async def test_e64pro_mcp_round_trip(
             )
             descriptions = await _data(client, "project_e64pro_read", node_id=node_id)
             assert (
-                'description="Entry"' in descriptions["xml"]
+                f'description="{"x" * 60}"' in descriptions["xml"]
                 and 'description="Lamp"' in descriptions["xml"]
+            )
+            before = project.cursor
+            with pytest.raises(Exception, match="60"):
+                await _data(
+                    client,
+                    "project_e64pro_edit",
+                    node_id=node_id,
+                    revision=descriptions["revision"],
+                    section="groups",
+                    slot="0",
+                    action="description",
+                    value="x" * 61,
+                )
+            assert project.cursor == before
+            assert (
+                await _data(client, "project_e64pro_read", node_id=node_id)
+                == descriptions
             )
             project.undo()
             assert (
@@ -202,6 +348,95 @@ async def test_e64pro_mcp_round_trip(
             )
 
             from concurrent.futures import Future
+
+            descriptions_xml = await _data(
+                client,
+                "project_e64pro_export_descriptions",
+                node_id=node_id,
+                section="groups",
+            )
+            assert ET.fromstring(descriptions_xml).tag == "GRP_TEXT"
+            cursor = project.cursor
+            description_edit = {
+                "section": "groups",
+                "slot": "",
+                "action": "import_descriptions",
+                "field": "txt",
+                "value": "Imported group\n''\n",
+            }
+            revision = await _data(
+                client,
+                "project_e64pro_edit",
+                node_id=node_id,
+                revision=updated["revision"],
+                **description_edit,
+            )
+            assert project.cursor == cursor + 1
+            text = await _data(
+                client,
+                "project_e64pro_export_descriptions",
+                node_id=node_id,
+                section="groups",
+                format="txt",
+            )
+            assert text.startswith("Imported group\r\n''\r\n")
+            with pytest.raises(Exception, match="revision changed"):
+                await _data(
+                    client,
+                    "project_e64pro_edit",
+                    node_id=node_id,
+                    revision=updated["revision"],
+                    **description_edit,
+                )
+            await _data(
+                client,
+                "project_batch",
+                operations=[
+                    {
+                        "op": "edit_e64pro",
+                        "params": {
+                            "node_id": node_id,
+                            "revision": revision,
+                            "edits": [
+                                {
+                                    "section": "templates",
+                                    "slot": "0",
+                                    "action": "insert",
+                                    "row": 0,
+                                },
+                                {
+                                    "section": "templates",
+                                    "slot": "0",
+                                    "action": "sort_function",
+                                },
+                                {
+                                    "section": "templates",
+                                    "slot": "0",
+                                    "action": "clear",
+                                },
+                                {
+                                    "section": "groups",
+                                    "slot": "",
+                                    "action": "clear_descriptions",
+                                },
+                            ],
+                        },
+                    }
+                ],
+            )
+            assert project.cursor == cursor + 2
+            cleared = ET.fromstring(
+                (await _data(client, "project_e64pro_read", node_id=node_id))["xml"]
+            )
+            assert not cleared.findall("templates/Tpl/Commands/TplCmd")
+            assert all(
+                not item.get("description", "") for item in cleared.findall("groups/*")
+            )
+            project.undo()
+            project.undo()
+            assert (
+                await _data(client, "project_e64pro_read", node_id=node_id) == updated
+            )
 
             current = project.find_device_by_node_id(node_id)
             input_config = ET.fromstring(updated["xml"])

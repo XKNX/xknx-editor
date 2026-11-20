@@ -86,7 +86,7 @@ class BackupEcg:
     groupindex: int = 255
     short_address: int = 255
     flags: int = (
-        0  # CommissioningFlag: 0 NotPresent / 1 NotAssigned / 2 Assigned / 3/4 planned
+        0  # 0 absent, 1 unassigned, 2 planned removal, 3 planned assignment, 4 assigned
     )
     type: int = 0
     description: str = ""

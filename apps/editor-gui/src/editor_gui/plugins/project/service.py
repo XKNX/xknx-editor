@@ -4348,9 +4348,20 @@ class ProjectService:
             if current is None or entry is None or entry[1] != expected:
                 raise ValueError(S.E64_CONFIGURATION_CHANGED)
             data = expected
-            for operation in edit if isinstance(edit, list) else (edit,):
+            operations = edit if isinstance(edit, list) else (edit,)
+            for operation in operations:
                 data = e64pro.apply(data, operation)
-            self._persist_e64pro(current, expected, data, S.E64_HISTORY_EDIT)
+            self._persist_e64pro(
+                current,
+                expected,
+                data,
+                S.E64_HISTORY_EDIT,
+                imported_templates=frozenset(
+                    op.slot
+                    for op in operations
+                    if op.action == "import" and op.section == "templates"
+                ),
+            )
             return data
 
     def import_e64pro(
@@ -4369,21 +4380,60 @@ class ProjectService:
             data = e64pro.import_configuration(
                 data, current.individual_address or "", self._project_name_for_keyring()
             )
-            self._persist_e64pro(current, expected, data, S.E64_HISTORY_IMPORT)
+            self._persist_e64pro(
+                current, expected, data, S.E64_HISTORY_IMPORT, imported=True
+            )
             return data
 
+    def apply_e64pro_readback(
+        self, device: Device, expected: bytes, data: bytes
+    ) -> None:
+        """Save verified gateway readback with parameter mirrors in one undo step."""
+        from editor_gui.plugin_blob_readers.dali_backup import e64pro
+
+        with self._io_lock:
+            current = self.find_device_by_node_id(device.node_id)
+            entry = e64pro.backup(current) if current is not None else None
+            if current is None or entry is None or entry[1] != expected:
+                raise ValueError(S.E64_CONFIGURATION_CHANGED)
+            e64pro.document(data)
+            self._persist_e64pro(current, expected, data, S.DALI_PERSIST_LABEL)
+
     def _persist_e64pro(
-        self, device: Device, before: bytes | None, data: bytes, label: str
+        self,
+        device: Device,
+        before: bytes | None,
+        data: bytes,
+        label: str,
+        *,
+        imported: bool = False,
+        imported_templates: frozenset[str] = frozenset(),
     ) -> None:
         from editor_gui.plugin_blob_readers.dali_backup import e64pro
 
-        edits = e64pro.description_parameters(device, before, data)
-        if not edits:
+        edits = e64pro.description_parameters(
+            device, None if imported else before, data
+        )
+        mode_edits = e64pro.template_mode_parameters(
+            device,
+            None if imported else before,
+            data,
+            imported_slots=imported_templates,
+        )
+        if not edits and not mode_edits:
             self.persist_device_blob(device, e64pro.BACKUP_NAME, data, label=label)
             return
         old_active = self.parameter_driven_com_objects(device)
         try:
-            changes = device.change_param_values(edits, validate=True)
+            changes = device.change_param_values(edits, validate=True) if edits else {}
+            changes.update(
+                {ref: (device.get_param_value(ref), value) for ref, value in mode_edits}
+            )
+            device.apply_param_values(dict(mode_edits))
+            for ref, change in device.recalculate_params(
+                ref for ref, _ in mode_edits
+            ).items():
+                changes[ref] = (changes.get(ref, change)[0], change[1])
             self._persist_param_changes(
                 device,
                 changes,
@@ -7670,7 +7720,11 @@ class ProjectService:
             changes = device.change_param_values(
                 edits, validate=mode == "edit", skip_invalid=skip_invalid
             )
-        self._persist_param_changes(device, changes, old_active, label=label)
+        try:
+            self._persist_param_changes(device, changes, old_active, label=label)
+        except Exception:
+            self._refresh_device(device.node_id)
+            raise
         return changes
 
     def recalculate_params(
@@ -7718,7 +7772,17 @@ class ProjectService:
         values = [(ref, new) for ref, (_, new) in changes.items() if new is not None]
         if self._pid is None or not values:
             return
-        self._svc.set_parameters(self._pid, node_id, values, label=label)
+        from editor_gui.plugin_blob_readers.dali_backup import e64pro
+
+        device = self.find_device_by_node_id(node_id)
+        synced = e64pro.sync_parameters(device, dict(values)) if device else None
+        self._svc.set_parameters(
+            self._pid,
+            node_id,
+            values,
+            label=label,
+            binary_data={e64pro.BACKUP_NAME: synced} if synced is not None else None,
+        )
         self._bump(structural=False)
 
     def finish_script_changes(
@@ -7778,6 +7842,12 @@ class ProjectService:
         values = [(ref, new) for ref, (_, new) in changes.items() if new is not None]
         if self._pid is None or (not values and not binary_data) or device.app is None:
             return
+        from editor_gui.plugin_blob_readers.dali_backup import e64pro
+
+        if not binary_data or e64pro.BACKUP_NAME not in binary_data:
+            synced = e64pro.sync_parameters(device, dict(values))
+            if synced is not None:
+                binary_data = {**(binary_data or {}), e64pro.BACKUP_NAME: synced}
         new_instances, ended_instances = _module_instance_changes(
             device, device.app.program.id
         )

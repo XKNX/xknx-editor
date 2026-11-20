@@ -2194,6 +2194,9 @@ class ConnectionService:
 
         if self.local_device_refused("dali", device.individual_address):
             return None
+        validate = getattr(op, "validate_device", None)
+        if validate is not None:
+            validate(device)
         if not self.begin_operation("dali", device.individual_address):
             self._log.warning("A bus operation is already running", device=device.name)
             return None

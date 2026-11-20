@@ -2123,9 +2123,6 @@ msgstr "Слот"
 msgid "The application has no static parameters."
 msgstr "У приложения нет статических параметров."
 
-msgid "This gateway's commissioning protocol has not been verified against a capture; writes may misbehave. Proceed with care."
-msgstr "Протокол ввода этого шлюза в эксплуатацию не проверен по трассе; записи могут вести себя некорректно. Действуйте осторожно."
-
 msgid "Program DCA State"
 msgstr "Запрограммировать состояние DCA"
 
@@ -3286,6 +3283,11 @@ msgstr "Текущее состояние проекта"
 msgid "Configuration Comparison"
 msgstr "Сравнение конфигураций"
 
+msgid "Current state of the project"
+msgstr "Текущее состояние проекта"
+msgid "Configuration Comparison"
+msgstr "Сравнение конфигураций"
+
 msgid "Compare settings with another device or the stored image from the last download."
 msgstr "Сравните настройки с другим устройством или с сохранённым образом последней загрузки."
 
@@ -3391,6 +3393,11 @@ msgstr "Выберите устройство"
 
 msgid "Select the two devices to compare."
 msgstr "Выберите два устройства для сравнения."
+
+msgid "Loading application programs… {done}/{total}"
+msgstr "Загрузка прикладных программ… {done}/{total}"
+msgid "Symbol"
+msgstr "Символ"
 
 msgid "Loading application programs… {done}/{total}"
 msgstr "Загрузка прикладных программ… {done}/{total}"
@@ -3601,6 +3608,11 @@ msgstr "Каталог: {source} (последняя запись: {date})."
 
 msgid "Latest Compatible Version"
 msgstr "Последняя совместимая версия"
+
+msgid "Not determined"
+msgstr "Не определена"
+msgid "Compares the device's hardware/software identity with this catalog. Does not install firmware. Catalog import: MDT Firmware Update .etsapp or Firmware.zip."
+msgstr "Сравнивает идентификатор оборудования/ПО устройства с этим каталогом. Не устанавливает прошивку. Импорт каталога: MDT Firmware Update .etsapp или Firmware.zip."
 
 msgid "Not determined"
 msgstr "Не определена"
@@ -4116,3 +4128,112 @@ msgstr "Общая доля отказов"
 
 msgid "Value input"
 msgstr "Вход значения"
+
+
+msgid "Call scene"
+msgstr "Вызвать сцену"
+
+msgid "Call effect"
+msgstr "Вызвать эффект"
+
+msgid "Start"
+msgstr "Запустить"
+
+msgid "Controlled by effect object"
+msgstr "Управление объектом эффекта"
+
+msgid "Import Descriptions…"
+msgstr "Импорт описаний…"
+
+msgid "Export Descriptions…"
+msgstr "Экспорт описаний…"
+
+msgid "Replace the descriptions included in the file? You can undo this change."
+msgstr "Заменить описания, содержащиеся в файле? Это изменение можно отменить."
+
+msgid "Clear Descriptions"
+msgstr "Очистить описания"
+
+msgid "These descriptions cannot be preserved as TXT. Choose XML."
+msgstr "Эти описания нельзя сохранить в формате TXT. Выберите XML."
+
+msgid "Insert Before"
+msgstr "Вставить перед"
+
+msgid "Sort by Time"
+msgstr "Сортировать по времени"
+
+msgid "Sort by Function"
+msgstr "Сортировать по функции"
+
+msgid "Clear Actions"
+msgstr "Очистить действия"
+
+msgid "Discover Inputs"
+msgstr "Найти входы"
+
+msgid "Stop Blinking"
+msgstr "Остановить мигание"
+
+msgid "Function Test"
+msgstr "Функциональный тест"
+
+msgid "Duration Test"
+msgstr "Тест длительности"
+
+msgid "Battery Test"
+msgstr "Тест батареи"
+
+msgid "Read Calibration"
+msgstr "Прочитать калибровку"
+
+msgid "Set Calibration Level"
+msgstr "Установить уровень калибровки"
+
+msgid "Save Calibration"
+msgstr "Сохранить калибровку"
+
+msgid "Read Memory Byte"
+msgstr "Прочитать байт памяти"
+
+msgid "Write Memory Byte"
+msgstr "Записать байт памяти"
+
+msgid "Read Names"
+msgstr "Прочитать имена"
+
+msgid "Write Names"
+msgstr "Записать имена"
+
+msgid "Read Motion Diagnostics"
+msgstr "Прочитать диагностику движения"
+
+msgid "Inhibit Converters"
+msgstr "Заблокировать преобразователи"
+
+msgid "Replace ECGs…"
+msgstr "Заменить ЭПРА…"
+
+msgid "Service"
+msgstr "Обслуживание"
+
+msgid "Calibration"
+msgstr "Калибровка"
+
+msgid "Memory Bank"
+msgstr "Банк памяти"
+
+msgid "Measured Illuminance (lx)"
+msgstr "Измеренная освещённость (лк)"
+
+msgid "Enable memory write lock"
+msgstr "Включить блокировку записи памяти"
+
+msgid "Start automatic ECG replacement on this gateway? This changes the DALI assignments and cannot be undone in the project."
+msgstr "Запустить автоматическую замену ЭПРА на этом шлюзе? Это изменит назначения DALI, и отменить это в проекте нельзя."
+
+msgid "Restore Gateway…"
+msgstr "Восстановить шлюз…"
+
+msgid "Restore the saved physical inventory and configuration to this gateway and restart it? This overwrites its DALI state and cannot be undone in the project."
+msgstr "Восстановить сохранённые физические устройства и конфигурацию на этом шлюзе и перезапустить его? Это перезапишет состояние DALI, и отменить это в проекте нельзя."

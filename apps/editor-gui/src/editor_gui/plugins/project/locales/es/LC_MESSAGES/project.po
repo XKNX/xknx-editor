@@ -2123,9 +2123,6 @@ msgstr "Ranura"
 msgid "The application has no static parameters."
 msgstr "La aplicación no tiene parámetros estáticos."
 
-msgid "This gateway's commissioning protocol has not been verified against a capture; writes may misbehave. Proceed with care."
-msgstr "El protocolo de puesta en servicio de esta pasarela no se ha verificado con una captura; las escrituras pueden comportarse mal. Procede con cuidado."
-
 msgid "Program DCA State"
 msgstr "Programar estado de DCA"
 
@@ -3234,6 +3231,11 @@ msgstr "Estado actual del proyecto"
 msgid "Configuration Comparison"
 msgstr "Comparación de configuración"
 
+msgid "Current state of the project"
+msgstr "Estado actual del proyecto"
+msgid "Configuration Comparison"
+msgstr "Comparación de configuración"
+
 msgid "Compare settings with another device or the stored image from the last download."
 msgstr "Compare los ajustes con otro dispositivo o con la imagen guardada de la última programación."
 
@@ -3341,6 +3343,11 @@ msgstr "Seleccione un dispositivo"
 
 msgid "Select the two devices to compare."
 msgstr "Seleccione los dos dispositivos que desea comparar."
+
+msgid "Loading application programs… {done}/{total}"
+msgstr "Cargando programas de aplicación… {done}/{total}"
+msgid "Symbol"
+msgstr "Símbolo"
 
 msgid "Loading application programs… {done}/{total}"
 msgstr "Cargando programas de aplicación… {done}/{total}"
@@ -3551,6 +3558,11 @@ msgstr "Catálogo: {source} (última entrada: {date})."
 
 msgid "Latest Compatible Version"
 msgstr "Última versión compatible"
+
+msgid "Not determined"
+msgstr "No determinada"
+msgid "Compares the device's hardware/software identity with this catalog. Does not install firmware. Catalog import: MDT Firmware Update .etsapp or Firmware.zip."
+msgstr "Compara la identificación de hardware/software del dispositivo con este catálogo. No instala firmware. Importar catálogo: MDT Firmware Update .etsapp o Firmware.zip."
 
 msgid "Not determined"
 msgstr "No determinada"
@@ -4066,3 +4078,114 @@ msgstr "Tasa total de fallos"
 
 msgid "Value input"
 msgstr "Entrada de valor"
+
+
+msgid "Call scene"
+msgstr "Activar escena"
+
+msgid "Call effect"
+msgstr "Activar efecto"
+
+msgid "Start"
+msgstr "Iniciar"
+
+msgid "Controlled by effect object"
+msgstr "Controlado por el objeto de efecto"
+
+msgid "Import Descriptions…"
+msgstr "Importar descripciones…"
+
+msgid "Export Descriptions…"
+msgstr "Exportar descripciones…"
+
+msgid "Replace the descriptions included in the file? You can undo this change."
+msgstr ""
+"¿Reemplazar las descripciones incluidas en el archivo? Puede deshacer este "
+"cambio."
+
+msgid "Clear Descriptions"
+msgstr "Borrar descripciones"
+
+msgid "These descriptions cannot be preserved as TXT. Choose XML."
+msgstr "Estas descripciones no se pueden conservar como TXT. Elija XML."
+
+msgid "Insert Before"
+msgstr "Insertar antes"
+
+msgid "Sort by Time"
+msgstr "Ordenar por hora"
+
+msgid "Sort by Function"
+msgstr "Ordenar por función"
+
+msgid "Clear Actions"
+msgstr "Borrar acciones"
+
+msgid "Discover Inputs"
+msgstr "Buscar entradas"
+
+msgid "Stop Blinking"
+msgstr "Detener parpadeo"
+
+msgid "Function Test"
+msgstr "Prueba funcional"
+
+msgid "Duration Test"
+msgstr "Prueba de duración"
+
+msgid "Battery Test"
+msgstr "Prueba de batería"
+
+msgid "Read Calibration"
+msgstr "Leer calibración"
+
+msgid "Set Calibration Level"
+msgstr "Establecer nivel de calibración"
+
+msgid "Save Calibration"
+msgstr "Guardar calibración"
+
+msgid "Read Memory Byte"
+msgstr "Leer byte de memoria"
+
+msgid "Write Memory Byte"
+msgstr "Escribir byte de memoria"
+
+msgid "Read Names"
+msgstr "Leer nombres"
+
+msgid "Write Names"
+msgstr "Escribir nombres"
+
+msgid "Read Motion Diagnostics"
+msgstr "Leer diagnóstico de movimiento"
+
+msgid "Inhibit Converters"
+msgstr "Inhibir convertidores"
+
+msgid "Replace ECGs…"
+msgstr "Sustituir balastos…"
+
+msgid "Service"
+msgstr "Servicio"
+
+msgid "Calibration"
+msgstr "Calibración"
+
+msgid "Memory Bank"
+msgstr "Banco de memoria"
+
+msgid "Measured Illuminance (lx)"
+msgstr "Iluminancia medida (lx)"
+
+msgid "Enable memory write lock"
+msgstr "Activar bloqueo de escritura de memoria"
+
+msgid "Start automatic ECG replacement on this gateway? This changes the DALI assignments and cannot be undone in the project."
+msgstr "¿Iniciar la sustitución automática de balastos en esta pasarela? Esto cambia las asignaciones DALI y no se puede deshacer en el proyecto."
+
+msgid "Restore Gateway…"
+msgstr "Restaurar pasarela…"
+
+msgid "Restore the saved physical inventory and configuration to this gateway and restart it? This overwrites its DALI state and cannot be undone in the project."
+msgstr "¿Restaurar los dispositivos físicos y la configuración guardados en esta pasarela y reiniciarla? Esto sobrescribe su estado DALI y no se puede deshacer en el proyecto."

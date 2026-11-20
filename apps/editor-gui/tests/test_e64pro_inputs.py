@@ -91,8 +91,14 @@ def test_input_type_compatibility(a, b, expected):
 @pytest.mark.parametrize(
     ("section", "tag", "attributes", "types", "expected"),
     [
-        ("mds", "MdInput", {"sensors-avail": "1", "nop": "2"}, [3, 3, 4], (0, 1)),
-        ("pbs", "BtnInput", {"noi": "2"}, [1, 1, 1], (1, 1)),
+        (
+            "mds",
+            "MdInput",
+            {"sensors-avail": "1", "nop": "2", "nob": "1"},
+            [3, 3, 4],
+            (0, 1),
+        ),
+        ("pbs", "BtnInput", {"noi": "2", "fold": "2"}, [1, 1, 1], (1, 1)),
     ],
 )
 def test_instance_detail_encoding(section, tag, attributes, types, expected):

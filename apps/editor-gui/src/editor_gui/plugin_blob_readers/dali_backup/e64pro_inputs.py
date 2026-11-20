@@ -4,27 +4,17 @@ from __future__ import annotations
 
 from xml.etree import ElementTree as ET
 
-INPUT_SECTIONS = {"mds": 0, "pbs": 1, "gis": 2}
-INPUT_TYPES = {
-    "GenericSensor": 0,
-    "PushButton": 1,
-    "ValueInSensor": 2,
-    "MotionSensor": 3,
-    "BrightnessSensor": 4,
-    "EventingSensor": 6,
-}
-
-
-def input_type(item: ET.Element) -> int:
-    raw = item.get("type", "")
-    return int(raw) if raw.isdecimal() else INPUT_TYPES.get(raw, 255)
+from xknxeditor.dali.connection import DaliCommissioningError
+from xknxeditor.dali.input_configuration import (
+    INPUT_SECTIONS,
+    compatible_types,
+    input_encoding,
+    input_type,
+)
 
 
 def compatible(logical: ET.Element, physical: ET.Element) -> bool:
-    a, b = input_type(logical), input_type(physical)
-    return a in INPUT_TYPES.values() and (
-        a == b or (a == 0 and b in (2, 6)) or (b == 0 and a in (2, 6))
-    )
+    return compatible_types(input_type(logical), input_type(physical))
 
 
 def physical_inputs(root: ET.Element) -> list[tuple[ET.Element, ET.Element]]:
@@ -48,25 +38,11 @@ def _encoding(
 ) -> tuple[int, int]:
     from editor_gui.plugins.project.strings import S
 
-    index = int(controller.get("index", "-1"))
-    if not 0 <= index < 8:
-        raise ValueError(S.E64_INVALID_SELECTION)
-    subtype = input_type(instance)
-    if section == "pbs":
-        count = int(controller.get("noi", "0"))
-        if count <= 0:
-            raise ValueError(S.E64_INVALID_CONFIGURATION)
-        number, detail = row % count, row // count
-    elif section == "mds":
-        number = row
-        if controller.get("sensors-avail") == "1" and subtype == 4:
-            number -= int(controller.get("nop", "0"))
-        detail = int(subtype == 4)
-    else:
-        number, detail = 0, 0
-    if not 0 <= number < 16 or not 0 <= detail < 16:
-        raise ValueError(S.E64_INVALID_SELECTION)
-    return (index << 3) | INPUT_SECTIONS[section], (number << 4) | detail
+    try:
+        code, detail, _ = input_encoding(section, controller, row, instance)
+        return code, detail
+    except (ValueError, DaliCommissioningError) as exc:
+        raise ValueError(S.E64_INVALID_CONFIGURATION) from exc
 
 
 def assign(

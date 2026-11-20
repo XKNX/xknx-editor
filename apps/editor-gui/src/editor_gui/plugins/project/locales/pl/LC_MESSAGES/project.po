@@ -2123,9 +2123,6 @@ msgstr "Slot"
 msgid "The application has no static parameters."
 msgstr "Aplikacja nie ma parametrów statycznych."
 
-msgid "This gateway's commissioning protocol has not been verified against a capture; writes may misbehave. Proceed with care."
-msgstr "Protokół uruchomienia tej bramki nie został zweryfikowany na podstawie przechwycenia; zapisy mogą działać nieprawidłowo. Postępuj ostrożnie."
-
 msgid "Program DCA State"
 msgstr "Programuj stan DCA"
 
@@ -3286,6 +3283,11 @@ msgstr "Bieżący stan projektu"
 msgid "Configuration Comparison"
 msgstr "Porównanie konfiguracji"
 
+msgid "Current state of the project"
+msgstr "Bieżący stan projektu"
+msgid "Configuration Comparison"
+msgstr "Porównanie konfiguracji"
+
 msgid "Compare settings with another device or the stored image from the last download."
 msgstr "Porównaj ustawienia z innym urządzeniem lub zapisanym obrazem z ostatniego programowania."
 
@@ -3391,6 +3393,11 @@ msgstr "Wybierz urządzenie"
 
 msgid "Select the two devices to compare."
 msgstr "Wybierz dwa urządzenia do porównania."
+
+msgid "Loading application programs… {done}/{total}"
+msgstr "Ładowanie programów aplikacyjnych… {done}/{total}"
+msgid "Symbol"
+msgstr "Symbol"
 
 msgid "Loading application programs… {done}/{total}"
 msgstr "Ładowanie programów aplikacyjnych… {done}/{total}"
@@ -3601,6 +3608,11 @@ msgstr "Katalog: {source} (najnowszy wpis: {date})."
 
 msgid "Latest Compatible Version"
 msgstr "Najnowsza zgodna wersja"
+
+msgid "Not determined"
+msgstr "Nie ustalono"
+msgid "Compares the device's hardware/software identity with this catalog. Does not install firmware. Catalog import: MDT Firmware Update .etsapp or Firmware.zip."
+msgstr "Porównuje identyfikator sprzętu/oprogramowania urządzenia z tym katalogiem. Nie instaluje oprogramowania układowego. Import katalogu: MDT Firmware Update .etsapp lub Firmware.zip."
 
 msgid "Not determined"
 msgstr "Nie ustalono"
@@ -4116,3 +4128,112 @@ msgstr "Łączny odsetek usterek"
 
 msgid "Value input"
 msgstr "Wejście wartości"
+
+
+msgid "Call scene"
+msgstr "Wywołaj scenę"
+
+msgid "Call effect"
+msgstr "Wywołaj efekt"
+
+msgid "Start"
+msgstr "Uruchom"
+
+msgid "Controlled by effect object"
+msgstr "Sterowanie przez obiekt efektu"
+
+msgid "Import Descriptions…"
+msgstr "Importuj opisy…"
+
+msgid "Export Descriptions…"
+msgstr "Eksportuj opisy…"
+
+msgid "Replace the descriptions included in the file? You can undo this change."
+msgstr "Zastąpić opisy zawarte w pliku? Można cofnąć tę zmianę."
+
+msgid "Clear Descriptions"
+msgstr "Wyczyść opisy"
+
+msgid "These descriptions cannot be preserved as TXT. Choose XML."
+msgstr "Tych opisów nie można zachować w formacie TXT. Wybierz XML."
+
+msgid "Insert Before"
+msgstr "Wstaw przed"
+
+msgid "Sort by Time"
+msgstr "Sortuj według czasu"
+
+msgid "Sort by Function"
+msgstr "Sortuj według funkcji"
+
+msgid "Clear Actions"
+msgstr "Wyczyść akcje"
+
+msgid "Discover Inputs"
+msgstr "Wyszukaj wejścia"
+
+msgid "Stop Blinking"
+msgstr "Zatrzymaj miganie"
+
+msgid "Function Test"
+msgstr "Test funkcjonalny"
+
+msgid "Duration Test"
+msgstr "Test czasu pracy"
+
+msgid "Battery Test"
+msgstr "Test akumulatora"
+
+msgid "Read Calibration"
+msgstr "Odczytaj kalibrację"
+
+msgid "Set Calibration Level"
+msgstr "Ustaw poziom kalibracji"
+
+msgid "Save Calibration"
+msgstr "Zapisz kalibrację"
+
+msgid "Read Memory Byte"
+msgstr "Odczytaj bajt pamięci"
+
+msgid "Write Memory Byte"
+msgstr "Zapisz bajt pamięci"
+
+msgid "Read Names"
+msgstr "Odczytaj nazwy"
+
+msgid "Write Names"
+msgstr "Zapisz nazwy"
+
+msgid "Read Motion Diagnostics"
+msgstr "Odczytaj diagnostykę ruchu"
+
+msgid "Inhibit Converters"
+msgstr "Zablokuj konwertery"
+
+msgid "Replace ECGs…"
+msgstr "Wymień stateczniki…"
+
+msgid "Service"
+msgstr "Serwis"
+
+msgid "Calibration"
+msgstr "Kalibracja"
+
+msgid "Memory Bank"
+msgstr "Bank pamięci"
+
+msgid "Measured Illuminance (lx)"
+msgstr "Zmierzone natężenie oświetlenia (lx)"
+
+msgid "Enable memory write lock"
+msgstr "Włącz blokadę zapisu pamięci"
+
+msgid "Start automatic ECG replacement on this gateway? This changes the DALI assignments and cannot be undone in the project."
+msgstr "Rozpocząć automatyczną wymianę stateczników na tej bramie? Zmieni to przypisania DALI i nie można tego cofnąć w projekcie."
+
+msgid "Restore Gateway…"
+msgstr "Przywróć bramę…"
+
+msgid "Restore the saved physical inventory and configuration to this gateway and restart it? This overwrites its DALI state and cannot be undone in the project."
+msgstr "Przywrócić zapisane urządzenia fizyczne i konfigurację na tej bramie oraz uruchomić ją ponownie? Nadpisze to stan DALI i nie można tego cofnąć w projekcie."

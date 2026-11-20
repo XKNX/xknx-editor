@@ -40,6 +40,19 @@ def _empty_state(channel: int = 0) -> DaliBusState:
     return DaliBusState(channel=channel)
 
 
+@pytest.mark.parametrize("level,percent", [(0, 0), (128, 50), (254, 100), (255, 100)])
+def test_bus_scene_levels_are_saved_as_percentages(level, percent):
+    root = _parse(
+        build_backup_store_xml(
+            state=_empty_state(),
+            scenes=[Scene(0, values=[SceneValue(0, 0, level)])],
+            individual_address="1.1.5",
+        )
+    )
+    item = root.find("scenes/Scene/SceneItem")
+    assert item is not None and item.get("value") == str(percent)
+
+
 def test_backup_store_name_channel_suffix() -> None:
     assert backup_store_name(0) == BACKUP_STORE_BASE_NAME
     assert backup_store_name(1) == f"{BACKUP_STORE_BASE_NAME}.1"
@@ -203,7 +216,7 @@ def test_devecg_long_address_is_uppercase_6_hex() -> None:
     first = _parse(payload).find("devecgs/DevECG[@index='0']")
     assert first is not None
     assert first.attrib["long-address"] == "1A2B3C"
-    assert first.attrib["short-address"] == "0"
+    assert first.attrib["short-address"] == "255"
 
 
 def test_devecg_absent_slot_defaults() -> None:
@@ -303,13 +316,52 @@ def test_commissioning_flag_derived_from_presence_and_binding() -> None:
     state = DaliBusState(
         channel=0,
         ecgs=[
-            EcgState(slot=0, present=True, ecg_type=0, ets_ecg_index=5),
+            EcgState(slot=0, present=True, ecg_type=6, ets_ecg_index=5, group_index=3),
             EcgState(slot=1, present=True, ecg_type=0),  # present but unassigned
             EcgState(slot=2, present=False, ecg_type=0),  # absent
         ],
     )
     payload = build_backup_store_xml(state=state, individual_address="1.1.5")
     ecgs = {el.attrib["index"]: el for el in _parse(payload).findall("ecgs/ECG")}
-    assert ecgs["0"].attrib["flags"] == "2"  # assigned
-    assert ecgs["1"].attrib["flags"] == "1"  # not assigned
-    assert ecgs["2"].attrib["flags"] == "0"  # not present
+    assert ecgs["5"].attrib["flags"] == "4"
+    assert ecgs["5"].attrib["short-address"] == "0"
+    assert ecgs["5"].attrib["type"] == "6"
+    assert ecgs["0"].attrib["flags"] == "0"
+    assert ecgs["1"].attrib["flags"] == "0"
+    assert ecgs["2"].attrib["flags"] == "0"
+    physical = _parse(payload).find("devecgs/DevECG[@index='0']")
+    assert physical.attrib["short-address"] == "5"
+
+
+@pytest.mark.parametrize("mode", ["build", "merge"])
+@pytest.mark.parametrize("group,flag", [(3, "4"), (16, "4"), (32, "1")])
+def test_backup_builders_share_logical_mapping_and_commissioned_flags(
+    mode, group, flag
+):
+    from xknxeditor.dali.project_persistence import merge_commissioning_blob
+
+    state = DaliBusState(
+        0,
+        ecgs=[
+            EcgState(5, present=True, ecg_type=6, ets_ecg_index=9, group_index=group)
+        ],
+    )
+    if mode == "build":
+        data = build_backup_store_xml(state=state, individual_address="1.1.5")
+    else:
+        data = merge_commissioning_blob(
+            existing=None,
+            state=state,
+            assignments=[],
+            scenes=[],
+            individual_address="1.1.5",
+        )
+    root = _parse(data)
+    assert root.find("devecgs/DevECG[@index='5']").get("short-address") == "9"
+    logical = root.find("ecgs/ECG[@index='9']")
+    assert logical.get("short-address") == "5"
+    assert logical.get("groupindex") == str(group)
+    assert logical.get("flags") == flag
+    untouched = root.find("ecgs/ECG[@index='5']")
+    assert untouched.get("short-address") == "255"
+    assert untouched.get("flags") == "0"

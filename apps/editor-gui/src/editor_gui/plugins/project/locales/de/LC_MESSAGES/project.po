@@ -1693,14 +1693,6 @@ msgid "Connect to a KNX interface to commission the DALI bus."
 msgstr "Für die Inbetriebnahme des DALI-Busses mit einer KNX-Schnittstelle verbinden."
 
 msgid ""
-"This gateway's commissioning protocol has not been verified against a "
-"capture; writes may misbehave. Proceed with care."
-msgstr ""
-"Das Inbetriebnahme-Protokoll dieses Gateways wurde nicht gegen eine "
-"Aufzeichnung verifiziert; Schreibvorgänge können fehlerhaft sein. Mit "
-"Vorsicht fortfahren."
-
-msgid ""
 "DALI commissioning writes the gateway on the bus but does not update the "
 "project parameters; re-export the .knxproj after a DCA-side edit."
 msgstr ""
@@ -3374,6 +3366,11 @@ msgstr "Aktueller Stand des Projekts"
 msgid "Configuration Comparison"
 msgstr "Konfigurationsvergleich"
 
+msgid "Current state of the project"
+msgstr "Aktueller Stand des Projekts"
+msgid "Configuration Comparison"
+msgstr "Konfigurationsvergleich"
+
 msgid "Compare settings with another device or the stored image from the last download."
 msgstr "Vergleiche Einstellungen mit einem anderen Gerät oder dem gespeicherten Abbild des letzten Downloads."
 
@@ -3481,6 +3478,11 @@ msgstr "Gerät auswählen"
 
 msgid "Select the two devices to compare."
 msgstr "Wählen Sie die beiden Geräte aus, die verglichen werden sollen."
+
+msgid "Loading application programs… {done}/{total}"
+msgstr "Applikationsprogramme werden geladen… {done}/{total}"
+msgid "Symbol"
+msgstr "Symbol"
 
 msgid "Loading application programs… {done}/{total}"
 msgstr "Applikationsprogramme werden geladen… {done}/{total}"
@@ -3691,6 +3693,11 @@ msgstr "Katalog: {source} (neuester Eintrag: {date})."
 
 msgid "Latest Compatible Version"
 msgstr "Neueste kompatible Version"
+
+msgid "Not determined"
+msgstr "Nicht ermittelt"
+msgid "Compares the device's hardware/software identity with this catalog. Does not install firmware. Catalog import: MDT Firmware Update .etsapp or Firmware.zip."
+msgstr "Vergleicht die Hardware-/Software-Kennung des Geräts mit diesem Katalog. Installiert keine Firmware. Katalogimport: MDT Firmware Update .etsapp oder Firmware.zip."
 
 msgid "Not determined"
 msgstr "Nicht ermittelt"
@@ -4206,3 +4213,116 @@ msgstr "Gesamtfehlerquote"
 
 msgid "Value input"
 msgstr "Werteingang"
+
+
+msgid "Call scene"
+msgstr "Szene aufrufen"
+
+msgid "Call effect"
+msgstr "Effekt aufrufen"
+
+msgid "Start"
+msgstr "Start"
+
+msgid "Controlled by effect object"
+msgstr "Über Effektobjekt gesteuert"
+
+msgid "Import Descriptions…"
+msgstr "Beschreibungen importieren…"
+
+msgid "Export Descriptions…"
+msgstr "Beschreibungen exportieren…"
+
+msgid "Replace the descriptions included in the file? You can undo this change."
+msgstr ""
+"Die in der Datei enthaltenen Beschreibungen ersetzen? Du kannst diese "
+"Änderung rückgängig machen."
+
+msgid "Clear Descriptions"
+msgstr "Beschreibungen leeren"
+
+msgid "These descriptions cannot be preserved as TXT. Choose XML."
+msgstr ""
+"Diese Beschreibungen lassen sich nicht verlustfrei als TXT speichern. Wähle "
+"XML."
+
+msgid "Insert Before"
+msgstr "Davor einfügen"
+
+msgid "Sort by Time"
+msgstr "Nach Zeit sortieren"
+
+msgid "Sort by Function"
+msgstr "Nach Funktion sortieren"
+
+msgid "Clear Actions"
+msgstr "Aktionen leeren"
+
+msgid "Discover Inputs"
+msgstr "Eingabegeräte suchen"
+
+msgid "Stop Blinking"
+msgstr "Blinken beenden"
+
+msgid "Function Test"
+msgstr "Funktionstest"
+
+msgid "Duration Test"
+msgstr "Dauertest"
+
+msgid "Battery Test"
+msgstr "Batterietest"
+
+msgid "Read Calibration"
+msgstr "Kalibrierung lesen"
+
+msgid "Set Calibration Level"
+msgstr "Kalibrierungshelligkeit einstellen"
+
+msgid "Save Calibration"
+msgstr "Kalibrierung speichern"
+
+msgid "Read Memory Byte"
+msgstr "Speicherbyte lesen"
+
+msgid "Write Memory Byte"
+msgstr "Speicherbyte schreiben"
+
+msgid "Read Names"
+msgstr "Namen lesen"
+
+msgid "Write Names"
+msgstr "Namen schreiben"
+
+msgid "Read Motion Diagnostics"
+msgstr "Bewegungsdiagnose lesen"
+
+msgid "Inhibit Converters"
+msgstr "Konverter sperren"
+
+msgid "Replace ECGs…"
+msgstr "EVGs ersetzen…"
+
+msgid "Service"
+msgstr "Service"
+
+msgid "Calibration"
+msgstr "Kalibrierung"
+
+msgid "Memory Bank"
+msgstr "Speicherbank"
+
+msgid "Measured Illuminance (lx)"
+msgstr "Gemessene Beleuchtungsstärke (lx)"
+
+msgid "Enable memory write lock"
+msgstr "Speicherschreibsperre aktivieren"
+
+msgid "Start automatic ECG replacement on this gateway? This changes the DALI assignments and cannot be undone in the project."
+msgstr "Automatischen EVG-Austausch auf diesem Gateway starten? Dies ändert die DALI-Zuordnungen und kann im Projekt nicht rückgängig gemacht werden."
+
+msgid "Restore Gateway…"
+msgstr "Gateway wiederherstellen…"
+
+msgid "Restore the saved physical inventory and configuration to this gateway and restart it? This overwrites its DALI state and cannot be undone in the project."
+msgstr "Gespeicherten Gerätebestand und Konfiguration auf diesem Gateway wiederherstellen und es neu starten? Dies überschreibt seinen DALI-Zustand und kann im Projekt nicht rückgängig gemacht werden."

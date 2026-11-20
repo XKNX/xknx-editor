@@ -1589,9 +1589,6 @@ msgstr "O parte din datele dispozitivului nu este disponibilă."
 msgid "Connect to a KNX interface to commission the DALI bus."
 msgstr "Conectați-vă la o interfață KNX pentru a pune în funcțiune magistrala DALI."
 
-msgid "This gateway's commissioning protocol has not been verified against a capture; writes may misbehave. Proceed with care."
-msgstr "Protocolul de punere în funcțiune al acestui gateway nu a fost verificat pe o înregistrare; scrierile se pot comporta greșit. Procedați cu atenție."
-
 msgid "DALI commissioning writes the gateway on the bus but does not update the project parameters; re-export the .knxproj after a DCA-side edit."
 msgstr "Punerea în funcțiune DALI scrie gateway-ul pe magistrală, dar nu actualizează parametrii proiectului; după o modificare din DCA, exportați din nou fișierul .knxproj."
 
@@ -3313,6 +3310,11 @@ msgstr "Starea curentă a proiectului"
 msgid "Configuration Comparison"
 msgstr "Compararea configurației"
 
+msgid "Current state of the project"
+msgstr "Starea curentă a proiectului"
+msgid "Configuration Comparison"
+msgstr "Compararea configurației"
+
 msgid "Compare settings with another device or the stored image from the last download."
 msgstr "Comparați setările cu un alt dispozitiv sau cu imaginea salvată la ultima programare."
 
@@ -3418,6 +3420,11 @@ msgstr "Selectați un dispozitiv"
 
 msgid "Select the two devices to compare."
 msgstr "Selectați cele două dispozitive de comparat."
+
+msgid "Loading application programs… {done}/{total}"
+msgstr "Se încarcă programele de aplicație… {done}/{total}"
+msgid "Symbol"
+msgstr "Simbol"
 
 msgid "Loading application programs… {done}/{total}"
 msgstr "Se încarcă programele de aplicație… {done}/{total}"
@@ -3628,6 +3635,11 @@ msgstr "Catalog: {source} (cea mai recentă intrare: {date})."
 
 msgid "Latest Compatible Version"
 msgstr "Cea mai recentă versiune compatibilă"
+
+msgid "Not determined"
+msgstr "Nedeterminată"
+msgid "Compares the device's hardware/software identity with this catalog. Does not install firmware. Catalog import: MDT Firmware Update .etsapp or Firmware.zip."
+msgstr "Compară identitatea hardware/software a dispozitivului cu acest catalog. Nu instalează firmware. Import catalog: MDT Firmware Update .etsapp sau Firmware.zip."
 
 msgid "Not determined"
 msgstr "Nedeterminată"
@@ -4143,3 +4155,112 @@ msgstr "Rată totală de defectare"
 
 msgid "Value input"
 msgstr "Intrare de valoare"
+
+
+msgid "Call scene"
+msgstr "Apelează scena"
+
+msgid "Call effect"
+msgstr "Apelează efectul"
+
+msgid "Start"
+msgstr "Pornește"
+
+msgid "Controlled by effect object"
+msgstr "Controlat de obiectul de efect"
+
+msgid "Import Descriptions…"
+msgstr "Importă descrieri…"
+
+msgid "Export Descriptions…"
+msgstr "Exportă descrieri…"
+
+msgid "Replace the descriptions included in the file? You can undo this change."
+msgstr "Înlocuiești descrierile incluse în fișier? Poți anula această modificare."
+
+msgid "Clear Descriptions"
+msgstr "Șterge descrierile"
+
+msgid "These descriptions cannot be preserved as TXT. Choose XML."
+msgstr "Aceste descrieri nu pot fi păstrate ca TXT. Alege XML."
+
+msgid "Insert Before"
+msgstr "Inserează înainte"
+
+msgid "Sort by Time"
+msgstr "Sortează după oră"
+
+msgid "Sort by Function"
+msgstr "Sortează după funcție"
+
+msgid "Clear Actions"
+msgstr "Șterge acțiunile"
+
+msgid "Discover Inputs"
+msgstr "Caută intrări"
+
+msgid "Stop Blinking"
+msgstr "Oprește clipirea"
+
+msgid "Function Test"
+msgstr "Test funcțional"
+
+msgid "Duration Test"
+msgstr "Test de durată"
+
+msgid "Battery Test"
+msgstr "Test baterie"
+
+msgid "Read Calibration"
+msgstr "Citește calibrarea"
+
+msgid "Set Calibration Level"
+msgstr "Setează nivelul de calibrare"
+
+msgid "Save Calibration"
+msgstr "Salvează calibrarea"
+
+msgid "Read Memory Byte"
+msgstr "Citește octetul de memorie"
+
+msgid "Write Memory Byte"
+msgstr "Scrie octetul de memorie"
+
+msgid "Read Names"
+msgstr "Citește numele"
+
+msgid "Write Names"
+msgstr "Scrie numele"
+
+msgid "Read Motion Diagnostics"
+msgstr "Citește diagnosticul de mișcare"
+
+msgid "Inhibit Converters"
+msgstr "Blochează convertoarele"
+
+msgid "Replace ECGs…"
+msgstr "Înlocuiește balasturile…"
+
+msgid "Service"
+msgstr "Service"
+
+msgid "Calibration"
+msgstr "Calibrare"
+
+msgid "Memory Bank"
+msgstr "Banc de memorie"
+
+msgid "Measured Illuminance (lx)"
+msgstr "Iluminare măsurată (lx)"
+
+msgid "Enable memory write lock"
+msgstr "Activează blocarea scrierii în memorie"
+
+msgid "Start automatic ECG replacement on this gateway? This changes the DALI assignments and cannot be undone in the project."
+msgstr "Pornești înlocuirea automată a balasturilor pe acest gateway? Aceasta modifică atribuirile DALI și nu poate fi anulată în proiect."
+
+msgid "Restore Gateway…"
+msgstr "Restaurează gateway-ul…"
+
+msgid "Restore the saved physical inventory and configuration to this gateway and restart it? This overwrites its DALI state and cannot be undone in the project."
+msgstr "Restaurezi dispozitivele fizice și configurația salvate pe acest gateway și îl repornești? Aceasta suprascrie starea DALI și nu poate fi anulată în proiect."

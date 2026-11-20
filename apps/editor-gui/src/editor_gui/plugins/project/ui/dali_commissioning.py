@@ -1,15 +1,15 @@
 """DALI commissioning tab for MDT gateways (bus scan / identify / group + scene programming).
 
-Renders on the GUI thread; runs the async protocol through ``ConnectionService.run_dali`` and stashes
-results under a lock that ``render`` polls (done-callbacks fire on the asyncio thread). Only shown for
-MDT DALI devices (gated in configure.py). Write/installation actions change the bus, so they sit
+Renders on the GUI thread and runs the protocol through the programming queue. The async operation
+stores its result under a lock; the queue dispatches its completion callback on the GUI thread.
+Write/installation actions change the bus, so they sit
 behind a confirm and every session should start with a read-only scan. The programmed payload (group
 assignment, scenes) is built from the scan plus the user's edits held in :class:`_DeviceUi`.
 """
 
 from __future__ import annotations
 
-import functools
+import copy
 import threading
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
@@ -36,7 +36,7 @@ from xknxeditor.dali.model import (
 from xknxeditor.dali.profiles import profile_for
 
 # Type of the injected runner, which queues the operation: (device, op, channel, its name in
-# the Operations panel, called once it has ended).  (op gets a commissioner.)
+# the Operations panel, completion on the GUI thread). (op gets a commissioner.)
 DaliRunner = Callable[
     [
         Device,
@@ -52,7 +52,7 @@ DaliRunner = Callable[
 # Persist the commissioning result into the project blob for one channel:
 # (device, scan, assignments, scenes, channel).
 DaliPersist = Callable[
-    [Device, DaliBusState, "list[EcgAssignment]", "list[Scene]", int], None
+    [Device, DaliBusState, "list[EcgAssignment]", "list[Scene]", int], bool
 ]
 
 # Number of DALI bus channels a device has: (device) -> count (1 for a 1x64 gateway).
@@ -106,14 +106,15 @@ def _combo_to_group(combo_index: int) -> int:
 def _assignments_from(
     scan: DaliBusState, group_edits: dict[int, int]
 ) -> list[EcgAssignment]:
-    """Build the commission plan: every present ECG keeps its ETS number, group from the edits."""
+    """Build a plan for edited ECGs, keeping their logical numbers from the scan."""
     return [
         EcgAssignment(
             slot=e.slot,
             ets_index=e.ets_ecg_index,
-            group_index=group_edits.get(e.slot, e.group_index),
+            group_index=group_edits[e.slot],
         )
         for e in scan.present_ecgs
+        if e.slot in group_edits
     ]
 
 
@@ -133,6 +134,13 @@ def _scenes_from(scene_edits: dict[int, dict[int, int]]) -> list[Scene]:
 
 
 @dataclass
+class _Programmed:
+    scan: DaliBusState
+    assignments: list[EcgAssignment]
+    scenes: list[Scene]
+
+
+@dataclass
 class _DeviceUi:
     """Per-device commissioning state (keyed by individual address)."""
 
@@ -147,9 +155,11 @@ class _DeviceUi:
     scene_edits: dict[int, dict[int, int]] = field(
         default_factory=dict[int, "dict[int, int]"]
     )  # scene index -> {group -> level}
-    # Set by a successful groups/scenes write on the asyncio thread; render() picks it up on the
-    # GUI thread and persists the backup blob into the project (project edits are not thread-safe).
-    persist_pending: bool = False
+    scene_levels: dict[int, dict[int, int]] = field(
+        default_factory=dict[int, dict[int, int]]
+    )
+    # Successful async writes are persisted by the queue completion on the GUI thread.
+    persist_pending: list[_Programmed] = field(default_factory=list[_Programmed])
     pending: str = ""
 
 
@@ -204,6 +214,8 @@ class DaliCommissioningPanel:
         op: Callable[[MdtDaliCommissioner], Awaitable[object]],
         *,
         store_scan: bool = False,
+        assignments: list[EcgAssignment] | None = None,
+        scenes: list[Scene] | None = None,
     ) -> None:
         """Queue ``op`` as the operation ``label``, named ``text`` (the button that started it)
         in the Operations panel."""
@@ -218,13 +230,25 @@ class DaliCommissioningPanel:
             state.progress = ""
             state.run += 1
             run = state.run
-        wrapped = self._wrap(state, label, op, store_scan)
+        programmed = (
+            _Programmed(copy.deepcopy(state.scan), assignments or [], scenes or [])
+            if state.scan is not None and (assignments or scenes)
+            else None
+        )
+        wrapped = self._wrap(state, label, op, store_scan, programmed)
+        generation = self._generation()
+
+        def ended() -> None:
+            self._ended(state, run)
+            if self._generation() == generation:
+                self._persist_backup(device, channel, state)
+
         self._run(
             device,
             wrapped,
             channel,
             text,
-            functools.partial(self._ended, state, run),
+            ended,
             # Everything but a scan changes the gateway or the DALI bus.
             label != "scan",
         )
@@ -242,6 +266,7 @@ class DaliCommissioningPanel:
         label: str,
         op: Callable[[MdtDaliCommissioner], Awaitable[object]],
         store_scan: bool,
+        programmed: _Programmed | None = None,
     ) -> Callable[[MdtDaliCommissioner], Awaitable[object]]:
         async def runner(commissioner: MdtDaliCommissioner) -> object:
             try:
@@ -259,26 +284,46 @@ class DaliCommissioningPanel:
                 if store_scan and isinstance(result, DaliBusState):
                     st.scan = result
                     st.group_edits.clear()  # fresh bus state -> drop stale group edits
-                if label in ("program-groups", "program-scenes"):
-                    # A write landed on the bus; flag the GUI thread to persist the project blob.
-                    st.persist_pending = True
+                if programmed is not None:
+                    groups = {a.slot: a.group_index for a in programmed.assignments}
+                    for scan in (programmed.scan, st.scan):
+                        if scan is not None:
+                            for ecg in scan.ecgs:
+                                if ecg.slot in groups:
+                                    ecg.group_index = groups[ecg.slot]
+                    for slot, group in groups.items():
+                        if st.group_edits.get(slot) == group:
+                            del st.group_edits[slot]
+                    for scene in programmed.scenes:
+                        edits = st.scene_edits.get(scene.index, {})
+                        levels = st.scene_levels.setdefault(scene.index, {})
+                        for value in scene.values:
+                            levels[value.target_index] = value.level
+                            if edits.get(value.target_index) == value.level:
+                                del edits[value.target_index]
+                        if not edits:
+                            st.scene_edits.pop(scene.index, None)
+                    st.persist_pending.append(programmed)
                 st.busy = ""
             return result
 
         return runner
 
     def _persist_backup(self, device: Device, channel: int, state: _DeviceUi) -> None:
-        """Hand the current commissioning state to the project persistence callback.
-
-        Runs on the GUI thread (from ``render``) after a groups/scenes write landed on the
-        bus. The blob holds the whole channel, so it is rebuilt from the full scan + edits
-        every time, not just the slice that was last written.
-        """
-        if self._persist is None or state.scan is None:
+        """Save only the payloads of completed operations, in their completion order."""
+        if self._persist is None:
             return
-        assignments = _assignments_from(state.scan, state.group_edits)
-        scenes = _scenes_from(state.scene_edits)
-        self._persist(device, state.scan, assignments, scenes, channel)
+        with self._lock:
+            pending, state.persist_pending = state.persist_pending, []
+        for result in pending:
+            try:
+                saved = self._persist(
+                    device, result.scan, result.assignments, result.scenes, channel
+                )
+                if not saved:
+                    state.error = S.DALI_PROJECT_NOT_UPDATED
+            except Exception as exc:
+                state.error = f"{type(exc).__name__}: {exc}"
 
     # --- rendering ---------------------------------------------------------
 
@@ -305,24 +350,19 @@ class DaliCommissioningPanel:
             state = self._state(key, channel)
             busy, error, progress = state.busy, state.error, state.progress
             scan = state.scan
-            persist_pending = state.persist_pending
-            state.persist_pending = False
+            persist_pending = bool(state.persist_pending)
 
         app_id = device.app.id if device.app is not None else None
         profile = profile_for(app_id)
-        # Persist the project blob for any recognised Type-A gateway: MDT (gc16) is fully
-        # modelled; Theben/IPAS (e64pro) get their group assignments patched into the existing
-        # vendor blob with everything else preserved byte-exact.
         can_persist = self._persist is not None and profile is not None
-        if persist_pending and can_persist and scan is not None:
+        if persist_pending and can_persist:
             self._persist_backup(device, channel, state)
+            error = state.error
 
         if not connected:
             imgui.text_disabled(S.DALI_CONNECT_HINT)
             return
 
-        if profile is not None and profile.unverified:
-            imgui.text_colored(status_color("warning"), S.DALI_UNVERIFIED_WARNING)
         if not can_persist:
             imgui.text_disabled(S.DALI_PROJECT_NOT_UPDATED)
 
@@ -446,6 +486,7 @@ class DaliCommissioningPanel:
             "program-groups",
             S.DALI_PROGRAM_GROUPS,
             lambda c: c.commission(assignments),
+            assignments=assignments,
         )
 
     def _start_program_scenes(self, device: Device, key: tuple[int, str]) -> None:
@@ -457,7 +498,8 @@ class DaliCommissioningPanel:
             device,
             "program-scenes",
             S.DALI_PROGRAM_SCENES,
-            lambda c: c.write_scenes(scenes),
+            lambda c: c.write_scenes(scenes, levels_only=True),
+            scenes=scenes,
         )
 
     def _render_ecg_table(
@@ -555,7 +597,9 @@ class DaliCommissioningPanel:
             imgui.set_next_item_width(px(120.0))
             changed, value = imgui.input_int(
                 f"{S.DALI_GROUP_NUMBER.format(number=group)}##scn{group}",
-                levels.get(group, 0),
+                levels.get(
+                    group, state.scene_levels.get(state.scene_sel, {}).get(group, 0)
+                ),
             )
             if changed:
                 levels[group] = max(0, min(_MAX_LEVEL, value))

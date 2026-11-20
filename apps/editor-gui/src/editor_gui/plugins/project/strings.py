@@ -8,6 +8,103 @@ _ = create_translator("project", _locale_dir)
 
 class ProjectStrings:
     @property
+    def E64_BUS_ACTIONS(self) -> dict[str, str]:
+        return {
+            "read": _("Read from Device"),
+            "write": _("Write"),
+            "test": _("Test"),
+            "start": _("Start"),
+            "stop": _("Stop"),
+            "discover": _("Discover Inputs"),
+            "identify": _("Blink"),
+            "stop_identify": _("Stop Blinking"),
+            "function": _("Function Test"),
+            "duration": _("Duration Test"),
+            "battery": _("Battery Test"),
+            "read_calibration": _("Read Calibration"),
+            "set_calibration": _("Set Calibration Level"),
+            "save_calibration": _("Save Calibration"),
+            "read_memory": _("Read Memory Byte"),
+            "write_memory": _("Write Memory Byte"),
+            "read_names": _("Read Names"),
+            "write_names": _("Write Names"),
+            "read_motion": _("Read Motion Diagnostics"),
+            "inhibit": _("Inhibit Converters"),
+            "replace": _("Replace ECGs…"),
+            "restore": _("Restore Gateway…"),
+        }
+
+    @property
+    def E64_SERVICE(self) -> str:
+        return _("Service")
+
+    @property
+    def E64_CALIBRATION(self) -> str:
+        return _("Calibration")
+
+    @property
+    def E64_MEMORY_BANK(self) -> str:
+        return _("Memory Bank")
+
+    @property
+    def E64_LUX(self) -> str:
+        return _("Measured Illuminance (lx)")
+
+    @property
+    def E64_MEMORY_LOCK(self) -> str:
+        return _("Enable memory write lock")
+
+    @property
+    def E64_REPLACE_CONFIRM(self) -> str:
+        return _(
+            "Start automatic ECG replacement on this gateway? This changes the DALI assignments and cannot be undone in the project."
+        )
+
+    @property
+    def E64_RESTORE_CONFIRM(self) -> str:
+        return _(
+            "Restore the saved physical inventory and configuration to this gateway and restart it? This overwrites its DALI state and cannot be undone in the project."
+        )
+
+    @property
+    def E64_IMPORT_DESCRIPTIONS(self) -> str:
+        return _("Import Descriptions…")
+
+    @property
+    def E64_EXPORT_DESCRIPTIONS(self) -> str:
+        return _("Export Descriptions…")
+
+    @property
+    def E64_IMPORT_DESCRIPTIONS_CONFIRM(self) -> str:
+        return _(
+            "Replace the descriptions included in the file? You can undo this change."
+        )
+
+    @property
+    def E64_CLEAR_DESCRIPTIONS(self) -> str:
+        return _("Clear Descriptions")
+
+    @property
+    def E64_DESCRIPTION_TEXT_LOSS(self) -> str:
+        return _("These descriptions cannot be preserved as TXT. Choose XML.")
+
+    @property
+    def E64_INSERT(self) -> str:
+        return _("Insert Before")
+
+    @property
+    def E64_SORT_TIME(self) -> str:
+        return _("Sort by Time")
+
+    @property
+    def E64_SORT_FUNCTION(self) -> str:
+        return _("Sort by Function")
+
+    @property
+    def E64_CLEAR_COMMANDS(self) -> str:
+        return _("Clear Actions")
+
+    @property
     def E64_INPUT_TYPES(self) -> dict[int, str]:
         return {
             0: _("Generic sensor"),
@@ -280,6 +377,22 @@ class ProjectStrings:
     @property
     def E64_MIN_BRIGHTNESS(self) -> str:
         return _("Min. Brightness")
+
+    @property
+    def E64_CALL_SCENE(self) -> str:
+        return _("Call scene")
+
+    @property
+    def E64_CALL_EFFECT(self) -> str:
+        return _("Call effect")
+
+    @property
+    def E64_START(self) -> str:
+        return _("Start")
+
+    @property
+    def E64_CONTROLLED(self) -> str:
+        return _("Controlled by effect object")
 
     @property
     def E64_MODE(self) -> str:
@@ -5298,13 +5411,6 @@ class ProjectStrings:
     @property
     def DALI_CONNECT_HINT(self) -> str:
         return _("Connect to a KNX interface to commission the DALI bus.")
-
-    @property
-    def DALI_UNVERIFIED_WARNING(self) -> str:
-        return _(
-            "This gateway's commissioning protocol has not been verified against a "
-            "capture; writes may misbehave. Proceed with care."
-        )
 
     @property
     def DALI_PROJECT_NOT_UPDATED(self) -> str:

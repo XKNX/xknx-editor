@@ -1,9 +1,10 @@
 """Flow tests for MdtDaliCommissioner (scan / identify / commission / write_scenes)."""
 
+import pytest
 from _dali_fakes import FakeProgrammer
 
 from xknxeditor.dali.commissioning import MdtDaliCommissioner
-from xknxeditor.dali.connection import MdtDaliConnection
+from xknxeditor.dali.connection import DaliCommissioningError, MdtDaliConnection
 from xknxeditor.dali.model import (
     GROUP_MISSING,
     GROUP_UNASSIGNED,
@@ -15,8 +16,47 @@ from xknxeditor.dali.model import (
     Template,
     TemplateCommand,
 )
+from xknxeditor.dali.profiles import PROFILES
 from xknxeditor.dali.properties import DeviceCommand, PropertyType, element_size_for
 from xknxeditor.dali.structs import EcgProp, EcgStatic, decode_table
+
+
+async def test_level_edit_preserves_other_targets_colours_and_scene_metadata() -> None:
+    comm, prog = _setup()
+    original = [
+        bytes((2, 4, 50, 1, 2, 3, 4, 6)),
+        bytes((2, 19, 90, 5, 6, 7, 8, 0)),
+        bytes((7, 0, 20, 0, 0, 0, 0, 0)),
+    ]
+    prog.set_read(PropertyType.SCENE_GROUP_VALUE, b"".join(original) + b"\xff" * 8)
+    await comm.write_scenes(
+        [Scene(2, values=[SceneValue(2, 4, 128), SceneValue(2, 5, 255)])],
+        levels_only=True,
+    )
+    writes = prog.writes_for(PropertyType.SCENE_GROUP_VALUE)
+    assert b"".join(w["data"] for w in writes) == b"".join(
+        [
+            bytes((2, 4, 128, 1, 2, 3, 4, 4)),
+            original[1],
+            original[2],
+            bytes((2, 5, 255, 0, 0, 0, 0, 1)),
+            b"\xff" * 8,
+        ]
+    )
+    assert not prog.writes_for(PropertyType.SCENE_ASSIGN)
+    assert not prog.writes_for(PropertyType.SCENE_KNX_MAP)
+
+
+async def test_scene_terminator_is_identified_by_scene_number():
+    comm, prog = _setup()
+    prog.set_read(PropertyType.SCENE_GROUP_VALUE, b"\xff" + bytes(7))
+    await comm.write_scenes(
+        [Scene(0, values=[SceneValue(0, 1, 128)])], levels_only=True
+    )
+    assert [(p, start, count) for p, start, count in prog.reads if p == 214] == [
+        (214, 1, 1)
+    ]
+    assert bytes(prog.writes_for(214)[0]["data"])[-8:] == b"\xff" * 8
 
 
 def _evg_prop_table(entries: dict[int, EcgProp]) -> bytes:
@@ -26,6 +66,9 @@ def _evg_prop_table(entries: dict[int, EcgProp]) -> bytes:
 
 def _setup() -> tuple[MdtDaliCommissioner, FakeProgrammer]:
     prog = FakeProgrammer()
+    prog.set_read(PropertyType.SCENE_ASSIGN, bytes(16))
+    prog.set_read(PropertyType.SCENE_GROUP_VALUE, b"\xff" * 8)
+    prog.set_read(PropertyType.COMMAND, bytes(3))
     return MdtDaliCommissioner(MdtDaliConnection(prog, 0)), prog
 
 
@@ -64,11 +107,48 @@ async def test_identify_sends_expected_command_bytes() -> None:
     assert cmds[2] == bytes((DeviceCommand.SET_ALL_ECG, 0, 0))
 
 
+@pytest.mark.parametrize("profile", PROFILES)
+async def test_group_blink_keeps_group_and_ecg_addressing_distinct(profile):
+    prog = FakeProgrammer()
+    comm = MdtDaliCommissioner(MdtDaliConnection(prog, 0, profile=profile))
+    await comm.blink_group(15)
+    await comm.blink_group(15, False)
+    await comm.blink_ecg(15)
+    await comm.blink_ecg(63, False)
+    assert [w["data"] for w in prog.writes_for(PropertyType.COMMAND)] == [
+        bytes((4, 15, 0)),
+        bytes((4, 143, 0)),
+        bytes((4, 79, 0)),
+        bytes((4, 191, 0)),
+    ]
+
+
+@pytest.mark.parametrize(
+    ("method", "invalid"),
+    [
+        ("blink_ecg", -1),
+        ("blink_ecg", 64),
+        ("switch_ecg", 256),
+        ("switch_ecg", -1),
+        ("blink_group", 16),
+        ("blink_group", -1),
+        ("switch_group", 256),
+        ("switch_group", -1),
+    ],
+)
+async def test_identify_rejects_invalid_targets_before_sending(method, invalid):
+    comm, prog = _setup()
+    with pytest.raises(DaliCommissioningError):
+        await getattr(comm, method)(invalid, True)
+    assert not prog.writes
+
+
 async def test_commission_writes_sync_table_and_verifies() -> None:
     comm, prog = _setup()
     prog.queue_read(PropertyType.COMMAND, bytes((0, 0, 0)))  # PLUGIN_SYNC done
     prog.set_read(
-        PropertyType.EVG_PROP, _evg_prop_table({0: EcgProp(8, 2, 5, 0)})
+        PropertyType.EVG_PROP,
+        _evg_prop_table({0: EcgProp(8, 2, 5, 0), 3: EcgProp(6, 0, 9, 12)}),
     )  # verify
 
     ok = await comm.commission([EcgAssignment(slot=0, ets_index=0, group_index=5)])
@@ -80,6 +160,7 @@ async def test_commission_writes_sync_table_and_verifies() -> None:
     # unspecified slots are seeded from the current EVG_PROP (here: missing -> ets 0, group 255),
     # never blindly wiped to unassigned.
     assert table[1] == bytes((0, GROUP_MISSING))
+    assert table[3] == bytes((12, 9))
     assert bytes((DeviceCommand.PLUGIN_SYNC, 0, 0)) in [
         w["data"] for w in prog.writes_for(PropertyType.COMMAND)
     ]
@@ -276,3 +357,193 @@ async def test_write_templates_empty_clears_tables() -> None:
     assert ev["count"] == 1 and bytes(ev["data"]) == b"\xff" * 10  # type: ignore[arg-type]
     (members,) = prog.writes_for(PropertyType.COLOUR_C_ASSIGN)
     assert bytes(members["data"]) == b"\x00" * (MAX_TEMPLATES * 10)  # type: ignore[arg-type]
+
+
+@pytest.mark.parametrize("profile", PROFILES, ids=lambda p: p.key)
+async def test_vendor_scene_fade_pid_and_group_status_stride(profile):
+    prog = FakeProgrammer()
+    wire_fade = 212 if profile.key == "mdt" else 213
+    stride = 8 if profile.key == "mdt" else 10
+    prog.element_sizes[208] = stride
+    prog.set_read(wire_fade, bytes(range(16)))
+    prog.set_read(214, b"\xff" * 8)
+    prog.set_read(218, bytes(3))
+    comm = MdtDaliCommissioner(MdtDaliConnection(prog, profile=profile))
+    await comm.write_scenes([Scene(0, fade_time=9)])
+    assert bytes(prog.writes_for(wire_fade)[0]["data"]) == bytes([9, *range(1, 16)])
+    assert not prog.writes_for(213 if wire_fade == 212 else 212)
+    prog.set_read(206, bytes(6 * 16))
+    prog.set_read(209, bytes(6 * 16))
+    prog.set_read(
+        208, b"".join(bytes([0, 0, 0, i]) + bytes(stride - 4) for i in range(16))
+    )
+    assert [g.knx_value for g in await comm._read_groups()] == list(range(16))
+
+
+@pytest.mark.parametrize("failed", [212, 214, 228, "descriptor"])
+async def test_scene_read_failure_never_writes(failed):
+    comm, prog = _setup()
+    prog.queue_read(228, bytes([0, 16]))
+    prog.set_read(228, bytes(16))
+    if failed == "descriptor":
+        prog._queues[228] = [b"\x00"]
+    else:
+        prog.set_read(failed, b"")
+    with pytest.raises(DaliCommissioningError):
+        await comm.write_scenes([Scene(0, values=[SceneValue(0, 0, 100)])])
+    assert prog.writes == []
+
+
+@pytest.mark.parametrize("existing_count", [129, 1023, 1024])
+async def test_scene_preservation_beyond_128_and_at_capacity(existing_count):
+    comm, prog = _setup()
+    records = [
+        bytes([i // 64, i % 64, 30, 0, 0, 0, 0, 0]) for i in range(existing_count)
+    ]
+    prog.set_read(
+        214, b"".join(records) + (b"\xff" * 8 if existing_count < 1024 else b"")
+    )
+    await comm.write_scenes(
+        [Scene(0, values=[SceneValue(0, i, 42) for i in range(64)])]
+    )
+    result = decode_table(bytes(prog.writes_for(214)[0]["data"]), 8)
+    assert result[: existing_count - 64] == records[64:]
+    assert len(result) == (existing_count + 1 if existing_count < 1024 else 1024)
+    assert (result[-1] == b"\xff" * 8) == (existing_count < 1024)
+
+
+async def test_scene_capacity_overflow_fails_before_any_write():
+    comm, prog = _setup()
+    prog.set_read(214, bytes([1, 0, 30, 0, 0, 0, 0, 0]) * 1024)
+    with pytest.raises(DaliCommissioningError, match="capacity"):
+        await comm.write_scenes([Scene(0, values=[SceneValue(0, 0, 42)])])
+    assert not prog.writes
+
+
+@pytest.mark.parametrize(
+    "scene",
+    [
+        Scene(-1),
+        Scene(16),
+        Scene(0, knx_scene=65),
+        Scene(0, values=[SceneValue(1, 0, 10)]),
+        Scene(0, values=[SceneValue(0, -1, 10)]),
+    ],
+)
+async def test_invalid_scene_never_reads_or_writes(scene):
+    comm, prog = _setup()
+    with pytest.raises(DaliCommissioningError):
+        await comm.write_scenes([scene])
+    assert not prog.writes and not prog.reads
+
+
+@pytest.mark.parametrize("count", [0, 299, 300, 301])
+async def test_template_capacity_reset_and_sync(count):
+    _, prog = _setup()
+    comm = MdtDaliCommissioner(MdtDaliConnection(prog, profile=PROFILES[2]))
+    template = Template(
+        0, reset_on_midnight=False, commands=[TemplateCommand(1, 7, 15)] * count
+    )
+    if count > 300:
+        with pytest.raises(DaliCommissioningError, match="capacity"):
+            await comm.write_templates([template])
+        assert not prog.writes
+        return
+    await comm.write_templates([template])
+    event = prog.writes_for(225)[0]
+    assert event["count"] == min(count + 1, 300)
+    data = bytes(event["data"])
+    if count:
+        assert data[9] & 0x10
+    assert (data[-10:] == b"\xff" * 10) == (count < 300)
+    assert prog.writes[-1]["data"] == bytes([27, 0, 0])
+
+
+async def test_template_member_validation_precedes_event_write():
+    comm, prog = _setup()
+    with pytest.raises(DaliCommissioningError):
+        await comm.write_templates(
+            [Template(0, groups=(-1,), commands=[TemplateCommand(1, 1, 0)])]
+        )
+    assert not prog.writes
+
+
+async def test_reassignment_removes_previous_physical_mapping_and_verifies_it():
+    comm, prog = _setup()
+    current = _evg_prop_table({0: EcgProp(8, 2, 3, 9), 1: EcgProp(8, 2, 16, 7)})
+    updated = _evg_prop_table({0: EcgProp(8, 2, 32, 255), 1: EcgProp(8, 2, 2, 9)})
+    prog.queue_read(
+        PropertyType.EVG_PROP,
+        *(
+            data[o : o + 60]
+            for data in (current, updated)
+            for o in range(0, len(data), 60)
+        ),
+    )
+    await comm.commission([EcgAssignment(1, 9, 2)])
+    table = prog.writes_for(PropertyType.COMMISSION_SYNC)[0]["data"]
+    assert table[:4] == bytes([255, 32, 9, 2])
+    prog.queue_read(
+        PropertyType.EVG_PROP,
+        *(
+            data[o : o + 60]
+            for data in (current, current)
+            for o in range(0, len(data), 60)
+        ),
+    )
+    with pytest.raises(DaliCommissioningError, match="verify"):
+        await comm.commission([EcgAssignment(1, 9, 2)])
+
+
+async def test_duplicate_logical_ecg_mapping_fails_before_transport():
+    comm, prog = _setup()
+    with pytest.raises(DaliCommissioningError, match="assignment"):
+        await comm.commission([EcgAssignment(1, 9, 2), EcgAssignment(2, 9, 2)])
+    assert not prog.reads and not prog.writes
+
+
+@pytest.mark.parametrize(
+    "invalid", ["template", "scene", "scene_read", "static", "props", "assignment"]
+)
+async def test_restore_prepares_every_table_before_writing(invalid):
+    comm, prog = _setup()
+    static = [EcgStatic(42, 10, 2700, 6500)]
+    props = [EcgProp(8, 2, 5, 0)]
+    assignments = [EcgAssignment(0, 0, 5)]
+    scenes = [Scene(0, values=[SceneValue(0, 0, 128)])]
+    templates = [Template(0)]
+    if invalid == "template":
+        templates[0].groups = (-1,)
+    elif invalid == "scene":
+        scenes[0].values[0].level = 256
+    elif invalid == "scene_read":
+        prog.set_read(PropertyType.SCENE_GROUP_VALUE, b"")
+    elif invalid == "static":
+        static = [EcgStatic(0x1000000, 10, 2700, 6500)]
+    elif invalid == "props":
+        props = [EcgProp(8, 256, 5, 0)]
+    else:
+        assignments.append(EcgAssignment(0, 1, 6))
+    with pytest.raises(DaliCommissioningError):
+        await comm.restore(
+            static=static,
+            props=props,
+            assignments=assignments,
+            scenes=scenes,
+            templates=templates,
+        )
+    assert not prog.writes
+
+
+@pytest.mark.parametrize(
+    "template",
+    [
+        Template(0, reset_on_midnight=False),
+        Template(0, commands=[TemplateCommand(18, 1, 0)]),
+    ],
+)
+async def test_mdt_rejects_extended_template_features(template):
+    comm, prog = _setup()
+    with pytest.raises(DaliCommissioningError, match="unsupported"):
+        await comm.write_templates([template])
+    assert not prog.writes

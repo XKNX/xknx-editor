@@ -2123,9 +2123,6 @@ msgstr "Yuva"
 msgid "The application has no static parameters."
 msgstr "Uygulamanın statik parametresi yok."
 
-msgid "This gateway's commissioning protocol has not been verified against a capture; writes may misbehave. Proceed with care."
-msgstr "Bu ağ geçidinin devreye alma protokolü bir yakalamaya karşı doğrulanmadı; yazmalar hatalı davranabilir. Dikkatli ilerleyin."
-
 msgid "Program DCA State"
 msgstr "DCA durumunu programla"
 
@@ -3182,6 +3179,11 @@ msgstr "Projenin mevcut durumu"
 msgid "Configuration Comparison"
 msgstr "Yapılandırma karşılaştırması"
 
+msgid "Current state of the project"
+msgstr "Projenin mevcut durumu"
+msgid "Configuration Comparison"
+msgstr "Yapılandırma karşılaştırması"
+
 msgid "Compare settings with another device or the stored image from the last download."
 msgstr "Ayarları başka bir cihazla veya son programlamadan kaydedilen görüntüyle karşılaştırın."
 
@@ -3287,6 +3289,11 @@ msgstr "Bir cihaz seçin"
 
 msgid "Select the two devices to compare."
 msgstr "Karşılaştırılacak iki cihazı seçin."
+
+msgid "Loading application programs… {done}/{total}"
+msgstr "Uygulama programları yükleniyor… {done}/{total}"
+msgid "Symbol"
+msgstr "Sembol"
 
 msgid "Loading application programs… {done}/{total}"
 msgstr "Uygulama programları yükleniyor… {done}/{total}"
@@ -3497,6 +3504,11 @@ msgstr "Katalog: {source} (en yeni kayıt: {date})."
 
 msgid "Latest Compatible Version"
 msgstr "En yeni uyumlu sürüm"
+
+msgid "Not determined"
+msgstr "Belirlenmedi"
+msgid "Compares the device's hardware/software identity with this catalog. Does not install firmware. Catalog import: MDT Firmware Update .etsapp or Firmware.zip."
+msgstr "Cihazın donanım/yazılım kimliğini bu katalogla karşılaştırır. Donanım yazılımı yüklemez. Katalog içe aktarımı: MDT Firmware Update .etsapp veya Firmware.zip."
 
 msgid "Not determined"
 msgstr "Belirlenmedi"
@@ -4012,3 +4024,112 @@ msgstr "Toplam Arıza Oranı"
 
 msgid "Value input"
 msgstr "Değer girişi"
+
+
+msgid "Call scene"
+msgstr "Sahneyi çağır"
+
+msgid "Call effect"
+msgstr "Efekti çağır"
+
+msgid "Start"
+msgstr "Başlat"
+
+msgid "Controlled by effect object"
+msgstr "Efekt nesnesi tarafından kontrol edilir"
+
+msgid "Import Descriptions…"
+msgstr "Açıklamaları İçe Aktar…"
+
+msgid "Export Descriptions…"
+msgstr "Açıklamaları Dışa Aktar…"
+
+msgid "Replace the descriptions included in the file? You can undo this change."
+msgstr "Dosyadaki açıklamalar değiştirilsin mi? Bu değişikliği geri alabilirsiniz."
+
+msgid "Clear Descriptions"
+msgstr "Açıklamaları Temizle"
+
+msgid "These descriptions cannot be preserved as TXT. Choose XML."
+msgstr "Bu açıklamalar TXT olarak korunamaz. XML seçin."
+
+msgid "Insert Before"
+msgstr "Öncesine Ekle"
+
+msgid "Sort by Time"
+msgstr "Saate Göre Sırala"
+
+msgid "Sort by Function"
+msgstr "İşleve Göre Sırala"
+
+msgid "Clear Actions"
+msgstr "Eylemleri Temizle"
+
+msgid "Discover Inputs"
+msgstr "Girişleri Bul"
+
+msgid "Stop Blinking"
+msgstr "Yanıp Sönmeyi Durdur"
+
+msgid "Function Test"
+msgstr "İşlev Testi"
+
+msgid "Duration Test"
+msgstr "Süre Testi"
+
+msgid "Battery Test"
+msgstr "Pil Testi"
+
+msgid "Read Calibration"
+msgstr "Kalibrasyonu Oku"
+
+msgid "Set Calibration Level"
+msgstr "Kalibrasyon Düzeyini Ayarla"
+
+msgid "Save Calibration"
+msgstr "Kalibrasyonu Kaydet"
+
+msgid "Read Memory Byte"
+msgstr "Bellek Baytını Oku"
+
+msgid "Write Memory Byte"
+msgstr "Bellek Baytını Yaz"
+
+msgid "Read Names"
+msgstr "Adları Oku"
+
+msgid "Write Names"
+msgstr "Adları Yaz"
+
+msgid "Read Motion Diagnostics"
+msgstr "Hareket Tanılamasını Oku"
+
+msgid "Inhibit Converters"
+msgstr "Dönüştürücüleri Engelle"
+
+msgid "Replace ECGs…"
+msgstr "Balastları Değiştir…"
+
+msgid "Service"
+msgstr "Servis"
+
+msgid "Calibration"
+msgstr "Kalibrasyon"
+
+msgid "Memory Bank"
+msgstr "Bellek Bankası"
+
+msgid "Measured Illuminance (lx)"
+msgstr "Ölçülen Aydınlık Düzeyi (lx)"
+
+msgid "Enable memory write lock"
+msgstr "Bellek yazma kilidini etkinleştir"
+
+msgid "Start automatic ECG replacement on this gateway? This changes the DALI assignments and cannot be undone in the project."
+msgstr "Bu ağ geçidinde otomatik balast değişimi başlatılsın mı? Bu işlem DALI atamalarını değiştirir ve projede geri alınamaz."
+
+msgid "Restore Gateway…"
+msgstr "Ağ Geçidini Geri Yükle…"
+
+msgid "Restore the saved physical inventory and configuration to this gateway and restart it? This overwrites its DALI state and cannot be undone in the project."
+msgstr "Kaydedilen fiziksel cihazlar ve yapılandırma bu ağ geçidine geri yüklenip cihaz yeniden başlatılsın mı? Bu işlem DALI durumunun üzerine yazar ve projede geri alınamaz."

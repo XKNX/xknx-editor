@@ -495,6 +495,40 @@ def description_project(tmp_path, monkeypatch, request):
     </ChannelIndependentBlock></Dynamic></ApplicationProgram></ApplicationPrograms></Manufacturer></ManufacturerData></KNX>'''
     section, module, parameter, tag = request.param
     xml = xml.replace("ModuleGRP", module).replace("DCA1-Description", parameter)
+    xml = xml.replace(
+        "</ParameterTypes>",
+        f'<ParameterType Id="{app_id}_PT-2" Name="Mode"><TypeNumber Type="unsignedInt" SizeInBit="8" minInclusive="0" maxInclusive="2" /></ParameterType></ParameterTypes>',
+        1,
+    )
+    xml = xml.replace(
+        "</Parameters>",
+        "".join(
+            f'<Parameter Id="{app_id}_P-{i + 10}" Name="PROP-TEMPLATE_MODE.{i + 1}" ParameterType="{app_id}_PT-2" Text="Mode" Value="1" />'
+            for i in range(16)
+        )
+        + "</Parameters>",
+        1,
+    )
+    xml = xml.replace(
+        "</ParameterRefs>",
+        "".join(
+            f'<ParameterRef Id="{app_id}_P-{i + 10}_R-{i + 10}" RefId="{app_id}_P-{i + 10}" />'
+            for i in range(16)
+        )
+        + "</ParameterRefs>",
+        1,
+    )
+    xml = xml.replace(
+        "</ChannelIndependentBlock>",
+        '<ParameterBlock Id="'
+        + app_id
+        + '_PB-99" Text="Modes">'
+        + "".join(
+            f'<ParameterRefRef RefId="{app_id}_P-{i + 10}_R-{i + 10}" />'
+            for i in range(16)
+        )
+        + "</ParameterBlock></ChannelIndependentBlock>",
+    )
     app = parse_application_xml(xml.encode(), "M-00EF")[0]
     project = ProjectService(CatalogService(tmp_path / "catalog.xknxcatalog"))
     project.set_logger(Logger(LogService(), "project"))
@@ -509,11 +543,12 @@ def description_project(tmp_path, monkeypatch, request):
         project.close()
 
 
-def test_bulk_description_mirrors_parameters_and_undo(description_project):
+@pytest.mark.parametrize("name", ["Second group", "x" * 60, "ä" * 60])
+def test_bulk_description_mirrors_parameters_and_undo(description_project, name):
     project, node, section, parameter, tag = description_project
     device = project.find_device_by_node_id(node)
     edits = [
-        e64pro.Edit(section, "1", "description", value="Second group"),
+        e64pro.Edit(section, "1", "description", value=name),
         e64pro.Edit("pbs", "0", "description", value="Front door"),
     ]
     data = project.edit_e64pro(device, PAYLOAD, edits)
@@ -523,11 +558,11 @@ def test_bulk_description_mirrors_parameters_and_undo(description_project):
     group = next(i for i, _ in instances if i.startswith(current.app.id + "_MD-2_M-2"))
     ref = dynamic.find_parameter_ref("name", parameter, group)
     button = dynamic.find_parameter_ref("name", "DPB1-Description")
-    assert current.get_param_value(ref) == "Second group"
+    assert current.get_param_value(ref) == name
     assert current.get_param_value(button) == "Front door"
     assert (
         e64pro.document(data).find(f"{section}/{tag}[@index='1']").get("description")
-        == "Second group"
+        == name
     )
     project.undo()
     current = project.find_device_by_node_id(node)
@@ -536,8 +571,45 @@ def test_bulk_description_mirrors_parameters_and_undo(description_project):
     assert current.get_param_value(button) == "Original button"
     project.redo()
     current = project.find_device_by_node_id(node)
-    assert current.get_param_value(ref) == "Second group"
+    assert current.get_param_value(ref) == name
     assert current.get_param_value(button) == "Front door"
+
+
+@pytest.mark.parametrize("path", ["param", "script"])
+@pytest.mark.parametrize("name", ["Room", "Valid description with 25"])
+def test_parameter_descriptions_update_dca_and_undo(description_project, path, name):
+    project, node, section, parameter, tag = description_project
+    device = project.find_device_by_node_id(node)
+    instance = next(
+        i
+        for i, _ in device.get_module_instances()
+        if i.startswith(device.app.id + "_MD-2_M-2")
+    )
+    ref = device.dynamic_ui.find_parameter_ref("name", parameter, instance)
+    button = device.dynamic_ui.find_parameter_ref("name", "DPB1-Description")
+    cursor = project.cursor
+    if path == "param":
+        project.edit_params(device, [(ref, name), (button, "Door")])
+    else:
+        changes = {
+            ref: (device.get_param_value(ref), name),
+            button: (device.get_param_value(button), "Door"),
+        }
+        device.apply_param_values({ref: name, button: "Door"})
+        project.persist_script_changes(node, changes, "Descriptions")
+        project.finish_script_changes(node, set())
+    current = project.find_device_by_node_id(node)
+    root = e64pro.document(project.device_binary_data(current, NAME))
+    assert root.find(f"{section}/{tag}[@index='1']").get("description") == name
+    assert root.find("pbs/BtnInput[@index='0']").get("description") == "Door"
+    assert project.cursor == cursor + 1
+    project.undo()
+    current = project.find_device_by_node_id(node)
+    assert project.device_binary_data(current, NAME) == PAYLOAD
+    assert current.get_param_value(ref) == "Original group"
+    project.redo()
+    current = project.find_device_by_node_id(node)
+    assert current.get_param_value(ref) == name
 
 
 def test_invalid_bulk_description_is_atomic(description_project):
@@ -546,7 +618,7 @@ def test_invalid_bulk_description_is_atomic(description_project):
     before = project.cursor
     edits = [
         e64pro.Edit("groups", "0", "description", value="Good"),
-        e64pro.Edit("pbs", "0", "description", value="x" * 21),
+        e64pro.Edit("pbs", "0", "description", value="x" * 61),
     ]
     with pytest.raises(ValueError):
         project.edit_e64pro(device, PAYLOAD, edits)
@@ -555,6 +627,37 @@ def test_invalid_bulk_description_is_atomic(description_project):
         project.device_binary_data(project.find_device_by_node_id(node), NAME)
         == PAYLOAD
     )
+
+
+def test_multibyte_description_checks_parameter_capacity_atomically(
+    description_project, monkeypatch
+):
+    from xknxeditor.prod.parser_v2.dynamic import DynamicUI
+
+    project, node, section, *_ = description_project
+    monkeypatch.setattr(DynamicUI, "text_encoding", property(lambda _: "utf-8"))
+    device = project.find_device_by_node_id(node)
+    before = project.cursor
+    with pytest.raises(ValueError, match="60"):
+        project.edit_e64pro(
+            device,
+            PAYLOAD,
+            [
+                e64pro.Edit(section, "1", "description", value="Valid"),
+                e64pro.Edit("pbs", "0", "description", value="ä" * 31),
+            ],
+        )
+    current = project.find_device_by_node_id(node)
+    assert project.device_binary_data(current, NAME) == PAYLOAD
+    assert project.cursor == before
+    value = "ä" * 30
+    data = project.edit_e64pro(
+        current, PAYLOAD, e64pro.Edit("pbs", "0", "description", value=value)
+    )
+    current = project.find_device_by_node_id(node)
+    ref = current.dynamic_ui.find_parameter_ref("name", "DPB1-Description")
+    assert current.get_param_value(ref) == value
+    assert e64pro.document(data).find("pbs/BtnInput").get("description") == value
 
 
 def test_report_cache_rejects_late_result_from_closed_project(description_project):
@@ -713,3 +816,309 @@ def test_blob_edits_preserve_attachment_metadata(description_project):
     entry = next(e for e in current.binary_data if e.name == NAME)
     assert entry.ref_id == "R-1" and entry.do_not_copy
     assert entry.data == data
+
+
+def test_bus_scene_persistence_uses_latest_blob_and_is_undoable(description_project):
+    from editor_gui.programming_dali import persist_dali_backup
+    from xknxeditor.dali.model import DaliBusState, Scene, SceneValue
+
+    project, node, *_ = description_project
+    stale = project.find_device_by_node_id(node)
+    changed = project.edit_e64pro(
+        stale, PAYLOAD, e64pro.Edit("scenes", "0", "description", value="Updated scene")
+    )
+    cursor = project.cursor
+    assert persist_dali_backup(
+        project,
+        stale,
+        DaliBusState(0),
+        [],
+        [Scene(0, values=[SceneValue(0, 0, 128)])],
+        0,
+        label="Program scenes",
+    )
+    current = project.find_device_by_node_id(node)
+    root = e64pro.document(project.device_binary_data(current, NAME))
+    scene = root.find("scenes/Scene[@index='0']")
+    assert scene.get("description") == "Updated scene"
+    assert scene.find("SceneItem[@itemindex='0']").get("value") == "50"
+    assert scene.find("SceneItem[@itemindex='0']").get("color") == "3000"
+    assert len(scene) == 3
+    assert project.cursor == cursor + 1
+    project.undo()
+    assert (
+        project.device_binary_data(project.find_device_by_node_id(node), NAME)
+        == changed
+    )
+
+
+@pytest.mark.parametrize("path", ["full", "single", "edit", "param", "script"])
+def test_template_mode_sync_is_one_undo_step(description_project, path):
+    project, node, *_ = description_project
+    device = project.find_device_by_node_id(node)
+    ref = device.dynamic_ui.find_parameter_ref("name", "PROP-TEMPLATE_MODE.1")
+    assert ref is not None and device.get_param_value(ref) == "1"
+    root = deepcopy(e64pro.document(PAYLOAD))
+    root.find("templates/Tpl").set("mode", "Controlled")
+    cursor = project.cursor
+    if path == "full":
+        project.import_e64pro(device, PAYLOAD, ET.tostring(root))
+    elif path == "single":
+        project.edit_e64pro(
+            device,
+            PAYLOAD,
+            e64pro.Edit(
+                "templates",
+                "0",
+                "import",
+                value=ET.tostring(root.find("templates/Tpl"), encoding="unicode"),
+            ),
+        )
+    elif path == "edit":
+        project.edit_e64pro(
+            device,
+            PAYLOAD,
+            e64pro.Edit("templates", "0", "header", field="mode", value="Controlled"),
+        )
+    elif path == "param":
+        project.edit_params(device, [(ref, "2")])
+    else:
+        device.apply_param_values({ref: "2"})
+        project.persist_script_changes(node, {ref: ("1", "2")}, "Mode")
+        project.finish_script_changes(node, set())
+    current = project.find_device_by_node_id(node)
+    assert current.get_param_value(ref) == "2"
+    assert (
+        e64pro.document(project.device_binary_data(current, NAME))
+        .find("templates/Tpl")
+        .get("mode")
+        == "Controlled"
+    )
+    assert project.cursor == cursor + 1
+    project.undo()
+    current = project.find_device_by_node_id(node)
+    assert current.get_param_value(ref) == "1"
+    assert project.device_binary_data(current, NAME) == PAYLOAD
+    project.redo()
+    current = project.find_device_by_node_id(node)
+    assert current.get_param_value(ref) == "2"
+    assert (
+        e64pro.document(project.device_binary_data(current, NAME))
+        .find("templates/Tpl")
+        .get("mode")
+        == "Controlled"
+    )
+
+
+@pytest.mark.parametrize("path", ["full", "single"])
+def test_reimport_repairs_mode_mismatch_even_with_identical_xml(
+    description_project, path
+):
+    project, node, *_ = description_project
+    device = project.find_device_by_node_id(node)
+    ref = device.dynamic_ui.find_parameter_ref("name", "PROP-TEMPLATE_MODE.1")
+    project._svc.set_parameters(project._pid, node, [(ref, "0")])
+    project._refresh_device(node)
+    device = project.find_device_by_node_id(node)
+    if path == "full":
+        project.import_e64pro(device, PAYLOAD, e64pro.export_configuration(PAYLOAD))
+    else:
+        project.edit_e64pro(
+            device,
+            PAYLOAD,
+            e64pro.Edit(
+                "templates",
+                "0",
+                "import",
+                value=e64pro.export_slot(PAYLOAD, "templates", "0").decode(),
+            ),
+        )
+    assert project.find_device_by_node_id(node).get_param_value(ref) == "1"
+
+
+@pytest.mark.parametrize("section", ["scenes", "templates"])
+def test_slot_import_does_not_overwrite_unrelated_parameters(
+    description_project, section
+):
+    project, node, *_ = description_project
+    device = project.find_device_by_node_id(node)
+    button = device.dynamic_ui.find_parameter_ref("name", "DPB1-Description")
+    mode = device.dynamic_ui.find_parameter_ref("name", "PROP-TEMPLATE_MODE.2")
+    project._svc.set_parameters(
+        project._pid, node, [(button, "Keep button"), (mode, "2")]
+    )
+    project._refresh_device(node)
+    device = project.find_device_by_node_id(node)
+    project.edit_e64pro(
+        device,
+        PAYLOAD,
+        e64pro.Edit(
+            section,
+            "0",
+            "import",
+            value=e64pro.export_slot(PAYLOAD, section, "0").decode(),
+        ),
+    )
+    current = project.find_device_by_node_id(node)
+    assert current.get_param_value(button) == "Keep button"
+    assert current.get_param_value(mode) == "2"
+
+
+def test_mode_database_failure_rolls_back_blob_parameter_and_live_cache(
+    description_project, monkeypatch
+):
+    project, node, *_ = description_project
+    device = project.find_device_by_node_id(node)
+    ref = device.dynamic_ui.find_parameter_ref("name", "PROP-TEMPLATE_MODE.1")
+    cursor = project.cursor
+
+    def fail(*args, **kwargs):
+        raise RuntimeError("store failed")
+
+    monkeypatch.setattr(project._svc, "set_parameters", fail)
+    with pytest.raises(RuntimeError, match="store failed"):
+        project.edit_params(device, [(ref, "2")])
+    current = project.find_device_by_node_id(node)
+    assert current.get_param_value(ref) == "1"
+    assert project.device_binary_data(current, NAME) == PAYLOAD
+    assert project.cursor == cursor
+
+
+@pytest.mark.parametrize("func", ["CallScene", "CallEffect"])
+def test_template_call_selector_uses_zero_based_values_and_effect_action(
+    monkeypatch, func
+):
+    data = e64pro.apply(PAYLOAD, e64pro.Edit("templates", "0", "set", 0, "func", func))
+    root = e64pro.document(data)
+    slot = e64pro.slot_element(root, "templates", "0")
+    choices_seen = {}
+    writes = []
+
+    def pick(label, current, choices):
+        choices_seen[label] = choices
+        if label == "##value":
+            return "15"
+        if label == "##effect-action":
+            return "ScaleNoneEffectStart"
+        return current
+
+    monkeypatch.setattr(e64pro_ui, "pick", pick)
+    context = imgui.create_context()
+    try:
+        io = imgui.get_io()
+        io.backend_flags |= imgui.BackendFlags_.renderer_has_textures
+        io.display_size = imgui.ImVec2(1400, 900)
+        workspace = Workspace()
+        imgui.new_frame()
+        imgui.set_next_window_size(imgui.ImVec2(1300, 800))
+        imgui.begin("Template")
+        workspace.editor(root, "templates", slot, {}, lambda *args: writes.append(args))
+        imgui.end()
+        imgui.render()
+        assert choices_seen["##value"]["15"].startswith("16:")
+        assert ("set", 0, "value", "15") in writes
+        assert {"CallScene", "CallEffect"} <= choices_seen["##func"].keys()
+        assert "Controlled" in choices_seen[S.E64_MODE]
+        if func == "CallEffect":
+            assert ("set", 0, "scaleMode", "ScaleNoneEffectStart") in writes
+    finally:
+        imgui.destroy_context(context)
+
+
+def test_mode_import_updates_hidden_internal_parameter(
+    description_project, monkeypatch
+):
+    project, node, *_ = description_project
+    device = project.find_device_by_node_id(node)
+    ref = device.dynamic_ui.find_parameter_ref("name", "PROP-TEMPLATE_MODE.1")
+    original = device.change_param_values
+
+    def visible_edits(edits, **kwargs):
+        assert all(key != ref for key, _ in edits)
+        return original(edits, **kwargs)
+
+    monkeypatch.setattr(
+        type(device),
+        "change_param_values",
+        lambda self, edits, **kw: visible_edits(edits, **kw),
+    )
+    root = deepcopy(e64pro.document(PAYLOAD))
+    root.find("templates/Tpl").set("mode", "Controlled")
+    project.import_e64pro(device, PAYLOAD, ET.tostring(root))
+    assert project.find_device_by_node_id(node).get_param_value(ref) == "2"
+
+
+@pytest.mark.parametrize("format", ["xml", "txt"])
+@pytest.mark.parametrize("browser", [False, True])
+def test_description_file_dialog_exchange(tmp_path, monkeypatch, format, browser):
+    from editor_gui import web
+    from editor_gui.plugin_blob_readers.dali_backup.e64pro_descriptions import (
+        export_descriptions,
+    )
+    from editor_gui.web.server import WebHub
+
+    context = imgui.create_context()
+    try:
+        io = imgui.get_io()
+        io.backend_flags |= imgui.BackendFlags_.renderer_has_textures
+        io.display_size = imgui.ImVec2(850, 650)
+        if browser:
+            monkeypatch.setattr(web, "active_hub", WebHub(tmp_path))
+        device = SimpleNamespace(
+            node_id=52, individual_address="1.0.52", display_name="Gateway"
+        )
+        path = tmp_path / ("descriptions." + format)
+        exchange = XmlExchange(descriptions=True, format=format)
+        edits = []
+        project = SimpleNamespace(edit_e64pro=lambda *args: edits.append(args))
+        for name in ["open_file", "save_file"]:
+            monkeypatch.setattr(
+                e64pro_ui.file_dialogs,
+                name,
+                lambda *args, op=name, **kw: SimpleNamespace(
+                    ready=lambda: True,
+                    result=lambda: [str(path)] if op == "open_file" else str(path),
+                ),
+            )
+        original = imgui.button
+        click = ""
+        confirm = False
+        monkeypatch.setattr(
+            imgui,
+            "button",
+            lambda label, *args: original(label, *args) or label == click,
+        )
+        monkeypatch.setattr(
+            e64pro_ui, "dialog_buttons", lambda *_: 0 if confirm else None
+        )
+
+        def frame():
+            imgui.new_frame()
+            imgui.set_next_window_size(imgui.ImVec2(450 if browser else 800, 600))
+            imgui.begin("DCA")
+            exchange.render(device, PAYLOAD, project, ("groups", ""))
+            imgui.end()
+            imgui.render()
+
+        click = S.E64_EXPORT_DESCRIPTIONS
+        frame()
+        click = ""
+        frame()
+        assert path.read_bytes() == export_descriptions(PAYLOAD, "groups", format)
+        click = S.E64_IMPORT_DESCRIPTIONS
+        frame()
+        click = ""
+        frame()
+        assert not edits
+        confirm = True
+        frame()
+        assert len(edits) == 1
+        assert edits[0][:2] == (device, PAYLOAD)
+        operation = edits[0][2]
+        assert (
+            operation.section == "groups" and operation.action == "import_descriptions"
+        )
+        assert operation.field == format
+        assert e64pro.apply(PAYLOAD, operation) == PAYLOAD
+    finally:
+        imgui.destroy_context(context)

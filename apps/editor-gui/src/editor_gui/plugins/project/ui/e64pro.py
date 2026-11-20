@@ -34,6 +34,8 @@ from editor_gui.widgets.x_button import x_button
 
 if TYPE_CHECKING:
     from editor_gui.plugins.project.service import ProjectService
+    from editor_gui.plugins.project.ui.dali_commissioning import DaliRunner
+    from xknxeditor.dali import MdtDaliCommissioner
 
 EditHandler = Callable[[Device, bytes, dca.Edit | list[dca.Edit]], object]
 
@@ -122,6 +124,8 @@ def target_key(e: ET.Element) -> str:
 
 @dataclass
 class XmlExchange:
+    descriptions: bool = False
+    format: str = "xml"
     open_dialog: file_dialogs.OpenFileDialog | None = None
     save_dialog: file_dialogs.SaveFileDialog | None = None
     expected: bytes | None = None
@@ -141,7 +145,15 @@ class XmlExchange:
         if self.visible_selection != selection:
             self.message = ""
             self.visible_selection = selection
-        filters = ["XML", "*.xml"]
+        filters = (
+            ["XML / TXT", "*.xml *.txt"] if self.descriptions else ["XML", "*.xml"]
+        )
+        import_label = (
+            S.E64_IMPORT_DESCRIPTIONS if self.descriptions else S.E64_IMPORT_XML
+        )
+        export_label = (
+            S.E64_EXPORT_DESCRIPTIONS if self.descriptions else S.E64_EXPORT_XML
+        )
         title = S.E64_IMPORT_TITLE + "###e64_import_confirm"
         if self.open_dialog is not None and self.open_dialog.ready():
             paths = self.open_dialog.result()
@@ -163,24 +175,39 @@ class XmlExchange:
         imgui.begin_disabled(
             self.open_dialog is not None or self.save_dialog is not None
         )
-        if imgui.button(S.E64_IMPORT_XML):
+        if self.descriptions:
+            self.format = pick(
+                "##description_format", self.format, {"xml": "XML", "txt": "TXT"}
+            )
+        if imgui.button(import_label):
             self.expected = data
             self.selection = selection
-            self.open_dialog = file_dialogs.open_file(S.E64_IMPORT_XML, filters=filters)
-        same_line_if_fits(button_width(S.E64_EXPORT_XML))
+            self.open_dialog = file_dialogs.open_file(import_label, filters=filters)
+        same_line_if_fits(button_width(export_label))
         imgui.begin_disabled(data is None)
-        if imgui.button(S.E64_EXPORT_XML):
+        if imgui.button(export_label):
             self.selection = selection
             try:
-                self.export_data = (
-                    dca.export_slot(data, *selection)
-                    if data is not None and selection is not None
-                    else project.export_e64pro(device)
-                )
+                if self.descriptions and data is not None and selection is not None:
+                    from editor_gui.plugin_blob_readers.dali_backup.e64pro_descriptions import (
+                        export_descriptions,
+                    )
+
+                    self.export_data = export_descriptions(
+                        data, selection[0], self.format
+                    )
+                else:
+                    self.export_data = (
+                        dca.export_slot(data, *selection)
+                        if data is not None and selection is not None
+                        else project.export_e64pro(device)
+                    )
                 self.save_dialog = file_dialogs.save_file(
-                    S.E64_EXPORT_XML,
-                    default_path=f"e64pro-{device.individual_address or device.node_id}{'-' + '-'.join(selection) if selection else ''}.xml",
-                    filters=filters,
+                    export_label,
+                    default_path=f"e64pro-{device.individual_address or device.node_id}{'-' + '-'.join(filter(None, selection)) if selection else ''}.{self.format if self.descriptions else 'xml'}",
+                    filters=[self.format.upper(), "*." + self.format]
+                    if self.descriptions
+                    else filters,
                 )
             except (ValueError, OSError) as exc:
                 self.message = str(exc)
@@ -189,7 +216,9 @@ class XmlExchange:
 
         if begin_dialog(title):
             imgui.text_wrapped(
-                S.E64_IMPORT_SLOT_CONFIRM
+                S.E64_IMPORT_DESCRIPTIONS_CONFIRM
+                if self.descriptions
+                else S.E64_IMPORT_SLOT_CONFIRM
                 if self.selection
                 else S.E64_IMPORT_CONFIRM.format(device=device.display_name)
             )
@@ -199,6 +228,27 @@ class XmlExchange:
                     if self.selection is None:
                         project.import_e64pro(
                             device, self.expected, self.pending.read_bytes()
+                        )
+                    elif self.expected is not None and self.descriptions:
+                        payload = self.pending.read_bytes()
+                        format = (
+                            "txt" if self.pending.suffix.lower() == ".txt" else "xml"
+                        )
+                        text = (
+                            payload.decode("utf-8-sig")
+                            if format == "txt"
+                            else ET.tostring(ET.fromstring(payload), encoding="unicode")
+                        )
+                        project.edit_e64pro(
+                            device,
+                            self.expected,
+                            dca.Edit(
+                                self.selection[0],
+                                "",
+                                "import_descriptions",
+                                field=format,
+                                value=text,
+                            ),
                         )
                     elif self.expected is not None:
                         parser = ET.XMLParser(
@@ -229,6 +279,9 @@ class XmlExchange:
 class Workspace:
     xml: XmlExchange = field(default_factory=XmlExchange)
     slot_xml: XmlExchange = field(default_factory=XmlExchange)
+    description_xml: XmlExchange = field(
+        default_factory=lambda: XmlExchange(descriptions=True)
+    )
     descriptions: dict[tuple[str, str], str] = field(
         default_factory=dict[tuple[str, str], str]
     )
@@ -245,6 +298,58 @@ class Workspace:
     colour_origin: tuple[str, int, Colour | None] | None = None
     colour_modes: tuple[str, ...] = ()
     open_colour: bool = False
+    programming: bool = False
+
+    def program(self, device: Device, project: ProjectService, run: DaliRunner) -> None:
+        imgui.begin_disabled(self.programming)
+        if imgui.button(S.PLUGIN_PARAMS_PROGRAM_DCA):
+            from editor_gui.programming_dali import (
+                GuardedDaliOperation,
+                complete_dali_configuration,
+                prepare_dali_configuration,
+            )
+
+            try:
+                expected, configuration = prepare_dali_configuration(device)
+                generation = project.generation
+                self.programming = True
+                self.error = ""
+                completed = False
+
+                async def operation(commissioner: MdtDaliCommissioner) -> object:
+                    nonlocal completed
+                    try:
+                        result = await commissioner.write_configuration(configuration)
+                        completed = True
+                        return result
+                    except Exception as exc:
+                        self.error = str(exc)
+                        raise
+
+                def ended() -> None:
+                    self.programming = False
+                    if completed:
+                        try:
+                            complete_dali_configuration(
+                                project, device, expected, generation
+                            )
+                        except Exception as exc:
+                            self.error = str(exc)
+
+                run(
+                    device,
+                    GuardedDaliOperation(
+                        project, device, expected, generation, operation
+                    ),
+                    0,
+                    S.PLUGIN_PARAMS_PROGRAM_DCA,
+                    ended,
+                    True,
+                )
+            except Exception as exc:
+                self.programming = False
+                self.error = str(exc)
+        imgui.end_disabled()
 
     def choice(self, key: str, label: str, options: dict[str, str]) -> str:
         current = self.selections.get(key, "")
@@ -278,6 +383,7 @@ class Workspace:
         details: Callable[[], None] | None = None,
         project: ProjectService | None = None,
         report: Callable[[], None] | None = None,
+        service: Callable[[], None] | None = None,
     ) -> None:
         if self.snapshot != data:
             self.drafts.clear()
@@ -296,6 +402,8 @@ class Workspace:
         }
         if report is not None:
             views["report"] = S.E64_REPORT
+        if service is not None:
+            views["service"] = S.E64_SERVICE
         if details is not None:
             views["raw"] = S.E64_DCA_DETAILS
         if not begin_tab_bar(
@@ -310,6 +418,8 @@ class Workspace:
                             details()
                         elif section == "report" and report is not None:
                             report()
+                        elif section == "service" and service is not None:
+                            service()
                         else:
                             self._render_view(
                                 device, data, root, write, section, label, project
@@ -336,7 +446,7 @@ class Workspace:
         elif section == "inputs":
             self.inputs(root, lambda edit: write(device, data, edit))
         elif section == "descriptions":
-            self.edit_descriptions(device, data, root, write)
+            self.edit_descriptions(device, data, root, write, project)
         else:
             slots = objects(root, section)
             if not slots:
@@ -573,7 +683,12 @@ class Workspace:
                 imgui.pop_id()
 
     def edit_descriptions(
-        self, device: Device, data: bytes, root: ET.Element, write: EditHandler
+        self,
+        device: Device,
+        data: bytes,
+        root: ET.Element,
+        write: EditHandler,
+        project: ProjectService | None = None,
     ) -> None:
         if self.description_origin != data and not self.descriptions:
             self.description_origin = data
@@ -633,6 +748,17 @@ class Workspace:
         if imgui.button(S.E64_CANCEL):
             self.descriptions.clear()
             self.description_origin = data
+        same_line_if_fits(button_width(S.E64_CLEAR_DESCRIPTIONS))
+        if imgui.button(S.E64_CLEAR_DESCRIPTIONS):
+            for index, item in objects(root, section).items():
+                if item.get("description", ""):
+                    self.descriptions[section, index] = ""
+                else:
+                    self.descriptions.pop((section, index), None)
+        if project is not None and section in ("groups", "ecgs", "mds", "pbs", "gis"):
+            imgui.begin_disabled(bool(self.descriptions))
+            self.description_xml.render(device, data, project, (section, ""))
+            imgui.end_disabled()
 
     def _configuration(
         self,
@@ -898,11 +1024,16 @@ class Workspace:
             else:
                 imgui.text_unformatted(mode)
         if section == "templates":
-            mode = item.get("mode", "—")
-            mode_label = {"Enabled": S.E64_ACTIVE, "Disabled": S.E64_OFF}.get(
-                mode, mode
+            edit(
+                item,
+                "mode",
+                S.E64_MODE,
+                options={
+                    "Disabled": S.E64_OFF,
+                    "Enabled": S.E64_ACTIVE,
+                    "Controlled": S.E64_CONTROLLED,
+                },
             )
-            imgui.text_unformatted(S.E64_MODE + ": " + mode_label)
             for attr, label in (
                 ("isOverwritable", S.E64_MANUAL_OVERRIDE),
                 ("resetOnMidnight", S.E64_MIDNIGHT_RESET),
@@ -936,6 +1067,8 @@ class Workspace:
             ]
             weights = [2.7, 1.2, 1.1, 1.1, *([0.52] * 7), 1.4]
             functions = {
+                "CallScene": S.E64_CALL_SCENE,
+                "CallEffect": S.E64_CALL_EFFECT,
                 "SetValue": S.E64_BRIGHTNESS,
                 "SetMinValue": S.E64_MIN_BRIGHTNESS,
                 "SetMaxValue": S.E64_MAX_BRIGHTNESS,
@@ -996,6 +1129,28 @@ class Workspace:
                             if mode == "2":
                                 raw = raw.removesuffix(dca.LEGACY_KELVIN_SUFFIX)
                             self._colour_cell(section, n, mode, raw, (mode,))
+                        elif function in dca.CALL_FUNCTIONS:
+                            target_section = dca.CALL_FUNCTIONS[function]
+                            choices = {
+                                entry.get(
+                                    "index", ""
+                                ): f"{int(entry.get('index', '0')) + 1}: {entry.get('description', '')}"
+                                for entry in root.findall(target_section + "/*")
+                                if entry.get("index", "").isdecimal()
+                                and 0 <= int(entry.get("index", "0")) < 16
+                            }
+                            edit(e, "value", "##value", n, choices)
+                            if function == "CallEffect":
+                                edit(
+                                    e,
+                                    "scaleMode",
+                                    "##effect-action",
+                                    n,
+                                    {
+                                        "ScaleNoneEffectStop": S.DALI_STOP,
+                                        "ScaleNoneEffectStart": S.E64_START,
+                                    },
+                                )
                         elif function in dca.COMMAND_DEFAULTS:
                             edit(e, "value", "##value", n)
                         else:
@@ -1077,6 +1232,9 @@ class Workspace:
                                 )
                     imgui.table_next_column()
                     if section == "templates":
+                        if imgui.button(S.E64_INSERT):
+                            submit("insert", n)
+                        imgui.same_line()
                         if imgui.button(S.E64_COPY):
                             submit("copy", n)
                         imgui.same_line()
@@ -1103,3 +1261,14 @@ class Workspace:
                     imgui.pop_id()
         if section == "templates" and imgui.button(S.E64_ADD_COMMAND):
             submit("add")
+        if section == "templates":
+            for action, label in (
+                ("sort_time", S.E64_SORT_TIME),
+                ("sort_function", S.E64_SORT_FUNCTION),
+                ("clear", S.E64_CLEAR_COMMANDS),
+            ):
+                same_line_if_fits(button_width(label))
+                imgui.begin_disabled(not sequence)
+                if imgui.button(label):
+                    submit(action)
+                imgui.end_disabled()

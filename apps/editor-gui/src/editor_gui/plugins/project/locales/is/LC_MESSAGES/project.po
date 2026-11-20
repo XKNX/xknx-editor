@@ -1589,9 +1589,6 @@ msgstr "Hluti af gögnum tækisins er ekki tiltækur."
 msgid "Connect to a KNX interface to commission the DALI bus."
 msgstr "Tengstu við KNX-skil til að gangsetja DALI-brautina."
 
-msgid "This gateway's commissioning protocol has not been verified against a capture; writes may misbehave. Proceed with care."
-msgstr "Gangsetningarsamskiptaregla þessarar gáttar hefur ekki verið sannreynd með upptöku; skrif geta hegðað sér óeðlilega. Farðu varlega."
-
 msgid "DALI commissioning writes the gateway on the bus but does not update the project parameters; re-export the .knxproj after a DCA-side edit."
 msgstr "DALI-gangsetning skrifar í gáttina á tengibrautinni en uppfærir ekki færibreytur verkefnisins; fluttu .knxproj út aftur eftir breytingu á DCA-hliðinni."
 
@@ -3261,6 +3258,11 @@ msgstr "Núverandi staða verkefnisins"
 msgid "Configuration Comparison"
 msgstr "Samanburður stillinga"
 
+msgid "Current state of the project"
+msgstr "Núverandi staða verkefnisins"
+msgid "Configuration Comparison"
+msgstr "Samanburður stillinga"
+
 msgid "Compare settings with another device or the stored image from the last download."
 msgstr "Berðu stillingarnar saman við annað tæki eða vistaða minnismynd frá síðustu forritun."
 
@@ -3366,6 +3368,11 @@ msgstr "Veldu tæki"
 
 msgid "Select the two devices to compare."
 msgstr "Veldu tækin tvö sem á að bera saman."
+
+msgid "Loading application programs… {done}/{total}"
+msgstr "Hleður verkforritum… {done}/{total}"
+msgid "Symbol"
+msgstr "Tákn"
 
 msgid "Loading application programs… {done}/{total}"
 msgstr "Hleður verkforritum… {done}/{total}"
@@ -3576,6 +3583,11 @@ msgstr "Skrá: {source} (nýjasta færsla: {date})."
 
 msgid "Latest Compatible Version"
 msgstr "Nýjasta samhæfa útgáfa"
+
+msgid "Not determined"
+msgstr "Ekki ákvarðað"
+msgid "Compares the device's hardware/software identity with this catalog. Does not install firmware. Catalog import: MDT Firmware Update .etsapp or Firmware.zip."
+msgstr "Ber auðkenni vélbúnaðar/hugbúnaðar tækisins saman við þessa skrá. Setur ekki upp fastbúnað. Innflutningur skrár: MDT Firmware Update .etsapp eða Firmware.zip."
 
 msgid "Not determined"
 msgstr "Ekki ákvarðað"
@@ -4091,3 +4103,112 @@ msgstr "Heildarbilunartíðni"
 
 msgid "Value input"
 msgstr "Gildisinntak"
+
+
+msgid "Call scene"
+msgstr "Kalla fram senu"
+
+msgid "Call effect"
+msgstr "Kalla fram áhrif"
+
+msgid "Start"
+msgstr "Ræsa"
+
+msgid "Controlled by effect object"
+msgstr "Stýrt af áhrifahlut"
+
+msgid "Import Descriptions…"
+msgstr "Flytja inn lýsingar…"
+
+msgid "Export Descriptions…"
+msgstr "Flytja út lýsingar…"
+
+msgid "Replace the descriptions included in the file? You can undo this change."
+msgstr "Skipta út lýsingunum í skránni? Þú getur afturkallað þessa breytingu."
+
+msgid "Clear Descriptions"
+msgstr "Hreinsa lýsingar"
+
+msgid "These descriptions cannot be preserved as TXT. Choose XML."
+msgstr "Ekki er hægt að varðveita þessar lýsingar sem TXT. Veldu XML."
+
+msgid "Insert Before"
+msgstr "Setja inn á undan"
+
+msgid "Sort by Time"
+msgstr "Raða eftir tíma"
+
+msgid "Sort by Function"
+msgstr "Raða eftir aðgerð"
+
+msgid "Clear Actions"
+msgstr "Hreinsa aðgerðir"
+
+msgid "Discover Inputs"
+msgstr "Finna inntök"
+
+msgid "Stop Blinking"
+msgstr "Stöðva blikk"
+
+msgid "Function Test"
+msgstr "Virknipróf"
+
+msgid "Duration Test"
+msgstr "Tímapróf"
+
+msgid "Battery Test"
+msgstr "Rafhlöðupróf"
+
+msgid "Read Calibration"
+msgstr "Lesa kvörðun"
+
+msgid "Set Calibration Level"
+msgstr "Stilla kvörðunarstig"
+
+msgid "Save Calibration"
+msgstr "Vista kvörðun"
+
+msgid "Read Memory Byte"
+msgstr "Lesa minnisbæti"
+
+msgid "Write Memory Byte"
+msgstr "Skrifa minnisbæti"
+
+msgid "Read Names"
+msgstr "Lesa nöfn"
+
+msgid "Write Names"
+msgstr "Skrifa nöfn"
+
+msgid "Read Motion Diagnostics"
+msgstr "Lesa hreyfigreiningu"
+
+msgid "Inhibit Converters"
+msgstr "Hindra umbreyta"
+
+msgid "Replace ECGs…"
+msgstr "Skipta um straumfestur…"
+
+msgid "Service"
+msgstr "Þjónusta"
+
+msgid "Calibration"
+msgstr "Kvörðun"
+
+msgid "Memory Bank"
+msgstr "Minnisbanki"
+
+msgid "Measured Illuminance (lx)"
+msgstr "Mældur lýsingarstyrkur (lx)"
+
+msgid "Enable memory write lock"
+msgstr "Virkja skriflás minnis"
+
+msgid "Start automatic ECG replacement on this gateway? This changes the DALI assignments and cannot be undone in the project."
+msgstr "Hefja sjálfvirk skipti á straumfestum á þessari gátt? Þetta breytir DALI-úthlutunum og ekki er hægt að afturkalla það í verkefninu."
+
+msgid "Restore Gateway…"
+msgstr "Endurheimta gátt…"
+
+msgid "Restore the saved physical inventory and configuration to this gateway and restart it? This overwrites its DALI state and cannot be undone in the project."
+msgstr "Endurheimta vistuð tæki og stillingar á þessari gátt og endurræsa hana? Þetta yfirskrifar DALI-stöðuna og ekki er hægt að afturkalla það í verkefninu."

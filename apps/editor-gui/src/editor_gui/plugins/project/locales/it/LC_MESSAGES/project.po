@@ -2123,9 +2123,6 @@ msgstr "Slot"
 msgid "The application has no static parameters."
 msgstr "L'applicazione non ha parametri statici."
 
-msgid "This gateway's commissioning protocol has not been verified against a capture; writes may misbehave. Proceed with care."
-msgstr "Il protocollo di messa in servizio di questo gateway non è stato verificato contro una cattura; le scritture potrebbero comportarsi male. Procedi con cautela."
-
 msgid "Program DCA State"
 msgstr "Programma stato DCA"
 
@@ -3234,6 +3231,11 @@ msgstr "Stato attuale del progetto"
 msgid "Configuration Comparison"
 msgstr "Confronto della configurazione"
 
+msgid "Current state of the project"
+msgstr "Stato attuale del progetto"
+msgid "Configuration Comparison"
+msgstr "Confronto della configurazione"
+
 msgid "Compare settings with another device or the stored image from the last download."
 msgstr "Confronta le impostazioni con un altro dispositivo o con l’immagine salvata dell’ultimo download."
 
@@ -3343,6 +3345,11 @@ msgstr "Seleziona un dispositivo"
 
 msgid "Select the two devices to compare."
 msgstr "Seleziona i due dispositivi da confrontare."
+
+msgid "Loading application programs… {done}/{total}"
+msgstr "Caricamento programmi applicativi… {done}/{total}"
+msgid "Symbol"
+msgstr "Simbolo"
 
 msgid "Loading application programs… {done}/{total}"
 msgstr "Caricamento programmi applicativi… {done}/{total}"
@@ -3553,6 +3560,11 @@ msgstr "Catalogo: {source} (ultima voce: {date})."
 
 msgid "Latest Compatible Version"
 msgstr "Ultima versione compatibile"
+
+msgid "Not determined"
+msgstr "Non determinata"
+msgid "Compares the device's hardware/software identity with this catalog. Does not install firmware. Catalog import: MDT Firmware Update .etsapp or Firmware.zip."
+msgstr "Confronta l’identità hardware/software del dispositivo con questo catalogo. Non installa firmware. Importazione catalogo: MDT Firmware Update .etsapp o Firmware.zip."
 
 msgid "Not determined"
 msgstr "Non determinata"
@@ -4068,3 +4080,114 @@ msgstr "Tasso di guasto totale"
 
 msgid "Value input"
 msgstr "Ingresso valore"
+
+
+msgid "Call scene"
+msgstr "Richiama scena"
+
+msgid "Call effect"
+msgstr "Richiama effetto"
+
+msgid "Start"
+msgstr "Avvia"
+
+msgid "Controlled by effect object"
+msgstr "Controllato dall’oggetto effetto"
+
+msgid "Import Descriptions…"
+msgstr "Importa descrizioni…"
+
+msgid "Export Descriptions…"
+msgstr "Esporta descrizioni…"
+
+msgid "Replace the descriptions included in the file? You can undo this change."
+msgstr ""
+"Sostituire le descrizioni contenute nel file? È possibile annullare questa "
+"modifica."
+
+msgid "Clear Descriptions"
+msgstr "Cancella descrizioni"
+
+msgid "These descriptions cannot be preserved as TXT. Choose XML."
+msgstr "Queste descrizioni non possono essere conservate come TXT. Scegliere XML."
+
+msgid "Insert Before"
+msgstr "Inserisci prima"
+
+msgid "Sort by Time"
+msgstr "Ordina per ora"
+
+msgid "Sort by Function"
+msgstr "Ordina per funzione"
+
+msgid "Clear Actions"
+msgstr "Cancella azioni"
+
+msgid "Discover Inputs"
+msgstr "Cerca ingressi"
+
+msgid "Stop Blinking"
+msgstr "Interrompi lampeggio"
+
+msgid "Function Test"
+msgstr "Test funzionale"
+
+msgid "Duration Test"
+msgstr "Test di durata"
+
+msgid "Battery Test"
+msgstr "Test della batteria"
+
+msgid "Read Calibration"
+msgstr "Leggi calibrazione"
+
+msgid "Set Calibration Level"
+msgstr "Imposta livello di calibrazione"
+
+msgid "Save Calibration"
+msgstr "Salva calibrazione"
+
+msgid "Read Memory Byte"
+msgstr "Leggi byte di memoria"
+
+msgid "Write Memory Byte"
+msgstr "Scrivi byte di memoria"
+
+msgid "Read Names"
+msgstr "Leggi nomi"
+
+msgid "Write Names"
+msgstr "Scrivi nomi"
+
+msgid "Read Motion Diagnostics"
+msgstr "Leggi diagnostica movimento"
+
+msgid "Inhibit Converters"
+msgstr "Inibisci convertitori"
+
+msgid "Replace ECGs…"
+msgstr "Sostituisci alimentatori…"
+
+msgid "Service"
+msgstr "Manutenzione"
+
+msgid "Calibration"
+msgstr "Calibrazione"
+
+msgid "Memory Bank"
+msgstr "Banco di memoria"
+
+msgid "Measured Illuminance (lx)"
+msgstr "Illuminamento misurato (lx)"
+
+msgid "Enable memory write lock"
+msgstr "Abilita blocco scrittura memoria"
+
+msgid "Start automatic ECG replacement on this gateway? This changes the DALI assignments and cannot be undone in the project."
+msgstr "Avviare la sostituzione automatica degli alimentatori su questo gateway? Le assegnazioni DALI verranno modificate e non sarà possibile annullare nel progetto."
+
+msgid "Restore Gateway…"
+msgstr "Ripristina gateway…"
+
+msgid "Restore the saved physical inventory and configuration to this gateway and restart it? This overwrites its DALI state and cannot be undone in the project."
+msgstr "Ripristinare i dispositivi fisici e la configurazione salvati su questo gateway e riavviarlo? Lo stato DALI verrà sovrascritto e non sarà possibile annullare nel progetto."

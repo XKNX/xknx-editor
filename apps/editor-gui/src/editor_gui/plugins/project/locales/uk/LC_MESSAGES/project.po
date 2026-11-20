@@ -2123,9 +2123,6 @@ msgstr "Слот"
 msgid "The application has no static parameters."
 msgstr "У застосунку немає статичних параметрів."
 
-msgid "This gateway's commissioning protocol has not been verified against a capture; writes may misbehave. Proceed with care."
-msgstr "Протокол введення цього шлюзу в експлуатацію не перевірено за записом; записи можуть поводитися некоректно. Дійте обережно."
-
 msgid "Program DCA State"
 msgstr "Запрограмувати стан DCA"
 
@@ -3286,6 +3283,11 @@ msgstr "Поточний стан проєкту"
 msgid "Configuration Comparison"
 msgstr "Порівняння конфігурацій"
 
+msgid "Current state of the project"
+msgstr "Поточний стан проєкту"
+msgid "Configuration Comparison"
+msgstr "Порівняння конфігурацій"
+
 msgid "Compare settings with another device or the stored image from the last download."
 msgstr "Порівняйте налаштування з іншим пристроєм або зі збереженим образом останнього завантаження."
 
@@ -3391,6 +3393,11 @@ msgstr "Виберіть пристрій"
 
 msgid "Select the two devices to compare."
 msgstr "Виберіть два пристрої для порівняння."
+
+msgid "Loading application programs… {done}/{total}"
+msgstr "Завантаження прикладних програм… {done}/{total}"
+msgid "Symbol"
+msgstr "Символ"
 
 msgid "Loading application programs… {done}/{total}"
 msgstr "Завантаження прикладних програм… {done}/{total}"
@@ -3601,6 +3608,11 @@ msgstr "Каталог: {source} (останній запис: {date})."
 
 msgid "Latest Compatible Version"
 msgstr "Остання сумісна версія"
+
+msgid "Not determined"
+msgstr "Не визначена"
+msgid "Compares the device's hardware/software identity with this catalog. Does not install firmware. Catalog import: MDT Firmware Update .etsapp or Firmware.zip."
+msgstr "Порівнює ідентифікатор обладнання/ПЗ пристрою з цим каталогом. Не встановлює прошивку. Імпорт каталогу: MDT Firmware Update .etsapp або Firmware.zip."
 
 msgid "Not determined"
 msgstr "Не визначена"
@@ -4116,3 +4128,112 @@ msgstr "Загальна частка відмов"
 
 msgid "Value input"
 msgstr "Вхід значення"
+
+
+msgid "Call scene"
+msgstr "Викликати сцену"
+
+msgid "Call effect"
+msgstr "Викликати ефект"
+
+msgid "Start"
+msgstr "Запустити"
+
+msgid "Controlled by effect object"
+msgstr "Керування об’єктом ефекту"
+
+msgid "Import Descriptions…"
+msgstr "Імпортувати описи…"
+
+msgid "Export Descriptions…"
+msgstr "Експортувати описи…"
+
+msgid "Replace the descriptions included in the file? You can undo this change."
+msgstr "Замінити описи, що містяться у файлі? Цю зміну можна скасувати."
+
+msgid "Clear Descriptions"
+msgstr "Очистити описи"
+
+msgid "These descriptions cannot be preserved as TXT. Choose XML."
+msgstr "Ці описи неможливо зберегти у форматі TXT. Виберіть XML."
+
+msgid "Insert Before"
+msgstr "Вставити перед"
+
+msgid "Sort by Time"
+msgstr "Сортувати за часом"
+
+msgid "Sort by Function"
+msgstr "Сортувати за функцією"
+
+msgid "Clear Actions"
+msgstr "Очистити дії"
+
+msgid "Discover Inputs"
+msgstr "Знайти входи"
+
+msgid "Stop Blinking"
+msgstr "Зупинити блимання"
+
+msgid "Function Test"
+msgstr "Функціональний тест"
+
+msgid "Duration Test"
+msgstr "Тест тривалості"
+
+msgid "Battery Test"
+msgstr "Тест батареї"
+
+msgid "Read Calibration"
+msgstr "Прочитати калібрування"
+
+msgid "Set Calibration Level"
+msgstr "Встановити рівень калібрування"
+
+msgid "Save Calibration"
+msgstr "Зберегти калібрування"
+
+msgid "Read Memory Byte"
+msgstr "Прочитати байт пам’яті"
+
+msgid "Write Memory Byte"
+msgstr "Записати байт пам’яті"
+
+msgid "Read Names"
+msgstr "Прочитати назви"
+
+msgid "Write Names"
+msgstr "Записати назви"
+
+msgid "Read Motion Diagnostics"
+msgstr "Прочитати діагностику руху"
+
+msgid "Inhibit Converters"
+msgstr "Заблокувати перетворювачі"
+
+msgid "Replace ECGs…"
+msgstr "Замінити ЕПРА…"
+
+msgid "Service"
+msgstr "Обслуговування"
+
+msgid "Calibration"
+msgstr "Калібрування"
+
+msgid "Memory Bank"
+msgstr "Банк пам’яті"
+
+msgid "Measured Illuminance (lx)"
+msgstr "Виміряна освітленість (лк)"
+
+msgid "Enable memory write lock"
+msgstr "Увімкнути блокування запису пам’яті"
+
+msgid "Start automatic ECG replacement on this gateway? This changes the DALI assignments and cannot be undone in the project."
+msgstr "Запустити автоматичну заміну ЕПРА на цьому шлюзі? Це змінить призначення DALI, і скасувати це в проєкті неможливо."
+
+msgid "Restore Gateway…"
+msgstr "Відновити шлюз…"
+
+msgid "Restore the saved physical inventory and configuration to this gateway and restart it? This overwrites its DALI state and cannot be undone in the project."
+msgstr "Відновити збережені фізичні пристрої та конфігурацію на цьому шлюзі й перезапустити його? Це перезапише стан DALI, і скасувати це в проєкті неможливо."

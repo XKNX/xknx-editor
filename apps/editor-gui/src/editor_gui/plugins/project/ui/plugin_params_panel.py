@@ -25,6 +25,7 @@ from editor_gui.plugin_params import (
 )
 from editor_gui.plugins.project.strings import S
 from editor_gui.plugins.project.ui.e64pro import EditHandler, Workspace
+from editor_gui.plugins.project.ui.e64pro_bus import BusView
 from editor_gui.plugins.project.ui.e64pro_report import ReportView
 from editor_gui.theme import status_color
 from editor_gui.widgets.combo import combo
@@ -119,6 +120,7 @@ class PluginParamsPanel:
     _e64_run: DaliRunner | None = None
     _e64_reports: dict[int, ReportView] = field(default_factory=dict[int, ReportView])
     _e64_views: dict[int, Workspace] = field(default_factory=dict[int, Workspace])
+    _e64_bus: dict[int, BusView] = field(default_factory=dict[int, BusView])
 
     def _sync_project(self) -> None:
         generation = self._generation()
@@ -128,6 +130,7 @@ class PluginParamsPanel:
         ):
             self._e64_views.clear()
             self._e64_reports.clear()
+            self._e64_bus.clear()
             self._closed_sections.clear()
             self._seen_sections.clear()
             self._edit_buffers.clear()
@@ -201,6 +204,8 @@ class PluginParamsPanel:
         if backup is None:
             imgui.text_disabled(S.PLUGIN_PARAMS_EMPTY)
             return
+        if self._e64_project is not None and self._e64_run is not None:
+            workspace.program(device, self._e64_project, self._e64_run)
         try:
             root = e64pro.document(backup[1])
         except ValueError as exc:
@@ -220,6 +225,12 @@ class PluginParamsPanel:
                         device, self._e64_project, self._e64_run
                     )
 
+            def service() -> None:
+                if self._e64_project is not None and self._e64_run is not None:
+                    self._e64_bus.setdefault(device.node_id, BusView()).render(
+                        device, self._e64_project, self._e64_run
+                    )
+
             workspace.render(
                 device,
                 backup[1],
@@ -228,6 +239,7 @@ class PluginParamsPanel:
                 details,
                 project=self._e64_project,
                 report=report if self._e64_run is not None else None,
+                service=service if self._e64_run is not None else None,
             )
 
     def _render_sections(

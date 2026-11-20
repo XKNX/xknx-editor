@@ -2123,9 +2123,6 @@ msgstr "Paikka"
 msgid "The application has no static parameters."
 msgstr "Sovelluksella ei ole staattisia parametreja."
 
-msgid "This gateway's commissioning protocol has not been verified against a capture; writes may misbehave. Proceed with care."
-msgstr "Tämän yhdyskäytävän käyttöönottoprotokollaa ei ole varmistettu kaappaukseen; kirjoitukset saattavat toimia väärin. Etene varoen."
-
 msgid "Program DCA State"
 msgstr "Ohjelmoi DCA-tila"
 
@@ -3234,6 +3231,11 @@ msgstr "Projektin nykyinen tila"
 msgid "Configuration Comparison"
 msgstr "Asetusten vertailu"
 
+msgid "Current state of the project"
+msgstr "Projektin nykyinen tila"
+msgid "Configuration Comparison"
+msgstr "Asetusten vertailu"
+
 msgid "Compare settings with another device or the stored image from the last download."
 msgstr "Vertaa asetuksia toiseen laitteeseen tai viimeisimmän ohjelmoinnin tallennettuun muistikuvaan."
 
@@ -3339,6 +3341,11 @@ msgstr "Valitse laite"
 
 msgid "Select the two devices to compare."
 msgstr "Valitse kaksi verrattavaa laitetta."
+
+msgid "Loading application programs… {done}/{total}"
+msgstr "Ladataan sovellusohjelmia… {done}/{total}"
+msgid "Symbol"
+msgstr "Symboli"
 
 msgid "Loading application programs… {done}/{total}"
 msgstr "Ladataan sovellusohjelmia… {done}/{total}"
@@ -3549,6 +3556,11 @@ msgstr "Luettelo: {source} (uusin merkintä: {date})."
 
 msgid "Latest Compatible Version"
 msgstr "Uusin yhteensopiva versio"
+
+msgid "Not determined"
+msgstr "Ei määritetty"
+msgid "Compares the device's hardware/software identity with this catalog. Does not install firmware. Catalog import: MDT Firmware Update .etsapp or Firmware.zip."
+msgstr "Vertaa laitteen laitteisto-/ohjelmistotunnistetta tähän luetteloon. Ei asenna laiteohjelmistoa. Luettelon tuonti: MDT Firmware Update .etsapp tai Firmware.zip."
 
 msgid "Not determined"
 msgstr "Ei määritetty"
@@ -4064,3 +4076,112 @@ msgstr "Kokonaisvikaprosentti"
 
 msgid "Value input"
 msgstr "Arvotulo"
+
+
+msgid "Call scene"
+msgstr "Kutsu tilanne"
+
+msgid "Call effect"
+msgstr "Kutsu tehoste"
+
+msgid "Start"
+msgstr "Käynnistä"
+
+msgid "Controlled by effect object"
+msgstr "Tehosteobjektin ohjaama"
+
+msgid "Import Descriptions…"
+msgstr "Tuo kuvaukset…"
+
+msgid "Export Descriptions…"
+msgstr "Vie kuvaukset…"
+
+msgid "Replace the descriptions included in the file? You can undo this change."
+msgstr "Korvataanko tiedoston sisältämät kuvaukset? Voit kumota tämän muutoksen."
+
+msgid "Clear Descriptions"
+msgstr "Tyhjennä kuvaukset"
+
+msgid "These descriptions cannot be preserved as TXT. Choose XML."
+msgstr "Näitä kuvauksia ei voi säilyttää TXT-muodossa. Valitse XML."
+
+msgid "Insert Before"
+msgstr "Lisää ennen"
+
+msgid "Sort by Time"
+msgstr "Lajittele ajan mukaan"
+
+msgid "Sort by Function"
+msgstr "Lajittele toiminnon mukaan"
+
+msgid "Clear Actions"
+msgstr "Tyhjennä toiminnot"
+
+msgid "Discover Inputs"
+msgstr "Etsi tulolaitteet"
+
+msgid "Stop Blinking"
+msgstr "Lopeta vilkutus"
+
+msgid "Function Test"
+msgstr "Toimintatesti"
+
+msgid "Duration Test"
+msgstr "Kestotesti"
+
+msgid "Battery Test"
+msgstr "Akkutesti"
+
+msgid "Read Calibration"
+msgstr "Lue kalibrointi"
+
+msgid "Set Calibration Level"
+msgstr "Aseta kalibrointitaso"
+
+msgid "Save Calibration"
+msgstr "Tallenna kalibrointi"
+
+msgid "Read Memory Byte"
+msgstr "Lue muistitavu"
+
+msgid "Write Memory Byte"
+msgstr "Kirjoita muistitavu"
+
+msgid "Read Names"
+msgstr "Lue nimet"
+
+msgid "Write Names"
+msgstr "Kirjoita nimet"
+
+msgid "Read Motion Diagnostics"
+msgstr "Lue liikkeen diagnostiikka"
+
+msgid "Inhibit Converters"
+msgstr "Estä muuntimet"
+
+msgid "Replace ECGs…"
+msgstr "Vaihda liitäntälaitteet…"
+
+msgid "Service"
+msgstr "Huolto"
+
+msgid "Calibration"
+msgstr "Kalibrointi"
+
+msgid "Memory Bank"
+msgstr "Muistipankki"
+
+msgid "Measured Illuminance (lx)"
+msgstr "Mitattu valaistusvoimakkuus (lx)"
+
+msgid "Enable memory write lock"
+msgstr "Ota muistin kirjoitussuoja käyttöön"
+
+msgid "Start automatic ECG replacement on this gateway? This changes the DALI assignments and cannot be undone in the project."
+msgstr "Aloitetaanko liitäntälaitteiden automaattinen vaihto tällä yhdyskäytävällä? Tämä muuttaa DALI-määrityksiä, eikä sitä voi kumota projektissa."
+
+msgid "Restore Gateway…"
+msgstr "Palauta yhdyskäytävä…"
+
+msgid "Restore the saved physical inventory and configuration to this gateway and restart it? This overwrites its DALI state and cannot be undone in the project."
+msgstr "Palautetaanko tallennetut fyysiset laitteet ja asetukset tähän yhdyskäytävään ja käynnistetäänkö se uudelleen? Tämä korvaa DALI-tilan, eikä sitä voi kumota projektissa."

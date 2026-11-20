@@ -35,15 +35,19 @@ class PropertyType(IntEnum):
 
     HAWK_FIRMWARE = 25  # on FIRMWARE_OBJECT_INDEX (0), not the DALI object
     FIRMWARE = 65
+    ECG_NAME = 202
     EVG_PROP = 203
     EVG_STATIC = 204
     EVG_STATUS = 205
     GROUP_DYN = 206
+    GROUP_NAME = 207
     GROUP_STATUS = 208
     GROUP_FAILURE = 209
     GENERAL_FAILURE = 210
     SCENE_ASSIGN = 212
     SCENE_GROUP_VALUE = 214
+    EFFECT_STEP = 216
+    EFFECT_MODE = 217
     COMMAND = 218
     CONVERTER_STATUS = 219
     TEST_RESULT = 221
@@ -52,10 +56,22 @@ class PropertyType(IntEnum):
     COLOUR_C_ASSIGN = 226
     EXT_COMMAND = 227
     SCENE_KNX_MAP = 228
+    INPUT_TABLE = 230
+    INSTANCE_TABLE = 231
+    INPUT_COMMISSIONING = 232
+    INPUT_STATUS = 233
+    INPUT_NAME = 234
+    GTIN = 237
+    MOTION_INPUT = 241
+    GENERIC_INPUT = 242
+    CONSTANT_LIGHT = 245
 
 
 # Bytes per table element.
 ELEMENT_SIZE: dict[PropertyType, int] = {
+    PropertyType.ECG_NAME: 10,
+    PropertyType.GROUP_NAME: 10,
+    PropertyType.INPUT_NAME: 10,
     PropertyType.EVG_PROP: 4,
     PropertyType.EVG_STATIC: 8,
     PropertyType.EVG_STATUS: 5,
@@ -67,13 +83,32 @@ ELEMENT_SIZE: dict[PropertyType, int] = {
     PropertyType.TEST_RESULT: 10,
     PropertyType.SCENE_ASSIGN: 1,
     PropertyType.SCENE_GROUP_VALUE: 8,
+    PropertyType.EFFECT_STEP: 10,
+    PropertyType.EFFECT_MODE: 1,
     PropertyType.SCENE_KNX_MAP: 1,
     PropertyType.COMMAND: 3,
     PropertyType.COMMISSION_SYNC: 2,
     PropertyType.COLOUR_C_EVENT: 10,
     PropertyType.COLOUR_C_ASSIGN: 10,
     PropertyType.EXT_COMMAND: 8,
+    PropertyType.INPUT_TABLE: 6,
+    PropertyType.INSTANCE_TABLE: 8,
+    PropertyType.INPUT_COMMISSIONING: 3,
+    PropertyType.INPUT_STATUS: 5,
+    PropertyType.MOTION_INPUT: 10,
+    PropertyType.GENERIC_INPUT: 5,
+    PropertyType.CONSTANT_LIGHT: 10,
+    PropertyType.GTIN: 6,
 }
+
+
+def property_id_for(prop: PropertyType, profile: DaliProfile | None = None) -> int:
+    """Resolve a logical property to the active profile's wire ID."""
+    if profile is not None:
+        for logical, wire in profile.property_id_overrides:
+            if logical == prop:
+                return wire
+    return int(prop)
 
 
 def element_size_for(prop: PropertyType, profile: DaliProfile | None = None) -> int:
@@ -102,6 +137,7 @@ class DeviceCommand(IntEnum):
     APPLY_SCENE_VALUE = 6
     TEST_SCENE = 7
     SET_GROUP_VALUE = 8
+    SET_CALIBRATION_VALUE = 9
     SET_ALL_ECG = 10
     SET_ECG_VALUE = 11
     GET_GROUP_VALUE = 12
@@ -118,9 +154,14 @@ class DeviceCommand(IntEnum):
     PLUGIN_SYNC = 24
     SCENE_SYNC = 25
     RESET_DEVICE = 26
+    PREPARE_RESTORE = 33
     COLOR_SYNC = 27
     REMOVE_SHORT_ADR = 28
     CONVERTER_INHIBIT = 29
+    INPUT_NEW_INSTALLATION = 48
+    INPUT_POST_INSTALLATION = 49
+    INPUT_SYNC = 50
+    INPUT_IDENTIFY = 51
 
 
 class DeviceExtCommand(IntEnum):
@@ -139,7 +180,7 @@ class DeviceExtCommand(IntEnum):
 
 
 # Blink command Param1 bit flags (DCA CommissioningView).
-BLINK_AUTO = 0x40  # start auto-blink
+BLINK_AUTO = 0x40  # start ECG blink
 BLINK_STOP = 0x80  # stop blink
 
 # Command poll readback byte0 sentinels.

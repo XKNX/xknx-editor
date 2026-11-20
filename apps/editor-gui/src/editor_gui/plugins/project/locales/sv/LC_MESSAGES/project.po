@@ -2123,9 +2123,6 @@ msgstr "Plats"
 msgid "The application has no static parameters."
 msgstr "Applikationen har inga statiska parametrar."
 
-msgid "This gateway's commissioning protocol has not been verified against a capture; writes may misbehave. Proceed with care."
-msgstr "Driftsättningsprotokollet för den här gatewayen har inte verifierats mot en inspelning; skrivningar kan uppföra sig fel. Fortsätt försiktigt."
-
 msgid "Program DCA State"
 msgstr "Programmera DCA-tillstånd"
 
@@ -3234,6 +3231,11 @@ msgstr "Projektets nuvarande tillstånd"
 msgid "Configuration Comparison"
 msgstr "Jämförelse av konfiguration"
 
+msgid "Current state of the project"
+msgstr "Projektets nuvarande tillstånd"
+msgid "Configuration Comparison"
+msgstr "Jämförelse av konfiguration"
+
 msgid "Compare settings with another device or the stored image from the last download."
 msgstr "Jämför inställningar med en annan enhet eller den sparade minnesbilden från den senaste programmeringen."
 
@@ -3339,6 +3341,11 @@ msgstr "Välj en enhet"
 
 msgid "Select the two devices to compare."
 msgstr "Välj de två enheter som ska jämföras."
+
+msgid "Loading application programs… {done}/{total}"
+msgstr "Läser in applikationsprogram… {done}/{total}"
+msgid "Symbol"
+msgstr "Symbol"
 
 msgid "Loading application programs… {done}/{total}"
 msgstr "Läser in applikationsprogram… {done}/{total}"
@@ -3549,6 +3556,11 @@ msgstr "Katalog: {source} (senaste post: {date})."
 
 msgid "Latest Compatible Version"
 msgstr "Senaste kompatibla version"
+
+msgid "Not determined"
+msgstr "Inte fastställd"
+msgid "Compares the device's hardware/software identity with this catalog. Does not install firmware. Catalog import: MDT Firmware Update .etsapp or Firmware.zip."
+msgstr "Jämför enhetens maskinvaru-/programvaruidentitet med denna katalog. Installerar inte fast programvara. Katalogimport: MDT Firmware Update .etsapp eller Firmware.zip."
 
 msgid "Not determined"
 msgstr "Inte fastställd"
@@ -4064,3 +4076,112 @@ msgstr "Total felfrekvens"
 
 msgid "Value input"
 msgstr "Värdeingång"
+
+
+msgid "Call scene"
+msgstr "Aktivera scen"
+
+msgid "Call effect"
+msgstr "Aktivera effekt"
+
+msgid "Start"
+msgstr "Starta"
+
+msgid "Controlled by effect object"
+msgstr "Styrs av effektobjekt"
+
+msgid "Import Descriptions…"
+msgstr "Importera beskrivningar…"
+
+msgid "Export Descriptions…"
+msgstr "Exportera beskrivningar…"
+
+msgid "Replace the descriptions included in the file? You can undo this change."
+msgstr "Ersätt beskrivningarna i filen? Du kan ångra den här ändringen."
+
+msgid "Clear Descriptions"
+msgstr "Rensa beskrivningar"
+
+msgid "These descriptions cannot be preserved as TXT. Choose XML."
+msgstr "Dessa beskrivningar kan inte bevaras som TXT. Välj XML."
+
+msgid "Insert Before"
+msgstr "Infoga före"
+
+msgid "Sort by Time"
+msgstr "Sortera efter tid"
+
+msgid "Sort by Function"
+msgstr "Sortera efter funktion"
+
+msgid "Clear Actions"
+msgstr "Rensa åtgärder"
+
+msgid "Discover Inputs"
+msgstr "Sök ingångar"
+
+msgid "Stop Blinking"
+msgstr "Stoppa blinkning"
+
+msgid "Function Test"
+msgstr "Funktionstest"
+
+msgid "Duration Test"
+msgstr "Varaktighetstest"
+
+msgid "Battery Test"
+msgstr "Batteritest"
+
+msgid "Read Calibration"
+msgstr "Läs kalibrering"
+
+msgid "Set Calibration Level"
+msgstr "Ställ in kalibreringsnivå"
+
+msgid "Save Calibration"
+msgstr "Spara kalibrering"
+
+msgid "Read Memory Byte"
+msgstr "Läs minnesbyte"
+
+msgid "Write Memory Byte"
+msgstr "Skriv minnesbyte"
+
+msgid "Read Names"
+msgstr "Läs namn"
+
+msgid "Write Names"
+msgstr "Skriv namn"
+
+msgid "Read Motion Diagnostics"
+msgstr "Läs rörelsediagnostik"
+
+msgid "Inhibit Converters"
+msgstr "Blockera omvandlare"
+
+msgid "Replace ECGs…"
+msgstr "Byt driftdon…"
+
+msgid "Service"
+msgstr "Service"
+
+msgid "Calibration"
+msgstr "Kalibrering"
+
+msgid "Memory Bank"
+msgstr "Minnesbank"
+
+msgid "Measured Illuminance (lx)"
+msgstr "Uppmätt belysningsstyrka (lx)"
+
+msgid "Enable memory write lock"
+msgstr "Aktivera skrivskydd för minne"
+
+msgid "Start automatic ECG replacement on this gateway? This changes the DALI assignments and cannot be undone in the project."
+msgstr "Starta automatiskt byte av driftdon på denna gateway? Detta ändrar DALI-tilldelningarna och kan inte ångras i projektet."
+
+msgid "Restore Gateway…"
+msgstr "Återställ gateway…"
+
+msgid "Restore the saved physical inventory and configuration to this gateway and restart it? This overwrites its DALI state and cannot be undone in the project."
+msgstr "Återställa de sparade fysiska enheterna och konfigurationen på denna gateway och starta om den? Detta skriver över DALI-tillståndet och kan inte ångras i projektet."
