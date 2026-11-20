@@ -1703,6 +1703,7 @@ msgstr "Kërkim"
 
 msgid "All tools lists every tool to the AI tool. Search lists only a search for the tools and one that calls them, for AI models whose context is too small for the whole list. Tool catalog adds a compact inventory of every tool. An AI tool sees a change once it reconnects."
 msgstr "Opsioni “Të gjitha mjetet” ia paraqet mjetit të IA-së listën e plotë të mjeteve. “Kërkim” paraqet vetëm një mjet për kërkimin e mjeteve dhe një për thirrjen e tyre, për modelet e IA-së me kontekst tepër të vogël për listën e plotë. “Katalogu i mjeteve” shton një inventar të përmbledhur të të gjitha mjeteve. Mjeti i IA-së e sheh ndryshimin sapo rilidhet."
+
 msgid "Delete"
 msgstr "Fshi"
 

@@ -1117,7 +1117,6 @@ msgstr "Krahaso pajisjet"
 msgid "Open a project with at least two devices to compare."
 msgstr "Hapni një projekt me të paktën dy pajisje për të krahasuar."
 
-
 msgid "Filter devices by address, name or description…"
 msgstr "Filtro pajisjet sipas adresës, emrit ose përshkrimit…"
 
@@ -3228,11 +3227,7 @@ msgstr "Zgjidhni një hap tjetër në listë për ta kthyer projektin në atë h
 
 msgid "Current state of the project"
 msgstr "Gjendja aktuale e projektit"
-msgid "Configuration Comparison"
-msgstr "Krahasimi i konfigurimit"
 
-msgid "Current state of the project"
-msgstr "Gjendja aktuale e projektit"
 msgid "Configuration Comparison"
 msgstr "Krahasimi i konfigurimit"
 
@@ -3326,7 +3321,6 @@ msgstr "Shfaq memorien e pajisjes"
 msgid "Read this segment from the device and compare it with the image. Writes nothing."
 msgstr "Lexon këtë segment nga pajisja dhe e krahason me imazhin. Nuk shkruan asgjë."
 
-
 msgid "Compare device memory without changing the saved configuration."
 msgstr "Krahasoni memorien e pajisjes pa ndryshuar konfigurimin e ruajtur."
 
@@ -3344,11 +3338,7 @@ msgstr "Zgjidhni dy pajisjet për t'i krahasuar."
 
 msgid "Loading application programs… {done}/{total}"
 msgstr "Po ngarkohen programet aplikative… {done}/{total}"
-msgid "Symbol"
-msgstr "Simbol"
 
-msgid "Loading application programs… {done}/{total}"
-msgstr "Po ngarkohen programet aplikative… {done}/{total}"
 msgid "Symbol"
 msgstr "Simbol"
 
@@ -3553,19 +3543,14 @@ msgstr "Lexuar më"
 msgid "Catalog: {source} (latest entry: {date})."
 msgstr "Katalogu: {source} (hyrja më e re: {date})."
 
-
 msgid "Latest Compatible Version"
 msgstr "Versioni më i ri i përputhshëm"
 
 msgid "Not determined"
 msgstr "I papërcaktuar"
+
 msgid "Compares the device's hardware/software identity with this catalog. Does not install firmware. Catalog import: MDT Firmware Update .etsapp or Firmware.zip."
 msgstr "Krahason identitetin e harduerit/softuerit të pajisjes me këtë katalog. Nuk instalon firmuer. Importi i katalogut: MDT Firmware Update .etsapp ose Firmware.zip."
-
-msgid "Not determined"
-msgstr "I papërcaktuar"
-msgid "Compares the device's hardware/software identity with this catalog. Does not install firmware. Catalog import: MDT Firmware Update .etsapp or Firmware.zip."
-msgstr "Krahason identitetin e harduerit/softuerit të pajisjes me këtë katalog. Nuk instalon firmuer. Import katalogu: MDT Firmware Update .etsapp ose Firmware.zip."
 
 msgid "Hardware/software identity could not be determined. Read the device to check compatibility."
 msgstr "Identiteti i harduerit/softuerit nuk mund të përcaktohej. Lexoni pajisjen për të kontrolluar përputhshmërinë."
@@ -4076,7 +4061,6 @@ msgstr "Përqindja totale e defekteve"
 
 msgid "Value input"
 msgstr "Hyrje vlere"
-
 
 msgid "Call scene"
 msgstr "Thirr skenën"

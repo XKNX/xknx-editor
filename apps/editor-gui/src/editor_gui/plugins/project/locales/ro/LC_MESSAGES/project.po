@@ -1567,7 +1567,6 @@ msgstr "Obiecte de comunicare"
 msgid "No differences"
 msgstr "Nicio diferență"
 
-
 msgid "Open a project with at least two devices to compare."
 msgstr "Deschideți un proiect cu cel puțin două dispozitive pentru comparare."
 
@@ -3307,11 +3306,7 @@ msgstr "Selectați alt pas din listă pentru a readuce proiectul la acesta"
 
 msgid "Current state of the project"
 msgstr "Starea curentă a proiectului"
-msgid "Configuration Comparison"
-msgstr "Compararea configurației"
 
-msgid "Current state of the project"
-msgstr "Starea curentă a proiectului"
 msgid "Configuration Comparison"
 msgstr "Compararea configurației"
 
@@ -3405,7 +3400,6 @@ msgstr "Afișează memoria dispozitivului"
 msgid "Read this segment from the device and compare it with the image. Writes nothing."
 msgstr "Citește acest segment din dispozitiv și îl compară cu imaginea. Nu scrie nimic."
 
-
 msgid "Compare device memory without changing the saved configuration."
 msgstr "Comparați memoria dispozitivului fără a modifica configurația salvată."
 
@@ -3423,11 +3417,7 @@ msgstr "Selectați cele două dispozitive de comparat."
 
 msgid "Loading application programs… {done}/{total}"
 msgstr "Se încarcă programele de aplicație… {done}/{total}"
-msgid "Symbol"
-msgstr "Simbol"
 
-msgid "Loading application programs… {done}/{total}"
-msgstr "Se încarcă programele de aplicație… {done}/{total}"
 msgid "Symbol"
 msgstr "Simbol"
 
@@ -3632,17 +3622,12 @@ msgstr "Citit la"
 msgid "Catalog: {source} (latest entry: {date})."
 msgstr "Catalog: {source} (cea mai recentă intrare: {date})."
 
-
 msgid "Latest Compatible Version"
 msgstr "Cea mai recentă versiune compatibilă"
 
 msgid "Not determined"
 msgstr "Nedeterminată"
-msgid "Compares the device's hardware/software identity with this catalog. Does not install firmware. Catalog import: MDT Firmware Update .etsapp or Firmware.zip."
-msgstr "Compară identitatea hardware/software a dispozitivului cu acest catalog. Nu instalează firmware. Import catalog: MDT Firmware Update .etsapp sau Firmware.zip."
 
-msgid "Not determined"
-msgstr "Nedeterminată"
 msgid "Compares the device's hardware/software identity with this catalog. Does not install firmware. Catalog import: MDT Firmware Update .etsapp or Firmware.zip."
 msgstr "Compară identitatea hardware/software a dispozitivului cu acest catalog. Nu instalează firmware. Import catalog: MDT Firmware Update .etsapp sau Firmware.zip."
 
@@ -4155,7 +4140,6 @@ msgstr "Rată totală de defectare"
 
 msgid "Value input"
 msgstr "Intrare de valoare"
-
 
 msgid "Call scene"
 msgstr "Apelează scena"

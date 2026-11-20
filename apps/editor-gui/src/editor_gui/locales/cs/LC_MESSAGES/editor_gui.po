@@ -1719,6 +1719,7 @@ msgstr "Hledání"
 
 msgid "All tools lists every tool to the AI tool. Search lists only a search for the tools and one that calls them, for AI models whose context is too small for the whole list. Tool catalog adds a compact inventory of every tool. An AI tool sees a change once it reconnects."
 msgstr "Všechny nástroje: nástroj AI dostane seznam všech nástrojů. Hledání: dostane jen vyhledávání nástrojů a nástroj, který je volá – pro modely AI, jejichž kontext je na celý seznam příliš malý. Katalog nástrojů přidává stručný přehled všech nástrojů. Nástroj AI uvidí změnu po opětovném připojení."
+
 msgid "Delete"
 msgstr "Smazat"
 

@@ -1117,7 +1117,6 @@ msgstr "Сравнить устройства"
 msgid "Open a project with at least two devices to compare."
 msgstr "Откройте проект как минимум с двумя устройствами для сравнения."
 
-
 msgid "Filter devices by address, name or description…"
 msgstr "Фильтр устройств по адресу, имени или описанию…"
 
@@ -3280,11 +3279,7 @@ msgstr "Выберите в списке другой шаг, чтобы вер�
 
 msgid "Current state of the project"
 msgstr "Текущее состояние проекта"
-msgid "Configuration Comparison"
-msgstr "Сравнение конфигураций"
 
-msgid "Current state of the project"
-msgstr "Текущее состояние проекта"
 msgid "Configuration Comparison"
 msgstr "Сравнение конфигураций"
 
@@ -3378,7 +3373,6 @@ msgstr "Показать память устройства"
 msgid "Read this segment from the device and compare it with the image. Writes nothing."
 msgstr "Читает этот сегмент из устройства и сравнивает его с образом. Ничего не записывает."
 
-
 msgid "Compare device memory without changing the saved configuration."
 msgstr "Сравните память устройства без изменения сохранённой конфигурации."
 
@@ -3396,11 +3390,7 @@ msgstr "Выберите два устройства для сравнения."
 
 msgid "Loading application programs… {done}/{total}"
 msgstr "Загрузка прикладных программ… {done}/{total}"
-msgid "Symbol"
-msgstr "Символ"
 
-msgid "Loading application programs… {done}/{total}"
-msgstr "Загрузка прикладных программ… {done}/{total}"
 msgid "Symbol"
 msgstr "Символ"
 
@@ -3605,17 +3595,12 @@ msgstr "Время чтения"
 msgid "Catalog: {source} (latest entry: {date})."
 msgstr "Каталог: {source} (последняя запись: {date})."
 
-
 msgid "Latest Compatible Version"
 msgstr "Последняя совместимая версия"
 
 msgid "Not determined"
 msgstr "Не определена"
-msgid "Compares the device's hardware/software identity with this catalog. Does not install firmware. Catalog import: MDT Firmware Update .etsapp or Firmware.zip."
-msgstr "Сравнивает идентификатор оборудования/ПО устройства с этим каталогом. Не устанавливает прошивку. Импорт каталога: MDT Firmware Update .etsapp или Firmware.zip."
 
-msgid "Not determined"
-msgstr "Не определена"
 msgid "Compares the device's hardware/software identity with this catalog. Does not install firmware. Catalog import: MDT Firmware Update .etsapp or Firmware.zip."
 msgstr "Сравнивает идентификатор оборудования/ПО устройства с этим каталогом. Не устанавливает прошивку. Импорт каталога: MDT Firmware Update .etsapp или Firmware.zip."
 
@@ -4128,7 +4113,6 @@ msgstr "Общая доля отказов"
 
 msgid "Value input"
 msgstr "Вход значения"
-
 
 msgid "Call scene"
 msgstr "Вызвать сцену"

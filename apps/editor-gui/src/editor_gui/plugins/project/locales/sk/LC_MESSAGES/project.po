@@ -1567,7 +1567,6 @@ msgstr "Skupinové objekty"
 msgid "No differences"
 msgstr "Žiadne rozdiely"
 
-
 msgid "Open a project with at least two devices to compare."
 msgstr "Na porovnanie otvorte projekt aspoň s dvoma zariadeniami."
 
@@ -3307,11 +3306,7 @@ msgstr "Vyberte v zozname iný krok, ku ktorému sa má projekt vrátiť"
 
 msgid "Current state of the project"
 msgstr "Aktuálny stav projektu"
-msgid "Configuration Comparison"
-msgstr "Porovnanie konfigurácie"
 
-msgid "Current state of the project"
-msgstr "Aktuálny stav projektu"
 msgid "Configuration Comparison"
 msgstr "Porovnanie konfigurácie"
 
@@ -3405,7 +3400,6 @@ msgstr "Zobraziť pamäť zariadenia"
 msgid "Read this segment from the device and compare it with the image. Writes nothing."
 msgstr "Prečíta tento segment zo zariadenia a porovná ho s obrazom. Nič nezapisuje."
 
-
 msgid "Compare device memory without changing the saved configuration."
 msgstr "Porovnajte pamäť zariadenia bez zmeny uloženej konfigurácie."
 
@@ -3423,11 +3417,7 @@ msgstr "Vyberte dve zariadenia na porovnanie."
 
 msgid "Loading application programs… {done}/{total}"
 msgstr "Načítavajú sa aplikačné programy… {done}/{total}"
-msgid "Symbol"
-msgstr "Symbol"
 
-msgid "Loading application programs… {done}/{total}"
-msgstr "Načítavajú sa aplikačné programy… {done}/{total}"
 msgid "Symbol"
 msgstr "Symbol"
 
@@ -3632,17 +3622,12 @@ msgstr "Načítané"
 msgid "Catalog: {source} (latest entry: {date})."
 msgstr "Katalóg: {source} (najnovší záznam: {date})."
 
-
 msgid "Latest Compatible Version"
 msgstr "Najnovšia kompatibilná verzia"
 
 msgid "Not determined"
 msgstr "Neurčené"
-msgid "Compares the device's hardware/software identity with this catalog. Does not install firmware. Catalog import: MDT Firmware Update .etsapp or Firmware.zip."
-msgstr "Porovná identitu hardvéru/softvéru zariadenia s týmto katalógom. Neinštaluje firmvér. Import katalógu: MDT Firmware Update .etsapp alebo Firmware.zip."
 
-msgid "Not determined"
-msgstr "Neurčené"
 msgid "Compares the device's hardware/software identity with this catalog. Does not install firmware. Catalog import: MDT Firmware Update .etsapp or Firmware.zip."
 msgstr "Porovná identitu hardvéru/softvéru zariadenia s týmto katalógom. Neinštaluje firmvér. Import katalógu: MDT Firmware Update .etsapp alebo Firmware.zip."
 
@@ -4155,7 +4140,6 @@ msgstr "Celkový podiel porúch"
 
 msgid "Value input"
 msgstr "Hodnotový vstup"
-
 
 msgid "Call scene"
 msgstr "Vyvolať scénu"

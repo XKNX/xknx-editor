@@ -1567,7 +1567,6 @@ msgstr "Samskiptahlutir"
 msgid "No differences"
 msgstr "Enginn munur"
 
-
 msgid "Open a project with at least two devices to compare."
 msgstr "Opnaðu verkefni með að minnsta kosti tveimur tækjum til að bera saman."
 
@@ -3255,11 +3254,7 @@ msgstr "Veldu annað skref á listanum til að færa verkefnið aftur á það"
 
 msgid "Current state of the project"
 msgstr "Núverandi staða verkefnisins"
-msgid "Configuration Comparison"
-msgstr "Samanburður stillinga"
 
-msgid "Current state of the project"
-msgstr "Núverandi staða verkefnisins"
 msgid "Configuration Comparison"
 msgstr "Samanburður stillinga"
 
@@ -3353,7 +3348,6 @@ msgstr "Sýna minni tækis"
 msgid "Read this segment from the device and compare it with the image. Writes nothing."
 msgstr "Lestu þetta minnissvæði úr tækinu og berðu það saman við minnismyndina. Skrifar ekkert."
 
-
 msgid "Compare device memory without changing the saved configuration."
 msgstr "Berðu saman minni tækisins án þess að breyta vistuðum stillingum."
 
@@ -3371,11 +3365,7 @@ msgstr "Veldu tækin tvö sem á að bera saman."
 
 msgid "Loading application programs… {done}/{total}"
 msgstr "Hleður verkforritum… {done}/{total}"
-msgid "Symbol"
-msgstr "Tákn"
 
-msgid "Loading application programs… {done}/{total}"
-msgstr "Hleður verkforritum… {done}/{total}"
 msgid "Symbol"
 msgstr "Tákn"
 
@@ -3580,17 +3570,12 @@ msgstr "Lesið"
 msgid "Catalog: {source} (latest entry: {date})."
 msgstr "Skrá: {source} (nýjasta færsla: {date})."
 
-
 msgid "Latest Compatible Version"
 msgstr "Nýjasta samhæfa útgáfa"
 
 msgid "Not determined"
 msgstr "Ekki ákvarðað"
-msgid "Compares the device's hardware/software identity with this catalog. Does not install firmware. Catalog import: MDT Firmware Update .etsapp or Firmware.zip."
-msgstr "Ber auðkenni vélbúnaðar/hugbúnaðar tækisins saman við þessa skrá. Setur ekki upp fastbúnað. Innflutningur skrár: MDT Firmware Update .etsapp eða Firmware.zip."
 
-msgid "Not determined"
-msgstr "Ekki ákvarðað"
 msgid "Compares the device's hardware/software identity with this catalog. Does not install firmware. Catalog import: MDT Firmware Update .etsapp or Firmware.zip."
 msgstr "Ber auðkenni vélbúnaðar/hugbúnaðar tækisins saman við þessa skrá. Setur ekki upp fastbúnað. Innflutningur skrár: MDT Firmware Update .etsapp eða Firmware.zip."
 
@@ -4103,7 +4088,6 @@ msgstr "Heildarbilunartíðni"
 
 msgid "Value input"
 msgstr "Gildisinntak"
-
 
 msgid "Call scene"
 msgstr "Kalla fram senu"
