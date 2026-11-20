@@ -31,9 +31,25 @@ from xknxeditor.download.programmer import (
     PID_IO_LIST,
     PID_OBJECT_TYPE,
     DeviceProgrammer,
+    swapped_key,
 )
 
 from .conftest import FakeDevice
+
+
+class _KeyedDevice(FakeDevice):
+    """A device granting an access level by the key presented (15, no access, for others)."""
+
+    def __init__(self, levels: dict[int, int]) -> None:
+        super().__init__()
+        self.levels = levels
+
+    async def request(self, payload: Any, expected: Any) -> Any:
+        from xknx.telegram.apci import AuthorizeRequest
+
+        if isinstance(payload, AuthorizeRequest):
+            self.authorize_level = self.levels.get(payload.key, 15)
+        return await super().request(payload, expected)
 
 
 class _CappingConnection:
@@ -382,6 +398,44 @@ async def test_authorize_reports_locked_level() -> None:
     level = await DeviceProgrammer(device).authorize(key=0x11223344)
     assert level == 15
     assert device.authorize_keys == [0x11223344]
+
+
+_KEY = 0x11223344
+_FREE = 0xFFFFFFFF
+
+
+def test_a_swapped_key_has_its_octets_reversed() -> None:
+    assert swapped_key(_KEY) == 0x44332211
+    assert swapped_key(_FREE) == _FREE
+
+
+@pytest.mark.parametrize(
+    ("levels", "swapped", "level", "presented"),
+    [
+        # The project's key wins; it is presented again, last.
+        ({_KEY: 0, _FREE: 3}, False, 0, [_KEY, _FREE, _KEY]),
+        # The free key gets more access: it was the last one presented.
+        ({_KEY: 15, _FREE: 1}, False, 1, [_KEY, _FREE]),
+        # The same level for both: the first one wins.
+        ({_KEY: 2, _FREE: 2}, False, 2, [_KEY, _FREE, _KEY]),
+        # A device that takes the key with its octets reversed.
+        ({0x44332211: 0, _FREE: 3}, True, 0, [_KEY, _FREE, 0x44332211]),
+        # Nothing grants access.
+        ({}, True, 15, [_KEY, _FREE, 0x44332211, _KEY]),
+    ],
+)
+async def test_authorize_best_takes_the_key_with_the_most_access(
+    levels: dict[int, int], swapped: bool, level: int, presented: list[int]
+) -> None:
+    device = _KeyedDevice(levels)
+    assert await DeviceProgrammer(device).authorize_best(_KEY, swapped=swapped) == level
+    assert device.authorize_keys == presented
+
+
+async def test_authorize_best_presents_the_free_key_once() -> None:
+    device = _KeyedDevice({_FREE: 0})
+    assert await DeviceProgrammer(device).authorize_best(_FREE, swapped=True) == 0
+    assert device.authorize_keys == [_FREE]
 
 
 @pytest.mark.parametrize("operation", ["read", "write"])

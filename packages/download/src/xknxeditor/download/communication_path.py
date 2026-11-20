@@ -516,7 +516,7 @@ class CommunicationPaths:
         try:
             programmer = DeviceProgrammer(await manager.open())
             if coupler.access_key != FREE_ACCESS_KEY:
-                await programmer.authorize(coupler.access_key)
+                await programmer.authorize_best(coupler.access_key)
             index = await programmer.locate_object(_ROUTER_OBJECT, _SECONDARY - 1)
             if unicast is not None:
                 await _command(
@@ -647,7 +647,7 @@ class CommunicationPaths:
         try:
             programmer = DeviceProgrammer(await manager.open())
             if coupler.access_key != FREE_ACCESS_KEY:
-                await programmer.authorize(coupler.access_key)
+                await programmer.authorize_best(coupler.access_key)
             if (
                 actions & (CouplerAction.BROADCAST | CouplerAction.SYSTEM_BROADCAST)
                 and coupler.secondary is KnxMedium.RF

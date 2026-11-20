@@ -449,6 +449,24 @@ def memory_services(application: Application) -> MemoryServices:
     )
 
 
+# Devices that may take the access key with its octets in reverse order: the manufacturer of
+# their application and their mask version.
+_SWAPPED_ACCESS_KEY = ("M-0001", "MV-07B0")
+
+
+def swapped_access_key(application: Application) -> bool:
+    """Whether a device of ``application`` may take the access key with its octets in reverse
+    order (see :meth:`.programmer.DeviceProgrammer.authorize_best`)."""
+    from .merge import device_mask_version
+
+    program = getattr(application, "program", None)
+    app_id = getattr(application, "id", "") or getattr(program, "id", "") or ""
+    manufacturer = getattr(application, "manufacturer_id", "") or app_id[:6]
+    if program is None or manufacturer != _SWAPPED_ACCESS_KEY[0]:
+        return False
+    return device_mask_version(application) == _SWAPPED_ACCESS_KEY[1]
+
+
 def _application_id(application: Application) -> bytes:
     """Assemble the 5 octet application id (manufacturer, type, version), with the
     application's own manufacturer (see ``program_manufacturer``)."""
@@ -1144,9 +1162,12 @@ class LoadProcedureRunner:
         if self._authorize_levels > 0:
             # Access protection is per connection, so authorize on every open (a
             # Restart drops the connection and the next control reconnects), with the
-            # project's key; a device with no key set grants full access (level 0) for
-            # any key.
-            level = await programmer.authorize(self._access_key)
+            # key that gets the best access: the project's, the free one or, for the
+            # devices that may take it so, the project's with its octets reversed. A device
+            # with no key set grants full access (level 0) for any key.
+            level = await programmer.authorize_best(
+                self._access_key, swapped=swapped_access_key(self.application)
+            )
             if level == 0:
                 logger.debug("authorized with full access (level 0)")
             else:

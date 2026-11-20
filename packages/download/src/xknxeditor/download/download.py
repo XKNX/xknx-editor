@@ -49,7 +49,7 @@ from .merge import (
     system300_mask_unresolved,
 )
 from .prepared import PreparedDownload
-from .procedure import LoadProcedureRunner, memory_services
+from .procedure import LoadProcedureRunner, memory_services, swapped_access_key
 from .programmer import (
     DEFAULT_MAX_APDU_LENGTH,
     FREE_ACCESS_KEY,
@@ -587,7 +587,9 @@ async def _after_unload_procedure(
                 await manager.open(), apdu_overhead=_apdu_overhead(security)
             )
             if levels > 0:
-                level = await programmer.authorize(access_key)
+                level = await programmer.authorize_best(
+                    access_key, swapped=swapped_access_key(application)
+                )
                 if unlock:
                     logger.info("download: unlocking %s", address)
                     for locked in range(level, levels):

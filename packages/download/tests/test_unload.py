@@ -268,6 +268,8 @@ async def test_an_unload_removes_the_projects_access_key(
         in_programming_mode=False,
         restarted=True,
     )
-    assert device.authorize_keys == [0x12345678]
+    # The project's key, the free one, then the project's again: both get the same level, so
+    # the first wins and is presented last.
+    assert device.authorize_keys == [0x12345678, 0xFFFFFFFF, 0x12345678]
     # Every level from the granted one on gets the free access key again.
     assert device.key_writes == [(1, 0xFFFFFFFF), (2, 0xFFFFFFFF)]

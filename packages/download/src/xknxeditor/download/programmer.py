@@ -142,6 +142,11 @@ _EXTENDED_OBJECT_BASE = _MAX_OBJECT_INDEX + 1
 _MAX_OBJECT_INSTANCE = 0xFFF
 
 
+def swapped_key(key: int) -> int:
+    """``key`` (4 octets) with its octets in reverse order."""
+    return int.from_bytes(key.to_bytes(4, "big"), "little")
+
+
 def extended_object_index(object_type: int, instance: int) -> int:
     """The index ``locate_object`` gives the ``instance``-th object (from 1) of a type that the
     one-octet object index does not reach: the same for every connection."""
@@ -557,6 +562,24 @@ class DeviceProgrammer:
         if not isinstance(payload, AuthorizeResponse):
             raise VerificationError("no authorize response received")
         return payload.level
+
+    async def authorize_best(self, key: int, *, swapped: bool = False) -> int:
+        """Authorize with the key that gets the best access level and return that level.
+
+        The keys are presented in turn: ``key``, the free access key and, with ``swapped``,
+        ``key`` with its octets in reverse order (some devices take their key so). The first
+        one granting the lowest level wins; it is presented again when it was not the last,
+        because the last authorization is the one the connection keeps.
+        """
+        keys = [key]
+        for candidate in (FREE_ACCESS_KEY, *((swapped_key(key),) if swapped else ())):
+            if candidate not in keys:
+                keys.append(candidate)
+        levels = [await self.authorize(candidate) for candidate in keys]
+        best = min(range(len(keys)), key=levels.__getitem__)
+        if best != len(keys) - 1:
+            await self.authorize(keys[best])
+        return levels[best]
 
     async def key_write(self, level: int, key: int) -> int:
         """Set the key of access ``level`` (A_Key_Write; the free access key removes it) and
