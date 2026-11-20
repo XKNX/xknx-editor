@@ -1146,3 +1146,58 @@ def test_add_device_event_without_product_fields_loads():
     )
     assert event.product_name == ""
     assert event.to_dict()["manufacturer_name"] == ""
+
+
+def test_parameters_and_blob_commit_and_undo_together(tmp_path):
+    svc, pid = _new(tmp_path)
+    dev = svc.add_device(pid, _backbone_segment(svc, pid), PRODUCT, address=1, name="D")
+    svc.upsert_device_binary_data(
+        pid, dev, "backup", b"before", ref_id="keep", do_not_copy=True
+    )
+    svc.set_parameters(
+        pid,
+        dev,
+        [("P-1", "Name")],
+        binary_data={"backup": b"after"},
+        label="Descriptions",
+    )
+    device = svc.devices(pid)[0]
+    assert device.parameters[0].value == "Name"
+    assert device.binary_data[0].data == b"after"
+    assert device.binary_data[0].ref_id == "keep" and device.binary_data[0].do_not_copy
+    svc.undo(pid)
+    device = svc.devices(pid)[0]
+    assert device.parameters == []
+    assert device.binary_data[0].data == b"before"
+    svc.redo(pid)
+    assert svc.devices(pid)[0].binary_data[0].data == b"after"
+
+
+def test_parameter_and_blob_failure_rolls_back_both_and_keeps_redo(
+    tmp_path, monkeypatch
+):
+    from xknxeditor.proj.core.events import UpsertDeviceBinaryData
+
+    svc, pid = _new(tmp_path)
+    dev = svc.add_device(pid, _backbone_segment(svc, pid), PRODUCT, address=1, name="D")
+    svc.upsert_device_binary_data(pid, dev, "backup", b"before")
+    svc.set_parameters(pid, dev, [("P-1", "Saved")])
+    svc.undo(pid)
+    cursor = svc.cursor(pid)
+    original = UpsertDeviceBinaryData.apply
+
+    def fail(event, session):
+        original(event, session)
+        raise ValueError("Storage failure")
+
+    monkeypatch.setattr(UpsertDeviceBinaryData, "apply", fail)
+    with pytest.raises(ValueError, match="Storage failure"):
+        svc.set_parameters(
+            pid, dev, [("P-1", "Changed")], binary_data={"backup": b"after"}
+        )
+    assert svc.cursor(pid) == cursor
+    device = svc.devices(pid)[0]
+    assert device.parameters == []
+    assert device.binary_data[0].data == b"before"
+    assert svc.redo(pid)
+    assert svc.devices(pid)[0].parameters[0].value == "Saved"

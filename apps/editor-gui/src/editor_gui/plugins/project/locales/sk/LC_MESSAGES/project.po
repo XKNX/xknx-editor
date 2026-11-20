@@ -4038,3 +4038,108 @@ msgstr "so"
 
 msgid "Su"
 msgstr "ne"
+
+msgid "A test is pending."
+msgstr "Test čaká."
+
+msgid "Battery"
+msgstr "Batéria"
+
+msgid "Brightness sensor"
+msgstr "Snímač jasu"
+
+msgid "Converters"
+msgstr "Prevodníky"
+
+msgid "Descriptions"
+msgstr "Popisy"
+
+msgid "Diagnostic Report"
+msgstr "Diagnostická správa"
+
+msgid "Duration"
+msgstr "Trvanie"
+
+msgid "Duration test running"
+msgstr "Prebieha test výdrže"
+
+msgid "Edit several descriptions and apply them together in one undo step."
+msgstr "Upravte viacero popisov a použite ich spoločne v jednom kroku vrátenia späť."
+
+msgid "Emergency"
+msgstr "Núdzová prevádzka"
+
+msgid "Emergency Failure"
+msgstr "Porucha núdzového osvetlenia"
+
+msgid "Emergency Mode"
+msgstr "Režim núdzového osvetlenia"
+
+msgid "Emergency Status"
+msgstr "Stav núdzového osvetlenia"
+
+msgid "Errors"
+msgstr "Chyby"
+
+msgid "Event sensor"
+msgstr "Snímač udalostí"
+
+msgid "Extended emergency"
+msgstr "Predĺžená núdzová prevádzka"
+
+msgid "Failure Rate"
+msgstr "Podiel porúch"
+
+msgid "Fixed inhibit"
+msgstr "Pevné blokovanie"
+
+msgid "Function test running"
+msgstr "Prebieha funkčný test"
+
+msgid "Generic sensor"
+msgstr "Všeobecný snímač"
+
+msgid "Inhibit"
+msgstr "Blokovanie"
+
+msgid "Lamps"
+msgstr "Svetelné zdroje"
+
+msgid "Motion sensor"
+msgstr "Snímač pohybu"
+
+msgid "Normal"
+msgstr "Normálny"
+
+msgid "Push button"
+msgstr "Tlačidlo"
+
+msgid "Read Report"
+msgstr "Načítať správu"
+
+msgid "Read the diagnostic report from the gateway to display its current counters and saved test results."
+msgstr "Načítajte diagnostickú správu z brány a zobrazte aktuálne počítadlá a uložené výsledky testov."
+
+msgid "Replace the selected slot with the XML configuration? Other slots remain unchanged."
+msgstr "Nahradiť vybranú pozíciu konfiguráciou XML? Ostatné pozície zostanú nezmenené."
+
+msgid "Rest"
+msgstr "Pokoj"
+
+msgid "Result"
+msgstr "Výsledok"
+
+msgid "Test"
+msgstr "Test"
+
+msgid "The input types are not compatible."
+msgstr "Typy vstupov nie sú kompatibilné."
+
+msgid "This physical input is already assigned."
+msgstr "Tento fyzický vstup je už priradený."
+
+msgid "Total Failure Rate"
+msgstr "Celkový podiel porúch"
+
+msgid "Value input"
+msgstr "Hodnotový vstup"

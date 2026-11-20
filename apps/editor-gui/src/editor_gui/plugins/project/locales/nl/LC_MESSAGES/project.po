@@ -3994,3 +3994,108 @@ msgstr "za"
 
 msgid "Su"
 msgstr "zo"
+
+msgid "A test is pending."
+msgstr "Er staat een test in de wachtrij."
+
+msgid "Battery"
+msgstr "Batterij"
+
+msgid "Brightness sensor"
+msgstr "Helderheidssensor"
+
+msgid "Converters"
+msgstr "Omvormers"
+
+msgid "Descriptions"
+msgstr "Beschrijvingen"
+
+msgid "Diagnostic Report"
+msgstr "Diagnoserapport"
+
+msgid "Duration"
+msgstr "Duur"
+
+msgid "Duration test running"
+msgstr "Duurtest wordt uitgevoerd"
+
+msgid "Edit several descriptions and apply them together in one undo step."
+msgstr "Bewerk meerdere beschrijvingen en pas ze samen toe in één stap die ongedaan kan worden gemaakt."
+
+msgid "Emergency"
+msgstr "Noodbedrijf"
+
+msgid "Emergency Failure"
+msgstr "Noodlichtfout"
+
+msgid "Emergency Mode"
+msgstr "Noodlichtmodus"
+
+msgid "Emergency Status"
+msgstr "Noodlichtstatus"
+
+msgid "Errors"
+msgstr "Fouten"
+
+msgid "Event sensor"
+msgstr "Gebeurtenissensor"
+
+msgid "Extended emergency"
+msgstr "Verlengd noodbedrijf"
+
+msgid "Failure Rate"
+msgstr "Foutpercentage"
+
+msgid "Fixed inhibit"
+msgstr "Vaste blokkering"
+
+msgid "Function test running"
+msgstr "Functietest wordt uitgevoerd"
+
+msgid "Generic sensor"
+msgstr "Algemene sensor"
+
+msgid "Inhibit"
+msgstr "Blokkering"
+
+msgid "Lamps"
+msgstr "Lampen"
+
+msgid "Motion sensor"
+msgstr "Bewegingssensor"
+
+msgid "Normal"
+msgstr "Normaal"
+
+msgid "Push button"
+msgstr "Drukknop"
+
+msgid "Read Report"
+msgstr "Rapport lezen"
+
+msgid "Read the diagnostic report from the gateway to display its current counters and saved test results."
+msgstr "Lees het diagnoserapport van de gateway om de huidige tellers en opgeslagen testresultaten weer te geven."
+
+msgid "Replace the selected slot with the XML configuration? Other slots remain unchanged."
+msgstr "De geselecteerde positie vervangen door de XML-configuratie? Andere posities blijven ongewijzigd."
+
+msgid "Rest"
+msgstr "Rust"
+
+msgid "Result"
+msgstr "Resultaat"
+
+msgid "Test"
+msgstr "Test"
+
+msgid "The input types are not compatible."
+msgstr "De ingangstypen zijn niet compatibel."
+
+msgid "This physical input is already assigned."
+msgstr "Deze fysieke ingang is al toegewezen."
+
+msgid "Total Failure Rate"
+msgstr "Totaal foutpercentage"
+
+msgid "Value input"
+msgstr "Waarde-ingang"

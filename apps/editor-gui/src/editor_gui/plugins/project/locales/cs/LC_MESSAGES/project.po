@@ -4011,3 +4011,108 @@ msgstr "so"
 
 msgid "Su"
 msgstr "ne"
+
+msgid "A test is pending."
+msgstr "Test čeká."
+
+msgid "Battery"
+msgstr "Baterie"
+
+msgid "Brightness sensor"
+msgstr "Snímač jasu"
+
+msgid "Converters"
+msgstr "Převodníky"
+
+msgid "Descriptions"
+msgstr "Popisy"
+
+msgid "Diagnostic Report"
+msgstr "Diagnostická zpráva"
+
+msgid "Duration"
+msgstr "Doba trvání"
+
+msgid "Duration test running"
+msgstr "Probíhá test výdrže"
+
+msgid "Edit several descriptions and apply them together in one undo step."
+msgstr "Upravte více popisů a použijte je společně v jednom kroku vrácení zpět."
+
+msgid "Emergency"
+msgstr "Nouzový provoz"
+
+msgid "Emergency Failure"
+msgstr "Porucha nouzového osvětlení"
+
+msgid "Emergency Mode"
+msgstr "Režim nouzového osvětlení"
+
+msgid "Emergency Status"
+msgstr "Stav nouzového osvětlení"
+
+msgid "Errors"
+msgstr "Chyby"
+
+msgid "Event sensor"
+msgstr "Snímač událostí"
+
+msgid "Extended emergency"
+msgstr "Prodloužený nouzový provoz"
+
+msgid "Failure Rate"
+msgstr "Podíl poruch"
+
+msgid "Fixed inhibit"
+msgstr "Pevné blokování"
+
+msgid "Function test running"
+msgstr "Probíhá funkční test"
+
+msgid "Generic sensor"
+msgstr "Obecný snímač"
+
+msgid "Inhibit"
+msgstr "Blokování"
+
+msgid "Lamps"
+msgstr "Světelné zdroje"
+
+msgid "Motion sensor"
+msgstr "Snímač pohybu"
+
+msgid "Normal"
+msgstr "Normální"
+
+msgid "Push button"
+msgstr "Tlačítko"
+
+msgid "Read Report"
+msgstr "Načíst zprávu"
+
+msgid "Read the diagnostic report from the gateway to display its current counters and saved test results."
+msgstr "Načtěte diagnostickou zprávu z brány a zobrazte aktuální počítadla a uložené výsledky testů."
+
+msgid "Replace the selected slot with the XML configuration? Other slots remain unchanged."
+msgstr "Nahradit vybranou pozici konfigurací XML? Ostatní pozice zůstanou beze změny."
+
+msgid "Rest"
+msgstr "Klid"
+
+msgid "Result"
+msgstr "Výsledek"
+
+msgid "Test"
+msgstr "Test"
+
+msgid "The input types are not compatible."
+msgstr "Typy vstupů nejsou kompatibilní."
+
+msgid "This physical input is already assigned."
+msgstr "Tento fyzický vstup je již přiřazen."
+
+msgid "Total Failure Rate"
+msgstr "Celkový podíl poruch"
+
+msgid "Value input"
+msgstr "Hodnotový vstup"

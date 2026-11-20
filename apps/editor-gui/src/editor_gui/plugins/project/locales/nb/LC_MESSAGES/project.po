@@ -3959,3 +3959,108 @@ msgstr "lø."
 
 msgid "Su"
 msgstr "sø."
+
+msgid "A test is pending."
+msgstr "En test venter."
+
+msgid "Battery"
+msgstr "Batteri"
+
+msgid "Brightness sensor"
+msgstr "Lysstyrkesensor"
+
+msgid "Converters"
+msgstr "Omformere"
+
+msgid "Descriptions"
+msgstr "Beskrivelser"
+
+msgid "Diagnostic Report"
+msgstr "Diagnoserapport"
+
+msgid "Duration"
+msgstr "Varighet"
+
+msgid "Duration test running"
+msgstr "Varighetstest kjører"
+
+msgid "Edit several descriptions and apply them together in one undo step."
+msgstr "Rediger flere beskrivelser og bruk dem samlet i ett trinn som kan angres."
+
+msgid "Emergency"
+msgstr "Nøddrift"
+
+msgid "Emergency Failure"
+msgstr "Nødlysfeil"
+
+msgid "Emergency Mode"
+msgstr "Nødlysmodus"
+
+msgid "Emergency Status"
+msgstr "Nødlysstatus"
+
+msgid "Errors"
+msgstr "Feil"
+
+msgid "Event sensor"
+msgstr "Hendelsessensor"
+
+msgid "Extended emergency"
+msgstr "Forlenget nøddrift"
+
+msgid "Failure Rate"
+msgstr "Feilprosent"
+
+msgid "Fixed inhibit"
+msgstr "Fast sperre"
+
+msgid "Function test running"
+msgstr "Funksjonstest kjører"
+
+msgid "Generic sensor"
+msgstr "Generisk sensor"
+
+msgid "Inhibit"
+msgstr "Sperre"
+
+msgid "Lamps"
+msgstr "Lamper"
+
+msgid "Motion sensor"
+msgstr "Bevegelsessensor"
+
+msgid "Normal"
+msgstr "Normal"
+
+msgid "Push button"
+msgstr "Trykknapp"
+
+msgid "Read Report"
+msgstr "Les rapport"
+
+msgid "Read the diagnostic report from the gateway to display its current counters and saved test results."
+msgstr "Les diagnoserapporten fra gatewayen for å vise gjeldende tellere og lagrede testresultater."
+
+msgid "Replace the selected slot with the XML configuration? Other slots remain unchanged."
+msgstr "Erstatte den valgte plassen med XML-konfigurasjonen? Andre plasser forblir uendret."
+
+msgid "Rest"
+msgstr "Hvile"
+
+msgid "Result"
+msgstr "Resultat"
+
+msgid "Test"
+msgstr "Test"
+
+msgid "The input types are not compatible."
+msgstr "Inngangstypene er ikke kompatible."
+
+msgid "This physical input is already assigned."
+msgstr "Denne fysiske inngangen er allerede tilordnet."
+
+msgid "Total Failure Rate"
+msgstr "Samlet feilprosent"
+
+msgid "Value input"
+msgstr "Verdiinngang"

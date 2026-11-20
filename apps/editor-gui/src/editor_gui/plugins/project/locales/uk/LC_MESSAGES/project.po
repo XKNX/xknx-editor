@@ -4011,3 +4011,108 @@ msgstr "сб"
 
 msgid "Su"
 msgstr "нд"
+
+msgid "A test is pending."
+msgstr "Тест очікує виконання."
+
+msgid "Battery"
+msgstr "Батарея"
+
+msgid "Brightness sensor"
+msgstr "Датчик освітленості"
+
+msgid "Converters"
+msgstr "Перетворювачі"
+
+msgid "Descriptions"
+msgstr "Описи"
+
+msgid "Diagnostic Report"
+msgstr "Діагностичний звіт"
+
+msgid "Duration"
+msgstr "Тривалість"
+
+msgid "Duration test running"
+msgstr "Виконується тест тривалості"
+
+msgid "Edit several descriptions and apply them together in one undo step."
+msgstr "Змініть кілька описів і застосуйте їх разом однією скасовуваною дією."
+
+msgid "Emergency"
+msgstr "Аварійний режим"
+
+msgid "Emergency Failure"
+msgstr "Помилка аварійного освітлення"
+
+msgid "Emergency Mode"
+msgstr "Режим аварійного освітлення"
+
+msgid "Emergency Status"
+msgstr "Стан аварійного освітлення"
+
+msgid "Errors"
+msgstr "Помилки"
+
+msgid "Event sensor"
+msgstr "Датчик подій"
+
+msgid "Extended emergency"
+msgstr "Подовжений аварійний режим"
+
+msgid "Failure Rate"
+msgstr "Частка відмов"
+
+msgid "Fixed inhibit"
+msgstr "Постійне блокування"
+
+msgid "Function test running"
+msgstr "Виконується функціональний тест"
+
+msgid "Generic sensor"
+msgstr "Універсальний датчик"
+
+msgid "Inhibit"
+msgstr "Блокування"
+
+msgid "Lamps"
+msgstr "Лампи"
+
+msgid "Motion sensor"
+msgstr "Датчик руху"
+
+msgid "Normal"
+msgstr "Нормальний"
+
+msgid "Push button"
+msgstr "Кнопка"
+
+msgid "Read Report"
+msgstr "Прочитати звіт"
+
+msgid "Read the diagnostic report from the gateway to display its current counters and saved test results."
+msgstr "Прочитайте діагностичний звіт шлюзу, щоб побачити поточні лічильники та збережені результати тестів."
+
+msgid "Replace the selected slot with the XML configuration? Other slots remain unchanged."
+msgstr "Замінити вибрану позицію конфігурацією XML? Інші позиції залишаться без змін."
+
+msgid "Rest"
+msgstr "Спокій"
+
+msgid "Result"
+msgstr "Результат"
+
+msgid "Test"
+msgstr "Тест"
+
+msgid "The input types are not compatible."
+msgstr "Типи входів несумісні."
+
+msgid "This physical input is already assigned."
+msgstr "Цей фізичний вхід уже призначено."
+
+msgid "Total Failure Rate"
+msgstr "Загальна частка відмов"
+
+msgid "Value input"
+msgstr "Вхід значення"

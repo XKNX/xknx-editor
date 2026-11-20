@@ -4011,3 +4011,108 @@ msgstr "sob"
 
 msgid "Su"
 msgstr "nie"
+
+msgid "A test is pending."
+msgstr "Test oczekuje."
+
+msgid "Battery"
+msgstr "Akumulator"
+
+msgid "Brightness sensor"
+msgstr "Czujnik jasności"
+
+msgid "Converters"
+msgstr "Konwertery"
+
+msgid "Descriptions"
+msgstr "Opisy"
+
+msgid "Diagnostic Report"
+msgstr "Raport diagnostyczny"
+
+msgid "Duration"
+msgstr "Czas trwania"
+
+msgid "Duration test running"
+msgstr "Test czasu pracy w toku"
+
+msgid "Edit several descriptions and apply them together in one undo step."
+msgstr "Edytuj kilka opisów i zastosuj je razem w jednym kroku cofania."
+
+msgid "Emergency"
+msgstr "Tryb awaryjny"
+
+msgid "Emergency Failure"
+msgstr "Usterka oświetlenia awaryjnego"
+
+msgid "Emergency Mode"
+msgstr "Tryb oświetlenia awaryjnego"
+
+msgid "Emergency Status"
+msgstr "Stan oświetlenia awaryjnego"
+
+msgid "Errors"
+msgstr "Błędy"
+
+msgid "Event sensor"
+msgstr "Czujnik zdarzeń"
+
+msgid "Extended emergency"
+msgstr "Przedłużony tryb awaryjny"
+
+msgid "Failure Rate"
+msgstr "Odsetek usterek"
+
+msgid "Fixed inhibit"
+msgstr "Stała blokada"
+
+msgid "Function test running"
+msgstr "Test funkcjonalny w toku"
+
+msgid "Generic sensor"
+msgstr "Czujnik ogólny"
+
+msgid "Inhibit"
+msgstr "Blokada"
+
+msgid "Lamps"
+msgstr "Lampy"
+
+msgid "Motion sensor"
+msgstr "Czujnik ruchu"
+
+msgid "Normal"
+msgstr "Normalny"
+
+msgid "Push button"
+msgstr "Przycisk"
+
+msgid "Read Report"
+msgstr "Odczytaj raport"
+
+msgid "Read the diagnostic report from the gateway to display its current counters and saved test results."
+msgstr "Odczytaj raport diagnostyczny z bramki, aby wyświetlić aktualne liczniki i zapisane wyniki testów."
+
+msgid "Replace the selected slot with the XML configuration? Other slots remain unchanged."
+msgstr "Zastąpić wybraną pozycję konfiguracją XML? Pozostałe pozycje pozostaną bez zmian."
+
+msgid "Rest"
+msgstr "Spoczynek"
+
+msgid "Result"
+msgstr "Wynik"
+
+msgid "Test"
+msgstr "Test"
+
+msgid "The input types are not compatible."
+msgstr "Typy wejść nie są zgodne."
+
+msgid "This physical input is already assigned."
+msgstr "To wejście fizyczne jest już przypisane."
+
+msgid "Total Failure Rate"
+msgstr "Łączny odsetek usterek"
+
+msgid "Value input"
+msgstr "Wejście wartości"

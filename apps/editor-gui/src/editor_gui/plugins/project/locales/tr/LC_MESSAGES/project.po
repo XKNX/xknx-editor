@@ -3907,3 +3907,108 @@ msgstr "Ct"
 
 msgid "Su"
 msgstr "Pa"
+
+msgid "A test is pending."
+msgstr "Bir test bekliyor."
+
+msgid "Battery"
+msgstr "Pil"
+
+msgid "Brightness sensor"
+msgstr "Parlaklık sensörü"
+
+msgid "Converters"
+msgstr "Dönüştürücüler"
+
+msgid "Descriptions"
+msgstr "Açıklamalar"
+
+msgid "Diagnostic Report"
+msgstr "Tanılama Raporu"
+
+msgid "Duration"
+msgstr "Süre"
+
+msgid "Duration test running"
+msgstr "Süre testi çalışıyor"
+
+msgid "Edit several descriptions and apply them together in one undo step."
+msgstr "Birden fazla açıklamayı düzenleyin ve tek bir geri alma adımında birlikte uygulayın."
+
+msgid "Emergency"
+msgstr "Acil durum"
+
+msgid "Emergency Failure"
+msgstr "Acil Aydınlatma Arızası"
+
+msgid "Emergency Mode"
+msgstr "Acil Aydınlatma Modu"
+
+msgid "Emergency Status"
+msgstr "Acil Aydınlatma Durumu"
+
+msgid "Errors"
+msgstr "Hatalar"
+
+msgid "Event sensor"
+msgstr "Olay sensörü"
+
+msgid "Extended emergency"
+msgstr "Uzatılmış acil durum"
+
+msgid "Failure Rate"
+msgstr "Arıza Oranı"
+
+msgid "Fixed inhibit"
+msgstr "Sabit engelleme"
+
+msgid "Function test running"
+msgstr "İşlev testi çalışıyor"
+
+msgid "Generic sensor"
+msgstr "Genel sensör"
+
+msgid "Inhibit"
+msgstr "Engelleme"
+
+msgid "Lamps"
+msgstr "Lambalar"
+
+msgid "Motion sensor"
+msgstr "Hareket sensörü"
+
+msgid "Normal"
+msgstr "Normal"
+
+msgid "Push button"
+msgstr "Basmalı düğme"
+
+msgid "Read Report"
+msgstr "Raporu Oku"
+
+msgid "Read the diagnostic report from the gateway to display its current counters and saved test results."
+msgstr "Geçerli sayaçları ve kayıtlı test sonuçlarını görüntülemek için ağ geçidinden tanılama raporunu okuyun."
+
+msgid "Replace the selected slot with the XML configuration? Other slots remain unchanged."
+msgstr "Seçili konum XML yapılandırmasıyla değiştirilsin mi? Diğer konumlar değişmez."
+
+msgid "Rest"
+msgstr "Dinlenme"
+
+msgid "Result"
+msgstr "Sonuç"
+
+msgid "Test"
+msgstr "Test"
+
+msgid "The input types are not compatible."
+msgstr "Giriş türleri uyumlu değil."
+
+msgid "This physical input is already assigned."
+msgstr "Bu fiziksel giriş zaten atanmış."
+
+msgid "Total Failure Rate"
+msgstr "Toplam Arıza Oranı"
+
+msgid "Value input"
+msgstr "Değer girişi"

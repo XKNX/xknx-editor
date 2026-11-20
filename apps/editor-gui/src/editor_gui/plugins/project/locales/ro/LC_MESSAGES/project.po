@@ -4038,3 +4038,108 @@ msgstr "sâ."
 
 msgid "Su"
 msgstr "du."
+
+msgid "A test is pending."
+msgstr "Un test este în așteptare."
+
+msgid "Battery"
+msgstr "Baterie"
+
+msgid "Brightness sensor"
+msgstr "Senzor de luminozitate"
+
+msgid "Converters"
+msgstr "Convertoare"
+
+msgid "Descriptions"
+msgstr "Descrieri"
+
+msgid "Diagnostic Report"
+msgstr "Raport de diagnosticare"
+
+msgid "Duration"
+msgstr "Durată"
+
+msgid "Duration test running"
+msgstr "Test de durată în curs"
+
+msgid "Edit several descriptions and apply them together in one undo step."
+msgstr "Editați mai multe descrieri și aplicați-le împreună într-un singur pas de anulare."
+
+msgid "Emergency"
+msgstr "Urgență"
+
+msgid "Emergency Failure"
+msgstr "Defecțiune iluminat de urgență"
+
+msgid "Emergency Mode"
+msgstr "Mod iluminat de urgență"
+
+msgid "Emergency Status"
+msgstr "Stare iluminat de urgență"
+
+msgid "Errors"
+msgstr "Erori"
+
+msgid "Event sensor"
+msgstr "Senzor de evenimente"
+
+msgid "Extended emergency"
+msgstr "Urgență prelungită"
+
+msgid "Failure Rate"
+msgstr "Rată de defectare"
+
+msgid "Fixed inhibit"
+msgstr "Blocare fixă"
+
+msgid "Function test running"
+msgstr "Test funcțional în curs"
+
+msgid "Generic sensor"
+msgstr "Senzor generic"
+
+msgid "Inhibit"
+msgstr "Blocare"
+
+msgid "Lamps"
+msgstr "Lămpi"
+
+msgid "Motion sensor"
+msgstr "Senzor de mișcare"
+
+msgid "Normal"
+msgstr "Normal"
+
+msgid "Push button"
+msgstr "Buton"
+
+msgid "Read Report"
+msgstr "Citește raportul"
+
+msgid "Read the diagnostic report from the gateway to display its current counters and saved test results."
+msgstr "Citiți raportul de diagnosticare de la gateway pentru a afișa contoarele actuale și rezultatele testelor salvate."
+
+msgid "Replace the selected slot with the XML configuration? Other slots remain unchanged."
+msgstr "Înlocuiți poziția selectată cu configurația XML? Celelalte poziții rămân neschimbate."
+
+msgid "Rest"
+msgstr "Repaus"
+
+msgid "Result"
+msgstr "Rezultat"
+
+msgid "Test"
+msgstr "Test"
+
+msgid "The input types are not compatible."
+msgstr "Tipurile de intrare nu sunt compatibile."
+
+msgid "This physical input is already assigned."
+msgstr "Această intrare fizică este deja atribuită."
+
+msgid "Total Failure Rate"
+msgstr "Rată totală de defectare"
+
+msgid "Value input"
+msgstr "Intrare de valoare"

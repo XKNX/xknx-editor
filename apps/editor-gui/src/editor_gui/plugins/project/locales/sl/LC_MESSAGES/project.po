@@ -4090,3 +4090,108 @@ msgstr "sob."
 
 msgid "Su"
 msgstr "ned."
+
+msgid "A test is pending."
+msgstr "Preizkus čaka."
+
+msgid "Battery"
+msgstr "Baterija"
+
+msgid "Brightness sensor"
+msgstr "Senzor svetlosti"
+
+msgid "Converters"
+msgstr "Pretvorniki"
+
+msgid "Descriptions"
+msgstr "Opisi"
+
+msgid "Diagnostic Report"
+msgstr "Diagnostično poročilo"
+
+msgid "Duration"
+msgstr "Trajanje"
+
+msgid "Duration test running"
+msgstr "Preizkus trajanja poteka"
+
+msgid "Edit several descriptions and apply them together in one undo step."
+msgstr "Uredite več opisov in jih uporabite skupaj v enem koraku razveljavitve."
+
+msgid "Emergency"
+msgstr "Zasilno delovanje"
+
+msgid "Emergency Failure"
+msgstr "Napaka zasilne razsvetljave"
+
+msgid "Emergency Mode"
+msgstr "Način zasilne razsvetljave"
+
+msgid "Emergency Status"
+msgstr "Stanje zasilne razsvetljave"
+
+msgid "Errors"
+msgstr "Napake"
+
+msgid "Event sensor"
+msgstr "Senzor dogodkov"
+
+msgid "Extended emergency"
+msgstr "Podaljšano zasilno delovanje"
+
+msgid "Failure Rate"
+msgstr "Delež napak"
+
+msgid "Fixed inhibit"
+msgstr "Stalna blokada"
+
+msgid "Function test running"
+msgstr "Funkcijski preizkus poteka"
+
+msgid "Generic sensor"
+msgstr "Splošni senzor"
+
+msgid "Inhibit"
+msgstr "Blokada"
+
+msgid "Lamps"
+msgstr "Svetilke"
+
+msgid "Motion sensor"
+msgstr "Senzor gibanja"
+
+msgid "Normal"
+msgstr "Običajno"
+
+msgid "Push button"
+msgstr "Tipka"
+
+msgid "Read Report"
+msgstr "Preberi poročilo"
+
+msgid "Read the diagnostic report from the gateway to display its current counters and saved test results."
+msgstr "Preberite diagnostično poročilo prehoda za prikaz trenutnih števcev in shranjenih rezultatov preizkusov."
+
+msgid "Replace the selected slot with the XML configuration? Other slots remain unchanged."
+msgstr "Zamenjam izbrano mesto s konfiguracijo XML? Druga mesta ostanejo nespremenjena."
+
+msgid "Rest"
+msgstr "Mirovanje"
+
+msgid "Result"
+msgstr "Rezultat"
+
+msgid "Test"
+msgstr "Preizkus"
+
+msgid "The input types are not compatible."
+msgstr "Vrsti vhodov nista združljivi."
+
+msgid "This physical input is already assigned."
+msgstr "Ta fizični vhod je že dodeljen."
+
+msgid "Total Failure Rate"
+msgstr "Skupni delež napak"
+
+msgid "Value input"
+msgstr "Vhod vrednosti"

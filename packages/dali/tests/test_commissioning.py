@@ -15,7 +15,7 @@ from xknxeditor.dali.model import (
     Template,
     TemplateCommand,
 )
-from xknxeditor.dali.properties import DeviceCommand, PropertyType
+from xknxeditor.dali.properties import DeviceCommand, PropertyType, element_size_for
 from xknxeditor.dali.structs import EcgProp, EcgStatic, decode_table
 
 
@@ -118,7 +118,7 @@ async def test_post_installation_command_bytes() -> None:
         PropertyType.GROUP_STATUS,
         PropertyType.GROUP_FAILURE,
     ):
-        prog.set_read(pid, b"\x00" * (8 * MAX_ECG))
+        prog.set_read(pid, b"\x00" * (element_size_for(pid) * MAX_ECG))
     await comm.post_installation(flags=3, pre_assign_group=2, interval=0.0)
     (cmd,) = [w["data"] for w in prog.writes_for(PropertyType.COMMAND)]
     assert cmd == bytes((DeviceCommand.POST_INSTALLATION, 3, 2))

@@ -279,7 +279,15 @@ def test_render_all_views_at_normal_entry(tmp_path, monkeypatch, browser):
         workspace = Workspace()
         panel._e64_views[52] = workspace
         begin_tab_item = imgui.begin_tab_item
-        for view in ("ecgs", "inputs", "scenes", "effects", "templates", "raw"):
+        for view in (
+            "ecgs",
+            "inputs",
+            "scenes",
+            "effects",
+            "templates",
+            "descriptions",
+            "raw",
+        ):
 
             def select_view(label, target=view):
                 flags = (
@@ -371,3 +379,248 @@ def test_colour_popup_writes_only_after_apply(monkeypatch, confirm):
         )
     finally:
         imgui.destroy_context(ctx)
+
+
+@pytest.fixture(
+    params=[
+        ("groups", "ModuleGRP", "DCA1-Description", "Group"),
+        ("ecgs", "ModuleECG", "DCE1-Description", "ECG"),
+        ("mds", "ModuleMD", "DCM1-Description", "MdInput"),
+        ("gis", "ModuleGI", "DCG1-Description", "GenInput"),
+    ]
+)
+def description_project(tmp_path, monkeypatch, request):
+    app_id = "M-00EF_A-DA11-22-A545"
+    xml = f'''<KNX xmlns="http://knx.org/xml/project/20"><ManufacturerData><Manufacturer RefId="M-00EF"><ApplicationPrograms>
+    <ApplicationProgram Id="{app_id}" Name="Descriptions" ApplicationNumber="55825" ApplicationVersion="34" ProgramType="ApplicationProgram" MaskVersion="MV-07B0" LoadProcedureStyle="MergedProcedure" PeiType="0" DefaultLanguage="en-US" DynamicTableManagement="false" Linkable="false" MinEtsVersion="5.0">
+    <Static><ParameterTypes><ParameterType Id="{app_id}_PT-1" Name="Description"><TypeText SizeInBit="480" /></ParameterType></ParameterTypes>
+    <Parameters><Parameter Id="{app_id}_P-1" Name="DPB1-Description" ParameterType="{app_id}_PT-1" Text="Button" Value="Original button" /></Parameters>
+    <ParameterRefs><ParameterRef Id="{app_id}_P-1_R-1" RefId="{app_id}_P-1" /></ParameterRefs></Static>
+    <ModuleDefs><ModuleDef Id="{app_id}_MD-2" Name="ModuleGRP"><Arguments><Argument Id="{app_id}_MD-2_A-1" Name="Index" /></Arguments>
+    <Static><Parameters><Parameter Id="{app_id}_MD-2_P-1" Name="DCA1-Description" ParameterType="{app_id}_PT-1" Text="Group" Value="Original group" /></Parameters>
+    <ParameterRefs><ParameterRef Id="{app_id}_MD-2_P-1_R-1" RefId="{app_id}_MD-2_P-1" /></ParameterRefs></Static>
+    <Dynamic><ParameterBlock Id="{app_id}_MD-2_PB-1" Text="Group"><ParameterRefRef RefId="{app_id}_MD-2_P-1_R-1" /></ParameterBlock></Dynamic></ModuleDef></ModuleDefs>
+    <Dynamic><ChannelIndependentBlock><ParameterBlock Id="{app_id}_PB-1" Text="Button"><ParameterRefRef RefId="{app_id}_P-1_R-1" /></ParameterBlock>
+    <Module Id="{app_id}_MD-2_M-1" RefId="{app_id}_MD-2"><NumericArg RefId="{app_id}_MD-2_A-1" Value="1" /></Module>
+    <Module Id="{app_id}_MD-2_M-2" RefId="{app_id}_MD-2"><NumericArg RefId="{app_id}_MD-2_A-1" Value="2" /></Module>
+    </ChannelIndependentBlock></Dynamic></ApplicationProgram></ApplicationPrograms></Manufacturer></ManufacturerData></KNX>'''
+    section, module, parameter, tag = request.param
+    xml = xml.replace("ModuleGRP", module).replace("DCA1-Description", parameter)
+    app = parse_application_xml(xml.encode(), "M-00EF")[0]
+    project = ProjectService(CatalogService(tmp_path / "catalog.xknxcatalog"))
+    project.set_logger(Logger(LogService(), "project"))
+    project.new(tmp_path / "fixture.xknx")
+    monkeypatch.setattr(project, "_resolve_app", lambda *args: app)
+    monkeypatch.setattr(project, "_application_source", lambda *args: None)
+    node = project.add_device("P-1", "HP-1", "e64 Pro", app)
+    project.persist_device_blob(project.find_device_by_node_id(node), NAME, PAYLOAD)
+    try:
+        yield project, node, section, parameter, tag
+    finally:
+        project.close()
+
+
+def test_bulk_description_mirrors_parameters_and_undo(description_project):
+    project, node, section, parameter, tag = description_project
+    device = project.find_device_by_node_id(node)
+    edits = [
+        e64pro.Edit(section, "1", "description", value="Second group"),
+        e64pro.Edit("pbs", "0", "description", value="Front door"),
+    ]
+    data = project.edit_e64pro(device, PAYLOAD, edits)
+    current = project.find_device_by_node_id(node)
+    dynamic = current.dynamic_ui
+    instances = current.get_module_instances()
+    group = next(i for i, _ in instances if i.startswith(current.app.id + "_MD-2_M-2"))
+    ref = dynamic.find_parameter_ref("name", parameter, group)
+    button = dynamic.find_parameter_ref("name", "DPB1-Description")
+    assert current.get_param_value(ref) == "Second group"
+    assert current.get_param_value(button) == "Front door"
+    assert (
+        e64pro.document(data).find(f"{section}/{tag}[@index='1']").get("description")
+        == "Second group"
+    )
+    project.undo()
+    current = project.find_device_by_node_id(node)
+    assert project.device_binary_data(current, NAME) == PAYLOAD
+    assert current.get_param_value(ref) == "Original group"
+    assert current.get_param_value(button) == "Original button"
+    project.redo()
+    current = project.find_device_by_node_id(node)
+    assert current.get_param_value(ref) == "Second group"
+    assert current.get_param_value(button) == "Front door"
+
+
+def test_invalid_bulk_description_is_atomic(description_project):
+    project, node, *_ = description_project
+    device = project.find_device_by_node_id(node)
+    before = project.cursor
+    edits = [
+        e64pro.Edit("groups", "0", "description", value="Good"),
+        e64pro.Edit("pbs", "0", "description", value="x" * 21),
+    ]
+    with pytest.raises(ValueError):
+        project.edit_e64pro(device, PAYLOAD, edits)
+    assert project.cursor == before
+    assert (
+        project.device_binary_data(project.find_device_by_node_id(node), NAME)
+        == PAYLOAD
+    )
+
+
+def test_report_cache_rejects_late_result_from_closed_project(description_project):
+    from xknxeditor.dali.report import DiagnosticReport, FailureSummary
+
+    project, node, *_ = description_project
+    device = project.find_device_by_node_id(node)
+    report = DiagnosticReport(
+        "2026-11-20T12:00:00+00:00", FailureSummary.decode(bytes(10)), ()
+    )
+    generation = project.generation
+    cursor = project.cursor
+    project.store_dali_report(device, 0, generation, report)
+    assert project.dali_report(device) == report
+    assert project.cursor == cursor
+    project.close()
+    with pytest.raises(ValueError):
+        project.store_dali_report(device, 0, generation, report)
+    assert project.dali_report(device) is None
+
+
+async def test_report_view_stores_results_on_ui_completion(
+    description_project, monkeypatch
+):
+    from editor_gui.plugins.project.ui.e64pro_report import ReportView
+    from xknxeditor.dali.report import DiagnosticReport, FailureSummary
+
+    project, node, *_ = description_project
+    device = project.find_device_by_node_id(node)
+    report = DiagnosticReport(
+        "2026-11-20T12:00:00+00:00", FailureSummary.decode(bytes(10)), ()
+    )
+    view = ReportView()
+    queued = []
+    monkeypatch.setattr(imgui, "begin_disabled", lambda *a: None)
+    monkeypatch.setattr(imgui, "end_disabled", lambda: None)
+    monkeypatch.setattr(imgui, "button", lambda label: label == S.E64_READ_REPORT)
+    monkeypatch.setattr(imgui, "text_wrapped", lambda *a: None)
+    view.render(device, project, lambda *args: queued.append(args))
+    assert view.busy and project.dali_report(device) is None
+
+    async def read_report():
+        return report
+
+    await queued[0][1](SimpleNamespace(read_report=read_report))
+    assert project.dali_report(device) is None
+    queued[0][4]()
+    assert not view.busy and project.dali_report(device) == report
+    assert queued[0][5] is False
+
+
+def test_report_view_queue_cancellation_releases_busy_state(
+    description_project, monkeypatch
+):
+    from editor_gui.plugins.project.ui.e64pro_report import ReportView
+
+    project, node, *_ = description_project
+    device = project.find_device_by_node_id(node)
+    view = ReportView()
+    monkeypatch.setattr(imgui, "begin_disabled", lambda *a: None)
+    monkeypatch.setattr(imgui, "end_disabled", lambda: None)
+    monkeypatch.setattr(imgui, "button", lambda label: label == S.E64_READ_REPORT)
+    monkeypatch.setattr(imgui, "text_wrapped", lambda *a: None)
+    view.render(device, project, lambda *args: args[4]())
+    assert not view.busy and project.dali_report(device) is None
+
+
+@pytest.mark.parametrize("browser", [False, True])
+def test_diagnostic_report_render_and_export(tmp_path, monkeypatch, browser):
+    from editor_gui.plugins.project.ui.e64pro_report import ReportView
+    from xknxeditor.dali.report import DiagnosticReport, EmergencyTest, FailureSummary
+
+    ctx = imgui.create_context()
+    try:
+        io = imgui.get_io()
+        io.backend_flags |= imgui.BackendFlags_.renderer_has_textures
+        io.display_size = imgui.ImVec2(1000, 700)
+        if browser:
+            monkeypatch.setattr(web, "active_hub", WebHub(tmp_path))
+        test = EmergencyTest.decode(
+            0,
+            0,
+            bytes([127, 1, 16, 0, 16, 23, 45, 20, 11, 26]),
+            bytes([0xC7, 1, 2, 3, 0]),
+        )
+        report = DiagnosticReport(
+            "2026-11-20T12:00:00+00:00", FailureSummary.decode(bytes(10)), (test,)
+        )
+        device = SimpleNamespace(
+            node_id=52,
+            individual_address="1.1.1",
+            app=SimpleNamespace(id="M-00EF_A-DA11-22-A545"),
+            binary_data=[SimpleNamespace(name=NAME, data=PAYLOAD)],
+        )
+        project = SimpleNamespace(dali_report=lambda _: report)
+        view = ReportView()
+        from editor_gui.plugins.project.ui import e64pro_report
+
+        path = tmp_path / "report.xml"
+        monkeypatch.setattr(
+            e64pro_report.file_dialogs,
+            "save_file",
+            lambda *a, **kw: SimpleNamespace(
+                ready=lambda: True, result=lambda: str(path)
+            ),
+        )
+        original = imgui.button
+        click = True
+
+        def button(label):
+            result = original(label)
+            return result or (click and label == S.E64_EXPORT_XML)
+
+        monkeypatch.setattr(imgui, "button", button)
+        for _ in range(3):
+            imgui.new_frame()
+            imgui.set_next_window_size(imgui.ImVec2(650 if browser else 990, 680))
+            imgui.begin("DCA")
+            view.render(device, project, lambda *a: pytest.fail("unexpected bus read"))
+            imgui.end()
+            imgui.render()
+            click = False
+        xml = ET.fromstring(path.read_bytes())
+        assert xml.find("TestResults/Test").get("ecg-index") == "1"
+        assert xml.find("TestResults/Test").get("fail-delay") == "True"
+    finally:
+        imgui.destroy_context(ctx)
+
+
+def test_blob_edits_preserve_attachment_metadata(description_project):
+    project, node, *_ = description_project
+    device = project.find_device_by_node_id(node)
+    entry = next(e for e in device.binary_data if e.name == NAME)
+    # Seed attachment metadata, then alternate edits with and without parameter mirrors.
+    project._svc.upsert_device_binary_data(
+        project._pid, node, NAME, PAYLOAD, ref_id="R-1", do_not_copy=True
+    )
+    project._refresh_device(node)
+    current = project.find_device_by_node_id(node)
+    data = project.edit_e64pro(
+        current, PAYLOAD, e64pro.Edit("scenes", "0", "description", value="Updated")
+    )
+    current = project.find_device_by_node_id(node)
+    entry = next(e for e in current.binary_data if e.name == NAME)
+    assert entry.ref_id == "R-1" and entry.do_not_copy
+    assert entry.data == data
+    changed = project.edit_e64pro(
+        current, data, e64pro.Edit("pbs", "0", "description", value="Mirror")
+    )
+    current = project.find_device_by_node_id(node)
+    entry = next(e for e in current.binary_data if e.name == NAME)
+    assert entry.ref_id == "R-1" and entry.do_not_copy
+    assert entry.data == changed
+    project.undo()
+    current = project.find_device_by_node_id(node)
+    entry = next(e for e in current.binary_data if e.name == NAME)
+    assert entry.ref_id == "R-1" and entry.do_not_copy
+    assert entry.data == data

@@ -467,6 +467,7 @@ class ProjectPlugin:
             _sections_for=api.project.plugin_sections,
             _e64_write=api.project.edit_e64pro,
             _e64_project=api.project,
+            _e64_run=self._run_dali,
         )
         self._generic_plugin_panel = GenericPluginPanel(
             self.generic_plugin_view,
@@ -2779,6 +2780,20 @@ class ProjectPlugin:
             )
             return
         try:
+            from editor_gui.plugin_blob_readers.dali_backup import e64pro
+
+            if (
+                len(parts) == 5
+                and parts[4] == "description"
+                and blob_name == e64pro.BACKUP_NAME
+                and e64pro.supports(device)
+            ):
+                self._api.project.edit_e64pro(
+                    device,
+                    bytes(entry.data),
+                    e64pro.Edit(parts[2], parts[3], "description", value=new_value),
+                )
+                return
             new_blob = apply_edit(entry.data, ref_id, new_value)
         except ValueError as exc:
             self._api.log.warning(

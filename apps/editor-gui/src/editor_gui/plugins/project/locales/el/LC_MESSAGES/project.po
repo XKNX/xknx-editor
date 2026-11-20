@@ -3959,3 +3959,108 @@ msgstr "Σά"
 
 msgid "Su"
 msgstr "Κυ"
+
+msgid "A test is pending."
+msgstr "Μια δοκιμή εκκρεμεί."
+
+msgid "Battery"
+msgstr "Μπαταρία"
+
+msgid "Brightness sensor"
+msgstr "Αισθητήρας φωτεινότητας"
+
+msgid "Converters"
+msgstr "Μετατροπείς"
+
+msgid "Descriptions"
+msgstr "Περιγραφές"
+
+msgid "Diagnostic Report"
+msgstr "Αναφορά διάγνωσης"
+
+msgid "Duration"
+msgstr "Διάρκεια"
+
+msgid "Duration test running"
+msgstr "Εκτελείται δοκιμή διάρκειας"
+
+msgid "Edit several descriptions and apply them together in one undo step."
+msgstr "Επεξεργαστείτε πολλές περιγραφές και εφαρμόστε τις μαζί σε ένα βήμα αναίρεσης."
+
+msgid "Emergency"
+msgstr "Έκτακτη ανάγκη"
+
+msgid "Emergency Failure"
+msgstr "Βλάβη φωτισμού έκτακτης ανάγκης"
+
+msgid "Emergency Mode"
+msgstr "Λειτουργία έκτακτης ανάγκης"
+
+msgid "Emergency Status"
+msgstr "Κατάσταση έκτακτης ανάγκης"
+
+msgid "Errors"
+msgstr "Σφάλματα"
+
+msgid "Event sensor"
+msgstr "Αισθητήρας συμβάντων"
+
+msgid "Extended emergency"
+msgstr "Παρατεταμένη έκτακτη ανάγκη"
+
+msgid "Failure Rate"
+msgstr "Ποσοστό βλαβών"
+
+msgid "Fixed inhibit"
+msgstr "Σταθερή αναστολή"
+
+msgid "Function test running"
+msgstr "Εκτελείται δοκιμή λειτουργίας"
+
+msgid "Generic sensor"
+msgstr "Γενικός αισθητήρας"
+
+msgid "Inhibit"
+msgstr "Αναστολή"
+
+msgid "Lamps"
+msgstr "Λαμπτήρες"
+
+msgid "Motion sensor"
+msgstr "Αισθητήρας κίνησης"
+
+msgid "Normal"
+msgstr "Κανονική"
+
+msgid "Push button"
+msgstr "Μπουτόν"
+
+msgid "Read Report"
+msgstr "Ανάγνωση αναφοράς"
+
+msgid "Read the diagnostic report from the gateway to display its current counters and saved test results."
+msgstr "Διαβάστε την αναφορά διάγνωσης από την πύλη για να εμφανίσετε τους τρέχοντες μετρητές και τα αποθηκευμένα αποτελέσματα δοκιμών."
+
+msgid "Replace the selected slot with the XML configuration? Other slots remain unchanged."
+msgstr "Αντικατάσταση της επιλεγμένης θέσης με τη διαμόρφωση XML; Οι άλλες θέσεις παραμένουν αμετάβλητες."
+
+msgid "Rest"
+msgstr "Ανάπαυση"
+
+msgid "Result"
+msgstr "Αποτέλεσμα"
+
+msgid "Test"
+msgstr "Δοκιμή"
+
+msgid "The input types are not compatible."
+msgstr "Οι τύποι εισόδων δεν είναι συμβατοί."
+
+msgid "This physical input is already assigned."
+msgstr "Αυτή η φυσική είσοδος έχει ήδη αντιστοιχιστεί."
+
+msgid "Total Failure Rate"
+msgstr "Συνολικό ποσοστό βλαβών"
+
+msgid "Value input"
+msgstr "Είσοδος τιμής"

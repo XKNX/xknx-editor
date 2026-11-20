@@ -4101,3 +4101,108 @@ msgstr "Sa."
 
 msgid "Su"
 msgstr "So."
+
+msgid "A test is pending."
+msgstr "Ein Test steht aus."
+
+msgid "Battery"
+msgstr "Batterie"
+
+msgid "Brightness sensor"
+msgstr "Helligkeitssensor"
+
+msgid "Converters"
+msgstr "Konverter"
+
+msgid "Descriptions"
+msgstr "Beschreibungen"
+
+msgid "Diagnostic Report"
+msgstr "Diagnosebericht"
+
+msgid "Duration"
+msgstr "Dauer"
+
+msgid "Duration test running"
+msgstr "Dauertest läuft"
+
+msgid "Edit several descriptions and apply them together in one undo step."
+msgstr "Mehrere Beschreibungen bearbeiten und gemeinsam in einem Rückgängig-Schritt übernehmen."
+
+msgid "Emergency"
+msgstr "Notbetrieb"
+
+msgid "Emergency Failure"
+msgstr "Notlichtfehler"
+
+msgid "Emergency Mode"
+msgstr "Notlichtmodus"
+
+msgid "Emergency Status"
+msgstr "Notlichtstatus"
+
+msgid "Errors"
+msgstr "Fehler"
+
+msgid "Event sensor"
+msgstr "Ereignissensor"
+
+msgid "Extended emergency"
+msgstr "Erweiterter Notbetrieb"
+
+msgid "Failure Rate"
+msgstr "Fehlerquote"
+
+msgid "Fixed inhibit"
+msgstr "Feste Sperre"
+
+msgid "Function test running"
+msgstr "Funktionstest läuft"
+
+msgid "Generic sensor"
+msgstr "Allgemeiner Sensor"
+
+msgid "Inhibit"
+msgstr "Sperre"
+
+msgid "Lamps"
+msgstr "Lampen"
+
+msgid "Motion sensor"
+msgstr "Bewegungssensor"
+
+msgid "Normal"
+msgstr "Normal"
+
+msgid "Push button"
+msgstr "Taster"
+
+msgid "Read Report"
+msgstr "Bericht lesen"
+
+msgid "Read the diagnostic report from the gateway to display its current counters and saved test results."
+msgstr "Den Diagnosebericht vom Gateway lesen, um aktuelle Zähler und gespeicherte Testergebnisse anzuzeigen."
+
+msgid "Replace the selected slot with the XML configuration? Other slots remain unchanged."
+msgstr "Den gewählten Platz durch die XML-Konfiguration ersetzen? Andere Plätze bleiben unverändert."
+
+msgid "Rest"
+msgstr "Ruhe"
+
+msgid "Result"
+msgstr "Ergebnis"
+
+msgid "Test"
+msgstr "Test"
+
+msgid "The input types are not compatible."
+msgstr "Die Eingabetypen sind nicht kompatibel."
+
+msgid "This physical input is already assigned."
+msgstr "Dieser physische Eingang ist bereits zugeordnet."
+
+msgid "Total Failure Rate"
+msgstr "Gesamtfehlerquote"
+
+msgid "Value input"
+msgstr "Werteingang"

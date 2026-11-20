@@ -3963,3 +3963,108 @@ msgstr "sab"
 
 msgid "Su"
 msgstr "dom"
+
+msgid "A test is pending."
+msgstr "Un test è in attesa."
+
+msgid "Battery"
+msgstr "Batteria"
+
+msgid "Brightness sensor"
+msgstr "Sensore di luminosità"
+
+msgid "Converters"
+msgstr "Convertitori"
+
+msgid "Descriptions"
+msgstr "Descrizioni"
+
+msgid "Diagnostic Report"
+msgstr "Rapporto diagnostico"
+
+msgid "Duration"
+msgstr "Durata"
+
+msgid "Duration test running"
+msgstr "Test di durata in corso"
+
+msgid "Edit several descriptions and apply them together in one undo step."
+msgstr "Modifica più descrizioni e applicale insieme in un unico passaggio annullabile."
+
+msgid "Emergency"
+msgstr "Emergenza"
+
+msgid "Emergency Failure"
+msgstr "Guasto di emergenza"
+
+msgid "Emergency Mode"
+msgstr "Modalità di emergenza"
+
+msgid "Emergency Status"
+msgstr "Stato di emergenza"
+
+msgid "Errors"
+msgstr "Errori"
+
+msgid "Event sensor"
+msgstr "Sensore di eventi"
+
+msgid "Extended emergency"
+msgstr "Emergenza prolungata"
+
+msgid "Failure Rate"
+msgstr "Tasso di guasto"
+
+msgid "Fixed inhibit"
+msgstr "Inibizione fissa"
+
+msgid "Function test running"
+msgstr "Test funzionale in corso"
+
+msgid "Generic sensor"
+msgstr "Sensore generico"
+
+msgid "Inhibit"
+msgstr "Inibizione"
+
+msgid "Lamps"
+msgstr "Lampade"
+
+msgid "Motion sensor"
+msgstr "Sensore di movimento"
+
+msgid "Normal"
+msgstr "Normale"
+
+msgid "Push button"
+msgstr "Pulsante"
+
+msgid "Read Report"
+msgstr "Leggi rapporto"
+
+msgid "Read the diagnostic report from the gateway to display its current counters and saved test results."
+msgstr "Leggi il rapporto diagnostico dal gateway per visualizzare i contatori attuali e i risultati dei test salvati."
+
+msgid "Replace the selected slot with the XML configuration? Other slots remain unchanged."
+msgstr "Sostituire la posizione selezionata con la configurazione XML? Le altre posizioni rimangono invariate."
+
+msgid "Rest"
+msgstr "Riposo"
+
+msgid "Result"
+msgstr "Risultato"
+
+msgid "Test"
+msgstr "Test"
+
+msgid "The input types are not compatible."
+msgstr "I tipi di ingresso non sono compatibili."
+
+msgid "This physical input is already assigned."
+msgstr "Questo ingresso fisico è già assegnato."
+
+msgid "Total Failure Rate"
+msgstr "Tasso di guasto totale"
+
+msgid "Value input"
+msgstr "Ingresso valore"

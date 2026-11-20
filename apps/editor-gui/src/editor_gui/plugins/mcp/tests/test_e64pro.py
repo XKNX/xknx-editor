@@ -136,6 +136,164 @@ async def test_e64pro_mcp_round_trip(
                 await _data(client, "project_e64pro_read", node_id=node_id) == updated
             )
 
+            for section in ("scenes", "effects", "templates"):
+                slot_xml = await _data(
+                    client,
+                    "project_e64pro_export_slot",
+                    node_id=node_id,
+                    section=section,
+                    slot="0",
+                )
+                slot_file = tmp_path / f"{section}.xml"
+                slot_file.write_text(slot_xml)
+                before_import = project.cursor
+                await _data(
+                    client,
+                    "project_e64pro_import_slot",
+                    node_id=node_id,
+                    section=section,
+                    slot="1",
+                    revision=updated["revision"],
+                    path=str(slot_file),
+                )
+                assert project.cursor == before_import + 1
+                assert project.history()[0].display_text
+                project.undo()
+                assert (
+                    await _data(client, "project_e64pro_read", node_id=node_id)
+                    == updated
+                )
+
+            await _data(
+                client,
+                "project_batch",
+                operations=[
+                    {
+                        "op": "edit_e64pro",
+                        "params": {
+                            "node_id": node_id,
+                            "revision": updated["revision"],
+                            "edits": [
+                                {
+                                    "section": "groups",
+                                    "slot": "0",
+                                    "action": "description",
+                                    "value": "Entry",
+                                },
+                                {
+                                    "section": "ecgs",
+                                    "slot": "0",
+                                    "action": "description",
+                                    "value": "Lamp",
+                                },
+                            ],
+                        },
+                    }
+                ],
+            )
+            descriptions = await _data(client, "project_e64pro_read", node_id=node_id)
+            assert (
+                'description="Entry"' in descriptions["xml"]
+                and 'description="Lamp"' in descriptions["xml"]
+            )
+            project.undo()
+            assert (
+                await _data(client, "project_e64pro_read", node_id=node_id) == updated
+            )
+
+            from concurrent.futures import Future
+
+            current = project.find_device_by_node_id(node_id)
+            input_config = ET.fromstring(updated["xml"])
+            logical = input_config.find("gis/GenInput/Instances/EtsInstance")
+            assert logical is not None
+            logical.set("type", "0")
+            logical.set("ref-idx", "-1")
+            logical.set("origin", "-1")
+            physical = input_config.find("inputs")
+            if physical is None:
+                physical = ET.SubElement(input_config, "inputs")
+            parent = ET.SubElement(
+                physical, "DevInput", index="0", noi="1", **{"start-index": "10"}
+            )
+            instances = ET.SubElement(parent, "Instances")
+            ET.SubElement(
+                instances,
+                "DevInputInstance",
+                index="10",
+                number="0",
+                type="ValueInSensor",
+                target="-1",
+                **{"ets-index": "255", "ets-detail": "0"},
+            )
+            project.persist_device_blob(
+                current,
+                "Dalie64-Backup-Store",
+                ET.tostring(input_config, encoding="unicode").encode("utf-16le"),
+            )
+            initial_inputs = await _data(client, "project_e64pro_read", node_id=node_id)
+            await _data(
+                client,
+                "project_e64pro_edit",
+                node_id=node_id,
+                revision=initial_inputs["revision"],
+                section="gis",
+                slot="0",
+                action="assign",
+                row=0,
+                index="10",
+            )
+            assigned = await _data(client, "project_e64pro_read", node_id=node_id)
+            assigned_xml = ET.fromstring(assigned["xml"])
+            assert (
+                assigned_xml.find("gis/GenInput/Instances/EtsInstance").get("ref-idx")
+                == "10"
+            )
+            assert (
+                assigned_xml.find("inputs/DevInput/Instances/DevInputInstance").get(
+                    "ets-index"
+                )
+                == "2"
+            )
+            project.undo()
+            assert (
+                await _data(client, "project_e64pro_read", node_id=node_id)
+                == initial_inputs
+            )
+            project.undo()
+            assert (
+                await _data(client, "project_e64pro_read", node_id=node_id) == updated
+            )
+
+            from xknxeditor.dali.report import DiagnosticReport, FailureSummary
+
+            report = DiagnosticReport(
+                "2026-11-20T12:00:00+00:00", FailureSummary.decode(bytes(10)), ()
+            )
+            calls = []
+
+            def run_report(device, op, *, channel, writes):
+                calls.append((channel, writes))
+                future = Future()
+                future.set_result(report)
+                return future
+
+            monkeypatch.setattr(ctx.api.connection, "can_reach_bus", lambda: True)
+            monkeypatch.setattr(ctx.api.connection, "run_dali", run_report)
+            # Give the device an address so it can be used by a bus operation.
+            monkeypatch.setattr(
+                project.find_device_by_node_id(node_id), "individual_address", "1.1.1"
+            )
+            report_result = await _data(
+                client, "connection_dali_report", node_id=node_id
+            )
+            assert report_result["summary"]["lamps"] == 0
+            assert calls == [(0, False)]
+            cached = await _data(
+                client, "connection_dali_report", node_id=node_id, refresh=False
+            )
+            assert cached == report_result and calls == [(0, False)]
+
             capacity = ET.fromstring(updated["xml"])
             templates = capacity.findall("templates/Tpl")
             for template in templates:

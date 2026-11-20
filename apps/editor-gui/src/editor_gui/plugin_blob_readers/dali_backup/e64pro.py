@@ -90,6 +90,221 @@ def export_configuration(data: bytes) -> bytes:
     return ET.tostring(root, encoding="utf-8", xml_declaration=True)
 
 
+def slot_element(root: ET.Element, section: str, index: str) -> ET.Element:
+    from editor_gui.plugins.project.strings import S
+
+    if section not in SLOTS:
+        raise ValueError(S.E64_INVALID_SELECTION)
+    found = [
+        e
+        for e in root.findall(f"{section}/{SLOTS[section]}")
+        if e.get("index") == index
+    ]
+    if len(found) != 1:
+        raise ValueError(S.E64_INVALID_SELECTION)
+    return found[0]
+
+
+def export_slot(data: bytes, section: str, index: str) -> bytes:
+    root = document(data)
+    slot = deepcopy(slot_element(root, section, index))
+    if section in ("effects", "templates"):
+        _check_capacity(root, section)
+    return ET.tostring(slot, encoding="utf-8", xml_declaration=True)
+
+
+def _import_slot(root: ET.Element, section: str, index: str, data: str) -> None:
+    from editor_gui.plugins.project.strings import S
+
+    old = slot_element(root, section, index)
+    try:
+        imported = ET.fromstring(
+            data,
+            parser=ET.XMLParser(
+                target=ET.TreeBuilder(insert_comments=True, insert_pis=True)
+            ),
+        )
+    except (ValueError, ET.ParseError) as exc:
+        raise ValueError(S.E64_INVALID_CONFIGURATION) from exc
+    if imported.tag != SLOTS[section]:
+        raise ValueError(S.E64_INVALID_CONFIGURATION)
+    targets = (
+        imported.findall("Members/TplItem")
+        if section == "templates"
+        else rows(imported, section)
+    )
+    for target in targets:
+        kind = next(
+            (k for k, v in TARGETS.items() if v == target.get("itemtype")), None
+        )
+        if kind is None or not any(
+            e.get("index") == target.get("itemindex") for e in root.findall(kind + "/*")
+        ):
+            raise ValueError(S.E64_INVALID_SELECTION)
+    if section != "effects":
+        keys = [(e.get("itemtype"), e.get("itemindex")) for e in targets]
+        if len(keys) != len(set(keys)):
+            raise ValueError(S.E64_INVALID_CONFIGURATION)
+    if section != "templates" and imported.get("index", index) != index:
+        fields = (
+            ("description", "knxScene")
+            if section == "scenes"
+            else ("description", "mode")
+        )
+        for name in fields:
+            if name in old.attrib:
+                imported.set(name, old.attrib[name])
+            else:
+                imported.attrib.pop(name, None)
+    _validate_slot(imported, section, root)
+    if imported.get("description", "") != old.get("description", ""):
+        validate_description(section, imported.get("description", ""))
+    imported.set("index", index)
+    imported.set("isDirty", "True")
+    parent = root.find(section)
+    assert parent is not None
+    position = list(parent).index(old)
+    parent.remove(old)
+    parent.insert(position, imported)
+    if section in ("effects", "templates"):
+        _check_capacity(root, section)
+
+
+def _validate_slot(slot: ET.Element, section: str, root: ET.Element) -> None:
+    from editor_gui.plugins.project.strings import S
+
+    headers = {
+        "scenes": ("knxScene", "fadeTime"),
+        "effects": ("mode",),
+        "templates": ("isOverwritable", "resetOnMidnight"),
+    }
+    for key in headers[section]:
+        if key in slot.attrib:
+            _set(deepcopy(slot), key, slot.attrib[key], section, True)
+    for item in rows(slot, section):
+        fields = (
+            ("func", "value", "fadeIn", "time", "weekdays")
+            if section == "templates"
+            else ("value", "fadetime", "delay")
+            if section == "effects"
+            else ("value",)
+        )
+        for key in fields:
+            if key in item.attrib:
+                _set(deepcopy(item), key, item.attrib[key], section, False)
+        if section != "templates":
+            if "setting" in item.attrib:
+                _number(item.attrib["setting"], 255)
+            mode = item.get("color-type")
+            if mode is not None and mode != "0":
+                if mode not in colour_modes(root, item):
+                    raise ValueError(S.E64_INVALID_COLOR)
+                _colour_value(mode, item.get("color", ""))
+
+
+DESCRIPTION_SECTIONS = (
+    "groups",
+    "ecgs",
+    "mds",
+    "pbs",
+    "gis",
+    "scenes",
+    "effects",
+    "templates",
+)
+
+
+def _description(root: ET.Element, section: str, index: str, value: str) -> None:
+    from editor_gui.plugins.project.strings import S
+
+    if section not in DESCRIPTION_SECTIONS:
+        raise ValueError(S.E64_INVALID_SELECTION)
+    found = [e for e in root.findall(section + "/*") if e.get("index") == index]
+    if len(found) != 1:
+        raise ValueError(S.E64_INVALID_SELECTION)
+    if found[0].get("description", "") == value:
+        return
+    _xml_text(value)
+    validate_description(section, value)
+    found[0].set("description", value)
+    if section in SLOTS:
+        found[0].set("isDirty", "True")
+
+
+def description_parameters(
+    device: Device, before: bytes | None, after: bytes
+) -> list[tuple[str, str]]:
+    """Resolve changed controller descriptions to their application parameter mirrors."""
+    old = document(before) if before else ET.Element("device")
+    new = document(after)
+    changed: dict[tuple[str, str], str] = {}
+    for section in ("groups", "ecgs", "mds", "gis", "pbs"):
+        previous = {
+            e.get("index"): e.get("description", "")
+            for e in old.findall(section + "/*")
+        }
+        for e in new.findall(section + "/*"):
+            index, value = e.get("index", ""), e.get("description", "")
+            if "description" in e.attrib and previous.get(index) != value:
+                changed[section, index] = value
+    if not changed:
+        return []
+    dynamic = device.dynamic_ui
+    if dynamic is None or device.app is None:
+        return []
+    definitions = device.app.tree_builder().idx.module_defs
+    arguments = device.get_module_instance_arguments()
+    bindings: dict[tuple[str, str], str] = {}
+    kinds = {
+        "ModuleECG": ("ecgs", "DCE1-Description"),
+        "ModuleGRP": ("groups", "DCA1-Description"),
+        "ModuleMD": ("mds", "DCM1-Description"),
+        "ModuleGI": ("gis", "DCG1-Description"),
+    }
+    for instance, ref in device.get_module_instances():
+        definition = definitions.get(ref)
+        kind = kinds.get(definition.name) if definition is not None else None
+        if kind is None:
+            continue
+        args = arguments.get(instance, [])
+        index = int(args[-1][1]) - 1 if args else 0
+        param = dynamic.find_parameter_ref("name", kind[1], instance)
+        if param is not None:
+            bindings[kind[0], str(index)] = param
+    for index in range(8):
+        param = dynamic.find_parameter_ref("name", f"DPB{index + 1}-Description")
+        if param is not None:
+            bindings["pbs", str(index)] = param
+    return [
+        (ref, changed[key])
+        for key, ref in bindings.items()
+        if key in changed and device.get_param_value(ref) != changed[key]
+    ]
+
+
+def ecg_names(device: Device) -> dict[int, str]:
+    entry = backup(device)
+    if entry is None:
+        return {}
+    return {
+        int(e.attrib["index"]): e.get("description", "")
+        for e in document(entry[1]).findall("ecgs/ECG")
+        if e.get("index", "").isdecimal()
+    }
+
+
+def _xml_text(value: str) -> None:
+    from editor_gui.plugins.project.strings import S
+
+    if any(
+        (cp < 32 and cp not in (9, 10, 13))
+        or 0xD800 <= cp <= 0xDFFF
+        or cp in (0xFFFE, 0xFFFF)
+        for cp in map(ord, value)
+    ):
+        raise ValueError(S.E64_INVALID_VALUE)
+
+
 @dataclass(frozen=True)
 class Edit:
     section: str
@@ -265,13 +480,7 @@ def _set(
         }
     if field not in allowed[section]:
         raise ValueError(S.E64_UNSUPPORTED_OPERATION)
-    if any(
-        (cp < 32 and cp not in (9, 10, 13))
-        or 0xD800 <= cp <= 0xDFFF
-        or cp in (0xFFFE, 0xFFFF)
-        for cp in map(ord, value)
-    ):
-        raise ValueError(S.E64_INVALID_VALUE)
+    _xml_text(value)
     if field in (
         "keepValue",
         "keepColor",
@@ -340,19 +549,22 @@ def fade_choices(cmd: ET.Element) -> list[str]:
 def apply(data: bytes, edit: Edit) -> bytes:
     from editor_gui.plugins.project.strings import S
 
-    if edit.section not in SLOTS:
-        raise ValueError(S.E64_INVALID_SELECTION)
     root = deepcopy(document(data))
-    slot = next(
-        (
-            e
-            for e in root.findall(f"{edit.section}/{SLOTS[edit.section]}")
-            if e.get("index") == edit.slot
-        ),
-        None,
-    )
-    if slot is None:
-        raise ValueError(S.E64_INVALID_SELECTION)
+    if edit.action in ("description", "assign", "import"):
+        if edit.action == "description":
+            _description(root, edit.section, edit.slot, edit.value)
+        elif edit.action == "assign":
+            from .e64pro_inputs import assign
+
+            assign(root, edit.section, edit.slot, edit.row, edit.index)
+        else:
+            _import_slot(root, edit.section, edit.slot, edit.value)
+        return (
+            data
+            if ET.tostring(root) == ET.tostring(document(data))
+            else ET.tostring(root, encoding="unicode").encode("utf-16le")
+        )
+    slot = slot_element(root, edit.section, edit.slot)
     section, action = edit.section, edit.action
     if action == "member" and section != "templates":
         raise ValueError(S.E64_UNSUPPORTED_OPERATION)

@@ -3959,3 +3959,108 @@ msgstr "lö"
 
 msgid "Su"
 msgstr "sö"
+
+msgid "A test is pending."
+msgstr "Ett test väntar."
+
+msgid "Battery"
+msgstr "Batteri"
+
+msgid "Brightness sensor"
+msgstr "Ljusstyrkesensor"
+
+msgid "Converters"
+msgstr "Omvandlare"
+
+msgid "Descriptions"
+msgstr "Beskrivningar"
+
+msgid "Diagnostic Report"
+msgstr "Diagnosrapport"
+
+msgid "Duration"
+msgstr "Varaktighet"
+
+msgid "Duration test running"
+msgstr "Varaktighetstest pågår"
+
+msgid "Edit several descriptions and apply them together in one undo step."
+msgstr "Redigera flera beskrivningar och tillämpa dem tillsammans i ett enda ångersteg."
+
+msgid "Emergency"
+msgstr "Nöddrift"
+
+msgid "Emergency Failure"
+msgstr "Nödljusfel"
+
+msgid "Emergency Mode"
+msgstr "Nödljusläge"
+
+msgid "Emergency Status"
+msgstr "Nödljusstatus"
+
+msgid "Errors"
+msgstr "Fel"
+
+msgid "Event sensor"
+msgstr "Händelsesensor"
+
+msgid "Extended emergency"
+msgstr "Förlängd nöddrift"
+
+msgid "Failure Rate"
+msgstr "Felfrekvens"
+
+msgid "Fixed inhibit"
+msgstr "Fast spärr"
+
+msgid "Function test running"
+msgstr "Funktionstest pågår"
+
+msgid "Generic sensor"
+msgstr "Generisk sensor"
+
+msgid "Inhibit"
+msgstr "Spärr"
+
+msgid "Lamps"
+msgstr "Lampor"
+
+msgid "Motion sensor"
+msgstr "Rörelsesensor"
+
+msgid "Normal"
+msgstr "Normal"
+
+msgid "Push button"
+msgstr "Tryckknapp"
+
+msgid "Read Report"
+msgstr "Läs rapport"
+
+msgid "Read the diagnostic report from the gateway to display its current counters and saved test results."
+msgstr "Läs diagnosrapporten från gatewayen för att visa aktuella räknare och sparade testresultat."
+
+msgid "Replace the selected slot with the XML configuration? Other slots remain unchanged."
+msgstr "Ersätta den valda platsen med XML-konfigurationen? Övriga platser förblir oförändrade."
+
+msgid "Rest"
+msgstr "Vila"
+
+msgid "Result"
+msgstr "Resultat"
+
+msgid "Test"
+msgstr "Test"
+
+msgid "The input types are not compatible."
+msgstr "Ingångstyperna är inte kompatibla."
+
+msgid "This physical input is already assigned."
+msgstr "Den här fysiska ingången är redan tilldelad."
+
+msgid "Total Failure Rate"
+msgstr "Total felfrekvens"
+
+msgid "Value input"
+msgstr "Värdeingång"

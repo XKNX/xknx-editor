@@ -3959,3 +3959,108 @@ msgstr "la"
 
 msgid "Su"
 msgstr "su"
+
+msgid "A test is pending."
+msgstr "Testi odottaa."
+
+msgid "Battery"
+msgstr "Akku"
+
+msgid "Brightness sensor"
+msgstr "Valoisuusanturi"
+
+msgid "Converters"
+msgstr "Muuntimet"
+
+msgid "Descriptions"
+msgstr "Kuvaukset"
+
+msgid "Diagnostic Report"
+msgstr "Diagnostiikkaraportti"
+
+msgid "Duration"
+msgstr "Kesto"
+
+msgid "Duration test running"
+msgstr "Kestotesti käynnissä"
+
+msgid "Edit several descriptions and apply them together in one undo step."
+msgstr "Muokkaa useita kuvauksia ja ota ne käyttöön yhdellä kumottavalla toiminnolla."
+
+msgid "Emergency"
+msgstr "Hätäkäyttö"
+
+msgid "Emergency Failure"
+msgstr "Hätävalovika"
+
+msgid "Emergency Mode"
+msgstr "Hätävalotila"
+
+msgid "Emergency Status"
+msgstr "Hätävalon tila"
+
+msgid "Errors"
+msgstr "Virheet"
+
+msgid "Event sensor"
+msgstr "Tapahtuma-anturi"
+
+msgid "Extended emergency"
+msgstr "Pidennetty hätäkäyttö"
+
+msgid "Failure Rate"
+msgstr "Vikaprosentti"
+
+msgid "Fixed inhibit"
+msgstr "Kiinteä esto"
+
+msgid "Function test running"
+msgstr "Toimintatesti käynnissä"
+
+msgid "Generic sensor"
+msgstr "Yleisanturi"
+
+msgid "Inhibit"
+msgstr "Esto"
+
+msgid "Lamps"
+msgstr "Lamput"
+
+msgid "Motion sensor"
+msgstr "Liikeanturi"
+
+msgid "Normal"
+msgstr "Normaali"
+
+msgid "Push button"
+msgstr "Painike"
+
+msgid "Read Report"
+msgstr "Lue raportti"
+
+msgid "Read the diagnostic report from the gateway to display its current counters and saved test results."
+msgstr "Lue yhdyskäytävän diagnostiikkaraportti nähdäksesi nykyiset laskurit ja tallennetut testitulokset."
+
+msgid "Replace the selected slot with the XML configuration? Other slots remain unchanged."
+msgstr "Korvataanko valittu paikka XML-määrityksellä? Muut paikat säilyvät ennallaan."
+
+msgid "Rest"
+msgstr "Lepo"
+
+msgid "Result"
+msgstr "Tulos"
+
+msgid "Test"
+msgstr "Testi"
+
+msgid "The input types are not compatible."
+msgstr "Tulotyypit eivät ole yhteensopivia."
+
+msgid "This physical input is already assigned."
+msgstr "Tämä fyysinen tulo on jo määritetty."
+
+msgid "Total Failure Rate"
+msgstr "Kokonaisvikaprosentti"
+
+msgid "Value input"
+msgstr "Arvotulo"

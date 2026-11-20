@@ -8,6 +8,132 @@ _ = create_translator("project", _locale_dir)
 
 class ProjectStrings:
     @property
+    def E64_INPUT_TYPES(self) -> dict[int, str]:
+        return {
+            0: _("Generic sensor"),
+            1: _("Push button"),
+            2: _("Value input"),
+            3: _("Motion sensor"),
+            4: _("Brightness sensor"),
+            6: _("Event sensor"),
+            255: _("Unknown"),
+        }
+
+    @property
+    def E64_CONVERTER_STATES(self) -> dict[int, str]:
+        return {
+            0: _("Unknown"),
+            1: _("Normal"),
+            2: _("Inhibit"),
+            3: _("Fixed inhibit"),
+            4: _("Rest"),
+            5: _("Emergency"),
+            6: _("Extended emergency"),
+            7: _("Function test running"),
+            8: _("Duration test running"),
+        }
+
+    @property
+    def E64_EMERGENCY_STATUS(self) -> str:
+        return _("Emergency Status")
+
+    @property
+    def E64_EMERGENCY_MODE(self) -> str:
+        return _("Emergency Mode")
+
+    @property
+    def E64_EMERGENCY_FAILURE(self) -> str:
+        return _("Emergency Failure")
+
+    @property
+    def E64_INPUT_INCOMPATIBLE(self) -> str:
+        return _("The input types are not compatible.")
+
+    @property
+    def E64_INPUT_ASSIGNED(self) -> str:
+        return _("This physical input is already assigned.")
+
+    @property
+    def E64_IMPORT_SLOT_CONFIRM(self) -> str:
+        return _(
+            "Replace the selected slot with the XML configuration? Other slots remain unchanged."
+        )
+
+    @property
+    def E64_DESCRIPTIONS(self) -> str:
+        return _("Descriptions")
+
+    @property
+    def E64_DESCRIPTIONS_HINT(self) -> str:
+        return _("Edit several descriptions and apply them together in one undo step.")
+
+    @property
+    def E64_REPORT(self) -> str:
+        return _("Diagnostic Report")
+
+    @property
+    def E64_READ_REPORT(self) -> str:
+        return _("Read Report")
+
+    @property
+    def E64_NO_REPORT(self) -> str:
+        return _(
+            "Read the diagnostic report from the gateway to display its current counters and saved test results."
+        )
+
+    @property
+    def E64_COUNT(self) -> str:
+        return _("Count")
+
+    @property
+    def E64_ERRORS(self) -> str:
+        return _("Errors")
+
+    @property
+    def E64_FAILURE_RATE(self) -> str:
+        return _("Failure Rate")
+
+    @property
+    def E64_TOTAL_FAILURE_RATE(self) -> str:
+        return _("Total Failure Rate")
+
+    @property
+    def E64_LAMPS(self) -> str:
+        return _("Lamps")
+
+    @property
+    def E64_CONVERTERS(self) -> str:
+        return _("Converters")
+
+    @property
+    def E64_DATE(self) -> str:
+        return _("Date")
+
+    @property
+    def E64_RESULT(self) -> str:
+        return _("Result")
+
+    @property
+    def E64_STATUS(self) -> str:
+        return _("Status")
+
+    @property
+    def E64_DURATION(self) -> str:
+        return _("Duration")
+
+    @property
+    def E64_BATTERY(self) -> str:
+        return _("Battery")
+
+    @property
+    def E64_TEST(self) -> str:
+        return _("Test")
+
+    @property
+    def E64_TEST_PENDING(self) -> str:
+        return _("A test is pending.")
+
+    @property
     def E64_ACTIONS(self) -> str:
         return _("Actions")
 

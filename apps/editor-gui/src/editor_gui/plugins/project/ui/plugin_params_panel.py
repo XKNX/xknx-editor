@@ -25,6 +25,7 @@ from editor_gui.plugin_params import (
 )
 from editor_gui.plugins.project.strings import S
 from editor_gui.plugins.project.ui.e64pro import EditHandler, Workspace
+from editor_gui.plugins.project.ui.e64pro_report import ReportView
 from editor_gui.theme import status_color
 from editor_gui.widgets.combo import combo
 from editor_gui.widgets.dpi import px
@@ -36,6 +37,7 @@ from xknxeditor.vendor.triton import DeviceType
 if TYPE_CHECKING:
     from editor_gui.device import Device
     from editor_gui.plugins.project.service import ProjectService
+    from editor_gui.plugins.project.ui.dali_commissioning import DaliRunner
 
 
 # The triton LCD display types the setup dropdown offers, as (enum value, product label). The
@@ -114,6 +116,8 @@ class PluginParamsPanel:
 
     _e64_write: EditHandler | None = None
     _e64_project: ProjectService | None = None
+    _e64_run: DaliRunner | None = None
+    _e64_reports: dict[int, ReportView] = field(default_factory=dict[int, ReportView])
     _e64_views: dict[int, Workspace] = field(default_factory=dict[int, Workspace])
 
     def _sync_project(self) -> None:
@@ -123,6 +127,7 @@ class PluginParamsPanel:
             and generation != self._project_generation
         ):
             self._e64_views.clear()
+            self._e64_reports.clear()
             self._closed_sections.clear()
             self._seen_sections.clear()
             self._edit_buffers.clear()
@@ -208,7 +213,22 @@ class PluginParamsPanel:
         if self._e64_write is None:
             details()
         else:
-            workspace.render(device, backup[1], root, self._e64_write, details)
+
+            def report() -> None:
+                if self._e64_project is not None and self._e64_run is not None:
+                    self._e64_reports.setdefault(device.node_id, ReportView()).render(
+                        device, self._e64_project, self._e64_run
+                    )
+
+            workspace.render(
+                device,
+                backup[1],
+                root,
+                self._e64_write,
+                details,
+                project=self._e64_project,
+                report=report if self._e64_run is not None else None,
+            )
 
     def _render_sections(
         self, device: Device, sections: list[PluginSectionView]

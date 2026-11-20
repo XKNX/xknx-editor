@@ -177,7 +177,9 @@ written. Longer timeouts in Settings > Connection let it work over slow connecti
 **DALI** — for DALI gateways (MDT, and the shared MDT/Theben/IPAS platform), read and edit the
 gateway's DALI configuration — control gear, groups, scenes, time control and effects — in a table
 view, and, over the bus, scan, address and commission the connected control gear from a **DALI
-(Bus)** tab. Still maturing — verify against your own installation.
+(Bus)** tab. IPAS e64 Pro and Theben P64 V2 also support offline input assignments, bulk
+descriptions, individual scene/effect/template XML exchange and read-only diagnostic reports.
+Still maturing — verify against your own installation.
 
 **Displays without parameters** — some devices, such as the Busch-Jaeger Triton, keep their
 configuration in a blob instead of classic parameters. Configure them in the **Plugin Parameters**

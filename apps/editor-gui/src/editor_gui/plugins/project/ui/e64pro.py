@@ -35,7 +35,7 @@ from editor_gui.widgets.x_button import x_button
 if TYPE_CHECKING:
     from editor_gui.plugins.project.service import ProjectService
 
-EditHandler = Callable[[Device, bytes, dca.Edit], object]
+EditHandler = Callable[[Device, bytes, dca.Edit | list[dca.Edit]], object]
 
 
 @contextmanager
@@ -128,10 +128,19 @@ class XmlExchange:
     export_data: bytes = b""
     pending: Path | None = None
     message: str = ""
+    selection: tuple[str, str] | None = None
+    visible_selection: tuple[str, str] | None = None
 
     def render(
-        self, device: Device, data: bytes | None, project: ProjectService
+        self,
+        device: Device,
+        data: bytes | None,
+        project: ProjectService,
+        selection: tuple[str, str] | None = None,
     ) -> None:
+        if self.visible_selection != selection:
+            self.message = ""
+            self.visible_selection = selection
         filters = ["XML", "*.xml"]
         title = S.E64_IMPORT_TITLE + "###e64_import_confirm"
         if self.open_dialog is not None and self.open_dialog.ready():
@@ -146,7 +155,7 @@ class XmlExchange:
             if path:
                 try:
                     Path(path).write_bytes(self.export_data)
-                    self.message = S.E64_EXPORTED
+                    self.message = S.E64_EXPORTED if selection == self.selection else ""
                 except OSError as exc:
                     self.message = str(exc)
             self.export_data = b""
@@ -156,15 +165,21 @@ class XmlExchange:
         )
         if imgui.button(S.E64_IMPORT_XML):
             self.expected = data
+            self.selection = selection
             self.open_dialog = file_dialogs.open_file(S.E64_IMPORT_XML, filters=filters)
         same_line_if_fits(button_width(S.E64_EXPORT_XML))
         imgui.begin_disabled(data is None)
         if imgui.button(S.E64_EXPORT_XML):
+            self.selection = selection
             try:
-                self.export_data = project.export_e64pro(device)
+                self.export_data = (
+                    dca.export_slot(data, *selection)
+                    if data is not None and selection is not None
+                    else project.export_e64pro(device)
+                )
                 self.save_dialog = file_dialogs.save_file(
                     S.E64_EXPORT_XML,
-                    default_path=f"e64pro-{device.individual_address or device.node_id}.xml",
+                    default_path=f"e64pro-{device.individual_address or device.node_id}{'-' + '-'.join(selection) if selection else ''}.xml",
                     filters=filters,
                 )
             except (ValueError, OSError) as exc:
@@ -173,15 +188,33 @@ class XmlExchange:
         imgui.end_disabled()
 
         if begin_dialog(title):
-            imgui.text_wrapped(S.E64_IMPORT_CONFIRM.format(device=device.display_name))
+            imgui.text_wrapped(
+                S.E64_IMPORT_SLOT_CONFIRM
+                if self.selection
+                else S.E64_IMPORT_CONFIRM.format(device=device.display_name)
+            )
             clicked = dialog_buttons(S.DALI_CONTINUE, S.BTN_CANCEL)
             if clicked == 0 and self.pending is not None:
                 try:
-                    project.import_e64pro(
-                        device, self.expected, self.pending.read_bytes()
-                    )
-                    self.message = S.E64_IMPORTED
-                except (ValueError, OSError) as exc:
+                    if self.selection is None:
+                        project.import_e64pro(
+                            device, self.expected, self.pending.read_bytes()
+                        )
+                    elif self.expected is not None:
+                        parser = ET.XMLParser(
+                            target=ET.TreeBuilder(insert_comments=True, insert_pis=True)
+                        )
+                        xml = ET.tostring(
+                            ET.fromstring(self.pending.read_bytes(), parser=parser),
+                            encoding="unicode",
+                        )
+                        project.edit_e64pro(
+                            device,
+                            self.expected,
+                            dca.Edit(*self.selection, "import", value=xml),
+                        )
+                    self.message = S.E64_IMPORTED if selection == self.selection else ""
+                except (ValueError, OSError, ET.ParseError) as exc:
                     self.message = str(exc)
             if clicked is not None:
                 self.pending = None
@@ -195,6 +228,11 @@ class XmlExchange:
 @dataclass
 class Workspace:
     xml: XmlExchange = field(default_factory=XmlExchange)
+    slot_xml: XmlExchange = field(default_factory=XmlExchange)
+    descriptions: dict[tuple[str, str], str] = field(
+        default_factory=dict[tuple[str, str], str]
+    )
+    description_origin: bytes | None = None
     selections: dict[str, str] = field(default_factory=dict[str, str])
     drafts: dict[str, tuple[str, str]] = field(
         default_factory=dict[str, tuple[str, str]]
@@ -238,6 +276,8 @@ class Workspace:
         root: ET.Element,
         write: EditHandler,
         details: Callable[[], None] | None = None,
+        project: ProjectService | None = None,
+        report: Callable[[], None] | None = None,
     ) -> None:
         if self.snapshot != data:
             self.drafts.clear()
@@ -252,7 +292,10 @@ class Workspace:
             "scenes": S.E64_SCENES,
             "effects": S.E64_EFFECTS,
             "templates": S.E64_TIME_CONTROL,
+            "descriptions": S.E64_DESCRIPTIONS,
         }
+        if report is not None:
+            views["report"] = S.E64_REPORT
         if details is not None:
             views["raw"] = S.E64_DCA_DETAILS
         if not begin_tab_bar(
@@ -265,8 +308,12 @@ class Workspace:
                     try:
                         if section == "raw" and details is not None:
                             details()
+                        elif section == "report" and report is not None:
+                            report()
                         else:
-                            self._render_view(device, data, root, write, section, label)
+                            self._render_view(
+                                device, data, root, write, section, label, project
+                            )
                     finally:
                         imgui.end_tab_item()
         finally:
@@ -280,13 +327,16 @@ class Workspace:
         write: EditHandler,
         section: str,
         label: str,
+        project: ProjectService | None = None,
     ) -> None:
         if self.error:
             imgui.text_wrapped(self.error)
         if section == "ecgs":
             self.gear(root)
         elif section == "inputs":
-            self.inputs(root)
+            self.inputs(root, lambda edit: write(device, data, edit))
+        elif section == "descriptions":
+            self.edit_descriptions(device, data, root, write)
         else:
             slots = objects(root, section)
             if not slots:
@@ -323,6 +373,8 @@ class Workspace:
 
             imgui.push_id(section + idx)
             try:
+                if project is not None:
+                    self.slot_xml.render(device, data, project, (section, idx))
                 self._configuration(root, section, item, targets(root), submit)
             finally:
                 imgui.pop_id()
@@ -429,7 +481,9 @@ class Workspace:
                             ]
                         )
 
-    def inputs(self, root: ET.Element) -> None:
+    def inputs(
+        self, root: ET.Element, write: Callable[[dca.Edit], object] | None = None
+    ) -> None:
         for tag, label in (
             ("mds", S.E64_MOTION_BRIGHTNESS),
             ("gis", S.E64_GENERAL_INPUTS),
@@ -455,25 +509,130 @@ class Workspace:
                 ) as show:
                     if show:
                         for index, entry in entries.items():
-                            instances = entry.findall("Instances/*")
-                            address = entry.get(
-                                "short-address", entry.get("address", "—")
-                            )
-                            instance = entry.get("instance", "—")
-                            if instances:
-                                instance = ", ".join(
-                                    i.get("index", "—") for i in instances
+                            instances = entry.findall("Instances/EtsInstance")
+                            if tag == "inputs" or not instances:
+                                cells(
+                                    [
+                                        named(label, index, entry),
+                                        entry.get("type", label),
+                                        entry.get(
+                                            "short-address",
+                                            index if tag == "inputs" else "",
+                                        ),
+                                        str(len(entry.findall("Instances/*"))),
+                                    ]
                                 )
-                            cells(
-                                [
-                                    named(label, index, entry),
-                                    entry.get("type", label),
-                                    address,
-                                    instance,
-                                ]
+                                continue
+                            from editor_gui.plugin_blob_readers.dali_backup.e64pro_inputs import (
+                                compatible,
+                                input_type,
+                                physical_inputs,
                             )
+
+                            for row, instance in enumerate(instances):
+                                imgui.push_id(f"{index}:{row}")
+                                imgui.table_next_row()
+                                imgui.table_next_column()
+                                imgui.text_unformatted(named(label, index, entry))
+                                imgui.table_next_column()
+                                imgui.text_unformatted(
+                                    S.E64_INPUT_TYPES.get(
+                                        input_type(instance), S.E64_INPUT_TYPES[255]
+                                    )
+                                )
+                                imgui.table_next_column()
+                                options = {"": S.E64_UNASSIGNED}
+                                for physical, child in physical_inputs(root):
+                                    if compatible(instance, child):
+                                        options[child.get("index", "")] = (
+                                            f"{physical.get('index', '?')} / {child.get('number', '?')}"
+                                        )
+                                current = instance.get("ref-idx", "-1")
+                                if current in ("-1", "254", "255"):
+                                    current = ""
+                                imgui.set_next_item_width(-1)
+                                selected = pick("##assignment", current, options)
+                                if selected != current and write is not None:
+                                    try:
+                                        write(
+                                            dca.Edit(
+                                                tag,
+                                                index,
+                                                "assign",
+                                                row=row,
+                                                index=selected,
+                                            )
+                                        )
+                                        self.error = ""
+                                    except ValueError as exc:
+                                        self.error = str(exc)
+                                imgui.table_next_column()
+                                imgui.text_unformatted(str(row + 1))
+                                imgui.pop_id()
             finally:
                 imgui.pop_id()
+
+    def edit_descriptions(
+        self, device: Device, data: bytes, root: ET.Element, write: EditHandler
+    ) -> None:
+        if self.description_origin != data and not self.descriptions:
+            self.description_origin = data
+        labels = {
+            "groups": S.E64_GROUPS,
+            "ecgs": S.E64_CONTROL_GEAR_AND_GROUPS,
+            "mds": S.E64_MOTION_BRIGHTNESS,
+            "pbs": S.E64_PUSH_BUTTONS,
+            "gis": S.E64_GENERAL_INPUTS,
+            "scenes": S.E64_SCENES,
+            "effects": S.E64_EFFECTS,
+            "templates": S.E64_TIME_CONTROL,
+        }
+        section = self.choice("description_section", S.E64_TYPE, labels)
+        imgui.text_wrapped(S.E64_DESCRIPTIONS_HINT)
+        with table(
+            "descriptions",
+            [S.E64_INSTANCE, S.E64_DESCRIPTION],
+            min_width=340,
+            weights=[0.3, 2],
+        ) as show:
+            if show:
+                for index, item in objects(root, section).items():
+                    imgui.table_next_row()
+                    imgui.table_next_column()
+                    imgui.text_unformatted(number(index))
+                    imgui.table_next_column()
+                    stored = item.get("description", "")
+                    value = self.descriptions.get((section, index), stored)
+                    imgui.set_next_item_width(-1)
+                    changed, value = imgui.input_text(f"##{section}-{index}", value)
+                    if changed:
+                        if value == stored:
+                            self.descriptions.pop((section, index), None)
+                        else:
+                            self.descriptions[section, index] = value
+        imgui.begin_disabled(not self.descriptions)
+        if imgui.button(S.E64_APPLY):
+            try:
+                write(
+                    device,
+                    self.description_origin
+                    if self.description_origin is not None
+                    else data,
+                    [
+                        dca.Edit(section, index, "description", value=value)
+                        for (section, index), value in self.descriptions.items()
+                    ],
+                )
+                self.descriptions.clear()
+                self.description_origin = None
+                self.error = ""
+            except ValueError as exc:
+                self.error = str(exc)
+        imgui.end_disabled()
+        same_line_if_fits(button_width(S.E64_CANCEL))
+        if imgui.button(S.E64_CANCEL):
+            self.descriptions.clear()
+            self.description_origin = data
 
     def _configuration(
         self,

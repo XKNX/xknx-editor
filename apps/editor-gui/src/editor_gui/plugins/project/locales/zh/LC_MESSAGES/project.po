@@ -3907,3 +3907,108 @@ msgstr "周六"
 
 msgid "Su"
 msgstr "周日"
+
+msgid "A test is pending."
+msgstr "有一项测试正在等待。"
+
+msgid "Battery"
+msgstr "电池"
+
+msgid "Brightness sensor"
+msgstr "亮度传感器"
+
+msgid "Converters"
+msgstr "转换器"
+
+msgid "Descriptions"
+msgstr "描述"
+
+msgid "Diagnostic Report"
+msgstr "诊断报告"
+
+msgid "Duration"
+msgstr "持续时间"
+
+msgid "Duration test running"
+msgstr "持续时间测试进行中"
+
+msgid "Edit several descriptions and apply them together in one undo step."
+msgstr "编辑多个描述并一次性应用，可通过一次撤销恢复。"
+
+msgid "Emergency"
+msgstr "应急运行"
+
+msgid "Emergency Failure"
+msgstr "应急照明故障"
+
+msgid "Emergency Mode"
+msgstr "应急照明模式"
+
+msgid "Emergency Status"
+msgstr "应急照明状态"
+
+msgid "Errors"
+msgstr "错误"
+
+msgid "Event sensor"
+msgstr "事件传感器"
+
+msgid "Extended emergency"
+msgstr "延长应急运行"
+
+msgid "Failure Rate"
+msgstr "故障率"
+
+msgid "Fixed inhibit"
+msgstr "固定抑制"
+
+msgid "Function test running"
+msgstr "功能测试进行中"
+
+msgid "Generic sensor"
+msgstr "通用传感器"
+
+msgid "Inhibit"
+msgstr "抑制"
+
+msgid "Lamps"
+msgstr "灯具"
+
+msgid "Motion sensor"
+msgstr "运动传感器"
+
+msgid "Normal"
+msgstr "正常"
+
+msgid "Push button"
+msgstr "按钮"
+
+msgid "Read Report"
+msgstr "读取报告"
+
+msgid "Read the diagnostic report from the gateway to display its current counters and saved test results."
+msgstr "从网关读取诊断报告，显示当前计数器和已保存的测试结果。"
+
+msgid "Replace the selected slot with the XML configuration? Other slots remain unchanged."
+msgstr "用XML配置替换所选位置？其他位置保持不变。"
+
+msgid "Rest"
+msgstr "休息"
+
+msgid "Result"
+msgstr "结果"
+
+msgid "Test"
+msgstr "测试"
+
+msgid "The input types are not compatible."
+msgstr "输入类型不兼容。"
+
+msgid "This physical input is already assigned."
+msgstr "此物理输入已被分配。"
+
+msgid "Total Failure Rate"
+msgstr "总故障率"
+
+msgid "Value input"
+msgstr "数值输入"

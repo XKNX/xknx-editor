@@ -3934,3 +3934,108 @@ msgstr "Szo"
 
 msgid "Su"
 msgstr "V"
+
+msgid "A test is pending."
+msgstr "Egy teszt várakozik."
+
+msgid "Battery"
+msgstr "Akkumulátor"
+
+msgid "Brightness sensor"
+msgstr "Fényerőérzékelő"
+
+msgid "Converters"
+msgstr "Átalakítók"
+
+msgid "Descriptions"
+msgstr "Leírások"
+
+msgid "Diagnostic Report"
+msgstr "Diagnosztikai jelentés"
+
+msgid "Duration"
+msgstr "Időtartam"
+
+msgid "Duration test running"
+msgstr "Időtartamteszt folyamatban"
+
+msgid "Edit several descriptions and apply them together in one undo step."
+msgstr "Szerkesszen több leírást, majd alkalmazza őket egyetlen visszavonható lépésben."
+
+msgid "Emergency"
+msgstr "Vészüzem"
+
+msgid "Emergency Failure"
+msgstr "Vészvilágítási hiba"
+
+msgid "Emergency Mode"
+msgstr "Vészvilágítási mód"
+
+msgid "Emergency Status"
+msgstr "Vészvilágítás állapota"
+
+msgid "Errors"
+msgstr "Hibák"
+
+msgid "Event sensor"
+msgstr "Eseményérzékelő"
+
+msgid "Extended emergency"
+msgstr "Meghosszabbított vészüzem"
+
+msgid "Failure Rate"
+msgstr "Hibaarány"
+
+msgid "Fixed inhibit"
+msgstr "Rögzített tiltás"
+
+msgid "Function test running"
+msgstr "Funkcióteszt folyamatban"
+
+msgid "Generic sensor"
+msgstr "Általános érzékelő"
+
+msgid "Inhibit"
+msgstr "Tiltás"
+
+msgid "Lamps"
+msgstr "Lámpák"
+
+msgid "Motion sensor"
+msgstr "Mozgásérzékelő"
+
+msgid "Normal"
+msgstr "Normál"
+
+msgid "Push button"
+msgstr "Nyomógomb"
+
+msgid "Read Report"
+msgstr "Jelentés olvasása"
+
+msgid "Read the diagnostic report from the gateway to display its current counters and saved test results."
+msgstr "Olvassa ki az átjáró diagnosztikai jelentését az aktuális számlálók és a mentett teszteredmények megjelenítéséhez."
+
+msgid "Replace the selected slot with the XML configuration? Other slots remain unchanged."
+msgstr "Lecseréli a kiválasztott helyet az XML-konfigurációra? A többi hely változatlan marad."
+
+msgid "Rest"
+msgstr "Nyugalom"
+
+msgid "Result"
+msgstr "Eredmény"
+
+msgid "Test"
+msgstr "Teszt"
+
+msgid "The input types are not compatible."
+msgstr "A bemenettípusok nem kompatibilisek."
+
+msgid "This physical input is already assigned."
+msgstr "Ez a fizikai bemenet már hozzá van rendelve."
+
+msgid "Total Failure Rate"
+msgstr "Összesített hibaarány"
+
+msgid "Value input"
+msgstr "Értékbemenet"

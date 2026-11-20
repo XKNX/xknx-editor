@@ -3907,3 +3907,108 @@ msgstr "土"
 
 msgid "Su"
 msgstr "日"
+
+msgid "A test is pending."
+msgstr "テストが保留中です。"
+
+msgid "Battery"
+msgstr "バッテリー"
+
+msgid "Brightness sensor"
+msgstr "照度センサー"
+
+msgid "Converters"
+msgstr "コンバーター"
+
+msgid "Descriptions"
+msgstr "説明"
+
+msgid "Diagnostic Report"
+msgstr "診断レポート"
+
+msgid "Duration"
+msgstr "時間"
+
+msgid "Duration test running"
+msgstr "継続時間テスト実行中"
+
+msgid "Edit several descriptions and apply them together in one undo step."
+msgstr "複数の説明を編集し、まとめて1回の操作で適用します。この操作は元に戻せます。"
+
+msgid "Emergency"
+msgstr "非常動作"
+
+msgid "Emergency Failure"
+msgstr "非常灯エラー"
+
+msgid "Emergency Mode"
+msgstr "非常灯モード"
+
+msgid "Emergency Status"
+msgstr "非常灯状態"
+
+msgid "Errors"
+msgstr "エラー"
+
+msgid "Event sensor"
+msgstr "イベントセンサー"
+
+msgid "Extended emergency"
+msgstr "延長非常動作"
+
+msgid "Failure Rate"
+msgstr "故障率"
+
+msgid "Fixed inhibit"
+msgstr "固定抑止"
+
+msgid "Function test running"
+msgstr "機能テスト実行中"
+
+msgid "Generic sensor"
+msgstr "汎用センサー"
+
+msgid "Inhibit"
+msgstr "抑止"
+
+msgid "Lamps"
+msgstr "ランプ"
+
+msgid "Motion sensor"
+msgstr "動作センサー"
+
+msgid "Normal"
+msgstr "通常"
+
+msgid "Push button"
+msgstr "押しボタン"
+
+msgid "Read Report"
+msgstr "レポートを読み取る"
+
+msgid "Read the diagnostic report from the gateway to display its current counters and saved test results."
+msgstr "ゲートウェイから診断レポートを読み取り、現在のカウンターと保存されたテスト結果を表示します。"
+
+msgid "Replace the selected slot with the XML configuration? Other slots remain unchanged."
+msgstr "選択したスロットをXML設定で置き換えますか？他のスロットは変更されません。"
+
+msgid "Rest"
+msgstr "休止"
+
+msgid "Result"
+msgstr "結果"
+
+msgid "Test"
+msgstr "テスト"
+
+msgid "The input types are not compatible."
+msgstr "入力タイプに互換性がありません。"
+
+msgid "This physical input is already assigned."
+msgstr "この物理入力はすでに割り当てられています。"
+
+msgid "Total Failure Rate"
+msgstr "総故障率"
+
+msgid "Value input"
+msgstr "値入力"
