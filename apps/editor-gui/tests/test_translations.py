@@ -189,3 +189,101 @@ def test_powertool_catalog_read_ignores_locale_encoding(monkeypatch) -> None:
 
     monkeypatch.setattr(Path, "read_text", windows_read_text)
     test_powertool_texts_are_translated("de")
+
+
+# Every translation catalog of the repository: the GUI's and the packages'.
+_REPOSITORY = Path(__file__).resolve().parents[3]
+_CATALOGS = sorted(
+    path
+    for top in ("apps", "packages")
+    for path in (_REPOSITORY / top).rglob("*.po")
+    if ".venv" not in path.parts
+)
+
+
+def _repeated_entries(text: str) -> list[str]:
+    """The msgids (with their msgctxt) a .po file has more than once: compiling keeps one
+    copy and drops the other without a word, so the two can disagree unnoticed."""
+    keys: list[tuple[str | None, str]] = []
+    context: list[str] | None = None
+    msgid: list[str] | None = None
+    field: list[str] | None = None
+    for line in text.splitlines():
+        # A text may be split over several quoted lines: the pieces joined are the text.
+        if line.startswith("msgctxt "):
+            context = field = [line[8:].strip()[1:-1]]
+        elif line.startswith("msgid "):
+            msgid = field = [line[6:].strip()[1:-1]]
+        elif line.startswith('"') and field is not None:
+            field.append(line.strip()[1:-1])
+        elif line.startswith(("msgid_plural", "msgstr")):
+            if msgid is not None:
+                keys.append(
+                    ("".join(context) if context is not None else None, "".join(msgid))
+                )
+            context, msgid, field = None, None, None
+    seen: set[tuple[str | None, str]] = set()
+    repeated: list[str] = []
+    for key in keys:
+        if key[1] and key in seen:
+            repeated.append(key[1][:80])
+        seen.add(key)
+    return repeated
+
+
+@pytest.mark.parametrize(
+    "catalog",
+    [
+        pytest.param(path, id=path.relative_to(_REPOSITORY).as_posix())
+        for path in _CATALOGS
+    ],
+)
+def test_catalog_has_no_repeated_entries(catalog: Path) -> None:
+    repeated = _repeated_entries(catalog.read_text("utf-8"))
+    assert not repeated, f"{len(repeated)} entries more than once: {repeated[:10]}"
+
+
+def test_all_catalogs_are_checked() -> None:
+    assert len(_CATALOGS) >= 24 * 16
+    assert any("powertool" in path.parts for path in _CATALOGS)
+
+
+def test_a_repeated_entry_is_found() -> None:
+    text = "\n".join(
+        [
+            'msgid ""',
+            'msgstr ""',
+            '"Language: de\\n"',
+            "",
+            'msgid "Open"',
+            'msgstr "Öffnen"',
+            "",
+            'msgctxt "menu"',
+            'msgid "Open"',
+            'msgstr "Öffnen"',
+            'msgid ""',
+            '"A long "',
+            '"text"',
+            'msgstr "Ein langer Text"',
+            "",
+            'msgid "A long text"',
+            'msgstr "Ein langer Text"',
+            "",
+            "#: somewhere",
+            'msgid "Open"',
+            'msgstr "Aufmachen"',
+            "",
+            'msgid "One"',
+            'msgid_plural "Many"',
+            'msgstr[0] "Eins"',
+            'msgstr[1] "Viele"',
+            "",
+            'msgid "One"',
+            'msgid_plural "Many"',
+            'msgstr[0] "Eins"',
+            'msgstr[1] "Viele"',
+        ]
+    )
+    # Another context is no repeat; the same msgid again is, also split over several lines
+    # and without a blank line before it.
+    assert _repeated_entries(text) == ["A long text", "Open", "One"]
