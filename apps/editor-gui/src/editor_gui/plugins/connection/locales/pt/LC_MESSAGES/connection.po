@@ -532,3 +532,6 @@ msgstr "O servidor KNXnet/IP está a ser iniciado ou parado."
 
 msgid "The KNXnet/IP server could not start: {error}"
 msgstr "Não foi possível iniciar o servidor KNXnet/IP: {error}"
+
+msgid "Enter the data to send (e.g. 44 AE 0C)."
+msgstr "Introduza os dados a enviar (p. ex. 44 AE 0C)."

@@ -530,3 +530,6 @@ msgstr "KNXnet/IP サーバーを起動または停止しています。"
 
 msgid "The KNXnet/IP server could not start: {error}"
 msgstr "KNXnet/IP サーバーを起動できませんでした: {error}"
+
+msgid "Enter the data to send (e.g. 44 AE 0C)."
+msgstr "送信するデータを入力してください（例: 44 AE 0C）。"

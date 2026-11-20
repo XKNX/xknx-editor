@@ -2925,6 +2925,8 @@ class ConnectionPlugin:
             raise ValueError(f"not an M-Bus or BatiBus protocol: {protocol}")
         if not 0 <= service <= 0xFF:
             raise ValueError(S.MBUS_FRAME_INVALID_SERVICE.format(service=service))
+        if not body:
+            raise ValueError(S.MBUS_FRAME_NO_DATA)
         interface = self._interface
         if (
             not self.connected
@@ -3087,7 +3089,11 @@ class ConnectionPlugin:
             self._mbus_data_text,
             imgui.InputTextFlags_.enter_returns_true,
         )
-        can_send = self.connected and not blocked and not self._mbus_sending
+        # a frame needs data
+        has_data = bool(self._mbus_data_text.strip())
+        can_send = (
+            self.connected and not blocked and not self._mbus_sending and has_data
+        )
         imgui.begin_disabled(not can_send)
         send = _row_button(f"{S.MBUS_FRAME_SEND}##mbus_send")
         imgui.end_disabled()

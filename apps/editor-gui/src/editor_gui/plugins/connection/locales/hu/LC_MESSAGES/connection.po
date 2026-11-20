@@ -530,3 +530,6 @@ msgstr "A KNXnet/IP-szerver indítása vagy leállítása folyamatban van."
 
 msgid "The KNXnet/IP server could not start: {error}"
 msgstr "A KNXnet/IP-szervert nem sikerült elindítani: {error}"
+
+msgid "Enter the data to send (e.g. 44 AE 0C)."
+msgstr "Adja meg az elküldendő adatokat (pl. 44 AE 0C)."

@@ -536,3 +536,6 @@ msgstr "Strežnik KNXnet/IP se zaganja ali ustavlja."
 
 msgid "The KNXnet/IP server could not start: {error}"
 msgstr "Strežnika KNXnet/IP ni bilo mogoče zagnati: {error}"
+
+msgid "Enter the data to send (e.g. 44 AE 0C)."
+msgstr "Vnesite podatke za pošiljanje (npr. 44 AE 0C)."

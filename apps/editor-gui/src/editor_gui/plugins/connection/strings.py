@@ -538,6 +538,10 @@ class ConnectionStrings:
         return _("Send")
 
     @property
+    def MBUS_FRAME_NO_DATA(self) -> str:
+        return _("Enter the data to send (e.g. 44 AE 0C).")
+
+    @property
     def MBUS_FRAME_INVALID_DATA(self) -> str:
         return _("{data} is not hexadecimal data (e.g. 44 AE 0C).")
 

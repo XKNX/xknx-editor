@@ -532,3 +532,6 @@ msgstr "Ο διακομιστής KNXnet/IP εκκινείται ή σταματ
 
 msgid "The KNXnet/IP server could not start: {error}"
 msgstr "Δεν ήταν δυνατή η εκκίνηση του διακομιστή KNXnet/IP: {error}"
+
+msgid "Enter the data to send (e.g. 44 AE 0C)."
+msgstr "Εισαγάγετε τα δεδομένα προς αποστολή (π.χ. 44 AE 0C)."

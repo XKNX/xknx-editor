@@ -113,11 +113,14 @@ class TestSending:
     async def test_refused(self, fake_hid: FakeHIDModule) -> None:
         plugin = _plugin()
         with pytest.raises(ValueError, match="Not connected through a USB interface"):
-            plugin.send_mbus_batibus_frame(ProtocolID.M_BUS_TUNNEL, 0, b"")
+            plugin.send_mbus_batibus_frame(ProtocolID.M_BUS_TUNNEL, 0, b"\x01")
         with pytest.raises(ValueError, match="not an M-Bus or BatiBus"):
-            plugin.send_mbus_batibus_frame(ProtocolID.KNX_TUNNEL, 0, b"")
+            plugin.send_mbus_batibus_frame(ProtocolID.KNX_TUNNEL, 0, b"\x01")
         with pytest.raises(ValueError, match="not a hexadecimal octet"):
-            plugin.send_mbus_batibus_frame(ProtocolID.M_BUS_TUNNEL, 256, b"")
+            plugin.send_mbus_batibus_frame(ProtocolID.M_BUS_TUNNEL, 256, b"\x01")
+        # a frame needs data
+        with pytest.raises(ValueError, match="Enter the data to send"):
+            plugin.send_mbus_batibus_frame(ProtocolID.M_BUS_TUNNEL, 0, b"")
         plugin = await _connected(fake_hid)
         try:
             # Block Bus Writes
@@ -201,6 +204,25 @@ class TestDialog:
             clicks.combos.add("##mbus_protocol")
             clicks.items.add(f"BatiBus##mbus_protocol_{int(ProtocolID.BATIBUS_TUNNEL)}")
             frames()
+            # without data Send is off
+            plugin._mbus_data_text = ""
+            empty: list[bool] = []
+            unpatched = imgui.button
+
+            def send_button(label: str, *args: Any) -> bool:
+                if label == f"{S.MBUS_FRAME_SEND}##mbus_send":
+                    empty.append(
+                        bool(
+                            imgui.get_current_context().current_item_flags
+                            & imgui.ItemFlags_.disabled
+                        )
+                    )
+                return bool(unpatched(label, *args))
+
+            monkeypatch.setattr(imgui, "button", send_button)
+            frames()
+            assert empty and all(empty)
+            monkeypatch.setattr(imgui, "button", unpatched)
             plugin._mbus_data_text = "44 AE 0C"
             clicks.items.add(f"{S.MBUS_FRAME_SEND}##mbus_send")
             frames()
@@ -218,6 +240,24 @@ class TestDialog:
             texts.clear()
             frames()
             assert S.MBUS_FRAMES_NONE in texts
+            # Clear stays shown, disabled while there is nothing to clear
+            cleared: list[bool] = []
+            plain = imgui.button
+
+            def clear_button(label: str, *args: Any) -> bool:
+                if label == f"{S.MBUS_FRAMES_CLEAR}##mbus_clear":
+                    cleared.append(
+                        bool(
+                            imgui.get_current_context().current_item_flags
+                            & imgui.ItemFlags_.disabled
+                        )
+                    )
+                return bool(plain(label, *args))
+
+            monkeypatch.setattr(imgui, "button", clear_button)
+            frames()
+            assert cleared and all(cleared)
+            monkeypatch.setattr(imgui, "button", plain)
             # Block Bus Writes: Send is off
             plugin._api.connection.block_bus_writes = True
             disabled: list[bool] = []

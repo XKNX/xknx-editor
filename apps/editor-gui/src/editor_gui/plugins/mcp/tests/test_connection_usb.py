@@ -449,6 +449,8 @@ class _FramesConnection(_UsbConnection):
             raise ValueError(
                 "Block Bus Writes is on (Settings > Connection): nothing is sent."
             )
+        if not body:
+            raise ValueError("Enter the data to send (e.g. 44 AE 0C).")
         self.log.add(
             USBTransferFrame(protocol=protocol, service=service, body=body), sent=True
         )
@@ -480,6 +482,11 @@ async def test_mbus_and_batibus_frames(tmp_path: Path) -> None:
             await client.call_tool(
                 "connection_send_mbus_batibus_frame",
                 {"protocol": "m_bus", "data": "xyz"},
+            )
+        with pytest.raises(Exception, match="Enter the data to send"):
+            await client.call_tool(
+                "connection_send_mbus_batibus_frame",
+                {"protocol": "m_bus", "data": ""},
             )
         conn.blocked = True
         with pytest.raises(Exception, match="Block Bus Writes is on"):
