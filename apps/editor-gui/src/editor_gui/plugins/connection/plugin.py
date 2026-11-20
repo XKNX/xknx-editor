@@ -1041,7 +1041,6 @@ class ConnectionPlugin:
             self._gateway_info = gateway
             self._config = config
             self._link_up = True
-            self._state = ConnectionState.CONNECTED
             interface_apdu: int | None = None
             try:
                 interface_apdu = await self._interface.read_max_apdu_length()
@@ -1072,6 +1071,9 @@ class ConnectionPlugin:
                 else self._connection_target
             )
             self._api.connection.set_connection(self._xknx, asyncio.get_running_loop())
+            # Connected only now: the interface's APDU length query above can take seconds on
+            # a slow link, and a caller seeing the state must find the connection in place.
+            self._state = ConnectionState.CONNECTED
             self._api.connection.link_info = self._link_info()
             usb_address = (
                 self._usb_info.individual_address
