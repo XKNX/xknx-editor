@@ -2088,6 +2088,53 @@ async def test_a_parameters_download_writes_the_application_segment_of_a_memory_
 
 
 @pytest.mark.parametrize(
+    ("scope", "written"),
+    [
+        (DownloadScope.FULL, {0x4B20: 0xAA, 0x4B21: 0xBB, 0x4B22: 0xCC, 0x4B23: 0xDD}),
+        (
+            DownloadScope.PARAMETERS,
+            {0x4B20: 0xAA, 0x4B21: 0xBB, 0x4B22: 0xCC, 0x4B23: 0xDD},
+        ),
+        (DownloadScope.GROUP_COMMUNICATION, {}),
+    ],
+)
+async def test_a_group_communication_download_leaves_a_parameter_segment_allocated_again(
+    scope: DownloadScope, written: dict[int, int]
+) -> None:
+    """A product procedure that applies to partial downloads as well allocates the
+    parameters' segment again in every one (M-0234 on MV-0705: LSM 0). On a memory-mapped
+    mask the segment's code seed goes with the parameters: a download of the group
+    communication alone writes neither, the device keeps its parameters."""
+    control = _abs_segment_control()
+    control.lsm_idx = 0
+    application = _m112_application(control)
+    image = DownloadImage(
+        segments=(
+            MemorySegment(
+                address=0x4B20,
+                data=b"\xaa\xbb\xcc\xdd",
+                mask=b"\x00\xff\x00\x00",
+                initialized_mask=b"\xff\xff\xff\xff",
+            ),
+        ),
+        properties=(),
+    )
+    device = _device()
+    runner = LoadProcedureRunner(
+        application,
+        image,
+        DeviceProgrammer(device),
+        controls=[control],
+        scope=scope,
+        object_types={0: 0},
+    )
+
+    await runner.run()
+
+    assert {a: v for a, v in device.memory.items() if 0x4B20 <= a < 0x4B24} == written
+
+
+@pytest.mark.parametrize(
     ("scope", "application_loaded", "count"),
     [
         (DownloadScope.FULL, False, 0xFE),

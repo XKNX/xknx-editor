@@ -944,7 +944,7 @@ class LoadProcedureRunner:
             group_tables=self._writes_group_tables(
                 include_initialized=include_initialized
             ),
-            parameters=self._writes_parameters(include_initialized=include_initialized),
+            parameters=self._writes_parameters(),
         )
         if (
             space is LdCtrlMemAddrSpace.LC_FILTER
@@ -1360,19 +1360,19 @@ class LoadProcedureRunner:
         """
         return include_initialized or self.scope is not DownloadScope.PARAMETERS
 
-    def _writes_parameters(self, *, include_initialized: bool = False) -> bool:
+    def _writes_parameters(self) -> bool:
         """Whether writes carry the parameters: memory, an object's relative memory and
         properties.
 
         A download of the group communication alone leaves them as the device holds them:
-        the parameters are applied only for a download that loads them. Inline data of the
-        procedure is written all the same. A write that carries the code seed
-        (``include_initialized``) writes the parameters over it, or the seed's defaults would
-        be written.
+        the parameters are applied only for a download that loads them, and the code
+        segments that hold them are left out with their seed, also where a segment of a
+        memory-mapped mask is allocated again (its seed is written for the group tables
+        only; a product procedure that applies to partial downloads too, allocating the
+        parameters' segment again, M-0234 on MV-0705). Inline data of the procedure is
+        written all the same.
         """
-        return (
-            include_initialized or self.scope is not DownloadScope.GROUP_COMMUNICATION
-        )
+        return self.scope is not DownloadScope.GROUP_COMMUNICATION
 
     def _memory_lsm(self, index: int) -> tuple[int, int | None] | None:
         """Return ``(control_address, status_address)`` for a memory-mapped LSM.
@@ -2008,9 +2008,7 @@ class LoadProcedureRunner:
                 control.offset,
                 control.size,
                 include_initialized=self._writes_seed(),
-                parameters=self._writes_parameters(
-                    include_initialized=self._writes_seed()
-                ),
+                parameters=self._writes_parameters(),
             )
             return self._overlay_memory_capture(
                 index, control.offset, control.size, runs
@@ -2069,7 +2067,7 @@ class LoadProcedureRunner:
             group_tables=self._writes_group_tables(
                 include_initialized=self._writes_seed()
             ),
-            parameters=self._writes_parameters(include_initialized=self._writes_seed()),
+            parameters=self._writes_parameters(),
         )
         return self._overlay_memory_capture(index, control.offset, control.size, runs)
 
