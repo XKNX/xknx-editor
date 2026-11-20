@@ -105,7 +105,11 @@ from editor_gui.widgets.dialog import (
 from editor_gui.widgets.dpi import label_column_width, px, px_vec2
 from editor_gui.widgets.flow import button_width, same_line_if_fits
 from editor_gui.widgets.spinner import loading, spinner
-from editor_gui.widgets.tables import begin_data_table, data_table_headers
+from editor_gui.widgets.tables import (
+    begin_data_table,
+    data_table_headers,
+    data_table_height,
+)
 from editor_gui.widgets.text_util import text_clipped_tooltip
 from editor_gui.widgets.tree import collapsing_header
 from xknxeditor.download.timeouts import BusTimeouts, bus_timeouts, set_bus_timeouts
@@ -2677,7 +2681,8 @@ class ConnectionPlugin:
             self._usb_interface_shown = True
         if not self._usb_interface_shown:
             return
-        if not begin_dialog(title, width=440.0):
+        # wide enough for the frames and tunnel tables (data tables need 560 not to scroll sideways)
+        if not begin_dialog(title, width=640.0):
             self._usb_interface_shown = False
             self._usb_interface_open = False
             return
@@ -2982,8 +2987,11 @@ class ConnectionPlugin:
             | imgui.TableFlags_.resizable
             | imgui.TableFlags_.scroll_y
         )
-        rows = min(len(frames), 8) + 1
-        height = rows * imgui.get_text_line_height_with_spacing() + px(8)
+        # up to 8 rows, then it scrolls
+        height = data_table_height(min(len(frames), 8))
+        if imgui.get_content_region_avail().x < px(560):
+            # a phone: the table scrolls sideways too, its scrollbar takes a row's room
+            height += imgui.get_style().scrollbar_size
         if not begin_data_table(
             "##mbus_frame_table", 5, flags, imgui.ImVec2(0.0, height)
         ):
