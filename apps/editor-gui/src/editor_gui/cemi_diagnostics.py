@@ -8,9 +8,10 @@ from dataclasses import dataclass
 from threading import local
 from typing import TYPE_CHECKING
 
-from xknx.cemi.cemi_handler import CEMIHandler
 from xknx.cemi.const import CEMIMessageCode
 from xknx.telegram import GroupAddress, IndividualAddress
+
+from editor_gui.plugins.connection.xknx_server.compat import CEMIHandlerWithHooks
 
 if TYPE_CHECKING:
     from xknx import XKNX
@@ -89,8 +90,9 @@ def handle_cemi_with_packet(
         receive(raw)
 
 
-class DiagnosticCEMIHandler(CEMIHandler):
-    """Add log context around the synchronous receive handler."""
+class DiagnosticCEMIHandler(CEMIHandlerWithHooks):
+    """Add log context around the synchronous receive handler. It has the raw send and receive
+    of the KNXnet/IP server (``CEMIHandlerWithHooks``)."""
 
     __slots__ = ("_mode", "_target", "_writes_blocked")
 
