@@ -7,7 +7,7 @@ from collections.abc import Iterator
 import pytest
 from imgui_bundle import imgui
 
-from editor_gui.widgets.text_util import after_control_hint, control_hint
+from editor_gui.widgets.text_util import control_hint
 
 
 @pytest.fixture
@@ -28,7 +28,6 @@ def test_hint_belongs_to_the_control_above() -> None:
     control_bottom = imgui.get_item_rect_max().y
     control_hint("At start, the editor connects to the interface used last.")
     hint_top, hint_bottom = imgui.get_item_rect_min().y, imgui.get_item_rect_max().y
-    after_control_hint()
     imgui.checkbox("Block Bus Writes", False)
     next_top = imgui.get_item_rect_min().y
     imgui.end()
@@ -36,6 +35,6 @@ def test_hint_belongs_to_the_control_above() -> None:
     spacing = imgui.get_style().item_spacing.y
     above = hint_top - control_bottom
     below = next_top - hint_bottom
+    # close to its control, the next control at the usual distance
     assert 0 <= above < spacing
-    assert below > spacing
-    assert below > above
+    assert abs(below - spacing) <= 1

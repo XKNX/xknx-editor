@@ -111,7 +111,6 @@ from editor_gui.widgets.tables import (
     text_table_height,
 )
 from editor_gui.widgets.text_util import (
-    after_control_hint,
     control_hint,
     text_clipped_tooltip,
 )
@@ -2540,7 +2539,6 @@ class ConnectionPlugin:
         if changed:
             draft = replace(draft, enabled=enabled)
         control_hint(S.IP_SERVER_HINT)
-        after_control_hint()
         imgui.align_text_to_frame_padding()
         imgui.text(S.IP_SERVER_PORT)
         imgui.same_line()
@@ -2836,7 +2834,6 @@ class ConnectionPlugin:
             imgui.text_wrapped(self._usb_domain_error)
             imgui.pop_style_color()
         control_hint(S.USB_DOMAIN_ADDRESS_HINT)
-        after_control_hint()
 
     def _start_usb_domain_address(self) -> None:
         """Set the domain address in the dialog's field; a reason it can't is shown there."""
@@ -2890,7 +2887,6 @@ class ConnectionPlugin:
             imgui.text_wrapped(self._usb_local_error)
             imgui.pop_style_color()
         control_hint(S.SETTING_USB_LOCAL_DEVICE_HINT)
-        after_control_hint()
 
     # --- the M-Bus and BatiBus tunnels ------------------------------------------
 

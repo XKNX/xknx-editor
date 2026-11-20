@@ -20,7 +20,7 @@ from editor_gui.widgets.dialog import (
 )
 from editor_gui.widgets.dpi import px
 from editor_gui.widgets.filter_box import filter_box
-from editor_gui.widgets.text_util import after_control_hint, control_hint
+from editor_gui.widgets.text_util import control_hint
 
 Kind = Literal["bool", "choice", "text", "password", "int", "info", "custom"]
 
@@ -315,8 +315,6 @@ def _render_setting(setting: Setting, narrow: bool) -> None:
         control_hint(hint)
     imgui.end_group()
     imgui.spacing()
-    if hint:
-        after_control_hint()
 
 
 def _render_control(setting: Setting, label: str) -> None:
