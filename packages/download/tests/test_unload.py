@@ -123,17 +123,6 @@ async def test_an_unload_of_the_application_switches_the_programming_mode_off() 
     assert _progmode(device) is None
 
 
-def test_suspicious_serial_numbers(monkeypatch: pytest.MonkeyPatch) -> None:
-    assert not unload.suspicious_serial_number(_SERIAL)
-    assert unload.suspicious_serial_number(bytes(6))
-    assert unload.suspicious_serial_number(bytes.fromhex("00FAFFFFFFFF"))
-    # A text manufacturer part, or a placeholder one.
-    assert unload.suspicious_serial_number(b"11" + bytes.fromhex("12345678"))
-    assert unload.suspicious_serial_number(bytes.fromhex("0300 00123456"))
-    monkeypatch.setenv("XKNX_NO_SERIAL_NUMBER_CHECK", "1")
-    assert not unload.suspicious_serial_number(bytes(6))
-
-
 def test_the_unloaded_address_of_the_mask() -> None:
     feature = SimpleNamespace(
         name=SimpleNamespace(value="UnloadedIndividualAddress"), value=0xFF00
@@ -279,25 +268,8 @@ async def test_an_unload_removes_the_projects_access_key(
         in_programming_mode=False,
         restarted=True,
     )
-    assert device.authorize_keys == [0x12345678]
+    # The project's key, the free one, then the project's again: both get the same level, so
+    # the first wins and is presented last.
+    assert device.authorize_keys == [0x12345678, 0xFFFFFFFF, 0x12345678]
     # Every level from the granted one on gets the free access key again.
     assert device.key_writes == [(1, 0xFFFFFFFF), (2, 0xFFFFFFFF)]
-
-
-@pytest.mark.parametrize(
-    ("serial", "suspicious"),
-    [
-        # Serial numbers devices of their manufacturer are known to share: by range, by
-        # value, from a list and by a mask.
-        ("000201362FC6", True),
-        ("000228052017", True),
-        ("000A257D2B11", True),
-        ("007600FFFFFF", True),
-        # Real ones of the same manufacturers.
-        ("000200000009", False),
-        ("000774148BF8", False),
-        ("000A00000001", False),
-    ],
-)
-def test_serial_numbers_devices_share(serial: str, suspicious: bool) -> None:
-    assert unload.suspicious_serial_number(bytes.fromhex(serial)) is suspicious

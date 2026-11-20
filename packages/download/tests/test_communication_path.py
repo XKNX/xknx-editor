@@ -549,8 +549,10 @@ async def test_a_coupler_with_access_protection_is_authorized(
     assert request is not None
     await paths.add(request)
     await paths.remove(request)
-    # before enabling and before setting back
-    assert device.authorize_keys == [0x11223344, 0x11223344]
+    # before enabling and before setting back: its key, the free one, and its key again (both
+    # get the same level, so the first wins and is presented last)
+    key, free = 0x11223344, 0xFFFFFFFF
+    assert device.authorize_keys == [key, free, key] * 2
 
 
 # ---- IP routers, closing, restriction, RF Multi --------------------------------------------
@@ -781,7 +783,7 @@ async def test_setting_an_rf_mode(
     # broadcasts know Ready and Multi only
     assert coupler.function_properties[(3, 79)] == b"\x00\x00\x0a"
     assert coupler.function_properties[(3, 114)] == b"\x00\x00\x09"
-    assert coupler.authorize_keys == [1]
+    assert coupler.authorize_keys == [1, 0xFFFFFFFF, 1]
     assert "unicast MULTI_SLOW, broadcast MULTI_SLOW" in caplog.text
     await paths.set_rf_mode(media, broadcast=RFMode.READY)
     assert coupler.function_properties[(3, 114)] == b"\x00\x00\x24"

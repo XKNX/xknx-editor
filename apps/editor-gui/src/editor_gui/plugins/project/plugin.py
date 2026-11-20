@@ -3471,11 +3471,15 @@ class ProjectPlugin:
 
     def _store_read_serial(self, device: "Device", result: "DeviceInfo") -> None:
         """Save the serial number read from the device, when it runs the project device's
-        application (so another product at that address is not taken for it)."""
+        application (so another product at that address is not taken for it) and the serial
+        number tells the device apart."""
+        from xknxeditor.download.serial_numbers import suspicious_serial_number
+
         serial = result.serial_number
         if (
             serial is None
             or len(serial) != 6
+            or suspicious_serial_number(serial)
             or result.application is None
             or device.app is None
             or not same_application(device.app.id, result.application)

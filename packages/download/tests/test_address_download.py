@@ -343,6 +343,30 @@ async def test_download_by_serial_number(monkeypatch: pytest.MonkeyPatch) -> Non
     ]
 
 
+async def test_download_does_not_address_by_a_serial_number_devices_share(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # Other devices may have it as well and would take the address too: the address goes
+    # through programming mode instead.
+    calls = _fake_serial_bus(monkeypatch, found=IndividualAddress("15.15.255"))
+
+    class _ProgrammingMode(Exception):
+        pass
+
+    async def fake_read(*args: object, **kwargs: object) -> list[IndividualAddress]:
+        calls.append(("programming_mode", None))
+        raise _ProgrammingMode
+
+    monkeypatch.setattr(commissioning, "nm_individual_address_read", fake_read)
+
+    with pytest.raises(_ProgrammingMode):
+        await commissioning.download_individual_address(
+            cast("XKNX", _XKNX()), _NEW, serial_number=bytes(6)
+        )
+
+    assert calls == [("check", _NEW), ("programming_mode", None)]
+
+
 async def test_download_by_serial_number_device_not_found(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

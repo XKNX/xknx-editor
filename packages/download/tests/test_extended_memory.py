@@ -16,7 +16,12 @@ from xknx.telegram.apci import (
 
 from xknxeditor.download import programmer as programmer_module
 from xknxeditor.download.errors import CompareMismatch, VerificationError
-from xknxeditor.download.procedure import MemoryServices, memory_services
+from xknxeditor.download.procedure import (
+    MemoryServices,
+    long_memory_services,
+    memory_services,
+    supports_interface_objects,
+)
 from xknxeditor.download.programmer import DeviceProgrammer
 
 from .conftest import FakeDevice
@@ -131,15 +136,20 @@ async def test_the_standard_services_end_at_one_mebibyte() -> None:
         await extended.read_memory(0xFFFFFF, 4)
 
 
-def _application(app_id: str, *, memory: bool = False, secure: bool = False) -> Any:
+def _application(
+    app_id: str, *, memory: bool = False, secure: bool = False, mask: str = "MV-0705"
+) -> Any:
     options = SimpleNamespace(supports_extended_memory_services=memory)
     program = SimpleNamespace(
         id=app_id,
         static=SimpleNamespace(options=options),
         is_secure_enabled=secure,
         application_number=int(app_id.split("_A-")[1][:4], 16),
+        mask_version=mask,
     )
-    return SimpleNamespace(id=app_id, manufacturer_id=app_id[:6], program=program)
+    return SimpleNamespace(
+        id=app_id, manufacturer_id=app_id[:6], program=program, load_procedures=None
+    )
 
 
 @pytest.mark.parametrize(
@@ -161,6 +171,50 @@ def test_the_application_decides_the_memory_services(
     assert memory_services(_application(app_id, memory=memory, secure=secure)) == (
         expected
     )
+
+
+@pytest.mark.parametrize(
+    ("mask", "secure", "long"),
+    [
+        # Devices with interface objects.
+        ("MV-0705", False, True),
+        ("MV-07B0", False, True),
+        ("MV-0020", False, True),
+        ("MV-2920", False, True),
+        ("MV-57B0", False, True),
+        ("MV-0300-01000001000000000000", False, True),
+        # BCU 1, the BIM M112 0700h and the couplers without them (and no MaxApduLength
+        # resource), and powerline.
+        ("MV-0012", False, False),
+        ("MV-0700", False, False),
+        ("MV-0910", False, False),
+        ("MV-1900", False, False),
+        ("MV-17B0", False, False),
+        # Long frames, but not long memory services.
+        ("MV-0912", False, False),
+        ("MV-091A", False, False),
+        # A secure device and an unknown mask may take them.
+        ("MV-091A", True, True),
+        ("MV-FFFF", False, True),
+        ("", False, True),
+    ],
+)
+def test_the_devices_that_may_take_long_memory_services(
+    mask: str, secure: bool, long: bool
+) -> None:
+    application = _application("M-0002_A-1234-10-0000", secure=secure, mask=mask)
+    assert long_memory_services(application) is long
+    services = memory_services(application)
+    assert services.max_count == (None if long else 12)
+
+
+def test_a_mask_with_interface_objects() -> None:
+    assert [
+        supports_interface_objects(mask)
+        for mask in (0x0010, 0x0012, 0x0020, 0x0700, 0x0701, 0x0900, 0x0911, 0x0912)
+    ] == [False, False, True, False, True, False, False, True]
+    assert not supports_interface_objects(0x1900)
+    assert supports_interface_objects(0x57B0)
 
 
 async def test_short_memory_services_cap_standard_and_user_memory() -> None:
