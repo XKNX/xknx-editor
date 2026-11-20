@@ -1873,10 +1873,6 @@ class ConnectionPlugin:
                 self._connect_usb_for_operation(label.split("##")[0], device)
         if not self._usb_devices and not self._scanning:
             imgui.text_disabled(S.NO_USB_INTERFACES)
-        if self._usb_devices:
-            self._render_usb_local_device_choice(
-                "##select_usb_local_device", wrapped=True
-            )
         imgui.text_disabled(S.SECTION_MANUAL)
         imgui.set_next_item_width(px(180))
         _, self._select_ip = imgui.input_text("IP##select_ip", self._select_ip)
@@ -3636,8 +3632,6 @@ class ConnectionPlugin:
                 self.connect_to_usb(device)
         if not self._usb_devices and not self._scanning:
             imgui.text_disabled(S.NO_USB_INTERFACES)
-        if self._usb_devices:
-            self._render_usb_local_device_choice("##usb_local_device")
 
         imgui.separator()
         imgui.text_disabled(S.SECTION_MANUAL)
@@ -3668,19 +3662,6 @@ class ConnectionPlugin:
             self._connection_type = ConnectionType.TUNNELING
         if imgui.menu_item(retry_label, "", False)[0]:
             self.connect(connection_type=manual_type)
-
-    def _render_usb_local_device_choice(
-        self, key: str, *, wrapped: bool = False
-    ) -> None:
-        """The local device access checkbox below the USB interfaces offered (the Gateway menu,
-        Select Connection, ``wrapped`` in a dialog): it applies to the interface picked."""
-        changed, local_device = (wrapped_checkbox if wrapped else checkbox)(
-            f"{S.USB_LOCAL_DEVICE_OPTION}{key}", self._usb_local_device
-        )
-        if changed:
-            self._set_usb_local_device(local_device)
-        if imgui.is_item_hovered():
-            imgui.set_tooltip(S.SETTING_USB_LOCAL_DEVICE_HINT)
 
     def _usb_option_label(self, device: USBDeviceInfo) -> str:
         """A plugged-in USB interface as offered: its name, and its serial number to tell
