@@ -1,15 +1,4 @@
-"""DALI read-only panel for the Siemens KNX/DALI Gateway plus N 141/03.
-
-Siemens N141/03 is a classic ETS plug-in device (``EtsUiPlugin + EtsDownloadPlugin +
-EtsDataHandler``). This panel offers only the non-destructive side: a bus read that lists the
-ECGs the gateway holds, by reading its DALI-line interface object with standard
-``A_PropertyValue_Read``. Writing group assignments, scenes or firmware stays in the vendor
-plug-in for now.
-
-Renders on the GUI thread; the async read runs through ``ConnectionService.run_siemens_dali``
-and stashes its result under a lock that ``render`` polls (the asyncio thread's done-callback
-sets the state).
-"""
+"""Read the cached DALI inventory of classic Siemens gateways."""
 
 from __future__ import annotations
 
@@ -21,6 +10,7 @@ from dataclasses import dataclass, field
 from imgui_bundle import imgui
 
 from editor_gui.device import Device
+from editor_gui.plugin_blob_readers.siemens_dali.layout import line_count
 from editor_gui.plugins.project.strings import S
 from editor_gui.theme import status_color
 from editor_gui.widgets.dpi import px
@@ -46,6 +36,7 @@ class _DeviceUi:
     """Per-device panel state (keyed by individual address)."""
 
     scan: SiemensN141BusState | None = None
+    line: int = 0
     busy: str = ""
     # Counts the operations started, so the end of an older one does not free a newer one.
     run: int = 0
@@ -165,18 +156,29 @@ class SiemensDaliPanel:
             return
 
         imgui.begin_disabled(bool(busy))
+        count = line_count(device.app.id) if device.app else 0
+        if count > 1:
+            changed, line = imgui.combo(
+                S.DALI_CHANNEL,
+                state.line,
+                [S.DALI_CHANNEL_N.format(n=n + 1) for n in range(count)],
+            )
+            if changed:
+                state.line = line
+                state.scan = scan = None
+        line = state.line
         if imgui.button(S.SIEMENS_DALI_SCAN_BUS):
             self._start(
                 device,
                 "scan",
                 S.SIEMENS_DALI_SCAN_BUS,
-                lambda p: scan_n141_03(p, line=0),
+                lambda p: scan_n141_03(p, line=line),
             )
         imgui.end_disabled()
 
         if busy:
             imgui.text_disabled(
-                S.SIEMENS_DALI_SCANNING.format(object_index=object_index_for_line(0))
+                S.SIEMENS_DALI_SCANNING.format(object_index=object_index_for_line(line))
             )
         if error:
             imgui.text_colored(status_color("error"), error)
@@ -185,8 +187,6 @@ class SiemensDaliPanel:
             imgui.text_disabled(S.SIEMENS_DALI_NO_SCAN)
             return
         self._render_ecg_table(scan)
-        imgui.separator()
-        imgui.text_wrapped(S.SIEMENS_DALI_READ_ONLY_NOTE)
 
     def _render_ecg_table(self, scan: SiemensN141BusState) -> None:
         present = scan.present_ecgs

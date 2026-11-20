@@ -2104,9 +2104,6 @@ msgstr "Adresa e rastësishme"
 msgid "Read DALI Bus"
 msgstr "Lexo busin DALI"
 
-msgid "Read-only snapshot. Writing group assignments, scenes or firmware is not available yet and remains in the manufacturer's plugin."
-msgstr "Pamje e çastit vetëm për lexim. Shkrimi i caktimeve të grupeve, skenave ose firmuerit nuk është ende i disponueshëm dhe mbetet në plugin-in e prodhuesit."
-
 msgid "Read-only view. The hierarchy is a best-effort reconstruction from parameter name prefixes; names and groupings may be rough. Writing values is not available yet."
 msgstr "Pamje vetëm për lexim. Hierarkia është një rindërtim sa më i mirë i mundshëm nga parashtesat e emrave të parametrave; emrat dhe grupimet mund të jenë të përafërta. Shkrimi i vlerave nuk është ende i disponueshëm."
 

@@ -2095,9 +2095,6 @@ msgstr "Se citește magistrala DALI din obiectul {object_index}…"
 msgid "Press 'Read DALI Bus' to list the ECGs on the gateway."
 msgstr "Apăsați „Citire magistrală DALI” pentru a lista balasturile din gateway."
 
-msgid "Read-only snapshot. Writing group assignments, scenes or firmware is not available yet and remains in the manufacturer's plugin."
-msgstr "Instantaneu doar în citire. Scrierea alocărilor de grupuri, a scenelor sau a firmware-ului nu este încă disponibilă și rămâne în plugin-ul producătorului."
-
 msgid "Short Address"
 msgstr "Adresă scurtă"
 

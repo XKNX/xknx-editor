@@ -2104,9 +2104,6 @@ msgstr "ランダムアドレス"
 msgid "Read DALI Bus"
 msgstr "DALI バスを読み取る"
 
-msgid "Read-only snapshot. Writing group assignments, scenes or firmware is not available yet and remains in the manufacturer's plugin."
-msgstr "読み取り専用のスナップショットです。グループ割り当て、シーン、ファームウェアの書き込みは未対応で、メーカー製プラグインに残されています。"
-
 msgid "Read-only view. The hierarchy is a best-effort reconstruction from parameter name prefixes; names and groupings may be rough. Writing values is not available yet."
 msgstr "読み取り専用ビューです。階層はパラメーター名の接頭辞から可能な範囲で再構築されており、名前やグループ分けは概略的な場合があります。値の書き込みは未対応です。"
 

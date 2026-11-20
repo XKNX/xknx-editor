@@ -2095,9 +2095,6 @@ msgstr "Les DALI-brautina frá hlut {object_index}…"
 msgid "Press 'Read DALI Bus' to list the ECGs on the gateway."
 msgstr "Ýttu á 'Lesa DALI-braut' til að birta straumfestana á gáttinni."
 
-msgid "Read-only snapshot. Writing group assignments, scenes or firmware is not available yet and remains in the manufacturer's plugin."
-msgstr "Skyndimynd sem aðeins er lesin. Ekki er enn hægt að skrifa hópaúthlutanir, senur eða fastbúnað; það er áfram gert í viðbót framleiðandans."
-
 msgid "Short Address"
 msgstr "Stutt vistfang"
 

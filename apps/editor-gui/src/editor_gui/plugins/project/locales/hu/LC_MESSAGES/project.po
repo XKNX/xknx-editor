@@ -2095,9 +2095,6 @@ msgstr "A DALI-busz olvasása ebből az objektumból: {object_index}…"
 msgid "Press 'Read DALI Bus' to list the ECGs on the gateway."
 msgstr "Az átjáró előtéteinek listázásához nyomja meg a „DALI-busz olvasása” gombot."
 
-msgid "Read-only snapshot. Writing group assignments, scenes or firmware is not available yet and remains in the manufacturer's plugin."
-msgstr "Csak olvasható pillanatkép. A csoport-hozzárendelések, jelenetek vagy firmware írása még nem érhető el, ez továbbra is a gyártó beépülő moduljában történik."
-
 msgid "Short Address"
 msgstr "Rövid cím"
 

@@ -1,34 +1,23 @@
-"""Writer for Siemens N141_21 BLOB_PARA payloads.
-
-The reader returns ``PluginParameter.ref_id`` values shaped like
-``siemens_blob:Tag[idx]/Tag[idx]/...`` -- a stable locator path from the top-level child of
-``<Blob>`` down to a single leaf. :func:`apply_edit` decodes that path, mutates the ``Value``
-attribute of the leaf in a fresh ElementTree parse of the blob, and re-encodes the payload
-exactly as ETS writes it (raw-deflate over UTF-16-LE XML, ``<?xml ... encoding="UTF-8"?>``
-prolog preserved).
-
-:func:`add_sensor` / :func:`remove_sensor` operate on the structured sensor list the ETS DCA
-plug-in exposes under its "Sensors" tree node: fill the first free ``SensorListSensor`` slot
-with a Pushbutton / Dual-sensor instance, and populate the matching ``BinaryInputChannel`` /
-``PresenceChannel`` / ``BrightnessChannel`` slots so the plug-in sees the sensor configured.
-
-The write path is independent of the reader cache; callers must invalidate their panel/row
-caches after a successful edit.
-"""
+"""Edit Siemens DALI configuration blobs and their dependent device settings."""
 
 from __future__ import annotations
 
+import json
 import zlib
+from functools import cache
+from importlib.resources import files
 from typing import TYPE_CHECKING
 from xml.etree import ElementTree as ET
 
 from editor_gui.plugin_blob_readers.siemens_dali.reader import (
-    SENSOR_TYPE_CATALOG,
     parse_ref_id,
 )
 
 if TYPE_CHECKING:
-    from editor_gui.plugin_blob_readers.siemens_dali.schema import CollectionSpec
+    from editor_gui.plugin_blob_readers.siemens_dali.schema import (
+        CollectionSpec,
+        ItemTypeSpec,
+    )
     from editor_gui.plugin_params import CollectionBinding
 
 _N141_NS = "http://www.siemens.com/knx/N141_21_Parameters"
@@ -56,8 +45,195 @@ def apply_edit(blob: bytes, ref_id: str, new_value: str) -> bytes:
         raise EditError(f"locator did not resolve: {locator}")
     if leaf.get("Value") is None:
         raise EditError(f"target has no Value attribute: {locator}")
+    old_value = leaf.get("Value", "")
     leaf.set("Value", new_value)
+    _propagate_edit(blob_root, locator, old_value, new_value)
     return _encode(root)
+
+
+_GROUP_FIELDS = {
+    "BehaviourEmergencyOff",
+    "BehaviourVoltageOff",
+    "BehaviourVoltageOn",
+    "BehaviourAfterBurnin",
+    "EmergencyValue",
+    "EmergencyValueMode",
+    "MaxValue",
+    "MinValue",
+    "Mode",
+    "OnOffPossibleDimm",
+    "OnOffPossibleSetValue",
+    "OnTime1",
+    "OnTime2",
+    "StartupValue",
+    "StartupValueNight",
+    "StartupMode",
+    "TakeValueBehaviour",
+    "TimeDimm",
+    "TimeSetValue",
+    "TimeSwitch",
+    "ValueAfter1",
+    "WarnBeforeOff",
+    "IgnitionTime",
+}
+_DT8_GROUP_FIELDS = {
+    "Enabled",
+    "MinColourTemperature",
+    "MaxColourTemperature",
+    "TimeDimm",
+    "TimeSetValue",
+    "StartupMode",
+    "StartupValue",
+    "StartupValueNight",
+    "EmergencyValueMode",
+    "EmergencyValue",
+    "BehaviourVoltageOff",
+    "ValueVoltageOff",
+    "BehaviourVoltageOn",
+    "ValueVoltageOn",
+    "BehaviourEmergencyOff",
+    "ValueEmergencyOff",
+}
+_GROUP_COPY_FIELDS = {
+    "Group": _GROUP_FIELDS,
+    "DevType8group": _DT8_GROUP_FIELDS,
+    "Minergy": {"Asignment"},
+}
+
+
+def _address(value: str, limit: int, label: str) -> int:
+    try:
+        number = int(value)
+    except ValueError as exc:
+        raise EditError(f"Invalid {label}") from exc
+    if not (0 <= number < limit or number == 255):
+        raise EditError(f"Invalid {label}")
+    return number
+
+
+def _sensor_number(value: str) -> int:
+    try:
+        number = int(value or "0")
+    except ValueError as exc:
+        raise EditError("Invalid Siemens sensor number") from exc
+    if not 0 <= number <= 64:
+        raise EditError("Invalid Siemens sensor number")
+    return number
+
+
+def _propagate_edit(
+    blob: ET.Element,
+    locator: tuple[tuple[str, int], ...],
+    old_value: str,
+    value: str,
+) -> None:
+    """Keep shared group and scene settings in their device property slots."""
+    if len(locator) != 3:
+        return
+    (section, line), (item, index), (field, occurrence) = locator
+    if section == "ScenePluginInfo" and item == "ScenePluginInfoScene":
+        if field not in (
+            "ScenePluginInfoSceneKnxSceneNumber",
+            "ScenePluginInfoSceneFadeTime",
+        ):
+            return
+        new_number = (
+            _address(value, 64, "KNX scene number")
+            if field.endswith("KnxSceneNumber")
+            else None
+        )
+        entry = _resolve_locator(blob, locator[:2])
+        if entry is None:
+            return
+        number = (
+            old_value
+            if field.endswith("KnxSceneNumber")
+            else _value(entry.find(_NS + "ScenePluginInfoSceneKnxSceneNumber"))
+        )
+        try:
+            old_number = int(number)
+        except ValueError:
+            return
+        if not 0 <= old_number < 64:
+            return
+        for scene in blob.findall(_NS + "Scenes/" + _NS + "ScenesScene"):
+            config = scene.find(_NS + "ScenesSceneSceneNumber")
+            if config is None:
+                continue
+            encoded = _address(config.get("Value", "255"), 256, "DALI scene number")
+            if encoded & 64 or encoded & 63 != old_number:
+                continue
+            if new_number is not None:
+                config.set(
+                    "Value",
+                    "255" if new_number == 255 else str((encoded & 128) | new_number),
+                )
+            else:
+                _set_leaf_value(scene, "ScenesSceneFadeTime", value)
+        return
+    ecgs = _resolve_locator(blob, (("GenericEcg", line),))
+    if ecgs is None:
+        return
+    if section == "GenericEcg" and field == "GenericEcgEcgGroupAddress":
+        group = _address(value, 16, "DALI group address")
+        if group != 255:
+            _copy_group_to_ecg(blob, line, group, index)
+        return
+    source_prefix, target_section, target_item = {
+        "Group": ("GroupGroup", "GenericEcg", "GenericEcgEcg"),
+        "DevType8group": ("DevType8groupGroup", "DevType8", "DevType8Ecg"),
+        "Minergy": ("MinergyGroup", "Minergy", "MinergyEcg"),
+        "Scenes": ("ScenesSceneValueGroup", "Scenes", "ScenesSceneValue"),
+    }.get(section, ("", "", ""))
+    if not source_prefix or not field.startswith(source_prefix):
+        return
+    if (
+        section != "Scenes"
+        and field[len(source_prefix) :] not in _GROUP_COPY_FIELDS[section]
+    ):
+        return
+    group = occurrence if section == "Scenes" else index
+    for ecg_index, ecg in enumerate(ecgs.findall(_NS + "GenericEcgEcg")):
+        if _value(ecg.find(_NS + "GenericEcgEcgGroupAddress")) != str(group):
+            continue
+        target = (
+            (("Scenes", line), ("ScenesScene", index), (target_item, ecg_index))
+            if section == "Scenes"
+            else (
+                (target_section, line),
+                (target_item, ecg_index),
+                (target_item + field[len(source_prefix) :], occurrence),
+            )
+        )
+        leaf = _resolve_locator(blob, target)
+        if leaf is not None:
+            leaf.set("Value", value)
+
+
+def _copy_group_to_ecg(blob: ET.Element, line: int, group: int, ecg: int) -> None:
+    for section, item, target_section, target_item in (
+        ("Group", "GroupGroup", "GenericEcg", "GenericEcgEcg"),
+        ("DevType8group", "DevType8groupGroup", "DevType8", "DevType8Ecg"),
+        ("Minergy", "MinergyGroup", "Minergy", "MinergyEcg"),
+    ):
+        source = _resolve_locator(blob, ((section, line), (item, group)))
+        target = _resolve_locator(blob, ((target_section, line), (target_item, ecg)))
+        if source is None or target is None:
+            continue
+        for leaf in source:
+            suffix = leaf.tag.removeprefix(_NS + item)
+            if suffix not in _GROUP_COPY_FIELDS[section]:
+                continue
+            dest = target.find(_NS + target_item + suffix)
+            if dest is not None and leaf.get("Value") is not None:
+                dest.set("Value", leaf.get("Value", ""))
+    scenes = _resolve_locator(blob, (("Scenes", line),))
+    if scenes is not None:
+        for scene in scenes.findall(_NS + "ScenesScene"):
+            groups = scene.findall(_NS + "ScenesSceneValueGroup")
+            values = scene.findall(_NS + "ScenesSceneValue")
+            if group < len(groups) and ecg < len(values):
+                values[ecg].set("Value", groups[group].get("Value", "00000000"))
 
 
 def add_item(
@@ -84,27 +260,49 @@ def add_item(
     # Allocate a new sensor-number across the line and apply type-specific side effects.
     line_idx = binding.container_locator[-1][1] if binding.container_locator else 0
     if binding.container_tag == "SensorList":
+        from editor_gui.plugin_blob_readers.siemens_dali.schema import SENSOR_TYPES
+
+        type_spec = next((t for t in SENSOR_TYPES if t.type_id == type_id), None)
+        if type_spec is None:
+            raise EditError("Unknown Siemens sensor type")
+        _check_sensor_capacity(blob_root, line_idx, container, type_spec)
         used = {
-            int(_value(s.find(f"{_NS}{spec.id_field}")) or "0")
+            _sensor_number(_value(s.find(f"{_NS}{spec.id_field}")))
             for s in container.findall(f"{_NS}{spec.item_tag}")
         }
-        next_nr = max([n for n in used if n > 0], default=0) + 1
+        next_nr = container.findall(_NS + spec.item_tag).index(item) + 1
+        if next_nr in used:
+            raise EditError("Duplicate sensor number")
         _ensure_children(item, spec.activity_field, *_name_and_type_fields(spec))
         _set_leaf_value(item, spec.id_field, str(next_nr))
         if spec.name_field:
             _set_leaf_value(item, spec.name_field, name)
         if type_id:
             _set_leaf_value(item, "SensorListSensorId", type_id)
-        # Side effects per sensor type.
-        from editor_gui.plugin_blob_readers.siemens_dali.schema import SENSOR_TYPES
-
-        type_spec = next((t for t in SENSOR_TYPES if t.type_id == type_id), None)
-        if type_spec:
-            for target_container, count in type_spec.allocates:
-                for _ in range(count):
-                    _allocate_in_sibling(
-                        blob_root, line_idx, target_container, next_nr, name
-                    )
+        channel_number = 0
+        paired: list[ET.Element] = []
+        for target_container, count in type_spec.allocates:
+            for _ in range(count):
+                channel_number += 1
+                allocated = _allocate_in_sibling(
+                    blob_root, line_idx, target_container, next_nr, channel_number, name
+                )
+                if target_container == "BinaryInput":
+                    paired.append(allocated)
+        binary = _resolve_locator(blob_root, (("BinaryInput", line_idx),))
+        if binary is not None:
+            for first, second in zip(paired[::2], paired[1::2], strict=True):
+                channels = list(binary.findall(_NS + "BinaryInputChannel"))
+                _set_leaf_value(
+                    first,
+                    "BinaryInputChannelConnectedIndex",
+                    str(channels.index(second)),
+                )
+                _set_leaf_value(
+                    second,
+                    "BinaryInputChannelConnectedIndex",
+                    str(channels.index(first)),
+                )
     else:
         # Non-sensor container: mark the slot active by stamping its id/name/seed fields.
         _ensure_children(item, spec.activity_field)
@@ -121,6 +319,36 @@ def add_item(
             _ensure_children(item, field_tag)
             _set_leaf_value(item, field_tag, field_value)
     return _encode(root)
+
+
+def _check_sensor_capacity(
+    blob: ET.Element, line: int, sensors: ET.Element, new_type: ItemTypeSpec
+) -> None:
+    from editor_gui.plugin_blob_readers.siemens_dali.schema import SENSOR_TYPES
+
+    current, addresses = new_type.max_current, new_type.address_count
+    catalog = {sensor.type_id: sensor for sensor in SENSOR_TYPES}
+    for sensor in sensors.findall(_NS + "SensorListSensor"):
+        if _sensor_number(_value(sensor.find(_NS + "SensorListSensorNr"))) == 0:
+            continue
+        sensor_type = catalog.get(_value(sensor.find(_NS + "SensorListSensorId")))
+        if sensor_type is None:
+            raise EditError("Cannot determine capacity for an unknown Siemens sensor")
+        current += sensor_type.max_current
+        addresses += sensor_type.address_count
+    ecgs = _resolve_locator(blob, (("GenericEcg", line),))
+    if ecgs is None:
+        raise EditError("Missing GenericEcg table")
+    for ecg in ecgs.findall(_NS + "GenericEcgEcg"):
+        if _value(ecg.find(_NS + "GenericEcgEcgNr")) in ("", "0"):
+            continue
+        current += 2
+        if _value(ecg.find(_NS + "GenericEcgEcgEmergencyType")) == "EMERG_TYPE_2DEV":
+            current += 2
+    if current > 190:
+        raise EditError("DALI line current exceeds 190 mA")
+    if addresses > 64:
+        raise EditError("DALI sensor address capacity exceeds 64")
 
 
 def remove_item(blob: bytes, binding: CollectionBinding, item_id: str) -> bytes:
@@ -146,11 +374,16 @@ def remove_item(blob: bytes, binding: CollectionBinding, item_id: str) -> bytes:
         if spec.name_field:
             _set_leaf_value(item, spec.name_field, "")
         if binding.container_tag == "SensorList":
+            number = _sensor_number(item_id)
+            if number == 0:
+                raise EditError("Cannot remove an inactive Siemens sensor slot")
             _set_leaf_value(item, "SensorListSensorId", "")
             line_idx = (
                 binding.container_locator[-1][1] if binding.container_locator else 0
             )
-            _release_channels(blob_root, line_idx, int(item_id))
+            _release_channels(blob_root, line_idx, number)
+        if binding.container_tag in ("BinaryInput", "Presence", "Brightness"):
+            _reset_channel(item, spec.item_tag)
         removed = True
         break
     if not removed:
@@ -178,114 +411,56 @@ def _name_and_type_fields(spec: CollectionSpec) -> tuple[str, ...]:
     return tuple(fields)
 
 
+@cache
+def _channel_defaults() -> dict[str, list[list[str]]]:
+    return json.loads(
+        files("editor_gui.plugin_blob_readers.siemens_dali")
+        .joinpath("sensor_defaults.json")
+        .read_text(encoding="utf-8")
+    )
+
+
+def _reset_channel(item: ET.Element, tag: str) -> None:
+    item.clear()
+    for name, value in _channel_defaults()[tag]:
+        ET.SubElement(item, _NS + name, {"Value": value})
+
+
 def _allocate_in_sibling(
     blob_root: ET.Element,
     line_idx: int,
     container_tag: str,
     sensor_nr: int,
+    channel_number: int,
     name: str,
-) -> None:
-    """Shared helper for sensor side-effects: find the first free slot in a sibling
-    collection on ``line_idx`` and stamp it with ``sensor_nr`` (+ name where applicable)."""
+) -> ET.Element:
     from editor_gui.plugin_blob_readers.siemens_dali.schema import collection_for
 
     spec = collection_for(container_tag)
-    if spec is None:
-        return
-    siblings = blob_root.findall(f"{_NS}{container_tag}")
-    if line_idx >= len(siblings):
-        return
-    container = siblings[line_idx]
+    container = _resolve_locator(blob_root, ((container_tag, line_idx),))
+    if spec is None or container is None:
+        raise EditError(f"Missing {container_tag} table")
     item = _find_free_item_slot(container, spec)
     if item is None:
-        return
-    _ensure_children(item, spec.activity_field)
+        raise EditError(f"No free {container_tag} channel")
+    _reset_channel(item, spec.item_tag)
     _set_leaf_value(item, spec.activity_field, str(sensor_nr))
+    _set_leaf_value(item, spec.item_tag + "ChannelNr", str(channel_number))
+    _set_leaf_value(item, spec.item_tag + "Channel", "1")
     if spec.name_field:
-        _ensure_children(item, spec.name_field)
-        _set_leaf_value(item, spec.name_field, name)
-    for field_tag, field_value in spec.seed_fields:
-        _ensure_children(item, field_tag)
-        _set_leaf_value(item, field_tag, field_value)
-
-
-def add_sensor(
-    blob: bytes,
-    line_idx: int,
-    sensor_name: str,
-    sensor_id: str,
-) -> bytes:
-    """Insert a new sensor into ``line_idx``'s SensorList and populate the matching channel
-    slots (BinaryInputChannel for pushbuttons, Presence/BrightnessChannel for combi sensors).
-
-    ``sensor_id`` must be one of :data:`siemens_dali.reader.SENSOR_TYPE_CATALOG` keys. Returns the
-    re-encoded blob. Raises :class:`EditError` when the SensorList is full or the sensor type
-    cannot be placed (channels full).
-    """
-    if sensor_id not in SENSOR_TYPE_CATALOG:
-        raise EditError(f"unknown sensor id: {sensor_id!r}")
-    _name, _addr_count, kinds = SENSOR_TYPE_CATALOG[sensor_id]
-    root, blob_root = _decode(blob)
-    sensor_lists = blob_root.findall(f"{_NS}SensorList")
-    if line_idx >= len(sensor_lists):
-        raise EditError(f"line index out of range: {line_idx}")
-    sensor_list = sensor_lists[line_idx]
-
-    # 1. First free SensorListSensor slot (SensorListSensorNr Value="0").
-    sensor_slot = _find_free_sensor_slot(sensor_list)
-    if sensor_slot is None:
-        raise EditError("no free sensor slot")
-
-    # Next free sensor number across the line (max + 1).
-    used = {
-        int(_value(s.find(f"{_NS}SensorListSensorNr")) or "0")
-        for s in sensor_list.findall(f"{_NS}SensorListSensor")
-    }
-    next_nr = max([n for n in used if n > 0], default=0) + 1
-
-    _ensure_children(
-        sensor_slot, "SensorListSensorNr", "SensorListSensorName", "SensorListSensorId"
-    )
-    _set_leaf_value(sensor_slot, "SensorListSensorNr", str(next_nr))
-    _set_leaf_value(sensor_slot, "SensorListSensorName", sensor_name)
-    _set_leaf_value(sensor_slot, "SensorListSensorId", sensor_id)
-
-    # 2. Populate per-kind channel slots. "b"=binaryInput, "p"=presence, "l"=brightness.
-    for kind in kinds:
-        if kind == "b":
-            _occupy_binary_input(blob_root, line_idx, next_nr)
-        elif kind == "p":
-            _occupy_presence(blob_root, line_idx, next_nr, sensor_name)
-        elif kind == "l":
-            _occupy_brightness(blob_root, line_idx, next_nr, sensor_name)
-    return _encode(root)
-
-
-def remove_sensor(blob: bytes, line_idx: int, sensor_nr: int) -> bytes:
-    """Clear the SensorList slot and all channel entries bound to ``sensor_nr`` on
-    ``line_idx``. Returns the re-encoded blob. Raises :class:`EditError` when ``sensor_nr``
-    is 0 or not found on that line."""
-    if sensor_nr <= 0:
-        raise EditError(f"invalid sensor_nr: {sensor_nr}")
-    root, blob_root = _decode(blob)
-    sensor_lists = blob_root.findall(f"{_NS}SensorList")
-    if line_idx >= len(sensor_lists):
-        raise EditError(f"line index out of range: {line_idx}")
-    sensor_list = sensor_lists[line_idx]
-
-    for slot in sensor_list.findall(f"{_NS}SensorListSensor"):
-        nr_el = slot.find(f"{_NS}SensorListSensorNr")
-        if nr_el is None or (nr_el.get("Value") or "0") != str(sensor_nr):
-            continue
-        _set_leaf_value(slot, "SensorListSensorNr", "0")
-        _set_leaf_value(slot, "SensorListSensorName", "")
-        _set_leaf_value(slot, "SensorListSensorId", "")
-        break
-    else:
-        raise EditError(f"sensor_nr {sensor_nr} not found on line {line_idx}")
-
-    _release_channels(blob_root, line_idx, sensor_nr)
-    return _encode(root)
+        for leaf in item.findall(_NS + spec.name_field):
+            leaf.set("Value", name)
+    if container_tag == "Presence":
+        for suffix, values in (
+            ("BrightnessLimit", ("10", "0")),
+            ("IntervalPresence", ("0", "5")),
+            ("CntDuringInterval", ("1", "3")),
+        ):
+            for leaf, value in zip(
+                item.findall(_NS + spec.item_tag + suffix), values, strict=True
+            ):
+                leaf.set("Value", value)
+    return item
 
 
 # -- internals ---------------------------------------------------------------------------
@@ -348,18 +523,8 @@ def _value(el: ET.Element | None) -> str:
     return el.get("Value", "")
 
 
-def _find_free_sensor_slot(sensor_list: ET.Element) -> ET.Element | None:
-    for slot in sensor_list.findall(f"{_NS}SensorListSensor"):
-        nr_el = slot.find(f"{_NS}SensorListSensorNr")
-        if nr_el is None or (nr_el.get("Value") or "0") == "0":
-            return slot
-    return None
-
-
 def _ensure_children(parent: ET.Element, *tags: str) -> None:
-    """ETS sometimes leaves empty sensor slots as ``<SensorListSensor />`` self-closed with
-    no children. Materialize the three expected children (SensorListSensor{Nr,Name,Id}) so
-    the ``Value=`` attribute can be set."""
+    """Materialize the requested fields in empty sensor slots."""
     for tag in tags:
         if parent.find(f"{_NS}{tag}") is None:
             el = ET.SubElement(parent, f"{_NS}{tag}")
@@ -371,72 +536,6 @@ def _set_leaf_value(parent: ET.Element, tag: str, value: str) -> None:
     if el is None:
         el = ET.SubElement(parent, f"{_NS}{tag}")
     el.set("Value", value)
-
-
-def _occupy_binary_input(blob_root: ET.Element, line_idx: int, sensor_nr: int) -> None:
-    """Occupy ONE free BinaryInputChannel slot on ``line_idx``. The caller invokes this once
-    per button kind on the sensor type (``kinds="bbbb"`` → called four times for a 4-fold
-    pushbutton), so the counter stays here per invocation."""
-    binary_inputs = blob_root.findall(f"{_NS}BinaryInput")
-    if line_idx >= len(binary_inputs):
-        return
-    bi = binary_inputs[line_idx]
-    for ch in bi.findall(f"{_NS}BinaryInputChannel"):
-        nr_el = ch.find(f"{_NS}BinaryInputChannelSensorNr")
-        if nr_el is not None and (nr_el.get("Value") or "0") != "0":
-            continue
-        _ensure_children(
-            ch, "BinaryInputChannelSensorNr", "BinaryInputChannelLongPressTime"
-        )
-        _set_leaf_value(ch, "BinaryInputChannelSensorNr", str(sensor_nr))
-        _set_leaf_value(ch, "BinaryInputChannelLongPressTime", "5")
-        return
-
-
-def _occupy_presence(
-    blob_root: ET.Element, line_idx: int, sensor_nr: int, name: str
-) -> None:
-    presences = blob_root.findall(f"{_NS}Presence")
-    if line_idx >= len(presences):
-        return
-    pres = presences[line_idx]
-    for ch in pres.findall(f"{_NS}PresenceChannel"):
-        nr_el = ch.find(f"{_NS}PresenceChannelSensorNr")
-        if nr_el is not None and (nr_el.get("Value") or "0") != "0":
-            continue
-        _ensure_children(
-            ch,
-            "PresenceChannelName",
-            "PresenceChannelSensorNr",
-            "PresenceChannelChannelNr",
-        )
-        _set_leaf_value(ch, "PresenceChannelName", name or "Presence")
-        _set_leaf_value(ch, "PresenceChannelSensorNr", str(sensor_nr))
-        _set_leaf_value(ch, "PresenceChannelChannelNr", "1")
-        return
-
-
-def _occupy_brightness(
-    blob_root: ET.Element, line_idx: int, sensor_nr: int, name: str
-) -> None:
-    brights = blob_root.findall(f"{_NS}Brightness")
-    if line_idx >= len(brights):
-        return
-    bri = brights[line_idx]
-    for ch in bri.findall(f"{_NS}BrightnessChannel"):
-        nr_el = ch.find(f"{_NS}BrightnessChannelSensorNr")
-        if nr_el is not None and (nr_el.get("Value") or "0") != "0":
-            continue
-        _ensure_children(
-            ch,
-            "BrightnessChannelName",
-            "BrightnessChannelSensorNr",
-            "BrightnessChannelChannelNr",
-        )
-        _set_leaf_value(ch, "BrightnessChannelName", name or "Brightness")
-        _set_leaf_value(ch, "BrightnessChannelSensorNr", str(sensor_nr))
-        _set_leaf_value(ch, "BrightnessChannelChannelNr", "1")
-        return
 
 
 def _release_channels(blob_root: ET.Element, line_idx: int, sensor_nr: int) -> None:
@@ -456,4 +555,4 @@ def _release_channels(blob_root: ET.Element, line_idx: int, sensor_nr: int) -> N
                 continue
             if (nr_el.get("Value") or "0") != str(sensor_nr):
                 continue
-            nr_el.set("Value", "0")
+            _reset_channel(ch, child_tag)

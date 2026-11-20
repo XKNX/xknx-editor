@@ -2104,9 +2104,6 @@ msgstr "Slumpmässig adress"
 msgid "Read DALI Bus"
 msgstr "Läs DALI-buss"
 
-msgid "Read-only snapshot. Writing group assignments, scenes or firmware is not available yet and remains in the manufacturer's plugin."
-msgstr "Skrivskyddad ögonblicksbild. Skrivning av grupptilldelningar, scener eller firmware är ännu inte tillgänglig och ligger kvar i tillverkarens plugin."
-
 msgid "Read-only view. The hierarchy is a best-effort reconstruction from parameter name prefixes; names and groupings may be rough. Writing values is not available yet."
 msgstr "Skrivskyddad vy. Hierarkin är en bästa möjliga rekonstruktion från parameternamnens prefix; namn och grupperingar kan vara ungefärliga. Skrivning av värden är ännu inte tillgänglig."
 

@@ -2104,9 +2104,6 @@ msgstr "Náhodná adresa"
 msgid "Read DALI Bus"
 msgstr "Číst sběrnici DALI"
 
-msgid "Read-only snapshot. Writing group assignments, scenes or firmware is not available yet and remains in the manufacturer's plugin."
-msgstr "Snímek jen pro čtení. Zápis skupinových přiřazení, scén nebo firmwaru zde zatím není k dispozici a zůstává v pluginu výrobce."
-
 msgid "Read-only view. The hierarchy is a best-effort reconstruction from parameter name prefixes; names and groupings may be rough. Writing values is not available yet."
 msgstr "Pohled jen pro čtení. Hierarchie je rekonstruována z prefixů názvů parametrů; názvy a seskupení mohou být přibližné. Zápis hodnot zatím není k dispozici."
 

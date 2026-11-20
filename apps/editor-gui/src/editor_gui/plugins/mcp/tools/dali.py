@@ -946,14 +946,14 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         }
 
     def _siemens_gateway(node_id: int | None, device_address: str | None) -> Device:
-        from editor_gui.programming_dali import is_siemens_n141_03
+        from editor_gui.plugin_blob_readers.siemens_dali.layout import line_count
 
         device = ctx.run_locked(
             lambda: require_device(ctx.api.project, node_id, device_address)
         )
-        if device.app is None or not is_siemens_n141_03(device.app.id):
+        if device.app is None or not line_count(device.app.id):
             raise ToolError(
-                f"device {device.node_id} is not a Siemens KNX/DALI Gateway plus N 141/03"
+                f"device {device.node_id} is not a supported classic Siemens DALI gateway"
             )
         if not device.individual_address:
             raise ToolError(f"device {device.node_id} has no individual address")
@@ -964,18 +964,25 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         node_id: int | None = None,
         device_address: str | None = None,
         timeout: float = 120.0,
+        line: int = 0,
     ) -> dict[str, Any]:
-        """Read the DALI line of a Siemens KNX/DALI Gateway plus N 141/03 (by ``node_id`` OR
+        """Read a DALI line of a Siemens N 141/03 or N 141/21 (by ``node_id`` OR
         ``device_address``, its individual address like "1.0.30") over the bus; changes nothing.
+        ``line`` is zero-based: 0 for single-line gateways, 0 or 1 for twin gateways.
         Returns {node_id, line, ecgs}; each present ECG has {slot, short_address, random_address,
         type, min_physical_level}."""
+        from editor_gui.plugin_blob_readers.siemens_dali.layout import line_count
         from xknxeditor.dali.siemens import scan_n141_03
 
         device = _siemens_gateway(node_id, device_address)
+        if type(line) is not int or not 0 <= line < line_count(
+            device.app.id if device.app else ""
+        ):
+            raise ToolError("Invalid Siemens DALI line")
         _ensure_connected()
 
         def op(p: Any) -> Any:
-            return scan_n141_03(p, line=0)
+            return scan_n141_03(p, line=line)
 
         ended = run_queued_action(
             ctx,
@@ -998,18 +1005,20 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
     def connection_siemens_dali_program(
         node_id: int | None = None,
         device_address: str | None = None,
-        timeout: float = 300.0,
+        timeout: float = 1200.0,
     ) -> dict[str, Any]:
         """CHANGES THE DEVICE: program the DALI device data the project holds for a Siemens
-        KNX/DALI Gateway plus N 141/03 (by ``node_id`` OR ``device_address``; its plugin data)
+        N 141/03 or N 141/21 (by ``node_id`` OR ``device_address``; its plugin data)
         onto the device, as the Program button of its plugin parameters does. Returns {node_id,
-        writes}: the number of property writes that succeeded."""
+        writes}: the number of configuration arrays written. Includes scenes (unless overwrite
+        is disabled), effects, control gear, sensors and time control, then waits for their
+        configuration update and gateway completion. Requires the matching KNX application."""
         device = _siemens_gateway(node_id, device_address)
         entry = next(
             (
                 e
                 for e in getattr(device, "binary_data", []) or []
-                if e.data and "BLOB_PARA" in (e.name or "")
+                if e.data and e.name == "BLOB_PARA"
             ),
             None,
         )

@@ -1,32 +1,22 @@
-"""Generic plugin-parameter viewer that groups a device's raw application parameters by a vendor
-mapping file into readable sections.
-
-The alternative to porting the vendor's full WPF plug-in: build a flat, sectioned view of every
-parameter the application program defines, keyed off the parameter's own name (which usually
-encodes the plug-in's hierarchy — e.g. "c0.1dalLinGro_timeDimm" is channel 0, DALI line 1, group
-section, timeDimm field). A JSON mapping file per vendor turns the prefix codes into human
-section labels; parameters that do not match any pattern end up in a fallback bucket.
-
-No special parser integration: this reads the raw ``ApplicationProgram.parameters`` /
-``parameter_refs`` directly and never calls into ``parser_v2``. Values come from the device's
-stored parameter instance refs (fall back to the parameter's default). Writing is NOT part of
-this module — the view is read-only for now.
-"""
+"""Group application parameters and saved plugin data into editable vendor sections."""
 
 from __future__ import annotations
 
 import json
 import re
-from collections.abc import Callable, Iterable
-from dataclasses import dataclass, field
+from collections.abc import Callable, Iterable, Mapping
+from dataclasses import dataclass, field, replace
 from functools import lru_cache
 from pathlib import Path
-from typing import TYPE_CHECKING, Protocol, cast
+from typing import TYPE_CHECKING, cast
 
+from xknxeditor.namespaces.intermediate.access_t import Access
 from xknxeditor.prod.parser_v2._name import apply_text_args, fill_name
 
 if TYPE_CHECKING:
     from editor_gui.device import Device
+    from xknxeditor.namespaces.intermediate.parameter_base_t import ParameterBase
+    from xknxeditor.namespaces.intermediate.parameter_ref_t import ParameterRef
 
 _MAPPINGS_DIR = Path(__file__).parent / "plugin_mappings"
 
@@ -81,7 +71,7 @@ class PluginParameter:
     default_value: str
     section: str  # section label from the mapping (or the fallback bucket)
     display_order: int  # from the ParameterRef, for stable sorting
-    writable: bool  # access != None (writes still land in the standard parameter DOM)
+    writable: bool  # Writes use the standard parameter state.
     # Optional enum choices for a dropdown. Pairs of (raw_value, display_label); the panel
     # shows a combo when non-empty. Keeps the raw token under the display label so the write
     # path can route the original value back to the DOM.
@@ -218,8 +208,8 @@ def _is_placeholder_text(text: str) -> bool:
 
 
 def build_sections(
-    parameters_by_ref_id: dict[str, _ParameterLike],
-    parameter_refs: list[_ParameterRefLike],
+    parameters_by_ref_id: Mapping[str, ParameterBase],
+    parameter_refs: Iterable[ParameterRef],
     stored_values: dict[str, str],
     mapping: PluginMapping,
     pt_by_id: dict[str, object] | None = None,
@@ -231,7 +221,7 @@ def build_sections(
         param = parameters_by_ref_id.get(ref.ref_id)
         if param is None:
             continue
-        name = getattr(param, "name", "") or ""
+        name = getattr(ref, "name", None) or getattr(param, "name", "") or ""
         if not name:
             continue
         match = mapping.match(name)
@@ -241,7 +231,7 @@ def build_sections(
         else:
             section_label, prefix_end = match
             field_name = name[prefix_end:].lstrip("_") or name
-        default_value = _text(ref.value) or _text(param.value)
+        default_value = _text(param.value if ref.value is None else ref.value)
         current = stored_values.get(ref.id, default_value)
         text_attr = _text(getattr(ref, "text", None)) or _text(
             getattr(param, "text", None)
@@ -254,7 +244,7 @@ def build_sections(
             else field_name
         )
         access = getattr(ref, "access", None) or getattr(param, "access", None)
-        writable = access is not None and access.name != "NONE"
+        writable = access is Access.READ_WRITE
         row = PluginParameter(
             ref_id=ref.id,
             name=name,
@@ -360,7 +350,11 @@ def _module_text_args(device: Device, program: object) -> dict[str, dict[str, st
         return {}
     name_by_arg_id: dict[str, str] = {}
     mdefs = getattr(program, "module_defs", None)
-    for mdef in getattr(mdefs, "module_def", []) or []:
+    pending = list(getattr(mdefs, "module_def", []) or [])
+    while pending:
+        mdef = pending.pop()
+        nested = getattr(mdef, "sub_module_defs", None)
+        pending.extend(getattr(nested, "module_def", []) or [])
         container = getattr(mdef, "arguments", None)
         for arg in getattr(container, "argument", []) or []:
             arg_id = str(getattr(arg, "id", "") or "")
@@ -381,126 +375,76 @@ def _module_text_args(device: Device, program: object) -> dict[str, dict[str, st
             if name:
                 mapping[name] = str(value)
         if mapping:
-            out[iid] = mapping
+            instance = _IID_PATTERN.search(iid)
+            out[instance.group(1) if instance is not None else iid] = mapping
     return out
 
 
-_IID_PATTERN = re.compile(r"(MD-[0-9]+_M-[0-9]+_MI-[0-9]+)")
+_IID_PATTERN = re.compile(r"(MD-[^_]+_M-[^_]+_MI-[^_]+(?:_SM-[^_]+_M-[^_]+_MI-[^_]+)*)")
 
 
 def collect_from_device(
     device: Device, mapping: PluginMapping
 ) -> list[PluginSectionView]:
-    """Walk the device's application program and group every ParameterRef into mapping sections.
-
-    Returns an empty list when the application has no static parameters (e.g. ETS3-only entries
-    that never carry a parameter section) or when the device has not resolved its program yet.
-    """
+    """Group every parameter, including unset module fields, and append saved plugin data."""
     if mapping.provider:
         from editor_gui.plugin_providers import provider_named
 
         return provider_named(mapping.provider).sections(device)
-    program = device.app.program if device.app is not None else None
-    static = getattr(program, "static", None) if program is not None else None
-    if static is None:
-        return []
-    parameters_container = getattr(static, "parameters", None)
-    refs_container = getattr(static, "parameter_refs", None)
-    if parameters_container is None or refs_container is None:
-        return []
-    by_id: dict[str, _ParameterLike] = {}
-    pt_container = getattr(static, "parameter_types", None)
-    pt_list: Iterable[object] = (
-        getattr(pt_container, "parameter_type", []) or []
-        if pt_container is not None
-        else []
-    )
-    pt_by_id: dict[str, object] = {}
-    for pt in pt_list:
-        pt_id = str(getattr(pt, "id", "") or "")
-        if pt_id:
-            pt_by_id[pt_id] = pt
-    choice_items: Iterable[object] = getattr(parameters_container, "choice", []) or []
-    for item in choice_items:
-        # Union: has a .parameter list of UnionParameter; plain Parameter: has .id directly.
-        children = getattr(item, "parameter", None)
-        if children is not None and isinstance(children, Iterable):
-            kids: Iterable[object] = children  # pyright: ignore[reportUnknownVariableType]
-            for p in kids:
-                pid = str(getattr(p, "id", "") or "")
-                if pid:
-                    by_id[pid] = p  # type: ignore[assignment]
-        else:
-            pid = str(getattr(item, "id", "") or "")
-            if pid:
-                by_id[pid] = item  # type: ignore[assignment]
-    # Module-def nested parameters: an application often declares its per-channel/group/button
-    # parameters once inside a <ModuleDef> template; the project stores instance refs that resolve
-    # back to those template ids with the "_M-x_MI-y" fragment stripped.
-    module_defs_container = getattr(program, "module_defs", None)
-    module_defs_list: Iterable[object] = (
-        getattr(module_defs_container, "module_def", []) or []
-        if module_defs_container is not None
-        else []
-    )
-    for mdef in module_defs_list:
-        mdef_static = getattr(mdef, "static", None)
-        if mdef_static is None:
-            continue
-        md_params = getattr(mdef_static, "parameters", None)
-        if md_params is None:
-            continue
-        md_choice: Iterable[object] = getattr(md_params, "choice", []) or []
-        for item in md_choice:
-            children = getattr(item, "parameter", None)
-            if children is not None and isinstance(children, Iterable):
-                kids: Iterable[object] = children  # pyright: ignore[reportUnknownVariableType]
-                for p in kids:
-                    pid = str(getattr(p, "id", "") or "")
-                    if pid:
-                        by_id[pid] = p  # type: ignore[assignment]
-            else:
-                pid = str(getattr(item, "id", "") or "")
-                if pid:
-                    by_id[pid] = item  # type: ignore[assignment]
-    refs = list(getattr(refs_container, "parameter_ref", []))
-    ref_param_ids: set[object] = {getattr(r, "ref_id", None) for r in refs}
-    stored: dict[str, str] = {}
-    for pir in device.parameter_instance_refs:
-        value = getattr(pir, "value", None)
-        ref = getattr(pir, "ref_id", None)
-        if ref is not None and value is not None:
-            stored[str(ref)] = str(value)
-    # A blob-only mapping (no section patterns, e.g. the triton LCD display) does NOT group the
-    # device's KNX parameters here — those belong in the normal Parameters tab, which renders them
-    # with proper ETS visibility. This tab then shows ONLY the vendor blob (the display config),
-    # not a flat dump of every raw parameter ref.
-    if mapping.patterns:
+    sections_result: list[PluginSectionView] = []
+    if mapping.patterns and device.app is not None:
+        from xknxeditor.prod.parser_v2.application_indexer import ApplicationIndexer
+
+        dynamic = device.dynamic_ui
+        program = device.app.program
+        index = dynamic.indexer if dynamic is not None else ApplicationIndexer(program)
+        refs = (
+            dynamic.parameter_ref_ids()
+            if dynamic is not None
+            else [ref for ref in index.parameter_refs if index.ref_owner[ref] is None]
+        )
+        stored = {
+            ref.ref_id: ref.value
+            for ref in device.parameter_instance_refs
+            if ref.value is not None
+        }
+        text_args = _module_text_args(device, program) if dynamic is not None else {}
+        resolved: list[ParameterRef] = []
+        values: dict[str, str] = {}
+        for full_ref in refs:
+            local = dynamic.local_ref_id(full_ref) if dynamic is not None else full_ref
+            ref = index.parameter_refs.get(local)
+            if ref is None:
+                continue
+            parameter = index.parameters.get(ref.ref_id)
+            if parameter is None:
+                continue
+            name = ref.name or parameter.name or ""
+            label = ref.text or parameter.text or ""
+            instance = _IID_PATTERN.search(full_ref)
+            if instance is not None:
+                arguments = text_args.get(instance.group(1), {})
+                if not label or _is_placeholder_text(label):
+                    match = mapping.match(name)
+                    label = name[match[1] :].lstrip("_") or name if match else name
+                label = _resolve_placeholders(label, arguments)
+                counters = "/".join(re.findall(r"_MI-([^_]+)", instance.group(1)))
+                label = f"[{counters}] {label}"
+            resolved.append(replace(ref, id=full_ref, name=name, text=label))
+            value = (
+                dynamic.get_parameter_ref(full_ref)
+                if dynamic is not None
+                else stored.get(full_ref, index.default_value(local))
+            )
+            if value is not None:
+                values[full_ref] = value
         sections_result = build_sections(
-            parameters_by_ref_id=by_id,
-            parameter_refs=refs,
-            stored_values=stored,
+            parameters_by_ref_id=index.parameters,
+            parameter_refs=resolved,
+            stored_values=values,
             mapping=mapping,
-            pt_by_id=pt_by_id,
+            pt_by_id=dict(index.parameter_types),
         )
-        # Module instances: the application's parameter_refs only list templates (one per module
-        # definition), while the project stores instance refs like "..._MD-N_M-x_MI-y_P-M_R-z".
-        # Those never resolve via the template refs, so add synthetic rows for them, resolving the
-        # template parameter by stripping the "_M-x_MI-y" fragment.
-        text_args_by_iid = _module_text_args(device, program)
-        _add_module_instance_rows(
-            sections_result,
-            device,
-            by_id,
-            ref_param_ids,
-            mapping,
-            pt_by_id,
-            text_args_by_iid,
-        )
-    else:
-        sections_result = []
-    # Vendor BLOB readers (e.g. Siemens N141/03's BLOB_PARA): append the plug-in's own
-    # binary-stored sensor / commissioning state as additional read-only sections.
     if mapping.blob_reader:
         sections_result.extend(_read_blob_sections(device, mapping.blob_reader))
     return sections_result
@@ -555,113 +499,3 @@ def _call_reader(read: object, data: bytes, name: str) -> object:
     except (ValueError, TypeError):
         accepts_name = False
     return reader(data, name=name) if accepts_name else reader(data)
-
-
-_MODULE_REF_PATTERN = re.compile(
-    r"^(.*?)_MD-([0-9]+)_M-[0-9]+_MI-([0-9]+)_((?:U?P)-[0-9]+)_R-[0-9]+$"
-)
-
-
-def _add_module_instance_rows(
-    sections: list[PluginSectionView],
-    device: Device,
-    by_id: dict[str, _ParameterLike],
-    ref_param_ids: set[object],
-    mapping: PluginMapping,
-    pt_by_id: dict[str, object],
-    text_args_by_iid: dict[str, dict[str, str]],
-) -> None:
-    """Attach rows for stored module-instance refs that the template-only pass skipped."""
-    section_lookup = {s.section: s for s in sections}
-    appended: dict[str, PluginSectionView] = {}
-    for pir in device.parameter_instance_refs:
-        full_ref = getattr(pir, "ref_id", None)
-        value = getattr(pir, "value", None)
-        if not full_ref or value is None:
-            continue
-        if full_ref in ref_param_ids:
-            continue
-        m = _MODULE_REF_PATTERN.match(str(full_ref))
-        if m is None:
-            continue
-        app_prefix, md, mi, p_part = m.group(1), m.group(2), m.group(3), m.group(4)
-        template_pid = f"{app_prefix}_MD-{md}_{p_part}"
-        param = by_id.get(template_pid)
-        if param is None:
-            continue
-        name = getattr(param, "name", "") or ""
-        if not name:
-            continue
-        match = mapping.match(name)
-        if match is None:
-            section_label = _FALLBACK_SECTION
-            field_name = name
-        else:
-            section_label, prefix_end = match
-            field_name = name[prefix_end:].lstrip("_") or name
-        default_value = _text(param.value)
-        text_attr = _text(getattr(param, "text", None))
-        base_label = (
-            text_attr
-            if text_attr and not _is_placeholder_text(text_attr)
-            else field_name
-        )
-        # Resolve {{GRP_NO}} etc. from this instance's module arguments (the group/ECG number),
-        # so the user sees "Group 3, Description" instead of the raw template placeholder.
-        iid_match = _IID_PATTERN.search(str(full_ref))
-        if iid_match is not None:
-            base_label = _resolve_placeholders(
-                base_label, text_args_by_iid.get(iid_match.group(1), {})
-            )
-        # Module instances share one template, so prefix the row with the instance index to
-        # distinguish e.g. ECG 1 vs ECG 2 within the same section.
-        row_label = f"[{mi}] {base_label}"
-        row = PluginParameter(
-            ref_id=str(full_ref),
-            name=name,
-            label=row_label,
-            value=str(value),
-            default_value=default_value,
-            section=section_label,
-            display_order=int(mi),
-            writable=True,
-            choices=_enum_choices(param, pt_by_id),
-        )
-        view = section_lookup.get(section_label)
-        if view is None:
-            view = appended.get(section_label)
-            if view is None:
-                view = PluginSectionView(section=section_label)
-                appended[section_label] = view
-                section_lookup[section_label] = view
-        view.parameters.append(row)
-    for section_label, view in appended.items():
-        if section_label == _FALLBACK_SECTION:
-            sections.append(view)
-        else:
-            # Insert new mapping sections before the fallback bucket if present.
-            if sections and sections[-1].section == _FALLBACK_SECTION:
-                sections.insert(len(sections) - 1, view)
-            else:
-                sections.append(view)
-    for view in sections:
-        view.parameters.sort(key=lambda p: (p.display_order, p.name))
-
-
-# --- structural protocols used only for type hints (duck-typed; the real objects are from
-# ``xknxeditor.namespaces.intermediate``). Kept here so this module does not force an import of the
-# large namespace stack when nothing in the GUI happens to touch it.
-class _ParameterLike(Protocol):
-    name: str | None
-    value: str | None
-    text: str | None
-    access: object | None
-
-
-class _ParameterRefLike(Protocol):
-    id: str
-    ref_id: str
-    value: str | None
-    text: str | None
-    access: object | None
-    display_order: int | None

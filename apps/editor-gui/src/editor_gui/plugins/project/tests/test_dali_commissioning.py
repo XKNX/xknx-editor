@@ -417,6 +417,44 @@ def test_siemens_dali_results_are_isolated_by_project_and_device():
     assert state.scan is scan and fresh.scan is None
 
 
+def test_siemens_twin_scan_uses_selected_line(monkeypatch):
+    from unittest.mock import AsyncMock
+
+    from imgui_bundle import imgui
+
+    from editor_gui.plugins.project.strings import S
+    from editor_gui.plugins.project.ui.siemens_dali import SiemensDaliPanel
+    from xknxeditor.dali.siemens import SiemensN141BusState
+
+    queued = []
+    panel = SiemensDaliPanel(lambda *args: queued.append(args))
+    device = _device()
+    device.app = SimpleNamespace(id="M-0001_A-9834-11-0000")
+    state = panel._state(panel._key(device))
+    state.scan = SiemensN141BusState(line=0, object_index=35, ecgs=[])
+    scan = AsyncMock(return_value=SiemensN141BusState(line=1, object_index=36, ecgs=[]))
+    monkeypatch.setattr("editor_gui.plugins.project.ui.siemens_dali.scan_n141_03", scan)
+    monkeypatch.setattr(imgui, "combo", lambda *_: (True, 1))
+    monkeypatch.setattr(imgui, "button", lambda text: text == S.SIEMENS_DALI_SCAN_BUS)
+    context = imgui.create_context()
+    io = imgui.get_io()
+    io.display_size = imgui.ImVec2(800, 600)
+    io.backend_flags |= imgui.BackendFlags_.renderer_has_textures
+    try:
+        imgui.new_frame()
+        imgui.begin("DALI")
+        panel.render(device, True)
+        imgui.end()
+        imgui.end_frame()
+    finally:
+        imgui.destroy_context(context)
+    assert state.scan is None and state.line == 1
+    asyncio.run(queued[0][1](None))
+    queued[0][3]()
+    scan.assert_awaited_once_with(None, line=1)
+    assert state.scan.line == 1
+
+
 @pytest.mark.parametrize("siemens", [False, True])
 def test_widget_state_is_scoped_to_project_device_and_channel(monkeypatch, siemens):
     from imgui_bundle import imgui

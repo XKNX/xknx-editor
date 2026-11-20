@@ -39,6 +39,7 @@ from editor_gui.widgets.icon_button import ICON_COPY, copy_button, icon_button_w
 from editor_gui.widgets.spinner import loading
 from editor_gui.widgets.tables import begin_data_table, data_table_headers
 from editor_gui.widgets.tree import collapsing_header, tree_node
+from xknxeditor.dali.siemens_dali2 import line_count as siemens_dali2_line_count
 from xknxeditor.download.scope import DownloadScope
 from xknxeditor.prod.app_id import parse_app_id
 from xknxeditor.prod.parser_v2.ui import UiNode
@@ -55,9 +56,12 @@ if TYPE_CHECKING:
     from xknxeditor.catalog import ProductSummary, ProgramSummary
     from xknxeditor.proj.core.addressing import GroupAddressStyle
     from xknxeditor.proj.core.service import DeviceInfo
+from editor_gui.plugin_blob_readers.siemens_dali.layout import (
+    line_count as siemens_classic_line_count,
+)
 from editor_gui.plugin_params import mapping_for_device
 from editor_gui.plugin_providers import PluginCapabilities, provider_for
-from editor_gui.programming_dali import is_dali_dca_app, is_siemens_n141_03
+from editor_gui.programming_dali import is_dali_dca_app
 from editor_gui.settings import load_settings, save_settings
 from editor_gui.theme import status_color
 from editor_gui.widgets import (
@@ -1290,11 +1294,13 @@ class ConfigurePanel:
                 self._render_dali(device)
                 imgui.end_tab_item()
 
-            # "DALI (Siemens)" tab: read-only bus snapshot for Siemens KNX/DALI Gateway plus N 141/03.
             if (
                 self._render_siemens_dali is not None
                 and device.app is not None
-                and is_siemens_n141_03(device.app.id)
+                and (
+                    siemens_classic_line_count(device.app.id)
+                    or siemens_dali2_line_count(device.app.id)
+                )
                 and imgui.begin_tab_item(
                     f"{S.EDITOR_TAB_SIEMENS_DALI}###editor_tab_siemens_dali"
                 )[0]

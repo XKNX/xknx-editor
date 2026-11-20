@@ -497,6 +497,8 @@ class ItemTypeSpec:
     type_field_setter: str  # XML tag on the new item that receives ``type_id``
     # Side effects: ``{container_tag: count_of_new_items}``.
     allocates: tuple[tuple[str, int], ...] = ()
+    max_current: int = 0
+    address_count: int = 0
 
 
 @dataclass(frozen=True, slots=True)
@@ -535,12 +537,16 @@ _PUSHBUTTON_4FOLD = (
         label="DALI pushbutton input 4-fold (5WG1 141-2AB71)",
         type_field_setter="SensorListSensorId",
         allocates=(("BinaryInput", 4),),
+        max_current=6,
+        address_count=4,
     ),
     ItemTypeSpec(
         type_id="id_03A54294358D",
         label="DALI PRO PB Coupler (EAN 4008321496461)",
         type_field_setter="SensorListSensorId",
         allocates=(("BinaryInput", 4),),
+        max_current=6,
+        address_count=4,
     ),
 )
 _COMBI_SENSORS = tuple(
@@ -548,17 +554,19 @@ _COMBI_SENSORS = tuple(
         type_id=tid,
         label=label,
         type_field_setter="SensorListSensorId",
-        allocates=(("Presence", 1), ("Brightness", 1)),
+        allocates=(("Brightness", 1), ("Presence", 1)),
+        max_current=current,
+        address_count=2,
     )
-    for tid, label in (
-        ("id_03A3C20175BA", "DALI combi sensor office (5WG1 141-2AB51)"),
-        ("id_03A542926BC5", "DALI PRO Sensor Coupler (EAN 4008321379269)"),
-        ("id_03A542987234", "DALI HIGHBAY Adapter (EAN 4008321774132)"),
-        ("id_03AFA39B9A72", "DALI LS/PD LI (EAN 4052899043954)"),
-        ("id_03AFA3A920B4", "DALI LS/PD CI (EAN 4052899930292)"),
-        ("id_03AFA39D1860", "DALI Sensorcoupler HF LS LI (EAN 4052899141728)"),
-        ("id_03AFA39E731B", "DALI Sensor Coupler E (EAN 4052899230491)"),
-        ("id_0", "DALI motion detector (6 mA)"),
+    for tid, label, current in (
+        ("id_03A3C20175BA", "DALI combi sensor office (5WG1 141-2AB51)", 5),
+        ("id_03A542926BC5", "DALI PRO Sensor Coupler (EAN 4008321379269)", 5),
+        ("id_03A542987234", "DALI HIGHBAY Adapter (EAN 4008321774132)", 5),
+        ("id_03AFA39B9A72", "DALI LS/PD LI (EAN 4052899043954)", 5),
+        ("id_03AFA3A920B4", "DALI LS/PD CI (EAN 4052899930292)", 5),
+        ("id_03AFA39D1860", "DALI Sensorcoupler HF LS LI (EAN 4052899141728)", 2),
+        ("id_03AFA39E731B", "DALI Sensor Coupler E (EAN 4052899230491)", 5),
+        ("id_0", "DALI motion detector (6 mA)", 6),
     )
 )
 
@@ -590,7 +598,7 @@ COLLECTIONS: dict[str, CollectionSpec] = {
         activity_inactive_value="0",
         id_field="PresenceChannelSensorNr",
         name_field="PresenceChannelName",
-        capacity=16,
+        capacity=8,
         seed_fields=(("PresenceChannelChannelNr", "1"),),
     ),
     "Brightness": CollectionSpec(

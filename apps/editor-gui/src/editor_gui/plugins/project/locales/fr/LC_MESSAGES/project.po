@@ -2104,9 +2104,6 @@ msgstr "Adresse aléatoire"
 msgid "Read DALI Bus"
 msgstr "Lire le bus DALI"
 
-msgid "Read-only snapshot. Writing group assignments, scenes or firmware is not available yet and remains in the manufacturer's plugin."
-msgstr "Instantané en lecture seule. L'écriture des affectations de groupe, scènes ou firmware n'est pas encore disponible et reste dans le plugin du fabricant."
-
 msgid "Read-only view. The hierarchy is a best-effort reconstruction from parameter name prefixes; names and groupings may be rough. Writing values is not available yet."
 msgstr "Vue en lecture seule. La hiérarchie est une reconstruction au mieux à partir des préfixes de noms de paramètres ; noms et regroupements peuvent être approximatifs. L'écriture de valeurs n'est pas encore disponible."
 

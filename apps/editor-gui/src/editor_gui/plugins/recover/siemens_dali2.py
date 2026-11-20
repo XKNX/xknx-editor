@@ -4,9 +4,10 @@ from __future__ import annotations
 
 import json
 import logging
-import re
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, cast
+
+from xknxeditor.dali.siemens_dali2 import line_count
 
 if TYPE_CHECKING:
     from editor_gui.device import Device
@@ -19,20 +20,12 @@ if TYPE_CHECKING:
 _LOG = logging.getLogger(__name__)
 _CAPTURE = "siemens-dali2-recovery.json"
 _BLOB = "Dali2DcaBinaryData"
-_APP = re.compile(r"M-0001_A-9A1([BC])-(02|03|30)-[0-9A-F]{4}(?:-.*)?$")
 _MAX_IMAGE = 1024 * 1024
 
 
 def supports(app_id: str | None) -> bool:
     """Whether the application uses the supported DALI-2 discovery format."""
-    return bool(app_id and _APP.fullmatch(app_id.upper()))
-
-
-def _line_count(app_id: str) -> int:
-    match = _APP.fullmatch(app_id.upper())
-    if match is None:
-        raise ValueError("Unsupported Siemens DALI-2 application")
-    return 2 if match[1] == "C" else 1
+    return bool(line_count(app_id))
 
 
 async def _read_image(
@@ -69,7 +62,7 @@ def addin_reader(application: Application) -> AddinReader | None:
     """Read existing discovery caches without starting scans or changing addresses."""
     if not supports(application.id):
         return None
-    count = _line_count(application.id)
+    count = line_count(application.id)
 
     async def read(programmer: DeviceProgrammer) -> dict[str, dict[str, bytes]]:
         channels: list[dict[str, str | None]] = []
@@ -288,7 +281,7 @@ def apply_recovered(
     if not isinstance(raw, list):
         raise ValueError("Incomplete recovered Siemens DALI-2 lines")
     channels = cast(list[object], raw)
-    if len(channels) != _line_count(app.id):
+    if len(channels) != line_count(app.id):
         raise ValueError("Incomplete recovered Siemens DALI-2 lines")
     payload: dict[str, Any] = {}
     for line, entry in enumerate(channels):
