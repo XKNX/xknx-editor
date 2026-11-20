@@ -27,7 +27,6 @@ import asyncio
 import contextlib
 import functools
 import logging
-import weakref
 from collections.abc import AsyncGenerator, Awaitable, Callable, Iterable, Mapping
 from dataclasses import dataclass, field
 from enum import Enum, IntEnum, IntFlag
@@ -517,7 +516,7 @@ class CommunicationPaths:
         try:
             programmer = DeviceProgrammer(await manager.open())
             if coupler.access_key != FREE_ACCESS_KEY:
-                await programmer.authorize(coupler.access_key)
+                await programmer.authorize_best(coupler.access_key)
             index = await programmer.locate_object(_ROUTER_OBJECT, _SECONDARY - 1)
             if unicast is not None:
                 await _command(
@@ -648,7 +647,7 @@ class CommunicationPaths:
         try:
             programmer = DeviceProgrammer(await manager.open())
             if coupler.access_key != FREE_ACCESS_KEY:
-                await programmer.authorize(coupler.access_key)
+                await programmer.authorize_best(coupler.access_key)
             if (
                 actions & (CouplerAction.BROADCAST | CouplerAction.SYSTEM_BROADCAST)
                 and coupler.secondary is KnxMedium.RF
@@ -816,32 +815,38 @@ async def _command(
     return False
 
 
-_paths: weakref.WeakKeyDictionary[XKNX, CommunicationPaths] = (
-    weakref.WeakKeyDictionary()
-)
+# By the connection's identity: an XKNX object takes no weak reference (``__slots__``), so the
+# entry holds it until release_installation() ends the connection's paths.
+_paths: dict[int, tuple[XKNX, CommunicationPaths]] = {}
 
 
 def set_installation(xknx: XKNX, installation: Installation | None) -> None:
     """The couplers the communication paths of ``xknx``'s connection go through (None: no
     paths are prepared). Paths that are open stay as they are."""
-    paths = _paths.get(xknx)
+    paths = communication_paths(xknx)
     if installation is None:
         if paths is not None:
             paths.installation = Installation()
         return
     if paths is None:
-        _paths[xknx] = CommunicationPaths(xknx, installation)
+        _paths[id(xknx)] = (xknx, CommunicationPaths(xknx, installation))
     else:
         paths.installation = installation
 
 
+def release_installation(xknx: XKNX) -> None:
+    """Forget the communication paths of ``xknx``'s connection once it has ended."""
+    entry = _paths.get(id(xknx))
+    if entry is not None and entry[0] is xknx:
+        del _paths[id(xknx)]
+
+
 def communication_paths(xknx: XKNX) -> CommunicationPaths | None:
     """The communication paths of ``xknx``'s connection, if couplers were given."""
-    try:
-        return _paths.get(xknx)
-    except TypeError:
-        # an object no weak reference can be made to has none
+    entry = _paths.get(id(xknx))
+    if entry is None or entry[0] is not xknx:
         return None
+    return entry[1]
 
 
 async def _nothing_to_close() -> None:

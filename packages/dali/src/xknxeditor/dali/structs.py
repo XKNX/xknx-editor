@@ -190,7 +190,7 @@ class SceneItemValue:
     """SCENE_GROUP_VALUE (214), 8 B: scene, target index, level, 4-byte colour, flags."""
 
     scene: int
-    item_index: int  # group 0-15, or 16 + ecg short address for an ECG target
+    item_index: int  # group 0-15, or 16 + logical ECG index for an ECG target
     level: int
     color: bytes = b"\x00\x00\x00\x00"
     flags: int = 0
@@ -239,12 +239,15 @@ class TemplateProp:
     minute: int = 0
     mode: int = 0
     overwritable: bool = False
+    reset_on_midnight: bool = True
 
     def encode(self) -> bytes:
         hm = (self.hour & 0x1F) | ((self.minute << 2) & 0xE0)
         mm = (self.minute & 0x07) | ((self.mode & 0x03) << 6)
         if self.overwritable:
             mm |= 0x20
+        if not self.reset_on_midnight:
+            mm |= 0x10
         return (
             bytes((self.tpl_index & 0xFF, self.func & 0xFF))
             + self.value[:4].ljust(4, b"\x00")

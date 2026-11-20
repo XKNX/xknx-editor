@@ -1589,9 +1589,6 @@ msgstr "A készülékadatok egy része nem érhető el."
 msgid "Connect to a KNX interface to commission the DALI bus."
 msgstr "A DALI-busz üzembe helyezéséhez csatlakozzon egy KNX-interfészhez."
 
-msgid "This gateway's commissioning protocol has not been verified against a capture; writes may misbehave. Proceed with care."
-msgstr "Az átjáró üzembe helyezési protokollja nincs felvétellel ellenőrizve; az írási műveletek hibásan működhetnek. Óvatosan folytassa."
-
 msgid "DALI commissioning writes the gateway on the bus but does not update the project parameters; re-export the .knxproj after a DCA-side edit."
 msgstr "A DALI üzembe helyezése a buszon lévő átjárót írja, de a projekt paramétereit nem frissíti; DCA-oldali módosítás után exportálja újra a .knxproj fájlt."
 
@@ -3209,6 +3206,11 @@ msgstr "A projekt jelenlegi állapota"
 msgid "Configuration Comparison"
 msgstr "Konfiguráció összehasonlítása"
 
+msgid "Current state of the project"
+msgstr "A projekt jelenlegi állapota"
+msgid "Configuration Comparison"
+msgstr "Konfiguráció összehasonlítása"
+
 msgid "Compare settings with another device or the stored image from the last download."
 msgstr "Hasonlítsa össze a beállításokat egy másik eszközzel vagy az utolsó letöltés mentett memóriaképével."
 
@@ -3314,6 +3316,11 @@ msgstr "Válasszon eszközt"
 
 msgid "Select the two devices to compare."
 msgstr "Válassza ki a két összehasonlítandó eszközt."
+
+msgid "Loading application programs… {done}/{total}"
+msgstr "Alkalmazási programok betöltése… {done}/{total}"
+msgid "Symbol"
+msgstr "Szimbólum"
 
 msgid "Loading application programs… {done}/{total}"
 msgstr "Alkalmazási programok betöltése… {done}/{total}"
@@ -3530,6 +3537,11 @@ msgstr "Nincs meghatározva"
 msgid "Compares the device's hardware/software identity with this catalog. Does not install firmware. Catalog import: MDT Firmware Update .etsapp or Firmware.zip."
 msgstr "Összehasonlítja az eszköz hardver-/szoftverazonosítóját ezzel a katalógussal. Nem telepít firmware-t. Katalógusimport: MDT Firmware Update .etsapp vagy Firmware.zip."
 
+msgid "Not determined"
+msgstr "Nincs meghatározva"
+msgid "Compares the device's hardware/software identity with this catalog. Does not install firmware. Catalog import: MDT Firmware Update .etsapp or Firmware.zip."
+msgstr "Összehasonlítja az eszköz hardver-/szoftverazonosítóját ezzel a katalógussal. Nem telepít firmware-t. Katalógusimport: MDT Firmware Update .etsapp vagy Firmware.zip."
+
 msgid "Hardware/software identity could not be determined. Read the device to check compatibility."
 msgstr "A hardver-/szoftverazonosító nem határozható meg. Olvassa be az eszközt a kompatibilitás ellenőrzéséhez."
 
@@ -3685,3 +3697,466 @@ msgstr "A(z) {coupler} csatolón keresztüli kommunikációs útvonalat nem sike
 
 msgid "The domain address of this secure device could not be loaded because the coupler {coupler} does not support security."
 msgstr "Ennek a biztonságos eszköznek a tartománycímét nem sikerült betölteni, mert a(z) {coupler} csatoló nem támogatja a biztonságot."
+
+msgid "Actions"
+msgstr "Műveletek"
+
+msgid "Add Command"
+msgstr "Parancs hozzáadása"
+
+msgid "Assigned Groups and ECGs"
+msgstr "Hozzárendelt csoportok és előtétek"
+
+msgid "Colour"
+msgstr "Szín"
+
+msgid "Control Gear and Groups"
+msgstr "Előtétek és csoportok"
+
+msgid "Delay"
+msgstr "Késleltetés"
+
+msgid "ECG"
+msgstr "Előtét"
+
+msgid "Effects"
+msgstr "Effektusok"
+
+msgid "Fade Time"
+msgstr "Áttűnési idő"
+
+msgid "Flag"
+msgstr "Jelző"
+
+msgid "General Inputs"
+msgstr "Általános bemenetek"
+
+msgid "Input Devices"
+msgstr "Bemeneti eszközök"
+
+msgid "Instance"
+msgstr "Példány"
+
+msgid "KNX Scene"
+msgstr "KNX-jelenet"
+
+msgid "Keep Colour"
+msgstr "Szín megtartása"
+
+msgid "Keep Value"
+msgstr "Érték megtartása"
+
+msgid "Loop"
+msgstr "Ismétlés"
+
+msgid "Manual Override"
+msgstr "Kézi felülbírálás"
+
+msgid "Midnight Reset"
+msgstr "Éjféli alaphelyzetbe állítás"
+
+msgid "Mo Tu We Th Fr Sa Su"
+msgstr "H K Sze Cs P Szo V"
+
+msgid "Mode"
+msgstr "Mód"
+
+msgid "Motion / Brightness"
+msgstr "Mozgás / fényerő"
+
+msgid "No Entries"
+msgstr "Nincs bejegyzés"
+
+msgid "Origin"
+msgstr "Eredet"
+
+msgid "Physical Devices Without a Unique Assignment"
+msgstr "Egyértelmű hozzárendelés nélküli fizikai eszközök"
+
+msgid "Physical Inputs"
+msgstr "Fizikai bemenetek"
+
+msgid "Push-Buttons"
+msgstr "Nyomógombok"
+
+msgid "Reference"
+msgstr "Hivatkozás"
+
+msgid "Single ECG"
+msgstr "Egyedi előtét"
+
+msgid "Target"
+msgstr "Cél"
+
+msgid "Time"
+msgstr "Idő"
+
+msgid "Time Control"
+msgstr "Idővezérlés"
+
+msgid "View"
+msgstr "Nézet"
+
+msgid "Weekdays"
+msgstr "A hét napjai"
+
+msgid "Add Target"
+msgstr "Cél hozzáadása"
+
+msgid "Apply"
+msgstr "Alkalmaz"
+
+msgid "Approximate Preview"
+msgstr "Tájékoztató előnézet"
+
+msgid "Colour Temperature"
+msgstr "Színhőmérséklet"
+
+msgid "Groups"
+msgstr "Csoportok"
+
+msgid "Search"
+msgstr "Keresés"
+
+msgid "White"
+msgstr "Fehér"
+
+msgid "Brightness"
+msgstr "Fényerő"
+
+msgid "Min. Brightness"
+msgstr "Min. fényerő"
+
+msgid "Max. Brightness"
+msgstr "Max. fényerő"
+
+msgid "Switch-on Limit"
+msgstr "Bekapcsolási korlát"
+
+msgid "DCA Details"
+msgstr "DCA-részletek"
+
+msgid "Import DCA XML…"
+msgstr "DCA XML importálása…"
+
+msgid "Export DCA XML…"
+msgstr "DCA XML exportálása…"
+
+msgid "Replace the DCA configuration of {device} with the selected XML file?"
+msgstr "Lecseréli a(z) {device} DCA-konfigurációját a kiválasztott XML-fájlra?"
+
+msgid "DCA configuration imported."
+msgstr "A DCA-konfiguráció importálva."
+
+msgid "DCA configuration exported."
+msgstr "A DCA-konfiguráció exportálva."
+
+msgid "Color Temperature"
+msgstr "Színhőmérséklet"
+
+msgid "Keep Color"
+msgstr "Szín megtartása"
+
+msgid "No entries"
+msgstr "Nincs bejegyzés"
+
+msgid "Assigned Groups and ECGs…"
+msgstr "Hozzárendelt csoportok és előtétek…"
+
+msgid "Add Target…"
+msgstr "Cél hozzáadása…"
+
+msgid "Approximate preview"
+msgstr "Tájékoztató előnézet"
+
+msgid "Manual override"
+msgstr "Kézi felülbírálás"
+
+msgid "Midnight reset"
+msgstr "Éjféli alaphelyzetbe állítás"
+
+msgid "Import DCA Configuration"
+msgstr "DCA-konfiguráció importálása"
+
+msgid "Edit DCA configuration"
+msgstr "DCA-konfiguráció szerkesztése"
+
+msgid "Import DCA configuration"
+msgstr "DCA-konfiguráció importálása"
+
+msgid "Invalid DCA configuration."
+msgstr "Érvénytelen DCA-konfiguráció."
+
+msgid "Expected a complete DCA device configuration."
+msgstr "Teljes DCA-eszközkonfiguráció szükséges."
+
+msgid "DALI project data changed. Reopen the selection and try again."
+msgstr "A DALI-projekt adatai megváltoztak. Nyissa meg újra a kiválasztást, és próbálja újra."
+
+msgid "The selected DCA item is unavailable. Reopen the selection."
+msgstr "A kiválasztott DCA-elem nem érhető el. Nyissa meg újra a kiválasztást."
+
+msgid "Invalid value."
+msgstr "Érvénytelen érték."
+
+msgid "Invalid or unsupported color value."
+msgstr "Érvénytelen vagy nem támogatott színérték."
+
+msgid "This DCA operation is not supported."
+msgstr "Ez a DCA-művelet nem támogatott."
+
+msgid "Expected {minimum}-{maximum}."
+msgstr "Elvárt: {minimum}-{maximum}."
+
+msgid "Expected HH:MM."
+msgstr "Elvárt: HH:MM."
+
+msgid "Select seven weekdays."
+msgstr "Válassza ki a hét napját."
+
+msgid "The target already belongs to the scene."
+msgstr "A cél már a jelenethez tartozik."
+
+msgid "At most 300 time control commands are supported."
+msgstr "Legfeljebb 300 idővezérlési parancs támogatott."
+
+msgid "At most 500 effect steps are supported."
+msgstr "Legfeljebb 500 effektlépés támogatott."
+
+msgid "Descriptions can contain at most {maximum} characters."
+msgstr "A leírások legfeljebb {maximum} karaktert tartalmazhatnak."
+
+msgid "Mo"
+msgstr "H"
+
+msgid "Tu"
+msgstr "K"
+
+msgid "We"
+msgstr "Sze"
+
+msgid "Th"
+msgstr "Cs"
+
+msgid "Fr"
+msgstr "P"
+
+msgid "Sa"
+msgstr "Szo"
+
+msgid "Su"
+msgstr "V"
+
+msgid "A test is pending."
+msgstr "Egy teszt várakozik."
+
+msgid "Battery"
+msgstr "Akkumulátor"
+
+msgid "Brightness sensor"
+msgstr "Fényerőérzékelő"
+
+msgid "Converters"
+msgstr "Átalakítók"
+
+msgid "Descriptions"
+msgstr "Leírások"
+
+msgid "Diagnostic Report"
+msgstr "Diagnosztikai jelentés"
+
+msgid "Duration"
+msgstr "Időtartam"
+
+msgid "Duration test running"
+msgstr "Időtartamteszt folyamatban"
+
+msgid "Edit several descriptions and apply them together in one undo step."
+msgstr "Szerkesszen több leírást, majd alkalmazza őket egyetlen visszavonható lépésben."
+
+msgid "Emergency"
+msgstr "Vészüzem"
+
+msgid "Emergency Failure"
+msgstr "Vészvilágítási hiba"
+
+msgid "Emergency Mode"
+msgstr "Vészvilágítási mód"
+
+msgid "Emergency Status"
+msgstr "Vészvilágítás állapota"
+
+msgid "Errors"
+msgstr "Hibák"
+
+msgid "Event sensor"
+msgstr "Eseményérzékelő"
+
+msgid "Extended emergency"
+msgstr "Meghosszabbított vészüzem"
+
+msgid "Failure Rate"
+msgstr "Hibaarány"
+
+msgid "Fixed inhibit"
+msgstr "Rögzített tiltás"
+
+msgid "Function test running"
+msgstr "Funkcióteszt folyamatban"
+
+msgid "Generic sensor"
+msgstr "Általános érzékelő"
+
+msgid "Inhibit"
+msgstr "Tiltás"
+
+msgid "Lamps"
+msgstr "Lámpák"
+
+msgid "Motion sensor"
+msgstr "Mozgásérzékelő"
+
+msgid "Normal"
+msgstr "Normál"
+
+msgid "Push button"
+msgstr "Nyomógomb"
+
+msgid "Read Report"
+msgstr "Jelentés olvasása"
+
+msgid "Read the diagnostic report from the gateway to display its current counters and saved test results."
+msgstr "Olvassa ki az átjáró diagnosztikai jelentését az aktuális számlálók és a mentett teszteredmények megjelenítéséhez."
+
+msgid "Replace the selected slot with the XML configuration? Other slots remain unchanged."
+msgstr "Lecseréli a kiválasztott helyet az XML-konfigurációra? A többi hely változatlan marad."
+
+msgid "Rest"
+msgstr "Nyugalom"
+
+msgid "Result"
+msgstr "Eredmény"
+
+msgid "Test"
+msgstr "Teszt"
+
+msgid "The input types are not compatible."
+msgstr "A bemenettípusok nem kompatibilisek."
+
+msgid "This physical input is already assigned."
+msgstr "Ez a fizikai bemenet már hozzá van rendelve."
+
+msgid "Total Failure Rate"
+msgstr "Összesített hibaarány"
+
+msgid "Value input"
+msgstr "Értékbemenet"
+
+
+msgid "Call scene"
+msgstr "Jelenet meghívása"
+
+msgid "Call effect"
+msgstr "Effekt meghívása"
+
+msgid "Start"
+msgstr "Indítás"
+
+msgid "Controlled by effect object"
+msgstr "Effektobjektum által vezérelve"
+
+msgid "Import Descriptions…"
+msgstr "Leírások importálása…"
+
+msgid "Export Descriptions…"
+msgstr "Leírások exportálása…"
+
+msgid "Replace the descriptions included in the file? You can undo this change."
+msgstr "Lecseréli a fájlban szereplő leírásokat? Ez a módosítás visszavonható."
+
+msgid "Clear Descriptions"
+msgstr "Leírások törlése"
+
+msgid "These descriptions cannot be preserved as TXT. Choose XML."
+msgstr "Ezek a leírások nem őrizhetők meg TXT formátumban. Válassza az XML-t."
+
+msgid "Insert Before"
+msgstr "Beszúrás elé"
+
+msgid "Sort by Time"
+msgstr "Rendezés idő szerint"
+
+msgid "Sort by Function"
+msgstr "Rendezés funkció szerint"
+
+msgid "Clear Actions"
+msgstr "Műveletek törlése"
+
+msgid "Discover Inputs"
+msgstr "Bemenetek keresése"
+
+msgid "Stop Blinking"
+msgstr "Villogás leállítása"
+
+msgid "Function Test"
+msgstr "Működési teszt"
+
+msgid "Duration Test"
+msgstr "Időtartamteszt"
+
+msgid "Battery Test"
+msgstr "Akkumulátorteszt"
+
+msgid "Read Calibration"
+msgstr "Kalibrálás olvasása"
+
+msgid "Set Calibration Level"
+msgstr "Kalibrálási szint beállítása"
+
+msgid "Save Calibration"
+msgstr "Kalibrálás mentése"
+
+msgid "Read Memory Byte"
+msgstr "Memóriabájt olvasása"
+
+msgid "Write Memory Byte"
+msgstr "Memóriabájt írása"
+
+msgid "Read Names"
+msgstr "Nevek olvasása"
+
+msgid "Write Names"
+msgstr "Nevek írása"
+
+msgid "Read Motion Diagnostics"
+msgstr "Mozgásdiagnosztika olvasása"
+
+msgid "Inhibit Converters"
+msgstr "Átalakítók tiltása"
+
+msgid "Replace ECGs…"
+msgstr "Előtétek cseréje…"
+
+msgid "Service"
+msgstr "Szerviz"
+
+msgid "Calibration"
+msgstr "Kalibrálás"
+
+msgid "Memory Bank"
+msgstr "Memóriabank"
+
+msgid "Measured Illuminance (lx)"
+msgstr "Mért megvilágítás (lx)"
+
+msgid "Enable memory write lock"
+msgstr "Memóriaírás zárolásának engedélyezése"
+
+msgid "Start automatic ECG replacement on this gateway? This changes the DALI assignments and cannot be undone in the project."
+msgstr "Elindítja az előtétek automatikus cseréjét ezen az átjárón? Ez módosítja a DALI-hozzárendeléseket, és a projektben nem vonható vissza."
+
+msgid "Restore Gateway…"
+msgstr "Átjáró visszaállítása…"
+
+msgid "Restore the saved physical inventory and configuration to this gateway and restart it? This overwrites its DALI state and cannot be undone in the project."
+msgstr "Visszaállítja a mentett fizikai eszközöket és konfigurációt ezen az átjárón, majd újraindítja? Ez felülírja a DALI-állapotot, és a projektben nem vonható vissza."

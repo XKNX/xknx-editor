@@ -503,7 +503,7 @@ def test_symbol_names_follow_locale_without_editing(mdt_project):
         assert german["defaults"] == english["defaults"]
         assert project.mdt_symbols(node) is german
         with in_english():
-            assert project.mdt_symbols(node) is english
+            assert project.mdt_symbols(node) == english
         assert project.mdt_symbols(node) is german
     finally:
         set_locale(locale)

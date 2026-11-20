@@ -356,3 +356,182 @@ msgstr "Het domeinadres kon niet worden ingesteld: {error}"
 
 msgid "Setting the domain address…"
 msgstr "Domeinadres instellen…"
+
+msgid "Local Device Access"
+msgstr "Lokale Apparaattoegang"
+
+msgid "Connects to the KNX device the USB interface is part of (e.g. an actuator with a USB port of its own) instead of the bus. Only this device can then be reached, for downloads and readouts; group telegrams, broadcasts and the bus monitor are not available. Needs a cEMI interface."
+msgstr "Verbindt met het KNX-apparaat waar de USB-interface deel van uitmaakt (bijv. een actor met een eigen USB-poort) in plaats van met de bus. Dan is alleen dit apparaat bereikbaar, voor downloads en uitlezingen; groepstelegrammen, broadcasts en de busmonitor zijn niet beschikbaar. Vereist een cEMI-interface."
+
+msgid "Connect to the interface's own device (local device access)"
+msgstr "Verbinden met het eigen apparaat van de interface (lokale apparaattoegang)"
+
+msgid "{target}, local device access to {address}"
+msgstr "{target}, lokale apparaattoegang tot {address}"
+
+msgid "(address unknown)"
+msgstr "(adres onbekend)"
+
+msgid "Local device access: only this device is reached"
+msgstr "Lokale apparaattoegang: alleen dit apparaat wordt bereikt"
+
+msgid "Switching the connection…"
+msgstr "Verbinding omschakelen…"
+
+msgid "The connection could not be switched: {error}"
+msgstr "De verbinding kon niet worden omgeschakeld: {error}"
+
+msgid "The connection of the interface is being switched."
+msgstr "De verbinding van de interface wordt omgeschakeld."
+
+msgid "Through local device access only the USB interface's own device {local} can be reached, not {address}."
+msgstr "Via lokale apparaattoegang is alleen het eigen apparaat {local} van de USB-interface bereikbaar, niet {address}."
+
+msgid "Through local device access only the USB interface's own device {local} can be reached: group telegrams can't be sent."
+msgstr "Via lokale apparaattoegang is alleen het eigen apparaat {local} van de USB-interface bereikbaar: groepstelegrammen kunnen niet worden verzonden."
+
+msgid "Through local device access only the USB interface's own device {local} can be reached: broadcasts can't be sent."
+msgstr "Via lokale apparaattoegang is alleen het eigen apparaat {local} van de USB-interface bereikbaar: broadcasts kunnen niet worden verzonden."
+
+msgid "Through local device access only the USB interface's own device {local} can be reached: the bus monitor can't run."
+msgstr "Via lokale apparaattoegang is alleen het eigen apparaat {local} van de USB-interface bereikbaar: de busmonitor kan niet draaien."
+
+msgid "Through local device access only the USB interface's own device {local} can be reached: scan from {local} to {local}."
+msgstr "Via lokale apparaattoegang is alleen het eigen apparaat {local} van de USB-interface bereikbaar: scan van {local} tot {local}."
+
+msgid "M-Bus and BatiBus Frames"
+msgstr "M-Bus- en BatiBus-frames"
+
+msgid "The frames of the interface's M-Bus and BatiBus tunnels (e.g. of a KNX RF USB stick that also receives wireless M-Bus meters), passed through as they are. The last 500 are kept."
+msgstr "De frames van de M-Bus- en BatiBus-tunnels van de interface (bijv. van een KNX RF USB-stick die ook draadloze M-Bus-meters ontvangt), ongewijzigd doorgegeven. De laatste 500 worden bewaard."
+
+msgid "No M-Bus or BatiBus frames yet"
+msgstr "Nog geen M-Bus- of BatiBus-frames"
+
+msgid "Clear"
+msgstr "Wissen"
+
+msgid "Time"
+msgstr "Tijd"
+
+msgid "Direction"
+msgstr "Richting"
+
+msgid "Protocol"
+msgstr "Protocol"
+
+msgid "Service"
+msgstr "Dienst"
+
+msgid "Data"
+msgstr "Gegevens"
+
+msgid "Sent"
+msgstr "Verzonden"
+
+msgid "Received"
+msgstr "Ontvangen"
+
+msgid "Send"
+msgstr "Verzenden"
+
+msgid "{data} is not hexadecimal data (e.g. 44 AE 0C)."
+msgstr "{data} zijn geen hexadecimale gegevens (bijv. 44 AE 0C)."
+
+msgid "{service} is not a hexadecimal octet (00 to FF)."
+msgstr "{service} is geen hexadecimaal octet (00 tot FF)."
+
+msgid "The frame could not be sent: {error}"
+msgstr "Het frame kon niet worden verzonden: {error}"
+
+msgid "Block Bus Writes is on (Settings > Connection): nothing is sent."
+msgstr "Schrijven naar de bus blokkeren staat aan (Instellingen > Verbinding): er wordt niets verzonden."
+
+msgid "KNXnet/IP Server"
+msgstr "KNXnet/IP-server"
+
+msgid "Run a KNXnet/IP server for other tools (USB to IP bridge)"
+msgstr "Een KNXnet/IP-server voor andere tools draaien (USB-naar-IP-brug)"
+
+msgid "Other tools (another editor, Home Assistant, a commissioning tool) connect to it over the network and use this USB interface as a KNXnet/IP interface. Each tunnel gets one of the tunnel addresses, which have to be free addresses of the interface's line. It runs while the editor is connected to the bus through the interface, and opens a network port: turn it on only where that is wanted."
+msgstr "Andere tools (een andere editor, Home Assistant, een inbedrijfstellingstool) maken via het netwerk verbinding ermee en gebruiken deze USB-interface als KNXnet/IP-interface. Elke tunnel krijgt een van de tunneladressen, die vrije adressen van de lijn van de interface moeten zijn. De server draait zolang de editor via de interface met de bus verbonden is en opent een netwerkpoort: schakel hem alleen in waar dat gewenst is."
+
+msgid "Port"
+msgstr "Poort"
+
+msgid "Listen On"
+msgstr "Luisteren Op"
+
+msgid "All network interfaces"
+msgstr "Alle netwerkinterfaces"
+
+msgid "This computer only"
+msgstr "Alleen deze computer"
+
+msgid "Answer searches (discovery)"
+msgstr "Zoekopdrachten beantwoorden (discovery)"
+
+msgid "Offer TCP"
+msgstr "TCP aanbieden"
+
+msgid "Tunnel Addresses"
+msgstr "Tunneladressen"
+
+msgid "Suggest"
+msgstr "Voorstellen"
+
+msgid "Name"
+msgstr "Naam"
+
+msgid "KNXnet/IP server on port {port}, {count} tunnel"
+msgid_plural "KNXnet/IP server on port {port}, {count} tunnels"
+msgstr[0] "KNXnet/IP-server op poort {port}, {count} tunnel"
+msgstr[1] "KNXnet/IP-server op poort {port}, {count} tunnels"
+
+msgid "The KNXnet/IP server is not running."
+msgstr "De KNXnet/IP-server draait niet."
+
+msgid "No tunnels open"
+msgstr "Geen tunnels open"
+
+msgid "Channel"
+msgstr "Kanaal"
+
+msgid "Client"
+msgstr "Client"
+
+msgid "Address"
+msgstr "Adres"
+
+msgid "At least one tunnel address is needed."
+msgstr "Er is ten minste één tunneladres nodig."
+
+msgid "The tunnel address {address} is given twice."
+msgstr "Het tunneladres {address} is twee keer opgegeven."
+
+msgid "{address} is the individual address of the interface itself."
+msgstr "{address} is het individuele adres van de interface zelf."
+
+msgid "{address} is not on the line of the interface ({line})."
+msgstr "{address} ligt niet op de lijn van de interface ({line})."
+
+msgid "{address} is the individual address of the device {name}."
+msgstr "{address} is het individuele adres van het apparaat {name}."
+
+msgid "{port} is not a port (1 to 65535)."
+msgstr "{port} is geen poort (1 tot 65535)."
+
+msgid "The KNXnet/IP server runs only while the editor is connected through a KNX USB interface."
+msgstr "De KNXnet/IP-server draait alleen zolang de editor via een KNX USB-interface verbonden is."
+
+msgid "The KNXnet/IP server doesn't run with local device access: the connection reaches only the interface's own device."
+msgstr "De KNXnet/IP-server draait niet met lokale apparaattoegang: de verbinding bereikt alleen het eigen apparaat van de interface."
+
+msgid "The KNXnet/IP server is being started or stopped."
+msgstr "De KNXnet/IP-server wordt gestart of gestopt."
+
+msgid "The KNXnet/IP server could not start: {error}"
+msgstr "De KNXnet/IP-server kon niet starten: {error}"
+
+msgid "Enter the data to send (e.g. 44 AE 0C)."
+msgstr "Voer de te verzenden gegevens in (bijv. 44 AE 0C)."

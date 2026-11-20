@@ -163,6 +163,157 @@ async def _coro(value: Any) -> Any:
     return value
 
 
+@pytest.mark.parametrize("operation", ["groups", "scenes"])
+def test_persistence_uses_only_completed_operation_snapshot(operation):
+    queued = []
+    saved = []
+
+    def persist(*args):
+        saved.append(args)
+        return True
+
+    panel = DaliCommissioningPanel(lambda *args: queued.append(args), persist)
+    device = _device()
+    key = panel._key(device)
+    state = panel._state(key, 0)
+    state.scan = DaliBusState(
+        channel=0, ecgs=[EcgState(slot=0, present=True, group_index=1, ets_ecg_index=0)]
+    )
+    state.group_edits = {0: 5}
+    state.scene_edits = {2: {4: 128}}
+    if operation == "groups":
+        panel._start_program_groups(device, key)
+    else:
+        panel._start_program_scenes(device, key)
+    state.group_edits[0] = 9
+    state.scene_edits[2][4] = 200
+
+    async def write_scenes(scenes, *, levels_only):
+        assert levels_only
+
+    commissioner = SimpleNamespace(
+        commission=lambda _: _coro(True), write_scenes=write_scenes
+    )
+    asyncio.run(queued[0][1](commissioner))
+    panel._persist_backup(device, 0, state)
+    assert len(saved) == 1
+    _, scan, assignments, scenes, channel = saved[0]
+    assert channel == 0
+    if operation == "groups":
+        assert [(a.slot, a.group_index) for a in assignments] == [(0, 5)]
+        assert scan.ecgs[0].group_index == 5
+        assert scenes == []
+    else:
+        assert assignments == []
+        assert scenes[0].values[0].level == 128
+    assert state.group_edits == {0: 9}
+    assert state.scene_edits == {2: {4: 200}}
+    assert not state.persist_pending
+
+
+def test_failed_write_does_not_persist():
+    async def fail(_):
+        raise RuntimeError("write failed")
+
+    panel = DaliCommissioningPanel(_runner(SimpleNamespace(commission=fail)))
+    device = _device()
+    key = panel._key(device)
+    state = panel._state(key, 0)
+    state.scan = DaliBusState(channel=0, ecgs=[EcgState(slot=0, present=True)])
+    state.group_edits[0] = 5
+    panel._start_program_groups(device, key)
+    assert not state.persist_pending
+    assert "write failed" in state.error
+
+
+def test_missing_e64_backup_is_not_reported_saved():
+    from editor_gui.programming_dali import persist_dali_backup
+
+    device = _device()
+    device.app = SimpleNamespace(id="M-00EF_A-DA11-22-A545")
+    project = SimpleNamespace(
+        find_device_by_node_id=lambda _: device,
+        device_binary_data=lambda *_: None,
+        persist_dali_backup=lambda *_: pytest.fail("no backup to persist"),
+    )
+    assert not persist_dali_backup(
+        project, device, DaliBusState(0), [], [], 0, label="DALI"
+    )
+
+
+@pytest.mark.parametrize("switch_project", [False, True])
+def test_completed_write_saves_without_rendering_tab(switch_project):
+    queued, saved = [], []
+    generation = [1]
+
+    def persist(*args):
+        saved.append(args)
+        return True
+
+    panel = DaliCommissioningPanel(
+        lambda *args: queued.append(args), persist, _generation=lambda: generation[0]
+    )
+    device = _device()
+    key = panel._key(device)
+    state = panel._state(key, 0)
+    state.scan = DaliBusState(0, ecgs=[EcgState(0, present=True)])
+    state.group_edits[0] = 5
+    panel._start_program_groups(device, key)
+    if switch_project:
+        generation[0] += 1
+    asyncio.run(queued[0][1](SimpleNamespace(commission=lambda _: _coro(True))))
+    queued[0][4]()
+    assert len(saved) == (0 if switch_project else 1)
+
+
+def test_queued_completion_persists_on_ui_thread():
+    import threading
+    from concurrent.futures import Future
+
+    from editor_gui.plugins.project.program_queue import ProgramQueue, QueueItem
+
+    ui_calls, operations, saved_on = [], [], []
+    future = Future()
+    queue = ProgramQueue(
+        is_busy=lambda: False,
+        start=lambda _: future,
+        submit=ui_calls.append,
+    )
+
+    def run(device, op, channel, text, ended, writes):
+        operations.append(op)
+        item = QueueItem(device.node_id, "1.1.1", "DALI", None, ended=Future())
+        item.ended.add_done_callback(lambda _: ended())
+        queue.enqueue(item)
+
+    def persist(*args):
+        saved_on.append(threading.get_ident())
+        return True
+
+    panel = DaliCommissioningPanel(run, persist)
+    device = _device()
+    key = panel._key(device)
+    state = panel._state(key, 0)
+    state.scan = DaliBusState(0, ecgs=[EcgState(0, present=True)])
+    state.group_edits[0] = 5
+    panel._start_program_groups(device, key)
+
+    def finish():
+        result = asyncio.run(
+            operations[0](SimpleNamespace(commission=lambda _: _coro(True)))
+        )
+        future.set_result(result)
+
+    worker = threading.Thread(target=finish)
+    worker.start()
+    worker.join()
+    assert not saved_on
+    assert len(ui_calls) == 1
+    ui_calls.pop()()
+    assert saved_on == [threading.get_ident()]
+    assert not state.persist_pending
+
+
 def test_assignments_from_applies_group_edits() -> None:
     bus = DaliBusState(
         channel=0,
@@ -175,8 +326,8 @@ def test_assignments_from_applies_group_edits() -> None:
     assignments = _assignments_from(bus, {0: 7})  # move slot 0 to group 7
     assert assignments == [
         EcgAssignment(slot=0, ets_index=0, group_index=7),  # edited
-        EcgAssignment(slot=3, ets_index=3, group_index=2),  # kept
-    ]  # absent slot 7 excluded
+    ]
+    assert _assignments_from(bus, {}) == []
 
 
 def test_scenes_from_builds_sorted_values_and_skips_empty() -> None:

@@ -286,7 +286,10 @@ class _Commissioner:
         )
         return True
 
-    async def write_scenes(self, scenes: list[Any]) -> None:
+    async def write_scenes(
+        self, scenes: list[Any], *, levels_only: bool = False
+    ) -> None:
+        assert levels_only
         self.calls.append(
             (
                 "scenes",
@@ -349,7 +352,7 @@ async def test_dali_commissioning_of_a_gateway(
         channel: int,
         *,
         label: str,
-    ) -> None:
+    ) -> bool:
         saved.append(
             (
                 device.node_id,
@@ -358,6 +361,8 @@ async def test_dali_commissioning_of_a_gateway(
                 channel,
             )
         )
+
+        return True
 
     monkeypatch.setattr("editor_gui.programming_dali.persist_dali_backup", persist)
 
@@ -376,6 +381,24 @@ async def test_dali_commissioning_of_a_gateway(
             (1, 1, "single"),
         ]
         assert scan["groups"][0]["index"] == 1
+        calls = list(commissioner.calls)
+        await _error(
+            client,
+            "connection_dali_program_groups",
+            "no group changes",
+            node_id=7,
+            groups=[],
+        )
+        for target in ({"slot": -1}, {"slot": 64}, {"group": -1}, {"group": 16}):
+            await _error(
+                client,
+                "connection_dali_identify",
+                "must be",
+                node_id=7,
+                action="blink",
+                **target,
+            )
+        assert commissioner.calls == calls
         await _error(
             client, "connection_dali_scan", "channel 0 to 0", node_id=7, channel=1
         )
@@ -405,7 +428,7 @@ async def test_dali_commissioning_of_a_gateway(
         assert programmed == {
             "node_id": 7,
             "channel": 0,
-            "programmed": 2,
+            "programmed": 1,
             "saved": True,
         }
         await _error(
@@ -435,14 +458,23 @@ async def test_dali_commissioning_of_a_gateway(
         )
         assert len(installed["ecgs"]) == 2
 
+        monkeypatch.setattr(project, "_generation", project.generation + 1)
+        await _error(
+            client,
+            "connection_dali_program_groups",
+            "scan the channel first",
+            node_id=7,
+            groups=[{"slot": 1, "group": 4}],
+        )
+
     assert ("blink_ecg", 1, True) in commissioner.calls
     assert ("switch_group", 3, False) in commissioner.calls
     assert ("broadcast", True) in commissioner.calls
-    assert ("commission", [(0, 0, 1), (1, 1, 4)]) in commissioner.calls
+    assert ("commission", [(1, 1, 4)]) in commissioner.calls
     assert ("scenes", [(2, 3, [(4, 128)])]) in commissioner.calls
     assert ("new",) in commissioner.calls
-    # Each groups/scenes write saves the whole channel: the new group, then the scenes too.
-    assert saved == [(7, [(0, 1), (1, 4)], 0, 0), (7, [(0, 1), (1, 4)], 1, 0)]
+    # Each write persists only its own completed edits.
+    assert saved == [(7, [(1, 4)], 0, 0), (7, [], 1, 0)]
 
 
 async def test_restart_reset_and_dali_run_in_the_operations_queue(

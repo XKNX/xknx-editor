@@ -24,6 +24,9 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
     def _refuse_protected(address: str) -> None:
         if reason := protected_reason(address):
             raise ToolError(f"not sent: {reason} (Settings > Connection)")
+        # the connection reaches only a USB interface's own device (local device access)
+        if reason := ctx.api.connection.local_device_refusal(reaches="group"):
+            raise ToolError(f"not sent: {reason}")
 
     def _require_connection() -> None:
         # Also through Home Assistant's connection while the editor has none.

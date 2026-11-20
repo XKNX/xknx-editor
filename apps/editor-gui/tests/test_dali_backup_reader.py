@@ -47,7 +47,7 @@ def test_effect_and_template_timing_are_labelled_from_their_tables():
     assert dict(fade.choices)["14"] == "60 s"
     assert dict(delay.choices)["20"] == "20 s"
     assert dict(delay.choices)["5"] == "5 s"
-    assert not {"1", "2", "3", "4"}.intersection(dict(delay.choices))
+    assert {"1", "2", "3", "4"} <= dict(delay.choices).keys()
     templates = [
         p
         for s in read((_FIXTURES / "dali_gc16_backup.dat").read_bytes())

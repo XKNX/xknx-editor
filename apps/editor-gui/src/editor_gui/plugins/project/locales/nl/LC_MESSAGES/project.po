@@ -1587,13 +1587,6 @@ msgid "Connect to a KNX interface to commission the DALI bus."
 msgstr "Maak verbinding met een KNX-interface om de DALI-bus in bedrijf te stellen."
 
 msgid ""
-"This gateway's commissioning protocol has not been verified against a "
-"capture; writes may misbehave. Proceed with care."
-msgstr ""
-"Het inbedrijfstellingsprotocol van deze gateway is niet geverifieerd tegen "
-"een opname; schrijfbewerkingen kunnen onjuist zijn. Voorzichtig doorgaan."
-
-msgid ""
 "DALI commissioning writes the gateway on the bus but does not update the "
 "project parameters; re-export the .knxproj after a DCA-side edit."
 msgstr ""
@@ -3267,6 +3260,11 @@ msgstr "Huidige toestand van het project"
 msgid "Configuration Comparison"
 msgstr "Configuratie vergelijken"
 
+msgid "Current state of the project"
+msgstr "Huidige toestand van het project"
+msgid "Configuration Comparison"
+msgstr "Configuratie vergelijken"
+
 msgid "Compare settings with another device or the stored image from the last download."
 msgstr "Vergelijk instellingen met een ander apparaat of met het opgeslagen geheugenbeeld van de laatste download."
 
@@ -3374,6 +3372,11 @@ msgstr "Selecteer een apparaat"
 
 msgid "Select the two devices to compare."
 msgstr "Selecteer de twee apparaten die u wilt vergelijken."
+
+msgid "Loading application programs… {done}/{total}"
+msgstr "Applicatieprogramma's worden geladen… {done}/{total}"
+msgid "Symbol"
+msgstr "Symbool"
 
 msgid "Loading application programs… {done}/{total}"
 msgstr "Applicatieprogramma's worden geladen… {done}/{total}"
@@ -3590,6 +3593,11 @@ msgstr "Niet bepaald"
 msgid "Compares the device's hardware/software identity with this catalog. Does not install firmware. Catalog import: MDT Firmware Update .etsapp or Firmware.zip."
 msgstr "Vergelijkt de hardware-/software-identiteit van het apparaat met deze catalogus. Installeert geen firmware. Catalogusimport: MDT Firmware Update .etsapp of Firmware.zip."
 
+msgid "Not determined"
+msgstr "Niet bepaald"
+msgid "Compares the device's hardware/software identity with this catalog. Does not install firmware. Catalog import: MDT Firmware Update .etsapp or Firmware.zip."
+msgstr "Vergelijkt de hardware-/software-identiteit van het apparaat met deze catalogus. Installeert geen firmware. Catalogusimport: MDT Firmware Update .etsapp of Firmware.zip."
+
 msgid "Hardware/software identity could not be determined. Read the device to check compatibility."
 msgstr "De hardware-/software-identiteit kon niet worden bepaald. Lees het apparaat uit om de compatibiliteit te controleren."
 
@@ -3745,3 +3753,468 @@ msgstr "Het communicatiepad via de koppelaar {coupler} kon niet worden geopend (
 
 msgid "The domain address of this secure device could not be loaded because the coupler {coupler} does not support security."
 msgstr "Het domeinadres van dit beveiligde apparaat kon niet worden geladen, omdat de koppelaar {coupler} geen beveiliging ondersteunt."
+
+msgid "Actions"
+msgstr "Acties"
+
+msgid "Add Command"
+msgstr "Opdracht toevoegen"
+
+msgid "Assigned Groups and ECGs"
+msgstr "Toegewezen groepen en EVSA’s"
+
+msgid "Colour"
+msgstr "Kleur"
+
+msgid "Control Gear and Groups"
+msgstr "EVSA’s en groepen"
+
+msgid "Delay"
+msgstr "Vertraging"
+
+msgid "ECG"
+msgstr "EVSA"
+
+msgid "Effects"
+msgstr "Effecten"
+
+msgid "Fade Time"
+msgstr "Dimtijd"
+
+msgid "Flag"
+msgstr "Vlag"
+
+msgid "General Inputs"
+msgstr "Algemene ingangen"
+
+msgid "Input Devices"
+msgstr "Invoerapparaten"
+
+msgid "Instance"
+msgstr "Instantie"
+
+msgid "KNX Scene"
+msgstr "KNX-scène"
+
+msgid "Keep Colour"
+msgstr "Kleur behouden"
+
+msgid "Keep Value"
+msgstr "Waarde behouden"
+
+msgid "Loop"
+msgstr "Herhalen"
+
+msgid "Manual Override"
+msgstr "Handmatige overbrugging"
+
+msgid "Midnight Reset"
+msgstr "Reset om middernacht"
+
+msgid "Mo Tu We Th Fr Sa Su"
+msgstr "ma di wo do vr za zo"
+
+msgid "Mode"
+msgstr "Modus"
+
+msgid "Motion / Brightness"
+msgstr "Beweging / helderheid"
+
+msgid "No Entries"
+msgstr "Geen items"
+
+msgid "Origin"
+msgstr "Herkomst"
+
+msgid "Physical Devices Without a Unique Assignment"
+msgstr "Fysieke apparaten zonder eenduidige toewijzing"
+
+msgid "Physical Inputs"
+msgstr "Fysieke ingangen"
+
+msgid "Push-Buttons"
+msgstr "Drukknoppen"
+
+msgid "Reference"
+msgstr "Referentie"
+
+msgid "Single ECG"
+msgstr "Individueel EVSA"
+
+msgid "Target"
+msgstr "Doel"
+
+msgid "Time"
+msgstr "Tijd"
+
+msgid "Time Control"
+msgstr "Tijdsturing"
+
+msgid "View"
+msgstr "Beeld"
+
+msgid "Weekdays"
+msgstr "Weekdagen"
+
+msgid "Add Target"
+msgstr "Doel toevoegen"
+
+msgid "Apply"
+msgstr "Toepassen"
+
+msgid "Approximate Preview"
+msgstr "Indicatief voorbeeld"
+
+msgid "Colour Temperature"
+msgstr "Kleurtemperatuur"
+
+msgid "Groups"
+msgstr "Groepen"
+
+msgid "Search"
+msgstr "Zoeken"
+
+msgid "White"
+msgstr "Wit"
+
+msgid "Brightness"
+msgstr "Helderheid"
+
+msgid "Min. Brightness"
+msgstr "Min. helderheid"
+
+msgid "Max. Brightness"
+msgstr "Max. helderheid"
+
+msgid "Switch-on Limit"
+msgstr "Inschakellimiet"
+
+msgid "DCA Details"
+msgstr "DCA-details"
+
+msgid "Import DCA XML…"
+msgstr "DCA-XML importeren…"
+
+msgid "Export DCA XML…"
+msgstr "DCA-XML exporteren…"
+
+msgid "Replace the DCA configuration of {device} with the selected XML file?"
+msgstr "De DCA-configuratie van {device} vervangen door het geselecteerde XML-bestand?"
+
+msgid "DCA configuration imported."
+msgstr "DCA-configuratie geïmporteerd."
+
+msgid "DCA configuration exported."
+msgstr "DCA-configuratie geëxporteerd."
+
+msgid "Color Temperature"
+msgstr "Kleurtemperatuur"
+
+msgid "Keep Color"
+msgstr "Kleur behouden"
+
+msgid "No entries"
+msgstr "Geen items"
+
+msgid "Assigned Groups and ECGs…"
+msgstr "Toegewezen groepen en EVSA’s…"
+
+msgid "Add Target…"
+msgstr "Doel toevoegen…"
+
+msgid "Approximate preview"
+msgstr "Indicatief voorbeeld"
+
+msgid "Manual override"
+msgstr "Handmatige overbrugging"
+
+msgid "Midnight reset"
+msgstr "Reset om middernacht"
+
+msgid "Import DCA Configuration"
+msgstr "DCA-configuratie importeren"
+
+msgid "Edit DCA configuration"
+msgstr "DCA-configuratie bewerken"
+
+msgid "Import DCA configuration"
+msgstr "DCA-configuratie importeren"
+
+msgid "Invalid DCA configuration."
+msgstr "Ongeldige DCA-configuratie."
+
+msgid "Expected a complete DCA device configuration."
+msgstr "Een volledige DCA-apparaatconfiguratie is vereist."
+
+msgid "DALI project data changed. Reopen the selection and try again."
+msgstr "De DALI-projectgegevens zijn gewijzigd. Open de selectie opnieuw en probeer het opnieuw."
+
+msgid "The selected DCA item is unavailable. Reopen the selection."
+msgstr "Het geselecteerde DCA-item is niet beschikbaar. Open de selectie opnieuw."
+
+msgid "Invalid value."
+msgstr "Ongeldige waarde."
+
+msgid "Invalid or unsupported color value."
+msgstr "Ongeldige of niet-ondersteunde kleurwaarde."
+
+msgid "This DCA operation is not supported."
+msgstr "Deze DCA-bewerking wordt niet ondersteund."
+
+msgid "Expected {minimum}-{maximum}."
+msgstr "Verwacht: {minimum}-{maximum}."
+
+msgid "Expected HH:MM."
+msgstr "Verwacht: HH:MM."
+
+msgid "Select seven weekdays."
+msgstr "Selecteer zeven weekdagen."
+
+msgid "The target already belongs to the scene."
+msgstr "Het doel behoort al tot de scène."
+
+msgid "At most 300 time control commands are supported."
+msgstr "Er worden maximaal 300 tijdsturingsopdrachten ondersteund."
+
+msgid "At most 500 effect steps are supported."
+msgstr "Er worden maximaal 500 effectstappen ondersteund."
+
+msgid "Descriptions can contain at most {maximum} characters."
+msgstr "Beschrijvingen mogen maximaal {maximum} tekens bevatten."
+
+msgid "Mo"
+msgstr "ma"
+
+msgid "Tu"
+msgstr "di"
+
+msgid "We"
+msgstr "wo"
+
+msgid "Th"
+msgstr "do"
+
+msgid "Fr"
+msgstr "vr"
+
+msgid "Sa"
+msgstr "za"
+
+msgid "Su"
+msgstr "zo"
+
+msgid "A test is pending."
+msgstr "Er staat een test in de wachtrij."
+
+msgid "Battery"
+msgstr "Batterij"
+
+msgid "Brightness sensor"
+msgstr "Helderheidssensor"
+
+msgid "Converters"
+msgstr "Omvormers"
+
+msgid "Descriptions"
+msgstr "Beschrijvingen"
+
+msgid "Diagnostic Report"
+msgstr "Diagnoserapport"
+
+msgid "Duration"
+msgstr "Duur"
+
+msgid "Duration test running"
+msgstr "Duurtest wordt uitgevoerd"
+
+msgid "Edit several descriptions and apply them together in one undo step."
+msgstr "Bewerk meerdere beschrijvingen en pas ze samen toe in één stap die ongedaan kan worden gemaakt."
+
+msgid "Emergency"
+msgstr "Noodbedrijf"
+
+msgid "Emergency Failure"
+msgstr "Noodlichtfout"
+
+msgid "Emergency Mode"
+msgstr "Noodlichtmodus"
+
+msgid "Emergency Status"
+msgstr "Noodlichtstatus"
+
+msgid "Errors"
+msgstr "Fouten"
+
+msgid "Event sensor"
+msgstr "Gebeurtenissensor"
+
+msgid "Extended emergency"
+msgstr "Verlengd noodbedrijf"
+
+msgid "Failure Rate"
+msgstr "Foutpercentage"
+
+msgid "Fixed inhibit"
+msgstr "Vaste blokkering"
+
+msgid "Function test running"
+msgstr "Functietest wordt uitgevoerd"
+
+msgid "Generic sensor"
+msgstr "Algemene sensor"
+
+msgid "Inhibit"
+msgstr "Blokkering"
+
+msgid "Lamps"
+msgstr "Lampen"
+
+msgid "Motion sensor"
+msgstr "Bewegingssensor"
+
+msgid "Normal"
+msgstr "Normaal"
+
+msgid "Push button"
+msgstr "Drukknop"
+
+msgid "Read Report"
+msgstr "Rapport lezen"
+
+msgid "Read the diagnostic report from the gateway to display its current counters and saved test results."
+msgstr "Lees het diagnoserapport van de gateway om de huidige tellers en opgeslagen testresultaten weer te geven."
+
+msgid "Replace the selected slot with the XML configuration? Other slots remain unchanged."
+msgstr "De geselecteerde positie vervangen door de XML-configuratie? Andere posities blijven ongewijzigd."
+
+msgid "Rest"
+msgstr "Rust"
+
+msgid "Result"
+msgstr "Resultaat"
+
+msgid "Test"
+msgstr "Test"
+
+msgid "The input types are not compatible."
+msgstr "De ingangstypen zijn niet compatibel."
+
+msgid "This physical input is already assigned."
+msgstr "Deze fysieke ingang is al toegewezen."
+
+msgid "Total Failure Rate"
+msgstr "Totaal foutpercentage"
+
+msgid "Value input"
+msgstr "Waarde-ingang"
+
+
+msgid "Call scene"
+msgstr "Scène oproepen"
+
+msgid "Call effect"
+msgstr "Effect oproepen"
+
+msgid "Start"
+msgstr "Starten"
+
+msgid "Controlled by effect object"
+msgstr "Gestuurd door effectobject"
+
+msgid "Import Descriptions…"
+msgstr "Beschrijvingen importeren…"
+
+msgid "Export Descriptions…"
+msgstr "Beschrijvingen exporteren…"
+
+msgid "Replace the descriptions included in the file? You can undo this change."
+msgstr ""
+"De beschrijvingen in het bestand vervangen? U kunt deze wijziging ongedaan "
+"maken."
+
+msgid "Clear Descriptions"
+msgstr "Beschrijvingen wissen"
+
+msgid "These descriptions cannot be preserved as TXT. Choose XML."
+msgstr "Deze beschrijvingen kunnen niet als TXT worden bewaard. Kies XML."
+
+msgid "Insert Before"
+msgstr "Invoegen vóór"
+
+msgid "Sort by Time"
+msgstr "Sorteren op tijd"
+
+msgid "Sort by Function"
+msgstr "Sorteren op functie"
+
+msgid "Clear Actions"
+msgstr "Acties wissen"
+
+msgid "Discover Inputs"
+msgstr "Ingangen zoeken"
+
+msgid "Stop Blinking"
+msgstr "Knipperen stoppen"
+
+msgid "Function Test"
+msgstr "Functietest"
+
+msgid "Duration Test"
+msgstr "Duurtest"
+
+msgid "Battery Test"
+msgstr "Batterijtest"
+
+msgid "Read Calibration"
+msgstr "Kalibratie lezen"
+
+msgid "Set Calibration Level"
+msgstr "Kalibratieniveau instellen"
+
+msgid "Save Calibration"
+msgstr "Kalibratie opslaan"
+
+msgid "Read Memory Byte"
+msgstr "Geheugenbyte lezen"
+
+msgid "Write Memory Byte"
+msgstr "Geheugenbyte schrijven"
+
+msgid "Read Names"
+msgstr "Namen lezen"
+
+msgid "Write Names"
+msgstr "Namen schrijven"
+
+msgid "Read Motion Diagnostics"
+msgstr "Bewegingsdiagnose lezen"
+
+msgid "Inhibit Converters"
+msgstr "Converters blokkeren"
+
+msgid "Replace ECGs…"
+msgstr "Voorschakelapparaten vervangen…"
+
+msgid "Service"
+msgstr "Service"
+
+msgid "Calibration"
+msgstr "Kalibratie"
+
+msgid "Memory Bank"
+msgstr "Geheugenbank"
+
+msgid "Measured Illuminance (lx)"
+msgstr "Gemeten verlichtingssterkte (lx)"
+
+msgid "Enable memory write lock"
+msgstr "Schrijfblokkering van geheugen inschakelen"
+
+msgid "Start automatic ECG replacement on this gateway? This changes the DALI assignments and cannot be undone in the project."
+msgstr "Automatische vervanging van voorschakelapparaten op deze gateway starten? Dit wijzigt de DALI-toewijzingen en kan niet in het project ongedaan worden gemaakt."
+
+msgid "Restore Gateway…"
+msgstr "Gateway herstellen…"
+
+msgid "Restore the saved physical inventory and configuration to this gateway and restart it? This overwrites its DALI state and cannot be undone in the project."
+msgstr "De opgeslagen fysieke apparaten en configuratie op deze gateway herstellen en deze opnieuw starten? Dit overschrijft de DALI-status en kan niet in het project ongedaan worden gemaakt."

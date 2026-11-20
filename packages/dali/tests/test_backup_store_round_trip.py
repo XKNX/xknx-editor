@@ -168,7 +168,7 @@ def test_merge_preserves_templates_and_descriptions() -> None:
     #   <DevECG index=2> (slot)  -> group, short-address = logical ECG 7
     assert after.ecgs[7].groupindex == 3
     assert after.ecgs[7].short_address == 2
-    assert after.ecgs[7].flags == 2
+    assert after.ecgs[7].flags == 4
     assert after.devecgs[2].groupindex == 3
     assert after.devecgs[2].short_address == 7
     assert after.devecgs[2].type == 6
@@ -223,7 +223,7 @@ def test_merge_without_existing_seeds_from_scan() -> None:
     # The logical ECG row is index 1 (the ETS number), not index 0 (the slot).
     assert store.ecgs[1].groupindex == 2
     assert store.ecgs[1].short_address == 0  # physical slot it is bound to
-    assert store.ecgs[1].flags == 2
+    assert store.ecgs[1].flags == 4
     assert store.ecgs[1].type == 6
     # All 16 templates materialised even on a fresh blob.
     assert len(store.templates) == 16
@@ -277,3 +277,29 @@ def test_merge_preserves_colour_scenes_and_templates() -> None:
     # The edited assignment landed on both index spaces.
     assert after.ecgs[1].groupindex == 4
     assert after.devecgs[1].groupindex == 4
+
+
+def test_merge_keeps_existing_type_zero_mapping_when_editing_another_ecg():
+    from xknxeditor.dali.model import DaliBusState, EcgAssignment, EcgState
+    from xknxeditor.dali.project_persistence import merge_commissioning_blob
+
+    before = load_backup_store(_FIXTURE.read_bytes())
+    row = before.ecgs[7]
+    row.type = 0
+    row.groupindex = 3
+    row.short_address = 2
+    row.flags = 3
+    state = DaliBusState(
+        0,
+        ecgs=[EcgState(5, present=True, ecg_type=6, ets_ecg_index=7, group_index=8)],
+    )
+    original = dump_backup_store(before)
+    merged = merge_commissioning_blob(
+        existing=original,
+        state=state,
+        assignments=[EcgAssignment(1, 1, 4)],
+        scenes=[],
+        individual_address="1.1.1",
+    )
+    after = load_backup_store(merged)
+    assert after.ecgs[7] == row

@@ -357,3 +357,183 @@ msgstr "Adresu domény se nepodařilo nastavit: {error}"
 
 msgid "Setting the domain address…"
 msgstr "Nastavuje se adresa domény…"
+
+msgid "Local Device Access"
+msgstr "Místní přístup k zařízení"
+
+msgid "Connects to the KNX device the USB interface is part of (e.g. an actuator with a USB port of its own) instead of the bus. Only this device can then be reached, for downloads and readouts; group telegrams, broadcasts and the bus monitor are not available. Needs a cEMI interface."
+msgstr "Připojí se ke KNX zařízení, jehož je rozhraní USB součástí (např. akční člen s vlastním portem USB), místo ke sběrnici. Dosažitelné je pak pouze toto zařízení, pro nahrávání a vyčítání; skupinové telegramy, broadcasty a sběrnicový monitor nejsou k dispozici. Vyžaduje rozhraní cEMI."
+
+msgid "Connect to the interface's own device (local device access)"
+msgstr "Připojit k vlastnímu zařízení rozhraní (místní přístup k zařízení)"
+
+msgid "{target}, local device access to {address}"
+msgstr "{target}, místní přístup k zařízení {address}"
+
+msgid "(address unknown)"
+msgstr "(adresa neznámá)"
+
+msgid "Local device access: only this device is reached"
+msgstr "Místní přístup k zařízení: dosažitelné je pouze toto zařízení"
+
+msgid "Switching the connection…"
+msgstr "Přepíná se připojení…"
+
+msgid "The connection could not be switched: {error}"
+msgstr "Připojení se nepodařilo přepnout: {error}"
+
+msgid "The connection of the interface is being switched."
+msgstr "Připojení rozhraní se právě přepíná."
+
+msgid "Through local device access only the USB interface's own device {local} can be reached, not {address}."
+msgstr "Přes místní přístup k zařízení je dosažitelné pouze vlastní zařízení {local} rozhraní USB, nikoli {address}."
+
+msgid "Through local device access only the USB interface's own device {local} can be reached: group telegrams can't be sent."
+msgstr "Přes místní přístup k zařízení je dosažitelné pouze vlastní zařízení {local} rozhraní USB: skupinové telegramy nelze odesílat."
+
+msgid "Through local device access only the USB interface's own device {local} can be reached: broadcasts can't be sent."
+msgstr "Přes místní přístup k zařízení je dosažitelné pouze vlastní zařízení {local} rozhraní USB: broadcasty nelze odesílat."
+
+msgid "Through local device access only the USB interface's own device {local} can be reached: the bus monitor can't run."
+msgstr "Přes místní přístup k zařízení je dosažitelné pouze vlastní zařízení {local} rozhraní USB: sběrnicový monitor nelze spustit."
+
+msgid "Through local device access only the USB interface's own device {local} can be reached: scan from {local} to {local}."
+msgstr "Přes místní přístup k zařízení je dosažitelné pouze vlastní zařízení {local} rozhraní USB: prohledejte rozsah od {local} do {local}."
+
+msgid "M-Bus and BatiBus Frames"
+msgstr "Rámce M-Bus a BatiBus"
+
+msgid "The frames of the interface's M-Bus and BatiBus tunnels (e.g. of a KNX RF USB stick that also receives wireless M-Bus meters), passed through as they are. The last 500 are kept."
+msgstr "Rámce tunelů M-Bus a BatiBus rozhraní (např. KNX RF USB klíče, který přijímá i bezdrátové měřiče M-Bus), předávané beze změny. Uchovává se posledních 500."
+
+msgid "No M-Bus or BatiBus frames yet"
+msgstr "Zatím žádné rámce M-Bus ani BatiBus"
+
+msgid "Clear"
+msgstr "Vymazat"
+
+msgid "Time"
+msgstr "Čas"
+
+msgid "Direction"
+msgstr "Směr"
+
+msgid "Protocol"
+msgstr "Protokol"
+
+msgid "Service"
+msgstr "Služba"
+
+msgid "Data"
+msgstr "Data"
+
+msgid "Sent"
+msgstr "Odesláno"
+
+msgid "Received"
+msgstr "Přijato"
+
+msgid "Send"
+msgstr "Odeslat"
+
+msgid "{data} is not hexadecimal data (e.g. 44 AE 0C)."
+msgstr "{data} nejsou šestnáctková data (např. 44 AE 0C)."
+
+msgid "{service} is not a hexadecimal octet (00 to FF)."
+msgstr "{service} není šestnáctkový oktet (00 až FF)."
+
+msgid "The frame could not be sent: {error}"
+msgstr "Rámec se nepodařilo odeslat: {error}"
+
+msgid "Block Bus Writes is on (Settings > Connection): nothing is sent."
+msgstr "Blokovat zápisy na sběrnici je zapnuto (Nastavení > Připojení): nic se neodesílá."
+
+msgid "KNXnet/IP Server"
+msgstr "Server KNXnet/IP"
+
+msgid "Run a KNXnet/IP server for other tools (USB to IP bridge)"
+msgstr "Provozovat server KNXnet/IP pro jiné nástroje (most USB na IP)"
+
+msgid "Other tools (another editor, Home Assistant, a commissioning tool) connect to it over the network and use this USB interface as a KNXnet/IP interface. Each tunnel gets one of the tunnel addresses, which have to be free addresses of the interface's line. It runs while the editor is connected to the bus through the interface, and opens a network port: turn it on only where that is wanted."
+msgstr "Jiné nástroje (další editor, Home Assistant, nástroj pro uvedení do provozu) se k němu připojí přes síť a použijí toto rozhraní USB jako rozhraní KNXnet/IP. Každý tunel dostane jednu z adres tunelů, které musí být volnými adresami linie rozhraní. Běží, dokud je editor přes rozhraní připojen ke sběrnici, a otevírá síťový port: zapněte ho jen tam, kde je to žádoucí."
+
+msgid "Port"
+msgstr "Port"
+
+msgid "Listen On"
+msgstr "Naslouchat na"
+
+msgid "All network interfaces"
+msgstr "Všechna síťová rozhraní"
+
+msgid "This computer only"
+msgstr "Pouze tento počítač"
+
+msgid "Answer searches (discovery)"
+msgstr "Odpovídat na vyhledávání (discovery)"
+
+msgid "Offer TCP"
+msgstr "Nabízet TCP"
+
+msgid "Tunnel Addresses"
+msgstr "Adresy tunelů"
+
+msgid "Suggest"
+msgstr "Navrhnout"
+
+msgid "Name"
+msgstr "Název"
+
+msgid "KNXnet/IP server on port {port}, {count} tunnel"
+msgid_plural "KNXnet/IP server on port {port}, {count} tunnels"
+msgstr[0] "Server KNXnet/IP na portu {port}, {count} tunel"
+msgstr[1] "Server KNXnet/IP na portu {port}, {count} tunely"
+msgstr[2] "Server KNXnet/IP na portu {port}, {count} tunelů"
+
+msgid "The KNXnet/IP server is not running."
+msgstr "Server KNXnet/IP neběží."
+
+msgid "No tunnels open"
+msgstr "Žádné otevřené tunely"
+
+msgid "Channel"
+msgstr "Kanál"
+
+msgid "Client"
+msgstr "Klient"
+
+msgid "Address"
+msgstr "Adresa"
+
+msgid "At least one tunnel address is needed."
+msgstr "Je potřeba alespoň jedna adresa tunelu."
+
+msgid "The tunnel address {address} is given twice."
+msgstr "Adresa tunelu {address} je zadána dvakrát."
+
+msgid "{address} is the individual address of the interface itself."
+msgstr "{address} je individuální adresa samotného rozhraní."
+
+msgid "{address} is not on the line of the interface ({line})."
+msgstr "{address} není na linii rozhraní ({line})."
+
+msgid "{address} is the individual address of the device {name}."
+msgstr "{address} je individuální adresa zařízení {name}."
+
+msgid "{port} is not a port (1 to 65535)."
+msgstr "{port} není port (1 až 65535)."
+
+msgid "The KNXnet/IP server runs only while the editor is connected through a KNX USB interface."
+msgstr "Server KNXnet/IP běží pouze tehdy, když je editor připojen přes rozhraní KNX USB."
+
+msgid "The KNXnet/IP server doesn't run with local device access: the connection reaches only the interface's own device."
+msgstr "Server KNXnet/IP neběží s místním přístupem k zařízení: připojení dosáhne pouze vlastního zařízení rozhraní."
+
+msgid "The KNXnet/IP server is being started or stopped."
+msgstr "Server KNXnet/IP se právě spouští nebo zastavuje."
+
+msgid "The KNXnet/IP server could not start: {error}"
+msgstr "Server KNXnet/IP se nepodařilo spustit: {error}"
+
+msgid "Enter the data to send (e.g. 44 AE 0C)."
+msgstr "Zadejte data k odeslání (např. 44 AE 0C)."

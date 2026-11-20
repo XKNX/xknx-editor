@@ -161,7 +161,7 @@ from .tables_system300 import (
 )
 
 if TYPE_CHECKING:
-    from xknxeditor.prod import Application
+    from xknxeditor.prod import Application, MasterData
 
     from .image import DownloadImage, PackedGroupTables, PropertyValue
     from .programmer import ConnectionManager
@@ -427,10 +427,14 @@ class MemoryServices:
             )
 
 
-def memory_services(application: Application) -> MemoryServices:
+def memory_services(
+    application: Application, master: MasterData | None = None
+) -> MemoryServices:
     """The memory services of a device of ``application``: extended when the application says
-    so or is a secure one; the fallback and the short standard services for the applications
-    that need them."""
+    so or is a secure one; the fallback for the applications that need it; short standard ones
+    for the applications that need them and for the devices that may not take long ones (see
+    :func:`long_memory_services`, with the mask's resources from ``master`` or the bundled
+    table)."""
     program = getattr(application, "program", None)
     options = getattr(getattr(program, "static", None), "options", None)
     extended = bool(
@@ -445,13 +449,92 @@ def memory_services(application: Application) -> MemoryServices:
     return MemoryServices(
         extended=extended,
         fallback=app_id.startswith(_EXTENDED_MEMORY_FALLBACK),
-        max_count=_SHORT_MEMORY_SERVICE_COUNT if short else None,
+        max_count=_SHORT_MEMORY_SERVICE_COUNT
+        if short or not long_memory_services(application, master)
+        else None,
     )
 
 
+# The mask version of a device whose mask is not known: it may take anything.
+_UNKNOWN_MASK = 0xFFFF
+# Masks of the powerline medium (PL110), whose frames are short.
+_POWERLINE_MASKS = 0x1000
+# Masks that may take long frames but not memory services of more than 12 octets.
+_SHORT_MEMORY_MASKS = frozenset({0x0912, 0x091A})
+
+
+def _mask_number(mask_version_id: str) -> int:
+    """The mask version of a mask version id such as "MV-07B0" (unknown: 0xFFFF)."""
+    try:
+        return int(mask_version_id[3:7], 16)
+    except (TypeError, ValueError):
+        return _UNKNOWN_MASK
+
+
+def supports_interface_objects(mask: int) -> bool:
+    """Whether a device of the mask version ``mask`` has interface objects: not BCU 1 (and
+    the other x01xh masks), the BIM M112 0700h, the couplers 0900h-0911h and 1900h."""
+    if mask & 0x0FF0 == 0x0010:
+        return False
+    if mask < 0x0900:
+        return mask != 0x0700
+    return mask > 0x0911 and mask != 0x1900
+
+
+def long_memory_services(
+    application: Application, master: MasterData | None = None
+) -> bool:
+    """Whether a device of ``application`` may take memory services of more than 12 octets
+    (when its APDU allows them): a secure one, else one that may take long frames (an unknown
+    mask, or a non-powerline one with interface objects or a MaxApduLength resource), except
+    the masks 0912h and 091Ah."""
+    from .merge import device_mask_version
+    from .resources import mask_resources
+
+    program = getattr(application, "program", None)
+    if (
+        program is None
+        or getattr(program, "is_secure_enabled", False)
+        or not getattr(program, "mask_version", None)
+    ):
+        return True
+    mask_id = device_mask_version(application)
+    mask = _mask_number(mask_id)
+    if mask == _UNKNOWN_MASK:
+        return True
+    if mask & 0xF000 == _POWERLINE_MASKS:
+        return False
+    if not supports_interface_objects(mask):
+        resources = mask_resources(master, mask_id)
+        if (
+            resources is None
+            or resources.location(ResourceName.MAX_APDU_LENGTH) is None
+        ):
+            return False
+    return mask not in _SHORT_MEMORY_MASKS
+
+
+# Devices that may take the access key with its octets in reverse order: the manufacturer of
+# their application and their mask version.
+_SWAPPED_ACCESS_KEY = ("M-0001", "MV-07B0")
+
+
+def swapped_access_key(application: Application) -> bool:
+    """Whether a device of ``application`` may take the access key with its octets in reverse
+    order (see :meth:`.programmer.DeviceProgrammer.authorize_best`)."""
+    from .merge import device_mask_version
+
+    program = getattr(application, "program", None)
+    app_id = getattr(application, "id", "") or getattr(program, "id", "") or ""
+    manufacturer = getattr(application, "manufacturer_id", "") or app_id[:6]
+    if program is None or manufacturer != _SWAPPED_ACCESS_KEY[0]:
+        return False
+    return device_mask_version(application) == _SWAPPED_ACCESS_KEY[1]
+
+
 def _application_id(application: Application) -> bytes:
-    """Assemble the 5 octet application id (manufacturer, type, version); the manufacturer of an
-    application another manufacturer sells is the original one (see ``program_manufacturer``)."""
+    """Assemble the 5 octet application id (manufacturer, type, version), with the
+    application's own manufacturer (see ``program_manufacturer``)."""
     from .partial import application_id
 
     return application_id(application, 5)
@@ -1144,9 +1227,12 @@ class LoadProcedureRunner:
         if self._authorize_levels > 0:
             # Access protection is per connection, so authorize on every open (a
             # Restart drops the connection and the next control reconnects), with the
-            # project's key; a device with no key set grants full access (level 0) for
-            # any key.
-            level = await programmer.authorize(self._access_key)
+            # key that gets the best access: the project's, the free one or, for the
+            # devices that may take it so, the project's with its octets reversed. A device
+            # with no key set grants full access (level 0) for any key.
+            level = await programmer.authorize_best(
+                self._access_key, swapped=swapped_access_key(self.application)
+            )
             if level == 0:
                 logger.debug("authorized with full access (level 0)")
             else:

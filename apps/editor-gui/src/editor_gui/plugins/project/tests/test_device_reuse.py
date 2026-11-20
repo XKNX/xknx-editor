@@ -114,3 +114,28 @@ def _walk(nodes: Sequence[UiNode]) -> Iterator[UiNode]:
         yield node
         if isinstance(node, (UiTab, UiParameterBlock)):
             yield from _walk(node.children)
+
+
+def test_blob_change_and_undo_refresh_device_data(tmp_path: Path) -> None:
+    proj, (a, b) = _project(tmp_path)
+    try:
+        before = {d.node_id: d for d in proj.devices}
+        proj.persist_device_blob(before[a], "test-config", b"configuration")
+        changed = proj.find_device_by_node_id(a)
+        assert changed is not None
+        assert [(r.name, r.data) for r in changed.binary_data] == [
+            ("test-config", b"configuration")
+        ]
+        assert proj.find_device_by_node_id(b) is before[b]
+        assert proj.undo()
+        restored = proj.find_device_by_node_id(a)
+        assert restored is not None
+        assert not restored.binary_data
+        assert proj.redo()
+        redone = proj.find_device_by_node_id(a)
+        assert redone is not None
+        assert [(r.name, r.data) for r in redone.binary_data] == [
+            ("test-config", b"configuration")
+        ]
+    finally:
+        proj.close()

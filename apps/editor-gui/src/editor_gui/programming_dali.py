@@ -11,7 +11,8 @@ from __future__ import annotations
 import contextlib
 import re
 from collections.abc import Awaitable, Callable
-from typing import TYPE_CHECKING
+from dataclasses import dataclass
+from typing import TYPE_CHECKING, Any
 
 from xknx import XKNX
 from xknx.telegram import IndividualAddress
@@ -29,6 +30,7 @@ if TYPE_CHECKING:
     from editor_gui.device import Device
     from editor_gui.plugins.project.service import ProjectService
     from xknxeditor.dali import DaliBusState, EcgAssignment, Scene
+    from xknxeditor.dali.configuration import Configuration
 
 
 def is_dali_dca_app(app_id: str | None) -> bool:
@@ -62,7 +64,7 @@ async def run_dali_operation[T](
     channel: int,
     op: Callable[[MdtDaliCommissioner], Awaitable[T]],
     *,
-    object_index_base: int = 6,
+    object_index_base: int | None = None,
     app_id: str | None = None,
 ) -> T:
     """Open a connection to ``address``, run ``op`` against an ``MdtDaliCommissioner``, then close.
@@ -133,23 +135,28 @@ def persist_dali_backup(
     channel: int,
     *,
     label: str,
-) -> None:
+) -> bool:
     """Write a DALI channel's state back into the project blob after a bus commissioning run
     (one undo step named ``label``).
 
     MDT (gc16) blobs are fully modelled: the scan + edits are merged onto the existing
     ``DaliGC16-Backup-Store`` (``.N`` for channel N+1), preserving templates/descriptions.
-    Theben/IPAS (e64pro) blobs use a wider schema we do not model, so only the group
-    assignments are patched into the existing ``Dalie64-Backup-Store`` and every other
-    element is preserved byte-exact; if no such blob exists yet it is left untouched.
+    Only the supplied group assignments and scene levels are updated. Other scene
+    targets, fade times, mappings and colours are preserved. Returns False when the
+    device has no supported backup to update.
     """
     from xknxeditor.dali import merge_commissioning_blob, patch_assignments_in_blob
     from xknxeditor.dali.profiles import backup_blob_name
+    from xknxeditor.dali.project_persistence import patch_scene_levels_in_blob
 
+    current = project.find_device_by_node_id(device.node_id)
+    if current is None:
+        return False
+    device = current
     app_id = device.app.id if device.app is not None else None
     profile = profile_for(app_id)
     if profile is None:
-        return
+        return False
     name = backup_blob_name(profile.backup_blob_base, channel)
     existing = project.device_binary_data(device, name)
     if profile.key == "mdt":
@@ -158,13 +165,398 @@ def persist_dali_backup(
             existing=existing,
             state=scan,
             assignments=assignments,
-            scenes=scenes,
+            scenes=[],
             individual_address=device.individual_address,
             project_name=metadata.name if metadata is not None else "",
         )
     elif existing is not None:
-        # e64pro: patch group assignments into the vendor's blob, preserve the rest.
         blob = patch_assignments_in_blob(existing, assignments)
     else:
-        return  # e64pro device with no existing blob: cannot synthesize the wide schema
+        return False
+    blob = patch_scene_levels_in_blob(blob, scenes)
     project.persist_dali_backup(device, name, blob, label=label)
+    return True
+
+
+def prepare_dali_configuration(
+    device: Device, channel: int = 0
+) -> tuple[bytes, Configuration]:
+    """Validate the saved configuration before any network operation."""
+    from xknxeditor.dali.configuration import compile_configuration
+    from xknxeditor.dali.profiles import backup_blob_name
+
+    profile = profile_for(device.app.id if device.app else None)
+    if profile is None:
+        raise ValueError("Unsupported DALI gateway")
+    name = backup_blob_name(profile.backup_blob_base, channel)
+    data = next(
+        (entry.data for entry in device.binary_data if entry.name == name), None
+    )
+    if data is None:
+        raise ValueError("No saved DALI configuration")
+    configuration = compile_configuration(data)
+    if not profile.supports_extended_templates and any(
+        not t.reset_on_midnight or any(c.func == 18 for c in t.commands)
+        for t in configuration.templates
+    ):
+        raise ValueError("Template features are unsupported by this gateway")
+    return bytes(data), configuration
+
+
+def complete_dali_configuration(
+    project: ProjectService,
+    device: Device,
+    expected: bytes,
+    generation: int,
+    channel: int = 0,
+) -> None:
+    """Mark exactly the programmed snapshot synchronized, keeping newer edits untouched."""
+    from xml.etree import ElementTree as ET
+
+    from editor_gui.plugins.project.strings import S
+    from xknxeditor.dali.configuration import compile_configuration
+    from xknxeditor.dali.profiles import backup_blob_name
+    from xknxeditor.dali.project_persistence import patch_assignments_in_blob
+
+    current = project.find_device_by_node_id(device.node_id)
+    profile = profile_for(device.app.id if device.app else None)
+    if current is None or profile is None or project.generation != generation:
+        raise ValueError(S.E64_CONFIGURATION_CHANGED)
+    name = backup_blob_name(profile.backup_blob_base, channel)
+    actual = next(
+        (entry.data for entry in current.binary_data if entry.name == name), None
+    )
+    if actual != expected:
+        raise ValueError(S.E64_CONFIGURATION_CHANGED)
+    assignments = compile_configuration(expected).assignments
+    root = ET.fromstring(patch_assignments_in_blob(expected, list(assignments)))
+    for ecg in root.findall("ecgs/ECG"):
+        if ecg.get("short-address", "255") == "255" and ecg.get("flags") in (
+            "2",
+            "3",
+            "6",
+        ):
+            ecg.set("flags", "1")
+    for section in ("scenes", "effects", "templates"):
+        for slot in root.findall(section + "/*"):
+            slot.set("isDirty", "False")
+    for section in ("mds", "pbs", "gis"):
+        for instance in root.findall(section + "/*/Instances/EtsInstance"):
+            reference = int(instance.get("ref-idx", "-1"))
+            instance.set("origin", str(reference))
+            instance.set("flags", "4" if 0 <= reference < 254 else "1")
+    project.persist_dali_backup(
+        current,
+        name,
+        ET.tostring(root, encoding="utf-16le"),
+        label=S.DALI_PERSIST_LABEL,
+    )
+
+
+@dataclass(frozen=True)
+class PreparedDaliOperation:
+    expected: bytes
+    execute: Callable[[MdtDaliCommissioner], Awaitable[dict[str, Any]]]
+    writes: bool
+
+
+@dataclass(frozen=True)
+class GuardedDaliOperation:
+    project: ProjectService
+    device: Device
+    expected: bytes
+    generation: int
+    execute: Callable[[MdtDaliCommissioner], Awaitable[Any]]
+    channel: int = 0
+
+    def validate_device(self, current: Device) -> None:
+        """Reject a queued plan whose project, target or saved configuration changed."""
+        from editor_gui.plugins.project.strings import S
+        from xknxeditor.dali.profiles import backup_blob_name
+
+        profile = profile_for(self.device.app.id if self.device.app else None)
+        if (
+            self.project.generation != self.generation
+            or current.node_id != self.device.node_id
+            or current.individual_address != self.device.individual_address
+            or current.app is None
+            or self.device.app is None
+            or current.app.id != self.device.app.id
+            or profile is None
+        ):
+            raise ValueError(S.E64_CONFIGURATION_CHANGED)
+        name = backup_blob_name(profile.backup_blob_base, self.channel)
+        if (
+            next((b.data for b in current.binary_data if b.name == name), None)
+            != self.expected
+        ):
+            raise ValueError(S.E64_CONFIGURATION_CHANGED)
+
+    async def __call__(self, commissioner: MdtDaliCommissioner) -> Any:
+        return await self.execute(commissioner)
+
+
+def prepare_workspace_operation(
+    device: Device,
+    action: str,
+    section: str,
+    index: int = 0,
+    row: int = 0,
+    value: int = 0,
+    secondary: int = 0,
+    bank: int = 2,
+    lock: bool = False,
+) -> PreparedDaliOperation:
+    """Use one validated operation plan for the GUI and MCP workspace."""
+    from dataclasses import asdict
+    from xml.etree import ElementTree as ET
+
+    from editor_gui.plugin_blob_readers.dali_backup import e64pro
+    from xknxeditor.dali.configuration import (
+        effects_from_xml,
+        input_inventory_from_xml,
+        inputs_from_xml,
+        scenes_from_xml,
+        templates_from_xml,
+    )
+    from xknxeditor.dali.configuration_readback import (
+        merge_effects,
+        merge_inputs,
+        merge_scenes,
+        merge_templates,
+    )
+    from xknxeditor.dali.connection import DaliCommissioningError
+    from xknxeditor.dali.effects import effect_plan
+    from xknxeditor.dali.service_operations import (
+        NAME_TABLES,
+        encode_names,
+        validate_maintenance,
+    )
+    from xknxeditor.dali.verification import verify_scenes, verify_templates
+
+    entry = e64pro.backup(device)
+    if entry is None:
+        raise ValueError("No saved DALI configuration")
+    expected = entry[1]
+    root = e64pro.document(expected)
+    if action in ("read", "write", "test", "start", "stop"):
+        if section not in (
+            "scenes",
+            "effects",
+            "templates",
+            "inputs",
+        ) or not 0 <= index < (64 if section == "inputs" else 16):
+            raise ValueError("Invalid DALI selection")
+        if action in ("start", "stop") and section != "effects":
+            raise ValueError("Start/stop requires an effect")
+        if action == "test" and section not in ("scenes", "templates"):
+            raise ValueError("Test requires a scene or template action")
+    elif action not in (
+        "discover",
+        "identify",
+        "stop_identify",
+        "function",
+        "duration",
+        "battery",
+        "read_calibration",
+        "set_calibration",
+        "save_calibration",
+        "read_memory",
+        "write_memory",
+        "read_names",
+        "write_names",
+        "read_motion",
+        "inhibit",
+        "replace",
+        "restore",
+    ):
+        raise ValueError("Unknown DALI operation")
+    if action in ("identify", "stop_identify") and not 0 <= index < 64:
+        raise ValueError("Invalid input address")
+    if action not in (
+        "read",
+        "write",
+        "test",
+        "start",
+        "stop",
+        "discover",
+        "identify",
+        "stop_identify",
+        "restore",
+    ):
+        validate_maintenance(action, index, value, secondary, bank, section)
+    restore_plan = None
+    if action == "restore":
+        from xknxeditor.dali.restore import prepare_restore
+
+        restore_plan = prepare_restore(expected)
+    if action in ("set_calibration", "save_calibration"):
+        controller = root.find(f"mds/MdInput[@index='{index}']")
+        if (
+            controller is None
+            or controller.get("wclc") != "2"
+            or controller.get("wclbct") != "1"
+        ):
+            raise ValueError(
+                "Selected motion controller does not use constant light control"
+            )
+    scenes = scenes_from_xml(root) if section == "scenes" and action == "write" else []
+    effects = (
+        effects_from_xml(root) if section == "effects" and action == "write" else []
+    )
+    templates = (
+        templates_from_xml(root)
+        if section == "templates" and action in ("write", "test")
+        else []
+    )
+    inputs = (
+        inputs_from_xml(root) if section == "inputs" and action == "write" else None
+    )
+    input_inventory = input_inventory_from_xml(root) if inputs is not None else None
+    names = None
+    if effects:
+        effect_plan(effects)
+    if (
+        action == "test"
+        and section == "templates"
+        and not 0 <= row < len(next(t for t in templates if t.index == index).commands)
+    ):
+        raise ValueError("Invalid template row")
+    if action == "write_names":
+        if section not in NAME_TABLES:
+            raise ValueError("Invalid name category")
+        names = [
+            next(
+                e.get("description", "")
+                for e in root.findall(section + "/*")
+                if e.get("index") == str(i)
+            )
+            for i in range(NAME_TABLES[section][1])
+        ]
+        encode_names(section, names)
+
+    async def execute(commissioner: MdtDaliCommissioner) -> dict[str, Any]:
+        data: bytes | None = None
+        result: dict[str, Any] = {}
+        if action == "restore" and restore_plan is not None:
+            from xknxeditor.dali.restore import restore
+
+            await restore(commissioner, restore_plan)
+            updated = ET.fromstring(expected)
+            for part in ("scenes", "effects", "templates"):
+                for slot in updated.findall(part + "/*"):
+                    slot.set("isDirty", "False")
+            data = ET.tostring(updated, encoding="utf-16le")
+        elif action == "read":
+            if section == "scenes":
+                rows = await commissioner.read_scenes()
+                data = merge_scenes(expected, rows)
+            elif section == "effects":
+                data = merge_effects(expected, await commissioner.read_effects())
+            elif section == "templates":
+                data = merge_templates(expected, await commissioner.read_templates())
+            else:
+                devices = await commissioner.read_inputs()
+                data = merge_inputs(expected, devices)
+                result = {"devices": [asdict(d) for d in devices]}
+        elif action == "write":
+            if section == "scenes":
+                await commissioner.write_scenes(scenes)
+                verify_scenes(scenes, await commissioner.read_scenes())
+            elif section == "effects":
+                await commissioner.write_effects(effects)
+                if await commissioner.read_effects() != sorted(
+                    effects, key=lambda e: e.index
+                ):
+                    raise DaliCommissioningError("effect readback does not match")
+            elif section == "templates":
+                await commissioner.write_templates(templates)
+                verify_templates(templates, await commissioner.read_templates())
+            elif inputs is not None:
+                devices = await commissioner.write_inputs(
+                    inputs, expected_inventory=input_inventory
+                )
+                result = {"devices": [asdict(d) for d in devices]}
+                data = merge_inputs(expected, devices)
+            if section != "inputs":
+                updated = ET.fromstring(expected)
+                for slot in updated.findall(section + "/*"):
+                    slot.set("isDirty", "False")
+                data = ET.tostring(updated, encoding="utf-16le")
+        elif action == "test":
+            if section == "scenes":
+                await commissioner.test_scene(index)
+            else:
+                await commissioner.test_template_command(
+                    next(t for t in templates if t.index == index), row
+                )
+        elif action in ("start", "stop"):
+            await commissioner.set_effect_running(index, action == "start")
+        elif action == "discover":
+            devices = await commissioner.discover_inputs()
+            data = merge_inputs(expected, devices)
+            result = {"devices": [asdict(d) for d in devices]}
+        elif action in ("identify", "stop_identify"):
+            await commissioner.identify_input(index, action == "identify")
+        else:
+            result = await commissioner.maintenance(
+                action, index, value, secondary, bank, lock, section, names
+            )
+            if action in ("read_calibration", "save_calibration"):
+                updated = ET.fromstring(expected)
+                controller = updated.find(f"mds/MdInput[@index='{index}']")
+                if controller is None:
+                    raise ValueError("Missing motion controller")
+                for prefix, suffix in (("minimum", "min"), ("maximum", "max")):
+                    for attribute, key in (
+                        ("v", "level"),
+                        ("m", "lux"),
+                        ("b", "sensor"),
+                    ):
+                        controller.set(
+                            attribute + suffix, str(result[prefix + "_" + key])
+                        )
+                data = ET.tostring(updated, encoding="utf-16le")
+            if action == "read_names":
+                updated = ET.fromstring(expected)
+                for i, name in enumerate(result["names"]):
+                    next(
+                        e
+                        for e in updated.findall(section + "/*")
+                        if e.get("index") == str(i)
+                    ).set("description", name)
+                data = ET.tostring(updated, encoding="utf-16le")
+        if data is not None:
+            result["configuration"] = data
+        return result
+
+    return PreparedDaliOperation(
+        expected,
+        execute,
+        action not in ("read", "read_calibration", "read_names", "read_motion"),
+    )
+
+
+def finish_workspace_operation(
+    project: ProjectService,
+    device: Device,
+    plan: PreparedDaliOperation,
+    generation: int,
+    result: dict[str, Any],
+) -> dict[str, Any]:
+    """Apply readback on the project thread after a successful bus operation."""
+    from editor_gui.plugins.project.strings import S
+
+    if project.generation != generation:
+        raise ValueError(S.E64_CONFIGURATION_CHANGED)
+    current = project.find_device_by_node_id(device.node_id)
+    if current is None:
+        raise ValueError(S.E64_CONFIGURATION_CHANGED)
+    GuardedDaliOperation(
+        project, device, plan.expected, generation, plan.execute
+    ).validate_device(current)
+    result = dict(result)
+    data = result.pop("configuration", None)
+    if data is not None:
+        project.apply_e64pro_readback(device, plan.expected, data)
+    return result

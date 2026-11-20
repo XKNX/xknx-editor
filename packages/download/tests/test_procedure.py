@@ -1477,6 +1477,25 @@ async def test_authorize_runs_when_levels_positive() -> None:
     assert manager.device.authorize_keys == [0xFFFFFFFF]
 
 
+@pytest.mark.parametrize(
+    ("app_id", "mask", "swapped"),
+    [
+        ("M-0001_A-1234-10-ABCD", "MV-07B0", True),
+        ("M-0001_A-1234-10-ABCD", "MV-0705", False),
+        ("M-0002_A-1234-10-ABCD", "MV-07B0", False),
+    ],
+)
+def test_the_devices_that_may_take_the_key_swapped(
+    app_id: str, mask: str, swapped: bool
+) -> None:
+    from xknxeditor.download.procedure import swapped_access_key
+
+    application = SimpleNamespace(
+        id=app_id, program=SimpleNamespace(mask_version=mask), load_procedures=None
+    )
+    assert swapped_access_key(cast("Application", application)) is swapped
+
+
 async def test_authorize_skipped_when_levels_zero() -> None:
     runner, manager = _managed_runner(
         LdCtrlLoad(obj_type=_ADDRESS_TABLE_TYPE, occurrence=0),

@@ -1,9 +1,7 @@
 """Vendor/firmware profiles for the Type-A (property-table) DALI commissioning protocol.
 
-MDT (eelectron firmware), Theben P64 (INTESIS/Dalie64) and IPAS DaliControl e64 Pro are
-the same OEM chassis under three brands and speak the same DALI-object property protocol
-(IDs 203-228, Hawk transport); they differ only in the KNX interface-object index base
-and the ETS application-id prefixes that gate the commissioning tab.
+MDT, Theben P64 and IPAS DaliControl e64 Pro use related DALI-object property protocols.
+Profiles specify their object indices, property IDs and record sizes.
 
 Devices are matched in two layers:
 
@@ -37,13 +35,11 @@ class DaliProfile:
     # per element instead of MDT's 8. Keys are the raw ``PropertyType`` integer, so profiles
     # stay independent of the :mod:`xknxeditor.dali.properties` import graph.
     element_size_overrides: tuple[tuple[int, int], ...] = ()
-    # Hardware-protocol variants we have not been able to validate against a captured
-    # commissioning session — mark the profile ``unverified=True`` so the GUI can surface
-    # a warning before any write hits the bus.
-    unverified: bool = False
     # BinaryData entry base name the vendor's app stores its channel state in. MDT uses the
     # gc16 blob; the Theben/IPAS e64pro chassis uses the Dalie64 blob.
     backup_blob_base: str = "DaliGC16-Backup-Store"
+    property_id_overrides: tuple[tuple[int, int], ...] = ()
+    supports_extended_templates: bool = False
 
 
 def backup_blob_name(base: str, channel: int) -> str:
@@ -64,18 +60,21 @@ PROFILES: tuple[DaliProfile, ...] = (
         7,
         element_size_overrides=((208, 10),),  # PropertyType.GROUP_STATUS -> 10 bytes
         backup_blob_base="Dalie64-Backup-Store",
+        property_id_overrides=((212, 213),),
+        supports_extended_templates=True,
     ),
     # IPAS DaliControl e64 Pro — same OEM chassis as Theben P64 V2 (identical module
     # layout and ObjIdx set). A real IPAS project confirms the e64pro blob is byte-for-byte
     # the Theben Dalie64 structure, so project persistence is verified; the bus commissioning
-    # protocol itself has no IPAS capture yet, so it stays unverified and the GUI warns.
+    # protocol itself has no IPAS capture yet.
     DaliProfile(
         "ipas",
         ("M-00EF_A-DA11",),
         7,
         element_size_overrides=((208, 10),),
-        unverified=True,
         backup_blob_base="Dalie64-Backup-Store",
+        property_id_overrides=((212, 213),),
+        supports_extended_templates=True,
     ),
 )
 
@@ -97,8 +96,9 @@ _P64_SIGNATURE_PROFILE = DaliProfile(
     (),
     7,
     element_size_overrides=((208, 10),),
-    unverified=True,
     backup_blob_base="Dalie64-Backup-Store",
+    property_id_overrides=((212, 213),),
+    supports_extended_templates=True,
 )
 _LD_CTRL_OBJIDX_RE = re.compile(r'<(Ld\w+)[^>]+ObjIdx="(\d+)"')
 

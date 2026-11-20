@@ -6,19 +6,24 @@ the imports, the connection type and what xknx 4.1.1 lacks (in ``compat``), so i
 dropped for ``xknx.io.usb`` once the editor requires an xknx release with it.
 """
 
+from .const import ProtocolID
+from .frame import USBTransferFrame
 from .hid_device import (
     USBDeviceInfo,
     find_usb_interfaces,
     is_knx_usb_interface,
 )
 from .rf import RFMediumInfo, RFSignalStrength, rf_medium_info
-from .tunnel import USBInterfaceInfo, USBTunnel
+from .tunnel import EXTRANEOUS_PROTOCOLS, USBInterfaceInfo, USBTunnel
 
 __all__ = [
+    "EXTRANEOUS_PROTOCOLS",
+    "ProtocolID",
     "RFMediumInfo",
     "RFSignalStrength",
     "USBDeviceInfo",
     "USBInterfaceInfo",
+    "USBTransferFrame",
     "USBTunnel",
     "find_usb_interfaces",
     "is_knx_usb_interface",

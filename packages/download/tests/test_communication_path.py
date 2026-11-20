@@ -24,6 +24,7 @@ from xknxeditor.download.communication_path import (
     SecureSystemBroadcastBlocked,
     broadcast_path,
     communication_paths,
+    release_installation,
     routed_manager,
     set_installation,
 )
@@ -37,13 +38,12 @@ _UP = IndividualAddress("1.1.0")
 _DOWN = IndividualAddress("1.2.0")
 
 
-class _Xknx:
-    def __init__(self) -> None:
-        self.current_address = _TOOL
-
-
 def _xknx() -> XKNX:
-    return cast("XKNX", _Xknx())
+    # A real connection object: it takes no weak reference and no attribute it has no slot
+    # for, which a stand-in would hide.
+    xknx = XKNX()
+    xknx.current_address = _TOOL
+    return xknx
 
 
 def _media_coupler() -> FakeDevice:
@@ -439,6 +439,20 @@ async def test_the_installation_can_be_taken_away() -> None:
     assert communication_paths(cast("XKNX", None)) is None
 
 
+def test_the_paths_end_with_the_connection() -> None:
+    xknx = _xknx()
+    set_installation(xknx, _installation(Coupler(_DOWN, block_unicast=True)))
+    assert communication_paths(xknx) is not None
+    # another connection has its own, none until it is given couplers
+    other = _xknx()
+    assert communication_paths(other) is None
+    release_installation(other)
+    assert communication_paths(xknx) is not None
+    release_installation(xknx)
+    assert communication_paths(xknx) is None
+    release_installation(xknx)
+
+
 def test_the_path_of_the_installation() -> None:
     installation = _installation(Coupler(_UP), Coupler(IndividualAddress("1.0.0")))
     # the area coupler 1.0.0 is not passed within an area; 1.2.0 is unknown
@@ -535,8 +549,10 @@ async def test_a_coupler_with_access_protection_is_authorized(
     assert request is not None
     await paths.add(request)
     await paths.remove(request)
-    # before enabling and before setting back
-    assert device.authorize_keys == [0x11223344, 0x11223344]
+    # before enabling and before setting back: its key, the free one, and its key again (both
+    # get the same level, so the first wins and is presented last)
+    key, free = 0x11223344, 0xFFFFFFFF
+    assert device.authorize_keys == [key, free, key] * 2
 
 
 # ---- IP routers, closing, restriction, RF Multi --------------------------------------------
@@ -767,7 +783,7 @@ async def test_setting_an_rf_mode(
     # broadcasts know Ready and Multi only
     assert coupler.function_properties[(3, 79)] == b"\x00\x00\x0a"
     assert coupler.function_properties[(3, 114)] == b"\x00\x00\x09"
-    assert coupler.authorize_keys == [1]
+    assert coupler.authorize_keys == [1, 0xFFFFFFFF, 1]
     assert "unicast MULTI_SLOW, broadcast MULTI_SLOW" in caplog.text
     await paths.set_rf_mode(media, broadcast=RFMode.READY)
     assert coupler.function_properties[(3, 114)] == b"\x00\x00\x24"

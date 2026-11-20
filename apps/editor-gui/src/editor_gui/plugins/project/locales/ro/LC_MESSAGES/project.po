@@ -1589,9 +1589,6 @@ msgstr "O parte din datele dispozitivului nu este disponibilă."
 msgid "Connect to a KNX interface to commission the DALI bus."
 msgstr "Conectați-vă la o interfață KNX pentru a pune în funcțiune magistrala DALI."
 
-msgid "This gateway's commissioning protocol has not been verified against a capture; writes may misbehave. Proceed with care."
-msgstr "Protocolul de punere în funcțiune al acestui gateway nu a fost verificat pe o înregistrare; scrierile se pot comporta greșit. Procedați cu atenție."
-
 msgid "DALI commissioning writes the gateway on the bus but does not update the project parameters; re-export the .knxproj after a DCA-side edit."
 msgstr "Punerea în funcțiune DALI scrie gateway-ul pe magistrală, dar nu actualizează parametrii proiectului; după o modificare din DCA, exportați din nou fișierul .knxproj."
 
@@ -3313,6 +3310,11 @@ msgstr "Starea curentă a proiectului"
 msgid "Configuration Comparison"
 msgstr "Compararea configurației"
 
+msgid "Current state of the project"
+msgstr "Starea curentă a proiectului"
+msgid "Configuration Comparison"
+msgstr "Compararea configurației"
+
 msgid "Compare settings with another device or the stored image from the last download."
 msgstr "Comparați setările cu un alt dispozitiv sau cu imaginea salvată la ultima programare."
 
@@ -3418,6 +3420,11 @@ msgstr "Selectați un dispozitiv"
 
 msgid "Select the two devices to compare."
 msgstr "Selectați cele două dispozitive de comparat."
+
+msgid "Loading application programs… {done}/{total}"
+msgstr "Se încarcă programele de aplicație… {done}/{total}"
+msgid "Symbol"
+msgstr "Simbol"
 
 msgid "Loading application programs… {done}/{total}"
 msgstr "Se încarcă programele de aplicație… {done}/{total}"
@@ -3634,6 +3641,11 @@ msgstr "Nedeterminată"
 msgid "Compares the device's hardware/software identity with this catalog. Does not install firmware. Catalog import: MDT Firmware Update .etsapp or Firmware.zip."
 msgstr "Compară identitatea hardware/software a dispozitivului cu acest catalog. Nu instalează firmware. Import catalog: MDT Firmware Update .etsapp sau Firmware.zip."
 
+msgid "Not determined"
+msgstr "Nedeterminată"
+msgid "Compares the device's hardware/software identity with this catalog. Does not install firmware. Catalog import: MDT Firmware Update .etsapp or Firmware.zip."
+msgstr "Compară identitatea hardware/software a dispozitivului cu acest catalog. Nu instalează firmware. Import catalog: MDT Firmware Update .etsapp sau Firmware.zip."
+
 msgid "Hardware/software identity could not be determined. Read the device to check compatibility."
 msgstr "Identitatea hardware/software nu a putut fi determinată. Citiți dispozitivul pentru a verifica compatibilitatea."
 
@@ -3789,3 +3801,466 @@ msgstr "Calea de comunicare prin cuplorul {coupler} nu a putut fi deschisă ({de
 
 msgid "The domain address of this secure device could not be loaded because the coupler {coupler} does not support security."
 msgstr "Adresa de domeniu a acestui dispozitiv securizat nu a putut fi încărcată, deoarece cuplorul {coupler} nu acceptă securitatea."
+
+msgid "Actions"
+msgstr "Acțiuni"
+
+msgid "Add Command"
+msgstr "Adaugă comandă"
+
+msgid "Assigned Groups and ECGs"
+msgstr "Grupuri și balasturi atribuite"
+
+msgid "Colour"
+msgstr "Culoare"
+
+msgid "Control Gear and Groups"
+msgstr "Balasturi și grupuri"
+
+msgid "Delay"
+msgstr "Întârziere"
+
+msgid "ECG"
+msgstr "Balast"
+
+msgid "Effects"
+msgstr "Efecte"
+
+msgid "Fade Time"
+msgstr "Durată de variație"
+
+msgid "Flag"
+msgstr "Indicator"
+
+msgid "General Inputs"
+msgstr "Intrări generale"
+
+msgid "Input Devices"
+msgstr "Dispozitive de intrare"
+
+msgid "Instance"
+msgstr "Instanță"
+
+msgid "KNX Scene"
+msgstr "Scenă KNX"
+
+msgid "Keep Colour"
+msgstr "Păstrează culoarea"
+
+msgid "Keep Value"
+msgstr "Păstrează valoarea"
+
+msgid "Loop"
+msgstr "Buclă"
+
+msgid "Manual Override"
+msgstr "Comandă manuală"
+
+msgid "Midnight Reset"
+msgstr "Resetare la miezul nopții"
+
+msgid "Mo Tu We Th Fr Sa Su"
+msgstr "Lu Ma Mi Jo Vi Sâ Du"
+
+msgid "Mode"
+msgstr "Mod"
+
+msgid "Motion / Brightness"
+msgstr "Mișcare / luminozitate"
+
+msgid "No Entries"
+msgstr "Nicio înregistrare"
+
+msgid "Origin"
+msgstr "Origine"
+
+msgid "Physical Devices Without a Unique Assignment"
+msgstr "Dispozitive fizice fără atribuire unică"
+
+msgid "Physical Inputs"
+msgstr "Intrări fizice"
+
+msgid "Push-Buttons"
+msgstr "Butoane"
+
+msgid "Reference"
+msgstr "Referință"
+
+msgid "Single ECG"
+msgstr "Balast individual"
+
+msgid "Target"
+msgstr "Țintă"
+
+msgid "Time"
+msgstr "Oră"
+
+msgid "Time Control"
+msgstr "Control orar"
+
+msgid "View"
+msgstr "Vizualizare"
+
+msgid "Weekdays"
+msgstr "Zilele săptămânii"
+
+msgid "Add Target"
+msgstr "Adaugă țintă"
+
+msgid "Apply"
+msgstr "Aplicare"
+
+msgid "Approximate Preview"
+msgstr "Previzualizare aproximativă"
+
+msgid "Colour Temperature"
+msgstr "Temperatură de culoare"
+
+msgid "Groups"
+msgstr "Grupuri"
+
+msgid "Search"
+msgstr "Căutare"
+
+msgid "White"
+msgstr "Alb"
+
+msgid "Brightness"
+msgstr "Luminozitate"
+
+msgid "Min. Brightness"
+msgstr "Luminozitate min."
+
+msgid "Max. Brightness"
+msgstr "Luminozitate max."
+
+msgid "Switch-on Limit"
+msgstr "Limită la aprindere"
+
+msgid "DCA Details"
+msgstr "Detalii DCA"
+
+msgid "Import DCA XML…"
+msgstr "Importă XML DCA…"
+
+msgid "Export DCA XML…"
+msgstr "Exportă XML DCA…"
+
+msgid "Replace the DCA configuration of {device} with the selected XML file?"
+msgstr "Înlocuiești configurația DCA a dispozitivului {device} cu fișierul XML selectat?"
+
+msgid "DCA configuration imported."
+msgstr "Configurația DCA a fost importată."
+
+msgid "DCA configuration exported."
+msgstr "Configurația DCA a fost exportată."
+
+msgid "Color Temperature"
+msgstr "Temperatură de culoare"
+
+msgid "Keep Color"
+msgstr "Păstrează culoarea"
+
+msgid "No entries"
+msgstr "Nicio înregistrare"
+
+msgid "Assigned Groups and ECGs…"
+msgstr "Grupuri și balasturi atribuite…"
+
+msgid "Add Target…"
+msgstr "Adaugă țintă…"
+
+msgid "Approximate preview"
+msgstr "Previzualizare aproximativă"
+
+msgid "Manual override"
+msgstr "Comandă manuală"
+
+msgid "Midnight reset"
+msgstr "Resetare la miezul nopții"
+
+msgid "Import DCA Configuration"
+msgstr "Importă configurația DCA"
+
+msgid "Edit DCA configuration"
+msgstr "Editează configurația DCA"
+
+msgid "Import DCA configuration"
+msgstr "Importă configurația DCA"
+
+msgid "Invalid DCA configuration."
+msgstr "Configurație DCA nevalidă."
+
+msgid "Expected a complete DCA device configuration."
+msgstr "Este necesară o configurație completă a dispozitivului DCA."
+
+msgid "DALI project data changed. Reopen the selection and try again."
+msgstr "Datele proiectului DALI s-au modificat. Redeschide selecția și încearcă din nou."
+
+msgid "The selected DCA item is unavailable. Reopen the selection."
+msgstr "Elementul DCA selectat nu este disponibil. Redeschide selecția."
+
+msgid "Invalid value."
+msgstr "Valoare nevalidă."
+
+msgid "Invalid or unsupported color value."
+msgstr "Valoare de culoare nevalidă sau neacceptată."
+
+msgid "This DCA operation is not supported."
+msgstr "Această operație DCA nu este acceptată."
+
+msgid "Expected {minimum}-{maximum}."
+msgstr "Se așteaptă: {minimum}-{maximum}."
+
+msgid "Expected HH:MM."
+msgstr "Se așteaptă: HH:MM."
+
+msgid "Select seven weekdays."
+msgstr "Selectează șapte zile ale săptămânii."
+
+msgid "The target already belongs to the scene."
+msgstr "Ținta aparține deja scenei."
+
+msgid "At most 300 time control commands are supported."
+msgstr "Sunt acceptate cel mult 300 de comenzi de control orar."
+
+msgid "At most 500 effect steps are supported."
+msgstr "Sunt acceptați cel mult 500 de pași de efecte."
+
+msgid "Descriptions can contain at most {maximum} characters."
+msgstr "Descrierile pot conține cel mult {maximum} de caractere."
+
+msgid "Mo"
+msgstr "lu."
+
+msgid "Tu"
+msgstr "ma."
+
+msgid "We"
+msgstr "mi."
+
+msgid "Th"
+msgstr "joi"
+
+msgid "Fr"
+msgstr "vi."
+
+msgid "Sa"
+msgstr "sâ."
+
+msgid "Su"
+msgstr "du."
+
+msgid "A test is pending."
+msgstr "Un test este în așteptare."
+
+msgid "Battery"
+msgstr "Baterie"
+
+msgid "Brightness sensor"
+msgstr "Senzor de luminozitate"
+
+msgid "Converters"
+msgstr "Convertoare"
+
+msgid "Descriptions"
+msgstr "Descrieri"
+
+msgid "Diagnostic Report"
+msgstr "Raport de diagnosticare"
+
+msgid "Duration"
+msgstr "Durată"
+
+msgid "Duration test running"
+msgstr "Test de durată în curs"
+
+msgid "Edit several descriptions and apply them together in one undo step."
+msgstr "Editați mai multe descrieri și aplicați-le împreună într-un singur pas de anulare."
+
+msgid "Emergency"
+msgstr "Urgență"
+
+msgid "Emergency Failure"
+msgstr "Defecțiune iluminat de urgență"
+
+msgid "Emergency Mode"
+msgstr "Mod iluminat de urgență"
+
+msgid "Emergency Status"
+msgstr "Stare iluminat de urgență"
+
+msgid "Errors"
+msgstr "Erori"
+
+msgid "Event sensor"
+msgstr "Senzor de evenimente"
+
+msgid "Extended emergency"
+msgstr "Urgență prelungită"
+
+msgid "Failure Rate"
+msgstr "Rată de defectare"
+
+msgid "Fixed inhibit"
+msgstr "Blocare fixă"
+
+msgid "Function test running"
+msgstr "Test funcțional în curs"
+
+msgid "Generic sensor"
+msgstr "Senzor generic"
+
+msgid "Inhibit"
+msgstr "Blocare"
+
+msgid "Lamps"
+msgstr "Lămpi"
+
+msgid "Motion sensor"
+msgstr "Senzor de mișcare"
+
+msgid "Normal"
+msgstr "Normal"
+
+msgid "Push button"
+msgstr "Buton"
+
+msgid "Read Report"
+msgstr "Citește raportul"
+
+msgid "Read the diagnostic report from the gateway to display its current counters and saved test results."
+msgstr "Citiți raportul de diagnosticare de la gateway pentru a afișa contoarele actuale și rezultatele testelor salvate."
+
+msgid "Replace the selected slot with the XML configuration? Other slots remain unchanged."
+msgstr "Înlocuiți poziția selectată cu configurația XML? Celelalte poziții rămân neschimbate."
+
+msgid "Rest"
+msgstr "Repaus"
+
+msgid "Result"
+msgstr "Rezultat"
+
+msgid "Test"
+msgstr "Test"
+
+msgid "The input types are not compatible."
+msgstr "Tipurile de intrare nu sunt compatibile."
+
+msgid "This physical input is already assigned."
+msgstr "Această intrare fizică este deja atribuită."
+
+msgid "Total Failure Rate"
+msgstr "Rată totală de defectare"
+
+msgid "Value input"
+msgstr "Intrare de valoare"
+
+
+msgid "Call scene"
+msgstr "Apelează scena"
+
+msgid "Call effect"
+msgstr "Apelează efectul"
+
+msgid "Start"
+msgstr "Pornește"
+
+msgid "Controlled by effect object"
+msgstr "Controlat de obiectul de efect"
+
+msgid "Import Descriptions…"
+msgstr "Importă descrieri…"
+
+msgid "Export Descriptions…"
+msgstr "Exportă descrieri…"
+
+msgid "Replace the descriptions included in the file? You can undo this change."
+msgstr "Înlocuiești descrierile incluse în fișier? Poți anula această modificare."
+
+msgid "Clear Descriptions"
+msgstr "Șterge descrierile"
+
+msgid "These descriptions cannot be preserved as TXT. Choose XML."
+msgstr "Aceste descrieri nu pot fi păstrate ca TXT. Alege XML."
+
+msgid "Insert Before"
+msgstr "Inserează înainte"
+
+msgid "Sort by Time"
+msgstr "Sortează după oră"
+
+msgid "Sort by Function"
+msgstr "Sortează după funcție"
+
+msgid "Clear Actions"
+msgstr "Șterge acțiunile"
+
+msgid "Discover Inputs"
+msgstr "Caută intrări"
+
+msgid "Stop Blinking"
+msgstr "Oprește clipirea"
+
+msgid "Function Test"
+msgstr "Test funcțional"
+
+msgid "Duration Test"
+msgstr "Test de durată"
+
+msgid "Battery Test"
+msgstr "Test baterie"
+
+msgid "Read Calibration"
+msgstr "Citește calibrarea"
+
+msgid "Set Calibration Level"
+msgstr "Setează nivelul de calibrare"
+
+msgid "Save Calibration"
+msgstr "Salvează calibrarea"
+
+msgid "Read Memory Byte"
+msgstr "Citește octetul de memorie"
+
+msgid "Write Memory Byte"
+msgstr "Scrie octetul de memorie"
+
+msgid "Read Names"
+msgstr "Citește numele"
+
+msgid "Write Names"
+msgstr "Scrie numele"
+
+msgid "Read Motion Diagnostics"
+msgstr "Citește diagnosticul de mișcare"
+
+msgid "Inhibit Converters"
+msgstr "Blochează convertoarele"
+
+msgid "Replace ECGs…"
+msgstr "Înlocuiește balasturile…"
+
+msgid "Service"
+msgstr "Service"
+
+msgid "Calibration"
+msgstr "Calibrare"
+
+msgid "Memory Bank"
+msgstr "Banc de memorie"
+
+msgid "Measured Illuminance (lx)"
+msgstr "Iluminare măsurată (lx)"
+
+msgid "Enable memory write lock"
+msgstr "Activează blocarea scrierii în memorie"
+
+msgid "Start automatic ECG replacement on this gateway? This changes the DALI assignments and cannot be undone in the project."
+msgstr "Pornești înlocuirea automată a balasturilor pe acest gateway? Aceasta modifică atribuirile DALI și nu poate fi anulată în proiect."
+
+msgid "Restore Gateway…"
+msgstr "Restaurează gateway-ul…"
+
+msgid "Restore the saved physical inventory and configuration to this gateway and restart it? This overwrites its DALI state and cannot be undone in the project."
+msgstr "Restaurezi dispozitivele fizice și configurația salvate pe acest gateway și îl repornești? Aceasta suprascrie starea DALI și nu poate fi anulată în proiect."

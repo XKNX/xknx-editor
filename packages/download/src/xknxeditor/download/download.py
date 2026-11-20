@@ -8,10 +8,12 @@ the partial download procedure (section 3.5.3).
 
 from __future__ import annotations
 
+import functools
+import inspect
 import logging
 from collections.abc import Awaitable, Callable, Mapping
 from dataclasses import dataclass, field, replace
-from typing import TYPE_CHECKING, NamedTuple
+from typing import TYPE_CHECKING, Any, NamedTuple
 
 from xknx.exceptions import ManagementConnectionError
 from xknx.telegram import IndividualAddress
@@ -49,7 +51,7 @@ from .merge import (
     system300_mask_unresolved,
 )
 from .prepared import PreparedDownload
-from .procedure import LoadProcedureRunner, memory_services
+from .procedure import LoadProcedureRunner, memory_services, swapped_access_key
 from .programmer import (
     DEFAULT_MAX_APDU_LENGTH,
     FREE_ACCESS_KEY,
@@ -366,7 +368,7 @@ async def _partial_scope(
     manager = _connection_manager(xknx, address, security)
     try:
         programmer = DeviceProgrammer(await manager.open())
-        memory_services(application).apply(programmer)
+        memory_services(application, master).apply(programmer)
         reason = await partial_download_mismatch(
             programmer, application, resources, application2
         )
@@ -587,7 +589,9 @@ async def _after_unload_procedure(
                 await manager.open(), apdu_overhead=_apdu_overhead(security)
             )
             if levels > 0:
-                level = await programmer.authorize(access_key)
+                level = await programmer.authorize_best(
+                    access_key, swapped=swapped_access_key(application)
+                )
                 if unlock:
                     logger.info("download: unlocking %s", address)
                     for locked in range(level, levels):
@@ -700,6 +704,31 @@ async def _learn_device_mask(
     )
 
 
+def _for_the_device[**P, T](
+    operation: Callable[P, Awaitable[T]],
+) -> Callable[P, Awaitable[T]]:
+    """Run ``operation`` (``xknx``, ``individual_address``, ``application``, …) with the
+    connections to the device opened as its application needs (see
+    :func:`.management_transport.negative_connect_confirmations`)."""
+    from .management_transport import negative_connect_confirmations
+
+    signature = inspect.signature(operation)
+
+    @functools.wraps(operation)
+    async def run(*args: P.args, **kwargs: P.kwargs) -> T:
+        bound = signature.bind(*args, **kwargs).arguments
+        application: Any = bound["application"]
+        with negative_connect_confirmations(
+            bound["xknx"],
+            IndividualAddress(bound["individual_address"]),
+            getattr(application, "id", None),
+        ):
+            return await operation(*args, **kwargs)
+
+    return run
+
+
+@_for_the_device
 async def download(
     xknx: XKNX,
     individual_address: IndividualAddressableType,
@@ -878,20 +907,19 @@ async def download(
         and scope is DownloadScope.FULL
         and not await _device_present(xknx, address, security)
     ):
+        from .commissioning import distinct_serial_number, program_individual_address
+
+        serial_number = distinct_serial_number(commission_serial_number)
         logger.info(
             "download: no device answered at %s; assigning the address to the "
             "device %s",
             address,
-            "by serial number"
-            if commission_serial_number is not None
-            else "in programming mode",
+            "by serial number" if serial_number is not None else "in programming mode",
         )
-        from .commissioning import program_individual_address
-
         await program_individual_address(
             xknx,
             address,
-            serial_number=commission_serial_number,
+            serial_number=serial_number,
             domain_address=commission_domain_address,
             security=security,
             ip_system_broadcast=commission_ip_system_broadcast,
@@ -1088,6 +1116,7 @@ async def download(
     )
 
 
+@_for_the_device
 async def preflight(
     xknx: XKNX,
     individual_address: IndividualAddressableType,

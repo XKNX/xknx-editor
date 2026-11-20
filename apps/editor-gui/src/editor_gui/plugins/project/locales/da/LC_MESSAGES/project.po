@@ -2123,9 +2123,6 @@ msgstr "Slot"
 msgid "The application has no static parameters."
 msgstr "Applikationen har ingen statiske parametre."
 
-msgid "This gateway's commissioning protocol has not been verified against a capture; writes may misbehave. Proceed with care."
-msgstr "Denne gateways ibrugtagningsprotokol er ikke verificeret mod en optagelse; skrivninger kan opføre sig forkert. Fortsæt med forsigtighed."
-
 msgid "Program DCA State"
 msgstr "Programmér DCA-tilstand"
 
@@ -3234,6 +3231,11 @@ msgstr "Projektets aktuelle tilstand"
 msgid "Configuration Comparison"
 msgstr "Sammenligning af konfiguration"
 
+msgid "Current state of the project"
+msgstr "Projektets aktuelle tilstand"
+msgid "Configuration Comparison"
+msgstr "Sammenligning af konfiguration"
+
 msgid "Compare settings with another device or the stored image from the last download."
 msgstr "Sammenlign indstillinger med en anden enhed eller det gemte hukommelsesbillede fra den seneste programmering."
 
@@ -3339,6 +3341,11 @@ msgstr "Vælg en enhed"
 
 msgid "Select the two devices to compare."
 msgstr "Vælg de to enheder, der skal sammenlignes."
+
+msgid "Loading application programs… {done}/{total}"
+msgstr "Indlæser applikationsprogrammer… {done}/{total}"
+msgid "Symbol"
+msgstr "Symbol"
 
 msgid "Loading application programs… {done}/{total}"
 msgstr "Indlæser applikationsprogrammer… {done}/{total}"
@@ -3555,6 +3562,11 @@ msgstr "Ikke fastslået"
 msgid "Compares the device's hardware/software identity with this catalog. Does not install firmware. Catalog import: MDT Firmware Update .etsapp or Firmware.zip."
 msgstr "Sammenligner enhedens hardware-/softwareidentitet med dette katalog. Installerer ikke firmware. Katalogimport: MDT Firmware Update .etsapp eller Firmware.zip."
 
+msgid "Not determined"
+msgstr "Ikke fastslået"
+msgid "Compares the device's hardware/software identity with this catalog. Does not install firmware. Catalog import: MDT Firmware Update .etsapp or Firmware.zip."
+msgstr "Sammenligner enhedens hardware-/softwareidentitet med dette katalog. Installerer ikke firmware. Katalogimport: MDT Firmware Update .etsapp eller Firmware.zip."
+
 msgid "Hardware/software identity could not be determined. Read the device to check compatibility."
 msgstr "Hardware-/softwareidentiteten kunne ikke fastslås. Læs enheden for at kontrollere kompatibiliteten."
 
@@ -3710,3 +3722,466 @@ msgstr "Kommunikationsvejen gennem kobleren {coupler} kunne ikke åbnes ({detail
 
 msgid "The domain address of this secure device could not be loaded because the coupler {coupler} does not support security."
 msgstr "Domæneadressen for denne sikre enhed kunne ikke indlæses, fordi kobleren {coupler} ikke understøtter sikkerhed."
+
+msgid "Actions"
+msgstr "Handlinger"
+
+msgid "Add Command"
+msgstr "Tilføj kommando"
+
+msgid "Assigned Groups and ECGs"
+msgstr "Tildelte grupper og forkoblinger"
+
+msgid "Colour"
+msgstr "Farve"
+
+msgid "Control Gear and Groups"
+msgstr "Forkoblinger og grupper"
+
+msgid "Delay"
+msgstr "Forsinkelse"
+
+msgid "ECG"
+msgstr "Forkobling"
+
+msgid "Effects"
+msgstr "Effekter"
+
+msgid "Fade Time"
+msgstr "Dæmpningstid"
+
+msgid "Flag"
+msgstr "Flag"
+
+msgid "General Inputs"
+msgstr "Generelle indgange"
+
+msgid "Input Devices"
+msgstr "Indgangsenheder"
+
+msgid "Instance"
+msgstr "Instans"
+
+msgid "KNX Scene"
+msgstr "KNX-scene"
+
+msgid "Keep Colour"
+msgstr "Behold farve"
+
+msgid "Keep Value"
+msgstr "Behold værdi"
+
+msgid "Loop"
+msgstr "Gentag"
+
+msgid "Manual Override"
+msgstr "Manuel overstyring"
+
+msgid "Midnight Reset"
+msgstr "Nulstil ved midnat"
+
+msgid "Mo Tu We Th Fr Sa Su"
+msgstr "Ma Ti On To Fr Lø Sø"
+
+msgid "Mode"
+msgstr "Tilstand"
+
+msgid "Motion / Brightness"
+msgstr "Bevægelse / lysstyrke"
+
+msgid "No Entries"
+msgstr "Ingen poster"
+
+msgid "Origin"
+msgstr "Oprindelse"
+
+msgid "Physical Devices Without a Unique Assignment"
+msgstr "Fysiske enheder uden entydig tildeling"
+
+msgid "Physical Inputs"
+msgstr "Fysiske indgange"
+
+msgid "Push-Buttons"
+msgstr "Trykknapper"
+
+msgid "Reference"
+msgstr "Reference"
+
+msgid "Single ECG"
+msgstr "Enkelt forkobling"
+
+msgid "Target"
+msgstr "Mål"
+
+msgid "Time"
+msgstr "Tid"
+
+msgid "Time Control"
+msgstr "Tidsstyring"
+
+msgid "View"
+msgstr "Vis"
+
+msgid "Weekdays"
+msgstr "Ugedage"
+
+msgid "Add Target"
+msgstr "Tilføj mål"
+
+msgid "Apply"
+msgstr "Anvend"
+
+msgid "Approximate Preview"
+msgstr "Vejledende forhåndsvisning"
+
+msgid "Colour Temperature"
+msgstr "Farvetemperatur"
+
+msgid "Groups"
+msgstr "Grupper"
+
+msgid "Search"
+msgstr "Søgning"
+
+msgid "White"
+msgstr "Hvid"
+
+msgid "Brightness"
+msgstr "Lysstyrke"
+
+msgid "Min. Brightness"
+msgstr "Min. lysstyrke"
+
+msgid "Max. Brightness"
+msgstr "Maks. lysstyrke"
+
+msgid "Switch-on Limit"
+msgstr "Tændingsgrænse"
+
+msgid "DCA Details"
+msgstr "DCA-detaljer"
+
+msgid "Import DCA XML…"
+msgstr "Importér DCA-XML…"
+
+msgid "Export DCA XML…"
+msgstr "Eksportér DCA-XML…"
+
+msgid "Replace the DCA configuration of {device} with the selected XML file?"
+msgstr "Erstat DCA-konfigurationen for {device} med den valgte XML-fil?"
+
+msgid "DCA configuration imported."
+msgstr "DCA-konfigurationen er importeret."
+
+msgid "DCA configuration exported."
+msgstr "DCA-konfigurationen er eksporteret."
+
+msgid "Color Temperature"
+msgstr "Farvetemperatur"
+
+msgid "Keep Color"
+msgstr "Behold farve"
+
+msgid "No entries"
+msgstr "Ingen poster"
+
+msgid "Assigned Groups and ECGs…"
+msgstr "Tildelte grupper og forkoblinger…"
+
+msgid "Add Target…"
+msgstr "Tilføj mål…"
+
+msgid "Approximate preview"
+msgstr "Vejledende forhåndsvisning"
+
+msgid "Manual override"
+msgstr "Manuel overstyring"
+
+msgid "Midnight reset"
+msgstr "Nulstil ved midnat"
+
+msgid "Import DCA Configuration"
+msgstr "Importér DCA-konfiguration"
+
+msgid "Edit DCA configuration"
+msgstr "Rediger DCA-konfiguration"
+
+msgid "Import DCA configuration"
+msgstr "Importér DCA-konfiguration"
+
+msgid "Invalid DCA configuration."
+msgstr "Ugyldig DCA-konfiguration."
+
+msgid "Expected a complete DCA device configuration."
+msgstr "Der forventes en komplet DCA-enhedskonfiguration."
+
+msgid "DALI project data changed. Reopen the selection and try again."
+msgstr "DALI-projektdata er ændret. Åbn valget igen, og prøv igen."
+
+msgid "The selected DCA item is unavailable. Reopen the selection."
+msgstr "Det valgte DCA-element er ikke tilgængeligt. Åbn valget igen."
+
+msgid "Invalid value."
+msgstr "Ugyldig værdi."
+
+msgid "Invalid or unsupported color value."
+msgstr "Ugyldig eller ikke understøttet farveværdi."
+
+msgid "This DCA operation is not supported."
+msgstr "Denne DCA-handling understøttes ikke."
+
+msgid "Expected {minimum}-{maximum}."
+msgstr "Forventet: {minimum}-{maximum}."
+
+msgid "Expected HH:MM."
+msgstr "Forventet: HH:MM."
+
+msgid "Select seven weekdays."
+msgstr "Vælg syv ugedage."
+
+msgid "The target already belongs to the scene."
+msgstr "Målet tilhører allerede scenen."
+
+msgid "At most 300 time control commands are supported."
+msgstr "Der understøttes højst 300 tidsstyringskommandoer."
+
+msgid "At most 500 effect steps are supported."
+msgstr "Der understøttes højst 500 effekttrin."
+
+msgid "Descriptions can contain at most {maximum} characters."
+msgstr "Beskrivelser må højst indeholde {maximum} tegn."
+
+msgid "Mo"
+msgstr "ma."
+
+msgid "Tu"
+msgstr "ti."
+
+msgid "We"
+msgstr "on."
+
+msgid "Th"
+msgstr "to."
+
+msgid "Fr"
+msgstr "fr."
+
+msgid "Sa"
+msgstr "lø."
+
+msgid "Su"
+msgstr "sø."
+
+msgid "A test is pending."
+msgstr "En test afventer."
+
+msgid "Battery"
+msgstr "Batteri"
+
+msgid "Brightness sensor"
+msgstr "Lysstyrkesensor"
+
+msgid "Converters"
+msgstr "Konvertere"
+
+msgid "Descriptions"
+msgstr "Beskrivelser"
+
+msgid "Diagnostic Report"
+msgstr "Diagnoserapport"
+
+msgid "Duration"
+msgstr "Varighed"
+
+msgid "Duration test running"
+msgstr "Varighedstest kører"
+
+msgid "Edit several descriptions and apply them together in one undo step."
+msgstr "Rediger flere beskrivelser, og anvend dem samlet i ét trin, der kan fortrydes."
+
+msgid "Emergency"
+msgstr "Nøddrift"
+
+msgid "Emergency Failure"
+msgstr "Nødlysfejl"
+
+msgid "Emergency Mode"
+msgstr "Nødlystilstand"
+
+msgid "Emergency Status"
+msgstr "Nødlysstatus"
+
+msgid "Errors"
+msgstr "Fejl"
+
+msgid "Event sensor"
+msgstr "Hændelsessensor"
+
+msgid "Extended emergency"
+msgstr "Forlænget nøddrift"
+
+msgid "Failure Rate"
+msgstr "Fejlprocent"
+
+msgid "Fixed inhibit"
+msgstr "Fast blokering"
+
+msgid "Function test running"
+msgstr "Funktionstest kører"
+
+msgid "Generic sensor"
+msgstr "Generisk sensor"
+
+msgid "Inhibit"
+msgstr "Blokering"
+
+msgid "Lamps"
+msgstr "Lamper"
+
+msgid "Motion sensor"
+msgstr "Bevægelsessensor"
+
+msgid "Normal"
+msgstr "Normal"
+
+msgid "Push button"
+msgstr "Trykknap"
+
+msgid "Read Report"
+msgstr "Læs rapport"
+
+msgid "Read the diagnostic report from the gateway to display its current counters and saved test results."
+msgstr "Læs diagnoserapporten fra gatewayen for at vise aktuelle tællere og gemte testresultater."
+
+msgid "Replace the selected slot with the XML configuration? Other slots remain unchanged."
+msgstr "Erstat den valgte plads med XML-konfigurationen? Andre pladser forbliver uændrede."
+
+msgid "Rest"
+msgstr "Hvile"
+
+msgid "Result"
+msgstr "Resultat"
+
+msgid "Test"
+msgstr "Test"
+
+msgid "The input types are not compatible."
+msgstr "Indgangstyperne er ikke kompatible."
+
+msgid "This physical input is already assigned."
+msgstr "Denne fysiske indgang er allerede tildelt."
+
+msgid "Total Failure Rate"
+msgstr "Samlet fejlprocent"
+
+msgid "Value input"
+msgstr "Værdiindgang"
+
+
+msgid "Call scene"
+msgstr "Aktivér scene"
+
+msgid "Call effect"
+msgstr "Aktivér effekt"
+
+msgid "Start"
+msgstr "Start"
+
+msgid "Controlled by effect object"
+msgstr "Styret af effektobjekt"
+
+msgid "Import Descriptions…"
+msgstr "Importér beskrivelser…"
+
+msgid "Export Descriptions…"
+msgstr "Eksportér beskrivelser…"
+
+msgid "Replace the descriptions included in the file? You can undo this change."
+msgstr "Erstat beskrivelserne i filen? Du kan fortryde denne ændring."
+
+msgid "Clear Descriptions"
+msgstr "Ryd beskrivelser"
+
+msgid "These descriptions cannot be preserved as TXT. Choose XML."
+msgstr "Disse beskrivelser kan ikke bevares som TXT. Vælg XML."
+
+msgid "Insert Before"
+msgstr "Indsæt før"
+
+msgid "Sort by Time"
+msgstr "Sortér efter tid"
+
+msgid "Sort by Function"
+msgstr "Sortér efter funktion"
+
+msgid "Clear Actions"
+msgstr "Ryd handlinger"
+
+msgid "Discover Inputs"
+msgstr "Find indgange"
+
+msgid "Stop Blinking"
+msgstr "Stop blink"
+
+msgid "Function Test"
+msgstr "Funktionstest"
+
+msgid "Duration Test"
+msgstr "Varighedstest"
+
+msgid "Battery Test"
+msgstr "Batteritest"
+
+msgid "Read Calibration"
+msgstr "Læs kalibrering"
+
+msgid "Set Calibration Level"
+msgstr "Indstil kalibreringsniveau"
+
+msgid "Save Calibration"
+msgstr "Gem kalibrering"
+
+msgid "Read Memory Byte"
+msgstr "Læs hukommelsesbyte"
+
+msgid "Write Memory Byte"
+msgstr "Skriv hukommelsesbyte"
+
+msgid "Read Names"
+msgstr "Læs navne"
+
+msgid "Write Names"
+msgstr "Skriv navne"
+
+msgid "Read Motion Diagnostics"
+msgstr "Læs bevægelsesdiagnostik"
+
+msgid "Inhibit Converters"
+msgstr "Bloker konvertere"
+
+msgid "Replace ECGs…"
+msgstr "Udskift forkoblinger…"
+
+msgid "Service"
+msgstr "Service"
+
+msgid "Calibration"
+msgstr "Kalibrering"
+
+msgid "Memory Bank"
+msgstr "Hukommelsesbank"
+
+msgid "Measured Illuminance (lx)"
+msgstr "Målt belysningsstyrke (lx)"
+
+msgid "Enable memory write lock"
+msgstr "Aktivér skrivebeskyttelse af hukommelse"
+
+msgid "Start automatic ECG replacement on this gateway? This changes the DALI assignments and cannot be undone in the project."
+msgstr "Start automatisk udskiftning af forkoblinger på denne gateway? Det ændrer DALI-tildelingerne og kan ikke fortrydes i projektet."
+
+msgid "Restore Gateway…"
+msgstr "Gendan gateway…"
+
+msgid "Restore the saved physical inventory and configuration to this gateway and restart it? This overwrites its DALI state and cannot be undone in the project."
+msgstr "Gendan de gemte fysiske enheder og konfigurationen på denne gateway, og genstart den? Det overskriver dens DALI-tilstand og kan ikke fortrydes i projektet."

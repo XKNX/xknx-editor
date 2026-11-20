@@ -21,8 +21,10 @@ classes. The names are kept verbatim so a future re-run can diff cleanly.
 
 from __future__ import annotations
 
+import json
 import re
 from dataclasses import dataclass
+from importlib.resources import files
 
 # Non-positional runtime enum values: generated from ``public enum X { TOKEN=VAL, ... }``
 # declarations. The byte emitted on the wire is the runtime value, which is
@@ -439,6 +441,25 @@ def humanize_token(token: str) -> str:
     # Common pattern: "0_7s" -> "0.7 s", "16_0s" -> "16.0 s"
     label = re.sub(r"(\d+) (\d+)s", r"\1.\2 s", label)
     return label or token
+
+
+def _complete_property_enums() -> None:
+    mapping = json.loads(
+        files(__package__)
+        .joinpath("recovery_properties.json")
+        .read_text(encoding="utf-8")
+    )
+    for name, values in mapping["enums"].items():
+        if name == "BinaryInformationValueEnum":
+            continue
+        ENUM_TOKENS[name] = list(values)
+        ENUM_RUNTIME_VALUES[name] = values
+    for row in mapping["properties"]:
+        if row[-1].startswith("enum:"):
+            ELEMENT_TO_ENUM[row[7]] = row[-1].removeprefix("enum:")
+
+
+_complete_property_enums()
 
 
 def resolve_token(element_tag: str, token: str) -> str:

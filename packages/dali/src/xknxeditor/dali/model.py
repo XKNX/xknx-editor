@@ -91,7 +91,7 @@ class SceneValue:
     """One entry in a scene: a target (group or ECG) and its level (+ optional colour bytes)."""
 
     scene: int  # 0-15
-    target_index: int  # group 0-15, or 16 + ecg_short_address for an ECG target
+    target_index: int  # group 0-15, or 16 + logical ECG index for an ECG target
     level: int  # 0-255 DALI arc value
     color: bytes = b"\x00\x00\x00\x00"  # 4-byte ColorProp
     flags: int = 0  # bit0 keep-colour, bit1 keep-value
@@ -105,6 +105,28 @@ class Scene:
     fade_time: int = 0
     knx_scene: int = 0  # DALI/KNX scene number 1-64 (0 = unmapped)
     values: list[SceneValue] = field(default_factory=list["SceneValue"])
+    knx_mapping_available: bool = True
+
+
+@dataclass(slots=True)
+class EffectStep:
+    """A sequential target value with a pause and colour transition time."""
+
+    target_index: int
+    level: int
+    color: bytes = b"\x00\x00\x00\x00"
+    flags: int = 0
+    delay: int = 0
+    fade_time: int = 0
+
+
+@dataclass(slots=True)
+class Effect:
+    """One effect slot, its repetition mode and ordered steps."""
+
+    index: int
+    mode: int = 0
+    steps: list[EffectStep] = field(default_factory=list["EffectStep"])
 
 
 @dataclass(slots=True)
@@ -134,3 +156,4 @@ class Template:
     groups: tuple[int, ...] = ()  # member group indices 0-15
     ecgs: tuple[int, ...] = ()  # member ECG indices 0-63
     commands: list[TemplateCommand] = field(default_factory=list["TemplateCommand"])
+    reset_on_midnight: bool = True

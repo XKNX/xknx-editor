@@ -2123,9 +2123,6 @@ msgstr "Slot"
 msgid "The application has no static parameters."
 msgstr "A aplicação não tem parâmetros estáticos."
 
-msgid "This gateway's commissioning protocol has not been verified against a capture; writes may misbehave. Proceed with care."
-msgstr "O protocolo de comissionamento deste gateway não foi verificado contra uma captura; as escritas podem comportar-se mal. Prossiga com cuidado."
-
 msgid "Program DCA State"
 msgstr "Programar estado DCA"
 
@@ -3234,6 +3231,11 @@ msgstr "Estado atual do projeto"
 msgid "Configuration Comparison"
 msgstr "Comparação de configuração"
 
+msgid "Current state of the project"
+msgstr "Estado atual do projeto"
+msgid "Configuration Comparison"
+msgstr "Comparação de configuração"
+
 msgid "Compare settings with another device or the stored image from the last download."
 msgstr "Compare as definições com outro dispositivo ou com a imagem guardada da última programação."
 
@@ -3343,6 +3345,11 @@ msgstr "Selecione um dispositivo"
 
 msgid "Select the two devices to compare."
 msgstr "Selecione os dois dispositivos a comparar."
+
+msgid "Loading application programs… {done}/{total}"
+msgstr "A carregar os programas de aplicação… {done}/{total}"
+msgid "Symbol"
+msgstr "Símbolo"
 
 msgid "Loading application programs… {done}/{total}"
 msgstr "A carregar os programas de aplicação… {done}/{total}"
@@ -3559,6 +3566,11 @@ msgstr "Não determinada"
 msgid "Compares the device's hardware/software identity with this catalog. Does not install firmware. Catalog import: MDT Firmware Update .etsapp or Firmware.zip."
 msgstr "Compara a identificação de hardware/software do dispositivo com este catálogo. Não instala firmware. Importar catálogo: MDT Firmware Update .etsapp ou Firmware.zip."
 
+msgid "Not determined"
+msgstr "Não determinada"
+msgid "Compares the device's hardware/software identity with this catalog. Does not install firmware. Catalog import: MDT Firmware Update .etsapp or Firmware.zip."
+msgstr "Compara a identificação de hardware/software do dispositivo com este catálogo. Não instala firmware. Importar catálogo: MDT Firmware Update .etsapp ou Firmware.zip."
+
 msgid "Hardware/software identity could not be determined. Read the device to check compatibility."
 msgstr "Não foi possível determinar a identificação de hardware/software. Leia o dispositivo para verificar a compatibilidade."
 
@@ -3714,3 +3726,466 @@ msgstr "Não foi possível abrir o caminho de comunicação através do acoplado
 
 msgid "The domain address of this secure device could not be loaded because the coupler {coupler} does not support security."
 msgstr "Não foi possível carregar o endereço de domínio deste dispositivo seguro porque o acoplador {coupler} não suporta segurança."
+
+msgid "Actions"
+msgstr "Ações"
+
+msgid "Add Command"
+msgstr "Adicionar comando"
+
+msgid "Assigned Groups and ECGs"
+msgstr "Grupos e balastros atribuídos"
+
+msgid "Colour"
+msgstr "Cor"
+
+msgid "Control Gear and Groups"
+msgstr "Balastros e grupos"
+
+msgid "Delay"
+msgstr "Atraso"
+
+msgid "ECG"
+msgstr "Balastro"
+
+msgid "Effects"
+msgstr "Efeitos"
+
+msgid "Fade Time"
+msgstr "Tempo de transição"
+
+msgid "Flag"
+msgstr "Indicador"
+
+msgid "General Inputs"
+msgstr "Entradas genéricas"
+
+msgid "Input Devices"
+msgstr "Dispositivos de entrada"
+
+msgid "Instance"
+msgstr "Instância"
+
+msgid "KNX Scene"
+msgstr "Cena KNX"
+
+msgid "Keep Colour"
+msgstr "Manter cor"
+
+msgid "Keep Value"
+msgstr "Manter valor"
+
+msgid "Loop"
+msgstr "Repetição"
+
+msgid "Manual Override"
+msgstr "Controlo manual"
+
+msgid "Midnight Reset"
+msgstr "Reposição à meia-noite"
+
+msgid "Mo Tu We Th Fr Sa Su"
+msgstr "Seg Ter Qua Qui Sex Sáb Dom"
+
+msgid "Mode"
+msgstr "Modo"
+
+msgid "Motion / Brightness"
+msgstr "Movimento / luminosidade"
+
+msgid "No Entries"
+msgstr "Sem entradas"
+
+msgid "Origin"
+msgstr "Origem"
+
+msgid "Physical Devices Without a Unique Assignment"
+msgstr "Dispositivos físicos sem atribuição única"
+
+msgid "Physical Inputs"
+msgstr "Entradas físicas"
+
+msgid "Push-Buttons"
+msgstr "Botões de pressão"
+
+msgid "Reference"
+msgstr "Referência"
+
+msgid "Single ECG"
+msgstr "Balastro individual"
+
+msgid "Target"
+msgstr "Destino"
+
+msgid "Time"
+msgstr "Hora"
+
+msgid "Time Control"
+msgstr "Programação horária"
+
+msgid "View"
+msgstr "Ver"
+
+msgid "Weekdays"
+msgstr "Dias da semana"
+
+msgid "Add Target"
+msgstr "Adicionar destino"
+
+msgid "Apply"
+msgstr "Aplicar"
+
+msgid "Approximate Preview"
+msgstr "Pré-visualização aproximada"
+
+msgid "Colour Temperature"
+msgstr "Temperatura de cor"
+
+msgid "Groups"
+msgstr "Grupos"
+
+msgid "Search"
+msgstr "Pesquisa"
+
+msgid "White"
+msgstr "Branco"
+
+msgid "Brightness"
+msgstr "Luminosidade"
+
+msgid "Min. Brightness"
+msgstr "Luminosidade mín."
+
+msgid "Max. Brightness"
+msgstr "Luminosidade máx."
+
+msgid "Switch-on Limit"
+msgstr "Limite ao ligar"
+
+msgid "DCA Details"
+msgstr "Detalhes da DCA"
+
+msgid "Import DCA XML…"
+msgstr "Importar XML da DCA…"
+
+msgid "Export DCA XML…"
+msgstr "Exportar XML da DCA…"
+
+msgid "Replace the DCA configuration of {device} with the selected XML file?"
+msgstr "Substituir a configuração DCA de {device} pelo ficheiro XML selecionado?"
+
+msgid "DCA configuration imported."
+msgstr "Configuração DCA importada."
+
+msgid "DCA configuration exported."
+msgstr "Configuração DCA exportada."
+
+msgid "Color Temperature"
+msgstr "Temperatura de cor"
+
+msgid "Keep Color"
+msgstr "Manter cor"
+
+msgid "No entries"
+msgstr "Sem entradas"
+
+msgid "Assigned Groups and ECGs…"
+msgstr "Grupos e balastros atribuídos…"
+
+msgid "Add Target…"
+msgstr "Adicionar destino…"
+
+msgid "Approximate preview"
+msgstr "Pré-visualização aproximada"
+
+msgid "Manual override"
+msgstr "Controlo manual"
+
+msgid "Midnight reset"
+msgstr "Reposição à meia-noite"
+
+msgid "Import DCA Configuration"
+msgstr "Importar configuração DCA"
+
+msgid "Edit DCA configuration"
+msgstr "Editar configuração DCA"
+
+msgid "Import DCA configuration"
+msgstr "Importar configuração DCA"
+
+msgid "Invalid DCA configuration."
+msgstr "Configuração DCA inválida."
+
+msgid "Expected a complete DCA device configuration."
+msgstr "É necessária uma configuração completa do dispositivo DCA."
+
+msgid "DALI project data changed. Reopen the selection and try again."
+msgstr "Os dados do projeto DALI foram alterados. Reabra a seleção e tente novamente."
+
+msgid "The selected DCA item is unavailable. Reopen the selection."
+msgstr "O item DCA selecionado não está disponível. Reabra a seleção."
+
+msgid "Invalid value."
+msgstr "Valor inválido."
+
+msgid "Invalid or unsupported color value."
+msgstr "Valor de cor inválido ou não suportado."
+
+msgid "This DCA operation is not supported."
+msgstr "Esta operação DCA não é suportada."
+
+msgid "Expected {minimum}-{maximum}."
+msgstr "Esperado: {minimum}-{maximum}."
+
+msgid "Expected HH:MM."
+msgstr "Esperado: HH:MM."
+
+msgid "Select seven weekdays."
+msgstr "Selecione sete dias da semana."
+
+msgid "The target already belongs to the scene."
+msgstr "O destino já pertence à cena."
+
+msgid "At most 300 time control commands are supported."
+msgstr "São suportados no máximo 300 comandos de controlo horário."
+
+msgid "At most 500 effect steps are supported."
+msgstr "São suportados no máximo 500 passos de efeitos."
+
+msgid "Descriptions can contain at most {maximum} characters."
+msgstr "As descrições podem conter no máximo {maximum} caracteres."
+
+msgid "Mo"
+msgstr "seg."
+
+msgid "Tu"
+msgstr "ter."
+
+msgid "We"
+msgstr "qua."
+
+msgid "Th"
+msgstr "qui."
+
+msgid "Fr"
+msgstr "sex."
+
+msgid "Sa"
+msgstr "sáb."
+
+msgid "Su"
+msgstr "dom."
+
+msgid "A test is pending."
+msgstr "Existe um teste pendente."
+
+msgid "Battery"
+msgstr "Bateria"
+
+msgid "Brightness sensor"
+msgstr "Sensor de luminosidade"
+
+msgid "Converters"
+msgstr "Conversores"
+
+msgid "Descriptions"
+msgstr "Descrições"
+
+msgid "Diagnostic Report"
+msgstr "Relatório de diagnóstico"
+
+msgid "Duration"
+msgstr "Duração"
+
+msgid "Duration test running"
+msgstr "Teste de duração em curso"
+
+msgid "Edit several descriptions and apply them together in one undo step."
+msgstr "Edite várias descrições e aplique-as em conjunto num único passo de anulação."
+
+msgid "Emergency"
+msgstr "Emergência"
+
+msgid "Emergency Failure"
+msgstr "Falha de emergência"
+
+msgid "Emergency Mode"
+msgstr "Modo de emergência"
+
+msgid "Emergency Status"
+msgstr "Estado de emergência"
+
+msgid "Errors"
+msgstr "Erros"
+
+msgid "Event sensor"
+msgstr "Sensor de eventos"
+
+msgid "Extended emergency"
+msgstr "Emergência prolongada"
+
+msgid "Failure Rate"
+msgstr "Taxa de falhas"
+
+msgid "Fixed inhibit"
+msgstr "Inibição fixa"
+
+msgid "Function test running"
+msgstr "Teste funcional em curso"
+
+msgid "Generic sensor"
+msgstr "Sensor genérico"
+
+msgid "Inhibit"
+msgstr "Inibição"
+
+msgid "Lamps"
+msgstr "Lâmpadas"
+
+msgid "Motion sensor"
+msgstr "Sensor de movimento"
+
+msgid "Normal"
+msgstr "Normal"
+
+msgid "Push button"
+msgstr "Botão de pressão"
+
+msgid "Read Report"
+msgstr "Ler relatório"
+
+msgid "Read the diagnostic report from the gateway to display its current counters and saved test results."
+msgstr "Leia o relatório de diagnóstico do gateway para apresentar os contadores atuais e os resultados de testes guardados."
+
+msgid "Replace the selected slot with the XML configuration? Other slots remain unchanged."
+msgstr "Substituir a posição selecionada pela configuração XML? As outras posições permanecem inalteradas."
+
+msgid "Rest"
+msgstr "Repouso"
+
+msgid "Result"
+msgstr "Resultado"
+
+msgid "Test"
+msgstr "Teste"
+
+msgid "The input types are not compatible."
+msgstr "Os tipos de entrada não são compatíveis."
+
+msgid "This physical input is already assigned."
+msgstr "Esta entrada física já está atribuída."
+
+msgid "Total Failure Rate"
+msgstr "Taxa total de falhas"
+
+msgid "Value input"
+msgstr "Entrada de valor"
+
+
+msgid "Call scene"
+msgstr "Chamar cena"
+
+msgid "Call effect"
+msgstr "Chamar efeito"
+
+msgid "Start"
+msgstr "Iniciar"
+
+msgid "Controlled by effect object"
+msgstr "Controlado pelo objeto de efeito"
+
+msgid "Import Descriptions…"
+msgstr "Importar descrições…"
+
+msgid "Export Descriptions…"
+msgstr "Exportar descrições…"
+
+msgid "Replace the descriptions included in the file? You can undo this change."
+msgstr "Substituir as descrições incluídas no ficheiro? Pode anular esta alteração."
+
+msgid "Clear Descriptions"
+msgstr "Limpar descrições"
+
+msgid "These descriptions cannot be preserved as TXT. Choose XML."
+msgstr "Estas descrições não podem ser preservadas como TXT. Escolha XML."
+
+msgid "Insert Before"
+msgstr "Inserir antes"
+
+msgid "Sort by Time"
+msgstr "Ordenar por hora"
+
+msgid "Sort by Function"
+msgstr "Ordenar por função"
+
+msgid "Clear Actions"
+msgstr "Limpar ações"
+
+msgid "Discover Inputs"
+msgstr "Procurar entradas"
+
+msgid "Stop Blinking"
+msgstr "Parar intermitência"
+
+msgid "Function Test"
+msgstr "Teste funcional"
+
+msgid "Duration Test"
+msgstr "Teste de duração"
+
+msgid "Battery Test"
+msgstr "Teste da bateria"
+
+msgid "Read Calibration"
+msgstr "Ler calibração"
+
+msgid "Set Calibration Level"
+msgstr "Definir nível de calibração"
+
+msgid "Save Calibration"
+msgstr "Guardar calibração"
+
+msgid "Read Memory Byte"
+msgstr "Ler byte de memória"
+
+msgid "Write Memory Byte"
+msgstr "Escrever byte de memória"
+
+msgid "Read Names"
+msgstr "Ler nomes"
+
+msgid "Write Names"
+msgstr "Escrever nomes"
+
+msgid "Read Motion Diagnostics"
+msgstr "Ler diagnóstico de movimento"
+
+msgid "Inhibit Converters"
+msgstr "Inibir conversores"
+
+msgid "Replace ECGs…"
+msgstr "Substituir balastros…"
+
+msgid "Service"
+msgstr "Serviço"
+
+msgid "Calibration"
+msgstr "Calibração"
+
+msgid "Memory Bank"
+msgstr "Banco de memória"
+
+msgid "Measured Illuminance (lx)"
+msgstr "Iluminância medida (lx)"
+
+msgid "Enable memory write lock"
+msgstr "Ativar bloqueio de escrita da memória"
+
+msgid "Start automatic ECG replacement on this gateway? This changes the DALI assignments and cannot be undone in the project."
+msgstr "Iniciar a substituição automática de balastros nesta interface? Isto altera as atribuições DALI e não pode ser anulado no projeto."
+
+msgid "Restore Gateway…"
+msgstr "Restaurar interface…"
+
+msgid "Restore the saved physical inventory and configuration to this gateway and restart it? This overwrites its DALI state and cannot be undone in the project."
+msgstr "Restaurar os dispositivos físicos e a configuração guardados nesta interface e reiniciá-la? Isto substitui o estado DALI e não pode ser anulado no projeto."

@@ -2123,9 +2123,6 @@ msgstr "Paikka"
 msgid "The application has no static parameters."
 msgstr "Sovelluksella ei ole staattisia parametreja."
 
-msgid "This gateway's commissioning protocol has not been verified against a capture; writes may misbehave. Proceed with care."
-msgstr "Tämän yhdyskäytävän käyttöönottoprotokollaa ei ole varmistettu kaappaukseen; kirjoitukset saattavat toimia väärin. Etene varoen."
-
 msgid "Program DCA State"
 msgstr "Ohjelmoi DCA-tila"
 
@@ -3234,6 +3231,11 @@ msgstr "Projektin nykyinen tila"
 msgid "Configuration Comparison"
 msgstr "Asetusten vertailu"
 
+msgid "Current state of the project"
+msgstr "Projektin nykyinen tila"
+msgid "Configuration Comparison"
+msgstr "Asetusten vertailu"
+
 msgid "Compare settings with another device or the stored image from the last download."
 msgstr "Vertaa asetuksia toiseen laitteeseen tai viimeisimmän ohjelmoinnin tallennettuun muistikuvaan."
 
@@ -3339,6 +3341,11 @@ msgstr "Valitse laite"
 
 msgid "Select the two devices to compare."
 msgstr "Valitse kaksi verrattavaa laitetta."
+
+msgid "Loading application programs… {done}/{total}"
+msgstr "Ladataan sovellusohjelmia… {done}/{total}"
+msgid "Symbol"
+msgstr "Symboli"
 
 msgid "Loading application programs… {done}/{total}"
 msgstr "Ladataan sovellusohjelmia… {done}/{total}"
@@ -3555,6 +3562,11 @@ msgstr "Ei määritetty"
 msgid "Compares the device's hardware/software identity with this catalog. Does not install firmware. Catalog import: MDT Firmware Update .etsapp or Firmware.zip."
 msgstr "Vertaa laitteen laitteisto-/ohjelmistotunnistetta tähän luetteloon. Ei asenna laiteohjelmistoa. Luettelon tuonti: MDT Firmware Update .etsapp tai Firmware.zip."
 
+msgid "Not determined"
+msgstr "Ei määritetty"
+msgid "Compares the device's hardware/software identity with this catalog. Does not install firmware. Catalog import: MDT Firmware Update .etsapp or Firmware.zip."
+msgstr "Vertaa laitteen laitteisto-/ohjelmistotunnistetta tähän luetteloon. Ei asenna laiteohjelmistoa. Luettelon tuonti: MDT Firmware Update .etsapp tai Firmware.zip."
+
 msgid "Hardware/software identity could not be determined. Read the device to check compatibility."
 msgstr "Laitteisto-/ohjelmistotunnistetta ei voitu määrittää. Lue laite yhteensopivuuden tarkistamiseksi."
 
@@ -3710,3 +3722,466 @@ msgstr "Tiedonsiirtoreittiä yhdistimen {coupler} kautta ei voitu avata ({detail
 
 msgid "The domain address of this secure device could not be loaded because the coupler {coupler} does not support security."
 msgstr "Tämän suojatun laitteen toimialueosoitetta ei voitu ladata, koska yhdistin {coupler} ei tue suojausta."
+
+msgid "Actions"
+msgstr "Toiminnot"
+
+msgid "Add Command"
+msgstr "Lisää komento"
+
+msgid "Assigned Groups and ECGs"
+msgstr "Liitetyt ryhmät ja liitäntälaitteet"
+
+msgid "Colour"
+msgstr "Väri"
+
+msgid "Control Gear and Groups"
+msgstr "Liitäntälaitteet ja ryhmät"
+
+msgid "Delay"
+msgstr "Viive"
+
+msgid "ECG"
+msgstr "Liitäntälaite"
+
+msgid "Effects"
+msgstr "Tehosteet"
+
+msgid "Fade Time"
+msgstr "Himmennysaika"
+
+msgid "Flag"
+msgstr "Lippu"
+
+msgid "General Inputs"
+msgstr "Yleiset tulot"
+
+msgid "Input Devices"
+msgstr "Tulolaitteet"
+
+msgid "Instance"
+msgstr "Instanssi"
+
+msgid "KNX Scene"
+msgstr "KNX-tilanne"
+
+msgid "Keep Colour"
+msgstr "Säilytä väri"
+
+msgid "Keep Value"
+msgstr "Säilytä arvo"
+
+msgid "Loop"
+msgstr "Jatkuva toisto"
+
+msgid "Manual Override"
+msgstr "Käsiohitus"
+
+msgid "Midnight Reset"
+msgstr "Palautus keskiyöllä"
+
+msgid "Mo Tu We Th Fr Sa Su"
+msgstr "Ma Ti Ke To Pe La Su"
+
+msgid "Mode"
+msgstr "Tila"
+
+msgid "Motion / Brightness"
+msgstr "Liike / kirkkaus"
+
+msgid "No Entries"
+msgstr "Ei merkintöjä"
+
+msgid "Origin"
+msgstr "Alkuperä"
+
+msgid "Physical Devices Without a Unique Assignment"
+msgstr "Fyysiset laitteet ilman yksiselitteistä kohdistusta"
+
+msgid "Physical Inputs"
+msgstr "Fyysiset tulot"
+
+msgid "Push-Buttons"
+msgstr "Painikkeet"
+
+msgid "Reference"
+msgstr "Viite"
+
+msgid "Single ECG"
+msgstr "Yksittäinen liitäntälaite"
+
+msgid "Target"
+msgstr "Kohde"
+
+msgid "Time"
+msgstr "Aika"
+
+msgid "Time Control"
+msgstr "Aikaohjaus"
+
+msgid "View"
+msgstr "Näytä"
+
+msgid "Weekdays"
+msgstr "Viikonpäivät"
+
+msgid "Add Target"
+msgstr "Lisää kohde"
+
+msgid "Apply"
+msgstr "Käytä"
+
+msgid "Approximate Preview"
+msgstr "Suuntaa antava esikatselu"
+
+msgid "Colour Temperature"
+msgstr "Värilämpötila"
+
+msgid "Groups"
+msgstr "Ryhmät"
+
+msgid "Search"
+msgstr "Haku"
+
+msgid "White"
+msgstr "Valkoinen"
+
+msgid "Brightness"
+msgstr "Kirkkaus"
+
+msgid "Min. Brightness"
+msgstr "Vähimmäiskirkkaus"
+
+msgid "Max. Brightness"
+msgstr "Enimmäiskirkkaus"
+
+msgid "Switch-on Limit"
+msgstr "Kytkentäraja"
+
+msgid "DCA Details"
+msgstr "DCA-tiedot"
+
+msgid "Import DCA XML…"
+msgstr "Tuo DCA-XML…"
+
+msgid "Export DCA XML…"
+msgstr "Vie DCA-XML…"
+
+msgid "Replace the DCA configuration of {device} with the selected XML file?"
+msgstr "Korvataanko laitteen {device} DCA-määritys valitulla XML-tiedostolla?"
+
+msgid "DCA configuration imported."
+msgstr "DCA-määritys tuotiin."
+
+msgid "DCA configuration exported."
+msgstr "DCA-määritys vietiin."
+
+msgid "Color Temperature"
+msgstr "Värilämpötila"
+
+msgid "Keep Color"
+msgstr "Säilytä väri"
+
+msgid "No entries"
+msgstr "Ei merkintöjä"
+
+msgid "Assigned Groups and ECGs…"
+msgstr "Liitetyt ryhmät ja liitäntälaitteet…"
+
+msgid "Add Target…"
+msgstr "Lisää kohde…"
+
+msgid "Approximate preview"
+msgstr "Suuntaa antava esikatselu"
+
+msgid "Manual override"
+msgstr "Käsiohitus"
+
+msgid "Midnight reset"
+msgstr "Palautus keskiyöllä"
+
+msgid "Import DCA Configuration"
+msgstr "Tuo DCA-määritys"
+
+msgid "Edit DCA configuration"
+msgstr "Muokkaa DCA-määritystä"
+
+msgid "Import DCA configuration"
+msgstr "Tuo DCA-määritys"
+
+msgid "Invalid DCA configuration."
+msgstr "Virheellinen DCA-määritys."
+
+msgid "Expected a complete DCA device configuration."
+msgstr "Tarvitaan täydellinen DCA-laitemääritys."
+
+msgid "DALI project data changed. Reopen the selection and try again."
+msgstr "DALI-projektin tiedot ovat muuttuneet. Avaa valinta uudelleen ja yritä uudelleen."
+
+msgid "The selected DCA item is unavailable. Reopen the selection."
+msgstr "Valittu DCA-kohde ei ole käytettävissä. Avaa valinta uudelleen."
+
+msgid "Invalid value."
+msgstr "Virheellinen arvo."
+
+msgid "Invalid or unsupported color value."
+msgstr "Virheellinen tai tukematon väriarvo."
+
+msgid "This DCA operation is not supported."
+msgstr "Tätä DCA-toimintoa ei tueta."
+
+msgid "Expected {minimum}-{maximum}."
+msgstr "Odotettu: {minimum}-{maximum}."
+
+msgid "Expected HH:MM."
+msgstr "Odotettu: HH:MM."
+
+msgid "Select seven weekdays."
+msgstr "Valitse seitsemän viikonpäivää."
+
+msgid "The target already belongs to the scene."
+msgstr "Kohde kuuluu jo tilanteeseen."
+
+msgid "At most 300 time control commands are supported."
+msgstr "Tuetaan enintään 300 aikaohjauskomentoa."
+
+msgid "At most 500 effect steps are supported."
+msgstr "Tuetaan enintään 500 tehosteaskelta."
+
+msgid "Descriptions can contain at most {maximum} characters."
+msgstr "Kuvauksissa saa olla enintään {maximum} merkkiä."
+
+msgid "Mo"
+msgstr "ma"
+
+msgid "Tu"
+msgstr "ti"
+
+msgid "We"
+msgstr "ke"
+
+msgid "Th"
+msgstr "to"
+
+msgid "Fr"
+msgstr "pe"
+
+msgid "Sa"
+msgstr "la"
+
+msgid "Su"
+msgstr "su"
+
+msgid "A test is pending."
+msgstr "Testi odottaa."
+
+msgid "Battery"
+msgstr "Akku"
+
+msgid "Brightness sensor"
+msgstr "Valoisuusanturi"
+
+msgid "Converters"
+msgstr "Muuntimet"
+
+msgid "Descriptions"
+msgstr "Kuvaukset"
+
+msgid "Diagnostic Report"
+msgstr "Diagnostiikkaraportti"
+
+msgid "Duration"
+msgstr "Kesto"
+
+msgid "Duration test running"
+msgstr "Kestotesti käynnissä"
+
+msgid "Edit several descriptions and apply them together in one undo step."
+msgstr "Muokkaa useita kuvauksia ja ota ne käyttöön yhdellä kumottavalla toiminnolla."
+
+msgid "Emergency"
+msgstr "Hätäkäyttö"
+
+msgid "Emergency Failure"
+msgstr "Hätävalovika"
+
+msgid "Emergency Mode"
+msgstr "Hätävalotila"
+
+msgid "Emergency Status"
+msgstr "Hätävalon tila"
+
+msgid "Errors"
+msgstr "Virheet"
+
+msgid "Event sensor"
+msgstr "Tapahtuma-anturi"
+
+msgid "Extended emergency"
+msgstr "Pidennetty hätäkäyttö"
+
+msgid "Failure Rate"
+msgstr "Vikaprosentti"
+
+msgid "Fixed inhibit"
+msgstr "Kiinteä esto"
+
+msgid "Function test running"
+msgstr "Toimintatesti käynnissä"
+
+msgid "Generic sensor"
+msgstr "Yleisanturi"
+
+msgid "Inhibit"
+msgstr "Esto"
+
+msgid "Lamps"
+msgstr "Lamput"
+
+msgid "Motion sensor"
+msgstr "Liikeanturi"
+
+msgid "Normal"
+msgstr "Normaali"
+
+msgid "Push button"
+msgstr "Painike"
+
+msgid "Read Report"
+msgstr "Lue raportti"
+
+msgid "Read the diagnostic report from the gateway to display its current counters and saved test results."
+msgstr "Lue yhdyskäytävän diagnostiikkaraportti nähdäksesi nykyiset laskurit ja tallennetut testitulokset."
+
+msgid "Replace the selected slot with the XML configuration? Other slots remain unchanged."
+msgstr "Korvataanko valittu paikka XML-määrityksellä? Muut paikat säilyvät ennallaan."
+
+msgid "Rest"
+msgstr "Lepo"
+
+msgid "Result"
+msgstr "Tulos"
+
+msgid "Test"
+msgstr "Testi"
+
+msgid "The input types are not compatible."
+msgstr "Tulotyypit eivät ole yhteensopivia."
+
+msgid "This physical input is already assigned."
+msgstr "Tämä fyysinen tulo on jo määritetty."
+
+msgid "Total Failure Rate"
+msgstr "Kokonaisvikaprosentti"
+
+msgid "Value input"
+msgstr "Arvotulo"
+
+
+msgid "Call scene"
+msgstr "Kutsu tilanne"
+
+msgid "Call effect"
+msgstr "Kutsu tehoste"
+
+msgid "Start"
+msgstr "Käynnistä"
+
+msgid "Controlled by effect object"
+msgstr "Tehosteobjektin ohjaama"
+
+msgid "Import Descriptions…"
+msgstr "Tuo kuvaukset…"
+
+msgid "Export Descriptions…"
+msgstr "Vie kuvaukset…"
+
+msgid "Replace the descriptions included in the file? You can undo this change."
+msgstr "Korvataanko tiedoston sisältämät kuvaukset? Voit kumota tämän muutoksen."
+
+msgid "Clear Descriptions"
+msgstr "Tyhjennä kuvaukset"
+
+msgid "These descriptions cannot be preserved as TXT. Choose XML."
+msgstr "Näitä kuvauksia ei voi säilyttää TXT-muodossa. Valitse XML."
+
+msgid "Insert Before"
+msgstr "Lisää ennen"
+
+msgid "Sort by Time"
+msgstr "Lajittele ajan mukaan"
+
+msgid "Sort by Function"
+msgstr "Lajittele toiminnon mukaan"
+
+msgid "Clear Actions"
+msgstr "Tyhjennä toiminnot"
+
+msgid "Discover Inputs"
+msgstr "Etsi tulolaitteet"
+
+msgid "Stop Blinking"
+msgstr "Lopeta vilkutus"
+
+msgid "Function Test"
+msgstr "Toimintatesti"
+
+msgid "Duration Test"
+msgstr "Kestotesti"
+
+msgid "Battery Test"
+msgstr "Akkutesti"
+
+msgid "Read Calibration"
+msgstr "Lue kalibrointi"
+
+msgid "Set Calibration Level"
+msgstr "Aseta kalibrointitaso"
+
+msgid "Save Calibration"
+msgstr "Tallenna kalibrointi"
+
+msgid "Read Memory Byte"
+msgstr "Lue muistitavu"
+
+msgid "Write Memory Byte"
+msgstr "Kirjoita muistitavu"
+
+msgid "Read Names"
+msgstr "Lue nimet"
+
+msgid "Write Names"
+msgstr "Kirjoita nimet"
+
+msgid "Read Motion Diagnostics"
+msgstr "Lue liikkeen diagnostiikka"
+
+msgid "Inhibit Converters"
+msgstr "Estä muuntimet"
+
+msgid "Replace ECGs…"
+msgstr "Vaihda liitäntälaitteet…"
+
+msgid "Service"
+msgstr "Huolto"
+
+msgid "Calibration"
+msgstr "Kalibrointi"
+
+msgid "Memory Bank"
+msgstr "Muistipankki"
+
+msgid "Measured Illuminance (lx)"
+msgstr "Mitattu valaistusvoimakkuus (lx)"
+
+msgid "Enable memory write lock"
+msgstr "Ota muistin kirjoitussuoja käyttöön"
+
+msgid "Start automatic ECG replacement on this gateway? This changes the DALI assignments and cannot be undone in the project."
+msgstr "Aloitetaanko liitäntälaitteiden automaattinen vaihto tällä yhdyskäytävällä? Tämä muuttaa DALI-määrityksiä, eikä sitä voi kumota projektissa."
+
+msgid "Restore Gateway…"
+msgstr "Palauta yhdyskäytävä…"
+
+msgid "Restore the saved physical inventory and configuration to this gateway and restart it? This overwrites its DALI state and cannot be undone in the project."
+msgstr "Palautetaanko tallennetut fyysiset laitteet ja asetukset tähän yhdyskäytävään ja käynnistetäänkö se uudelleen? Tämä korvaa DALI-tilan, eikä sitä voi kumota projektissa."

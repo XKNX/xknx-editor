@@ -124,6 +124,9 @@ def test_a_download_finds_an_automatic_address_once(
     node_id = _ip_device(proj, app, monkeypatch)
     # Without a serial number there is nothing to search for.
     assert proj.serial_to_find_ip(node_id) is None
+    # Nor with one that cannot tell the device apart: it is not recorded.
+    proj.record_download(node_id, "full", bytes.fromhex("00fa00000000"))
+    assert proj.serial_to_find_ip(node_id) is None
     serial = bytes.fromhex("00fa12345678")
     proj.record_download(node_id, "full", serial)
     assert proj.serial_to_find_ip(node_id) == serial

@@ -164,20 +164,23 @@ directly in the editor.
 <img src="docs/images/catalog.png" alt="Product catalog" width="598">
 
 **Programming real devices** — commission a device end-to-end over a live connection (a KNX USB
-interface, also a KNX RF one with its domain address set from a line, or tunneling or routing with
-gateway discovery), including setting a new device's address (and a new KNX RF device's domain
+interface, also a KNX RF one with its domain address set from a line, or the device a USB interface is
+part of through its own USB port, or tunneling or routing with gateway discovery), including setting a new device's address (and a new KNX RF device's domain
 address, also behind a TP/RF media coupler, with KNX RF Multi and with KNX Data Secure, and a new
 KNX IP device's routing multicast address and backbone key), also through couplers that block
 traffic as Security Proxy, which it opens for that time. A read-only **preflight**
 and **Test Programming** read the device back and show the exact changes before anything is
-written. Longer timeouts in Settings > Connection let it work over slow connections such as a remote tunnel or a VPN. Vendor-independent by design.
+written. Longer timeouts in Settings > Connection let it work over slow connections such as a remote tunnel or a VPN. Vendor-independent by design. The USB Interface dialog also shows and sends the frames of an interface's M-Bus and BatiBus tunnels, and can run a KNXnet/IP server so other tools use the USB interface as a KNXnet/IP interface (USB to IP bridge, off unless turned on).
 
 <img src="docs/images/programming.png" alt="Programming and preflight" width="384">
 
 **DALI** — for DALI gateways (MDT, and the shared MDT/Theben/IPAS platform), read and edit the
 gateway's DALI configuration — control gear, groups, scenes, time control and effects — in a table
 view, and, over the bus, scan, address and commission the connected control gear from a **DALI
-(Bus)** tab. Still maturing — verify against your own installation.
+(Bus)** tab. IPAS e64 Pro and Theben P64 V2 also support offline input assignments, bulk
+descriptions, individual scene/effect/template XML exchange and read-only diagnostic reports.
+Bus recovery also reads Siemens N141/03 and N141/21 DCA properties and the stored discovery data of supported N141/14 and N141/32 applications.
+Still maturing — verify against your own installation.
 
 **Displays without parameters** — some devices, such as the Busch-Jaeger Triton, keep their
 configuration in a blob instead of classic parameters. Configure them in the **Plugin Parameters**

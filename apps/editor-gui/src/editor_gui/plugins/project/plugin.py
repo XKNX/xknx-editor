@@ -465,6 +465,9 @@ class ProjectPlugin:
             _generation=lambda: api.project.generation,
             _mapping_for=api.project.plugin_mapping,
             _sections_for=api.project.plugin_sections,
+            _e64_write=api.project.edit_e64pro,
+            _e64_project=api.project,
+            _e64_run=self._run_dali,
         )
         self._generic_plugin_panel = GenericPluginPanel(
             self.generic_plugin_view,
@@ -1440,12 +1443,12 @@ class ProjectPlugin:
         assignments: "list[EcgAssignment]",
         scenes: "list[Scene]",
         channel: int,
-    ) -> None:
+    ) -> bool:
         """Write a DALI channel's state back into the project blob after a bus commissioning
         run (see :func:`editor_gui.programming_dali.persist_dali_backup`)."""
         from editor_gui.programming_dali import persist_dali_backup
 
-        persist_dali_backup(
+        return persist_dali_backup(
             self._api.project,
             device,
             scan,
@@ -2777,6 +2780,13 @@ class ProjectPlugin:
             )
             return
         try:
+            from editor_gui.plugin_blob_readers.dali_backup import e64pro
+
+            if blob_name == e64pro.BACKUP_NAME and e64pro.supports(device):
+                edit = e64pro.edit_from_ref(bytes(entry.data), ref_id, new_value)
+                if edit is not None:
+                    self._api.project.edit_e64pro(device, bytes(entry.data), edit)
+                    return
             new_blob = apply_edit(entry.data, ref_id, new_value)
         except ValueError as exc:
             self._api.log.warning(
@@ -3461,11 +3471,15 @@ class ProjectPlugin:
 
     def _store_read_serial(self, device: "Device", result: "DeviceInfo") -> None:
         """Save the serial number read from the device, when it runs the project device's
-        application (so another product at that address is not taken for it)."""
+        application (so another product at that address is not taken for it) and the serial
+        number tells the device apart."""
+        from xknxeditor.download.serial_numbers import suspicious_serial_number
+
         serial = result.serial_number
         if (
             serial is None
             or len(serial) != 6
+            or suspicious_serial_number(serial)
             or result.application is None
             or device.app is None
             or not same_application(device.app.id, result.application)
@@ -3514,6 +3528,16 @@ class ProjectPlugin:
         return products[0].name if products else None
 
     def _start_program(self, item: QueueItem) -> "Future[Any] | None":
+        """Start one queued operation (see ``_start_queued``); one the connection refused
+        before it started (e.g. a device it can't reach) gets the reason as its message."""
+        connection = self._api.connection
+        connection.take_refusal()  # an older refusal is not this operation's
+        future = self._start_queued(item)
+        if future is None and (reason := connection.take_refusal()) is not None:
+            item.message = reason
+        return future
+
+    def _start_queued(self, item: QueueItem) -> "Future[Any] | None":
         """Start one queued programming via the normal single-device path (slot, progress, notice,
         commissioning all handled by ``program_device`` + the commissioning callback). Returns the
         Future, or None if it could not start (not connected / device gone)."""

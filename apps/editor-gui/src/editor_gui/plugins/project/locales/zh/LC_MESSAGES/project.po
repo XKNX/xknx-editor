@@ -2123,9 +2123,6 @@ msgstr "插槽"
 msgid "The application has no static parameters."
 msgstr "应用程序没有静态参数。"
 
-msgid "This gateway's commissioning protocol has not been verified against a capture; writes may misbehave. Proceed with care."
-msgstr "此网关的调试协议尚未与捕获记录对比验证;写入可能表现异常。请谨慎操作。"
-
 msgid "Program DCA State"
 msgstr "编程 DCA 状态"
 
@@ -3182,6 +3179,11 @@ msgstr "项目的当前状态"
 msgid "Configuration Comparison"
 msgstr "配置比较"
 
+msgid "Current state of the project"
+msgstr "项目的当前状态"
+msgid "Configuration Comparison"
+msgstr "配置比较"
+
 msgid "Compare settings with another device or the stored image from the last download."
 msgstr "将设置与另一台设备或上次下载时保存的映像进行比较。"
 
@@ -3287,6 +3289,11 @@ msgstr "选择设备"
 
 msgid "Select the two devices to compare."
 msgstr "选择要比较的两个设备。"
+
+msgid "Loading application programs… {done}/{total}"
+msgstr "正在加载应用程序… {done}/{total}"
+msgid "Symbol"
+msgstr "符号"
 
 msgid "Loading application programs… {done}/{total}"
 msgstr "正在加载应用程序… {done}/{total}"
@@ -3503,6 +3510,11 @@ msgstr "尚未确定"
 msgid "Compares the device's hardware/software identity with this catalog. Does not install firmware. Catalog import: MDT Firmware Update .etsapp or Firmware.zip."
 msgstr "将设备的硬件/软件标识与此目录进行比较。不安装固件。目录导入：MDT Firmware Update .etsapp 或 Firmware.zip。"
 
+msgid "Not determined"
+msgstr "尚未确定"
+msgid "Compares the device's hardware/software identity with this catalog. Does not install firmware. Catalog import: MDT Firmware Update .etsapp or Firmware.zip."
+msgstr "将设备的硬件/软件标识与此目录进行比较。不安装固件。目录导入：MDT Firmware Update .etsapp 或 Firmware.zip。"
+
 msgid "Hardware/software identity could not be determined. Read the device to check compatibility."
 msgstr "无法确定硬件/软件标识。请读取设备以检查兼容性。"
 
@@ -3658,3 +3670,466 @@ msgstr "无法打开经过耦合器 {coupler} 的通信路径（{detail}）。�
 
 msgid "The domain address of this secure device could not be loaded because the coupler {coupler} does not support security."
 msgstr "无法加载此安全设备的域地址，因为耦合器 {coupler} 不支持安全功能。"
+
+msgid "Actions"
+msgstr "操作"
+
+msgid "Add Command"
+msgstr "添加命令"
+
+msgid "Assigned Groups and ECGs"
+msgstr "已分配的组和镇流器"
+
+msgid "Colour"
+msgstr "颜色"
+
+msgid "Control Gear and Groups"
+msgstr "镇流器和组"
+
+msgid "Delay"
+msgstr "延迟"
+
+msgid "ECG"
+msgstr "镇流器"
+
+msgid "Effects"
+msgstr "效果"
+
+msgid "Fade Time"
+msgstr "渐变时间"
+
+msgid "Flag"
+msgstr "标志"
+
+msgid "General Inputs"
+msgstr "通用输入"
+
+msgid "Input Devices"
+msgstr "输入设备"
+
+msgid "Instance"
+msgstr "实例"
+
+msgid "KNX Scene"
+msgstr "KNX 场景"
+
+msgid "Keep Colour"
+msgstr "保持颜色"
+
+msgid "Keep Value"
+msgstr "保持数值"
+
+msgid "Loop"
+msgstr "循环"
+
+msgid "Manual Override"
+msgstr "手动覆盖"
+
+msgid "Midnight Reset"
+msgstr "午夜复位"
+
+msgid "Mo Tu We Th Fr Sa Su"
+msgstr "一 二 三 四 五 六 日"
+
+msgid "Mode"
+msgstr "模式"
+
+msgid "Motion / Brightness"
+msgstr "移动 / 亮度"
+
+msgid "No Entries"
+msgstr "无条目"
+
+msgid "Origin"
+msgstr "来源"
+
+msgid "Physical Devices Without a Unique Assignment"
+msgstr "无唯一分配的物理设备"
+
+msgid "Physical Inputs"
+msgstr "物理输入"
+
+msgid "Push-Buttons"
+msgstr "按钮"
+
+msgid "Reference"
+msgstr "引用"
+
+msgid "Single ECG"
+msgstr "单个镇流器"
+
+msgid "Target"
+msgstr "目标"
+
+msgid "Time"
+msgstr "时间"
+
+msgid "Time Control"
+msgstr "定时控制"
+
+msgid "View"
+msgstr "视图"
+
+msgid "Weekdays"
+msgstr "星期"
+
+msgid "Add Target"
+msgstr "添加目标"
+
+msgid "Apply"
+msgstr "应用"
+
+msgid "Approximate Preview"
+msgstr "近似预览"
+
+msgid "Colour Temperature"
+msgstr "色温"
+
+msgid "Groups"
+msgstr "组"
+
+msgid "Search"
+msgstr "搜索"
+
+msgid "White"
+msgstr "白色"
+
+msgid "Brightness"
+msgstr "亮度"
+
+msgid "Min. Brightness"
+msgstr "最低亮度"
+
+msgid "Max. Brightness"
+msgstr "最高亮度"
+
+msgid "Switch-on Limit"
+msgstr "开灯亮度上限"
+
+msgid "DCA Details"
+msgstr "DCA 详细信息"
+
+msgid "Import DCA XML…"
+msgstr "导入 DCA XML…"
+
+msgid "Export DCA XML…"
+msgstr "导出 DCA XML…"
+
+msgid "Replace the DCA configuration of {device} with the selected XML file?"
+msgstr "用所选 XML 文件替换 {device} 的 DCA 配置？"
+
+msgid "DCA configuration imported."
+msgstr "已导入 DCA 配置。"
+
+msgid "DCA configuration exported."
+msgstr "已导出 DCA 配置。"
+
+msgid "Color Temperature"
+msgstr "色温"
+
+msgid "Keep Color"
+msgstr "保持颜色"
+
+msgid "No entries"
+msgstr "无条目"
+
+msgid "Assigned Groups and ECGs…"
+msgstr "已分配的组和镇流器…"
+
+msgid "Add Target…"
+msgstr "添加目标…"
+
+msgid "Approximate preview"
+msgstr "近似预览"
+
+msgid "Manual override"
+msgstr "手动覆盖"
+
+msgid "Midnight reset"
+msgstr "午夜复位"
+
+msgid "Import DCA Configuration"
+msgstr "导入 DCA 配置"
+
+msgid "Edit DCA configuration"
+msgstr "编辑 DCA 配置"
+
+msgid "Import DCA configuration"
+msgstr "导入 DCA 配置"
+
+msgid "Invalid DCA configuration."
+msgstr "DCA 配置无效。"
+
+msgid "Expected a complete DCA device configuration."
+msgstr "需要完整的 DCA 设备配置。"
+
+msgid "DALI project data changed. Reopen the selection and try again."
+msgstr "DALI 项目数据已更改。请重新打开选择并重试。"
+
+msgid "The selected DCA item is unavailable. Reopen the selection."
+msgstr "所选 DCA 项目不可用。请重新打开选择。"
+
+msgid "Invalid value."
+msgstr "值无效。"
+
+msgid "Invalid or unsupported color value."
+msgstr "颜色值无效或不受支持。"
+
+msgid "This DCA operation is not supported."
+msgstr "不支持此 DCA 操作。"
+
+msgid "Expected {minimum}-{maximum}."
+msgstr "预期范围：{minimum}-{maximum}。"
+
+msgid "Expected HH:MM."
+msgstr "预期格式：HH:MM。"
+
+msgid "Select seven weekdays."
+msgstr "请选择一周中的七天。"
+
+msgid "The target already belongs to the scene."
+msgstr "该目标已属于此场景。"
+
+msgid "At most 300 time control commands are supported."
+msgstr "最多支持 300 条时间控制命令。"
+
+msgid "At most 500 effect steps are supported."
+msgstr "最多支持 500 个效果步骤。"
+
+msgid "Descriptions can contain at most {maximum} characters."
+msgstr "描述最多可包含 {maximum} 个字符。"
+
+msgid "Mo"
+msgstr "周一"
+
+msgid "Tu"
+msgstr "周二"
+
+msgid "We"
+msgstr "周三"
+
+msgid "Th"
+msgstr "周四"
+
+msgid "Fr"
+msgstr "周五"
+
+msgid "Sa"
+msgstr "周六"
+
+msgid "Su"
+msgstr "周日"
+
+msgid "A test is pending."
+msgstr "有一项测试正在等待。"
+
+msgid "Battery"
+msgstr "电池"
+
+msgid "Brightness sensor"
+msgstr "亮度传感器"
+
+msgid "Converters"
+msgstr "转换器"
+
+msgid "Descriptions"
+msgstr "描述"
+
+msgid "Diagnostic Report"
+msgstr "诊断报告"
+
+msgid "Duration"
+msgstr "持续时间"
+
+msgid "Duration test running"
+msgstr "持续时间测试进行中"
+
+msgid "Edit several descriptions and apply them together in one undo step."
+msgstr "编辑多个描述并一次性应用，可通过一次撤销恢复。"
+
+msgid "Emergency"
+msgstr "应急运行"
+
+msgid "Emergency Failure"
+msgstr "应急照明故障"
+
+msgid "Emergency Mode"
+msgstr "应急照明模式"
+
+msgid "Emergency Status"
+msgstr "应急照明状态"
+
+msgid "Errors"
+msgstr "错误"
+
+msgid "Event sensor"
+msgstr "事件传感器"
+
+msgid "Extended emergency"
+msgstr "延长应急运行"
+
+msgid "Failure Rate"
+msgstr "故障率"
+
+msgid "Fixed inhibit"
+msgstr "固定抑制"
+
+msgid "Function test running"
+msgstr "功能测试进行中"
+
+msgid "Generic sensor"
+msgstr "通用传感器"
+
+msgid "Inhibit"
+msgstr "抑制"
+
+msgid "Lamps"
+msgstr "灯具"
+
+msgid "Motion sensor"
+msgstr "运动传感器"
+
+msgid "Normal"
+msgstr "正常"
+
+msgid "Push button"
+msgstr "按钮"
+
+msgid "Read Report"
+msgstr "读取报告"
+
+msgid "Read the diagnostic report from the gateway to display its current counters and saved test results."
+msgstr "从网关读取诊断报告，显示当前计数器和已保存的测试结果。"
+
+msgid "Replace the selected slot with the XML configuration? Other slots remain unchanged."
+msgstr "用XML配置替换所选位置？其他位置保持不变。"
+
+msgid "Rest"
+msgstr "休息"
+
+msgid "Result"
+msgstr "结果"
+
+msgid "Test"
+msgstr "测试"
+
+msgid "The input types are not compatible."
+msgstr "输入类型不兼容。"
+
+msgid "This physical input is already assigned."
+msgstr "此物理输入已被分配。"
+
+msgid "Total Failure Rate"
+msgstr "总故障率"
+
+msgid "Value input"
+msgstr "数值输入"
+
+
+msgid "Call scene"
+msgstr "调用场景"
+
+msgid "Call effect"
+msgstr "调用效果"
+
+msgid "Start"
+msgstr "启动"
+
+msgid "Controlled by effect object"
+msgstr "由效果对象控制"
+
+msgid "Import Descriptions…"
+msgstr "导入描述…"
+
+msgid "Export Descriptions…"
+msgstr "导出描述…"
+
+msgid "Replace the descriptions included in the file? You can undo this change."
+msgstr "替换文件中包含的描述？您可以撤销此更改。"
+
+msgid "Clear Descriptions"
+msgstr "清空描述"
+
+msgid "These descriptions cannot be preserved as TXT. Choose XML."
+msgstr "这些描述无法以TXT格式完整保留。请选择XML。"
+
+msgid "Insert Before"
+msgstr "在前面插入"
+
+msgid "Sort by Time"
+msgstr "按时间排序"
+
+msgid "Sort by Function"
+msgstr "按功能排序"
+
+msgid "Clear Actions"
+msgstr "清空操作"
+
+msgid "Discover Inputs"
+msgstr "发现输入设备"
+
+msgid "Stop Blinking"
+msgstr "停止闪烁"
+
+msgid "Function Test"
+msgstr "功能测试"
+
+msgid "Duration Test"
+msgstr "持续时间测试"
+
+msgid "Battery Test"
+msgstr "电池测试"
+
+msgid "Read Calibration"
+msgstr "读取校准"
+
+msgid "Set Calibration Level"
+msgstr "设置校准亮度"
+
+msgid "Save Calibration"
+msgstr "保存校准"
+
+msgid "Read Memory Byte"
+msgstr "读取内存字节"
+
+msgid "Write Memory Byte"
+msgstr "写入内存字节"
+
+msgid "Read Names"
+msgstr "读取名称"
+
+msgid "Write Names"
+msgstr "写入名称"
+
+msgid "Read Motion Diagnostics"
+msgstr "读取运动诊断"
+
+msgid "Inhibit Converters"
+msgstr "禁用转换器"
+
+msgid "Replace ECGs…"
+msgstr "更换镇流器…"
+
+msgid "Service"
+msgstr "维护"
+
+msgid "Calibration"
+msgstr "校准"
+
+msgid "Memory Bank"
+msgstr "内存区"
+
+msgid "Measured Illuminance (lx)"
+msgstr "测量照度 (lx)"
+
+msgid "Enable memory write lock"
+msgstr "启用内存写入锁定"
+
+msgid "Start automatic ECG replacement on this gateway? This changes the DALI assignments and cannot be undone in the project."
+msgstr "在此网关上启动自动镇流器更换？这将更改DALI分配，且无法在项目中撤销。"
+
+msgid "Restore Gateway…"
+msgstr "恢复网关…"
+
+msgid "Restore the saved physical inventory and configuration to this gateway and restart it? This overwrites its DALI state and cannot be undone in the project."
+msgstr "将保存的物理设备和配置恢复到此网关并重启？这将覆盖其DALI状态，且无法在项目中撤销。"

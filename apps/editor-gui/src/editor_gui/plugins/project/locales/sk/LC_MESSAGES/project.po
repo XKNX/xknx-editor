@@ -1589,9 +1589,6 @@ msgstr "Časť údajov zariadenia nie je k dispozícii."
 msgid "Connect to a KNX interface to commission the DALI bus."
 msgstr "Na uvedenie zbernice DALI do prevádzky sa pripojte k rozhraniu KNX."
 
-msgid "This gateway's commissioning protocol has not been verified against a capture; writes may misbehave. Proceed with care."
-msgstr "Protokol uvedenia tejto brány do prevádzky nebol overený voči záznamu; zápisy sa môžu správať chybne. Postupujte opatrne."
-
 msgid "DALI commissioning writes the gateway on the bus but does not update the project parameters; re-export the .knxproj after a DCA-side edit."
 msgstr "Uvedenie DALI do prevádzky zapíše bránu na zbernici, ale neaktualizuje parametre projektu; po úprave v DCA znova exportujte .knxproj."
 
@@ -3313,6 +3310,11 @@ msgstr "Aktuálny stav projektu"
 msgid "Configuration Comparison"
 msgstr "Porovnanie konfigurácie"
 
+msgid "Current state of the project"
+msgstr "Aktuálny stav projektu"
+msgid "Configuration Comparison"
+msgstr "Porovnanie konfigurácie"
+
 msgid "Compare settings with another device or the stored image from the last download."
 msgstr "Porovnajte nastavenia s iným zariadením alebo s uloženým obrazom z posledného nahrávania."
 
@@ -3418,6 +3420,11 @@ msgstr "Vyberte zariadenie"
 
 msgid "Select the two devices to compare."
 msgstr "Vyberte dve zariadenia na porovnanie."
+
+msgid "Loading application programs… {done}/{total}"
+msgstr "Načítavajú sa aplikačné programy… {done}/{total}"
+msgid "Symbol"
+msgstr "Symbol"
 
 msgid "Loading application programs… {done}/{total}"
 msgstr "Načítavajú sa aplikačné programy… {done}/{total}"
@@ -3634,6 +3641,11 @@ msgstr "Neurčené"
 msgid "Compares the device's hardware/software identity with this catalog. Does not install firmware. Catalog import: MDT Firmware Update .etsapp or Firmware.zip."
 msgstr "Porovná identitu hardvéru/softvéru zariadenia s týmto katalógom. Neinštaluje firmvér. Import katalógu: MDT Firmware Update .etsapp alebo Firmware.zip."
 
+msgid "Not determined"
+msgstr "Neurčené"
+msgid "Compares the device's hardware/software identity with this catalog. Does not install firmware. Catalog import: MDT Firmware Update .etsapp or Firmware.zip."
+msgstr "Porovná identitu hardvéru/softvéru zariadenia s týmto katalógom. Neinštaluje firmvér. Import katalógu: MDT Firmware Update .etsapp alebo Firmware.zip."
+
 msgid "Hardware/software identity could not be determined. Read the device to check compatibility."
 msgstr "Identitu hardvéru/softvéru sa nepodarilo určiť. Načítajte zariadenie na overenie kompatibility."
 
@@ -3789,3 +3801,466 @@ msgstr "Komunikačnú cestu cez väzobný člen {coupler} sa nepodarilo otvoriť
 
 msgid "The domain address of this secure device could not be loaded because the coupler {coupler} does not support security."
 msgstr "Adresu domény tohto zabezpečeného zariadenia sa nepodarilo nahrať, pretože väzobný člen {coupler} nepodporuje zabezpečenie."
+
+msgid "Actions"
+msgstr "Akcie"
+
+msgid "Add Command"
+msgstr "Pridať príkaz"
+
+msgid "Assigned Groups and ECGs"
+msgstr "Priradené skupiny a predradníky"
+
+msgid "Colour"
+msgstr "Farba"
+
+msgid "Control Gear and Groups"
+msgstr "Predradníky a skupiny"
+
+msgid "Delay"
+msgstr "Oneskorenie"
+
+msgid "ECG"
+msgstr "Predradník"
+
+msgid "Effects"
+msgstr "Efekty"
+
+msgid "Fade Time"
+msgstr "Čas stmievania"
+
+msgid "Flag"
+msgstr "Príznak"
+
+msgid "General Inputs"
+msgstr "Všeobecné vstupy"
+
+msgid "Input Devices"
+msgstr "Vstupné zariadenia"
+
+msgid "Instance"
+msgstr "Inštancia"
+
+msgid "KNX Scene"
+msgstr "Scéna KNX"
+
+msgid "Keep Colour"
+msgstr "Zachovať farbu"
+
+msgid "Keep Value"
+msgstr "Zachovať hodnotu"
+
+msgid "Loop"
+msgstr "Opakovať"
+
+msgid "Manual Override"
+msgstr "Ručné ovládanie"
+
+msgid "Midnight Reset"
+msgstr "Obnovenie o polnoci"
+
+msgid "Mo Tu We Th Fr Sa Su"
+msgstr "Po Ut St Št Pi So Ne"
+
+msgid "Mode"
+msgstr "Režim"
+
+msgid "Motion / Brightness"
+msgstr "Pohyb / jas"
+
+msgid "No Entries"
+msgstr "Žiadne položky"
+
+msgid "Origin"
+msgstr "Pôvod"
+
+msgid "Physical Devices Without a Unique Assignment"
+msgstr "Fyzické zariadenia bez jednoznačného priradenia"
+
+msgid "Physical Inputs"
+msgstr "Fyzické vstupy"
+
+msgid "Push-Buttons"
+msgstr "Tlačidlá"
+
+msgid "Reference"
+msgstr "Odkaz"
+
+msgid "Single ECG"
+msgstr "Samostatný predradník"
+
+msgid "Target"
+msgstr "Cieľ"
+
+msgid "Time"
+msgstr "Čas"
+
+msgid "Time Control"
+msgstr "Časové riadenie"
+
+msgid "View"
+msgstr "Zobraziť"
+
+msgid "Weekdays"
+msgstr "Dni v týždni"
+
+msgid "Add Target"
+msgstr "Pridať cieľ"
+
+msgid "Apply"
+msgstr "Použiť"
+
+msgid "Approximate Preview"
+msgstr "Orientačný náhľad"
+
+msgid "Colour Temperature"
+msgstr "Teplota farby"
+
+msgid "Groups"
+msgstr "Skupiny"
+
+msgid "Search"
+msgstr "Hľadanie"
+
+msgid "White"
+msgstr "Biela"
+
+msgid "Brightness"
+msgstr "Jas"
+
+msgid "Min. Brightness"
+msgstr "Min. jas"
+
+msgid "Max. Brightness"
+msgstr "Max. jas"
+
+msgid "Switch-on Limit"
+msgstr "Limit pri zapnutí"
+
+msgid "DCA Details"
+msgstr "Podrobnosti DCA"
+
+msgid "Import DCA XML…"
+msgstr "Importovať XML DCA…"
+
+msgid "Export DCA XML…"
+msgstr "Exportovať XML DCA…"
+
+msgid "Replace the DCA configuration of {device} with the selected XML file?"
+msgstr "Nahradiť konfiguráciu DCA zariadenia {device} vybraným súborom XML?"
+
+msgid "DCA configuration imported."
+msgstr "Konfigurácia DCA bola importovaná."
+
+msgid "DCA configuration exported."
+msgstr "Konfigurácia DCA bola exportovaná."
+
+msgid "Color Temperature"
+msgstr "Teplota farby"
+
+msgid "Keep Color"
+msgstr "Zachovať farbu"
+
+msgid "No entries"
+msgstr "Žiadne položky"
+
+msgid "Assigned Groups and ECGs…"
+msgstr "Priradené skupiny a predradníky…"
+
+msgid "Add Target…"
+msgstr "Pridať cieľ…"
+
+msgid "Approximate preview"
+msgstr "Orientačný náhľad"
+
+msgid "Manual override"
+msgstr "Ručné ovládanie"
+
+msgid "Midnight reset"
+msgstr "Obnovenie o polnoci"
+
+msgid "Import DCA Configuration"
+msgstr "Importovať konfiguráciu DCA"
+
+msgid "Edit DCA configuration"
+msgstr "Upraviť konfiguráciu DCA"
+
+msgid "Import DCA configuration"
+msgstr "Importovať konfiguráciu DCA"
+
+msgid "Invalid DCA configuration."
+msgstr "Neplatná konfigurácia DCA."
+
+msgid "Expected a complete DCA device configuration."
+msgstr "Vyžaduje sa úplná konfigurácia zariadenia DCA."
+
+msgid "DALI project data changed. Reopen the selection and try again."
+msgstr "Údaje projektu DALI sa zmenili. Znova otvorte výber a skúste to znova."
+
+msgid "The selected DCA item is unavailable. Reopen the selection."
+msgstr "Vybraná položka DCA nie je dostupná. Znova otvorte výber."
+
+msgid "Invalid value."
+msgstr "Neplatná hodnota."
+
+msgid "Invalid or unsupported color value."
+msgstr "Neplatná alebo nepodporovaná hodnota farby."
+
+msgid "This DCA operation is not supported."
+msgstr "Táto operácia DCA nie je podporovaná."
+
+msgid "Expected {minimum}-{maximum}."
+msgstr "Očakáva sa: {minimum}-{maximum}."
+
+msgid "Expected HH:MM."
+msgstr "Očakáva sa: HH:MM."
+
+msgid "Select seven weekdays."
+msgstr "Vyberte sedem dní v týždni."
+
+msgid "The target already belongs to the scene."
+msgstr "Cieľ už patrí do scény."
+
+msgid "At most 300 time control commands are supported."
+msgstr "Podporovaných je najviac 300 príkazov časového riadenia."
+
+msgid "At most 500 effect steps are supported."
+msgstr "Podporovaných je najviac 500 krokov efektov."
+
+msgid "Descriptions can contain at most {maximum} characters."
+msgstr "Popisy môžu obsahovať najviac {maximum} znakov."
+
+msgid "Mo"
+msgstr "po"
+
+msgid "Tu"
+msgstr "ut"
+
+msgid "We"
+msgstr "st"
+
+msgid "Th"
+msgstr "št"
+
+msgid "Fr"
+msgstr "pi"
+
+msgid "Sa"
+msgstr "so"
+
+msgid "Su"
+msgstr "ne"
+
+msgid "A test is pending."
+msgstr "Test čaká."
+
+msgid "Battery"
+msgstr "Batéria"
+
+msgid "Brightness sensor"
+msgstr "Snímač jasu"
+
+msgid "Converters"
+msgstr "Prevodníky"
+
+msgid "Descriptions"
+msgstr "Popisy"
+
+msgid "Diagnostic Report"
+msgstr "Diagnostická správa"
+
+msgid "Duration"
+msgstr "Trvanie"
+
+msgid "Duration test running"
+msgstr "Prebieha test výdrže"
+
+msgid "Edit several descriptions and apply them together in one undo step."
+msgstr "Upravte viacero popisov a použite ich spoločne v jednom kroku vrátenia späť."
+
+msgid "Emergency"
+msgstr "Núdzová prevádzka"
+
+msgid "Emergency Failure"
+msgstr "Porucha núdzového osvetlenia"
+
+msgid "Emergency Mode"
+msgstr "Režim núdzového osvetlenia"
+
+msgid "Emergency Status"
+msgstr "Stav núdzového osvetlenia"
+
+msgid "Errors"
+msgstr "Chyby"
+
+msgid "Event sensor"
+msgstr "Snímač udalostí"
+
+msgid "Extended emergency"
+msgstr "Predĺžená núdzová prevádzka"
+
+msgid "Failure Rate"
+msgstr "Podiel porúch"
+
+msgid "Fixed inhibit"
+msgstr "Pevné blokovanie"
+
+msgid "Function test running"
+msgstr "Prebieha funkčný test"
+
+msgid "Generic sensor"
+msgstr "Všeobecný snímač"
+
+msgid "Inhibit"
+msgstr "Blokovanie"
+
+msgid "Lamps"
+msgstr "Svetelné zdroje"
+
+msgid "Motion sensor"
+msgstr "Snímač pohybu"
+
+msgid "Normal"
+msgstr "Normálny"
+
+msgid "Push button"
+msgstr "Tlačidlo"
+
+msgid "Read Report"
+msgstr "Načítať správu"
+
+msgid "Read the diagnostic report from the gateway to display its current counters and saved test results."
+msgstr "Načítajte diagnostickú správu z brány a zobrazte aktuálne počítadlá a uložené výsledky testov."
+
+msgid "Replace the selected slot with the XML configuration? Other slots remain unchanged."
+msgstr "Nahradiť vybranú pozíciu konfiguráciou XML? Ostatné pozície zostanú nezmenené."
+
+msgid "Rest"
+msgstr "Pokoj"
+
+msgid "Result"
+msgstr "Výsledok"
+
+msgid "Test"
+msgstr "Test"
+
+msgid "The input types are not compatible."
+msgstr "Typy vstupov nie sú kompatibilné."
+
+msgid "This physical input is already assigned."
+msgstr "Tento fyzický vstup je už priradený."
+
+msgid "Total Failure Rate"
+msgstr "Celkový podiel porúch"
+
+msgid "Value input"
+msgstr "Hodnotový vstup"
+
+
+msgid "Call scene"
+msgstr "Vyvolať scénu"
+
+msgid "Call effect"
+msgstr "Vyvolať efekt"
+
+msgid "Start"
+msgstr "Spustiť"
+
+msgid "Controlled by effect object"
+msgstr "Riadené objektom efektu"
+
+msgid "Import Descriptions…"
+msgstr "Importovať popisy…"
+
+msgid "Export Descriptions…"
+msgstr "Exportovať popisy…"
+
+msgid "Replace the descriptions included in the file? You can undo this change."
+msgstr "Nahradiť popisy obsiahnuté v súbore? Túto zmenu možno vrátiť späť."
+
+msgid "Clear Descriptions"
+msgstr "Vymazať popisy"
+
+msgid "These descriptions cannot be preserved as TXT. Choose XML."
+msgstr "Tieto popisy nemožno zachovať vo formáte TXT. Vyberte XML."
+
+msgid "Insert Before"
+msgstr "Vložiť pred"
+
+msgid "Sort by Time"
+msgstr "Zoradiť podľa času"
+
+msgid "Sort by Function"
+msgstr "Zoradiť podľa funkcie"
+
+msgid "Clear Actions"
+msgstr "Vymazať akcie"
+
+msgid "Discover Inputs"
+msgstr "Vyhľadať vstupy"
+
+msgid "Stop Blinking"
+msgstr "Zastaviť blikanie"
+
+msgid "Function Test"
+msgstr "Funkčný test"
+
+msgid "Duration Test"
+msgstr "Test výdrže"
+
+msgid "Battery Test"
+msgstr "Test batérie"
+
+msgid "Read Calibration"
+msgstr "Načítať kalibráciu"
+
+msgid "Set Calibration Level"
+msgstr "Nastaviť úroveň kalibrácie"
+
+msgid "Save Calibration"
+msgstr "Uložiť kalibráciu"
+
+msgid "Read Memory Byte"
+msgstr "Čítať bajt pamäte"
+
+msgid "Write Memory Byte"
+msgstr "Zapísať bajt pamäte"
+
+msgid "Read Names"
+msgstr "Načítať názvy"
+
+msgid "Write Names"
+msgstr "Zapísať názvy"
+
+msgid "Read Motion Diagnostics"
+msgstr "Načítať diagnostiku pohybu"
+
+msgid "Inhibit Converters"
+msgstr "Blokovať konvertory"
+
+msgid "Replace ECGs…"
+msgstr "Vymeniť predradníky…"
+
+msgid "Service"
+msgstr "Servis"
+
+msgid "Calibration"
+msgstr "Kalibrácia"
+
+msgid "Memory Bank"
+msgstr "Pamäťová banka"
+
+msgid "Measured Illuminance (lx)"
+msgstr "Nameraná osvetlenosť (lx)"
+
+msgid "Enable memory write lock"
+msgstr "Povoliť zámok zápisu do pamäte"
+
+msgid "Start automatic ECG replacement on this gateway? This changes the DALI assignments and cannot be undone in the project."
+msgstr "Spustiť automatickú výmenu predradníkov na tejto bráne? Zmení sa priradenie DALI a v projekte to nemožno vrátiť späť."
+
+msgid "Restore Gateway…"
+msgstr "Obnoviť bránu…"
+
+msgid "Restore the saved physical inventory and configuration to this gateway and restart it? This overwrites its DALI state and cannot be undone in the project."
+msgstr "Obnoviť uložené fyzické zariadenia a konfiguráciu do tejto brány a reštartovať ju? Prepíše sa stav DALI a v projekte to nemožno vrátiť späť."

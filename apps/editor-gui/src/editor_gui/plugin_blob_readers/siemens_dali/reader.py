@@ -223,7 +223,18 @@ def _emit_collections(
             rows: list[_Row] = []
             for item_idx, item in enumerate(container.findall(f"{_NS}{spec.item_tag}")):
                 activity = _value(item.find(f"{_NS}{spec.activity_field}"))
-                if activity in ("", spec.activity_inactive_value):
+                inactive = ("", spec.activity_inactive_value)
+                if spec.activity_field.endswith("Active"):
+                    inactive += ("false", "BI_FALSE", "0")
+                if activity in inactive:
+                    if container_tag not in ("Presence", "Brightness", "BinaryInput"):
+                        continue
+                    address = _value(item.find(f"{_NS}{spec.item_tag}ShortAddress"))
+                    if address in ("", "255"):
+                        continue
+                    rows.extend(
+                        _all_rows(item, parent_map, blob, prefix_strip=spec.item_tag)
+                    )
                     continue
                 nr = _value(item.find(f"{_NS}{spec.id_field}"))
                 name = (

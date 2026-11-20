@@ -3,7 +3,7 @@
 Different protocol family from MDT/Theben: no Hawk-style property-table at pids 203-228 and no
 3-byte command poll. Siemens drives the DALI bus via the standard KNX A_PropertyValue_Read /
 A_PropertyValue_Write / A_FunctionProperty primitives on interface-object 35 (DALI line 1) or 36
-(line 2 on the Twin / N141/32 variant). This module only implements the read-only scan — a
+(line 2 on the classic Twin variant). This module only implements the read-only scan — a
 non-destructive beachhead for a later Siemens profile; writes are deliberately out of scope.
 """
 
@@ -20,7 +20,7 @@ _MAX_PROPERTY_ELEMENTS = 15
 # Each DALI line holds up to 64 ECGs; every scan property is an array of 64 elements.
 MAX_ECG_PER_LINE = 64
 
-# Interface-object index per DALI line: line 0 lives at 35, line 1 (Twin only) at 36.
+# Interface-object index per DALI line: line 0 lives at 35, line 1 (classic Twin only) at 36.
 LINE_OBJECT_INDEX_BASE = 35
 
 
@@ -50,7 +50,7 @@ class DaliDeviceType(IntEnum):
 class SiemensN141EcgRecord:
     """One ECG slot read back from the gateway's scan arrays."""
 
-    slot: int  # 0-based DALI short address (0..63)
+    slot: int  # Position in the stored scan array (0..63)
     present: bool  # false when the slot's short address is 0xFF (not assigned)
     short_address: int  # as reported (0..63 for present, 0xFF for unassigned)
     random_address: int  # 24-bit DALI random long address (big-endian in the raw frame)
@@ -63,7 +63,7 @@ class SiemensN141EcgRecord:
     min_emergency_level: int = 0  # only when with_emergency
     max_emergency_level: int = 0  # only when with_emergency
     dev_type1_features: int = 0  # only when with_emergency
-    failure_flags: int = 0  # only when with_emergency and interface_version >= 515
+    failure_flags: int = 0  # only when interface_version >= 515
     colour_temp_phys_coolest: int = 0
     colour_temp_phys_warmest: int = 0
     colour_type_features: int = 0
@@ -95,32 +95,51 @@ PROP_CONNECTED_DEVICE = 70  # 1 B per ECG
 PROP_MIN_EMERGENCY_LEVEL = 71  # 1 B per ECG, gated by with_emergency
 PROP_MAX_EMERGENCY_LEVEL = 72  # 1 B per ECG, gated by with_emergency
 PROP_DEV_TYPE1_FEATURES = 73  # 1 B per ECG, gated by with_emergency
-PROP_FAILURE_FLAGS = 74  # 1 B per ECG, gated by with_emergency and firmware >= 515
+PROP_FAILURE_FLAGS = 74  # 1 B per ECG, gated by interface_version >= 515
 PROP_COLOUR_TEMP_PHYS_COOLEST = 75  # 2 B per ECG
 PROP_COLOUR_TEMP_PHYS_WARMEST = 76  # 2 B per ECG
 PROP_COLOUR_TYPE_FEATURES = 77  # 1 B per ECG
 
 
-async def _read_table(
-    programmer: Programmer, object_index: int, property_id: int, element_size: int
-) -> list[bytes]:
-    """Read all 64 elements of a scan property as a list of raw per-ECG byte blocks."""
+async def read_table(
+    programmer: Programmer,
+    object_index: int,
+    property_id: int,
+    element_size: int,
+    count: int = MAX_ECG_PER_LINE,
+) -> bytes:
+    """Read a complete table within the connection's APDU budget."""
+    if element_size < 1 or not 1 <= count <= 4095:
+        raise ValueError("Invalid Siemens property table dimensions")
+    limit = min(_MAX_PROPERTY_ELEMENTS, programmer.property_chunk_size(element_size))
+    if limit < 1:
+        raise ValueError("Siemens property element does not fit the APDU")
     out = bytearray()
     start = 1
-    remaining = MAX_ECG_PER_LINE
-    while remaining > 0:
-        request = min(remaining, _MAX_PROPERTY_ELEMENTS)
+    while start <= count:
+        request = min(count - start + 1, limit)
         chunk = await programmer.read_property(
             object_index, property_id, count=request, start_index=start
         )
-        got = len(chunk) // element_size
-        if got == 0:
-            # Device returned a short response — the property is absent or capped; stop.
-            break
-        out += chunk[: got * element_size]
-        start += got
-        remaining -= got
-    return [bytes(out[i : i + element_size]) for i in range(0, len(out), element_size)]
+        if (
+            not chunk
+            or len(chunk) % element_size
+            or len(chunk) > request * element_size
+        ):
+            raise ValueError(
+                f"Incomplete Siemens property {object_index}/{property_id} "
+                f"at element {start}: received {len(chunk)} bytes"
+            )
+        out.extend(chunk)
+        start += len(chunk) // element_size
+    return bytes(out)
+
+
+async def _read_table(
+    programmer: Programmer, object_index: int, property_id: int, element_size: int
+) -> list[bytes]:
+    data = await read_table(programmer, object_index, property_id, element_size)
+    return [data[i : i + element_size] for i in range(0, len(data), element_size)]
 
 
 async def scan_n141_03(
@@ -137,7 +156,7 @@ async def scan_n141_03(
     line, in the same order the vendor's plug-in reads them (short address, random address, types,
     min physical dim, optional converter info / emergency / colour-temperature). ``with_cin`` /
     ``with_emergency`` toggle optional array reads; ``interface_version`` ≥ 515 additionally
-    enables failure flags.
+    enables failure flags; version ≥ 1029 enables colour-temperature properties.
     """
     odx = object_index_for_line(line)
 
@@ -145,7 +164,7 @@ async def scan_n141_03(
     rnd = await _read_table(programmer, odx, PROP_RND, 3)
     types = await _read_table(programmer, odx, PROP_TYPES, 8)
     min_phys = await _read_table(programmer, odx, PROP_MIN_PHYS_DIM, 1)
-    connected = await _read_table(programmer, odx, PROP_CONNECTED_DEVICE, 1)
+    connected: list[bytes] = []
     cin: list[bytes] = []
     if with_cin:
         cin = await _read_table(programmer, odx, PROP_CIN, 8)
@@ -154,32 +173,34 @@ async def scan_n141_03(
     dev_type1: list[bytes] = []
     failure: list[bytes] = []
     if with_emergency:
+        connected = await _read_table(programmer, odx, PROP_CONNECTED_DEVICE, 1)
         min_emg = await _read_table(programmer, odx, PROP_MIN_EMERGENCY_LEVEL, 1)
         max_emg = await _read_table(programmer, odx, PROP_MAX_EMERGENCY_LEVEL, 1)
         dev_type1 = await _read_table(programmer, odx, PROP_DEV_TYPE1_FEATURES, 1)
-        if interface_version >= 515:
-            failure = await _read_table(programmer, odx, PROP_FAILURE_FLAGS, 1)
-    cool = await _read_table(programmer, odx, PROP_COLOUR_TEMP_PHYS_COOLEST, 2)
-    warm = await _read_table(programmer, odx, PROP_COLOUR_TEMP_PHYS_WARMEST, 2)
-    colour_type = await _read_table(programmer, odx, PROP_COLOUR_TYPE_FEATURES, 1)
+    if interface_version >= 515:
+        failure = await _read_table(programmer, odx, PROP_FAILURE_FLAGS, 1)
+    cool: list[bytes] = []
+    warm: list[bytes] = []
+    colour_type: list[bytes] = []
+    if interface_version >= 1029:
+        cool = await _read_table(programmer, odx, PROP_COLOUR_TEMP_PHYS_COOLEST, 2)
+        warm = await _read_table(programmer, odx, PROP_COLOUR_TEMP_PHYS_WARMEST, 2)
+        colour_type = await _read_table(programmer, odx, PROP_COLOUR_TYPE_FEATURES, 1)
 
     records: list[SiemensN141EcgRecord] = []
     for slot in range(MAX_ECG_PER_LINE):
-        sa = short[slot][0] if slot < len(short) else 0xFF
+        encoded_address = short[slot][0]
+        sa = encoded_address & 0x3F if encoded_address != 0xFF else 0xFF
         records.append(
             SiemensN141EcgRecord(
                 slot=slot,
                 # 0xFF marks an empty slot (short address not assigned on this physical position).
                 present=sa != 0xFF,
                 short_address=sa,
-                random_address=(
-                    (rnd[slot][0] << 16) | (rnd[slot][1] << 8) | rnd[slot][2]
-                    if slot < len(rnd) and len(rnd[slot]) == 3
-                    else 0
-                ),
-                type=types[slot][0] if slot < len(types) and types[slot] else -1,
-                type_bytes=types[slot] if slot < len(types) else b"",
-                min_phys_dim_value=min_phys[slot][0] if slot < len(min_phys) else 0,
+                random_address=int.from_bytes(rnd[slot], "big"),
+                type=types[slot][0],
+                type_bytes=types[slot],
+                min_phys_dim_value=min_phys[slot][0],
                 cin=cin[slot] if slot < len(cin) else b"",
                 connected_device=connected[slot][0] if slot < len(connected) else 0,
                 min_emergency_level=min_emg[slot][0] if slot < len(min_emg) else 0,
@@ -238,5 +259,6 @@ __all__ = [
     "SiemensN141EcgRecord",
     "is_siemens_n141_03",
     "object_index_for_line",
+    "read_table",
     "scan_n141_03",
 ]

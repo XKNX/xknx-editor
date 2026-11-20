@@ -86,6 +86,31 @@ async def test_program_via_serial_number(monkeypatch: pytest.MonkeyPatch) -> Non
     assert calls == [("serial", serial, IndividualAddress("1.1.5"))]
 
 
+async def test_program_not_via_a_serial_number_devices_share(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    calls: list[object] = []
+
+    async def fake_serial(*args: object) -> None:
+        calls.append("serial")
+
+    async def fake_programming_mode(xknx: XKNX, address: IndividualAddress) -> None:
+        calls.append(("programming_mode", address))
+
+    monkeypatch.setattr(
+        commissioning, "nm_individual_address_serial_number_write", fake_serial
+    )
+    monkeypatch.setattr(
+        commissioning, "_write_address_via_programming_mode", fake_programming_mode
+    )
+
+    await commissioning.program_individual_address(
+        cast("XKNX", object()), "1.1.5", serial_number=bytes.fromhex("00FAFFFFFFFF")
+    )
+
+    assert calls == [("programming_mode", IndividualAddress("1.1.5"))]
+
+
 class _FakeConnection:
     async def __aenter__(self) -> _FakeConnection:
         return self

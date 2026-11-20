@@ -93,11 +93,10 @@ from editor_gui.plugins.base import API_VERSION, Logger, PanelDefinition, Plugin
 from editor_gui.plugins.bus_diagram import BusDiagramPlugin
 from editor_gui.plugins.catalog import CatalogPlugin, CatalogService
 from editor_gui.plugins.cockpit import CockpitPlugin
-from editor_gui.plugins.connection import ConnectionPlugin
 from editor_gui.plugins.connection.plugin import (
     SETTINGS_PAGE as CONNECTION_SETTINGS_PAGE,
 )
-from editor_gui.plugins.connection.plugin import parse_connection_type
+from editor_gui.plugins.connection.plugin import ConnectionPlugin, parse_connection_type
 from editor_gui.plugins.connection.service import ConnectionService
 from editor_gui.plugins.connection.strings import S as _connection_strings
 from editor_gui.plugins.health import HealthPlugin

@@ -562,6 +562,11 @@ class MonitorService:
         it may: it is a protected group address (Settings > Connection)."""
         return protected_reason(address)
 
+    def local_device_reason(self) -> str:
+        """Why no group telegram is sent through the editor's connection, "" when they are:
+        it reaches only a USB interface's own device (local device access)."""
+        return self._connection.local_device_refusal(reaches="group") or ""
+
     def send_write(self, address: str, dpt: str | None, text: str) -> bool:
         """Encode ``text`` per the group address' DPT and send a GroupValueWrite. Returns success."""
         transcoder = transcoder_for(dpt)
@@ -594,6 +599,9 @@ class MonitorService:
         if isinstance(payload, GroupValueWrite) and self._connection.writes_refused(
             "group write"
         ):
+            return False
+        # Through the editor's own connection to a USB interface's own device, none is sent.
+        if self._connection.local_device_refused("group telegram", reaches="group"):
             return False
         # Without a connection of its own: through another program's (Home Assistant's), which
         # shows the telegram as its own (see on_foreign_cemi).
@@ -637,6 +645,10 @@ class MonitorService:
                 if (reason := protected_allows(CEMIFrame.from_knx(item.raw)))
             ),
             "",
+        )
+        # Group telegrams don't reach the bus while only the USB interface's own device is.
+        refused = (
+            refused or self._connection.local_device_refusal(reaches="group") or ""
         )
         if refused:
             self._warn("replay not started", reason=refused)

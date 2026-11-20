@@ -86,7 +86,7 @@ class BackupEcg:
     groupindex: int = 255
     short_address: int = 255
     flags: int = (
-        0  # CommissioningFlag: 0 NotPresent / 1 NotAssigned / 2 Assigned / 3/4 planned
+        0  # 0 absent, 1 unassigned, 2 planned removal, 3 planned assignment, 4 assigned
     )
     type: int = 0
     description: str = ""
@@ -132,7 +132,7 @@ class BackupTplCommand:
     value: str  # ColoredValue CSV
     fade_in: str  # "VFadeIn<n>" for value funcs, "CFadeIn<n>" for colour funcs
     time: str  # "HH:MM" zero-padded
-    weekdays: str  # 7-char "1"/"0" string, bit0 = Monday
+    weekdays: str  # Seven binary digits, Sunday on the left and Monday on the right.
 
 
 @dataclass(slots=True)

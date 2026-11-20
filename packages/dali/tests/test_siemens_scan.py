@@ -29,6 +29,9 @@ class _ChunkedFakeProgrammer:
         self._reads: dict[int, tuple[bytes, int]] = {}
         self.reads: list[dict[str, int]] = []
 
+    def property_chunk_size(self, element_size: int) -> int:
+        return 15
+
     def set_table(self, property_id: int, payload: bytes, element_size: int) -> None:
         self._reads[property_id] = (payload, element_size)
 
@@ -64,7 +67,7 @@ class _ChunkedFakeProgrammer:
         count: int = 1,
         start_index: int = 1,
     ) -> bytes:
-        return b""
+        raise AssertionError("Scan must not write")
 
 
 def test_object_index_mapping() -> None:
@@ -114,7 +117,11 @@ async def test_scan_decodes_arrays_and_marks_present_ecgs() -> None:
     prog.set_table(PROP_COLOUR_TEMP_PHYS_WARMEST, bytes(warm), 2)
     prog.set_table(PROP_COLOUR_TYPE_FEATURES, bytes([0xC0] * MAX_ECG_PER_LINE), 1)
 
-    state = await scan_n141_03(prog, line=0)
+    for pid in (71, 72, 73, 74):
+        prog.set_table(pid, bytes(64), 1)
+    state = await scan_n141_03(
+        prog, line=0, with_emergency=True, interface_version=1029
+    )
 
     assert state.line == 0 and state.object_index == 35
     assert len(state.ecgs) == MAX_ECG_PER_LINE
@@ -174,3 +181,59 @@ async def test_scan_requests_use_object_index_and_chunks_to_15() -> None:
     short_requests = [r for r in prog.reads if r["property_id"] == PROP_SHORT_ADDRESS]
     assert [r["count"] for r in short_requests] == [15, 15, 15, 15, 4]
     assert [r["start_index"] for r in short_requests] == [1, 16, 31, 46, 61]
+
+
+async def test_table_obeys_apdu_budget_and_accepts_short_complete_elements() -> None:
+    from xknxeditor.dali.siemens import read_table
+
+    class SmallProgrammer(_ChunkedFakeProgrammer):
+        def property_chunk_size(self, element_size: int) -> int:
+            return min(15, 9 // element_size)
+
+        async def read_property(
+            self, object_index, property_id, *, count=1, start_index=1
+        ):
+            assert count * 3 <= 9
+            return await super().read_property(
+                object_index, property_id, count=min(2, count), start_index=start_index
+            )
+
+    programmer = SmallProgrammer()
+    programmer.set_table(PROP_RND, bytes(range(192)), 3)
+    assert await read_table(programmer, 35, PROP_RND, 3) == bytes(range(192))
+
+
+async def test_scan_rejects_truncated_required_property() -> None:
+    import pytest
+
+    programmer = _ChunkedFakeProgrammer()
+    programmer.set_table(PROP_SHORT_ADDRESS, b"\xff" * 63, 1)
+    with pytest.raises(ValueError, match="Incomplete Siemens property 35/51"):
+        await scan_n141_03(programmer)
+
+
+async def test_table_rejects_partial_and_oversized_elements() -> None:
+    import pytest
+
+    from xknxeditor.dali.siemens import read_table
+
+    class Malformed(_ChunkedFakeProgrammer):
+        async def read_property(self, *args, **kwargs):
+            return self.response
+
+    programmer = Malformed()
+    for response in (b"\x01", bytes(48)):
+        programmer.response = response
+        with pytest.raises(ValueError, match="Incomplete Siemens property"):
+            await read_table(programmer, 35, PROP_RND, 3)
+
+
+async def test_scan_masks_status_bits_in_short_address() -> None:
+    prog = _ChunkedFakeProgrammer()
+    prog.set_table(PROP_SHORT_ADDRESS, b"\x8c" + b"\xff" * 63, 1)
+    prog.set_table(PROP_RND, bytes(192), 3)
+    prog.set_table(PROP_TYPES, bytes(512), 8)
+    prog.set_table(PROP_MIN_PHYS_DIM, bytes(64), 1)
+    state = await scan_n141_03(prog)
+    assert state.present_ecgs[0].short_address == 12
+    assert state.present_ecgs[0].slot == 0

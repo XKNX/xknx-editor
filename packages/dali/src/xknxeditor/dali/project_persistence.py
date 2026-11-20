@@ -30,6 +30,9 @@ from xknxeditor.dali.backup_store import (
     load_backup_store,
 )
 from xknxeditor.dali.model import (
+    GROUP_MISSING,
+    GROUP_SINGLE,
+    GROUP_UNASSIGNED,
     MAX_ECG,
     MAX_GROUP,
     MAX_SCENES,
@@ -81,7 +84,7 @@ def _color_csv(color: bytes) -> str:
 
 
 def _weekdays_str(mask: int) -> str:
-    return "".join("1" if mask & (1 << b) else "0" for b in range(7))
+    return f"{mask & 0x7F:07b}"
 
 
 def build_backup_store_xml(
@@ -131,36 +134,7 @@ def _store_from_live_state(
         version=dca_version,
     )
 
-    by_slot: dict[int, EcgState] = {
-        e.slot: e for e in state.ecgs if 0 <= e.slot < MAX_ECG
-    }
-    for i, dev in enumerate(store.devecgs):
-        ecg = by_slot.get(i)
-        if ecg is None:
-            continue
-        dev.type = ecg.ecg_type
-        dev.subtype = ecg.sub_type
-        dev.groupindex = ecg.group_index
-        dev.short_address = ecg.slot if ecg.present else SHORT_ADDR_UNASSIGNED
-        dev.long_address = ecg.long_address
-        dev.min_value = ecg.min_value
-        if ecg.ecg_type == 8 and (ecg.sub_type & 2):  # colour-LED + ctemp bit
-            dev.min_ctemp = ecg.min_color_temp
-            dev.max_ctemp = ecg.max_color_temp
-
-    for i, ecg_row in enumerate(store.ecgs):
-        ecg = by_slot.get(i)
-        if ecg is None:
-            continue
-        ecg_row.groupindex = ecg.group_index
-        ecg_row.short_address = ecg.slot if ecg.present else SHORT_ADDR_UNASSIGNED
-        ecg_row.type = ecg.ecg_type & 0xFF
-        if not ecg.present:
-            ecg_row.flags = 0
-        elif ecg.ets_ecg_index == SHORT_ADDR_UNASSIGNED:
-            ecg_row.flags = 1
-        else:
-            ecg_row.flags = 2
+    _seed_slots_from_scan(store, state, only_missing=False)
 
     by_scene = {s.index: s for s in scenes if 0 <= s.index < len(store.scenes)}
     for i, sc_row in enumerate(store.scenes):
@@ -200,7 +174,7 @@ def _scene_item_from_live(value: SceneValue) -> BackupSceneItem:
     item = BackupSceneItem(
         itemtype=itemtype,
         itemindex=itemindex,
-        value=value.level,
+        value=round(value.level * 100 / 255),
         setting=value.flags,
     )
     if any(value.color):
@@ -245,17 +219,22 @@ def patch_assignments_in_blob(
     for dev in root.findall("devecgs/DevECG"):
         a = by_slot.get(_int_attr(dev, "index"))
         if a is None:
+            if _int_attr(dev, "short-address") in by_ets:
+                dev.set("short-address", str(SHORT_ADDR_UNASSIGNED))
+                dev.set("groupindex", str(GROUP_UNASSIGNED))
             continue
         dev.set("groupindex", str(a.group_index))
-        if a.ets_index != SHORT_ADDR_UNASSIGNED:
-            dev.set("short-address", str(a.ets_index))
+        dev.set("short-address", str(a.ets_index))
     for ecg in root.findall("ecgs/ECG"):
         a = by_ets.get(_int_attr(ecg, "index"))
         if a is None:
+            if _int_attr(ecg, "short-address") in by_slot:
+                ecg.set("short-address", str(SHORT_ADDR_UNASSIGNED))
+                ecg.set("flags", "1")
             continue
         ecg.set("groupindex", str(a.group_index))
         ecg.set("short-address", str(a.slot))
-        ecg.set("flags", "2")
+        ecg.set("flags", str(_commissioning_flag(a.group_index)))
     return ET.tostring(root, encoding="unicode", short_empty_elements=True).encode(
         "utf-16-le"
     )
@@ -266,6 +245,48 @@ def _int_attr(el: ET.Element, name: str) -> int:
         return int(el.get(name, "-1"))
     except ValueError:
         return -1
+
+
+def _commissioning_flag(group: int) -> int:
+    return 4 if 0 <= group & 0x3F <= GROUP_SINGLE else 1
+
+
+def patch_scene_levels_in_blob(existing: bytes, scenes: list[Scene]) -> bytes:
+    """Update selected scene levels without replacing targets or colour settings.
+
+    Bus levels use 0-255; backup values use integer percentages. A newly added target
+    keeps its current colour when the scene runs.
+    """
+    if not scenes:
+        return existing
+    root = ET.fromstring(existing.decode("utf-16-le"))
+    namespace = "Dalie64.DcaApp" if root.get("type") == "e64pro" else "Dali.DcaApp"
+    container = root.find("scenes")
+    if container is None:
+        raise ValueError("DALI backup has no scenes")
+    for scene in scenes:
+        row = container.find(f"Scene[@index='{scene.index}']")
+        if row is None:
+            raise ValueError(f"DALI backup has no scene {scene.index}")
+        for value in scene.values:
+            group = value.target_index < MAX_GROUP
+            itemtype = f"{namespace}.{'Group' if group else 'ECG'}"
+            index = value.target_index if group else value.target_index - MAX_GROUP
+            item = row.find(f"SceneItem[@itemtype='{itemtype}'][@itemindex='{index}']")
+            if item is None:
+                item = ET.SubElement(
+                    row,
+                    "SceneItem",
+                    itemtype=itemtype,
+                    itemindex=str(index),
+                    setting="1",
+                )
+            item.set("value", str(round(value.level * 100 / 255)))
+            item.set("setting", str(int(item.get("setting", "0")) & ~2))
+        row.set("isDirty", "True")
+    return ET.tostring(root, encoding="unicode", short_empty_elements=True).encode(
+        "utf-16-le"
+    )
 
 
 def merge_commissioning_blob(
@@ -370,12 +391,21 @@ def _seed_slots_from_scan(
     }
     for row in store.ecgs:  # row.index is the logical ETS ECG number
         ecg = by_ets.get(row.index)
-        if ecg is None or (only_missing and row.type != 0):
+        if ecg is None or (
+            only_missing
+            and (
+                row.type != 0
+                or row.short_address != SHORT_ADDR_UNASSIGNED
+                or row.groupindex != GROUP_MISSING
+                or row.flags != 0
+            )
+        ):
             continue
         row.type = ecg.ecg_type & 0xFF
         row.groupindex = ecg.group_index
         # ECG.short-address is the physical slot this logical ECG is bound to.
         row.short_address = ecg.slot
+        row.flags = _commissioning_flag(ecg.group_index)
 
 
 def _apply_group_assignments(
@@ -395,17 +425,22 @@ def _apply_group_assignments(
     for dev in store.devecgs:  # keyed by physical slot
         a = by_slot.get(dev.index)
         if a is None:
+            if dev.short_address in by_ets:
+                dev.short_address = SHORT_ADDR_UNASSIGNED
+                dev.groupindex = GROUP_UNASSIGNED
             continue
         dev.groupindex = a.group_index
-        if a.ets_index != SHORT_ADDR_UNASSIGNED:
-            dev.short_address = a.ets_index
+        dev.short_address = a.ets_index
     for row in store.ecgs:  # keyed by logical ETS ECG number
         a = by_ets.get(row.index)
         if a is None:
+            if row.short_address in by_slot:
+                row.short_address = SHORT_ADDR_UNASSIGNED
+                row.flags = 1
             continue
         row.groupindex = a.group_index
         row.short_address = a.slot
-        row.flags = 2  # Assigned: the row's own index is a valid ETS ECG number
+        row.flags = _commissioning_flag(a.group_index)
 
 
 def _apply_scene_edits(store: BackupStore, scenes: list[Scene]) -> None:

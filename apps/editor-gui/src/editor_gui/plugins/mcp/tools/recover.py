@@ -326,7 +326,9 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         """Read the selected devices back from the bus: their parameters, group addresses,
         links, flags and supported DCA data (Recover Selected). MDT symbol recovery reads
         all pixels and validates their checksums; unreadable pixels fail that device.
-        GTS layouts and VisuControl data come from parameter memory. Only reads from the devices. With auto_apply on and
+        Siemens classic gateways include their stored DCA property images; supported
+        DALI-2 gateways include cached discovery data alongside KNX parameters. No fresh
+        DALI discovery is started. GTS layouts and VisuControl data come from parameter memory. Only reads from the devices. With auto_apply on and
         a project open, each device read with the same application version is added to it when
         recover_status or this tool sees it. Waits up to ``timeout`` s; returns the state as
         recover_status does."""

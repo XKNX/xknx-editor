@@ -2123,9 +2123,6 @@ msgstr "Слот"
 msgid "The application has no static parameters."
 msgstr "У приложения нет статических параметров."
 
-msgid "This gateway's commissioning protocol has not been verified against a capture; writes may misbehave. Proceed with care."
-msgstr "Протокол ввода этого шлюза в эксплуатацию не проверен по трассе; записи могут вести себя некорректно. Действуйте осторожно."
-
 msgid "Program DCA State"
 msgstr "Запрограммировать состояние DCA"
 
@@ -3286,6 +3283,11 @@ msgstr "Текущее состояние проекта"
 msgid "Configuration Comparison"
 msgstr "Сравнение конфигураций"
 
+msgid "Current state of the project"
+msgstr "Текущее состояние проекта"
+msgid "Configuration Comparison"
+msgstr "Сравнение конфигураций"
+
 msgid "Compare settings with another device or the stored image from the last download."
 msgstr "Сравните настройки с другим устройством или с сохранённым образом последней загрузки."
 
@@ -3391,6 +3393,11 @@ msgstr "Выберите устройство"
 
 msgid "Select the two devices to compare."
 msgstr "Выберите два устройства для сравнения."
+
+msgid "Loading application programs… {done}/{total}"
+msgstr "Загрузка прикладных программ… {done}/{total}"
+msgid "Symbol"
+msgstr "Символ"
 
 msgid "Loading application programs… {done}/{total}"
 msgstr "Загрузка прикладных программ… {done}/{total}"
@@ -3607,6 +3614,11 @@ msgstr "Не определена"
 msgid "Compares the device's hardware/software identity with this catalog. Does not install firmware. Catalog import: MDT Firmware Update .etsapp or Firmware.zip."
 msgstr "Сравнивает идентификатор оборудования/ПО устройства с этим каталогом. Не устанавливает прошивку. Импорт каталога: MDT Firmware Update .etsapp или Firmware.zip."
 
+msgid "Not determined"
+msgstr "Не определена"
+msgid "Compares the device's hardware/software identity with this catalog. Does not install firmware. Catalog import: MDT Firmware Update .etsapp or Firmware.zip."
+msgstr "Сравнивает идентификатор оборудования/ПО устройства с этим каталогом. Не устанавливает прошивку. Импорт каталога: MDT Firmware Update .etsapp или Firmware.zip."
+
 msgid "Hardware/software identity could not be determined. Read the device to check compatibility."
 msgstr "Не удалось определить идентификатор оборудования/ПО. Прочитайте устройство для проверки совместимости."
 
@@ -3762,3 +3774,466 @@ msgstr "Не удалось открыть путь связи через сое
 
 msgid "The domain address of this secure device could not be loaded because the coupler {coupler} does not support security."
 msgstr "Не удалось загрузить адрес домена этого защищённого устройства, поскольку соединяющее устройство {coupler} не поддерживает защиту."
+
+msgid "Actions"
+msgstr "Действия"
+
+msgid "Add Command"
+msgstr "Добавить команду"
+
+msgid "Assigned Groups and ECGs"
+msgstr "Назначенные группы и ЭПРА"
+
+msgid "Colour"
+msgstr "Цвет"
+
+msgid "Control Gear and Groups"
+msgstr "ЭПРА и группы"
+
+msgid "Delay"
+msgstr "Задержка"
+
+msgid "ECG"
+msgstr "ЭПРА"
+
+msgid "Effects"
+msgstr "Эффекты"
+
+msgid "Fade Time"
+msgstr "Время перехода"
+
+msgid "Flag"
+msgstr "Флаг"
+
+msgid "General Inputs"
+msgstr "Универсальные входы"
+
+msgid "Input Devices"
+msgstr "Устройства ввода"
+
+msgid "Instance"
+msgstr "Экземпляр"
+
+msgid "KNX Scene"
+msgstr "Сцена KNX"
+
+msgid "Keep Colour"
+msgstr "Сохранить цвет"
+
+msgid "Keep Value"
+msgstr "Сохранить значение"
+
+msgid "Loop"
+msgstr "Зациклить"
+
+msgid "Manual Override"
+msgstr "Ручное управление"
+
+msgid "Midnight Reset"
+msgstr "Сброс в полночь"
+
+msgid "Mo Tu We Th Fr Sa Su"
+msgstr "Пн Вт Ср Чт Пт Сб Вс"
+
+msgid "Mode"
+msgstr "Режим"
+
+msgid "Motion / Brightness"
+msgstr "Движение / освещённость"
+
+msgid "No Entries"
+msgstr "Нет записей"
+
+msgid "Origin"
+msgstr "Источник"
+
+msgid "Physical Devices Without a Unique Assignment"
+msgstr "Физические устройства без однозначной привязки"
+
+msgid "Physical Inputs"
+msgstr "Физические входы"
+
+msgid "Push-Buttons"
+msgstr "Кнопки"
+
+msgid "Reference"
+msgstr "Ссылка"
+
+msgid "Single ECG"
+msgstr "Отдельный ЭПРА"
+
+msgid "Target"
+msgstr "Цель"
+
+msgid "Time"
+msgstr "Время"
+
+msgid "Time Control"
+msgstr "Управление по времени"
+
+msgid "View"
+msgstr "Вид"
+
+msgid "Weekdays"
+msgstr "Дни недели"
+
+msgid "Add Target"
+msgstr "Добавить цель"
+
+msgid "Apply"
+msgstr "Применить"
+
+msgid "Approximate Preview"
+msgstr "Приблизительный предпросмотр"
+
+msgid "Colour Temperature"
+msgstr "Цветовая температура"
+
+msgid "Groups"
+msgstr "Группы"
+
+msgid "Search"
+msgstr "Поиск"
+
+msgid "White"
+msgstr "Белый"
+
+msgid "Brightness"
+msgstr "Яркость"
+
+msgid "Min. Brightness"
+msgstr "Мин. яркость"
+
+msgid "Max. Brightness"
+msgstr "Макс. яркость"
+
+msgid "Switch-on Limit"
+msgstr "Предел при включении"
+
+msgid "DCA Details"
+msgstr "Сведения DCA"
+
+msgid "Import DCA XML…"
+msgstr "Импорт XML DCA…"
+
+msgid "Export DCA XML…"
+msgstr "Экспорт XML DCA…"
+
+msgid "Replace the DCA configuration of {device} with the selected XML file?"
+msgstr "Заменить конфигурацию DCA устройства {device} выбранным XML-файлом?"
+
+msgid "DCA configuration imported."
+msgstr "Конфигурация DCA импортирована."
+
+msgid "DCA configuration exported."
+msgstr "Конфигурация DCA экспортирована."
+
+msgid "Color Temperature"
+msgstr "Цветовая температура"
+
+msgid "Keep Color"
+msgstr "Сохранить цвет"
+
+msgid "No entries"
+msgstr "Нет записей"
+
+msgid "Assigned Groups and ECGs…"
+msgstr "Назначенные группы и ЭПРА…"
+
+msgid "Add Target…"
+msgstr "Добавить цель…"
+
+msgid "Approximate preview"
+msgstr "Приблизительный предпросмотр"
+
+msgid "Manual override"
+msgstr "Ручное управление"
+
+msgid "Midnight reset"
+msgstr "Сброс в полночь"
+
+msgid "Import DCA Configuration"
+msgstr "Импорт конфигурации DCA"
+
+msgid "Edit DCA configuration"
+msgstr "Изменить конфигурацию DCA"
+
+msgid "Import DCA configuration"
+msgstr "Импорт конфигурации DCA"
+
+msgid "Invalid DCA configuration."
+msgstr "Недопустимая конфигурация DCA."
+
+msgid "Expected a complete DCA device configuration."
+msgstr "Требуется полная конфигурация устройства DCA."
+
+msgid "DALI project data changed. Reopen the selection and try again."
+msgstr "Данные проекта DALI изменились. Откройте выбор заново и повторите попытку."
+
+msgid "The selected DCA item is unavailable. Reopen the selection."
+msgstr "Выбранный элемент DCA недоступен. Откройте выбор заново."
+
+msgid "Invalid value."
+msgstr "Недопустимое значение."
+
+msgid "Invalid or unsupported color value."
+msgstr "Недопустимое или неподдерживаемое значение цвета."
+
+msgid "This DCA operation is not supported."
+msgstr "Эта операция DCA не поддерживается."
+
+msgid "Expected {minimum}-{maximum}."
+msgstr "Ожидается: {minimum}-{maximum}."
+
+msgid "Expected HH:MM."
+msgstr "Ожидается: HH:MM."
+
+msgid "Select seven weekdays."
+msgstr "Выберите семь дней недели."
+
+msgid "The target already belongs to the scene."
+msgstr "Цель уже входит в сцену."
+
+msgid "At most 300 time control commands are supported."
+msgstr "Поддерживается не более 300 команд управления по времени."
+
+msgid "At most 500 effect steps are supported."
+msgstr "Поддерживается не более 500 шагов эффектов."
+
+msgid "Descriptions can contain at most {maximum} characters."
+msgstr "Описания могут содержать не более {maximum} символов."
+
+msgid "Mo"
+msgstr "пн"
+
+msgid "Tu"
+msgstr "вт"
+
+msgid "We"
+msgstr "ср"
+
+msgid "Th"
+msgstr "чт"
+
+msgid "Fr"
+msgstr "пт"
+
+msgid "Sa"
+msgstr "сб"
+
+msgid "Su"
+msgstr "вс"
+
+msgid "A test is pending."
+msgstr "Тест ожидает выполнения."
+
+msgid "Battery"
+msgstr "Батарея"
+
+msgid "Brightness sensor"
+msgstr "Датчик освещённости"
+
+msgid "Converters"
+msgstr "Преобразователи"
+
+msgid "Descriptions"
+msgstr "Описания"
+
+msgid "Diagnostic Report"
+msgstr "Диагностический отчёт"
+
+msgid "Duration"
+msgstr "Длительность"
+
+msgid "Duration test running"
+msgstr "Выполняется тест длительности"
+
+msgid "Edit several descriptions and apply them together in one undo step."
+msgstr "Измените несколько описаний и примените их вместе одним отменяемым действием."
+
+msgid "Emergency"
+msgstr "Аварийный режим"
+
+msgid "Emergency Failure"
+msgstr "Ошибка аварийного освещения"
+
+msgid "Emergency Mode"
+msgstr "Режим аварийного освещения"
+
+msgid "Emergency Status"
+msgstr "Состояние аварийного освещения"
+
+msgid "Errors"
+msgstr "Ошибки"
+
+msgid "Event sensor"
+msgstr "Датчик событий"
+
+msgid "Extended emergency"
+msgstr "Продлённый аварийный режим"
+
+msgid "Failure Rate"
+msgstr "Доля отказов"
+
+msgid "Fixed inhibit"
+msgstr "Постоянная блокировка"
+
+msgid "Function test running"
+msgstr "Выполняется функциональный тест"
+
+msgid "Generic sensor"
+msgstr "Универсальный датчик"
+
+msgid "Inhibit"
+msgstr "Блокировка"
+
+msgid "Lamps"
+msgstr "Лампы"
+
+msgid "Motion sensor"
+msgstr "Датчик движения"
+
+msgid "Normal"
+msgstr "Нормальный"
+
+msgid "Push button"
+msgstr "Кнопка"
+
+msgid "Read Report"
+msgstr "Прочитать отчёт"
+
+msgid "Read the diagnostic report from the gateway to display its current counters and saved test results."
+msgstr "Прочитайте диагностический отчёт шлюза, чтобы увидеть текущие счётчики и сохранённые результаты тестов."
+
+msgid "Replace the selected slot with the XML configuration? Other slots remain unchanged."
+msgstr "Заменить выбранную позицию конфигурацией XML? Остальные позиции останутся без изменений."
+
+msgid "Rest"
+msgstr "Покой"
+
+msgid "Result"
+msgstr "Результат"
+
+msgid "Test"
+msgstr "Тест"
+
+msgid "The input types are not compatible."
+msgstr "Типы входов несовместимы."
+
+msgid "This physical input is already assigned."
+msgstr "Этот физический вход уже назначен."
+
+msgid "Total Failure Rate"
+msgstr "Общая доля отказов"
+
+msgid "Value input"
+msgstr "Вход значения"
+
+
+msgid "Call scene"
+msgstr "Вызвать сцену"
+
+msgid "Call effect"
+msgstr "Вызвать эффект"
+
+msgid "Start"
+msgstr "Запустить"
+
+msgid "Controlled by effect object"
+msgstr "Управление объектом эффекта"
+
+msgid "Import Descriptions…"
+msgstr "Импорт описаний…"
+
+msgid "Export Descriptions…"
+msgstr "Экспорт описаний…"
+
+msgid "Replace the descriptions included in the file? You can undo this change."
+msgstr "Заменить описания, содержащиеся в файле? Это изменение можно отменить."
+
+msgid "Clear Descriptions"
+msgstr "Очистить описания"
+
+msgid "These descriptions cannot be preserved as TXT. Choose XML."
+msgstr "Эти описания нельзя сохранить в формате TXT. Выберите XML."
+
+msgid "Insert Before"
+msgstr "Вставить перед"
+
+msgid "Sort by Time"
+msgstr "Сортировать по времени"
+
+msgid "Sort by Function"
+msgstr "Сортировать по функции"
+
+msgid "Clear Actions"
+msgstr "Очистить действия"
+
+msgid "Discover Inputs"
+msgstr "Найти входы"
+
+msgid "Stop Blinking"
+msgstr "Остановить мигание"
+
+msgid "Function Test"
+msgstr "Функциональный тест"
+
+msgid "Duration Test"
+msgstr "Тест длительности"
+
+msgid "Battery Test"
+msgstr "Тест батареи"
+
+msgid "Read Calibration"
+msgstr "Прочитать калибровку"
+
+msgid "Set Calibration Level"
+msgstr "Установить уровень калибровки"
+
+msgid "Save Calibration"
+msgstr "Сохранить калибровку"
+
+msgid "Read Memory Byte"
+msgstr "Прочитать байт памяти"
+
+msgid "Write Memory Byte"
+msgstr "Записать байт памяти"
+
+msgid "Read Names"
+msgstr "Прочитать имена"
+
+msgid "Write Names"
+msgstr "Записать имена"
+
+msgid "Read Motion Diagnostics"
+msgstr "Прочитать диагностику движения"
+
+msgid "Inhibit Converters"
+msgstr "Заблокировать преобразователи"
+
+msgid "Replace ECGs…"
+msgstr "Заменить ЭПРА…"
+
+msgid "Service"
+msgstr "Обслуживание"
+
+msgid "Calibration"
+msgstr "Калибровка"
+
+msgid "Memory Bank"
+msgstr "Банк памяти"
+
+msgid "Measured Illuminance (lx)"
+msgstr "Измеренная освещённость (лк)"
+
+msgid "Enable memory write lock"
+msgstr "Включить блокировку записи памяти"
+
+msgid "Start automatic ECG replacement on this gateway? This changes the DALI assignments and cannot be undone in the project."
+msgstr "Запустить автоматическую замену ЭПРА на этом шлюзе? Это изменит назначения DALI, и отменить это в проекте нельзя."
+
+msgid "Restore Gateway…"
+msgstr "Восстановить шлюз…"
+
+msgid "Restore the saved physical inventory and configuration to this gateway and restart it? This overwrites its DALI state and cannot be undone in the project."
+msgstr "Восстановить сохранённые физические устройства и конфигурацию на этом шлюзе и перезапустить его? Это перезапишет состояние DALI, и отменить это в проекте нельзя."

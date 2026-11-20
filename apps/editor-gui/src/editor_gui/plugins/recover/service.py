@@ -225,6 +225,18 @@ class RecoverService:
             or (self._search is not None and not self._search.done())
         )
 
+    def _refused_on_local_device(self, targets: list[RecoverEntry]) -> bool:
+        """Refuse reading back devices other than the USB interface's own one while the
+        connection reaches only that (the reason is the window's error)."""
+        reason = self._api.connection.local_device_refusal(
+            *(entry.address for entry in targets)
+        )
+        if reason is None:
+            return False
+        self.error = reason
+        self._api.connection.refuse("recover", reason)
+        return True
+
     def _cancelled(self) -> bool:
         """Whether Stop was pressed: a running search ends with its result so far."""
         return self._cancel
@@ -238,6 +250,11 @@ class RecoverService:
     def start_scan(self, start: str, end: str) -> None:
         """Scan ``[start, end]`` and identify each responder against the catalog."""
         if self.busy or not self.connected():
+            return
+        # Only the own device while the connection reaches a USB interface's own device.
+        if reason := self._api.connection.local_device_range_refusal(start, end):
+            self.error = reason
+            self._api.connection.refuse("recover", reason)
             return
         # Take the single bus-operation slot so a program/test cannot run on the
         # same tunnel at the same time (and vice versa).
@@ -382,6 +399,8 @@ class RecoverService:
         targets = [e for e in self.entries if e.selected and e.recoverable]
         if not targets:
             return
+        if self._refused_on_local_device(targets):
+            return
         if not self._api.connection.begin_operation("recover", "read-back"):
             self.error = "A bus operation is already running"
             return
@@ -411,6 +430,7 @@ class RecoverService:
             self.recover_stage = ""
             try:
                 from editor_gui.plugin_providers import device_reader
+                from editor_gui.plugins.recover import dali
                 from editor_gui.plugins.recover.mdt import (
                     addin_reader,
                     editable_parameter_refs,
@@ -425,7 +445,8 @@ class RecoverService:
                     entry.address,
                     entry.application,
                     native_read=reader.read_device if reader is not None else None,
-                    addin_read=addin_reader(entry.application.id),
+                    addin_read=dali.addin_reader(entry.application)
+                    or addin_reader(entry.application.id),
                     editable_parameter_refs=editable_parameter_refs(entry.application),
                     parameter_candidates=parameter_candidates(entry.application),
                     interface_max_apdu_length=self._api.connection.interface_max_apdu_length,
@@ -740,6 +761,8 @@ class RecoverService:
             return
         targets = self.chosen()
         if not targets:
+            return
+        if self._refused_on_local_device(targets):
             return
         if not self._api.connection.begin_operation("recover", "verify"):
             self.error = "A bus operation is already running"
@@ -1303,10 +1326,40 @@ class RecoverService:
                     )
                 if device_id is None or device is None:
                     raise RuntimeError(f"{entry.address} was not added")
+                from editor_gui.plugins.recover import siemens, siemens_dali2
+                from xknxeditor.dali.profiles import profile_for as dali_profile
                 from xknxeditor.vendor.mdt import profile_for_application
 
                 mdt_refs = None
-                if recovered.addin_data or profile_for_application(application.id):
+                if (
+                    (
+                        siemens.supports(application.id)
+                        or siemens_dali2.supports(application.id)
+                    )
+                    and not recovered.addin_data
+                    and self._log is not None
+                ):
+                    self._log.warning(
+                        "recovery snapshot contains no Siemens DALI configuration",
+                        address=entry.address,
+                    )
+                if siemens.supports(application.id):
+                    siemens.apply_recovered(project, device, recovered)
+                    device = project.find_device_by_node_id(device_id) or device
+                elif siemens_dali2.supports(application.id):
+                    siemens_dali2.apply_recovered(project, device, recovered)
+                    device = project.find_device_by_node_id(device_id) or device
+                elif dali_profile(application.id) is not None:
+                    from editor_gui.plugins.recover.dali import apply_recovered
+
+                    if not recovered.addin_data and self._log is not None:
+                        self._log.warning(
+                            "recovery snapshot contains no DALI configuration",
+                            address=entry.address,
+                        )
+                    apply_recovered(project, device, recovered)
+                    device = project.find_device_by_node_id(device_id) or device
+                elif recovered.addin_data or profile_for_application(application.id):
                     mdt_refs = project.recover_mdt_dca(device_id, recovered.addin_data)
                     device = project.find_device_by_node_id(device_id) or device
                 # Prefer the device-matched map computed during recovery (module
