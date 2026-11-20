@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 from collections import deque
+from datetime import datetime
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Any
 from unittest.mock import AsyncMock
 
@@ -322,7 +324,15 @@ def test_scene_catalog_edits_update_matching_scenes_on_both_lines() -> None:
 @pytest.mark.parametrize("number", [None, "", "bad", "255"])
 def test_fade_edit_without_a_valid_scene_keeps_device_scenes(
     number: str | None,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    # pid 51/52 write the configuration timestamp; freeze the clock so the two compiles below
+    # are compared without a second ticking over between them.
+    monkeypatch.setattr(
+        download,
+        "datetime",
+        SimpleNamespace(now=lambda: datetime(2024, 1, 1, 12, 0, 0)),
+    )
     root, blob = writer._decode(_BLOB.read_bytes())
     entry = blob.find(
         download._NS + "ScenePluginInfo/" + download._NS + "ScenePluginInfoScene"
