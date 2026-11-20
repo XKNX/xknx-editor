@@ -450,8 +450,8 @@ def memory_services(application: Application) -> MemoryServices:
 
 
 def _application_id(application: Application) -> bytes:
-    """Assemble the 5 octet application id (manufacturer, type, version); the manufacturer of an
-    application another manufacturer sells is the original one (see ``program_manufacturer``)."""
+    """Assemble the 5 octet application id (manufacturer, type, version), with the
+    application's own manufacturer (see ``program_manufacturer``)."""
     from .partial import application_id
 
     return application_id(application, 5)
