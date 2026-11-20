@@ -13,6 +13,7 @@ from editor_gui.device import Device
 from editor_gui.plugin_blob_readers.siemens_dali.layout import line_count
 from editor_gui.plugins.project.strings import S
 from editor_gui.theme import status_color
+from editor_gui.widgets.combo import combo
 from editor_gui.widgets.dpi import px
 from editor_gui.widgets.tables import begin_data_table, data_table_headers
 from xknxeditor.dali.connection import Programmer
@@ -158,7 +159,7 @@ class SiemensDaliPanel:
         imgui.begin_disabled(bool(busy))
         count = line_count(device.app.id) if device.app else 0
         if count > 1:
-            changed, line = imgui.combo(
+            changed, line = combo(
                 S.DALI_CHANNEL,
                 state.line,
                 [S.DALI_CHANNEL_N.format(n=n + 1) for n in range(count)],

@@ -21,6 +21,7 @@ from editor_gui.programming_siemens_dali2 import (
     prepare_operation,
 )
 from editor_gui.theme import status_color
+from editor_gui.widgets.combo import combo
 from editor_gui.widgets.flow import button_width, same_line_if_fits
 from editor_gui.widgets.tables import begin_data_table, data_table_headers
 from xknxeditor.dali.siemens_dali2 import (
@@ -183,12 +184,12 @@ class SiemensDali2Panel:
         try:
             imgui.begin_disabled(busy)
             if count > 1:
-                _, state.line = imgui.combo(
+                _, state.line = combo(
                     S.DALI_CHANNEL,
                     state.line,
                     [S.DALI_CHANNEL_N.format(n=n + 1) for n in range(count)],
                 )
-            _, kind = imgui.combo(
+            _, kind = combo(
                 S.E64_DEVICE, int(state.sensors), [S.E64_ECG, S.E64_INPUT_DEVICES]
             )
             state.sensors = bool(kind)
