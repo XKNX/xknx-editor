@@ -511,7 +511,7 @@ async def test_incomplete_snapshot_cannot_overwrite_an_existing_project_device(
 
 def test_non_dali_does_not_select_a_reader():
     assert dali.addin_reader(SimpleNamespace(id="M-00FA_A-A401-01-0000")) is None
-    assert dali.addin_reader(SimpleNamespace(id="M-0001_A-9837-01-0000")) is None
+    assert dali.addin_reader(SimpleNamespace(id="M-0001_A-9FFF-01-0000")) is None
 
 
 @pytest.mark.parametrize("count", [1, 2])

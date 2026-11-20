@@ -66,9 +66,13 @@ def channel_count(application: Application) -> int:
 
 def addin_reader(application: Application) -> AddinReader | None:
     """Capture all supported channel tables before the management connection closes."""
+    from editor_gui.plugins.recover import siemens, siemens_dali2
+
     profile = profile_for(application.id)
     if profile is None:
-        return None
+        return siemens.addin_reader(application) or siemens_dali2.addin_reader(
+            application
+        )
     count = channel_count(application)
 
     async def read(programmer: DeviceProgrammer) -> dict[str, dict[str, bytes]]:

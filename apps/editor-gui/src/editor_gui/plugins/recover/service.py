@@ -1326,11 +1326,30 @@ class RecoverService:
                     )
                 if device_id is None or device is None:
                     raise RuntimeError(f"{entry.address} was not added")
+                from editor_gui.plugins.recover import siemens, siemens_dali2
                 from xknxeditor.dali.profiles import profile_for as dali_profile
                 from xknxeditor.vendor.mdt import profile_for_application
 
                 mdt_refs = None
-                if dali_profile(application.id) is not None:
+                if (
+                    (
+                        siemens.supports(application.id)
+                        or siemens_dali2.supports(application.id)
+                    )
+                    and not recovered.addin_data
+                    and self._log is not None
+                ):
+                    self._log.warning(
+                        "recovery snapshot contains no Siemens DALI configuration",
+                        address=entry.address,
+                    )
+                if siemens.supports(application.id):
+                    siemens.apply_recovered(project, device, recovered)
+                    device = project.find_device_by_node_id(device_id) or device
+                elif siemens_dali2.supports(application.id):
+                    siemens_dali2.apply_recovered(project, device, recovered)
+                    device = project.find_device_by_node_id(device_id) or device
+                elif dali_profile(application.id) is not None:
                     from editor_gui.plugins.recover.dali import apply_recovered
 
                     if not recovered.addin_data and self._log is not None:

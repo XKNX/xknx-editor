@@ -1,5 +1,6 @@
 {
   "app_id_prefixes": ["M-0001_A-9A1B", "M-0001_A-9A1C"],
+  "blob_reader": "siemens_dali2",
   "title": "Siemens KNX/DALI Gateway DALI-2 (protobuf plug-in: N 141/14, N 141/32)",
   "note": "The DALI-2 Siemens plug-in uses protobuf-style dotted names (DaliLine.N.Scene.*, DaliScene.N.Ch.M.*, EffectCtrl.N.Step.M.*). Patterns are matched in order; the longest wins so Standby.N.Region.M. matches before the plain Standby.N.*.",
   "sections": [

@@ -395,12 +395,7 @@ def _device_source_key(row: Any) -> tuple[Any, ...]:
         tuple(_row_values(p) for p in row.parameters),
         tuple(_row_values(mi) for mi in row.module_instances),
         tuple(_row_values(co) for co in row.com_objects),
-        tuple(
-            (r.name, bytes(r.data or b""))
-            for r in getattr(row, "binary_data", ())
-            if r.name in native_blob_names()
-            or r.name in ("BLOB_STRING", "PT2EtsPlugin")
-        ),
+        tuple((r.name, bytes(r.data or b"")) for r in getattr(row, "binary_data", ())),
     )
 
 
