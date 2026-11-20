@@ -1918,7 +1918,9 @@ class ConnectionService:
         from xknxeditor.download.procedure import MemoryServices, memory_services
 
         security = self._security_for(device)
-        services = memory_services(device.app) if device.app else MemoryServices()
+        services = (
+            memory_services(device.app, self.master) if device.app else MemoryServices()
+        )
         if self.local_device_refused("read_memory", device.individual_address):
             return None
         if not self.begin_operation("read_memory", device.individual_address):

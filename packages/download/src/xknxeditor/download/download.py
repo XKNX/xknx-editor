@@ -366,7 +366,7 @@ async def _partial_scope(
     manager = _connection_manager(xknx, address, security)
     try:
         programmer = DeviceProgrammer(await manager.open())
-        memory_services(application).apply(programmer)
+        memory_services(application, master).apply(programmer)
         reason = await partial_download_mismatch(
             programmer, application, resources, application2
         )
