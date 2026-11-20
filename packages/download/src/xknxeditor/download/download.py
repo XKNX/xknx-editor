@@ -8,10 +8,12 @@ the partial download procedure (section 3.5.3).
 
 from __future__ import annotations
 
+import functools
+import inspect
 import logging
 from collections.abc import Awaitable, Callable, Mapping
 from dataclasses import dataclass, field, replace
-from typing import TYPE_CHECKING, NamedTuple
+from typing import TYPE_CHECKING, Any, NamedTuple
 
 from xknx.exceptions import ManagementConnectionError
 from xknx.telegram import IndividualAddress
@@ -702,6 +704,31 @@ async def _learn_device_mask(
     )
 
 
+def _for_the_device[**P, T](
+    operation: Callable[P, Awaitable[T]],
+) -> Callable[P, Awaitable[T]]:
+    """Run ``operation`` (``xknx``, ``individual_address``, ``application``, …) with the
+    connections to the device opened as its application needs (see
+    :func:`.management_transport.negative_connect_confirmations`)."""
+    from .management_transport import negative_connect_confirmations
+
+    signature = inspect.signature(operation)
+
+    @functools.wraps(operation)
+    async def run(*args: P.args, **kwargs: P.kwargs) -> T:
+        bound = signature.bind(*args, **kwargs).arguments
+        application: Any = bound["application"]
+        with negative_connect_confirmations(
+            bound["xknx"],
+            IndividualAddress(bound["individual_address"]),
+            getattr(application, "id", None),
+        ):
+            return await operation(*args, **kwargs)
+
+    return run
+
+
+@_for_the_device
 async def download(
     xknx: XKNX,
     individual_address: IndividualAddressableType,
@@ -1089,6 +1116,7 @@ async def download(
     )
 
 
+@_for_the_device
 async def preflight(
     xknx: XKNX,
     individual_address: IndividualAddressableType,

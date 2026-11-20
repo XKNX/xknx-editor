@@ -257,6 +257,83 @@ async def test_peer_disconnect_stops_pending_send_even_with_completed_waiters(
     await _assert_closed(peer, connection, by_peer=True)
 
 
+class _ConfirmingBus:
+    """A real xknx whose interface confirms every frame: the T_Connect negatively when
+    ``negative`` (no device on the bus took it)."""
+
+    def __init__(self, *, negative: bool) -> None:
+        from types import SimpleNamespace
+
+        self.xknx = XKNX()
+        self.negative = negative
+        self.sent: list[object] = []
+        self.xknx.knxip_interface = SimpleNamespace(send_cemi=self._send_cemi)  # type: ignore[assignment]
+
+    async def _send_cemi(self, cemi: object) -> None:
+        from dataclasses import replace
+
+        from xknx.cemi import CEMIFrame, CEMILData, CEMIMessageCode
+
+        assert isinstance(cemi, CEMIFrame) and isinstance(cemi.data, CEMILData)
+        self.sent.append(cemi.data.tpci)
+        negative = self.negative and isinstance(cemi.data.tpci, tpci.TConnect)
+        data = CEMILData(
+            flags=replace(cemi.data.flags, confirm_error=negative),
+            src_addr=cemi.data.src_addr,
+            dst_addr=cemi.data.dst_addr,
+            tpci=cemi.data.tpci,
+            payload=cemi.data.payload,
+        )
+        self.xknx.cemi_handler.handle_cemi_frame(
+            CEMIFrame(code=CEMIMessageCode.L_DATA_CON, data=data)
+        )
+
+
+async def test_a_connection_no_device_took_fails_at_its_first_exchange() -> None:
+    bus = _ConfirmingBus(negative=True)
+    connection = await bus.xknx.management.connect(_ADDRESS, rate_limit=0)
+    # At once, as unanswered: without sending the frame and waiting for its ACKs.
+    with pytest.raises(ManagementAckTimeout, match="no device on the bus took"):
+        await connection.request(apci.DeviceDescriptorRead(descriptor=0))
+    assert not any(isinstance(sent, tpci.TDataConnected) for sent in bus.sent)
+    await bus.xknx.management.disconnect(_ADDRESS)
+    assert not management_transport._UNCONFIRMED
+
+
+@pytest.mark.parametrize("negative", [False, True])
+async def test_the_address_check_takes_an_unconfirmed_connection_for_a_free_address(
+    negative: bool,
+) -> None:
+    from xknx.management.procedures.network.nm_individual_address_check import (
+        nm_individual_address_check,
+    )
+
+    bus = _ConfirmingBus(negative=negative)
+    assert await nm_individual_address_check(bus.xknx, _ADDRESS) is False
+    # Without the negative confirmation the frame went out and was repeated unacknowledged.
+    frames = [sent for sent in bus.sent if isinstance(sent, tpci.TDataConnected)]
+    assert len(frames) == (0 if negative else 4)
+
+
+async def test_devices_that_take_a_connection_without_confirming_it() -> None:
+    bus = _ConfirmingBus(negative=True)
+    with management_transport.negative_connect_confirmations(
+        bus.xknx, _ADDRESS, "M-0009_A-2077-11-1234"
+    ):
+        connection = await bus.xknx.management.connect(_ADDRESS, rate_limit=0)
+        # The frame goes out (and, unanswered here, is repeated).
+        with pytest.raises(ManagementAckTimeout):
+            await connection.send_data(_WRITE)
+    assert any(isinstance(sent, tpci.TDataConnected) for sent in bus.sent)
+    assert not management_transport._ACCEPTING
+    # Not for other applications, nor without one.
+    for application in ("M-0009_A-2079-11-1234", None):
+        with management_transport.negative_connect_confirmations(
+            bus.xknx, _ADDRESS, application
+        ):
+            assert not management_transport._ACCEPTING
+
+
 @pytest.mark.parametrize("answers", [False, True])
 async def test_individual_address_check(answers: bool) -> None:
     """NM_IndividualAddress_Check: an address nothing answers at is free, also after the
