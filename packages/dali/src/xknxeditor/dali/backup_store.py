@@ -132,7 +132,7 @@ class BackupTplCommand:
     value: str  # ColoredValue CSV
     fade_in: str  # "VFadeIn<n>" for value funcs, "CFadeIn<n>" for colour funcs
     time: str  # "HH:MM" zero-padded
-    weekdays: str  # 7-char "1"/"0" string, bit0 = Monday
+    weekdays: str  # Seven binary digits, Sunday on the left and Monday on the right.
 
 
 @dataclass(slots=True)

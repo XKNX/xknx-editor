@@ -106,6 +106,11 @@ class MdtDaliConnection:
             chunk = await self._prog.read_property(
                 self.object_index, prop, count=request, start_index=start
             )
+            if len(chunk) % size:
+                raise DaliCommissioningError(
+                    f"partial element for property {int(prop)}: "
+                    f"expected multiples of {size} bytes, got {len(chunk)} bytes"
+                )
             got = len(chunk) // size
             if got == 0:
                 # Device returned less than one element: the response is a short/partial

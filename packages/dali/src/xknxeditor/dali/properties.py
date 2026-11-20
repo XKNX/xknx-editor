@@ -41,9 +41,12 @@ class PropertyType(IntEnum):
     GROUP_DYN = 206
     GROUP_STATUS = 208
     GROUP_FAILURE = 209
+    GENERAL_FAILURE = 210
     SCENE_ASSIGN = 212
     SCENE_GROUP_VALUE = 214
     COMMAND = 218
+    CONVERTER_STATUS = 219
+    TEST_RESULT = 221
     COMMISSION_SYNC = 224
     COLOUR_C_EVENT = 225
     COLOUR_C_ASSIGN = 226
@@ -59,6 +62,9 @@ ELEMENT_SIZE: dict[PropertyType, int] = {
     PropertyType.GROUP_DYN: 6,
     PropertyType.GROUP_STATUS: 8,
     PropertyType.GROUP_FAILURE: 6,
+    PropertyType.GENERAL_FAILURE: 10,
+    PropertyType.CONVERTER_STATUS: 5,
+    PropertyType.TEST_RESULT: 10,
     PropertyType.SCENE_ASSIGN: 1,
     PropertyType.SCENE_GROUP_VALUE: 8,
     PropertyType.SCENE_KNX_MAP: 1,

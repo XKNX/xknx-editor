@@ -11,7 +11,7 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, get_args
+from typing import TYPE_CHECKING, Any, cast, get_args
 
 from editor_gui.device_plugins import parameters_in_plugin
 from editor_gui.plugins.mcp.context import McpContext, make_tool, require_project
@@ -403,6 +403,32 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             ),
         }
 
+    def _op_edit_e64pro(p: dict[str, Any]) -> dict[str, Any]:
+        from editor_gui.plugin_blob_readers.dali_backup import e64pro
+
+        device = _device(p)
+        entry = e64pro.backup(device)
+        if entry is None or e64pro.revision(entry[1]) != p["revision"]:
+            raise ValueError("DALI revision changed")
+        edits: list[e64pro.Edit] = []
+        if not isinstance(p["edits"], list):
+            raise ValueError("edits must be a list")
+        for item in cast("list[object]", p["edits"]):
+            if not isinstance(item, dict):
+                raise ValueError("Each DCA edit must be an object")
+            edit = cast("dict[str, Any]", item)
+            if any(
+                type(value) is not int if key == "row" else not isinstance(value, str)
+                for key, value in edit.items()
+            ):
+                raise ValueError("DCA edits require text fields and an integer row")
+            try:
+                edits.append(e64pro.Edit(**edit))
+            except TypeError as exc:
+                raise ValueError("Invalid DCA edit fields") from exc
+        data = project.edit_e64pro(device, entry[1], edits)
+        return {"node_id": device.node_id, "revision": e64pro.revision(data)}
+
     handlers: dict[
         str, tuple[tuple[str, ...], Callable[[dict[str, Any]], dict[str, Any]]]
     ] = {
@@ -436,6 +462,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             ("ref_id", "value"),
             lambda p: _op_plugin(p, "set_plugin_parameter"),
         ),
+        "edit_e64pro": (("revision", "edits"), _op_edit_e64pro),
         "set_com_object_flag": (
             ("com_object_ref_id", "flag", "value"),
             _op_set_com_object_flag,
@@ -587,6 +614,10 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         - import_plugin_config: device, config_json. Atomic mapped-provider configuration import.
         - set_plugin_parameter: device, ref_id, value. Native field edit in the displayed unit/format
           (or a choice's value), not raw_value; returns lost_links.
+        - edit_e64pro: device, revision, edits -> {node_id, revision}. Pass the revision from
+          project_e64pro_read. Each edit takes the section, slot, action and optional row, field,
+          value, target and index from project_e64pro_edit. All edits for the device form one
+          undo step. Later edits use the row positions after earlier ones.
         - import_mdt_visucontrol: device, path (local .etsvcp). Returns lost_links.
         - set_mdt_symbol: device, slot (zero-based), grayscale_hex (4096 pixels; null removes the override).
         - restore_mdt_symbol: device, slot (zero-based). Store the default from the attached symbol library.

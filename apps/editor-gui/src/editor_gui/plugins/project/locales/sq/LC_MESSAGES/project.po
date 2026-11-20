@@ -3710,3 +3710,357 @@ msgstr "Rruga e komunikimit përmes bashkuesit {coupler} nuk mund të hapej ({de
 
 msgid "The domain address of this secure device could not be loaded because the coupler {coupler} does not support security."
 msgstr "Adresa e domenit e kësaj pajisjeje të sigurt nuk mund të ngarkohej, sepse bashkuesi {coupler} nuk mbështet sigurinë."
+
+msgid "Actions"
+msgstr "Veprime"
+
+msgid "Add Command"
+msgstr "Shto komandë"
+
+msgid "Assigned Groups and ECGs"
+msgstr "Grupet dhe balastet e caktuara"
+
+msgid "Colour"
+msgstr "Ngjyra"
+
+msgid "Control Gear and Groups"
+msgstr "Balastet dhe grupet"
+
+msgid "Delay"
+msgstr "Vonesa"
+
+msgid "ECG"
+msgstr "Balast"
+
+msgid "Effects"
+msgstr "Efekte"
+
+msgid "Fade Time"
+msgstr "Koha e zbehjes"
+
+msgid "Flag"
+msgstr "Tregues"
+
+msgid "General Inputs"
+msgstr "Hyrje të përgjithshme"
+
+msgid "Input Devices"
+msgstr "Pajisje hyrëse"
+
+msgid "Instance"
+msgstr "Instancë"
+
+msgid "KNX Scene"
+msgstr "Skenë KNX"
+
+msgid "Keep Colour"
+msgstr "Ruaj ngjyrën"
+
+msgid "Keep Value"
+msgstr "Ruaj vlerën"
+
+msgid "Loop"
+msgstr "Përsëritje"
+
+msgid "Manual Override"
+msgstr "Kontroll manual"
+
+msgid "Midnight Reset"
+msgstr "Rivendosje në mesnatë"
+
+msgid "Mo Tu We Th Fr Sa Su"
+msgstr "Hë Ma Më En Pr Sh Di"
+
+msgid "Mode"
+msgstr "Mënyra"
+
+msgid "Motion / Brightness"
+msgstr "Lëvizja / ndriçimi"
+
+msgid "No Entries"
+msgstr "Asnjë hyrje"
+
+msgid "Origin"
+msgstr "Origjina"
+
+msgid "Physical Devices Without a Unique Assignment"
+msgstr "Pajisje fizike pa caktim të qartë"
+
+msgid "Physical Inputs"
+msgstr "Hyrje fizike"
+
+msgid "Push-Buttons"
+msgstr "Butona"
+
+msgid "Reference"
+msgstr "Referencë"
+
+msgid "Single ECG"
+msgstr "Balast individual"
+
+msgid "Target"
+msgstr "Objektivi"
+
+msgid "Time"
+msgstr "Ora"
+
+msgid "Time Control"
+msgstr "Kontroll kohor"
+
+msgid "View"
+msgstr "Pamja"
+
+msgid "Weekdays"
+msgstr "Ditët e javës"
+
+msgid "Add Target"
+msgstr "Shto objektivin"
+
+msgid "Apply"
+msgstr "Zbato"
+
+msgid "Approximate Preview"
+msgstr "Parapamje e përafërt"
+
+msgid "Colour Temperature"
+msgstr "Temperatura e ngjyrës"
+
+msgid "Groups"
+msgstr "Grupet"
+
+msgid "Search"
+msgstr "Kërkim"
+
+msgid "White"
+msgstr "E bardhë"
+
+msgid "Brightness"
+msgstr "Ndriçimi"
+
+msgid "Min. Brightness"
+msgstr "Ndriçimi min."
+
+msgid "Max. Brightness"
+msgstr "Ndriçimi maks."
+
+msgid "Switch-on Limit"
+msgstr "Kufiri në ndezje"
+
+msgid "DCA Details"
+msgstr "Detajet e DCA-së"
+
+msgid "Import DCA XML…"
+msgstr "Importo XML të DCA-së…"
+
+msgid "Export DCA XML…"
+msgstr "Eksporto XML të DCA-së…"
+
+msgid "Replace the DCA configuration of {device} with the selected XML file?"
+msgstr "Të zëvendësohet konfigurimi DCA i pajisjes {device} me skedarin XML të zgjedhur?"
+
+msgid "DCA configuration imported."
+msgstr "Konfigurimi DCA u importua."
+
+msgid "DCA configuration exported."
+msgstr "Konfigurimi DCA u eksportua."
+
+msgid "Color Temperature"
+msgstr "Temperatura e ngjyrës"
+
+msgid "Keep Color"
+msgstr "Ruaj ngjyrën"
+
+msgid "No entries"
+msgstr "Asnjë hyrje"
+
+msgid "Assigned Groups and ECGs…"
+msgstr "Grupet dhe balastet e caktuara…"
+
+msgid "Add Target…"
+msgstr "Shto objektivin…"
+
+msgid "Approximate preview"
+msgstr "Parapamje e përafërt"
+
+msgid "Manual override"
+msgstr "Kontroll manual"
+
+msgid "Midnight reset"
+msgstr "Rivendosje në mesnatë"
+
+msgid "Import DCA Configuration"
+msgstr "Importo konfigurimin DCA"
+
+msgid "Edit DCA configuration"
+msgstr "Ndrysho konfigurimin DCA"
+
+msgid "Import DCA configuration"
+msgstr "Importo konfigurimin DCA"
+
+msgid "Invalid DCA configuration."
+msgstr "Konfigurim DCA i pavlefshëm."
+
+msgid "Expected a complete DCA device configuration."
+msgstr "Kërkohet një konfigurim i plotë i pajisjes DCA."
+
+msgid "DALI project data changed. Reopen the selection and try again."
+msgstr "Të dhënat e projektit DALI kanë ndryshuar. Rihap përzgjedhjen dhe provo përsëri."
+
+msgid "The selected DCA item is unavailable. Reopen the selection."
+msgstr "Elementi DCA i zgjedhur nuk është i disponueshëm. Rihap përzgjedhjen."
+
+msgid "Invalid value."
+msgstr "Vlerë e pavlefshme."
+
+msgid "Invalid or unsupported color value."
+msgstr "Vlerë ngjyre e pavlefshme ose e pambështetur."
+
+msgid "This DCA operation is not supported."
+msgstr "Ky veprim DCA nuk mbështetet."
+
+msgid "Expected {minimum}-{maximum}."
+msgstr "Pritet: {minimum}-{maximum}."
+
+msgid "Expected HH:MM."
+msgstr "Pritet: HH:MM."
+
+msgid "Select seven weekdays."
+msgstr "Zgjidh shtatë ditët e javës."
+
+msgid "The target already belongs to the scene."
+msgstr "Objektivi tashmë i përket skenës."
+
+msgid "At most 300 time control commands are supported."
+msgstr "Mbështeten deri në 300 komanda të kontrollit kohor."
+
+msgid "At most 500 effect steps are supported."
+msgstr "Mbështeten deri në 500 hapa efektesh."
+
+msgid "Descriptions can contain at most {maximum} characters."
+msgstr "Përshkrimet mund të përmbajnë deri në {maximum} karaktere."
+
+msgid "Mo"
+msgstr "hën"
+
+msgid "Tu"
+msgstr "mar"
+
+msgid "We"
+msgstr "mër"
+
+msgid "Th"
+msgstr "enj"
+
+msgid "Fr"
+msgstr "pre"
+
+msgid "Sa"
+msgstr "sht"
+
+msgid "Su"
+msgstr "die"
+
+msgid "A test is pending."
+msgstr "Një test është në pritje."
+
+msgid "Battery"
+msgstr "Bateria"
+
+msgid "Brightness sensor"
+msgstr "Sensori i ndriçimit"
+
+msgid "Converters"
+msgstr "Konvertuesit"
+
+msgid "Descriptions"
+msgstr "Përshkrimet"
+
+msgid "Diagnostic Report"
+msgstr "Raporti diagnostikues"
+
+msgid "Duration"
+msgstr "Kohëzgjatja"
+
+msgid "Duration test running"
+msgstr "Testi i kohëzgjatjes po kryhet"
+
+msgid "Edit several descriptions and apply them together in one undo step."
+msgstr "Ndryshoni disa përshkrime dhe zbatojini së bashku në një hap të vetëm zhbërjeje."
+
+msgid "Emergency"
+msgstr "Emergjencë"
+
+msgid "Emergency Failure"
+msgstr "Defekt i ndriçimit të emergjencës"
+
+msgid "Emergency Mode"
+msgstr "Modaliteti i emergjencës"
+
+msgid "Emergency Status"
+msgstr "Gjendja e emergjencës"
+
+msgid "Errors"
+msgstr "Gabimet"
+
+msgid "Event sensor"
+msgstr "Sensori i ngjarjeve"
+
+msgid "Extended emergency"
+msgstr "Emergjencë e zgjatur"
+
+msgid "Failure Rate"
+msgstr "Përqindja e defekteve"
+
+msgid "Fixed inhibit"
+msgstr "Bllokim i fiksuar"
+
+msgid "Function test running"
+msgstr "Testi funksional po kryhet"
+
+msgid "Generic sensor"
+msgstr "Sensor i përgjithshëm"
+
+msgid "Inhibit"
+msgstr "Bllokim"
+
+msgid "Lamps"
+msgstr "Llambat"
+
+msgid "Motion sensor"
+msgstr "Sensori i lëvizjes"
+
+msgid "Normal"
+msgstr "Normal"
+
+msgid "Push button"
+msgstr "Buton shtypës"
+
+msgid "Read Report"
+msgstr "Lexo raportin"
+
+msgid "Read the diagnostic report from the gateway to display its current counters and saved test results."
+msgstr "Lexoni raportin diagnostikues nga porta për të shfaqur numëruesit aktualë dhe rezultatet e ruajtura të testeve."
+
+msgid "Replace the selected slot with the XML configuration? Other slots remain unchanged."
+msgstr "Të zëvendësohet pozicioni i zgjedhur me konfigurimin XML? Pozicionet e tjera mbeten të pandryshuara."
+
+msgid "Rest"
+msgstr "Pushim"
+
+msgid "Result"
+msgstr "Rezultati"
+
+msgid "Test"
+msgstr "Test"
+
+msgid "The input types are not compatible."
+msgstr "Llojet e hyrjeve nuk janë të përputhshme."
+
+msgid "This physical input is already assigned."
+msgstr "Kjo hyrje fizike është caktuar tashmë."
+
+msgid "Total Failure Rate"
+msgstr "Përqindja totale e defekteve"
+
+msgid "Value input"
+msgstr "Hyrje vlere"

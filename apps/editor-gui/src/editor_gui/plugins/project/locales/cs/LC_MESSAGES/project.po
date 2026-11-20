@@ -3762,3 +3762,357 @@ msgstr "Komunikační cestu přes vazební člen {coupler} se nepodařilo otevř
 
 msgid "The domain address of this secure device could not be loaded because the coupler {coupler} does not support security."
 msgstr "Adresu domény tohoto zabezpečeného zařízení nebylo možné nahrát, protože vazební člen {coupler} nepodporuje zabezpečení."
+
+msgid "Actions"
+msgstr "Akce"
+
+msgid "Add Command"
+msgstr "Přidat příkaz"
+
+msgid "Assigned Groups and ECGs"
+msgstr "Přiřazené skupiny a předřadníky"
+
+msgid "Colour"
+msgstr "Barva"
+
+msgid "Control Gear and Groups"
+msgstr "Předřadníky a skupiny"
+
+msgid "Delay"
+msgstr "Zpoždění"
+
+msgid "ECG"
+msgstr "Předřadník"
+
+msgid "Effects"
+msgstr "Efekty"
+
+msgid "Fade Time"
+msgstr "Doba stmívání"
+
+msgid "Flag"
+msgstr "Příznak"
+
+msgid "General Inputs"
+msgstr "Obecné vstupy"
+
+msgid "Input Devices"
+msgstr "Vstupní zařízení"
+
+msgid "Instance"
+msgstr "Instance"
+
+msgid "KNX Scene"
+msgstr "Scéna KNX"
+
+msgid "Keep Colour"
+msgstr "Zachovat barvu"
+
+msgid "Keep Value"
+msgstr "Zachovat hodnotu"
+
+msgid "Loop"
+msgstr "Opakovat"
+
+msgid "Manual Override"
+msgstr "Ruční ovládání"
+
+msgid "Midnight Reset"
+msgstr "Obnovení o půlnoci"
+
+msgid "Mo Tu We Th Fr Sa Su"
+msgstr "Po Út St Čt Pá So Ne"
+
+msgid "Mode"
+msgstr "Režim"
+
+msgid "Motion / Brightness"
+msgstr "Pohyb / jas"
+
+msgid "No Entries"
+msgstr "Žádné položky"
+
+msgid "Origin"
+msgstr "Původ"
+
+msgid "Physical Devices Without a Unique Assignment"
+msgstr "Fyzická zařízení bez jednoznačného přiřazení"
+
+msgid "Physical Inputs"
+msgstr "Fyzické vstupy"
+
+msgid "Push-Buttons"
+msgstr "Tlačítka"
+
+msgid "Reference"
+msgstr "Odkaz"
+
+msgid "Single ECG"
+msgstr "Samostatný předřadník"
+
+msgid "Target"
+msgstr "Cíl"
+
+msgid "Time"
+msgstr "Čas"
+
+msgid "Time Control"
+msgstr "Časové řízení"
+
+msgid "View"
+msgstr "Zobrazení"
+
+msgid "Weekdays"
+msgstr "Dny v týdnu"
+
+msgid "Add Target"
+msgstr "Přidat cíl"
+
+msgid "Apply"
+msgstr "Použít"
+
+msgid "Approximate Preview"
+msgstr "Orientační náhled"
+
+msgid "Colour Temperature"
+msgstr "Teplota chromatičnosti"
+
+msgid "Groups"
+msgstr "Skupiny"
+
+msgid "Search"
+msgstr "Hledání"
+
+msgid "White"
+msgstr "Bílá"
+
+msgid "Brightness"
+msgstr "Jas"
+
+msgid "Min. Brightness"
+msgstr "Min. jas"
+
+msgid "Max. Brightness"
+msgstr "Max. jas"
+
+msgid "Switch-on Limit"
+msgstr "Limit při zapnutí"
+
+msgid "DCA Details"
+msgstr "Podrobnosti DCA"
+
+msgid "Import DCA XML…"
+msgstr "Importovat XML DCA…"
+
+msgid "Export DCA XML…"
+msgstr "Exportovat XML DCA…"
+
+msgid "Replace the DCA configuration of {device} with the selected XML file?"
+msgstr "Nahradit konfiguraci DCA zařízení {device} vybraným souborem XML?"
+
+msgid "DCA configuration imported."
+msgstr "Konfigurace DCA byla importována."
+
+msgid "DCA configuration exported."
+msgstr "Konfigurace DCA byla exportována."
+
+msgid "Color Temperature"
+msgstr "Teplota chromatičnosti"
+
+msgid "Keep Color"
+msgstr "Zachovat barvu"
+
+msgid "No entries"
+msgstr "Žádné položky"
+
+msgid "Assigned Groups and ECGs…"
+msgstr "Přiřazené skupiny a předřadníky…"
+
+msgid "Add Target…"
+msgstr "Přidat cíl…"
+
+msgid "Approximate preview"
+msgstr "Orientační náhled"
+
+msgid "Manual override"
+msgstr "Ruční ovládání"
+
+msgid "Midnight reset"
+msgstr "Obnovení o půlnoci"
+
+msgid "Import DCA Configuration"
+msgstr "Importovat konfiguraci DCA"
+
+msgid "Edit DCA configuration"
+msgstr "Upravit konfiguraci DCA"
+
+msgid "Import DCA configuration"
+msgstr "Importovat konfiguraci DCA"
+
+msgid "Invalid DCA configuration."
+msgstr "Neplatná konfigurace DCA."
+
+msgid "Expected a complete DCA device configuration."
+msgstr "Je vyžadována úplná konfigurace zařízení DCA."
+
+msgid "DALI project data changed. Reopen the selection and try again."
+msgstr "Data projektu DALI se změnila. Znovu otevřete výběr a zkuste to znovu."
+
+msgid "The selected DCA item is unavailable. Reopen the selection."
+msgstr "Vybraná položka DCA není dostupná. Znovu otevřete výběr."
+
+msgid "Invalid value."
+msgstr "Neplatná hodnota."
+
+msgid "Invalid or unsupported color value."
+msgstr "Neplatná nebo nepodporovaná hodnota barvy."
+
+msgid "This DCA operation is not supported."
+msgstr "Tato operace DCA není podporována."
+
+msgid "Expected {minimum}-{maximum}."
+msgstr "Očekáváno: {minimum}-{maximum}."
+
+msgid "Expected HH:MM."
+msgstr "Očekáváno: HH:MM."
+
+msgid "Select seven weekdays."
+msgstr "Vyberte sedm dnů v týdnu."
+
+msgid "The target already belongs to the scene."
+msgstr "Cíl již patří do scény."
+
+msgid "At most 300 time control commands are supported."
+msgstr "Je podporováno nejvýše 300 příkazů časového řízení."
+
+msgid "At most 500 effect steps are supported."
+msgstr "Je podporováno nejvýše 500 kroků efektů."
+
+msgid "Descriptions can contain at most {maximum} characters."
+msgstr "Popisy mohou obsahovat nejvýše {maximum} znaků."
+
+msgid "Mo"
+msgstr "po"
+
+msgid "Tu"
+msgstr "út"
+
+msgid "We"
+msgstr "st"
+
+msgid "Th"
+msgstr "čt"
+
+msgid "Fr"
+msgstr "pá"
+
+msgid "Sa"
+msgstr "so"
+
+msgid "Su"
+msgstr "ne"
+
+msgid "A test is pending."
+msgstr "Test čeká."
+
+msgid "Battery"
+msgstr "Baterie"
+
+msgid "Brightness sensor"
+msgstr "Snímač jasu"
+
+msgid "Converters"
+msgstr "Převodníky"
+
+msgid "Descriptions"
+msgstr "Popisy"
+
+msgid "Diagnostic Report"
+msgstr "Diagnostická zpráva"
+
+msgid "Duration"
+msgstr "Doba trvání"
+
+msgid "Duration test running"
+msgstr "Probíhá test výdrže"
+
+msgid "Edit several descriptions and apply them together in one undo step."
+msgstr "Upravte více popisů a použijte je společně v jednom kroku vrácení zpět."
+
+msgid "Emergency"
+msgstr "Nouzový provoz"
+
+msgid "Emergency Failure"
+msgstr "Porucha nouzového osvětlení"
+
+msgid "Emergency Mode"
+msgstr "Režim nouzového osvětlení"
+
+msgid "Emergency Status"
+msgstr "Stav nouzového osvětlení"
+
+msgid "Errors"
+msgstr "Chyby"
+
+msgid "Event sensor"
+msgstr "Snímač událostí"
+
+msgid "Extended emergency"
+msgstr "Prodloužený nouzový provoz"
+
+msgid "Failure Rate"
+msgstr "Podíl poruch"
+
+msgid "Fixed inhibit"
+msgstr "Pevné blokování"
+
+msgid "Function test running"
+msgstr "Probíhá funkční test"
+
+msgid "Generic sensor"
+msgstr "Obecný snímač"
+
+msgid "Inhibit"
+msgstr "Blokování"
+
+msgid "Lamps"
+msgstr "Světelné zdroje"
+
+msgid "Motion sensor"
+msgstr "Snímač pohybu"
+
+msgid "Normal"
+msgstr "Normální"
+
+msgid "Push button"
+msgstr "Tlačítko"
+
+msgid "Read Report"
+msgstr "Načíst zprávu"
+
+msgid "Read the diagnostic report from the gateway to display its current counters and saved test results."
+msgstr "Načtěte diagnostickou zprávu z brány a zobrazte aktuální počítadla a uložené výsledky testů."
+
+msgid "Replace the selected slot with the XML configuration? Other slots remain unchanged."
+msgstr "Nahradit vybranou pozici konfigurací XML? Ostatní pozice zůstanou beze změny."
+
+msgid "Rest"
+msgstr "Klid"
+
+msgid "Result"
+msgstr "Výsledek"
+
+msgid "Test"
+msgstr "Test"
+
+msgid "The input types are not compatible."
+msgstr "Typy vstupů nejsou kompatibilní."
+
+msgid "This physical input is already assigned."
+msgstr "Tento fyzický vstup je již přiřazen."
+
+msgid "Total Failure Rate"
+msgstr "Celkový podíl poruch"
+
+msgid "Value input"
+msgstr "Hodnotový vstup"

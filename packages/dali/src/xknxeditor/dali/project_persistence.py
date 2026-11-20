@@ -81,7 +81,7 @@ def _color_csv(color: bytes) -> str:
 
 
 def _weekdays_str(mask: int) -> str:
-    return "".join("1" if mask & (1 << b) else "0" for b in range(7))
+    return f"{mask & 0x7F:07b}"
 
 
 def build_backup_store_xml(

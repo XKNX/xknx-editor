@@ -113,6 +113,7 @@ from xknxeditor.proj.core.service import DEFAULT_MULTICAST_ADDRESS
 from xknxeditor.proj.core.space_rules import SpaceRuleError, holds_devices
 
 if TYPE_CHECKING:
+    from editor_gui.plugin_blob_readers.dali_backup.e64pro import Edit as E64Edit
     from editor_gui.plugin_params import PluginMapping, PluginSectionView
     from editor_gui.plugin_providers import (
         NativeConfiguration,
@@ -132,6 +133,7 @@ if TYPE_CHECKING:
     )
     from editor_gui.programming_mdt import FirmwareReadTarget, SymbolReadTarget
     from xknxeditor.catalog import ProductDeletion, ProductSummary, ProgramSummary
+    from xknxeditor.dali.report import DiagnosticReport
     from xknxeditor.download.image import GroupCommunication
     from xknxeditor.download.ip_config import IpDeviceConfig
     from xknxeditor.download.ip_secure import IpSecureConfig
@@ -1478,6 +1480,9 @@ class ProjectService:
         # Bumped on every new/open/close so a long-running bus operation can tell its originating
         # project from whatever is open when its deferred writes finally run (see persist_script_changes).
         self._generation = 0
+        self._dali_reports: dict[
+            tuple[int, int], tuple[str, str, DiagnosticReport]
+        ] = {}
         self._mdt_firmware_reads: dict[
             int, tuple[FirmwareReadTarget, FirmwareInfo, str]
         ] = {}
@@ -1873,6 +1878,7 @@ class ProjectService:
                     working=str(working),
                     error=f"{type(e).__name__}: {e}",
                 )
+        self._dali_reports.clear()
         self._pid = None
         self._path = None
         self._working_path = None
@@ -4330,6 +4336,109 @@ class ProjectService:
         """
         self.persist_device_blob(device, name, data, label=label)
 
+    def edit_e64pro(
+        self, device: Device, expected: bytes, edit: "E64Edit | list[E64Edit]"
+    ) -> bytes:
+        """Store offline DCA edits as one undo step against the expected revision."""
+        from editor_gui.plugin_blob_readers.dali_backup import e64pro
+
+        with self._io_lock:
+            current = self.find_device_by_node_id(device.node_id)
+            entry = e64pro.backup(current) if current is not None else None
+            if current is None or entry is None or entry[1] != expected:
+                raise ValueError(S.E64_CONFIGURATION_CHANGED)
+            data = expected
+            for operation in edit if isinstance(edit, list) else (edit,):
+                data = e64pro.apply(data, operation)
+            self._persist_e64pro(current, expected, data, S.E64_HISTORY_EDIT)
+            return data
+
+    def import_e64pro(
+        self, device: Device, expected: bytes | None, data: bytes
+    ) -> bytes:
+        """Replace the offline DCA configuration in one undo step."""
+        from editor_gui.plugin_blob_readers.dali_backup import e64pro
+
+        with self._io_lock:
+            current = self.find_device_by_node_id(device.node_id)
+            if self._pid is None or current is None or not e64pro.supports(current):
+                raise ValueError(S.E64_INVALID_SELECTION)
+            entry = e64pro.backup(current)
+            if (entry[1] if entry else None) != expected:
+                raise ValueError(S.E64_CONFIGURATION_CHANGED)
+            data = e64pro.import_configuration(
+                data, current.individual_address or "", self._project_name_for_keyring()
+            )
+            self._persist_e64pro(current, expected, data, S.E64_HISTORY_IMPORT)
+            return data
+
+    def _persist_e64pro(
+        self, device: Device, before: bytes | None, data: bytes, label: str
+    ) -> None:
+        from editor_gui.plugin_blob_readers.dali_backup import e64pro
+
+        edits = e64pro.description_parameters(device, before, data)
+        if not edits:
+            self.persist_device_blob(device, e64pro.BACKUP_NAME, data, label=label)
+            return
+        old_active = self.parameter_driven_com_objects(device)
+        try:
+            changes = device.change_param_values(edits, validate=True)
+            self._persist_param_changes(
+                device,
+                changes,
+                old_active,
+                label=label,
+                binary_data={e64pro.BACKUP_NAME: data},
+            )
+        except Exception:
+            self._refresh_device(device.node_id)
+            raise
+
+    def export_e64pro(self, device: Device) -> bytes:
+        """Export the current offline DCA configuration as standalone device XML."""
+        from editor_gui.plugin_blob_readers.dali_backup import e64pro
+
+        with self._io_lock:
+            current = self.find_device_by_node_id(device.node_id)
+            entry = e64pro.backup(current) if current is not None else None
+            if entry is None:
+                raise ValueError(S.E64_INVALID_CONFIGURATION)
+            return e64pro.export_configuration(entry[1])
+
+    def store_dali_report(
+        self, device: Device, channel: int, generation: int, report: "DiagnosticReport"
+    ) -> None:
+        with self._io_lock:
+            current = self.find_device_by_node_id(device.node_id)
+            if (
+                generation != self.generation
+                or current is None
+                or current.individual_address != device.individual_address
+                or current.app is None
+                or device.app is None
+                or current.app.id != device.app.id
+            ):
+                raise ValueError(S.E64_CONFIGURATION_CHANGED)
+            self._dali_reports[device.node_id, channel] = (
+                current.individual_address or "",
+                current.app.id,
+                report,
+            )
+
+    def dali_report(
+        self, device: Device, channel: int = 0
+    ) -> "DiagnosticReport | None":
+        with self._io_lock:
+            cached = self._dali_reports.get((device.node_id, channel))
+            if (
+                cached is None
+                or device.app is None
+                or cached[:2] != (device.individual_address or "", device.app.id)
+            ):
+                return None
+            return cached[2]
+
     def persist_device_blob(
         self,
         device: Device,
@@ -4349,8 +4458,17 @@ class ProjectService:
             current = self.find_device_by_node_id(device.node_id) or device
             if self.device_binary_data(current, name) == data:
                 return
+            previous = next(
+                (entry for entry in current.binary_data if entry.name == name), None
+            )
             self._svc.upsert_device_binary_data(
-                self._pid, device.node_id, name, data, label=label
+                self._pid,
+                device.node_id,
+                name,
+                data,
+                label=label,
+                ref_id=previous.ref_id if previous else "",
+                do_not_copy=previous.do_not_copy if previous else False,
             )
         self._refresh_device(device.node_id)
         self._bump(structural=False)
@@ -7654,10 +7772,11 @@ class ProjectService:
         old_active: set[str],
         *,
         label: str | None = None,
+        binary_data: dict[str, bytes] | None = None,
     ) -> None:
         device.last_lost_links = []
         values = [(ref, new) for ref, (_, new) in changes.items() if new is not None]
-        if self._pid is None or not values or device.app is None:
+        if self._pid is None or (not values and not binary_data) or device.app is None:
             return
         new_instances, ended_instances = _module_instance_changes(
             device, device.app.program.id
@@ -7681,12 +7800,19 @@ class ProjectService:
             label=label,
             module_instances=new_instances,
             removed_module_instances=ended_instances,
+            binary_data=binary_data,
         )
         # Rebuild the device so that subsequent reads of ``parameter_instance_refs`` and
         # ``module_instances`` reflect the just-committed state. Without this, panels that
         # drop their caches but re-read the Device's ORM collections (e.g. the Plugin
         # Config view) would see stale values until the next structural change.
-        if values or target is not None or new_instances or ended_instances:
+        if (
+            values
+            or target is not None
+            or new_instances
+            or ended_instances
+            or binary_data
+        ):
             self._refresh_device(device.node_id)
         self._bump(structural=False)
 

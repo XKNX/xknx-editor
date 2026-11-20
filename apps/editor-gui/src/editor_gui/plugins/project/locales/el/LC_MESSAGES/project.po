@@ -3710,3 +3710,357 @@ msgstr "Η διαδρομή επικοινωνίας μέσω του συζεύ�
 
 msgid "The domain address of this secure device could not be loaded because the coupler {coupler} does not support security."
 msgstr "Η διεύθυνση τομέα αυτής της ασφαλούς συσκευής δεν ήταν δυνατό να φορτωθεί, επειδή ο συζεύκτης {coupler} δεν υποστηρίζει ασφάλεια."
+
+msgid "Actions"
+msgstr "Ενέργειες"
+
+msgid "Add Command"
+msgstr "Προσθήκη εντολής"
+
+msgid "Assigned Groups and ECGs"
+msgstr "Αντιστοιχισμένες ομάδες και στραγγαλιστικά"
+
+msgid "Colour"
+msgstr "Χρώμα"
+
+msgid "Control Gear and Groups"
+msgstr "Στραγγαλιστικά και ομάδες"
+
+msgid "Delay"
+msgstr "Καθυστέρηση"
+
+msgid "ECG"
+msgstr "Στραγγαλιστικό"
+
+msgid "Effects"
+msgstr "Εφέ"
+
+msgid "Fade Time"
+msgstr "Χρόνος μετάβασης"
+
+msgid "Flag"
+msgstr "Σημαία"
+
+msgid "General Inputs"
+msgstr "Γενικές είσοδοι"
+
+msgid "Input Devices"
+msgstr "Συσκευές εισόδου"
+
+msgid "Instance"
+msgstr "Στιγμιότυπο"
+
+msgid "KNX Scene"
+msgstr "Σκηνή KNX"
+
+msgid "Keep Colour"
+msgstr "Διατήρηση χρώματος"
+
+msgid "Keep Value"
+msgstr "Διατήρηση τιμής"
+
+msgid "Loop"
+msgstr "Επανάληψη"
+
+msgid "Manual Override"
+msgstr "Χειροκίνητη παράκαμψη"
+
+msgid "Midnight Reset"
+msgstr "Επαναφορά τα μεσάνυχτα"
+
+msgid "Mo Tu We Th Fr Sa Su"
+msgstr "Δε Τρ Τε Πε Πα Σα Κυ"
+
+msgid "Mode"
+msgstr "Τρόπος λειτουργίας"
+
+msgid "Motion / Brightness"
+msgstr "Κίνηση / φωτεινότητα"
+
+msgid "No Entries"
+msgstr "Χωρίς εγγραφές"
+
+msgid "Origin"
+msgstr "Προέλευση"
+
+msgid "Physical Devices Without a Unique Assignment"
+msgstr "Φυσικές συσκευές χωρίς μοναδική αντιστοίχιση"
+
+msgid "Physical Inputs"
+msgstr "Φυσικές είσοδοι"
+
+msgid "Push-Buttons"
+msgstr "Μπουτόν"
+
+msgid "Reference"
+msgstr "Αναφορά"
+
+msgid "Single ECG"
+msgstr "Μεμονωμένο στραγγαλιστικό"
+
+msgid "Target"
+msgstr "Στόχος"
+
+msgid "Time"
+msgstr "Ώρα"
+
+msgid "Time Control"
+msgstr "Χρονικός έλεγχος"
+
+msgid "View"
+msgstr "Προβολή"
+
+msgid "Weekdays"
+msgstr "Ημέρες εβδομάδας"
+
+msgid "Add Target"
+msgstr "Προσθήκη στόχου"
+
+msgid "Apply"
+msgstr "Εφαρμογή"
+
+msgid "Approximate Preview"
+msgstr "Ενδεικτική προεπισκόπηση"
+
+msgid "Colour Temperature"
+msgstr "Θερμοκρασία χρώματος"
+
+msgid "Groups"
+msgstr "Ομάδες"
+
+msgid "Search"
+msgstr "Αναζήτηση"
+
+msgid "White"
+msgstr "Λευκό"
+
+msgid "Brightness"
+msgstr "Φωτεινότητα"
+
+msgid "Min. Brightness"
+msgstr "Ελάχ. φωτεινότητα"
+
+msgid "Max. Brightness"
+msgstr "Μέγ. φωτεινότητα"
+
+msgid "Switch-on Limit"
+msgstr "Όριο κατά την έναυση"
+
+msgid "DCA Details"
+msgstr "Λεπτομέρειες DCA"
+
+msgid "Import DCA XML…"
+msgstr "Εισαγωγή XML DCA…"
+
+msgid "Export DCA XML…"
+msgstr "Εξαγωγή XML DCA…"
+
+msgid "Replace the DCA configuration of {device} with the selected XML file?"
+msgstr "Να αντικατασταθεί η διαμόρφωση DCA της συσκευής {device} με το επιλεγμένο αρχείο XML;"
+
+msgid "DCA configuration imported."
+msgstr "Η διαμόρφωση DCA εισήχθη."
+
+msgid "DCA configuration exported."
+msgstr "Η διαμόρφωση DCA εξήχθη."
+
+msgid "Color Temperature"
+msgstr "Θερμοκρασία χρώματος"
+
+msgid "Keep Color"
+msgstr "Διατήρηση χρώματος"
+
+msgid "No entries"
+msgstr "Χωρίς εγγραφές"
+
+msgid "Assigned Groups and ECGs…"
+msgstr "Αντιστοιχισμένες ομάδες και στραγγαλιστικά…"
+
+msgid "Add Target…"
+msgstr "Προσθήκη στόχου…"
+
+msgid "Approximate preview"
+msgstr "Ενδεικτική προεπισκόπηση"
+
+msgid "Manual override"
+msgstr "Χειροκίνητη παράκαμψη"
+
+msgid "Midnight reset"
+msgstr "Επαναφορά τα μεσάνυχτα"
+
+msgid "Import DCA Configuration"
+msgstr "Εισαγωγή διαμόρφωσης DCA"
+
+msgid "Edit DCA configuration"
+msgstr "Επεξεργασία διαμόρφωσης DCA"
+
+msgid "Import DCA configuration"
+msgstr "Εισαγωγή διαμόρφωσης DCA"
+
+msgid "Invalid DCA configuration."
+msgstr "Μη έγκυρη διαμόρφωση DCA."
+
+msgid "Expected a complete DCA device configuration."
+msgstr "Απαιτείται πλήρης διαμόρφωση συσκευής DCA."
+
+msgid "DALI project data changed. Reopen the selection and try again."
+msgstr "Τα δεδομένα του έργου DALI άλλαξαν. Ανοίξτε ξανά την επιλογή και δοκιμάστε πάλι."
+
+msgid "The selected DCA item is unavailable. Reopen the selection."
+msgstr "Το επιλεγμένο στοιχείο DCA δεν είναι διαθέσιμο. Ανοίξτε ξανά την επιλογή."
+
+msgid "Invalid value."
+msgstr "Μη έγκυρη τιμή."
+
+msgid "Invalid or unsupported color value."
+msgstr "Μη έγκυρη ή μη υποστηριζόμενη τιμή χρώματος."
+
+msgid "This DCA operation is not supported."
+msgstr "Αυτή η λειτουργία DCA δεν υποστηρίζεται."
+
+msgid "Expected {minimum}-{maximum}."
+msgstr "Αναμένεται: {minimum}-{maximum}."
+
+msgid "Expected HH:MM."
+msgstr "Αναμένεται: HH:MM."
+
+msgid "Select seven weekdays."
+msgstr "Επιλέξτε επτά ημέρες της εβδομάδας."
+
+msgid "The target already belongs to the scene."
+msgstr "Ο στόχος ανήκει ήδη στη σκηνή."
+
+msgid "At most 300 time control commands are supported."
+msgstr "Υποστηρίζονται έως 300 εντολές χρονικού ελέγχου."
+
+msgid "At most 500 effect steps are supported."
+msgstr "Υποστηρίζονται έως 500 βήματα εφέ."
+
+msgid "Descriptions can contain at most {maximum} characters."
+msgstr "Οι περιγραφές μπορούν να περιέχουν έως {maximum} χαρακτήρες."
+
+msgid "Mo"
+msgstr "Δε"
+
+msgid "Tu"
+msgstr "Τρ"
+
+msgid "We"
+msgstr "Τε"
+
+msgid "Th"
+msgstr "Πέ"
+
+msgid "Fr"
+msgstr "Πα"
+
+msgid "Sa"
+msgstr "Σά"
+
+msgid "Su"
+msgstr "Κυ"
+
+msgid "A test is pending."
+msgstr "Μια δοκιμή εκκρεμεί."
+
+msgid "Battery"
+msgstr "Μπαταρία"
+
+msgid "Brightness sensor"
+msgstr "Αισθητήρας φωτεινότητας"
+
+msgid "Converters"
+msgstr "Μετατροπείς"
+
+msgid "Descriptions"
+msgstr "Περιγραφές"
+
+msgid "Diagnostic Report"
+msgstr "Αναφορά διάγνωσης"
+
+msgid "Duration"
+msgstr "Διάρκεια"
+
+msgid "Duration test running"
+msgstr "Εκτελείται δοκιμή διάρκειας"
+
+msgid "Edit several descriptions and apply them together in one undo step."
+msgstr "Επεξεργαστείτε πολλές περιγραφές και εφαρμόστε τις μαζί σε ένα βήμα αναίρεσης."
+
+msgid "Emergency"
+msgstr "Έκτακτη ανάγκη"
+
+msgid "Emergency Failure"
+msgstr "Βλάβη φωτισμού έκτακτης ανάγκης"
+
+msgid "Emergency Mode"
+msgstr "Λειτουργία έκτακτης ανάγκης"
+
+msgid "Emergency Status"
+msgstr "Κατάσταση έκτακτης ανάγκης"
+
+msgid "Errors"
+msgstr "Σφάλματα"
+
+msgid "Event sensor"
+msgstr "Αισθητήρας συμβάντων"
+
+msgid "Extended emergency"
+msgstr "Παρατεταμένη έκτακτη ανάγκη"
+
+msgid "Failure Rate"
+msgstr "Ποσοστό βλαβών"
+
+msgid "Fixed inhibit"
+msgstr "Σταθερή αναστολή"
+
+msgid "Function test running"
+msgstr "Εκτελείται δοκιμή λειτουργίας"
+
+msgid "Generic sensor"
+msgstr "Γενικός αισθητήρας"
+
+msgid "Inhibit"
+msgstr "Αναστολή"
+
+msgid "Lamps"
+msgstr "Λαμπτήρες"
+
+msgid "Motion sensor"
+msgstr "Αισθητήρας κίνησης"
+
+msgid "Normal"
+msgstr "Κανονική"
+
+msgid "Push button"
+msgstr "Μπουτόν"
+
+msgid "Read Report"
+msgstr "Ανάγνωση αναφοράς"
+
+msgid "Read the diagnostic report from the gateway to display its current counters and saved test results."
+msgstr "Διαβάστε την αναφορά διάγνωσης από την πύλη για να εμφανίσετε τους τρέχοντες μετρητές και τα αποθηκευμένα αποτελέσματα δοκιμών."
+
+msgid "Replace the selected slot with the XML configuration? Other slots remain unchanged."
+msgstr "Αντικατάσταση της επιλεγμένης θέσης με τη διαμόρφωση XML; Οι άλλες θέσεις παραμένουν αμετάβλητες."
+
+msgid "Rest"
+msgstr "Ανάπαυση"
+
+msgid "Result"
+msgstr "Αποτέλεσμα"
+
+msgid "Test"
+msgstr "Δοκιμή"
+
+msgid "The input types are not compatible."
+msgstr "Οι τύποι εισόδων δεν είναι συμβατοί."
+
+msgid "This physical input is already assigned."
+msgstr "Αυτή η φυσική είσοδος έχει ήδη αντιστοιχιστεί."
+
+msgid "Total Failure Rate"
+msgstr "Συνολικό ποσοστό βλαβών"
+
+msgid "Value input"
+msgstr "Είσοδος τιμής"

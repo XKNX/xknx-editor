@@ -3658,3 +3658,357 @@ msgstr "カプラー {coupler} を経由する通信経路を開けませんで�
 
 msgid "The domain address of this secure device could not be loaded because the coupler {coupler} does not support security."
 msgstr "カプラー {coupler} がセキュリティに対応していないため、このセキュアデバイスのドメインアドレスをロードできませんでした。"
+
+msgid "Actions"
+msgstr "操作"
+
+msgid "Add Command"
+msgstr "コマンドを追加"
+
+msgid "Assigned Groups and ECGs"
+msgstr "割り当てたグループと安定器"
+
+msgid "Colour"
+msgstr "色"
+
+msgid "Control Gear and Groups"
+msgstr "安定器とグループ"
+
+msgid "Delay"
+msgstr "遅延"
+
+msgid "ECG"
+msgstr "安定器"
+
+msgid "Effects"
+msgstr "エフェクト"
+
+msgid "Fade Time"
+msgstr "フェード時間"
+
+msgid "Flag"
+msgstr "フラグ"
+
+msgid "General Inputs"
+msgstr "汎用入力"
+
+msgid "Input Devices"
+msgstr "入力機器"
+
+msgid "Instance"
+msgstr "インスタンス"
+
+msgid "KNX Scene"
+msgstr "KNXシーン"
+
+msgid "Keep Colour"
+msgstr "色を保持"
+
+msgid "Keep Value"
+msgstr "値を保持"
+
+msgid "Loop"
+msgstr "繰り返し"
+
+msgid "Manual Override"
+msgstr "手動オーバーライド"
+
+msgid "Midnight Reset"
+msgstr "午前0時にリセット"
+
+msgid "Mo Tu We Th Fr Sa Su"
+msgstr "月 火 水 木 金 土 日"
+
+msgid "Mode"
+msgstr "モード"
+
+msgid "Motion / Brightness"
+msgstr "動き・明るさ"
+
+msgid "No Entries"
+msgstr "項目なし"
+
+msgid "Origin"
+msgstr "元の機器"
+
+msgid "Physical Devices Without a Unique Assignment"
+msgstr "割り当てを特定できない実機"
+
+msgid "Physical Inputs"
+msgstr "物理入力"
+
+msgid "Push-Buttons"
+msgstr "押しボタン"
+
+msgid "Reference"
+msgstr "参照"
+
+msgid "Single ECG"
+msgstr "個別安定器"
+
+msgid "Target"
+msgstr "対象"
+
+msgid "Time"
+msgstr "時間"
+
+msgid "Time Control"
+msgstr "時間制御"
+
+msgid "View"
+msgstr "表示"
+
+msgid "Weekdays"
+msgstr "曜日"
+
+msgid "Add Target"
+msgstr "対象を追加"
+
+msgid "Apply"
+msgstr "適用"
+
+msgid "Approximate Preview"
+msgstr "概算プレビュー"
+
+msgid "Colour Temperature"
+msgstr "色温度"
+
+msgid "Groups"
+msgstr "グループ"
+
+msgid "Search"
+msgstr "検索"
+
+msgid "White"
+msgstr "白"
+
+msgid "Brightness"
+msgstr "明るさ"
+
+msgid "Min. Brightness"
+msgstr "最低輝度"
+
+msgid "Max. Brightness"
+msgstr "最大輝度"
+
+msgid "Switch-on Limit"
+msgstr "点灯時の上限"
+
+msgid "DCA Details"
+msgstr "DCA の詳細"
+
+msgid "Import DCA XML…"
+msgstr "DCA XML をインポート…"
+
+msgid "Export DCA XML…"
+msgstr "DCA XML をエクスポート…"
+
+msgid "Replace the DCA configuration of {device} with the selected XML file?"
+msgstr "{device} の DCA 設定を選択した XML ファイルで置き換えますか？"
+
+msgid "DCA configuration imported."
+msgstr "DCA 設定をインポートしました。"
+
+msgid "DCA configuration exported."
+msgstr "DCA 設定をエクスポートしました。"
+
+msgid "Color Temperature"
+msgstr "色温度"
+
+msgid "Keep Color"
+msgstr "色を保持"
+
+msgid "No entries"
+msgstr "項目なし"
+
+msgid "Assigned Groups and ECGs…"
+msgstr "割り当てたグループと安定器…"
+
+msgid "Add Target…"
+msgstr "対象を追加…"
+
+msgid "Approximate preview"
+msgstr "概算プレビュー"
+
+msgid "Manual override"
+msgstr "手動オーバーライド"
+
+msgid "Midnight reset"
+msgstr "午前0時にリセット"
+
+msgid "Import DCA Configuration"
+msgstr "DCA設定をインポート"
+
+msgid "Edit DCA configuration"
+msgstr "DCA設定を編集"
+
+msgid "Import DCA configuration"
+msgstr "DCA設定をインポート"
+
+msgid "Invalid DCA configuration."
+msgstr "DCA設定が無効です。"
+
+msgid "Expected a complete DCA device configuration."
+msgstr "完全なDCAデバイス設定が必要です。"
+
+msgid "DALI project data changed. Reopen the selection and try again."
+msgstr "DALIプロジェクトのデータが変更されました。選択画面を開き直して再試行してください。"
+
+msgid "The selected DCA item is unavailable. Reopen the selection."
+msgstr "選択したDCA項目を利用できません。選択画面を開き直してください。"
+
+msgid "Invalid value."
+msgstr "値が無効です。"
+
+msgid "Invalid or unsupported color value."
+msgstr "色の値が無効または未対応です。"
+
+msgid "This DCA operation is not supported."
+msgstr "このDCA操作には対応していません。"
+
+msgid "Expected {minimum}-{maximum}."
+msgstr "入力範囲: {minimum}-{maximum}。"
+
+msgid "Expected HH:MM."
+msgstr "入力形式: HH:MM。"
+
+msgid "Select seven weekdays."
+msgstr "7つの曜日を選択してください。"
+
+msgid "The target already belongs to the scene."
+msgstr "対象はすでにシーンに含まれています。"
+
+msgid "At most 300 time control commands are supported."
+msgstr "時刻制御コマンドは最大300件まで対応しています。"
+
+msgid "At most 500 effect steps are supported."
+msgstr "エフェクトのステップは最大500件まで対応しています。"
+
+msgid "Descriptions can contain at most {maximum} characters."
+msgstr "説明は最大{maximum}文字まで入力できます。"
+
+msgid "Mo"
+msgstr "月"
+
+msgid "Tu"
+msgstr "火"
+
+msgid "We"
+msgstr "水"
+
+msgid "Th"
+msgstr "木"
+
+msgid "Fr"
+msgstr "金"
+
+msgid "Sa"
+msgstr "土"
+
+msgid "Su"
+msgstr "日"
+
+msgid "A test is pending."
+msgstr "テストが保留中です。"
+
+msgid "Battery"
+msgstr "バッテリー"
+
+msgid "Brightness sensor"
+msgstr "照度センサー"
+
+msgid "Converters"
+msgstr "コンバーター"
+
+msgid "Descriptions"
+msgstr "説明"
+
+msgid "Diagnostic Report"
+msgstr "診断レポート"
+
+msgid "Duration"
+msgstr "時間"
+
+msgid "Duration test running"
+msgstr "継続時間テスト実行中"
+
+msgid "Edit several descriptions and apply them together in one undo step."
+msgstr "複数の説明を編集し、まとめて1回の操作で適用します。この操作は元に戻せます。"
+
+msgid "Emergency"
+msgstr "非常動作"
+
+msgid "Emergency Failure"
+msgstr "非常灯エラー"
+
+msgid "Emergency Mode"
+msgstr "非常灯モード"
+
+msgid "Emergency Status"
+msgstr "非常灯状態"
+
+msgid "Errors"
+msgstr "エラー"
+
+msgid "Event sensor"
+msgstr "イベントセンサー"
+
+msgid "Extended emergency"
+msgstr "延長非常動作"
+
+msgid "Failure Rate"
+msgstr "故障率"
+
+msgid "Fixed inhibit"
+msgstr "固定抑止"
+
+msgid "Function test running"
+msgstr "機能テスト実行中"
+
+msgid "Generic sensor"
+msgstr "汎用センサー"
+
+msgid "Inhibit"
+msgstr "抑止"
+
+msgid "Lamps"
+msgstr "ランプ"
+
+msgid "Motion sensor"
+msgstr "動作センサー"
+
+msgid "Normal"
+msgstr "通常"
+
+msgid "Push button"
+msgstr "押しボタン"
+
+msgid "Read Report"
+msgstr "レポートを読み取る"
+
+msgid "Read the diagnostic report from the gateway to display its current counters and saved test results."
+msgstr "ゲートウェイから診断レポートを読み取り、現在のカウンターと保存されたテスト結果を表示します。"
+
+msgid "Replace the selected slot with the XML configuration? Other slots remain unchanged."
+msgstr "選択したスロットをXML設定で置き換えますか？他のスロットは変更されません。"
+
+msgid "Rest"
+msgstr "休止"
+
+msgid "Result"
+msgstr "結果"
+
+msgid "Test"
+msgstr "テスト"
+
+msgid "The input types are not compatible."
+msgstr "入力タイプに互換性がありません。"
+
+msgid "This physical input is already assigned."
+msgstr "この物理入力はすでに割り当てられています。"
+
+msgid "Total Failure Rate"
+msgstr "総故障率"
+
+msgid "Value input"
+msgstr "値入力"

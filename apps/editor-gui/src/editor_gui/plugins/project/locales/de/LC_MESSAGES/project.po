@@ -3852,3 +3852,357 @@ msgstr "Der Kommunikationsweg über den Koppler {coupler} konnte nicht geöffnet
 
 msgid "The domain address of this secure device could not be loaded because the coupler {coupler} does not support security."
 msgstr "Die Domänenadresse dieses sicheren Geräts konnte nicht geladen werden, weil der Koppler {coupler} keine Sicherheit unterstützt."
+
+msgid "Actions"
+msgstr "Aktionen"
+
+msgid "Add Command"
+msgstr "Befehl hinzufügen"
+
+msgid "Assigned Groups and ECGs"
+msgstr "Zugeordnete Gruppen und EVGs"
+
+msgid "Colour"
+msgstr "Farbe"
+
+msgid "Control Gear and Groups"
+msgstr "EVGs und Gruppen"
+
+msgid "Delay"
+msgstr "Verzögerung"
+
+msgid "ECG"
+msgstr "EVG"
+
+msgid "Effects"
+msgstr "Effekte"
+
+msgid "Fade Time"
+msgstr "Andimmzeit"
+
+msgid "Flag"
+msgstr "Flag"
+
+msgid "General Inputs"
+msgstr "Generische Eingänge"
+
+msgid "Input Devices"
+msgstr "Eingabegeräte"
+
+msgid "Instance"
+msgstr "Instanz"
+
+msgid "KNX Scene"
+msgstr "KNX-Szene"
+
+msgid "Keep Colour"
+msgstr "Farbe beibehalten"
+
+msgid "Keep Value"
+msgstr "Wert beibehalten"
+
+msgid "Loop"
+msgstr "Endlos"
+
+msgid "Manual Override"
+msgstr "Manuelle Übersteuerung"
+
+msgid "Midnight Reset"
+msgstr "Mitternachtsreset"
+
+msgid "Mo Tu We Th Fr Sa Su"
+msgstr "Mo Di Mi Do Fr Sa So"
+
+msgid "Mode"
+msgstr "Verhalten"
+
+msgid "Motion / Brightness"
+msgstr "Bewegung / Helligkeit"
+
+msgid "No Entries"
+msgstr "Keine Einträge"
+
+msgid "Origin"
+msgstr "Ursprung"
+
+msgid "Physical Devices Without a Unique Assignment"
+msgstr "Physische Geräte ohne eindeutige Zuordnung"
+
+msgid "Physical Inputs"
+msgstr "Physische Eingänge"
+
+msgid "Push-Buttons"
+msgstr "Taster"
+
+msgid "Reference"
+msgstr "Referenz"
+
+msgid "Single ECG"
+msgstr "Einzel-EVG"
+
+msgid "Target"
+msgstr "Ziel"
+
+msgid "Time"
+msgstr "Zeit"
+
+msgid "Time Control"
+msgstr "Zeitsteuerung"
+
+msgid "View"
+msgstr "Ansicht"
+
+msgid "Weekdays"
+msgstr "Wochentage"
+
+msgid "Add Target"
+msgstr "Ziel hinzufügen"
+
+msgid "Apply"
+msgstr "Übernehmen"
+
+msgid "Approximate Preview"
+msgstr "Ungefähre Vorschau"
+
+msgid "Colour Temperature"
+msgstr "Farbtemperatur"
+
+msgid "Groups"
+msgstr "Gruppen"
+
+msgid "Search"
+msgstr "Suche"
+
+msgid "White"
+msgstr "Weiß"
+
+msgid "Brightness"
+msgstr "Helligkeit"
+
+msgid "Min. Brightness"
+msgstr "Min. Helligkeit"
+
+msgid "Max. Brightness"
+msgstr "Max. Helligkeit"
+
+msgid "Switch-on Limit"
+msgstr "Einschaltlimit"
+
+msgid "DCA Details"
+msgstr "DCA-Details"
+
+msgid "Import DCA XML…"
+msgstr "DCA-XML importieren…"
+
+msgid "Export DCA XML…"
+msgstr "DCA-XML exportieren…"
+
+msgid "Replace the DCA configuration of {device} with the selected XML file?"
+msgstr "DCA-Konfiguration von {device} durch die ausgewählte XML-Datei ersetzen?"
+
+msgid "DCA configuration imported."
+msgstr "DCA-Konfiguration importiert."
+
+msgid "DCA configuration exported."
+msgstr "DCA-Konfiguration exportiert."
+
+msgid "Color Temperature"
+msgstr "Farbtemperatur"
+
+msgid "Keep Color"
+msgstr "Farbe beibehalten"
+
+msgid "No entries"
+msgstr "Keine Einträge"
+
+msgid "Assigned Groups and ECGs…"
+msgstr "Zugeordnete Gruppen und EVGs…"
+
+msgid "Add Target…"
+msgstr "Ziel hinzufügen…"
+
+msgid "Approximate preview"
+msgstr "Ungefähre Vorschau"
+
+msgid "Manual override"
+msgstr "Manuelle Übersteuerung"
+
+msgid "Midnight reset"
+msgstr "Mitternachtsreset"
+
+msgid "Import DCA Configuration"
+msgstr "DCA-Konfiguration importieren"
+
+msgid "Edit DCA configuration"
+msgstr "DCA-Konfiguration bearbeiten"
+
+msgid "Import DCA configuration"
+msgstr "DCA-Konfiguration importieren"
+
+msgid "Invalid DCA configuration."
+msgstr "Ungültige DCA-Konfiguration."
+
+msgid "Expected a complete DCA device configuration."
+msgstr "Eine vollständige DCA-Gerätekonfiguration wird erwartet."
+
+msgid "DALI project data changed. Reopen the selection and try again."
+msgstr "Die DALI-Projektdaten haben sich geändert. Öffne die Auswahl erneut und versuche es noch einmal."
+
+msgid "The selected DCA item is unavailable. Reopen the selection."
+msgstr "Der ausgewählte DCA-Eintrag ist nicht verfügbar. Öffne die Auswahl erneut."
+
+msgid "Invalid value."
+msgstr "Ungültiger Wert."
+
+msgid "Invalid or unsupported color value."
+msgstr "Ungültiger oder nicht unterstützter Farbwert."
+
+msgid "This DCA operation is not supported."
+msgstr "Dieser DCA-Vorgang wird nicht unterstützt."
+
+msgid "Expected {minimum}-{maximum}."
+msgstr "Erwartet: {minimum}-{maximum}."
+
+msgid "Expected HH:MM."
+msgstr "Erwartet: HH:MM."
+
+msgid "Select seven weekdays."
+msgstr "Wähle sieben Wochentage aus."
+
+msgid "The target already belongs to the scene."
+msgstr "Das Ziel gehört bereits zur Szene."
+
+msgid "At most 300 time control commands are supported."
+msgstr "Es werden höchstens 300 Zeitsteuerungsbefehle unterstützt."
+
+msgid "At most 500 effect steps are supported."
+msgstr "Es werden höchstens 500 Effektschritte unterstützt."
+
+msgid "Descriptions can contain at most {maximum} characters."
+msgstr "Beschreibungen dürfen höchstens {maximum} Zeichen enthalten."
+
+msgid "Mo"
+msgstr "Mo."
+
+msgid "Tu"
+msgstr "Di."
+
+msgid "We"
+msgstr "Mi."
+
+msgid "Th"
+msgstr "Do."
+
+msgid "Fr"
+msgstr "Fr."
+
+msgid "Sa"
+msgstr "Sa."
+
+msgid "Su"
+msgstr "So."
+
+msgid "A test is pending."
+msgstr "Ein Test steht aus."
+
+msgid "Battery"
+msgstr "Batterie"
+
+msgid "Brightness sensor"
+msgstr "Helligkeitssensor"
+
+msgid "Converters"
+msgstr "Konverter"
+
+msgid "Descriptions"
+msgstr "Beschreibungen"
+
+msgid "Diagnostic Report"
+msgstr "Diagnosebericht"
+
+msgid "Duration"
+msgstr "Dauer"
+
+msgid "Duration test running"
+msgstr "Dauertest läuft"
+
+msgid "Edit several descriptions and apply them together in one undo step."
+msgstr "Mehrere Beschreibungen bearbeiten und gemeinsam in einem Rückgängig-Schritt übernehmen."
+
+msgid "Emergency"
+msgstr "Notbetrieb"
+
+msgid "Emergency Failure"
+msgstr "Notlichtfehler"
+
+msgid "Emergency Mode"
+msgstr "Notlichtmodus"
+
+msgid "Emergency Status"
+msgstr "Notlichtstatus"
+
+msgid "Errors"
+msgstr "Fehler"
+
+msgid "Event sensor"
+msgstr "Ereignissensor"
+
+msgid "Extended emergency"
+msgstr "Erweiterter Notbetrieb"
+
+msgid "Failure Rate"
+msgstr "Fehlerquote"
+
+msgid "Fixed inhibit"
+msgstr "Feste Sperre"
+
+msgid "Function test running"
+msgstr "Funktionstest läuft"
+
+msgid "Generic sensor"
+msgstr "Allgemeiner Sensor"
+
+msgid "Inhibit"
+msgstr "Sperre"
+
+msgid "Lamps"
+msgstr "Lampen"
+
+msgid "Motion sensor"
+msgstr "Bewegungssensor"
+
+msgid "Normal"
+msgstr "Normal"
+
+msgid "Push button"
+msgstr "Taster"
+
+msgid "Read Report"
+msgstr "Bericht lesen"
+
+msgid "Read the diagnostic report from the gateway to display its current counters and saved test results."
+msgstr "Den Diagnosebericht vom Gateway lesen, um aktuelle Zähler und gespeicherte Testergebnisse anzuzeigen."
+
+msgid "Replace the selected slot with the XML configuration? Other slots remain unchanged."
+msgstr "Den gewählten Platz durch die XML-Konfiguration ersetzen? Andere Plätze bleiben unverändert."
+
+msgid "Rest"
+msgstr "Ruhe"
+
+msgid "Result"
+msgstr "Ergebnis"
+
+msgid "Test"
+msgstr "Test"
+
+msgid "The input types are not compatible."
+msgstr "Die Eingabetypen sind nicht kompatibel."
+
+msgid "This physical input is already assigned."
+msgstr "Dieser physische Eingang ist bereits zugeordnet."
+
+msgid "Total Failure Rate"
+msgstr "Gesamtfehlerquote"
+
+msgid "Value input"
+msgstr "Werteingang"

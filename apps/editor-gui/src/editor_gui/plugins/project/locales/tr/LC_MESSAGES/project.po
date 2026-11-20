@@ -3658,3 +3658,357 @@ msgstr "{coupler} kuplörü üzerinden iletişim yolu açılamadı ({detail}). K
 
 msgid "The domain address of this secure device could not be loaded because the coupler {coupler} does not support security."
 msgstr "{coupler} kuplörü güvenliği desteklemediği için bu güvenli cihazın alan adresi yüklenemedi."
+
+msgid "Actions"
+msgstr "İşlemler"
+
+msgid "Add Command"
+msgstr "Komut ekle"
+
+msgid "Assigned Groups and ECGs"
+msgstr "Atanan gruplar ve balastlar"
+
+msgid "Colour"
+msgstr "Renk"
+
+msgid "Control Gear and Groups"
+msgstr "Balastlar ve gruplar"
+
+msgid "Delay"
+msgstr "Gecikme"
+
+msgid "ECG"
+msgstr "Balast"
+
+msgid "Effects"
+msgstr "Efektler"
+
+msgid "Fade Time"
+msgstr "Geçiş süresi"
+
+msgid "Flag"
+msgstr "Bayrak"
+
+msgid "General Inputs"
+msgstr "Genel girişler"
+
+msgid "Input Devices"
+msgstr "Giriş cihazları"
+
+msgid "Instance"
+msgstr "Örnek"
+
+msgid "KNX Scene"
+msgstr "KNX sahnesi"
+
+msgid "Keep Colour"
+msgstr "Rengi koru"
+
+msgid "Keep Value"
+msgstr "Değeri koru"
+
+msgid "Loop"
+msgstr "Döngü"
+
+msgid "Manual Override"
+msgstr "Elle geçersiz kılma"
+
+msgid "Midnight Reset"
+msgstr "Gece yarısı sıfırlama"
+
+msgid "Mo Tu We Th Fr Sa Su"
+msgstr "Pt Sa Ça Pe Cu Ct Pz"
+
+msgid "Mode"
+msgstr "Mod"
+
+msgid "Motion / Brightness"
+msgstr "Hareket / parlaklık"
+
+msgid "No Entries"
+msgstr "Kayıt yok"
+
+msgid "Origin"
+msgstr "Kaynak"
+
+msgid "Physical Devices Without a Unique Assignment"
+msgstr "Benzersiz ataması olmayan fiziksel cihazlar"
+
+msgid "Physical Inputs"
+msgstr "Fiziksel girişler"
+
+msgid "Push-Buttons"
+msgstr "Düğme girişleri"
+
+msgid "Reference"
+msgstr "Başvuru"
+
+msgid "Single ECG"
+msgstr "Tek balast"
+
+msgid "Target"
+msgstr "Hedef"
+
+msgid "Time"
+msgstr "Zaman"
+
+msgid "Time Control"
+msgstr "Zaman kontrolü"
+
+msgid "View"
+msgstr "Görünüm"
+
+msgid "Weekdays"
+msgstr "Haftanın günleri"
+
+msgid "Add Target"
+msgstr "Hedef ekle"
+
+msgid "Apply"
+msgstr "Uygula"
+
+msgid "Approximate Preview"
+msgstr "Yaklaşık önizleme"
+
+msgid "Colour Temperature"
+msgstr "Renk sıcaklığı"
+
+msgid "Groups"
+msgstr "Gruplar"
+
+msgid "Search"
+msgstr "Arama"
+
+msgid "White"
+msgstr "Beyaz"
+
+msgid "Brightness"
+msgstr "Parlaklık"
+
+msgid "Min. Brightness"
+msgstr "Min. parlaklık"
+
+msgid "Max. Brightness"
+msgstr "Maks. parlaklık"
+
+msgid "Switch-on Limit"
+msgstr "Açılış sınırı"
+
+msgid "DCA Details"
+msgstr "DCA Ayrıntıları"
+
+msgid "Import DCA XML…"
+msgstr "DCA XML İçe Aktar…"
+
+msgid "Export DCA XML…"
+msgstr "DCA XML Dışa Aktar…"
+
+msgid "Replace the DCA configuration of {device} with the selected XML file?"
+msgstr "{device} cihazının DCA yapılandırması seçilen XML dosyasıyla değiştirilsin mi?"
+
+msgid "DCA configuration imported."
+msgstr "DCA yapılandırması içe aktarıldı."
+
+msgid "DCA configuration exported."
+msgstr "DCA yapılandırması dışa aktarıldı."
+
+msgid "Color Temperature"
+msgstr "Renk sıcaklığı"
+
+msgid "Keep Color"
+msgstr "Rengi koru"
+
+msgid "No entries"
+msgstr "Kayıt yok"
+
+msgid "Assigned Groups and ECGs…"
+msgstr "Atanan gruplar ve balastlar…"
+
+msgid "Add Target…"
+msgstr "Hedef ekle…"
+
+msgid "Approximate preview"
+msgstr "Yaklaşık önizleme"
+
+msgid "Manual override"
+msgstr "Elle geçersiz kılma"
+
+msgid "Midnight reset"
+msgstr "Gece yarısı sıfırlama"
+
+msgid "Import DCA Configuration"
+msgstr "DCA yapılandırmasını içe aktar"
+
+msgid "Edit DCA configuration"
+msgstr "DCA yapılandırmasını düzenle"
+
+msgid "Import DCA configuration"
+msgstr "DCA yapılandırmasını içe aktar"
+
+msgid "Invalid DCA configuration."
+msgstr "Geçersiz DCA yapılandırması."
+
+msgid "Expected a complete DCA device configuration."
+msgstr "Tam bir DCA cihaz yapılandırması gerekiyor."
+
+msgid "DALI project data changed. Reopen the selection and try again."
+msgstr "DALI proje verileri değişti. Seçimi yeniden açıp tekrar deneyin."
+
+msgid "The selected DCA item is unavailable. Reopen the selection."
+msgstr "Seçilen DCA öğesi kullanılamıyor. Seçimi yeniden açın."
+
+msgid "Invalid value."
+msgstr "Geçersiz değer."
+
+msgid "Invalid or unsupported color value."
+msgstr "Geçersiz veya desteklenmeyen renk değeri."
+
+msgid "This DCA operation is not supported."
+msgstr "Bu DCA işlemi desteklenmiyor."
+
+msgid "Expected {minimum}-{maximum}."
+msgstr "Beklenen: {minimum}-{maximum}."
+
+msgid "Expected HH:MM."
+msgstr "Beklenen: HH:MM."
+
+msgid "Select seven weekdays."
+msgstr "Haftanın yedi gününü seçin."
+
+msgid "The target already belongs to the scene."
+msgstr "Hedef zaten sahneye ait."
+
+msgid "At most 300 time control commands are supported."
+msgstr "En fazla 300 zaman kontrol komutu desteklenir."
+
+msgid "At most 500 effect steps are supported."
+msgstr "En fazla 500 efekt adımı desteklenir."
+
+msgid "Descriptions can contain at most {maximum} characters."
+msgstr "Açıklamalar en fazla {maximum} karakter içerebilir."
+
+msgid "Mo"
+msgstr "Pt"
+
+msgid "Tu"
+msgstr "Sa"
+
+msgid "We"
+msgstr "Ça"
+
+msgid "Th"
+msgstr "Pe"
+
+msgid "Fr"
+msgstr "Cu"
+
+msgid "Sa"
+msgstr "Ct"
+
+msgid "Su"
+msgstr "Pa"
+
+msgid "A test is pending."
+msgstr "Bir test bekliyor."
+
+msgid "Battery"
+msgstr "Pil"
+
+msgid "Brightness sensor"
+msgstr "Parlaklık sensörü"
+
+msgid "Converters"
+msgstr "Dönüştürücüler"
+
+msgid "Descriptions"
+msgstr "Açıklamalar"
+
+msgid "Diagnostic Report"
+msgstr "Tanılama Raporu"
+
+msgid "Duration"
+msgstr "Süre"
+
+msgid "Duration test running"
+msgstr "Süre testi çalışıyor"
+
+msgid "Edit several descriptions and apply them together in one undo step."
+msgstr "Birden fazla açıklamayı düzenleyin ve tek bir geri alma adımında birlikte uygulayın."
+
+msgid "Emergency"
+msgstr "Acil durum"
+
+msgid "Emergency Failure"
+msgstr "Acil Aydınlatma Arızası"
+
+msgid "Emergency Mode"
+msgstr "Acil Aydınlatma Modu"
+
+msgid "Emergency Status"
+msgstr "Acil Aydınlatma Durumu"
+
+msgid "Errors"
+msgstr "Hatalar"
+
+msgid "Event sensor"
+msgstr "Olay sensörü"
+
+msgid "Extended emergency"
+msgstr "Uzatılmış acil durum"
+
+msgid "Failure Rate"
+msgstr "Arıza Oranı"
+
+msgid "Fixed inhibit"
+msgstr "Sabit engelleme"
+
+msgid "Function test running"
+msgstr "İşlev testi çalışıyor"
+
+msgid "Generic sensor"
+msgstr "Genel sensör"
+
+msgid "Inhibit"
+msgstr "Engelleme"
+
+msgid "Lamps"
+msgstr "Lambalar"
+
+msgid "Motion sensor"
+msgstr "Hareket sensörü"
+
+msgid "Normal"
+msgstr "Normal"
+
+msgid "Push button"
+msgstr "Basmalı düğme"
+
+msgid "Read Report"
+msgstr "Raporu Oku"
+
+msgid "Read the diagnostic report from the gateway to display its current counters and saved test results."
+msgstr "Geçerli sayaçları ve kayıtlı test sonuçlarını görüntülemek için ağ geçidinden tanılama raporunu okuyun."
+
+msgid "Replace the selected slot with the XML configuration? Other slots remain unchanged."
+msgstr "Seçili konum XML yapılandırmasıyla değiştirilsin mi? Diğer konumlar değişmez."
+
+msgid "Rest"
+msgstr "Dinlenme"
+
+msgid "Result"
+msgstr "Sonuç"
+
+msgid "Test"
+msgstr "Test"
+
+msgid "The input types are not compatible."
+msgstr "Giriş türleri uyumlu değil."
+
+msgid "This physical input is already assigned."
+msgstr "Bu fiziksel giriş zaten atanmış."
+
+msgid "Total Failure Rate"
+msgstr "Toplam Arıza Oranı"
+
+msgid "Value input"
+msgstr "Değer girişi"

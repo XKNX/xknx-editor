@@ -3841,3 +3841,357 @@ msgstr "Komunikacijske poti prek spojnika {coupler} ni bilo mogoče odpreti ({de
 
 msgid "The domain address of this secure device could not be loaded because the coupler {coupler} does not support security."
 msgstr "Naslova domene te varne naprave ni bilo mogoče naložiti, ker spojnik {coupler} ne podpira varnosti."
+
+msgid "Actions"
+msgstr "Dejanja"
+
+msgid "Add Command"
+msgstr "Dodaj ukaz"
+
+msgid "Assigned Groups and ECGs"
+msgstr "Dodeljene skupine in predstikalne naprave"
+
+msgid "Colour"
+msgstr "Barva"
+
+msgid "Control Gear and Groups"
+msgstr "Predstikalne naprave in skupine"
+
+msgid "Delay"
+msgstr "Zakasnitev"
+
+msgid "ECG"
+msgstr "Predstikalna naprava"
+
+msgid "Effects"
+msgstr "Učinki"
+
+msgid "Fade Time"
+msgstr "Čas zatemnitve"
+
+msgid "Flag"
+msgstr "Zastavica"
+
+msgid "General Inputs"
+msgstr "Splošni vhodi"
+
+msgid "Input Devices"
+msgstr "Vhodne naprave"
+
+msgid "Instance"
+msgstr "Instanca"
+
+msgid "KNX Scene"
+msgstr "Scena KNX"
+
+msgid "Keep Colour"
+msgstr "Ohrani barvo"
+
+msgid "Keep Value"
+msgstr "Ohrani vrednost"
+
+msgid "Loop"
+msgstr "Ponavljanje"
+
+msgid "Manual Override"
+msgstr "Ročno prekrmiljenje"
+
+msgid "Midnight Reset"
+msgstr "Ponastavitev ob polnoči"
+
+msgid "Mo Tu We Th Fr Sa Su"
+msgstr "Po To Sr Če Pe So Ne"
+
+msgid "Mode"
+msgstr "Način"
+
+msgid "Motion / Brightness"
+msgstr "Gibanje / svetlost"
+
+msgid "No Entries"
+msgstr "Ni vnosov"
+
+msgid "Origin"
+msgstr "Izvor"
+
+msgid "Physical Devices Without a Unique Assignment"
+msgstr "Fizične naprave brez enolične dodelitve"
+
+msgid "Physical Inputs"
+msgstr "Fizični vhodi"
+
+msgid "Push-Buttons"
+msgstr "Tipke"
+
+msgid "Reference"
+msgstr "Sklic"
+
+msgid "Single ECG"
+msgstr "Posamezna predstikalna naprava"
+
+msgid "Target"
+msgstr "Cilj"
+
+msgid "Time"
+msgstr "Čas"
+
+msgid "Time Control"
+msgstr "Časovno krmiljenje"
+
+msgid "View"
+msgstr "Pogled"
+
+msgid "Weekdays"
+msgstr "Dnevi v tednu"
+
+msgid "Add Target"
+msgstr "Dodaj cilj"
+
+msgid "Apply"
+msgstr "Uporabi"
+
+msgid "Approximate Preview"
+msgstr "Okvirni predogled"
+
+msgid "Colour Temperature"
+msgstr "Barvna temperatura"
+
+msgid "Groups"
+msgstr "Skupine"
+
+msgid "Search"
+msgstr "Iskanje"
+
+msgid "White"
+msgstr "Bela"
+
+msgid "Brightness"
+msgstr "Svetlost"
+
+msgid "Min. Brightness"
+msgstr "Najmanjša svetlost"
+
+msgid "Max. Brightness"
+msgstr "Največja svetlost"
+
+msgid "Switch-on Limit"
+msgstr "Omejitev ob vklopu"
+
+msgid "DCA Details"
+msgstr "Podrobnosti DCA"
+
+msgid "Import DCA XML…"
+msgstr "Uvozi XML DCA…"
+
+msgid "Export DCA XML…"
+msgstr "Izvozi XML DCA…"
+
+msgid "Replace the DCA configuration of {device} with the selected XML file?"
+msgstr "Zamenjam konfiguracijo DCA naprave {device} z izbrano datoteko XML?"
+
+msgid "DCA configuration imported."
+msgstr "Konfiguracija DCA je uvožena."
+
+msgid "DCA configuration exported."
+msgstr "Konfiguracija DCA je izvožena."
+
+msgid "Color Temperature"
+msgstr "Barvna temperatura"
+
+msgid "Keep Color"
+msgstr "Ohrani barvo"
+
+msgid "No entries"
+msgstr "Ni vnosov"
+
+msgid "Assigned Groups and ECGs…"
+msgstr "Dodeljene skupine in predstikalne naprave…"
+
+msgid "Add Target…"
+msgstr "Dodaj cilj…"
+
+msgid "Approximate preview"
+msgstr "Okvirni predogled"
+
+msgid "Manual override"
+msgstr "Ročno prekrmiljenje"
+
+msgid "Midnight reset"
+msgstr "Ponastavitev ob polnoči"
+
+msgid "Import DCA Configuration"
+msgstr "Uvozi konfiguracijo DCA"
+
+msgid "Edit DCA configuration"
+msgstr "Uredi konfiguracijo DCA"
+
+msgid "Import DCA configuration"
+msgstr "Uvozi konfiguracijo DCA"
+
+msgid "Invalid DCA configuration."
+msgstr "Neveljavna konfiguracija DCA."
+
+msgid "Expected a complete DCA device configuration."
+msgstr "Zahtevana je celotna konfiguracija naprave DCA."
+
+msgid "DALI project data changed. Reopen the selection and try again."
+msgstr "Podatki projekta DALI so se spremenili. Ponovno odprite izbiro in poskusite znova."
+
+msgid "The selected DCA item is unavailable. Reopen the selection."
+msgstr "Izbrani element DCA ni na voljo. Ponovno odprite izbiro."
+
+msgid "Invalid value."
+msgstr "Neveljavna vrednost."
+
+msgid "Invalid or unsupported color value."
+msgstr "Neveljavna ali nepodprta vrednost barve."
+
+msgid "This DCA operation is not supported."
+msgstr "Ta operacija DCA ni podprta."
+
+msgid "Expected {minimum}-{maximum}."
+msgstr "Pričakovano: {minimum}-{maximum}."
+
+msgid "Expected HH:MM."
+msgstr "Pričakovano: HH:MM."
+
+msgid "Select seven weekdays."
+msgstr "Izberite sedem dni v tednu."
+
+msgid "The target already belongs to the scene."
+msgstr "Cilj že pripada sceni."
+
+msgid "At most 300 time control commands are supported."
+msgstr "Podprtih je največ 300 ukazov časovnega krmiljenja."
+
+msgid "At most 500 effect steps are supported."
+msgstr "Podprtih je največ 500 korakov učinkov."
+
+msgid "Descriptions can contain at most {maximum} characters."
+msgstr "Opisi lahko vsebujejo največ {maximum} znakov."
+
+msgid "Mo"
+msgstr "pon."
+
+msgid "Tu"
+msgstr "tor."
+
+msgid "We"
+msgstr "sre."
+
+msgid "Th"
+msgstr "čet."
+
+msgid "Fr"
+msgstr "pet."
+
+msgid "Sa"
+msgstr "sob."
+
+msgid "Su"
+msgstr "ned."
+
+msgid "A test is pending."
+msgstr "Preizkus čaka."
+
+msgid "Battery"
+msgstr "Baterija"
+
+msgid "Brightness sensor"
+msgstr "Senzor svetlosti"
+
+msgid "Converters"
+msgstr "Pretvorniki"
+
+msgid "Descriptions"
+msgstr "Opisi"
+
+msgid "Diagnostic Report"
+msgstr "Diagnostično poročilo"
+
+msgid "Duration"
+msgstr "Trajanje"
+
+msgid "Duration test running"
+msgstr "Preizkus trajanja poteka"
+
+msgid "Edit several descriptions and apply them together in one undo step."
+msgstr "Uredite več opisov in jih uporabite skupaj v enem koraku razveljavitve."
+
+msgid "Emergency"
+msgstr "Zasilno delovanje"
+
+msgid "Emergency Failure"
+msgstr "Napaka zasilne razsvetljave"
+
+msgid "Emergency Mode"
+msgstr "Način zasilne razsvetljave"
+
+msgid "Emergency Status"
+msgstr "Stanje zasilne razsvetljave"
+
+msgid "Errors"
+msgstr "Napake"
+
+msgid "Event sensor"
+msgstr "Senzor dogodkov"
+
+msgid "Extended emergency"
+msgstr "Podaljšano zasilno delovanje"
+
+msgid "Failure Rate"
+msgstr "Delež napak"
+
+msgid "Fixed inhibit"
+msgstr "Stalna blokada"
+
+msgid "Function test running"
+msgstr "Funkcijski preizkus poteka"
+
+msgid "Generic sensor"
+msgstr "Splošni senzor"
+
+msgid "Inhibit"
+msgstr "Blokada"
+
+msgid "Lamps"
+msgstr "Svetilke"
+
+msgid "Motion sensor"
+msgstr "Senzor gibanja"
+
+msgid "Normal"
+msgstr "Običajno"
+
+msgid "Push button"
+msgstr "Tipka"
+
+msgid "Read Report"
+msgstr "Preberi poročilo"
+
+msgid "Read the diagnostic report from the gateway to display its current counters and saved test results."
+msgstr "Preberite diagnostično poročilo prehoda za prikaz trenutnih števcev in shranjenih rezultatov preizkusov."
+
+msgid "Replace the selected slot with the XML configuration? Other slots remain unchanged."
+msgstr "Zamenjam izbrano mesto s konfiguracijo XML? Druga mesta ostanejo nespremenjena."
+
+msgid "Rest"
+msgstr "Mirovanje"
+
+msgid "Result"
+msgstr "Rezultat"
+
+msgid "Test"
+msgstr "Preizkus"
+
+msgid "The input types are not compatible."
+msgstr "Vrsti vhodov nista združljivi."
+
+msgid "This physical input is already assigned."
+msgstr "Ta fizični vhod je že dodeljen."
+
+msgid "Total Failure Rate"
+msgstr "Skupni delež napak"
+
+msgid "Value input"
+msgstr "Vhod vrednosti"

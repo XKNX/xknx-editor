@@ -3737,3 +3737,357 @@ msgstr "Ekki tókst að opna samskiptaleiðina um tengilinn {coupler} ({detail})
 
 msgid "The domain address of this secure device could not be loaded because the coupler {coupler} does not support security."
 msgstr "Ekki tókst að hlaða lénsvistfangi þessa örugga tækis vegna þess að tengillinn {coupler} styður ekki öryggi."
+
+msgid "Actions"
+msgstr "Aðgerðir"
+
+msgid "Add Command"
+msgstr "Bæta við skipun"
+
+msgid "Assigned Groups and ECGs"
+msgstr "Úthlutaðir hópar og straumfestar"
+
+msgid "Colour"
+msgstr "Litur"
+
+msgid "Control Gear and Groups"
+msgstr "Straumfestar og hópar"
+
+msgid "Delay"
+msgstr "Seinkun"
+
+msgid "ECG"
+msgstr "Straumfestir"
+
+msgid "Effects"
+msgstr "Brellur"
+
+msgid "Fade Time"
+msgstr "Deyfingartími"
+
+msgid "Flag"
+msgstr "Flöggun"
+
+msgid "General Inputs"
+msgstr "Almenn inntök"
+
+msgid "Input Devices"
+msgstr "Inntakstæki"
+
+msgid "Instance"
+msgstr "Tilvik"
+
+msgid "KNX Scene"
+msgstr "KNX-sena"
+
+msgid "Keep Colour"
+msgstr "Halda lit"
+
+msgid "Keep Value"
+msgstr "Halda gildi"
+
+msgid "Loop"
+msgstr "Endurtaka"
+
+msgid "Manual Override"
+msgstr "Handvirk yfirtaka"
+
+msgid "Midnight Reset"
+msgstr "Endurstilla á miðnætti"
+
+msgid "Mo Tu We Th Fr Sa Su"
+msgstr "Má Þr Mi Fi Fö La Su"
+
+msgid "Mode"
+msgstr "Hamur"
+
+msgid "Motion / Brightness"
+msgstr "Hreyfing / birta"
+
+msgid "No Entries"
+msgstr "Engar færslur"
+
+msgid "Origin"
+msgstr "Uppruni"
+
+msgid "Physical Devices Without a Unique Assignment"
+msgstr "Rauntæki án ótvíræðrar úthlutunar"
+
+msgid "Physical Inputs"
+msgstr "Rauninntök"
+
+msgid "Push-Buttons"
+msgstr "Þrýstihnappar"
+
+msgid "Reference"
+msgstr "Tilvísun"
+
+msgid "Single ECG"
+msgstr "Stakur straumfestir"
+
+msgid "Target"
+msgstr "Markmið"
+
+msgid "Time"
+msgstr "Tími"
+
+msgid "Time Control"
+msgstr "Tímastýring"
+
+msgid "View"
+msgstr "Skoða"
+
+msgid "Weekdays"
+msgstr "Vikudagar"
+
+msgid "Add Target"
+msgstr "Bæta við marki"
+
+msgid "Apply"
+msgstr "Nota"
+
+msgid "Approximate Preview"
+msgstr "Áætluð forskoðun"
+
+msgid "Colour Temperature"
+msgstr "Lithitastig"
+
+msgid "Groups"
+msgstr "Hópar"
+
+msgid "Search"
+msgstr "Leit"
+
+msgid "White"
+msgstr "Hvítt"
+
+msgid "Brightness"
+msgstr "Birtustig"
+
+msgid "Min. Brightness"
+msgstr "Lágmarksbirta"
+
+msgid "Max. Brightness"
+msgstr "Hámarksbirta"
+
+msgid "Switch-on Limit"
+msgstr "Mörk við kveikju"
+
+msgid "DCA Details"
+msgstr "DCA-upplýsingar"
+
+msgid "Import DCA XML…"
+msgstr "Flytja inn DCA XML…"
+
+msgid "Export DCA XML…"
+msgstr "Flytja út DCA XML…"
+
+msgid "Replace the DCA configuration of {device} with the selected XML file?"
+msgstr "Skipta út DCA-stillingum {device} fyrir valda XML-skrá?"
+
+msgid "DCA configuration imported."
+msgstr "DCA-stillingar voru fluttar inn."
+
+msgid "DCA configuration exported."
+msgstr "DCA-stillingar voru fluttar út."
+
+msgid "Color Temperature"
+msgstr "Lithitastig"
+
+msgid "Keep Color"
+msgstr "Halda lit"
+
+msgid "No entries"
+msgstr "Engar færslur"
+
+msgid "Assigned Groups and ECGs…"
+msgstr "Úthlutaðir hópar og straumfestar…"
+
+msgid "Add Target…"
+msgstr "Bæta við marki…"
+
+msgid "Approximate preview"
+msgstr "Áætluð forskoðun"
+
+msgid "Manual override"
+msgstr "Handvirk yfirtaka"
+
+msgid "Midnight reset"
+msgstr "Endurstilla á miðnætti"
+
+msgid "Import DCA Configuration"
+msgstr "Flytja inn DCA-stillingar"
+
+msgid "Edit DCA configuration"
+msgstr "Breyta DCA-stillingum"
+
+msgid "Import DCA configuration"
+msgstr "Flytja inn DCA-stillingar"
+
+msgid "Invalid DCA configuration."
+msgstr "Ógildar DCA-stillingar."
+
+msgid "Expected a complete DCA device configuration."
+msgstr "Krafist er heildarstillinga DCA-tækis."
+
+msgid "DALI project data changed. Reopen the selection and try again."
+msgstr "Gögn DALI-verkefnisins hafa breyst. Opnaðu valið aftur og reyndu aftur."
+
+msgid "The selected DCA item is unavailable. Reopen the selection."
+msgstr "Valin DCA-færsla er ekki tiltæk. Opnaðu valið aftur."
+
+msgid "Invalid value."
+msgstr "Ógilt gildi."
+
+msgid "Invalid or unsupported color value."
+msgstr "Ógilt eða óstutt litagildi."
+
+msgid "This DCA operation is not supported."
+msgstr "Þessi DCA-aðgerð er ekki studd."
+
+msgid "Expected {minimum}-{maximum}."
+msgstr "Vænst: {minimum}-{maximum}."
+
+msgid "Expected HH:MM."
+msgstr "Vænst: HH:MM."
+
+msgid "Select seven weekdays."
+msgstr "Veldu sjö vikudaga."
+
+msgid "The target already belongs to the scene."
+msgstr "Markið tilheyrir þegar senunni."
+
+msgid "At most 300 time control commands are supported."
+msgstr "Að hámarki eru 300 tímastýringarskipanir studdar."
+
+msgid "At most 500 effect steps are supported."
+msgstr "Að hámarki eru 500 áhrifaskref studd."
+
+msgid "Descriptions can contain at most {maximum} characters."
+msgstr "Lýsingar mega innihalda að hámarki {maximum} stafi."
+
+msgid "Mo"
+msgstr "má."
+
+msgid "Tu"
+msgstr "þr."
+
+msgid "We"
+msgstr "mi."
+
+msgid "Th"
+msgstr "fi."
+
+msgid "Fr"
+msgstr "fö."
+
+msgid "Sa"
+msgstr "la."
+
+msgid "Su"
+msgstr "su."
+
+msgid "A test is pending."
+msgstr "Prófun bíður."
+
+msgid "Battery"
+msgstr "Rafhlaða"
+
+msgid "Brightness sensor"
+msgstr "Birtuskynjari"
+
+msgid "Converters"
+msgstr "Umbreytar"
+
+msgid "Descriptions"
+msgstr "Lýsingar"
+
+msgid "Diagnostic Report"
+msgstr "Greiningarskýrsla"
+
+msgid "Duration"
+msgstr "Tímalengd"
+
+msgid "Duration test running"
+msgstr "Tímalengdarprófun í gangi"
+
+msgid "Edit several descriptions and apply them together in one undo step."
+msgstr "Breyttu nokkrum lýsingum og vistaðu þær saman í einu afturkræfu skrefi."
+
+msgid "Emergency"
+msgstr "Neyðarhamur"
+
+msgid "Emergency Failure"
+msgstr "Neyðarljósabilun"
+
+msgid "Emergency Mode"
+msgstr "Neyðarljósahamur"
+
+msgid "Emergency Status"
+msgstr "Staða neyðarljósa"
+
+msgid "Errors"
+msgstr "Villur"
+
+msgid "Event sensor"
+msgstr "Atvikaskynjari"
+
+msgid "Extended emergency"
+msgstr "Framlengdur neyðarhamur"
+
+msgid "Failure Rate"
+msgstr "Bilunartíðni"
+
+msgid "Fixed inhibit"
+msgstr "Föst hindrun"
+
+msgid "Function test running"
+msgstr "Virkniprófun í gangi"
+
+msgid "Generic sensor"
+msgstr "Almennur skynjari"
+
+msgid "Inhibit"
+msgstr "Hindrun"
+
+msgid "Lamps"
+msgstr "Lampar"
+
+msgid "Motion sensor"
+msgstr "Hreyfiskynjari"
+
+msgid "Normal"
+msgstr "Venjulegt"
+
+msgid "Push button"
+msgstr "Þrýstihnappur"
+
+msgid "Read Report"
+msgstr "Lesa skýrslu"
+
+msgid "Read the diagnostic report from the gateway to display its current counters and saved test results."
+msgstr "Lestu greiningarskýrslu gáttarinnar til að birta núverandi teljara og vistaðar prófunarniðurstöður."
+
+msgid "Replace the selected slot with the XML configuration? Other slots remain unchanged."
+msgstr "Skipta út völdu sæti fyrir XML-stillingarnar? Önnur sæti haldast óbreytt."
+
+msgid "Rest"
+msgstr "Hvíld"
+
+msgid "Result"
+msgstr "Niðurstaða"
+
+msgid "Test"
+msgstr "Prófun"
+
+msgid "The input types are not compatible."
+msgstr "Inntaksgerðirnar eru ekki samhæfar."
+
+msgid "This physical input is already assigned."
+msgstr "Þessu efnislega inntaki hefur þegar verið úthlutað."
+
+msgid "Total Failure Rate"
+msgstr "Heildarbilunartíðni"
+
+msgid "Value input"
+msgstr "Gildisinntak"

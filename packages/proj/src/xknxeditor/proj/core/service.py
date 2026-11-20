@@ -4697,6 +4697,7 @@ class ProjectService:
         label: str | None = None,
         module_instances: Sequence[tuple[str, str]] | None = None,
         removed_module_instances: Sequence[str] | None = None,
+        binary_data: Mapping[str, bytes] | None = None,
     ) -> None:
         """Persist several parameter values, optionally with a com-object reconcile and the module
         instances the change created (``(instance_id, ref_id)``) and ended (saved instance ids), as
@@ -4721,6 +4722,22 @@ class ProjectService:
                     app_program_id=app_program_id,
                 )
             )
+        if binary_data:
+            device = self._require_device(self._state(project_id), device_id)
+            previous = {row.name: row for row in device.binary_data}
+            for name, data in binary_data.items():
+                row = previous.get(name)
+                if row is not None and row.data == data:
+                    continue
+                events.append(
+                    UpsertDeviceBinaryData(
+                        device_id=device_id,
+                        name=name,
+                        data=data,
+                        ref_id=row.ref_id if row else "",
+                        do_not_copy=row.do_not_copy if row else False,
+                    )
+                )
         if not events:
             return
         store = self._state(project_id).store

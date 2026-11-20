@@ -133,6 +133,244 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
     service = ctx.api.connection
     channels: dict[tuple[int, int], _Channel] = {}
 
+    @tool("read")
+    def project_e64pro_read(
+        node_id: int | None = None,
+        device_address: str | None = None,
+        as_export: bool = False,
+    ) -> dict[str, str]:
+        """Read the offline e64 Pro backup as XML plus its revision for project_e64pro_edit.
+        Supply either a node ID or individual address. Slot and target indexes are the stored
+        zero-based XML indexes. Row numbers are zero-based within the selected slot.
+        Set as_export for the same standalone device XML as the DCA export button.
+        """
+        from xml.etree import ElementTree as ET
+
+        from editor_gui.plugin_blob_readers.dali_backup import e64pro
+
+        def read() -> dict[str, str]:
+            project = ctx.api.project
+            device = require_device(project, node_id, device_address)
+            entry = e64pro.backup(device)
+            if entry is None:
+                raise ValueError(S.E64_INVALID_CONFIGURATION)
+            return {
+                "revision": e64pro.revision(entry[1]),
+                "xml": (
+                    project.export_e64pro(device).decode("utf-8")
+                    if as_export
+                    else ET.tostring(e64pro.document(entry[1]), encoding="unicode")
+                ),
+            }
+
+        return ctx.run_locked(read)
+
+    @tool("write")
+    def project_e64pro_import(
+        xml: str | None = None,
+        revision: str = "",
+        node_id: int | None = None,
+        device_address: str | None = None,
+        path: str | None = None,
+    ) -> str:
+        """Import a complete e64 Pro device XML as one offline undo step.
+        Supply exactly one of path (a file on the editor host) or xml (inline XML).
+        Supply the current revision from project_e64pro_read, or leave it empty
+        if the device has no saved configuration. Returns the new SHA256 revision.
+        """
+
+        from editor_gui.plugin_blob_readers.dali_backup import e64pro
+
+        def change() -> str:
+            project = ctx.api.project
+            device = require_device(project, node_id, device_address)
+            entry = e64pro.backup(device)
+            expected = entry[1] if entry else None
+            actual = e64pro.revision(expected)
+            if actual != revision:
+                raise ValueError("DALI revision changed")
+            if (path is None) == (xml is None):
+                raise ValueError("Supply exactly one of path or xml")
+            from pathlib import Path
+
+            payload = (
+                Path(path).read_bytes()
+                if path is not None
+                else (xml or "").encode("utf-8")
+            )
+            data = project.import_e64pro(device, expected, payload)
+            return e64pro.revision(data)
+
+        return ctx.run_locked(change)
+
+    @tool("write")
+    def project_e64pro_edit(
+        revision: str,
+        section: Literal[
+            "scenes", "effects", "templates", "groups", "ecgs", "mds", "pbs", "gis"
+        ],
+        slot: str,
+        action: Literal[
+            "header",
+            "set",
+            "add",
+            "remove",
+            "copy",
+            "up",
+            "down",
+            "member",
+            "colour",
+            "assign",
+            "description",
+        ],
+        row: int = -1,
+        field: str = "",
+        value: str = "",
+        target: str = "",
+        index: str = "",
+        node_id: int | None = None,
+        device_address: str | None = None,
+    ) -> str:
+        """Change one project backup field or row, as one undo step. Returns the new SHA256 revision.
+        Pass revision from project_e64pro_read. header/set take an XML field and value (including
+        keepValue/keepColor as True/False). add takes target groups/ecgs and target index for a scene
+        or effect, or inserts a default template command. member sets a template target True/False.
+        Template weekdays is seven binary digits, Sunday to Monday from left to right:
+        0000001 = Monday, 1000000 = Sunday, 0011111 = Monday to Friday.
+        colour sets a supported colour space (field) and its encoded value together.
+        remove/copy/up/down address a zero-based row. description sets the slot description
+        (groups/ecgs/mds/pbs/gis/scenes/effects/templates). assign links an existing logical
+        input row in mds/pbs/gis to physical instance index, or unlinks with index="".
+        Read available logical and physical instances from project_e64pro_read XML.
+        For multiple edits in one undo step use project_batch edit_e64pro. No bus connection.
+        """
+
+        from editor_gui.plugin_blob_readers.dali_backup import e64pro
+
+        def change() -> str:
+            device = require_device(ctx.api.project, node_id, device_address)
+            entry = e64pro.backup(device)
+            if entry is None or e64pro.revision(entry[1]) != revision:
+                raise ValueError("DALI revision changed")
+            data = ctx.api.project.edit_e64pro(
+                device,
+                entry[1],
+                e64pro.Edit(section, slot, action, row, field, value, target, index),
+            )
+            return e64pro.revision(data)
+
+        return ctx.run_locked(change)
+
+    @tool("read")
+    def project_e64pro_export_slot(
+        section: Literal["scenes", "effects", "templates"],
+        slot: str,
+        node_id: int | None = None,
+        device_address: str | None = None,
+    ) -> str:
+        """Export one saved scene, effect or time template as standalone XML. Slot is its zero-based index. No bus access."""
+        from editor_gui.plugin_blob_readers.dali_backup import e64pro
+
+        def read() -> str:
+            device = require_device(ctx.api.project, node_id, device_address)
+            entry = e64pro.backup(device)
+            if entry is None:
+                raise ValueError(S.E64_INVALID_CONFIGURATION)
+            return e64pro.export_slot(entry[1], section, slot).decode("utf-8")
+
+        return ctx.run_locked(read)
+
+    @tool("write")
+    def project_e64pro_import_slot(
+        section: Literal["scenes", "effects", "templates"],
+        slot: str,
+        revision: str,
+        path: str,
+        node_id: int | None = None,
+        device_address: str | None = None,
+    ) -> str:
+        """Replace one saved slot from a Scene, Effect or Tpl XML file on the editor host.
+        Pass revision from project_e64pro_read. One undo step, no bus access.
+        Importing a scene/effect with a different index retains the destination description
+        and KNX scene number/effect mode. Other slots are preserved. Returns the new revision.
+        """
+        from pathlib import Path
+        from xml.etree import ElementTree as ET
+
+        from editor_gui.plugin_blob_readers.dali_backup import e64pro
+
+        def change() -> str:
+            device = require_device(ctx.api.project, node_id, device_address)
+            entry = e64pro.backup(device)
+            if entry is None or e64pro.revision(entry[1]) != revision:
+                raise ValueError(S.E64_CONFIGURATION_CHANGED)
+            parser = ET.XMLParser(
+                target=ET.TreeBuilder(insert_comments=True, insert_pis=True)
+            )
+            xml = ET.tostring(
+                ET.fromstring(Path(path).read_bytes(), parser=parser),
+                encoding="unicode",
+            )
+            data = ctx.api.project.edit_e64pro(
+                device, entry[1], e64pro.Edit(section, slot, "import", value=xml)
+            )
+            return e64pro.revision(data)
+
+        return ctx.run_locked(change)
+
+    @tool("read", open_world=True)
+    def connection_dali_report(
+        node_id: int | None = None,
+        device_address: str | None = None,
+        channel: int = 0,
+        refresh: bool = True,
+        timeout: float = 120.0,
+    ) -> dict[str, Any]:
+        """Read IPAS e64 Pro/Theben P64 V2 diagnostics: lamp/ECG/converter counts, error counts,
+        failure percentages and saved emergency-light test results, including individual failure
+        flags and converter state. Reads gateway properties only; starts no tests.
+        refresh=false returns the last report shared with the GUI without bus access.
+        Returns node_id, channel, read_at, summary, tests and exportable XML; no saved report returns {}.
+        """
+        from dataclasses import asdict
+
+        from editor_gui.plugin_blob_readers.dali_backup import e64pro
+
+        device = _gateway(node_id, device_address, channel)
+        if not e64pro.supports(device):
+            raise ValueError(S.E64_INVALID_SELECTION)
+        project = ctx.api.project
+        if refresh:
+            generation = ctx.run_locked(lambda: project.generation)
+            from xknxeditor.dali import MdtDaliCommissioner
+            from xknxeditor.dali.report import DiagnosticReport
+
+            async def read(commissioner: MdtDaliCommissioner) -> DiagnosticReport:
+                return await commissioner.read_report()
+
+            fresh = _run(
+                device,
+                read,
+                channel,
+                timeout,
+                S.E64_READ_REPORT,
+                writes=False,
+            )
+            ctx.run_locked(
+                lambda: project.store_dali_report(device, channel, generation, fresh)
+            )
+        report = ctx.run_locked(lambda: project.dali_report(device, channel))
+        if report is None:
+            return {}
+        return {
+            "node_id": device.node_id,
+            "channel": channel,
+            **asdict(report),
+            "xml": report.to_xml(
+                ctx.run_locked(lambda: e64pro.ecg_names(device))
+            ).decode("utf-8"),
+        }
+
     def _ensure_connected() -> None:
         # Without an open connection the editor connects for the operation (see connection.py).
         if not service.can_reach_bus():

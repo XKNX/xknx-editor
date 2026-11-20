@@ -11,6 +11,10 @@ from __future__ import annotations
 
 import asyncio
 from collections.abc import Callable, Sequence
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from xknxeditor.dali.report import DiagnosticReport
 
 from xknxeditor.dali.connection import DaliCommissioningError, MdtDaliConnection
 from xknxeditor.dali.model import (
@@ -64,6 +68,12 @@ class MdtDaliCommissioner:
 
     def __init__(self, connection: MdtDaliConnection) -> None:
         self._c = connection
+
+    async def read_report(self) -> DiagnosticReport:
+        """Read failure counters and saved emergency-light test results."""
+        from xknxeditor.dali.report import read_report
+
+        return await read_report(self._c)
 
     # --- P1: read-only scan ------------------------------------------------
 
