@@ -16,6 +16,7 @@ sections and routes an edit to the right blob.
 
 from __future__ import annotations
 
+from typing import cast
 from xml.etree import ElementTree as ET
 
 from editor_gui.plugin_params import PluginParameter, PluginSectionView
@@ -197,7 +198,7 @@ _REF_PREFIX = "dali_backup"
 def read(data: bytes, name: str = "") -> list[PluginSectionView]:
     """Surface every populated item of a DALI backup blob. ``name`` is the BinaryData entry
     name; it disambiguates a two-channel gateway and routes edits back to the right blob."""
-    root = _parse_device(data)
+    root = parse_device(data)
     if root is None:
         return []
     channel = _channel_suffix(name)
@@ -246,7 +247,7 @@ def apply_edit(data: bytes, ref_id: str, new_value: str) -> bytes:
     parts = ref_id.split(":")
     if len(parts) < 5 or parts[0] != _REF_PREFIX:
         raise ValueError(f"not a dali_backup ref: {ref_id!r}")
-    root = _parse_device(data)
+    root = parse_device(data)
     if root is None:
         raise ValueError("payload is not a DALI backup blob")
     if len(parts) == 5:  # top-level item attribute
@@ -264,6 +265,46 @@ def apply_edit(data: bytes, ref_id: str, new_value: str) -> bytes:
     if new_value == target.get(attr):
         return data
     if (
+        root.get("type") == "e64pro"
+        and len(parts) == 7
+        and container in ("scenes", "effects")
+        and attr == "color"
+    ):
+        from .e64pro import Edit, apply, rows
+
+        slot = root.find(f"{container}/*[@index='{index}']")
+        if slot is not None:
+            return apply(
+                data,
+                Edit(
+                    container,
+                    index,
+                    "set",
+                    rows(slot, container).index(target),
+                    attr,
+                    new_value,
+                ),
+            )
+    if (
+        root.get("type") == "e64pro"
+        and attr == "description"
+        and container
+        in (
+            "groups",
+            "ecgs",
+            "mds",
+            "pbs",
+            "gis",
+            "inputs",
+            "scenes",
+            "effects",
+            "templates",
+        )
+    ):
+        from .e64pro import validate_description
+
+        validate_description(container, new_value)
+    if (
         attr in ("fadeTime", "fadetime", "delay")
         and new_value not in EDITABLE_ENUMS[attr]
     ):
@@ -274,10 +315,13 @@ def apply_edit(data: bytes, ref_id: str, new_value: str) -> bytes:
     )
 
 
-def _parse_device(data: bytes) -> ET.Element | None:
+def parse_device(data: bytes) -> ET.Element | None:
     try:
-        root = ET.fromstring(data.decode("utf-16-le"))
-    except (UnicodeDecodeError, ET.ParseError):
+        parser = ET.XMLParser(
+            target=ET.TreeBuilder(insert_comments=True, insert_pis=True)
+        )
+        root = ET.fromstring(data, parser=parser)
+    except (ValueError, ET.ParseError):
         return None
     if root.tag != "device" or root.get("type") not in ("gc16", "e64pro"):
         return None
@@ -328,8 +372,10 @@ def _short_target(e: ET.Element) -> str:
 def _nested_leaves(item: ET.Element) -> list[ET.Element]:
     leaves: list[ET.Element] = []
     for child in item:
+        if not isinstance(cast("object", child.tag), str):
+            continue
         if len(child):
-            leaves.extend(child)
+            leaves.extend(e for e in child if isinstance(cast("object", e.tag), str))
         else:
             leaves.append(child)
     return leaves

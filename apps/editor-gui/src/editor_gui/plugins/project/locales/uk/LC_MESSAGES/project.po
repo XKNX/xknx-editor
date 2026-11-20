@@ -3915,3 +3915,99 @@ msgstr "Конфігурацію DCA імпортовано."
 
 msgid "DCA configuration exported."
 msgstr "Конфігурацію DCA експортовано."
+
+msgid "Color Temperature"
+msgstr "Колірна температура"
+
+msgid "Keep Color"
+msgstr "Зберегти колір"
+
+msgid "No entries"
+msgstr "Немає записів"
+
+msgid "Assigned Groups and ECGs…"
+msgstr "Призначені групи та ЕПРА…"
+
+msgid "Add Target…"
+msgstr "Додати ціль…"
+
+msgid "Approximate preview"
+msgstr "Приблизний попередній перегляд"
+
+msgid "Manual override"
+msgstr "Ручне керування"
+
+msgid "Midnight reset"
+msgstr "Скидання опівночі"
+
+msgid "Import DCA Configuration"
+msgstr "Імпортувати конфігурацію DCA"
+
+msgid "Edit DCA configuration"
+msgstr "Редагувати конфігурацію DCA"
+
+msgid "Import DCA configuration"
+msgstr "Імпортувати конфігурацію DCA"
+
+msgid "Invalid DCA configuration."
+msgstr "Неприпустима конфігурація DCA."
+
+msgid "Expected a complete DCA device configuration."
+msgstr "Потрібна повна конфігурація пристрою DCA."
+
+msgid "DALI project data changed. Reopen the selection and try again."
+msgstr "Дані проєкту DALI змінилися. Відкрийте вибір знову та повторіть спробу."
+
+msgid "The selected DCA item is unavailable. Reopen the selection."
+msgstr "Вибраний елемент DCA недоступний. Відкрийте вибір знову."
+
+msgid "Invalid value."
+msgstr "Неприпустиме значення."
+
+msgid "Invalid or unsupported color value."
+msgstr "Неприпустиме або непідтримуване значення кольору."
+
+msgid "This DCA operation is not supported."
+msgstr "Ця операція DCA не підтримується."
+
+msgid "Expected {minimum}-{maximum}."
+msgstr "Очікується: {minimum}-{maximum}."
+
+msgid "Expected HH:MM."
+msgstr "Очікується: HH:MM."
+
+msgid "Select seven weekdays."
+msgstr "Виберіть сім днів тижня."
+
+msgid "The target already belongs to the scene."
+msgstr "Ціль уже належить до сцени."
+
+msgid "At most 300 time control commands are supported."
+msgstr "Підтримується не більше 300 команд керування за часом."
+
+msgid "At most 500 effect steps are supported."
+msgstr "Підтримується не більше 500 кроків ефектів."
+
+msgid "Descriptions can contain at most {maximum} characters."
+msgstr "Описи можуть містити не більше {maximum} символів."
+
+msgid "Mo"
+msgstr "пн"
+
+msgid "Tu"
+msgstr "вт"
+
+msgid "We"
+msgstr "ср"
+
+msgid "Th"
+msgstr "чт"
+
+msgid "Fr"
+msgstr "пт"
+
+msgid "Sa"
+msgstr "сб"
+
+msgid "Su"
+msgstr "нд"

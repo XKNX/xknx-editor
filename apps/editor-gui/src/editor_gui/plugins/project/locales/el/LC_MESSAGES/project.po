@@ -3863,3 +3863,99 @@ msgstr "Η διαμόρφωση DCA εισήχθη."
 
 msgid "DCA configuration exported."
 msgstr "Η διαμόρφωση DCA εξήχθη."
+
+msgid "Color Temperature"
+msgstr "Θερμοκρασία χρώματος"
+
+msgid "Keep Color"
+msgstr "Διατήρηση χρώματος"
+
+msgid "No entries"
+msgstr "Χωρίς εγγραφές"
+
+msgid "Assigned Groups and ECGs…"
+msgstr "Αντιστοιχισμένες ομάδες και στραγγαλιστικά…"
+
+msgid "Add Target…"
+msgstr "Προσθήκη στόχου…"
+
+msgid "Approximate preview"
+msgstr "Ενδεικτική προεπισκόπηση"
+
+msgid "Manual override"
+msgstr "Χειροκίνητη παράκαμψη"
+
+msgid "Midnight reset"
+msgstr "Επαναφορά τα μεσάνυχτα"
+
+msgid "Import DCA Configuration"
+msgstr "Εισαγωγή διαμόρφωσης DCA"
+
+msgid "Edit DCA configuration"
+msgstr "Επεξεργασία διαμόρφωσης DCA"
+
+msgid "Import DCA configuration"
+msgstr "Εισαγωγή διαμόρφωσης DCA"
+
+msgid "Invalid DCA configuration."
+msgstr "Μη έγκυρη διαμόρφωση DCA."
+
+msgid "Expected a complete DCA device configuration."
+msgstr "Απαιτείται πλήρης διαμόρφωση συσκευής DCA."
+
+msgid "DALI project data changed. Reopen the selection and try again."
+msgstr "Τα δεδομένα του έργου DALI άλλαξαν. Ανοίξτε ξανά την επιλογή και δοκιμάστε πάλι."
+
+msgid "The selected DCA item is unavailable. Reopen the selection."
+msgstr "Το επιλεγμένο στοιχείο DCA δεν είναι διαθέσιμο. Ανοίξτε ξανά την επιλογή."
+
+msgid "Invalid value."
+msgstr "Μη έγκυρη τιμή."
+
+msgid "Invalid or unsupported color value."
+msgstr "Μη έγκυρη ή μη υποστηριζόμενη τιμή χρώματος."
+
+msgid "This DCA operation is not supported."
+msgstr "Αυτή η λειτουργία DCA δεν υποστηρίζεται."
+
+msgid "Expected {minimum}-{maximum}."
+msgstr "Αναμένεται: {minimum}-{maximum}."
+
+msgid "Expected HH:MM."
+msgstr "Αναμένεται: HH:MM."
+
+msgid "Select seven weekdays."
+msgstr "Επιλέξτε επτά ημέρες της εβδομάδας."
+
+msgid "The target already belongs to the scene."
+msgstr "Ο στόχος ανήκει ήδη στη σκηνή."
+
+msgid "At most 300 time control commands are supported."
+msgstr "Υποστηρίζονται έως 300 εντολές χρονικού ελέγχου."
+
+msgid "At most 500 effect steps are supported."
+msgstr "Υποστηρίζονται έως 500 βήματα εφέ."
+
+msgid "Descriptions can contain at most {maximum} characters."
+msgstr "Οι περιγραφές μπορούν να περιέχουν έως {maximum} χαρακτήρες."
+
+msgid "Mo"
+msgstr "Δε"
+
+msgid "Tu"
+msgstr "Τρ"
+
+msgid "We"
+msgstr "Τε"
+
+msgid "Th"
+msgstr "Πέ"
+
+msgid "Fr"
+msgstr "Πα"
+
+msgid "Sa"
+msgstr "Σά"
+
+msgid "Su"
+msgstr "Κυ"

@@ -520,3 +520,43 @@ def test_edit_buffers_are_device_local_and_external_changes_win(context, monkeyp
         imgui.end()
         imgui.end_frame()
     assert values == ["draft", "v", "updated"]
+
+
+@pytest.mark.parametrize("app_id", ["M-00EF_A-DA11-22-A545", "M-0048_A-DA11-21-9400"])
+@pytest.mark.parametrize("vendor_blob", [False, True])
+def test_e64_panel_retains_header_note_and_program_gate(
+    context, monkeypatch, app_id, vendor_blob
+):
+    from editor_gui.plugins.project.strings import S
+
+    device = SimpleNamespace(
+        node_id=5,
+        app=SimpleNamespace(id=app_id),
+        binary_data=[SimpleNamespace(name="BLOB_PARA", data=b"image")]
+        if vendor_blob
+        else [],
+    )
+    labels = []
+    programmed = []
+    rendered = []
+    panel = PluginParamsPanel(
+        _on_edit=lambda *_: None,
+        _mapping_for=lambda _: SimpleNamespace(
+            blob_reader="dali_backup", title="DALI", provider=""
+        ),
+        _on_program_dca=programmed.append,
+    )
+    monkeypatch.setattr(imgui, "text_colored", lambda _color, text: labels.append(text))
+    monkeypatch.setattr(imgui, "text_wrapped", labels.append)
+    monkeypatch.setattr(imgui, "button", lambda label: True)
+    monkeypatch.setattr(
+        PluginParamsPanel, "_render_e64", lambda self, current: rendered.append(current)
+    )
+    imgui.new_frame()
+    imgui.begin("DCA")
+    panel.render(device)
+    imgui.end()
+    imgui.end_frame()
+    assert labels == ["DALI", S.PLUGIN_PARAMS_EDIT_NOTE]
+    assert rendered == [device]
+    assert programmed == ([device] if vendor_blob else [])

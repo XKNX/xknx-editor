@@ -3863,3 +3863,99 @@ msgstr "DCA-määritys tuotiin."
 
 msgid "DCA configuration exported."
 msgstr "DCA-määritys vietiin."
+
+msgid "Color Temperature"
+msgstr "Värilämpötila"
+
+msgid "Keep Color"
+msgstr "Säilytä väri"
+
+msgid "No entries"
+msgstr "Ei merkintöjä"
+
+msgid "Assigned Groups and ECGs…"
+msgstr "Liitetyt ryhmät ja liitäntälaitteet…"
+
+msgid "Add Target…"
+msgstr "Lisää kohde…"
+
+msgid "Approximate preview"
+msgstr "Suuntaa antava esikatselu"
+
+msgid "Manual override"
+msgstr "Käsiohitus"
+
+msgid "Midnight reset"
+msgstr "Palautus keskiyöllä"
+
+msgid "Import DCA Configuration"
+msgstr "Tuo DCA-määritys"
+
+msgid "Edit DCA configuration"
+msgstr "Muokkaa DCA-määritystä"
+
+msgid "Import DCA configuration"
+msgstr "Tuo DCA-määritys"
+
+msgid "Invalid DCA configuration."
+msgstr "Virheellinen DCA-määritys."
+
+msgid "Expected a complete DCA device configuration."
+msgstr "Tarvitaan täydellinen DCA-laitemääritys."
+
+msgid "DALI project data changed. Reopen the selection and try again."
+msgstr "DALI-projektin tiedot ovat muuttuneet. Avaa valinta uudelleen ja yritä uudelleen."
+
+msgid "The selected DCA item is unavailable. Reopen the selection."
+msgstr "Valittu DCA-kohde ei ole käytettävissä. Avaa valinta uudelleen."
+
+msgid "Invalid value."
+msgstr "Virheellinen arvo."
+
+msgid "Invalid or unsupported color value."
+msgstr "Virheellinen tai tukematon väriarvo."
+
+msgid "This DCA operation is not supported."
+msgstr "Tätä DCA-toimintoa ei tueta."
+
+msgid "Expected {minimum}-{maximum}."
+msgstr "Odotettu: {minimum}-{maximum}."
+
+msgid "Expected HH:MM."
+msgstr "Odotettu: HH:MM."
+
+msgid "Select seven weekdays."
+msgstr "Valitse seitsemän viikonpäivää."
+
+msgid "The target already belongs to the scene."
+msgstr "Kohde kuuluu jo tilanteeseen."
+
+msgid "At most 300 time control commands are supported."
+msgstr "Tuetaan enintään 300 aikaohjauskomentoa."
+
+msgid "At most 500 effect steps are supported."
+msgstr "Tuetaan enintään 500 tehosteaskelta."
+
+msgid "Descriptions can contain at most {maximum} characters."
+msgstr "Kuvauksissa saa olla enintään {maximum} merkkiä."
+
+msgid "Mo"
+msgstr "ma"
+
+msgid "Tu"
+msgstr "ti"
+
+msgid "We"
+msgstr "ke"
+
+msgid "Th"
+msgstr "to"
+
+msgid "Fr"
+msgstr "pe"
+
+msgid "Sa"
+msgstr "la"
+
+msgid "Su"
+msgstr "su"

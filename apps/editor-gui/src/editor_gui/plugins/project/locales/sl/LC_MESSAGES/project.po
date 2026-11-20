@@ -3994,3 +3994,99 @@ msgstr "Konfiguracija DCA je uvožena."
 
 msgid "DCA configuration exported."
 msgstr "Konfiguracija DCA je izvožena."
+
+msgid "Color Temperature"
+msgstr "Barvna temperatura"
+
+msgid "Keep Color"
+msgstr "Ohrani barvo"
+
+msgid "No entries"
+msgstr "Ni vnosov"
+
+msgid "Assigned Groups and ECGs…"
+msgstr "Dodeljene skupine in predstikalne naprave…"
+
+msgid "Add Target…"
+msgstr "Dodaj cilj…"
+
+msgid "Approximate preview"
+msgstr "Okvirni predogled"
+
+msgid "Manual override"
+msgstr "Ročno prekrmiljenje"
+
+msgid "Midnight reset"
+msgstr "Ponastavitev ob polnoči"
+
+msgid "Import DCA Configuration"
+msgstr "Uvozi konfiguracijo DCA"
+
+msgid "Edit DCA configuration"
+msgstr "Uredi konfiguracijo DCA"
+
+msgid "Import DCA configuration"
+msgstr "Uvozi konfiguracijo DCA"
+
+msgid "Invalid DCA configuration."
+msgstr "Neveljavna konfiguracija DCA."
+
+msgid "Expected a complete DCA device configuration."
+msgstr "Zahtevana je celotna konfiguracija naprave DCA."
+
+msgid "DALI project data changed. Reopen the selection and try again."
+msgstr "Podatki projekta DALI so se spremenili. Ponovno odprite izbiro in poskusite znova."
+
+msgid "The selected DCA item is unavailable. Reopen the selection."
+msgstr "Izbrani element DCA ni na voljo. Ponovno odprite izbiro."
+
+msgid "Invalid value."
+msgstr "Neveljavna vrednost."
+
+msgid "Invalid or unsupported color value."
+msgstr "Neveljavna ali nepodprta vrednost barve."
+
+msgid "This DCA operation is not supported."
+msgstr "Ta operacija DCA ni podprta."
+
+msgid "Expected {minimum}-{maximum}."
+msgstr "Pričakovano: {minimum}-{maximum}."
+
+msgid "Expected HH:MM."
+msgstr "Pričakovano: HH:MM."
+
+msgid "Select seven weekdays."
+msgstr "Izberite sedem dni v tednu."
+
+msgid "The target already belongs to the scene."
+msgstr "Cilj že pripada sceni."
+
+msgid "At most 300 time control commands are supported."
+msgstr "Podprtih je največ 300 ukazov časovnega krmiljenja."
+
+msgid "At most 500 effect steps are supported."
+msgstr "Podprtih je največ 500 korakov učinkov."
+
+msgid "Descriptions can contain at most {maximum} characters."
+msgstr "Opisi lahko vsebujejo največ {maximum} znakov."
+
+msgid "Mo"
+msgstr "pon."
+
+msgid "Tu"
+msgstr "tor."
+
+msgid "We"
+msgstr "sre."
+
+msgid "Th"
+msgstr "čet."
+
+msgid "Fr"
+msgstr "pet."
+
+msgid "Sa"
+msgstr "sob."
+
+msgid "Su"
+msgstr "ned."

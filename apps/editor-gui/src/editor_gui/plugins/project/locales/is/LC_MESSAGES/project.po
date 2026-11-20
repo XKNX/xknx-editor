@@ -3890,3 +3890,99 @@ msgstr "DCA-stillingar voru fluttar inn."
 
 msgid "DCA configuration exported."
 msgstr "DCA-stillingar voru fluttar út."
+
+msgid "Color Temperature"
+msgstr "Lithitastig"
+
+msgid "Keep Color"
+msgstr "Halda lit"
+
+msgid "No entries"
+msgstr "Engar færslur"
+
+msgid "Assigned Groups and ECGs…"
+msgstr "Úthlutaðir hópar og straumfestar…"
+
+msgid "Add Target…"
+msgstr "Bæta við marki…"
+
+msgid "Approximate preview"
+msgstr "Áætluð forskoðun"
+
+msgid "Manual override"
+msgstr "Handvirk yfirtaka"
+
+msgid "Midnight reset"
+msgstr "Endurstilla á miðnætti"
+
+msgid "Import DCA Configuration"
+msgstr "Flytja inn DCA-stillingar"
+
+msgid "Edit DCA configuration"
+msgstr "Breyta DCA-stillingum"
+
+msgid "Import DCA configuration"
+msgstr "Flytja inn DCA-stillingar"
+
+msgid "Invalid DCA configuration."
+msgstr "Ógildar DCA-stillingar."
+
+msgid "Expected a complete DCA device configuration."
+msgstr "Krafist er heildarstillinga DCA-tækis."
+
+msgid "DALI project data changed. Reopen the selection and try again."
+msgstr "Gögn DALI-verkefnisins hafa breyst. Opnaðu valið aftur og reyndu aftur."
+
+msgid "The selected DCA item is unavailable. Reopen the selection."
+msgstr "Valin DCA-færsla er ekki tiltæk. Opnaðu valið aftur."
+
+msgid "Invalid value."
+msgstr "Ógilt gildi."
+
+msgid "Invalid or unsupported color value."
+msgstr "Ógilt eða óstutt litagildi."
+
+msgid "This DCA operation is not supported."
+msgstr "Þessi DCA-aðgerð er ekki studd."
+
+msgid "Expected {minimum}-{maximum}."
+msgstr "Vænst: {minimum}-{maximum}."
+
+msgid "Expected HH:MM."
+msgstr "Vænst: HH:MM."
+
+msgid "Select seven weekdays."
+msgstr "Veldu sjö vikudaga."
+
+msgid "The target already belongs to the scene."
+msgstr "Markið tilheyrir þegar senunni."
+
+msgid "At most 300 time control commands are supported."
+msgstr "Að hámarki eru 300 tímastýringarskipanir studdar."
+
+msgid "At most 500 effect steps are supported."
+msgstr "Að hámarki eru 500 áhrifaskref studd."
+
+msgid "Descriptions can contain at most {maximum} characters."
+msgstr "Lýsingar mega innihalda að hámarki {maximum} stafi."
+
+msgid "Mo"
+msgstr "má."
+
+msgid "Tu"
+msgstr "þr."
+
+msgid "We"
+msgstr "mi."
+
+msgid "Th"
+msgstr "fi."
+
+msgid "Fr"
+msgstr "fö."
+
+msgid "Sa"
+msgstr "la."
+
+msgid "Su"
+msgstr "su."

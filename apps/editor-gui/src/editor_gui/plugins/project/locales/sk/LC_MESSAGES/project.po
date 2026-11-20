@@ -3942,3 +3942,99 @@ msgstr "Konfigurácia DCA bola importovaná."
 
 msgid "DCA configuration exported."
 msgstr "Konfigurácia DCA bola exportovaná."
+
+msgid "Color Temperature"
+msgstr "Teplota farby"
+
+msgid "Keep Color"
+msgstr "Zachovať farbu"
+
+msgid "No entries"
+msgstr "Žiadne položky"
+
+msgid "Assigned Groups and ECGs…"
+msgstr "Priradené skupiny a predradníky…"
+
+msgid "Add Target…"
+msgstr "Pridať cieľ…"
+
+msgid "Approximate preview"
+msgstr "Orientačný náhľad"
+
+msgid "Manual override"
+msgstr "Ručné ovládanie"
+
+msgid "Midnight reset"
+msgstr "Obnovenie o polnoci"
+
+msgid "Import DCA Configuration"
+msgstr "Importovať konfiguráciu DCA"
+
+msgid "Edit DCA configuration"
+msgstr "Upraviť konfiguráciu DCA"
+
+msgid "Import DCA configuration"
+msgstr "Importovať konfiguráciu DCA"
+
+msgid "Invalid DCA configuration."
+msgstr "Neplatná konfigurácia DCA."
+
+msgid "Expected a complete DCA device configuration."
+msgstr "Vyžaduje sa úplná konfigurácia zariadenia DCA."
+
+msgid "DALI project data changed. Reopen the selection and try again."
+msgstr "Údaje projektu DALI sa zmenili. Znova otvorte výber a skúste to znova."
+
+msgid "The selected DCA item is unavailable. Reopen the selection."
+msgstr "Vybraná položka DCA nie je dostupná. Znova otvorte výber."
+
+msgid "Invalid value."
+msgstr "Neplatná hodnota."
+
+msgid "Invalid or unsupported color value."
+msgstr "Neplatná alebo nepodporovaná hodnota farby."
+
+msgid "This DCA operation is not supported."
+msgstr "Táto operácia DCA nie je podporovaná."
+
+msgid "Expected {minimum}-{maximum}."
+msgstr "Očakáva sa: {minimum}-{maximum}."
+
+msgid "Expected HH:MM."
+msgstr "Očakáva sa: HH:MM."
+
+msgid "Select seven weekdays."
+msgstr "Vyberte sedem dní v týždni."
+
+msgid "The target already belongs to the scene."
+msgstr "Cieľ už patrí do scény."
+
+msgid "At most 300 time control commands are supported."
+msgstr "Podporovaných je najviac 300 príkazov časového riadenia."
+
+msgid "At most 500 effect steps are supported."
+msgstr "Podporovaných je najviac 500 krokov efektov."
+
+msgid "Descriptions can contain at most {maximum} characters."
+msgstr "Popisy môžu obsahovať najviac {maximum} znakov."
+
+msgid "Mo"
+msgstr "po"
+
+msgid "Tu"
+msgstr "ut"
+
+msgid "We"
+msgstr "st"
+
+msgid "Th"
+msgstr "št"
+
+msgid "Fr"
+msgstr "pi"
+
+msgid "Sa"
+msgstr "so"
+
+msgid "Su"
+msgstr "ne"

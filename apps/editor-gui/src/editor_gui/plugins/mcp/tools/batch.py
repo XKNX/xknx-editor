@@ -404,13 +404,11 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         }
 
     def _op_edit_e64pro(p: dict[str, Any]) -> dict[str, Any]:
-        import hashlib
-
         from editor_gui.plugin_blob_readers.dali_backup import e64pro
 
         device = _device(p)
         entry = e64pro.backup(device)
-        if entry is None or hashlib.sha256(entry[1]).hexdigest() != p["revision"]:
+        if entry is None or e64pro.revision(entry[1]) != p["revision"]:
             raise ValueError("DALI revision changed")
         edits: list[e64pro.Edit] = []
         if not isinstance(p["edits"], list):
@@ -429,7 +427,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             except TypeError as exc:
                 raise ValueError("Invalid DCA edit fields") from exc
         data = project.edit_e64pro(device, entry[1], edits)
-        return {"node_id": device.node_id, "revision": hashlib.sha256(data).hexdigest()}
+        return {"node_id": device.node_id, "revision": e64pro.revision(data)}
 
     handlers: dict[
         str, tuple[tuple[str, ...], Callable[[dict[str, Any]], dict[str, Any]]]

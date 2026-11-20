@@ -3942,3 +3942,99 @@ msgstr "Configurația DCA a fost importată."
 
 msgid "DCA configuration exported."
 msgstr "Configurația DCA a fost exportată."
+
+msgid "Color Temperature"
+msgstr "Temperatură de culoare"
+
+msgid "Keep Color"
+msgstr "Păstrează culoarea"
+
+msgid "No entries"
+msgstr "Nicio înregistrare"
+
+msgid "Assigned Groups and ECGs…"
+msgstr "Grupuri și balasturi atribuite…"
+
+msgid "Add Target…"
+msgstr "Adaugă țintă…"
+
+msgid "Approximate preview"
+msgstr "Previzualizare aproximativă"
+
+msgid "Manual override"
+msgstr "Comandă manuală"
+
+msgid "Midnight reset"
+msgstr "Resetare la miezul nopții"
+
+msgid "Import DCA Configuration"
+msgstr "Importă configurația DCA"
+
+msgid "Edit DCA configuration"
+msgstr "Editează configurația DCA"
+
+msgid "Import DCA configuration"
+msgstr "Importă configurația DCA"
+
+msgid "Invalid DCA configuration."
+msgstr "Configurație DCA nevalidă."
+
+msgid "Expected a complete DCA device configuration."
+msgstr "Este necesară o configurație completă a dispozitivului DCA."
+
+msgid "DALI project data changed. Reopen the selection and try again."
+msgstr "Datele proiectului DALI s-au modificat. Redeschide selecția și încearcă din nou."
+
+msgid "The selected DCA item is unavailable. Reopen the selection."
+msgstr "Elementul DCA selectat nu este disponibil. Redeschide selecția."
+
+msgid "Invalid value."
+msgstr "Valoare nevalidă."
+
+msgid "Invalid or unsupported color value."
+msgstr "Valoare de culoare nevalidă sau neacceptată."
+
+msgid "This DCA operation is not supported."
+msgstr "Această operație DCA nu este acceptată."
+
+msgid "Expected {minimum}-{maximum}."
+msgstr "Se așteaptă: {minimum}-{maximum}."
+
+msgid "Expected HH:MM."
+msgstr "Se așteaptă: HH:MM."
+
+msgid "Select seven weekdays."
+msgstr "Selectează șapte zile ale săptămânii."
+
+msgid "The target already belongs to the scene."
+msgstr "Ținta aparține deja scenei."
+
+msgid "At most 300 time control commands are supported."
+msgstr "Sunt acceptate cel mult 300 de comenzi de control orar."
+
+msgid "At most 500 effect steps are supported."
+msgstr "Sunt acceptați cel mult 500 de pași de efecte."
+
+msgid "Descriptions can contain at most {maximum} characters."
+msgstr "Descrierile pot conține cel mult {maximum} de caractere."
+
+msgid "Mo"
+msgstr "lu."
+
+msgid "Tu"
+msgstr "ma."
+
+msgid "We"
+msgstr "mi."
+
+msgid "Th"
+msgstr "joi"
+
+msgid "Fr"
+msgstr "vi."
+
+msgid "Sa"
+msgstr "sâ."
+
+msgid "Su"
+msgstr "du."

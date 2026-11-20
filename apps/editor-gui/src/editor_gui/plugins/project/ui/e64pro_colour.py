@@ -13,7 +13,7 @@ from editor_gui.plugin_blob_readers.dali_backup.e64pro import (
     BYTE_COLOUR_MODES,
     VERIFIED_COLOUR_MODES,
 )
-from editor_gui.plugins.project.strings import _
+from editor_gui.plugins.project.strings import S
 from editor_gui.widgets.dpi import px
 
 
@@ -134,7 +134,7 @@ def swatch(colour: Colour) -> imgui.ImVec4:
 
 def _edit_white(colour: Colour) -> Colour:
     changed, white = imgui.slider_int(
-        _("White") + " (0-255)",
+        S.E64_WHITE + " (0-255)",
         int(colour.components[3]),
         0,
         255,
@@ -147,7 +147,7 @@ def edit_colour(colour: Colour) -> Colour:
     """Edit a draft. Retain each original component until that control changes."""
     if colour.mode == "2":
         kelvin = int(colour.raw)
-        label = _("Colour Temperature") + " (K)"
+        label = S.E64_COLOR_TEMPERATURE + " (K)"
         changed, new = imgui.slider_int(
             "##kelvin", kelvin, min(1000, kelvin), max(10000, kelvin)
         )

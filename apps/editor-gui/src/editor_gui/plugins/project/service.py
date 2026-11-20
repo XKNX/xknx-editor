@@ -4341,13 +4341,11 @@ class ProjectService:
             current = self.find_device_by_node_id(device.node_id)
             entry = e64pro.backup(current) if current is not None else None
             if current is None or entry is None or entry[1] != expected:
-                raise ValueError(
-                    "DALI project data changed. Reopen the selection and try again."
-                )
+                raise ValueError(S.E64_CONFIGURATION_CHANGED)
             data = expected
             for operation in edit if isinstance(edit, list) else (edit,):
                 data = e64pro.apply(data, operation)
-            self.persist_device_blob(current, entry[0], data)
+            self.persist_device_blob(current, entry[0], data, label=S.E64_HISTORY_EDIT)
             return data
 
     def import_e64pro(
@@ -4359,25 +4357,27 @@ class ProjectService:
         with self._io_lock:
             current = self.find_device_by_node_id(device.node_id)
             if self._pid is None or current is None or not e64pro.supports(current):
-                raise ValueError("Expected an IPAS e64 Pro project device")
+                raise ValueError(S.E64_INVALID_SELECTION)
             entry = e64pro.backup(current)
             if (entry[1] if entry else None) != expected:
-                raise ValueError("DALI project data changed. Try the import again.")
+                raise ValueError(S.E64_CONFIGURATION_CHANGED)
             data = e64pro.import_configuration(
                 data, current.individual_address or "", self._project_name_for_keyring()
             )
-            self.persist_device_blob(current, e64pro.BACKUP_NAME, data)
+            self.persist_device_blob(
+                current, e64pro.BACKUP_NAME, data, label=S.E64_HISTORY_IMPORT
+            )
             return data
 
     def export_e64pro(self, device: Device) -> bytes:
-        """Export the current offline DCA configuration as ETS-style XML."""
+        """Export the current offline DCA configuration as standalone device XML."""
         from editor_gui.plugin_blob_readers.dali_backup import e64pro
 
         with self._io_lock:
             current = self.find_device_by_node_id(device.node_id)
             entry = e64pro.backup(current) if current is not None else None
             if entry is None:
-                raise ValueError("No IPAS e64 Pro backup")
+                raise ValueError(S.E64_INVALID_CONFIGURATION)
             return e64pro.export_configuration(entry[1])
 
     def persist_device_blob(

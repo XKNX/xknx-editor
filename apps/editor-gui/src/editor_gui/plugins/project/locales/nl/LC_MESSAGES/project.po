@@ -3898,3 +3898,99 @@ msgstr "DCA-configuratie geïmporteerd."
 
 msgid "DCA configuration exported."
 msgstr "DCA-configuratie geëxporteerd."
+
+msgid "Color Temperature"
+msgstr "Kleurtemperatuur"
+
+msgid "Keep Color"
+msgstr "Kleur behouden"
+
+msgid "No entries"
+msgstr "Geen items"
+
+msgid "Assigned Groups and ECGs…"
+msgstr "Toegewezen groepen en EVSA’s…"
+
+msgid "Add Target…"
+msgstr "Doel toevoegen…"
+
+msgid "Approximate preview"
+msgstr "Indicatief voorbeeld"
+
+msgid "Manual override"
+msgstr "Handmatige overbrugging"
+
+msgid "Midnight reset"
+msgstr "Reset om middernacht"
+
+msgid "Import DCA Configuration"
+msgstr "DCA-configuratie importeren"
+
+msgid "Edit DCA configuration"
+msgstr "DCA-configuratie bewerken"
+
+msgid "Import DCA configuration"
+msgstr "DCA-configuratie importeren"
+
+msgid "Invalid DCA configuration."
+msgstr "Ongeldige DCA-configuratie."
+
+msgid "Expected a complete DCA device configuration."
+msgstr "Een volledige DCA-apparaatconfiguratie is vereist."
+
+msgid "DALI project data changed. Reopen the selection and try again."
+msgstr "De DALI-projectgegevens zijn gewijzigd. Open de selectie opnieuw en probeer het opnieuw."
+
+msgid "The selected DCA item is unavailable. Reopen the selection."
+msgstr "Het geselecteerde DCA-item is niet beschikbaar. Open de selectie opnieuw."
+
+msgid "Invalid value."
+msgstr "Ongeldige waarde."
+
+msgid "Invalid or unsupported color value."
+msgstr "Ongeldige of niet-ondersteunde kleurwaarde."
+
+msgid "This DCA operation is not supported."
+msgstr "Deze DCA-bewerking wordt niet ondersteund."
+
+msgid "Expected {minimum}-{maximum}."
+msgstr "Verwacht: {minimum}-{maximum}."
+
+msgid "Expected HH:MM."
+msgstr "Verwacht: HH:MM."
+
+msgid "Select seven weekdays."
+msgstr "Selecteer zeven weekdagen."
+
+msgid "The target already belongs to the scene."
+msgstr "Het doel behoort al tot de scène."
+
+msgid "At most 300 time control commands are supported."
+msgstr "Er worden maximaal 300 tijdsturingsopdrachten ondersteund."
+
+msgid "At most 500 effect steps are supported."
+msgstr "Er worden maximaal 500 effectstappen ondersteund."
+
+msgid "Descriptions can contain at most {maximum} characters."
+msgstr "Beschrijvingen mogen maximaal {maximum} tekens bevatten."
+
+msgid "Mo"
+msgstr "ma"
+
+msgid "Tu"
+msgstr "di"
+
+msgid "We"
+msgstr "wo"
+
+msgid "Th"
+msgstr "do"
+
+msgid "Fr"
+msgstr "vr"
+
+msgid "Sa"
+msgstr "za"
+
+msgid "Su"
+msgstr "zo"

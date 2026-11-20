@@ -3838,3 +3838,99 @@ msgstr "A DCA-konfiguráció importálva."
 
 msgid "DCA configuration exported."
 msgstr "A DCA-konfiguráció exportálva."
+
+msgid "Color Temperature"
+msgstr "Színhőmérséklet"
+
+msgid "Keep Color"
+msgstr "Szín megtartása"
+
+msgid "No entries"
+msgstr "Nincs bejegyzés"
+
+msgid "Assigned Groups and ECGs…"
+msgstr "Hozzárendelt csoportok és előtétek…"
+
+msgid "Add Target…"
+msgstr "Cél hozzáadása…"
+
+msgid "Approximate preview"
+msgstr "Tájékoztató előnézet"
+
+msgid "Manual override"
+msgstr "Kézi felülbírálás"
+
+msgid "Midnight reset"
+msgstr "Éjféli alaphelyzetbe állítás"
+
+msgid "Import DCA Configuration"
+msgstr "DCA-konfiguráció importálása"
+
+msgid "Edit DCA configuration"
+msgstr "DCA-konfiguráció szerkesztése"
+
+msgid "Import DCA configuration"
+msgstr "DCA-konfiguráció importálása"
+
+msgid "Invalid DCA configuration."
+msgstr "Érvénytelen DCA-konfiguráció."
+
+msgid "Expected a complete DCA device configuration."
+msgstr "Teljes DCA-eszközkonfiguráció szükséges."
+
+msgid "DALI project data changed. Reopen the selection and try again."
+msgstr "A DALI-projekt adatai megváltoztak. Nyissa meg újra a kiválasztást, és próbálja újra."
+
+msgid "The selected DCA item is unavailable. Reopen the selection."
+msgstr "A kiválasztott DCA-elem nem érhető el. Nyissa meg újra a kiválasztást."
+
+msgid "Invalid value."
+msgstr "Érvénytelen érték."
+
+msgid "Invalid or unsupported color value."
+msgstr "Érvénytelen vagy nem támogatott színérték."
+
+msgid "This DCA operation is not supported."
+msgstr "Ez a DCA-művelet nem támogatott."
+
+msgid "Expected {minimum}-{maximum}."
+msgstr "Elvárt: {minimum}-{maximum}."
+
+msgid "Expected HH:MM."
+msgstr "Elvárt: HH:MM."
+
+msgid "Select seven weekdays."
+msgstr "Válassza ki a hét napját."
+
+msgid "The target already belongs to the scene."
+msgstr "A cél már a jelenethez tartozik."
+
+msgid "At most 300 time control commands are supported."
+msgstr "Legfeljebb 300 idővezérlési parancs támogatott."
+
+msgid "At most 500 effect steps are supported."
+msgstr "Legfeljebb 500 effektlépés támogatott."
+
+msgid "Descriptions can contain at most {maximum} characters."
+msgstr "A leírások legfeljebb {maximum} karaktert tartalmazhatnak."
+
+msgid "Mo"
+msgstr "H"
+
+msgid "Tu"
+msgstr "K"
+
+msgid "We"
+msgstr "Sze"
+
+msgid "Th"
+msgstr "Cs"
+
+msgid "Fr"
+msgstr "P"
+
+msgid "Sa"
+msgstr "Szo"
+
+msgid "Su"
+msgstr "V"

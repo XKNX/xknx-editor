@@ -3811,3 +3811,99 @@ msgstr "DCA yapılandırması içe aktarıldı."
 
 msgid "DCA configuration exported."
 msgstr "DCA yapılandırması dışa aktarıldı."
+
+msgid "Color Temperature"
+msgstr "Renk sıcaklığı"
+
+msgid "Keep Color"
+msgstr "Rengi koru"
+
+msgid "No entries"
+msgstr "Kayıt yok"
+
+msgid "Assigned Groups and ECGs…"
+msgstr "Atanan gruplar ve balastlar…"
+
+msgid "Add Target…"
+msgstr "Hedef ekle…"
+
+msgid "Approximate preview"
+msgstr "Yaklaşık önizleme"
+
+msgid "Manual override"
+msgstr "Elle geçersiz kılma"
+
+msgid "Midnight reset"
+msgstr "Gece yarısı sıfırlama"
+
+msgid "Import DCA Configuration"
+msgstr "DCA yapılandırmasını içe aktar"
+
+msgid "Edit DCA configuration"
+msgstr "DCA yapılandırmasını düzenle"
+
+msgid "Import DCA configuration"
+msgstr "DCA yapılandırmasını içe aktar"
+
+msgid "Invalid DCA configuration."
+msgstr "Geçersiz DCA yapılandırması."
+
+msgid "Expected a complete DCA device configuration."
+msgstr "Tam bir DCA cihaz yapılandırması gerekiyor."
+
+msgid "DALI project data changed. Reopen the selection and try again."
+msgstr "DALI proje verileri değişti. Seçimi yeniden açıp tekrar deneyin."
+
+msgid "The selected DCA item is unavailable. Reopen the selection."
+msgstr "Seçilen DCA öğesi kullanılamıyor. Seçimi yeniden açın."
+
+msgid "Invalid value."
+msgstr "Geçersiz değer."
+
+msgid "Invalid or unsupported color value."
+msgstr "Geçersiz veya desteklenmeyen renk değeri."
+
+msgid "This DCA operation is not supported."
+msgstr "Bu DCA işlemi desteklenmiyor."
+
+msgid "Expected {minimum}-{maximum}."
+msgstr "Beklenen: {minimum}-{maximum}."
+
+msgid "Expected HH:MM."
+msgstr "Beklenen: HH:MM."
+
+msgid "Select seven weekdays."
+msgstr "Haftanın yedi gününü seçin."
+
+msgid "The target already belongs to the scene."
+msgstr "Hedef zaten sahneye ait."
+
+msgid "At most 300 time control commands are supported."
+msgstr "En fazla 300 zaman kontrol komutu desteklenir."
+
+msgid "At most 500 effect steps are supported."
+msgstr "En fazla 500 efekt adımı desteklenir."
+
+msgid "Descriptions can contain at most {maximum} characters."
+msgstr "Açıklamalar en fazla {maximum} karakter içerebilir."
+
+msgid "Mo"
+msgstr "Pt"
+
+msgid "Tu"
+msgstr "Sa"
+
+msgid "We"
+msgstr "Ça"
+
+msgid "Th"
+msgstr "Pe"
+
+msgid "Fr"
+msgstr "Cu"
+
+msgid "Sa"
+msgstr "Ct"
+
+msgid "Su"
+msgstr "Pa"

@@ -8,6 +8,314 @@ _ = create_translator("project", _locale_dir)
 
 class ProjectStrings:
     @property
+    def E64_ACTIONS(self) -> str:
+        return _("Actions")
+
+    @property
+    def E64_ACTIVE(self) -> str:
+        return _("Active")
+
+    @property
+    def E64_ADDRESS(self) -> str:
+        return _("Address")
+
+    @property
+    def E64_ADD_COMMAND(self) -> str:
+        return _("Add Command")
+
+    @property
+    def E64_ADD_TARGET(self) -> str:
+        return _("Add Target…")
+
+    @property
+    def E64_ALL(self) -> str:
+        return _("All")
+
+    @property
+    def E64_APPLY(self) -> str:
+        return _("Apply")
+
+    @property
+    def E64_APPROXIMATE_PREVIEW(self) -> str:
+        return _("Approximate preview")
+
+    @property
+    def E64_ASSIGNED_GROUPS_AND_ECGS(self) -> str:
+        return _("Assigned Groups and ECGs…")
+
+    @property
+    def E64_BRIGHTNESS(self) -> str:
+        return _("Brightness")
+
+    @property
+    def E64_CANCEL(self) -> str:
+        return _("Cancel")
+
+    @property
+    def E64_COLOR(self) -> str:
+        return _("Color")
+
+    @property
+    def E64_COLOR_TEMPERATURE(self) -> str:
+        return _("Color Temperature")
+
+    @property
+    def E64_CONTROL_GEAR_AND_GROUPS(self) -> str:
+        return _("Control Gear and Groups")
+
+    @property
+    def E64_COPY(self) -> str:
+        return _("Copy")
+
+    @property
+    def E64_DELAY(self) -> str:
+        return _("Delay")
+
+    @property
+    def E64_DESCRIPTION(self) -> str:
+        return _("Description")
+
+    @property
+    def E64_DEVICE(self) -> str:
+        return _("Device")
+
+    @property
+    def E64_ECG(self) -> str:
+        return _("ECG")
+
+    @property
+    def E64_EFFECTS(self) -> str:
+        return _("Effects")
+
+    @property
+    def E64_FADE_TIME(self) -> str:
+        return _("Fade Time")
+
+    @property
+    def E64_FLAG(self) -> str:
+        return _("Flag")
+
+    @property
+    def E64_FUNCTION(self) -> str:
+        return _("Function")
+
+    @property
+    def E64_GENERAL_INPUTS(self) -> str:
+        return _("General Inputs")
+
+    @property
+    def E64_GROUP(self) -> str:
+        return _("Group")
+
+    @property
+    def E64_GROUPS(self) -> str:
+        return _("Groups")
+
+    @property
+    def E64_INPUT_DEVICES(self) -> str:
+        return _("Input Devices")
+
+    @property
+    def E64_INSTANCE(self) -> str:
+        return _("Instance")
+
+    @property
+    def E64_KEEP_COLOR(self) -> str:
+        return _("Keep Color")
+
+    @property
+    def E64_KEEP_VALUE(self) -> str:
+        return _("Keep Value")
+
+    @property
+    def E64_KNX_SCENE(self) -> str:
+        return _("KNX Scene")
+
+    @property
+    def E64_LONG_ADDRESS(self) -> str:
+        return _("Long Address")
+
+    @property
+    def E64_LOOP(self) -> str:
+        return _("Loop")
+
+    @property
+    def E64_MANUAL_OVERRIDE(self) -> str:
+        return _("Manual override")
+
+    @property
+    def E64_MAX_BRIGHTNESS(self) -> str:
+        return _("Max. Brightness")
+
+    @property
+    def E64_MIDNIGHT_RESET(self) -> str:
+        return _("Midnight reset")
+
+    @property
+    def E64_MIN_BRIGHTNESS(self) -> str:
+        return _("Min. Brightness")
+
+    @property
+    def E64_MODE(self) -> str:
+        return _("Mode")
+
+    @property
+    def E64_MOTION_BRIGHTNESS(self) -> str:
+        return _("Motion / Brightness")
+
+    @property
+    def E64_NO_ENTRIES(self) -> str:
+        return _("No entries")
+
+    @property
+    def E64_OFF(self) -> str:
+        return _("Off")
+
+    @property
+    def E64_PHYSICAL_DEVICES_WITHOUT_A_UNIQUE_ASSIGNMENT(self) -> str:
+        return _("Physical Devices Without a Unique Assignment")
+
+    @property
+    def E64_PHYSICAL_INPUTS(self) -> str:
+        return _("Physical Inputs")
+
+    @property
+    def E64_PUSH_BUTTONS(self) -> str:
+        return _("Push-Buttons")
+
+    @property
+    def E64_REMOVE(self) -> str:
+        return _("Remove")
+
+    @property
+    def E64_SCENES(self) -> str:
+        return _("Scenes")
+
+    @property
+    def E64_SEARCH(self) -> str:
+        return _("Search")
+
+    @property
+    def E64_SHORT_ADDRESS(self) -> str:
+        return _("Short Address")
+
+    @property
+    def E64_SINGLE_ECG(self) -> str:
+        return _("Single ECG")
+
+    @property
+    def E64_SWITCH_ON_LIMIT(self) -> str:
+        return _("Switch-on Limit")
+
+    @property
+    def E64_TARGET(self) -> str:
+        return _("Target")
+
+    @property
+    def E64_TIME(self) -> str:
+        return _("Time")
+
+    @property
+    def E64_TIME_CONTROL(self) -> str:
+        return _("Time Control")
+
+    @property
+    def E64_TYPE(self) -> str:
+        return _("Type")
+
+    @property
+    def E64_UNASSIGNED(self) -> str:
+        return _("Unassigned")
+
+    @property
+    def E64_VALUE(self) -> str:
+        return _("Value")
+
+    @property
+    def E64_WHITE(self) -> str:
+        return _("White")
+
+    @property
+    def E64_IMPORT_TITLE(self) -> str:
+        return _("Import DCA Configuration")
+
+    @property
+    def E64_HISTORY_EDIT(self) -> str:
+        return _("Edit DCA configuration")
+
+    @property
+    def E64_HISTORY_IMPORT(self) -> str:
+        return _("Import DCA configuration")
+
+    @property
+    def E64_INVALID_CONFIGURATION(self) -> str:
+        return _("Invalid DCA configuration.")
+
+    @property
+    def E64_INCOMPLETE_CONFIGURATION(self) -> str:
+        return _("Expected a complete DCA device configuration.")
+
+    @property
+    def E64_CONFIGURATION_CHANGED(self) -> str:
+        return _("DALI project data changed. Reopen the selection and try again.")
+
+    @property
+    def E64_INVALID_SELECTION(self) -> str:
+        return _("The selected DCA item is unavailable. Reopen the selection.")
+
+    @property
+    def E64_INVALID_VALUE(self) -> str:
+        return _("Invalid value.")
+
+    @property
+    def E64_INVALID_COLOR(self) -> str:
+        return _("Invalid or unsupported color value.")
+
+    @property
+    def E64_UNSUPPORTED_OPERATION(self) -> str:
+        return _("This DCA operation is not supported.")
+
+    @property
+    def E64_NUMBER_RANGE(self) -> str:
+        return _("Expected {minimum}-{maximum}.")
+
+    @property
+    def E64_TIME_FORMAT(self) -> str:
+        return _("Expected HH:MM.")
+
+    @property
+    def E64_WEEKDAYS_FORMAT(self) -> str:
+        return _("Select seven weekdays.")
+
+    @property
+    def E64_DUPLICATE_TARGET(self) -> str:
+        return _("The target already belongs to the scene.")
+
+    @property
+    def E64_COMMAND_LIMIT(self) -> str:
+        return _("At most 300 time control commands are supported.")
+
+    @property
+    def E64_EFFECT_LIMIT(self) -> str:
+        return _("At most 500 effect steps are supported.")
+
+    @property
+    def E64_DESCRIPTION_LIMIT(self) -> str:
+        return _("Descriptions can contain at most {maximum} characters.")
+
+    @property
+    def E64_WEEKDAYS(self) -> dict[str, str]:
+        return {
+            "0": _("Mo"),
+            "1": _("Tu"),
+            "2": _("We"),
+            "3": _("Th"),
+            "4": _("Fr"),
+            "5": _("Sa"),
+            "6": _("Su"),
+        }
+
+    @property
     def E64_DCA_DETAILS(self) -> str:
         return _("DCA Details")
 

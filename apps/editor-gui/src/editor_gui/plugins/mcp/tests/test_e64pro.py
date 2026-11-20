@@ -94,13 +94,31 @@ async def test_e64pro_mcp_round_trip(
             scene = xml.find("scenes/Scene")
             assert scene is not None
             scene.set("description", "Imported scene")
+            path = tmp_path / "configuration.xml"
+            path.write_text(ET.tostring(xml, encoding="unicode"))
             before = project.cursor
+            with pytest.raises(Exception, match="exactly one"):
+                await _data(
+                    client,
+                    "project_e64pro_import",
+                    node_id=node_id,
+                    revision=updated["revision"],
+                    path=str(path),
+                    xml=path.read_text(),
+                )
+            with pytest.raises(Exception, match="exactly one"):
+                await _data(
+                    client,
+                    "project_e64pro_import",
+                    node_id=node_id,
+                    revision=updated["revision"],
+                )
             revision = await _data(
                 client,
                 "project_e64pro_import",
                 node_id=node_id,
                 revision=updated["revision"],
-                xml=ET.tostring(xml, encoding="unicode"),
+                path=str(path),
             )
             imported: Any = await _data(client, "project_e64pro_read", node_id=node_id)
             assert imported["revision"] == revision
@@ -117,5 +135,88 @@ async def test_e64pro_mcp_round_trip(
             assert (
                 await _data(client, "project_e64pro_read", node_id=node_id) == updated
             )
+
+            capacity = ET.fromstring(updated["xml"])
+            templates = capacity.findall("templates/Tpl")
+            for template in templates:
+                commands = template.find("Commands")
+                if commands is not None:
+                    commands.clear()
+            commands = templates[0].find("Commands")
+            if commands is None:
+                commands = ET.SubElement(templates[0], "Commands")
+            for _ in range(299):
+                ET.SubElement(
+                    commands,
+                    "TplCmd",
+                    func="SetValue",
+                    value="0",
+                    time="00:00",
+                    weekdays="1111111",
+                    fadeIn="VFadeIn0",
+                )
+            await _data(
+                client,
+                "project_e64pro_import",
+                node_id=node_id,
+                revision=updated["revision"],
+                xml=ET.tostring(capacity, encoding="unicode"),
+            )
+            limited = await _data(client, "project_e64pro_read", node_id=node_id)
+            before = project.cursor
+            add = {"section": "templates", "slot": "0", "action": "add"}
+            copy = dict(add, action="copy", row=0)
+            rejected = await _data(
+                client,
+                "project_batch",
+                operations=[
+                    {
+                        "op": "edit_e64pro",
+                        "params": {
+                            "node_id": node_id,
+                            "revision": limited["revision"],
+                            "edits": [add, copy],
+                        },
+                    }
+                ],
+            )
+            assert rejected["failed"] == 1
+            assert rejected["results"][0]["status"] == "error"
+            assert "At most 300" in rejected["results"][0]["error"]
+            assert project.cursor == before
+            assert (
+                await _data(client, "project_e64pro_read", node_id=node_id) == limited
+            )
+            await _data(
+                client,
+                "project_e64pro_edit",
+                node_id=node_id,
+                revision=limited["revision"],
+                **add,
+            )
+            full = await _data(client, "project_e64pro_read", node_id=node_id)
+            before = project.cursor
+            with pytest.raises(Exception, match="At most 300"):
+                await _data(
+                    client,
+                    "project_e64pro_edit",
+                    node_id=node_id,
+                    revision=full["revision"],
+                    **copy,
+                )
+            too_many = ET.fromstring(full["xml"])
+            commands = too_many.find("templates/Tpl/Commands")
+            assert commands is not None
+            ET.SubElement(commands, "TplCmd", func="SetValue", value="0")
+            with pytest.raises(Exception, match="At most 300"):
+                await _data(
+                    client,
+                    "project_e64pro_import",
+                    node_id=node_id,
+                    revision=full["revision"],
+                    xml=ET.tostring(too_many, encoding="unicode"),
+                )
+            assert project.cursor == before
+            assert await _data(client, "project_e64pro_read", node_id=node_id) == full
     finally:
         project.close()

@@ -3915,3 +3915,99 @@ msgstr "Конфигурация DCA импортирована."
 
 msgid "DCA configuration exported."
 msgstr "Конфигурация DCA экспортирована."
+
+msgid "Color Temperature"
+msgstr "Цветовая температура"
+
+msgid "Keep Color"
+msgstr "Сохранить цвет"
+
+msgid "No entries"
+msgstr "Нет записей"
+
+msgid "Assigned Groups and ECGs…"
+msgstr "Назначенные группы и ЭПРА…"
+
+msgid "Add Target…"
+msgstr "Добавить цель…"
+
+msgid "Approximate preview"
+msgstr "Приблизительный предпросмотр"
+
+msgid "Manual override"
+msgstr "Ручное управление"
+
+msgid "Midnight reset"
+msgstr "Сброс в полночь"
+
+msgid "Import DCA Configuration"
+msgstr "Импорт конфигурации DCA"
+
+msgid "Edit DCA configuration"
+msgstr "Изменить конфигурацию DCA"
+
+msgid "Import DCA configuration"
+msgstr "Импорт конфигурации DCA"
+
+msgid "Invalid DCA configuration."
+msgstr "Недопустимая конфигурация DCA."
+
+msgid "Expected a complete DCA device configuration."
+msgstr "Требуется полная конфигурация устройства DCA."
+
+msgid "DALI project data changed. Reopen the selection and try again."
+msgstr "Данные проекта DALI изменились. Откройте выбор заново и повторите попытку."
+
+msgid "The selected DCA item is unavailable. Reopen the selection."
+msgstr "Выбранный элемент DCA недоступен. Откройте выбор заново."
+
+msgid "Invalid value."
+msgstr "Недопустимое значение."
+
+msgid "Invalid or unsupported color value."
+msgstr "Недопустимое или неподдерживаемое значение цвета."
+
+msgid "This DCA operation is not supported."
+msgstr "Эта операция DCA не поддерживается."
+
+msgid "Expected {minimum}-{maximum}."
+msgstr "Ожидается: {minimum}-{maximum}."
+
+msgid "Expected HH:MM."
+msgstr "Ожидается: HH:MM."
+
+msgid "Select seven weekdays."
+msgstr "Выберите семь дней недели."
+
+msgid "The target already belongs to the scene."
+msgstr "Цель уже входит в сцену."
+
+msgid "At most 300 time control commands are supported."
+msgstr "Поддерживается не более 300 команд управления по времени."
+
+msgid "At most 500 effect steps are supported."
+msgstr "Поддерживается не более 500 шагов эффектов."
+
+msgid "Descriptions can contain at most {maximum} characters."
+msgstr "Описания могут содержать не более {maximum} символов."
+
+msgid "Mo"
+msgstr "пн"
+
+msgid "Tu"
+msgstr "вт"
+
+msgid "We"
+msgstr "ср"
+
+msgid "Th"
+msgstr "чт"
+
+msgid "Fr"
+msgstr "пт"
+
+msgid "Sa"
+msgstr "сб"
+
+msgid "Su"
+msgstr "вс"

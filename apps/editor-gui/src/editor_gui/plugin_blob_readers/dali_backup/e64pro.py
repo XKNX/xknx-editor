@@ -1,7 +1,8 @@
-"""Offline DCA operations on the IPAS e64 Pro project backup."""
+"""Offline DCA operations on IPAS e64 Pro and Theben P64 V2 project backups."""
 
 from __future__ import annotations
 
+import hashlib
 import re
 from copy import deepcopy
 from dataclasses import dataclass
@@ -9,7 +10,9 @@ from functools import lru_cache
 from typing import TYPE_CHECKING
 from xml.etree import ElementTree as ET
 
-from . import COLOUR_FADE, EDITABLE_ENUMS
+from xknxeditor.dali.profiles import profile_for
+
+from . import COLOUR_FADE, EDITABLE_ENUMS, parse_device
 
 if TYPE_CHECKING:
     from editor_gui.device import Device
@@ -23,20 +26,21 @@ BACKUP_NAME = "Dalie64-Backup-Store"
 @lru_cache(maxsize=4)
 def document(data: bytes) -> ET.Element:
     """Shared read-only snapshot. Writers copy before touching it."""
-    try:
-        parser = ET.XMLParser(
-            target=ET.TreeBuilder(insert_comments=True, insert_pis=True)
-        )
-        root = ET.fromstring(data, parser=parser)
-    except (ET.ParseError, ValueError) as exc:
-        raise ValueError("Invalid DALI backup") from exc
-    if root.tag != "device" or root.get("type") != "e64pro":
-        raise ValueError("Expected an e64pro project backup")
+    from editor_gui.plugins.project.strings import S
+
+    root = parse_device(data)
+    if root is None or root.get("type") != "e64pro":
+        raise ValueError(S.E64_INVALID_CONFIGURATION)
     return root
 
 
 def supports(device: Device) -> bool:
-    return device.app is not None and device.app.id.startswith("M-00EF_A-DA11")
+    profile = profile_for(device.app.id if device.app is not None else None)
+    return profile is not None and profile.backup_blob_base == BACKUP_NAME
+
+
+def revision(data: bytes | None) -> str:
+    return hashlib.sha256(data).hexdigest() if data is not None else ""
 
 
 def backup(device: Device) -> tuple[str, bytes] | None:
@@ -49,12 +53,14 @@ def backup(device: Device) -> tuple[str, bytes] | None:
 
 
 def import_configuration(data: bytes, address: str, project: str) -> bytes:
-    """Read a complete ETS DCA XML export and bind its header to the destination."""
+    """Read a complete DCA device XML and bind its header to the destination."""
+    from editor_gui.plugins.project.strings import S
+
     root = deepcopy(document(data))
     for container, tag in {"groups": "Group", "ecgs": "ECG", **SLOTS}.items():
         sections = root.findall(container)
         if len(sections) != 1:
-            raise ValueError("Expected a complete e64 Pro device configuration")
+            raise ValueError(S.E64_INCOMPLETE_CONFIGURATION)
         indexes = [entry.get("index") for entry in sections[0].findall(tag)]
         if (
             (container in TARGETS and not indexes)
@@ -64,20 +70,24 @@ def import_configuration(data: bytes, address: str, project: str) -> bytes:
             )
             or len(set(indexes)) != len(indexes)
         ):
-            raise ValueError(f"Invalid indexes in e64 Pro configuration: {container}")
+            raise ValueError(S.E64_INVALID_CONFIGURATION)
+    for section in ("effects", "templates"):
+        _check_capacity(root, section)
     root.set("IndividualAddress", address)
     root.set("Project", project)
     return ET.tostring(root, encoding="unicode").encode("utf-16le")
 
 
 def export_configuration(data: bytes) -> bytes:
-    """Serialize a project backup in the UTF-8 form used by ETS device exports."""
+    """Serialize a project backup as standalone UTF-8 device XML."""
     root = deepcopy(document(data))
     for section, tag in SLOTS.items():
+        if section in ("effects", "templates"):
+            _check_capacity(root, section)
         for slot in root.findall(f"{section}/{tag}"):
-            # ETS flags populated slots in standalone exports, independent of their project state.
+            # Standalone exports flag populated slots, independent of their project state.
             slot.set("isDirty", str(bool(rows(slot, section))))
-    return ET.tostring(root, encoding="utf-8")
+    return ET.tostring(root, encoding="utf-8", xml_declaration=True)
 
 
 @dataclass(frozen=True)
@@ -98,12 +108,14 @@ def rows(slot: ET.Element, section: str) -> list[ET.Element]:
 
 
 def _number(text: str, maximum: int, minimum: int = 0) -> None:
+    from editor_gui.plugins.project.strings import S
+
     if (
         not text.isascii()
         or not text.isdecimal()
         or not minimum <= int(text) <= maximum
     ):
-        raise ValueError(f"Expected {minimum}â€“{maximum}")
+        raise ValueError(S.E64_NUMBER_RANGE.format(minimum=minimum, maximum=maximum))
 
 
 # XML encodings used by the e64 Pro backup. RGBW/HSVW store white as a byte.
@@ -120,7 +132,6 @@ _GROUP_COLOURS = {
     "12": ("2", "16"),
     "13": ("2", "32"),
 }
-# Observed in e64 Pro ETS exports.
 BYTE_COLOUR_MODES = frozenset(("4", "8"))
 VERIFIED_COLOUR_MODES = frozenset(COLOURS)
 DEFAULT_COLOURS = {
@@ -170,16 +181,18 @@ def colour_modes(root: ET.Element, item: ET.Element) -> tuple[str, ...]:
 
 
 def _colour_value(kind: str, value: str) -> None:
+    from editor_gui.plugins.project.strings import S
+
     if kind == "2":
         _number(value, 65535, 1)
         return
     if kind not in COLOURS:
-        raise ValueError("Unknown colour space")
+        raise ValueError(S.E64_INVALID_COLOR)
     values = value.split(";")
     if kind in BYTE_COLOUR_MODES:
         # RGB also stores four bytes, but only exposes the first three channels.
         if len(values) != 4:
-            raise ValueError("Expected four colour bytes")
+            raise ValueError(S.E64_INVALID_COLOR)
         for component in values:
             _number(component, 255)
         return
@@ -188,14 +201,50 @@ def _colour_value(kind: str, value: str) -> None:
         re.fullmatch(r"[0-9]+(?:\.[0-9]+)?", v) and 0 <= float(v) <= 1
         for v in values[:3]
     ):
-        raise ValueError("Expected three components in the range 0-1")
+        raise ValueError(S.E64_INVALID_COLOR)
     if white:
         _number(values[3], 255)
+
+
+def _set_colour(root: ET.Element, item: ET.Element, mode: str, value: str) -> None:
+    from editor_gui.plugins.project.strings import S
+
+    modes = colour_modes(root, item)
+    if mode not in modes:
+        raise ValueError(S.E64_INVALID_COLOR)
+    if mode not in VERIFIED_COLOUR_MODES:
+        raise ValueError(S.E64_INVALID_COLOR)
+    _colour_value(mode, value)
+    flags = int(item.get("setting", "0")) & ~4
+    if len(modes) > 1 and mode != "2":
+        flags |= 4
+    item.attrib.update({"color-type": mode, "color": value, "setting": str(flags)})
+
+
+def _check_capacity(root: ET.Element, section: str, additional: int = 0) -> None:
+    from editor_gui.plugins.project.strings import S
+
+    if section == "templates":
+        path, limit, message = "templates/Tpl/Commands/TplCmd", 300, S.E64_COMMAND_LIMIT
+    else:
+        path, limit, message = "effects/Effect/EffectStep", 500, S.E64_EFFECT_LIMIT
+    if len(root.findall(path)) + additional > limit:
+        raise ValueError(message)
+
+
+def validate_description(section: str, value: str) -> None:
+    from editor_gui.plugins.project.strings import S
+
+    maximum = 60 if section == "templates" else 20
+    if len(value.encode("utf-16le")) // 2 > maximum:
+        raise ValueError(S.E64_DESCRIPTION_LIMIT.format(maximum=maximum))
 
 
 def _set(
     element: ET.Element, field: str, value: str, section: str, header: bool
 ) -> None:
+    from editor_gui.plugins.project.strings import S
+
     if header:
         allowed = {
             "scenes": {"description", "knxScene", "fadeTime"},
@@ -204,10 +253,9 @@ def _set(
         }
     else:
         allowed = {
-            "scenes": {"value", "color", "keepValue", "keepColor"},
+            "scenes": {"value", "keepValue", "keepColor"},
             "effects": {
                 "value",
-                "color",
                 "keepValue",
                 "keepColor",
                 "fadetime",
@@ -216,28 +264,30 @@ def _set(
             "templates": {"value", "time", "weekdays", "func", "fadeIn"},
         }
     if field not in allowed[section]:
-        raise ValueError("Unsupported field")
+        raise ValueError(S.E64_UNSUPPORTED_OPERATION)
     if any(
         (cp < 32 and cp not in (9, 10, 13))
         or 0xD800 <= cp <= 0xDFFF
         or cp in (0xFFFE, 0xFFFF)
         for cp in map(ord, value)
     ):
-        raise ValueError("Value contains characters unsupported by XML")
+        raise ValueError(S.E64_INVALID_VALUE)
     if field in (
         "keepValue",
         "keepColor",
         "isOverwritable",
         "resetOnMidnight",
     ) and value not in ("True", "False"):
-        raise ValueError("Expected a Boolean")
+        raise ValueError(S.E64_INVALID_VALUE)
     if field in ("keepValue", "keepColor"):
         mask = 2 if field == "keepValue" else 1
         flags = int(element.get("setting", "0"))
         if field == "keepColor" and "color" not in element.attrib:
-            raise ValueError("No colour configured")
+            raise ValueError(S.E64_INVALID_COLOR)
         element.set("setting", str(flags | mask if value == "True" else flags & ~mask))
         return
+    if field == "description":
+        validate_description(section, value)
     if field == "knxScene":
         _number(value, 64, 1)
     if field == "value" and (
@@ -247,23 +297,21 @@ def _set(
     ):
         _number(value, 100)
     if field == "mode" and value not in ("0", "1"):
-        raise ValueError("Unknown effect mode")
+        raise ValueError(S.E64_INVALID_VALUE)
     if (
         field in ("fadeTime", "fadetime", "delay", "func")
         and value not in EDITABLE_ENUMS[field]
     ):
-        raise ValueError("Unsupported choice")
+        raise ValueError(S.E64_INVALID_VALUE)
     if field == "time" and not re.fullmatch(r"(?:[01][0-9]|2[0-3]):[0-5][0-9]", value):
-        raise ValueError("Expected HH:MM")
+        raise ValueError(S.E64_TIME_FORMAT)
     if field == "weekdays" and not re.fullmatch("[01]{7}", value):
-        raise ValueError("Expected seven weekdays")
+        raise ValueError(S.E64_WEEKDAYS_FORMAT)
     if field == "fadeIn" and value not in fade_choices(element):
-        raise ValueError("Unsupported fade time")
-    if field == "color":
-        _colour_value(element.get("color-type", ""), value)
+        raise ValueError(S.E64_INVALID_VALUE)
     if field == "func" and value != element.get("func"):
         if value not in COMMAND_DEFAULTS:
-            raise ValueError("Unsupported command conversion")
+            raise ValueError(S.E64_UNSUPPORTED_OPERATION)
         level, fade = COMMAND_DEFAULTS[value]
         element.attrib.update(value=level, fadeIn=fade, scaleMode="ScaleNormal")
     if field == "value" and section == "templates":
@@ -290,8 +338,10 @@ def fade_choices(cmd: ET.Element) -> list[str]:
 
 
 def apply(data: bytes, edit: Edit) -> bytes:
+    from editor_gui.plugins.project.strings import S
+
     if edit.section not in SLOTS:
-        raise ValueError("Unknown DCA section")
+        raise ValueError(S.E64_INVALID_SELECTION)
     root = deepcopy(document(data))
     slot = next(
         (
@@ -302,18 +352,16 @@ def apply(data: bytes, edit: Edit) -> bytes:
         None,
     )
     if slot is None:
-        raise ValueError("Unknown slot")
+        raise ValueError(S.E64_INVALID_SELECTION)
     section, action = edit.section, edit.action
     if action == "member" and section != "templates":
-        raise ValueError("Only templates have member checkboxes")
+        raise ValueError(S.E64_UNSUPPORTED_OPERATION)
     members = section == "templates" and action == "member"
     parent = slot
-    if (
-        section == "effects"
-        and action == "add"
-        and len(root.findall("effects/Effect/EffectStep")) >= 500
+    if (section in ("effects", "templates") and action == "add") or (
+        section == "templates" and action == "copy"
     ):
-        raise ValueError("All 500 effect steps are in use")
+        _check_capacity(root, section, additional=1)
     if section == "templates" and action != "header":
         container = "Members" if members else "Commands"
         existing = slot.find(container)
@@ -337,7 +385,7 @@ def apply(data: bytes, edit: Edit) -> bytes:
             if edit.target not in TARGETS or not any(
                 e.get("index") == edit.index for e in root.findall(edit.target + "/*")
             ):
-                raise ValueError("Unknown target")
+                raise ValueError(S.E64_INVALID_SELECTION)
             kind = TARGETS[edit.target]
             match = next(
                 (
@@ -348,7 +396,7 @@ def apply(data: bytes, edit: Edit) -> bytes:
                 None,
             )
             if members and edit.value not in ("True", "False"):
-                raise ValueError("Expected a Boolean")
+                raise ValueError(S.E64_INVALID_VALUE)
             if members and edit.value == "False":
                 if match is None:
                     return data
@@ -357,7 +405,7 @@ def apply(data: bytes, edit: Edit) -> bytes:
                 if match is not None and section != "effects":
                     if members:
                         return data
-                    raise ValueError("Target already belongs to the scene")
+                    raise ValueError(S.E64_DUPLICATE_TARGET)
                 attrs = {"itemtype": kind, "itemindex": edit.index}
                 if not members:
                     attrs.update(value="0", setting="0")
@@ -382,18 +430,15 @@ def apply(data: bytes, edit: Edit) -> bytes:
                 ET.SubElement(parent, "TplItem" if members else ROW_TAG[section], attrs)
     else:
         if not 0 <= edit.row < len(children):
-            raise ValueError("Unknown row")
+            raise ValueError(S.E64_INVALID_SELECTION)
         child = children[edit.row]
         if action == "set":
-            _set(child, edit.field, edit.value, section, False)
+            if edit.field == "color" and section in ("scenes", "effects"):
+                _set_colour(root, child, child.get("color-type", ""), edit.value)
+            else:
+                _set(child, edit.field, edit.value, section, False)
         elif action == "colour" and section in ("scenes", "effects"):
-            if edit.field not in colour_modes(root, child):
-                raise ValueError("Unsupported colour space for this target")
-            if edit.field not in VERIFIED_COLOUR_MODES:
-                raise ValueError("Unverified e64 Pro colour encoding")
-            _colour_value(edit.field, edit.value)
-            # Preserve the two keep flags and vendor bits when switching colour space.
-            child.attrib.update({"color-type": edit.field, "color": edit.value})
+            _set_colour(root, child, edit.field, edit.value)
         elif action == "remove":
             parent.remove(child)
         elif action == "copy" and section == "templates":
@@ -406,7 +451,7 @@ def apply(data: bytes, edit: Edit) -> bytes:
             parent.remove(child)
             parent.insert(position, child)
         else:
-            raise ValueError("Unsupported DCA operation")
+            raise ValueError(S.E64_UNSUPPORTED_OPERATION)
     if ET.tostring(root) == ET.tostring(document(data)):
         return data
     slot.set("isDirty", "True")

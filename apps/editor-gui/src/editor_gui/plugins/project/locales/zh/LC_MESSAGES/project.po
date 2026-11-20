@@ -3811,3 +3811,99 @@ msgstr "已导入 DCA 配置。"
 
 msgid "DCA configuration exported."
 msgstr "已导出 DCA 配置。"
+
+msgid "Color Temperature"
+msgstr "色温"
+
+msgid "Keep Color"
+msgstr "保持颜色"
+
+msgid "No entries"
+msgstr "无条目"
+
+msgid "Assigned Groups and ECGs…"
+msgstr "已分配的组和镇流器…"
+
+msgid "Add Target…"
+msgstr "添加目标…"
+
+msgid "Approximate preview"
+msgstr "近似预览"
+
+msgid "Manual override"
+msgstr "手动覆盖"
+
+msgid "Midnight reset"
+msgstr "午夜复位"
+
+msgid "Import DCA Configuration"
+msgstr "导入 DCA 配置"
+
+msgid "Edit DCA configuration"
+msgstr "编辑 DCA 配置"
+
+msgid "Import DCA configuration"
+msgstr "导入 DCA 配置"
+
+msgid "Invalid DCA configuration."
+msgstr "DCA 配置无效。"
+
+msgid "Expected a complete DCA device configuration."
+msgstr "需要完整的 DCA 设备配置。"
+
+msgid "DALI project data changed. Reopen the selection and try again."
+msgstr "DALI 项目数据已更改。请重新打开选择并重试。"
+
+msgid "The selected DCA item is unavailable. Reopen the selection."
+msgstr "所选 DCA 项目不可用。请重新打开选择。"
+
+msgid "Invalid value."
+msgstr "值无效。"
+
+msgid "Invalid or unsupported color value."
+msgstr "颜色值无效或不受支持。"
+
+msgid "This DCA operation is not supported."
+msgstr "不支持此 DCA 操作。"
+
+msgid "Expected {minimum}-{maximum}."
+msgstr "预期范围：{minimum}-{maximum}。"
+
+msgid "Expected HH:MM."
+msgstr "预期格式：HH:MM。"
+
+msgid "Select seven weekdays."
+msgstr "请选择一周中的七天。"
+
+msgid "The target already belongs to the scene."
+msgstr "该目标已属于此场景。"
+
+msgid "At most 300 time control commands are supported."
+msgstr "最多支持 300 条时间控制命令。"
+
+msgid "At most 500 effect steps are supported."
+msgstr "最多支持 500 个效果步骤。"
+
+msgid "Descriptions can contain at most {maximum} characters."
+msgstr "描述最多可包含 {maximum} 个字符。"
+
+msgid "Mo"
+msgstr "周一"
+
+msgid "Tu"
+msgstr "周二"
+
+msgid "We"
+msgstr "周三"
+
+msgid "Th"
+msgstr "周四"
+
+msgid "Fr"
+msgstr "周五"
+
+msgid "Sa"
+msgstr "周六"
+
+msgid "Su"
+msgstr "周日"

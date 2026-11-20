@@ -3867,3 +3867,99 @@ msgstr "Configuration DCA importée."
 
 msgid "DCA configuration exported."
 msgstr "Configuration DCA exportée."
+
+msgid "Color Temperature"
+msgstr "Température de couleur"
+
+msgid "Keep Color"
+msgstr "Conserver la couleur"
+
+msgid "No entries"
+msgstr "Aucune entrée"
+
+msgid "Assigned Groups and ECGs…"
+msgstr "Groupes et ballasts affectés…"
+
+msgid "Add Target…"
+msgstr "Ajouter une cible…"
+
+msgid "Approximate preview"
+msgstr "Aperçu indicatif"
+
+msgid "Manual override"
+msgstr "Dérogation manuelle"
+
+msgid "Midnight reset"
+msgstr "Réinitialisation à minuit"
+
+msgid "Import DCA Configuration"
+msgstr "Importer la configuration DCA"
+
+msgid "Edit DCA configuration"
+msgstr "Modifier la configuration DCA"
+
+msgid "Import DCA configuration"
+msgstr "Importer la configuration DCA"
+
+msgid "Invalid DCA configuration."
+msgstr "Configuration DCA non valide."
+
+msgid "Expected a complete DCA device configuration."
+msgstr "Une configuration complète de l’appareil DCA est requise."
+
+msgid "DALI project data changed. Reopen the selection and try again."
+msgstr "Les données du projet DALI ont changé. Rouvrez la sélection et réessayez."
+
+msgid "The selected DCA item is unavailable. Reopen the selection."
+msgstr "L’élément DCA sélectionné n’est pas disponible. Rouvrez la sélection."
+
+msgid "Invalid value."
+msgstr "Valeur non valide."
+
+msgid "Invalid or unsupported color value."
+msgstr "Valeur de couleur non valide ou non prise en charge."
+
+msgid "This DCA operation is not supported."
+msgstr "Cette opération DCA n’est pas prise en charge."
+
+msgid "Expected {minimum}-{maximum}."
+msgstr "Valeur attendue : {minimum}-{maximum}."
+
+msgid "Expected HH:MM."
+msgstr "Format attendu : HH:MM."
+
+msgid "Select seven weekdays."
+msgstr "Sélectionnez sept jours de la semaine."
+
+msgid "The target already belongs to the scene."
+msgstr "La cible appartient déjà à la scène."
+
+msgid "At most 300 time control commands are supported."
+msgstr "Au maximum 300 commandes de programmation horaire sont prises en charge."
+
+msgid "At most 500 effect steps are supported."
+msgstr "Au maximum 500 étapes d’effets sont prises en charge."
+
+msgid "Descriptions can contain at most {maximum} characters."
+msgstr "Les descriptions peuvent contenir au maximum {maximum} caractères."
+
+msgid "Mo"
+msgstr "lu"
+
+msgid "Tu"
+msgstr "ma"
+
+msgid "We"
+msgstr "me"
+
+msgid "Th"
+msgstr "je"
+
+msgid "Fr"
+msgstr "ve"
+
+msgid "Sa"
+msgstr "sa"
+
+msgid "Su"
+msgstr "di"

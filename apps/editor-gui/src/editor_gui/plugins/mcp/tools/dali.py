@@ -142,9 +142,8 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         """Read the offline e64 Pro backup as XML plus its revision for project_e64pro_edit.
         Supply either a node ID or individual address. Slot and target indexes are the stored
         zero-based XML indexes. Row numbers are zero-based within the selected slot.
-        Set as_export for the same standalone ETS-style XML as the DCA export button.
+        Set as_export for the same standalone device XML as the DCA export button.
         """
-        import hashlib
         from xml.etree import ElementTree as ET
 
         from editor_gui.plugin_blob_readers.dali_backup import e64pro
@@ -154,9 +153,9 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             device = require_device(project, node_id, device_address)
             entry = e64pro.backup(device)
             if entry is None:
-                raise ValueError("No IPAS e64 Pro backup")
+                raise ValueError(S.E64_INVALID_CONFIGURATION)
             return {
-                "revision": hashlib.sha256(entry[1]).hexdigest(),
+                "revision": e64pro.revision(entry[1]),
                 "xml": (
                     project.export_e64pro(device).decode("utf-8")
                     if as_export
@@ -168,16 +167,17 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     @tool("write")
     def project_e64pro_import(
-        xml: str,
+        xml: str | None = None,
         revision: str = "",
         node_id: int | None = None,
         device_address: str | None = None,
+        path: str | None = None,
     ) -> str:
-        """Import a complete ETS e64 Pro device XML as one offline undo step.
+        """Import a complete e64 Pro device XML as one offline undo step.
+        Supply exactly one of path (a file on the editor host) or xml (inline XML).
         Supply the current revision from project_e64pro_read, or leave it empty
         if the device has no saved configuration. Returns the new SHA256 revision.
         """
-        import hashlib
 
         from editor_gui.plugin_blob_readers.dali_backup import e64pro
 
@@ -186,13 +186,20 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             device = require_device(project, node_id, device_address)
             entry = e64pro.backup(device)
             expected = entry[1] if entry else None
-            actual = (
-                hashlib.sha256(expected).hexdigest() if expected is not None else ""
-            )
+            actual = e64pro.revision(expected)
             if actual != revision:
                 raise ValueError("DALI revision changed")
-            data = project.import_e64pro(device, expected, xml.encode("utf-8"))
-            return hashlib.sha256(data).hexdigest()
+            if (path is None) == (xml is None):
+                raise ValueError("Supply exactly one of path or xml")
+            from pathlib import Path
+
+            payload = (
+                Path(path).read_bytes()
+                if path is not None
+                else (xml or "").encode("utf-8")
+            )
+            data = project.import_e64pro(device, expected, payload)
+            return e64pro.revision(data)
 
         return ctx.run_locked(change)
 
@@ -219,21 +226,20 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         colour sets a supported colour space (field) and its encoded value together.
         remove/copy/up/down address a zero-based row. No bus connection.
         """
-        import hashlib
 
         from editor_gui.plugin_blob_readers.dali_backup import e64pro
 
         def change() -> str:
             device = require_device(ctx.api.project, node_id, device_address)
             entry = e64pro.backup(device)
-            if entry is None or hashlib.sha256(entry[1]).hexdigest() != revision:
+            if entry is None or e64pro.revision(entry[1]) != revision:
                 raise ValueError("DALI revision changed")
             data = ctx.api.project.edit_e64pro(
                 device,
                 entry[1],
                 e64pro.Edit(section, slot, action, row, field, value, target, index),
             )
-            return hashlib.sha256(data).hexdigest()
+            return e64pro.revision(data)
 
         return ctx.run_locked(change)
 

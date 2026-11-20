@@ -3863,3 +3863,99 @@ msgstr "DCA-konfigurationen importerades."
 
 msgid "DCA configuration exported."
 msgstr "DCA-konfigurationen exporterades."
+
+msgid "Color Temperature"
+msgstr "Färgtemperatur"
+
+msgid "Keep Color"
+msgstr "Behåll färg"
+
+msgid "No entries"
+msgstr "Inga poster"
+
+msgid "Assigned Groups and ECGs…"
+msgstr "Tilldelade grupper och driftdon…"
+
+msgid "Add Target…"
+msgstr "Lägg till mål…"
+
+msgid "Approximate preview"
+msgstr "Ungefärlig förhandsvisning"
+
+msgid "Manual override"
+msgstr "Manuell överstyrning"
+
+msgid "Midnight reset"
+msgstr "Återställ vid midnatt"
+
+msgid "Import DCA Configuration"
+msgstr "Importera DCA-konfiguration"
+
+msgid "Edit DCA configuration"
+msgstr "Redigera DCA-konfiguration"
+
+msgid "Import DCA configuration"
+msgstr "Importera DCA-konfiguration"
+
+msgid "Invalid DCA configuration."
+msgstr "Ogiltig DCA-konfiguration."
+
+msgid "Expected a complete DCA device configuration."
+msgstr "En fullständig DCA-enhetskonfiguration krävs."
+
+msgid "DALI project data changed. Reopen the selection and try again."
+msgstr "DALI-projektdata har ändrats. Öppna valet igen och försök på nytt."
+
+msgid "The selected DCA item is unavailable. Reopen the selection."
+msgstr "Det valda DCA-objektet är inte tillgängligt. Öppna valet igen."
+
+msgid "Invalid value."
+msgstr "Ogiltigt värde."
+
+msgid "Invalid or unsupported color value."
+msgstr "Ogiltigt färgvärde eller färgvärde som inte stöds."
+
+msgid "This DCA operation is not supported."
+msgstr "Den här DCA-åtgärden stöds inte."
+
+msgid "Expected {minimum}-{maximum}."
+msgstr "Förväntat: {minimum}-{maximum}."
+
+msgid "Expected HH:MM."
+msgstr "Förväntat: HH:MM."
+
+msgid "Select seven weekdays."
+msgstr "Välj sju veckodagar."
+
+msgid "The target already belongs to the scene."
+msgstr "Målet tillhör redan scenen."
+
+msgid "At most 300 time control commands are supported."
+msgstr "Högst 300 tidsstyrningskommandon stöds."
+
+msgid "At most 500 effect steps are supported."
+msgstr "Högst 500 effektsteg stöds."
+
+msgid "Descriptions can contain at most {maximum} characters."
+msgstr "Beskrivningar får innehålla högst {maximum} tecken."
+
+msgid "Mo"
+msgstr "må"
+
+msgid "Tu"
+msgstr "ti"
+
+msgid "We"
+msgstr "on"
+
+msgid "Th"
+msgstr "to"
+
+msgid "Fr"
+msgstr "fr"
+
+msgid "Sa"
+msgstr "lö"
+
+msgid "Su"
+msgstr "sö"

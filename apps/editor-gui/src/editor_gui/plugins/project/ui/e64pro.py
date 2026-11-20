@@ -1,4 +1,4 @@
-"""Offline workspace for the IPAS DaliControl e64 Pro."""
+"""Offline workspace for IPAS DaliControl e64 Pro and Theben P64 V2."""
 
 from __future__ import annotations
 
@@ -15,12 +15,13 @@ from editor_gui import file_dialogs
 from editor_gui.device import Device
 from editor_gui.plugin_blob_readers.dali_backup import COLOUR_FADE, EDITABLE_ENUMS
 from editor_gui.plugin_blob_readers.dali_backup import e64pro as dca
-from editor_gui.plugins.project.strings import S, _
+from editor_gui.plugins.project.strings import S
 from editor_gui.plugins.project.ui.e64pro_colour import (
     Colour,
     edit_colour,
     swatch,
 )
+from editor_gui.widgets.checkbox import checkbox
 from editor_gui.widgets.combo import combo
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
 from editor_gui.widgets.dpi import px
@@ -28,6 +29,7 @@ from editor_gui.widgets.filter_box import filter_box
 from editor_gui.widgets.flow import button_width, same_line_if_fits
 from editor_gui.widgets.tables import begin_data_table, data_table_headers
 from editor_gui.widgets.tabs import begin_tab_bar
+from editor_gui.widgets.tree import collapsing_header
 from editor_gui.widgets.x_button import x_button
 
 if TYPE_CHECKING:
@@ -107,7 +109,7 @@ def named(prefix: str, index: str, e: ET.Element) -> str:
 def targets(root: ET.Element) -> dict[str, str]:
     return {
         f"{key}:{idx}": named(prefix, idx, e)
-        for key, prefix in (("groups", _("Group")), ("ecgs", _("ECG")))
+        for key, prefix in (("groups", S.E64_GROUP), ("ecgs", S.E64_ECG))
         for idx, e in objects(root, key).items()
     }
 
@@ -131,7 +133,7 @@ class XmlExchange:
         self, device: Device, data: bytes | None, project: ProjectService
     ) -> None:
         filters = ["XML", "*.xml"]
-        title = S.E64_DCA_DETAILS + "###e64_import_confirm"
+        title = S.E64_IMPORT_TITLE + "###e64_import_confirm"
         if self.open_dialog is not None and self.open_dialog.ready():
             paths = self.open_dialog.result()
             self.open_dialog = None
@@ -245,11 +247,11 @@ class Workspace:
             self.input_revision += 1
             self.snapshot = data
         views = {
-            "ecgs": _("Control Gear and Groups"),
-            "inputs": _("Input Devices"),
-            "scenes": _("Scenes"),
-            "effects": _("Effects"),
-            "templates": _("Time Control"),
+            "ecgs": S.E64_CONTROL_GEAR_AND_GROUPS,
+            "inputs": S.E64_INPUT_DEVICES,
+            "scenes": S.E64_SCENES,
+            "effects": S.E64_EFFECTS,
+            "templates": S.E64_TIME_CONTROL,
         }
         if details is not None:
             views["raw"] = S.E64_DCA_DETAILS
@@ -288,7 +290,7 @@ class Workspace:
         else:
             slots = objects(root, section)
             if not slots:
-                imgui.text_disabled(_("No Entries"))
+                imgui.text_disabled(S.E64_NO_ENTRIES)
                 return
             imgui.set_next_item_width(
                 min(px(220), imgui.get_content_region_avail().x * 0.65)
@@ -328,13 +330,13 @@ class Workspace:
     def gear(self, root: ET.Element) -> None:
         groups = objects(root, "groups")
         options = {
-            "*": _("All"),
-            **{k: named(_("Group"), k, g) for k, g in groups.items()},
-            "16": _("Single ECG"),
-            "255": _("Unassigned"),
+            "*": S.E64_ALL,
+            **{k: named(S.E64_GROUP, k, g) for k, g in groups.items()},
+            "16": S.E64_SINGLE_ECG,
+            "255": S.E64_UNASSIGNED,
         }
         if imgui.get_content_region_avail().x < px(840):
-            selected = self.choice("group", _("Group"), options)
+            selected = self.choice("group", S.E64_GROUP, options)
             self.gear_rows(root, options, selected)
             return
         if imgui.begin_table("layout", 2):
@@ -367,12 +369,12 @@ class Workspace:
         with table(
             "gear",
             [
-                _("ECG"),
-                _("Description"),
-                _("Group"),
-                _("Short Address"),
-                _("Type"),
-                _("Flag"),
+                S.E64_ECG,
+                S.E64_DESCRIPTION,
+                S.E64_GROUP,
+                S.E64_SHORT_ADDRESS,
+                S.E64_TYPE,
+                S.E64_FLAG,
                 "GTIN",
             ],
             min_width=620,
@@ -404,12 +406,10 @@ class Workspace:
                             gtin,
                         ]
                     )
-        if not imgui.collapsing_header(
-            _("Physical Devices Without a Unique Assignment")
-        ):
+        if not collapsing_header(S.E64_PHYSICAL_DEVICES_WITHOUT_A_UNIQUE_ASSIGNMENT):
             return
         with table(
-            "physical", [_("Device"), _("Short Address"), _("Long Address"), "GTIN"]
+            "physical", [S.E64_DEVICE, S.E64_SHORT_ADDRESS, S.E64_LONG_ADDRESS, "GTIN"]
         ) as show:
             if show:
                 for e in physical:
@@ -431,24 +431,24 @@ class Workspace:
 
     def inputs(self, root: ET.Element) -> None:
         for tag, label in (
-            ("mds", _("Motion / Brightness")),
-            ("gis", _("General Inputs")),
-            ("pbs", _("Push-Buttons")),
-            ("inputs", _("Physical Inputs")),
+            ("mds", S.E64_MOTION_BRIGHTNESS),
+            ("gis", S.E64_GENERAL_INPUTS),
+            ("pbs", S.E64_PUSH_BUTTONS),
+            ("inputs", S.E64_PHYSICAL_INPUTS),
         ):
-            if not imgui.collapsing_header(
+            if not collapsing_header(
                 label, imgui.TreeNodeFlags_.default_open if tag != "inputs" else 0
             ):
                 continue
             entries = objects(root, tag)
             if not entries:
-                imgui.text_disabled(_("No Entries"))
+                imgui.text_disabled(S.E64_NO_ENTRIES)
                 continue
             imgui.push_id(tag)
             try:
                 with table(
                     "inputs",
-                    [_("Description"), _("Type"), _("Address"), _("Instance")],
+                    [S.E64_DESCRIPTION, S.E64_TYPE, S.E64_ADDRESS, S.E64_INSTANCE],
                     height=min(235, 45 + 27 * len(entries)),
                     min_width=440,
                     weights=[2.2, 1.3, 1, 1],
@@ -504,9 +504,9 @@ class Workspace:
         else:
             if names:
                 button = (
-                    _("Assigned Groups and ECGs")
+                    S.E64_ASSIGNED_GROUPS_AND_ECGS
                     if section == "templates"
-                    else _("Add Target")
+                    else S.E64_ADD_TARGET
                 )
                 if imgui.button(button):
                     imgui.open_popup("##target_picker")
@@ -535,7 +535,7 @@ class Workspace:
             if not opened:
                 return
             self.target_query = filter_box(
-                "##target_search", _("Search"), self.target_query
+                "##target_search", S.E64_SEARCH, self.target_query
             )
             query = self.target_query.strip().casefold()
             members = {
@@ -546,7 +546,7 @@ class Workspace:
                     else dca.rows(item, section)
                 )
             }
-            for kind, heading in (("groups", _("Groups")), ("ecgs", _("ECG"))):
+            for kind, heading in (("groups", S.E64_GROUPS), ("ecgs", S.E64_ECG)):
                 matching = [
                     (key, label)
                     for key, label in names.items()
@@ -558,9 +558,7 @@ class Workspace:
                 for key, label in matching:
                     index = key.split(":", 1)[1]
                     if section == "templates":
-                        changed, selected = imgui.checkbox(
-                            f"{label}##{key}", key in members
-                        )
+                        changed, selected = checkbox(f"{label}##{key}", key in members)
                         if changed:
                             submit(
                                 "member", value=str(selected), target=kind, index=index
@@ -600,7 +598,7 @@ class Workspace:
             if keep or not verified or (mode and mode not in verified):
                 imgui.text_disabled("—")
                 return
-            if not imgui.small_button(_("Colour") + "…##colour"):
+            if not imgui.button(S.E64_COLOR + "…##colour"):
                 return
             initial = mode or verified[0]
             draft = Colour.parse(initial, dca.DEFAULT_COLOURS[initial])
@@ -643,10 +641,10 @@ class Workspace:
             if origin is None or colour is None or origin[0] != section:
                 imgui.close_current_popup()
                 return
-            imgui.separator_text(_("Colour"))
+            imgui.separator_text(S.E64_COLOR)
             modes = self.colour_modes
             if len(modes) > 1:
-                mode = pick(_("Mode"), colour.mode, {m: dca.COLOURS[m] for m in modes})
+                mode = pick(S.E64_MODE, colour.mode, {m: dca.COLOURS[m] for m in modes})
                 if mode != colour.mode:
                     colour = Colour.parse(mode, dca.DEFAULT_COLOURS[mode]) or colour
             imgui.push_item_width(
@@ -666,8 +664,8 @@ class Workspace:
             imgui.same_line()
             imgui.text_unformatted(colour.summary)
             if colour.mode in ("1", "2"):
-                imgui.text_disabled(_("Approximate Preview"))
-            if imgui.button(_("Apply")):
+                imgui.text_disabled(S.E64_APPROXIMATE_PREVIEW)
+            if imgui.button(S.E64_APPLY):
                 if colour != origin[2]:
                     if section == "templates":
                         submit("set", origin[1], "value", colour.raw)
@@ -675,7 +673,7 @@ class Workspace:
                         submit("colour", origin[1], colour.mode, colour.raw)
                 imgui.close_current_popup()
             imgui.same_line()
-            if imgui.button(_("Cancel")):
+            if imgui.button(S.E64_CANCEL):
                 self.colour_draft = None
                 imgui.close_current_popup()
         finally:
@@ -709,7 +707,7 @@ class Workspace:
                 submit("header" if row < 0 else "set", row, field, value)
 
         def tick(label: str, value: bool, action: Callable[[bool], None]) -> None:
-            changed, new = imgui.checkbox(label, value)
+            changed, new = checkbox(label, value)
             if changed:
                 action(new)
 
@@ -720,21 +718,21 @@ class Workspace:
             else min(px(390), width * 0.65)
         )
         imgui.set_next_item_width(description_width)
-        edit(item, "description", _("Description"))
+        edit(item, "description", S.E64_DESCRIPTION)
         if section == "scenes":
             if width >= px(660):
                 imgui.same_line()
             imgui.set_next_item_width(px(55))
-            edit(item, "knxScene", _("KNX Scene"))
+            edit(item, "knxScene", S.E64_KNX_SCENE)
             if width >= px(350):
                 imgui.same_line()
             imgui.set_next_item_width(px(80))
-            edit(item, "fadeTime", _("Fade Time"), options=COLOUR_FADE)
+            edit(item, "fadeTime", S.E64_FADE_TIME, options=COLOUR_FADE)
         if section == "effects":
             mode = item.get("mode", "0")
             if mode in ("0", "1"):
                 tick(
-                    _("Loop"),
+                    S.E64_LOOP,
                     mode == "1",
                     lambda v: submit("header", -1, "mode", str(int(v))),
                 )
@@ -742,11 +740,13 @@ class Workspace:
                 imgui.text_unformatted(mode)
         if section == "templates":
             mode = item.get("mode", "—")
-            mode_label = {"Enabled": _("Active"), "Disabled": _("Off")}.get(mode, mode)
-            imgui.text_unformatted(_("Mode") + ": " + mode_label)
+            mode_label = {"Enabled": S.E64_ACTIVE, "Disabled": S.E64_OFF}.get(
+                mode, mode
+            )
+            imgui.text_unformatted(S.E64_MODE + ": " + mode_label)
             for attr, label in (
-                ("isOverwritable", _("Manual Override")),
-                ("resetOnMidnight", _("Midnight Reset")),
+                ("isOverwritable", S.E64_MANUAL_OVERRIDE),
+                ("resetOnMidnight", S.E64_MIDNIGHT_RESET),
             ):
                 raw = item.get(attr, "True" if attr == "resetOnMidnight" else "False")
                 if width >= px(620):
@@ -765,25 +765,23 @@ class Workspace:
             if members:
                 imgui.text_wrapped(", ".join(names.get(key, key) for key in members))
         sequence = dca.rows(item, section)
-        weekdays = _("Mo Tu We Th Fr Sa Su").split()
-        if len(weekdays) != 7:
-            weekdays = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"]
+        weekdays = list(S.E64_WEEKDAYS.values())
         if section == "templates":
             columns = [
-                _("Function"),
-                _("Value"),
-                _("Time"),
-                _("Fade Time"),
+                S.E64_FUNCTION,
+                S.E64_VALUE,
+                S.E64_TIME,
+                S.E64_FADE_TIME,
                 *weekdays,
-                _("Actions"),
+                S.E64_ACTIONS,
             ]
             weights = [2.7, 1.2, 1.1, 1.1, *([0.52] * 7), 1.4]
             functions = {
-                "SetValue": _("Brightness"),
-                "SetMinValue": _("Min. Brightness"),
-                "SetMaxValue": _("Max. Brightness"),
-                "SetMaxOnValue": _("Switch-on Limit"),
-                "ColourTemp": _("Colour Temperature"),
+                "SetValue": S.E64_BRIGHTNESS,
+                "SetMinValue": S.E64_MIN_BRIGHTNESS,
+                "SetMaxValue": S.E64_MAX_BRIGHTNESS,
+                "SetMaxOnValue": S.E64_SWITCH_ON_LIMIT,
+                "ColourTemp": S.E64_COLOR_TEMPERATURE,
                 **{
                     func: dca.COLOURS[mode]
                     for func, mode in dca.TEMPLATE_COLOURS.items()
@@ -793,15 +791,15 @@ class Workspace:
         else:
             functions = {}
             columns = [
-                _("Target"),
-                _("Value") + " (%)",
-                _("Colour"),
-                _("Keep Value"),
-                _("Keep Colour"),
+                S.E64_TARGET,
+                S.E64_VALUE + " (%)",
+                S.E64_COLOR,
+                S.E64_KEEP_VALUE,
+                S.E64_KEEP_COLOR,
             ]
             if section == "effects":
-                columns += [_("Fade Time"), _("Delay")]
-            columns.append(_("Actions"))
+                columns += [S.E64_FADE_TIME, S.E64_DELAY]
+            columns.append(S.E64_ACTIONS)
             weights = [
                 2.7,
                 0.9,
@@ -919,7 +917,7 @@ class Workspace:
                                 )
                     imgui.table_next_column()
                     if section == "templates":
-                        if imgui.small_button(_("Copy")):
+                        if imgui.button(S.E64_COPY):
                             submit("copy", n)
                         imgui.same_line()
                     if section == "effects":
@@ -937,11 +935,11 @@ class Workspace:
                         size = imgui.get_frame_height()
                         removed = x_button("remove_step", imgui.ImVec2(size, size))
                         if imgui.is_item_hovered():
-                            imgui.set_tooltip(_("Remove"))
+                            imgui.set_tooltip(S.E64_REMOVE)
                     else:
-                        removed = imgui.small_button(_("Remove"))
+                        removed = imgui.button(S.E64_REMOVE)
                     if removed:
                         submit("remove", n)
                     imgui.pop_id()
-        if section == "templates" and imgui.button(_("Add Command")):
+        if section == "templates" and imgui.button(S.E64_ADD_COMMAND):
             submit("add")

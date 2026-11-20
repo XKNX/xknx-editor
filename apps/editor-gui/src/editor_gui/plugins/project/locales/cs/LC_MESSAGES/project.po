@@ -3915,3 +3915,99 @@ msgstr "Konfigurace DCA byla importována."
 
 msgid "DCA configuration exported."
 msgstr "Konfigurace DCA byla exportována."
+
+msgid "Color Temperature"
+msgstr "Teplota chromatičnosti"
+
+msgid "Keep Color"
+msgstr "Zachovat barvu"
+
+msgid "No entries"
+msgstr "Žádné položky"
+
+msgid "Assigned Groups and ECGs…"
+msgstr "Přiřazené skupiny a předřadníky…"
+
+msgid "Add Target…"
+msgstr "Přidat cíl…"
+
+msgid "Approximate preview"
+msgstr "Orientační náhled"
+
+msgid "Manual override"
+msgstr "Ruční ovládání"
+
+msgid "Midnight reset"
+msgstr "Obnovení o půlnoci"
+
+msgid "Import DCA Configuration"
+msgstr "Importovat konfiguraci DCA"
+
+msgid "Edit DCA configuration"
+msgstr "Upravit konfiguraci DCA"
+
+msgid "Import DCA configuration"
+msgstr "Importovat konfiguraci DCA"
+
+msgid "Invalid DCA configuration."
+msgstr "Neplatná konfigurace DCA."
+
+msgid "Expected a complete DCA device configuration."
+msgstr "Je vyžadována úplná konfigurace zařízení DCA."
+
+msgid "DALI project data changed. Reopen the selection and try again."
+msgstr "Data projektu DALI se změnila. Znovu otevřete výběr a zkuste to znovu."
+
+msgid "The selected DCA item is unavailable. Reopen the selection."
+msgstr "Vybraná položka DCA není dostupná. Znovu otevřete výběr."
+
+msgid "Invalid value."
+msgstr "Neplatná hodnota."
+
+msgid "Invalid or unsupported color value."
+msgstr "Neplatná nebo nepodporovaná hodnota barvy."
+
+msgid "This DCA operation is not supported."
+msgstr "Tato operace DCA není podporována."
+
+msgid "Expected {minimum}-{maximum}."
+msgstr "Očekáváno: {minimum}-{maximum}."
+
+msgid "Expected HH:MM."
+msgstr "Očekáváno: HH:MM."
+
+msgid "Select seven weekdays."
+msgstr "Vyberte sedm dnů v týdnu."
+
+msgid "The target already belongs to the scene."
+msgstr "Cíl již patří do scény."
+
+msgid "At most 300 time control commands are supported."
+msgstr "Je podporováno nejvýše 300 příkazů časového řízení."
+
+msgid "At most 500 effect steps are supported."
+msgstr "Je podporováno nejvýše 500 kroků efektů."
+
+msgid "Descriptions can contain at most {maximum} characters."
+msgstr "Popisy mohou obsahovat nejvýše {maximum} znaků."
+
+msgid "Mo"
+msgstr "po"
+
+msgid "Tu"
+msgstr "út"
+
+msgid "We"
+msgstr "st"
+
+msgid "Th"
+msgstr "čt"
+
+msgid "Fr"
+msgstr "pá"
+
+msgid "Sa"
+msgstr "so"
+
+msgid "Su"
+msgstr "ne"

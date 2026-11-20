@@ -4005,3 +4005,99 @@ msgstr "DCA-Konfiguration importiert."
 
 msgid "DCA configuration exported."
 msgstr "DCA-Konfiguration exportiert."
+
+msgid "Color Temperature"
+msgstr "Farbtemperatur"
+
+msgid "Keep Color"
+msgstr "Farbe beibehalten"
+
+msgid "No entries"
+msgstr "Keine Einträge"
+
+msgid "Assigned Groups and ECGs…"
+msgstr "Zugeordnete Gruppen und EVGs…"
+
+msgid "Add Target…"
+msgstr "Ziel hinzufügen…"
+
+msgid "Approximate preview"
+msgstr "Ungefähre Vorschau"
+
+msgid "Manual override"
+msgstr "Manuelle Übersteuerung"
+
+msgid "Midnight reset"
+msgstr "Mitternachtsreset"
+
+msgid "Import DCA Configuration"
+msgstr "DCA-Konfiguration importieren"
+
+msgid "Edit DCA configuration"
+msgstr "DCA-Konfiguration bearbeiten"
+
+msgid "Import DCA configuration"
+msgstr "DCA-Konfiguration importieren"
+
+msgid "Invalid DCA configuration."
+msgstr "Ungültige DCA-Konfiguration."
+
+msgid "Expected a complete DCA device configuration."
+msgstr "Eine vollständige DCA-Gerätekonfiguration wird erwartet."
+
+msgid "DALI project data changed. Reopen the selection and try again."
+msgstr "Die DALI-Projektdaten haben sich geändert. Öffne die Auswahl erneut und versuche es noch einmal."
+
+msgid "The selected DCA item is unavailable. Reopen the selection."
+msgstr "Der ausgewählte DCA-Eintrag ist nicht verfügbar. Öffne die Auswahl erneut."
+
+msgid "Invalid value."
+msgstr "Ungültiger Wert."
+
+msgid "Invalid or unsupported color value."
+msgstr "Ungültiger oder nicht unterstützter Farbwert."
+
+msgid "This DCA operation is not supported."
+msgstr "Dieser DCA-Vorgang wird nicht unterstützt."
+
+msgid "Expected {minimum}-{maximum}."
+msgstr "Erwartet: {minimum}-{maximum}."
+
+msgid "Expected HH:MM."
+msgstr "Erwartet: HH:MM."
+
+msgid "Select seven weekdays."
+msgstr "Wähle sieben Wochentage aus."
+
+msgid "The target already belongs to the scene."
+msgstr "Das Ziel gehört bereits zur Szene."
+
+msgid "At most 300 time control commands are supported."
+msgstr "Es werden höchstens 300 Zeitsteuerungsbefehle unterstützt."
+
+msgid "At most 500 effect steps are supported."
+msgstr "Es werden höchstens 500 Effektschritte unterstützt."
+
+msgid "Descriptions can contain at most {maximum} characters."
+msgstr "Beschreibungen dürfen höchstens {maximum} Zeichen enthalten."
+
+msgid "Mo"
+msgstr "Mo."
+
+msgid "Tu"
+msgstr "Di."
+
+msgid "We"
+msgstr "Mi."
+
+msgid "Th"
+msgstr "Do."
+
+msgid "Fr"
+msgstr "Fr."
+
+msgid "Sa"
+msgstr "Sa."
+
+msgid "Su"
+msgstr "So."

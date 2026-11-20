@@ -145,6 +145,9 @@ class PluginParamsPanel:
             imgui.text_disabled(S.PLUGIN_PARAMS_NO_MAPPING)
             return
         if mapping.blob_reader == "dali_backup" and e64pro.supports(device):
+            imgui.text_colored(status_color("info"), mapping.title)
+            imgui.text_wrapped(S.PLUGIN_PARAMS_EDIT_NOTE)
+            self._render_program_dca(device)
             self._render_e64(device)
             return
         try:
@@ -168,6 +171,10 @@ class PluginParamsPanel:
             imgui.text_wrapped(S.PLUGIN_PARAMS_EDIT_NOTE)
         if mapping.blob_reader == "triton_lcd":
             self._render_triton_actions(device)
+        self._render_program_dca(device)
+        self._render_sections(device, sections)
+
+    def _render_program_dca(self, device: Device) -> None:
         # "Program DCA" shortcut: visible when the project plugin exposes the handler and
         # the device actually carries a vendor BLOB. One-click upload of the plug-in's
         # property-image to the gateway, bypassing the generic Parameters download.
@@ -176,7 +183,6 @@ class PluginParamsPanel:
                 self._on_program_dca(device)
             imgui.same_line()
             imgui.text_disabled(S.PLUGIN_PARAMS_PROGRAM_DCA_HINT)
-        self._render_sections(device, sections)
 
     def _render_e64(self, device: Device) -> None:
         if device.node_id not in self._e64_views:

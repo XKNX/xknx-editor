@@ -3863,3 +3863,99 @@ msgstr "DCA-konfigurationen er importeret."
 
 msgid "DCA configuration exported."
 msgstr "DCA-konfigurationen er eksporteret."
+
+msgid "Color Temperature"
+msgstr "Farvetemperatur"
+
+msgid "Keep Color"
+msgstr "Behold farve"
+
+msgid "No entries"
+msgstr "Ingen poster"
+
+msgid "Assigned Groups and ECGs…"
+msgstr "Tildelte grupper og forkoblinger…"
+
+msgid "Add Target…"
+msgstr "Tilføj mål…"
+
+msgid "Approximate preview"
+msgstr "Vejledende forhåndsvisning"
+
+msgid "Manual override"
+msgstr "Manuel overstyring"
+
+msgid "Midnight reset"
+msgstr "Nulstil ved midnat"
+
+msgid "Import DCA Configuration"
+msgstr "Importér DCA-konfiguration"
+
+msgid "Edit DCA configuration"
+msgstr "Rediger DCA-konfiguration"
+
+msgid "Import DCA configuration"
+msgstr "Importér DCA-konfiguration"
+
+msgid "Invalid DCA configuration."
+msgstr "Ugyldig DCA-konfiguration."
+
+msgid "Expected a complete DCA device configuration."
+msgstr "Der forventes en komplet DCA-enhedskonfiguration."
+
+msgid "DALI project data changed. Reopen the selection and try again."
+msgstr "DALI-projektdata er ændret. Åbn valget igen, og prøv igen."
+
+msgid "The selected DCA item is unavailable. Reopen the selection."
+msgstr "Det valgte DCA-element er ikke tilgængeligt. Åbn valget igen."
+
+msgid "Invalid value."
+msgstr "Ugyldig værdi."
+
+msgid "Invalid or unsupported color value."
+msgstr "Ugyldig eller ikke understøttet farveværdi."
+
+msgid "This DCA operation is not supported."
+msgstr "Denne DCA-handling understøttes ikke."
+
+msgid "Expected {minimum}-{maximum}."
+msgstr "Forventet: {minimum}-{maximum}."
+
+msgid "Expected HH:MM."
+msgstr "Forventet: HH:MM."
+
+msgid "Select seven weekdays."
+msgstr "Vælg syv ugedage."
+
+msgid "The target already belongs to the scene."
+msgstr "Målet tilhører allerede scenen."
+
+msgid "At most 300 time control commands are supported."
+msgstr "Der understøttes højst 300 tidsstyringskommandoer."
+
+msgid "At most 500 effect steps are supported."
+msgstr "Der understøttes højst 500 effekttrin."
+
+msgid "Descriptions can contain at most {maximum} characters."
+msgstr "Beskrivelser må højst indeholde {maximum} tegn."
+
+msgid "Mo"
+msgstr "ma."
+
+msgid "Tu"
+msgstr "ti."
+
+msgid "We"
+msgstr "on."
+
+msgid "Th"
+msgstr "to."
+
+msgid "Fr"
+msgstr "fr."
+
+msgid "Sa"
+msgstr "lø."
+
+msgid "Su"
+msgstr "sø."

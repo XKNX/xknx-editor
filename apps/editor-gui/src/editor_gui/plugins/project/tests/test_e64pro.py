@@ -72,13 +72,14 @@ def test_xml_export_flags_populated_slots_without_changing_project_state():
     ] == ["False", "True"]
 
 
-def test_service_undo_export_and_reimport(tmp_path, monkeypatch):
+@pytest.mark.parametrize("app_id", ["M-00EF_A-DA11-22-A545", "M-0048_A-DA11-21-9400"])
+def test_service_undo_export_and_reimport(tmp_path, monkeypatch, app_id):
     sample = parse_application_xml(
         (ROOT / "packages/download/tests/fixtures/powertool/21.xml").read_bytes(),
         "M-0007",
     )[0]
     app = Application(
-        replace(sample.program, id="M-00EF_A-DA11-22-A545"), sample.version, "M-00EF"
+        replace(sample.program, id=app_id), sample.version, app_id.split("_")[0]
     )
     project = ProjectService(CatalogService(tmp_path / "catalog.xknxcatalog"))
     project.set_logger(Logger(LogService(), "project"))
@@ -98,6 +99,7 @@ def test_service_undo_export_and_reimport(tmp_path, monkeypatch):
         changed = project.device_binary_data(device(), NAME)
         assert changed == e64pro.apply(PAYLOAD, op)
         assert project.cursor == before + 1
+        assert project.history()[0].display_text == S.E64_HISTORY_EDIT
         with pytest.raises(ValueError, match="changed"):
             project.edit_e64pro(device(), PAYLOAD, op)
         project.undo()
@@ -126,6 +128,7 @@ def test_service_undo_export_and_reimport(tmp_path, monkeypatch):
             device, changed, ET.tostring(xml, encoding="utf-8")
         )
         assert project.cursor == cursor + 1
+        assert project.history()[0].display_text == S.E64_HISTORY_IMPORT
         backup = e64pro.document(imported)
         assert backup.get("IndividualAddress") == device.individual_address
         assert backup.get("Project") != "Source project"
