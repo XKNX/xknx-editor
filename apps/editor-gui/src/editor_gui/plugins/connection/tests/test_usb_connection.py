@@ -449,6 +449,32 @@ class TestConnecting:
         finally:
             await interface.stop()
 
+    async def test_connected_only_once_the_connection_is_in_place(
+        self, fake_hid: FakeHIDModule, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        plugin = _plugin()
+        plugin._usb_target = UsbTarget.of(_DEVICE)
+        seen: list[tuple[ConnectionState, list[str]]] = []
+        query = ObservableUSBInterfaceThreaded.read_max_apdu_length
+
+        async def slow_query(interface: ObservableUSBInterfaceThreaded) -> int | None:
+            # A slow link: the query takes a while, the connection is not handed out yet.
+            seen.append((plugin._state, list(plugin.test_events)))
+            await asyncio.sleep(0.05)
+            return await query(interface)
+
+        monkeypatch.setattr(
+            ObservableUSBInterfaceThreaded, "read_max_apdu_length", slow_query
+        )
+        plugin._state = ConnectionState.CONNECTING
+        await plugin._connect_async()
+        try:
+            assert seen == [(ConnectionState.CONNECTING, [])]
+            assert plugin._state is ConnectionState.CONNECTED, plugin._error_message
+            assert plugin.test_events == ["connection", "connected"]
+        finally:
+            await plugin._disconnect_async()
+
     async def test_connect_without_bus(self, fake_hid: FakeHIDModule) -> None:
         fake_hid.interface.features[DeviceFeature.BUS_CONNECTION_STATUS] = b"\x00"
         plugin = _plugin()
