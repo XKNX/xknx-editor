@@ -173,9 +173,9 @@ def _connects[F: Callable[..., Any]](op: str) -> Callable[[F], F]:
                 and (self.xknx is None or connector.opened_for_operations())
             ):
                 return self.connect_for_operation(
-                    op, lambda: method(self, *args, **kwargs)
+                    op, lambda: self.start_operation(method, args, kwargs)
                 )
-            return method(self, *args, **kwargs)
+            return self.start_operation(method, args, kwargs)
 
         return cast(F, run)
 
@@ -235,6 +235,8 @@ class ConnectionService:
         self.block_bus_writes = False
         # The task behind each future of run_async while it runs (cancel_operation).
         self._operation_tasks: dict[Future[Any], list[asyncio.Task[Any]]] = {}
+        # How many operations run_async scheduled (see start_operation).
+        self._scheduled_operations = 0
         # Global KNX master data (mask-version default procedures), injected at
         # startup. Required to resolve an UNLOAD scope and default/merged procedures.
         self.master: MasterData | None = None
@@ -379,6 +381,25 @@ class ConnectionService:
         with self._busy_lock:
             ended, self._ended_operations = self._ended_operations, []
         return ended
+
+    def start_operation(
+        self,
+        method: Callable[..., Any],
+        args: tuple[Any, ...],
+        kwargs: dict[str, Any],
+    ) -> Any:
+        """Call the online operation ``method``. When it raises before it scheduled anything,
+        the operation slot it took is released as failed, so no operation is left running
+        and the following ones are not kept waiting."""
+        with self._busy_lock:
+            was_free = self._busy is None
+        scheduled = self._scheduled_operations
+        try:
+            return method(self, *args, **kwargs)
+        except Exception as exc:
+            if was_free and self._scheduled_operations == scheduled:
+                self.end_operation("failed", str(exc) or type(exc).__name__)
+            raise
 
     def _clear_busy(self) -> None:
         with self._busy_lock:
@@ -644,6 +665,11 @@ class ConnectionService:
         xknx: XKNX | None,
         loop: asyncio.AbstractEventLoop | None,
     ) -> None:
+        previous = self._xknx
+        if previous is not None and previous is not xknx:
+            from xknxeditor.download.communication_path import release_installation
+
+            release_installation(previous)
         self._xknx = xknx
         self._loop = loop
         if xknx is None:
@@ -2122,7 +2148,17 @@ class ConnectionService:
         if self._loop is None:
             coro.close()
             return None
-        self._update_installation()
+        try:
+            self._update_installation()
+        except Exception as exc:
+            # Not started: the caller frees the bus as for a missing connection, and no
+            # operation is left behind as running.
+            self._log.error(
+                "Could not prepare the communication paths",
+                error=str(exc) or type(exc).__name__,
+            )
+            coro.close()
+            return None
         # The task the coroutine runs in, for cancel_operation.
         started: list[asyncio.Task[Any]] = []
 
@@ -2133,6 +2169,7 @@ class ConnectionService:
             return await coro
 
         future = asyncio.run_coroutine_threadsafe(tracked(), self._loop)
+        self._scheduled_operations += 1
         self._operation_tasks[future] = started
         future.add_done_callback(self._forget_operation_task)
         return future

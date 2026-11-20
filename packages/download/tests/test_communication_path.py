@@ -24,6 +24,7 @@ from xknxeditor.download.communication_path import (
     SecureSystemBroadcastBlocked,
     broadcast_path,
     communication_paths,
+    release_installation,
     routed_manager,
     set_installation,
 )
@@ -37,13 +38,12 @@ _UP = IndividualAddress("1.1.0")
 _DOWN = IndividualAddress("1.2.0")
 
 
-class _Xknx:
-    def __init__(self) -> None:
-        self.current_address = _TOOL
-
-
 def _xknx() -> XKNX:
-    return cast("XKNX", _Xknx())
+    # A real connection object: it takes no weak reference and no attribute it has no slot
+    # for, which a stand-in would hide.
+    xknx = XKNX()
+    xknx.current_address = _TOOL
+    return xknx
 
 
 def _media_coupler() -> FakeDevice:
@@ -437,6 +437,20 @@ async def test_the_installation_can_be_taken_away() -> None:
         assert local.system_broadcast
     # a stand-in for a connection that has none
     assert communication_paths(cast("XKNX", None)) is None
+
+
+def test_the_paths_end_with_the_connection() -> None:
+    xknx = _xknx()
+    set_installation(xknx, _installation(Coupler(_DOWN, block_unicast=True)))
+    assert communication_paths(xknx) is not None
+    # another connection has its own, none until it is given couplers
+    other = _xknx()
+    assert communication_paths(other) is None
+    release_installation(other)
+    assert communication_paths(xknx) is not None
+    release_installation(xknx)
+    assert communication_paths(xknx) is None
+    release_installation(xknx)
 
 
 def test_the_path_of_the_installation() -> None:
