@@ -20,6 +20,7 @@ from editor_gui.widgets.dialog import (
 )
 from editor_gui.widgets.dpi import px
 from editor_gui.widgets.filter_box import filter_box
+from editor_gui.widgets.text_util import after_control_hint, control_hint
 
 Kind = Literal["bool", "choice", "text", "password", "int", "info", "custom"]
 
@@ -309,14 +310,13 @@ def _render_setting(setting: Setting, narrow: bool) -> None:
     imgui.begin_disabled(setting.read_only())
     _render_control(setting, label="" if beside else setting.label())
     imgui.end_disabled()
-    if setting.hint is not None:
-        hint = setting.hint()
-        if hint:
-            imgui.push_text_wrap_pos(0.0)
-            imgui.text_disabled(hint)
-            imgui.pop_text_wrap_pos()
+    hint = setting.hint() if setting.hint is not None else ""
+    if hint:
+        control_hint(hint)
     imgui.end_group()
     imgui.spacing()
+    if hint:
+        after_control_hint()
 
 
 def _render_control(setting: Setting, label: str) -> None:

@@ -4,6 +4,26 @@ from __future__ import annotations
 
 from imgui_bundle import imgui
 
+# How much of the item spacing above it a control's hint leaves out: it sits close to its
+# control, so it reads as its part and not as the next one's.
+_HINT_PULL = 0.75
+
+
+def control_hint(text: str) -> None:
+    """The grey explanation of the control just above it, wrapped at the right edge and closer to
+    that control than the usual spacing. Leave more room after it than before the next control
+    (:func:`after_control_hint`), so the hint is clearly the one above's."""
+    style = imgui.get_style()
+    imgui.set_cursor_pos_y(imgui.get_cursor_pos_y() - style.item_spacing.y * _HINT_PULL)
+    imgui.push_text_wrap_pos(0.0)
+    imgui.text_disabled(text)
+    imgui.pop_text_wrap_pos()
+
+
+def after_control_hint() -> None:
+    """The room after a control with its :func:`control_hint`, before the next control."""
+    imgui.dummy(imgui.ImVec2(0.0, imgui.get_style().item_spacing.y))
+
 
 def text_clipped_tooltip(
     text: str, *, disabled: bool = False, width: float | None = None
