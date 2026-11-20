@@ -355,9 +355,16 @@ class TelegramView:
             self._copy()
         if self.kind is MonitorKind.GROUP:
             replaying = self._service.replaying
-            can_replay = not replaying and self._service.is_connected() and has_records
+            # nothing is replayed through local device access: its reason as the hint
+            local = self._service.local_device_reason()
+            can_replay = (
+                not replaying
+                and not local
+                and self._service.is_connected()
+                and has_records
+            )
             if self._icon_button(
-                ICON_REPLAY, S.TOOL_REPLAY, S.TOOL_REPLAY_HINT, can_replay
+                ICON_REPLAY, S.TOOL_REPLAY, local or S.TOOL_REPLAY_HINT, can_replay
             ):
                 self._replay()
             if self._icon_button(
@@ -437,6 +444,14 @@ class TelegramView:
         error = self._connection.busmonitor_error
         if error == "routing":
             return S.BUSMON_UNSUPPORTED_CONNECTION
+        if error == "local_device":
+            from editor_gui.plugins.connection.strings import S as connection_strings
+
+            local = self._connection.local_device
+            return connection_strings.LOCAL_DEVICE_NO_BUS_MONITOR.format(
+                local=(local.address if local is not None else None)
+                or connection_strings.LOCAL_DEVICE_ADDRESS_UNKNOWN
+            )
         text = {
             "unsupported": S.BUSMON_UNSUPPORTED,
             "busy": S.BUSMON_BUSY,
@@ -612,7 +627,9 @@ class TelegramView:
             self._service.start(self.kind)
             return
         if not self._connection.busmonitor_supported():
-            self._connection.busmonitor_error = "routing"
+            self._connection.busmonitor_error = (
+                self._connection.busmonitor_unsupported_error()
+            )
             return
         self._question = _Question(
             S.BUSMON_CONFIRM_TITLE,
@@ -715,7 +732,10 @@ class TelegramView:
                 )
             )
         if plan.refused:
-            messages.append(S.REPLAY_PROTECTED)
+            local = self._service.local_device_reason()
+            messages.append(
+                plan.refused if local and plan.refused == local else S.REPLAY_PROTECTED
+            )
         elif not plan.items:
             messages.append(S.REPLAY_NOTHING)
         self._message = (". ".join(messages), True) if messages else None

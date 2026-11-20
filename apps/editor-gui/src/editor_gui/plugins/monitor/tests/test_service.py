@@ -88,6 +88,18 @@ class FakeConnection:
     def writes_refused(self, _op: str) -> bool:
         return False
 
+    # the reason group telegrams are not sent while the connection reaches only a USB
+    # interface's own device ("": they are sent)
+    local_reason = ""
+
+    def local_device_refusal(self, *_addresses: str, reaches: str | None = None) -> str:
+        return self.local_reason
+
+    def local_device_refused(
+        self, _op: str, *_addresses: str, reaches: str | None = None
+    ) -> bool:
+        return bool(self.local_reason)
+
     def send_cemi(self, raw: bytes) -> None:
         self.sent.append(raw)
 
@@ -442,6 +454,30 @@ def test_without_a_connection_group_telegrams_go_over_another_programs() -> None
     service.send_read("1/2/5")
     assert connection.sent == [b"x"]
     assert len(sent) == 2
+
+
+def test_nothing_is_sent_or_replayed_through_local_device_access() -> None:
+    """While the connection reaches only a USB interface's own device, no group telegram is
+    sent, and a replay does not start."""
+    connection = FakeConnection()
+    connection.xknx = FakeXknx("1.0.2")
+    connection.local_reason = "only the own device"
+    service = MonitorService(connection)  # type: ignore[arg-type]
+    service.on_connected()
+    service.send_read("1/2/3")
+    assert not service.send_write("1/2/3", "DPST-1-1", "1")
+    plan = service.start_replay(
+        [
+            MonitorRecord(
+                kind=RecordKind.TELEGRAM,
+                ticks=0,
+                raw=_raw("1/2/3", GroupValueWrite(DPTBinary(1))),
+            )
+        ]
+    )
+    assert plan.refused == "only the own device"
+    assert not plan.items and not service.replaying
+    assert connection.sent == []
 
 
 def test_nothing_is_sent_or_replayed_to_a_protected_group_address() -> None:

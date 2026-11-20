@@ -356,3 +356,182 @@ msgstr "Domeneadressen kunne ikke settes: {error}"
 
 msgid "Setting the domain address…"
 msgstr "Setter domeneadressen…"
+
+msgid "Local Device Access"
+msgstr "Lokal enhetstilgang"
+
+msgid "Connects to the KNX device the USB interface is part of (e.g. an actuator with a USB port of its own) instead of the bus. Only this device can then be reached, for downloads and readouts; group telegrams, broadcasts and the bus monitor are not available. Needs a cEMI interface."
+msgstr "Kobler til KNX-enheten som USB-grensesnittet er en del av (f.eks. en aktuator med egen USB-port), i stedet for til bussen. Da kan bare denne enheten nås, for nedlastinger og avlesninger; gruppetelegrammer, broadcaster og busmonitoren er ikke tilgjengelige. Krever et cEMI-grensesnitt."
+
+msgid "Connect to the interface's own device (local device access)"
+msgstr "Koble til grensesnittets egen enhet (lokal enhetstilgang)"
+
+msgid "{target}, local device access to {address}"
+msgstr "{target}, lokal enhetstilgang til {address}"
+
+msgid "(address unknown)"
+msgstr "(adresse ukjent)"
+
+msgid "Local device access: only this device is reached"
+msgstr "Lokal enhetstilgang: bare denne enheten nås"
+
+msgid "Switching the connection…"
+msgstr "Bytter tilkoblingen…"
+
+msgid "The connection could not be switched: {error}"
+msgstr "Tilkoblingen kunne ikke byttes: {error}"
+
+msgid "The connection of the interface is being switched."
+msgstr "Tilkoblingen til grensesnittet blir byttet."
+
+msgid "Through local device access only the USB interface's own device {local} can be reached, not {address}."
+msgstr "Via lokal enhetstilgang kan bare USB-grensesnittets egen enhet {local} nås, ikke {address}."
+
+msgid "Through local device access only the USB interface's own device {local} can be reached: group telegrams can't be sent."
+msgstr "Via lokal enhetstilgang kan bare USB-grensesnittets egen enhet {local} nås: gruppetelegrammer kan ikke sendes."
+
+msgid "Through local device access only the USB interface's own device {local} can be reached: broadcasts can't be sent."
+msgstr "Via lokal enhetstilgang kan bare USB-grensesnittets egen enhet {local} nås: broadcaster kan ikke sendes."
+
+msgid "Through local device access only the USB interface's own device {local} can be reached: the bus monitor can't run."
+msgstr "Via lokal enhetstilgang kan bare USB-grensesnittets egen enhet {local} nås: busmonitoren kan ikke kjøre."
+
+msgid "Through local device access only the USB interface's own device {local} can be reached: scan from {local} to {local}."
+msgstr "Via lokal enhetstilgang kan bare USB-grensesnittets egen enhet {local} nås: skann fra {local} til {local}."
+
+msgid "M-Bus and BatiBus Frames"
+msgstr "M-Bus- og BatiBus-rammer"
+
+msgid "The frames of the interface's M-Bus and BatiBus tunnels (e.g. of a KNX RF USB stick that also receives wireless M-Bus meters), passed through as they are. The last 500 are kept."
+msgstr "Rammene fra grensesnittets M-Bus- og BatiBus-tunneler (f.eks. fra en KNX RF USB-pinne som også mottar trådløse M-Bus-målere), videresendt uendret. De siste 500 beholdes."
+
+msgid "No M-Bus or BatiBus frames yet"
+msgstr "Ingen M-Bus- eller BatiBus-rammer ennå"
+
+msgid "Clear"
+msgstr "Tøm"
+
+msgid "Time"
+msgstr "Tid"
+
+msgid "Direction"
+msgstr "Retning"
+
+msgid "Protocol"
+msgstr "Protokoll"
+
+msgid "Service"
+msgstr "Tjeneste"
+
+msgid "Data"
+msgstr "Data"
+
+msgid "Sent"
+msgstr "Sendt"
+
+msgid "Received"
+msgstr "Mottatt"
+
+msgid "Send"
+msgstr "Send"
+
+msgid "{data} is not hexadecimal data (e.g. 44 AE 0C)."
+msgstr "{data} er ikke heksadesimale data (f.eks. 44 AE 0C)."
+
+msgid "{service} is not a hexadecimal octet (00 to FF)."
+msgstr "{service} er ikke en heksadesimal oktett (00 til FF)."
+
+msgid "The frame could not be sent: {error}"
+msgstr "Rammen kunne ikke sendes: {error}"
+
+msgid "Block Bus Writes is on (Settings > Connection): nothing is sent."
+msgstr "Blokker skriving til bussen er på (Innstillinger > Tilkobling): ingenting sendes."
+
+msgid "KNXnet/IP Server"
+msgstr "KNXnet/IP-server"
+
+msgid "Run a KNXnet/IP server for other tools (USB to IP bridge)"
+msgstr "Kjør en KNXnet/IP-server for andre verktøy (USB-til-IP-bro)"
+
+msgid "Other tools (another editor, Home Assistant, a commissioning tool) connect to it over the network and use this USB interface as a KNXnet/IP interface. Each tunnel gets one of the tunnel addresses, which have to be free addresses of the interface's line. It runs while the editor is connected to the bus through the interface, and opens a network port: turn it on only where that is wanted."
+msgstr "Andre verktøy (en annen editor, Home Assistant, et igangkjøringsverktøy) kobler seg til den over nettverket og bruker dette USB-grensesnittet som et KNXnet/IP-grensesnitt. Hver tunnel får én av tunneladressene, som må være ledige adresser på grensesnittets linje. Den kjører mens editoren er koblet til bussen via grensesnittet, og åpner en nettverksport: slå den bare på der det er ønsket."
+
+msgid "Port"
+msgstr "Port"
+
+msgid "Listen On"
+msgstr "Lytt på"
+
+msgid "All network interfaces"
+msgstr "Alle nettverksgrensesnitt"
+
+msgid "This computer only"
+msgstr "Bare denne datamaskinen"
+
+msgid "Answer searches (discovery)"
+msgstr "Svar på søk (discovery)"
+
+msgid "Offer TCP"
+msgstr "Tilby TCP"
+
+msgid "Tunnel Addresses"
+msgstr "Tunneladresser"
+
+msgid "Suggest"
+msgstr "Foreslå"
+
+msgid "Name"
+msgstr "Navn"
+
+msgid "KNXnet/IP server on port {port}, {count} tunnel"
+msgid_plural "KNXnet/IP server on port {port}, {count} tunnels"
+msgstr[0] "KNXnet/IP-server på port {port}, {count} tunnel"
+msgstr[1] "KNXnet/IP-server på port {port}, {count} tunneler"
+
+msgid "The KNXnet/IP server is not running."
+msgstr "KNXnet/IP-serveren kjører ikke."
+
+msgid "No tunnels open"
+msgstr "Ingen åpne tunneler"
+
+msgid "Channel"
+msgstr "Kanal"
+
+msgid "Client"
+msgstr "Klient"
+
+msgid "Address"
+msgstr "Adresse"
+
+msgid "At least one tunnel address is needed."
+msgstr "Minst én tunneladresse er nødvendig."
+
+msgid "The tunnel address {address} is given twice."
+msgstr "Tunneladressen {address} er oppgitt to ganger."
+
+msgid "{address} is the individual address of the interface itself."
+msgstr "{address} er den individuelle adressen til selve grensesnittet."
+
+msgid "{address} is not on the line of the interface ({line})."
+msgstr "{address} er ikke på grensesnittets linje ({line})."
+
+msgid "{address} is the individual address of the device {name}."
+msgstr "{address} er den individuelle adressen til enheten {name}."
+
+msgid "{port} is not a port (1 to 65535)."
+msgstr "{port} er ikke en port (1 til 65535)."
+
+msgid "The KNXnet/IP server runs only while the editor is connected through a KNX USB interface."
+msgstr "KNXnet/IP-serveren kjører bare mens editoren er tilkoblet via et KNX USB-grensesnitt."
+
+msgid "The KNXnet/IP server doesn't run with local device access: the connection reaches only the interface's own device."
+msgstr "KNXnet/IP-serveren kjører ikke med lokal enhetstilgang: tilkoblingen når bare grensesnittets egen enhet."
+
+msgid "The KNXnet/IP server is being started or stopped."
+msgstr "KNXnet/IP-serveren blir startet eller stoppet."
+
+msgid "The KNXnet/IP server could not start: {error}"
+msgstr "KNXnet/IP-serveren kunne ikke starte: {error}"
+
+msgid "Enter the data to send (e.g. 44 AE 0C)."
+msgstr "Angi dataene som skal sendes (f.eks. 44 AE 0C)."

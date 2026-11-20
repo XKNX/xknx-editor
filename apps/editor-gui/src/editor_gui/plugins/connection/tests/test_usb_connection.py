@@ -19,6 +19,8 @@ from xknx.telegram import GroupAddress, IndividualAddress
 
 from editor_gui import settings as app_settings
 from editor_gui.plugins.connection import plugin as plugin_module
+from editor_gui.plugins.connection.ip_server import IpServer, IpServerSettings
+from editor_gui.plugins.connection.mbus_batibus import MbusBatibusFrameLog
 from editor_gui.plugins.connection.plugin import ConnectionPlugin, ConnectionState
 from editor_gui.plugins.connection.service import LinkInfo
 from editor_gui.plugins.connection.strings import S
@@ -38,6 +40,7 @@ from editor_gui.plugins.connection.xknx_usb.const import (
     EMIID,
     DeviceFeature,
     DeviceFeatureService,
+    ProtocolID,
     SupportedEMIType,
 )
 from editor_gui.plugins.connection.xknx_usb.frame import device_feature_frame
@@ -101,6 +104,23 @@ def _plugin() -> Any:
     plugin._usb_domain_text = ""
     plugin._usb_domain_busy = False
     plugin._usb_domain_error = None
+    plugin._usb_local_device = False
+    plugin._ip_settings = IpServerSettings()
+    plugin._ip_server = IpServer()
+    plugin._ip_busy = False
+    plugin._ip_port_text = ""
+    plugin._ip_addresses_text = ""
+    plugin._ip_name_text = ""
+    plugin._ip_draft = None
+    plugin._ip_error = None
+    plugin._usb_local_busy = False
+    plugin._usb_local_error = None
+    plugin._mbus_frames = MbusBatibusFrameLog()
+    plugin._mbus_protocol = ProtocolID.M_BUS_TUNNEL
+    plugin._mbus_service_text = "00"
+    plugin._mbus_data_text = ""
+    plugin._mbus_sending = False
+    plugin._mbus_error = None
     plugin._controller_ip = "192.168.1.10"
     plugin._multicast_group = "224.0.23.12"
     plugin._connection_type = ConnectionType.TUNNELING_TCP
@@ -133,6 +153,9 @@ def _plugin() -> Any:
             busmonitor_active=False,
             block_bus_writes=False,
             writes_blocked=lambda: False,
+            writes_refused=lambda op: False,
+            local_device=None,
+            local_device_refusal=lambda *addresses, **kwargs: None,
             dispatch_raw_cemi=received.append,
             dispatch_sent_cemi=sent.append,
             data_secure=lambda: None,

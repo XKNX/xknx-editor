@@ -356,3 +356,182 @@ msgstr "Δεν ήταν δυνατό να οριστεί η διεύθυνση �
 
 msgid "Setting the domain address…"
 msgstr "Ορισμός της διεύθυνσης τομέα…"
+
+msgid "Local Device Access"
+msgstr "Τοπική Πρόσβαση Συσκευής"
+
+msgid "Connects to the KNX device the USB interface is part of (e.g. an actuator with a USB port of its own) instead of the bus. Only this device can then be reached, for downloads and readouts; group telegrams, broadcasts and the bus monitor are not available. Needs a cEMI interface."
+msgstr "Συνδέεται με τη συσκευή KNX της οποίας μέρος είναι η διεπαφή USB (π.χ. έναν ενεργοποιητή με δική του θύρα USB) αντί για το bus. Τότε μόνο αυτή η συσκευή είναι προσβάσιμη, για λήψεις και αναγνώσεις· τα τηλεγραφήματα ομάδας, τα broadcast και η παρακολούθηση bus δεν είναι διαθέσιμα. Απαιτεί διεπαφή cEMI."
+
+msgid "Connect to the interface's own device (local device access)"
+msgstr "Σύνδεση με τη δική συσκευή της διεπαφής (τοπική πρόσβαση συσκευής)"
+
+msgid "{target}, local device access to {address}"
+msgstr "{target}, τοπική πρόσβαση συσκευής στη {address}"
+
+msgid "(address unknown)"
+msgstr "(άγνωστη διεύθυνση)"
+
+msgid "Local device access: only this device is reached"
+msgstr "Τοπική πρόσβαση συσκευής: μόνο αυτή η συσκευή είναι προσβάσιμη"
+
+msgid "Switching the connection…"
+msgstr "Εναλλαγή της σύνδεσης…"
+
+msgid "The connection could not be switched: {error}"
+msgstr "Δεν ήταν δυνατή η εναλλαγή της σύνδεσης: {error}"
+
+msgid "The connection of the interface is being switched."
+msgstr "Η σύνδεση της διεπαφής εναλλάσσεται αυτή τη στιγμή."
+
+msgid "Through local device access only the USB interface's own device {local} can be reached, not {address}."
+msgstr "Μέσω τοπικής πρόσβασης συσκευής είναι προσβάσιμη μόνο η δική συσκευή {local} της διεπαφής USB, όχι η {address}."
+
+msgid "Through local device access only the USB interface's own device {local} can be reached: group telegrams can't be sent."
+msgstr "Μέσω τοπικής πρόσβασης συσκευής είναι προσβάσιμη μόνο η δική συσκευή {local} της διεπαφής USB: δεν είναι δυνατή η αποστολή τηλεγραφημάτων ομάδας."
+
+msgid "Through local device access only the USB interface's own device {local} can be reached: broadcasts can't be sent."
+msgstr "Μέσω τοπικής πρόσβασης συσκευής είναι προσβάσιμη μόνο η δική συσκευή {local} της διεπαφής USB: δεν είναι δυνατή η αποστολή broadcast."
+
+msgid "Through local device access only the USB interface's own device {local} can be reached: the bus monitor can't run."
+msgstr "Μέσω τοπικής πρόσβασης συσκευής είναι προσβάσιμη μόνο η δική συσκευή {local} της διεπαφής USB: η παρακολούθηση bus δεν μπορεί να εκτελεστεί."
+
+msgid "Through local device access only the USB interface's own device {local} can be reached: scan from {local} to {local}."
+msgstr "Μέσω τοπικής πρόσβασης συσκευής είναι προσβάσιμη μόνο η δική συσκευή {local} της διεπαφής USB: σαρώστε από {local} έως {local}."
+
+msgid "M-Bus and BatiBus Frames"
+msgstr "Πλαίσια M-Bus και BatiBus"
+
+msgid "The frames of the interface's M-Bus and BatiBus tunnels (e.g. of a KNX RF USB stick that also receives wireless M-Bus meters), passed through as they are. The last 500 are kept."
+msgstr "Τα πλαίσια των σηράγγων M-Bus και BatiBus της διεπαφής (π.χ. ενός KNX RF USB stick που λαμβάνει επίσης ασύρματους μετρητές M-Bus), αμετάβλητα. Διατηρούνται τα τελευταία 500."
+
+msgid "No M-Bus or BatiBus frames yet"
+msgstr "Δεν υπάρχουν ακόμη πλαίσια M-Bus ή BatiBus"
+
+msgid "Clear"
+msgstr "Εκκαθάριση"
+
+msgid "Time"
+msgstr "Ώρα"
+
+msgid "Direction"
+msgstr "Κατεύθυνση"
+
+msgid "Protocol"
+msgstr "Πρωτόκολλο"
+
+msgid "Service"
+msgstr "Υπηρεσία"
+
+msgid "Data"
+msgstr "Δεδομένα"
+
+msgid "Sent"
+msgstr "Εστάλη"
+
+msgid "Received"
+msgstr "Ελήφθη"
+
+msgid "Send"
+msgstr "Αποστολή"
+
+msgid "{data} is not hexadecimal data (e.g. 44 AE 0C)."
+msgstr "Το {data} δεν είναι δεκαεξαδικά δεδομένα (π.χ. 44 AE 0C)."
+
+msgid "{service} is not a hexadecimal octet (00 to FF)."
+msgstr "Το {service} δεν είναι δεκαεξαδική οκτάδα (00 έως FF)."
+
+msgid "The frame could not be sent: {error}"
+msgstr "Δεν ήταν δυνατή η αποστολή του πλαισίου: {error}"
+
+msgid "Block Bus Writes is on (Settings > Connection): nothing is sent."
+msgstr "Ο αποκλεισμός εγγραφών στο bus είναι ενεργός (Ρυθμίσεις > Σύνδεση): δεν αποστέλλεται τίποτα."
+
+msgid "KNXnet/IP Server"
+msgstr "Διακομιστής KNXnet/IP"
+
+msgid "Run a KNXnet/IP server for other tools (USB to IP bridge)"
+msgstr "Εκτέλεση διακομιστή KNXnet/IP για άλλα εργαλεία (γέφυρα USB σε IP)"
+
+msgid "Other tools (another editor, Home Assistant, a commissioning tool) connect to it over the network and use this USB interface as a KNXnet/IP interface. Each tunnel gets one of the tunnel addresses, which have to be free addresses of the interface's line. It runs while the editor is connected to the bus through the interface, and opens a network port: turn it on only where that is wanted."
+msgstr "Άλλα εργαλεία (άλλος επεξεργαστής, Home Assistant, εργαλείο θέσης σε λειτουργία) συνδέονται σε αυτόν μέσω δικτύου και χρησιμοποιούν αυτή τη διεπαφή USB ως διεπαφή KNXnet/IP. Κάθε σήραγγα λαμβάνει μία από τις διευθύνσεις σηράγγων, οι οποίες πρέπει να είναι ελεύθερες διευθύνσεις της γραμμής της διεπαφής. Εκτελείται όσο ο επεξεργαστής είναι συνδεδεμένος στο bus μέσω της διεπαφής και ανοίγει μια θύρα δικτύου: ενεργοποιήστε τον μόνο όπου αυτό είναι επιθυμητό."
+
+msgid "Port"
+msgstr "Θύρα"
+
+msgid "Listen On"
+msgstr "Ακρόαση Σε"
+
+msgid "All network interfaces"
+msgstr "Όλες οι διεπαφές δικτύου"
+
+msgid "This computer only"
+msgstr "Μόνο αυτός ο υπολογιστής"
+
+msgid "Answer searches (discovery)"
+msgstr "Απάντηση σε αναζητήσεις (discovery)"
+
+msgid "Offer TCP"
+msgstr "Προσφορά TCP"
+
+msgid "Tunnel Addresses"
+msgstr "Διευθύνσεις Σηράγγων"
+
+msgid "Suggest"
+msgstr "Πρόταση"
+
+msgid "Name"
+msgstr "Όνομα"
+
+msgid "KNXnet/IP server on port {port}, {count} tunnel"
+msgid_plural "KNXnet/IP server on port {port}, {count} tunnels"
+msgstr[0] "Διακομιστής KNXnet/IP στη θύρα {port}, {count} σήραγγα"
+msgstr[1] "Διακομιστής KNXnet/IP στη θύρα {port}, {count} σήραγγες"
+
+msgid "The KNXnet/IP server is not running."
+msgstr "Ο διακομιστής KNXnet/IP δεν εκτελείται."
+
+msgid "No tunnels open"
+msgstr "Καμία ανοιχτή σήραγγα"
+
+msgid "Channel"
+msgstr "Κανάλι"
+
+msgid "Client"
+msgstr "Πελάτης"
+
+msgid "Address"
+msgstr "Διεύθυνση"
+
+msgid "At least one tunnel address is needed."
+msgstr "Απαιτείται τουλάχιστον μία διεύθυνση σήραγγας."
+
+msgid "The tunnel address {address} is given twice."
+msgstr "Η διεύθυνση σήραγγας {address} δίνεται δύο φορές."
+
+msgid "{address} is the individual address of the interface itself."
+msgstr "Η {address} είναι η ατομική διεύθυνση της ίδιας της διεπαφής."
+
+msgid "{address} is not on the line of the interface ({line})."
+msgstr "Η {address} δεν βρίσκεται στη γραμμή της διεπαφής ({line})."
+
+msgid "{address} is the individual address of the device {name}."
+msgstr "Η {address} είναι η ατομική διεύθυνση της συσκευής {name}."
+
+msgid "{port} is not a port (1 to 65535)."
+msgstr "Η {port} δεν είναι θύρα (1 έως 65535)."
+
+msgid "The KNXnet/IP server runs only while the editor is connected through a KNX USB interface."
+msgstr "Ο διακομιστής KNXnet/IP εκτελείται μόνο όσο ο επεξεργαστής είναι συνδεδεμένος μέσω διεπαφής KNX USB."
+
+msgid "The KNXnet/IP server doesn't run with local device access: the connection reaches only the interface's own device."
+msgstr "Ο διακομιστής KNXnet/IP δεν εκτελείται με τοπική πρόσβαση συσκευής: η σύνδεση φτάνει μόνο στη δική συσκευή της διεπαφής."
+
+msgid "The KNXnet/IP server is being started or stopped."
+msgstr "Ο διακομιστής KNXnet/IP εκκινείται ή σταματά αυτή τη στιγμή."
+
+msgid "The KNXnet/IP server could not start: {error}"
+msgstr "Δεν ήταν δυνατή η εκκίνηση του διακομιστή KNXnet/IP: {error}"
+
+msgid "Enter the data to send (e.g. 44 AE 0C)."
+msgstr "Εισαγάγετε τα δεδομένα προς αποστολή (π.χ. 44 AE 0C)."

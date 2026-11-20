@@ -402,6 +402,304 @@ class ConnectionStrings:
         return _("Setting the domain address…")
 
     @property
+    def SETTING_USB_LOCAL_DEVICE(self) -> str:
+        return _("Local Device Access")
+
+    @property
+    def SETTING_USB_LOCAL_DEVICE_HINT(self) -> str:
+        return _(
+            "Connects to the KNX device the USB interface is part of (e.g. an actuator with a "
+            "USB port of its own) instead of the bus. Only this device can then be reached, "
+            "for downloads and readouts; group telegrams, broadcasts and the bus monitor are "
+            "not available. Needs a cEMI interface."
+        )
+
+    @property
+    def USB_LOCAL_DEVICE_OPTION(self) -> str:
+        # a checkbox: connect through the cEMI transport layer instead of to the bus
+        return _("Connect to the interface's own device (local device access)")
+
+    @property
+    def STATUS_LOCAL_DEVICE(self) -> str:
+        # {target}: the USB interface, e.g. "KNX-USB Interface (USB)"; {address}: the
+        # individual address of its own device
+        return _("{target}, local device access to {address}")
+
+    @property
+    def LOCAL_DEVICE_ADDRESS_UNKNOWN(self) -> str:
+        # stands for the individual address of the interface's own device when it is unknown
+        return _("(address unknown)")
+
+    @property
+    def USB_LOCAL_DEVICE_DETAILS(self) -> str:
+        return _("Local device access: only this device is reached")
+
+    @property
+    def USB_LOCAL_DEVICE_SWITCHING(self) -> str:
+        return _("Switching the connection…")
+
+    @property
+    def USB_LOCAL_DEVICE_FAILED(self) -> str:
+        return _("The connection could not be switched: {error}")
+
+    @property
+    def USB_LOCAL_DEVICE_BUSY(self) -> str:
+        return _("The connection of the interface is being switched.")
+
+    @property
+    def LOCAL_DEVICE_OTHER_DEVICE(self) -> str:
+        # {local}: the individual address of the USB interface's own device
+        return _(
+            "Through local device access only the USB interface's own device {local} can be "
+            "reached, not {address}."
+        )
+
+    @property
+    def LOCAL_DEVICE_NO_GROUP_TELEGRAMS(self) -> str:
+        return _(
+            "Through local device access only the USB interface's own device {local} can be "
+            "reached: group telegrams can't be sent."
+        )
+
+    @property
+    def LOCAL_DEVICE_NO_BROADCASTS(self) -> str:
+        return _(
+            "Through local device access only the USB interface's own device {local} can be "
+            "reached: broadcasts can't be sent."
+        )
+
+    @property
+    def LOCAL_DEVICE_NO_BUS_MONITOR(self) -> str:
+        return _(
+            "Through local device access only the USB interface's own device {local} can be "
+            "reached: the bus monitor can't run."
+        )
+
+    @property
+    def LOCAL_DEVICE_SCAN_RANGE(self) -> str:
+        return _(
+            "Through local device access only the USB interface's own device {local} can be "
+            "reached: scan from {local} to {local}."
+        )
+
+    @property
+    def MBUS_FRAMES_HEADER(self) -> str:
+        return _("M-Bus and BatiBus Frames")
+
+    @property
+    def MBUS_FRAMES_HINT(self) -> str:
+        return _(
+            "The frames of the interface's M-Bus and BatiBus tunnels (e.g. of a KNX RF USB "
+            "stick that also receives wireless M-Bus meters), passed through as they are. The "
+            "last 500 are kept."
+        )
+
+    @property
+    def MBUS_FRAMES_NONE(self) -> str:
+        return _("No M-Bus or BatiBus frames yet")
+
+    @property
+    def MBUS_FRAMES_CLEAR(self) -> str:
+        return _("Clear")
+
+    @property
+    def MBUS_FRAME_TIME(self) -> str:
+        return _("Time")
+
+    @property
+    def MBUS_FRAME_DIRECTION(self) -> str:
+        return _("Direction")
+
+    @property
+    def MBUS_FRAME_PROTOCOL(self) -> str:
+        return _("Protocol")
+
+    @property
+    def MBUS_FRAME_SERVICE(self) -> str:
+        # header octet 6 of a KNX USB transfer frame, in hexadecimal
+        return _("Service")
+
+    @property
+    def MBUS_FRAME_DATA(self) -> str:
+        return _("Data")
+
+    @property
+    def MBUS_FRAME_SENT(self) -> str:
+        # the direction of a frame: sent by the editor
+        return _("Sent")
+
+    @property
+    def MBUS_FRAME_RECEIVED(self) -> str:
+        # the direction of a frame: received from the interface
+        return _("Received")
+
+    @property
+    def MBUS_FRAME_SEND(self) -> str:
+        return _("Send")
+
+    @property
+    def MBUS_FRAME_NO_DATA(self) -> str:
+        return _("Enter the data to send (e.g. 44 AE 0C).")
+
+    @property
+    def MBUS_FRAME_INVALID_DATA(self) -> str:
+        return _("{data} is not hexadecimal data (e.g. 44 AE 0C).")
+
+    @property
+    def MBUS_FRAME_INVALID_SERVICE(self) -> str:
+        return _("{service} is not a hexadecimal octet (00 to FF).")
+
+    @property
+    def MBUS_FRAME_FAILED(self) -> str:
+        return _("The frame could not be sent: {error}")
+
+    @property
+    def IP_SERVER_HEADER(self) -> str:
+        return _("KNXnet/IP Server")
+
+    @property
+    def IP_SERVER_ENABLED(self) -> str:
+        # a checkbox
+        return _("Run a KNXnet/IP server for other tools (USB to IP bridge)")
+
+    @property
+    def IP_SERVER_HINT(self) -> str:
+        return _(
+            "Other tools (another editor, Home Assistant, a commissioning tool) connect to it "
+            "over the network and use this USB interface as a KNXnet/IP interface. Each tunnel "
+            "gets one of the tunnel addresses, which have to be free addresses of the "
+            "interface's line. It runs while the editor is connected to the bus through the "
+            "interface, and opens a network port: turn it on only where that is wanted."
+        )
+
+    @property
+    def IP_SERVER_PORT(self) -> str:
+        return _("Port")
+
+    @property
+    def IP_SERVER_LISTEN(self) -> str:
+        return _("Listen On")
+
+    @property
+    def IP_SERVER_LISTEN_ALL(self) -> str:
+        return _("All network interfaces")
+
+    @property
+    def IP_SERVER_LISTEN_LOCAL(self) -> str:
+        return _("This computer only")
+
+    @property
+    def IP_SERVER_DISCOVERY(self) -> str:
+        # a checkbox: the server answers the searches of KNXnet/IP clients
+        return _("Answer searches (discovery)")
+
+    @property
+    def IP_SERVER_TCP(self) -> str:
+        # a checkbox: tunnels over TCP besides UDP
+        return _("Offer TCP")
+
+    @property
+    def IP_SERVER_ADDRESSES(self) -> str:
+        return _("Tunnel Addresses")
+
+    @property
+    def IP_SERVER_SUGGEST(self) -> str:
+        # fills in free addresses of the interface's line
+        return _("Suggest")
+
+    @property
+    def IP_SERVER_NAME(self) -> str:
+        return _("Name")
+
+    @property
+    def IP_SERVER_APPLY(self) -> str:
+        return _("Apply")
+
+    def IP_SERVER_RUNNING(self, count: int) -> str:
+        # {port}: the network port; {count}: the open tunnels
+        return _.plural(
+            "KNXnet/IP server on port {port}, {count} tunnel",
+            "KNXnet/IP server on port {port}, {count} tunnels",
+            count,
+        )
+
+    @property
+    def IP_SERVER_STOPPED(self) -> str:
+        return _("The KNXnet/IP server is not running.")
+
+    @property
+    def IP_SERVER_NO_TUNNELS(self) -> str:
+        return _("No tunnels open")
+
+    @property
+    def IP_SERVER_CHANNEL(self) -> str:
+        # the communication channel of a tunnel
+        return _("Channel")
+
+    @property
+    def IP_SERVER_CLIENT(self) -> str:
+        return _("Client")
+
+    @property
+    def IP_SERVER_PROTOCOL(self) -> str:
+        return _("Protocol")
+
+    @property
+    def IP_SERVER_ADDRESS(self) -> str:
+        return _("Address")
+
+    @property
+    def IP_SERVER_NO_ADDRESSES(self) -> str:
+        return _("At least one tunnel address is needed.")
+
+    @property
+    def IP_SERVER_ADDRESS_TWICE(self) -> str:
+        return _("The tunnel address {address} is given twice.")
+
+    @property
+    def IP_SERVER_ADDRESS_INTERFACE(self) -> str:
+        return _("{address} is the individual address of the interface itself.")
+
+    @property
+    def IP_SERVER_ADDRESS_LINE(self) -> str:
+        # {line}: the line of the interface, e.g. 1.1
+        return _("{address} is not on the line of the interface ({line}).")
+
+    @property
+    def IP_SERVER_ADDRESS_USED(self) -> str:
+        return _("{address} is the individual address of the device {name}.")
+
+    @property
+    def IP_SERVER_PORT_INVALID(self) -> str:
+        return _("{port} is not a port (1 to 65535).")
+
+    @property
+    def IP_SERVER_NEEDS_USB(self) -> str:
+        return _(
+            "The KNXnet/IP server runs only while the editor is connected through a KNX USB "
+            "interface."
+        )
+
+    @property
+    def IP_SERVER_NOT_LOCAL(self) -> str:
+        return _(
+            "The KNXnet/IP server doesn't run with local device access: the connection "
+            "reaches only the interface's own device."
+        )
+
+    @property
+    def IP_SERVER_BUSY(self) -> str:
+        return _("The KNXnet/IP server is being started or stopped.")
+
+    @property
+    def IP_SERVER_FAILED(self) -> str:
+        return _("The KNXnet/IP server could not start: {error}")
+
+    @property
+    def MBUS_FRAME_WRITES_BLOCKED(self) -> str:
+        return _("Block Bus Writes is on (Settings > Connection): nothing is sent.")
+
+    @property
     def SECTION_MANUAL(self) -> str:
         return _("Manual Connection")
 

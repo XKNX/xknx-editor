@@ -401,3 +401,34 @@ def test_an_operation_waits_for_its_connection_until_it_is_open() -> None:
     assert not service.waiting_for_connection(result)
     assert not service.waiting_for_connection(None)
     assert not service.waiting_for_connection(operation)
+
+
+def test_the_dialog_takes_the_local_device_access_setting(
+    clicks: Clicks, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The connection made for the operations through a USB interface takes the local device
+    access of the connection settings; the dialog itself offers no checkbox for it."""
+    from editor_gui.plugins.connection.xknx_usb import USBDeviceInfo
+
+    plugin = _plugin(None)
+    plugin._usb_local_device = True
+    plugin._save_current_settings = lambda: None
+    device = USBDeviceInfo(
+        0x16DE, 0x008E, b"p", "00C501053FB2", "", "KNX-USB Interface"
+    )
+    plugin._usb_devices = [device]
+    real_checkbox = imgui.checkbox
+    drawn: list[str] = []
+
+    def checkbox(label: str, value: bool) -> tuple[bool, bool]:
+        drawn.append(label)
+        return real_checkbox(label, value)
+
+    monkeypatch.setattr(imgui, "checkbox", checkbox)
+    plugin.open_for_operation()
+    _frames(plugin)
+    assert not any("local" in label for label in drawn)
+    clicks.items.add("KNX-USB Interface  (00C501053FB2)##usb_70")
+    _frames(plugin)
+    assert plugin._usb_target is not None and plugin._usb_local_device
+    assert plugin.started[-1] == "_connect_for_operation_async"

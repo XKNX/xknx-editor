@@ -201,3 +201,57 @@ def test_tool_window_is_centred_on_a_resized_screen() -> None:
         imgui.end_frame()
     assert size.x <= 390
     assert _centred_on(pos, size, 390, 844)
+
+
+def _menu_bar() -> None:
+    """The main menu bar, which takes the top of the screen from the room windows have."""
+    if imgui.begin_main_menu_bar():
+        imgui.text("File")
+        imgui.end_main_menu_bar()
+
+
+def _settings_frames(
+    count: int, before: Callable[[int], None] | None = None
+) -> list[tuple[float, float, float, float]]:
+    """Render a resizable dialog below a menu bar ``count`` frames; its rect in each frame."""
+    rects: list[tuple[float, float, float, float]] = []
+    for frame in range(count):
+        imgui.new_frame()
+        if before is not None:
+            before(frame)
+        _menu_bar()
+        if frame == 0:
+            imgui.open_popup("Settings")
+        if begin_dialog("Settings", width=820.0, height=680.0):
+            imgui.text("Language")
+            pos, size = imgui.get_window_pos(), imgui.get_window_size()
+            rects.append((pos.x, pos.y, size.x, size.y))
+            end_dialog()
+        imgui.end_frame()
+    return rects
+
+
+@pytest.mark.usefixtures("context")
+def test_stays_put_below_a_menu_bar_on_a_short_screen() -> None:
+    # Centred on the whole screen, a dialog as tall as the screen reached above the room below
+    # the menu bar; imgui pushed it down and it was centred again, every other frame: it jumped.
+    imgui.get_io().display_size = imgui.ImVec2(520, 430)
+    rects = _settings_frames(12)
+    assert len(set(rects[4:])) == 1
+    work = imgui.get_main_viewport()
+    _x, y, width, height = rects[-1]
+    assert y >= work.work_pos.y
+    assert y + height <= work.work_pos.y + work.work_size.y
+    assert abs(y + height / 2 - (work.work_pos.y + work.work_size.y / 2)) <= 1
+    assert width <= 520
+
+
+@pytest.mark.usefixtures("context")
+def test_resizable_dialog_gets_its_size_again_on_a_larger_screen() -> None:
+    # A browser window made small and then large again: the dialog is as large as it is meant
+    # to be again, not as small as the small screen made it.
+    imgui.get_io().display_size = imgui.ImVec2(390, 600)
+    rects = _settings_frames(12, _resize_screen(5, 1280, 900))
+    small, large = rects[3], rects[-1]
+    assert small[2] <= 390
+    assert (large[2], large[3]) == (820, 680)

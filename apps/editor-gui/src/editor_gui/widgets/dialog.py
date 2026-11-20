@@ -62,6 +62,22 @@ def _screen_size() -> tuple[float, float]:
     return (size.x, size.y)
 
 
+def _work_center() -> imgui.ImVec2:
+    """The centre of the room windows have: the main window less its menu bar. A window centred
+    on the whole main window would reach above that room, and imgui would push it back down every
+    other frame: the dialog jumps."""
+    viewport = imgui.get_main_viewport()
+    return imgui.ImVec2(
+        viewport.work_pos.x + viewport.work_size.x / 2,
+        viewport.work_pos.y + viewport.work_size.y / 2,
+    )
+
+
+def _work_size() -> imgui.ImVec2:
+    """The size of the room windows have, see :func:`_work_center`."""
+    return imgui.get_main_viewport().work_size
+
+
 def _center_next_window(title: str | None = None) -> None:
     """Centre the next window when it appears and, for the dialog ``title``, again whenever it got
     off centre because its size changed, unless the user moved it, and whenever the screen changed
@@ -72,7 +88,7 @@ def _center_next_window(title: str | None = None) -> None:
         or placement.screen != _screen_size()
     )
     imgui.set_next_window_pos(
-        imgui.get_main_viewport().get_center(),
+        _work_center(),
         imgui.Cond_.always if recentre else imgui.Cond_.appearing,
         imgui.ImVec2(0.5, 0.5),
     )
@@ -86,11 +102,9 @@ def _fit_screen(
     screen has the room. Returns the window flags for that: a horizontal scroll bar once the window
     is as wide as the screen allows (``width`` in pixels is the width it is given, else the size it
     had)."""
-    viewport = imgui.get_main_viewport()
+    work = _work_size()
     margin = 2 * px(_SCREEN_MARGIN)
-    room = imgui.ImVec2(
-        max(viewport.size.x - margin, px(160)), max(viewport.size.y - margin, px(120))
-    )
+    room = imgui.ImVec2(max(work.x - margin, px(160)), max(work.y - margin, px(120)))
     imgui.set_next_window_size_constraints(
         imgui.ImVec2(min(min_width, room.x), 0.0), room
     )
@@ -105,8 +119,7 @@ def _fit_screen(
 
 def screen_room() -> float:
     """The width a dialog can have on the screen (a phone's is narrow), in pixels."""
-    viewport = imgui.get_main_viewport()
-    return max(viewport.size.x - 2 * px(_SCREEN_MARGIN), px(160))
+    return max(_work_size().x - 2 * px(_SCREEN_MARGIN), px(160))
 
 
 def _screen_room_width() -> float:
@@ -125,7 +138,7 @@ def _track_placement(title: str) -> None:
     screen, which is no move). On a screen that changed its size it was centred again (see
     :func:`_center_next_window`) and counts as not moved."""
     pos, size = imgui.get_window_pos(), imgui.get_window_size()
-    center = imgui.get_main_viewport().get_center()
+    center = _work_center()
     current = (size.x, size.y)
     centred_now = _near((pos.x, pos.y), (center.x - size.x / 2, center.y - size.y / 2))
     placement = _placements.get(title)
@@ -195,7 +208,14 @@ def begin_dialog(
         width = min(max(width, buttons), _screen_room_width())
     flags |= _fit_screen(title, px(width) if width is not None else None, px(min_width))
     if width is not None and height is not None:
-        imgui.set_next_window_size(px_vec2(width, height), imgui.Cond_.appearing)
+        # Its own size again on a screen that changed its size (a browser window made larger
+        # again), within the room the screen has.
+        placement = _placements.get(title)
+        refit = placement is not None and placement.screen != _screen_size()
+        imgui.set_next_window_size(
+            px_vec2(width, height),
+            imgui.Cond_.always if refit else imgui.Cond_.appearing,
+        )
     elif width is not None:
         imgui.set_next_window_size(px_vec2(width, 0.0), imgui.Cond_.always)
     else:
@@ -312,7 +332,7 @@ def dialog_room(minimum: float = 60.0) -> float:
     with its row of :func:`dialog_buttons` below still fits the screen; at least ``minimum``
     (unscaled pixels)."""
     style = imgui.get_style()
-    screen = max(imgui.get_main_viewport().size.y - 2 * px(_SCREEN_MARGIN), px(120))
+    screen = max(_work_size().y - 2 * px(_SCREEN_MARGIN), px(120))
     # The gap below the part, spacing, separator and spacing above the buttons, the buttons, and
     # the bottom padding of the window.
     buttons = (
@@ -465,9 +485,7 @@ def follow_screen(title: str, width: float, height: float = 0.0) -> int:
     docked = window is not None and window.dock_node is not None  # pyright: ignore[reportUnnecessaryComparison]
     if changed and not docked:
         imgui.set_next_window_pos(
-            imgui.get_main_viewport().get_center(),
-            imgui.Cond_.always,
-            imgui.ImVec2(0.5, 0.5),
+            _work_center(), imgui.Cond_.always, imgui.ImVec2(0.5, 0.5)
         )
         imgui.set_next_window_size(px_vec2(width, height), imgui.Cond_.always)
         # Scrolling sideways, a window keeps the width its content had.

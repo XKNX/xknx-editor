@@ -5,7 +5,7 @@ from __future__ import annotations
 import queue
 import sys
 import threading
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator
 from types import ModuleType
 from typing import Any
 
@@ -59,6 +59,8 @@ class FakeInterface:
         self.properties: dict[tuple[int, int], bytes] = dict(SPACELOGIC_PROPERTIES)
         # features the interface doesn't answer
         self.silent_features: set[int] = set()
+        # features the interface doesn't answer the first time
+        self.silent_once: set[int] = set()
         # set the active EMI type when it is set (False: ignore Set)
         self.accepts_emi_set = True
         # answer requests at all
@@ -75,6 +77,13 @@ class FakeInterface:
         self.refused_writes: dict[tuple[int, int], int] = {}
         # cEMI: the source the interface puts in an L_Data.con (None: the requested)
         self.confirmation_source: bytes | None = None
+        # cEMI: the error code refusing the cEMI Transport Layer (None: accepted)
+        self.transport_layer_refusal: int | None = None
+        # cEMI Transport Layer: the application layer of the interface's own device,
+        # answering the message code and APDU of a request (None: no answer)
+        self.own_device: Callable[[int, bytes], tuple[int, bytes] | None] | None = None
+        # M-Bus and BatiBus tunnel frames are echoed back
+        self.echoes_extraneous = True
         self.written: list[USBTransferFrame] = []
         self.unplugged = threading.Event()
         self.open_count = 0
@@ -132,7 +141,9 @@ class FakeInterface:
         if frame.protocol == ProtocolID.BUS_ACCESS_SERVER_FEATURE:
             feature = frame.body[0]
             if frame.service == DeviceFeatureService.GET:
-                if feature in self.features and feature not in self.silent_features:
+                if feature in self.silent_once:
+                    self.silent_once.discard(feature)
+                elif feature in self.features and feature not in self.silent_features:
                     self.send_frame(
                         device_feature_frame(
                             DeviceFeatureService.RESPONSE,
@@ -146,6 +157,10 @@ class FakeInterface:
                 and self.accepts_emi_set
             ):
                 self.features[feature] = frame.body[1:]
+            return
+        if frame.protocol in (ProtocolID.M_BUS_TUNNEL, ProtocolID.BATIBUS_TUNNEL):
+            if self.echoes_extraneous:
+                self.send_frame(frame)
             return
         if frame.service in (EMIID.EMI1, EMIID.EMI2):
             self._handle_emi(EMIID(frame.service), frame.body)
@@ -163,16 +178,35 @@ class FakeInterface:
                 )
         elif code == 0xF6:  # M_PropWrite.req
             key = (int.from_bytes(cemi[1:3], "big"), cemi[4])
-            if key in self.refused_writes:
-                # number of elements 0, error code
+            refusal = self.refused_writes.get(key)
+            if (
+                key == (8, 52)
+                and cemi[7:] == b"\x06"
+                and self.transport_layer_refusal is not None
+            ):
+                refusal = self.transport_layer_refusal
+            if refusal is not None:
+                # number of elements 0 and the error code
                 self.send_cemi(
                     bytes((0xF5,))
                     + cemi[1:5]
-                    + bytes((cemi[5] & 0x0F, cemi[6], self.refused_writes[key]))
+                    + bytes((cemi[5] & 0x0F, cemi[6], refusal))
                 )
                 return
             self.properties[key] = cemi[7:]
             self.send_cemi(bytes((0xF5,)) + cemi[1:7])
+        elif code in (0x41, 0x4A):  # cEMI T_Data_Connected.req, T_Data_Individual.req
+            answer = (
+                None if self.own_device is None else self.own_device(code, cemi[9:])
+            )
+            if answer is not None:
+                answer_code, apdu = answer
+                self.send_cemi(
+                    bytes((answer_code, 0x00))
+                    + bytes(6)
+                    + bytes((len(apdu) - 1,))
+                    + apdu
+                )
         elif code == 0x11:  # L_Data.req -> L_Data.con
             confirmation = bytes((0x2E,)) + cemi[1:]
             if self.confirmation_source is not None:

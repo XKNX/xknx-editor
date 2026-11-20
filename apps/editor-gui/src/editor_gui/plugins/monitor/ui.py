@@ -145,7 +145,7 @@ class MonitorPanel:
         else:
             imgui.text_disabled("-")
         address = entry.address if entry is not None else self._cmd_address.strip()
-        protected = self._service.protected_reason(address) if raw is not None else ""
+        protected = self._refusal(address) if raw is not None else ""
         same_line_if_fits(button_width(S.MONITOR_WRITE))
         can_write = (
             connected
@@ -159,7 +159,7 @@ class MonitorPanel:
         )
         imgui.end_disabled()
         if protected:
-            imgui.set_item_tooltip(S.MONITOR_PROTECTED)
+            imgui.set_item_tooltip(protected)
         elif not can_write and connected:
             imgui.set_item_tooltip(S.MONITOR_UNKNOWN_ADDRESS)
         same_line_if_fits(button_width(S.MONITOR_READ))
@@ -167,8 +167,10 @@ class MonitorPanel:
         read = imgui.button(f"{S.MONITOR_READ}##mon_cmd_read")
         imgui.end_disabled()
         if protected:
-            imgui.set_item_tooltip(S.MONITOR_PROTECTED)
-            imgui.text_colored(status_color("warning"), S.MONITOR_PROTECTED)
+            imgui.set_item_tooltip(protected)
+            imgui.push_text_wrap_pos(0.0)
+            imgui.text_colored(status_color("warning"), protected)
+            imgui.pop_text_wrap_pos()
         if not connected:
             same_line_if_fits(text_width(S.MONITOR_DISCONNECTED))
             imgui.text_disabled(S.MONITOR_DISCONNECTED)
@@ -221,11 +223,7 @@ class MonitorPanel:
         connected = self._is_connected()
         formats = self._get_index().formats
         token = self._dpt_for(self._selected) if self._selected is not None else None
-        protected = (
-            self._service.protected_reason(self._selected)
-            if self._selected is not None
-            else ""
-        )
+        protected = self._refusal(self._selected) if self._selected is not None else ""
         imgui.begin_disabled(not connected or self._selected is None)
         # The selected group address (set by clicking a table row), then the value to send.
         imgui.align_text_to_frame_padding()
@@ -246,16 +244,18 @@ class MonitorPanel:
         write = imgui.button(S.MONITOR_WRITE) or (submitted and not protected)
         imgui.end_disabled()
         if protected:
-            imgui.set_item_tooltip(S.MONITOR_PROTECTED)
+            imgui.set_item_tooltip(protected)
         same_line_if_fits(button_width(S.MONITOR_READ))
         imgui.begin_disabled(bool(protected))
         read = imgui.button(S.MONITOR_READ)
         imgui.end_disabled()
         if protected:
-            imgui.set_item_tooltip(S.MONITOR_PROTECTED)
+            imgui.set_item_tooltip(protected)
         imgui.end_disabled()
         if protected:
-            imgui.text_colored(status_color("warning"), S.MONITOR_PROTECTED)
+            imgui.push_text_wrap_pos(0.0)
+            imgui.text_colored(status_color("warning"), protected)
+            imgui.pop_text_wrap_pos()
         if not connected:
             # Right after the buttons, as in the other monitors.
             same_line_if_fits(text_width(S.MONITOR_DISCONNECTED))
@@ -318,6 +318,13 @@ class MonitorPanel:
                 imgui.text_disabled(latest.time_str if latest else "")
 
         imgui.end_table()
+
+    def _refusal(self, address: str) -> str:
+        """Why nothing is sent to ``address``, "" when it may: through local device access no
+        group telegram is, and nothing to a protected group address."""
+        if local := self._service.local_device_reason():
+            return local
+        return S.MONITOR_PROTECTED if self._service.protected_reason(address) else ""
 
     def _dpt_for(self, address: str) -> str | None:
         for ga in self._get_group_addresses():

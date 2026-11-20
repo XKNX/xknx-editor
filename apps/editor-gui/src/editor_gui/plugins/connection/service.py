@@ -10,11 +10,11 @@ from collections.abc import Awaitable, Callable, Collection, Coroutine, Sequence
 from concurrent.futures import Future
 from dataclasses import dataclass
 from enum import Enum
-from typing import TYPE_CHECKING, Any, Protocol, cast
+from typing import TYPE_CHECKING, Any, Literal, Protocol, cast
 
 from xknx.cemi.cemi_frame import CEMIFrame, CEMILData
 from xknx.cemi.const import CEMIMessageCode
-from xknx.exceptions import ManagementConnectionError
+from xknx.exceptions import CouldNotParseAddress, ManagementConnectionError
 from xknx.management.procedures.device.dm_restart_r_co import dm_restart
 from xknx.management.procedures.network.nm_individual_address_read import (
     nm_individual_address_read,
@@ -22,13 +22,12 @@ from xknx.management.procedures.network.nm_individual_address_read import (
 from xknx.management.procedures.network.nm_individual_address_serial_number_write import (
     nm_individual_address_serial_number_write,
 )
-from xknx.telegram import GroupAddress, Telegram
+from xknx.telegram import GroupAddress, IndividualAddress, Telegram
 from xknx.telegram.apci import GroupValueRead, GroupValueWrite
 
 if TYPE_CHECKING:
     from xknx import XKNX
     from xknx.secure.data_secure import DataSecure
-    from xknx.telegram import IndividualAddress
 
     from editor_gui.device import Device
     from editor_gui.memory_read import MemoryReadRequest
@@ -68,6 +67,9 @@ class LinkInfo:
     # "Udp" or "Tcp"; empty for routing and USB.
     protocol: str = ""
     medium: str = "Tp"
+    # Local device access through a USB interface: the individual address of its own device,
+    # the only one reached ("" while unknown); None for a connection to the bus.
+    local_device: str | None = None
 
     @property
     def options(self) -> str:
@@ -89,7 +91,10 @@ class LinkInfo:
     def endpoint_name(self) -> str:
         """The name with the endpoint, e.g. ``IP Tunneling (192.168.1.10:3671 Udp)``."""
         if self.connector == "Usb":
-            return f"{self.name} (USB)"
+            if self.local_device is None:
+                return f"{self.name} (USB)"
+            device = f" {self.local_device}" if self.local_device else ""
+            return f"{self.name} (USB, local device{device})"
         suffix = f" {self.protocol}" if self.protocol else ""
         return f"{self.name} ({self.host}:{self.port}{suffix})"
 
@@ -103,6 +108,27 @@ SHOWN_IN_OPERATIONS = "operations"
 class DeviceCertificateRequired(Exception):
     """A secure download needs the device's FDSK: it still uses its factory key, which the
     project does not know (no device certificate for its serial number)."""
+
+
+@dataclass(frozen=True, slots=True)
+class LocalDevice:
+    """The connection reaches the own device of a KNX USB interface through its cEMI Transport
+    Layer (local device access) instead of the bus: only this device, by its individual address
+    (None while it is unknown: then the device first connected to)."""
+
+    address: str | None
+
+
+# What an operation reaches besides devices: group telegrams, broadcasts, or the bus monitor.
+LocalReach = Literal["group", "broadcast", "bus_monitor"]
+
+
+def _address_text(address: str) -> str:
+    """An individual address as it is printed (``1.0.2``), ``address`` itself when it is none."""
+    try:
+        return str(IndividualAddress(address.strip()))
+    except CouldNotParseAddress:
+        return address
 
 
 class OperationNotStarted(Exception):
@@ -222,6 +248,7 @@ class ConnectionService:
         self._busmonitor_start: Callable[[], None] | None = None
         self._busmonitor_stop: Callable[[], None] | None = None
         self._busmonitor_supported: Callable[[], bool] | None = None
+        self._busmonitor_local_device: Callable[[], bool] | None = None
         self._busmonitor_state = BusmonitorState.OFF
         self.busmonitor_error: str | None = None
         # Details of the last failed start, for the log and tooltips.
@@ -303,6 +330,13 @@ class ConnectionService:
         # and the operation behind each future connect_for_operation returned, for its cancel.
         self.operation_connector: OperationConnector | None = None
         self._connected_operations: dict[Future[Any], Future[Any] | None] = {}
+        # Local device access (set by the connection plugin while it is connected so): only the
+        # own device of the KNX USB interface is reached, and the writer of that device's
+        # individual address (the interface's own address, written on a new connect).
+        self.local_device: LocalDevice | None = None
+        self._local_address_writer: Callable[[str], Future[None]] | None = None
+        # Why the last operation was refused before it started, and when (take_refusal).
+        self._refusal: tuple[str, float] | None = None
 
     @property
     def busy_operation(self) -> tuple[str, str] | None:
@@ -451,6 +485,80 @@ class ConnectionService:
             self._not_connected_notice = time.monotonic()
         return True
 
+    def set_local_address_writer(self, write: Callable[[str], Future[None]]) -> None:
+        """How the individual address of the USB interface's own device is written while the
+        connection reaches only it (local device access): the future ends once it is written."""
+        self._local_address_writer = write
+
+    def local_device_refusal(
+        self, *addresses: str, reaches: LocalReach | None = None
+    ) -> str | None:
+        """While the connection reaches only the own device of the KNX USB interface (local
+        device access): why an operation on the devices at ``addresses``, or one that sends
+        what ``reaches`` names, can't run. None when it can, and always for a connection to the
+        bus."""
+        from editor_gui.plugins.connection.strings import S
+
+        local = self.local_device
+        if local is None or self._xknx is None:
+            return None
+        own = local.address or S.LOCAL_DEVICE_ADDRESS_UNKNOWN
+        if reaches == "group":
+            return S.LOCAL_DEVICE_NO_GROUP_TELEGRAMS.format(local=own)
+        if reaches == "broadcast":
+            return S.LOCAL_DEVICE_NO_BROADCASTS.format(local=own)
+        if reaches == "bus_monitor":
+            return S.LOCAL_DEVICE_NO_BUS_MONITOR.format(local=own)
+        if local.address is None:
+            return None
+        for address in addresses:
+            if _address_text(address) != local.address:
+                return S.LOCAL_DEVICE_OTHER_DEVICE.format(
+                    local=own, address=_address_text(address)
+                )
+        return None
+
+    def local_device_range_refusal(self, start: str, end: str) -> str | None:
+        """While the connection reaches only the USB interface's own device: why the devices
+        from ``start`` to ``end`` can't be scanned (any range but that device's address)."""
+        from editor_gui.plugins.connection.strings import S
+
+        local = self.local_device
+        if local is None or self._xknx is None:
+            return None
+        first, last = _address_text(start), _address_text(end)
+        if first == last and local.address in (None, first):
+            return None
+        own = local.address or S.LOCAL_DEVICE_ADDRESS_UNKNOWN
+        return S.LOCAL_DEVICE_SCAN_RANGE.format(local=own)
+
+    def local_device_refused(
+        self, op: str, *addresses: str, reaches: LocalReach | None = None
+    ) -> bool:
+        """Guard for an operation while the connection reaches only the USB interface's own
+        device: refuses it (logged, see ``take_refusal``) before anything is sent when it would
+        reach another device, a group or every device; returns whether it did."""
+        reason = self.local_device_refusal(*addresses, reaches=reaches)
+        if reason is None:
+            return False
+        self.refuse(op, reason)
+        return True
+
+    def refuse(self, op: str, reason: str) -> None:
+        """Log why ``op`` does not start, kept for ``take_refusal``."""
+        self._log.error(reason, operation=op)
+        with self._busy_lock:
+            self._refusal = (reason, time.monotonic())
+
+    def take_refusal(self, max_age: float = 10.0) -> str | None:
+        """Why the last operation was refused before it started (``refuse``), once, when that
+        was within ``max_age`` seconds; None otherwise."""
+        with self._busy_lock:
+            refusal, self._refusal = self._refusal, None
+        if refusal is None or time.monotonic() - refusal[1] > max_age:
+            return None
+        return refusal[0]
+
     def can_reach_bus(self) -> bool:
         """Whether an online operation can run: a connection is open, or one can be opened for
         it (see ``OperationConnector``) while the bus monitor does not hold the interface."""
@@ -509,7 +617,10 @@ class ConnectionService:
                 return
             if operation is None:
                 connector.release()
-                result.set_exception(OperationNotStarted(f"{op} could not start"))
+                reason = self.take_refusal()
+                result.set_exception(
+                    OperationNotStarted(reason or f"{op} could not start")
+                )
                 return
             self._connected_operations[result] = operation
 
@@ -609,10 +720,20 @@ class ConnectionService:
         start: Callable[[], None],
         stop: Callable[[], None],
         supported: Callable[[], bool],
+        local_device: Callable[[], bool] | None = None,
     ) -> None:
+        """``local_device``: whether the configured connection is a USB interface's local
+        device access, which the bus monitor can't use either."""
         self._busmonitor_start = start
         self._busmonitor_stop = stop
         self._busmonitor_supported = supported
+        self._busmonitor_local_device = local_device
+
+    def busmonitor_unsupported_error(self) -> str:
+        """Why the configured connection can't run a bus monitor, as ``busmonitor_error`` names
+        it: "local_device" (a USB interface's local device access) or "routing"."""
+        local = self._busmonitor_local_device
+        return "local_device" if local is not None and local() else "routing"
 
     @property
     def busmonitor_state(self) -> BusmonitorState:
@@ -673,6 +794,7 @@ class ConnectionService:
         self._xknx = xknx
         self._loop = loop
         if xknx is None:
+            self.local_device = None
             self.interface_max_apdu_length = None
             self.interface_name = None
             self.interface_address = None
@@ -710,6 +832,12 @@ class ConnectionService:
                 error=str(e),
                 hex=raw_cemi.hex(" "),
             )
+            return None
+        if isinstance(cemi.data, CEMILData) and (
+            self.local_device_refused("send_cemi", reaches="group")
+            if isinstance(cemi.data.dst_addr, GroupAddress)
+            else self.local_device_refused("send_cemi", str(cemi.data.dst_addr))
+        ):
             return None
         reencoded = cemi.to_knx()
         if reencoded != raw_cemi:
@@ -758,7 +886,11 @@ class ConnectionService:
 
     @_connects("read_programming_mode_devices")
     def read_programming_mode_devices(self, timeout: float = 3.0) -> Future[Any] | None:
-        if self.not_connected("read_programming_mode_devices"):
+        if self.not_connected(
+            "read_programming_mode_devices"
+        ) or self.local_device_refused(
+            "read_programming_mode_devices", reaches="broadcast"
+        ):
             return None
         return self.run_async(
             nm_individual_address_read(self._connected_xknx, timeout=timeout)
@@ -772,7 +904,9 @@ class ConnectionService:
         reads) and releases it in the done-callback. The result is a list of
         :class:`~editor_gui.programming.ScannedDevice`; the caller attaches its own callback to
         consume it."""
-        if self.not_connected("scan_programming_mode"):
+        if self.not_connected("scan_programming_mode") or self.local_device_refused(
+            "scan_programming_mode", reaches="broadcast"
+        ):
             return None
         from editor_gui.programming import scan_programming_mode_devices
 
@@ -814,6 +948,10 @@ class ConnectionService:
             "assign_individual_address_by_serial"
         ) or self.not_connected("assign_individual_address_by_serial"):
             return None
+        if self.local_device_refused(
+            "assign_individual_address_by_serial", reaches="broadcast"
+        ):
+            return None
         self._log.debug(
             "Assigning individual address by serial",
             address=address,
@@ -831,6 +969,9 @@ class ConnectionService:
             "assign_individual_address"
         ):
             return None
+        if self.local_device is not None:
+            # No broadcast reaches it: the interface's own device gets it as its address.
+            return self._write_local_device_address(address, address)
         self._log.debug("Assigning individual address", address=address)
         # Write the address to the device in programming mode without restarting it. xknx's
         # nm_individual_address_write restarts the device here, which leaves it briefly unreachable
@@ -844,7 +985,9 @@ class ConnectionService:
         """Whether a device on the bus answers at ``address`` (NM_IndividualAddress_Check: a
         connection and a device descriptor read), over the open connection; the future's result
         is a bool. ``None`` when no connection is open."""
-        if self.not_connected("individual_address_occupied"):
+        if self.not_connected(
+            "individual_address_occupied"
+        ) or self.local_device_refused("individual_address_occupied", address):
             return None
         from xknx.management.procedures.network.nm_individual_address_check import (
             nm_individual_address_check,
@@ -874,6 +1017,8 @@ class ConnectionService:
             return None
         if not device.individual_address:
             self._log.warning("Device has no individual address", device=device.name)
+            return None
+        if self.local_device_refused("restart", device.individual_address):
             return None
         if not self.begin_operation("restart", device.individual_address):
             self._log.warning("A bus operation is already running", device=device.name)
@@ -932,6 +1077,8 @@ class ConnectionService:
             return None
         if not device.individual_address:
             self._log.warning("Device has no individual address", device=device.name)
+            return None
+        if self.local_device_refused("reset", device.individual_address):
             return None
         if not self.begin_operation("reset", device.individual_address):
             self._log.warning("A bus operation is already running", device=device.name)
@@ -1169,6 +1316,11 @@ class ConnectionService:
             from xknxeditor.download.scope import DownloadScope
 
             overwrite = scope is DownloadScope.OVERWRITE_INDIVIDUAL_ADDRESS
+            if self.local_device is not None:
+                # No broadcast reaches it: the interface's own device gets the address.
+                return self._write_local_device_address(
+                    device.individual_address, device.name
+                )
             return self._download_individual_address(
                 device,
                 current_address if overwrite else None,
@@ -1196,6 +1348,8 @@ class ConnectionService:
         scope = scope or DownloadScope.FULL
         # Before the bus slot is taken: a missing device certificate is reported to the caller.
         security = self._download_security(device, tool_key)
+        if self.local_device_refused("program", device.individual_address):
+            return None
         if not self.begin_operation("program", device.individual_address):
             self._log.warning("A bus operation is already running", device=device.name)
             return None
@@ -1345,6 +1499,33 @@ class ConnectionService:
         else:
             self._clear_busy()
         return future
+
+    def _write_local_device_address(
+        self, address: str, name: str
+    ) -> Future[Any] | None:
+        """Download the individual address ``address`` (of the project's device ``name``) to the
+        USB interface's own device while the connection reaches only it: it is written as the
+        interface's own address, the connection being opened again with it (no broadcast can
+        reach the device). None when it can't start."""
+        writer = self._local_address_writer
+        if writer is None:
+            return None
+        if not self.begin_operation("program", address):
+            self._log.warning("A bus operation is already running", device=name)
+            return None
+        self._log.info(
+            "Downloading individual address to the USB interface's own device",
+            device=name,
+            address=address,
+        )
+        try:
+            written = writer(address)
+        except ValueError as err:
+            self._clear_busy()
+            self.refuse("program_device", str(err))
+            return None
+        written.add_done_callback(self._log_program_result)
+        return written
 
     def _route_couplers(self, device: Device) -> list[IndividualAddress]:
         """The project's couplers between this connection and ``device`` (read here, not on
@@ -1653,6 +1834,8 @@ class ConnectionService:
                 "An address download cannot be tested", device=device.name
             )
             return None
+        if self.local_device_refused("test", device.individual_address):
+            return None
         if not self.begin_operation("test", device.individual_address):
             self._log.warning("A bus operation is already running", device=device.name)
             return None
@@ -1736,6 +1919,8 @@ class ConnectionService:
 
         security = self._security_for(device)
         services = memory_services(device.app) if device.app else MemoryServices()
+        if self.local_device_refused("read_memory", device.individual_address):
+            return None
         if not self.begin_operation("read_memory", device.individual_address):
             return None
         future = self.run_async(
@@ -1773,6 +1958,8 @@ class ConnectionService:
             return None
         from editor_gui.device_info import read_device_info
 
+        if self.local_device_refused("device_info", device.individual_address):
+            return None
         if not self.begin_operation("device_info", device.individual_address):
             self._log.warning("A bus operation is already running", device=device.name)
             return None
@@ -1832,6 +2019,8 @@ class ConnectionService:
 
         if self.not_connected("mdt_firmware"):
             return None
+        if self.local_device_refused("mdt_firmware", device.individual_address):
+            return None
         if not self.begin_operation("mdt_firmware", device.individual_address):
             return None
         try:
@@ -1877,6 +2066,8 @@ class ConnectionService:
             return None
         if not device.individual_address or device.app is None:
             raise ValueError("Device has no individual address or application")
+        if self.local_device_refused("mdt_symbols", device.individual_address):
+            return None
         if not self.begin_operation("mdt_symbols", device.individual_address):
             return None
         try:
@@ -1941,6 +2132,8 @@ class ConnectionService:
             return None
         if not device.individual_address or device.app is None:
             raise ValueError("Device has no individual address or application")
+        if self.local_device_refused("mdt_symbols", device.individual_address):
+            return None
         if not self.begin_operation("mdt_symbols", device.individual_address):
             return None
         try:
@@ -1999,6 +2192,8 @@ class ConnectionService:
             run_dali_operation,
         )
 
+        if self.local_device_refused("dali", device.individual_address):
+            return None
         if not self.begin_operation("dali", device.individual_address):
             self._log.warning("A bus operation is already running", device=device.name)
             return None
@@ -2075,6 +2270,8 @@ class ConnectionService:
             return None
         from editor_gui.programming_dali import run_siemens_dali_operation
 
+        if self.local_device_refused("siemens_dali", device.individual_address):
+            return None
         if not self.begin_operation("siemens_dali", device.individual_address):
             self._log.warning("A bus operation is already running", device=device.name)
             return None
@@ -2115,6 +2312,8 @@ class ConnectionService:
             return None
         if not device.individual_address:
             self._log.warning("Device has no individual address", device=device.name)
+            return None
+        if self.local_device_refused("siemens_dca", device.individual_address):
             return None
         if not self.begin_operation("siemens_dca", device.individual_address):
             self._log.warning("A bus operation is already running", device=device.name)

@@ -225,6 +225,18 @@ class RecoverService:
             or (self._search is not None and not self._search.done())
         )
 
+    def _refused_on_local_device(self, targets: list[RecoverEntry]) -> bool:
+        """Refuse reading back devices other than the USB interface's own one while the
+        connection reaches only that (the reason is the window's error)."""
+        reason = self._api.connection.local_device_refusal(
+            *(entry.address for entry in targets)
+        )
+        if reason is None:
+            return False
+        self.error = reason
+        self._api.connection.refuse("recover", reason)
+        return True
+
     def _cancelled(self) -> bool:
         """Whether Stop was pressed: a running search ends with its result so far."""
         return self._cancel
@@ -238,6 +250,11 @@ class RecoverService:
     def start_scan(self, start: str, end: str) -> None:
         """Scan ``[start, end]`` and identify each responder against the catalog."""
         if self.busy or not self.connected():
+            return
+        # Only the own device while the connection reaches a USB interface's own device.
+        if reason := self._api.connection.local_device_range_refusal(start, end):
+            self.error = reason
+            self._api.connection.refuse("recover", reason)
             return
         # Take the single bus-operation slot so a program/test cannot run on the
         # same tunnel at the same time (and vice versa).
@@ -381,6 +398,8 @@ class RecoverService:
             return
         targets = [e for e in self.entries if e.selected and e.recoverable]
         if not targets:
+            return
+        if self._refused_on_local_device(targets):
             return
         if not self._api.connection.begin_operation("recover", "read-back"):
             self.error = "A bus operation is already running"
@@ -740,6 +759,8 @@ class RecoverService:
             return
         targets = self.chosen()
         if not targets:
+            return
+        if self._refused_on_local_device(targets):
             return
         if not self._api.connection.begin_operation("recover", "verify"):
             self.error = "A bus operation is already running"

@@ -156,6 +156,7 @@ def _project(lines: dict[int, list[Any]]) -> Any:
         is_open=True,
         get_areas=lambda: areas,
         get_lines=lambda area_id: lines[area_id],
+        find_device_by_address=lambda address: None,
     )
 
 
