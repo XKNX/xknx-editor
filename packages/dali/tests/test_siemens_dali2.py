@@ -506,3 +506,129 @@ async def test_idle_scan_state_does_not_read_a_stale_cache():
     with pytest.raises(DaliCommissioningError):
         await SiemensDali2Commissioner(programmer, poll_interval=0.001).discover()
     assert not any(c[0] == "memory" for c in programmer.calls)
+
+
+class LegacyProgrammer(Programmer):
+    def __init__(self, identity=b"\x05\x8b\x12\x00"):
+        super().__init__()
+        self.identity = identity
+
+    async def read_property(self, object_index, property_id, **kwargs):
+        if (object_index, property_id) == (4, 246):
+            self.calls.append(("identity", kwargs))
+            return self.identity
+        return await super().read_property(object_index, property_id, **kwargs)
+
+
+def legacy_frames(programmer):
+    return [
+        call[-1]
+        for call in programmer.calls
+        if call[0] == "command" and call[-1][1] == 65
+    ]
+
+
+@pytest.mark.parametrize("sensors", [False, True])
+async def test_legacy_identification_checks_hardware_then_stops_and_restores_polling(
+    sensors,
+):
+    programmer = LegacyProgrammer()
+    await SiemensDali2Commissioner(programmer, 1).identify_legacy(
+        7, lines=2, sensors=sensors, duration=0.001
+    )
+    frames = legacy_frames(programmer)
+    assert frames == [
+        bytes.fromhex("00410703000ffe001801" if sensors else "0041030300000f051001"),
+        bytes.fromhex("0041030300c100001801" if sensors else "0041030300000f001001"),
+    ]
+    assert programmer.calls[0] == ("identity", {"count": 4})
+    assert programmer.polling == 1
+    assert not any(
+        call[0] == "command" and call[-1][1] == 96 for call in programmer.calls
+    )
+
+
+@pytest.mark.parametrize(
+    "identity", [b"", bytes.fromhex("058b1100"), bytes.fromhex("058b1201"), b"xxxx"]
+)
+async def test_legacy_wrong_hardware_never_writes(identity):
+    programmer = LegacyProgrammer(identity)
+    with pytest.raises(DaliCommissioningError, match="hardware"):
+        await SiemensDali2Commissioner(programmer).identify_legacy(7, lines=2)
+    assert not any(call[0] == "command" for call in programmer.calls)
+
+
+@pytest.mark.parametrize("sensors", [False, True])
+async def test_legacy_cancellation_still_stops_identification(sensors):
+    programmer = LegacyProgrammer()
+    task = asyncio.create_task(
+        SiemensDali2Commissioner(programmer).identify_legacy(
+            7, lines=2, sensors=sensors
+        )
+    )
+    while not legacy_frames(programmer):
+        await asyncio.sleep(0)
+    task.cancel()
+    with pytest.raises(asyncio.CancelledError):
+        await task
+    assert legacy_frames(programmer)[-1] == bytes.fromhex(
+        "0041030300c100001801" if sensors else "0041030300000f001001"
+    )
+    assert programmer.polling == 1
+
+
+@pytest.mark.parametrize("mode,command", [(1, 5), (2, 0)])
+async def test_legacy_gear_on_off_uses_targeted_command(mode, command):
+    programmer = LegacyProgrammer(bytes.fromhex("058b1100"))
+    await SiemensDali2Commissioner(programmer).identify_legacy(63, lines=1, mode=mode)
+    assert legacy_frames(programmer) == [
+        bytes((0, 65, 3, 3, 0, 0, 127, command, 16, 1))
+    ]
+
+
+async def test_legacy_stop_before_start_performs_no_bus_access():
+    programmer = LegacyProgrammer()
+    await SiemensDali2Commissioner(programmer).identify_legacy(
+        7, lines=2, stopped=lambda: True
+    )
+    assert not programmer.calls
+
+
+async def test_legacy_failure_attempts_stop_and_keeps_error():
+    programmer = LegacyProgrammer()
+
+    async def reject(data, command):
+        if command and data[1] == 65 and data[7] == 5:
+            return b"\xff"
+        return None
+
+    programmer.override = reject
+    with pytest.raises(DaliCommissioningError):
+        await SiemensDali2Commissioner(programmer).identify_legacy(7, lines=2)
+    assert legacy_frames(programmer)[-1] == bytes.fromhex("0041030300000f001001")
+    assert programmer.polling == 1
+
+
+async def test_legacy_timer_uses_maximum_minimum_and_sensor_refresh(monkeypatch):
+    import xknxeditor.dali.siemens_dali2 as module
+
+    loop = asyncio.get_running_loop()
+    clock = [loop.time()]
+    monkeypatch.setattr(loop, "time", lambda: clock[0])
+
+    async def advance(seconds):
+        clock[0] += seconds
+
+    monkeypatch.setattr(module.asyncio, "sleep", advance)
+    programmer = LegacyProgrammer()
+    await SiemensDali2Commissioner(programmer).identify_legacy(7, lines=2, duration=4.6)
+    assert [frame[7] for frame in legacy_frames(programmer)] == [5, 6, 5, 0]
+    programmer = LegacyProgrammer()
+    await SiemensDali2Commissioner(programmer).identify_legacy(
+        7, lines=2, sensors=True, duration=4.1
+    )
+    assert [frame[5:8] for frame in legacy_frames(programmer)] == [
+        b"\x0f\xfe\0",
+        b"\x0f\xfe\0",
+        b"\xc1\0\0",
+    ]

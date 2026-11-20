@@ -287,6 +287,9 @@ class ConnectionService:
         # Block Bus Writes (Settings > Connection, or --no-bus-writes): reads only, every frame
         # that would change something on the bus is refused (write_guard.py).
         self.block_bus_writes = False
+        from editor_gui.programming_siemens_dali2 import IdentificationControl
+
+        self.siemens_dali2_identification = IdentificationControl()
         # The task behind each future of run_async while it runs (cancel_operation).
         self._operation_tasks: dict[Future[Any], list[asyncio.Task[Any]]] = {}
         # How many operations run_async scheduled (see start_operation).

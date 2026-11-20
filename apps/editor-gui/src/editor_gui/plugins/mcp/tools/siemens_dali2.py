@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import dataclasses
 from dataclasses import asdict
 from typing import TYPE_CHECKING, Any, Literal
 
@@ -16,7 +17,12 @@ from editor_gui.plugins.mcp.tools.connection import (
 )
 from editor_gui.plugins.mcp.tools.project import require_device
 from editor_gui.plugins.project.strings import S
-from editor_gui.programming_siemens_dali2 import Action, Operation, prepare_operation
+from editor_gui.programming_siemens_dali2 import (
+    Action,
+    Operation,
+    Target,
+    prepare_operation,
+)
 from xknxeditor.dali.siemens_dali2 import Scan
 
 if TYPE_CHECKING:
@@ -54,8 +60,9 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         address: int = 0,
         new_address: int = 0,
         random_address: int = 0,
+        duration: float = 15,
     ) -> dict[str, Any]:
-        def prepare() -> tuple[Device, Operation]:
+        def prepare() -> tuple[Device, Operation, Target]:
             device = require_device(ctx.api.project, node_id, device_address)
             if not device.individual_address:
                 raise ValueError("Device has no individual address")
@@ -68,10 +75,30 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                 new_address=new_address,
                 random_address=random_address,
                 timeout=timeout,
+                duration=duration,
             )
-            return device, operation
+            target = (
+                ctx.api.project.generation,
+                device.node_id,
+                device.app.id if device.app else "",
+                device.individual_address,
+                line,
+                sensors,
+            )
+            return device, operation, target
 
-        device, operation = ctx.run_locked(prepare)
+        device, operation, target = ctx.run_locked(prepare)
+        control = service.siemens_dali2_identification
+        if action == "stop" and operation.legacy:
+            stopping = control.stop(target)
+            if stopping is not None:
+                stopping.ended.result(timeout + 15)
+                return {
+                    "node_id": device.node_id,
+                    "line": line,
+                    "sensors": sensors,
+                    "action": "stop",
+                }
         if not service.can_reach_bus():
             raise ToolError("No KNX connection")
         text = {
@@ -83,26 +110,58 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             "off": S.DALI_SWITCH_OFF,
             "address": S.E64_SHORT_ADDRESS,
         }[action]
-        ended = run_queued_action(
-            ctx,
-            device.node_id,
-            "siemens_dali",
-            timeout + 15,
-            op=operation,
-            text=text,
-            writes=operation.writes,
+        session = (
+            control.start(target) if operation.legacy and action == "blink" else None
         )
-        if ended is not None:
-            result = ended.result
-        else:
-            future = ctx.run_locked(
-                lambda: service.run_siemens_dali(
-                    device, operation, writes=operation.writes
-                )
+        if session is not None:
+            operation = dataclasses.replace(operation, session=session)
+
+        async def execute(programmer: Any) -> Scan | None:
+            error: BaseException | None = None
+            if session is not None:
+                session.started.set()
+            try:
+                return await operation(programmer)
+            except BaseException as exc:
+                error = exc
+                raise
+            finally:
+                if session is not None:
+                    control.finish(target, session, error)
+
+        wait = timeout + 15 + (duration if session is not None else 0)
+        try:
+            ended = run_queued_action(
+                ctx,
+                device.node_id,
+                "siemens_dali",
+                wait,
+                op=execute if session is not None else operation,
+                text=text,
+                writes=operation.writes,
             )
-            if future is None:
-                raise not_started(service, text)
-            result = await_operation(service, future, timeout + 15, text)
+            if ended is not None:
+                result = ended.result
+            else:
+                future = ctx.run_locked(
+                    lambda: service.run_siemens_dali(
+                        device,
+                        execute if session is not None else operation,
+                        writes=operation.writes,
+                    )
+                )
+                if future is None:
+                    raise not_started(service, text)
+                result = await_operation(service, future, wait, text)
+        except BaseException as exc:
+            if session is not None:
+                session.stop.set()
+                if not session.started.is_set():
+                    control.finish(target, session, exc)
+            raise
+        finally:
+            if session is not None and not session.started.is_set():
+                control.finish(target, session)
         if action in ("read", "discover", "address"):
             return scan_dict(device.node_id, result)
         return {
@@ -128,7 +187,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         devices and raw_hex. Each device has short_address (0..63), random_address (24-bit),
         flags, version, types, min_level and instances ({number, type, resolution}).
         The cache reflects the last gateway discovery, not necessarily the current DALI bus.
-        Supported applications: Siemens 9A1B/9A1C, versions 02/03/30.
+        Supported applications: Siemens 9A1B/9A1C, versions 01/02/03/30.
         """
         return run("read", node_id, device_address, line, sensors, timeout)
 
@@ -156,13 +215,28 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         line: int = 0,
         sensors: bool = False,
         timeout: float = 15,
+        duration: float = 15,
     ) -> dict[str, Any]:
         """Identify Siemens DALI-2 gear or inputs at short address 0..63.
         Select by node_id OR device_address; line is zero-based, sensors=True selects inputs.
-        blink uses a two-second interval; stop ends identification; on/off set its test state.
+        Version 01 flashes gear at maximum/minimum or identifies sensors for duration seconds
+        (0 < duration <= 300), then turns gear off or terminates sensor identification.
+        It checks the gateway hardware and holds the exclusive bus slot until cleanup completes.
+        A concurrent stop request ends that session; canceling the operation also runs cleanup.
+        Version 01 inputs support blink/stop only; gear also supports on/off.
+        Versions 02/03/30 use gateway identification with a two-second interval until stop.
         Returns node_id, line, sensors, address and action after command acknowledgement.
         """
-        return run(action, node_id, device_address, line, sensors, timeout, address)
+        return run(
+            action,
+            node_id,
+            device_address,
+            line,
+            sensors,
+            timeout,
+            address,
+            duration=duration,
+        )
 
     @tool("destructive", open_world=True)
     def connection_siemens_dali2_address(

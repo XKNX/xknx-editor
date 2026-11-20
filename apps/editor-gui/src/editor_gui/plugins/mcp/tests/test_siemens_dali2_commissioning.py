@@ -28,6 +28,7 @@ def setup(tmp_path, monkeypatch):
         read_cached=AsyncMock(return_value=inventory()),
         discover=AsyncMock(return_value=inventory()),
         identify=AsyncMock(),
+        identify_legacy=AsyncMock(),
         change_short_address=AsyncMock(return_value=inventory()),
     )
     monkeypatch.setattr(
@@ -114,6 +115,27 @@ async def test_invalid_inputs_fail_before_starting_bus_operation(tmp_path, monke
         assert not calls
 
 
+async def test_version_one_reads_both_lines_and_identifies_through_direct_frames(
+    tmp_path, monkeypatch
+):
+    ctx, gateway, commissioner, calls = setup(tmp_path, monkeypatch)
+    gateway.app.id = "M-0001_A-9A1C-01-33CF"
+    async with Client(build_server(ctx)) as client:
+        for line in (0, 1):
+            result = await _data(
+                client,
+                "connection_siemens_dali2_read",
+                device_address="1.1.20",
+                line=line,
+            )
+            assert result["available"]
+        await _data(client, "connection_siemens_dali2_identify", node_id=7, address=7)
+    assert [call[1].line for call in calls[:2]] == [0, 1]
+    commissioner.identify.assert_not_awaited()
+    commissioner.identify_legacy.assert_awaited_once()
+    assert commissioner.identify_legacy.await_args.kwargs["lines"] == 2
+
+
 async def test_unavailable_cache_is_not_an_empty_success(tmp_path, monkeypatch):
     ctx, _, commissioner, _ = setup(tmp_path, monkeypatch)
     commissioner.read_cached.return_value = None
@@ -141,3 +163,57 @@ async def test_queue_receives_write_classification_and_shared_plan(
     assert not calls
     assert [q[2]["writes"] for q in queued] == [True, False]
     assert all(q[1] == "siemens_dali" and q[2]["op"].line == 0 for q in queued)
+
+
+async def test_mcp_stop_waits_for_gui_session_cleanup_without_queuing_another_operation(
+    tmp_path, monkeypatch
+):
+    ctx, gateway, _, calls = setup(tmp_path, monkeypatch)
+    gateway.app.id = "M-0001_A-9A1C-01-33CF"
+    control = ctx.api.connection.siemens_dali2_identification
+    target = (ctx.api.project.generation, 7, gateway.app.id, "1.1.20", 1, True)
+    session = control.start(target)
+    async with Client(build_server(ctx)) as client:
+        task = asyncio.create_task(
+            _data(
+                client,
+                "connection_siemens_dali2_identify",
+                node_id=7,
+                address=7,
+                action="stop",
+                line=1,
+                sensors=True,
+            )
+        )
+        for _ in range(200):
+            if session.stop.is_set():
+                break
+            await asyncio.sleep(0.005)
+        assert session.stop.is_set() and not task.done() and not calls
+        control.finish(target, session)
+        result = await task
+        assert result["action"] == "stop"
+    assert not calls
+
+
+async def test_legacy_sensor_modes_and_duration_rejected_before_bus(
+    tmp_path, monkeypatch
+):
+    ctx, gateway, _, calls = setup(tmp_path, monkeypatch)
+    gateway.app.id = "M-0001_A-9A1C-01-33CF"
+    async with Client(build_server(ctx)) as client:
+        for args in (
+            {"sensors": True, "action": "on"},
+            {"sensors": True, "action": "off"},
+            {"duration": 0},
+            {"duration": 301},
+        ):
+            with pytest.raises(ToolError):
+                await _data(
+                    client,
+                    "connection_siemens_dali2_identify",
+                    node_id=7,
+                    address=7,
+                    **args,
+                )
+    assert not calls

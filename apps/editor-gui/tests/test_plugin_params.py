@@ -7,10 +7,12 @@ sections rather than the Other bucket.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
+from pathlib import Path
 from typing import Any, cast
 
 import pytest
+from editor_gui.device import Device
 from editor_gui.plugin_params import (
     _MAPPINGS_DIR,
     _enum_choices,
@@ -20,6 +22,10 @@ from editor_gui.plugin_params import (
     collect_from_device,
     mapping_for,
 )
+
+from xknxeditor.namespaces.intermediate import ParameterInstanceRef
+from xknxeditor.prod import parse_application_xml
+from xknxeditor.prod.application import Application
 
 
 def test_every_mapping_file_loads() -> None:
@@ -69,106 +75,82 @@ class _StubParam:
 
 
 @dataclass
-class _StubChoiceContainer:
-    choice: list[Any] = field(default_factory=list)
-
-
-@dataclass
-class _StubParamRefsContainer:
-    parameter_ref: list[Any] = field(default_factory=list)
-
-
-@dataclass
-class _StubStatic:
-    parameters: Any = None
-    parameter_refs: Any = None
-
-
-@dataclass
 class _StubModuleDefs:
     module_def: list[Any] = field(default_factory=list)
 
 
-@dataclass
-class _StubModuleDef:
-    static: Any = None
+MODULE_FIXTURE = Path(__file__).parent / "fixtures/dali_module_parameters.xml"
+APP = "M-0083_A-0153-21-0000"
 
 
-@dataclass
-class _StubProgram:
-    static: Any = None
-    module_defs: Any = None
+def module_device() -> Device:
+    app = parse_application_xml(MODULE_FIXTURE.read_bytes(), "M-0083")[0]
+    return Device(node_id=1, name="DALI", app=app, individual_address="1.1.1")
 
 
-@dataclass
-class _StubApp:
-    program: Any = None
-    id: str = ""
+def test_all_module_defaults_and_nested_instances_are_listed() -> None:
+    device = module_device()
+    mapping = mapping_for(APP)
+    assert mapping is not None and device.dynamic_ui is not None
+    rows = {
+        p.ref_id: p for s in collect_from_device(device, mapping) for p in s.parameters
+    }
+    assert set(rows) == set(device.dynamic_ui.parameter_ref_ids())
+    assert len(rows) == 11
+    for n in (1, 2):
+        prefix = f"{APP}_MD-1_M-1_MI-{n}"
+        mode = rows[f"{prefix}_P-1_R-1"]
+        assert mode.value == mode.default_value == "8"
+        assert mode.name == "DCA1-Mode"
+        assert mode.label == f"[{n}] Group 3 Mode"
+        assert mode.section == "DCA Channel 1"
+        assert mode.writable
+        assert not rows[f"{prefix}_P-1_R-2"].writable
+        assert rows[f"{prefix}_P-1_R-2"].value == "12"
+        assert not rows[f"{prefix}_P-3_R-4"].writable
+        assert rows[f"{prefix}_P-2_R-3"].value == ""
+        nested = [p for r, p in rows.items() if r.startswith(prefix + "_SM-")]
+        assert len(nested) == 1 and nested[0].value == "2"
+        assert nested[0].label.endswith("Input 7 Level")
+    assert rows[f"{APP}_P-1_R-1"].value == ""
+    assert device.parameter_instance_refs == []
 
 
-@dataclass
-class _StubPIR:
-    ref_id: str
-    value: str
-
-
-@dataclass
-class _StubDevice:
-    app: Any = None
-    parameter_instance_refs: list[Any] = field(default_factory=list)
-    individual_address: str = "1.1.1"
-
-
-def test_module_instance_ref_resolves_via_template() -> None:
-    _load_mapping.cache_clear()
-    template = _StubParam(
-        id="M-0083_A-0153-21-8829-O00EF_MD-1_P-7",
-        name="ECG1-ModeON",
-        value="0",
-    )
-    device = _StubDevice(
-        app=_StubApp(
-            id="M-0083_A-0153-21-8829-O00EF",
-            program=_StubProgram(
-                static=_StubStatic(
-                    parameters=_StubChoiceContainer(choice=[]),
-                    parameter_refs=_StubParamRefsContainer(parameter_ref=[]),
-                ),
-                module_defs=_StubModuleDefs(
-                    module_def=[
-                        _StubModuleDef(
-                            static=_StubStatic(
-                                parameters=_StubChoiceContainer(choice=[template]),
-                            )
-                        )
-                    ]
-                ),
-            ),
-        ),
-        parameter_instance_refs=[
-            _StubPIR(
-                ref_id="M-0083_A-0153-21-8829-O00EF_MD-1_M-2_MI-5_P-7_R-11", value="1"
-            ),
-            _StubPIR(
-                ref_id="M-0083_A-0153-21-8829-O00EF_MD-1_M-2_MI-6_P-7_R-11", value="2"
-            ),
-        ],
-    )
-
-    mapping = mapping_for("M-0083_A-0153-21-8829-O00EF")
+def test_module_values_follow_live_edits_without_overwriting_other_instances() -> None:
+    device = module_device()
+    first = f"{APP}_MD-1_M-1_MI-1_P-1_R-1"
+    second = f"{APP}_MD-1_M-1_MI-2_P-1_R-1"
+    device.parameter_instance_refs = [ParameterInstanceRef(ref_id=first, value="9")]
+    device.release_dynamic_ui()
+    mapping = mapping_for(APP)
     assert mapping is not None
-    sections = collect_from_device(device, mapping)
-    rows: list[Any] = []
-    for s in sections:
-        rows.extend(s.parameters)
-    assert len(rows) == 2
-    # The MI index is reflected in the display label so distinct instances are visible.
-    labels = [r.label for r in rows]
-    assert any("[5]" in lbl for lbl in labels), labels
-    assert any("[6]" in lbl for lbl in labels), labels
-    # Ref_id must still be the project's full instance ref so set_param writes the right slot.
-    ref_ids = [r.ref_id for r in rows]
-    assert all("_MI-" in r for r in ref_ids)
+    rows = {
+        p.ref_id: p for s in collect_from_device(device, mapping) for p in s.parameters
+    }
+    assert rows[first].value == "9"
+    device.set_param_value(first, "10")
+    rows = {
+        p.ref_id: p for s in collect_from_device(device, mapping) for p in s.parameters
+    }
+    assert rows[first].value == "10"
+    assert rows[first].default_value == "8"
+    assert rows[second].value == "8"
+
+
+def test_static_parameters_without_dynamic_tree_remain_available() -> None:
+    device = module_device()
+    assert device.app is not None
+    app = device.app
+    device = replace(
+        device,
+        app=Application(replace(app.program, dynamic=None), app.version, "M-0083"),
+    )
+    mapping = mapping_for(APP)
+    assert mapping is not None
+    rows = [p for s in collect_from_device(device, mapping) for p in s.parameters]
+    assert len(rows) == 1
+    assert rows[0].ref_id == f"{APP}_P-1_R-1"
+    assert rows[0].default_value == rows[0].value == ""
 
 
 def test_insta_k_prefix_lands_in_channel_section() -> None:
@@ -340,3 +322,30 @@ def test_triton_mapping_does_not_claim_other_apps(app_id: str) -> None:
     mapping = mapping_for(app_id)
     assert mapping is None or mapping.blob_reader != "triton_lcd"
     assert device_type_from_app_id(app_id) is None
+
+
+def test_module_only_application_and_raw_mapping_names() -> None:
+    source = MODULE_FIXTURE.read_text()
+    source = source.replace('Name="DCA1-Mode"', 'Name="ch[{{ChannelNum}}].ecg[3].mode"')
+    app = parse_application_xml(source.encode(), "M-0083")[0]
+    assert app.program.static is not None
+    program = replace(
+        app.program,
+        static=replace(app.program.static, parameters=None, parameter_refs=None),
+    )
+    device = Device(
+        node_id=1,
+        name="DALI",
+        app=Application(program, app.version, "M-0083"),
+        individual_address="1.1.1",
+    )
+    mapping = mapping_for("M-0071_A-3391-30-0000")
+    assert mapping is not None
+    rows = [p for s in collect_from_device(device, mapping) for p in s.parameters]
+    assert len(rows) == 10
+    mode = next(p for p in rows if p.ref_id.endswith("MI-1_P-1_R-1"))
+    assert mode.section == "Channel - ECG 3"
+    assert mode.label == "[1] Group 3 Mode"
+    assert device.app is not None
+    ref = device.app.tree_builder().idx.parameter_refs[f"{APP}_MD-1_P-1_R-1"]
+    assert ref.text == "Group {{GRP_NO}} Mode"

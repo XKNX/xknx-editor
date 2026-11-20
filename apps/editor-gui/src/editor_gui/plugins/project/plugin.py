@@ -455,7 +455,9 @@ class ProjectPlugin:
             self._run_siemens_dali, _generation=lambda: api.project.generation
         )
         self._siemens_dali2_panel = SiemensDali2Panel(
-            self._run_siemens_dali, _generation=lambda: api.project.generation
+            self._run_siemens_dali,
+            _generation=lambda: api.project.generation,
+            _identification=api.connection.siemens_dali2_identification,
         )
         self._plugin_params_panel = PluginParamsPanel(
             self.handle_param_change,

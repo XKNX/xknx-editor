@@ -559,4 +559,4 @@ def test_e64_panel_retains_header_note_and_program_gate(
     imgui.end_frame()
     assert labels == ["DALI", S.PLUGIN_PARAMS_EDIT_NOTE]
     assert rendered == [device]
-    assert programmed == ([device] if vendor_blob else [])
+    assert programmed == []

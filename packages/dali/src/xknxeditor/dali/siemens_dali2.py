@@ -6,7 +6,7 @@ import asyncio
 import logging
 import math
 import re
-from collections.abc import AsyncGenerator
+from collections.abc import AsyncGenerator, Callable
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
 from typing import Protocol
@@ -15,13 +15,19 @@ from xknxeditor.dali.connection import DaliCommissioningError
 
 _LOG = logging.getLogger(__name__)
 _IMAGE_LIMIT = 1 << 20
-_APP = re.compile(r"M-0001_A-9A1([BC])-(02|03|30)-[0-9A-F]{4}(?:-.*)?$")
+_APP = re.compile(r"M-0001_A-9A1([BC])-(01|02|03|30)-[0-9A-F]{4}(?:-.*)?$")
 
 
 def line_count(app_id: str | None) -> int:
     """Number of DALI lines for supported application versions, zero for others."""
     match = _APP.fullmatch(app_id.upper()) if app_id else None
     return (2 if match[1] == "C" else 1) if match else 0
+
+
+def uses_legacy_identification(app_id: str | None) -> bool:
+    """Whether identification is driven by direct frames and a client timer."""
+    match = _APP.fullmatch(app_id.upper()) if app_id else None
+    return bool(match and match[2] == "01")
 
 
 class Programmer(Protocol):
@@ -380,6 +386,72 @@ class SiemensDali2Commissioner:
             raw = await self._raw(payload, command=True)
             if len(raw) > 1 and raw[1] != 96:
                 raise DaliCommissioningError("Invalid DALI-2 identification response")
+
+    async def identify_legacy(
+        self,
+        address: int,
+        *,
+        lines: int,
+        sensors: bool = False,
+        start: bool = True,
+        mode: int = 0,
+        duration: float = 15,
+        stopped: Callable[[], bool] = lambda: False,
+        timeout: float = 15,
+    ) -> None:
+        """Identify through direct frames; flashing ends after duration or a stop request."""
+        _address(address)
+        _duration(duration)
+        _duration(timeout)
+        if type(lines) is not int or lines not in (1, 2) or self.line >= lines:
+            raise ValueError("Invalid DALI-2 gateway line count")
+        if (
+            type(mode) is not int
+            or mode not in (0, 1, 2)
+            or (sensors and start and mode != 0)
+        ):
+            raise ValueError("Input devices support blink and stop only")
+        async with self._lock, asyncio.timeout(duration + timeout + 10):
+            if stopped():
+                return
+            async with asyncio.timeout(timeout):
+                identity = await self._programmer.read_property(4, 246, count=4)
+            if identity != bytes((5, 139, 17 if lines == 1 else 18, 0)):
+                raise DaliCommissioningError("Unexpected Siemens DALI-2 hardware type")
+            async with self._pause():
+                stop_frame = (
+                    bytes((193, 0, 0)) if sensors else bytes(((address << 1) | 1, 0))
+                )
+                if not start or mode == 2:
+                    await self._send(stop_frame, 3)
+                    return
+                if mode == 1:
+                    await self._send(bytes(((address << 1) | 1, 5)), 3)
+                    return
+                deadline = asyncio.get_running_loop().time() + duration
+                maximum = True
+                try:
+                    while (
+                        not stopped() and asyncio.get_running_loop().time() < deadline
+                    ):
+                        frame = (
+                            bytes(((address << 1) | 1, 254, 0))
+                            if sensors
+                            else bytes(((address << 1) | 1, 5 if maximum else 6))
+                        )
+                        async with asyncio.timeout(timeout):
+                            await self._send(frame, 7 if sensors else 3)
+                        delay = 4 if sensors else (3 if maximum else 1.5)
+                        until = min(deadline, asyncio.get_running_loop().time() + delay)
+                        while not stopped():
+                            remaining = until - asyncio.get_running_loop().time()
+                            if remaining <= 0:
+                                break
+                            await asyncio.sleep(min(0.1, remaining))
+                        maximum = not maximum
+                finally:
+                    async with asyncio.timeout(5):
+                        await self._send(stop_frame, 3)
 
     @staticmethod
     def _frame(data: bytes, flags: int) -> bytes:

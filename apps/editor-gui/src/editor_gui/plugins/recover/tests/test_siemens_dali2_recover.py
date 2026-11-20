@@ -75,8 +75,8 @@ class _Programmer:
         pytest.fail("Recovery must not write to the bus")
 
 
-def _application(twin=False, *, sensor_prefix="BSens"):
-    app_id = "M-0001_A-9A1C-30-1234" if twin else "M-0001_A-9A1B-30-1234"
+def _application(twin=False, *, sensor_prefix="BSens", version="30"):
+    app_id = f"M-0001_A-9A1{'C' if twin else 'B'}-{version}-33CF"
     parameters = []
     refs = []
     for line in range(2 if twin else 1):
@@ -93,7 +93,7 @@ def _application(twin=False, *, sensor_prefix="BSens"):
             refs.append(f'<ParameterRef Id="{pid}_R-1" RefId="{pid}" />')
     xml = f'''<KNX xmlns="http://knx.org/xml/project/20"><ManufacturerData>
       <Manufacturer RefId="M-0001"><ApplicationPrograms>
-      <ApplicationProgram Id="{app_id}" Name="DALI-2" ApplicationNumber="39452" ApplicationVersion="48" ProgramType="ApplicationProgram" MaskVersion="MV-07B0" LoadProcedureStyle="MergedProcedure" PeiType="0" DefaultLanguage="en-US" DynamicTableManagement="false" Linkable="false" MinEtsVersion="5.0">
+      <ApplicationProgram Id="{app_id}" Name="DALI-2" ApplicationNumber="39452" ApplicationVersion="{int(version, 16)}" ProgramType="ApplicationProgram" MaskVersion="MV-07B0" LoadProcedureStyle="MergedProcedure" PeiType="0" DefaultLanguage="en-US" DynamicTableManagement="false" Linkable="false" MinEtsVersion="5.0">
         <Static><ParameterTypes><ParameterType Id="{app_id}_PT-1" Name="Number"><TypeNumber Type="unsignedInt" SizeInBit="32" minInclusive="0" maxInclusive="4294967295" /></ParameterType></ParameterTypes>
           <Parameters>{"".join(parameters)}</Parameters><ParameterRefs>{"".join(refs)}</ParameterRefs>
         </Static><Dynamic><ChannelIndependentBlock /></Dynamic>
@@ -102,10 +102,11 @@ def _application(twin=False, *, sensor_prefix="BSens"):
 
 
 @pytest.mark.parametrize("twin", [False, True])
+@pytest.mark.parametrize("version", ["01", "30"])
 async def test_cached_discovery_snapshot_undo_and_project_export(
-    tmp_path, monkeypatch, twin
+    tmp_path, monkeypatch, twin, version
 ):
-    app = _application(twin)
+    app = _application(twin, version=version)
     programmer = _Programmer(2 if twin else 1)
     captured = await dali.addin_reader(app)(programmer)
     recovered = devices_from_snapshot(snapshots_json([_recovered(app, captured)]))[0]
@@ -280,7 +281,9 @@ def test_each_input_mapping_family_is_linked(prefix, kind):
         ("M-0001_A-9A1B-02-ABCD", True),
         ("M-0001_A-9A1C-03-ABCD", True),
         ("m-0001_a-9a1c-30-abcd", True),
-        ("M-0001_A-9A1C-01-ABCD", False),
+        ("M-0001_A-9A1C-01-33CF", True),
+        ("M-0001_A-9A1B-01-ABCD", True),
+        ("M-0001_A-9A1C-00-ABCD", False),
         ("M-0001_A-9A1C0-30-ABCD", False),
         ("M-0002_A-9A1C-30-ABCD", False),
         ("M-0001_A-9837-11-ABCD", False),
@@ -311,13 +314,14 @@ def test_invalid_snapshot_fails_before_project_write(payload):
         dali.apply_recovered(SimpleNamespace(), device, recovered)
 
 
+@pytest.mark.parametrize("version", ["01", "30"])
 async def test_service_uses_dali2_reader_and_rolls_back_malformed_replacement(
-    tmp_path, monkeypatch
+    tmp_path, monkeypatch, version
 ):
     from editor_gui.plugins.recover import service as service_module
     from editor_gui.plugins.recover.service import RecoverEntry, RecoverService
 
-    app = _application(True)
+    app = _application(True, version=version)
     programmer = _Programmer(2)
     captured = []
 

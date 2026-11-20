@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import dataclasses
 import functools
 import threading
 from collections.abc import Awaitable, Callable
@@ -11,11 +12,23 @@ from imgui_bundle import imgui
 
 from editor_gui.device import Device
 from editor_gui.plugins.project.strings import S
-from editor_gui.programming_siemens_dali2 import Action, Operation, prepare_operation
+from editor_gui.programming_siemens_dali2 import (
+    Action,
+    IdentificationControl,
+    IdentificationSession,
+    Operation,
+    Target,
+    prepare_operation,
+)
 from editor_gui.theme import status_color
 from editor_gui.widgets.flow import button_width, same_line_if_fits
 from editor_gui.widgets.tables import begin_data_table, data_table_headers
-from xknxeditor.dali.siemens_dali2 import Programmer, Scan, line_count
+from xknxeditor.dali.siemens_dali2 import (
+    Programmer,
+    Scan,
+    line_count,
+    uses_legacy_identification,
+)
 
 Runner = Callable[
     [Device, Callable[[Programmer], Awaitable[object]], str, Callable[[], None], bool],
@@ -32,6 +45,8 @@ class _State:
     busy: bool = False
     error: str = ""
     run: int = 0
+    duration: float = 15
+    session: tuple[Target, IdentificationSession] | None = None
     scans: dict[tuple[int, bool], Scan | None] = field(
         default_factory=dict[tuple[int, bool], Scan | None]
     )
@@ -44,6 +59,9 @@ class SiemensDali2Panel:
     _run: Runner
     _generation: Callable[[], int] = lambda: 0
     _project_generation: int | None = None
+    _identification: IdentificationControl = field(
+        default_factory=IdentificationControl
+    )
     _states: dict[tuple[int, str], _State] = field(
         default_factory=dict[tuple[int, str], _State]
     )
@@ -62,10 +80,23 @@ class SiemensDali2Panel:
         with self._lock:
             if state.run == run:
                 state.busy = False
+                if state.session is not None:
+                    self._identification.finish(*state.session)
+                    state.session = None
 
     def _start(self, device: Device, action: Action, label: str) -> None:
         with self._lock:
             state = self._state(device)
+            target = (
+                self._generation(),
+                device.node_id,
+                device.app.id if device.app else "",
+                device.individual_address,
+                state.line,
+                state.sensors,
+            )
+            if action == "stop" and self._identification.stop(target) is not None:
+                return
             if state.busy:
                 return
             scan = state.scans.get((state.line, state.sensors))
@@ -85,7 +116,13 @@ class SiemensDali2Panel:
                     address=state.address,
                     new_address=state.target,
                     random_address=selected.random_address if selected else 0,
+                    duration=state.duration,
+                    timeout=15 if action in ("blink", "stop", "on", "off") else 300,
                 )
+                if operation.legacy and action == "blink":
+                    session = self._identification.start(target)
+                    state.session = (target, session)
+                    operation = dataclasses.replace(operation, session=session)
             except ValueError as exc:
                 state.error = str(exc)
                 return
@@ -95,15 +132,22 @@ class SiemensDali2Panel:
             run = state.run
 
         async def execute(programmer: Programmer) -> object:
+            error: BaseException | None = None
+            if operation.session is not None:
+                operation.session.started.set()
             try:
                 result = await operation(programmer)
                 with self._lock:
                     self._store(state, operation, result)
                 return result
-            except Exception as exc:
+            except BaseException as exc:
+                error = exc
                 with self._lock:
                     state.error = str(exc)
                 raise
+            finally:
+                if state.session is not None:
+                    self._identification.finish(*state.session, error)
 
         try:
             self._run(
@@ -117,6 +161,9 @@ class SiemensDali2Panel:
             with self._lock:
                 state.error = str(exc)
                 state.busy = False
+                if state.session is not None:
+                    self._identification.finish(*state.session, exc)
+                    state.session = None
 
     @staticmethod
     def _store(state: _State, operation: Operation, result: Scan | None) -> None:
@@ -161,6 +208,8 @@ class SiemensDali2Panel:
                 imgui.text_disabled(S.SIEMENS_DALI_CONNECT_FIRST)
             if error:
                 imgui.text_colored(status_color("error"), error)
+            if busy and state.session is not None and imgui.button(S.DALI_STOP):
+                self._start(device, "stop", S.DALI_STOP)
             with self._lock:
                 scan = state.scans.get((state.line, state.sensors))
             if scan is None:
@@ -175,7 +224,14 @@ class SiemensDali2Panel:
                 ("on", S.DALI_SWITCH_ON),
                 ("off", S.DALI_SWITCH_OFF),
             )
+            legacy = uses_legacy_identification(device.app.id if device.app else None)
+            if legacy:
+                _, state.duration = imgui.input_float(
+                    f"{S.E64_DURATION} (s)", state.duration
+                )
             for index, (action, label) in enumerate(identify_actions):
+                if legacy and state.sensors and action in ("on", "off"):
+                    continue
                 if index:
                     same_line_if_fits(button_width(label))
                 if imgui.button(label):
