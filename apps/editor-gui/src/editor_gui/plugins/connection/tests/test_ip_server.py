@@ -5,6 +5,7 @@ telegram on the bus and once in the Group Monitor, and its section of the USB In
 from __future__ import annotations
 
 import asyncio
+import random
 import re
 import socket
 from pathlib import Path
@@ -46,16 +47,19 @@ def _nobody(_address: str) -> str | None:
 
 
 def _free_port() -> int:
-    """A port free for TCP and UDP on 127.0.0.1."""
-    for _ in range(20):
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as tcp:
-            tcp.bind(("127.0.0.1", 0))
-            port = tcp.getsockname()[1]
-            with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as udp:
-                try:
-                    udp.bind(("127.0.0.1", port))
-                except OSError:
-                    continue
+    """A port free for TCP and UDP on 127.0.0.1, at random: an ephemeral TCP port may be one
+    Windows excludes for UDP, and the workers of a parallel run take them too."""
+    for _ in range(200):
+        port = random.randrange(20000, 60000)
+        try:
+            with (
+                socket.socket(socket.AF_INET, socket.SOCK_STREAM) as tcp,
+                socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as udp,
+            ):
+                tcp.bind(("127.0.0.1", port))
+                udp.bind(("127.0.0.1", port))
+        except OSError:
+            continue
         return port
     raise OSError("no free port")
 
