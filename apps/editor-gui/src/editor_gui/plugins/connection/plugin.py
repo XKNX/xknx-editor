@@ -2972,9 +2972,14 @@ class ConnectionPlugin:
         imgui.pop_style_color()
         frames = self._mbus_frames.frames()
         if frames:
-            self._render_mbus_table(frames)
-            if imgui.button(f"{S.MBUS_FRAMES_CLEAR}##mbus_clear"):
+            # Clear at the top right, above the list it empties
+            clear = f"{S.MBUS_FRAMES_CLEAR}##mbus_clear"
+            room = imgui.get_content_region_avail().x - button_width(clear)
+            if room > 0:
+                imgui.set_cursor_pos_x(imgui.get_cursor_pos_x() + room)
+            if imgui.button(clear):
                 self._mbus_frames.clear()
+            self._render_mbus_table(frames)
         else:
             imgui.text_disabled(S.MBUS_FRAMES_NONE)
         self._render_mbus_send()
