@@ -350,6 +350,8 @@ class PowerToolProvider:
     id = "powertool"
     blob_name = BLOB_NAME
     parameter_prefix = "powertool:"
+    # A device read decodes the object flags into the configuration (see ``recover``).
+    keeps_object_flags = True
 
     def _variant(self, device: Device) -> str:
         if device.app is None:
@@ -534,9 +536,12 @@ class PowerToolProvider:
     def install_view(self, device: Device) -> None:
         install_view(device)
 
-    async def read_device(self, programmer: MemoryReader) -> DeviceImage:
+    async def read_device(
+        self, programmer: MemoryReader, device: Device
+    ) -> DeviceImage:
         """What a PowerTool device holds of its configuration (see
-        :func:`xknxeditor.vendor.powertool.recover.read_device_image`)."""
+        :func:`xknxeditor.vendor.powertool.recover.read_device_image`); the same for every
+        product (``device`` is not used)."""
         return await read_device_image(programmer)
 
     def recover(self, device: Device, image: object) -> NativeConfiguration:

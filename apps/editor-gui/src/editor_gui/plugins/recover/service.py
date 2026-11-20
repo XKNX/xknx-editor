@@ -14,7 +14,7 @@ import re
 import threading
 from concurrent.futures import Future
 from dataclasses import dataclass, field, replace
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 from editor_gui.plugins.recover.matching import (
     CatalogCandidate,
@@ -37,6 +37,9 @@ from xknxeditor.recover import (
 from xknxeditor.recover.recover import com_object_ref_by_number, seed_dynamic_ui
 
 if TYPE_CHECKING:
+    from collections.abc import Awaitable, Callable
+
+    from editor_gui.device import Device
     from editor_gui.plugins.base import Logger, PluginAPI
     from xknxeditor.download.factory_image import FactoryImage
     from xknxeditor.prod import Application
@@ -429,7 +432,6 @@ class RecoverService:
             self.recover_done = done
             self.recover_stage = ""
             try:
-                from editor_gui.plugin_providers import device_reader
                 from editor_gui.plugins.recover import dali
                 from editor_gui.plugins.recover.mdt import (
                     addin_reader,
@@ -439,12 +441,11 @@ class RecoverService:
 
                 # A device configured through a manufacturer's plug-in keeps that
                 # configuration of its own: it is read as well.
-                reader = device_reader(entry.application)
                 entry.recovered = await recover_device_at(
                     xknx,
                     entry.address,
                     entry.application,
-                    native_read=reader.read_device if reader is not None else None,
+                    native_read=self._native_reader(entry),
                     addin_read=dali.addin_reader(entry.application)
                     or addin_reader(entry.application.id),
                     editable_parameter_refs=editable_parameter_refs(entry.application),
@@ -824,6 +825,30 @@ class RecoverService:
             return parse_factory_image(data.image if data is not None else None)
         except FactoryImageError:
             return None
+
+    def _native_reader(
+        self, entry: RecoverEntry
+    ) -> Callable[[Any], Awaitable[object]] | None:
+        """What reads the configuration a device of ``entry``'s product keeps of a
+        manufacturer's plug-in off it; None for a product without one."""
+        from types import SimpleNamespace
+
+        from editor_gui.plugin_providers import device_reader
+
+        reader = device_reader(entry.application)
+        if reader is None:
+            return None
+        program_ref = entry.hardware2program_ref_id
+        product = cast(
+            "Device",
+            SimpleNamespace(
+                app=entry.application,
+                binary_data=(),
+                order_number="",
+                plugin_baggage=self._api.project.plugin_baggage_source(program_ref),
+            ),
+        )
+        return lambda programmer: reader.read_device(programmer, product)
 
     def import_snapshot(self, text: str, name: str) -> int:
         """Take the devices of a snapshot (see ``snapshot_text``) as read: each is matched
@@ -1387,8 +1412,9 @@ class RecoverService:
                     )
                 native = self._apply_native(device, recovered, application)
                 if native is not None:
-                    # The plug-in's configuration places the objects (and holds their
-                    # flags): an association names the slot of the device's object table.
+                    # The plug-in's configuration places the objects (their flags are
+                    # set there as well): an association names the slot of the device's
+                    # object table.
                     device, number_to_ref = native
                 else:
                     self._apply_flags(device, recovered, number_to_ref)
@@ -1426,9 +1452,10 @@ class RecoverService:
     def _apply_native(
         self, device: Any, recovered: RecoveredDevice, application: Any
     ) -> tuple[Any, dict[int, str]] | None:
-        """Give ``device`` the configuration of a manufacturer's plug-in read off it (in the
-        undo step of the device), and return the device and the reference of each slot of
-        its object table; None for a device without one."""
+        """Give ``device`` the configuration of a manufacturer's plug-in read off it and the
+        object flags read off it, unless that configuration holds them (in the undo step of
+        the device), and return the device and the reference of each slot of its object
+        table; None for a device without one."""
         from editor_gui.plugin_providers import device_reader
 
         if recovered.native_image is None:
@@ -1441,19 +1468,38 @@ class RecoverService:
             device, reader.recover(device, recovered.native_image).data
         )
         device = project.find_device_by_node_id(device.node_id) or device
-        return device, reader.slot_references(device)
+        slots = reader.slot_references(device)
+        if not reader.keeps_object_flags:
+            # Such a download switches the communication of an unlinked object off.
+            self._apply_flags(device, recovered, slots, unlinked_communication=False)
+            device = project.find_device_by_node_id(device.node_id) or device
+        return device, slots
 
     def _apply_flags(
-        self, device: Any, recovered: RecoveredDevice, number_to_ref: dict[int, str]
+        self,
+        device: Any,
+        recovered: RecoveredDevice,
+        number_to_ref: dict[int, str],
+        *,
+        unlinked_communication: bool = True,
     ) -> None:
+        """Set the flags of ``recovered``'s group objects on ``device``; without
+        ``unlinked_communication`` the communication flag of a group object without a link
+        stays as it is."""
         project = self._api.project
+        linked = {link.group_object_number for link in recovered.links}
         for number, group_object in recovered.group_objects.items():
             ref_id = number_to_ref.get(number)
             com_object = device.find_com_object(ref_id) if ref_id is not None else None
             if ref_id is None or com_object is None:
                 continue
+            communication = (
+                group_object.communication
+                if unlinked_communication or number in linked
+                else None
+            )
             for flag, value in (
-                ("communication", group_object.communication),
+                ("communication", communication),
                 ("read", group_object.read),
                 ("write", group_object.write),
                 ("transmit", group_object.transmit),

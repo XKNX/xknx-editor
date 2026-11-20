@@ -2607,9 +2607,11 @@ class ProjectService:
         catalog = self._catalog
         return lambda: catalog.second_application(program_ref)
 
-    def _plugin_baggage_source(
+    def plugin_baggage_source(
         self, program_ref: str | None
     ) -> Callable[[str], bytes | None] | None:
+        """Reads a baggage of the product ``program_ref`` by its id (the archive is opened
+        when one is first read); None for a product not in the catalog."""
         from xknxeditor.prod.baggage import Baggages
 
         source = self._catalog.get_program_source(program_ref) if program_ref else None
@@ -2752,7 +2754,7 @@ class ProjectService:
                 binary_data=list(getattr(row, "binary_data", []) or []),
                 visible=snapshot.visible,
                 second_application=self._second_application_source(program_ref),
-                plugin_baggage=self._plugin_baggage_source(program_ref),
+                plugin_baggage=self.plugin_baggage_source(program_ref),
                 order_number=getattr(row, "order_number", "") or "",
             )
         except (IndexError, ValueError) as e:
@@ -2958,7 +2960,7 @@ class ProjectService:
             else self._second_application_source(program_ref),
             plugin_baggage=None
             if compared
-            else self._plugin_baggage_source(program_ref),
+            else self.plugin_baggage_source(program_ref),
             order_number=getattr(row, "order_number", "") or "",
             project_code_page=None if compared else self.project_code_page,
             configuration_app=None
