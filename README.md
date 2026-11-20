@@ -164,13 +164,13 @@ directly in the editor.
 <img src="docs/images/catalog.png" alt="Product catalog" width="598">
 
 **Programming real devices** — commission a device end-to-end over a live connection (a KNX USB
-interface, also a KNX RF one with its domain address set from a line, or tunneling or routing with
-gateway discovery), including setting a new device's address (and a new KNX RF device's domain
+interface, also a KNX RF one with its domain address set from a line, or the device a USB interface is
+part of through its own USB port, or tunneling or routing with gateway discovery), including setting a new device's address (and a new KNX RF device's domain
 address, also behind a TP/RF media coupler, with KNX RF Multi and with KNX Data Secure, and a new
 KNX IP device's routing multicast address and backbone key), also through couplers that block
 traffic as Security Proxy, which it opens for that time. A read-only **preflight**
 and **Test Programming** read the device back and show the exact changes before anything is
-written. Longer timeouts in Settings > Connection let it work over slow connections such as a remote tunnel or a VPN. Vendor-independent by design.
+written. Longer timeouts in Settings > Connection let it work over slow connections such as a remote tunnel or a VPN. Vendor-independent by design. The USB Interface dialog also shows and sends the frames of an interface's M-Bus and BatiBus tunnels.
 
 <img src="docs/images/programming.png" alt="Programming and preflight" width="384">
 
