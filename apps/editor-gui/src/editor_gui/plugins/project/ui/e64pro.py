@@ -1019,10 +1019,11 @@ class Workspace:
                         for day, _label in enumerate(weekdays):
                             imgui.table_next_column()
                             if valid_days:
+                                position = 6 - day
                                 tick(
                                     f"##day{day}",
-                                    days[day] == "1",
-                                    lambda v, i=day, row=n, mask=days: submit(
+                                    days[position] == "1",
+                                    lambda v, i=position, row=n, mask=days: submit(
                                         "set",
                                         row,
                                         "weekdays",

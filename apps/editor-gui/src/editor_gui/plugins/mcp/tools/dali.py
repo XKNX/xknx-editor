@@ -235,6 +235,8 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         Pass revision from project_e64pro_read. header/set take an XML field and value (including
         keepValue/keepColor as True/False). add takes target groups/ecgs and target index for a scene
         or effect, or inserts a default template command. member sets a template target True/False.
+        Template weekdays is seven binary digits, Sunday to Monday from left to right:
+        0000001 = Monday, 1000000 = Sunday, 0011111 = Monday to Friday.
         colour sets a supported colour space (field) and its encoded value together.
         remove/copy/up/down address a zero-based row. description sets the slot description
         (groups/ecgs/mds/pbs/gis/scenes/effects/templates). assign links an existing logical

@@ -1,3 +1,4 @@
+from copy import deepcopy
 from dataclasses import replace
 from pathlib import Path
 from types import SimpleNamespace
@@ -320,6 +321,94 @@ def test_render_all_views_at_normal_entry(tmp_path, monkeypatch, browser):
                 assert workspace.colour_draft is not None
     finally:
         imgui.destroy_context(ctx)
+
+
+@pytest.mark.parametrize(
+    ("encoded", "active_days"),
+    [
+        ("0000001", {0}),
+        ("0000010", {1}),
+        ("0000100", {2}),
+        ("0001000", {3}),
+        ("0010000", {4}),
+        ("0100000", {5}),
+        ("1000000", {6}),
+        ("0011111", {0, 1, 2, 3, 4}),
+        ("1100000", {5, 6}),
+        ("0000000", set()),
+        ("1111111", set(range(7))),
+    ],
+)
+def test_template_weekday_checkboxes_and_xml_exchange(
+    monkeypatch, encoded, active_days
+):
+    root = deepcopy(e64pro.document(PAYLOAD))
+    slot = root.find("templates/Tpl")
+    commands = slot.find("Commands")
+    command = commands[0]
+    commands[:] = [command]
+    command.set("weekdays", encoded)
+    original = ET.tostring(root)
+    shown = {}
+    edits = []
+    clicked = ""
+
+    def checkbox(label, value):
+        if label.startswith("##day"):
+            shown[int(label.removeprefix("##day"))] = value
+        return (True, not value) if label == clicked else (False, value)
+
+    def submit(action, row, field, value):
+        edits.append(e64pro.Edit("templates", "0", action, row, field, value))
+
+    monkeypatch.setattr(e64pro_ui, "checkbox", checkbox)
+    context = imgui.create_context()
+    try:
+        io = imgui.get_io()
+        io.backend_flags |= imgui.BackendFlags_.renderer_has_textures
+        io.display_size = imgui.ImVec2(1400, 900)
+        workspace = Workspace()
+
+        def render():
+            imgui.new_frame()
+            imgui.set_next_window_size(imgui.ImVec2(1300, 800))
+            imgui.begin("Template")
+            workspace.editor(root, "templates", slot, {}, submit)
+            imgui.end()
+            imgui.render()
+
+        render()
+        assert shown == {day: day in active_days for day in range(7)}
+        assert not edits
+        assert ET.tostring(root) == original
+        for day in range(7):
+            clicked = f"##day{day}"
+            edits.clear()
+            render()
+            assert len(edits) == 1
+            updated = e64pro.apply(original, edits[0])
+            expected = sum(1 << value for value in active_days ^ {day})
+            for exported in (
+                e64pro.export_configuration(updated),
+                e64pro.export_slot(updated, "templates", "0"),
+            ):
+                row = ET.fromstring(exported).find(".//Commands/TplCmd")
+                assert row is not None
+                assert int(row.get("weekdays"), 2) == expected
+            imported = e64pro.import_configuration(
+                e64pro.export_configuration(updated), "1.1.5", "Test"
+            )
+            row = e64pro.document(imported).find("templates/Tpl/Commands/TplCmd")
+            assert int(row.get("weekdays"), 2) == expected
+            single_xml = e64pro.export_slot(updated, "templates", "0")
+            imported = e64pro.apply(
+                original,
+                e64pro.Edit("templates", "0", "import", value=single_xml.decode()),
+            )
+            row = e64pro.document(imported).find("templates/Tpl/Commands/TplCmd")
+            assert int(row.get("weekdays"), 2) == expected
+    finally:
+        imgui.destroy_context(context)
 
 
 @pytest.mark.parametrize("confirm", [False, True])
