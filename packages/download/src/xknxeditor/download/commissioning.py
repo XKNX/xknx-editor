@@ -61,6 +61,7 @@ from .rf_commissioning import (
     ip_addresses_by_serial_number,
     secure_addresses_by_serial_number,
 )
+from .serial_numbers import suspicious_serial_number
 
 if TYPE_CHECKING:
     from collections.abc import Awaitable, Callable, Coroutine
@@ -114,9 +115,11 @@ async def program_individual_address(
     :func:`.rf_commissioning.ip_domain_address`) by serial number only, by system broadcast
     when it takes them (``ip_system_broadcast``). The couplers on the way pass the
     broadcasts meanwhile (see :func:`.communication_path.broadcast_path`). ``xknx`` has to be
-    started.
+    started. A serial number that cannot tell the device apart is not used (see
+    :func:`distinct_serial_number`).
     """
     address = IndividualAddress(individual_address)
+    serial_number = distinct_serial_number(serial_number)
     medium = _domain_medium(domain_address, serial_number)
     async with broadcast_path(
         xknx,
@@ -187,6 +190,20 @@ async def _program_rf_addresses(
         system_broadcast=system_broadcast,
         switch_rf_mode=path.switch_rf_mode,
     )
+
+
+def distinct_serial_number(serial_number: bytes | None) -> bytes | None:
+    """``serial_number`` to address a device by, or ``None`` when it cannot tell the device
+    apart (see :func:`.serial_numbers.suspicious_serial_number`): other devices may have it as
+    well and would take the address too, so the address goes through programming mode."""
+    if serial_number is None or not suspicious_serial_number(serial_number):
+        return serial_number
+    logger.warning(
+        "the serial number %s cannot tell the device apart; the address is downloaded "
+        "through programming mode",
+        serial_number.hex().upper(),
+    )
+    return None
 
 
 def _domain_medium(
@@ -406,7 +423,8 @@ async def download_individual_address(
     verification at the new address.
 
     With ``serial_number`` the device is addressed by its KNX serial number
-    instead, without programming mode and without a restart.
+    instead, without programming mode and without a restart; not with one that cannot tell the
+    device apart (see :func:`distinct_serial_number`).
 
     A KNX RF device gets ``domain_address`` as well, and is reached by system
     broadcasts, also with another or no domain address (see :mod:`.rf_commissioning`). By
@@ -425,6 +443,7 @@ async def download_individual_address(
         raise ValueError(f"the device already has the address {address}")
     if serial_number is not None and current is not None:
         raise ValueError("an overwrite addresses the device by its current address")
+    serial_number = distinct_serial_number(serial_number)
     by_serial = serial_number is not None or (
         current is not None and current_security is not None
     )

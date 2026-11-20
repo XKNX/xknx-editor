@@ -190,7 +190,9 @@ def test_serial_number_downloads_are_on_by_default() -> None:
     assert ConnectionService().use_serial_number
 
 
-def _read_serial(application: str, stored: bytes | None) -> MagicMock:
+def _read_serial(
+    application: str, stored: bytes | None, serial: bytes = _SERIAL
+) -> MagicMock:
     from editor_gui.device_info import DeviceInfo
     from editor_gui.plugins.project.plugin import ProjectPlugin
     from xknxeditor.recover import AppId
@@ -202,7 +204,7 @@ def _read_serial(application: str, stored: bytes | None) -> MagicMock:
     device = SimpleNamespace(node_id=7, app=SimpleNamespace(id=application))
     result = DeviceInfo(
         individual_address="1.1.5",
-        serial_number=_SERIAL,
+        serial_number=serial,
         application=AppId(
             manufacturer_id="M-00FA",
             application_number=0xA012,
@@ -227,4 +229,10 @@ def test_read_from_device_keeps_an_unchanged_serial_number() -> None:
 
 def test_read_from_device_ignores_another_product() -> None:
     project = _read_serial("M-00FA_A-A099-10-0000", None)
+    project.set_device_commissioning.assert_not_called()
+
+
+def test_read_from_device_ignores_a_serial_number_devices_share() -> None:
+    # One that cannot tell the device apart is not recorded.
+    project = _read_serial("M-00FA_A-A012-51-9712", None, bytes(6))
     project.set_device_commissioning.assert_not_called()

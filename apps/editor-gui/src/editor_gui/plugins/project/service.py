@@ -6628,16 +6628,22 @@ class ProjectService:
         flags, the serial number and MAC address read and, except for an unload, the time. An
         unload clears the image of the last download, an unload of everything also the serial
         number, MAC and IP address. ``medium_config``: a partial download loaded the medium
-        configuration too."""
+        configuration too. A serial number that cannot tell the device apart is not
+        recorded."""
+        from xknxeditor.download.serial_numbers import suspicious_serial_number
+
         flags = _COMMISSIONING_BY_SCOPE.get(scope_value)
         if flags is None:
             return
         if medium_config:
             flags = {**flags, "medium_config_loaded": True}
         unload = scope_value in ("unload", "unload_all")
+        recorded = serial is not None and not suspicious_serial_number(serial)
         self.set_device_commissioning(
             node_id,
-            serial_number=serial_to_project(serial) if serial and not unload else None,
+            serial_number=serial_to_project(serial)
+            if serial and recorded and not unload
+            else None,
             last_download=None if unload else project_timestamp(),
             mac_address=":".join(f"{b:02X}" for b in mac_address)
             if mac_address and not unload

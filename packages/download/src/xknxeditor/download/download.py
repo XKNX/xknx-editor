@@ -878,20 +878,19 @@ async def download(
         and scope is DownloadScope.FULL
         and not await _device_present(xknx, address, security)
     ):
+        from .commissioning import distinct_serial_number, program_individual_address
+
+        serial_number = distinct_serial_number(commission_serial_number)
         logger.info(
             "download: no device answered at %s; assigning the address to the "
             "device %s",
             address,
-            "by serial number"
-            if commission_serial_number is not None
-            else "in programming mode",
+            "by serial number" if serial_number is not None else "in programming mode",
         )
-        from .commissioning import program_individual_address
-
         await program_individual_address(
             xknx,
             address,
-            serial_number=commission_serial_number,
+            serial_number=serial_number,
             domain_address=commission_domain_address,
             security=security,
             ip_system_broadcast=commission_ip_system_broadcast,
