@@ -3710,3 +3710,156 @@ msgstr "Rruga e komunikimit përmes bashkuesit {coupler} nuk mund të hapej ({de
 
 msgid "The domain address of this secure device could not be loaded because the coupler {coupler} does not support security."
 msgstr "Adresa e domenit e kësaj pajisjeje të sigurt nuk mund të ngarkohej, sepse bashkuesi {coupler} nuk mbështet sigurinë."
+
+msgid "Actions"
+msgstr "Veprime"
+
+msgid "Add Command"
+msgstr "Shto komandë"
+
+msgid "Assigned Groups and ECGs"
+msgstr "Grupet dhe balastet e caktuara"
+
+msgid "Colour"
+msgstr "Ngjyra"
+
+msgid "Control Gear and Groups"
+msgstr "Balastet dhe grupet"
+
+msgid "Delay"
+msgstr "Vonesa"
+
+msgid "ECG"
+msgstr "Balast"
+
+msgid "Effects"
+msgstr "Efekte"
+
+msgid "Fade Time"
+msgstr "Koha e zbehjes"
+
+msgid "Flag"
+msgstr "Tregues"
+
+msgid "General Inputs"
+msgstr "Hyrje të përgjithshme"
+
+msgid "Input Devices"
+msgstr "Pajisje hyrëse"
+
+msgid "Instance"
+msgstr "Instancë"
+
+msgid "KNX Scene"
+msgstr "Skenë KNX"
+
+msgid "Keep Colour"
+msgstr "Ruaj ngjyrën"
+
+msgid "Keep Value"
+msgstr "Ruaj vlerën"
+
+msgid "Loop"
+msgstr "Përsëritje"
+
+msgid "Manual Override"
+msgstr "Kontroll manual"
+
+msgid "Midnight Reset"
+msgstr "Rivendosje në mesnatë"
+
+msgid "Mo Tu We Th Fr Sa Su"
+msgstr "Hë Ma Më En Pr Sh Di"
+
+msgid "Mode"
+msgstr "Mënyra"
+
+msgid "Motion / Brightness"
+msgstr "Lëvizja / ndriçimi"
+
+msgid "No Entries"
+msgstr "Asnjë hyrje"
+
+msgid "Origin"
+msgstr "Origjina"
+
+msgid "Physical Devices Without a Unique Assignment"
+msgstr "Pajisje fizike pa caktim të qartë"
+
+msgid "Physical Inputs"
+msgstr "Hyrje fizike"
+
+msgid "Push-Buttons"
+msgstr "Butona"
+
+msgid "Reference"
+msgstr "Referencë"
+
+msgid "Single ECG"
+msgstr "Balast individual"
+
+msgid "Target"
+msgstr "Objektivi"
+
+msgid "Time"
+msgstr "Ora"
+
+msgid "Time Control"
+msgstr "Kontroll kohor"
+
+msgid "View"
+msgstr "Pamja"
+
+msgid "Weekdays"
+msgstr "Ditët e javës"
+
+msgid "Add Target"
+msgstr "Shto objektivin"
+
+msgid "Apply"
+msgstr "Zbato"
+
+msgid "Approximate Preview"
+msgstr "Parapamje e përafërt"
+
+msgid "Colour Temperature"
+msgstr "Temperatura e ngjyrës"
+
+msgid "Groups"
+msgstr "Grupet"
+
+msgid "Search"
+msgstr "Kërkim"
+
+msgid "White"
+msgstr "E bardhë"
+
+msgid "Brightness"
+msgstr "Ndriçimi"
+
+msgid "Min. Brightness"
+msgstr "Ndriçimi min."
+
+msgid "Max. Brightness"
+msgstr "Ndriçimi maks."
+
+msgid "Switch-on Limit"
+msgstr "Kufiri në ndezje"
+
+msgid "DCA Details"
+msgstr "Detajet e DCA-së"
+
+msgid "Import DCA XML…"
+msgstr "Importo XML të DCA-së…"
+
+msgid "Export DCA XML…"
+msgstr "Eksporto XML të DCA-së…"
+
+msgid "Replace the DCA configuration of {device} with the selected XML file?"
+msgstr "Të zëvendësohet konfigurimi DCA i pajisjes {device} me skedarin XML të zgjedhur?"
+
+msgid "DCA configuration imported."
+msgstr "Konfigurimi DCA u importua."
+
+msgid "DCA configuration exported."
+msgstr "Konfigurimi DCA u eksportua."

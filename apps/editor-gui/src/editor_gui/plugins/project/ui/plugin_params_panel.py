@@ -9,10 +9,13 @@ from __future__ import annotations
 import re
 from collections.abc import Callable
 from dataclasses import dataclass, field, replace
+from functools import lru_cache
 from typing import TYPE_CHECKING
 
 from imgui_bundle import imgui
 
+from editor_gui.plugin_blob_readers.dali_backup import e64pro
+from editor_gui.plugin_blob_readers.dali_backup import read as dali_details
 from editor_gui.plugin_params import (
     CollectionBinding,
     PluginMapping,
@@ -21,6 +24,7 @@ from editor_gui.plugin_params import (
     mapping_for_device,
 )
 from editor_gui.plugins.project.strings import S
+from editor_gui.plugins.project.ui.e64pro import EditHandler, Workspace
 from editor_gui.theme import status_color
 from editor_gui.widgets.combo import combo
 from editor_gui.widgets.dpi import px
@@ -31,6 +35,7 @@ from xknxeditor.vendor.triton import DeviceType
 
 if TYPE_CHECKING:
     from editor_gui.device import Device
+    from editor_gui.plugins.project.service import ProjectService
 
 
 # The triton LCD display types the setup dropdown offers, as (enum value, product label). The
@@ -71,6 +76,7 @@ DetectDisplayType = Callable[["Device"], "str | None"]
 # a plain scalar.
 _ROW_ID_RE = re.compile(r"^#(\S+?):")
 _VISIBLE_PARAMETER_ROWS = 12
+_dali_details = lru_cache(maxsize=4)(dali_details)
 
 
 @dataclass
@@ -106,12 +112,17 @@ class PluginParamsPanel:
     )
     _setup_type_idx: dict[int, int] = field(default_factory=dict[int, int])
 
+    _e64_write: EditHandler | None = None
+    _e64_project: ProjectService | None = None
+    _e64_views: dict[int, Workspace] = field(default_factory=dict[int, Workspace])
+
     def _sync_project(self) -> None:
         generation = self._generation()
         if (
             self._project_generation is not None
             and generation != self._project_generation
         ):
+            self._e64_views.clear()
             self._closed_sections.clear()
             self._seen_sections.clear()
             self._edit_buffers.clear()
@@ -132,6 +143,9 @@ class PluginParamsPanel:
         mapping = (self._mapping_for or mapping_for_device)(device)
         if mapping is None:
             imgui.text_disabled(S.PLUGIN_PARAMS_NO_MAPPING)
+            return
+        if mapping.blob_reader == "dali_backup" and e64pro.supports(device):
+            self._render_e64(device)
             return
         try:
             sections = self._sections(device, mapping)
@@ -162,6 +176,37 @@ class PluginParamsPanel:
                 self._on_program_dca(device)
             imgui.same_line()
             imgui.text_disabled(S.PLUGIN_PARAMS_PROGRAM_DCA_HINT)
+        self._render_sections(device, sections)
+
+    def _render_e64(self, device: Device) -> None:
+        if device.node_id not in self._e64_views:
+            self._e64_views[device.node_id] = Workspace()
+        workspace = self._e64_views[device.node_id]
+        backup = e64pro.backup(device)
+        if self._e64_project is not None:
+            workspace.xml.render(
+                device, backup[1] if backup else None, self._e64_project
+            )
+        if backup is None:
+            imgui.text_disabled(S.PLUGIN_PARAMS_EMPTY)
+            return
+        try:
+            root = e64pro.document(backup[1])
+        except ValueError as exc:
+            imgui.text_wrapped(str(exc))
+            return
+
+        def details() -> None:
+            self._render_sections(device, _dali_details(backup[1], backup[0]))
+
+        if self._e64_write is None:
+            details()
+        else:
+            workspace.render(device, backup[1], root, self._e64_write, details)
+
+    def _render_sections(
+        self, device: Device, sections: list[PluginSectionView]
+    ) -> None:
         self._filter = filter_box(
             "##plugin_params_filter", S.CONFIGURE_PARAM_FILTER_HINT, self._filter
         )

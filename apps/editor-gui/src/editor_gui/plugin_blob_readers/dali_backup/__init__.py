@@ -149,7 +149,7 @@ _TPL_FUNC = {
         "CallScene",
     )
 }
-_COLOUR_FADE = {
+COLOUR_FADE = {
     "0": "1 s",
     "7": "5 s",
     "9": "10 s",
@@ -158,14 +158,14 @@ _COLOUR_FADE = {
     "14": "60 s",
     "15": "90 s",
 }
-_EDITABLE_ENUMS: dict[str, dict[str, str]] = {
+EDITABLE_ENUMS: dict[str, dict[str, str]] = {
     "func": _TPL_FUNC,
-    "fadeTime": _COLOUR_FADE,
-    "fadetime": _COLOUR_FADE,
+    "fadeTime": COLOUR_FADE,
+    "fadetime": COLOUR_FADE,
     "delay": {str(s): f"{s} s" for s in (0, *range(5, 11), *range(20, 201, 10))},
 }
 _TEMPLATE_FADE = {
-    **{f"CFadeIn{label.split()[0]}": label for label in _COLOUR_FADE.values()},
+    **{f"CFadeIn{label.split()[0]}": label for label in COLOUR_FADE.values()},
     **{f"VFadeIn{s}": f"{s} s" for s in (*range(11), *range(20, 201, 10))},
 }
 
@@ -224,7 +224,7 @@ def _field(attr: str, value: str) -> tuple[bool, tuple[tuple[str, str], ...], st
     label_enum = _READONLY_LABEL_ENUMS.get(attr)
     if label_enum is not None:
         return False, (), label_enum.get(value, value)
-    editable_enum = _EDITABLE_ENUMS.get(attr)
+    editable_enum = EDITABLE_ENUMS.get(attr)
     if editable_enum is not None:
         return True, tuple(editable_enum.items()), value
     if value in ("True", "False"):
@@ -265,7 +265,7 @@ def apply_edit(data: bytes, ref_id: str, new_value: str) -> bytes:
         return data
     if (
         attr in ("fadeTime", "fadetime", "delay")
-        and new_value not in _EDITABLE_ENUMS[attr]
+        and new_value not in EDITABLE_ENUMS[attr]
     ):
         raise ValueError("Select a supported time value")
     target.set(attr, new_value)

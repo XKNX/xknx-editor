@@ -3658,3 +3658,156 @@ msgstr "{coupler} kuplörü üzerinden iletişim yolu açılamadı ({detail}). K
 
 msgid "The domain address of this secure device could not be loaded because the coupler {coupler} does not support security."
 msgstr "{coupler} kuplörü güvenliği desteklemediği için bu güvenli cihazın alan adresi yüklenemedi."
+
+msgid "Actions"
+msgstr "İşlemler"
+
+msgid "Add Command"
+msgstr "Komut ekle"
+
+msgid "Assigned Groups and ECGs"
+msgstr "Atanan gruplar ve balastlar"
+
+msgid "Colour"
+msgstr "Renk"
+
+msgid "Control Gear and Groups"
+msgstr "Balastlar ve gruplar"
+
+msgid "Delay"
+msgstr "Gecikme"
+
+msgid "ECG"
+msgstr "Balast"
+
+msgid "Effects"
+msgstr "Efektler"
+
+msgid "Fade Time"
+msgstr "Geçiş süresi"
+
+msgid "Flag"
+msgstr "Bayrak"
+
+msgid "General Inputs"
+msgstr "Genel girişler"
+
+msgid "Input Devices"
+msgstr "Giriş cihazları"
+
+msgid "Instance"
+msgstr "Örnek"
+
+msgid "KNX Scene"
+msgstr "KNX sahnesi"
+
+msgid "Keep Colour"
+msgstr "Rengi koru"
+
+msgid "Keep Value"
+msgstr "Değeri koru"
+
+msgid "Loop"
+msgstr "Döngü"
+
+msgid "Manual Override"
+msgstr "Elle geçersiz kılma"
+
+msgid "Midnight Reset"
+msgstr "Gece yarısı sıfırlama"
+
+msgid "Mo Tu We Th Fr Sa Su"
+msgstr "Pt Sa Ça Pe Cu Ct Pz"
+
+msgid "Mode"
+msgstr "Mod"
+
+msgid "Motion / Brightness"
+msgstr "Hareket / parlaklık"
+
+msgid "No Entries"
+msgstr "Kayıt yok"
+
+msgid "Origin"
+msgstr "Kaynak"
+
+msgid "Physical Devices Without a Unique Assignment"
+msgstr "Benzersiz ataması olmayan fiziksel cihazlar"
+
+msgid "Physical Inputs"
+msgstr "Fiziksel girişler"
+
+msgid "Push-Buttons"
+msgstr "Düğme girişleri"
+
+msgid "Reference"
+msgstr "Başvuru"
+
+msgid "Single ECG"
+msgstr "Tek balast"
+
+msgid "Target"
+msgstr "Hedef"
+
+msgid "Time"
+msgstr "Zaman"
+
+msgid "Time Control"
+msgstr "Zaman kontrolü"
+
+msgid "View"
+msgstr "Görünüm"
+
+msgid "Weekdays"
+msgstr "Haftanın günleri"
+
+msgid "Add Target"
+msgstr "Hedef ekle"
+
+msgid "Apply"
+msgstr "Uygula"
+
+msgid "Approximate Preview"
+msgstr "Yaklaşık önizleme"
+
+msgid "Colour Temperature"
+msgstr "Renk sıcaklığı"
+
+msgid "Groups"
+msgstr "Gruplar"
+
+msgid "Search"
+msgstr "Arama"
+
+msgid "White"
+msgstr "Beyaz"
+
+msgid "Brightness"
+msgstr "Parlaklık"
+
+msgid "Min. Brightness"
+msgstr "Min. parlaklık"
+
+msgid "Max. Brightness"
+msgstr "Maks. parlaklık"
+
+msgid "Switch-on Limit"
+msgstr "Açılış sınırı"
+
+msgid "DCA Details"
+msgstr "DCA Ayrıntıları"
+
+msgid "Import DCA XML…"
+msgstr "DCA XML İçe Aktar…"
+
+msgid "Export DCA XML…"
+msgstr "DCA XML Dışa Aktar…"
+
+msgid "Replace the DCA configuration of {device} with the selected XML file?"
+msgstr "{device} cihazının DCA yapılandırması seçilen XML dosyasıyla değiştirilsin mi?"
+
+msgid "DCA configuration imported."
+msgstr "DCA yapılandırması içe aktarıldı."
+
+msgid "DCA configuration exported."
+msgstr "DCA yapılandırması dışa aktarıldı."

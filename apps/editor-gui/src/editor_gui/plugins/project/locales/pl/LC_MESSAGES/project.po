@@ -3762,3 +3762,156 @@ msgstr "Nie udało się otworzyć ścieżki komunikacji przez sprzęgło {couple
 
 msgid "The domain address of this secure device could not be loaded because the coupler {coupler} does not support security."
 msgstr "Nie udało się załadować adresu domeny tego zabezpieczonego urządzenia, ponieważ sprzęgło {coupler} nie obsługuje zabezpieczeń."
+
+msgid "Actions"
+msgstr "Działania"
+
+msgid "Add Command"
+msgstr "Dodaj polecenie"
+
+msgid "Assigned Groups and ECGs"
+msgstr "Przypisane grupy i stateczniki"
+
+msgid "Colour"
+msgstr "Kolor"
+
+msgid "Control Gear and Groups"
+msgstr "Stateczniki i grupy"
+
+msgid "Delay"
+msgstr "Opóźnienie"
+
+msgid "ECG"
+msgstr "Statecznik"
+
+msgid "Effects"
+msgstr "Efekty"
+
+msgid "Fade Time"
+msgstr "Czas przejścia"
+
+msgid "Flag"
+msgstr "Flaga"
+
+msgid "General Inputs"
+msgstr "Wejścia ogólne"
+
+msgid "Input Devices"
+msgstr "Urządzenia wejściowe"
+
+msgid "Instance"
+msgstr "Instancja"
+
+msgid "KNX Scene"
+msgstr "Scena KNX"
+
+msgid "Keep Colour"
+msgstr "Zachowaj kolor"
+
+msgid "Keep Value"
+msgstr "Zachowaj wartość"
+
+msgid "Loop"
+msgstr "Pętla"
+
+msgid "Manual Override"
+msgstr "Sterowanie ręczne"
+
+msgid "Midnight Reset"
+msgstr "Reset o północy"
+
+msgid "Mo Tu We Th Fr Sa Su"
+msgstr "Pn Wt Śr Cz Pt So Nd"
+
+msgid "Mode"
+msgstr "Tryb"
+
+msgid "Motion / Brightness"
+msgstr "Ruch / jasność"
+
+msgid "No Entries"
+msgstr "Brak wpisów"
+
+msgid "Origin"
+msgstr "Źródło"
+
+msgid "Physical Devices Without a Unique Assignment"
+msgstr "Urządzenia fizyczne bez jednoznacznego przypisania"
+
+msgid "Physical Inputs"
+msgstr "Wejścia fizyczne"
+
+msgid "Push-Buttons"
+msgstr "Przyciski"
+
+msgid "Reference"
+msgstr "Odniesienie"
+
+msgid "Single ECG"
+msgstr "Pojedynczy statecznik"
+
+msgid "Target"
+msgstr "Cel"
+
+msgid "Time"
+msgstr "Czas"
+
+msgid "Time Control"
+msgstr "Sterowanie czasowe"
+
+msgid "View"
+msgstr "Widok"
+
+msgid "Weekdays"
+msgstr "Dni tygodnia"
+
+msgid "Add Target"
+msgstr "Dodaj cel"
+
+msgid "Apply"
+msgstr "Zastosuj"
+
+msgid "Approximate Preview"
+msgstr "Podgląd orientacyjny"
+
+msgid "Colour Temperature"
+msgstr "Temperatura barwowa"
+
+msgid "Groups"
+msgstr "Grupy"
+
+msgid "Search"
+msgstr "Wyszukiwanie"
+
+msgid "White"
+msgstr "Biały"
+
+msgid "Brightness"
+msgstr "Jasność"
+
+msgid "Min. Brightness"
+msgstr "Min. jasność"
+
+msgid "Max. Brightness"
+msgstr "Maks. jasność"
+
+msgid "Switch-on Limit"
+msgstr "Limit przy włączeniu"
+
+msgid "DCA Details"
+msgstr "Szczegóły DCA"
+
+msgid "Import DCA XML…"
+msgstr "Importuj XML DCA…"
+
+msgid "Export DCA XML…"
+msgstr "Eksportuj XML DCA…"
+
+msgid "Replace the DCA configuration of {device} with the selected XML file?"
+msgstr "Zastąpić konfigurację DCA urządzenia {device} wybranym plikiem XML?"
+
+msgid "DCA configuration imported."
+msgstr "Zaimportowano konfigurację DCA."
+
+msgid "DCA configuration exported."
+msgstr "Wyeksportowano konfigurację DCA."

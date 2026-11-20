@@ -8,6 +8,32 @@ _ = create_translator("project", _locale_dir)
 
 class ProjectStrings:
     @property
+    def E64_DCA_DETAILS(self) -> str:
+        return _("DCA Details")
+
+    @property
+    def E64_IMPORT_XML(self) -> str:
+        return _("Import DCA XML…")
+
+    @property
+    def E64_EXPORT_XML(self) -> str:
+        return _("Export DCA XML…")
+
+    @property
+    def E64_IMPORT_CONFIRM(self) -> str:
+        return _(
+            "Replace the DCA configuration of {device} with the selected XML file?"
+        )
+
+    @property
+    def E64_IMPORTED(self) -> str:
+        return _("DCA configuration imported.")
+
+    @property
+    def E64_EXPORTED(self) -> str:
+        return _("DCA configuration exported.")
+
+    @property
     def MDT_FIRMWARE_READ(self) -> str:
         return _("Read Firmware Version")
 

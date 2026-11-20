@@ -3710,3 +3710,156 @@ msgstr "Kommunikationsvägen genom kopplaren {coupler} kunde inte öppnas ({deta
 
 msgid "The domain address of this secure device could not be loaded because the coupler {coupler} does not support security."
 msgstr "Domänadressen för den här säkra enheten kunde inte läsas in eftersom kopplaren {coupler} inte stöder säkerhet."
+
+msgid "Actions"
+msgstr "Åtgärder"
+
+msgid "Add Command"
+msgstr "Lägg till kommando"
+
+msgid "Assigned Groups and ECGs"
+msgstr "Tilldelade grupper och driftdon"
+
+msgid "Colour"
+msgstr "Färg"
+
+msgid "Control Gear and Groups"
+msgstr "Driftdon och grupper"
+
+msgid "Delay"
+msgstr "Fördröjning"
+
+msgid "ECG"
+msgstr "Driftdon"
+
+msgid "Effects"
+msgstr "Effekter"
+
+msgid "Fade Time"
+msgstr "Dimringstid"
+
+msgid "Flag"
+msgstr "Flagga"
+
+msgid "General Inputs"
+msgstr "Generella ingångar"
+
+msgid "Input Devices"
+msgstr "Ingångsenheter"
+
+msgid "Instance"
+msgstr "Instans"
+
+msgid "KNX Scene"
+msgstr "KNX-scen"
+
+msgid "Keep Colour"
+msgstr "Behåll färg"
+
+msgid "Keep Value"
+msgstr "Behåll värde"
+
+msgid "Loop"
+msgstr "Upprepa"
+
+msgid "Manual Override"
+msgstr "Manuell överstyrning"
+
+msgid "Midnight Reset"
+msgstr "Återställ vid midnatt"
+
+msgid "Mo Tu We Th Fr Sa Su"
+msgstr "Må Ti On To Fr Lö Sö"
+
+msgid "Mode"
+msgstr "Läge"
+
+msgid "Motion / Brightness"
+msgstr "Rörelse / ljusstyrka"
+
+msgid "No Entries"
+msgstr "Inga poster"
+
+msgid "Origin"
+msgstr "Ursprung"
+
+msgid "Physical Devices Without a Unique Assignment"
+msgstr "Fysiska enheter utan entydig tilldelning"
+
+msgid "Physical Inputs"
+msgstr "Fysiska ingångar"
+
+msgid "Push-Buttons"
+msgstr "Tryckknappar"
+
+msgid "Reference"
+msgstr "Referens"
+
+msgid "Single ECG"
+msgstr "Enskilt driftdon"
+
+msgid "Target"
+msgstr "Mål"
+
+msgid "Time"
+msgstr "Tid"
+
+msgid "Time Control"
+msgstr "Tidsstyrning"
+
+msgid "View"
+msgstr "Visa"
+
+msgid "Weekdays"
+msgstr "Veckodagar"
+
+msgid "Add Target"
+msgstr "Lägg till mål"
+
+msgid "Apply"
+msgstr "Tillämpa"
+
+msgid "Approximate Preview"
+msgstr "Ungefärlig förhandsvisning"
+
+msgid "Colour Temperature"
+msgstr "Färgtemperatur"
+
+msgid "Groups"
+msgstr "Grupper"
+
+msgid "Search"
+msgstr "Sökning"
+
+msgid "White"
+msgstr "Vit"
+
+msgid "Brightness"
+msgstr "Ljusstyrka"
+
+msgid "Min. Brightness"
+msgstr "Min. ljusstyrka"
+
+msgid "Max. Brightness"
+msgstr "Max. ljusstyrka"
+
+msgid "Switch-on Limit"
+msgstr "Tändningsgräns"
+
+msgid "DCA Details"
+msgstr "DCA-detaljer"
+
+msgid "Import DCA XML…"
+msgstr "Importera DCA-XML…"
+
+msgid "Export DCA XML…"
+msgstr "Exportera DCA-XML…"
+
+msgid "Replace the DCA configuration of {device} with the selected XML file?"
+msgstr "Ersätta DCA-konfigurationen för {device} med den valda XML-filen?"
+
+msgid "DCA configuration imported."
+msgstr "DCA-konfigurationen importerades."
+
+msgid "DCA configuration exported."
+msgstr "DCA-konfigurationen exporterades."

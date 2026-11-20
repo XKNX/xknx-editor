@@ -3762,3 +3762,156 @@ msgstr "Не вдалося відкрити шлях зв'язку через �
 
 msgid "The domain address of this secure device could not be loaded because the coupler {coupler} does not support security."
 msgstr "Не вдалося завантажити адресу домену цього захищеного пристрою, оскільки з'єднувач {coupler} не підтримує захист."
+
+msgid "Actions"
+msgstr "Дії"
+
+msgid "Add Command"
+msgstr "Додати команду"
+
+msgid "Assigned Groups and ECGs"
+msgstr "Призначені групи та ЕПРА"
+
+msgid "Colour"
+msgstr "Колір"
+
+msgid "Control Gear and Groups"
+msgstr "ЕПРА та групи"
+
+msgid "Delay"
+msgstr "Затримка"
+
+msgid "ECG"
+msgstr "ЕПРА"
+
+msgid "Effects"
+msgstr "Ефекти"
+
+msgid "Fade Time"
+msgstr "Час переходу"
+
+msgid "Flag"
+msgstr "Прапорець"
+
+msgid "General Inputs"
+msgstr "Універсальні входи"
+
+msgid "Input Devices"
+msgstr "Пристрої введення"
+
+msgid "Instance"
+msgstr "Екземпляр"
+
+msgid "KNX Scene"
+msgstr "Сцена KNX"
+
+msgid "Keep Colour"
+msgstr "Зберегти колір"
+
+msgid "Keep Value"
+msgstr "Зберегти значення"
+
+msgid "Loop"
+msgstr "Зациклити"
+
+msgid "Manual Override"
+msgstr "Ручне керування"
+
+msgid "Midnight Reset"
+msgstr "Скидання опівночі"
+
+msgid "Mo Tu We Th Fr Sa Su"
+msgstr "Пн Вт Ср Чт Пт Сб Нд"
+
+msgid "Mode"
+msgstr "Режим"
+
+msgid "Motion / Brightness"
+msgstr "Рух / освітленість"
+
+msgid "No Entries"
+msgstr "Немає записів"
+
+msgid "Origin"
+msgstr "Джерело"
+
+msgid "Physical Devices Without a Unique Assignment"
+msgstr "Фізичні пристрої без однозначної прив’язки"
+
+msgid "Physical Inputs"
+msgstr "Фізичні входи"
+
+msgid "Push-Buttons"
+msgstr "Кнопки"
+
+msgid "Reference"
+msgstr "Посилання"
+
+msgid "Single ECG"
+msgstr "Окремий ЕПРА"
+
+msgid "Target"
+msgstr "Ціль"
+
+msgid "Time"
+msgstr "Час"
+
+msgid "Time Control"
+msgstr "Керування за часом"
+
+msgid "View"
+msgstr "Перегляд"
+
+msgid "Weekdays"
+msgstr "Дні тижня"
+
+msgid "Add Target"
+msgstr "Додати ціль"
+
+msgid "Apply"
+msgstr "Застосувати"
+
+msgid "Approximate Preview"
+msgstr "Приблизний попередній перегляд"
+
+msgid "Colour Temperature"
+msgstr "Колірна температура"
+
+msgid "Groups"
+msgstr "Групи"
+
+msgid "Search"
+msgstr "Пошук"
+
+msgid "White"
+msgstr "Білий"
+
+msgid "Brightness"
+msgstr "Яскравість"
+
+msgid "Min. Brightness"
+msgstr "Мін. яскравість"
+
+msgid "Max. Brightness"
+msgstr "Макс. яскравість"
+
+msgid "Switch-on Limit"
+msgstr "Ліміт увімкнення"
+
+msgid "DCA Details"
+msgstr "Відомості DCA"
+
+msgid "Import DCA XML…"
+msgstr "Імпортувати XML DCA…"
+
+msgid "Export DCA XML…"
+msgstr "Експортувати XML DCA…"
+
+msgid "Replace the DCA configuration of {device} with the selected XML file?"
+msgstr "Замінити конфігурацію DCA пристрою {device} вибраним файлом XML?"
+
+msgid "DCA configuration imported."
+msgstr "Конфігурацію DCA імпортовано."
+
+msgid "DCA configuration exported."
+msgstr "Конфігурацію DCA експортовано."

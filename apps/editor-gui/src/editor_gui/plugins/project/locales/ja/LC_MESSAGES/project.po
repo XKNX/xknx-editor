@@ -3658,3 +3658,156 @@ msgstr "カプラー {coupler} を経由する通信経路を開けませんで�
 
 msgid "The domain address of this secure device could not be loaded because the coupler {coupler} does not support security."
 msgstr "カプラー {coupler} がセキュリティに対応していないため、このセキュアデバイスのドメインアドレスをロードできませんでした。"
+
+msgid "Actions"
+msgstr "操作"
+
+msgid "Add Command"
+msgstr "コマンドを追加"
+
+msgid "Assigned Groups and ECGs"
+msgstr "割り当てたグループと安定器"
+
+msgid "Colour"
+msgstr "色"
+
+msgid "Control Gear and Groups"
+msgstr "安定器とグループ"
+
+msgid "Delay"
+msgstr "遅延"
+
+msgid "ECG"
+msgstr "安定器"
+
+msgid "Effects"
+msgstr "エフェクト"
+
+msgid "Fade Time"
+msgstr "フェード時間"
+
+msgid "Flag"
+msgstr "フラグ"
+
+msgid "General Inputs"
+msgstr "汎用入力"
+
+msgid "Input Devices"
+msgstr "入力機器"
+
+msgid "Instance"
+msgstr "インスタンス"
+
+msgid "KNX Scene"
+msgstr "KNXシーン"
+
+msgid "Keep Colour"
+msgstr "色を保持"
+
+msgid "Keep Value"
+msgstr "値を保持"
+
+msgid "Loop"
+msgstr "繰り返し"
+
+msgid "Manual Override"
+msgstr "手動オーバーライド"
+
+msgid "Midnight Reset"
+msgstr "午前0時にリセット"
+
+msgid "Mo Tu We Th Fr Sa Su"
+msgstr "月 火 水 木 金 土 日"
+
+msgid "Mode"
+msgstr "モード"
+
+msgid "Motion / Brightness"
+msgstr "動き・明るさ"
+
+msgid "No Entries"
+msgstr "項目なし"
+
+msgid "Origin"
+msgstr "元の機器"
+
+msgid "Physical Devices Without a Unique Assignment"
+msgstr "割り当てを特定できない実機"
+
+msgid "Physical Inputs"
+msgstr "物理入力"
+
+msgid "Push-Buttons"
+msgstr "押しボタン"
+
+msgid "Reference"
+msgstr "参照"
+
+msgid "Single ECG"
+msgstr "個別安定器"
+
+msgid "Target"
+msgstr "対象"
+
+msgid "Time"
+msgstr "時間"
+
+msgid "Time Control"
+msgstr "時間制御"
+
+msgid "View"
+msgstr "表示"
+
+msgid "Weekdays"
+msgstr "曜日"
+
+msgid "Add Target"
+msgstr "対象を追加"
+
+msgid "Apply"
+msgstr "適用"
+
+msgid "Approximate Preview"
+msgstr "概算プレビュー"
+
+msgid "Colour Temperature"
+msgstr "色温度"
+
+msgid "Groups"
+msgstr "グループ"
+
+msgid "Search"
+msgstr "検索"
+
+msgid "White"
+msgstr "白"
+
+msgid "Brightness"
+msgstr "明るさ"
+
+msgid "Min. Brightness"
+msgstr "最低輝度"
+
+msgid "Max. Brightness"
+msgstr "最大輝度"
+
+msgid "Switch-on Limit"
+msgstr "点灯時の上限"
+
+msgid "DCA Details"
+msgstr "DCA の詳細"
+
+msgid "Import DCA XML…"
+msgstr "DCA XML をインポート…"
+
+msgid "Export DCA XML…"
+msgstr "DCA XML をエクスポート…"
+
+msgid "Replace the DCA configuration of {device} with the selected XML file?"
+msgstr "{device} の DCA 設定を選択した XML ファイルで置き換えますか？"
+
+msgid "DCA configuration imported."
+msgstr "DCA 設定をインポートしました。"
+
+msgid "DCA configuration exported."
+msgstr "DCA 設定をエクスポートしました。"

@@ -3789,3 +3789,156 @@ msgstr "Calea de comunicare prin cuplorul {coupler} nu a putut fi deschisă ({de
 
 msgid "The domain address of this secure device could not be loaded because the coupler {coupler} does not support security."
 msgstr "Adresa de domeniu a acestui dispozitiv securizat nu a putut fi încărcată, deoarece cuplorul {coupler} nu acceptă securitatea."
+
+msgid "Actions"
+msgstr "Acțiuni"
+
+msgid "Add Command"
+msgstr "Adaugă comandă"
+
+msgid "Assigned Groups and ECGs"
+msgstr "Grupuri și balasturi atribuite"
+
+msgid "Colour"
+msgstr "Culoare"
+
+msgid "Control Gear and Groups"
+msgstr "Balasturi și grupuri"
+
+msgid "Delay"
+msgstr "Întârziere"
+
+msgid "ECG"
+msgstr "Balast"
+
+msgid "Effects"
+msgstr "Efecte"
+
+msgid "Fade Time"
+msgstr "Durată de variație"
+
+msgid "Flag"
+msgstr "Indicator"
+
+msgid "General Inputs"
+msgstr "Intrări generale"
+
+msgid "Input Devices"
+msgstr "Dispozitive de intrare"
+
+msgid "Instance"
+msgstr "Instanță"
+
+msgid "KNX Scene"
+msgstr "Scenă KNX"
+
+msgid "Keep Colour"
+msgstr "Păstrează culoarea"
+
+msgid "Keep Value"
+msgstr "Păstrează valoarea"
+
+msgid "Loop"
+msgstr "Buclă"
+
+msgid "Manual Override"
+msgstr "Comandă manuală"
+
+msgid "Midnight Reset"
+msgstr "Resetare la miezul nopții"
+
+msgid "Mo Tu We Th Fr Sa Su"
+msgstr "Lu Ma Mi Jo Vi Sâ Du"
+
+msgid "Mode"
+msgstr "Mod"
+
+msgid "Motion / Brightness"
+msgstr "Mișcare / luminozitate"
+
+msgid "No Entries"
+msgstr "Nicio înregistrare"
+
+msgid "Origin"
+msgstr "Origine"
+
+msgid "Physical Devices Without a Unique Assignment"
+msgstr "Dispozitive fizice fără atribuire unică"
+
+msgid "Physical Inputs"
+msgstr "Intrări fizice"
+
+msgid "Push-Buttons"
+msgstr "Butoane"
+
+msgid "Reference"
+msgstr "Referință"
+
+msgid "Single ECG"
+msgstr "Balast individual"
+
+msgid "Target"
+msgstr "Țintă"
+
+msgid "Time"
+msgstr "Oră"
+
+msgid "Time Control"
+msgstr "Control orar"
+
+msgid "View"
+msgstr "Vizualizare"
+
+msgid "Weekdays"
+msgstr "Zilele săptămânii"
+
+msgid "Add Target"
+msgstr "Adaugă țintă"
+
+msgid "Apply"
+msgstr "Aplicare"
+
+msgid "Approximate Preview"
+msgstr "Previzualizare aproximativă"
+
+msgid "Colour Temperature"
+msgstr "Temperatură de culoare"
+
+msgid "Groups"
+msgstr "Grupuri"
+
+msgid "Search"
+msgstr "Căutare"
+
+msgid "White"
+msgstr "Alb"
+
+msgid "Brightness"
+msgstr "Luminozitate"
+
+msgid "Min. Brightness"
+msgstr "Luminozitate min."
+
+msgid "Max. Brightness"
+msgstr "Luminozitate max."
+
+msgid "Switch-on Limit"
+msgstr "Limită la aprindere"
+
+msgid "DCA Details"
+msgstr "Detalii DCA"
+
+msgid "Import DCA XML…"
+msgstr "Importă XML DCA…"
+
+msgid "Export DCA XML…"
+msgstr "Exportă XML DCA…"
+
+msgid "Replace the DCA configuration of {device} with the selected XML file?"
+msgstr "Înlocuiești configurația DCA a dispozitivului {device} cu fișierul XML selectat?"
+
+msgid "DCA configuration imported."
+msgstr "Configurația DCA a fost importată."
+
+msgid "DCA configuration exported."
+msgstr "Configurația DCA a fost exportată."

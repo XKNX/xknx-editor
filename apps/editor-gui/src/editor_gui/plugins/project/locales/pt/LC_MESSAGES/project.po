@@ -3714,3 +3714,156 @@ msgstr "Não foi possível abrir o caminho de comunicação através do acoplado
 
 msgid "The domain address of this secure device could not be loaded because the coupler {coupler} does not support security."
 msgstr "Não foi possível carregar o endereço de domínio deste dispositivo seguro porque o acoplador {coupler} não suporta segurança."
+
+msgid "Actions"
+msgstr "Ações"
+
+msgid "Add Command"
+msgstr "Adicionar comando"
+
+msgid "Assigned Groups and ECGs"
+msgstr "Grupos e balastros atribuídos"
+
+msgid "Colour"
+msgstr "Cor"
+
+msgid "Control Gear and Groups"
+msgstr "Balastros e grupos"
+
+msgid "Delay"
+msgstr "Atraso"
+
+msgid "ECG"
+msgstr "Balastro"
+
+msgid "Effects"
+msgstr "Efeitos"
+
+msgid "Fade Time"
+msgstr "Tempo de transição"
+
+msgid "Flag"
+msgstr "Indicador"
+
+msgid "General Inputs"
+msgstr "Entradas genéricas"
+
+msgid "Input Devices"
+msgstr "Dispositivos de entrada"
+
+msgid "Instance"
+msgstr "Instância"
+
+msgid "KNX Scene"
+msgstr "Cena KNX"
+
+msgid "Keep Colour"
+msgstr "Manter cor"
+
+msgid "Keep Value"
+msgstr "Manter valor"
+
+msgid "Loop"
+msgstr "Repetição"
+
+msgid "Manual Override"
+msgstr "Controlo manual"
+
+msgid "Midnight Reset"
+msgstr "Reposição à meia-noite"
+
+msgid "Mo Tu We Th Fr Sa Su"
+msgstr "Seg Ter Qua Qui Sex Sáb Dom"
+
+msgid "Mode"
+msgstr "Modo"
+
+msgid "Motion / Brightness"
+msgstr "Movimento / luminosidade"
+
+msgid "No Entries"
+msgstr "Sem entradas"
+
+msgid "Origin"
+msgstr "Origem"
+
+msgid "Physical Devices Without a Unique Assignment"
+msgstr "Dispositivos físicos sem atribuição única"
+
+msgid "Physical Inputs"
+msgstr "Entradas físicas"
+
+msgid "Push-Buttons"
+msgstr "Botões de pressão"
+
+msgid "Reference"
+msgstr "Referência"
+
+msgid "Single ECG"
+msgstr "Balastro individual"
+
+msgid "Target"
+msgstr "Destino"
+
+msgid "Time"
+msgstr "Hora"
+
+msgid "Time Control"
+msgstr "Programação horária"
+
+msgid "View"
+msgstr "Ver"
+
+msgid "Weekdays"
+msgstr "Dias da semana"
+
+msgid "Add Target"
+msgstr "Adicionar destino"
+
+msgid "Apply"
+msgstr "Aplicar"
+
+msgid "Approximate Preview"
+msgstr "Pré-visualização aproximada"
+
+msgid "Colour Temperature"
+msgstr "Temperatura de cor"
+
+msgid "Groups"
+msgstr "Grupos"
+
+msgid "Search"
+msgstr "Pesquisa"
+
+msgid "White"
+msgstr "Branco"
+
+msgid "Brightness"
+msgstr "Luminosidade"
+
+msgid "Min. Brightness"
+msgstr "Luminosidade mín."
+
+msgid "Max. Brightness"
+msgstr "Luminosidade máx."
+
+msgid "Switch-on Limit"
+msgstr "Limite ao ligar"
+
+msgid "DCA Details"
+msgstr "Detalhes da DCA"
+
+msgid "Import DCA XML…"
+msgstr "Importar XML da DCA…"
+
+msgid "Export DCA XML…"
+msgstr "Exportar XML da DCA…"
+
+msgid "Replace the DCA configuration of {device} with the selected XML file?"
+msgstr "Substituir a configuração DCA de {device} pelo ficheiro XML selecionado?"
+
+msgid "DCA configuration imported."
+msgstr "Configuração DCA importada."
+
+msgid "DCA configuration exported."
+msgstr "Configuração DCA exportada."

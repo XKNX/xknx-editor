@@ -3737,3 +3737,156 @@ msgstr "Ekki tókst að opna samskiptaleiðina um tengilinn {coupler} ({detail})
 
 msgid "The domain address of this secure device could not be loaded because the coupler {coupler} does not support security."
 msgstr "Ekki tókst að hlaða lénsvistfangi þessa örugga tækis vegna þess að tengillinn {coupler} styður ekki öryggi."
+
+msgid "Actions"
+msgstr "Aðgerðir"
+
+msgid "Add Command"
+msgstr "Bæta við skipun"
+
+msgid "Assigned Groups and ECGs"
+msgstr "Úthlutaðir hópar og straumfestar"
+
+msgid "Colour"
+msgstr "Litur"
+
+msgid "Control Gear and Groups"
+msgstr "Straumfestar og hópar"
+
+msgid "Delay"
+msgstr "Seinkun"
+
+msgid "ECG"
+msgstr "Straumfestir"
+
+msgid "Effects"
+msgstr "Brellur"
+
+msgid "Fade Time"
+msgstr "Deyfingartími"
+
+msgid "Flag"
+msgstr "Flöggun"
+
+msgid "General Inputs"
+msgstr "Almenn inntök"
+
+msgid "Input Devices"
+msgstr "Inntakstæki"
+
+msgid "Instance"
+msgstr "Tilvik"
+
+msgid "KNX Scene"
+msgstr "KNX-sena"
+
+msgid "Keep Colour"
+msgstr "Halda lit"
+
+msgid "Keep Value"
+msgstr "Halda gildi"
+
+msgid "Loop"
+msgstr "Endurtaka"
+
+msgid "Manual Override"
+msgstr "Handvirk yfirtaka"
+
+msgid "Midnight Reset"
+msgstr "Endurstilla á miðnætti"
+
+msgid "Mo Tu We Th Fr Sa Su"
+msgstr "Má Þr Mi Fi Fö La Su"
+
+msgid "Mode"
+msgstr "Hamur"
+
+msgid "Motion / Brightness"
+msgstr "Hreyfing / birta"
+
+msgid "No Entries"
+msgstr "Engar færslur"
+
+msgid "Origin"
+msgstr "Uppruni"
+
+msgid "Physical Devices Without a Unique Assignment"
+msgstr "Rauntæki án ótvíræðrar úthlutunar"
+
+msgid "Physical Inputs"
+msgstr "Rauninntök"
+
+msgid "Push-Buttons"
+msgstr "Þrýstihnappar"
+
+msgid "Reference"
+msgstr "Tilvísun"
+
+msgid "Single ECG"
+msgstr "Stakur straumfestir"
+
+msgid "Target"
+msgstr "Markmið"
+
+msgid "Time"
+msgstr "Tími"
+
+msgid "Time Control"
+msgstr "Tímastýring"
+
+msgid "View"
+msgstr "Skoða"
+
+msgid "Weekdays"
+msgstr "Vikudagar"
+
+msgid "Add Target"
+msgstr "Bæta við marki"
+
+msgid "Apply"
+msgstr "Nota"
+
+msgid "Approximate Preview"
+msgstr "Áætluð forskoðun"
+
+msgid "Colour Temperature"
+msgstr "Lithitastig"
+
+msgid "Groups"
+msgstr "Hópar"
+
+msgid "Search"
+msgstr "Leit"
+
+msgid "White"
+msgstr "Hvítt"
+
+msgid "Brightness"
+msgstr "Birtustig"
+
+msgid "Min. Brightness"
+msgstr "Lágmarksbirta"
+
+msgid "Max. Brightness"
+msgstr "Hámarksbirta"
+
+msgid "Switch-on Limit"
+msgstr "Mörk við kveikju"
+
+msgid "DCA Details"
+msgstr "DCA-upplýsingar"
+
+msgid "Import DCA XML…"
+msgstr "Flytja inn DCA XML…"
+
+msgid "Export DCA XML…"
+msgstr "Flytja út DCA XML…"
+
+msgid "Replace the DCA configuration of {device} with the selected XML file?"
+msgstr "Skipta út DCA-stillingum {device} fyrir valda XML-skrá?"
+
+msgid "DCA configuration imported."
+msgstr "DCA-stillingar voru fluttar inn."
+
+msgid "DCA configuration exported."
+msgstr "DCA-stillingar voru fluttar út."

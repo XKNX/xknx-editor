@@ -3714,3 +3714,156 @@ msgstr "Le chemin de communication via le coupleur {coupler} n'a pas pu être ou
 
 msgid "The domain address of this secure device could not be loaded because the coupler {coupler} does not support security."
 msgstr "L'adresse de domaine de cet appareil sécurisé n'a pas pu être chargée, car le coupleur {coupler} ne prend pas en charge la sécurité."
+
+msgid "Actions"
+msgstr "Actions"
+
+msgid "Add Command"
+msgstr "Ajouter une commande"
+
+msgid "Assigned Groups and ECGs"
+msgstr "Groupes et ballasts affectés"
+
+msgid "Colour"
+msgstr "Couleur"
+
+msgid "Control Gear and Groups"
+msgstr "Ballasts et groupes"
+
+msgid "Delay"
+msgstr "Temporisation"
+
+msgid "ECG"
+msgstr "Ballast"
+
+msgid "Effects"
+msgstr "Effets"
+
+msgid "Fade Time"
+msgstr "Durée de variation"
+
+msgid "Flag"
+msgstr "Indicateur"
+
+msgid "General Inputs"
+msgstr "Entrées génériques"
+
+msgid "Input Devices"
+msgstr "Dispositifs d’entrée"
+
+msgid "Instance"
+msgstr "Instance"
+
+msgid "KNX Scene"
+msgstr "Scène KNX"
+
+msgid "Keep Colour"
+msgstr "Conserver la couleur"
+
+msgid "Keep Value"
+msgstr "Conserver la valeur"
+
+msgid "Loop"
+msgstr "Boucle"
+
+msgid "Manual Override"
+msgstr "Dérogation manuelle"
+
+msgid "Midnight Reset"
+msgstr "Réinitialisation à minuit"
+
+msgid "Mo Tu We Th Fr Sa Su"
+msgstr "Lu Ma Me Je Ve Sa Di"
+
+msgid "Mode"
+msgstr "Mode"
+
+msgid "Motion / Brightness"
+msgstr "Mouvement / luminosité"
+
+msgid "No Entries"
+msgstr "Aucune entrée"
+
+msgid "Origin"
+msgstr "Origine"
+
+msgid "Physical Devices Without a Unique Assignment"
+msgstr "Dispositifs physiques sans affectation unique"
+
+msgid "Physical Inputs"
+msgstr "Entrées physiques"
+
+msgid "Push-Buttons"
+msgstr "Boutons-poussoirs"
+
+msgid "Reference"
+msgstr "Référence"
+
+msgid "Single ECG"
+msgstr "Ballast individuel"
+
+msgid "Target"
+msgstr "Cible"
+
+msgid "Time"
+msgstr "Heure"
+
+msgid "Time Control"
+msgstr "Programmation horaire"
+
+msgid "View"
+msgstr "Vue"
+
+msgid "Weekdays"
+msgstr "Jours de la semaine"
+
+msgid "Add Target"
+msgstr "Ajouter une cible"
+
+msgid "Apply"
+msgstr "Appliquer"
+
+msgid "Approximate Preview"
+msgstr "Aperçu indicatif"
+
+msgid "Colour Temperature"
+msgstr "Température de couleur"
+
+msgid "Groups"
+msgstr "Groupes"
+
+msgid "Search"
+msgstr "Recherche"
+
+msgid "White"
+msgstr "Blanc"
+
+msgid "Brightness"
+msgstr "Luminosité"
+
+msgid "Min. Brightness"
+msgstr "Luminosité min."
+
+msgid "Max. Brightness"
+msgstr "Luminosité max."
+
+msgid "Switch-on Limit"
+msgstr "Limite à l’allumage"
+
+msgid "DCA Details"
+msgstr "Détails DCA"
+
+msgid "Import DCA XML…"
+msgstr "Importer le XML DCA…"
+
+msgid "Export DCA XML…"
+msgstr "Exporter le XML DCA…"
+
+msgid "Replace the DCA configuration of {device} with the selected XML file?"
+msgstr "Remplacer la configuration DCA de {device} par le fichier XML sélectionné ?"
+
+msgid "DCA configuration imported."
+msgstr "Configuration DCA importée."
+
+msgid "DCA configuration exported."
+msgstr "Configuration DCA exportée."

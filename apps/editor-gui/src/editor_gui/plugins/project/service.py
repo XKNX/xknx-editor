@@ -113,6 +113,7 @@ from xknxeditor.proj.core.service import DEFAULT_MULTICAST_ADDRESS
 from xknxeditor.proj.core.space_rules import SpaceRuleError, holds_devices
 
 if TYPE_CHECKING:
+    from editor_gui.plugin_blob_readers.dali_backup.e64pro import Edit as E64Edit
     from editor_gui.plugin_params import PluginMapping, PluginSectionView
     from editor_gui.plugin_providers import (
         NativeConfiguration,
@@ -4329,6 +4330,55 @@ class ProjectService:
         revision.
         """
         self.persist_device_blob(device, name, data, label=label)
+
+    def edit_e64pro(
+        self, device: Device, expected: bytes, edit: "E64Edit | list[E64Edit]"
+    ) -> bytes:
+        """Store offline DCA edits as one undo step against the expected revision."""
+        from editor_gui.plugin_blob_readers.dali_backup import e64pro
+
+        with self._io_lock:
+            current = self.find_device_by_node_id(device.node_id)
+            entry = e64pro.backup(current) if current is not None else None
+            if current is None or entry is None or entry[1] != expected:
+                raise ValueError(
+                    "DALI project data changed. Reopen the selection and try again."
+                )
+            data = expected
+            for operation in edit if isinstance(edit, list) else (edit,):
+                data = e64pro.apply(data, operation)
+            self.persist_device_blob(current, entry[0], data)
+            return data
+
+    def import_e64pro(
+        self, device: Device, expected: bytes | None, data: bytes
+    ) -> bytes:
+        """Replace the offline DCA configuration in one undo step."""
+        from editor_gui.plugin_blob_readers.dali_backup import e64pro
+
+        with self._io_lock:
+            current = self.find_device_by_node_id(device.node_id)
+            if self._pid is None or current is None or not e64pro.supports(current):
+                raise ValueError("Expected an IPAS e64 Pro project device")
+            entry = e64pro.backup(current)
+            if (entry[1] if entry else None) != expected:
+                raise ValueError("DALI project data changed. Try the import again.")
+            data = e64pro.import_configuration(
+                data, current.individual_address or "", self._project_name_for_keyring()
+            )
+            self.persist_device_blob(current, e64pro.BACKUP_NAME, data)
+            return data
+
+    def export_e64pro(self, device: Device) -> bytes:
+        """Export the current offline DCA configuration as ETS-style XML."""
+        from editor_gui.plugin_blob_readers.dali_backup import e64pro
+
+        with self._io_lock:
+            current = self.find_device_by_node_id(device.node_id)
+            entry = e64pro.backup(current) if current is not None else None
+            if entry is None:
+                raise ValueError("No IPAS e64 Pro backup")
+            return e64pro.export_configuration(entry[1])
 
     def persist_device_blob(
         self,

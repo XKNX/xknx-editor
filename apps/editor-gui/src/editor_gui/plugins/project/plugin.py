@@ -465,6 +465,8 @@ class ProjectPlugin:
             _generation=lambda: api.project.generation,
             _mapping_for=api.project.plugin_mapping,
             _sections_for=api.project.plugin_sections,
+            _e64_write=api.project.edit_e64pro,
+            _e64_project=api.project,
         )
         self._generic_plugin_panel = GenericPluginPanel(
             self.generic_plugin_view,

@@ -3745,3 +3745,156 @@ msgstr "Het communicatiepad via de koppelaar {coupler} kon niet worden geopend (
 
 msgid "The domain address of this secure device could not be loaded because the coupler {coupler} does not support security."
 msgstr "Het domeinadres van dit beveiligde apparaat kon niet worden geladen, omdat de koppelaar {coupler} geen beveiliging ondersteunt."
+
+msgid "Actions"
+msgstr "Acties"
+
+msgid "Add Command"
+msgstr "Opdracht toevoegen"
+
+msgid "Assigned Groups and ECGs"
+msgstr "Toegewezen groepen en EVSA’s"
+
+msgid "Colour"
+msgstr "Kleur"
+
+msgid "Control Gear and Groups"
+msgstr "EVSA’s en groepen"
+
+msgid "Delay"
+msgstr "Vertraging"
+
+msgid "ECG"
+msgstr "EVSA"
+
+msgid "Effects"
+msgstr "Effecten"
+
+msgid "Fade Time"
+msgstr "Dimtijd"
+
+msgid "Flag"
+msgstr "Vlag"
+
+msgid "General Inputs"
+msgstr "Algemene ingangen"
+
+msgid "Input Devices"
+msgstr "Invoerapparaten"
+
+msgid "Instance"
+msgstr "Instantie"
+
+msgid "KNX Scene"
+msgstr "KNX-scène"
+
+msgid "Keep Colour"
+msgstr "Kleur behouden"
+
+msgid "Keep Value"
+msgstr "Waarde behouden"
+
+msgid "Loop"
+msgstr "Herhalen"
+
+msgid "Manual Override"
+msgstr "Handmatige overbrugging"
+
+msgid "Midnight Reset"
+msgstr "Reset om middernacht"
+
+msgid "Mo Tu We Th Fr Sa Su"
+msgstr "ma di wo do vr za zo"
+
+msgid "Mode"
+msgstr "Modus"
+
+msgid "Motion / Brightness"
+msgstr "Beweging / helderheid"
+
+msgid "No Entries"
+msgstr "Geen items"
+
+msgid "Origin"
+msgstr "Herkomst"
+
+msgid "Physical Devices Without a Unique Assignment"
+msgstr "Fysieke apparaten zonder eenduidige toewijzing"
+
+msgid "Physical Inputs"
+msgstr "Fysieke ingangen"
+
+msgid "Push-Buttons"
+msgstr "Drukknoppen"
+
+msgid "Reference"
+msgstr "Referentie"
+
+msgid "Single ECG"
+msgstr "Individueel EVSA"
+
+msgid "Target"
+msgstr "Doel"
+
+msgid "Time"
+msgstr "Tijd"
+
+msgid "Time Control"
+msgstr "Tijdsturing"
+
+msgid "View"
+msgstr "Beeld"
+
+msgid "Weekdays"
+msgstr "Weekdagen"
+
+msgid "Add Target"
+msgstr "Doel toevoegen"
+
+msgid "Apply"
+msgstr "Toepassen"
+
+msgid "Approximate Preview"
+msgstr "Indicatief voorbeeld"
+
+msgid "Colour Temperature"
+msgstr "Kleurtemperatuur"
+
+msgid "Groups"
+msgstr "Groepen"
+
+msgid "Search"
+msgstr "Zoeken"
+
+msgid "White"
+msgstr "Wit"
+
+msgid "Brightness"
+msgstr "Helderheid"
+
+msgid "Min. Brightness"
+msgstr "Min. helderheid"
+
+msgid "Max. Brightness"
+msgstr "Max. helderheid"
+
+msgid "Switch-on Limit"
+msgstr "Inschakellimiet"
+
+msgid "DCA Details"
+msgstr "DCA-details"
+
+msgid "Import DCA XML…"
+msgstr "DCA-XML importeren…"
+
+msgid "Export DCA XML…"
+msgstr "DCA-XML exporteren…"
+
+msgid "Replace the DCA configuration of {device} with the selected XML file?"
+msgstr "De DCA-configuratie van {device} vervangen door het geselecteerde XML-bestand?"
+
+msgid "DCA configuration imported."
+msgstr "DCA-configuratie geïmporteerd."
+
+msgid "DCA configuration exported."
+msgstr "DCA-configuratie geëxporteerd."

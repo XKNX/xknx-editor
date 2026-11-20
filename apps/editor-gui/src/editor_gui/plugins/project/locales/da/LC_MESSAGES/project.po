@@ -3710,3 +3710,156 @@ msgstr "Kommunikationsvejen gennem kobleren {coupler} kunne ikke åbnes ({detail
 
 msgid "The domain address of this secure device could not be loaded because the coupler {coupler} does not support security."
 msgstr "Domæneadressen for denne sikre enhed kunne ikke indlæses, fordi kobleren {coupler} ikke understøtter sikkerhed."
+
+msgid "Actions"
+msgstr "Handlinger"
+
+msgid "Add Command"
+msgstr "Tilføj kommando"
+
+msgid "Assigned Groups and ECGs"
+msgstr "Tildelte grupper og forkoblinger"
+
+msgid "Colour"
+msgstr "Farve"
+
+msgid "Control Gear and Groups"
+msgstr "Forkoblinger og grupper"
+
+msgid "Delay"
+msgstr "Forsinkelse"
+
+msgid "ECG"
+msgstr "Forkobling"
+
+msgid "Effects"
+msgstr "Effekter"
+
+msgid "Fade Time"
+msgstr "Dæmpningstid"
+
+msgid "Flag"
+msgstr "Flag"
+
+msgid "General Inputs"
+msgstr "Generelle indgange"
+
+msgid "Input Devices"
+msgstr "Indgangsenheder"
+
+msgid "Instance"
+msgstr "Instans"
+
+msgid "KNX Scene"
+msgstr "KNX-scene"
+
+msgid "Keep Colour"
+msgstr "Behold farve"
+
+msgid "Keep Value"
+msgstr "Behold værdi"
+
+msgid "Loop"
+msgstr "Gentag"
+
+msgid "Manual Override"
+msgstr "Manuel overstyring"
+
+msgid "Midnight Reset"
+msgstr "Nulstil ved midnat"
+
+msgid "Mo Tu We Th Fr Sa Su"
+msgstr "Ma Ti On To Fr Lø Sø"
+
+msgid "Mode"
+msgstr "Tilstand"
+
+msgid "Motion / Brightness"
+msgstr "Bevægelse / lysstyrke"
+
+msgid "No Entries"
+msgstr "Ingen poster"
+
+msgid "Origin"
+msgstr "Oprindelse"
+
+msgid "Physical Devices Without a Unique Assignment"
+msgstr "Fysiske enheder uden entydig tildeling"
+
+msgid "Physical Inputs"
+msgstr "Fysiske indgange"
+
+msgid "Push-Buttons"
+msgstr "Trykknapper"
+
+msgid "Reference"
+msgstr "Reference"
+
+msgid "Single ECG"
+msgstr "Enkelt forkobling"
+
+msgid "Target"
+msgstr "Mål"
+
+msgid "Time"
+msgstr "Tid"
+
+msgid "Time Control"
+msgstr "Tidsstyring"
+
+msgid "View"
+msgstr "Vis"
+
+msgid "Weekdays"
+msgstr "Ugedage"
+
+msgid "Add Target"
+msgstr "Tilføj mål"
+
+msgid "Apply"
+msgstr "Anvend"
+
+msgid "Approximate Preview"
+msgstr "Vejledende forhåndsvisning"
+
+msgid "Colour Temperature"
+msgstr "Farvetemperatur"
+
+msgid "Groups"
+msgstr "Grupper"
+
+msgid "Search"
+msgstr "Søgning"
+
+msgid "White"
+msgstr "Hvid"
+
+msgid "Brightness"
+msgstr "Lysstyrke"
+
+msgid "Min. Brightness"
+msgstr "Min. lysstyrke"
+
+msgid "Max. Brightness"
+msgstr "Maks. lysstyrke"
+
+msgid "Switch-on Limit"
+msgstr "Tændingsgrænse"
+
+msgid "DCA Details"
+msgstr "DCA-detaljer"
+
+msgid "Import DCA XML…"
+msgstr "Importér DCA-XML…"
+
+msgid "Export DCA XML…"
+msgstr "Eksportér DCA-XML…"
+
+msgid "Replace the DCA configuration of {device} with the selected XML file?"
+msgstr "Erstat DCA-konfigurationen for {device} med den valgte XML-fil?"
+
+msgid "DCA configuration imported."
+msgstr "DCA-konfigurationen er importeret."
+
+msgid "DCA configuration exported."
+msgstr "DCA-konfigurationen er eksporteret."

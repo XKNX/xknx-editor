@@ -3710,3 +3710,156 @@ msgstr "Tiedonsiirtoreittiä yhdistimen {coupler} kautta ei voitu avata ({detail
 
 msgid "The domain address of this secure device could not be loaded because the coupler {coupler} does not support security."
 msgstr "Tämän suojatun laitteen toimialueosoitetta ei voitu ladata, koska yhdistin {coupler} ei tue suojausta."
+
+msgid "Actions"
+msgstr "Toiminnot"
+
+msgid "Add Command"
+msgstr "Lisää komento"
+
+msgid "Assigned Groups and ECGs"
+msgstr "Liitetyt ryhmät ja liitäntälaitteet"
+
+msgid "Colour"
+msgstr "Väri"
+
+msgid "Control Gear and Groups"
+msgstr "Liitäntälaitteet ja ryhmät"
+
+msgid "Delay"
+msgstr "Viive"
+
+msgid "ECG"
+msgstr "Liitäntälaite"
+
+msgid "Effects"
+msgstr "Tehosteet"
+
+msgid "Fade Time"
+msgstr "Himmennysaika"
+
+msgid "Flag"
+msgstr "Lippu"
+
+msgid "General Inputs"
+msgstr "Yleiset tulot"
+
+msgid "Input Devices"
+msgstr "Tulolaitteet"
+
+msgid "Instance"
+msgstr "Instanssi"
+
+msgid "KNX Scene"
+msgstr "KNX-tilanne"
+
+msgid "Keep Colour"
+msgstr "Säilytä väri"
+
+msgid "Keep Value"
+msgstr "Säilytä arvo"
+
+msgid "Loop"
+msgstr "Jatkuva toisto"
+
+msgid "Manual Override"
+msgstr "Käsiohitus"
+
+msgid "Midnight Reset"
+msgstr "Palautus keskiyöllä"
+
+msgid "Mo Tu We Th Fr Sa Su"
+msgstr "Ma Ti Ke To Pe La Su"
+
+msgid "Mode"
+msgstr "Tila"
+
+msgid "Motion / Brightness"
+msgstr "Liike / kirkkaus"
+
+msgid "No Entries"
+msgstr "Ei merkintöjä"
+
+msgid "Origin"
+msgstr "Alkuperä"
+
+msgid "Physical Devices Without a Unique Assignment"
+msgstr "Fyysiset laitteet ilman yksiselitteistä kohdistusta"
+
+msgid "Physical Inputs"
+msgstr "Fyysiset tulot"
+
+msgid "Push-Buttons"
+msgstr "Painikkeet"
+
+msgid "Reference"
+msgstr "Viite"
+
+msgid "Single ECG"
+msgstr "Yksittäinen liitäntälaite"
+
+msgid "Target"
+msgstr "Kohde"
+
+msgid "Time"
+msgstr "Aika"
+
+msgid "Time Control"
+msgstr "Aikaohjaus"
+
+msgid "View"
+msgstr "Näytä"
+
+msgid "Weekdays"
+msgstr "Viikonpäivät"
+
+msgid "Add Target"
+msgstr "Lisää kohde"
+
+msgid "Apply"
+msgstr "Käytä"
+
+msgid "Approximate Preview"
+msgstr "Suuntaa antava esikatselu"
+
+msgid "Colour Temperature"
+msgstr "Värilämpötila"
+
+msgid "Groups"
+msgstr "Ryhmät"
+
+msgid "Search"
+msgstr "Haku"
+
+msgid "White"
+msgstr "Valkoinen"
+
+msgid "Brightness"
+msgstr "Kirkkaus"
+
+msgid "Min. Brightness"
+msgstr "Vähimmäiskirkkaus"
+
+msgid "Max. Brightness"
+msgstr "Enimmäiskirkkaus"
+
+msgid "Switch-on Limit"
+msgstr "Kytkentäraja"
+
+msgid "DCA Details"
+msgstr "DCA-tiedot"
+
+msgid "Import DCA XML…"
+msgstr "Tuo DCA-XML…"
+
+msgid "Export DCA XML…"
+msgstr "Vie DCA-XML…"
+
+msgid "Replace the DCA configuration of {device} with the selected XML file?"
+msgstr "Korvataanko laitteen {device} DCA-määritys valitulla XML-tiedostolla?"
+
+msgid "DCA configuration imported."
+msgstr "DCA-määritys tuotiin."
+
+msgid "DCA configuration exported."
+msgstr "DCA-määritys vietiin."

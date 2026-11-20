@@ -3658,3 +3658,156 @@ msgstr "无法打开经过耦合器 {coupler} 的通信路径（{detail}）。�
 
 msgid "The domain address of this secure device could not be loaded because the coupler {coupler} does not support security."
 msgstr "无法加载此安全设备的域地址，因为耦合器 {coupler} 不支持安全功能。"
+
+msgid "Actions"
+msgstr "操作"
+
+msgid "Add Command"
+msgstr "添加命令"
+
+msgid "Assigned Groups and ECGs"
+msgstr "已分配的组和镇流器"
+
+msgid "Colour"
+msgstr "颜色"
+
+msgid "Control Gear and Groups"
+msgstr "镇流器和组"
+
+msgid "Delay"
+msgstr "延迟"
+
+msgid "ECG"
+msgstr "镇流器"
+
+msgid "Effects"
+msgstr "效果"
+
+msgid "Fade Time"
+msgstr "渐变时间"
+
+msgid "Flag"
+msgstr "标志"
+
+msgid "General Inputs"
+msgstr "通用输入"
+
+msgid "Input Devices"
+msgstr "输入设备"
+
+msgid "Instance"
+msgstr "实例"
+
+msgid "KNX Scene"
+msgstr "KNX 场景"
+
+msgid "Keep Colour"
+msgstr "保持颜色"
+
+msgid "Keep Value"
+msgstr "保持数值"
+
+msgid "Loop"
+msgstr "循环"
+
+msgid "Manual Override"
+msgstr "手动覆盖"
+
+msgid "Midnight Reset"
+msgstr "午夜复位"
+
+msgid "Mo Tu We Th Fr Sa Su"
+msgstr "一 二 三 四 五 六 日"
+
+msgid "Mode"
+msgstr "模式"
+
+msgid "Motion / Brightness"
+msgstr "移动 / 亮度"
+
+msgid "No Entries"
+msgstr "无条目"
+
+msgid "Origin"
+msgstr "来源"
+
+msgid "Physical Devices Without a Unique Assignment"
+msgstr "无唯一分配的物理设备"
+
+msgid "Physical Inputs"
+msgstr "物理输入"
+
+msgid "Push-Buttons"
+msgstr "按钮"
+
+msgid "Reference"
+msgstr "引用"
+
+msgid "Single ECG"
+msgstr "单个镇流器"
+
+msgid "Target"
+msgstr "目标"
+
+msgid "Time"
+msgstr "时间"
+
+msgid "Time Control"
+msgstr "定时控制"
+
+msgid "View"
+msgstr "视图"
+
+msgid "Weekdays"
+msgstr "星期"
+
+msgid "Add Target"
+msgstr "添加目标"
+
+msgid "Apply"
+msgstr "应用"
+
+msgid "Approximate Preview"
+msgstr "近似预览"
+
+msgid "Colour Temperature"
+msgstr "色温"
+
+msgid "Groups"
+msgstr "组"
+
+msgid "Search"
+msgstr "搜索"
+
+msgid "White"
+msgstr "白色"
+
+msgid "Brightness"
+msgstr "亮度"
+
+msgid "Min. Brightness"
+msgstr "最低亮度"
+
+msgid "Max. Brightness"
+msgstr "最高亮度"
+
+msgid "Switch-on Limit"
+msgstr "开灯亮度上限"
+
+msgid "DCA Details"
+msgstr "DCA 详细信息"
+
+msgid "Import DCA XML…"
+msgstr "导入 DCA XML…"
+
+msgid "Export DCA XML…"
+msgstr "导出 DCA XML…"
+
+msgid "Replace the DCA configuration of {device} with the selected XML file?"
+msgstr "用所选 XML 文件替换 {device} 的 DCA 配置？"
+
+msgid "DCA configuration imported."
+msgstr "已导入 DCA 配置。"
+
+msgid "DCA configuration exported."
+msgstr "已导出 DCA 配置。"

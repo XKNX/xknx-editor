@@ -3762,3 +3762,156 @@ msgstr "Komunikační cestu přes vazební člen {coupler} se nepodařilo otevř
 
 msgid "The domain address of this secure device could not be loaded because the coupler {coupler} does not support security."
 msgstr "Adresu domény tohoto zabezpečeného zařízení nebylo možné nahrát, protože vazební člen {coupler} nepodporuje zabezpečení."
+
+msgid "Actions"
+msgstr "Akce"
+
+msgid "Add Command"
+msgstr "Přidat příkaz"
+
+msgid "Assigned Groups and ECGs"
+msgstr "Přiřazené skupiny a předřadníky"
+
+msgid "Colour"
+msgstr "Barva"
+
+msgid "Control Gear and Groups"
+msgstr "Předřadníky a skupiny"
+
+msgid "Delay"
+msgstr "Zpoždění"
+
+msgid "ECG"
+msgstr "Předřadník"
+
+msgid "Effects"
+msgstr "Efekty"
+
+msgid "Fade Time"
+msgstr "Doba stmívání"
+
+msgid "Flag"
+msgstr "Příznak"
+
+msgid "General Inputs"
+msgstr "Obecné vstupy"
+
+msgid "Input Devices"
+msgstr "Vstupní zařízení"
+
+msgid "Instance"
+msgstr "Instance"
+
+msgid "KNX Scene"
+msgstr "Scéna KNX"
+
+msgid "Keep Colour"
+msgstr "Zachovat barvu"
+
+msgid "Keep Value"
+msgstr "Zachovat hodnotu"
+
+msgid "Loop"
+msgstr "Opakovat"
+
+msgid "Manual Override"
+msgstr "Ruční ovládání"
+
+msgid "Midnight Reset"
+msgstr "Obnovení o půlnoci"
+
+msgid "Mo Tu We Th Fr Sa Su"
+msgstr "Po Út St Čt Pá So Ne"
+
+msgid "Mode"
+msgstr "Režim"
+
+msgid "Motion / Brightness"
+msgstr "Pohyb / jas"
+
+msgid "No Entries"
+msgstr "Žádné položky"
+
+msgid "Origin"
+msgstr "Původ"
+
+msgid "Physical Devices Without a Unique Assignment"
+msgstr "Fyzická zařízení bez jednoznačného přiřazení"
+
+msgid "Physical Inputs"
+msgstr "Fyzické vstupy"
+
+msgid "Push-Buttons"
+msgstr "Tlačítka"
+
+msgid "Reference"
+msgstr "Odkaz"
+
+msgid "Single ECG"
+msgstr "Samostatný předřadník"
+
+msgid "Target"
+msgstr "Cíl"
+
+msgid "Time"
+msgstr "Čas"
+
+msgid "Time Control"
+msgstr "Časové řízení"
+
+msgid "View"
+msgstr "Zobrazení"
+
+msgid "Weekdays"
+msgstr "Dny v týdnu"
+
+msgid "Add Target"
+msgstr "Přidat cíl"
+
+msgid "Apply"
+msgstr "Použít"
+
+msgid "Approximate Preview"
+msgstr "Orientační náhled"
+
+msgid "Colour Temperature"
+msgstr "Teplota chromatičnosti"
+
+msgid "Groups"
+msgstr "Skupiny"
+
+msgid "Search"
+msgstr "Hledání"
+
+msgid "White"
+msgstr "Bílá"
+
+msgid "Brightness"
+msgstr "Jas"
+
+msgid "Min. Brightness"
+msgstr "Min. jas"
+
+msgid "Max. Brightness"
+msgstr "Max. jas"
+
+msgid "Switch-on Limit"
+msgstr "Limit při zapnutí"
+
+msgid "DCA Details"
+msgstr "Podrobnosti DCA"
+
+msgid "Import DCA XML…"
+msgstr "Importovat XML DCA…"
+
+msgid "Export DCA XML…"
+msgstr "Exportovat XML DCA…"
+
+msgid "Replace the DCA configuration of {device} with the selected XML file?"
+msgstr "Nahradit konfiguraci DCA zařízení {device} vybraným souborem XML?"
+
+msgid "DCA configuration imported."
+msgstr "Konfigurace DCA byla importována."
+
+msgid "DCA configuration exported."
+msgstr "Konfigurace DCA byla exportována."

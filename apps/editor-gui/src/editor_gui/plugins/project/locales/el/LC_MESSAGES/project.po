@@ -3710,3 +3710,156 @@ msgstr "Η διαδρομή επικοινωνίας μέσω του συζεύ�
 
 msgid "The domain address of this secure device could not be loaded because the coupler {coupler} does not support security."
 msgstr "Η διεύθυνση τομέα αυτής της ασφαλούς συσκευής δεν ήταν δυνατό να φορτωθεί, επειδή ο συζεύκτης {coupler} δεν υποστηρίζει ασφάλεια."
+
+msgid "Actions"
+msgstr "Ενέργειες"
+
+msgid "Add Command"
+msgstr "Προσθήκη εντολής"
+
+msgid "Assigned Groups and ECGs"
+msgstr "Αντιστοιχισμένες ομάδες και στραγγαλιστικά"
+
+msgid "Colour"
+msgstr "Χρώμα"
+
+msgid "Control Gear and Groups"
+msgstr "Στραγγαλιστικά και ομάδες"
+
+msgid "Delay"
+msgstr "Καθυστέρηση"
+
+msgid "ECG"
+msgstr "Στραγγαλιστικό"
+
+msgid "Effects"
+msgstr "Εφέ"
+
+msgid "Fade Time"
+msgstr "Χρόνος μετάβασης"
+
+msgid "Flag"
+msgstr "Σημαία"
+
+msgid "General Inputs"
+msgstr "Γενικές είσοδοι"
+
+msgid "Input Devices"
+msgstr "Συσκευές εισόδου"
+
+msgid "Instance"
+msgstr "Στιγμιότυπο"
+
+msgid "KNX Scene"
+msgstr "Σκηνή KNX"
+
+msgid "Keep Colour"
+msgstr "Διατήρηση χρώματος"
+
+msgid "Keep Value"
+msgstr "Διατήρηση τιμής"
+
+msgid "Loop"
+msgstr "Επανάληψη"
+
+msgid "Manual Override"
+msgstr "Χειροκίνητη παράκαμψη"
+
+msgid "Midnight Reset"
+msgstr "Επαναφορά τα μεσάνυχτα"
+
+msgid "Mo Tu We Th Fr Sa Su"
+msgstr "Δε Τρ Τε Πε Πα Σα Κυ"
+
+msgid "Mode"
+msgstr "Τρόπος λειτουργίας"
+
+msgid "Motion / Brightness"
+msgstr "Κίνηση / φωτεινότητα"
+
+msgid "No Entries"
+msgstr "Χωρίς εγγραφές"
+
+msgid "Origin"
+msgstr "Προέλευση"
+
+msgid "Physical Devices Without a Unique Assignment"
+msgstr "Φυσικές συσκευές χωρίς μοναδική αντιστοίχιση"
+
+msgid "Physical Inputs"
+msgstr "Φυσικές είσοδοι"
+
+msgid "Push-Buttons"
+msgstr "Μπουτόν"
+
+msgid "Reference"
+msgstr "Αναφορά"
+
+msgid "Single ECG"
+msgstr "Μεμονωμένο στραγγαλιστικό"
+
+msgid "Target"
+msgstr "Στόχος"
+
+msgid "Time"
+msgstr "Ώρα"
+
+msgid "Time Control"
+msgstr "Χρονικός έλεγχος"
+
+msgid "View"
+msgstr "Προβολή"
+
+msgid "Weekdays"
+msgstr "Ημέρες εβδομάδας"
+
+msgid "Add Target"
+msgstr "Προσθήκη στόχου"
+
+msgid "Apply"
+msgstr "Εφαρμογή"
+
+msgid "Approximate Preview"
+msgstr "Ενδεικτική προεπισκόπηση"
+
+msgid "Colour Temperature"
+msgstr "Θερμοκρασία χρώματος"
+
+msgid "Groups"
+msgstr "Ομάδες"
+
+msgid "Search"
+msgstr "Αναζήτηση"
+
+msgid "White"
+msgstr "Λευκό"
+
+msgid "Brightness"
+msgstr "Φωτεινότητα"
+
+msgid "Min. Brightness"
+msgstr "Ελάχ. φωτεινότητα"
+
+msgid "Max. Brightness"
+msgstr "Μέγ. φωτεινότητα"
+
+msgid "Switch-on Limit"
+msgstr "Όριο κατά την έναυση"
+
+msgid "DCA Details"
+msgstr "Λεπτομέρειες DCA"
+
+msgid "Import DCA XML…"
+msgstr "Εισαγωγή XML DCA…"
+
+msgid "Export DCA XML…"
+msgstr "Εξαγωγή XML DCA…"
+
+msgid "Replace the DCA configuration of {device} with the selected XML file?"
+msgstr "Να αντικατασταθεί η διαμόρφωση DCA της συσκευής {device} με το επιλεγμένο αρχείο XML;"
+
+msgid "DCA configuration imported."
+msgstr "Η διαμόρφωση DCA εισήχθη."
+
+msgid "DCA configuration exported."
+msgstr "Η διαμόρφωση DCA εξήχθη."

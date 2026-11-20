@@ -3685,3 +3685,156 @@ msgstr "A(z) {coupler} csatolón keresztüli kommunikációs útvonalat nem sike
 
 msgid "The domain address of this secure device could not be loaded because the coupler {coupler} does not support security."
 msgstr "Ennek a biztonságos eszköznek a tartománycímét nem sikerült betölteni, mert a(z) {coupler} csatoló nem támogatja a biztonságot."
+
+msgid "Actions"
+msgstr "Műveletek"
+
+msgid "Add Command"
+msgstr "Parancs hozzáadása"
+
+msgid "Assigned Groups and ECGs"
+msgstr "Hozzárendelt csoportok és előtétek"
+
+msgid "Colour"
+msgstr "Szín"
+
+msgid "Control Gear and Groups"
+msgstr "Előtétek és csoportok"
+
+msgid "Delay"
+msgstr "Késleltetés"
+
+msgid "ECG"
+msgstr "Előtét"
+
+msgid "Effects"
+msgstr "Effektusok"
+
+msgid "Fade Time"
+msgstr "Áttűnési idő"
+
+msgid "Flag"
+msgstr "Jelző"
+
+msgid "General Inputs"
+msgstr "Általános bemenetek"
+
+msgid "Input Devices"
+msgstr "Bemeneti eszközök"
+
+msgid "Instance"
+msgstr "Példány"
+
+msgid "KNX Scene"
+msgstr "KNX-jelenet"
+
+msgid "Keep Colour"
+msgstr "Szín megtartása"
+
+msgid "Keep Value"
+msgstr "Érték megtartása"
+
+msgid "Loop"
+msgstr "Ismétlés"
+
+msgid "Manual Override"
+msgstr "Kézi felülbírálás"
+
+msgid "Midnight Reset"
+msgstr "Éjféli alaphelyzetbe állítás"
+
+msgid "Mo Tu We Th Fr Sa Su"
+msgstr "H K Sze Cs P Szo V"
+
+msgid "Mode"
+msgstr "Mód"
+
+msgid "Motion / Brightness"
+msgstr "Mozgás / fényerő"
+
+msgid "No Entries"
+msgstr "Nincs bejegyzés"
+
+msgid "Origin"
+msgstr "Eredet"
+
+msgid "Physical Devices Without a Unique Assignment"
+msgstr "Egyértelmű hozzárendelés nélküli fizikai eszközök"
+
+msgid "Physical Inputs"
+msgstr "Fizikai bemenetek"
+
+msgid "Push-Buttons"
+msgstr "Nyomógombok"
+
+msgid "Reference"
+msgstr "Hivatkozás"
+
+msgid "Single ECG"
+msgstr "Egyedi előtét"
+
+msgid "Target"
+msgstr "Cél"
+
+msgid "Time"
+msgstr "Idő"
+
+msgid "Time Control"
+msgstr "Idővezérlés"
+
+msgid "View"
+msgstr "Nézet"
+
+msgid "Weekdays"
+msgstr "A hét napjai"
+
+msgid "Add Target"
+msgstr "Cél hozzáadása"
+
+msgid "Apply"
+msgstr "Alkalmaz"
+
+msgid "Approximate Preview"
+msgstr "Tájékoztató előnézet"
+
+msgid "Colour Temperature"
+msgstr "Színhőmérséklet"
+
+msgid "Groups"
+msgstr "Csoportok"
+
+msgid "Search"
+msgstr "Keresés"
+
+msgid "White"
+msgstr "Fehér"
+
+msgid "Brightness"
+msgstr "Fényerő"
+
+msgid "Min. Brightness"
+msgstr "Min. fényerő"
+
+msgid "Max. Brightness"
+msgstr "Max. fényerő"
+
+msgid "Switch-on Limit"
+msgstr "Bekapcsolási korlát"
+
+msgid "DCA Details"
+msgstr "DCA-részletek"
+
+msgid "Import DCA XML…"
+msgstr "DCA XML importálása…"
+
+msgid "Export DCA XML…"
+msgstr "DCA XML exportálása…"
+
+msgid "Replace the DCA configuration of {device} with the selected XML file?"
+msgstr "Lecseréli a(z) {device} DCA-konfigurációját a kiválasztott XML-fájlra?"
+
+msgid "DCA configuration imported."
+msgstr "A DCA-konfiguráció importálva."
+
+msgid "DCA configuration exported."
+msgstr "A DCA-konfiguráció exportálva."

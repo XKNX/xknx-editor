@@ -3841,3 +3841,156 @@ msgstr "Komunikacijske poti prek spojnika {coupler} ni bilo mogoče odpreti ({de
 
 msgid "The domain address of this secure device could not be loaded because the coupler {coupler} does not support security."
 msgstr "Naslova domene te varne naprave ni bilo mogoče naložiti, ker spojnik {coupler} ne podpira varnosti."
+
+msgid "Actions"
+msgstr "Dejanja"
+
+msgid "Add Command"
+msgstr "Dodaj ukaz"
+
+msgid "Assigned Groups and ECGs"
+msgstr "Dodeljene skupine in predstikalne naprave"
+
+msgid "Colour"
+msgstr "Barva"
+
+msgid "Control Gear and Groups"
+msgstr "Predstikalne naprave in skupine"
+
+msgid "Delay"
+msgstr "Zakasnitev"
+
+msgid "ECG"
+msgstr "Predstikalna naprava"
+
+msgid "Effects"
+msgstr "Učinki"
+
+msgid "Fade Time"
+msgstr "Čas zatemnitve"
+
+msgid "Flag"
+msgstr "Zastavica"
+
+msgid "General Inputs"
+msgstr "Splošni vhodi"
+
+msgid "Input Devices"
+msgstr "Vhodne naprave"
+
+msgid "Instance"
+msgstr "Instanca"
+
+msgid "KNX Scene"
+msgstr "Scena KNX"
+
+msgid "Keep Colour"
+msgstr "Ohrani barvo"
+
+msgid "Keep Value"
+msgstr "Ohrani vrednost"
+
+msgid "Loop"
+msgstr "Ponavljanje"
+
+msgid "Manual Override"
+msgstr "Ročno prekrmiljenje"
+
+msgid "Midnight Reset"
+msgstr "Ponastavitev ob polnoči"
+
+msgid "Mo Tu We Th Fr Sa Su"
+msgstr "Po To Sr Če Pe So Ne"
+
+msgid "Mode"
+msgstr "Način"
+
+msgid "Motion / Brightness"
+msgstr "Gibanje / svetlost"
+
+msgid "No Entries"
+msgstr "Ni vnosov"
+
+msgid "Origin"
+msgstr "Izvor"
+
+msgid "Physical Devices Without a Unique Assignment"
+msgstr "Fizične naprave brez enolične dodelitve"
+
+msgid "Physical Inputs"
+msgstr "Fizični vhodi"
+
+msgid "Push-Buttons"
+msgstr "Tipke"
+
+msgid "Reference"
+msgstr "Sklic"
+
+msgid "Single ECG"
+msgstr "Posamezna predstikalna naprava"
+
+msgid "Target"
+msgstr "Cilj"
+
+msgid "Time"
+msgstr "Čas"
+
+msgid "Time Control"
+msgstr "Časovno krmiljenje"
+
+msgid "View"
+msgstr "Pogled"
+
+msgid "Weekdays"
+msgstr "Dnevi v tednu"
+
+msgid "Add Target"
+msgstr "Dodaj cilj"
+
+msgid "Apply"
+msgstr "Uporabi"
+
+msgid "Approximate Preview"
+msgstr "Okvirni predogled"
+
+msgid "Colour Temperature"
+msgstr "Barvna temperatura"
+
+msgid "Groups"
+msgstr "Skupine"
+
+msgid "Search"
+msgstr "Iskanje"
+
+msgid "White"
+msgstr "Bela"
+
+msgid "Brightness"
+msgstr "Svetlost"
+
+msgid "Min. Brightness"
+msgstr "Najmanjša svetlost"
+
+msgid "Max. Brightness"
+msgstr "Največja svetlost"
+
+msgid "Switch-on Limit"
+msgstr "Omejitev ob vklopu"
+
+msgid "DCA Details"
+msgstr "Podrobnosti DCA"
+
+msgid "Import DCA XML…"
+msgstr "Uvozi XML DCA…"
+
+msgid "Export DCA XML…"
+msgstr "Izvozi XML DCA…"
+
+msgid "Replace the DCA configuration of {device} with the selected XML file?"
+msgstr "Zamenjam konfiguracijo DCA naprave {device} z izbrano datoteko XML?"
+
+msgid "DCA configuration imported."
+msgstr "Konfiguracija DCA je uvožena."
+
+msgid "DCA configuration exported."
+msgstr "Konfiguracija DCA je izvožena."
