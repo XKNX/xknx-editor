@@ -82,15 +82,6 @@ def begin_data_table(
     return opened
 
 
-def data_table_height(rows: int) -> float:
-    """The outer height of a table of :func:`begin_data_table` that shows its header row and
-    ``rows`` rows of one text line each, for a table that scrolls beyond them."""
-    style = imgui.get_style()
-    row = imgui.get_text_line_height() + 2 * style.cell_padding.y
-    header = imgui.get_frame_height() + 2 * style.cell_padding.y
-    return header + rows * row + px(2)
-
-
 def data_table_headers() -> None:
     """The header row of a table begun with :func:`begin_data_table`, and its menu. In a table
     that scrolls vertically, the header row stays at the top (columns the caller froze stay

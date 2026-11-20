@@ -108,9 +108,13 @@ from editor_gui.widgets.spinner import loading, spinner
 from editor_gui.widgets.tables import (
     begin_data_table,
     data_table_headers,
-    data_table_height,
+    text_table_height,
 )
-from editor_gui.widgets.text_util import text_clipped_tooltip
+from editor_gui.widgets.text_util import (
+    after_control_hint,
+    control_hint,
+    text_clipped_tooltip,
+)
 from editor_gui.widgets.tree import collapsing_header
 from xknxeditor.download.timeouts import BusTimeouts, bus_timeouts, set_bus_timeouts
 from xknxeditor.prod.app_id import parse_app_id
@@ -167,6 +171,11 @@ _RECONNECT_GRACE_SECONDS = 20.0
 _REOPEN_ATTEMPTS = 12
 # Seconds between the checks whether the credentials an interface requires are available now.
 _CREDENTIALS_CHECK_SECONDS = 2.0
+
+
+# The rows the M-Bus and BatiBus frames table shows, fewer on a short screen.
+_MBUS_TABLE_ROWS = 5
+_MBUS_TABLE_MIN_ROWS = 2
 
 
 class MissingCredentialsError(ConnectionError):
@@ -2530,11 +2539,8 @@ class ConnectionPlugin:
         )
         if changed:
             draft = replace(draft, enabled=enabled)
-        imgui.push_style_color(
-            imgui.Col_.text, imgui.get_style().color_(imgui.Col_.text_disabled)
-        )
-        imgui.text_wrapped(S.IP_SERVER_HINT)
-        imgui.pop_style_color()
+        control_hint(S.IP_SERVER_HINT)
+        after_control_hint()
         imgui.align_text_to_frame_padding()
         imgui.text(S.IP_SERVER_PORT)
         imgui.same_line()
@@ -2829,11 +2835,8 @@ class ConnectionPlugin:
             imgui.push_style_color(imgui.Col_.text, status_color("error"))
             imgui.text_wrapped(self._usb_domain_error)
             imgui.pop_style_color()
-        imgui.push_style_color(
-            imgui.Col_.text, imgui.get_style().color_(imgui.Col_.text_disabled)
-        )
-        imgui.text_wrapped(S.USB_DOMAIN_ADDRESS_HINT)
-        imgui.pop_style_color()
+        control_hint(S.USB_DOMAIN_ADDRESS_HINT)
+        after_control_hint()
 
     def _start_usb_domain_address(self) -> None:
         """Set the domain address in the dialog's field; a reason it can't is shown there."""
@@ -2886,11 +2889,8 @@ class ConnectionPlugin:
             imgui.push_style_color(imgui.Col_.text, status_color("error"))
             imgui.text_wrapped(self._usb_local_error)
             imgui.pop_style_color()
-        imgui.push_style_color(
-            imgui.Col_.text, imgui.get_style().color_(imgui.Col_.text_disabled)
-        )
-        imgui.text_wrapped(S.SETTING_USB_LOCAL_DEVICE_HINT)
-        imgui.pop_style_color()
+        control_hint(S.SETTING_USB_LOCAL_DEVICE_HINT)
+        after_control_hint()
 
     # --- the M-Bus and BatiBus tunnels ------------------------------------------
 
@@ -2975,28 +2975,33 @@ class ConnectionPlugin:
         imgui.pop_id()
 
     def _render_mbus_hint_and_clear(self, any_frames: bool) -> None:
-        """The hint on the left, wrapped, and Clear at the top right of the same row, above the
-        list it empties: always shown, disabled while there is nothing to clear."""
+        """The hint on the left, wrapped, and Clear on the right, both ending on the row's
+        bottom line, right above the list it empties: always shown, disabled while there is
+        nothing to clear."""
         clear = f"{S.MBUS_FRAMES_CLEAR}##mbus_clear"
+        style = imgui.get_style()
         start = imgui.get_cursor_pos()
+        available = imgui.get_content_region_avail().x
         clear_width = button_width(clear)
-        right = start.x + imgui.get_content_region_avail().x
-        imgui.set_cursor_pos(imgui.ImVec2(right - clear_width, start.y))
+        wrap = max(available - clear_width - style.item_spacing.x, px(80))
+        hint_height = imgui.calc_text_size(S.MBUS_FRAMES_HINT, wrap_width=wrap).y
+        button_height = imgui.get_frame_height()
+        row_height = max(hint_height, button_height)
+        imgui.set_cursor_pos(imgui.ImVec2(start.x, start.y + row_height - hint_height))
+        imgui.push_text_wrap_pos(start.x + wrap)
+        imgui.text_disabled(S.MBUS_FRAMES_HINT)
+        imgui.pop_text_wrap_pos()
+        # last, so the next row starts below the row's bottom line
+        imgui.set_cursor_pos(
+            imgui.ImVec2(
+                start.x + max(available - clear_width, 0.0),
+                start.y + row_height - button_height,
+            )
+        )
         imgui.begin_disabled(not any_frames)
         if imgui.button(clear):
             self._mbus_frames.clear()
         imgui.end_disabled()
-        below_button = imgui.get_cursor_pos_y()
-        imgui.set_cursor_pos(start)
-        imgui.push_text_wrap_pos(right - clear_width - imgui.get_style().item_spacing.x)
-        imgui.text_disabled(S.MBUS_FRAMES_HINT)
-        imgui.pop_text_wrap_pos()
-        # below the taller of the two
-        rest = (
-            below_button - imgui.get_cursor_pos_y() - imgui.get_style().item_spacing.y
-        )
-        if rest > 0:
-            imgui.dummy(imgui.ImVec2(0.0, rest))
 
     def _render_mbus_table(self, frames: list[MbusBatibusFrame]) -> None:
         flags = (
@@ -3005,11 +3010,13 @@ class ConnectionPlugin:
             | imgui.TableFlags_.resizable
             | imgui.TableFlags_.scroll_y
         )
-        # up to 8 rows, then it scrolls
-        height = data_table_height(min(len(frames), 8))
-        if imgui.get_content_region_avail().x < px(560):
-            # a phone: the table scrolls sideways too, its scrollbar takes a row's room
-            height += imgui.get_style().scrollbar_size
+        # Always the same whole rows, however many frames there are; on a short screen fewer,
+        # so the table takes at most a third of it.
+        rows = _MBUS_TABLE_ROWS
+        screen = imgui.get_main_viewport().size.y
+        while rows > _MBUS_TABLE_MIN_ROWS and text_table_height(rows) > screen / 3:
+            rows -= 1
+        height = text_table_height(rows)
         if not begin_data_table(
             "##mbus_frame_table", 5, flags, imgui.ImVec2(0.0, height)
         ):
