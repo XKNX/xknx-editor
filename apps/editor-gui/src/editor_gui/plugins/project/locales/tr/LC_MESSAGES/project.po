@@ -1117,7 +1117,6 @@ msgstr "Cihaz Karşılaştırma"
 msgid "Open a project with at least two devices to compare."
 msgstr "Karşılaştırmak için en az iki cihaz içeren bir proje açın."
 
-
 msgid "Filter devices by address, name or description…"
 msgstr "Cihazları adrese, ada veya tanıma göre filtrele…"
 
@@ -3173,11 +3172,7 @@ msgstr "Projeyi geri getirmek için listeden başka bir adım seçin"
 
 msgid "Current state of the project"
 msgstr "Projenin mevcut durumu"
-msgid "Configuration Comparison"
-msgstr "Yapılandırma karşılaştırması"
 
-msgid "Current state of the project"
-msgstr "Projenin mevcut durumu"
 msgid "Configuration Comparison"
 msgstr "Yapılandırma karşılaştırması"
 
@@ -3271,7 +3266,6 @@ msgstr "Cihaz belleğini göster"
 msgid "Read this segment from the device and compare it with the image. Writes nothing."
 msgstr "Bu bölümü cihazdan okur ve görüntüyle karşılaştırır. Hiçbir şey yazmaz."
 
-
 msgid "Compare device memory without changing the saved configuration."
 msgstr "Kaydedilen yapılandırmayı değiştirmeden cihaz belleğini karşılaştırın."
 
@@ -3289,11 +3283,7 @@ msgstr "Karşılaştırılacak iki cihazı seçin."
 
 msgid "Loading application programs… {done}/{total}"
 msgstr "Uygulama programları yükleniyor… {done}/{total}"
-msgid "Symbol"
-msgstr "Sembol"
 
-msgid "Loading application programs… {done}/{total}"
-msgstr "Uygulama programları yükleniyor… {done}/{total}"
 msgid "Symbol"
 msgstr "Sembol"
 
@@ -3498,17 +3488,12 @@ msgstr "Okunma zamanı"
 msgid "Catalog: {source} (latest entry: {date})."
 msgstr "Katalog: {source} (en yeni kayıt: {date})."
 
-
 msgid "Latest Compatible Version"
 msgstr "En yeni uyumlu sürüm"
 
 msgid "Not determined"
 msgstr "Belirlenmedi"
-msgid "Compares the device's hardware/software identity with this catalog. Does not install firmware. Catalog import: MDT Firmware Update .etsapp or Firmware.zip."
-msgstr "Cihazın donanım/yazılım kimliğini bu katalogla karşılaştırır. Donanım yazılımı yüklemez. Katalog içe aktarımı: MDT Firmware Update .etsapp veya Firmware.zip."
 
-msgid "Not determined"
-msgstr "Belirlenmedi"
 msgid "Compares the device's hardware/software identity with this catalog. Does not install firmware. Catalog import: MDT Firmware Update .etsapp or Firmware.zip."
 msgstr "Cihazın donanım/yazılım kimliğini bu katalogla karşılaştırır. Donanım yazılımı yüklemez. Katalog içe aktarımı: MDT Firmware Update .etsapp veya Firmware.zip."
 
@@ -4021,7 +4006,6 @@ msgstr "Toplam Arıza Oranı"
 
 msgid "Value input"
 msgstr "Değer girişi"
-
 
 msgid "Call scene"
 msgstr "Sahneyi çağır"

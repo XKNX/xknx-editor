@@ -240,19 +240,19 @@ msgid "Mask compatibility data unavailable; only exact masks checked"
 msgstr "Të dhënat e përputhshmërisë së maskave mungojnë; u kontrolluan vetëm maskat identike"
 
 msgid "The application version missing from the local catalog was found in the alternative catalog. A login is required to download it. Enter your username and password in Settings > Catalog."
-msgstr "Versioni i aplikacionit që mungon në katalogun lokal u gjet në katalogun alternativ. Për ta shkarkuar duhet të identifikoheni. Vendosni emrin e përdoruesit dhe fjalëkalimin te Cilësimet > Katalogu."
+msgstr "Versioni i programit aplikativ që mungon në katalogun lokal u gjet në katalogun alternativ. Për ta shkarkuar duhet të identifikoheni. Vendosni emrin e përdoruesit dhe fjalëkalimin te Cilësimet > Katalogu."
 
 msgid "Other Application Versions"
-msgstr "Versione të tjera të aplikacionit"
+msgstr "Versione të tjera të programit aplikativ"
 
 msgid "Other Versions…"
 msgstr "Versione të tjera…"
 
 msgid "The device runs application %(installed)s. These other versions are available in the online catalog. Loading product data does not change the device. Their suitability for recovery is unconfirmed; parameters and group objects may differ."
-msgstr "Pajisja përdor aplikacionin %(installed)s. Këto versione të tjera janë të disponueshme në katalogun në internet. Ngarkimi i të dhënave të produktit nuk e ndryshon pajisjen. Përshtatshmëria e tyre për rikuperim nuk është konfirmuar; parametrat dhe objektet e grupit mund të ndryshojnë."
+msgstr "Pajisja përdor programin aplikativ %(installed)s. Këto versione të tjera janë të disponueshme në katalogun online. Ngarkimi i të dhënave të produktit nuk e ndryshon pajisjen. Përshtatshmëria e tyre për rikuperim nuk është konfirmuar; parametrat dhe objektet e grupit mund të ndryshojnë."
 
 msgid "Load Product Data for Version %(version)s"
 msgstr "Ngarko të dhënat e produktit për versionin %(version)s"
 
 msgid "Different application version: device %(installed)s, recovery %(used)s. Not added to the project automatically."
-msgstr "Version tjetër i aplikacionit: pajisja %(installed)s, rikuperimi %(used)s. Nuk shtohet automatikisht në projekt."
+msgstr "Version tjetër i programit aplikativ: pajisja %(installed)s, versioni për rikuperim %(used)s. Nuk shtohet automatikisht në projekt."

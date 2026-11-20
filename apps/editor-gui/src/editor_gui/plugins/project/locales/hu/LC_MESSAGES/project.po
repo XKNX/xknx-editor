@@ -1567,7 +1567,6 @@ msgstr "Kommunikációs objektumok"
 msgid "No differences"
 msgstr "Nincs eltérés"
 
-
 msgid "Open a project with at least two devices to compare."
 msgstr "Az összehasonlításhoz nyisson meg egy legalább két készüléket tartalmazó projektet."
 
@@ -3200,11 +3199,7 @@ msgstr "Válasszon egy másik lépést a listában, hogy a projektet visszaáll�
 
 msgid "Current state of the project"
 msgstr "A projekt jelenlegi állapota"
-msgid "Configuration Comparison"
-msgstr "Konfiguráció összehasonlítása"
 
-msgid "Current state of the project"
-msgstr "A projekt jelenlegi állapota"
 msgid "Configuration Comparison"
 msgstr "Konfiguráció összehasonlítása"
 
@@ -3298,7 +3293,6 @@ msgstr "Eszközmemória megjelenítése"
 msgid "Read this segment from the device and compare it with the image. Writes nothing."
 msgstr "Kiolvassa ezt a szegmenst az eszközből, és összehasonlítja a képpel. Nem ír semmit."
 
-
 msgid "Compare device memory without changing the saved configuration."
 msgstr "Az eszköz memóriájának összehasonlítása a mentett konfiguráció módosítása nélkül."
 
@@ -3316,11 +3310,7 @@ msgstr "Válassza ki a két összehasonlítandó eszközt."
 
 msgid "Loading application programs… {done}/{total}"
 msgstr "Alkalmazási programok betöltése… {done}/{total}"
-msgid "Symbol"
-msgstr "Szimbólum"
 
-msgid "Loading application programs… {done}/{total}"
-msgstr "Alkalmazási programok betöltése… {done}/{total}"
 msgid "Symbol"
 msgstr "Szimbólum"
 
@@ -3525,17 +3515,12 @@ msgstr "Olvasás ideje"
 msgid "Catalog: {source} (latest entry: {date})."
 msgstr "Katalógus: {source} (legújabb bejegyzés: {date})."
 
-
 msgid "Latest Compatible Version"
 msgstr "Legújabb kompatibilis verzió"
 
 msgid "Not determined"
 msgstr "Nincs meghatározva"
-msgid "Compares the device's hardware/software identity with this catalog. Does not install firmware. Catalog import: MDT Firmware Update .etsapp or Firmware.zip."
-msgstr "Összehasonlítja az eszköz hardver-/szoftverazonosítóját ezzel a katalógussal. Nem telepít firmware-t. Katalógusimport: MDT Firmware Update .etsapp vagy Firmware.zip."
 
-msgid "Not determined"
-msgstr "Nincs meghatározva"
 msgid "Compares the device's hardware/software identity with this catalog. Does not install firmware. Catalog import: MDT Firmware Update .etsapp or Firmware.zip."
 msgstr "Összehasonlítja az eszköz hardver-/szoftverazonosítóját ezzel a katalógussal. Nem telepít firmware-t. Katalógusimport: MDT Firmware Update .etsapp vagy Firmware.zip."
 
@@ -4048,7 +4033,6 @@ msgstr "Összesített hibaarány"
 
 msgid "Value input"
 msgstr "Értékbemenet"
-
 
 msgid "Call scene"
 msgstr "Jelenet meghívása"

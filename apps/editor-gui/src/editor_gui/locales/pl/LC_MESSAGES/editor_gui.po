@@ -1719,6 +1719,7 @@ msgstr "Wyszukiwanie"
 
 msgid "All tools lists every tool to the AI tool. Search lists only a search for the tools and one that calls them, for AI models whose context is too small for the whole list. Tool catalog adds a compact inventory of every tool. An AI tool sees a change once it reconnects."
 msgstr "Wszystkie narzędzia pokazuje narzędziu AI każde narzędzie. Wyszukiwanie pokazuje tylko wyszukiwanie narzędzi i jedno, które je wywołuje, dla modeli AI, których kontekst jest za mały na całą listę. Katalog narzędzi dodaje zwięzły przegląd wszystkich narzędzi. Narzędzie AI widzi zmianę po ponownym połączeniu."
+
 msgid "Delete"
 msgstr "Usuń"
 

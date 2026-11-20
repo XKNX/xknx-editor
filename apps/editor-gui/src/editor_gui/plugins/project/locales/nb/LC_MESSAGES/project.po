@@ -1117,7 +1117,6 @@ msgstr "Sammenlign enheter"
 msgid "Open a project with at least two devices to compare."
 msgstr "Åpne et prosjekt med minst to enheter for å sammenligne."
 
-
 msgid "Filter devices by address, name or description…"
 msgstr "Filtrer enheter etter adresse, navn eller beskrivelse…"
 
@@ -3225,11 +3224,7 @@ msgstr "Velg et annet trinn i listen for å føre prosjektet tilbake til det"
 
 msgid "Current state of the project"
 msgstr "Prosjektets nåværende tilstand"
-msgid "Configuration Comparison"
-msgstr "Sammenligning av konfigurasjon"
 
-msgid "Current state of the project"
-msgstr "Prosjektets nåværende tilstand"
 msgid "Configuration Comparison"
 msgstr "Sammenligning av konfigurasjon"
 
@@ -3323,7 +3318,6 @@ msgstr "Vis enhetens minne"
 msgid "Read this segment from the device and compare it with the image. Writes nothing."
 msgstr "Les dette segmentet fra enheten og sammenlign det med minnebildet. Skriver ingenting."
 
-
 msgid "Compare device memory without changing the saved configuration."
 msgstr "Sammenlign enhetens minne uten å endre den lagrede konfigurasjonen."
 
@@ -3341,11 +3335,7 @@ msgstr "Velg de to enhetene som skal sammenlignes."
 
 msgid "Loading application programs… {done}/{total}"
 msgstr "Laster applikasjonsprogrammer… {done}/{total}"
-msgid "Symbol"
-msgstr "Symbol"
 
-msgid "Loading application programs… {done}/{total}"
-msgstr "Laster applikasjonsprogrammer… {done}/{total}"
 msgid "Symbol"
 msgstr "Symbol"
 
@@ -3550,17 +3540,12 @@ msgstr "Lest den"
 msgid "Catalog: {source} (latest entry: {date})."
 msgstr "Katalog: {source} (nyeste oppføring: {date})."
 
-
 msgid "Latest Compatible Version"
 msgstr "Nyeste kompatible versjon"
 
 msgid "Not determined"
 msgstr "Ikke fastslått"
-msgid "Compares the device's hardware/software identity with this catalog. Does not install firmware. Catalog import: MDT Firmware Update .etsapp or Firmware.zip."
-msgstr "Sammenligner enhetens maskinvare-/programvareidentitet med denne katalogen. Installerer ikke fastvare. Katalogimport: MDT Firmware Update .etsapp eller Firmware.zip."
 
-msgid "Not determined"
-msgstr "Ikke fastslått"
 msgid "Compares the device's hardware/software identity with this catalog. Does not install firmware. Catalog import: MDT Firmware Update .etsapp or Firmware.zip."
 msgstr "Sammenligner enhetens maskinvare-/programvareidentitet med denne katalogen. Installerer ikke fastvare. Katalogimport: MDT Firmware Update .etsapp eller Firmware.zip."
 
@@ -4073,7 +4058,6 @@ msgstr "Samlet feilprosent"
 
 msgid "Value input"
 msgstr "Verdiinngang"
-
 
 msgid "Call scene"
 msgstr "Aktiver scene"

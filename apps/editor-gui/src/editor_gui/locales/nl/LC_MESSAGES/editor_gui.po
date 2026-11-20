@@ -1306,9 +1306,6 @@ msgstr "Venster"
 msgid "Browser UI ({url})"
 msgstr "Browserinterface ({url})"
 
-msgid "No project open"
-msgstr "Geen project geopend"
-
 msgid "{kind}: {project}"
 msgstr "{kind}: {project}"
 
@@ -1763,6 +1760,7 @@ msgstr "Zoeken"
 
 msgid "All tools lists every tool to the AI tool. Search lists only a search for the tools and one that calls them, for AI models whose context is too small for the whole list. Tool catalog adds a compact inventory of every tool. An AI tool sees a change once it reconnects."
 msgstr "Alle hulpmiddelen toont de AI-tool elk hulpmiddel. Zoeken toont alleen een zoekfunctie voor de hulpmiddelen en één die ze aanroept, voor AI-modellen waarvan de context te klein is voor de hele lijst. Hulpmiddelencatalogus voegt een beknopt overzicht van alle hulpmiddelen toe. Een AI-tool ziet een wijziging zodra het opnieuw verbinding maakt."
+
 msgid "Delete"
 msgstr "Verwijderen"
 

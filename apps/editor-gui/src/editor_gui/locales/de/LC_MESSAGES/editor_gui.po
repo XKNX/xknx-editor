@@ -1400,9 +1400,6 @@ msgstr "Fenster"
 msgid "Browser UI ({url})"
 msgstr "Browser-Oberfläche ({url})"
 
-msgid "No project open"
-msgstr "Kein Projekt geöffnet"
-
 msgid "{kind}: {project}"
 msgstr "{kind}: {project}"
 
@@ -1860,6 +1857,7 @@ msgstr "Suche"
 
 msgid "All tools lists every tool to the AI tool. Search lists only a search for the tools and one that calls them, for AI models whose context is too small for the whole list. Tool catalog adds a compact inventory of every tool. An AI tool sees a change once it reconnects."
 msgstr "Alle Werkzeuge zeigt dem KI-Programm jedes Werkzeug. Suche zeigt nur eine Suche nach den Werkzeugen und eines, das sie aufruft, für KI-Modelle, deren Kontext für die ganze Liste zu klein ist. Werkzeugkatalog ergänzt eine kompakte Übersicht aller Werkzeuge. Ein KI-Programm sieht eine Änderung, sobald es sich neu verbindet."
+
 msgid "Delete"
 msgstr "Löschen"
 

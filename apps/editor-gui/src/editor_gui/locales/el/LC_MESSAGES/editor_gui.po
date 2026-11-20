@@ -1703,6 +1703,7 @@ msgstr "Αναζήτηση"
 
 msgid "All tools lists every tool to the AI tool. Search lists only a search for the tools and one that calls them, for AI models whose context is too small for the whole list. Tool catalog adds a compact inventory of every tool. An AI tool sees a change once it reconnects."
 msgstr "Με «Όλα τα εργαλεία» το εργαλείο AI βλέπει κάθε εργαλείο. Με «Αναζήτηση» βλέπει μόνο μια αναζήτηση εργαλείων και ένα εργαλείο που τα καλεί, για μοντέλα AI με πολύ μικρό πλαίσιο για ολόκληρη τη λίστα. Ο κατάλογος εργαλείων προσθέτει μια συνοπτική επισκόπηση όλων των εργαλείων. Ένα εργαλείο AI βλέπει την αλλαγή μόλις επανασυνδεθεί."
+
 msgid "Delete"
 msgstr "Διαγραφή"
 

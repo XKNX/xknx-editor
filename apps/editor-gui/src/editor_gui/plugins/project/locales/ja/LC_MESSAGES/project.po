@@ -1117,7 +1117,6 @@ msgstr "デバイスを比較する"
 msgid "Open a project with at least two devices to compare."
 msgstr "比較するには、2 台以上のデバイスがあるプロジェクトを開いてください。"
 
-
 msgid "Filter devices by address, name or description…"
 msgstr "アドレス、名前、説明でデバイスをフィルター…"
 
@@ -3173,11 +3172,7 @@ msgstr "プロジェクトを戻すには、一覧で別のステップを選択
 
 msgid "Current state of the project"
 msgstr "プロジェクトの現在の状態"
-msgid "Configuration Comparison"
-msgstr "設定の比較"
 
-msgid "Current state of the project"
-msgstr "プロジェクトの現在の状態"
 msgid "Configuration Comparison"
 msgstr "設定の比較"
 
@@ -3271,7 +3266,6 @@ msgstr "デバイスのメモリを表示"
 msgid "Read this segment from the device and compare it with the image. Writes nothing."
 msgstr "このセグメントをデバイスから読み取り、イメージと比較します。書き込みは行いません。"
 
-
 msgid "Compare device memory without changing the saved configuration."
 msgstr "保存済みの設定を変更せずにデバイスメモリを比較します。"
 
@@ -3289,11 +3283,7 @@ msgstr "比較する2台のデバイスを選択してください。"
 
 msgid "Loading application programs… {done}/{total}"
 msgstr "アプリケーションプログラムを読み込み中… {done}/{total}"
-msgid "Symbol"
-msgstr "シンボル"
 
-msgid "Loading application programs… {done}/{total}"
-msgstr "アプリケーションプログラムを読み込み中… {done}/{total}"
 msgid "Symbol"
 msgstr "シンボル"
 
@@ -3498,17 +3488,12 @@ msgstr "読み取り日時"
 msgid "Catalog: {source} (latest entry: {date})."
 msgstr "カタログ: {source}（最新項目: {date}）。"
 
-
 msgid "Latest Compatible Version"
 msgstr "最新の互換バージョン"
 
 msgid "Not determined"
 msgstr "未確認"
-msgid "Compares the device's hardware/software identity with this catalog. Does not install firmware. Catalog import: MDT Firmware Update .etsapp or Firmware.zip."
-msgstr "デバイスのハードウェア／ソフトウェア識別情報をこのカタログと比較します。ファームウェアはインストールしません。カタログのインポート: MDT Firmware Update .etsapp または Firmware.zip。"
 
-msgid "Not determined"
-msgstr "未確認"
 msgid "Compares the device's hardware/software identity with this catalog. Does not install firmware. Catalog import: MDT Firmware Update .etsapp or Firmware.zip."
 msgstr "デバイスのハードウェア／ソフトウェア識別情報をこのカタログと比較します。ファームウェアはインストールしません。カタログのインポート: MDT Firmware Update .etsapp または Firmware.zip。"
 
@@ -4021,7 +4006,6 @@ msgstr "総故障率"
 
 msgid "Value input"
 msgstr "値入力"
-
 
 msgid "Call scene"
 msgstr "シーンを呼び出す"

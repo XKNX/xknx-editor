@@ -1567,7 +1567,6 @@ msgstr "Komunikacijski objekti"
 msgid "No differences"
 msgstr "Ni razlik"
 
-
 msgid "Open a project with at least two devices to compare."
 msgstr "Za primerjavo odprite projekt z vsaj dvema napravama."
 
@@ -3356,11 +3355,7 @@ msgstr "Na seznamu izberite drug korak, da projekt vrnete nanj"
 
 msgid "Current state of the project"
 msgstr "Trenutno stanje projekta"
-msgid "Configuration Comparison"
-msgstr "Primerjava konfiguracije"
 
-msgid "Current state of the project"
-msgstr "Trenutno stanje projekta"
 msgid "Configuration Comparison"
 msgstr "Primerjava konfiguracije"
 
@@ -3454,7 +3449,6 @@ msgstr "Prikaži pomnilnik naprave"
 msgid "Read this segment from the device and compare it with the image. Writes nothing."
 msgstr "Prebere ta segment iz naprave in ga primerja s sliko. Ničesar ne zapiše."
 
-
 msgid "Compare device memory without changing the saved configuration."
 msgstr "Primerjajte pomnilnik naprave brez spreminjanja shranjene konfiguracije."
 
@@ -3472,11 +3466,7 @@ msgstr "Izberite napravi za primerjavo."
 
 msgid "Loading application programs… {done}/{total}"
 msgstr "Nalaganje aplikacijskih programov… {done}/{total}"
-msgid "Symbol"
-msgstr "Simbol"
 
-msgid "Loading application programs… {done}/{total}"
-msgstr "Nalaganje aplikacijskih programov… {done}/{total}"
 msgid "Symbol"
 msgstr "Simbol"
 
@@ -3681,17 +3671,12 @@ msgstr "Prebrano"
 msgid "Catalog: {source} (latest entry: {date})."
 msgstr "Katalog: {source} (najnovejši vnos: {date})."
 
-
 msgid "Latest Compatible Version"
 msgstr "Najnovejša združljiva različica"
 
 msgid "Not determined"
 msgstr "Ni določeno"
-msgid "Compares the device's hardware/software identity with this catalog. Does not install firmware. Catalog import: MDT Firmware Update .etsapp or Firmware.zip."
-msgstr "Primerja identiteto strojne/programske opreme naprave s tem katalogom. Ne namešča vdelane programske opreme. Uvoz kataloga: MDT Firmware Update .etsapp ali Firmware.zip."
 
-msgid "Not determined"
-msgstr "Ni določeno"
 msgid "Compares the device's hardware/software identity with this catalog. Does not install firmware. Catalog import: MDT Firmware Update .etsapp or Firmware.zip."
 msgstr "Primerja identiteto strojne/programske opreme naprave s tem katalogom. Ne namešča vdelane programske opreme. Uvoz kataloga: MDT Firmware Update .etsapp ali Firmware.zip."
 
@@ -4204,7 +4189,6 @@ msgstr "Skupni delež napak"
 
 msgid "Value input"
 msgstr "Vhod vrednosti"
-
 
 msgid "Call scene"
 msgstr "Prikliči sceno"

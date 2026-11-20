@@ -1117,7 +1117,6 @@ msgstr "Σύγκριση Συσκευών"
 msgid "Open a project with at least two devices to compare."
 msgstr "Ανοίξτε ένα έργο με τουλάχιστον δύο συσκευές για σύγκριση."
 
-
 msgid "Filter devices by address, name or description…"
 msgstr "Φιλτράρισμα συσκευών κατά διεύθυνση, όνομα ή περιγραφή…"
 
@@ -3225,11 +3224,7 @@ msgstr "Επιλέξτε άλλο βήμα στη λίστα για να επα�
 
 msgid "Current state of the project"
 msgstr "Τρέχουσα κατάσταση του έργου"
-msgid "Configuration Comparison"
-msgstr "Σύγκριση ρυθμίσεων"
 
-msgid "Current state of the project"
-msgstr "Τρέχουσα κατάσταση του έργου"
 msgid "Configuration Comparison"
 msgstr "Σύγκριση ρυθμίσεων"
 
@@ -3323,7 +3318,6 @@ msgstr "Εμφάνιση μνήμης συσκευής"
 msgid "Read this segment from the device and compare it with the image. Writes nothing."
 msgstr "Διαβάζει αυτό το τμήμα από τη συσκευή και το συγκρίνει με την εικόνα. Δεν γράφει τίποτα."
 
-
 msgid "Compare device memory without changing the saved configuration."
 msgstr "Σύγκριση της μνήμης της συσκευής χωρίς αλλαγή της αποθηκευμένης διαμόρφωσης."
 
@@ -3341,11 +3335,7 @@ msgstr "Επιλέξτε τις δύο συσκευές για σύγκριση.
 
 msgid "Loading application programs… {done}/{total}"
 msgstr "Φόρτωση προγραμμάτων εφαρμογής… {done}/{total}"
-msgid "Symbol"
-msgstr "Σύμβολο"
 
-msgid "Loading application programs… {done}/{total}"
-msgstr "Φόρτωση προγραμμάτων εφαρμογής… {done}/{total}"
 msgid "Symbol"
 msgstr "Σύμβολο"
 
@@ -3550,17 +3540,12 @@ msgstr "Αναγνώστηκε στις"
 msgid "Catalog: {source} (latest entry: {date})."
 msgstr "Κατάλογος: {source} (νεότερη καταχώριση: {date})."
 
-
 msgid "Latest Compatible Version"
 msgstr "Νεότερη συμβατή έκδοση"
 
 msgid "Not determined"
 msgstr "Δεν προσδιορίστηκε"
-msgid "Compares the device's hardware/software identity with this catalog. Does not install firmware. Catalog import: MDT Firmware Update .etsapp or Firmware.zip."
-msgstr "Συγκρίνει την ταυτότητα υλικού/λογισμικού της συσκευής με αυτόν τον κατάλογο. Δεν εγκαθιστά υλικολογισμικό. Εισαγωγή καταλόγου: MDT Firmware Update .etsapp ή Firmware.zip."
 
-msgid "Not determined"
-msgstr "Δεν προσδιορίστηκε"
 msgid "Compares the device's hardware/software identity with this catalog. Does not install firmware. Catalog import: MDT Firmware Update .etsapp or Firmware.zip."
 msgstr "Συγκρίνει την ταυτότητα υλικού/λογισμικού της συσκευής με αυτόν τον κατάλογο. Δεν εγκαθιστά υλικολογισμικό. Εισαγωγή καταλόγου: MDT Firmware Update .etsapp ή Firmware.zip."
 
@@ -4073,7 +4058,6 @@ msgstr "Συνολικό ποσοστό βλαβών"
 
 msgid "Value input"
 msgstr "Είσοδος τιμής"
-
 
 msgid "Call scene"
 msgstr "Κλήση σκηνής"

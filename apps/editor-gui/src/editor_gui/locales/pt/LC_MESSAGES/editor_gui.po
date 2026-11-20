@@ -1703,6 +1703,7 @@ msgstr "Pesquisa"
 
 msgid "All tools lists every tool to the AI tool. Search lists only a search for the tools and one that calls them, for AI models whose context is too small for the whole list. Tool catalog adds a compact inventory of every tool. An AI tool sees a change once it reconnects."
 msgstr "Todas as ferramentas mostra cada ferramenta à ferramenta de IA. Pesquisa mostra apenas uma pesquisa das ferramentas e uma que as chama, para modelos de IA cujo contexto é demasiado pequeno para a lista completa. Catálogo de ferramentas acrescenta um inventário compacto de todas as ferramentas. Uma ferramenta de IA vê a alteração quando volta a ligar-se."
+
 msgid "Delete"
 msgstr "Eliminar"
 

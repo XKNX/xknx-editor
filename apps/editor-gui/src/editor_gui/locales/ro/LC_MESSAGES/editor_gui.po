@@ -1791,6 +1791,7 @@ msgstr "Căutare"
 
 msgid "All tools lists every tool to the AI tool. Search lists only a search for the tools and one that calls them, for AI models whose context is too small for the whole list. Tool catalog adds a compact inventory of every tool. An AI tool sees a change once it reconnects."
 msgstr "Toate instrumentele prezintă instrumentului AI fiecare instrument. Căutare prezintă doar o căutare a instrumentelor și unul care le apelează, pentru modele AI al căror context este prea mic pentru întreaga listă. Catalog de instrumente adaugă o prezentare compactă a tuturor instrumentelor. Un instrument AI vede modificarea după ce se reconectează."
+
 msgid "Delete"
 msgstr "Ștergere"
 
