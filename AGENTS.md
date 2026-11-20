@@ -26,7 +26,7 @@ UV monorepo: `packages/` holds eight core libraries; `apps/` holds applications.
 - `xknxeditor-proj` — project state management (event-sourced SQLite `.xknx`, `.knxproj` import/export and signing, group-address export), depends on namespaces and xknxproject
 - `xknxeditor-datasecure` — parses/serializes KNX keyring XML and decrypts, re-encrypts and signs it, depends on namespaces
 - `xknxeditor-download` — programs applications and individual addresses into real devices (load procedures, memory images, preflight, KNX Secure) over xknx, depends on namespaces and prod
-- `xknxeditor-dali` — commissioning of DALI gateways over KNX (MDT, Theben/IPAS; Siemens read-only scan), depends on namespaces and download
+- `xknxeditor-dali` — commissioning of DALI gateways over KNX (MDT, Theben/IPAS, Siemens DALI-2; classic Siemens scan), depends on namespaces and download
 - `xknxeditor-recover` — reconstructs devices by reading them back from the bus, depends on prod, catalog, proj and download
 - `apps/editor-gui` — project editor GUI app; consumes all packages; see `apps/editor-gui/AGENTS.md` (also for the browser UI, `--web`, which every GUI feature has to support)
 

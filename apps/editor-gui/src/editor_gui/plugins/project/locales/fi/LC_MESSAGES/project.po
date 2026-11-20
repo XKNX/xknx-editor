@@ -2105,9 +2105,6 @@ msgstr "Satunnainen osoite"
 msgid "Read DALI Bus"
 msgstr "Lue DALI-väylä"
 
-msgid "Read-only snapshot. Writing group assignments, scenes or firmware is not available yet and remains in the manufacturer's plugin."
-msgstr "Vain luku -tilannekuva. Ryhmämäärityksien, kohtausten tai laiteohjelmiston kirjoitus ei ole vielä käytettävissä ja säilyy valmistajan pluginissa."
-
 msgid "Read-only view. The hierarchy is a best-effort reconstruction from parameter name prefixes; names and groupings may be rough. Writing values is not available yet."
 msgstr "Vain luku -näkymä. Hierarkia on parhaan kyvyn mukaan parametrinimien etuliitteistä rakennettu; nimet ja ryhmittelyt voivat olla karkeita. Arvojen kirjoitus ei ole vielä käytettävissä."
 

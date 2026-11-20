@@ -179,7 +179,7 @@ gateway's DALI configuration — control gear, groups, scenes, time control and 
 view, and, over the bus, scan, address and commission the connected control gear from a **DALI
 (Bus)** tab. IPAS e64 Pro and Theben P64 V2 also support offline input assignments, bulk
 descriptions, individual scene/effect/template XML exchange and read-only diagnostic reports.
-Bus recovery also reads Siemens N141/03 and N141/21 DCA properties and the stored discovery data of supported N141/14 and N141/32 applications.
+Siemens N141/03 and N141/21 support DCA recovery and parameter downloads; supported N141/14 and N141/32 applications provide cached inventory, discovery, identification and physical address changes.
 Still maturing — verify against your own installation.
 
 **Displays without parameters** — some devices, such as the Busch-Jaeger Triton, keep their

@@ -11,7 +11,7 @@ from xml.etree import ElementTree as ET
 
 import pytest
 
-from editor_gui.plugin_blob_readers.siemens_dali import reader
+from editor_gui.plugin_blob_readers.siemens_dali import download, reader
 from editor_gui.plugin_blob_readers.siemens_dali.encoder import (
     encode_date,
     encode_time,
@@ -264,6 +264,26 @@ async def test_all_captured_properties_roundtrip_to_the_same_xml_values():
         s.parameters for s in sections if "Connected ECGs" in s.section
     )
     assert len(connected_rows) == 1
+
+
+@pytest.mark.parametrize(
+    "app_id,lines", [("M-0001_A-9837-11-449E", 1), ("M-0001_A-9834-11-0000", 2)]
+)
+async def test_recovered_configuration_compiles_to_captured_properties(app_id, lines):
+    programmer = Programmer(lines)
+    capture = await siemens.addin_reader(_application(app_id))(programmer)
+    payload = siemens.build_blob(capture[app_id][siemens._CAPTURE], app_id)
+    configuration = download.compile_configuration(payload, app_id)
+    assert configuration.lines == lines
+    assert len(configuration.writes) == (350 if lines == 1 else 560)
+    for write in configuration.writes:
+        size, data = programmer.tables[write.odx, write.pid]
+        assert len(write.data) == size * write.count
+        if write.pid not in (51, 52):
+            assert write.data == data, (write.odx, write.pid)
+    assert (
+        next(w for w in configuration.writes if w.odx == 11 and w.pid == 151).count == 2
+    )
 
 
 async def test_blob_uses_vendor_envelope_and_namespace_prefixes():

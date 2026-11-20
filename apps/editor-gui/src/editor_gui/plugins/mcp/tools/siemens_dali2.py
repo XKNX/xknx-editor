@@ -1,0 +1,195 @@
+# pyright: reportUnusedFunction=false
+"""Siemens DALI-2 bus inventory, identification and physical address changes."""
+
+from __future__ import annotations
+
+from dataclasses import asdict
+from typing import TYPE_CHECKING, Any, Literal
+
+from fastmcp.exceptions import ToolError
+
+from editor_gui.plugins.mcp.context import McpContext, make_tool
+from editor_gui.plugins.mcp.tools.connection import (
+    await_operation,
+    not_started,
+    run_queued_action,
+)
+from editor_gui.plugins.mcp.tools.project import require_device
+from editor_gui.plugins.project.strings import S
+from editor_gui.programming_siemens_dali2 import Action, Operation, prepare_operation
+from xknxeditor.dali.siemens_dali2 import Scan
+
+if TYPE_CHECKING:
+    from fastmcp import FastMCP
+
+    from editor_gui.device import Device
+
+
+def scan_dict(node_id: int, scan: Scan | None) -> dict[str, Any]:
+    """Keep an unavailable cache distinct from a successful, empty inventory."""
+    if scan is None:
+        return {"node_id": node_id, "available": False, "devices": []}
+    return {
+        "node_id": node_id,
+        "available": True,
+        "line": scan.line,
+        "sensors": scan.sensors,
+        "interface_id": scan.interface_id,
+        "devices": [asdict(device) for device in scan.devices],
+        "raw_hex": scan.raw.hex(),
+    }
+
+
+def register(mcp: FastMCP, ctx: McpContext) -> None:
+    tool = make_tool(mcp, ctx)
+    service = ctx.api.connection
+
+    def run(
+        action: Action,
+        node_id: int | None,
+        device_address: str | None,
+        line: int,
+        sensors: bool,
+        timeout: float,
+        address: int = 0,
+        new_address: int = 0,
+        random_address: int = 0,
+    ) -> dict[str, Any]:
+        def prepare() -> tuple[Device, Operation]:
+            device = require_device(ctx.api.project, node_id, device_address)
+            if not device.individual_address:
+                raise ValueError("Device has no individual address")
+            operation = prepare_operation(
+                device.app.id if device.app else None,
+                action,
+                line=line,
+                sensors=sensors,
+                address=address,
+                new_address=new_address,
+                random_address=random_address,
+                timeout=timeout,
+            )
+            return device, operation
+
+        device, operation = ctx.run_locked(prepare)
+        if not service.can_reach_bus():
+            raise ToolError("No KNX connection")
+        text = {
+            "read": S.E64_BUS_ACTIONS["read"],
+            "discover": S.DALI_SCAN,
+            "blink": S.DALI_BLINK,
+            "stop": S.DALI_STOP,
+            "on": S.DALI_SWITCH_ON,
+            "off": S.DALI_SWITCH_OFF,
+            "address": S.E64_SHORT_ADDRESS,
+        }[action]
+        ended = run_queued_action(
+            ctx,
+            device.node_id,
+            "siemens_dali",
+            timeout + 15,
+            op=operation,
+            text=text,
+            writes=operation.writes,
+        )
+        if ended is not None:
+            result = ended.result
+        else:
+            future = ctx.run_locked(
+                lambda: service.run_siemens_dali(
+                    device, operation, writes=operation.writes
+                )
+            )
+            if future is None:
+                raise not_started(service, text)
+            result = await_operation(service, future, timeout + 15, text)
+        if action in ("read", "discover", "address"):
+            return scan_dict(device.node_id, result)
+        return {
+            "node_id": device.node_id,
+            "line": line,
+            "sensors": sensors,
+            "address": address,
+            "action": action,
+        }
+
+    @tool("read", open_world=True)
+    def connection_siemens_dali2_read(
+        node_id: int | None = None,
+        device_address: str | None = None,
+        line: int = 0,
+        sensors: bool = False,
+        timeout: float = 60,
+    ) -> dict[str, Any]:
+        """Read a Siemens DALI-2 cached inventory without starting discovery.
+        Select by node_id OR device_address; line is zero-based (0 or 1 for twin gateways).
+        sensors=False reads control gear; True reads input devices and their instances.
+        Returns available=False if the cache is missing, otherwise line, sensors, interface_id,
+        devices and raw_hex. Each device has short_address (0..63), random_address (24-bit),
+        flags, version, types, min_level and instances ({number, type, resolution}).
+        The cache reflects the last gateway discovery, not necessarily the current DALI bus.
+        Supported applications: Siemens 9A1B/9A1C, versions 02/03/30.
+        """
+        return run("read", node_id, device_address, line, sensors, timeout)
+
+    @tool("destructive", open_world=True)
+    def connection_siemens_dali2_discover(
+        node_id: int | None = None,
+        device_address: str | None = None,
+        line: int = 0,
+        sensors: bool = False,
+        timeout: float = 300,
+    ) -> dict[str, Any]:
+        """CHANGES THE DEVICE: discover Siemens DALI-2 gear or inputs; may assign addresses.
+        Select by node_id OR device_address. Zero-based line; sensors=True selects inputs.
+        Returns the same inventory as connection_siemens_dali2_read after discovery completes.
+        Restores gateway polling afterward. Does not write the saved KNX configuration.
+        """
+        return run("discover", node_id, device_address, line, sensors, timeout)
+
+    @tool("destructive", open_world=True)
+    def connection_siemens_dali2_identify(
+        address: int,
+        action: Literal["blink", "stop", "on", "off"] = "blink",
+        node_id: int | None = None,
+        device_address: str | None = None,
+        line: int = 0,
+        sensors: bool = False,
+        timeout: float = 15,
+    ) -> dict[str, Any]:
+        """Identify Siemens DALI-2 gear or inputs at short address 0..63.
+        Select by node_id OR device_address; line is zero-based, sensors=True selects inputs.
+        blink uses a two-second interval; stop ends identification; on/off set its test state.
+        Returns node_id, line, sensors, address and action after command acknowledgement.
+        """
+        return run(action, node_id, device_address, line, sensors, timeout, address)
+
+    @tool("destructive", open_world=True)
+    def connection_siemens_dali2_address(
+        address: int,
+        new_address: int,
+        random_address: int,
+        node_id: int | None = None,
+        device_address: str | None = None,
+        line: int = 0,
+        sensors: bool = False,
+        timeout: float = 300,
+    ) -> dict[str, Any]:
+        """CHANGES THE DEVICE: move a Siemens DALI-2 physical device to a free short address.
+        Select by node_id OR device_address; zero-based line; sensors=True selects inputs.
+        address/new_address are distinct 0..63 values; random_address is the nonzero 24-bit
+        identity from discovery. Fresh scans check identity, conflicts and the final address.
+        Returns the verified inventory like connection_siemens_dali2_read. Does not change
+        saved KNX parameter mappings. Project undo cannot reverse this bus operation.
+        """
+        return run(
+            "address",
+            node_id,
+            device_address,
+            line,
+            sensors,
+            timeout,
+            address,
+            new_address,
+            random_address,
+        )

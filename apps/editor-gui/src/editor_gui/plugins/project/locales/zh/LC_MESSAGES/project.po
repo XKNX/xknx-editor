@@ -2105,9 +2105,6 @@ msgstr "随机地址"
 msgid "Read DALI Bus"
 msgstr "读取 DALI 总线"
 
-msgid "Read-only snapshot. Writing group assignments, scenes or firmware is not available yet and remains in the manufacturer's plugin."
-msgstr "只读快照。写入组分配、场景或固件尚不可用,仍需在厂家插件中进行。"
-
 msgid "Read-only view. The hierarchy is a best-effort reconstruction from parameter name prefixes; names and groupings may be rough. Writing values is not available yet."
 msgstr "只读视图。层级结构根据参数名前缀尽力重建;名称和分组可能较为粗略。值的写入尚不可用。"
 

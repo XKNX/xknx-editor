@@ -91,6 +91,7 @@ from editor_gui.plugins.project.ui.project_diff import (
 from editor_gui.plugins.project.ui.read_device_dialog import ReadDeviceDialog
 from editor_gui.plugins.project.ui.secure_commissioning import SecureCommissioningDialog
 from editor_gui.plugins.project.ui.siemens_dali import SiemensDaliPanel
+from editor_gui.plugins.project.ui.siemens_dali2 import SiemensDali2Panel
 from editor_gui.plugins.project.ui.space_details import SpaceDetailsPanel
 from editor_gui.plugins.project.ui.tools import apply_name_swap, shifted_ia
 from editor_gui.plugins.project.ui.topology import Area, Line, Segment
@@ -451,6 +452,9 @@ class ProjectPlugin:
             connected=lambda: api.connection.xknx is not None,
         )
         self._siemens_dali_panel = SiemensDaliPanel(
+            self._run_siemens_dali, _generation=lambda: api.project.generation
+        )
+        self._siemens_dali2_panel = SiemensDali2Panel(
             self._run_siemens_dali, _generation=lambda: api.project.generation
         )
         self._plugin_params_panel = PluginParamsPanel(
@@ -1225,7 +1229,11 @@ class ProjectPlugin:
                 text = (
                     f"{S.EDITOR_TAB_SIEMENS_DALI}: {options['text'].removesuffix('…')}"
                 )
-                start = functools.partial(conn.run_siemens_dali, op=options["op"])
+                start = functools.partial(
+                    conn.run_siemens_dali,
+                    op=options["op"],
+                    **({"writes": options["writes"]} if "writes" in options else {}),
+                )
             case "siemens_dca":
                 text = S.PLUGIN_PARAMS_PROGRAM_DCA
                 start = functools.partial(
@@ -1459,17 +1467,35 @@ class ProjectPlugin:
         )
 
     def _render_siemens_dali_tab(self, device: "Device") -> None:
-        """Render the Siemens N141/03 DALI read-only snapshot tab body."""
+        """Render the commissioning panel matching the Siemens application."""
+        from xknxeditor.dali.siemens_dali2 import line_count
+
+        if line_count(device.app.id if device.app else None):
+            self._siemens_dali2_panel.render(
+                device, connected=self._api.connection.can_reach_bus()
+            )
+            return
         self._siemens_dali_panel.render(
             device, connected=self._api.connection.can_reach_bus()
         )
 
     def _run_siemens_dali(
-        self, device: "Device", op: "Any", text: str, ended: Callable[[], None]
+        self,
+        device: "Device",
+        op: "Any",
+        text: str,
+        ended: Callable[[], None],
+        writes: bool = False,
     ) -> None:
-        """Queue a Siemens DALI read coroutine named ``text``; ``ended`` once it has ended."""
+        """Queue a Siemens DALI operation; call ``ended`` once it has ended."""
+        options: dict[str, Any] = {"writes": True} if writes else {}
         self._queue_bus_action(
-            device.node_id, "siemens_dali", op=op, text=text, ended=ended
+            device.node_id,
+            "siemens_dali",
+            op=op,
+            text=text,
+            ended=ended,
+            **options,
         )
 
     def _render_plugin_params_tab(self, device: "Device") -> None:
@@ -1870,7 +1896,7 @@ class ProjectPlugin:
             (
                 e
                 for e in getattr(device, "binary_data", []) or []
-                if e.data and "BLOB_PARA" in (e.name or "")
+                if e.data and e.name == "BLOB_PARA"
             ),
             None,
         )
@@ -1917,7 +1943,7 @@ class ProjectPlugin:
             (
                 e
                 for e in getattr(device, "binary_data", []) or []
-                if e.data and "BLOB_PARA" in (e.name or "")
+                if e.data and e.name == "BLOB_PARA"
             ),
             None,
         )
@@ -1950,14 +1976,12 @@ class ProjectPlugin:
         )
 
     def _handle_program_dca(self, device: "Device") -> None:
-        """Queue programming the Siemens N141/03 DaliDevice property-image onto the device.
-        ``ConnectionService`` runs it; the actual write pass lives in
-        ``plugin_blob_readers.siemens_dali.download``."""
+        """Queue the classic Siemens DALI configuration download."""
         entry = next(
             (
                 e
                 for e in getattr(device, "binary_data", []) or []
-                if e.data and "BLOB_PARA" in (e.name or "")
+                if e.data and e.name == "BLOB_PARA"
             ),
             None,
         )

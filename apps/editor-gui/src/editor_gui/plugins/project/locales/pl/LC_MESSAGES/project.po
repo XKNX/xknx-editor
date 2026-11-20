@@ -2105,9 +2105,6 @@ msgstr "Adres losowy"
 msgid "Read DALI Bus"
 msgstr "Odczytaj magistralę DALI"
 
-msgid "Read-only snapshot. Writing group assignments, scenes or firmware is not available yet and remains in the manufacturer's plugin."
-msgstr "Migawka tylko do odczytu. Zapis przypisań grup, scen lub firmware'u nie jest jeszcze dostępny i pozostaje we wtyczce producenta."
-
 msgid "Read-only view. The hierarchy is a best-effort reconstruction from parameter name prefixes; names and groupings may be rough. Writing values is not available yet."
 msgstr "Widok tylko do odczytu. Hierarchia jest możliwie najlepszą rekonstrukcją z prefiksów nazw parametrów; nazwy i grupowanie mogą być przybliżone. Zapis wartości nie jest jeszcze dostępny."
 

@@ -2096,9 +2096,6 @@ msgstr "Číta sa zbernica DALI z objektu {object_index}…"
 msgid "Press 'Read DALI Bus' to list the ECGs on the gateway."
 msgstr "Stlačením „Čítať zbernicu DALI“ zobrazíte predradníky na bráne."
 
-msgid "Read-only snapshot. Writing group assignments, scenes or firmware is not available yet and remains in the manufacturer's plugin."
-msgstr "Snímka len na čítanie. Zápis priradení skupín, scén alebo firmvéru tu zatiaľ nie je k dispozícii a zostáva v plugine výrobcu."
-
 msgid "Short Address"
 msgstr "Krátka adresa"
 

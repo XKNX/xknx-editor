@@ -2105,9 +2105,6 @@ msgstr "Случайный адрес"
 msgid "Read DALI Bus"
 msgstr "Прочитать шину DALI"
 
-msgid "Read-only snapshot. Writing group assignments, scenes or firmware is not available yet and remains in the manufacturer's plugin."
-msgstr "Снимок только для чтения. Запись назначений групп, сцен или прошивки пока недоступна и остаётся в плагине производителя."
-
 msgid "Read-only view. The hierarchy is a best-effort reconstruction from parameter name prefixes; names and groupings may be rough. Writing values is not available yet."
 msgstr "Вид только для чтения. Иерархия — максимально возможная реконструкция из префиксов имён параметров; имена и группировки могут быть приблизительными. Запись значений пока недоступна."
 

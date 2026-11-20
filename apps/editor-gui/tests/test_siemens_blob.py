@@ -10,15 +10,10 @@ contract against real data.
 
 from __future__ import annotations
 
-import zlib
 from pathlib import Path
-from xml.etree import ElementTree as ET
 
 from editor_gui.plugin_blob_readers.siemens_dali import reader, writer
-from editor_gui.plugin_blob_readers.siemens_dali.download import _NS
-from editor_gui.plugin_blob_readers.siemens_dali.properties import (
-    build_dalidevice_properties,
-)
+from editor_gui.plugin_blob_readers.siemens_dali.download import compile_configuration
 
 _BLOB = Path(__file__).parent / "fixtures" / "siemens_n141_blob_para.dat"
 
@@ -82,14 +77,24 @@ def test_add_and_remove_collection_item_round_trip() -> None:
     assert reader.read(removed)
 
 
-def test_download_builds_dalidevice_property_map() -> None:
-    root = ET.fromstring(zlib.decompress(_blob(), -15).decode("utf-16-le"))
-    blob = next((e for e in root.iter() if e.tag == f"{_NS}Blob"), None)
-    assert blob is not None
-    dd = blob.find(f"{_NS}DaliDevice")
-    assert dd is not None
-    props = build_dalidevice_properties(dd)
-    assert props, "no properties built"
-    # Every entry is a (pid -> bytes) pair the download path writes per Interface Object.
-    assert all(isinstance(pid, int) for pid in props)
-    assert all(isinstance(v, (bytes, bytearray)) for v in props.values())
+def test_download_builds_complete_property_map() -> None:
+    config = compile_configuration(_blob(), "M-0001_A-9837-11-449E")
+    assert len(config.writes) == 350
+    assert {w.odx for w in config.writes} == {
+        0,
+        11,
+        14,
+        15,
+        17,
+        18,
+        20,
+        22,
+        24,
+        26,
+        28,
+        30,
+        32,
+        33,
+        34,
+        42,
+    }

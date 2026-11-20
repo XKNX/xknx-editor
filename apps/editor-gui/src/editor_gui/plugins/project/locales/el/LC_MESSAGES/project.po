@@ -2105,9 +2105,6 @@ msgstr "Τυχαία διεύθυνση"
 msgid "Read DALI Bus"
 msgstr "Ανάγνωση διαύλου DALI"
 
-msgid "Read-only snapshot. Writing group assignments, scenes or firmware is not available yet and remains in the manufacturer's plugin."
-msgstr "Στιγμιότυπο μόνο για ανάγνωση. Η εγγραφή αντιστοιχίσεων ομάδας, σκηνών ή firmware δεν είναι ακόμη διαθέσιμη και παραμένει στο plugin του κατασκευαστή."
-
 msgid "Read-only view. The hierarchy is a best-effort reconstruction from parameter name prefixes; names and groupings may be rough. Writing values is not available yet."
 msgstr "Προβολή μόνο για ανάγνωση. Η ιεραρχία αποτελεί κατά το δυνατόν καλύτερη ανακατασκευή από τα προθέματα ονομάτων παραμέτρων· τα ονόματα και οι ομαδοποιήσεις ενδέχεται να είναι προσεγγιστικά. Η εγγραφή τιμών δεν είναι ακόμη διαθέσιμη."
 

@@ -2096,9 +2096,6 @@ msgstr "Branje vodila DALI iz objekta {object_index}…"
 msgid "Press 'Read DALI Bus' to list the ECGs on the gateway."
 msgstr "Pritisnite »Preberi vodilo DALI«, da prikažete predstikalne naprave prehoda."
 
-msgid "Read-only snapshot. Writing group assignments, scenes or firmware is not available yet and remains in the manufacturer's plugin."
-msgstr "Posnetek samo za branje. Zapisovanje dodelitev skupin, scen ali vdelane programske opreme še ni na voljo in ostaja v vtičniku proizvajalca."
-
 msgid "Short Address"
 msgstr "Kratki naslov"
 

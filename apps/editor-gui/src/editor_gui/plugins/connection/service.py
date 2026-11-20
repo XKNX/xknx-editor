@@ -32,6 +32,7 @@ if TYPE_CHECKING:
     from editor_gui.device import Device
     from editor_gui.memory_read import MemoryReadRequest
     from editor_gui.net import TelegramSource
+    from editor_gui.plugin_blob_readers.siemens_dali.download import Configuration
     from editor_gui.plugins.base import Logger
     from editor_gui.plugins.keyring.service import KeyringService
     from editor_gui.plugins.project.service import RouteCoupler
@@ -166,6 +167,19 @@ class OperationConnector(Protocol):
         ...
 
 
+def _siemens_dca_configuration(device: Device, blob: bytes) -> Configuration:
+    from editor_gui.plugin_blob_readers.siemens_dali.download import (
+        compile_configuration,
+    )
+
+    if device.app is None:
+        raise ValueError("Missing Siemens application")
+    current = next((e.data for e in device.binary_data if e.name == "BLOB_PARA"), None)
+    if current != blob:
+        raise ValueError("Siemens DALI configuration changed while queued")
+    return compile_configuration(blob, device.app.id)
+
+
 def _connects[F: Callable[..., Any]](op: str) -> Callable[[F], F]:
     """An online operation: while no connection is open it first connects through the
     ``OperationConnector`` (when there is one), then runs; its future is the operation's."""
@@ -175,6 +189,19 @@ def _connects[F: Callable[..., Any]](op: str) -> Callable[[F], F]:
         def run(self: ConnectionService, *args: Any, **kwargs: Any) -> Any:
             target = args[0] if args else kwargs.get("device")
             scope = args[1] if len(args) > 1 else kwargs.get("scope")
+            if op == "siemens_dca_program":
+                if self.writes_refused(op):
+                    return None
+                if target is None:
+                    raise ValueError("Missing Siemens device")
+                blob = args[1] if len(args) > 1 else kwargs["blob_xml"]
+                _siemens_dca_configuration(target, blob)
+            elif (
+                op == "siemens_dali_commissioning"
+                and kwargs.get("writes", False)
+                and self.writes_refused(op)
+            ):
+                return None
             if (
                 op == "program_device"
                 and target is not None
@@ -2261,13 +2288,17 @@ class ConnectionService:
         self,
         device: Device,
         op: Callable[[Any], Coroutine[Any, Any, Any]],
+        *,
+        writes: bool = False,
     ) -> Future[Any] | None:
-        """Run one Siemens N141/03 DALI operation (currently read-only scan).
+        """Run one Siemens DALI operation in the exclusive bus slot.
 
         ``op`` receives a raw :class:`~xknxeditor.dali.connection.Programmer` and returns a
         coroutine (e.g. ``lambda p: scan_n141_03(p, line=0)``). Shares the exclusive bus slot with
         the other point-to-point operations.
         """
+        if writes and self.writes_refused("siemens_dali_commissioning"):
+            return None
         if self.not_connected("siemens_dali_commissioning"):
             return None
         if not device.individual_address:
@@ -2305,12 +2336,7 @@ class ConnectionService:
         device: Device,
         blob_xml: bytes,
     ) -> Future[int] | None:
-        """Push the Siemens N141/03 DCA ``DaliDevice`` property-image onto the device.
-
-        Returns a Future with the number of property writes that succeeded. The DCA
-        property-table is derived from the project's BLOB_PARA; the port lives in
-        :mod:`editor_gui.plugin_blob_readers.siemens_dali.download`.
-        """
+        """Program the saved classic Siemens DALI configuration and apply it to devices."""
         if self.writes_refused("siemens_dca_program") or self.not_connected(
             "siemens_dca_program"
         ):
@@ -2320,17 +2346,19 @@ class ConnectionService:
             return None
         if self.local_device_refused("siemens_dca", device.individual_address):
             return None
+        from editor_gui.plugin_blob_readers.siemens_dali.download import (
+            program_configuration,
+        )
+
+        config = _siemens_dca_configuration(device, blob_xml)
         if not self.begin_operation("siemens_dca", device.individual_address):
             self._log.warning("A bus operation is already running", device=device.name)
             return None
         security = self._security_for(device)
-        from editor_gui.plugin_blob_readers.siemens_dali.download import (
-            program_dalidevice,
-        )
         from editor_gui.programming_dali import run_siemens_dali_operation
 
         async def _runner(programmer: Any) -> int:
-            return await program_dalidevice(programmer, blob_xml)
+            return await program_configuration(programmer, config)
 
         future = self.run_async(
             run_siemens_dali_operation(

@@ -332,6 +332,9 @@ def test_operations_that_write_are_refused_before_they_start() -> None:
         "restart_device": lambda s: s.restart_device(device),
         "master_reset_device": lambda s: s.master_reset_device(device, 0),
         "dali_commissioning": lambda s: s.run_dali(device, lambda _c: None),
+        "siemens_dali_commissioning": lambda s: s.run_siemens_dali(
+            device, lambda _c: None, writes=True
+        ),
         "siemens_dca_program": lambda s: s.run_siemens_dca_program(device, b"<x/>"),
     }
     for op, start in starts.items():
@@ -348,6 +351,7 @@ def test_a_dali_scan_is_not_refused() -> None:
     device = cast(Any, SimpleNamespace(individual_address="1.1.5", name="Gateway"))
     # Not connected here, so it does not start either, but not for Block Bus Writes.
     service.run_dali(device, lambda _c: None, writes=False)
+    service.run_siemens_dali(device, lambda _c: None, writes=False)
     assert not any("Block Bus Writes" in error for error in log.errors)
 
 

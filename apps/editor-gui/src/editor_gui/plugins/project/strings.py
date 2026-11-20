@@ -3339,13 +3339,6 @@ class ProjectStrings:
         )
 
     @property
-    def SIEMENS_DALI_READ_ONLY_NOTE(self) -> str:
-        return _(
-            "Read-only snapshot. Writing group assignments, scenes or firmware is not "
-            "available yet and remains in the manufacturer's plugin."
-        )
-
-    @property
     def SIEMENS_DALI_COL_SLOT(self) -> str:
         return _("Slot")
 

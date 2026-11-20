@@ -2204,9 +2204,6 @@ msgstr "DALI-Bus wird aus Objekt {object_index} gelesen…"
 msgid "Press 'Read DALI Bus' to list the ECGs on the gateway."
 msgstr "Mit „DALI-Bus lesen“ die EVGs des Gateways auflisten."
 
-msgid "Read-only snapshot. Writing group assignments, scenes or firmware is not available yet and remains in the manufacturer's plugin."
-msgstr "Nur-Lese-Schnappschuss. Das Schreiben von Gruppenzuordnung, Szenen oder Firmware ist noch nicht verfügbar und bleibt beim Hersteller-Plugin."
-
 msgid "Short Address"
 msgstr "Kurzadresse"
 

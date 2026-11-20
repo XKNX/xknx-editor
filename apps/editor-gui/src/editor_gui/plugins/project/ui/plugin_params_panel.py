@@ -690,7 +690,8 @@ def collection_item_id(label: str) -> str:
 
 def _has_vendor_blob(device: Device) -> bool:
     """Does the device carry a non-empty BinaryData entry? Gates the Program-DCA button."""
-    for entry in getattr(device, "binary_data", []) or []:
-        if entry.data and "BLOB_PARA" in (entry.name or ""):
-            return True
-    return False
+    from editor_gui.plugin_blob_readers.siemens_dali.layout import line_count
+
+    if device.app is None or not line_count(device.app.id):
+        return False
+    return any(entry.data and entry.name == "BLOB_PARA" for entry in device.binary_data)
