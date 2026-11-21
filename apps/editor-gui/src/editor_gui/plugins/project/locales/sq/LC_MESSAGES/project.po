@@ -4168,3 +4168,6 @@ msgstr "Rikthe portën…"
 
 msgid "Restore the saved physical inventory and configuration to this gateway and restart it? This overwrites its DALI state and cannot be undone in the project."
 msgstr "Të rikthehen pajisjet fizike dhe konfigurimi i ruajtur në këtë portë dhe të riniset ajo? Kjo mbishkruan gjendjen DALI dhe nuk mund të zhbëhet në projekt."
+
+msgid "Template members"
+msgstr "Anëtarët e shabllonit"

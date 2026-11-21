@@ -255,7 +255,9 @@ class MdtDaliConnection:
             if result.cmd == POLL_DONE:
                 return result
             if result.cmd == POLL_ERROR:
-                raise DaliCommissioningError("device reported command error (0xFF)")
+                raise DaliCommissioningError(
+                    f"device reported command error (0xFF): result={result.param1}, detail={result.param2}"
+                )
             if on_progress is not None:
                 on_progress(result)
             if loop.time() >= deadline:

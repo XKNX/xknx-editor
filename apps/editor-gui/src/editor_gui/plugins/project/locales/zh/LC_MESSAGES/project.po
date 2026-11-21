@@ -4114,3 +4114,6 @@ msgstr "恢复网关…"
 
 msgid "Restore the saved physical inventory and configuration to this gateway and restart it? This overwrites its DALI state and cannot be undone in the project."
 msgstr "将保存的物理设备和配置恢复到此网关并重启？这将覆盖其DALI状态，且无法在项目中撤销。"
+
+msgid "Template members"
+msgstr "模板成员"

@@ -4218,3 +4218,6 @@ msgstr "Відновити шлюз…"
 
 msgid "Restore the saved physical inventory and configuration to this gateway and restart it? This overwrites its DALI state and cannot be undone in the project."
 msgstr "Відновити збережені фізичні пристрої та конфігурацію на цьому шлюзі й перезапустити його? Це перезапише стан DALI, і скасувати це в проєкті неможливо."
+
+msgid "Template members"
+msgstr "Учасники шаблону"

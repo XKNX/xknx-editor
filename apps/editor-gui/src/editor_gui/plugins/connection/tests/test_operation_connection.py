@@ -146,6 +146,50 @@ def test_operations_connect_while_none_is_open() -> None:
     assert plain.not_connected_notice()
 
 
+@pytest.mark.parametrize("blocked", [False, True])
+@pytest.mark.parametrize("method", ["run_dali", "run_siemens_dali"])
+def test_dali_guard_and_write_block_precede_connection(blocked, method):
+    from unittest.mock import Mock
+
+    service, connector = _service()
+    service.set_logger(Mock())
+    service.block_bus_writes = blocked
+    operation = Mock()
+    operation.validate_device.side_effect = ValueError("changed while queued")
+    device = SimpleNamespace(individual_address="1.1.5", name="Gateway")
+    run = getattr(service, method)
+    if blocked:
+        assert run(device, operation, writes=True) is None
+        operation.validate_device.assert_not_called()
+    else:
+        with pytest.raises(ValueError, match="changed while queued"):
+            run(device, operation, writes=True)
+        operation.validate_device.assert_called_once_with(device)
+    assert connector.users == 0
+
+
+@pytest.mark.parametrize("method", ["run_dali", "run_siemens_dali"])
+def test_dali_guard_runs_again_after_connection_opens(method):
+    from unittest.mock import Mock
+
+    service, connector = _service()
+    service.set_logger(Mock())
+    operation = Mock()
+    operation.validate_device.side_effect = [
+        None,
+        ValueError("changed while connecting"),
+    ]
+    device = SimpleNamespace(individual_address="1.1.5", name="Gateway")
+    result = getattr(service, method)(device, operation, writes=False)
+    assert result is not None and connector.users == 1
+    service._xknx = Mock()
+    connector.opening.set_result(None)
+    with pytest.raises(ValueError, match="changed while connecting"):
+        result.result()
+    assert operation.validate_device.call_count == 2
+    assert connector.users == 0
+
+
 def test_the_host_of_a_bus_connection() -> None:
     assert tunnel_host(_BUS) == "192.168.16.88"
     assert tunnel_host("Type=Usb;Name=USB") is None

@@ -5437,6 +5437,58 @@ class ProjectService:
             )
             return self._configure_plugin(current, provider, config, label=label)
 
+    def export_insta_dgwd(self, device: Device) -> bytes:
+        """Export the current typed DALI parameters without changing the project."""
+        from editor_gui import insta_dgwd
+
+        with self._io_lock:
+            current = self.find_device_by_node_id(device.node_id)
+            if (
+                current is None
+                or current.app is None
+                or device.app is None
+                or current.app.id != device.app.id
+            ):
+                raise ValueError(S.E64_CONFIGURATION_CHANGED)
+            return insta_dgwd.export_configuration(current)
+
+    def import_insta_dgwd(self, device: Device, revision: str, data: bytes) -> str:
+        """Validate all DALI exchange values before persisting them as one undo step."""
+        from editor_gui import insta_dgwd
+
+        with self._io_lock:
+            current = self.find_device_by_node_id(device.node_id)
+            if (
+                current is None
+                or current.app is None
+                or device.app is None
+                or current.app.id != device.app.id
+                or insta_dgwd.revision(current) != revision
+            ):
+                raise ValueError(S.E64_CONFIGURATION_CHANGED)
+            edits = insta_dgwd.import_configuration(current, data)
+            if edits:
+                old_active = self.parameter_driven_com_objects(current)
+                changes: ChangeSet = {
+                    ref: (current.get_param_value(ref), value) for ref, value in edits
+                }
+                try:
+                    current.apply_param_values(
+                        {ref: value for ref, value in edits if "_MI-" not in ref}
+                    )
+                    current.get_module_instances()
+                    current.apply_param_values(dict(edits))
+                    self.commit_param_changes(
+                        current, changes, old_active, label=S.E64_IMPORT_XML
+                    )
+                except Exception:
+                    self._refresh_device(current.node_id)
+                    raise
+            current = self.find_device_by_node_id(device.node_id)
+            if current is None:
+                raise ValueError(S.E64_CONFIGURATION_CHANGED)
+            return insta_dgwd.revision(current)
+
     def import_plugin_config(self, device: Device, data: bytes) -> list[dict[str, Any]]:
         """Validate and persist a provider's configuration in one undo step."""
         from editor_gui.plugin_providers import require_provider

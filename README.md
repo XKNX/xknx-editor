@@ -177,9 +177,10 @@ written. Longer timeouts in Settings > Connection let it work over slow connecti
 **DALI** — for DALI gateways (MDT, and the shared MDT/Theben/IPAS platform), read and edit the
 gateway's DALI configuration — control gear, groups, scenes, time control and effects — in a table
 view, and, over the bus, scan, address and commission the connected control gear from a **DALI
-(Bus)** tab. IPAS e64 Pro and Theben P64 V2 also support offline input assignments, bulk
+(Bus)** tab, including automatic ECG replacement with updated project inventory. IPAS e64 Pro and Theben P64 V2 also support offline input assignments, bulk
 descriptions, individual scene/effect/template XML exchange and read-only diagnostic reports.
-Siemens N141/03 and N141/21 support DCA recovery and parameter downloads; supported N141/14 and N141/32 applications provide cached inventory, discovery, identification and physical address changes.
+Siemens N141/03 and N141/21 support DCA recovery and parameter downloads; supported N141/14 and N141/32 applications provide cached inventory, discovery, identification, physical address changes, live ECG status and brightness tests. Versions 02/03/30 also support color-temperature and RGBW tests.
+Supported Gira, Hager and Steinel DALI applications exchange their complete offline parameters as `.dgwd` files.
 Still maturing — verify against your own installation.
 
 **Displays without parameters** — some devices, such as the Busch-Jaeger Triton, keep their

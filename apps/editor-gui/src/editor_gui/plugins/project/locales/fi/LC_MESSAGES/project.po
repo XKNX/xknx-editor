@@ -4166,3 +4166,6 @@ msgstr "Palauta yhdyskäytävä…"
 
 msgid "Restore the saved physical inventory and configuration to this gateway and restart it? This overwrites its DALI state and cannot be undone in the project."
 msgstr "Palautetaanko tallennetut fyysiset laitteet ja asetukset tähän yhdyskäytävään ja käynnistetäänkö se uudelleen? Tämä korvaa DALI-tilan, eikä sitä voi kumota projektissa."
+
+msgid "Template members"
+msgstr "Mallin jäsenet"

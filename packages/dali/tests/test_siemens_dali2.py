@@ -127,6 +127,393 @@ class Programmer:
         return bytes((0, 65, 4))
 
 
+class GearProgrammer(Programmer):
+    def __init__(self):
+        super().__init__()
+        self.status = 2
+        self.level = 99
+        self.last_frame = None
+        self.receive_state = 0
+        self.delayed = 0
+
+    async def function_property_raw(self, object_index, property_id, data, *, command):
+        result = await super().function_property_raw(
+            object_index, property_id, data, command=command
+        )
+        if data[1] != 65:
+            return result
+        if command:
+            self.last_frame = data[6:8]
+            if not self.last_frame[0] & 1:
+                self.level = min(self.last_frame[1], 200)
+            return result
+        if self.last_frame is None:
+            return result
+        value = self.status if self.last_frame[1] == 144 else self.level
+        receive = self.receive_state
+        if self.delayed:
+            self.delayed -= 1
+            receive = 1
+        return bytes((0, 65, 2, 0, 0, 0, value, 0, 8, receive))
+
+
+class ColorProgrammer(Programmer):
+    def __init__(self):
+        super().__init__()
+        self.mirek = 370
+        self.channels = bytes((12, 34, 56, 78))
+        self.busy = {}
+        self.color_response = None
+
+    async def function_property_raw(self, object_index, property_id, data, *, command):
+        result = await super().function_property_raw(
+            object_index, property_id, data, command=command
+        )
+        if data[1] != 96:
+            return result
+        sub = data[2]
+        if self.color_response is not None:
+            result = self.color_response(data, command)
+            if result is not None:
+                return result
+        if self.busy.get(sub, 0):
+            self.busy[sub] -= 1
+            return b"\xfe"
+        line = object_index - 16
+        if sub in (1, 5):
+            assert not command and len(data) == 4
+            return bytes((0, 96, sub, data[3], line))
+        if sub in (3, 7):
+            assert not command and data[4] == line
+            return bytes((0, 96, sub, (line << 6) | data[3])) + (
+                self.mirek.to_bytes(2, "big") if sub == 7 else self.channels
+            )
+        assert command and sub in (2, 6)
+        return b"\x00"
+
+
+@pytest.mark.parametrize("line", [0, 1])
+@pytest.mark.parametrize("write", [False, True])
+@pytest.mark.parametrize("temperature", [False, True])
+async def test_color_protocol_uses_line_address_and_returns_observed_value(
+    line, write, temperature
+):
+    programmer = ColorProgrammer()
+    commissioner = SiemensDali2Commissioner(programmer, line)
+    if temperature:
+        result = await commissioner.color_temperature(63, 4000 if write else None)
+        assert result.mirek == 370 and result.kelvin == 2702
+        expected = [
+            ("state", bytes((0, 96, 5, 63))),
+            ("state", bytes((0, 96, 7, 63, line))),
+        ]
+        if write:
+            expected.insert(0, ("command", bytes((0, 96, 6, 63, 0, 250))))
+    else:
+        result = await commissioner.rgbw(63, (100, 200, 0, 255) if write else None)
+        assert (result.red, result.green, result.blue, result.white) == (12, 34, 56, 78)
+        expected = [
+            ("state", bytes((0, 96, 1, 63))),
+            ("state", bytes((0, 96, 3, 63, line))),
+        ]
+        if write:
+            expected.insert(0, ("command", bytes((0, 96, 2, 63, 100, 200, 0, 255))))
+    assert (result.line, result.address) == (line, 63)
+    assert [
+        c for c in programmer.calls if c[0] in ("state", "command") and c[-1][1] == 96
+    ] == [(kind, 16 + line, 52, data) for kind, data in expected]
+    assert programmer.polling == 1
+
+
+@pytest.mark.parametrize("mirek", [0, 65535])
+async def test_color_temperature_unavailable_does_not_invent_kelvin(mirek):
+    programmer = ColorProgrammer()
+    programmer.mirek = mirek
+    result = await SiemensDali2Commissioner(programmer).color_temperature(7)
+    assert result.mirek == mirek and result.kelvin is None
+
+
+@pytest.mark.parametrize("kelvin,mirek", [(1000, 1000), (20000, 50), (2700, 370)])
+async def test_temperature_boundaries_and_rounding_encode_once(kelvin, mirek):
+    programmer = ColorProgrammer()
+    await SiemensDali2Commissioner(programmer).color_temperature(0, kelvin)
+    writes = [c[-1] for c in programmer.calls if c[0] == "command" and c[-1][1] == 96]
+    assert writes == [bytes((0, 96, 6, 0)) + mirek.to_bytes(2, "big")]
+
+
+async def test_color_long_wait_renews_polling_pause_and_keeps_initial_paused_state(
+    monkeypatch,
+):
+    programmer = ColorProgrammer()
+    programmer.polling = 0
+    programmer.busy = {3: 8}
+    loop = asyncio.get_running_loop()
+    clock = [loop.time()]
+    monkeypatch.setattr(loop, "time", lambda: clock[0])
+
+    async def advance(seconds):
+        clock[0] += seconds
+
+    monkeypatch.setattr(asyncio, "sleep", advance)
+    result = await SiemensDali2Commissioner(programmer).rgbw(7)
+    assert result.white == 78 and programmer.polling == 0
+    polling = [c[-1] for c in programmer.calls if c[0] == "command" and c[-1][1] == 80]
+    assert polling == [bytes((0, 80, 0))] * 2
+
+
+@pytest.mark.parametrize("temperature", [False, True])
+async def test_color_busy_retries_same_request_without_mutating_values(
+    monkeypatch, temperature
+):
+    programmer = ColorProgrammer()
+    programmer.busy = {1: 1, 2: 1, 3: 2, 5: 1, 6: 1, 7: 2}
+    delays = []
+
+    async def wait(delay):
+        delays.append(delay)
+
+    monkeypatch.setattr(asyncio, "sleep", wait)
+    commissioner = SiemensDali2Commissioner(programmer)
+    if temperature:
+        await commissioner.color_temperature(7, 4000)
+        request = bytes((0, 96, 6, 7, 0, 250))
+    else:
+        await commissioner.rgbw(7, (12, 34, 56, 255))
+        request = bytes((0, 96, 2, 7, 12, 34, 56, 255))
+    writes = [c[-1] for c in programmer.calls if c[0] == "command" and c[-1][1] == 96]
+    assert writes == [request, request]
+    assert delays == [0.25 if temperature else 0.75] * 4
+    assert programmer.polling == 1
+
+
+async def test_color_busy_response_body_is_not_a_completed_result(monkeypatch):
+    programmer = ColorProgrammer()
+    responses = [b"\xfe\x00\x99", None]
+    programmer.color_response = lambda data, command: (
+        responses.pop(0) if data[2] == 7 else None
+    )
+
+    async def wait(seconds):
+        pass
+
+    monkeypatch.setattr(asyncio, "sleep", wait)
+    result = await SiemensDali2Commissioner(programmer).color_temperature(7)
+    assert result.mirek == 370 and not responses and programmer.polling == 1
+
+
+@pytest.mark.parametrize(
+    "sub,response",
+    [
+        (5, b""),
+        (5, b"\x00"),
+        (5, bytes((0, 95, 5, 7, 0))),
+        (5, bytes((0, 96, 5, 8, 0))),
+        (5, bytes((0, 96, 5, 7, 1))),
+        (7, bytes((0, 96, 7, 7, 1))),
+        (7, bytes((0, 96, 7, 71, 1, 114))),
+        (7, bytes((0, 96, 7, 8, 1, 114))),
+        (7, b"\xff"),
+        (1, bytes((0, 96, 1, 7))),
+        (3, bytes((0, 96, 3, 7, 1, 2, 3))),
+        (3, bytes((0, 96, 3, 71, 1, 2, 3, 4))),
+        (2, b"\xff"),
+        (6, b"\xff"),
+    ],
+)
+async def test_color_rejects_malformed_failed_or_wrong_target_response(sub, response):
+    programmer = ColorProgrammer()
+    programmer.color_response = lambda data, command: (
+        response if data[2] == sub else None
+    )
+    commissioner = SiemensDali2Commissioner(programmer)
+    with pytest.raises(DaliCommissioningError):
+        if sub >= 5:
+            await commissioner.color_temperature(7, 4000 if sub == 6 else None)
+        else:
+            await commissioner.rgbw(7, (1, 2, 3, 4) if sub == 2 else None)
+    assert programmer.polling == 1
+
+
+@pytest.mark.parametrize("temperature", [False, True])
+@pytest.mark.parametrize("cancel", [False, True])
+async def test_color_busy_timeout_and_cancellation_restore_polling(temperature, cancel):
+    programmer = ColorProgrammer()
+    programmer.busy = {7 if temperature else 3: 10000}
+    commissioner = SiemensDali2Commissioner(programmer)
+    operation = commissioner.color_temperature if temperature else commissioner.rgbw
+    task = asyncio.create_task(operation(7, timeout=15 if cancel else 0.01))
+    if cancel:
+        while not any(c[0] == "state" and c[-1][1] == 96 for c in programmer.calls):
+            await asyncio.sleep(0)
+        task.cancel()
+    with pytest.raises(asyncio.CancelledError if cancel else TimeoutError):
+        await task
+    assert programmer.polling == 1
+
+
+@pytest.mark.parametrize(
+    "method,value",
+    [
+        ("color_temperature", 0),
+        ("color_temperature", 20001),
+        ("color_temperature", True),
+        ("rgbw", (1, 2, 3)),
+        ("rgbw", (1, 2, 3, 256)),
+        ("rgbw", (1, 2, 3, True)),
+    ],
+)
+async def test_invalid_colors_fail_without_bus_io(method, value):
+    programmer = ColorProgrammer()
+    with pytest.raises(ValueError):
+        await getattr(SiemensDali2Commissioner(programmer), method)(7, value)
+    assert not programmer.calls
+
+
+@pytest.mark.parametrize("line", [0, 1])
+async def test_query_gear_reads_status_and_level_and_restores_polling(line):
+    programmer = GearProgrammer()
+    programmer.delayed = 2
+    result = await SiemensDali2Commissioner(
+        programmer, line, poll_interval=0.001
+    ).read_gear_state(7)
+    assert (result.line, result.address, result.status, result.level) == (
+        line,
+        7,
+        2,
+        99,
+    )
+    assert result.status_receive_state == result.level_receive_state == 0
+    assert programmer.polling == 1
+    commands = [call for call in programmer.calls if call[0] == "command"]
+    assert [call[-1] for call in commands] == [
+        bytes((0, 80, 0)),
+        bytes((0, 65, 3, 3, 0, 0, 15, 144, 16, 1)),
+        bytes((0, 65, 3, 3, 0, 0, 15, 160, 16, 1)),
+        bytes((0, 80, 1)),
+    ]
+    assert all(call[1:3] == (16 + line, 52) for call in commands)
+    assert not any(call[0] == "memory" for call in programmer.calls)
+
+
+@pytest.mark.parametrize("level", [0, 127, 254])
+async def test_direct_level_returns_actual_result_not_requested_level(level):
+    programmer = GearProgrammer()
+    result = await SiemensDali2Commissioner(programmer).set_level(7, level)
+    assert result.level == min(level, 200)
+    frames = [
+        call[-1][6:8]
+        for call in programmer.calls
+        if call[0] == "command" and call[-1][1] == 65
+    ]
+    assert frames == [bytes((14, level)), bytes((15, 144)), bytes((15, 160))]
+    assert programmer.polling == 1
+
+
+@pytest.mark.parametrize("receive", [1, 2])
+async def test_missing_or_undecodable_query_never_becomes_zero_or_healthy(receive):
+    programmer = GearProgrammer()
+    programmer.receive_state = receive
+    result = await SiemensDali2Commissioner(
+        programmer, poll_interval=0.001
+    ).read_gear_state(7)
+    assert result.status is result.level is None
+    assert result.status_receive_state == result.level_receive_state == receive
+    assert programmer.polling == 1
+
+
+async def test_mask_level_is_not_reported_as_brightness():
+    programmer = GearProgrammer()
+    programmer.level = 255
+    result = await SiemensDali2Commissioner(programmer).read_gear_state(7)
+    assert result.level is None and result.status == 2
+
+
+@pytest.mark.parametrize("ongoing", [1, 4, 5])
+async def test_query_waits_through_transient_busy_after_send_acknowledgement(ongoing):
+    programmer = Programmer()
+    sent = False
+    responses = []
+
+    async def override(data, command):
+        nonlocal sent
+        if data[1] == 65:
+            if command:
+                sent = True
+                responses.extend(
+                    [
+                        bytes((0, 65, 2)) + bytes(6) + bytes((1,)),
+                        bytes((0, 65, ongoing)),
+                        bytes((0, 65, 2, 0, 0, 0, 12, 0, 8, 0)),
+                    ]
+                )
+            elif sent and responses:
+                return responses.pop(0)
+        return None
+
+    programmer.override = override
+    result = await SiemensDali2Commissioner(
+        programmer, poll_interval=0.001
+    ).read_gear_state(7)
+    assert result.status == result.level == 12 and programmer.polling == 1
+
+
+@pytest.mark.parametrize("level", [-1, 255, True, 2.5])
+async def test_invalid_level_is_rejected_without_any_transport_call(level):
+    programmer = GearProgrammer()
+    with pytest.raises(ValueError, match="arc level"):
+        await SiemensDali2Commissioner(programmer).set_level(7, level)
+    assert not programmer.calls
+
+
+@pytest.mark.parametrize(
+    "response",
+    [bytes((0, 65, 2)), bytes((0, 65, 2)) + bytes(6) + bytes((3,)), bytes((0, 65, 3))],
+)
+async def test_invalid_query_response_raises_and_restores_polling(response):
+    programmer = Programmer()
+    sent = False
+
+    async def override(data, command):
+        nonlocal sent
+        if data[1] == 65:
+            if command:
+                sent = True
+            elif sent:
+                return response
+        return None
+
+    programmer.override = override
+    with pytest.raises(DaliCommissioningError):
+        await SiemensDali2Commissioner(programmer).read_gear_state(7)
+    assert programmer.polling == 1
+
+
+@pytest.mark.parametrize("cancel", [False, True])
+async def test_pending_query_timeout_or_cancel_restores_polling(cancel):
+    programmer = Programmer()
+    started = asyncio.Event()
+
+    async def override(data, command):
+        if data[1] == 65:
+            if command:
+                started.set()
+            elif started.is_set():
+                return bytes((0, 65, 4))
+        return None
+
+    programmer.override = override
+    commissioner = SiemensDali2Commissioner(programmer, poll_interval=0.001)
+    task = asyncio.create_task(
+        commissioner.read_gear_state(7, timeout=1 if cancel else 0.02)
+    )
+    await started.wait()
+    if cancel:
+        task.cancel()
+    with pytest.raises(asyncio.CancelledError if cancel else TimeoutError):
+        await task
+    assert programmer.polling == 1
+
+
 @pytest.mark.parametrize("sensors", [False, True])
 async def test_cached_inventory_uses_user_memory_without_commands(sensors):
     programmer = Programmer()

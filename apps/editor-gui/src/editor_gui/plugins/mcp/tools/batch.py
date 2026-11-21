@@ -429,6 +429,17 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         data = project.edit_e64pro(device, entry[1], edits)
         return {"node_id": device.node_id, "revision": e64pro.revision(data)}
 
+    def _op_import_insta_dgwd(p: dict[str, Any]) -> dict[str, Any]:
+        device = _device(p)
+        if not isinstance(p["xml"], str) or not isinstance(p["revision"], str):
+            raise ValueError("DALI exchange XML and revision must be text")
+        return {
+            "node_id": device.node_id,
+            "revision": project.import_insta_dgwd(
+                device, p["revision"], p["xml"].encode("utf-8")
+            ),
+        }
+
     handlers: dict[
         str, tuple[tuple[str, ...], Callable[[dict[str, Any]], dict[str, Any]]]
     ] = {
@@ -463,6 +474,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             lambda p: _op_plugin(p, "set_plugin_parameter"),
         ),
         "edit_e64pro": (("revision", "edits"), _op_edit_e64pro),
+        "import_insta_dgwd": (("revision", "xml"), _op_import_insta_dgwd),
         "set_com_object_flag": (
             ("com_object_ref_id", "flag", "value"),
             _op_set_com_object_flag,
@@ -638,6 +650,9 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
           calculated side effects; lost_links lists links a function/mode change dropped;
           shown_parameters, hidden_parameters, shown_com_objects and hidden_com_objects (when not
           empty) are what the edit showed or hid, as for project_set_parameter.
+        - import_insta_dgwd: device, revision, xml -> {node_id, revision}. Import complete
+          DALI gateway .dgwd parameters offline, using the revision from project_insta_dgwd_read.
+          Same validation, supported applications and undo as project_insta_dgwd_import.
         - set_com_object_flag: device, com_object_ref_id, flag, value -> {node_id, com_object_ref_id}.
         - set_com_object_acknowledgement: device, com_object_ref_id, ga, enabled ->
           {node_id, group_address_id, acknowledges}. Powerline links only, one undo step.

@@ -4172,3 +4172,6 @@ msgstr "Ripristina gateway…"
 
 msgid "Restore the saved physical inventory and configuration to this gateway and restart it? This overwrites its DALI state and cannot be undone in the project."
 msgstr "Ripristinare i dispositivi fisici e la configurazione salvati su questo gateway e riavviarlo? Lo stato DALI verrà sovrascritto e non sarà possibile annullare nel progetto."
+
+msgid "Template members"
+msgstr "Membri del modello"

@@ -4114,3 +4114,6 @@ msgstr "Ağ Geçidini Geri Yükle…"
 
 msgid "Restore the saved physical inventory and configuration to this gateway and restart it? This overwrites its DALI state and cannot be undone in the project."
 msgstr "Kaydedilen fiziksel cihazlar ve yapılandırma bu ağ geçidine geri yüklenip cihaz yeniden başlatılsın mı? Bu işlem DALI durumunun üzerine yazar ve projede geri alınamaz."
+
+msgid "Template members"
+msgstr "Şablon üyeleri"

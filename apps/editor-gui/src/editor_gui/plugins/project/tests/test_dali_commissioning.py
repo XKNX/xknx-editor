@@ -434,7 +434,9 @@ def test_siemens_twin_scan_uses_selected_line(monkeypatch):
     state.scan = SiemensN141BusState(line=0, object_index=35, ecgs=[])
     scan = AsyncMock(return_value=SiemensN141BusState(line=1, object_index=36, ecgs=[]))
     monkeypatch.setattr("editor_gui.plugins.project.ui.siemens_dali.scan_n141_03", scan)
-    monkeypatch.setattr(imgui, "combo", lambda *_: (True, 1))
+    monkeypatch.setattr(
+        "editor_gui.plugins.project.ui.siemens_dali.combo", lambda *_: (True, 1)
+    )
     monkeypatch.setattr(imgui, "button", lambda text: text == S.SIEMENS_DALI_SCAN_BUS)
     context = imgui.create_context()
     io = imgui.get_io()

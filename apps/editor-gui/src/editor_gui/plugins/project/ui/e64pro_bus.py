@@ -33,6 +33,7 @@ class BusView:
     motion_section: str = "names"
     index: int = 0
     row: int = 0
+    test_group: int | None = None
     value: int = 10
     secondary: int = 0
     bank: int = 2
@@ -54,6 +55,9 @@ class BusView:
                 self.secondary,
                 self.bank,
                 self.lock,
+                test_group=self.test_group
+                if action == "test" and self.section == "templates"
+                else None,
             )
             generation = project.generation
             pending: list[dict[str, Any]] = []
@@ -123,6 +127,13 @@ class BusView:
         if self.section == "templates":
             _, number = imgui.input_int(S.E64_ACTIONS, self.row + 1)
             self.row = max(0, number - 1)
+            selected = pick(
+                S.E64_TEST + "##target",
+                "members" if self.test_group is None else str(self.test_group),
+                {"members": S.E64_TEMPLATE_MEMBERS}
+                | {str(i): f"{S.E64_GROUP} {i + 1}" for i in range(16)},
+            )
+            self.test_group = None if selected == "members" else int(selected)
         if self.section == "mds":
             self.motion_section = pick(
                 S.E64_SERVICE,

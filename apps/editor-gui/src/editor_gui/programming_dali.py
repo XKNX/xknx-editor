@@ -264,7 +264,7 @@ class PreparedDaliOperation:
 class GuardedDaliOperation:
     project: ProjectService
     device: Device
-    expected: bytes
+    expected: bytes | None
     generation: int
     execute: Callable[[MdtDaliCommissioner], Awaitable[Any]]
     channel: int = 0
@@ -296,6 +296,114 @@ class GuardedDaliOperation:
         return await self.execute(commissioner)
 
 
+@dataclass(frozen=True)
+class PreparedDaliReplacement:
+    expected: bytes | None
+    name: str
+    channel: int
+    execute: Callable[[MdtDaliCommissioner], Awaitable[tuple[DaliBusState, bytes]]]
+
+
+def prepare_dali_replacement(
+    device: Device, channel: int = 0
+) -> PreparedDaliReplacement:
+    """Prepare replacement and refresh physical records without changing planned settings."""
+    from xml.etree import ElementTree as ET
+
+    from editor_gui.plugins.project.strings import S
+    from xknxeditor.dali.profiles import backup_blob_name
+    from xknxeditor.dali.project_persistence import build_backup_store_xml
+    from xknxeditor.dali.properties import PropertyType
+
+    profile = profile_for(device.app.id if device.app else None)
+    if profile is None or channel < 0:
+        raise ValueError(S.E64_UNSUPPORTED_OPERATION)
+    name = backup_blob_name(profile.backup_blob_base, channel)
+    expected = next((bytes(b.data) for b in device.binary_data if b.name == name), None)
+    if expected is None and profile.key != "mdt":
+        raise ValueError(S.E64_INCOMPLETE_CONFIGURATION)
+    root = ET.fromstring(expected) if expected is not None else None
+    if root is not None and (
+        root.tag != "device"
+        or root.get("type") != ("gc16" if profile.key == "mdt" else "e64pro")
+        or len(root.findall("devecgs")) != 1
+    ):
+        raise ValueError(S.E64_INVALID_CONFIGURATION)
+    if root is not None:
+        indexes = [e.get("index", "") for e in root.findall("devecgs/DevECG")]
+        if len(set(indexes)) != len(indexes) or any(
+            not i.isascii()
+            or not i.isdecimal()
+            or str(int(i)) != i
+            or not 0 <= int(i) < 64
+            for i in indexes
+        ):
+            raise ValueError(S.E64_INVALID_CONFIGURATION)
+
+    async def execute(commissioner: MdtDaliCommissioner) -> tuple[DaliBusState, bytes]:
+        if (
+            commissioner.connection.profile != profile
+            or commissioner.connection.channel != channel
+        ):
+            raise ValueError(S.E64_CONFIGURATION_CHANGED)
+        scan = await commissioner.replace_ecg()
+        scenes = await commissioner.read_scenes() if expected is None else []
+        templates = await commissioner.read_templates() if expected is None else []
+        fresh = ET.fromstring(
+            build_backup_store_xml(
+                state=scan,
+                scenes=scenes,
+                templates=templates,
+                individual_address=device.individual_address,
+            )
+        )
+        physical = fresh.find("devecgs")
+        assert physical is not None
+        if profile.key != "mdt":
+            gtins = await commissioner.connection.read_table(PropertyType.GTIN, 64)
+            for item in physical:
+                index = int(item.attrib["index"])
+                item.set(
+                    "gtin", str(int.from_bytes(gtins[index * 6 : index * 6 + 6], "big"))
+                )
+        if expected is None:
+            return scan, ET.tostring(fresh, encoding="utf-16le")
+        updated = ET.fromstring(expected)
+        target = updated.find("devecgs")
+        assert target is not None
+        existing = {e.get("index"): e for e in target.findall("DevECG")}
+        for item in physical:
+            previous = existing.get(item.get("index"))
+            if previous is None:
+                target.append(item)
+            else:
+                for attribute in ("min-ctemp", "max-ctemp"):
+                    previous.attrib.pop(attribute, None)
+                previous.attrib.update(item.attrib)
+        return scan, ET.tostring(updated, encoding="utf-16le")
+
+    return PreparedDaliReplacement(expected, name, channel, execute)
+
+
+def finish_dali_replacement(
+    project: ProjectService,
+    device: Device,
+    plan: PreparedDaliReplacement,
+    generation: int,
+    data: bytes,
+) -> None:
+    """Save exactly the replaced gateway's readback as one undo step."""
+    from editor_gui.plugins.project.strings import S
+
+    current = project.find_device_by_node_id(device.node_id)
+    if current is None:
+        raise ValueError(S.E64_CONFIGURATION_CHANGED)
+    GuardedDaliOperation(
+        project, device, plan.expected, generation, plan.execute, plan.channel
+    ).validate_device(current)
+    project.persist_dali_backup(current, plan.name, data, label=S.DALI_PERSIST_LABEL)
+
+
 def prepare_workspace_operation(
     device: Device,
     action: str,
@@ -306,13 +414,18 @@ def prepare_workspace_operation(
     secondary: int = 0,
     bank: int = 2,
     lock: bool = False,
+    *,
+    test_group: int | None = None,
 ) -> PreparedDaliOperation:
     """Use one validated operation plan for the GUI and MCP workspace."""
     from dataclasses import asdict
     from xml.etree import ElementTree as ET
 
     from editor_gui.plugin_blob_readers.dali_backup import e64pro
+    from editor_gui.plugins.project.strings import S
     from xknxeditor.dali.configuration import (
+        COLOR_FUNCTIONS,
+        COLOR_TYPES,
         effects_from_xml,
         input_inventory_from_xml,
         inputs_from_xml,
@@ -339,6 +452,20 @@ def prepare_workspace_operation(
         raise ValueError("No saved DALI configuration")
     expected = entry[1]
     root = e64pro.document(expected)
+    if test_group is not None and (
+        action != "test" or section != "templates" or not 0 <= test_group < 16
+    ):
+        raise ValueError(S.E64_INVALID_SELECTION)
+    if action == "replace":
+        replacement = prepare_dali_replacement(device)
+
+        async def execute_replacement(
+            commissioner: MdtDaliCommissioner,
+        ) -> dict[str, Any]:
+            _, data = await replacement.execute(commissioner)
+            return {"configuration": data}
+
+        return PreparedDaliOperation(expected, execute_replacement, True)
     if action in ("read", "write", "test", "start", "stop"):
         if section not in (
             "scenes",
@@ -416,12 +543,26 @@ def prepare_workspace_operation(
     names = None
     if effects:
         effect_plan(effects)
-    if (
-        action == "test"
-        and section == "templates"
-        and not 0 <= row < len(next(t for t in templates if t.index == index).commands)
-    ):
-        raise ValueError("Invalid template row")
+    if action == "test" and section == "templates":
+        template = next(t for t in templates if t.index == index)
+        if not 0 <= row < len(template.commands):
+            raise ValueError("Invalid template row")
+        command = template.commands[row]
+        if test_group is not None:
+            if command.func in (17, 18):
+                raise ValueError(S.E64_UNSUPPORTED_OPERATION)
+            groups = root.findall(f"groups/Group[@index='{test_group}']")
+            if len(groups) != 1:
+                raise ValueError(S.E64_INVALID_SELECTION)
+            modes = COLOR_TYPES.get(int(groups[0].get("ctype", "0")), ())
+            if (
+                modes
+                and command.func in COLOR_FUNCTIONS
+                and COLOR_FUNCTIONS[command.func] not in modes
+            ):
+                raise ValueError(S.E64_INVALID_COLOR)
+        elif command.func not in (17, 18) and not template.groups and not template.ecgs:
+            raise ValueError(S.E64_INVALID_SELECTION)
     if action == "write_names":
         if section not in NAME_TABLES:
             raise ValueError("Invalid name category")
@@ -488,7 +629,9 @@ def prepare_workspace_operation(
                 await commissioner.test_scene(index)
             else:
                 await commissioner.test_template_command(
-                    next(t for t in templates if t.index == index), row
+                    next(t for t in templates if t.index == index),
+                    row,
+                    group=test_group,
                 )
         elif action in ("start", "stop"):
             await commissioner.set_effect_running(index, action == "start")

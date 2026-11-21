@@ -172,6 +172,38 @@ async def test_template_read_roundtrip_and_single_slot_test(monkeypatch):
     assert programmer.writes[-1]["data"] == bytes.fromhex("04b80b0000000f00")
 
 
+@pytest.mark.parametrize("group", [0, 15])
+async def test_template_group_test_does_not_change_saved_members(group):
+    programmer = FakeProgrammer()
+    commissioner = MdtDaliCommissioner(
+        MdtDaliConnection(programmer, profile=PROFILES[2])
+    )
+    template = Template(
+        4, commands=[TemplateCommand(4, 7, 15, bytes.fromhex("b80b0000"))]
+    )
+    await commissioner.test_template_command(template, 0, group=group)
+    assert len(programmer.writes) == 1
+    assert programmer.writes_for(PropertyType.EXT_COMMAND)[0]["data"] == (
+        bytes.fromhex("04b80b000002") + bytes([group, 0])
+    )
+    assert not programmer.writes_for(PropertyType.COLOUR_C_ASSIGN)
+
+
+@pytest.mark.parametrize(
+    "group,func,row", [(-1, 4, 0), (16, 4, 0), (0, 17, 0), (0, 18, 0), (0, 4, 1)]
+)
+async def test_invalid_template_group_test_never_writes(group, func, row):
+    programmer = FakeProgrammer()
+    commissioner = MdtDaliCommissioner(
+        MdtDaliConnection(programmer, profile=PROFILES[2])
+    )
+    with pytest.raises(DaliCommissioningError):
+        await commissioner.test_template_command(
+            Template(0, commands=[TemplateCommand(func, 0, 0)]), row, group=group
+        )
+    assert not programmer.writes
+
+
 @pytest.mark.parametrize(
     "func,value,expected",
     [

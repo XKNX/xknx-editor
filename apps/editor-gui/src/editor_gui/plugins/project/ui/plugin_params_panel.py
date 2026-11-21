@@ -27,6 +27,7 @@ from editor_gui.plugins.project.strings import S
 from editor_gui.plugins.project.ui.e64pro import EditHandler, Workspace
 from editor_gui.plugins.project.ui.e64pro_bus import BusView
 from editor_gui.plugins.project.ui.e64pro_report import ReportView
+from editor_gui.plugins.project.ui.insta_dgwd import Exchange as DgwdExchange
 from editor_gui.theme import status_color
 from editor_gui.widgets.combo import combo
 from editor_gui.widgets.dpi import px
@@ -121,6 +122,10 @@ class PluginParamsPanel:
     _e64_reports: dict[int, ReportView] = field(default_factory=dict[int, ReportView])
     _e64_views: dict[int, Workspace] = field(default_factory=dict[int, Workspace])
     _e64_bus: dict[int, BusView] = field(default_factory=dict[int, BusView])
+    _dgwd_project: ProjectService | None = None
+    _dgwd_views: dict[int, DgwdExchange] = field(
+        default_factory=dict[int, DgwdExchange]
+    )
 
     def _sync_project(self) -> None:
         generation = self._generation()
@@ -131,6 +136,7 @@ class PluginParamsPanel:
             self._e64_views.clear()
             self._e64_reports.clear()
             self._e64_bus.clear()
+            self._dgwd_views.clear()
             self._closed_sections.clear()
             self._seen_sections.clear()
             self._edit_buffers.clear()
@@ -177,6 +183,13 @@ class PluginParamsPanel:
         imgui.text_colored(status_color("info"), mapping.title)
         if not mapping.provider:
             imgui.text_wrapped(S.PLUGIN_PARAMS_EDIT_NOTE)
+        if self._dgwd_project is not None:
+            from editor_gui.insta_dgwd import supports
+
+            if supports(device):
+                self._dgwd_views.setdefault(device.node_id, DgwdExchange()).render(
+                    device, self._dgwd_project
+                )
         if mapping.blob_reader == "triton_lcd":
             self._render_triton_actions(device)
         self._render_program_dca(device)

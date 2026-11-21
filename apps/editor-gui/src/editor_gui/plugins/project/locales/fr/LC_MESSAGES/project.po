@@ -4172,3 +4172,6 @@ msgstr "Restaurer la passerelle…"
 
 msgid "Restore the saved physical inventory and configuration to this gateway and restart it? This overwrites its DALI state and cannot be undone in the project."
 msgstr "Restaurer les appareils physiques et la configuration enregistrés sur cette passerelle et la redémarrer ? Cela écrase son état DALI et ne peut pas être annulé dans le projet."
+
+msgid "Template members"
+msgstr "Membres du modèle"

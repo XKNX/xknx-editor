@@ -4170,3 +4170,6 @@ msgstr "Restaurar interface…"
 
 msgid "Restore the saved physical inventory and configuration to this gateway and restart it? This overwrites its DALI state and cannot be undone in the project."
 msgstr "Restaurar os dispositivos físicos e a configuração guardados nesta interface e reiniciá-la? Isto substitui o estado DALI e não pode ser anulado no projeto."
+
+msgid "Template members"
+msgstr "Membros do modelo"

@@ -134,6 +134,63 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
     channel_generation: int | None = None
 
     @tool("read")
+    def project_insta_dgwd_read(
+        node_id: int | None = None,
+        device_address: str | None = None,
+    ) -> dict[str, str]:
+        """Export complete offline DALI parameters as .dgwd XML with a SHA256 revision.
+        Select node_id OR device_address. Returns xml and revision for project_insta_dgwd_import.
+        Includes hidden fields, defaults and module instances; no bus access.
+        Supported applications: Gira C030 v21, Hager E80A v22, Steinel C031 v22.
+        The exchange does not contain KNX group-address links.
+        """
+        import hashlib
+
+        def read() -> dict[str, str]:
+            project = ctx.api.project
+            device = require_device(project, node_id, device_address)
+            data = project.export_insta_dgwd(device)
+            return {
+                "xml": data.decode("utf-8"),
+                "revision": hashlib.sha256(data).hexdigest(),
+            }
+
+        return ctx.run_locked(read)
+
+    @tool("write")
+    def project_insta_dgwd_import(
+        revision: str,
+        node_id: int | None = None,
+        device_address: str | None = None,
+        xml: str | None = None,
+        path: str | None = None,
+    ) -> dict[str, str]:
+        """Import .dgwd parameters as one offline undo step after validating every value.
+        Select node_id OR device_address and supply the revision from project_insta_dgwd_read.
+        Supply exactly one of inline xml or path on the editor host (browser uploads use web_files).
+        Application and module identities must match; compatible older versions follow the
+        application's ReplacesVersions declaration. Older data-format imports reset defaults
+        before applying saved values. KNX group-address links are not part of this format;
+        links of objects removed by a parameter change are reconciled and included in undo.
+        Returns the new revision. No bus access; does not program the gateway.
+        """
+        from pathlib import Path
+
+        def change() -> dict[str, str]:
+            if (xml is None) == (path is None):
+                raise ValueError("Supply exactly one of path or xml")
+            project = ctx.api.project
+            device = require_device(project, node_id, device_address)
+            data = (
+                Path(path).read_bytes()
+                if path is not None
+                else (xml or "").encode("utf-8")
+            )
+            return {"revision": project.import_insta_dgwd(device, revision, data)}
+
+        return ctx.run_locked(change)
+
+    @tool("read")
     def project_e64pro_read(
         node_id: int | None = None,
         device_address: str | None = None,
@@ -557,6 +614,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         bank: int,
         lock: bool,
         timeout: float,
+        test_group: int | None = None,
     ) -> dict[str, Any]:
         from editor_gui.plugin_blob_readers.dali_backup.e64pro import (
             revision as backup_revision,
@@ -579,6 +637,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                 secondary,
                 bank,
                 lock,
+                test_group=test_group,
             )
         )
         if backup_revision(plan.expected) != revision:
@@ -613,12 +672,16 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         node_id: int | None = None,
         device_address: str | None = None,
         timeout: float = 900,
+        test_group: int | None = None,
     ) -> dict[str, Any]:
         """Run a saved IPAS/Theben DCA workspace operation using its current backup revision.
 
         read/write: all slots of section scenes/effects/templates/inputs. Reading replaces that
         project section in one undo step; writing verifies readback before clearing dirty flags.
-        test: scene index 0..15, or template index and zero-based command row. start/stop: effect
+        test: scene index 0..15, or template index and zero-based command row. For a template,
+        test_group selects one group 0..15 instead of its saved members, without changing the
+        member table. Scene/effect calls cannot target a group. Omit for the saved members.
+        start/stop: effect
         index. discover: address newly found inputs; identify/stop_identify: input address 0..63.
         function/duration/battery: emergency test on physical ECG index 0..63.
         read_calibration/set_calibration/save_calibration: motion controller index 0..7; value is
@@ -646,7 +709,31 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             bank,
             lock,
             timeout,
+            test_group,
         )
+
+    @tool("read")
+    def project_dali_replacement_state(
+        node_id: int | None = None,
+        device_address: str | None = None,
+        channel: int = 0,
+    ) -> dict[str, Any]:
+        """Read the backup revision needed by connection_dali_replace without bus access.
+        Address an MDT, IPAS or Theben gateway by node ID or individual address and zero-based
+        DALI channel. Returns revision and whether a saved backup exists. An absent MDT backup
+        has an empty revision; IPAS/Theben require an existing backup.
+        """
+        from editor_gui.plugin_blob_readers.dali_backup.e64pro import (
+            revision as backup_revision,
+        )
+        from editor_gui.programming_dali import prepare_dali_replacement
+
+        device = _gateway(node_id, device_address, channel)
+        plan = ctx.run_locked(lambda: prepare_dali_replacement(device, channel))
+        return {
+            "revision": backup_revision(plan.expected),
+            "has_backup": plan.expected is not None,
+        }
 
     @tool("destructive", open_world=True)
     def connection_dali_replace(
@@ -654,15 +741,50 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         node_id: int | None = None,
         device_address: str | None = None,
         timeout: float = 180,
+        channel: int = 0,
     ) -> dict[str, Any]:
-        """Start the IPAS/Theben gateway's automatic ECG replacement process.
+        """Start automatic ECG replacement on an MDT, IPAS or Theben gateway channel.
         This changes physical DALI assignments and cannot be undone through project undo.
-        Requires the current revision from project_e64pro_read. Returns gateway result/detail.
+        Requires the current revision from project_dali_replacement_state (also accepts
+        project_e64pro_read revision). Returns a fresh scan and updates physical inventory
+        in one project undo step,
+        retaining saved descriptions, scenes and schedules. Concurrent edits reject saving.
         """
-        device = _gateway(node_id, device_address, 0)
-        return _workspace_operation(
-            device, revision, "replace", "inputs", 0, 0, 0, 0, 2, False, timeout
+        from editor_gui.plugin_blob_readers.dali_backup.e64pro import (
+            revision as backup_revision,
         )
+        from editor_gui.programming_dali import (
+            GuardedDaliOperation,
+            finish_dali_replacement,
+            prepare_dali_replacement,
+        )
+
+        device = _gateway(node_id, device_address, channel)
+        generation = ctx.run_locked(lambda: ctx.api.project.generation)
+        plan = ctx.run_locked(lambda: prepare_dali_replacement(device, channel))
+        if backup_revision(plan.expected) != revision:
+            raise ToolError("DALI revision changed")
+        scan, data = _run(
+            device,
+            GuardedDaliOperation(
+                ctx.api.project,
+                device,
+                plan.expected,
+                generation,
+                plan.execute,
+                channel,
+            ),
+            channel,
+            timeout,
+            S.E64_BUS_ACTIONS["replace"],
+        )
+        ctx.run_locked(
+            lambda: finish_dali_replacement(
+                ctx.api.project, device, plan, generation, data
+            )
+        )
+        channels[device.node_id, channel] = _Channel(scan=scan)
+        return scan_dict(device.node_id, channel, scan)
 
     @tool("destructive", open_world=True)
     def connection_dali_restore(

@@ -10,6 +10,7 @@ the GUI.
 from __future__ import annotations
 
 import asyncio
+import contextlib
 from collections.abc import Callable, Sequence
 from typing import TYPE_CHECKING, Any
 
@@ -154,13 +155,29 @@ class MdtDaliCommissioner:
             raise DaliCommissioningError("invalid effect index")
         await self._c.send_command(DeviceCommand.START_STOP_EFFECT, index, int(running))
 
-    async def test_template_command(self, template: Template, row: int) -> None:
+    async def test_template_command(
+        self, template: Template, row: int, *, group: int | None = None
+    ) -> None:
+        """Run one saved command on its members or a single group."""
         from xknxeditor.dali.structs import ExtCommand
 
         self._template_plan([template])
         if not 0 <= row < len(template.commands):
             raise DaliCommissioningError("invalid template command row")
         command = template.commands[row]
+        if group is not None:
+            if not 0 <= group < MAX_GROUP:
+                raise DaliCommissioningError("invalid test group")
+            if command.func in (17, 18):
+                raise DaliCommissioningError(
+                    "scene and effect calls cannot target a group"
+                )
+            await self._c.write_table(
+                PropertyType.EXT_COMMAND,
+                ExtCommand(command.func, command.value, 2, group).encode(),
+                1,
+            )
+            return
         if command.func == 17:
             await self.test_scene(command.value[0])
             return
@@ -776,6 +793,22 @@ class MdtDaliCommissioner:
         return ok
 
     # --- P5: new / post installation (bus renumbering — gate behind a confirm) ---
+
+    async def replace_ecg(self) -> DaliBusState:
+        """Replace a failed ballast and read its resulting physical inventory."""
+        if self._c.profile is None or self._c.profile.key not in (
+            "mdt",
+            "theben",
+            "ipas",
+        ):
+            raise DaliCommissioningError("replacement is unsupported by this profile")
+        try:
+            await self._c.run_command(DeviceCommand.EASY_REPLACEMENT, timeout=60)
+        except asyncio.CancelledError:
+            with contextlib.suppress(Exception):
+                await self.abort()
+            raise
+        return await self.scan()
 
     async def new_installation(
         self,

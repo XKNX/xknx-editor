@@ -32,6 +32,62 @@ def test_effect_order_and_unknown_content():
     assert apply(after, Edit("effects", "0", "up", 0)) == after
 
 
+@pytest.mark.parametrize(
+    "broken", [None, "reciprocal", "duplicate", "unassigned", "missing", "logical"]
+)
+def test_gear_rows_follow_physical_slots_and_reciprocal_links(monkeypatch, broken):
+    from contextlib import contextmanager
+
+    from editor_gui.plugins.project.ui import e64pro
+
+    root = ET.fromstring(
+        '<Device><ecgs><ECG index="2" short-address="9" groupindex="0"/>'
+        '<ECG index="9" short-address="2" groupindex="0"/></ecgs><devecgs>'
+        '<DevECG index="9" short-address="2" groupindex="0" gtin="9009"/>'
+        '<DevECG index="2" short-address="9" groupindex="0" gtin="2002"/>'
+        "</devecgs></Device>"
+    )
+    physical = root.find("devecgs")
+    assert physical is not None
+    if broken == "reciprocal":
+        physical[0].set("short-address", "5")
+    elif broken == "duplicate":
+        ET.SubElement(
+            physical, "DevECG", index="9", **{"short-address": "2", "gtin": "bad"}
+        )
+    elif broken == "unassigned":
+        physical[0].set("groupindex", "32")
+    elif broken == "missing":
+        physical[0].set("groupindex", "255")
+    elif broken == "logical":
+        logical = root.find("ecgs")
+        assert logical is not None
+        ET.SubElement(logical, "ECG", index="2", **{"short-address": "9"})
+    captured = {}
+    current = []
+
+    @contextmanager
+    def table(name, *_args, **_kwargs):
+        nonlocal current
+        current = captured[name] = []
+        yield True
+
+    monkeypatch.setattr(e64pro, "table", table)
+    monkeypatch.setattr(e64pro, "cells", lambda values: current.append(values))
+    monkeypatch.setattr(e64pro, "collapsing_header", lambda *_: True)
+    original = ET.tostring(root)
+    e64pro.Workspace().gear_rows(root, {"*": "All", "0": "Group 1"}, "*")
+    assert captured["gear"][0][-1] == ("9009" if broken is None else "—")
+    assert captured["gear"][1][-1] == "2002"
+    unassigned = captured["physical"]
+    assert len(unassigned) == (
+        0 if broken is None else 2 if broken == "duplicate" else 1
+    )
+    if broken is not None:
+        assert unassigned[0][1] == "9"
+    assert ET.tostring(root) == original
+
+
 def test_scene_members_and_keep_bits():
     data = FIXTURE.read_bytes()
     data = apply(data, Edit("scenes", "0", "add", target="ecgs", index="5"))

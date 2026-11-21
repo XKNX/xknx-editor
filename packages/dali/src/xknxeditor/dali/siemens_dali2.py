@@ -30,6 +30,11 @@ def uses_legacy_identification(app_id: str | None) -> bool:
     return bool(match and match[2] == "01")
 
 
+def supports_color_commands(app_id: str | None) -> bool:
+    """Whether the application supports the gateway's color command service."""
+    return bool(line_count(app_id) and not uses_legacy_identification(app_id))
+
+
 class Programmer(Protocol):
     """Transport used by the DALI-2 commissioning interface."""
 
@@ -80,6 +85,43 @@ class Scan:
     interface_id: int
     devices: tuple[Device, ...]
     raw: bytes
+
+
+@dataclass(frozen=True)
+class GearState:
+    """Current query results; missing values never imply a healthy or switched-off lamp."""
+
+    line: int
+    address: int
+    status: int | None
+    level: int | None
+    status_receive_state: int
+    level_receive_state: int
+
+
+@dataclass(frozen=True)
+class ColorTemperatureState:
+    """Observed color temperature; zero and MASK have no Kelvin value."""
+
+    line: int
+    address: int
+    mirek: int
+
+    @property
+    def kelvin(self) -> int | None:
+        return 1_000_000 // self.mirek if 0 < self.mirek < 65535 else None
+
+
+@dataclass(frozen=True)
+class RgbwState:
+    """Observed raw color channels, including the separate white channel."""
+
+    line: int
+    address: int
+    red: int
+    green: int
+    blue: int
+    white: int
 
 
 def _varint(data: bytes, offset: int) -> tuple[int, int]:
@@ -228,7 +270,9 @@ class SiemensDali2Commissioner:
         self._renew_at = 0.0
         self._lock = asyncio.Lock()
 
-    async def _raw(self, data: bytes, *, command: bool) -> bytes:
+    async def _raw(
+        self, data: bytes, *, command: bool, allow_busy: bool = False
+    ) -> bytes:
         if (
             self._paused
             and data[1] != 80
@@ -238,7 +282,7 @@ class SiemensDali2Commissioner:
         raw = await self._programmer.function_property_raw(
             self.object_index, 52, data, command=command
         )
-        if not raw or raw[0] != 0:
+        if not raw or (raw[0] != 0 and not (allow_busy and raw[0] == 254)):
             raise DaliCommissioningError(
                 f"DALI-2 command {data[1]:02x} rejected: {raw.hex()}"
             )
@@ -252,7 +296,7 @@ class SiemensDali2Commissioner:
             )
         return raw[2]
 
-    async def _run(self, payload: bytes) -> bytes:
+    async def _run(self, payload: bytes, *, require_success: bool = False) -> bytes:
         service = payload[1]
         while True:
             raw = await self._raw(payload[:2], command=False)
@@ -268,7 +312,9 @@ class SiemensDali2Commissioner:
         while True:
             raw = await self._raw(payload[:2], command=False)
             state = self._state(raw, service)
-            if state == 2 or (service == 65 and state in (0, 4)):
+            if state == 2 or (
+                service == 65 and not require_success and state in (0, 4)
+            ):
                 return raw
             if state not in (1, 4, 5):
                 raise DaliCommissioningError(
@@ -467,6 +513,129 @@ class SiemensDali2Commissioner:
             raise DaliCommissioningError(
                 f"DALI-2 frame was not confirmed: {result.hex()}"
             )
+
+    async def _query(self, address: int, command: int) -> tuple[int | None, int]:
+        result = await self._run(
+            self._frame(bytes(((address << 1) | 1, command)), 3),
+            require_success=True,
+        )
+        for attempt in range(10):
+            state = self._state(result, 65)
+            if state == 2:
+                if len(result) < 10 or result[9] not in (0, 1, 2):
+                    raise DaliCommissioningError(
+                        f"Invalid DALI-2 query response: {result.hex()}"
+                    )
+                if result[9] != 1 or attempt == 9:
+                    return (result[6] if result[9] == 0 else None), result[9]
+            elif state not in (1, 4, 5):
+                break
+            if attempt == 9:
+                break
+            await asyncio.sleep(min(self.poll_interval, 0.04))
+            result = await self._raw(bytes((0, 65)), command=False)
+        raise DaliCommissioningError(f"DALI-2 query did not complete: {result.hex()}")
+
+    async def _gear_state(self, address: int) -> GearState:
+        status, status_receive = await self._query(address, 144)
+        level, level_receive = await self._query(address, 160)
+        if level == 255:
+            level = None
+        return GearState(
+            self.line, address, status, level, status_receive, level_receive
+        )
+
+    async def read_gear_state(self, address: int, *, timeout: float = 15) -> GearState:
+        """Query one ECG's status and actual arc level (0..254), restoring polling afterward."""
+        _address(address)
+        _duration(timeout)
+        async with self._lock, asyncio.timeout(timeout), self._pause():
+            return await self._gear_state(address)
+
+    async def set_level(
+        self, address: int, level: int, *, timeout: float = 15
+    ) -> GearState:
+        """Send a direct arc level (0..254) to one ECG and query its current state."""
+        _address(address)
+        if type(level) is not int or not 0 <= level <= 254:
+            raise ValueError("DALI arc level must be between 0 and 254")
+        _duration(timeout)
+        async with self._lock, asyncio.timeout(timeout), self._pause():
+            await self._send(bytes((address << 1, level)), 3)
+            return await self._gear_state(address)
+
+    async def _color_request(self, payload: bytes, *, command: bool) -> bytes:
+        async with asyncio.timeout(15):
+            while True:
+                raw = await self._raw(payload, command=command, allow_busy=True)
+                if raw[0] == 0:
+                    if len(raw) > 1 and raw[1] != 96:
+                        raise DaliCommissioningError(
+                            f"Invalid DALI-2 color response: {raw.hex()}"
+                        )
+                    return raw
+                await asyncio.sleep(0.25 if payload[2] >= 5 else 0.75)
+
+    async def _read_color(self, address: int, *, temperature: bool) -> bytes:
+        read, poll, size = (5, 7, 6) if temperature else (1, 3, 8)
+        raw = await self._color_request(bytes((0, 96, read, address)), command=False)
+        if len(raw) < 5 or raw[3:5] != bytes((address, self.line)):
+            raise DaliCommissioningError(
+                f"Invalid DALI-2 color acknowledgement: {raw.hex()}"
+            )
+        raw = await self._color_request(
+            bytes((0, 96, poll, address, self.line)), command=False
+        )
+        if len(raw) < size or raw[3] != (self.line << 6) | address:
+            raise DaliCommissioningError(f"Invalid DALI-2 color result: {raw.hex()}")
+        return raw[4:size]
+
+    async def color_temperature(
+        self, address: int, kelvin: int | None = None, *, timeout: float = 15
+    ) -> ColorTemperatureState:
+        """Read color temperature, optionally setting 1000..20000 K before the query."""
+        _address(address)
+        _duration(timeout)
+        if kelvin is not None and (
+            type(kelvin) is not int or not 1000 <= kelvin <= 20000
+        ):
+            raise ValueError("Color temperature must be between 1000 and 20000 K")
+        async with self._lock, asyncio.timeout(timeout), self._pause():
+            if kelvin is not None:
+                await self._color_request(
+                    bytes((0, 96, 6, address))
+                    + (1_000_000 // kelvin).to_bytes(2, "big"),
+                    command=True,
+                )
+            data = await self._read_color(address, temperature=True)
+            return ColorTemperatureState(
+                self.line, address, int.from_bytes(data, "big")
+            )
+
+    async def rgbw(
+        self,
+        address: int,
+        channels: tuple[int, int, int, int] | None = None,
+        *,
+        timeout: float = 15,
+    ) -> RgbwState:
+        """Read RGBW, optionally setting four raw channels (0..255) before the query."""
+        _address(address)
+        _duration(timeout)
+        if channels is not None and (
+            len(channels) != 4
+            or any(
+                type(value) is not int or not 0 <= value <= 255 for value in channels
+            )
+        ):
+            raise ValueError("RGBW requires four integer channels between 0 and 255")
+        async with self._lock, asyncio.timeout(timeout), self._pause():
+            if channels is not None:
+                await self._color_request(
+                    bytes((0, 96, 2, address, *channels)), command=True
+                )
+            data = await self._read_color(address, temperature=False)
+            return RgbwState(self.line, address, data[0], data[1], data[2], data[3])
 
     async def change_short_address(
         self,

@@ -4141,3 +4141,6 @@ msgstr "Átjáró visszaállítása…"
 
 msgid "Restore the saved physical inventory and configuration to this gateway and restart it? This overwrites its DALI state and cannot be undone in the project."
 msgstr "Visszaállítja a mentett fizikai eszközöket és konfigurációt ezen az átjárón, majd újraindítja? Ez felülírja a DALI-állapotot, és a projektben nem vonható vissza."
+
+msgid "Template members"
+msgstr "Sablon tagjai"

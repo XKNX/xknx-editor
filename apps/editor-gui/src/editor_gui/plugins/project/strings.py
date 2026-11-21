@@ -227,6 +227,10 @@ class ProjectStrings:
         return _("Test")
 
     @property
+    def E64_TEMPLATE_MEMBERS(self) -> str:
+        return _("Template members")
+
+    @property
     def E64_TEST_PENDING(self) -> str:
         return _("A test is pending.")
 

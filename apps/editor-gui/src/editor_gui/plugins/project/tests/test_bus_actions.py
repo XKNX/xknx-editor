@@ -188,6 +188,18 @@ def test_one_channel_is_not_named() -> None:
     assert operation_text(item) == f"{S.EDITOR_TAB_DALI}: {S.DALI_SCAN}"
 
 
+def test_refused_dali_operation_still_notifies_its_panel(monkeypatch):
+    plugin, connection, _ = _plugin()
+    monkeypatch.setattr(connection, "run_dali", lambda *args, **kwargs: None)
+    ended = []
+    plugin._run_dali(
+        SimpleNamespace(node_id=1), None, 0, S.DALI_SCAN, lambda: ended.append(True)
+    )
+    assert ended == [True]
+    assert plugin.program_queue.current is None
+    assert plugin.program_queue.history[0].state is OperationState.FAILED
+
+
 def test_siemens_dali_runs_are_queued_too() -> None:
     plugin, connection, _ = _plugin()
     plugin._run_siemens_dali(

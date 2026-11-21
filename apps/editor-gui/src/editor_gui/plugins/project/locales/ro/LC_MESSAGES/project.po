@@ -4245,3 +4245,6 @@ msgstr "Restaurează gateway-ul…"
 
 msgid "Restore the saved physical inventory and configuration to this gateway and restart it? This overwrites its DALI state and cannot be undone in the project."
 msgstr "Restaurezi dispozitivele fizice și configurația salvate pe acest gateway și îl repornești? Aceasta suprascrie starea DALI și nu poate fi anulată în proiect."
+
+msgid "Template members"
+msgstr "Membrii șablonului"

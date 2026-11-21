@@ -189,19 +189,22 @@ def _connects[F: Callable[..., Any]](op: str) -> Callable[[F], F]:
         def run(self: ConnectionService, *args: Any, **kwargs: Any) -> Any:
             target = args[0] if args else kwargs.get("device")
             scope = args[1] if len(args) > 1 else kwargs.get("scope")
-            if op == "siemens_dca_program":
+            if op in ("dali_commissioning", "siemens_dali_commissioning"):
+                if kwargs.get(
+                    "writes", op == "dali_commissioning"
+                ) and self.writes_refused(op):
+                    return None
+                operation = args[1] if len(args) > 1 else kwargs.get("op")
+                validate = getattr(operation, "validate_device", None)
+                if validate is not None:
+                    validate(target)
+            elif op == "siemens_dca_program":
                 if self.writes_refused(op):
                     return None
                 if target is None:
                     raise ValueError("Missing Siemens device")
                 blob = args[1] if len(args) > 1 else kwargs["blob_xml"]
                 _siemens_dca_configuration(target, blob)
-            elif (
-                op == "siemens_dali_commissioning"
-                and kwargs.get("writes", False)
-                and self.writes_refused(op)
-            ):
-                return None
             if (
                 op == "program_device"
                 and target is not None
@@ -2311,6 +2314,9 @@ class ConnectionService:
 
         if self.local_device_refused("siemens_dali", device.individual_address):
             return None
+        validate = getattr(op, "validate_device", None)
+        if validate is not None:
+            validate(device)
         if not self.begin_operation("siemens_dali", device.individual_address):
             self._log.warning("A bus operation is already running", device=device.name)
             return None

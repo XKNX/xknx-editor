@@ -4114,3 +4114,6 @@ msgstr "ゲートウェイを復元…"
 
 msgid "Restore the saved physical inventory and configuration to this gateway and restart it? This overwrites its DALI state and cannot be undone in the project."
 msgstr "保存された物理デバイスと設定をこのゲートウェイに復元して再起動しますか？DALIの状態が上書きされ、プロジェクトでは元に戻せません。"
+
+msgid "Template members"
+msgstr "テンプレートのメンバー"

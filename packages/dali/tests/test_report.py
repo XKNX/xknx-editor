@@ -99,3 +99,27 @@ async def test_partial_record_is_rejected_instead_of_truncated():
     commissioner = MdtDaliCommissioner(MdtDaliConnection(programmer))
     with pytest.raises(DaliCommissioningError, match="partial element"):
         await commissioner.read_report()
+
+
+@pytest.mark.parametrize("group", [0, 16, 64, 80, 32, 96, 255])
+@pytest.mark.parametrize("duplicate_group", [None, 16, 32, 255])
+async def test_report_only_labels_uniquely_assigned_converters(group, duplicate_group):
+    programmer = FakeProgrammer()
+    programmer.set_read(PropertyType.GENERAL_FAILURE, bytes(10))
+    props = bytearray(bytes([255, 0, 255, 255]) * 64)
+    props[28:32] = bytes([1, 0, group, 12])
+    if duplicate_group is not None:
+        props[36:40] = bytes([6, 0, duplicate_group, 12])
+    programmer.set_read(PropertyType.EVG_PROP, bytes(props))
+    programmer.set_read(
+        PropertyType.TEST_RESULT, bytes([127, 1, 16, 0, 16, 23, 45, 20, 11, 26]) * 64
+    )
+    programmer.set_read(PropertyType.CONVERTER_STATUS, bytes(5 * 64))
+    commissioner = MdtDaliCommissioner(
+        MdtDaliConnection(programmer, object_index_base=7)
+    )
+    report = await commissioner.read_report()
+    assert [(test.slot, test.ecg_index) for test in report.tests] == (
+        [(7, 12)] if group in (0, 16, 64, 80) and duplicate_group != 16 else []
+    )
+    assert programmer.writes == []

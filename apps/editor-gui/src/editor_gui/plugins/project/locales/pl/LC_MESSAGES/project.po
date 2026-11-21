@@ -4218,3 +4218,6 @@ msgstr "Przywróć bramę…"
 
 msgid "Restore the saved physical inventory and configuration to this gateway and restart it? This overwrites its DALI state and cannot be undone in the project."
 msgstr "Przywrócić zapisane urządzenia fizyczne i konfigurację na tej bramie oraz uruchomić ją ponownie? Nadpisze to stan DALI i nie można tego cofnąć w projekcie."
+
+msgid "Template members"
+msgstr "Elementy szablonu"

@@ -4168,3 +4168,6 @@ msgstr "Επαναφορά πύλης…"
 
 msgid "Restore the saved physical inventory and configuration to this gateway and restart it? This overwrites its DALI state and cannot be undone in the project."
 msgstr "Επαναφορά των αποθηκευμένων φυσικών συσκευών και ρυθμίσεων σε αυτήν την πύλη και επανεκκίνησή της; Αυτό αντικαθιστά την κατάσταση DALI και δεν μπορεί να αναιρεθεί στο έργο."
+
+msgid "Template members"
+msgstr "Μέλη προτύπου"

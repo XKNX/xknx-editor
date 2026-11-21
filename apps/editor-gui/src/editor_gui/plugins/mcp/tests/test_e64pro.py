@@ -14,6 +14,109 @@ from xknxeditor.prod.application import Application
 from .test_server import _build_ctx, _data
 
 
+@pytest.mark.parametrize("mdt", [True, False])
+async def test_replacement_mcp_requires_revision_and_saves_readback(
+    tmp_path, monkeypatch, mdt
+):
+    import asyncio
+    from concurrent.futures import Future
+    from types import SimpleNamespace
+    from unittest.mock import AsyncMock
+
+    from xknxeditor.dali.model import DaliBusState, EcgState
+    from xknxeditor.dali.profiles import PROFILES
+
+    ctx = _build_ctx(tmp_path)
+    project = ctx.api.project
+    data = (
+        Path(__file__).parents[7]
+        / "packages/dali/tests/fixtures/ipas_e64pro_backup.dat"
+    ).read_bytes()
+    channel = 1 if mdt else 0
+    profile = PROFILES[0 if mdt else 2]
+    gateway = SimpleNamespace(
+        node_id=7,
+        individual_address="1.1.20",
+        app=SimpleNamespace(id=profile.app_id_prefixes[0] + "21-1234"),
+        binary_data=[]
+        if mdt
+        else [SimpleNamespace(name="Dalie64-Backup-Store", data=data)],
+    )
+    monkeypatch.setattr(project, "find_device_by_node_id", lambda _: gateway)
+    monkeypatch.setattr(type(project), "devices", property(lambda _: [gateway]))
+    monkeypatch.setattr(
+        project,
+        "get_device_info",
+        lambda _: SimpleNamespace(order_number="SCN-DA642.04" if mdt else ""),
+    )
+    monkeypatch.setattr(ctx.api.connection, "_xknx", object())
+    scan = DaliBusState(
+        channel=channel,
+        ecgs=[
+            EcgState(
+                slot=3,
+                present=True,
+                ecg_type=6,
+                group_index=16,
+                ets_ecg_index=9,
+                long_address=0xABCDEF,
+            )
+        ],
+    )
+    commissioner = SimpleNamespace(
+        connection=SimpleNamespace(
+            profile=profile,
+            channel=channel,
+            read_table=AsyncMock(return_value=bytes(384)),
+        ),
+        replace_ecg=AsyncMock(return_value=scan),
+        read_scenes=AsyncMock(return_value=[]),
+        read_templates=AsyncMock(return_value=[]),
+    )
+    calls, saved = [], []
+
+    def run_dali(device, op, *, channel=0, writes=True):
+        op.validate_device(device)
+        calls.append((channel, writes))
+        future = Future()
+        future.set_result(asyncio.run(op(commissioner)))
+        return future
+
+    monkeypatch.setattr(ctx.api.connection, "run_dali", run_dali)
+    monkeypatch.setattr(
+        project, "persist_dali_backup", lambda *args, **kwargs: saved.append(args)
+    )
+    async with Client(build_server(ctx)) as client:
+        state = await _data(
+            client,
+            "project_dali_replacement_state",
+            device_address="1.1.20",
+            channel=channel,
+        )
+        assert state["has_backup"] is not mdt
+        assert not calls
+        with pytest.raises(Exception, match="revision changed"):
+            await _data(
+                client,
+                "connection_dali_replace",
+                node_id=7,
+                channel=channel,
+                revision="stale",
+            )
+        assert not calls
+        result = await _data(
+            client,
+            "connection_dali_replace",
+            node_id=7,
+            channel=channel,
+            revision=state["revision"],
+        )
+        assert result["channel"] == channel and calls == [(channel, True)]
+        assert len(saved) == 1
+        root = ET.fromstring(saved[0][2])
+        assert root.find("devecgs/DevECG[@index='3']").get("long-address") == "ABCDEF"
+
+
 async def test_dali_workspace_mcp_uses_revision_and_shared_operations(
     tmp_path, monkeypatch
 ):
@@ -39,7 +142,9 @@ async def test_dali_workspace_mcp_uses_revision_and_shared_operations(
     )
     monkeypatch.setattr(ctx.api.connection, "_xknx", object())
     commissioner = SimpleNamespace(
-        test_scene=AsyncMock(), read_inputs=AsyncMock(return_value=())
+        test_scene=AsyncMock(),
+        read_inputs=AsyncMock(return_value=()),
+        test_template_command=AsyncMock(),
     )
     calls = []
     saved = []
@@ -76,6 +181,34 @@ async def test_dali_workspace_mcp_uses_revision_and_shared_operations(
             section="inputs",
         )
         assert calls == [True, False] and len(saved) == 1
+        await _data(
+            client,
+            "connection_dali_workspace",
+            device_address="1.1.20",
+            revision=revision,
+            action="test",
+            section="templates",
+            index=0,
+            row=0,
+            test_group=15,
+        )
+        args, kwargs = commissioner.test_template_command.await_args
+        assert args[0].index == 0 and args[1] == 0 and kwargs == {"group": 15}
+        assert calls == [True, False, True] and len(saved) == 1
+        for action, section, group in [
+            ("test", "templates", 16),
+            ("read", "inputs", 0),
+        ]:
+            with pytest.raises(Exception, match="unavailable"):
+                await _data(
+                    client,
+                    "connection_dali_workspace",
+                    node_id=7,
+                    revision=revision,
+                    action=action,
+                    section=section,
+                    test_group=group,
+                )
         for action, rev in [
             ("test", "stale"),
             ("replace", revision),
@@ -89,7 +222,7 @@ async def test_dali_workspace_mcp_uses_revision_and_shared_operations(
                     revision=rev,
                     action=action,
                 )
-        assert len(calls) == 2
+        assert len(calls) == 3
 
 
 async def test_e64pro_mcp_round_trip(

@@ -19,11 +19,18 @@ from editor_gui.plugins.mcp.tools.project import require_device
 from editor_gui.plugins.project.strings import S
 from editor_gui.programming_siemens_dali2 import (
     Action,
+    GuardedOperation,
     Operation,
+    Result,
     Target,
     prepare_operation,
 )
-from xknxeditor.dali.siemens_dali2 import Scan
+from xknxeditor.dali.siemens_dali2 import (
+    ColorTemperatureState,
+    GearState,
+    RgbwState,
+    Scan,
+)
 
 if TYPE_CHECKING:
     from fastmcp import FastMCP
@@ -61,6 +68,9 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         new_address: int = 0,
         random_address: int = 0,
         duration: float = 15,
+        level: int = 0,
+        kelvin: int | None = None,
+        rgbw: tuple[int, int, int, int] | None = None,
     ) -> dict[str, Any]:
         def prepare() -> tuple[Device, Operation, Target]:
             device = require_device(ctx.api.project, node_id, device_address)
@@ -76,6 +86,9 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                 random_address=random_address,
                 timeout=timeout,
                 duration=duration,
+                level=level,
+                kelvin=kelvin,
+                rgbw=rgbw,
             )
             target = (
                 ctx.api.project.generation,
@@ -109,6 +122,10 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             "on": S.DALI_SWITCH_ON,
             "off": S.DALI_SWITCH_OFF,
             "address": S.E64_SHORT_ADDRESS,
+            "status": S.E64_STATUS,
+            "level": S.E64_BRIGHTNESS,
+            "temperature": S.E64_COLOR_TEMPERATURE,
+            "rgbw": "RGBW",
         }[action]
         session = (
             control.start(target) if operation.legacy and action == "blink" else None
@@ -116,7 +133,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         if session is not None:
             operation = dataclasses.replace(operation, session=session)
 
-        async def execute(programmer: Any) -> Scan | None:
+        async def execute(programmer: Any) -> Result:
             error: BaseException | None = None
             if session is not None:
                 session.started.set()
@@ -130,13 +147,16 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                     control.finish(target, session, error)
 
         wait = timeout + 15 + (duration if session is not None else 0)
+        guarded = GuardedOperation(
+            ctx.api.project, target, execute if session is not None else operation
+        )
         try:
             ended = run_queued_action(
                 ctx,
                 device.node_id,
                 "siemens_dali",
                 wait,
-                op=execute if session is not None else operation,
+                op=guarded,
                 text=text,
                 writes=operation.writes,
             )
@@ -146,7 +166,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                 future = ctx.run_locked(
                     lambda: service.run_siemens_dali(
                         device,
-                        execute if session is not None else operation,
+                        guarded,
                         writes=operation.writes,
                     )
                 )
@@ -164,6 +184,22 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                 control.finish(target, session)
         if action in ("read", "discover", "address"):
             return scan_dict(device.node_id, result)
+        if action in ("status", "level"):
+            if not isinstance(result, GearState):
+                raise ToolError("Invalid DALI-2 gear response")
+            return {"node_id": device.node_id, **asdict(result)}
+        if action == "temperature":
+            if not isinstance(result, ColorTemperatureState):
+                raise ToolError("Invalid DALI-2 color temperature response")
+            return {
+                "node_id": device.node_id,
+                **asdict(result),
+                "kelvin": result.kelvin,
+            }
+        if action == "rgbw":
+            if not isinstance(result, RgbwState):
+                raise ToolError("Invalid DALI-2 RGBW response")
+            return {"node_id": device.node_id, **asdict(result)}
         return {
             "node_id": device.node_id,
             "line": line,
@@ -236,6 +272,105 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             timeout,
             address,
             duration=duration,
+        )
+
+    @tool("destructive", open_world=True)
+    def connection_siemens_dali2_set_level(
+        address: int,
+        level: int,
+        node_id: int | None = None,
+        device_address: str | None = None,
+        line: int = 0,
+        timeout: float = 15,
+    ) -> dict[str, Any]:
+        """Test one Siemens DALI-2 ECG with a direct arc level, then read its current state.
+        Select the gateway by node_id OR device_address, zero-based line (0 or 1 for twin),
+        and ECG short address 0..63. level is a DALI arc value 0..254, not a percentage;
+        0 turns off, 254 requests maximum. Does not change saved KNX parameters.
+        Returns the same result as connection_siemens_dali2_status; the returned level is
+        the current queried value and may differ while fading or at the device's limits.
+        Supported applications: Siemens 9A1B/9A1C, versions 01/02/03/30.
+        """
+        return run(
+            "level", node_id, device_address, line, False, timeout, address, level=level
+        )
+
+    @tool("destructive", open_world=True)
+    def connection_siemens_dali2_status(
+        address: int,
+        node_id: int | None = None,
+        device_address: str | None = None,
+        line: int = 0,
+        timeout: float = 15,
+    ) -> dict[str, Any]:
+        """Query live status and actual arc level for one Siemens DALI-2 control gear.
+        Select by node_id OR device_address, zero-based line and ECG short address 0..63.
+        Returns node_id, line, address, status (DALI QUERY STATUS byte), level (0..254),
+        status_receive_state and level_receive_state (0=response, 1=no response, 2=undecodable).
+        Missing values are null, never a fabricated healthy status or zero brightness.
+        Status bits 0/1 indicate control gear/lamp failure.
+        Sends DALI queries and temporarily pauses gateway polling, then restores it.
+        Requires bus writes to be allowed because queries use function-property commands.
+        Supported applications: Siemens 9A1B/9A1C, versions 01/02/03/30.
+        """
+        return run("status", node_id, device_address, line, False, timeout, address)
+
+    @tool("destructive", open_world=True)
+    def connection_siemens_dali2_color_temperature(
+        address: int,
+        kelvin: int | None = None,
+        node_id: int | None = None,
+        device_address: str | None = None,
+        line: int = 0,
+        timeout: float = 15,
+    ) -> dict[str, Any]:
+        """Read or test color temperature of one Siemens DALI-2 ECG.
+        Select by node_id OR device_address, zero-based line and short address 0..63.
+        Omit kelvin to read only; supplying 1000..20000 K changes the lamp and then reads it.
+        Returns node_id, line, address, raw mirek and observed kelvin (null for unavailable/MASK).
+        Observed values may differ from the request due to device limits or fading.
+        Both modes temporarily pause gateway polling and require bus writes to be allowed.
+        Restores polling and leaves saved KNX parameters unchanged. Supported applications:
+        Siemens 9A1B/9A1C versions 02/03/30; version 01 uses a different color protocol.
+        """
+        return run(
+            "temperature",
+            node_id,
+            device_address,
+            line,
+            False,
+            timeout,
+            address,
+            kelvin=kelvin,
+        )
+
+    @tool("destructive", open_world=True)
+    def connection_siemens_dali2_rgbw(
+        address: int,
+        channels: tuple[int, int, int, int] | None = None,
+        node_id: int | None = None,
+        device_address: str | None = None,
+        line: int = 0,
+        timeout: float = 15,
+    ) -> dict[str, Any]:
+        """Read or test RGBW channels of one Siemens DALI-2 ECG.
+        Select by node_id OR device_address, zero-based line and short address 0..63.
+        Omit channels to read only; supply [red, green, blue, white] (raw 0..255 values)
+        to change the lamp before reading its actual channels. White is always explicit.
+        Returns node_id, line, address, red, green, blue and white as observed raw values.
+        Both modes temporarily pause gateway polling and require bus writes to be allowed.
+        Restores polling and leaves saved KNX parameters unchanged. Supported applications:
+        Siemens 9A1B/9A1C versions 02/03/30; requires RGBW-capable control gear.
+        """
+        return run(
+            "rgbw",
+            node_id,
+            device_address,
+            line,
+            False,
+            timeout,
+            address,
+            rgbw=channels,
         )
 
     @tool("destructive", open_world=True)

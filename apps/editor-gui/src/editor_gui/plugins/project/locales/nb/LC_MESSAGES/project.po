@@ -4166,3 +4166,6 @@ msgstr "Gjenopprett gateway…"
 
 msgid "Restore the saved physical inventory and configuration to this gateway and restart it? This overwrites its DALI state and cannot be undone in the project."
 msgstr "Gjenopprette de lagrede fysiske enhetene og konfigurasjonen på denne gatewayen og starte den på nytt? Dette overskriver DALI-tilstanden og kan ikke angres i prosjektet."
+
+msgid "Template members"
+msgstr "Malmedlemmer"

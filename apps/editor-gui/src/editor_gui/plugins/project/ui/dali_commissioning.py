@@ -12,12 +12,14 @@ from __future__ import annotations
 import copy
 import threading
 from collections.abc import Awaitable, Callable
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
+from typing import TYPE_CHECKING
 
 from imgui_bundle import imgui
 
 from editor_gui.device import Device
 from editor_gui.plugins.project.strings import S
+from editor_gui.programming_dali import GuardedDaliOperation
 from editor_gui.theme import status_color
 from editor_gui.widgets.combo import combo
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
@@ -34,6 +36,9 @@ from xknxeditor.dali.model import (
     SceneValue,
 )
 from xknxeditor.dali.profiles import profile_for
+
+if TYPE_CHECKING:
+    from editor_gui.plugins.project.service import ProjectService
 
 # Type of the injected runner, which queues the operation: (device, op, channel, its name in
 # the Operations panel, completion on the GUI thread). (op gets a commissioner.)
@@ -80,6 +85,7 @@ def _task_text(task: str) -> str:
         "post-install": S.DALI_TASK_POST,
         "program-groups": S.DALI_TASK_GROUPS,
         "program-scenes": S.DALI_TASK_SCENES,
+        "replace": S.E64_BUS_ACTIONS["replace"],
     }
     return texts.get(task, task)
 
@@ -182,6 +188,7 @@ class DaliCommissioningPanel:
         default_factory=dict[tuple[int, str], int]
     )
     _lock: threading.Lock = field(default_factory=threading.Lock)
+    _project: ProjectService | None = None
 
     def _key(self, device: Device) -> tuple[int, str]:
         generation = self._generation()
@@ -216,6 +223,7 @@ class DaliCommissioningPanel:
         store_scan: bool = False,
         assignments: list[EcgAssignment] | None = None,
         scenes: list[Scene] | None = None,
+        complete: Callable[[], None] | None = None,
     ) -> None:
         """Queue ``op`` as the operation ``label``, named ``text`` (the button that started it)
         in the Operations panel."""
@@ -236,22 +244,33 @@ class DaliCommissioningPanel:
             else None
         )
         wrapped = self._wrap(state, label, op, store_scan, programmed)
+        if isinstance(op, GuardedDaliOperation):
+            wrapped = replace(op, execute=wrapped)
         generation = self._generation()
 
         def ended() -> None:
             self._ended(state, run)
             if self._generation() == generation:
                 self._persist_backup(device, channel, state)
+                if complete is not None:
+                    try:
+                        complete()
+                    except Exception as exc:
+                        state.error = str(exc)
 
-        self._run(
-            device,
-            wrapped,
-            channel,
-            text,
-            ended,
-            # Everything but a scan changes the gateway or the DALI bus.
-            label != "scan",
-        )
+        try:
+            self._run(
+                device,
+                wrapped,
+                channel,
+                text,
+                ended,
+                # Everything but a scan changes the gateway or the DALI bus.
+                label != "scan",
+            )
+        except Exception:
+            self._ended(state, run)
+            raise
 
     def _ended(self, state: _DeviceUi, run: int) -> None:
         """The operation ``run`` has ended: free the channel also when it never ran (canceled
@@ -398,6 +417,8 @@ class DaliCommissioningPanel:
         imgui.same_line()
         if imgui.button(S.DALI_POST_INSTALLATION):
             state.pending = "post"
+        if self._project is not None and imgui.button(S.E64_BUS_ACTIONS["replace"]):
+            state.pending = "replace"
         imgui.end_disabled()
 
         if busy:
@@ -454,6 +475,48 @@ class DaliCommissioningPanel:
             self._start_program_groups(device, key)
         elif kind == "scenes":
             self._start_program_scenes(device, key)
+        elif kind == "replace":
+            self._start_replacement(device, key)
+
+    def _start_replacement(self, device: Device, key: tuple[int, str]) -> None:
+        from editor_gui.programming_dali import (
+            finish_dali_replacement,
+            prepare_dali_replacement,
+        )
+
+        project = self._project
+        if project is None:
+            return
+        channel = self._current_channel(key)
+        state = self._state(key, channel)
+        try:
+            plan = prepare_dali_replacement(device, channel)
+            generation = project.generation
+            pending: list[bytes] = []
+
+            async def execute(commissioner: MdtDaliCommissioner) -> DaliBusState:
+                scan, data = await plan.execute(commissioner)
+                pending.append(data)
+                return scan
+
+            def complete() -> None:
+                if pending:
+                    finish_dali_replacement(
+                        project, device, plan, generation, pending.pop()
+                    )
+
+            self._start(
+                device,
+                "replace",
+                S.E64_BUS_ACTIONS["replace"],
+                GuardedDaliOperation(
+                    project, device, plan.expected, generation, execute, channel
+                ),
+                store_scan=True,
+                complete=complete,
+            )
+        except Exception as exc:
+            state.error = str(exc)
 
     def _start_install(self, device: Device, key: tuple[int, str], kind: str) -> None:
         progress = self._install_progress(key)
@@ -618,5 +681,6 @@ def _confirm_text(kind: str) -> str:
         "post": S.DALI_CONFIRM_POST,
         "groups": S.DALI_CONFIRM_GROUPS,
         "scenes": S.DALI_CONFIRM_SCENES,
+        "replace": S.E64_REPLACE_CONFIRM,
     }
     return texts.get(kind, "")

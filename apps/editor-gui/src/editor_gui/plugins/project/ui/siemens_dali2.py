@@ -7,6 +7,7 @@ import functools
 import threading
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
+from typing import TYPE_CHECKING
 
 from imgui_bundle import imgui
 
@@ -14,9 +15,11 @@ from editor_gui.device import Device
 from editor_gui.plugins.project.strings import S
 from editor_gui.programming_siemens_dali2 import (
     Action,
+    GuardedOperation,
     IdentificationControl,
     IdentificationSession,
     Operation,
+    Result,
     Target,
     prepare_operation,
 )
@@ -25,9 +28,13 @@ from editor_gui.widgets.combo import combo
 from editor_gui.widgets.flow import button_width, same_line_if_fits
 from editor_gui.widgets.tables import begin_data_table, data_table_headers
 from xknxeditor.dali.siemens_dali2 import (
+    ColorTemperatureState,
+    GearState,
     Programmer,
+    RgbwState,
     Scan,
     line_count,
+    supports_color_commands,
     uses_legacy_identification,
 )
 
@@ -35,6 +42,9 @@ Runner = Callable[
     [Device, Callable[[Programmer], Awaitable[object]], str, Callable[[], None], bool],
     None,
 ]
+
+if TYPE_CHECKING:
+    from editor_gui.plugins.project.service import ProjectService
 
 
 @dataclass
@@ -47,6 +57,15 @@ class _State:
     error: str = ""
     run: int = 0
     duration: float = 15
+    level: int = 0
+    kelvin: int = 4000
+    rgbw: tuple[int, int, int, int] = (0, 0, 0, 0)
+    colors: dict[tuple[int, int, str], ColorTemperatureState | RgbwState] = field(
+        default_factory=dict[tuple[int, int, str], ColorTemperatureState | RgbwState]
+    )
+    gear_states: dict[tuple[int, int], GearState] = field(
+        default_factory=dict[tuple[int, int], GearState]
+    )
     session: tuple[Target, IdentificationSession] | None = None
     scans: dict[tuple[int, bool], Scan | None] = field(
         default_factory=dict[tuple[int, bool], Scan | None]
@@ -63,8 +82,9 @@ class SiemensDali2Panel:
     _identification: IdentificationControl = field(
         default_factory=IdentificationControl
     )
-    _states: dict[tuple[int, str], _State] = field(
-        default_factory=dict[tuple[int, str], _State]
+    _project: ProjectService | None = None
+    _states: dict[tuple[int, str, str], _State] = field(
+        default_factory=dict[tuple[int, str, str], _State]
     )
     _lock: threading.Lock = field(default_factory=threading.Lock)
 
@@ -74,7 +94,12 @@ class SiemensDali2Panel:
             self._states.clear()
             self._project_generation = generation
         return self._states.setdefault(
-            (device.node_id, device.app.id if device.app else ""), _State()
+            (
+                device.node_id,
+                device.app.id if device.app else "",
+                device.individual_address,
+            ),
+            _State(),
         )
 
     def _ended(self, state: _State, run: int) -> None:
@@ -85,7 +110,9 @@ class SiemensDali2Panel:
                     self._identification.finish(*state.session)
                     state.session = None
 
-    def _start(self, device: Device, action: Action, label: str) -> None:
+    def _start(
+        self, device: Device, action: Action, label: str, *, set_color: bool = False
+    ) -> None:
         with self._lock:
             state = self._state(device)
             target = (
@@ -118,7 +145,14 @@ class SiemensDali2Panel:
                     new_address=state.target,
                     random_address=selected.random_address if selected else 0,
                     duration=state.duration,
-                    timeout=15 if action in ("blink", "stop", "on", "off") else 300,
+                    level=state.level,
+                    kelvin=state.kelvin
+                    if set_color and action == "temperature"
+                    else None,
+                    rgbw=state.rgbw if set_color and action == "rgbw" else None,
+                    timeout=15
+                    if action not in ("read", "discover", "address")
+                    else 300,
                 )
                 if operation.legacy and action == "blink":
                     session = self._identification.start(target)
@@ -129,10 +163,22 @@ class SiemensDali2Panel:
                 return
             state.busy = True
             state.error = ""
+            if not state.sensors and action not in ("read", "discover"):
+                state.gear_states.pop((operation.line, operation.address), None)
+                state.colors = {
+                    key: row
+                    for key, row in state.colors.items()
+                    if key[:2] != (operation.line, operation.address)
+                    or (
+                        action in ("temperature", "rgbw")
+                        and not set_color
+                        and key[2] != action
+                    )
+                }
             state.run += 1
             run = state.run
 
-        async def execute(programmer: Programmer) -> object:
+        async def execute(programmer: Programmer) -> Result:
             error: BaseException | None = None
             if operation.session is not None:
                 operation.session.started.set()
@@ -153,7 +199,9 @@ class SiemensDali2Panel:
         try:
             self._run(
                 device,
-                execute,
+                GuardedOperation(self._project, target, execute)
+                if self._project
+                else execute,
                 label,
                 functools.partial(self._ended, state, run),
                 operation.writes,
@@ -167,11 +215,28 @@ class SiemensDali2Panel:
                     state.session = None
 
     @staticmethod
-    def _store(state: _State, operation: Operation, result: Scan | None) -> None:
+    def _store(state: _State, operation: Operation, result: Result) -> None:
         if operation.action in ("read", "discover", "address"):
+            if result is not None and not isinstance(result, Scan):
+                raise ValueError("Invalid DALI-2 inventory response")
             state.scans[(operation.line, operation.sensors)] = result
+            if not operation.sensors:
+                state.gear_states = {
+                    key: row
+                    for key, row in state.gear_states.items()
+                    if key[0] != operation.line
+                }
+                state.colors = {
+                    key: row
+                    for key, row in state.colors.items()
+                    if key[0] != operation.line
+                }
             if operation.action == "address":
                 state.address = operation.new_address
+        elif isinstance(result, GearState):
+            state.gear_states[(operation.line, operation.address)] = result
+        elif isinstance(result, (ColorTemperatureState, RgbwState)):
+            state.colors[(operation.line, operation.address, operation.action)] = result
 
     def render(self, device: Device, connected: bool) -> None:
         count = line_count(device.app.id if device.app else None)
@@ -240,9 +305,72 @@ class SiemensDali2Panel:
             _, state.target = imgui.input_int(S.E64_SHORT_ADDRESS, state.target)
             if imgui.button(S.E64_APPLY):
                 self._start(device, "address", S.E64_SHORT_ADDRESS)
+            if not state.sensors:
+                imgui.separator_text(S.E64_TEST)
+                if imgui.button(S.E64_STATUS):
+                    self._start(device, "status", S.E64_STATUS)
+                _, state.level = imgui.input_int(
+                    f"{S.E64_BRIGHTNESS} (DALI 0..254)", state.level
+                )
+                if imgui.button(S.E64_TEST):
+                    self._start(device, "level", S.E64_TEST)
+                with self._lock:
+                    current = state.gear_states.get((state.line, state.address))
+                if current is not None:
+                    status = (
+                        f"0x{current.status:02X}" if current.status is not None else "?"
+                    )
+                    level = str(current.level) if current.level is not None else "?"
+                    imgui.text_unformatted(
+                        f"{S.E64_STATUS}: {status}   {S.E64_BRIGHTNESS}: {level}"
+                    )
+                    if current.status is not None and current.status & 3:
+                        failed = [
+                            label
+                            for bit, label in ((1, S.E64_ECG), (2, S.E64_LAMPS))
+                            if current.status & bit
+                        ]
+                        imgui.text_colored(
+                            status_color("error"),
+                            f"{S.E64_ERRORS}: {', '.join(failed)}",
+                        )
+                if supports_color_commands(device.app.id if device.app else None):
+                    self._colors(device, state)
             imgui.end_disabled()
         finally:
             imgui.pop_id()
+
+    def _colors(self, device: Device, state: _State) -> None:
+        imgui.separator_text(S.E64_COLOR)
+        actions: tuple[tuple[Action, str], ...] = (
+            ("temperature", S.E64_COLOR_TEMPERATURE),
+            ("rgbw", "RGBW"),
+        )
+        for action, label in actions:
+            imgui.push_id(action)
+            try:
+                if action == "temperature":
+                    _, state.kelvin = imgui.input_int(f"{label} (K)", state.kelvin)
+                else:
+                    _, channels = imgui.input_int4("RGBW (0..255)", list(state.rgbw))
+                    state.rgbw = (channels[0], channels[1], channels[2], channels[3])
+                if imgui.button(S.E64_BUS_ACTIONS["read"]):
+                    self._start(device, action, label)
+                same_line_if_fits(button_width(S.E64_TEST))
+                if imgui.button(S.E64_TEST):
+                    self._start(device, action, label, set_color=True)
+                with self._lock:
+                    current = state.colors.get((state.line, state.address, action))
+                if isinstance(current, ColorTemperatureState):
+                    imgui.text_unformatted(
+                        f"{S.E64_STATUS}: {current.kelvin if current.kelvin is not None else '?'} K"
+                    )
+                elif isinstance(current, RgbwState):
+                    imgui.text_unformatted(
+                        f"{S.E64_STATUS}: {current.red}, {current.green}, {current.blue}, {current.white}"
+                    )
+            finally:
+                imgui.pop_id()
 
     @staticmethod
     def _table(state: _State, scan: Scan) -> None:

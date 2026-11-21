@@ -4193,3 +4193,6 @@ msgstr "Endurheimta gátt…"
 
 msgid "Restore the saved physical inventory and configuration to this gateway and restart it? This overwrites its DALI state and cannot be undone in the project."
 msgstr "Endurheimta vistuð tæki og stillingar á þessari gátt og endurræsa hana? Þetta yfirskrifar DALI-stöðuna og ekki er hægt að afturkalla það í verkefninu."
+
+msgid "Template members"
+msgstr "Meðlimir sniðmáts"

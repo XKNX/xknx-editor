@@ -4,20 +4,72 @@ from __future__ import annotations
 
 import math
 import threading
+from collections.abc import Awaitable, Callable
 from concurrent.futures import Future
 from dataclasses import dataclass, field
-from typing import Literal
+from typing import TYPE_CHECKING, Literal
 
 from xknxeditor.dali.siemens_dali2 import (
+    ColorTemperatureState,
+    GearState,
     Programmer,
+    RgbwState,
     Scan,
     SiemensDali2Commissioner,
     line_count,
+    supports_color_commands,
     uses_legacy_identification,
 )
 
-Action = Literal["read", "discover", "blink", "stop", "on", "off", "address"]
+Action = Literal[
+    "read",
+    "discover",
+    "blink",
+    "stop",
+    "on",
+    "off",
+    "address",
+    "status",
+    "level",
+    "temperature",
+    "rgbw",
+]
 Target = tuple[int, int, str, str, int, bool]
+Result = Scan | GearState | ColorTemperatureState | RgbwState | None
+
+if TYPE_CHECKING:
+    from editor_gui.device import Device
+    from editor_gui.plugins.project.service import ProjectService
+
+
+@dataclass(frozen=True)
+class GuardedOperation:
+    """Keep a prepared operation bound to its project and device across connection setup."""
+
+    project: ProjectService
+    target: Target
+    execute: Callable[[Programmer], Awaitable[Result]]
+
+    def validate_device(self, device: Device) -> None:
+        from editor_gui.plugins.project.strings import S
+
+        generation, node_id, app_id, address, _, _ = self.target
+        current = self.project.find_device_by_node_id(node_id)
+        if (
+            self.project.generation != generation
+            or current is None
+            or any(
+                d.node_id != node_id
+                or d.individual_address != address
+                or d.app is None
+                or d.app.id != app_id
+                for d in (device, current)
+            )
+        ):
+            raise ValueError(S.E64_CONFIGURATION_CHANGED)
+
+    async def __call__(self, programmer: Programmer) -> Result:
+        return await self.execute(programmer)
 
 
 @dataclass
@@ -84,12 +136,15 @@ class Operation:
     legacy: bool
     duration: float
     session: IdentificationSession | None = field(default=None, compare=False)
+    level: int = 0
+    kelvin: int | None = None
+    rgbw: tuple[int, int, int, int] | None = None
 
     @property
     def writes(self) -> bool:
         return self.action != "read"
 
-    async def __call__(self, programmer: Programmer) -> Scan | None:
+    async def __call__(self, programmer: Programmer) -> Result:
         commissioner = SiemensDali2Commissioner(programmer, self.line)
         if self.action == "read":
             return await commissioner.read_cached(
@@ -106,6 +161,22 @@ class Operation:
                 self.random_address,
                 sensors=self.sensors,
                 timeout=self.timeout,
+            )
+        if self.action == "status":
+            return await commissioner.read_gear_state(
+                self.address, timeout=self.timeout
+            )
+        if self.action == "level":
+            return await commissioner.set_level(
+                self.address, self.level, timeout=self.timeout
+            )
+        if self.action == "temperature":
+            return await commissioner.color_temperature(
+                self.address, self.kelvin, timeout=self.timeout
+            )
+        if self.action == "rgbw":
+            return await commissioner.rgbw(
+                self.address, self.rgbw, timeout=self.timeout
             )
         if self.legacy:
             await commissioner.identify_legacy(
@@ -141,13 +212,47 @@ def prepare_operation(
     timeout: float = 300,
     duration: float = 15,
     session: IdentificationSession | None = None,
+    level: int = 0,
+    kelvin: int | None = None,
+    rgbw: tuple[int, int, int, int] | None = None,
 ) -> Operation:
     """Validate the target and all arguments before queuing or opening a connection."""
     if type(line) is not int or not 0 <= line < line_count(app_id):
         raise ValueError("Unsupported Siemens DALI-2 application or line")
-    if action not in ("read", "discover", "blink", "stop", "on", "off", "address"):
+    if action not in (
+        "read",
+        "discover",
+        "blink",
+        "stop",
+        "on",
+        "off",
+        "address",
+        "status",
+        "level",
+        "temperature",
+        "rgbw",
+    ):
         raise ValueError("Unknown Siemens DALI-2 operation")
+    if action in ("status", "level", "temperature", "rgbw") and sensors:
+        raise ValueError("Tests are available for control gear only")
+    if action == "level" and (type(level) is not int or not 0 <= level <= 254):
+        raise ValueError("DALI arc level must be between 0 and 254")
     legacy = uses_legacy_identification(app_id)
+    if action in ("temperature", "rgbw"):
+        if not supports_color_commands(app_id):
+            raise ValueError("Color tests require application version 02, 03 or 30")
+        if kelvin is not None and (
+            action != "temperature"
+            or type(kelvin) is not int
+            or not 1000 <= kelvin <= 20000
+        ):
+            raise ValueError("Color temperature must be between 1000 and 20000 K")
+        if rgbw is not None and (
+            action != "rgbw"
+            or len(rgbw) != 4
+            or any(type(value) is not int or not 0 <= value <= 255 for value in rgbw)
+        ):
+            raise ValueError("RGBW requires four integer channels between 0 and 255")
     if legacy and sensors and action in ("on", "off"):
         raise ValueError("Input devices support blink and stop only")
     if not math.isfinite(duration) or not 0 < duration <= 300:
@@ -178,4 +283,7 @@ def prepare_operation(
         legacy,
         duration,
         session,
+        level,
+        kelvin,
+        rgbw,
     )

@@ -441,6 +441,7 @@ class ProjectPlugin:
             self._persist_dali_backup,
             self._dali_channel_count,
             _generation=lambda: api.project.generation,
+            _project=api.project,
         )
         from editor_gui.plugins.project.ui.mdt_firmware import MdtFirmwarePanel
         from editor_gui.plugins.project.ui.native_plugin import NativePluginPanel
@@ -458,6 +459,7 @@ class ProjectPlugin:
             self._run_siemens_dali,
             _generation=lambda: api.project.generation,
             _identification=api.connection.siemens_dali2_identification,
+            _project=api.project,
         )
         self._plugin_params_panel = PluginParamsPanel(
             self.handle_param_change,
@@ -474,6 +476,7 @@ class ProjectPlugin:
             _e64_write=api.project.edit_e64pro,
             _e64_project=api.project,
             _e64_run=self._run_dali,
+            _dgwd_project=api.project,
         )
         self._generic_plugin_panel = GenericPluginPanel(
             self.generic_plugin_view,

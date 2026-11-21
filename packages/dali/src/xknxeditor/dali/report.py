@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
+from collections import Counter
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from xml.etree import ElementTree as ET
 
 from .connection import DaliCommissioningError, MdtDaliConnection
+from .model import GROUP_SINGLE, MAX_ECG
 from .properties import PropertyType
 from .structs import EcgProp
 
@@ -146,10 +148,20 @@ async def read_report(connection: MdtDaliConnection) -> DiagnosticReport:
     statuses = await connection.read_table(PropertyType.CONVERTER_STATUS, 64)
     if len(props) != 256 or len(results) != 640 or len(statuses) != 320:
         raise DaliCommissioningError("Incomplete DALI diagnostic tables")
+    records = [EcgProp.decode(props[slot * 4 : slot * 4 + 4]) for slot in range(64)]
+    assigned = Counter(
+        prop.ets_ecg_index
+        for prop in records
+        if prop.ets_ecg_index < MAX_ECG and prop.group_index & 63 <= GROUP_SINGLE
+    )
     tests: list[EmergencyTest] = []
-    for slot in range(64):
-        prop = EcgProp.decode(props[slot * 4 : slot * 4 + 4])
-        if prop.ecg_type in (1, 129) and prop.ets_ecg_index < 64:
+    for slot, prop in enumerate(records):
+        if (
+            prop.ecg_type in (1, 129)
+            and prop.ets_ecg_index < MAX_ECG
+            and prop.group_index & 63 <= GROUP_SINGLE
+            and assigned[prop.ets_ecg_index] == 1
+        ):
             tests.append(
                 EmergencyTest.decode(
                     slot,

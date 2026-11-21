@@ -10,6 +10,7 @@ from xknxeditor.dali.model import (
     GROUP_UNASSIGNED,
     MAX_ECG,
     MAX_TEMPLATES,
+    DaliBusState,
     EcgAssignment,
     Scene,
     SceneValue,
@@ -94,6 +95,72 @@ async def test_scan_reports_present_ecgs() -> None:
     assert present[0].group_index == 5 and present[0].ecg_type == 8
     assert present[0].long_address == 0x2A and present[0].alarm == 0x02
     assert len(state.groups) == 16
+
+
+@pytest.mark.parametrize("profile_index", [0, 1, 2])
+async def test_replacement_polls_before_reading_new_inventory(profile_index):
+    from unittest.mock import AsyncMock
+
+    from xknxeditor.dali.profiles import PROFILES
+
+    programmer = FakeProgrammer()
+    programmer.set_read(PropertyType.COMMAND, bytes(3))
+    commissioner = MdtDaliCommissioner(
+        MdtDaliConnection(programmer, 1, profile=PROFILES[profile_index])
+    )
+    scan = DaliBusState(channel=1)
+    commissioner.scan = AsyncMock(return_value=scan)
+    assert await commissioner.replace_ecg() is scan
+    assert programmer.writes[0]["data"] == bytes([19, 0, 0])
+    assert (
+        programmer.writes[0]["object_index"]
+        == PROFILES[profile_index].object_index_base + 1
+    )
+    commissioner.scan.assert_awaited_once_with()
+
+
+@pytest.mark.parametrize("error", [7, 8, 9, 10, 11])
+async def test_replacement_errors_keep_gateway_reason_and_skip_readback(error):
+    from unittest.mock import AsyncMock
+
+    from xknxeditor.dali.profiles import PROFILES
+
+    programmer = FakeProgrammer()
+    programmer.set_read(PropertyType.COMMAND, bytes([255, error, 3]))
+    commissioner = MdtDaliCommissioner(
+        MdtDaliConnection(programmer, profile=PROFILES[0])
+    )
+    commissioner.scan = AsyncMock()
+    with pytest.raises(DaliCommissioningError, match=f"result={error}, detail=3"):
+        await commissioner.replace_ecg()
+    commissioner.scan.assert_not_awaited()
+
+
+async def test_cancelled_replacement_aborts_and_never_reports_success():
+    import asyncio
+    from unittest.mock import AsyncMock
+
+    from xknxeditor.dali.profiles import PROFILES
+
+    programmer = FakeProgrammer()
+    connection = MdtDaliConnection(programmer, profile=PROFILES[0])
+    connection.poll_result = AsyncMock(side_effect=asyncio.CancelledError)
+    commissioner = MdtDaliCommissioner(connection)
+    commissioner.scan = AsyncMock()
+    with pytest.raises(asyncio.CancelledError):
+        await commissioner.replace_ecg()
+    assert [w["data"] for w in programmer.writes] == [
+        bytes([19, 0, 0]),
+        bytes([3, 0, 0]),
+    ]
+    commissioner.scan.assert_not_awaited()
+
+
+async def test_replacement_requires_a_known_profile():
+    commissioner, programmer = _setup()
+    with pytest.raises(DaliCommissioningError, match="unsupported"):
+        await commissioner.replace_ecg()
+    assert not programmer.writes
 
 
 async def test_identify_sends_expected_command_bytes() -> None:

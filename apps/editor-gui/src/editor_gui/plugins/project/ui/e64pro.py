@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections import Counter
 from collections.abc import Callable, Generator
 from contextlib import contextmanager
 from dataclasses import dataclass, field
@@ -524,10 +525,35 @@ class Workspace:
     ) -> None:
         physical = root.findall("devecgs/*")
         logical = root.findall("ecgs/*")
-        addresses = [e.get("short-address", "255") for e in logical]
-        by_address: dict[str, list[ET.Element]] = {}
+        addresses = Counter(e.get("short-address", "255") for e in logical)
+        indexes = Counter(e.get("index", "") for e in logical)
+        by_slot: dict[str, list[ET.Element]] = {}
         for e in physical:
-            by_address.setdefault(e.get("short-address", "255"), []).append(e)
+            by_slot.setdefault(e.get("index", ""), []).append(e)
+        assigned: dict[str, ET.Element] = {}
+        for e in logical:
+            index = e.get("index", "")
+            address = e.get("short-address", "255")
+            matches = by_slot.get(address, [])
+            if (
+                not index.isdecimal()
+                or not 0 <= int(index) < 64
+                or indexes[index] != 1
+                or not address.isdecimal()
+                or not 0 <= int(address) < 64
+                or addresses[address] != 1
+                or len(matches) != 1
+            ):
+                continue
+            item = matches[0]
+            group = item.get("groupindex", "255")
+            if (
+                item.get("short-address") == index
+                and group.isdecimal()
+                and 0 <= int(group) <= 255
+                and int(group) & 63 <= 16
+            ):
+                assigned[index] = item
         with table(
             "gear",
             [
@@ -548,15 +574,8 @@ class Workspace:
                     if selected not in ("*", group):
                         continue
                     addr = e.get("short-address", "255")
-                    matches = by_address.get(addr, [])
-                    gtin = (
-                        matches[0].get("gtin", "—")
-                        if addr.isdecimal()
-                        and 0 <= int(addr) < 64
-                        and len(matches) == 1
-                        and addresses.count(addr) == 1
-                        else "—"
-                    )
+                    item = assigned.get(e.get("index", ""))
+                    gtin = item.get("gtin", "—") if item is not None else "—"
                     cells(
                         [
                             number(e.get("index", "?")),
@@ -575,17 +594,11 @@ class Workspace:
         ) as show:
             if show:
                 for e in physical:
-                    addr = e.get("short-address", "255")
-                    if (
-                        not addr.isdecimal()
-                        or not 0 <= int(addr) < 64
-                        or addresses.count(addr) != 1
-                        or len(by_address[addr]) != 1
-                    ):
+                    if e not in assigned.values():
                         cells(
                             [
                                 number(e.get("index", "?")),
-                                addr,
+                                e.get("index", "?"),
                                 e.get("long-address", ""),
                                 e.get("gtin", ""),
                             ]

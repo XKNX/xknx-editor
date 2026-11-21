@@ -4218,3 +4218,6 @@ msgstr "Obnovit bránu…"
 
 msgid "Restore the saved physical inventory and configuration to this gateway and restart it? This overwrites its DALI state and cannot be undone in the project."
 msgstr "Obnovit uložená fyzická zařízení a konfiguraci do této brány a restartovat ji? Přepíše se stav DALI a v projektu to nelze vrátit zpět."
+
+msgid "Template members"
+msgstr "Členové šablony"

@@ -4297,3 +4297,6 @@ msgstr "Obnovi prehod…"
 
 msgid "Restore the saved physical inventory and configuration to this gateway and restart it? This overwrites its DALI state and cannot be undone in the project."
 msgstr "Obnovim shranjene fizične naprave in konfiguracijo na tem prehodu ter ga znova zaženem? To prepiše stanje DALI in tega v projektu ni mogoče razveljaviti."
+
+msgid "Template members"
+msgstr "Člani predloge"
