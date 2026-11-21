@@ -3447,10 +3447,11 @@ def _shadowed(ui: DynamicUI, ref_id: str) -> bool:
 def _shadow_candidates(ui: DynamicUI, hidden: frozenset[str]) -> frozenset[str]:
     """The param-refs of the application of ``ui`` that :func:`_shadowed` can find: of a
     parameter with several refs, one of them in ``hidden``, and union members with later
-    members (of the last few applications)."""
+    members (of the last few applications). ``hidden`` is compared by its refs: each call
+    of :func:`_hidden_fixed` makes a set of its own."""
     indexer = ui.indexer
     for seen, seen_hidden, candidates in _SHADOW_CANDIDATES:
-        if seen is indexer and seen_hidden is hidden:
+        if seen is indexer and seen_hidden == hidden:
             return candidates
     refs_of: dict[str, list[str]] = {}
     for ref_id, ref in indexer.parameter_refs.items():
@@ -4320,8 +4321,25 @@ _HIDDEN: list[tuple[object, Mapping[str, str]]] = []
 
 def _hidden_fixed(program: object, ui: DynamicUI) -> frozenset[str]:
     """The refs of the application program's hidden settings with a fixed value (see
-    :func:`_fixed_values`): the product's data gives them, not the memory."""
-    return frozenset(_hidden_fixed_values(program, ui))
+    :func:`_fixed_values`): the product's data gives them, not the memory. The same set for
+    the same program and search (a search asks for it with every UI it judges)."""
+    cache: _SearchCache | None = getattr(_SEARCH, "cache", None)
+    editable = (
+        cache.editable_parameter_refs
+        if cache is not None and cache.application.program is program
+        else None
+    )
+    for seen, seen_editable, refs in _HIDDEN_REFS:
+        if seen is program and seen_editable is editable:
+            return refs
+    refs = frozenset(_hidden_fixed_values(program, ui))
+    _HIDDEN_REFS.insert(0, (program, editable, refs))
+    del _HIDDEN_REFS[4:]
+    return refs
+
+
+# The refs of _hidden_fixed of the last programs, with the editable refs of their search.
+_HIDDEN_REFS: list[tuple[object, object, frozenset[str]]] = []
 
 
 def _hidden_fixed_values(program: object, ui: DynamicUI) -> Mapping[str, str]:

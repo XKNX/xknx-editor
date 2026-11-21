@@ -17,7 +17,9 @@ from xknxeditor.recover.parameters import (
     RecoveredParameters,
     RecoveryEffort,
     _fixed_values,  # pyright: ignore[reportPrivateUsage]
+    _hidden_fixed,  # pyright: ignore[reportPrivateUsage]
     _refine_fixed,  # pyright: ignore[reportPrivateUsage]
+    _shadow_candidates,  # pyright: ignore[reportPrivateUsage]
     recover_parameters,
 )
 from xknxeditor.recover.recover import seed_dynamic_ui
@@ -168,3 +170,17 @@ def test_the_fixed_markers_correct_the_function_with_the_mode_of_its_channel(
     assert result.complete
     assert result.values[_INPUT] == "8"
     assert result.values.get(_MODE) == "1"
+
+
+def test_the_hidden_settings_and_shadow_candidates_are_kept_per_program(
+    application: Application,
+) -> None:
+    # Asked with every UI a search judges: computed once per program (and set of hidden
+    # refs, compared by its refs), not again for each new set of the same refs.
+    ui = application.dynamic_ui()
+    assert ui is not None
+    hidden = _hidden_fixed(application.program, ui)
+    assert _hidden_fixed(application.program, ui) is hidden
+    assert {f"{_APP}_P-2_R-20", f"{_APP}_P-2_R-28"} <= hidden
+    candidates = _shadow_candidates(ui, frozenset(hidden))
+    assert _shadow_candidates(ui, frozenset(set(hidden))) is candidates
