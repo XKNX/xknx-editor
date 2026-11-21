@@ -23,6 +23,7 @@ _TYPE = f"{_APP}_UP-2_R-2"
 _EXTRA = f"{_APP}_UP-5_R-5"
 _DELAY = f"{_APP}_P-3_R-3"
 _MODE = f"{_APP}_P-4_R-4"
+_COPY = f"{_APP}_P-6_R-6"
 _WIDE = f"{_APP}_PT-W"
 
 _EXTRA_BESIDE = f"""
@@ -33,7 +34,7 @@ _EXTRA_BESIDE = f"""
             </choose>"""
 
 
-def _xml(*, nested: bool) -> str:
+def _xml(*, nested: bool, assign: str = "", assign_alone: str = "") -> str:
     return f"""<?xml version="1.0" encoding="utf-8"?>
 <KNX xmlns="http://knx.org/xml/project/20" CreatedBy="test" ToolVersion="1">
   <ManufacturerData><Manufacturer RefId="M-00FA"><ApplicationPrograms>
@@ -92,6 +93,7 @@ def _xml(*, nested: bool) -> str:
           <Parameter Id="{_APP}_P-3" Name="Delay" ParameterType="{_APP}_PT-N" Text="Delay" Value="10">
             <Memory CodeSegment="{_SEGMENT}" Offset="2" BitOffset="0" />
           </Parameter>
+          <Parameter Id="{_APP}_P-6" Name="Copy" ParameterType="{_APP}_PT-R" Text="" Access="None" Value="0" />
         </Parameters>
         <ParameterRefs>
           <ParameterRef Id="{_ROLE}" RefId="{_APP}_UP-1" />
@@ -99,18 +101,19 @@ def _xml(*, nested: bool) -> str:
           <ParameterRef Id="{_EXTRA}" RefId="{_APP}_UP-5" />
           <ParameterRef Id="{_DELAY}" RefId="{_APP}_P-3" />
           <ParameterRef Id="{_MODE}" RefId="{_APP}_P-4" />
+          <ParameterRef Id="{_COPY}" RefId="{_APP}_P-6" />
         </ParameterRefs>
       </Static>
       <Dynamic>
         <ChannelIndependentBlock>
           <ParameterBlock Id="{_APP}_PB-1" Text="General">
             <ParameterRefRef RefId="{_MODE}" />
-            <ParameterRefRef RefId="{_ROLE}" />
+            <ParameterRefRef RefId="{_ROLE}" />{assign}
             <choose ParamRefId="{_ROLE}">
               <when test="0">
                 <ParameterRefRef RefId="{_DELAY}" />
               </when>
-              <when test="1">{_EXTRA_BESIDE if nested else ""}
+              <when test="1">{_EXTRA_BESIDE if nested else ""}{assign_alone}
               </when>
               <when test="2">
                 <ParameterRefRef RefId="{_TYPE}" />
@@ -125,8 +128,14 @@ def _xml(*, nested: bool) -> str:
 """
 
 
-def _application(*, nested: bool = False) -> Application:
-    return parse_application_xml(_xml(nested=nested).encode(), "M-00FA")[0]
+def _application(
+    *, nested: bool = False, assign: str = "", assign_alone: str = ""
+) -> Application:
+    """With ``assign`` beside "Role", ``assign_alone`` where "Role" is "Alone"."""
+    return parse_application_xml(
+        _xml(nested=nested, assign=assign, assign_alone=assign_alone).encode(),
+        "M-00FA",
+    )[0]
 
 
 def _segments(application: Application, values: dict[str, str]) -> dict[str, bytes]:
@@ -165,6 +174,53 @@ def test_no_value_is_tried_when_no_later_member_holds_the_bits(
     assert recovered.values.get(_ROLE, "0") != "2"
     assert recovered.values[_DELAY] == "7"
     assert not recovered.complete
+
+
+@pytest.mark.parametrize(
+    "assign",
+    [
+        # An Assign of another setting: the values of the members are still those read.
+        f'<Assign TargetParamRefRef="{_DELAY}" Value="7" />',
+        f'<Assign TargetParamRefRef="{_COPY}" Value="1" />',
+    ],
+)
+def test_an_assign_of_another_setting_has_no_value_tried(
+    tried: list[str], assign: str
+) -> None:
+    application = _application(assign=assign)
+    segments = _segments(application, {_DELAY: "7"})
+    segments[_SEGMENT] = bytes([9, 0, 7])
+
+    recovered = recover_parameters(application, segments)
+    assert _ROLE not in tried
+    assert not recovered.complete
+
+
+def test_the_values_are_tried_when_an_assign_sets_a_later_member(
+    tried: list[str],
+) -> None:
+    # "Alone" assigns "Extra" the 9 the device holds (without "Mode" showing it).
+    application = _application(
+        assign_alone=f'<Assign TargetParamRefRef="{_EXTRA}" Value="9" />'
+    )
+    segments = _segments(application, {_DELAY: "7"})
+    segments[_SEGMENT] = bytes([9, 0, 7])
+
+    recover_parameters(application, segments)
+    assert _ROLE in tried
+
+
+def test_the_values_are_tried_when_an_assign_copies_the_member(
+    tried: list[str],
+) -> None:
+    application = _application(
+        assign=f'<Assign TargetParamRefRef="{_COPY}" SourceParamRefRef="{_ROLE}" />'
+    )
+    segments = _segments(application, {_DELAY: "7"})
+    segments[_SEGMENT] = bytes([9, 0, 7])
+
+    recover_parameters(application, segments)
+    assert _ROLE in tried
 
 
 def test_the_values_are_tried_when_a_later_member_holds_the_bits(

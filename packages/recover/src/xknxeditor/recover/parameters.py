@@ -3899,8 +3899,9 @@ def _later_member_can_hold(
 
     - no other parameter writes its bits (no module, no parameter outside the union), and each
       later member writes all of them;
-    - the value of a member comes from ``values`` or its default alone (no Assign in the
-      application, no calculation of it or of ``ref_id``);
+    - the value of a member comes from ``values`` or its default alone (no Assign sets
+      ``ref_id`` or a later member or copies ``ref_id``, no calculation of it or of
+      ``ref_id``, no module definition);
     - each later member either has a restricted type whose choices (from ``values`` and its
       default too) have other bits there, with any setting of its bits around them (see
       :func:`_choice_with_bits`); or it is not active with ``values``, and ``ref_id`` decides
@@ -3909,9 +3910,18 @@ def _later_member_can_hold(
     Whatever its value, the last later member active writes all of the bits then, with other
     bits than those read: the bytes differ."""
     indexer = ui.indexer
-    if ui.has_assigns or indexer.module_defs:
+    if indexer.module_defs:
         return True
     local = ui.local_ref_id(ref_id)
+    if ui.has_assigns:
+        targets, sources = _assign_links(ui)
+        # An Assign that sets the member or a later one, or copies the member's value into
+        # another setting (which can decide whether a later one is shown): the values are
+        # not those of ``values`` alone.
+        if local in sources or any(
+            ui.local_ref_id(ref) in targets for ref in (ref_id, *later)
+        ):
+            return True
     if indexer.calculations_for_l(local) or indexer.calculations_for_r(local):
         return True
     layout = _memory_union_bits(application, indexer)
@@ -3975,6 +3985,40 @@ def _later_member_can_hold(
         if member in actives or deciding is None or local in deciding:
             return True
     return False
+
+
+# The param-refs the Assigns of an application write and those they copy from, per indexer of
+# the last few applications searched (see _assign_links).
+_ASSIGN_LINKS: list[tuple[object, tuple[frozenset[str], frozenset[str]]]] = []
+
+
+def _assign_links(ui: DynamicUI) -> tuple[frozenset[str], frozenset[str]]:
+    """The param-refs any Assign of the application writes, and those any Assign copies from
+    (whatever the values select)."""
+    from xknxeditor.namespaces.intermediate import Assign
+
+    indexer = ui.indexer
+    for seen, known in _ASSIGN_LINKS:
+        if seen is indexer:
+            return known
+    targets: set[str] = set()
+    sources: set[str] = set()
+    stack: list[object] = [getattr(getattr(ui, "_app", None), "dynamic", None)]
+    while stack:
+        element = stack.pop()
+        if element is None:
+            continue
+        if isinstance(element, Assign):
+            targets.add(element.target_param_ref_ref)
+            if element.source_param_ref_ref is not None:
+                sources.add(element.source_param_ref_ref)
+            continue
+        stack.extend(getattr(element, "when", None) or [])
+        stack.extend(getattr(element, "choice", None) or [])
+    known = (frozenset(targets), frozenset(sources))
+    _ASSIGN_LINKS.insert(0, (indexer, known))
+    del _ASSIGN_LINKS[4:]
+    return known
 
 
 def _member_can_hold(
