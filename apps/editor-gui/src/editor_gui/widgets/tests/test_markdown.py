@@ -114,7 +114,7 @@ def test_a_numbered_item_ends_its_number_before_its_text(
         lambda text, origin: drawn.append((text, origin.x)),
     )
 
-    def wrapped(text: str, _width: float) -> None:
+    def wrapped(text: str, _width: float, *_selection: object) -> None:
         drawn.append((text, imgui.get_cursor_screen_pos().x))
         imgui.dummy(imgui.ImVec2(1, 1))
 
@@ -149,7 +149,7 @@ def test_compact_items_start_further_left(monkeypatch: pytest.MonkeyPatch) -> No
     # The release notes: the text 22 px in, its bullet ending 8 px before it.
     starts: list[float] = []
 
-    def wrapped(_text: str, _width: float) -> None:
+    def wrapped(_text: str, _width: float, *_selection: object) -> None:
         starts.append(imgui.get_cursor_screen_pos().x)
         imgui.dummy(imgui.ImVec2(1, 1))
 
@@ -174,7 +174,7 @@ def test_a_bullet_lies_before_its_text(
         def add_circle_filled(self, center: imgui.ImVec2, *_args: object) -> None:
             circles.append(center.x)
 
-    def wrapped(_text: str, _width: float) -> None:
+    def wrapped(_text: str, _width: float, *_selection: object) -> None:
         starts.append(imgui.get_cursor_screen_pos().x)
         imgui.dummy(imgui.ImVec2(1, 1))
 

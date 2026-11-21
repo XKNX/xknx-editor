@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 
 from imgui_bundle import imgui
 
@@ -13,6 +14,9 @@ from editor_gui.widgets import text_layout
 from editor_gui.widgets.dpi import px
 from editor_gui.widgets.fonts import bold, semilight
 from editor_gui.widgets.wrapping import LINE_GAP, vertical_space, wrapped_text
+
+if TYPE_CHECKING:
+    from editor_gui.widgets.text_selection import TextSelection
 
 _HEADING = re.compile(r"^(#{1,6})\s+(.*)$")
 _BULLET = re.compile(r"^\s*[-*+]\s+(.*)$")
@@ -113,7 +117,13 @@ def _gap(previous: _Block, block: _Block, layout: Layout) -> float:
     )
 
 
-def render_markdown(text: str, layout: Layout = HELP_PAGE) -> None:
+def render_markdown(
+    text: str, layout: Layout = HELP_PAGE, selection: TextSelection | None = None
+) -> None:
+    """``text`` laid out with ``layout``; with ``selection`` (of the window it is shown in) its
+    text can be selected and copied."""
+    if selection is not None:
+        selection.begin(text)
     spacing = imgui.get_style().item_spacing
     # Between blocks only the room set here.
     imgui.push_style_var(imgui.StyleVar_.item_spacing, imgui.ImVec2(spacing.x, 0.0))
@@ -123,31 +133,35 @@ def render_markdown(text: str, layout: Layout = HELP_PAGE) -> None:
             # The block above already left the line gap below its last line.
             vertical_space(px(_gap(previous, block, layout) - LINE_GAP))
         if block.kind == "heading":
-            _render_heading(block)
+            _render_heading(block, selection)
         elif block.kind == "paragraph":
-            wrapped_text(block.text, imgui.get_content_region_avail().x)
+            wrapped_text(block.text, imgui.get_content_region_avail().x, selection)
         else:
-            _render_item(block, layout.item_x)
+            _render_item(block, layout.item_x, selection)
         previous = block
     imgui.pop_style_var()
+    if selection is not None:
+        selection.end()
 
 
-def _render_heading(block: _Block) -> None:
+def _render_heading(block: _Block, selection: TextSelection | None) -> None:
     scale, face = _HEADINGS[min(block.level, len(_HEADINGS)) - 1]
     width = imgui.get_content_region_avail().x
     if face == "bold":
         with bold(scale):
-            wrapped_text(block.text, width)
+            wrapped_text(block.text, width, selection)
     elif face == "semilight":
         with semilight(scale):
-            wrapped_text(block.text, width)
+            wrapped_text(block.text, width, selection)
     else:
         imgui.push_font(None, imgui.get_style().font_size_base * scale)
-        wrapped_text(block.text, width)
+        wrapped_text(block.text, width, selection)
         imgui.pop_font()
 
 
-def _render_item(block: _Block, item_x: float) -> None:
+def _render_item(
+    block: _Block, item_x: float, selection: TextSelection | None = None
+) -> None:
     """A list item: its marker, then its text (``item_x`` in), whose wrapped lines start below
     its first."""
     left = imgui.get_cursor_screen_pos()
@@ -170,4 +184,6 @@ def _render_item(block: _Block, item_x: float) -> None:
             number, imgui.ImVec2(end - text_layout.text_width(number), left.y)
         )
     imgui.set_cursor_screen_pos(imgui.ImVec2(left.x + px(item_x), left.y))
-    wrapped_text(block.text, imgui.get_content_region_avail().x)
+    # A copy of the item begins with its marker.
+    marker = "• " if block.kind == "bullet" else f"{block.number}. "
+    wrapped_text(block.text, imgui.get_content_region_avail().x, selection, marker)

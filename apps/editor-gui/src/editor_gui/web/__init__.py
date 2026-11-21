@@ -490,6 +490,11 @@ def enable_web_mode(
             from editor_gui.widgets.rich_text_edit import active_selection
 
             selected = active_selection()
+        if not selected:
+            # Text selected where none is typed (the help of the parameters).
+            from editor_gui.widgets import text_selection
+
+            selected = text_selection.active_selection()
         if selected != selection_shown[0]:
             selection_shown[0] = selected
             hub.set_selection(selected)
