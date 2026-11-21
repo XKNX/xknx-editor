@@ -2154,12 +2154,14 @@ def _written_over_in_part(ui: DynamicUI, ref_id: str, actives: Collection[str]) 
 
 
 def _gates_and_sources(ui: DynamicUI, ref_id: str) -> set[str]:
-    """The selectors on the way to the param-ref ``ref_id`` (see :func:`_gates_of`), and the
-    param-refs their Assigns copy them from: a module placed behind a hidden copy of a shown
-    setting is shown by that setting."""
+    """The selectors on the way to the param-ref ``ref_id`` (see :func:`_gates_of`), the
+    param-refs their Assigns copy them from and those a parameter calculation computes them
+    from: a module placed behind a hidden copy of a shown setting is shown by that setting, a
+    setting behind a hidden selector calculated from a switch by that switch."""
     gates = _gates_of(ui, ref_id)
     sources = {ui.assigned_source(gate) for gate in gates}
-    return gates | {source for source in sources if source is not None}
+    inputs = {ref for gate in gates for ref in _calculation_inputs(ui, gate)}
+    return gates | inputs | {source for source in sources if source is not None}
 
 
 def _refine_pairs(
