@@ -70,6 +70,7 @@ _WORD = re.compile(r"[A-Za-z]{3,}")
 # Text that is the same in every language, with the reason.
 TECHNICAL = {
     "DPST-1-1": "example of a datapoint type token",
+    "{} (DALI 0..254)": "language-invariant DALI value range beside the translated label",
 }
 
 
