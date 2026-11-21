@@ -8,6 +8,9 @@ shows "Delay" and its group object; the memory of "Delay" and the linked object 
 
 from __future__ import annotations
 
+import pytest
+
+import xknxeditor.recover.parameters as parameters
 from xknxeditor.prod.application import Application, parse_application_xml
 from xknxeditor.recover.parameters import recover_parameters
 
@@ -103,3 +106,92 @@ def test_without_evidence_the_first_fitting_value_stays() -> None:
     recovered = recover_parameters(_application(), {_SEGMENT: bytes([0, 0])})
     assert recovered.values[_TYPE] == "0"
     assert recovered.complete
+
+
+def test_within_a_search_a_reading_is_made_once(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # A decode reads the same members again for the same UI and values: within a search
+    # that reading is made once; for other values, memory or UI it is made again.
+    application = _application()
+    ui = parameters._seeded(application, {}, None)  # pyright: ignore[reportPrivateUsage]
+    assert ui is not None
+    made: list[dict[str, str]] = []
+    reading = parameters._written_over_values  # pyright: ignore[reportPrivateUsage]
+
+    def counted(*args: object, **kwargs: object) -> dict[str, str]:
+        made.append(dict(args[3]))  # type: ignore[call-overload]
+        return reading(*args, **kwargs)  # type: ignore[arg-type]
+
+    monkeypatch.setattr(parameters, "_written_over_values", counted)
+    unknown = [f"{_APP}_UP-1"]
+
+    def read(
+        values: dict[str, str], memory: bytes = bytes([0, 99]), seeding: str = "a"
+    ) -> dict[str, str]:
+        return parameters._written_over_read(  # pyright: ignore[reportPrivateUsage]
+            application,
+            ui,
+            (seeding,),
+            {_SEGMENT: memory},
+            values,
+            unknown,
+            None,
+            {},
+        )
+
+    found = read({_DELAY: "99"})
+    assert len(made) == 1
+    read({_DELAY: "99"})
+    assert len(made) == 2  # no search: made each time
+    monkeypatch.setattr(
+        parameters._SEARCH,  # pyright: ignore[reportPrivateUsage]
+        "cache",
+        parameters._SearchCache(application),  # pyright: ignore[reportPrivateUsage]
+        raising=False,
+    )
+    assert read({_DELAY: "99"}) == found
+    found["changed"] = "1"
+    assert read({_DELAY: "99"}) == {k: v for k, v in found.items() if k != "changed"}
+    assert len(made) == 3
+    read({_DELAY: "98"})
+    read({_DELAY: "99"}, bytes([1, 99]))
+    read({_DELAY: "99"}, seeding="b")
+    assert len(made) == 6
+
+
+@pytest.mark.parametrize(
+    ("memory", "seeded_with_shadow"), [(0x00, False), (0x20, True)]
+)
+def test_a_later_member_read_as_it_is_seeds_no_ui_again(
+    monkeypatch: pytest.MonkeyPatch, memory: int, seeded_with_shadow: bool
+) -> None:
+    # "Type" is tried with "Shadow" as the memory holds it: where that is the value the UI
+    # gives it already, the UI is the one seeded without it, and none is seeded again.
+    application = _application()
+    ui = parameters._seeded(application, {}, None)  # pyright: ignore[reportPrivateUsage]
+    assert ui is not None
+    seeded: list[dict[str, str]] = []
+    seed = parameters._seeded  # pyright: ignore[reportPrivateUsage]
+
+    def counted(
+        application: Application,
+        values: dict[str, str],
+        *args: object,
+        **kwargs: object,
+    ) -> object:
+        seeded.append(dict(values))
+        return seed(application, values, *args, **kwargs)  # type: ignore[arg-type]
+
+    monkeypatch.setattr(parameters, "_seeded", counted)
+    found = parameters._written_over_values(  # pyright: ignore[reportPrivateUsage]
+        application,
+        ui,
+        {_SEGMENT: bytes([memory, 0])},
+        {},
+        [f"{_APP}_UP-1"],
+        None,
+        {},
+    )
+    assert found == {_TYPE: "0"}
+    assert any(_SHADOW in values for values in seeded) is seeded_with_shadow

@@ -204,6 +204,8 @@ class _SearchCache:
     MEMORY_TRIALS = 96
     # UIs whose group objects are kept at most (see objects_of).
     OBJECTS = 16
+    # Readings of written over union members kept at most (see written_over).
+    WRITTEN_OVER = 256
 
     def __init__(
         self,
@@ -253,6 +255,10 @@ class _SearchCache:
         self.objects: OrderedDict[int, tuple[list[UiNode], list[tuple[int, str]]]] = (
             OrderedDict()
         )
+        # The values of union members read as written over (see _written_over_values), by
+        # how the UI they were read in was seeded and the values and the unknown parameters
+        # they were read with: a decode reads them again for the same values (the last ones).
+        self.written_over: OrderedDict[tuple[object, ...], _ValueMap] = OrderedDict()
 
     def objects_of(self, nodes: list[UiNode]) -> list[tuple[int, str]]:
         """The number and the size of each group object the evaluated UI ``nodes`` (a UI's
@@ -2768,12 +2774,17 @@ def _decode(
     # evaluated (which drops the module instances it does not show): a UI of its own then,
     # and one evaluated alike, if there is one, to decode with.
     alike: DynamicUI | None = None
+    # How ``ui`` was seeded: the readings of written over members are kept by it.
+    seeding: tuple[object, ...]
     if not inferred:
         ui = application.dynamic_ui()
+        seeding = ("default",)
     elif fixed is None or fixed:
         ui, alike = _seeded_for_lookups(application, inferred, project_code_page)
+        seeding = ("lookups", frozenset(inferred.items()))
     else:
         ui = _seeded(application, inferred, project_code_page)
+        seeding = ("seeded", frozenset(inferred.items()))
     assert ui is not None
     ui.project_code_page = project_code_page
     if fixed is None:
@@ -2787,11 +2798,14 @@ def _decode(
         if clean != inferred:
             inferred = clean
             ui = _seeded(application, inferred, project_code_page)
+            seeding = ("seeded", frozenset(inferred.items()))
             assert ui is not None
         elif alike is not None:
             ui = alike
+            seeding = ("alike", *seeding[1:])
     elif alike is not None:
         ui = alike
+        seeding = ("alike", *seeding[1:])
     parameter_to_refs = _parameter_to_refs(application)
     values: _ValueMap = {}
     unknown: list[str] = []
@@ -2845,9 +2859,10 @@ def _decode(
                 and _shadowed(ui, ref_id)
             ):
                 read[ref_id] = value
-        written_over = _written_over_values(
+        written_over = _written_over_read(
             application,
             ui,
+            seeding,
             parameter_segments,
             {**inferred, **read},
             unknown,
@@ -2872,12 +2887,12 @@ def _decode(
         values = read
         # With what the calculations make of them too: a parameter shown behind a calculated
         # switch is decoded once the switch has its value.
-        seeded_ui = _seeded(
-            application, calculated({**inferred, **values}), project_code_page
-        )
+        seeding_values = calculated({**inferred, **values})
+        seeded_ui = _seeded(application, seeding_values, project_code_page)
         if seeded_ui is None:
             break
         ui = seeded_ui
+        seeding = ("seeded", frozenset(seeding_values.items()))
 
     # Module-instance parameters: decode against a UI seeded with the just-recovered
     # top-level values so the module instances match the device. The module decoder
@@ -3538,6 +3553,56 @@ def _type_has_value(indexer: ApplicationIndexer, parameter: object, value: str) 
     return False
 
 
+def _written_over_read(
+    application: Application,
+    ui: DynamicUI,
+    seeding: tuple[object, ...],
+    segments: Mapping[str, bytes],
+    values: Mapping[str, str],
+    unknown: Collection[str],
+    project_code_page: str | None,
+    properties: Mapping[TypedPropertyKey, bytes],
+    cancel: Callable[[], bool] | None = None,
+) -> _ValueMap:
+    """:func:`_written_over_values`, read once within a search for the same UI (by how it
+    was ``seeding``: the same values seed the same UI), memory, properties, values and
+    unknown parameters."""
+    cache = _search_cache(application)
+    if cache is None or not unknown:
+        return _written_over_values(
+            application,
+            ui,
+            segments,
+            values,
+            unknown,
+            project_code_page,
+            properties,
+            cancel,
+        )
+    key = (
+        seeding,
+        project_code_page,
+        frozenset(segments.items()),
+        frozenset(properties.items()),
+        frozenset(values.items()),
+        frozenset(unknown),
+    )
+    if key in cache.written_over:
+        return dict(cache.get(cache.written_over, key))
+    found = _written_over_values(
+        application,
+        ui,
+        segments,
+        values,
+        unknown,
+        project_code_page,
+        properties,
+        cancel,
+    )
+    cache.put(cache.written_over, key, dict(found), cache.WRITTEN_OVER)
+    return found
+
+
 def _written_over_values(
     application: Application,
     ui: DynamicUI,
@@ -3648,7 +3713,10 @@ def _written_over_values(
             ):
                 continue
             behind = _later_members_read(seeded, ref_id, segments, trial)
-            if behind:
+            if behind and any(
+                seeded.get_value(ref) != value for ref, value in behind.items()
+            ):
+                # Seeded with the values they have already, the UI would be this one again.
                 seeded = _seeded(application, {**trial, **behind}, project_code_page)
                 if seeded is None:
                     continue
