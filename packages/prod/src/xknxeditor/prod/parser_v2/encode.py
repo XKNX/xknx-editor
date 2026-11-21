@@ -8,7 +8,7 @@ import logging
 import math
 import re
 import struct
-from collections.abc import Callable, Container, Iterable, Iterator, Mapping
+from collections.abc import Callable, Collection, Container, Iterable, Iterator, Mapping
 from functools import lru_cache
 from typing import NamedTuple
 
@@ -204,15 +204,19 @@ def segment_seed(seg: SegmentBase) -> bytearray:
 def _write_bits(
     buf: bytearray, offset: int, bit_offset: int, size_in_bit: int, value: int
 ) -> None:
-    """Pack value big-endian into buf at offset+bit_offset (bit 0 = byte MSB)."""
+    """Pack value big-endian into buf at offset+bit_offset (bit 0 = byte MSB): its lowest
+    ``size_in_bit`` bits (of a negative value its two's complement)."""
+    if size_in_bit <= 0:
+        return
     start = offset * 8 + bit_offset
-    for i in range(size_in_bit):
-        pos = start + i
-        bit_mask = 1 << (7 - pos % 8)
-        if (value >> (size_in_bit - 1 - i)) & 1:
-            buf[pos // 8] |= bit_mask
-        else:
-            buf[pos // 8] &= ~bit_mask
+    first = start // 8
+    last = (start + size_in_bit - 1) // 8
+    # The bits after the value in its last byte.
+    shift = (last + 1) * 8 - start - size_in_bit
+    mask = ((1 << size_in_bit) - 1) << shift
+    held = int.from_bytes(buf[first : last + 1], "big")
+    held = (held & ~mask) | ((value << shift) & mask)
+    buf[first : last + 1] = held.to_bytes(last - first + 1, "big")
 
 
 def _write_param(buf: bytearray, w: MemWrite, size_in_bit: int, value: int) -> bool:
@@ -698,6 +702,37 @@ def parameter_ref_order(ref_id: str, tag: str | None) -> tuple[int, int]:
     return 0, int(number.group(1)) if number else 0
 
 
+def _ref_orders(idx: ApplicationIndexer) -> dict[str, tuple[str, tuple[int, int], int]]:
+    """For each ParameterRef of the application of ``idx``: its parameter, where a download
+    applies it (:func:`parameter_ref_order`) and its place among the refs (made once per
+    indexer: every encoding asks for those of its active refs)."""
+    refs = idx.parameter_refs
+    found = getattr(idx, "ref_orders", None)
+    if found is None or len(found) != len(refs):
+        found = idx.ref_orders = {
+            ref_id: (ref.ref_id, parameter_ref_order(ref_id, ref.tag), place)
+            for place, (ref_id, ref) in enumerate(refs.items())
+        }
+    return found
+
+
+def _active_ref_ranks(
+    idx: ApplicationIndexer, active: Collection[str]
+) -> dict[str, tuple[int, int]]:
+    """:func:`last_active_ref_ranks` of the application's ParameterRefs, from the ``active``
+    ones alone."""
+    orders = _ref_orders(idx)
+    ranks: dict[str, tuple[int, int]] = {}
+    for ref_id in active:
+        entry = orders.get(ref_id)
+        if entry is None:
+            continue
+        parameter, rank, _place = entry
+        if parameter not in ranks or rank > ranks[parameter]:
+            ranks[parameter] = rank
+    return ranks
+
+
 def last_active_ref_ranks(
     refs: Iterable[ParameterRef], active: Container[str]
 ) -> dict[str, tuple[int, int]]:
@@ -729,19 +764,31 @@ def resolve_param_values(idx: ApplicationIndexer, state: GlobalState) -> dict[st
     # When several active refs target the same parameter (one shown on a page, one in a
     # hidden block), the download writes each in turn: the last in parameter_ref_order sets
     # the value (definition order between equal tags).
-    active = state.active_param_refs()
-    overrides: dict[str, str] = {}
-    order: dict[str, tuple[int, int]] = {}
-    for ref_id, pr in idx.parameter_refs.items():
-        if ref_id not in active:
+    # Of the active refs with a value: per parameter the last in that order (the latest
+    # place among equal ones), each parameter where its first such ref is.
+    orders = _ref_orders(idx)
+    chosen: dict[str, tuple[tuple[int, int], int, str]] = {}
+    first: dict[str, int] = {}
+    for ref_id in state.active_param_refs():
+        entry = orders.get(ref_id)
+        if entry is None:
             continue
         value = state.get(ref_id)
         if value is None:
             continue
-        rank = parameter_ref_order(ref_id, pr.tag)
-        if pr.ref_id not in order or rank >= order[pr.ref_id]:
-            order[pr.ref_id] = rank
-            overrides[pr.ref_id] = value
+        parameter, rank, place = entry
+        known = chosen.get(parameter)
+        if known is None:
+            chosen[parameter] = (rank, place, value)
+            first[parameter] = place
+            continue
+        if (rank, place) > known[:2]:
+            chosen[parameter] = (rank, place, value)
+        first[parameter] = min(first[parameter], place)
+    overrides: dict[str, str] = {
+        parameter: chosen[parameter][2]
+        for parameter in sorted(chosen, key=first.__getitem__)
+    }
     # Explicitly configured union alternatives drive the union selection even if
     # the evaluator did not mark their ref active; carry them too.
     for ref_id, _ in state.relative_param_values():
@@ -1236,11 +1283,7 @@ def collect_writes(
     referenced = _referenced_parameters(idx)
     active_refs = state.active_param_refs() if state is not None else set[str]()
     # Active union members over the same bits are written in ParameterRef order.
-    ranks = (
-        last_active_ref_ranks(idx.parameter_refs.values(), active_refs)
-        if state is not None
-        else None
-    )
+    ranks = _active_ref_ranks(idx, active_refs) if state is not None else None
     # With a resolved state, gate top-level parameters to the active set (regular
     # parameters present in overrides); inactive cells stay at the segment seed.
     # Without a state (direct callers), no gating: every static parameter encodes
@@ -1261,7 +1304,9 @@ def collect_writes(
                 _collect_param(item, overrides, None, target)
                 return
             assert isinstance(item, ApplicationProgramStaticParametersUnion)
-            members = [up for up in item.parameter if up.id in referenced]
+            members = (
+                [up for up in item.parameter if up.id in referenced] if keep else []
+            )
             if (
                 keep
                 and active_ids is not None
