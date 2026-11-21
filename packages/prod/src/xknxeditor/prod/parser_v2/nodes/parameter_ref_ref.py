@@ -19,6 +19,8 @@ _MADE = 512
 class ParameterRefRefNode(DynamicNode):
     """Leaf: a parameter widget placed straight into the UI."""
 
+    pure = True
+
     def __init__(
         self,
         elem: ParameterRefRef,
@@ -106,7 +108,7 @@ class ParameterRefRefNode(DynamicNode):
             self._made[key] = made
         elif self._made[key] is not made:
             self._made[key] = made
-        handed.add(id(made))
+        ctx.hand(made)
         return made
 
     def _make(

@@ -97,6 +97,11 @@ class ChooseWhenNode(DynamicNode):
         # excluded). Only the active overlay's Choose should render; a Choose on an inactive member
         # renders nothing (see eval), else overlapping members both render (duplicate content).
         self._union_sibling_refs = union_sibling_refs
+        self.pure = all(
+            node is None or node.pure
+            for nodes in (*condition_to_nodes.values(), default_nodes or [])
+            for node in nodes
+        )
 
     def _gates_capture(self) -> bool:
         return self._widget_param_refs is None or (
@@ -134,6 +139,14 @@ class ChooseWhenNode(DynamicNode):
         explorer = ctx.explore
         if explorer is not None:
             return self._explore(ctx, explorer)
+        if self.pure:
+            memo = ctx.memo
+            if memo is not None:
+                return memo.evaluate(self, ctx, self._select)
+        return self._select(ctx)
+
+    def _select(self, ctx: EvalContext) -> list[UiNode]:
+        """The UiNodes of the branches the value selects (see :meth:`eval`)."""
         # Union-member gate: this Choose's parameter shares memory with its siblings, so only the
         # ACTIVE overlay's content should render (else overlapping members duplicate content). The
         # active overlay is the member REACHED under the current values, determined order-independently

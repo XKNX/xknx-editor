@@ -41,7 +41,7 @@ if TYPE_CHECKING:
     from xknxeditor.download.image import PropertyTarget
     from xknxeditor.prod import Application, MasterData
     from xknxeditor.prod.parser_v2.application_indexer import ApplicationIndexer
-    from xknxeditor.prod.parser_v2.context import Gate
+    from xknxeditor.prod.parser_v2.context import EvalMemo, Gate
     from xknxeditor.prod.parser_v2.dynamic import DynamicUI
     from xknxeditor.prod.parser_v2.encode import PropertyLayout, TypedPropertyKey
     from xknxeditor.prod.parser_v2.ui import UiNode, UiParameter
@@ -204,6 +204,8 @@ class _SearchCache:
     MEMORY_TRIALS = 96
     # UIs whose group objects are kept at most (see objects_of).
     OBJECTS = 16
+    # Readings of written over union members kept at most (see written_over).
+    WRITTEN_OVER = 256
 
     def __init__(
         self,
@@ -253,6 +255,15 @@ class _SearchCache:
         self.objects: OrderedDict[int, tuple[list[UiNode], list[tuple[int, str]]]] = (
             OrderedDict()
         )
+        # The values of union members read as written over (see _written_over_values), by
+        # how the UI they were read in was seeded and the values and the unknown parameters
+        # they were read with: a decode reads them again for the same values (the last ones).
+        self.written_over: OrderedDict[tuple[object, ...], _ValueMap] = OrderedDict()
+        # What the nodes of the UIs the search seeds gave (see EvalMemo): most of a UI is
+        # evaluated as in another the search seeded with nearly the same values.
+        from xknxeditor.prod.parser_v2.context import EvalMemo
+
+        self.eval_memo = EvalMemo()
 
     def objects_of(self, nodes: list[UiNode]) -> list[tuple[int, str]]:
         """The number and the size of each group object the evaluated UI ``nodes`` (a UI's
@@ -481,9 +492,17 @@ def _seeded(
         project_code_page,
         module_instances=module_instances,
         evaluated=True,
+        eval_memo=cache.eval_memo,
     )
     cache.put(cache.uis, key, ui, cache.UIS)
     return ui
+
+
+def _eval_memo(application: Application) -> EvalMemo | None:
+    """What the nodes gave in the evaluations of the search of ``application`` running in
+    this thread (see :class:`~xknxeditor.prod.parser_v2.context.EvalMemo`), if any."""
+    cache = _search_cache(application)
+    return cache.eval_memo if cache is not None else None
 
 
 def _seeded_for_lookups(
@@ -495,11 +514,14 @@ def _seeded_for_lookups(
     out within a search)."""
     from .recover import seed_dynamic_ui
 
-    first = seed_dynamic_ui(application, values, project_code_page, evaluated=True)
+    cache = _search_cache(application)
+    memo = cache.eval_memo if cache is not None else None
+    first = seed_dynamic_ui(
+        application, values, project_code_page, evaluated=True, eval_memo=memo
+    )
     if first is None or not first.evaluated:
         return first, None
     instances = first.get_module_instances()
-    cache = _search_cache(application)
     if cache is not None:
         cache.put(
             cache.uis,
@@ -511,7 +533,11 @@ def _seeded_for_lookups(
         # Without module instances the seeding is the first build itself.
         return first, first
     plain = seed_dynamic_ui(
-        application, values, project_code_page, module_instances=instances
+        application,
+        values,
+        project_code_page,
+        module_instances=instances,
+        eval_memo=memo,
     )
     return plain, first
 
@@ -1350,7 +1376,11 @@ def _alike_for_reads(
     from .recover import seed_dynamic_ui
 
     trial = seed_dynamic_ui(
-        application, {**values, ref_id: value}, project_code_page, evaluated=True
+        application,
+        {**values, ref_id: value},
+        project_code_page,
+        evaluated=True,
+        eval_memo=_eval_memo(application),
     )
     if trial is None:
         return False
@@ -2124,12 +2154,14 @@ def _written_over_in_part(ui: DynamicUI, ref_id: str, actives: Collection[str]) 
 
 
 def _gates_and_sources(ui: DynamicUI, ref_id: str) -> set[str]:
-    """The selectors on the way to the param-ref ``ref_id`` (see :func:`_gates_of`), and the
-    param-refs their Assigns copy them from: a module placed behind a hidden copy of a shown
-    setting is shown by that setting."""
+    """The selectors on the way to the param-ref ``ref_id`` (see :func:`_gates_of`), the
+    param-refs their Assigns copy them from and those a parameter calculation computes them
+    from: a module placed behind a hidden copy of a shown setting is shown by that setting, a
+    setting behind a hidden selector calculated from a switch by that switch."""
     gates = _gates_of(ui, ref_id)
     sources = {ui.assigned_source(gate) for gate in gates}
-    return gates | {source for source in sources if source is not None}
+    inputs = {ref for gate in gates for ref in _calculation_inputs(ui, gate)}
+    return gates | inputs | {source for source in sources if source is not None}
 
 
 def _refine_pairs(
@@ -2489,6 +2521,7 @@ def _refine_fixed(
         fit_now: tuple[_Score, set[_Cell], set[int]],
     ) -> (
         tuple[
+            _ValueMap,
             dict[str, str],
             list[str],
             DynamicUI,
@@ -2498,9 +2531,10 @@ def _refine_fixed(
         | None
     ):
         """The values decoded with ``chosen`` and the fixed values kept, when they fit better
-        than the result so far (``now``, as far from the device as ``fit_now``): the values,
-        those left unknown, the UI seeded with them, how far it is from the device and the
-        bits it differs in (when as far as the result)."""
+        than the result so far (``now``, as far from the device as ``fit_now``): the settings
+        chosen (``chosen``, with those of module instances it makes, see :func:`settle`), the
+        values, those left unknown, the UI seeded with them, how far it is from the device
+        and the bits it differs in (when as far as the result)."""
         nonlocal bits
         trial_values, trial_unknown = _decode(
             application,
@@ -2514,6 +2548,10 @@ def _refine_fixed(
         seeded = _seeded(application, trial_values, project_code_page)
         assert seeded is not None
         fit = _misfit(seeded, parameter_segments, linked, sizes, property_values)
+        if fit is not None and fit[0] > fit_now[0]:
+            settled = settle(chosen, now, seeded, fit)
+            if settled is not None:
+                chosen, trial_values, trial_unknown, seeded, fit = settled
         if fit is None or fit[0] > fit_now[0]:
             return None
         trial_bits: int | None = None
@@ -2523,7 +2561,73 @@ def _refine_fixed(
             trial_bits = _differing_bits(seeded, parameter_segments, fit[1])
             if trial_bits >= bits:
                 return None
-        return trial_values, trial_unknown, seeded, fit, trial_bits
+        return chosen, trial_values, trial_unknown, seeded, fit, trial_bits
+
+    def settle(
+        chosen: _ValueMap,
+        now: DynamicUI,
+        seeded: DynamicUI,
+        fit: tuple[_Score, set[_Cell], set[int]],
+    ) -> (
+        tuple[
+            _ValueMap,
+            dict[str, str],
+            list[str],
+            DynamicUI,
+            tuple[_Score, set[_Cell], set[int]],
+        ]
+        | None
+    ):
+        """``chosen`` with the selectors of the module instances it makes (``seeded`` has them,
+        ``now`` not) corrected where only their settings differ, while that fits better: a
+        function that adds a channel differs in all of that channel's bytes until the
+        channel's own mode, which the device keeps no copy of, is corrected too. None when
+        it makes no instance, or no correction inside one fits better."""
+        before = {instance for instance, _ in now.get_module_instances()}
+        found = None
+        for _ in range(_REFINE_ROUNDS):
+            made = {instance for instance, _ in seeded.get_module_instances()} - before
+            cells = seeded.stored_parameter_cells()
+            inside = {
+                cell
+                for cell in fit[1]
+                if (owners := cells.get(cell))
+                and all(_scope_of(owner) in made for owner in owners)
+            }
+            if not inside:
+                break
+            best = None
+            for gate, value in _refinement_trials(seeded, inside, set(), cancel):
+                if _scope_of(gate) not in made:
+                    continue
+                _check(cancel)
+                # With the settings the inference finds behind the value (the channel's
+                # mode shows settings of its own the device keeps no copy of either).
+                trial = behind({**chosen, gate: value}) or {**chosen, gate: value}
+                trial_values, trial_unknown = _decode(
+                    application,
+                    parameter_segments,
+                    property_values,
+                    project_code_page,
+                    trial,
+                    cancel,
+                    fixed=fixed,
+                )
+                trial_ui = _seeded(application, trial_values, project_code_page)
+                if trial_ui is None:
+                    continue
+                trial_fit = _misfit(
+                    trial_ui, parameter_segments, linked, sizes, property_values
+                )
+                if trial_fit is not None and trial_fit[0] < (best or (fit,))[-1][0]:
+                    best = (trial, trial_values, trial_unknown, trial_ui, trial_fit)
+            if best is None:
+                break
+            chosen, _values, _unknown, seeded, fit = best
+            found = best
+            if _nothing_differs(fit[0]):
+                break
+        return found
 
     def behind(chosen: _ValueMap) -> _ValueMap | None:
         """``chosen`` with the settings the device keeps no copy of that the inference finds
@@ -2596,7 +2700,7 @@ def _refine_fixed(
                     found = better(chosen, ui, current)
                     if found is None:
                         continue
-                    trial_values, trial_unknown, seeded, fit, trial_bits = found
+                    chosen, trial_values, trial_unknown, seeded, fit, trial_bits = found
                     values, unknown, inferred, ui, current = (
                         trial_values,
                         trial_unknown,
@@ -2696,12 +2800,17 @@ def _decode(
     # evaluated (which drops the module instances it does not show): a UI of its own then,
     # and one evaluated alike, if there is one, to decode with.
     alike: DynamicUI | None = None
+    # How ``ui`` was seeded: the readings of written over members are kept by it.
+    seeding: tuple[object, ...]
     if not inferred:
         ui = application.dynamic_ui()
+        seeding = ("default",)
     elif fixed is None or fixed:
         ui, alike = _seeded_for_lookups(application, inferred, project_code_page)
+        seeding = ("lookups", frozenset(inferred.items()))
     else:
         ui = _seeded(application, inferred, project_code_page)
+        seeding = ("seeded", frozenset(inferred.items()))
     assert ui is not None
     ui.project_code_page = project_code_page
     if fixed is None:
@@ -2715,11 +2824,14 @@ def _decode(
         if clean != inferred:
             inferred = clean
             ui = _seeded(application, inferred, project_code_page)
+            seeding = ("seeded", frozenset(inferred.items()))
             assert ui is not None
         elif alike is not None:
             ui = alike
+            seeding = ("alike", *seeding[1:])
     elif alike is not None:
         ui = alike
+        seeding = ("alike", *seeding[1:])
     parameter_to_refs = _parameter_to_refs(application)
     values: _ValueMap = {}
     unknown: list[str] = []
@@ -2773,9 +2885,10 @@ def _decode(
                 and _shadowed(ui, ref_id)
             ):
                 read[ref_id] = value
-        written_over = _written_over_values(
+        written_over = _written_over_read(
             application,
             ui,
+            seeding,
             parameter_segments,
             {**inferred, **read},
             unknown,
@@ -2800,12 +2913,12 @@ def _decode(
         values = read
         # With what the calculations make of them too: a parameter shown behind a calculated
         # switch is decoded once the switch has its value.
-        seeded_ui = _seeded(
-            application, calculated({**inferred, **values}), project_code_page
-        )
+        seeding_values = calculated({**inferred, **values})
+        seeded_ui = _seeded(application, seeding_values, project_code_page)
         if seeded_ui is None:
             break
         ui = seeded_ui
+        seeding = ("seeded", frozenset(seeding_values.items()))
 
     # Module-instance parameters: decode against a UI seeded with the just-recovered
     # top-level values so the module instances match the device. The module decoder
@@ -2938,7 +3051,13 @@ def _calculate(
     guesses_run = False
     while True:
         # Changed below (the calculations run in it): a UI of its own, evaluated first.
-        ui = seed_dynamic_ui(application, result, project_code_page, evaluated=True)
+        ui = seed_dynamic_ui(
+            application,
+            result,
+            project_code_page,
+            evaluated=True,
+            eval_memo=_eval_memo(application),
+        )
         if ui is None:
             return result
         if cancel is not None:
@@ -3375,10 +3494,11 @@ def _shadowed(ui: DynamicUI, ref_id: str) -> bool:
 def _shadow_candidates(ui: DynamicUI, hidden: frozenset[str]) -> frozenset[str]:
     """The param-refs of the application of ``ui`` that :func:`_shadowed` can find: of a
     parameter with several refs, one of them in ``hidden``, and union members with later
-    members (of the last few applications)."""
+    members (of the last few applications). ``hidden`` is compared by its refs: each call
+    of :func:`_hidden_fixed` makes a set of its own."""
     indexer = ui.indexer
     for seen, seen_hidden, candidates in _SHADOW_CANDIDATES:
-        if seen is indexer and seen_hidden is hidden:
+        if seen is indexer and seen_hidden == hidden:
             return candidates
     refs_of: dict[str, list[str]] = {}
     for ref_id, ref in indexer.parameter_refs.items():
@@ -3463,6 +3583,56 @@ def _type_has_value(indexer: ApplicationIndexer, parameter: object, value: str) 
             return False
         return kind.min_inclusive <= number <= kind.max_inclusive
     return False
+
+
+def _written_over_read(
+    application: Application,
+    ui: DynamicUI,
+    seeding: tuple[object, ...],
+    segments: Mapping[str, bytes],
+    values: Mapping[str, str],
+    unknown: Collection[str],
+    project_code_page: str | None,
+    properties: Mapping[TypedPropertyKey, bytes],
+    cancel: Callable[[], bool] | None = None,
+) -> _ValueMap:
+    """:func:`_written_over_values`, read once within a search for the same UI (by how it
+    was ``seeding``: the same values seed the same UI), memory, properties, values and
+    unknown parameters."""
+    cache = _search_cache(application)
+    if cache is None or not unknown:
+        return _written_over_values(
+            application,
+            ui,
+            segments,
+            values,
+            unknown,
+            project_code_page,
+            properties,
+            cancel,
+        )
+    key = (
+        seeding,
+        project_code_page,
+        frozenset(segments.items()),
+        frozenset(properties.items()),
+        frozenset(values.items()),
+        frozenset(unknown),
+    )
+    if key in cache.written_over:
+        return dict(cache.get(cache.written_over, key))
+    found = _written_over_values(
+        application,
+        ui,
+        segments,
+        values,
+        unknown,
+        project_code_page,
+        properties,
+        cancel,
+    )
+    cache.put(cache.written_over, key, dict(found), cache.WRITTEN_OVER)
+    return found
 
 
 def _written_over_values(
@@ -3575,7 +3745,10 @@ def _written_over_values(
             ):
                 continue
             behind = _later_members_read(seeded, ref_id, segments, trial)
-            if behind:
+            if behind and any(
+                seeded.get_value(ref) != value for ref, value in behind.items()
+            ):
+                # Seeded with the values they have already, the UI would be this one again.
                 seeded = _seeded(application, {**trial, **behind}, project_code_page)
                 if seeded is None:
                     continue
@@ -4248,8 +4421,25 @@ _HIDDEN: list[tuple[object, Mapping[str, str]]] = []
 
 def _hidden_fixed(program: object, ui: DynamicUI) -> frozenset[str]:
     """The refs of the application program's hidden settings with a fixed value (see
-    :func:`_fixed_values`): the product's data gives them, not the memory."""
-    return frozenset(_hidden_fixed_values(program, ui))
+    :func:`_fixed_values`): the product's data gives them, not the memory. The same set for
+    the same program and search (a search asks for it with every UI it judges)."""
+    cache: _SearchCache | None = getattr(_SEARCH, "cache", None)
+    editable = (
+        cache.editable_parameter_refs
+        if cache is not None and cache.application.program is program
+        else None
+    )
+    for seen, seen_editable, refs in _HIDDEN_REFS:
+        if seen is program and seen_editable is editable:
+            return refs
+    refs = frozenset(_hidden_fixed_values(program, ui))
+    _HIDDEN_REFS.insert(0, (program, editable, refs))
+    del _HIDDEN_REFS[4:]
+    return refs
+
+
+# The refs of _hidden_fixed of the last programs, with the editable refs of their search.
+_HIDDEN_REFS: list[tuple[object, object, frozenset[str]]] = []
 
 
 def _hidden_fixed_values(program: object, ui: DynamicUI) -> Mapping[str, str]:

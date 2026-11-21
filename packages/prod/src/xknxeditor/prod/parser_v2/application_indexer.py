@@ -60,6 +60,7 @@ class ApplicationIndexer:
         "parameter_refs",
         "parameter_types",
         "parameters",
+        "ref_orders",
         "ref_owner",
         "referenced_parameters",
         "refs_by_name",
@@ -107,6 +108,9 @@ class ApplicationIndexer:
         ) = None
         self.refs_of_parameters: dict[str, list[str]] | None = None
         self.referenced_parameters: frozenset[str] | None = None
+        # For each ParameterRef of the application: its parameter, where a download applies
+        # it and its place among the refs (see encode._ref_orders).
+        self.ref_orders: dict[str, tuple[str, tuple[int, int], int]] | None = None
         self.module_referenced: dict[str, frozenset[str]] = {}
         self.item_parameters: dict[
             int, tuple[Sequence[object], tuple[frozenset[str], ...]]

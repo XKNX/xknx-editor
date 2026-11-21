@@ -260,9 +260,16 @@ def export_config(
 
 
 def downloaded_config(
-    data: bytes, memory: bytes, mask: bytes, segment_info: bytes
+    data: bytes,
+    memory: bytes,
+    mask: bytes,
+    segment_info: bytes,
+    *,
+    downloaded: bool = True,
 ) -> bytes:
-    """Store the completed image and the device's own segment record."""
+    """Store the completed image and the device's own segment record. Without
+    ``downloaded`` (the memory was read off the device) the times of the record stay as
+    they are: when the device was downloaded is not known then."""
     if len(memory) != 65535 or len(mask) != len(memory) or len(segment_info) != 8:
         raise ValueError("Invalid completed Siemens image or segment record")
     text = decode_text(data)
@@ -271,19 +278,18 @@ def downloaded_config(
     root = ET.fromstring(text)
     current = root.find("CurrentSettings")
     assert current is not None
-    downloaded = root.find("DownloadedSettings")
-    if downloaded is None:
-        downloaded = ET.SubElement(root, "DownloadedSettings")
-    now = datetime.now().isoformat(timespec="milliseconds")
-    downloaded.attrib.update(
-        Id=current.get("Id", "V01_00"),
-        Name=segment_info.hex().upper(),
-        LastModified=now,
-        LastDownload=now,
+    record = root.find("DownloadedSettings")
+    if record is None:
+        record = ET.SubElement(root, "DownloadedSettings")
+    record.attrib.update(
+        Id=current.get("Id", "V01_00"), Name=segment_info.hex().upper()
     )
-    image = downloaded.find("MemoryImage")
+    if downloaded:
+        now = datetime.now().isoformat(timespec="milliseconds")
+        record.attrib.update(LastModified=now, LastDownload=now)
+    image = record.find("MemoryImage")
     if image is None:
-        image = ET.SubElement(downloaded, "MemoryImage")
+        image = ET.SubElement(record, "MemoryImage")
     image.set("Data", base64.b64encode(memory).decode())
     image.set("Mask", base64.b64encode(mask).decode())
     declaration = text[: text.index("?>") + 2] if text.startswith("<?xml") else ""

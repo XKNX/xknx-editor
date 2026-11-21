@@ -32,6 +32,12 @@ from xknxeditor.vendor.siemens_generic.configuration import (
     write_values,
 )
 from xknxeditor.vendor.siemens_generic.presentation import value_format
+from xknxeditor.vendor.siemens_generic.recover import (
+    DeviceImage,
+    MemoryReader,
+    decode_device,
+    read_device_image,
+)
 from xknxeditor.vendor.siemens_generic.view import same_application
 
 from . import NativeConfiguration, NativeObject, PluginCapabilities
@@ -113,6 +119,8 @@ class SiemensGenericProvider:
     id = "siemens-generic"
     blob_name = "BLOB_STRING"
     parameter_prefix = "siemens-generic:"
+    # The configuration holds no object flags: a device read sets them from its tables.
+    keeps_object_flags = False
 
     def capabilities(self, device: Device) -> PluginCapabilities:
         try:
@@ -456,6 +464,40 @@ class SiemensGenericProvider:
             }
 
         return replace(prepared, completion=completion)
+
+    async def read_device(
+        self, programmer: MemoryReader, device: Device
+    ) -> DeviceImage:
+        """The parameter memory a device of ``device``'s product holds (see
+        :func:`xknxeditor.vendor.siemens_generic.recover.read_device_image`)."""
+        return await read_device_image(programmer, sources(device).description)
+
+    def recover(self, device: Device, image: object) -> NativeConfiguration:
+        """The configuration a device read off the bus (``image``, see
+        :meth:`read_device`) was downloaded with, for ``device`` (of the same product):
+        the product's default configuration with the values the memory holds."""
+        if not isinstance(image, DeviceImage):
+            raise ValueError("No Siemens configuration was read off the device")
+        description = sources(device).description
+        data = decode_device(
+            description,
+            default_config(description, _globals(device)),
+            image,
+            _globals(device),
+        )
+        return self._state(device, data)
+
+    def slot_references(self, device: Device) -> dict[int, str]:
+        """The group object reference of each group object number, as the device's
+        configuration places its objects (an association names the number)."""
+        assert device.app is not None
+        catalog = ApplicationIndexer(device.app.program)
+        return {
+            catalog.com_objects[catalog.com_object_refs[o.reference].ref_id].number: (
+                o.reference
+            )
+            for o in self.read(device).objects
+        }
 
 
 PROVIDER = SiemensGenericProvider()
