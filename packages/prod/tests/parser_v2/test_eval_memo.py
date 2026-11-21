@@ -168,3 +168,70 @@ def test_another_thread_evaluates_anew(selections: list[ChooseWhenNode]) -> None
     elsewhere.start()
     elsewhere.join()
     assert {id(node) for node in selections} & pure
+
+
+_RENAMING = "M-00FA_A-00FD-01-0000"
+_MODE = f"{_RENAMING}_P-1_R-1"
+_OTHER = f"{_RENAMING}_P-2_R-2"
+_RENAMING_XML = f"""<KNX xmlns="http://knx.org/xml/project/20" CreatedBy="test" ToolVersion="1">
+<ManufacturerData><Manufacturer RefId="M-00FA"><ApplicationPrograms>
+<ApplicationProgram Id="{_RENAMING}" ApplicationNumber="253" ApplicationVersion="1"
+    ProgramType="ApplicationProgram" MaskVersion="MV-07B0" Name="Renamed block"
+    LoadProcedureStyle="MergedProcedure" PeiType="0" DefaultLanguage="en-US"
+    DynamicTableManagement="false" Linkable="false" MinEtsVersion="5.0">
+<Static>
+<ParameterTypes>
+<ParameterType Id="{_RENAMING}_PT-OnOff" Name="OnOff"><TypeRestriction Base="Value" SizeInBit="8">
+<Enumeration Text="Off" Value="0" Id="{_RENAMING}_PT-OnOff_EN-0" />
+<Enumeration Text="On" Value="1" Id="{_RENAMING}_PT-OnOff_EN-1" />
+</TypeRestriction></ParameterType>
+</ParameterTypes>
+<Parameters>
+<Parameter Id="{_RENAMING}_P-1" Name="Mode" ParameterType="{_RENAMING}_PT-OnOff" Text="Mode" Value="0" />
+<Parameter Id="{_RENAMING}_P-2" Name="Other" ParameterType="{_RENAMING}_PT-OnOff" Text="Other" Value="0" />
+</Parameters>
+<ParameterRefs>
+<ParameterRef Id="{_MODE}" RefId="{_RENAMING}_P-1" />
+<ParameterRef Id="{_OTHER}" RefId="{_RENAMING}_P-2" />
+</ParameterRefs>
+</Static>
+<Dynamic><ChannelIndependentBlock>
+<ParameterBlock Id="{_RENAMING}_PB-1" Text="Plain">
+<ParameterRefRef RefId="{_MODE}" />
+<ParameterRefRef RefId="{_OTHER}" />
+<choose ParamRefId="{_MODE}"><when test="1">
+<Rename Id="{_RENAMING}_PB-1_RN-1" RefId="{_RENAMING}_PB-1" Text="Renamed" />
+</when></choose>
+</ParameterBlock>
+</ChannelIndependentBlock></Dynamic>
+</ApplicationProgram></ApplicationPrograms></Manufacturer></ManufacturerData></KNX>"""
+
+
+def _block_text(ui: DynamicUI) -> str | None:
+    stack: list[object] = list(ui.ui())
+    while stack:
+        node = stack.pop()
+        if getattr(node, "id", None) == f"{_RENAMING}_PB-1":
+            return getattr(node, "text", None)
+        stack.extend(getattr(node, "children", ()))
+    return None
+
+
+def test_a_block_a_rename_retitles_is_taken_again_with_its_text(
+    selections: list[ChooseWhenNode],
+) -> None:
+    application = parse_application_xml(_RENAMING_XML.encode(), "M-00FA")[0]
+    # The Choose with the Rename and the block around it change nothing but the marks and
+    # the text they record.
+    assert _pure_chooses(application)
+    memo = EvalMemo()
+    trials = [{}, {_MODE: "1"}, {_MODE: "1", _OTHER: "1"}, {_OTHER: "1"}, {_MODE: "1"}]
+    for values in trials + trials:
+        ui = _ui(application, values, memo)
+        anew = _ui(application, values, None)
+        assert _observed(ui) == _observed(anew), values
+        assert _block_text(ui) == ("Renamed" if values.get(_MODE) == "1" else "Plain")
+    # Taken again: the last trials select nothing anew.
+    selections.clear()
+    _ui(application, {_MODE: "1"}, memo).ui()
+    assert not selections

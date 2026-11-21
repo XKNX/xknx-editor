@@ -236,7 +236,8 @@ GateChecks = list[tuple["ParameterState", str, bool]]
 # "d" whether a union member was reached in the discovery, "t" a text, "o" an instance's
 # group object settings, "v" a module argument, "q" / "l" a qualified id, "x" a text
 # argument (None: none). Writes: "p" / "c" a parameter / group object marked active, "u" a
-# Choose on a union member reached (with its siblings), "h" a node handed out (the node).
+# Choose on a union member reached (with its siblings), "h" a node handed out (the node), "s"
+# a text set (a Rename of a block).
 Event = tuple[str, object, object]
 
 _READS = frozenset("dxtqlov")
@@ -257,6 +258,7 @@ class Recording:
         "parameters",
         "reads",
         "suppress",
+        "texts",
         "unions",
         "values",
     )
@@ -271,7 +273,19 @@ class Recording:
             (key, result) for kind, key, result in events if kind == "g"
         )
         self.gates = tuple((key, result) for kind, key, result in events if kind == "a")
-        self.reads = tuple(event for event in events if event[0] in _READS)
+        # A text read after the evaluation set it (a block its Rename retitles) gives what
+        # was set: nothing to check.
+        written: set[object] = set()
+        reads: list[Event] = []
+        for event in events:
+            kind = event[0]
+            if kind == "s":
+                written.add(event[1])
+            elif kind in _READS and not (kind == "t" and event[1] in written):
+                reads.append(event)
+        self.reads = tuple(reads)
+        # In their order: of two texts set for the same, the last one stays.
+        self.texts = tuple((key, result) for kind, key, result in events if kind == "s")
         self.handed = tuple(key for kind, key, _result in events if kind == "h")
         self.parameters = tuple(key for kind, key, _result in events if kind == "p")
         self.objects = tuple(key for kind, key, _result in events if kind == "c")
@@ -483,6 +497,8 @@ class EvalContext:
         mark = scope.mark_active_com_object
         for key in recording.objects:
             mark(key)  # type: ignore[arg-type]
+        for key, text in recording.texts:
+            scope.set_text(key, text)  # type: ignore[arg-type]
         checks = self._gate_checks
         if checks is not None:
             checks.extend((scope, key, active) for key, active in recording.gates)  # type: ignore[misc]
@@ -575,6 +591,8 @@ class EvalContext:
 
     def set_text(self, ref_id: str, text: str) -> None:
         self._scope.set_text(ref_id, text)
+        if self._tape is not None:
+            self._tape.append(("s", ref_id, text))
 
     def get_text(self, ref_id: str) -> str | None:
         text = self._scope.get_text(ref_id)
