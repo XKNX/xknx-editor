@@ -41,7 +41,7 @@ if TYPE_CHECKING:
     from xknxeditor.download.image import PropertyTarget
     from xknxeditor.prod import Application, MasterData
     from xknxeditor.prod.parser_v2.application_indexer import ApplicationIndexer
-    from xknxeditor.prod.parser_v2.context import Gate
+    from xknxeditor.prod.parser_v2.context import EvalMemo, Gate
     from xknxeditor.prod.parser_v2.dynamic import DynamicUI
     from xknxeditor.prod.parser_v2.encode import PropertyLayout, TypedPropertyKey
     from xknxeditor.prod.parser_v2.ui import UiNode, UiParameter
@@ -259,6 +259,11 @@ class _SearchCache:
         # how the UI they were read in was seeded and the values and the unknown parameters
         # they were read with: a decode reads them again for the same values (the last ones).
         self.written_over: OrderedDict[tuple[object, ...], _ValueMap] = OrderedDict()
+        # What the nodes of the UIs the search seeds gave (see EvalMemo): most of a UI is
+        # evaluated as in another the search seeded with nearly the same values.
+        from xknxeditor.prod.parser_v2.context import EvalMemo
+
+        self.eval_memo = EvalMemo()
 
     def objects_of(self, nodes: list[UiNode]) -> list[tuple[int, str]]:
         """The number and the size of each group object the evaluated UI ``nodes`` (a UI's
@@ -487,9 +492,17 @@ def _seeded(
         project_code_page,
         module_instances=module_instances,
         evaluated=True,
+        eval_memo=cache.eval_memo,
     )
     cache.put(cache.uis, key, ui, cache.UIS)
     return ui
+
+
+def _eval_memo(application: Application) -> EvalMemo | None:
+    """What the nodes gave in the evaluations of the search of ``application`` running in
+    this thread (see :class:`~xknxeditor.prod.parser_v2.context.EvalMemo`), if any."""
+    cache = _search_cache(application)
+    return cache.eval_memo if cache is not None else None
 
 
 def _seeded_for_lookups(
@@ -501,11 +514,14 @@ def _seeded_for_lookups(
     out within a search)."""
     from .recover import seed_dynamic_ui
 
-    first = seed_dynamic_ui(application, values, project_code_page, evaluated=True)
+    cache = _search_cache(application)
+    memo = cache.eval_memo if cache is not None else None
+    first = seed_dynamic_ui(
+        application, values, project_code_page, evaluated=True, eval_memo=memo
+    )
     if first is None or not first.evaluated:
         return first, None
     instances = first.get_module_instances()
-    cache = _search_cache(application)
     if cache is not None:
         cache.put(
             cache.uis,
@@ -517,7 +533,11 @@ def _seeded_for_lookups(
         # Without module instances the seeding is the first build itself.
         return first, first
     plain = seed_dynamic_ui(
-        application, values, project_code_page, module_instances=instances
+        application,
+        values,
+        project_code_page,
+        module_instances=instances,
+        eval_memo=memo,
     )
     return plain, first
 
@@ -1356,7 +1376,11 @@ def _alike_for_reads(
     from .recover import seed_dynamic_ui
 
     trial = seed_dynamic_ui(
-        application, {**values, ref_id: value}, project_code_page, evaluated=True
+        application,
+        {**values, ref_id: value},
+        project_code_page,
+        evaluated=True,
+        eval_memo=_eval_memo(application),
     )
     if trial is None:
         return False
@@ -3025,7 +3049,13 @@ def _calculate(
     guesses_run = False
     while True:
         # Changed below (the calculations run in it): a UI of its own, evaluated first.
-        ui = seed_dynamic_ui(application, result, project_code_page, evaluated=True)
+        ui = seed_dynamic_ui(
+            application,
+            result,
+            project_code_page,
+            evaluated=True,
+            eval_memo=_eval_memo(application),
+        )
         if ui is None:
             return result
         if cancel is not None:

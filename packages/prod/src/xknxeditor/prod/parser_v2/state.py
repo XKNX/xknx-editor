@@ -371,6 +371,10 @@ class ParameterState:
     def get_arg_defaults(self) -> dict[str, str]:
         return {}
 
+    def is_root(self) -> bool:
+        """Whether this is the application's scope (no module instance's)."""
+        return self._parent is None
+
     def set(self, ref_id: str, value: str) -> None:
         if ref_id not in self._pass_values:
             self._pass_values[ref_id] = self._known_param_ref_values.get(ref_id)

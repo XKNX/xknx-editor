@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import threading
 from collections.abc import Callable, Collection, Iterable, Iterator, Mapping
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
@@ -12,6 +13,7 @@ from xknxeditor.namespaces.intermediate.com_object_instance_ref_t import (
 if TYPE_CHECKING:
     from .application_indexer import ApplicationIndexer
     from .state import ParameterState
+    from .ui import UiNode
     from .ui.parameter import UiParameter
 
 
@@ -199,13 +201,24 @@ class _TextArgs(Mapping[str, str]):
         self._args = ctx.get_arg_defaults()
 
     def __getitem__(self, key: str) -> str:
+        value = self.lookup(key)
+        tape = self._ctx._tape  # pyright: ignore[reportPrivateUsage]
+        if tape is not None:
+            tape.append(("x", key, value))
+        if value is None:
+            raise KeyError(key)
+        return value
+
+    def lookup(self, key: str) -> str | None:
+        """What ``key`` stands for, None for nothing; read without recording it."""
         if key in self._args:
             return self._args[key]
         if key.isdigit() and int(key) != 0:
-            ref = self._ctx.ref_by_number(int(key))
+            ctx = self._ctx
+            ref = ctx.ref_by_number(int(key))
             if ref is not None:
-                return self._ctx.value_or_default(ref) or ""
-        raise KeyError(key)
+                return ctx.value_or_default(ref, record=False) or ""
+        return None
 
     def __iter__(self) -> Iterator[str]:
         return iter(self._args)
@@ -217,6 +230,65 @@ class _TextArgs(Mapping[str, str]):
 # The gate decisions a pass made (see :meth:`EvalContext.is_gate_active`): for each Choose
 # evaluated, its scope, its parameter and whether it could select a branch.
 GateChecks = list[tuple["ParameterState", str, bool]]
+
+# What an evaluation read and did, in order (see :class:`EvalMemo`): ``(kind, key, result)``.
+# Reads: "g" a value, "a" whether a Choose may select (a gate decision, recorded as one too),
+# "d" whether a union member was reached in the discovery, "t" a text, "o" an instance's
+# group object settings, "v" a module argument, "q" / "l" a qualified id, "x" a text
+# argument (None: none). Writes: "p" / "c" a parameter / group object marked active, "u" a
+# Choose on a union member reached (with its siblings), "h" a node handed out (the node).
+Event = tuple[str, object, object]
+
+# An evaluation a node made (see EvalMemo): whether unions were suppressed, what it read
+# and did, and what it gave.
+_Entry = tuple[bool, tuple[Event, ...], tuple["UiNode", ...]]
+
+
+class EvalMemo:
+    """What the nodes that change nothing but the active marks (a Choose holding parameters,
+    group objects, separators, blocks and Chooses only, see
+    :attr:`~xknxeditor.prod.parser_v2.nodes.base.DynamicNode.pure`) gave in earlier
+    evaluations, with all they read and did on the way (see :data:`Event`): an evaluation in
+    which each read gives the same gets the same, and does the same. Kept by whoever
+    evaluates many alike states (a search of a device's settings), for the last ``ENTRIES``
+    evaluations of each node; only used in the thread that made it."""
+
+    __slots__ = ("_entries", "thread")
+
+    ENTRIES = 2
+
+    def __init__(self) -> None:
+        self._entries: dict[int, tuple[object, list[_Entry]]] = {}
+        # The thread it is used in (a UI evaluated with it may be evaluated in another).
+        self.thread = threading.get_ident()
+
+    def evaluate(
+        self,
+        node: object,
+        ctx: EvalContext,
+        evaluate: Callable[[EvalContext], list[UiNode]],
+    ) -> list[UiNode]:
+        """What ``evaluate`` gives ``node`` in ``ctx``: what it gave before where each read
+        gives what it gave then (its effects done again), else evaluated, and kept."""
+        kept = self._entries.get(id(node))
+        if kept is not None and kept[0] is not node:
+            kept = None
+        suppress = ctx.union_suppress
+        if kept is not None:
+            for kept_suppress, events, output in kept[1]:
+                if kept_suppress is suppress and ctx.replay(events):
+                    return list(output)
+        tape = ctx._tape  # pyright: ignore[reportPrivateUsage]
+        assert tape is not None
+        start = len(tape)
+        output = evaluate(ctx)
+        entry: _Entry = (suppress, tuple(tape[start:]), tuple(output))
+        if kept is None:
+            self._entries[id(node)] = (node, [entry])
+        else:
+            kept[1].insert(0, entry)
+            del kept[1][self.ENTRIES :]
+        return output
 
 
 class EvalContext:
@@ -231,10 +303,12 @@ class EvalContext:
         "_gate_checks",
         "_handed",
         "_idx",
+        "_memo",
         "_object_tree",
         "_repeat_idx",
         "_repeat_path",
         "_scope",
+        "_tape",
         "_union_chooses",
         "_union_suppress",
     )
@@ -252,6 +326,7 @@ class EvalContext:
         union_chooses: list[tuple[ParameterState, str, Collection[str]]] | None = None,
         handed: set[int] | None = None,
         gate_checks: GateChecks | None = None,
+        memo: EvalMemo | None = None,
     ) -> None:
         self._scope = scope
         # The iteration of the Repeats of this scope it is in, counted through all of them
@@ -276,6 +351,10 @@ class EvalContext:
         self._handed = handed
         # Set to record the gate decisions of the pass (see :meth:`record_gate_checks`).
         self._gate_checks = gate_checks
+        # Set to take what nodes gave before with the same reads (see EvalMemo): what the
+        # pass reads and does is recorded on the tape then.
+        self._memo = memo
+        self._tape: list[Event] | None = [] if memo is not None else None
 
     @property
     def capture(self) -> EvalCapture | None:
@@ -300,12 +379,101 @@ class EvalContext:
     def union_suppress(self) -> bool:
         return self._union_suppress
 
+    @property
+    def memo(self) -> EvalMemo | None:
+        """What nodes gave before (see :class:`EvalMemo`), where a node may take it: in a pass
+        that records nothing but the active marks and the gate decisions and hands out nodes
+        made before, at the root, outside a Repeat."""
+        memo = self._memo
+        if (
+            memo is None
+            or self._explore is not None
+            or self._capture is not None
+            or self._object_tree is not None
+            or self._handed is None
+            or self._repeat_path
+            or self._repeat_idx != 1
+            or not self._scope.is_root()
+            or memo.thread != threading.get_ident()
+        ):
+            return None
+        return memo
+
+    def replay(self, events: tuple[Event, ...]) -> bool:
+        """Do again what ``events`` record when each read gives what it gave then (else
+        nothing): whether it was done."""
+        scope = self._scope
+        handed = self._handed
+        assert handed is not None
+        args: _TextArgs | None = None
+        for kind, key, result in events:
+            if kind == "g":
+                same = scope.get(key) == result  # type: ignore[arg-type]
+            elif kind == "a":
+                same = scope.is_gate_active(key) is result  # type: ignore[arg-type]
+            elif kind == "d":
+                same = scope.is_discovered_active(key) is result  # type: ignore[arg-type]
+            elif kind == "x":
+                if args is None:
+                    args = _TextArgs(self)
+                same = args.lookup(key) == result  # type: ignore[arg-type]
+            elif kind == "t":
+                same = scope.get_text(key) == result  # type: ignore[arg-type]
+            elif kind == "q":
+                same = scope.qualify(key) == result  # type: ignore[arg-type]
+            elif kind == "l":
+                same = scope.qualify_local(key) == result  # type: ignore[arg-type]
+            elif kind == "o":
+                same = scope.get_com_obj_instance_ref(key) == result  # type: ignore[arg-type]
+            elif kind == "v":
+                arg = scope.get_arg(key)  # type: ignore[arg-type]
+                value = arg.value if arg is not None and arg.value is not None else 0
+                same = value == result
+            elif kind == "h":
+                same = id(key) not in handed
+            else:
+                continue
+            if not same:
+                return False
+        tape = self._tape
+        assert tape is not None
+        tape.extend(events)
+        checks = self._gate_checks
+        chooses = self._union_chooses
+        for kind, key, result in events:
+            if kind == "p":
+                scope.mark_active_param(key)  # type: ignore[arg-type]
+            elif kind == "c":
+                scope.mark_active_com_object(key)  # type: ignore[arg-type]
+            elif kind == "a":
+                if checks is not None:
+                    checks.append((scope, key, result))  # type: ignore[arg-type]
+            elif kind == "u":
+                if chooses is not None:
+                    chooses.append((scope, key, result))  # type: ignore[arg-type]
+            elif kind == "h":
+                handed.add(id(key))
+        return True
+
+    def hand(self, node: UiNode) -> None:
+        """Hand out ``node``, made in an earlier pass (see :attr:`handed`)."""
+        handed = self._handed
+        assert handed is not None
+        handed.add(id(node))
+        if self._tape is not None:
+            self._tape.append(("h", node, None))
+
     def is_discovered_active(self, ref_id: str) -> bool:
-        return self._scope.is_discovered_active(ref_id)
+        active = self._scope.is_discovered_active(ref_id)
+        if self._tape is not None:
+            self._tape.append(("d", ref_id, active))
+        return active
 
     def note_union_choose(self, param_ref_id: str, siblings: Collection[str]) -> None:
         """A Choose on the union member ``param_ref_id`` (competing with ``siblings``) is reached
         in this scope; recorded when the pass records them."""
+        if self._tape is not None:
+            self._tape.append(("u", param_ref_id, siblings))
         if self._union_chooses is not None:
             self._union_chooses.append((self._scope, param_ref_id, siblings))
 
@@ -320,13 +488,21 @@ class EvalContext:
         checks = self._gate_checks
         if checks is not None:
             checks.append((scope, ref_id, active))
+        if self._tape is not None:
+            self._tape.append(("a", ref_id, active))
         return active
 
     def get(self, ref_id: str) -> str | None:
-        return self._scope.get(ref_id)
+        value = self._scope.get(ref_id)
+        if self._tape is not None:
+            self._tape.append(("g", ref_id, value))
+        return value
 
     def qualify(self, ref_id: str) -> str:
-        return self._scope.qualify(ref_id)
+        qualified = self._scope.qualify(ref_id)
+        if self._tape is not None:
+            self._tape.append(("q", ref_id, qualified))
+        return qualified
 
     @property
     def module_instance_id(self) -> str | None:
@@ -335,7 +511,10 @@ class EvalContext:
         return mid if isinstance(mid, str) else None
 
     def qualify_local(self, ref_id: str) -> str:
-        return self._scope.qualify_local(ref_id)
+        qualified = self._scope.qualify_local(ref_id)
+        if self._tape is not None:
+            self._tape.append(("l", ref_id, qualified))
+        return qualified
 
     def set(self, ref_id: str, value: str) -> None:
         self._scope.set(ref_id, value)
@@ -361,13 +540,20 @@ class EvalContext:
         self._scope.set_text(ref_id, text)
 
     def get_text(self, ref_id: str) -> str | None:
-        return self._scope.get_text(ref_id)
+        text = self._scope.get_text(ref_id)
+        if self._tape is not None:
+            self._tape.append(("t", ref_id, text))
+        return text
 
     def mark_active_param(self, ref_id: str) -> None:
         self._scope.mark_active_param(ref_id)
+        if self._tape is not None:
+            self._tape.append(("p", ref_id, None))
 
     def mark_active_com_object(self, ref_id: str) -> None:
         self._scope.mark_active_com_object(ref_id)
+        if self._tape is not None:
+            self._tape.append(("c", ref_id, None))
 
     def mark_assigned_from(self, target: str, source: str) -> None:
         self._scope.mark_assigned_from(target, source)
@@ -376,7 +562,10 @@ class EvalContext:
         self._scope.mark_assigned_constant(target)
 
     def get_com_obj_instance_ref(self, ref_id: str) -> ComObjectInstanceRef | None:
-        return self._scope.get_com_obj_instance_ref(ref_id)
+        settings = self._scope.get_com_obj_instance_ref(ref_id)
+        if self._tape is not None:
+            self._tape.append(("o", ref_id, settings))
+        return settings
 
     def allocate(
         self, def_ref_id: str, alloc_id: str, arg_ref_id: str, base: int = 0
@@ -446,7 +635,10 @@ class EvalContext:
 
     def get_arg_value(self, ref_id: str) -> int:
         arg = self._scope.get_arg(ref_id)
-        return arg.value if arg is not None and arg.value is not None else 0
+        value = arg.value if arg is not None and arg.value is not None else 0
+        if self._tape is not None:
+            self._tape.append(("v", ref_id, value))
+        return value
 
     def get_arg_defaults(self) -> dict[str, str]:
         return self._scope.get_arg_defaults()
@@ -468,9 +660,10 @@ class EvalContext:
                 return ref
         return None
 
-    def value_or_default(self, ref_id: str) -> str | None:
-        """The value of ``ref_id`` in this scope, else its default."""
-        value = self.get(ref_id)
+    def value_or_default(self, ref_id: str, *, record: bool = True) -> str | None:
+        """The value of ``ref_id`` in this scope, else its default (without ``record`` read
+        without recording it, see EvalMemo)."""
+        value = self.get(ref_id) if record else self._scope.get(ref_id)
         if value is None and self._idx is not None:
             value = self._idx.default_value(ref_id)
         return value
