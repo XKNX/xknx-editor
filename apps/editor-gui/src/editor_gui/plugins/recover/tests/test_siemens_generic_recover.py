@@ -330,6 +330,7 @@ async def test_a_device_read_reads_the_parameter_memory(tmp_path, monkeypatch):
         )
     image = _held(configured, configured_id)
     memory = {_BASE + i: b for i, b in enumerate(image.data)}
+    record = bytes.fromhex("0140000B00A5C312")
     reads: list[tuple[int, int]] = []
 
     class Programmer:
@@ -339,6 +340,12 @@ async def test_a_device_read_reads_the_parameter_memory(tmp_path, monkeypatch):
         async def read_memory(self, address: int, count: int, *, user: bool = False):
             reads.append((address, count))
             return bytes(memory.get(a, 0) for a in range(address, address + count))
+
+        async def read_property(
+            self, object_index: int, property_id: int, **_kwargs: Any
+        ) -> bytes:
+            assert (object_index, property_id) == (4, 27)
+            return record
 
     async def group_communication(*_args: Any) -> RawGroupCommunication:
         return RawGroupCommunication(
@@ -374,7 +381,7 @@ async def test_a_device_read_reads_the_parameter_memory(tmp_path, monkeypatch):
     )
     # Exactly the parameter memory a download writes is read, nothing else.
     assert reads == [(_BASE, len(image.data))]
-    assert recovered.native_image == image
+    assert recovered.native_image == DeviceImage(image.base, image.data, record)
 
     device = _current(project, node_id)
     result = _service(project)._apply_native(device, recovered, device.app)
@@ -382,6 +389,13 @@ async def test_a_device_read_reads_the_parameter_memory(tmp_path, monkeypatch):
     device, slots = result
     assert _held(project, node_id) == image
     assert _active(project, node_id) == _active(configured, configured_id)
+    # The memory read is the configuration's last downloaded image: the plug-in compares
+    # the settings with it, as after a download.
+    settings = parse_settings(blob(device))
+    assert settings is not None
+    assert settings.memory_image is not None
+    assert settings.memory_image[: len(image.data)] == image.data
+    assert settings.last_download == ""
     assert slots == {0: f"{_APP}_O-0_R-1", 1: f"{_APP}_O-1_R-2"}
     value = device.find_com_object(slots[1])
     assert value is not None

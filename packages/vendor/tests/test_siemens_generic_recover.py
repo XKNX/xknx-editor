@@ -9,6 +9,7 @@ import asyncio
 import pytest
 
 from xknxeditor.vendor.siemens_generic import parse_description, parse_settings
+from xknxeditor.vendor.siemens_generic.blob import decode_text
 from xknxeditor.vendor.siemens_generic.configuration import (
     default_config,
     edit,
@@ -218,14 +219,31 @@ def test_a_memory_no_configuration_gives_is_refused(image):
         decode_device(d, default_config(d), image)
 
 
+_RECORD = bytes.fromhex("0140000B00A5C312")
+
+
 class _Reader:
-    def __init__(self, memory: dict[int, int]) -> None:
+    def __init__(self, memory: dict[int, int], record: bytes = _RECORD) -> None:
         self.memory = memory
+        self.record = record
         self.reads: list[tuple[int, int, bool]] = []
+        self.properties: list[tuple[int, int, int, int]] = []
 
     async def read_memory(self, address: int, count: int, *, user: bool = False):
         self.reads.append((address, count, user))
         return bytes(self.memory.get(a, 0) for a in range(address, address + count))
+
+    async def read_property(
+        self,
+        object_index: int,
+        property_id: int,
+        *,
+        count: int = 1,
+        start_index: int = 1,
+        require_nonzero: bool = False,
+    ) -> bytes:
+        self.properties.append((object_index, property_id, count, start_index))
+        return self.record
 
 
 def test_a_device_read_reads_exactly_the_parameter_memory():
@@ -237,7 +255,43 @@ def test_a_device_read_reads_exactly_the_parameter_memory():
     reader = _Reader({_BASE + i: b for i, b in enumerate(held.data)})
     image = asyncio.run(read_device_image(reader, d))
     assert reader.reads == [(_BASE, 11, False)]
-    assert image == held
+    # And the record of the segment a download keeps with the image.
+    assert reader.properties == [(4, 27, 1, 1)]
+    assert image == DeviceImage(_BASE, held.data, _RECORD)
+
+
+@pytest.mark.parametrize("record", [b"", bytes(7), bytes(9)])
+def test_a_device_without_a_segment_record_reads_none(record):
+    d = _description()
+    held = image_of(compile_image(d, parse_settings(default_config(d))))
+    reader = _Reader({_BASE + i: b for i, b in enumerate(held.data)}, record)
+    assert asyncio.run(read_device_image(reader, d)) == held
+
+
+def test_the_memory_read_is_kept_as_the_last_downloaded_image():
+    d = _description()
+    configured = _configured(d, [("r_mode", "dm_B"), ("r_delay", "42")], {})
+    compiled = compile_image(d, parse_settings(configured))
+    held = image_of(compiled)
+
+    data = decode_device(d, default_config(d), DeviceImage(_BASE, held.data, _RECORD))
+    recovered = parse_settings(data)
+    assert recovered is not None
+    # The device's record of the segment names the downloaded settings, as on a download.
+    text = decode_text(data)
+    assert text is not None
+    assert 'Name="0140000B00A5C312"' in text
+    # What a download of this configuration keeps: its whole image and write mask.
+    assert recovered.memory_image == compiled.data
+    assert recovered.memory_mask == compiled.mask
+    # When the device was downloaded is not known.
+    assert recovered.last_download == ""
+
+    # Without the device's record nothing is kept, as before any download.
+    plain = parse_settings(decode_device(d, default_config(d), held))
+    assert plain is not None
+    assert plain.memory_image is None
+    assert plain.values == recovered.values
 
 
 def test_a_description_without_memory_has_nothing_to_read():

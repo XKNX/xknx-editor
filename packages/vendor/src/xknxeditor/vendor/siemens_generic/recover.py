@@ -7,7 +7,8 @@ a device and decodes it into the configuration that compiles to the same bytes: 
 setting from its bytes, again until the settings that are active no longer change (a value
 can make other settings active). Settings without memory, values set by a rule of the
 description and values the product supplies are not in the memory: they stay as the
-configuration evaluates them.
+configuration evaluates them. The configuration keeps the memory read as its last downloaded
+image, with the device's record of the segment, as a download keeps it.
 """
 
 from __future__ import annotations
@@ -17,7 +18,7 @@ from typing import Protocol
 
 from .blob import parse_settings
 from .codec import byte_size, decode, encode
-from .configuration import evaluate, write_values
+from .configuration import downloaded_config, evaluate, write_values
 from .description import Description, TypeKind
 from .image import CompiledImage, compile_image
 
@@ -25,20 +26,39 @@ from .image import CompiledImage, compile_image
 _PASSES = 16
 
 
+# Where a device keeps the record of its parameter segment: object 4, property 27 (a
+# download reads it at its end and stores it with the image).
+_SEGMENT_OBJECT = 4
+_SEGMENT_PROPERTY = 27
+_SEGMENT_RECORD_SIZE = 8
+
+
 class MemoryReader(Protocol):
-    """What a device read needs: its memory."""
+    """What a device read needs: its memory and the record of its parameter segment."""
 
     async def read_memory(
         self, address: int, count: int, *, user: bool = False
     ) -> bytes: ...
 
+    async def read_property(
+        self,
+        object_index: int,
+        property_id: int,
+        *,
+        count: int = 1,
+        start_index: int = 1,
+        require_nonzero: bool = False,
+    ) -> bytes: ...
+
 
 @dataclass(frozen=True)
 class DeviceImage:
-    """The parameter memory a device holds: ``data`` from the address ``base`` on."""
+    """The parameter memory a device holds: ``data`` from the address ``base`` on, and the
+    device's record of the segment (``segment_info``, empty when it has none)."""
 
     base: int
     data: bytes
+    segment_info: bytes = b""
 
 
 def memory_range(description: Description) -> tuple[int, int]:
@@ -60,9 +80,14 @@ def memory_range(description: Description) -> tuple[int, int]:
 async def read_device_image(
     device: MemoryReader, description: Description
 ) -> DeviceImage:
-    """Read the parameter memory a download of ``description`` writes off a device."""
+    """Read the parameter memory a download of ``description`` writes off a device, and
+    the device's record of that segment."""
     base, length = memory_range(description)
-    return DeviceImage(base, await device.read_memory(base, length))
+    data = await device.read_memory(base, length)
+    segment_info = await device.read_property(_SEGMENT_OBJECT, _SEGMENT_PROPERTY)
+    if len(segment_info) != _SEGMENT_RECORD_SIZE:
+        segment_info = b""
+    return DeviceImage(base, data, segment_info)
 
 
 def image_of(compiled: CompiledImage) -> DeviceImage:
@@ -125,4 +150,11 @@ def decode_device(
         compiled.mask[i] and compiled.data[i] != image.data[i] for i in range(length)
     ):
         raise ValueError("No configuration gives the memory read off the device")
-    return write_values(data, evaluate(description, recovered, globals_).values)
+    result = write_values(data, evaluate(description, recovered, globals_).values)
+    if not image.segment_info:
+        return result
+    # The device holds what a download of this configuration stores as its last
+    # downloaded image: kept as that (when it was downloaded is not known).
+    return downloaded_config(
+        result, compiled.data, compiled.mask, image.segment_info, downloaded=False
+    )
