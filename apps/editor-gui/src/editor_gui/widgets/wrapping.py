@@ -7,10 +7,15 @@ TextBlock breaks it, see ``text_layout``).
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from imgui_bundle import imgui
 
 from editor_gui.widgets import text_layout
 from editor_gui.widgets.dpi import px
+
+if TYPE_CHECKING:
+    from editor_gui.widgets.text_selection import TextSelection
 
 # Gap at 100 % scaling between the lines of a wrapped text, beyond the font's line height.
 LINE_GAP = 2.0
@@ -28,14 +33,22 @@ def text_height(lines: int) -> float:
     return lines * imgui.get_text_line_height() + (lines - 1) * px(LINE_GAP)
 
 
-def wrapped_text(text: str, width: float) -> None:
-    """``text`` wrapped at ``width`` from the cursor, as one item."""
+def wrapped_text(
+    text: str,
+    width: float,
+    selection: TextSelection | None = None,
+    prefix: str = "",
+) -> None:
+    """``text`` wrapped at ``width`` from the cursor, as one item; with ``selection`` its lines
+    can be selected (a block of the text it holds, ``prefix`` what a copy of it begins with)."""
     spacing = imgui.get_style().item_spacing
     imgui.push_style_var(
         imgui.StyleVar_.item_spacing, imgui.ImVec2(spacing.x, px(LINE_GAP))
     )
     imgui.begin_group()
-    for line in wrap_lines(text, width):
+    for n, line in enumerate(wrap_lines(text, width)):
+        if selection is not None:
+            selection.line(line, " " if n else "\n", "" if n else prefix)
         text_layout.draw_text(line)
     imgui.end_group()
     imgui.pop_style_var()

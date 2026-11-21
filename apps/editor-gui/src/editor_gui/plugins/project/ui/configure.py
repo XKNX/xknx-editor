@@ -94,6 +94,7 @@ from editor_gui.widgets.module_table import (
     render_module_tables,
 )
 from editor_gui.widgets.tabs import begin_tab_bar
+from editor_gui.widgets.text_selection import TextSelection
 
 _log = structlog.get_logger("configure")
 
@@ -373,6 +374,8 @@ class ConfigurePanel:
         # Dragged heights of the help pane, by the setting that keeps them (see _help_setting).
         self._help_pane_h: dict[str, float] = {}
         self._help: tuple[int, str] | None = None
+        # The text selected in the help pane (it can be copied).
+        self._help_selection = TextSelection("param_help")
         self.show_help = True
         # "Multi fill": when on, a parameter edit is applied to every device that runs
         # the same application program, not just the selected one.
@@ -1635,7 +1638,7 @@ class ConfigurePanel:
             )
         imgui.pop_style_var()
         if help_open:
-            render_markdown(text)
+            render_markdown(text, selection=self._help_selection)
         imgui.end_child()
 
     def _dispatch_param(self, device: Device, ref_id: str, value: str) -> None:

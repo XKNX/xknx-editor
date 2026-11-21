@@ -181,6 +181,7 @@ from editor_gui.widgets.tables import (
     text_table_height,
 )
 from editor_gui.widgets.tabs import begin_tab_bar
+from editor_gui.widgets.text_selection import TextSelection
 from editor_gui.widgets.text_util import fit_text, human_size, text_clipped_tooltip
 from editor_gui.widgets.toasts import Toasts, log_toast
 from editor_gui.widgets.tree import collapsing_header
@@ -885,6 +886,8 @@ class KnxGuiApp:
         self._about_requested = False
         # GitHub update check (best-effort, off the UI thread; see update_check.py).
         self._update_info: UpdateInfo | None = None
+        # The text selected in the release notes of the update dialog (it can be copied).
+        self._update_notes_selection = TextSelection("update_notes")
         self._update_prompt_requested = False
         self._update_thread: threading.Thread | None = None
         # "user"/"machine" when running from an installation of the Windows installer, which
@@ -4909,7 +4912,9 @@ class KnxGuiApp:
             if imgui.begin_child("##update-notes", px_vec2(0.0, 220.0), True):
                 # The release notes are Markdown: short sections of short items, laid out closer
                 # than help pages.
-                render_markdown(info.notes, COMPACT_MARKDOWN)
+                render_markdown(
+                    info.notes, COMPACT_MARKDOWN, self._update_notes_selection
+                )
             imgui.end_child()
         if host.home_assistant():
             # Home Assistant updates the editor with its integration.
