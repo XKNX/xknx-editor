@@ -17,7 +17,7 @@ class DynamicNode(ABC):
     # Whether an evaluation of the node changes nothing but the active marks, the gate
     # decisions and the union chooses of the pass, and reads nothing an EvalContext does
     # not record (see EvalMemo): a parameter, a group object, a separator, a block and a
-    # Choose of such nodes.
+    # Choose and a tab of such nodes.
     pure = False
 
     @abstractmethod

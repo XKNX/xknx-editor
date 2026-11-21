@@ -281,8 +281,8 @@ class Recording:
 
 
 class EvalMemo:
-    """What the nodes that change nothing but the active marks (a Choose holding parameters,
-    group objects, separators, blocks and Chooses only, see
+    """What the nodes that change nothing but the active marks (a Choose, block or tab holding
+    parameters, group objects, separators, blocks and Chooses only, see
     :attr:`~xknxeditor.prod.parser_v2.nodes.base.DynamicNode.pure`) gave in earlier
     evaluations, with all they read and did on the way (see :data:`Event`): an evaluation in
     which each read gives the same gets the same, and does the same. Kept by whoever
