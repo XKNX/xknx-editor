@@ -239,9 +239,45 @@ GateChecks = list[tuple["ParameterState", str, bool]]
 # Choose on a union member reached (with its siblings), "h" a node handed out (the node).
 Event = tuple[str, object, object]
 
-# An evaluation a node made (see EvalMemo): whether unions were suppressed, what it read
-# and did, and what it gave.
-_Entry = tuple[bool, tuple[Event, ...], tuple["UiNode", ...]]
+_READS = frozenset("dxtqlov")
+
+
+class Recording:
+    """What an evaluation of a node read and did (its :data:`Event` s), grouped to check and to
+    do again (see :meth:`EvalContext.replay`): none of it depends on the order (the reads give
+    the same in any order, the marks are sets, the gate decisions and union chooses are only
+    asked whether any or all are so). Gives the UiNodes ``output``."""
+
+    __slots__ = (
+        "events",
+        "gates",
+        "handed",
+        "objects",
+        "output",
+        "parameters",
+        "reads",
+        "suppress",
+        "unions",
+        "values",
+    )
+
+    def __init__(
+        self, suppress: bool, events: tuple[Event, ...], output: tuple[UiNode, ...]
+    ) -> None:
+        self.suppress = suppress
+        self.events = events
+        self.output = output
+        self.values = tuple(
+            (key, result) for kind, key, result in events if kind == "g"
+        )
+        self.gates = tuple((key, result) for kind, key, result in events if kind == "a")
+        self.reads = tuple(event for event in events if event[0] in _READS)
+        self.handed = tuple(key for kind, key, _result in events if kind == "h")
+        self.parameters = tuple(key for kind, key, _result in events if kind == "p")
+        self.objects = tuple(key for kind, key, _result in events if kind == "c")
+        self.unions = tuple(
+            (key, result) for kind, key, result in events if kind == "u"
+        )
 
 
 class EvalMemo:
@@ -258,7 +294,7 @@ class EvalMemo:
     ENTRIES = 2
 
     def __init__(self) -> None:
-        self._entries: dict[int, tuple[object, list[_Entry]]] = {}
+        self._entries: dict[int, tuple[object, list[Recording]]] = {}
         # The thread it is used in (a UI evaluated with it may be evaluated in another).
         self.thread = threading.get_ident()
 
@@ -275,14 +311,14 @@ class EvalMemo:
             kept = None
         suppress = ctx.union_suppress
         if kept is not None:
-            for kept_suppress, events, output in kept[1]:
-                if kept_suppress is suppress and ctx.replay(events):
-                    return list(output)
+            for recording in kept[1]:
+                if recording.suppress is suppress and ctx.replay(recording):
+                    return list(recording.output)
         tape = ctx._tape  # pyright: ignore[reportPrivateUsage]
         assert tape is not None
         start = len(tape)
         output = evaluate(ctx)
-        entry: _Entry = (suppress, tuple(tape[start:]), tuple(output))
+        entry = Recording(suppress, tuple(tape[start:]), tuple(output))
         if kept is None:
             self._entries[id(node)] = (node, [entry])
         else:
@@ -399,19 +435,23 @@ class EvalContext:
             return None
         return memo
 
-    def replay(self, events: tuple[Event, ...]) -> bool:
-        """Do again what ``events`` record when each read gives what it gave then (else
+    def replay(self, recording: Recording) -> bool:
+        """Do again what ``recording`` records when each read gives what it gave then (else
         nothing): whether it was done."""
         scope = self._scope
         handed = self._handed
         assert handed is not None
+        get = scope.get
+        for key, value in recording.values:
+            if get(key) != value:  # type: ignore[arg-type]
+                return False
+        gate = scope.is_gate_active
+        for key, active in recording.gates:
+            if gate(key) is not active:  # type: ignore[arg-type]
+                return False
         args: _TextArgs | None = None
-        for kind, key, result in events:
-            if kind == "g":
-                same = scope.get(key) == result  # type: ignore[arg-type]
-            elif kind == "a":
-                same = scope.is_gate_active(key) is result  # type: ignore[arg-type]
-            elif kind == "d":
+        for kind, key, result in recording.reads:
+            if kind == "d":
                 same = scope.is_discovered_active(key) is result  # type: ignore[arg-type]
             elif kind == "x":
                 if args is None:
@@ -425,34 +465,31 @@ class EvalContext:
                 same = scope.qualify_local(key) == result  # type: ignore[arg-type]
             elif kind == "o":
                 same = scope.get_com_obj_instance_ref(key) == result  # type: ignore[arg-type]
-            elif kind == "v":
+            else:
                 arg = scope.get_arg(key)  # type: ignore[arg-type]
                 value = arg.value if arg is not None and arg.value is not None else 0
                 same = value == result
-            elif kind == "h":
-                same = id(key) not in handed
-            else:
-                continue
             if not same:
+                return False
+        for node in recording.handed:
+            if id(node) in handed:
                 return False
         tape = self._tape
         assert tape is not None
-        tape.extend(events)
+        tape.extend(recording.events)
+        mark = scope.mark_active_param
+        for key in recording.parameters:
+            mark(key)  # type: ignore[arg-type]
+        mark = scope.mark_active_com_object
+        for key in recording.objects:
+            mark(key)  # type: ignore[arg-type]
         checks = self._gate_checks
+        if checks is not None:
+            checks.extend((scope, key, active) for key, active in recording.gates)  # type: ignore[misc]
         chooses = self._union_chooses
-        for kind, key, result in events:
-            if kind == "p":
-                scope.mark_active_param(key)  # type: ignore[arg-type]
-            elif kind == "c":
-                scope.mark_active_com_object(key)  # type: ignore[arg-type]
-            elif kind == "a":
-                if checks is not None:
-                    checks.append((scope, key, result))  # type: ignore[arg-type]
-            elif kind == "u":
-                if chooses is not None:
-                    chooses.append((scope, key, result))  # type: ignore[arg-type]
-            elif kind == "h":
-                handed.add(id(key))
+        if chooses is not None:
+            chooses.extend((scope, key, siblings) for key, siblings in recording.unions)  # type: ignore[misc]
+        handed.update(id(node) for node in recording.handed)
         return True
 
     def hand(self, node: UiNode) -> None:
