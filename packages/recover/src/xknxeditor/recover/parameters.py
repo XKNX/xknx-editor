@@ -2489,6 +2489,7 @@ def _refine_fixed(
         fit_now: tuple[_Score, set[_Cell], set[int]],
     ) -> (
         tuple[
+            _ValueMap,
             dict[str, str],
             list[str],
             DynamicUI,
@@ -2498,9 +2499,10 @@ def _refine_fixed(
         | None
     ):
         """The values decoded with ``chosen`` and the fixed values kept, when they fit better
-        than the result so far (``now``, as far from the device as ``fit_now``): the values,
-        those left unknown, the UI seeded with them, how far it is from the device and the
-        bits it differs in (when as far as the result)."""
+        than the result so far (``now``, as far from the device as ``fit_now``): the settings
+        chosen (``chosen``, with those of module instances it makes, see :func:`settle`), the
+        values, those left unknown, the UI seeded with them, how far it is from the device
+        and the bits it differs in (when as far as the result)."""
         nonlocal bits
         trial_values, trial_unknown = _decode(
             application,
@@ -2514,6 +2516,10 @@ def _refine_fixed(
         seeded = _seeded(application, trial_values, project_code_page)
         assert seeded is not None
         fit = _misfit(seeded, parameter_segments, linked, sizes, property_values)
+        if fit is not None and fit[0] > fit_now[0]:
+            settled = settle(chosen, now, seeded, fit)
+            if settled is not None:
+                chosen, trial_values, trial_unknown, seeded, fit = settled
         if fit is None or fit[0] > fit_now[0]:
             return None
         trial_bits: int | None = None
@@ -2523,7 +2529,73 @@ def _refine_fixed(
             trial_bits = _differing_bits(seeded, parameter_segments, fit[1])
             if trial_bits >= bits:
                 return None
-        return trial_values, trial_unknown, seeded, fit, trial_bits
+        return chosen, trial_values, trial_unknown, seeded, fit, trial_bits
+
+    def settle(
+        chosen: _ValueMap,
+        now: DynamicUI,
+        seeded: DynamicUI,
+        fit: tuple[_Score, set[_Cell], set[int]],
+    ) -> (
+        tuple[
+            _ValueMap,
+            dict[str, str],
+            list[str],
+            DynamicUI,
+            tuple[_Score, set[_Cell], set[int]],
+        ]
+        | None
+    ):
+        """``chosen`` with the selectors of the module instances it makes (``seeded`` has them,
+        ``now`` not) corrected where only their settings differ, while that fits better: a
+        function that adds a channel differs in all of that channel's bytes until the
+        channel's own mode, which the device keeps no copy of, is corrected too. None when
+        it makes no instance, or no correction inside one fits better."""
+        before = {instance for instance, _ in now.get_module_instances()}
+        found = None
+        for _ in range(_REFINE_ROUNDS):
+            made = {instance for instance, _ in seeded.get_module_instances()} - before
+            cells = seeded.stored_parameter_cells()
+            inside = {
+                cell
+                for cell in fit[1]
+                if (owners := cells.get(cell))
+                and all(_scope_of(owner) in made for owner in owners)
+            }
+            if not inside:
+                break
+            best = None
+            for gate, value in _refinement_trials(seeded, inside, set(), cancel):
+                if _scope_of(gate) not in made:
+                    continue
+                _check(cancel)
+                # With the settings the inference finds behind the value (the channel's
+                # mode shows settings of its own the device keeps no copy of either).
+                trial = behind({**chosen, gate: value}) or {**chosen, gate: value}
+                trial_values, trial_unknown = _decode(
+                    application,
+                    parameter_segments,
+                    property_values,
+                    project_code_page,
+                    trial,
+                    cancel,
+                    fixed=fixed,
+                )
+                trial_ui = _seeded(application, trial_values, project_code_page)
+                if trial_ui is None:
+                    continue
+                trial_fit = _misfit(
+                    trial_ui, parameter_segments, linked, sizes, property_values
+                )
+                if trial_fit is not None and trial_fit[0] < (best or (fit,))[-1][0]:
+                    best = (trial, trial_values, trial_unknown, trial_ui, trial_fit)
+            if best is None:
+                break
+            chosen, _values, _unknown, seeded, fit = best
+            found = best
+            if _nothing_differs(fit[0]):
+                break
+        return found
 
     def behind(chosen: _ValueMap) -> _ValueMap | None:
         """``chosen`` with the settings the device keeps no copy of that the inference finds
@@ -2596,7 +2668,7 @@ def _refine_fixed(
                     found = better(chosen, ui, current)
                     if found is None:
                         continue
-                    trial_values, trial_unknown, seeded, fit, trial_bits = found
+                    chosen, trial_values, trial_unknown, seeded, fit, trial_bits = found
                     values, unknown, inferred, ui, current = (
                         trial_values,
                         trial_unknown,
