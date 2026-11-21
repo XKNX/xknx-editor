@@ -3700,10 +3700,10 @@ msgid "A slow connection, such as a remote tunnel or a VPN, needs longer waits: 
 msgstr "Një lidhje e ngadaltë, si një tunel në distancë ose një VPN, ka nevojë për pritje më të gjata: rrisni Afatin e konfirmimit te Cilësimet > Lidhja."
 
 msgid "The communication path through the coupler {coupler} could not be opened ({detail}). Check the coupler and its security settings."
-msgstr "Rruga e komunikimit përmes bashkuesit {coupler} nuk mund të hapej ({detail}). Kontrolloni bashkuesin dhe cilësimet e tij të sigurisë."
+msgstr "Hapja e rrugës së komunikimit përmes bashkuesit {coupler} dështoi ({detail}). Kontrolloni bashkuesin dhe cilësimet e tij të sigurisë."
 
 msgid "The domain address of this secure device could not be loaded because the coupler {coupler} does not support security."
-msgstr "Adresa e domenit e kësaj pajisjeje të sigurt nuk mund të ngarkohej, sepse bashkuesi {coupler} nuk mbështet sigurinë."
+msgstr "Ngarkimi i adresës së domenit të kësaj pajisjeje të sigurt dështoi, sepse bashkuesi {coupler} nuk mbështet sigurinë."
 
 msgid "Actions"
 msgstr "Veprime"
@@ -3718,13 +3718,13 @@ msgid "Colour"
 msgstr "Ngjyra"
 
 msgid "Control Gear and Groups"
-msgstr "Balastet dhe grupet"
+msgstr "ECG-të dhe grupet"
 
 msgid "Delay"
 msgstr "Vonesa"
 
 msgid "ECG"
-msgstr "Balast"
+msgstr "ECG"
 
 msgid "Effects"
 msgstr "Efekte"
@@ -3733,7 +3733,7 @@ msgid "Fade Time"
 msgstr "Koha e zbehjes"
 
 msgid "Flag"
-msgstr "Tregues"
+msgstr "Flamuri"
 
 msgid "General Inputs"
 msgstr "Hyrje të përgjithshme"
@@ -3766,7 +3766,7 @@ msgid "Mo Tu We Th Fr Sa Su"
 msgstr "Hë Ma Më En Pr Sh Di"
 
 msgid "Mode"
-msgstr "Mënyra"
+msgstr "Modaliteti"
 
 msgid "Motion / Brightness"
 msgstr "Lëvizja / ndriçimi"
@@ -3778,7 +3778,7 @@ msgid "Origin"
 msgstr "Origjina"
 
 msgid "Physical Devices Without a Unique Assignment"
-msgstr "Pajisje fizike pa caktim të qartë"
+msgstr "Pajisje fizike pa caktim unik"
 
 msgid "Physical Inputs"
 msgstr "Hyrje fizike"
@@ -3790,7 +3790,7 @@ msgid "Reference"
 msgstr "Referencë"
 
 msgid "Single ECG"
-msgstr "Balast individual"
+msgstr "ECG individuale"
 
 msgid "Target"
 msgstr "Objektivi"
@@ -3838,16 +3838,16 @@ msgid "Max. Brightness"
 msgstr "Ndriçimi maks."
 
 msgid "Switch-on Limit"
-msgstr "Kufiri në ndezje"
+msgstr "Kufiri i ndriçimit gjatë ndezjes"
 
 msgid "DCA Details"
 msgstr "Detajet e DCA-së"
 
 msgid "Import DCA XML…"
-msgstr "Importo XML të DCA-së…"
+msgstr "Importo skedarin XML të DCA-së…"
 
 msgid "Export DCA XML…"
-msgstr "Eksporto XML të DCA-së…"
+msgstr "Eksporto skedarin XML të DCA-së…"
 
 msgid "Replace the DCA configuration of {device} with the selected XML file?"
 msgstr "Të zëvendësohet konfigurimi DCA i pajisjes {device} me skedarin XML të zgjedhur?"
@@ -3868,10 +3868,10 @@ msgid "No entries"
 msgstr "Asnjë hyrje"
 
 msgid "Assigned Groups and ECGs…"
-msgstr "Grupet dhe balastet e caktuara…"
+msgstr "Grupet dhe ECG-të e caktuara…"
 
 msgid "Add Target…"
-msgstr "Shto objektivin…"
+msgstr "Shto objektiv…"
 
 msgid "Approximate preview"
 msgstr "Parapamje e përafërt"
@@ -3883,7 +3883,7 @@ msgid "Midnight reset"
 msgstr "Rivendosje në mesnatë"
 
 msgid "Import DCA Configuration"
-msgstr "Importo konfigurimin DCA"
+msgstr "Importimi i konfigurimit DCA"
 
 msgid "Edit DCA configuration"
 msgstr "Ndrysho konfigurimin DCA"
@@ -3898,10 +3898,10 @@ msgid "Expected a complete DCA device configuration."
 msgstr "Kërkohet një konfigurim i plotë i pajisjes DCA."
 
 msgid "DALI project data changed. Reopen the selection and try again."
-msgstr "Të dhënat e projektit DALI kanë ndryshuar. Rihap përzgjedhjen dhe provo përsëri."
+msgstr "Të dhënat e projektit DALI kanë ndryshuar. Rihapni përzgjedhjen dhe provoni përsëri."
 
 msgid "The selected DCA item is unavailable. Reopen the selection."
-msgstr "Elementi DCA i zgjedhur nuk është i disponueshëm. Rihap përzgjedhjen."
+msgstr "Elementi DCA i zgjedhur nuk është i disponueshëm. Rihapni përzgjedhjen."
 
 msgid "Invalid value."
 msgstr "Vlerë e pavlefshme."
@@ -3913,13 +3913,13 @@ msgid "This DCA operation is not supported."
 msgstr "Ky veprim DCA nuk mbështetet."
 
 msgid "Expected {minimum}-{maximum}."
-msgstr "Pritet: {minimum}-{maximum}."
+msgstr "Vlera duhet të jetë nga {minimum} deri në {maximum}."
 
 msgid "Expected HH:MM."
-msgstr "Pritet: HH:MM."
+msgstr "Pritet formati HH:MM."
 
 msgid "Select seven weekdays."
-msgstr "Zgjidh shtatë ditët e javës."
+msgstr "Zgjidhni shtatë ditët e javës."
 
 msgid "The target already belongs to the scene."
 msgstr "Objektivi tashmë i përket skenës."
@@ -3934,25 +3934,25 @@ msgid "Descriptions can contain at most {maximum} characters."
 msgstr "Përshkrimet mund të përmbajnë deri në {maximum} karaktere."
 
 msgid "Mo"
-msgstr "hën"
+msgstr "Hë"
 
 msgid "Tu"
-msgstr "mar"
+msgstr "Ma"
 
 msgid "We"
-msgstr "mër"
+msgstr "Më"
 
 msgid "Th"
-msgstr "enj"
+msgstr "En"
 
 msgid "Fr"
-msgstr "pre"
+msgstr "Pr"
 
 msgid "Sa"
-msgstr "sht"
+msgstr "Sh"
 
 msgid "Su"
-msgstr "die"
+msgstr "Di"
 
 msgid "A test is pending."
 msgstr "Një test është në pritje."
@@ -3970,7 +3970,7 @@ msgid "Descriptions"
 msgstr "Përshkrimet"
 
 msgid "Diagnostic Report"
-msgstr "Raporti diagnostikues"
+msgstr "Raporti diagnostik"
 
 msgid "Duration"
 msgstr "Kohëzgjatja"
@@ -4006,7 +4006,7 @@ msgid "Failure Rate"
 msgstr "Përqindja e defekteve"
 
 msgid "Fixed inhibit"
-msgstr "Bllokim i fiksuar"
+msgstr "Bllokim me lidhje fizike"
 
 msgid "Function test running"
 msgstr "Testi funksional po kryhet"
@@ -4033,7 +4033,7 @@ msgid "Read Report"
 msgstr "Lexo raportin"
 
 msgid "Read the diagnostic report from the gateway to display its current counters and saved test results."
-msgstr "Lexoni raportin diagnostikues nga porta për të shfaqur numëruesit aktualë dhe rezultatet e ruajtura të testeve."
+msgstr "Lexoni raportin diagnostik nga gateway-i për të shfaqur numëruesit aktualë dhe rezultatet e ruajtura të testeve."
 
 msgid "Replace the selected slot with the XML configuration? Other slots remain unchanged."
 msgstr "Të zëvendësohet pozicioni i zgjedhur me konfigurimin XML? Pozicionet e tjera mbeten të pandryshuara."
@@ -4101,19 +4101,19 @@ msgid "Clear Actions"
 msgstr "Pastro veprimet"
 
 msgid "Discover Inputs"
-msgstr "Kërko hyrjet"
+msgstr "Zbulo pajisjet hyrëse"
 
 msgid "Stop Blinking"
 msgstr "Ndalo pulsimin"
 
 msgid "Function Test"
-msgstr "Test funksioni"
+msgstr "Test funksional"
 
 msgid "Duration Test"
-msgstr "Test kohëzgjatjeje"
+msgstr "Test i kohëzgjatjes"
 
 msgid "Battery Test"
-msgstr "Test baterie"
+msgstr "Test i baterisë"
 
 msgid "Read Calibration"
 msgstr "Lexo kalibrimin"
@@ -4137,13 +4137,13 @@ msgid "Write Names"
 msgstr "Shkruaj emrat"
 
 msgid "Read Motion Diagnostics"
-msgstr "Lexo diagnostikimin e lëvizjes"
+msgstr "Lexo të dhënat diagnostike të lëvizjes"
 
 msgid "Inhibit Converters"
 msgstr "Blloko konvertuesit"
 
 msgid "Replace ECGs…"
-msgstr "Zëvendëso balastet…"
+msgstr "Zëvendëso ECG-të…"
 
 msgid "Service"
 msgstr "Shërbimi"
@@ -4161,13 +4161,13 @@ msgid "Enable memory write lock"
 msgstr "Aktivizo bllokimin e shkrimit në memorie"
 
 msgid "Start automatic ECG replacement on this gateway? This changes the DALI assignments and cannot be undone in the project."
-msgstr "Të fillojë zëvendësimi automatik i balasteve në këtë portë? Kjo ndryshon caktimet DALI dhe nuk mund të zhbëhet në projekt."
+msgstr "Të fillojë zëvendësimi automatik i ECG-ve në këtë gateway? Kjo ndryshon caktimet DALI dhe nuk mund të zhbëhet në projekt."
 
 msgid "Restore Gateway…"
-msgstr "Rikthe portën…"
+msgstr "Rikthe gateway-in…"
 
 msgid "Restore the saved physical inventory and configuration to this gateway and restart it? This overwrites its DALI state and cannot be undone in the project."
-msgstr "Të rikthehen pajisjet fizike dhe konfigurimi i ruajtur në këtë portë dhe të riniset ajo? Kjo mbishkruan gjendjen DALI dhe nuk mund të zhbëhet në projekt."
+msgstr "Të rikthehen në këtë gateway inventari fizik dhe konfigurimi që janë ruajtur më parë, pastaj të riniset gateway-i? Ky veprim mbishkruan gjendjen DALI të gateway-it dhe nuk mund të zhbëhet në projekt."
 
 msgid "Template members"
 msgstr "Anëtarët e shabllonit"

@@ -337,13 +337,13 @@ msgid "Domain Address"
 msgstr "Adresa e domenit"
 
 msgid "From Line"
-msgstr "Nga Linja"
+msgstr "Nga linja"
 
 msgid "The interface sends with this domain address and receives only the telegrams of devices with it."
-msgstr "Ndërfaqja dërgon me këtë adresë domeni dhe merr vetëm telegramet e pajisjeve që e kanë atë."
+msgstr "Ndërfaqja dërgon me këtë adresë domeni dhe merr vetëm telegramet nga pajisjet që kanë këtë adresë."
 
 msgid "{address} is not an RF domain address (4 and 8 hexadecimal digits, e.g. 0001:23456789)."
-msgstr "{address} nuk është adresë domeni RF (4 dhe 8 shifra heksadecimale, p.sh. 0001:23456789)."
+msgstr "{address} nuk është adresë domeni RF (4 shifra heksadecimale, të ndjekura nga 8 shifra heksadecimale, p.sh. 0001:23456789)."
 
 msgid "The domain address of the interface is being set."
 msgstr "Adresa e domenit të ndërfaqes po vendoset."
@@ -352,19 +352,19 @@ msgid "The connected USB interface is not a KNX RF interface."
 msgstr "Ndërfaqja USB e lidhur nuk është ndërfaqe KNX RF."
 
 msgid "The domain address could not be set: {error}"
-msgstr "Adresa e domenit nuk mund të vendosej: {error}"
+msgstr "Vendosja e adresës së domenit dështoi: {error}"
 
 msgid "Setting the domain address…"
 msgstr "Po vendoset adresa e domenit…"
 
 msgid "Local Device Access"
-msgstr "Qasja në Pajisjen Lokale"
+msgstr "Qasja në pajisjen lokale"
 
 msgid "Connects to the KNX device the USB interface is part of (e.g. an actuator with a USB port of its own) instead of the bus. Only this device can then be reached, for downloads and readouts; group telegrams, broadcasts and the bus monitor are not available. Needs a cEMI interface."
-msgstr "Lidhet me pajisjen KNX, pjesë e së cilës është ndërfaqja USB (p.sh. një aktuator me portën e vet USB), në vend të busit. Atëherë mund të arrihet vetëm kjo pajisje, për shkarkime dhe lexime; telegramet e grupit, transmetimet broadcast dhe monitori i busit nuk janë të disponueshme. Kërkon një ndërfaqe cEMI."
+msgstr "Lidhet me pajisjen KNX, pjesë e së cilës është ndërfaqja USB (p.sh. një aktuator me portën e vet USB), në vend që të lidhet me busin. Në këtë mënyrë mund të arrihet vetëm kjo pajisje, për programimin e saj dhe leximin e të dhënave; telegramet e grupit, transmetimet broadcast dhe monitori i busit nuk janë të disponueshme. Kërkohet një ndërfaqe cEMI."
 
 msgid "Connect to the interface's own device (local device access)"
-msgstr "Lidhu me pajisjen e vetë ndërfaqes (qasje në pajisjen lokale)"
+msgstr "Lidhu me pajisjen ku është e integruar vetë ndërfaqja (qasja në pajisjen lokale)"
 
 msgid "{target}, local device access to {address}"
 msgstr "{target}, qasje në pajisjen lokale {address}"
@@ -373,13 +373,13 @@ msgid "(address unknown)"
 msgstr "(adresë e panjohur)"
 
 msgid "Local device access: only this device is reached"
-msgstr "Qasje në pajisjen lokale: arrihet vetëm kjo pajisje"
+msgstr "Qasja në pajisjen lokale: arrihet vetëm kjo pajisje"
 
 msgid "Switching the connection…"
 msgstr "Po ndërrohet lidhja…"
 
 msgid "The connection could not be switched: {error}"
-msgstr "Lidhja nuk mund të ndërrohej: {error}"
+msgstr "Ndërrimi i lidhjes dështoi: {error}"
 
 msgid "The connection of the interface is being switched."
 msgstr "Lidhja e ndërfaqes po ndërrohet."
@@ -397,13 +397,13 @@ msgid "Through local device access only the USB interface's own device {local} c
 msgstr "Përmes qasjes në pajisjen lokale mund të arrihet vetëm pajisja e vetë ndërfaqes USB {local}: monitori i busit nuk mund të funksionojë."
 
 msgid "Through local device access only the USB interface's own device {local} can be reached: scan from {local} to {local}."
-msgstr "Përmes qasjes në pajisjen lokale mund të arrihet vetëm pajisja e vetë ndërfaqes USB {local}: skanoni nga {local} deri në {local}."
+msgstr "Përmes qasjes në pajisjen lokale mund të arrihet vetëm pajisja e vetë ndërfaqes USB {local}: skanoni nga {local} deri te {local}."
 
 msgid "M-Bus and BatiBus Frames"
 msgstr "Kornizat M-Bus dhe BatiBus"
 
 msgid "The frames of the interface's M-Bus and BatiBus tunnels (e.g. of a KNX RF USB stick that also receives wireless M-Bus meters), passed through as they are. The last 500 are kept."
-msgstr "Kornizat e tuneleve M-Bus dhe BatiBus të ndërfaqes (p.sh. të një stiku USB KNX RF që merr edhe matës M-Bus pa tel), të përcjella siç janë. Ruhen 500 të fundit."
+msgstr "Kornizat e tuneleve M-Bus dhe BatiBus të ndërfaqes përcillen pa ndryshime (p.sh. nga një pajisje USB KNX RF që merr edhe të dhënat e matësve M-Bus pa tel). Ruhen 500 kornizat e fundit."
 
 msgid "No M-Bus or BatiBus frames yet"
 msgstr "Ende nuk ka korniza M-Bus ose BatiBus"
@@ -436,25 +436,25 @@ msgid "Send"
 msgstr "Dërgo"
 
 msgid "{data} is not hexadecimal data (e.g. 44 AE 0C)."
-msgstr "{data} nuk janë të dhëna heksadecimale (p.sh. 44 AE 0C)."
+msgstr "Vlera {data} nuk është në format heksadecimal (p.sh. 44 AE 0C)."
 
 msgid "{service} is not a hexadecimal octet (00 to FF)."
 msgstr "{service} nuk është oktet heksadecimal (00 deri në FF)."
 
 msgid "The frame could not be sent: {error}"
-msgstr "Korniza nuk mund të dërgohej: {error}"
+msgstr "Dërgimi i kornizës dështoi: {error}"
 
 msgid "Block Bus Writes is on (Settings > Connection): nothing is sent."
-msgstr "Blloko shkrimet në bus është aktiv (Cilësimet > Lidhja): nuk dërgohet asgjë."
+msgstr "Bllokimi i shkrimeve në bus është aktiv (Cilësimet > Lidhja): nuk dërgohet asgjë."
 
 msgid "KNXnet/IP Server"
 msgstr "Serveri KNXnet/IP"
 
 msgid "Run a KNXnet/IP server for other tools (USB to IP bridge)"
-msgstr "Ekzekuto një server KNXnet/IP për mjete të tjera (urë nga USB në IP)"
+msgstr "Nis një server KNXnet/IP për mjete të tjera (urë nga USB në IP)"
 
 msgid "Other tools (another editor, Home Assistant, a commissioning tool) connect to it over the network and use this USB interface as a KNXnet/IP interface. Each tunnel gets one of the tunnel addresses, which have to be free addresses of the interface's line. It runs while the editor is connected to the bus through the interface, and opens a network port: turn it on only where that is wanted."
-msgstr "Mjete të tjera (një redaktor tjetër, Home Assistant, një mjet vënieje në punë) lidhen me të përmes rrjetit dhe e përdorin këtë ndërfaqe USB si ndërfaqe KNXnet/IP. Çdo tunel merr një nga adresat e tunelit, të cilat duhet të jenë adresa të lira të linjës së ndërfaqes. Funksionon ndërsa redaktori është i lidhur me busin përmes ndërfaqes dhe hap një port rrjeti: aktivizojeni vetëm aty ku kjo dëshirohet."
+msgstr "Mjete të tjera (një editor tjetër, Home Assistant, një mjet për vënien në punë) lidhen me të përmes rrjetit dhe e përdorin këtë ndërfaqe USB si ndërfaqe KNXnet/IP. Çdo tunel merr një nga adresat e tunelit, të cilat duhet të jenë adresa individuale të lira në linjën e ndërfaqes. Funksionon ndërsa editori është i lidhur me busin përmes ndërfaqes dhe hap një port rrjeti: aktivizojeni vetëm kur nevojitet."
 
 msgid "Port"
 msgstr "Porti"
@@ -469,7 +469,7 @@ msgid "This computer only"
 msgstr "Vetëm ky kompjuter"
 
 msgid "Answer searches (discovery)"
-msgstr "Përgjigju kërkimeve (discovery)"
+msgstr "Përgjigju kërkimeve (zbulimi)"
 
 msgid "Offer TCP"
 msgstr "Ofro TCP"
@@ -489,7 +489,7 @@ msgstr[0] "Serveri KNXnet/IP në portin {port}, {count} tunel"
 msgstr[1] "Serveri KNXnet/IP në portin {port}, {count} tunele"
 
 msgid "The KNXnet/IP server is not running."
-msgstr "Serveri KNXnet/IP nuk po funksionon."
+msgstr "Serveri KNXnet/IP nuk është në punë."
 
 msgid "No tunnels open"
 msgstr "Asnjë tunel i hapur"
@@ -519,19 +519,19 @@ msgid "{address} is the individual address of the device {name}."
 msgstr "{address} është adresa individuale e pajisjes {name}."
 
 msgid "{port} is not a port (1 to 65535)."
-msgstr "{port} nuk është port (1 deri në 65535)."
+msgstr "{port} nuk është numër porti i vlefshëm (1 deri në 65535)."
 
 msgid "The KNXnet/IP server runs only while the editor is connected through a KNX USB interface."
-msgstr "Serveri KNXnet/IP funksionon vetëm ndërsa redaktori është i lidhur përmes një ndërfaqeje KNX USB."
+msgstr "Serveri KNXnet/IP funksionon vetëm ndërsa editori është i lidhur përmes një ndërfaqeje KNX USB."
 
 msgid "The KNXnet/IP server doesn't run with local device access: the connection reaches only the interface's own device."
-msgstr "Serveri KNXnet/IP nuk funksionon me qasje në pajisjen lokale: lidhja arrin vetëm pajisjen e vetë ndërfaqes."
+msgstr "Serveri KNXnet/IP nuk funksionon me qasjen në pajisjen lokale: lidhja mund të arrijë vetëm te pajisja e vetë ndërfaqes."
 
 msgid "The KNXnet/IP server is being started or stopped."
 msgstr "Serveri KNXnet/IP po niset ose po ndalet."
 
 msgid "The KNXnet/IP server could not start: {error}"
-msgstr "Serveri KNXnet/IP nuk mund të nisej: {error}"
+msgstr "Nisja e serverit KNXnet/IP dështoi: {error}"
 
 msgid "Enter the data to send (e.g. 44 AE 0C)."
-msgstr "Shkruani të dhënat për t'u dërguar (p.sh. 44 AE 0C)."
+msgstr "Vendosni të dhënat për t'u dërguar (p.sh. 44 AE 0C)."
