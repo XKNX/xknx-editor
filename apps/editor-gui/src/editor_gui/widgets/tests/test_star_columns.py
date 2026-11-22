@@ -60,3 +60,23 @@ def test_equal_keys_keep_the_order_dotnet_leaves_them_in() -> None:
     order = _sorted_indices([0.0] + [0.16] * 16)
     assert order[0] == 0 and sorted(order) == list(range(17))
     assert order[1:] != list(range(1, 17))
+
+
+def test_sorting_leaves_nothing_for_the_garbage_collector() -> None:
+    import gc
+    import random
+
+    from editor_gui.widgets.star_columns import (
+        _sorted_indices,  # pyright: ignore[reportPrivateUsage]
+    )
+
+    rng = random.Random(7)
+    keys = [rng.choice([0.5, 1.0, 2.0, 3.0]) for _ in range(500)]
+    gc.collect()
+    gc.disable()
+    try:
+        order = _sorted_indices(keys)
+        assert gc.collect() == 0
+    finally:
+        gc.enable()
+    assert [keys[i] for i in order] == sorted(keys)
