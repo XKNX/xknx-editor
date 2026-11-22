@@ -1,10 +1,15 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from .._name import apply_text_args, fill_name
 from ..context import EvalContext
 from ..ui import UiNode
 from ..ui.tab import UiTab
 from .base import DynamicNode, eval_all
+
+if TYPE_CHECKING:
+    from xknxeditor.namespaces.intermediate import ApplicationProgramChannel
 
 
 class ChannelNode(DynamicNode):
@@ -12,12 +17,12 @@ class ChannelNode(DynamicNode):
 
     __slots__ = (
         "_children",
+        "_elem",
+        "_fixed_name",
         "_icon",
         "_id",
         "_independent",
-        "_name",
         "_number",
-        "_text",
         "_text_param_ref_id",
         "pure",
     )
@@ -27,21 +32,32 @@ class ChannelNode(DynamicNode):
         children: list[DynamicNode | None],
         id: str | None = None,
         name: str | None = None,
-        text: str | None = None,
         number: str | None = None,
         icon: str | None = None,
         text_parameter_ref_id: str | None = None,
         independent: bool = False,
+        elem: ApplicationProgramChannel | None = None,
     ) -> None:
         self._id = id
-        self._name = name
-        self._text = text
+        # A channel's name and text are read from it when it is shown: they are in the language
+        # of the program then (see xknxeditor.prod.translate), and the tree is the same in every
+        # language. ``name`` is the name of a block that is no channel of the program.
+        self._elem = elem
+        self._fixed_name = name
         self._number = number
         self._icon = icon
         self._text_param_ref_id = text_parameter_ref_id
         self._children = children
         self._independent = independent
         self.pure = all(child is None or child.pure for child in children)
+
+    @property
+    def _name(self) -> str | None:
+        return self._elem.name if self._elem is not None else self._fixed_name
+
+    @property
+    def _text(self) -> str | None:
+        return self._elem.text if self._elem is not None else None
 
     def _heading(self, ctx: EvalContext) -> str | None:
         template = apply_text_args(self._text or self._name or "", ctx.text_args())

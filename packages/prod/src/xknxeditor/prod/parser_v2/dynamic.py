@@ -706,8 +706,7 @@ class DynamicTreeBuilder:
             return ChannelNode(
                 [self._build(child) for child in elem.choice],
                 id=elem.id,
-                name=elem.name,
-                text=elem.text,
+                elem=elem,
                 number=elem.number,
                 icon=elem.icon,
                 text_parameter_ref_id=elem.text_parameter_ref_id,
@@ -715,17 +714,16 @@ class DynamicTreeBuilder:
         elif isinstance(elem, ComObjectParameterBlock):
             # The importer labels a block with its heading parameter's (ParamRefId) Text when it has one — e.g.
             # a channel-prefixed "A: Drive" — in preference to the block's generic Name ("Jalousie X: …").
-            heading_text: str | None = None
-            if elem.param_ref_id:
-                pr = self.idx.parameter_refs.get(elem.param_ref_id)
-                param = self.idx.parameters.get(pr.ref_id) if pr else None
-                heading_text = (getattr(pr, "text", None) or None) or (
-                    param.text if param else None
-                )
+            pr = (
+                self.idx.parameter_refs.get(elem.param_ref_id)
+                if elem.param_ref_id
+                else None
+            )
+            param = self.idx.parameters.get(pr.ref_id) if pr else None
             return ComObjectParameterBlockNode(
                 elem,
                 [self._build(child) for child in elem.choice],
-                heading_text,
+                (pr, param) if pr is not None or param is not None else None,
             )
         elif isinstance(
             elem, (DependentChannelChoose, ChannelChoose, ComObjectParameterChoose)
