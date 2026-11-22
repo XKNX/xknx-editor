@@ -13,6 +13,10 @@ class RenameNode(DynamicNode):
 
     __slots__ = ("_elem",)
 
+    # It sets a text the evaluation records (see EvalMemo); its text arguments are those of
+    # the application where the memory is used.
+    pure = True
+
     def __init__(self, elem: Rename):
         self._elem = elem
 

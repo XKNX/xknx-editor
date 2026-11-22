@@ -15,7 +15,7 @@ from .base import DynamicNode, eval_all
 class ComObjectParameterBlockNode(DynamicNode):
     """A grouped box of parameters (dynamic-XML ParameterBlock)."""
 
-    __slots__ = ("_children", "_elem", "_heading_text")
+    __slots__ = ("_children", "_elem", "_heading_text", "pure")
 
     def __init__(
         self,
@@ -29,8 +29,18 @@ class ComObjectParameterBlockNode(DynamicNode):
         # carries one. The importer labels the block with this Text (e.g. a channel-prefixed "A: Drive") in
         # preference to the block's own Name (which may be a generic template like "Jalousie X: …").
         self._heading_text = heading_text
+        self.pure = all(child is None or child.pure for child in children)
 
     def eval(self, ctx: EvalContext) -> list[UiNode]:
+        if self.pure and ctx.explore is None:
+            # A block of parameters and Chooses alone gives the same again when what it reads
+            # is the same (see EvalMemo): the whole block, not each Choose in it.
+            memo = ctx.memo
+            if memo is not None:
+                return memo.evaluate(self, ctx, self._eval)
+        return self._eval(ctx)
+
+    def _eval(self, ctx: EvalContext) -> list[UiNode]:
         # The block's heading parameter is active while the block is shown.
         if self._elem.param_ref_id:
             ctx.mark_active_param(self._elem.param_ref_id)

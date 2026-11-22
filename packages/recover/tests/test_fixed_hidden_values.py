@@ -515,6 +515,53 @@ def test_fixed_validation_can_correct_several_independent_markers(
     assert result.values[f"{_PAIR}P-1_R-1"] == "8"
 
 
+@pytest.mark.parametrize("tries", [None, 0])
+def test_the_settings_of_a_new_instance_an_effort_tries_are_bounded(
+    application: Application, monkeypatch: pytest.MonkeyPatch, tries: int | None
+) -> None:
+    # The settings inside a module instance a correction makes are tried each with the whole
+    # inference behind it, all of them together as many as the effort allows (the result is
+    # found without).
+    if tries is not None:
+        monkeypatch.setattr(parameters, "_SETTLE_TRIES", tries)
+    inferences: list[object] = []
+    infer_all = parameters._infer_all
+
+    def counted(*args: Any, **kwargs: Any) -> Any:
+        inferences.append(args)
+        return infer_all(*args, **kwargs)
+
+    monkeypatch.setattr(parameters, "_infer_all", counted)
+    candidate = parameters.RecoveredParameters(
+        {
+            _STATUS: "4",
+            f"{_APP}_P-2_R-21": "9",
+            _FUNCTION: "1",
+            f"{_PAIR}P-1_R-1": "6",
+            f"{_PAIR}UP-2_R-2": "18",
+        },
+        [],
+    )
+    ui = application.dynamic_ui()
+    assert ui is not None
+    result = parameters._refine_fixed(
+        application,
+        _device(
+            application, (_STATUS, "6"), (_FUNCTION, "1"), (f"{_PAIR}P-1_R-1", "8")
+        ),
+        {},
+        None,
+        {40, 51},
+        {},
+        candidate,
+        parameters._fixed_values(application, ui),
+        1,
+        None,
+    )
+    assert result.complete
+    assert len(inferences) == (2 if tries is None else 0)
+
+
 def test_failed_fixed_validation_cannot_report_a_complete_candidate(
     application: Application, monkeypatch: pytest.MonkeyPatch
 ) -> None:

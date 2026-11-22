@@ -81,6 +81,8 @@ class ComObjectRefRefNode(DynamicNode):
         "_write_locked",
     )
 
+    pure = True
+
     def __init__(
         self,
         elem: ComObjectRefRef,

@@ -64,6 +64,7 @@ from .calculation import (
 from .context import (
     EvalCapture,
     EvalContext,
+    EvalMemo,
     Explorer,
     GateChecks,
     ObjectTreeCapture,
@@ -1110,6 +1111,7 @@ class DynamicUI:
         "_tree",
         "_ui",
         "_union_competitors",
+        "eval_memo",
         "project_code_page",
         "script_abort",
         "script_env",
@@ -1185,6 +1187,9 @@ class DynamicUI:
         self._local_ids: dict[str, str] | None = None
         self.script_env: JScriptEnv | None = None
         self.script_abort: AbortToken | None = None
+        # What the nodes gave in evaluations of other UIs of the program alike (see
+        # EvalMemo), set by whoever evaluates many of them; None: each evaluated anew.
+        self.eval_memo: EvalMemo | None = None
 
     def _invalidate(self) -> None:
         """Drop the cached UI and the active-set snapshot after a state change."""
@@ -1222,6 +1227,7 @@ class DynamicUI:
                 union_suppress=False,
                 union_chooses=chooses,
                 handed=set(),
+                memo=self.eval_memo,
             )
 
         tree, settled = self._settle(make_ctx)
@@ -1288,7 +1294,13 @@ class DynamicUI:
         def make_ctx() -> EvalContext:
             nonlocal result
             result = capture() if capture is not None else None
-            return EvalContext(self._state, idx=self._idx, capture=result, handed=set())
+            return EvalContext(
+                self._state,
+                idx=self._idx,
+                capture=result,
+                handed=set(),
+                memo=self.eval_memo,
+            )
 
         tree, _settled = self._settle(make_ctx)
         return tree, result

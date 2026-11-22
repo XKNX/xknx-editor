@@ -19,6 +19,7 @@ class ChannelNode(DynamicNode):
         "_number",
         "_text",
         "_text_param_ref_id",
+        "pure",
     )
 
     def __init__(
@@ -40,6 +41,7 @@ class ChannelNode(DynamicNode):
         self._text_param_ref_id = text_parameter_ref_id
         self._children = children
         self._independent = independent
+        self.pure = all(child is None or child.pure for child in children)
 
     def _heading(self, ctx: EvalContext) -> str | None:
         template = apply_text_args(self._text or self._name or "", ctx.text_args())
@@ -49,6 +51,15 @@ class ChannelNode(DynamicNode):
         return fill_name(template, name_value or "") or None
 
     def eval(self, ctx: EvalContext) -> list[UiNode]:
+        if self.pure and ctx.explore is None:
+            # A tab of blocks, parameters and Chooses alone gives the same again when what it
+            # reads is the same (see EvalMemo).
+            memo = ctx.memo
+            if memo is not None:
+                return memo.evaluate(self, ctx, self._eval)
+        return self._eval(ctx)
+
+    def _eval(self, ctx: EvalContext) -> list[UiNode]:
         explorer = ctx.explore
         if explorer is not None:
             explorer.enter_section(self._heading(ctx) or "")

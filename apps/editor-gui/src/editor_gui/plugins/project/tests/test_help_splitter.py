@@ -79,7 +79,7 @@ def test_the_help_text_starts_17_px_in(
 ) -> None:
     insets: list[tuple[float, float]] = []
 
-    def record(_text: str) -> None:
+    def record(_text: str, *_layout: object, **_selection: object) -> None:
         cursor = imgui.get_cursor_screen_pos()
         window = imgui.get_window_pos()
         insets.append((cursor.x - window.x, cursor.y - window.y))

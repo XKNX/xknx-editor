@@ -194,7 +194,7 @@ No PowerTool installation is needed; edits update the stored PowerTool configura
 6108/01 and /02 programming has been tested on devices; other hardware behavior remains
 unverified. Initial Powerline domain commissioning is not supported.
 
-**Siemens plug-ins** are supported in **Plugin Config**.
+**Siemens plug-ins** are supported in **Plugin Config**; **Recover from the bus** reads a Generic Plug-in configuration back from the device.
 
 **MDT DCAs**: edit GTS layouts and Smart device symbols, or import/export VisuControl Plus configurations, through **Plugin Config** and MCP; recover stored DCA data from devices that allow it to be read. Read installed MDT firmware versions and compare compatible releases from the firmware catalog.
 

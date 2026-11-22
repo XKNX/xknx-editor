@@ -643,3 +643,32 @@ def test_read_bits_of_a_large_field() -> None:
     data = bytes(range(256)) * 512
     assert _read_bits(data, 0, 0, len(data) * 8) == int.from_bytes(data, "big")
     assert _read_bits(data, 1, 4, 12) == 0x102
+
+
+def _write_bits_bit_by_bit(
+    buf: bytearray, offset: int, bit_offset: int, size: int, value: int
+) -> None:
+    """How a field was written before it was written by the octet: bit by bit."""
+    start = offset * 8 + bit_offset
+    for i in range(size):
+        pos = start + i
+        bit_mask = 1 << (7 - pos % 8)
+        if (value >> (size - 1 - i)) & 1:
+            buf[pos // 8] |= bit_mask
+        else:
+            buf[pos // 8] &= ~bit_mask
+
+
+def test_a_field_is_written_as_bit_by_bit() -> None:
+    import random
+
+    rng = random.Random(7)
+    for _ in range(3000):
+        offset, bit_offset = rng.randrange(4), rng.randrange(8)
+        size = rng.choice([0, 1, 2, 3, 5, 7, 8, 9, 13, 16, 24, 31, 32, 40])
+        value = rng.randrange(-(1 << 40), 1 << 41)
+        seed = bytes(rng.randrange(256) for _ in range(12))
+        written, expected = bytearray(seed), bytearray(seed)
+        _write_bits(written, offset, bit_offset, size, value)
+        _write_bits_bit_by_bit(expected, offset, bit_offset, size, value)
+        assert written == expected, (offset, bit_offset, size, value)

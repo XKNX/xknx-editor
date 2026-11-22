@@ -43,6 +43,7 @@ if TYPE_CHECKING:
 
     from xknxeditor.download.factory_image import FactoryImage
     from xknxeditor.prod import Application, MasterData
+    from xknxeditor.prod.parser_v2.context import EvalMemo
     from xknxeditor.prod.parser_v2.dynamic import DynamicUI
     from xknxeditor.prod.parser_v2.encode import TypedPropertyKey
 
@@ -96,6 +97,7 @@ def seed_dynamic_ui(
     *,
     module_instances: Sequence[tuple[str, str]] | None = None,
     evaluated: bool = False,
+    eval_memo: EvalMemo | None = None,
 ) -> DynamicUI | None:
     """Build a dynamic UI evaluated with recovered parameter reference values.
 
@@ -121,6 +123,9 @@ def seed_dynamic_ui(
     in the scope it was in; an instance it lists that holds no value is made by the evaluation
     that reaches it, and the root's instances are found by their ids, not their order), the
     second build would evaluate it alike, and the first one is returned instead.
+
+    ``eval_memo``: what the nodes gave in evaluations of other UIs alike (see
+    :class:`~xknxeditor.prod.parser_v2.context.EvalMemo`), for a search seeding many.
     """
     from xknxeditor.namespaces.intermediate.module_instance_t import ModuleInstance
     from xknxeditor.prod.parser_v2.dynamic import DynamicUI
@@ -136,6 +141,7 @@ def seed_dynamic_ui(
             project_code_page=project_code_page,
             tree_builder=tree_builder,
         )
+        probe.eval_memo = eval_memo
         layout = probe.state_layout() if evaluated else None
         module_instances = probe.get_module_instances()
         if not (module_instances and parameter_values):
@@ -150,12 +156,13 @@ def seed_dynamic_ui(
             ],
             project_code_page=project_code_page,
         )
+        seeded.eval_memo = eval_memo
         if layout is not None and DynamicUI.layouts_alike(
             layout, seeded.state_layout()
         ):
             return probe
         return seeded
-    return DynamicUI(
+    ui = DynamicUI(
         program,
         parameter_values=parameter_values,
         tree_builder=tree_builder,
@@ -165,6 +172,8 @@ def seed_dynamic_ui(
         ],
         project_code_page=project_code_page,
     )
+    ui.eval_memo = eval_memo
+    return ui
 
 
 def com_object_ref_by_number(

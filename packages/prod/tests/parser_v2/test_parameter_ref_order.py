@@ -180,3 +180,56 @@ def test_a_module_instance_downloads_the_value_of_its_last_active_ref() -> None:
     assert ui is not None
     # The first ref listed is not the one that counts.
     assert ui.encode_to_memory()[segment] == bytes([9])
+
+
+def test_of_refs_in_the_same_place_the_later_defined_sets_the_value() -> None:
+    # Two tags alike: the ref defined later is applied later. The parameters come in the
+    # order of their first active ref.
+    early, late, other = (
+        f"{APP}_P-90_R-90",
+        f"{APP}_P-90_R-91",
+        f"{APP}_P-89_R-89",
+    )
+    idx = cast(
+        Any,
+        SimpleNamespace(
+            parameter_refs={
+                other: SimpleNamespace(ref_id=f"{APP}_P-89", tag=None),
+                early: SimpleNamespace(ref_id=f"{APP}_P-90", tag="5"),
+                late: SimpleNamespace(ref_id=f"{APP}_P-90", tag="5"),
+            },
+            parameters={},
+        ),
+    )
+    values = {early: "0", late: "1", other: "7"}
+    resolved = resolve_param_values(idx, _state(values, {late, early, other}))
+    assert list(resolved.items()) == [(f"{APP}_P-89", "7"), (f"{APP}_P-90", "1")]
+    # A ref without a value does not count.
+    assert resolve_param_values(
+        idx, _state({early: "0", other: "7"}, {late, early})
+    ) == {f"{APP}_P-90": "0"}
+
+
+def test_the_ranks_of_the_active_refs_are_those_of_all_refs() -> None:
+    from xknxeditor.prod.parser_v2.encode import (
+        _active_ref_ranks,  # pyright: ignore[reportPrivateUsage]
+        last_active_ref_ranks,
+    )
+
+    refs = {
+        f"{APP}_P-90_R-5100": SimpleNamespace(ref_id=f"{APP}_P-90", tag="5100"),
+        f"{APP}_P-90_R-90": SimpleNamespace(ref_id=f"{APP}_P-90", tag="90"),
+        f"{APP}_UP-7_R-7": SimpleNamespace(ref_id=f"{APP}_UP-7", tag=None),
+        f"{APP}_UP-7_R-9": SimpleNamespace(ref_id=f"{APP}_UP-7", tag="1"),
+        f"{APP}_UP-8_R-8": SimpleNamespace(ref_id=f"{APP}_UP-8", tag=None),
+    }
+    listed = [SimpleNamespace(id=ref_id, **vars(ref)) for ref_id, ref in refs.items()]
+    idx = cast(Any, SimpleNamespace(parameter_refs=refs))
+    for active in (
+        set(refs),
+        {f"{APP}_P-90_R-90", f"{APP}_UP-7_R-7", "elsewhere_P-1_R-1"},
+        set[str](),
+    ):
+        assert _active_ref_ranks(idx, active) == last_active_ref_ranks(
+            cast(Any, listed), active
+        )

@@ -13,6 +13,8 @@ from .base import DynamicNode
 class ParameterSeparatorNode(DynamicNode):
     """Leaf: label or divider sitting between block parameters."""
 
+    pure = True
+
     def __init__(self, elem: ParameterSeparator):
         self._elem = elem
 

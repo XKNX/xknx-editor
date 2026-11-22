@@ -13,6 +13,7 @@ from editor_gui.host import HostOptions, host_options
 from editor_gui.main import KnxGuiApp
 from editor_gui.strings import S
 from editor_gui.widgets.markdown import COMPACT, Layout
+from editor_gui.widgets.text_selection import TextSelection
 
 
 @pytest.fixture(autouse=True)
@@ -182,11 +183,14 @@ def test_update_found_inside_home_assistant(monkeypatch: pytest.MonkeyPatch) -> 
     monkeypatch.setattr(main.imgui, "text_wrapped", shown.append)
     notes: list[tuple[str, Layout]] = []
     monkeypatch.setattr(
-        main, "render_markdown", lambda text, layout: notes.append((text, layout))
+        main,
+        "render_markdown",
+        lambda text, layout, *_selection: notes.append((text, layout)),
     )
     stub = SimpleNamespace(
         _update_prompt_requested=False,
         _update_info=SimpleNamespace(version="9.9.0", notes=_NOTES, url="", assets=[]),
+        _update_notes_selection=TextSelection("update_notes"),
         _skip_update_version=skipped.append,
     )
 

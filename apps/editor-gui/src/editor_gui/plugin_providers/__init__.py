@@ -118,9 +118,16 @@ def provider_for(device: Device) -> PluginProvider | None:
 
 
 class DeviceReader(Protocol):
-    """A provider that reads its configuration back from a device (see the recovery)."""
+    """A provider that reads its configuration back from a device (see the recovery).
 
-    async def read_device(self, programmer: Any) -> object: ...
+    ``read_device`` reads off the device what a device of ``device``'s product (its
+    application and product data; nothing else of it is used) keeps of the configuration.
+    ``keeps_object_flags``: whether the configuration holds the group object flags, else
+    they are set from the device's tables like any device's."""
+
+    keeps_object_flags: bool
+
+    async def read_device(self, programmer: Any, device: Device) -> object: ...
     def recover(self, device: Device, image: object) -> NativeConfiguration: ...
     def slot_references(self, device: Device) -> dict[int, str]: ...
 
