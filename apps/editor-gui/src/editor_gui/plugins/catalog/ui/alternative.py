@@ -103,7 +103,9 @@ class AlternativeCatalogPanel:
         self._manufacturers: tuple[int, int] = (-1, 0)
 
     def start(self) -> None:
-        """Refresh on startup and hourly, keeping the cached catalog usable on failure."""
+        """Refresh now and hourly, keeping the cached catalog usable on failure. Started when the
+        tab is first shown: loading and checking the index takes seconds and tens of MB, which
+        a session that never looks at it does not need."""
         if self._refresh_thread is not None:
             return
 
@@ -174,6 +176,7 @@ class AlternativeCatalogPanel:
             self._future = None
 
     def render(self) -> None:
+        self.start()
         self.poll()
         settings_key = self._client.settings.base_url, self._client.settings.user
         if settings_key != self._settings_key:

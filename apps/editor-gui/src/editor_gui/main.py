@@ -1125,7 +1125,6 @@ class KnxGuiApp:
 
     def setup(self) -> None:
         self._log.info("editor started", installation=self._update_scope or "none")
-        self._catalog_plugin.start_alternative()
         self._can_launch_file_dialog(show_error=False)
         # In the browser UI, notes about downloads show as this app's toasts.
         if web.active_hub is not None:
