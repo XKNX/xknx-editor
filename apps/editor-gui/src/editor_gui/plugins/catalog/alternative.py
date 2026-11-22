@@ -10,6 +10,7 @@ import math
 import re
 import threading
 import time
+from collections.abc import Generator
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from email.utils import parsedate_to_datetime
@@ -306,6 +307,20 @@ class AlternativeCatalogClient:
         self._csrf = ""
         self._registration_session = False
         self._closed = threading.Event()
+        # Loads and refreshes of the index running now (see status: "loading").
+        self._loading = 0
+        self._loading_lock = threading.Lock()
+
+    @contextlib.contextmanager
+    def _loading_index(self) -> Generator[None]:
+        """While the index is loaded or refreshed (status reports "loading")."""
+        with self._loading_lock:
+            self._loading += 1
+        try:
+            yield
+        finally:
+            with self._loading_lock:
+                self._loading -= 1
 
     def configure(self, base_url: str, user: str, password: str | None = None) -> None:
         """Save credentials locally. A server change requires an explicit new password."""
@@ -355,6 +370,7 @@ class AlternativeCatalogClient:
             "checked_at": self.checked_at,
             "generated_at": self.generated_at,
             "error": self.last_error,
+            "loading": self._loading > 0,
         }
 
     def search(
@@ -428,7 +444,7 @@ class AlternativeCatalogClient:
 
     def load_cache(self) -> None:
         """Load once on a worker thread; a corrupt cache is replaced by the next refresh."""
-        with self._operation:
+        with self._operation, self._loading_index():
             if self._loaded:
                 return
             try:
@@ -453,7 +469,7 @@ class AlternativeCatalogClient:
         self.generation += 1
 
     def refresh(self) -> dict[str, Any]:
-        with self._operation:
+        with self._operation, self._loading_index():
             self.load_cache()
             try:
                 headers = (

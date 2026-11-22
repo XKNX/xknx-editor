@@ -293,10 +293,11 @@ class AlternativeCatalogPanel:
             imgui.end_table()
 
     def _render_status(self, status: dict[str, Any]) -> None:
-        """While fetching: the loading note; else the catalog's date and size, greyed, beside the
-        buttons when it fits (as the Online tab shows its product index)."""
+        """While fetching (also the refresh started when the tab is first shown): the loading
+        note; else the catalog's date and size, greyed, beside the buttons when it fits (as the
+        Online tab shows its product index)."""
         imgui.same_line()
-        if self._future is not None:
+        if self._future is not None or status.get("loading"):
             loading("##alternative-loading", S.ONLINE_LOADING_PRODUCTS)
             return
         if status["count"]:
