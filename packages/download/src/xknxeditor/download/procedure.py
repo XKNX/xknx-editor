@@ -112,6 +112,7 @@ from .errors import (
     DownloadError,
     ImageError,
     PropertyAccessRejected,
+    SegmentNotAllocated,
     UnsupportedProcedureError,
     VerificationError,
     product_message,
@@ -1660,7 +1661,7 @@ class LoadProcedureRunner:
         if isinstance(control, LdCtrlCompareRelMem):
             index = await self._resolve_index(control)
             programmer = await self._bus()
-            base = await programmer.read_table_reference(index)
+            base = await programmer.read_relative_base(index)
             await self._polled_compare(
                 control,
                 lambda: self._compare_mem(
@@ -1674,11 +1675,8 @@ class LoadProcedureRunner:
             # Read-back into the image (see LoadImageMem); it does not write.
             index = await self._resolve_index(control)
             programmer = await self._bus()
-            base = await programmer.read_table_reference(index)
-            self._capture_memory(
-                index,
-                control.offset,
-                await programmer.read_memory(base + control.offset, control.size),
+            await self._load_image_rel_mem(
+                control, index, await programmer.read_relative_base(index)
             )
             return
         if isinstance(control, LdCtrlWriteProp):
@@ -1880,7 +1878,7 @@ class LoadProcedureRunner:
         """
         index = await self._resolve_index(control)
         programmer = await self._bus()
-        base = await programmer.read_table_reference(index)
+        base = await programmer.read_relative_base(index)
         logger.debug(
             "write_rel_mem: obj-index=%d table-base=%#06x offset=%#06x size=%d",
             index,
@@ -1909,6 +1907,17 @@ class LoadProcedureRunner:
                     base + run_offset, data, verify=control.verify
                 )
                 run_done(len(data))
+
+    async def _load_image_rel_mem(
+        self, control: LdCtrlLoadImageRelMem, index: int, base: int
+    ) -> None:
+        """Read the relative memory of object ``index`` at ``base`` into the image."""
+        programmer = await self._bus()
+        self._capture_memory(
+            index,
+            control.offset,
+            await programmer.read_memory(base + control.offset, control.size),
+        )
 
     @contextlib.contextmanager
     def _reporting_memory(
@@ -3600,11 +3609,11 @@ class LoadProcedureRunner:
             return
         if isinstance(control, LdCtrlWriteRelMem):
             index = await self._resolve_index(control)
-            programmer = await self._bus()
-            base = await programmer.read_table_reference(index)
+            base = await self._preview_base(index)
             await self._diff_masked_rel(base, control, segments, index=index)
-            start = base + control.offset
-            self._preview_memory.append((False, start, start + control.size))
+            if base is not None:
+                start = base + control.offset
+                self._preview_memory.append((False, start, start + control.size))
             return
         if isinstance(control, LdCtrlAbsSegment):
             # An allocation whose range the image covers is an image backed write;
@@ -3666,8 +3675,15 @@ class LoadProcedureRunner:
             return
         if isinstance(control, LdCtrlCompareRelMem):
             index = await self._resolve_index(control)
-            programmer = await self._bus()
-            base = await programmer.read_table_reference(index)
+            base = await self._preview_base(index)
+            if base is None:
+                logger.info(
+                    "preflight: %s compares memory of object %s the download allocates "
+                    "first; not checked",
+                    self._target(),
+                    self._object_label(index),
+                )
+                return
             if self._preview_wrote_memory(base + control.offset, control.size):
                 return
             await self._polled_compare(
@@ -3707,8 +3723,15 @@ class LoadProcedureRunner:
         if isinstance(control, LdCtrlLoadImageProp):
             await self._load_image_prop(control)
             return
-        if isinstance(control, (LdCtrlLoadImageMem, LdCtrlLoadImageRelMem)):
+        if isinstance(control, LdCtrlLoadImageMem):
             await self._execute(control)
+            return
+        if isinstance(control, LdCtrlLoadImageRelMem):
+            index = await self._resolve_index(control)
+            base = await self._preview_base(index)
+            # Without a segment there is nothing loaded to read.
+            if base is not None:
+                await self._load_image_rel_mem(control, index, base)
             return
         # Anything left is either a control with no write to preview (fine) or a
         # step this engine does not implement. Do not fail the read-only preview,
@@ -3862,9 +3885,24 @@ class LoadProcedureRunner:
                 )
             )
 
+    async def _preview_base(self, index: int) -> int | None:
+        """The base of object ``index``'s memory segment as the device holds it now, ``None``
+        when it holds none (see :meth:`DeviceProgrammer.read_table_reference`): the download
+        allocates the segment before it writes there."""
+        programmer = await self._bus()
+        try:
+            return await programmer.read_table_reference(index)
+        except SegmentNotAllocated as error:
+            logger.info(
+                "preflight: %s %s; compared with an empty segment",
+                self._target(),
+                error,
+            )
+            return None
+
     async def _diff_masked_rel(
         self,
-        base: int,
+        base: int | None,
         control: LdCtrlWriteRelMem,
         segments: list[SegmentDiff],
         *,
@@ -3878,7 +3916,9 @@ class LoadProcedureRunner:
         here either.
 
         The download allocates the segment anew, so the device's current one may be
-        smaller than the planned data: it is read as far as the device answers.
+        smaller than the planned data: it is read as far as the device answers. A device
+        without a segment there (``base`` ``None``) holds nothing of it: each run is
+        compared with no octets, at its relative address.
         """
         runs = self._memory_write_runs(control, index=index)
         if not runs:
@@ -3889,15 +3929,19 @@ class LoadProcedureRunner:
             in GROUP_COMMUNICATION_OBJECTS
         )
         for run_offset, planned in runs:
-            current = await programmer.read_memory_until_refused(
-                base + run_offset, len(planned)
-            )
-            await self._note_device_written(
-                programmer, base + run_offset, current, bytes(planned)
-            )
+            if base is None:
+                address, current = run_offset, b""
+            else:
+                address = base + run_offset
+                current = await programmer.read_memory_until_refused(
+                    address, len(planned)
+                )
+                await self._note_device_written(
+                    programmer, address, current, bytes(planned)
+                )
             segments.append(
                 SegmentDiff(
-                    address=base + run_offset,
+                    address=address,
                     current=current,
                     planned=bytes(planned),
                     table_bytes=frozenset(range(len(planned)))

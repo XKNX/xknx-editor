@@ -82,6 +82,7 @@ from .errors import (
     MemoryReadNotAnswered,
     MemoryWriteNotAcknowledged,
     PropertyAccessRejected,
+    SegmentNotAllocated,
     VerificationError,
 )
 from .function_property import EmptyFunctionPropertyStateResponse
@@ -1586,14 +1587,45 @@ class DeviceProgrammer:
         return payload.data
 
     async def read_table_reference(self, object_index: int) -> int:
-        """Read a loadable part's table base address (PID_TABLE_REFERENCE).
+        """Read the base address of a loaded part's memory segment, for an access outside
+        a load procedure (a preview, a read-back).
+
+        A zero reference stands for no segment (an unloaded part, or a failed allocation,
+        KNX 3/5/3 3.5.1.2) - unless the part is loaded: some devices place a segment at
+        address 0 (the PEI program of an MV-07B0 switch actuator reports a zero reference
+        with its segment loaded and listed in its memory control block). So a zero reference
+        is the base 0 in the load state Loaded and raises :class:`SegmentNotAllocated` in
+        any other, or when the object tells no load state.
+        """
+        reference = await self.read_relative_base(object_index)
+        if reference:
+            return reference
+        try:
+            state = await self.read_load_state(object_index)
+        except (LoadStateError, VerificationError) as error:
+            raise SegmentNotAllocated(
+                f"object {object_index} reports a zero table reference and no load "
+                "state (segment not allocated)"
+            ) from error
+        if state is not load_state.LoadState.LOADED:
+            raise SegmentNotAllocated(
+                f"object {object_index} reports a zero table reference in the load "
+                f"state {state.name.lower()} (segment not allocated)"
+            )
+        return 0
+
+    async def read_relative_base(self, object_index: int) -> int:
+        """Read an object's table reference (PID_TABLE_REFERENCE) as the device reports it,
+        zero included: the base of the relative memory a load procedure writes and reads.
+
+        Whether an allocation succeeded is told by the load state machine (the allocation's
+        load event checks it), not by the reference (the System B procedures of KNX 3/5/3
+        3.9.3.4 to 3.9.3.6), so a zero reference is used as the base 0 it reports.
 
         The reference width depends on the realisation type - 2 octets for the
         memory-mapped BCU/System 7 families, 4 octets (PDT_GENERIC_04, KNX 3/5/1
         4.2.7) for System B - so the raw value is taken as-is rather than fixed
-        to one width. A zero reference means the segment has not been allocated
-        (or allocation failed) and must not be used as a write target (KNX 3/5/3
-        3.5.1.4).
+        to one width.
         """
         data = await self.read_property(
             object_index, PID_TABLE_REFERENCE, require_nonzero=True
@@ -1608,14 +1640,7 @@ class DeviceProgrammer:
                 f"invalid table reference width {len(data)} for object {object_index}"
             )
         reference = int.from_bytes(data, "big")
-        if reference == 0:
-            raise LoadStateError(
-                f"object {object_index} reports a zero table reference "
-                "(segment not allocated)"
-            )
-        logger.debug(
-            "read_table_reference: object=%d base=%#06x", object_index, reference
-        )
+        logger.debug("table reference: object=%d base=%#06x", object_index, reference)
         return reference
 
     async def locate_object(self, object_type: int, occurrence: int = 0) -> int:
