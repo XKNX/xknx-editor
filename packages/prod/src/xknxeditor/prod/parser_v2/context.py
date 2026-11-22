@@ -242,6 +242,10 @@ Event = tuple[str, object, object]
 
 _READS = frozenset("dxtqlov")
 
+# A recording with at most this many reads is read again rather than told unchanged from
+# what changed (see EvalMemo.unchanged).
+_READ_AGAIN = 8
+
 
 class Recording:
     """What an evaluation of a node read and did (its :data:`Event` s), grouped to check and to
@@ -250,16 +254,27 @@ class Recording:
     asked whether any or all are so). Gives the UiNodes ``output``."""
 
     __slots__ = (
+        "checked_by_change",
+        "discovered_keys",
         "events",
+        "gate_keys",
         "gates",
         "handed",
+        "handed_ids",
+        "object_reads",
+        "object_set",
         "objects",
         "output",
+        "parameter_set",
         "parameters",
         "reads",
         "suppress",
+        "text_args",
+        "text_keys",
         "texts",
         "unions",
+        "valid_in",
+        "value_keys",
         "values",
     )
 
@@ -287,11 +302,108 @@ class Recording:
         # In their order: of two texts set for the same, the last one stays.
         self.texts = tuple((key, result) for kind, key, result in events if kind == "s")
         self.handed = tuple(key for kind, key, _result in events if kind == "h")
+        self.handed_ids = frozenset(id(node) for node in self.handed)
         self.parameters = tuple(key for kind, key, _result in events if kind == "p")
+        self.parameter_set = frozenset(self.parameters)
         self.objects = tuple(key for kind, key, _result in events if kind == "c")
+        self.object_set = frozenset(self.objects)
         self.unions = tuple(
             (key, result) for kind, key, result in events if kind == "u"
         )
+        # What the reads depend on, to tell without reading again that none of it changed
+        # (see EvalMemo.unchanged): the values, the gate decisions, the parameters reached in
+        # the discovery and the texts read; whether it reads group object settings, and
+        # text arguments (values by unique number, told only by reading them again).
+        self.value_keys = frozenset(key for key, _result in self.values)
+        self.gate_keys = frozenset(key for key, _result in self.gates)
+        self.discovered_keys = frozenset(key for kind, key, _ in reads if kind == "d")
+        self.text_keys = frozenset(key for kind, key, _ in reads if kind == "t")
+        self.object_reads = any(kind == "o" for kind, _key, _ in reads)
+        self.text_args = any(kind == "x" for kind, _key, _ in reads)
+        # Per kind of pass (see _Pass.slot), the pass in which each read gave what it gave
+        # here last.
+        self.valid_in: dict[tuple[bool, bool], int] = {}
+        # Whether that is worth telling so (see EvalMemo.unchanged): reading a few again
+        # takes less.
+        self.checked_by_change = (
+            len(self.values) + len(self.gates) + len(self.reads) > _READ_AGAIN
+        )
+
+
+class _Pass:
+    """A pass over the application's scope evaluated with an :class:`EvalMemo`: what its reads
+    can depend on when it starts (the values, the gates, the parameters reached in the union
+    discovery, the texts and the group object settings), and once it ends what it wrote.
+    Compared with the pass before of the same kind (``slot``: with union suppression, and
+    whether Chooses are gated), it tells what may read otherwise than there (see
+    :meth:`EvalMemo.unchanged`)."""
+
+    __slots__ = (
+        "changed",
+        "clean",
+        "defaults",
+        "discovered",
+        "discovered_changed",
+        "gate",
+        "gates_changed",
+        "known",
+        "number",
+        "objects",
+        "objects_same",
+        "previous",
+        "slot",
+        "text",
+        "texts_changed",
+        "texts_written",
+        "values",
+        "written",
+    )
+
+    def __init__(self, number: int, scope: ParameterState, suppress: bool) -> None:
+        known, values, defaults, gate, discovered, text, objects = scope.pass_start()
+        self.number = number
+        self.known = known
+        self.values = values
+        self.defaults = defaults
+        self.gate = gate
+        self.discovered = discovered
+        self.text = text
+        self.objects = objects
+        self.slot = (suppress, gate is None)
+        # Whether no other pass ran while this one did (a UI evaluated inside the evaluation
+        # of another): only such a pass is compared with.
+        self.clean = True
+        # Of the pass before of the same kind: its number (None: none to compare with),
+        # then the values written in either or that differ at the start, the gates, the
+        # parameters reached in the discovery and the texts that differ, and whether the
+        # group object settings are the same.
+        self.previous: int | None = None
+        self.changed: frozenset[object] = frozenset()
+        self.gates_changed: frozenset[object] = frozenset()
+        self.discovered_changed: frozenset[object] = frozenset()
+        self.texts_changed: frozenset[object] = frozenset()
+        self.objects_same = False
+        self.written: frozenset[str] = frozenset()
+        self.texts_written: frozenset[str] = frozenset()
+
+    def compare(self, before: _Pass) -> None:
+        """Take what may read otherwise than in ``before``, a clean pass of the same kind."""
+        if self.defaults is not before.defaults and self.defaults != before.defaults:
+            return
+        self.changed = frozenset(
+            {key for key, _ in self.known.items() ^ before.known.items()}
+            | {key for key, _ in self.values.items() ^ before.values.items()}
+            | before.written
+        )
+        if self.gate is not None and before.gate is not None:
+            self.gates_changed = frozenset(self.gate ^ before.gate)
+        self.discovered_changed = frozenset(self.discovered ^ before.discovered)
+        self.texts_changed = frozenset(
+            {key for key, _ in self.text.items() ^ before.text.items()}
+            | before.texts_written
+        )
+        self.objects_same = self.objects == before.objects
+        self.previous = before.number
 
 
 class EvalMemo:
@@ -301,16 +413,86 @@ class EvalMemo:
     evaluations, with all they read and did on the way (see :data:`Event`): an evaluation in
     which each read gives the same gets the same, and does the same. Kept by whoever
     evaluates many alike states (a search of a device's settings), for the last ``ENTRIES``
-    evaluations of each node; only used in the thread that made it."""
+    evaluations of each node; only used in the thread that made it.
 
-    __slots__ = ("_entries", "thread")
+    That each read gives the same is told without reading again where it gave the same in the
+    pass before of the same kind and nothing it reads differs from then (see
+    :meth:`unchanged`): a search evaluates thousands of states that differ in a few values."""
+
+    __slots__ = ("_count", "_entries", "_last", "_open", "thread")
 
     ENTRIES = 2
 
     def __init__(self) -> None:
-        self._entries: dict[int, tuple[object, list[Recording]]] = {}
+        # By node and module instance (empty for the application's scope): a module
+        # definition's nodes are evaluated once for each of its instances.
+        self._entries: dict[tuple[int, str], tuple[object, list[Recording]]] = {}
         # The thread it is used in (a UI evaluated with it may be evaluated in another).
         self.thread = threading.get_ident()
+        self._count = 0
+        # The passes running now, and the last clean pass that ended of each kind.
+        self._open: list[_Pass] = []
+        self._last: dict[tuple[bool, bool], _Pass] = {}
+
+    def begin_pass(self, scope: ParameterState, suppress: bool) -> _Pass:
+        """A pass over the application's scope ``scope`` starts (``suppress``: with union
+        suppression); to be ended with :meth:`end_pass`."""
+        self._count += 1
+        current = _Pass(self._count, scope, suppress)
+        if self._open:
+            for running in self._open:
+                running.clean = False
+            current.clean = False
+        else:
+            before = self._last.get(current.slot)
+            if before is not None:
+                current.compare(before)
+        self._open.append(current)
+        return current
+
+    def end_pass(self, current: _Pass, scope: ParameterState) -> None:
+        """The pass ``current`` over ``scope`` ended: what it wrote is kept with it, and a clean
+        one is the pass the next of its kind is compared with."""
+        if current in self._open:
+            self._open.remove(current)
+        current.written, current.texts_written = scope.pass_writes()
+        if current.clean:
+            self._last[current.slot] = current
+
+    @staticmethod
+    def unchanged(recording: Recording, ctx: EvalContext) -> bool:
+        """Whether each read of ``recording`` gives what it gave, told without reading again:
+        it gave that in the pass before of this kind, and nothing it reads differs from that
+        pass at the start of this one, was written in that pass or so far in this one."""
+        current = ctx._pass  # pyright: ignore[reportPrivateUsage]
+        if (
+            current is None
+            or current.previous is None
+            or recording.valid_in.get(current.slot) != current.previous
+            or recording.text_args
+            or (recording.object_reads and not current.objects_same)
+        ):
+            return False
+        keys = recording.value_keys
+        if not keys.isdisjoint(current.changed):
+            return False
+        scope = ctx._scope  # pyright: ignore[reportPrivateUsage]
+        written, texts_written = scope.pass_written()
+        if written and not keys.isdisjoint(written):
+            return False
+        if recording.gate_keys and not recording.gate_keys.isdisjoint(
+            current.gates_changed
+        ):
+            return False
+        if recording.discovered_keys and not recording.discovered_keys.isdisjoint(
+            current.discovered_changed
+        ):
+            return False
+        texts = recording.text_keys
+        return not texts or (
+            texts.isdisjoint(current.texts_changed)
+            and (not texts_written or texts.isdisjoint(texts_written))
+        )
 
     def evaluate(
         self,
@@ -320,21 +502,48 @@ class EvalMemo:
     ) -> list[UiNode]:
         """What ``evaluate`` gives ``node`` in ``ctx``: what it gave before where each read
         gives what it gave then (its effects done again), else evaluated, and kept."""
-        kept = self._entries.get(id(node))
+        key = (id(node), ctx._instance)  # pyright: ignore[reportPrivateUsage]
+        kept = self._entries.get(key)
         if kept is not None and kept[0] is not node:
             kept = None
         suppress = ctx.union_suppress
+        current = ctx._pass  # pyright: ignore[reportPrivateUsage]
         if kept is not None:
-            for recording in kept[1]:
+            recordings = kept[1]
+            if current is not None:
+                # One told to read the same without reading again first.
+                for recording in recordings:
+                    if (
+                        recording.suppress is suppress
+                        and recording.checked_by_change
+                        and self.unchanged(recording, ctx)
+                        and ctx.replay(recording, checked=True)
+                    ):
+                        recording.valid_in[current.slot] = current.number
+                        return list(recording.output)
+            for recording in recordings:
                 if recording.suppress is suppress and ctx.replay(recording):
+                    if current is not None:
+                        recording.valid_in[current.slot] = current.number
                     return list(recording.output)
+        # What the evaluation reads and does is recorded on the tape: of the outermost
+        # evaluation a new one, those inside it record on the same.
+        outermost = ctx._tape is None  # pyright: ignore[reportPrivateUsage]
+        if outermost:
+            ctx._tape = []  # pyright: ignore[reportPrivateUsage]
         tape = ctx._tape  # pyright: ignore[reportPrivateUsage]
         assert tape is not None
         start = len(tape)
-        output = evaluate(ctx)
-        entry = Recording(suppress, tuple(tape[start:]), tuple(output))
+        try:
+            output = evaluate(ctx)
+            entry = Recording(suppress, tuple(tape[start:]), tuple(output))
+        finally:
+            if outermost:
+                ctx._tape = None  # pyright: ignore[reportPrivateUsage]
+        if current is not None:
+            entry.valid_in[current.slot] = current.number
         if kept is None:
-            self._entries[id(node)] = (node, [entry])
+            self._entries[key] = (node, [entry])
         else:
             kept[1].insert(0, entry)
             del kept[1][self.ENTRIES :]
@@ -353,8 +562,10 @@ class EvalContext:
         "_gate_checks",
         "_handed",
         "_idx",
+        "_instance",
         "_memo",
         "_object_tree",
+        "_pass",
         "_repeat_idx",
         "_repeat_path",
         "_scope",
@@ -401,10 +612,19 @@ class EvalContext:
         self._handed = handed
         # Set to record the gate decisions of the pass (see :meth:`record_gate_checks`).
         self._gate_checks = gate_checks
-        # Set to take what nodes gave before with the same reads (see EvalMemo): what the
-        # pass reads and does is recorded on the tape then.
+        # Set to take what nodes gave before with the same reads (see EvalMemo): what a
+        # node's evaluation reads and does is recorded on the tape then, while one is.
         self._memo = memo
-        self._tape: list[Event] | None = [] if memo is not None else None
+        # The module instance it evaluates (empty for the application's scope), as the memo
+        # keys what it keeps by.
+        mid = getattr(scope, "module_instance_id", None)
+        self._instance = mid if isinstance(mid, str) else ""
+        self._tape: list[Event] | None = None
+        # The pass this context evaluates the application's scope in for the memo (see
+        # EvalMemo.begin_pass), ended with end_pass.
+        self._pass: _Pass | None = None
+        if memo is not None and scope.is_root() and self.memo is not None:
+            self._pass = memo.begin_pass(scope, union_suppress)
 
     @property
     def capture(self) -> EvalCapture | None:
@@ -433,7 +653,7 @@ class EvalContext:
     def memo(self) -> EvalMemo | None:
         """What nodes gave before (see :class:`EvalMemo`), where a node may take it: in a pass
         that records nothing but the active marks and the gate decisions and hands out nodes
-        made before, at the root, outside a Repeat."""
+        made before, outside a Repeat."""
         memo = self._memo
         if (
             memo is None
@@ -443,18 +663,29 @@ class EvalContext:
             or self._handed is None
             or self._repeat_path
             or self._repeat_idx != 1
-            or not self._scope.is_root()
             or memo.thread != threading.get_ident()
         ):
             return None
         return memo
 
-    def replay(self, recording: Recording) -> bool:
+    def end_pass(self) -> None:
+        """The pass this context evaluated ended (see :meth:`EvalMemo.end_pass`)."""
+        if self._pass is not None and self._memo is not None:
+            self._memo.end_pass(self._pass, self._scope)
+        self._pass = None
+
+    def replay(self, recording: Recording, *, checked: bool = False) -> bool:
         """Do again what ``recording`` records when each read gives what it gave then (else
-        nothing): whether it was done."""
-        scope = self._scope
+        nothing; ``checked``: known to give the same): whether it was done."""
         handed = self._handed
         assert handed is not None
+        if not checked and not self.reads_same(recording):
+            return False
+        return self._redo(recording, self._scope, handed)
+
+    def reads_same(self, recording: Recording) -> bool:
+        """Whether each read of ``recording`` gives what it gave then, read again."""
+        scope = self._scope
         get = scope.get
         for key, value in recording.values:
             if get(key) != value:  # type: ignore[arg-type]
@@ -485,18 +716,23 @@ class EvalContext:
                 same = value == result
             if not same:
                 return False
-        for node in recording.handed:
-            if id(node) in handed:
-                return False
+        return True
+
+    def _redo(
+        self, recording: Recording, scope: ParameterState, handed: set[int]
+    ) -> bool:
+        """Do again what ``recording`` records, unless a node it hands out is handed out in
+        this pass already: whether it was done."""
+        if recording.handed_ids and not handed.isdisjoint(recording.handed_ids):
+            return False
         tape = self._tape
-        assert tape is not None
-        tape.extend(recording.events)
-        mark = scope.mark_active_param
-        for key in recording.parameters:
-            mark(key)  # type: ignore[arg-type]
-        mark = scope.mark_active_com_object
-        for key in recording.objects:
-            mark(key)  # type: ignore[arg-type]
+        if tape is not None:
+            # Inside the evaluation of a node being recorded: part of what it does.
+            tape.extend(recording.events)
+        if recording.parameters:
+            scope.mark_active_params(recording.parameters, recording.parameter_set)  # type: ignore[arg-type]
+        if recording.objects:
+            scope.mark_active_com_objects(recording.object_set)  # type: ignore[arg-type]
         for key, text in recording.texts:
             scope.set_text(key, text)  # type: ignore[arg-type]
         checks = self._gate_checks
@@ -505,7 +741,7 @@ class EvalContext:
         chooses = self._union_chooses
         if chooses is not None:
             chooses.extend((scope, key, siblings) for key, siblings in recording.unions)  # type: ignore[misc]
-        handed.update(id(node) for node in recording.handed)
+        handed.update(recording.handed_ids)
         return True
 
     def hand(self, node: UiNode) -> None:
@@ -560,8 +796,7 @@ class EvalContext:
     @property
     def module_instance_id(self) -> str | None:
         """Id of the innermost module instance being evaluated, if any."""
-        mid = getattr(self._scope, "module_instance_id", None)
-        return mid if isinstance(mid, str) else None
+        return self._instance or None
 
     def qualify_local(self, ref_id: str) -> str:
         qualified = self._scope.qualify_local(ref_id)
@@ -755,4 +990,5 @@ class EvalContext:
             union_chooses=self._union_chooses,
             handed=self._handed,
             gate_checks=self._gate_checks,
+            memo=self._memo,
         )

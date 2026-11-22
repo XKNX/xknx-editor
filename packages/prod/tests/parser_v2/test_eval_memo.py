@@ -13,10 +13,12 @@ from pathlib import Path
 import pytest
 
 from xknxeditor.prod.application import Application, parse_application_xml
+from xknxeditor.prod.parser_v2 import context
 from xknxeditor.prod.parser_v2.activation import shown_parameters, values_to_try
-from xknxeditor.prod.parser_v2.context import EvalMemo
+from xknxeditor.prod.parser_v2.context import EvalContext, EvalMemo, Recording
 from xknxeditor.prod.parser_v2.dynamic import DynamicUI
 from xknxeditor.prod.parser_v2.nodes.choose import ChooseWhenNode
+from xknxeditor.prod.parser_v2.state import GlobalState
 
 _FIXTURES = Path(__file__).parents[1] / "fixtures"
 _APPLICATIONS = sorted(path.name for path in _FIXTURES.glob("*_application.xml"))
@@ -235,3 +237,89 @@ def test_a_block_a_rename_retitles_is_taken_again_with_its_text(
     selections.clear()
     _ui(application, {_MODE: "1"}, memo).ui()
     assert not selections
+
+
+@pytest.fixture
+def fast_checks(monkeypatch: pytest.MonkeyPatch) -> list[bool]:
+    """What the check without reading again (EvalMemo.unchanged) told from now on, for every
+    recording however few its reads; each one that tells the reads give the same is checked by
+    reading them again."""
+    monkeypatch.setattr(context, "_READ_AGAIN", 0)
+    told: list[bool] = []
+    unchanged = EvalMemo.unchanged
+
+    def checked(recording: Recording, ctx: EvalContext) -> bool:
+        result = unchanged(recording, ctx)
+        told.append(result)
+        if result:
+            assert ctx.reads_same(recording)
+        return result
+
+    monkeypatch.setattr(EvalMemo, "unchanged", staticmethod(checked))
+    return told
+
+
+@pytest.mark.parametrize("name", _APPLICATIONS)
+def test_what_is_told_without_reading_again_is_what_reading_again_gives(
+    name: str, fast_checks: list[bool]
+) -> None:
+    application = _application(name)
+    memo = EvalMemo()
+    trials = list(_trials(application))
+    for values in trials + trials:
+        assert _observed(_ui(application, values, memo)) == _observed(
+            _ui(application, values, None)
+        ), values
+
+
+def test_the_same_state_again_is_told_without_reading_again(
+    fast_checks: list[bool], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    application = _application(_INACTIVE)
+    memo = EvalMemo()
+    _ui(application, {}, memo).ui()
+    reads: list[object] = []
+    reads_same = EvalContext.reads_same
+
+    def counted(self: EvalContext, recording: Recording) -> bool:
+        if self._scope.is_root():  # pyright: ignore[reportPrivateUsage]
+            reads.append(recording)
+        return reads_same(self, recording)
+
+    fast_checks.clear()
+    monkeypatch.setattr(EvalContext, "reads_same", counted)
+    nodes = _ui(application, {}, memo).ui()
+    # Each pass compares with the same pass of the first evaluation: nothing differs, and
+    # nothing of the application's scope is read again but to check what was told (see
+    # fast_checks; a module instance's is read again).
+    assert True in fast_checks
+    assert len(reads) == fast_checks.count(True)
+    assert nodes == _ui(application, {}, None).ui()
+
+
+def test_a_value_read_that_changed_is_read_again(fast_checks: list[bool]) -> None:
+    application = parse_application_xml(_RENAMING_XML.encode(), "M-00FA")[0]
+    memo = EvalMemo()
+    _ui(application, {}, memo).ui()
+    fast_checks.clear()
+    ui = _ui(application, {_MODE: "1"}, memo)
+    # The block reads the mode, which differs from the pass before: read again.
+    assert _block_text(ui) == "Renamed"
+    assert False in fast_checks
+
+
+def test_a_pass_inside_another_is_compared_with_none() -> None:
+    memo = EvalMemo()
+    outer_scope = GlobalState()
+    first = memo.begin_pass(outer_scope, True)
+    memo.end_pass(first, outer_scope)
+    outer = memo.begin_pass(outer_scope, True)
+    assert outer.previous == first.number
+    inner = memo.begin_pass(GlobalState(), True)
+    # Neither tells what changed from a pass the other may have changed things in between.
+    assert inner.previous is None
+    assert not outer.clean
+    assert not inner.clean
+    memo.end_pass(inner, GlobalState())
+    memo.end_pass(outer, outer_scope)
+    assert memo.begin_pass(outer_scope, True).previous == first.number
