@@ -65,14 +65,57 @@ def _cache_path(xml_bytes: bytes, version: str, cache_dir: Path) -> Path:
     return cache_dir / f"ir_{CACHE_VERSION}_{version}_{digest}.pkl"
 
 
+def _source_path(source: str, cache_dir: Path) -> Path:
+    digest = hashlib.sha256(source.encode()).hexdigest()
+    return cache_dir / f"src_{CACHE_VERSION}_{digest}.txt"
+
+
+def remember_source(
+    source: str, xml_bytes: bytes, version: str, cache_dir: Path
+) -> None:
+    """Note which cache entry the XML read from ``source`` (a stored product file and an
+    application in it, named so that another content has another name) has, and its size: a
+    later parse of the same source takes it without reading the XML (see cached_for_source)."""
+    digest = hashlib.sha256(xml_bytes).hexdigest()
+    try:
+        cache_dir.mkdir(parents=True, exist_ok=True)
+        path = _source_path(source, cache_dir)
+        partial = path.with_name(f"{path.name}.{os.getpid()}.tmp")
+        partial.write_text(f"{version} {digest} {len(xml_bytes)}", encoding="ascii")
+        partial.replace(path)
+    except OSError as exc:  # a cache write failure must never break parsing
+        logger.debug("could not note parse cache source %s: %s", source, exc)
+
+
+def cached_for_source(source: str, cache_dir: Path) -> tuple[Knx, str, int] | None:
+    """The parse of the XML of ``source`` (see remember_source) with its schema version and the
+    size of the XML, without reading the XML; None when the cache has no entry for it (the
+    XML is read and parsed then)."""
+    try:
+        version, digest, size = (
+            _source_path(source, cache_dir).read_text(encoding="ascii").split()
+        )
+        path = cache_dir / f"ir_{CACHE_VERSION}_{version}_{digest}.pkl"
+        with path.open("rb") as file:
+            knx = pickle.load(file)
+    except (OSError, ValueError):
+        return None
+    except Exception as exc:  # corrupt / incompatible pickle: read and parse again
+        logger.debug("parse cache miss for %s: %s", source, exc)
+        return None
+    if not isinstance(knx, Knx):
+        return None
+    return knx, version, int(size)
+
+
 def _remove_other_versions(cache_dir: Path) -> None:
     """Remove the entries of other cache versions from ``cache_dir`` (once per process): they
     are never read again."""
     if cache_dir in _SWEPT:
         return
     _SWEPT.add(cache_dir)
-    for entry in cache_dir.glob("ir_*.pkl"):
-        if not entry.name.startswith(f"ir_{CACHE_VERSION}_"):
+    for entry in (*cache_dir.glob("ir_*.pkl"), *cache_dir.glob("src_*.txt")):
+        if not entry.name.startswith((f"ir_{CACHE_VERSION}_", f"src_{CACHE_VERSION}_")):
             try:
                 entry.unlink()
             except OSError as exc:  # another process may hold or remove it

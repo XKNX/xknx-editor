@@ -248,16 +248,52 @@ def parse_application_xml(
     manufacturer_id: str,
     language: str | None = None,
     cache_dir: Path | None = None,
+    source: str | None = None,
 ) -> list[Application]:
     """Parse one application XML on its own (no hardware/catalog context).
 
     With ``language`` (e.g. "de-DE" or "de") the .knxprod translations are overlaid for localized
-    labels. ``cache_dir`` turns on a content-addressed disk cache for the parse (see :mod:`parse_cache`)."""
-    from .parse_cache import cached_to_ir
+    labels. ``cache_dir`` turns on a content-addressed disk cache for the parse (see :mod:`parse_cache`);
+    with ``source`` (where the XML was read from, see :func:`cached_applications`) a later parse of
+    it finds the cache entry without reading the XML."""
+    from .parse_cache import cached_to_ir, remember_source
 
     version = detect_version(xml_bytes)
     knx = cached_to_ir(xml_bytes, version, cache_dir)
-    memory = len(xml_bytes) * _MEMORY_PER_XML_OCTET
+    if cache_dir is not None and source is not None:
+        remember_source(source, xml_bytes, version, cache_dir)
+    return _applications(knx, version, manufacturer_id, language, len(xml_bytes))
+
+
+def cached_applications(
+    source: str,
+    manufacturer_id: str,
+    language: str | None = None,
+    cache_dir: Path | None = None,
+) -> list[Application] | None:
+    """What :func:`parse_application_xml` gave for the XML of ``source`` (a stored product file
+    and an application in it, named so that another content has another name), from the parse
+    cache, without reading the XML: opening a large product file and unpacking its XML take
+    longer than the cached parse. None when the cache has no entry for it."""
+    from .parse_cache import cached_for_source
+
+    if cache_dir is None:
+        return None
+    found = cached_for_source(source, cache_dir)
+    if found is None:
+        return None
+    knx, version, size = found
+    return _applications(knx, version, manufacturer_id, language, size)
+
+
+def _applications(
+    knx: Knx,
+    version: str,
+    manufacturer_id: str,
+    language: str | None,
+    xml_size: int,
+) -> list[Application]:
+    memory = xml_size * _MEMORY_PER_XML_OCTET
     if language:
         from .translate import apply_translations
 
