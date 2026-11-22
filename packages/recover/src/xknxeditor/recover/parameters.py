@@ -122,6 +122,9 @@ _REFINE_TRIES = 12
 _REFINE_DEPTH = 3
 _PAIR_TRIES = 64
 _PAIR_ROUNDS = 2
+# Values tried inside the module instances corrections of the fixed values make, all of them
+# together (see _refine_fixed).
+_SETTLE_TRIES = 64
 # Values that fit worse whose own corrections are searched when no value fits better (each the
 # start of a search of its own).
 _DEEP_STARTS = 2
@@ -2520,6 +2523,8 @@ def _refine_fixed(
     limited = recovered.limited
     budget = None if scale is None else _PAIR_TRIES * scale
     rounds = count() if scale is None else range(_PAIR_ROUNDS * scale)
+    # The values the corrections inside new module instances (see settle) try, all together.
+    settle_left = None if scale is None else _SETTLE_TRIES * scale
     # Settings of several selectors can share a byte (the bits of two hidden settings with a
     # fixed value each): a value that corrects the bits of one leaves the byte differing until
     # the other is corrected too. Of two results that differ in as many bytes, the one that
@@ -2593,7 +2598,10 @@ def _refine_fixed(
         ``now`` not) corrected where only their settings differ, while that fits better: a
         function that adds a channel differs in all of that channel's bytes until the
         channel's own mode, which the device keeps no copy of, is corrected too. None when
-        it makes no instance, or no correction inside one fits better."""
+        it makes no instance, or no correction inside one fits better. Each value tried, with
+        the whole inference behind it, counts against ``settle_left``, shared by every call
+        (``_SETTLE_TRIES`` values, ``scale`` times; ``None``: no limit)."""
+        nonlocal limited, settle_left
         before = {instance for instance, _ in now.get_module_instances()}
         found = None
         for _ in range(_REFINE_ROUNDS):
@@ -2611,6 +2619,11 @@ def _refine_fixed(
             for gate, value in _refinement_trials(seeded, inside, set(), cancel):
                 if _scope_of(gate) not in made:
                     continue
+                if settle_left == 0:
+                    limited = True
+                    break
+                if settle_left is not None:
+                    settle_left -= 1
                 _check(cancel)
                 # With the settings the inference finds behind the value (the channel's
                 # mode shows settings of its own the device keeps no copy of either).
