@@ -173,6 +173,9 @@ if TYPE_CHECKING:
 _INSTALLATION = 0
 # How often the evaluation in the background looks whether the user paused (seconds).
 _RECHECK_IDLE_POLL = 0.1
+# After each device the evaluation in the background rests this many times as long as the device
+# took: it takes at most half of the time, so the editor stays responsive meanwhile.
+_RECHECK_REST = 1.0
 
 ParamMode = Literal["edit", "transfer", "raw"]
 """How a parameter change is applied: ``edit`` runs calculations and validations, ``transfer``
@@ -2796,10 +2799,19 @@ class ProjectService:
     def _recheck_devices(self, generation: int) -> None:
         """Evaluate the queued devices of project ``generation`` one after the other, the selected
         device first; the main thread takes the results over (see take_rechecked_devices). Each
-        device waits until the user pauses: the devices are shown from their snapshots meanwhile."""
+        device waits until the user pauses: the devices are shown from their snapshots meanwhile.
+        After each device it rests as long as the device took (see _RECHECK_REST)."""
+        rest_until = 0.0
         while True:
-            while self.ui_busy() and generation == self._load_generation:
-                time.sleep(_RECHECK_IDLE_POLL)
+            while generation == self._load_generation:
+                wait = (
+                    _RECHECK_IDLE_POLL
+                    if self.ui_busy()
+                    else min(_RECHECK_IDLE_POLL, rest_until - time.monotonic())
+                )
+                if wait <= 0:
+                    break
+                time.sleep(wait)
             with self._recheck_lock:
                 if generation != self._load_generation or not self._recheck_queue:
                     if self._recheck_generation == generation:
@@ -2813,6 +2825,7 @@ class ProjectService:
             app = job.device.app
             assert app is not None
             device: Device | None
+            started = time.monotonic()
             try:
                 # As the device build: the collector would rescan the many new objects over and over.
                 with gc_paused():
@@ -2826,6 +2839,8 @@ class ProjectService:
                     error=f"{type(e).__name__}: {e}",
                 )
                 device = None
+            finished = time.monotonic()
+            rest_until = finished + (finished - started) * _RECHECK_REST
             with self._recheck_lock:
                 if generation == self._load_generation and device is not None:
                     self._rechecked.append((job, device))
