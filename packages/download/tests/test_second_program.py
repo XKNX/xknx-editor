@@ -173,14 +173,16 @@ def test_the_image_holds_the_second_programs_segments() -> None:
     assert with_second_program(image, empty) is image
 
 
+# 0: the device places the PEI program at address 0 (an MV-07B0 switch actuator does).
+@pytest.mark.parametrize("base", [0x6000, 0])
 async def test_a_full_download_loads_the_pei_program(
-    monkeypatch: pytest.MonkeyPatch,
+    monkeypatch: pytest.MonkeyPatch, base: int
 ) -> None:
     dl = importlib.import_module("xknxeditor.download.download")
     app, image = capture_application()
     pei = _pei_program()
     device = CaptureDevice()
-    device.table_references[5] = 0x6000
+    device.table_references[5] = base
     device.load_states[5] = LoadState.LOADED
 
     class OfflineConnection:
@@ -203,7 +205,7 @@ async def test_a_full_download_loads_the_pei_program(
         application2=pei,
     )
     assert device.load_states[5] == LoadState.LOADED
-    assert bytes(device.memory[0x6000 + n] for n in range(4)) == _PEI_DATA
+    assert bytes(device.memory[base + n] for n in range(4)) == _PEI_DATA
     events = [
         (p.object_index, p.data[0])
         for p in device.sent
@@ -214,6 +216,54 @@ async def test_a_full_download_loads_the_pei_program(
     # Its id is the PEI program's, not the application's.
     assert device.properties[5, 13] == bytes.fromhex("00fa123443")
     assert device.properties[4, 13] == bytes.fromhex("00fa020010")
+
+
+@pytest.mark.parametrize(
+    "scope",
+    [
+        DownloadScope.PARAMETERS,
+        DownloadScope.PARAMETERS_AND_GROUP_COMMUNICATION,
+        DownloadScope.APPLICATION,
+    ],
+)
+async def test_a_preview_of_a_pei_program_at_address_zero(
+    monkeypatch: pytest.MonkeyPatch, scope: DownloadScope
+) -> None:
+    # Loaded at address 0, as the download left it: the device reports a zero reference.
+    dl = importlib.import_module("xknxeditor.download.download")
+    app, image = capture_application()
+    device = CaptureDevice()
+    device.table_references[5] = 0
+    device.load_states[5] = LoadState.LOADED
+    device.memory.update(dict(enumerate(_PEI_DATA)))
+    device.properties[5, 13] = bytes.fromhex("00fa123443")
+    device.properties[5, 27] = bytes.fromhex("0000000400330000")
+
+    class OfflineConnection:
+        async def open(self) -> CaptureDevice:
+            return device
+
+        async def close(self) -> None:
+            pass
+
+    monkeypatch.setattr(dl, "_connection_manager", lambda *a: OfflineConnection())
+    report = await dl.preflight(
+        cast(XKNX, object()),
+        "1.1.5",
+        app,
+        image=image,
+        master=cast(MasterData, SimpleNamespace(raw=capture_master())),
+        scope=scope,
+        max_apdu_length=15,
+        expected_descriptor=0x07B0,
+        application2=_pei_program(),
+    )
+    pei = [s for s in report.segments if s.address < 4]
+    if scope is DownloadScope.APPLICATION:
+        # The PEI program is read where the device holds it, and is unchanged.
+        assert [(s.address, s.current) for s in pei] == [(0, _PEI_DATA)]
+    assert not any(s.changed for s in pei)
+    assert not [p for p in device.sent if isinstance(p, PropertyValueWrite)]
 
 
 def test_the_image_holds_the_second_programs_absolute_segments() -> None:

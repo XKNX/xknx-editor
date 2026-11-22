@@ -17,6 +17,11 @@ class LoadStateError(DownloadError):
     """A Load State Machine did not reach the expected state."""
 
 
+class SegmentNotAllocated(LoadStateError):
+    """An object reports no memory segment: a zero table reference outside the load state
+    Loaded."""
+
+
 class MemoryWriteNotAcknowledged(DownloadError):
     """A classic memory write received no acknowledgement from the device.
 
