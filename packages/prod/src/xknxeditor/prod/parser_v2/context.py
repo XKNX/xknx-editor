@@ -246,6 +246,8 @@ _READS = frozenset("dxtqlov")
 # what changed (see EvalMemo.unchanged).
 _READ_AGAIN = 8
 
+_NONE: frozenset[object] = frozenset()
+
 
 class Recording:
     """What an evaluation of a node read and did (its :data:`Event` s), grouped to check and to
@@ -284,50 +286,68 @@ class Recording:
         self.suppress = suppress
         self.events = events
         self.output = output
-        self.values = tuple(
-            (key, result) for kind, key, result in events if kind == "g"
-        )
-        self.gates = tuple((key, result) for kind, key, result in events if kind == "a")
+        values: list[tuple[object, object]] = []
+        gates: list[tuple[object, object]] = []
+        reads: list[Event] = []
+        texts: list[tuple[object, object]] = []
+        handed: list[object] = []
+        parameters: list[object] = []
+        objects: list[object] = []
+        unions: list[tuple[object, object]] = []
         # A text read after the evaluation set it (a block its Rename retitles) gives what
         # was set: nothing to check.
         written: set[object] = set()
-        reads: list[Event] = []
         for event in events:
-            kind = event[0]
-            if kind == "s":
-                written.add(event[1])
-            elif kind in _READS and not (kind == "t" and event[1] in written):
+            kind, key, result = event
+            if kind == "p":
+                parameters.append(key)
+            elif kind == "g":
+                values.append((key, result))
+            elif kind == "a":
+                gates.append((key, result))
+            elif kind == "c":
+                objects.append(key)
+            elif kind == "h":
+                handed.append(key)
+            elif kind == "s":
+                written.add(key)
+                texts.append((key, result))
+            elif kind == "u":
+                unions.append((key, result))
+            elif kind in _READS and not (kind == "t" and key in written):
                 reads.append(event)
+        self.values = tuple(values)
+        self.gates = tuple(gates)
         self.reads = tuple(reads)
         # In their order: of two texts set for the same, the last one stays.
-        self.texts = tuple((key, result) for kind, key, result in events if kind == "s")
-        self.handed = tuple(key for kind, key, _result in events if kind == "h")
-        self.handed_ids = frozenset(id(node) for node in self.handed)
-        self.parameters = tuple(key for kind, key, _result in events if kind == "p")
-        self.parameter_set = frozenset(self.parameters)
-        self.objects = tuple(key for kind, key, _result in events if kind == "c")
-        self.object_set = frozenset(self.objects)
-        self.unions = tuple(
-            (key, result) for kind, key, result in events if kind == "u"
-        )
-        # What the reads depend on, to tell without reading again that none of it changed
-        # (see EvalMemo.unchanged): the values, the gate decisions, the parameters reached in
-        # the discovery and the texts read; whether it reads group object settings, and
-        # text arguments (values by unique number, told only by reading them again).
-        self.value_keys = frozenset(key for key, _result in self.values)
-        self.gate_keys = frozenset(key for key, _result in self.gates)
-        self.discovered_keys = frozenset(key for kind, key, _ in reads if kind == "d")
-        self.text_keys = frozenset(key for kind, key, _ in reads if kind == "t")
-        self.object_reads = any(kind == "o" for kind, _key, _ in reads)
-        self.text_args = any(kind == "x" for kind, _key, _ in reads)
+        self.texts = tuple(texts)
+        self.handed = tuple(handed)
+        self.handed_ids = frozenset(id(node) for node in handed)
+        self.parameters = tuple(parameters)
+        self.parameter_set = frozenset(parameters)
+        self.objects = tuple(objects)
+        self.object_set = frozenset(objects)
+        self.unions = tuple(unions)
         # Per kind of pass (see _Pass.slot), the pass in which each read gave what it gave
         # here last.
         self.valid_in: dict[tuple[bool, bool], int] = {}
-        # Whether that is worth telling so (see EvalMemo.unchanged): reading a few again
-        # takes less.
-        self.checked_by_change = (
-            len(self.values) + len(self.gates) + len(self.reads) > _READ_AGAIN
-        )
+        # Whether it is worth telling that the reads give the same without reading again
+        # (see EvalMemo.unchanged): reading a few again takes less.
+        self.checked_by_change = len(values) + len(gates) + len(reads) > _READ_AGAIN
+        # What the reads depend on, to tell so: the values, the gate decisions, the parameters
+        # reached in the discovery and the texts read; whether it reads group object
+        # settings, and text arguments (values by unique number, told only by reading again).
+        if self.checked_by_change:
+            self.value_keys = frozenset(key for key, _result in values)
+            self.gate_keys = frozenset(key for key, _result in gates)
+            self.discovered_keys = frozenset(key for kind, key, _ in reads if kind == "d")
+            self.text_keys = frozenset(key for kind, key, _ in reads if kind == "t")
+            self.object_reads = any(kind == "o" for kind, _key, _ in reads)
+            self.text_args = any(kind == "x" for kind, _key, _ in reads)
+        else:
+            self.value_keys = self.gate_keys = _NONE
+            self.discovered_keys = self.text_keys = _NONE
+            self.object_reads = self.text_args = False
 
 
 class _Pass:
