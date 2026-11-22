@@ -201,6 +201,10 @@ def begin_dialog(
     width there is, so its wrapped text reflows. It is at least as wide as its row of
     :func:`dialog_buttons` (as measured in the last frame).
     """
+    if not imgui.is_popup_open(title):
+        # Asked for every frame while closed (a tree asks for one per row): nothing to set up.
+        _forget(title)
+        return False
     _center_next_window(title)
     buttons = _button_rows.get(title, 0.0) / px(1.0)
     min_width = max(min_width, buttons)
@@ -228,11 +232,16 @@ def begin_dialog(
         if title in _closable and not flags & imgui.WindowFlags_.no_title_bar:
             _title_close_button(title)
     else:
-        _placements.pop(title, None)
-        _button_rows.pop(title, None)
-        _closable.discard(title)
-        _closed.discard(title)
+        _forget(title)
     return opened
+
+
+def _forget(title: str) -> None:
+    """Drop what the dialog ``title`` kept while it was open (placement, buttons, close)."""
+    _placements.pop(title, None)
+    _button_rows.pop(title, None)
+    _closable.discard(title)
+    _closed.discard(title)
 
 
 def _title_close_button(title: str) -> None:
