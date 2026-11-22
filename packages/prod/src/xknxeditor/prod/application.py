@@ -165,13 +165,13 @@ class Application:
             program = self._program
             if program is None:
                 assert self._reloader is not None
-                with gc_paused():
+                with gc_paused(long_lived=True):
                     program = self._reloader()
             tree_builder = self._tree_builder
             if with_tree and tree_builder is None:
                 from .parser_v2.dynamic import DynamicTreeBuilder as _DynamicTreeBuilder
 
-                with gc_paused():
+                with gc_paused(long_lived=True):
                     tree_builder = _DynamicTreeBuilder(program)
             # Publish the program and its tree together under the LRU lock, which eviction also
             # holds: otherwise a concurrent eviction during the (slow) tree build could null the

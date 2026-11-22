@@ -194,6 +194,7 @@ from xknxeditor.prod.errors import (
     PasswordRequired,
     check_cancelled,
 )
+from xknxeditor.prod.gc_pause import keep_long_lived
 from xknxeditor.prod.vd import is_vd_file
 from xknxeditor.proj import (
     MYKNX_DLL_NAME,
@@ -1126,6 +1127,9 @@ class KnxGuiApp:
     def setup(self) -> None:
         self._log.info("editor started", installation=self._update_scope or "none")
         self._apply_memory_use()
+        # Programs and devices are left out of the garbage collections (see gc_pause), which
+        # would otherwise stop the user interface for seconds now and then.
+        keep_long_lived(True)
         self._can_launch_file_dialog(show_error=False)
         # In the browser UI, notes about downloads show as this app's toasts.
         if web.active_hub is not None:

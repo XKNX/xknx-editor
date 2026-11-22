@@ -66,7 +66,7 @@ from xknxeditor.namespaces.intermediate import (
 from xknxeditor.namespaces.intermediate.enable_t import Enable
 from xknxeditor.prod import Application
 from xknxeditor.prod.errors import ImportCancelled, check_cancelled
-from xknxeditor.prod.gc_pause import gc_paused
+from xknxeditor.prod.gc_pause import gc_paused, release_long_lived
 from xknxeditor.prod.parser_v2.calculation import VALIDATION_FAILED
 from xknxeditor.proj import (
     AdditionalAddressError,
@@ -1883,6 +1883,8 @@ class ProjectService:
         self._generation += 1
         self._mdt_firmware_reads.clear()
         self._reset()
+        # The project's devices are no longer used: a cycle among them is collected again.
+        release_long_lived()
 
     @staticmethod
     def _remove_project_file(path: Path) -> None:
@@ -2828,7 +2830,7 @@ class ProjectService:
             started = time.monotonic()
             try:
                 # As the device build: the collector would rescan the many new objects over and over.
-                with gc_paused():
+                with gc_paused(long_lived=True):
                     device = _compute_device(job.inputs, app)
             except Exception as e:
                 # Kept as opened from its snapshot; the next open tries again.
@@ -3067,7 +3069,7 @@ class ProjectService:
                 self._log.debug("building devices", total=total)
                 # Building creates millions of long-lived objects; the cyclic garbage collector would
                 # rescan all of them over and over, which dominates the load time.
-                with gc_paused():
+                with gc_paused(long_lived=True):
                     for i, row in enumerate(rows, start=1):
                         if cancelled is not None and cancelled():
                             self._log.info("device build cancelled", built=i - 1)
