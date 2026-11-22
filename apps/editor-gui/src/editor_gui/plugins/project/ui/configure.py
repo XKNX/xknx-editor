@@ -2194,6 +2194,11 @@ class ConfigurePanel:
         )
 
     def _capabilities(self, device: Device) -> PluginCapabilities | None:
+        """What the device's plug-in allows; ValueError when it cannot be used, and also while
+        the device's application loads in the background (it may name the plug-in): the
+        application is not loaded on the UI thread for this."""
+        if not self._ready(device):
+            raise ValueError("Application program is loading")
         if self._plugin_capabilities is not None:
             return self._plugin_capabilities(device)
         provider = provider_for(device)
