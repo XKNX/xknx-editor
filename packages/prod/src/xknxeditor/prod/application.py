@@ -37,11 +37,45 @@ if TYPE_CHECKING:
     from .parser_v2.dynamic import DynamicTreeBuilder, DynamicUI
 
 
-# How many reloadable applications keep their parsed program and evaluation tree in memory.
-RESIDENT_APPLICATIONS = 6
+# The memory the reloadable applications whose parsed program and evaluation tree stay in
+# memory may take together, estimated (see set_resident_budget): the least recently used
+# beyond it are parsed again when used. The one used last always stays.
+_DEFAULT_BUDGET = 600_000_000
+# A parsed program with its evaluation tree takes about this much per octet of its XML (four
+# to six times across applications from 0.1 to 34 MB of XML), and an application whose XML
+# was not seen this much.
+_MEMORY_PER_XML_OCTET = 5
+_UNKNOWN_MEMORY = 20_000_000
 
 _resident_lock = threading.RLock()
 _resident: OrderedDict[int, Application] = OrderedDict()
+_budget = [_DEFAULT_BUDGET]
+# Application id -> its estimated memory, from the size of its XML when it was parsed.
+_memory: dict[str, int] = {}
+
+
+def set_resident_budget(octets: int) -> None:
+    """Let the applications kept in memory take about ``octets`` together (a host with little
+    memory keeps few, one with much keeps all of a project's); those beyond it are dropped
+    now."""
+    with _resident_lock:
+        _budget[0] = max(0, octets)
+        _evict()
+
+
+def resident_budget() -> int:
+    """The memory the applications kept in memory may take together (see set_resident_budget)."""
+    return _budget[0]
+
+
+def _evict() -> None:
+    """Drop the least recently used parsed programs beyond the budget, all but the last one
+    (under ``_resident_lock``)."""
+    total = sum(_memory.get(app.id, _UNKNOWN_MEMORY) for app in _resident.values())
+    while len(_resident) > 1 and total > _budget[0]:
+        _key, oldest = _resident.popitem(last=False)
+        total -= _memory.get(oldest.id, _UNKNOWN_MEMORY)
+        oldest.unload()
 
 
 class Application:
@@ -107,15 +141,20 @@ class Application:
             if self._program is not None:
                 self._mark_used()
 
+    def unload(self) -> None:
+        """Drop the parsed program and its tree, parsed again when used (an application that
+        cannot be parsed again keeps them)."""
+        if self._reloader is None:
+            return
+        self._program = None
+        self._tree_builder = None
+
     def _mark_used(self) -> None:
         if self._reloader is None:
             return
         _resident[id(self)] = self
         _resident.move_to_end(id(self))
-        while len(_resident) > RESIDENT_APPLICATIONS:
-            _key, oldest = _resident.popitem(last=False)
-            oldest._program = None
-            oldest._tree_builder = None
+        _evict()
 
     def _resolve(
         self, *, with_tree: bool
@@ -218,11 +257,16 @@ def parse_application_xml(
 
     version = detect_version(xml_bytes)
     knx = cached_to_ir(xml_bytes, version, cache_dir)
+    memory = len(xml_bytes) * _MEMORY_PER_XML_OCTET
     if language:
         from .translate import apply_translations
 
         apply_translations(knx, language)
+    programs = list(_programs(knx))
+    for program in programs:
+        # The programs of one XML share it (rare): each counts all of it.
+        _memory[program.id] = memory
     return [
         Application(program=p, version=version, manufacturer_id=manufacturer_id)
-        for p in _programs(knx)
+        for p in programs
     ]

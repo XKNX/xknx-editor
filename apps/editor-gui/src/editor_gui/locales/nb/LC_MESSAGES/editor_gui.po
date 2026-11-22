@@ -1574,7 +1574,7 @@ msgid "Export Method"
 msgstr "Export Method"
 
 msgid "Automatic"
-msgstr "Automatic"
+msgstr "Automatisk"
 
 msgid "Importing the project's product data…"
 msgstr "Importerer prosjektets produktdata…"
@@ -1739,3 +1739,15 @@ msgstr "Når det ikke angis noe prosjekt ved oppstart, åpnes prosjektet som sis
 
 msgid "Tool catalog"
 msgstr "Verktøykatalog"
+
+msgid "Memory Use"
+msgstr "Minnebruk"
+
+msgid "Low"
+msgstr "Lav"
+
+msgid "High"
+msgstr "Høy"
+
+msgid "How much stays loaded to switch between devices quickly. Automatic sizes it from the memory free at the start; Low suits a small computer such as a Raspberry Pi, High a computer with plenty of memory."
+msgstr "Hvor mye som forblir lastet for å bytte raskt mellom enheter. Automatisk tilpasser det etter ledig minne ved oppstart; Lav passer for en liten datamaskin som en Raspberry Pi, Høy for en datamaskin med god plass i minnet."

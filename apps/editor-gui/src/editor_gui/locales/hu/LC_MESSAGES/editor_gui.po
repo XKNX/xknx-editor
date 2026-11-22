@@ -1646,7 +1646,7 @@ msgid "Export Method"
 msgstr "Export Method"
 
 msgid "Automatic"
-msgstr "Automatic"
+msgstr "Automatikus"
 
 msgid "Importing the project's product data…"
 msgstr "A projekt termékadatainak importálása…"
@@ -1795,3 +1795,15 @@ msgstr "Ha indításkor nincs megadva projekt, megnyitja a legutóbb megnyitott 
 
 msgid "Tool catalog"
 msgstr "Eszközkatalógus"
+
+msgid "Memory Use"
+msgstr "Memóriahasználat"
+
+msgid "Low"
+msgstr "Alacsony"
+
+msgid "High"
+msgstr "Magas"
+
+msgid "How much stays loaded to switch between devices quickly. Automatic sizes it from the memory free at the start; Low suits a small computer such as a Raspberry Pi, High a computer with plenty of memory."
+msgstr "Mennyi marad betöltve az eszközök közötti gyors váltáshoz. Az Automatikus az indításkor szabad memória alapján méretezi; az Alacsony kis számítógéphez, például Raspberry Pi-hoz való, a Magas sok memóriával rendelkező számítógéphez."

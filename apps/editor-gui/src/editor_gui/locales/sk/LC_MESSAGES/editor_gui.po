@@ -1646,7 +1646,7 @@ msgid "Export Method"
 msgstr "Export Method"
 
 msgid "Automatic"
-msgstr "Automatic"
+msgstr "Automaticky"
 
 msgid "Importing the project's product data…"
 msgstr "Importujú sa produktové údaje projektu…"
@@ -1827,3 +1827,15 @@ msgstr "Ak pri spustení nie je zadaný žiadny projekt, otvorí naposledy otvor
 
 msgid "Tool catalog"
 msgstr "Katalóg nástrojov"
+
+msgid "Memory Use"
+msgstr "Využitie pamäte"
+
+msgid "Low"
+msgstr "Nízke"
+
+msgid "High"
+msgstr "Vysoké"
+
+msgid "How much stays loaded to switch between devices quickly. Automatic sizes it from the memory free at the start; Low suits a small computer such as a Raspberry Pi, High a computer with plenty of memory."
+msgstr "Koľko zostane načítané na rýchle prepínanie medzi zariadeniami. Automaticky to určí podľa voľnej pamäte pri spustení; Nízke sa hodí pre malý počítač, ako je Raspberry Pi, Vysoké pre počítač s dostatkom pamäte."

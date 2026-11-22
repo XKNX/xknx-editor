@@ -1574,7 +1574,7 @@ msgid "Export Method"
 msgstr "Export Method"
 
 msgid "Automatic"
-msgstr "Automatic"
+msgstr "Автоматично"
 
 msgid "Importing the project's product data…"
 msgstr "Імпорт даних продуктів проєкту…"
@@ -1755,3 +1755,15 @@ msgstr "Якщо під час запуску проєкт не вказано, 
 
 msgid "Tool catalog"
 msgstr "Каталог інструментів"
+
+msgid "Memory Use"
+msgstr "Використання пам'яті"
+
+msgid "Low"
+msgstr "Низьке"
+
+msgid "High"
+msgstr "Високе"
+
+msgid "How much stays loaded to switch between devices quickly. Automatic sizes it from the memory free at the start; Low suits a small computer such as a Raspberry Pi, High a computer with plenty of memory."
+msgstr "Скільки залишається завантаженим для швидкого перемикання між пристроями. Автоматично визначає це за вільною пам'яттю під час запуску; Низьке підходить для невеликого комп'ютера, як-от Raspberry Pi, Високе — для комп'ютера з великим обсягом пам'яті."

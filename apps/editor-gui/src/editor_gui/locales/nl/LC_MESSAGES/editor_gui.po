@@ -1631,7 +1631,7 @@ msgid "Export Method"
 msgstr "Export Method"
 
 msgid "Automatic"
-msgstr "Automatic"
+msgstr "Automatisch"
 
 msgid "Importing the project's product data…"
 msgstr "Productgegevens van het project worden geïmporteerd…"
@@ -1796,3 +1796,15 @@ msgstr "Als bij het opstarten geen project wordt opgegeven, wordt het laatst geo
 
 msgid "Tool catalog"
 msgstr "Hulpmiddelencatalogus"
+
+msgid "Memory Use"
+msgstr "Geheugengebruik"
+
+msgid "Low"
+msgstr "Laag"
+
+msgid "High"
+msgstr "Hoog"
+
+msgid "How much stays loaded to switch between devices quickly. Automatic sizes it from the memory free at the start; Low suits a small computer such as a Raspberry Pi, High a computer with plenty of memory."
+msgstr "Hoeveel geladen blijft om snel tussen apparaten te wisselen. Automatisch stemt het af op het vrije geheugen bij het starten; Laag past bij een kleine computer zoals een Raspberry Pi, Hoog bij een computer met veel geheugen."

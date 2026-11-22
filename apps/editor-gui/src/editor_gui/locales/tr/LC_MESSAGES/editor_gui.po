@@ -1574,7 +1574,7 @@ msgid "Export Method"
 msgstr "Export Method"
 
 msgid "Automatic"
-msgstr "Automatic"
+msgstr "Otomatik"
 
 msgid "Importing the project's product data…"
 msgstr "Projenin ürün verileri içe aktarılıyor…"
@@ -1723,3 +1723,15 @@ msgstr "Başlangıçta proje belirtilmezse en son açık olan projeyi açar. Kor
 
 msgid "Tool catalog"
 msgstr "Araç kataloğu"
+
+msgid "Memory Use"
+msgstr "Bellek kullanımı"
+
+msgid "Low"
+msgstr "Düşük"
+
+msgid "High"
+msgstr "Yüksek"
+
+msgid "How much stays loaded to switch between devices quickly. Automatic sizes it from the memory free at the start; Low suits a small computer such as a Raspberry Pi, High a computer with plenty of memory."
+msgstr "Cihazlar arasında hızlı geçiş için ne kadarının yüklü kalacağı. Otomatik bunu başlangıçtaki boş belleğe göre belirler; Düşük, Raspberry Pi gibi küçük bir bilgisayara, Yüksek bol belleği olan bir bilgisayara uygundur."

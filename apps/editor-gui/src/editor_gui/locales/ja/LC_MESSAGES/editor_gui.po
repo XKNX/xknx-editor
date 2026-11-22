@@ -1574,7 +1574,7 @@ msgid "Export Method"
 msgstr "Export Method"
 
 msgid "Automatic"
-msgstr "Automatic"
+msgstr "自動"
 
 msgid "Importing the project's product data…"
 msgstr "プロジェクトの製品データをインポートしています…"
@@ -1723,3 +1723,15 @@ msgstr "起動時にプロジェクトが指定されていない場合、最後
 
 msgid "Tool catalog"
 msgstr "ツールカタログ"
+
+msgid "Memory Use"
+msgstr "メモリ使用量"
+
+msgid "Low"
+msgstr "少"
+
+msgid "High"
+msgstr "多"
+
+msgid "How much stays loaded to switch between devices quickly. Automatic sizes it from the memory free at the start; Low suits a small computer such as a Raspberry Pi, High a computer with plenty of memory."
+msgstr "デバイスを素早く切り替えるために読み込んだままにしておく量です。自動は起動時の空きメモリに合わせて決めます。少は Raspberry Pi のような小型のコンピューターに、多はメモリの多いコンピューターに適しています。"

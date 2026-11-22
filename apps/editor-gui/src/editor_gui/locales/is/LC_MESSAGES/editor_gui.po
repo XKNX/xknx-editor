@@ -1646,7 +1646,7 @@ msgid "Export Method"
 msgstr "Export Method"
 
 msgid "Automatic"
-msgstr "Automatic"
+msgstr "Sjálfvirkt"
 
 msgid "Importing the project's product data…"
 msgstr "Flytur inn vörugögn verkefnisins…"
@@ -1811,3 +1811,15 @@ msgstr "Þegar ekkert verkefni er gefið við ræsingu er síðasta opna verkefn
 
 msgid "Tool catalog"
 msgstr "Verkfæraskrá"
+
+msgid "Memory Use"
+msgstr "Minnisnotkun"
+
+msgid "Low"
+msgstr "Lítil"
+
+msgid "High"
+msgstr "Mikil"
+
+msgid "How much stays loaded to switch between devices quickly. Automatic sizes it from the memory free at the start; Low suits a small computer such as a Raspberry Pi, High a computer with plenty of memory."
+msgstr "Hversu mikið helst hlaðið til að skipta hratt á milli tækja. Sjálfvirkt miðar það við laust minni við ræsingu; Lítil hentar lítilli tölvu eins og Raspberry Pi, Mikil tölvu með nægu minni."

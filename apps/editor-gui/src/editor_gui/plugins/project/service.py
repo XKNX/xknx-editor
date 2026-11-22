@@ -3202,6 +3202,16 @@ class ProjectService:
                 del self._dynui_lru[self._dynui_keep :]
             self._emit("device_selected", device)
 
+    def set_resident_devices(self, count: int) -> None:
+        """Keep the evaluated parameters of the ``count`` devices viewed last (at least one);
+        those of the others beyond it are dropped now (see Device.release_dynamic_ui)."""
+        self._dynui_keep = max(1, count)
+        for evicted in self._dynui_lru[self._dynui_keep :]:
+            device = self.find_device_by_node_id(evicted)
+            if device is not None:
+                device.release_dynamic_ui()
+        del self._dynui_lru[self._dynui_keep :]
+
     @property
     def selected_node_ids(self) -> set[int]:
         """The full multi-selection (device node ids); empty when a single/no device is selected."""
