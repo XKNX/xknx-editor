@@ -340,7 +340,9 @@ class Recording:
         if self.checked_by_change:
             self.value_keys = frozenset(key for key, _result in values)
             self.gate_keys = frozenset(key for key, _result in gates)
-            self.discovered_keys = frozenset(key for kind, key, _ in reads if kind == "d")
+            self.discovered_keys = frozenset(
+                key for kind, key, _ in reads if kind == "d"
+            )
             self.text_keys = frozenset(key for kind, key, _ in reads if kind == "t")
             self.object_reads = any(kind == "o" for kind, _key, _ in reads)
             self.text_args = any(kind == "x" for kind, _key, _ in reads)
@@ -441,7 +443,9 @@ class EvalMemo:
 
     __slots__ = ("_count", "_entries", "_last", "_open", "thread")
 
-    ENTRIES = 2
+    # A node of a channel a search tries values in takes turns between a few states (its
+    # selector's values, with and without gates): fewer are evaluated again and again.
+    ENTRIES = 4
 
     def __init__(self) -> None:
         # By node and module instance (empty for the application's scope): a module
