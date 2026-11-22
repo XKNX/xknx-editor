@@ -16,6 +16,7 @@ same call as hidapi's `write` there) there is none without the binding's.
 
 from __future__ import annotations
 
+import importlib
 import os
 import sys
 from typing import Any, Final, Protocol
@@ -90,10 +91,10 @@ class _HidrawControlPipe:
 
 def _hidraw_ioctl(fd: int, request: int, report: bytes) -> None:
     """Call a hidraw ioctl with a report. Raise OSError on failure."""
-    if sys.platform == "win32":
-        raise OSError("hidraw is only available on Linux")
-    import fcntl  # not on Windows
-
+    try:
+        fcntl = importlib.import_module("fcntl")  # not on Windows
+    except ImportError as err:
+        raise OSError("hidraw is only available on Linux") from err
     fcntl.ioctl(fd, request, report)
 
 
@@ -122,66 +123,66 @@ _FILE_SHARE_READ: Final = 0x00000001
 _FILE_SHARE_WRITE: Final = 0x00000002
 _OPEN_EXISTING: Final = 3
 
+if sys.platform == "win32":
+    import ctypes
+    from ctypes import wintypes
 
-def _windows_open(path: str) -> int:
-    """Open a HID device by its path, shared like hidapi opens it. Raise OSError on failure."""
-    if sys.platform != "win32":
+    def _windows_open(path: str) -> int:
+        """Open a HID device by its path, shared like hidapi opens it. Raise OSError on failure."""
+        kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+        create_file = kernel32.CreateFileW
+        create_file.argtypes = (
+            wintypes.LPCWSTR,
+            wintypes.DWORD,
+            wintypes.DWORD,
+            wintypes.LPVOID,
+            wintypes.DWORD,
+            wintypes.DWORD,
+            wintypes.HANDLE,
+        )
+        create_file.restype = wintypes.HANDLE
+        handle: int | None = create_file(
+            path,
+            _GENERIC_READ | _GENERIC_WRITE,
+            _FILE_SHARE_READ | _FILE_SHARE_WRITE,
+            None,
+            _OPEN_EXISTING,
+            0,
+            None,
+        )
+        if handle is None or handle == wintypes.HANDLE(-1).value:
+            raise ctypes.WinError(ctypes.get_last_error())
+        return handle
+
+    def _windows_set_output_report(handle: int, report: bytes) -> None:
+        """Send an output report with HidD_SetOutputReport. Raise OSError on failure."""
+        hid = ctypes.WinDLL("hid", use_last_error=True)
+        set_output_report = hid.HidD_SetOutputReport
+        set_output_report.argtypes = (wintypes.HANDLE, ctypes.c_void_p, wintypes.ULONG)
+        set_output_report.restype = wintypes.BOOLEAN
+        buffer = ctypes.create_string_buffer(report, len(report))
+        if not set_output_report(handle, buffer, len(report)):
+            raise ctypes.WinError(ctypes.get_last_error())
+
+    def _windows_close(handle: int) -> None:
+        """Close a handle."""
+        close_handle = ctypes.WinDLL("kernel32", use_last_error=True).CloseHandle
+        close_handle.argtypes = (wintypes.HANDLE,)
+        close_handle.restype = wintypes.BOOL
+        close_handle(handle)
+
+else:
+
+    def _windows_open(path: str) -> int:
+        """Raise OSError: Windows' HID API is only available on Windows."""
         raise OSError("HidD_SetOutputReport is only available on Windows")
-    import ctypes
-    from ctypes import wintypes
 
-    kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
-    create_file = kernel32.CreateFileW
-    create_file.argtypes = (
-        wintypes.LPCWSTR,
-        wintypes.DWORD,
-        wintypes.DWORD,
-        wintypes.LPVOID,
-        wintypes.DWORD,
-        wintypes.DWORD,
-        wintypes.HANDLE,
-    )
-    create_file.restype = wintypes.HANDLE
-    handle: int | None = create_file(
-        path,
-        _GENERIC_READ | _GENERIC_WRITE,
-        _FILE_SHARE_READ | _FILE_SHARE_WRITE,
-        None,
-        _OPEN_EXISTING,
-        0,
-        None,
-    )
-    if handle is None or handle == wintypes.HANDLE(-1).value:
-        raise ctypes.WinError(ctypes.get_last_error())
-    return handle
-
-
-def _windows_set_output_report(handle: int, report: bytes) -> None:
-    """Send an output report with HidD_SetOutputReport. Raise OSError on failure."""
-    if sys.platform != "win32":
+    def _windows_set_output_report(handle: int, report: bytes) -> None:
+        """Raise OSError: Windows' HID API is only available on Windows."""
         raise OSError("HidD_SetOutputReport is only available on Windows")
-    import ctypes
-    from ctypes import wintypes
 
-    set_output_report = ctypes.WinDLL("hid", use_last_error=True).HidD_SetOutputReport
-    set_output_report.argtypes = (wintypes.HANDLE, ctypes.c_void_p, wintypes.ULONG)
-    set_output_report.restype = wintypes.BOOLEAN
-    buffer = ctypes.create_string_buffer(report, len(report))
-    if not set_output_report(handle, buffer, len(report)):
-        raise ctypes.WinError(ctypes.get_last_error())
-
-
-def _windows_close(handle: int) -> None:
-    """Close a handle."""
-    if sys.platform != "win32":
-        return
-    import ctypes
-    from ctypes import wintypes
-
-    close_handle = ctypes.WinDLL("kernel32", use_last_error=True).CloseHandle
-    close_handle.argtypes = (wintypes.HANDLE,)
-    close_handle.restype = wintypes.BOOL
-    close_handle(handle)
+    def _windows_close(handle: int) -> None:
+        """Nothing to close without Windows' HID API."""
 
 
 def open_control_pipe(device: Any, backend: str, path: bytes) -> ControlPipe | None:
