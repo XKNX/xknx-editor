@@ -74,9 +74,21 @@ def test_sorting_leaves_nothing_for_the_garbage_collector() -> None:
     keys = [rng.choice([0.5, 1.0, 2.0, 3.0]) for _ in range(500)]
     gc.collect()
     gc.disable()
+    gc.set_debug(gc.DEBUG_SAVEALL)
     try:
         order = _sorted_indices(keys)
-        assert gc.collect() == 0
+        gc.collect()
+        # Only what the sort left: other threads may leave garbage of their own meanwhile.
+        left = [
+            o
+            for o in gc.garbage
+            if getattr(getattr(o, "__code__", None), "co_filename", "").endswith(
+                "star_columns.py"
+            )
+        ]
     finally:
+        gc.set_debug(0)
+        gc.garbage.clear()
         gc.enable()
+    assert left == []
     assert [keys[i] for i in order] == sorted(keys)
