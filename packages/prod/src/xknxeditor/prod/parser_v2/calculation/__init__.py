@@ -44,7 +44,6 @@ from ...script.values import (
     to_js,
     to_vbscript,
 )
-from ...script.vbscript import culture_for, run_script
 
 if TYPE_CHECKING:
     from ...script.compat.runtime import JScriptEnv
@@ -363,6 +362,9 @@ def _run_vbscript(
 ) -> dict[str, Any]:
     """Run inline VBScript code; the aliases are its variables, the outputs hold their current
     values when it starts."""
+    # Only now: few applications calculate with VBScript.
+    from ...script.vbscript import culture_for, run_script
+
     inputs = {
         _alias(idx, pr): to_vbscript(get(pr.ref_id), idx.type_of(pr.ref_id))
         for pr in ins

@@ -1,6 +1,13 @@
 import collections
 import contextlib
 import functools
+import gc
+
+# The imports below make some 350,000 objects that stay as long as the program does: without the
+# collector, which would look at them again and again meanwhile, they take a tenth less time.
+_collecting = gc.isenabled()
+gc.disable()
+
 import os
 import platform
 import re
@@ -195,7 +202,6 @@ from xknxeditor.prod.errors import (
     check_cancelled,
 )
 from xknxeditor.prod.gc_pause import keep_long_lived
-from xknxeditor.prod.vd import is_vd_file
 from xknxeditor.proj import (
     MYKNX_DLL_NAME,
     CompactCancelled,
@@ -242,6 +248,9 @@ from xknxeditor.proj.core.project_store_serialize import (
 )
 from xknxeditor.proj.db import frame_db_profiler, make_engine, url_for
 from xknxeditor.proj.models import Device, Installation, Project
+
+if _collecting:
+    gc.enable()
 
 _REPO_URL = "https://github.com/xknx/xknx-editor"
 # Direct downloads for hosts without a working OpenGL driver (VMs such as UTM/QEMU): the installer,
@@ -3324,6 +3333,8 @@ class KnxGuiApp:
         Files that are not a product source are skipped."""
 
         def candidates() -> list[Path]:
+            from xknxeditor.prod.vd import is_vd_file
+
             return sorted(
                 p
                 for p in Path(folder).rglob("*")
@@ -4187,6 +4198,8 @@ class KnxGuiApp:
                 )
 
         # A .vd1-.vd5 product database is converted first, which takes a while for a big one.
+        from xknxeditor.prod.vd import is_vd_file
+
         progress = (
             S.PROGRESS_CONVERT_VD if is_vd_file(path) else S.PROGRESS_LOAD_KNXPROD
         )
