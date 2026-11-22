@@ -127,6 +127,9 @@ _PAIR_ROUNDS = 2
 _DEEP_STARTS = 2
 # The corrections a deeper search makes from its start at most.
 _DEEP_ROUNDS = 1
+# The results of a deeper search taken at most (the corrections go on from each, and the
+# deeper search after the last is left out).
+_DEEP_TAKEN = 2
 # A linked group object a result does not show weighs as many differing bytes.
 _OBJECT_WEIGHT = 3
 # How many times the corrections, the values tried for one and the deeper starts each effort
@@ -1593,7 +1596,8 @@ def _refine(
     When no value fits better, the corrections behind the values that fit worse are searched,
     those that fit best first (``_DEEP_STARTS`` of them, ``scale`` times): a channel selector whose
     right value fits worse until the channel's own selectors are corrected as well. One that ends
-    better than the result is taken, and the search goes on from there.
+    better than the result is taken, and the search goes on from there (``_DEEP_TAKEN`` times,
+    ``scale`` times).
     The values the inference found to show nothing (``dead``) are not tried again behind them.
     When ``cancel`` returns true the search stops with the result so far."""
     ui = _seeded(application, values, project_code_page)
@@ -1627,6 +1631,7 @@ def _refine(
     rounds = None if scale is None else _REFINE_ROUNDS * scale
     starts = None if scale is None else _DEEP_STARTS * scale
     deep_rounds = None if scale is None else _DEEP_ROUNDS * scale
+    taken = None if scale is None else _DEEP_TAKEN * scale
 
     def descend(
         state: _State,
@@ -1745,6 +1750,10 @@ def _refine(
             for entry in worse
             if not _calculated_from_reads(entry[2][4], entry[1])
         ]
+        if worse and taken == 0:
+            # The deeper searches behind the result are left to more effort.
+            limited = True
+            break
         for n, (_score, gate, start) in enumerate(worse):
             if starts is not None and n == starts:
                 limited = True
@@ -1759,6 +1768,8 @@ def _refine(
         if better is None or stopped:
             limited = limited or stopped
             break
+        if taken is not None:
+            taken -= 1
     return finish(state[0], state[4], state[1], state[2], limited=limited)
 
 

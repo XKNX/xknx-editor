@@ -117,6 +117,25 @@ def test_a_fast_search_that_leaves_out_the_pairs_says_more_effort_may_help(
     assert medium.complete
 
 
+@pytest.mark.parametrize(
+    ("effort", "complete"),
+    [(RecoveryEffort.FAST, False), (RecoveryEffort.UNLIMITED, True)],
+)
+def test_the_deeper_searches_an_effort_takes_are_bounded(
+    application: Application,
+    monkeypatch: pytest.MonkeyPatch,
+    effort: RecoveryEffort,
+    complete: bool,
+) -> None:
+    segments = {_SEGMENT: _DEVICE}
+    # No result of a deeper search may be taken: the fast search ends before its deeper search
+    # and says more effort may help; without a limit the deeper search still runs.
+    monkeypatch.setattr(parameters, "_DEEP_TAKEN", 0)
+    recovered = recover_parameters(application, segments, effort=effort)
+    assert recovered.complete is complete
+    assert recovered.limited is not complete
+
+
 @pytest.mark.parametrize("effort", [RecoveryEffort.FAST, RecoveryEffort.MEDIUM])
 def test_a_result_no_selector_can_correct_is_not_limited(
     effort: RecoveryEffort,
