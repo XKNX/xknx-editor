@@ -70,6 +70,7 @@ from xknxeditor.proj.core.project_secrets import (
     new_salt,
     recrypt,
 )
+from xknxeditor.proj.core.zip_copy import copy_members
 from xknxeditor.proj.db import make_engine, url_for
 from xknxeditor.proj.models import (
     COMPLETION_STATUSES,
@@ -312,26 +313,31 @@ def _capture_product_provenance(
         with zipfile.ZipFile(source) as zf:
             names = zf.namelist()
             master = zf.read("knx_master.xml") if "knx_master.xml" in names else None
-            members = [
-                (name, zf.read(name))
+            member_names = [
+                name
                 for name in names
                 if not name.endswith("/") and name.split("/", 1)[0].startswith("M-")
             ]
+            if not member_names:
+                return master, None
+            # As they are stored: unpacking and packing them again takes long and holds all of
+            # them unpacked (up to a GB) at once.
+            members = copy_members(zf, member_names)
+            if members is None:
+                buffer = io.BytesIO()
+                with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as out:
+                    for name in member_names:
+                        out.writestr(name, zf.read(name))
+                members = buffer.getvalue()
     except (OSError, zipfile.BadZipFile, RuntimeError, zlib.error) as exc:
         logger.warning("could not capture product data from %s (%s)", source, exc)
         return None, None
-    if not members:
-        return master, None
-    buffer = io.BytesIO()
-    with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as out:
-        for name, data in members:
-            out.writestr(name, data)
     logger.debug(
         "captured product data: master=%s members=%d",
         "yes" if master else "no",
-        len(members),
+        len(member_names),
     )
-    return master, buffer.getvalue()
+    return master, members
 
 
 @dataclass(frozen=True, slots=True)
