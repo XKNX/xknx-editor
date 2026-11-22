@@ -197,28 +197,26 @@ def _flat_pages(
 ) -> tuple[UiNode, ...]:
     items: list[tuple[int, int, UiNode]] = []
     previous = 0
-
-    def collect(ns: Sequence[UiNode]) -> None:
-        nonlocal previous
-        for node in ns:
-            if isinstance(node, UiParameterBlock) and not node.inline:
-                if not node.hidden:
-                    order = (
-                        display_order(node.param_ref_id) if node.param_ref_id else None
-                    )
-                    previous = order if order is not None else 0
-                    items.append((previous, len(items), replace(node, children=())))
-                collect(node.children)
+    # Depth first in document order from a stack, children pushed in reverse: a nested function
+    # calling itself would be a reference cycle, kept until the garbage collector runs (see
+    # xknxeditor.prod.gc_pause).
+    pending = list(reversed(nodes))
+    while pending:
+        node = pending.pop()
+        if isinstance(node, UiParameterBlock) and not node.inline:
+            if not node.hidden:
+                order = display_order(node.param_ref_id) if node.param_ref_id else None
+                previous = order if order is not None else 0
+                items.append((previous, len(items), replace(node, children=())))
+            pending.extend(reversed(node.children))
+            continue
+        if isinstance(node, UiParameter):
+            if node.access == Access.NONE:
                 continue
-            if isinstance(node, UiParameter):
-                if node.access == Access.NONE:
-                    continue
-                order = display_order(node.ref_id)
-                if order is not None:
-                    previous = order
-            items.append((previous, len(items), node))
-
-    collect(nodes)
+            order = display_order(node.ref_id)
+            if order is not None:
+                previous = order
+        items.append((previous, len(items), node))
     items.sort(key=lambda item: (item[0], item[1]))
     # Before the first page, a node stays on the channel itself.
     channel: list[UiNode] = []
