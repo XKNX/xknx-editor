@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import copy
 import re
-from collections.abc import Iterable, Mapping
+from collections.abc import Iterable, Mapping, Sequence
 from functools import lru_cache
 from typing import Any, ClassVar, Self, cast
 
@@ -576,8 +576,60 @@ class ParameterState:
                 self.param_ref_id_to_value[ref_id] = known
         self._active_param_refs.add(ref_id)
 
+    def mark_active_params(
+        self, ref_ids: Sequence[str], as_set: frozenset[str]
+    ) -> None:
+        """:meth:`mark_active_param` of each of ``ref_ids`` in their order (``as_set``: the
+        same as a set)."""
+        values = self.param_ref_id_to_value
+        if not values.keys() >= as_set:
+            for ref_id in ref_ids:
+                if ref_id not in values:
+                    known = self._known_param_ref_values.get(ref_id)
+                    if known is not None:
+                        values[ref_id] = known
+        self._active_param_refs.update(as_set)
+
     def mark_active_com_object(self, ref_id: str) -> None:
         self._active_com_object_refs.add(ref_id)
+
+    def mark_active_com_objects(self, ref_ids: frozenset[str]) -> None:
+        """:meth:`mark_active_com_object` of each of ``ref_ids``."""
+        self._active_com_object_refs.update(ref_ids)
+
+    def pass_start(
+        self,
+    ) -> tuple[
+        dict[str, str],
+        dict[str, str],
+        dict[str, str],
+        frozenset[str] | None,
+        frozenset[str],
+        dict[str, str],
+        dict[str, ComObjectInstanceRef],
+    ]:
+        """What the reads of a pass over this scope (without a parent) can depend on as it
+        starts: copies of the known values, of the values, the defaults (not a copy: they are
+        replaced, never changed), the gates (None: not gated), the parameters reached in the
+        union discovery, the texts and the group object settings."""
+        gate = self._gate_param_refs
+        return (
+            dict(self._known_param_ref_values),
+            dict(self.param_ref_id_to_value),
+            self._param_ref_defaults,
+            None if gate is None else frozenset(gate),
+            frozenset(self._discovered_active_param_refs),
+            dict(self._text),
+            dict(self._com_obj_instance_refs),
+        )
+
+    def pass_written(self) -> tuple[Mapping[str, object], Mapping[str, object]]:
+        """The values and the texts the current pass wrote so far in this scope (by key)."""
+        return self._pass_values, self._pass_texts
+
+    def pass_writes(self) -> tuple[frozenset[str], frozenset[str]]:
+        """:meth:`pass_written`, kept as it is once the pass ended."""
+        return frozenset(self._pass_values), frozenset(self._pass_texts)
 
     def mark_assigned_from(self, target: str, source: str) -> None:
         """An Assign of the current pass wrote ``target`` from ``source``."""
