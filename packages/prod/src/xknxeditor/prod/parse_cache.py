@@ -7,6 +7,12 @@ reused across projects hits the same entry. A ``CACHE_VERSION`` prefix and a def
 mean a Python/xsdata upgrade (or a corrupt file) simply misses and re-parses, never returns a wrong
 result. Language translations are applied by the caller after parsing (cheap), so one cached IR
 serves every language.
+
+An entry also keeps the evaluation trees of its application programs (see
+:class:`~xknxeditor.prod.parser_v2.dynamic.DynamicTreeBuilder`): building one takes about twice as
+long as loading the program, and loading it with the program half as long again. A tree is the same
+in every language (it reads the texts when it evaluates). It is kept with the identity of the code
+that built it (see :func:`set_tree_code`), and built and stored again by other code.
 """
 
 from __future__ import annotations
@@ -21,7 +27,7 @@ from collections.abc import Callable, Sequence
 from concurrent.futures import Future, ProcessPoolExecutor
 from concurrent.futures import TimeoutError as FuturesTimeout
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, cast
 
 import psutil
 
@@ -33,6 +39,8 @@ from .errors import ImportCancelled
 
 if TYPE_CHECKING:
     import threading
+
+    from .parser_v2.dynamic import DynamicTreeBuilder
 
 logger = logging.getLogger(__name__)
 
@@ -48,6 +56,73 @@ _CANCEL_POLL = 0.2
 CACHE_VERSION = "3"
 # The cache folders whose entries of other cache versions this process removed.
 _SWEPT: set[Path] = set()
+# The identity of the code that builds the evaluation trees (see set_tree_code); None: no trees
+# are kept.
+_tree_code: list[str | None] = [None]
+
+# The evaluation trees of an entry's programs by program id.
+type Trees = dict[str, DynamicTreeBuilder]
+
+
+def set_tree_code(code: str | None) -> None:
+    """Keep the evaluation trees of the programs in the cache, as built by the code ``code``
+    identifies (it changes with every change of that code, e.g. the hash of its sources); a tree
+    another code built is built again. None keeps no trees (the default)."""
+    _tree_code[0] = code
+
+
+def tree_code() -> str | None:
+    """The identity of the code whose evaluation trees the cache keeps (see set_tree_code)."""
+    return _tree_code[0]
+
+
+class CacheHit:
+    """A parse from the cache: the IR, its schema version, the size of its XML, the evaluation
+    trees kept with it by the current code (None: none), and the entry (to store trees in, see
+    store_trees)."""
+
+    __slots__ = ("knx", "path", "size", "trees", "version")
+
+    def __init__(
+        self, knx: Knx, version: str, size: int, trees: Trees | None, path: Path | None
+    ) -> None:
+        self.knx = knx
+        self.version = version
+        self.size = size
+        self.trees = trees
+        self.path = path
+
+
+def _entry(loaded: Any) -> tuple[Knx, Trees | None] | None:
+    """The IR and the trees of the current code in a loaded entry: an IR alone (as stored before
+    trees were kept, or by a parse in another process), or ``(IR, code, trees)``."""
+    if isinstance(loaded, Knx):
+        return loaded, None
+    if (
+        isinstance(loaded, tuple)
+        and len(loaded) == 3  # pyright: ignore[reportUnknownArgumentType]
+        and isinstance(loaded[0], Knx)
+    ):
+        knx, code, trees = cast("tuple[Knx, object, Trees]", loaded)
+        current = _tree_code[0]
+        return knx, trees if current is not None and code == current else None
+    return None
+
+
+def store_trees(path: Path, knx: Knx, trees: Trees) -> None:
+    """Keep ``trees`` (built by the current code from the programs of ``knx``, not translated)
+    with ``knx`` in the cache entry ``path``."""
+    code = _tree_code[0]
+    if code is None:
+        return
+    try:
+        partial = path.with_name(f"{path.name}.{os.getpid()}.tmp")
+        with partial.open("wb") as file:
+            pickle.dump((knx, code, trees), file, protocol=pickle.HIGHEST_PROTOCOL)
+        partial.replace(path)
+    except OSError as exc:  # a cache write failure must never break loading
+        logger.debug("could not store the trees in %s: %s", path.name, exc)
+
 
 # Parsing in worker processes pays off from about this much application XML besides the largest
 # application, which takes its own time either way. A worker needs about 0.5 s to start and 0.7 s
@@ -87,25 +162,24 @@ def remember_source(
         logger.debug("could not note parse cache source %s: %s", source, exc)
 
 
-def cached_for_source(source: str, cache_dir: Path) -> tuple[Knx, str, int] | None:
-    """The parse of the XML of ``source`` (see remember_source) with its schema version and the
-    size of the XML, without reading the XML; None when the cache has no entry for it (the
-    XML is read and parsed then)."""
+def cached_for_source(source: str, cache_dir: Path) -> CacheHit | None:
+    """The parse of the XML of ``source`` (see remember_source) without reading the XML; None
+    when the cache has no entry for it (the XML is read and parsed then)."""
     try:
         version, digest, size = (
             _source_path(source, cache_dir).read_text(encoding="ascii").split()
         )
         path = cache_dir / f"ir_{CACHE_VERSION}_{version}_{digest}.pkl"
         with path.open("rb") as file:
-            knx = pickle.load(file)
+            entry = _entry(pickle.load(file))
     except (OSError, ValueError):
         return None
     except Exception as exc:  # corrupt / incompatible pickle: read and parse again
         logger.debug("parse cache miss for %s: %s", source, exc)
         return None
-    if not isinstance(knx, Knx):
+    if entry is None:
         return None
-    return knx, version, int(size)
+    return CacheHit(entry[0], version, int(size), entry[1], path)
 
 
 def _remove_other_versions(cache_dir: Path) -> None:
@@ -126,15 +200,22 @@ def cached_to_ir(xml_bytes: bytes, version: str, cache_dir: Path | None) -> Knx:
     """``to_ir`` with an optional on-disk cache keyed by the XML content hash.
 
     With ``cache_dir=None`` this is a plain ``to_ir`` (no caching)."""
+    return cached_parse(xml_bytes, version, cache_dir).knx
+
+
+def cached_parse(xml_bytes: bytes, version: str, cache_dir: Path | None) -> CacheHit:
+    """:func:`cached_to_ir` with the trees kept in the entry (see CacheHit)."""
     if cache_dir is None:
-        return to_ir(xml_bytes, version)
+        return CacheHit(to_ir(xml_bytes, version), version, len(xml_bytes), None, None)
     path = _cache_path(xml_bytes, version, cache_dir)
     if path.exists():
         try:
             # Read from the file as it goes, so the pickled bytes are never in memory beside
             # the parse.
             with path.open("rb") as file:
-                return pickle.load(file)
+                entry = _entry(pickle.load(file))
+            if entry is not None:
+                return CacheHit(entry[0], version, len(xml_bytes), entry[1], path)
         except (
             Exception
         ) as exc:  # corrupt / incompatible pickle -> reparse and overwrite
@@ -151,7 +232,7 @@ def cached_to_ir(xml_bytes: bytes, version: str, cache_dir: Path | None) -> Knx:
         partial.replace(path)
     except OSError as exc:  # a cache write failure must never break parsing
         logger.debug("could not write parse cache %s: %s", path.name, exc)
-    return knx
+    return CacheHit(knx, version, len(xml_bytes), None, path)
 
 
 def parse_workers(sizes: Sequence[int]) -> int:

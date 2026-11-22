@@ -18,9 +18,6 @@ from xknxeditor.catalog.models import (
 )
 
 if TYPE_CHECKING:
-    from xknxeditor.namespaces.intermediate.application_program_t import (
-        ApplicationProgram,
-    )
     from xknxeditor.prod import Application as ProductApplication
 
 logger = logging.getLogger(__name__)
@@ -161,7 +158,7 @@ def get_application_detail(
     if app is not None:
         knxprod_path, application_id = program.knxprod_path, program.application_id
 
-        def reload() -> ApplicationProgram:
+        def reload() -> ProductApplication:
             again = _load_application(
                 knxprod_path, manufacturer_id, application_id, language, cache_dir
             )
@@ -169,7 +166,7 @@ def get_application_detail(
                 raise LookupError(
                     f"application {application_id} is no longer available"
                 )
-            return again.program
+            return again
 
         app.set_reloader(reload)
     return app
@@ -280,15 +277,15 @@ def _application_program(db: Session, application_id: str) -> HardwareProgram | 
     ).first()
 
 
-def load_application_program(
+def load_application(
     db: Session,
     application_id: str,
     language: str | None = None,
     cache_dir: Path | None = None,
-) -> ApplicationProgram:
-    """Parse the program of ``application_id`` (as :func:`get_application_detail_by_id` resolves
-    it), without keeping it among the applications held in memory; raises :class:`LookupError`
-    when it cannot be loaded."""
+) -> ProductApplication:
+    """Parse ``application_id`` (as :func:`get_application_detail_by_id` resolves it), with its
+    evaluation tree when the parse cache keeps it, without keeping it among the applications held
+    in memory; raises :class:`LookupError` when it cannot be loaded."""
     program = _application_program(db, application_id)
     if program is None:
         raise LookupError(f"application {application_id} is not in the catalog")
@@ -301,7 +298,7 @@ def load_application_program(
     )
     if app is None:
         raise LookupError(f"application {application_id} could not be loaded")
-    return app.program
+    return app
 
 
 def get_application_source(db: Session, application_id: str) -> str | None:

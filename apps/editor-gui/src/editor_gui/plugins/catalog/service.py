@@ -31,9 +31,6 @@ if TYPE_CHECKING:
         ProgramSummary,
     )
     from xknxeditor.catalog.core.hardware import FactoryData
-    from xknxeditor.namespaces.intermediate.application_program_t import (
-        ApplicationProgram,
-    )
 
 
 def _version_key(product: ProductSummary) -> tuple[str, str]:
@@ -544,8 +541,8 @@ class CatalogService:
         first used (on any thread)."""
         language = product_text_languages()
 
-        def load() -> ApplicationProgram:
-            return self._service.load_application_program(application_id, language)
+        def load() -> Application:
+            return self._service.load_application(application_id, language)
 
         return Application.unloaded(
             application_id, name, version, manufacturer_id, load

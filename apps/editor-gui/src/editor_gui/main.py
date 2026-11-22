@@ -202,6 +202,7 @@ from xknxeditor.prod.errors import (
     check_cancelled,
 )
 from xknxeditor.prod.gc_pause import keep_long_lived
+from xknxeditor.prod.parse_cache import set_tree_code
 from xknxeditor.proj import (
     MYKNX_DLL_NAME,
     CompactCancelled,
@@ -1139,6 +1140,10 @@ class KnxGuiApp:
         # Programs and devices are left out of the garbage collections (see gc_pause), which
         # would otherwise stop the user interface for seconds now and then.
         keep_long_lived(True)
+        # The parse cache keeps the evaluation trees too, as this code builds them.
+        from editor_gui.device_snapshot import code_fingerprint
+
+        set_tree_code(code_fingerprint())
         self._can_launch_file_dialog(show_error=False)
         # In the browser UI, notes about downloads show as this app's toasts.
         if web.active_hub is not None:

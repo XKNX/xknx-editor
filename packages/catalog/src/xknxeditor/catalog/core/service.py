@@ -19,7 +19,7 @@ from xknxeditor.catalog.core.applications import (
     get_replaces_versions,
     get_second_application_detail,
     list_applications,
-    load_application_program,
+    load_application,
 )
 from xknxeditor.catalog.core.archive_versions import archive_versions
 from xknxeditor.catalog.core.catalog_sections import (
@@ -68,10 +68,6 @@ from xknxeditor.prod import Application
 
 if TYPE_CHECKING:
     import threading
-
-    from xknxeditor.namespaces.intermediate.application_program_t import (
-        ApplicationProgram,
-    )
 
 
 class CatalogService:
@@ -281,15 +277,13 @@ class CatalogService:
         with Session(self._engine) as db:
             return is_program_without_application(db, program_id)
 
-    def load_application_program(
+    def load_application(
         self, application_id: str, language: str | None = None
-    ) -> ApplicationProgram:
-        """Parse the program of ``application_id`` on its own (any thread); raises
-        :class:`LookupError` when it cannot be loaded."""
+    ) -> Application:
+        """Parse ``application_id`` on its own (any thread), with its evaluation tree when the
+        parse cache keeps it; raises :class:`LookupError` when it cannot be loaded."""
         with Session(self._engine) as db:
-            return load_application_program(
-                db, application_id, language, self._parse_cache_dir
-            )
+            return load_application(db, application_id, language, self._parse_cache_dir)
 
     def application_source(self, application_id: str) -> str | None:
         """What ``application_id`` is read from (stored product file and application id), the same

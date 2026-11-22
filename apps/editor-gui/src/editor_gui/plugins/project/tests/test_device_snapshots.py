@@ -203,7 +203,7 @@ def test_application_that_fails_to_load_leaves_its_devices_unloaded(
     def broken(*_args: object) -> None:
         raise LookupError("product data missing")
 
-    monkeypatch.setattr(cat._service, "load_application_program", broken)
+    monkeypatch.setattr(cat._service, "load_application", broken)
     monkeypatch.setattr(cat._service, "get_application", broken)
     proj = _service(cat)
     proj.open(path)
