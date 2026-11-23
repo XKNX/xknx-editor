@@ -18,9 +18,6 @@ from xknxeditor.catalog.models import (
 )
 
 if TYPE_CHECKING:
-    from xknxeditor.namespaces.intermediate.application_program_t import (
-        ApplicationProgram,
-    )
     from xknxeditor.prod import Application as ProductApplication
 
 logger = logging.getLogger(__name__)
@@ -91,16 +88,29 @@ def get_application_xml(db: Session, program_id: str) -> tuple[bytes, str] | Non
 
 def _application_attributes(db: Session, program_id: str) -> dict[str, str] | None:
     """The attributes of the ``ApplicationProgram`` element a program loads, read without
-    parsing the rest of its XML; ``None`` when unknown."""
-    source = get_application_xml(db, program_id)
-    if source is None:
+    parsing the rest of its XML (nor unpacking it: the element is at its beginning); ``None``
+    when unknown."""
+    program = db.scalars(
+        select(HardwareProgram)
+        .options(selectinload(HardwareProgram.hardware))
+        .where(HardwareProgram.id == program_id)
+    ).first()
+    if not program or not program.application_id:
         return None
-    from io import BytesIO
     from xml.etree.ElementTree import iterparse
 
-    for _, element in iterparse(BytesIO(source[0]), events=("start",)):
-        if element.tag.rsplit("}", 1)[-1] == "ApplicationProgram":
-            return dict(element.attrib)
+    from xknxeditor.prod.archive import Archive
+
+    with Archive(program.knxprod_path, require_catalog=False) as archive:
+        stream = archive.open_application_xml(
+            program.hardware.manufacturer_id, program.application_id
+        )
+        if stream is None:
+            return None
+        with stream:
+            for _, element in iterparse(stream, events=("start",)):
+                if element.tag.rsplit("}", 1)[-1] == "ApplicationProgram":
+                    return dict(element.attrib)
     return None
 
 
@@ -148,7 +158,7 @@ def get_application_detail(
     if app is not None:
         knxprod_path, application_id = program.knxprod_path, program.application_id
 
-        def reload() -> ApplicationProgram:
+        def reload() -> ProductApplication:
             again = _load_application(
                 knxprod_path, manufacturer_id, application_id, language, cache_dir
             )
@@ -156,7 +166,7 @@ def get_application_detail(
                 raise LookupError(
                     f"application {application_id} is no longer available"
                 )
-            return again.program
+            return again
 
         app.set_reloader(reload)
     return app
@@ -208,8 +218,21 @@ def _load_application(
     cache_dir: Path | None,
 ) -> ProductApplication | None:
     from xknxeditor.prod import parse_application_xml
+    from xknxeditor.prod.application import cached_applications
     from xknxeditor.prod.archive import Archive
 
+    # A stored product file and an application in it: another content of the file has another
+    # size or time (the catalog names its files by their content as well).
+    try:
+        stat = Path(knxprod_path).stat()
+        source = f"{knxprod_path}|{stat.st_size}|{stat.st_mtime_ns}|{application_id}"
+    except OSError:
+        source = None
+    if source is not None:
+        cached = cached_applications(source, manufacturer_id, language, cache_dir)
+        found = next((a for a in cached or () if a.id == application_id), None)
+        if found is not None:
+            return found
     # Only the application XML is read (not Catalog.xml), so tolerate project-embedded archives.
     with Archive(knxprod_path, require_catalog=False) as archive:
         xml_bytes = archive.get_application_xml(manufacturer_id, application_id)
@@ -222,7 +245,7 @@ def _load_application(
         )
         return None
     apps = parse_application_xml(
-        xml_bytes, manufacturer_id, language, cache_dir=cache_dir
+        xml_bytes, manufacturer_id, language, cache_dir=cache_dir, source=source
     )
     return next((a for a in apps if a.id == application_id), None)
 
@@ -254,15 +277,15 @@ def _application_program(db: Session, application_id: str) -> HardwareProgram | 
     ).first()
 
 
-def load_application_program(
+def load_application(
     db: Session,
     application_id: str,
     language: str | None = None,
     cache_dir: Path | None = None,
-) -> ApplicationProgram:
-    """Parse the program of ``application_id`` (as :func:`get_application_detail_by_id` resolves
-    it), without keeping it among the applications held in memory; raises :class:`LookupError`
-    when it cannot be loaded."""
+) -> ProductApplication:
+    """Parse ``application_id`` (as :func:`get_application_detail_by_id` resolves it), with its
+    evaluation tree when the parse cache keeps it, without keeping it among the applications held
+    in memory; raises :class:`LookupError` when it cannot be loaded."""
     program = _application_program(db, application_id)
     if program is None:
         raise LookupError(f"application {application_id} is not in the catalog")
@@ -275,7 +298,7 @@ def load_application_program(
     )
     if app is None:
         raise LookupError(f"application {application_id} could not be loaded")
-    return app.program
+    return app
 
 
 def get_application_source(db: Session, application_id: str) -> str | None:

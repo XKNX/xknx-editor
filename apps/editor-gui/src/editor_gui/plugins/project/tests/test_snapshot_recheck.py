@@ -237,3 +237,37 @@ def test_a_waiting_evaluation_ends_with_its_project(
     while proj._recheck_generation != -1:
         assert time.monotonic() < end, "the evaluation did not end"
         time.sleep(0.01)
+
+
+def test_the_evaluation_rests_as_long_as_each_device_took(
+    tmp_path: Any, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    cat, path, ids = _project(tmp_path)
+    proj = _service(cat)
+    proj.open(path)
+    _from_other_code(proj)
+    proj.close()
+
+    spans: list[tuple[float, float]] = []
+    compute = service_module._compute_device
+
+    def slow(inputs: Any, app: Any) -> Any:
+        started = time.monotonic()
+        device = compute(inputs, app)
+        # Every device takes a while at least.
+        time.sleep(max(0.0, 0.3 - (time.monotonic() - started)))
+        spans.append((started, time.monotonic()))
+        return device
+
+    monkeypatch.setattr(service_module, "_compute_device", slow)
+    monkeypatch.setattr(service_module, "_RECHECK_IDLE_POLL", 0.01)
+    proj = _service(cat)
+    proj.ui_busy = lambda: False
+    proj.open(path)
+    _ = proj.devices
+    _rechecked(proj)
+    assert len(spans) == len(ids) == 2
+    (first_start, first_end), (second_start, _second_end) = spans
+    # The second device starts no sooner than the first one took after it.
+    assert second_start - first_end >= (first_end - first_start) * 0.95
+    proj.close()

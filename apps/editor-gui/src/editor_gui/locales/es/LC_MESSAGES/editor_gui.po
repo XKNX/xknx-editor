@@ -1574,7 +1574,7 @@ msgid "Export Method"
 msgstr "Export Method"
 
 msgid "Automatic"
-msgstr "Automatic"
+msgstr "Automático"
 
 msgid "Importing the project's product data…"
 msgstr "Importando los datos de producto del proyecto…"
@@ -1739,3 +1739,15 @@ msgstr "Si no se indica ningún proyecto al iniciar, abre el último proyecto qu
 
 msgid "Tool catalog"
 msgstr "Catálogo de herramientas"
+
+msgid "Memory Use"
+msgstr "Uso de memoria"
+
+msgid "Low"
+msgstr "Bajo"
+
+msgid "High"
+msgstr "Alto"
+
+msgid "How much stays loaded to switch between devices quickly. Automatic sizes it from the memory free at the start; Low suits a small computer such as a Raspberry Pi, High a computer with plenty of memory."
+msgstr "Cuánto permanece cargado para cambiar rápidamente entre dispositivos. Automático lo ajusta según la memoria libre al iniciar; Bajo es adecuado para un ordenador pequeño como una Raspberry Pi, Alto para un ordenador con mucha memoria."

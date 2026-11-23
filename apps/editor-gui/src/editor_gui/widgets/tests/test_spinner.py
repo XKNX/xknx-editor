@@ -128,3 +128,32 @@ def test_the_arc_turns_once_a_second(monkeypatch: pytest.MonkeyPatch) -> None:
         spinner.spinner(f"##turn{now}")
     # A quarter of a second: a quarter turn; a second: a whole one.
     assert starts == pytest.approx([0.0, math.pi / 2, 2 * math.pi])
+
+
+def _label_top() -> float:
+    """Where a text drawn now begins: the cursor and the line's text offset."""
+    window = spinner.internal.get_current_window()
+    return imgui.get_cursor_screen_pos().y + window.dc.curr_line_text_base_offset
+
+
+@pytest.mark.usefixtures("frame")
+@pytest.mark.parametrize("beside_button", [True, False])
+def test_the_text_is_at_the_height_of_a_buttons_label(
+    monkeypatch: pytest.MonkeyPatch, beside_button: bool
+) -> None:
+    tops: list[float] = []
+    text = spinner.imgui.text_disabled
+
+    def record(value: str) -> None:
+        tops.append(_label_top())
+        text(value)
+
+    monkeypatch.setattr(spinner.imgui, "text_disabled", record)
+    line = imgui.get_cursor_screen_pos().y
+    if beside_button:
+        imgui.button("Open Website")
+        imgui.same_line()
+    spinner.loading("##loading", "Loading products...")
+    # Beside a button its label's height (the frame padding down), else the line's top.
+    padding = imgui.get_style().frame_padding.y if beside_button else 0.0
+    assert tops == [pytest.approx(line + padding)]

@@ -10,18 +10,20 @@ import math
 import re
 import threading
 import time
+from collections.abc import Generator
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from email.utils import parsedate_to_datetime
 from pathlib import Path
-from typing import Any, TypeGuard
+from typing import TYPE_CHECKING, Any, TypeGuard
 from urllib.parse import urlsplit
-
-import httpx
 
 from editor_gui.device_info import application_version_text
 from editor_gui.plugins.catalog.online_catalog import OnlineCatalogError
 from editor_gui.settings import load_settings, save_settings
+
+if TYPE_CHECKING:
+    import httpx
 
 DEFAULT_URL = "https://reko.x3muha.de"
 _SETTINGS = "alternative_catalog"
@@ -283,12 +285,8 @@ class AlternativeCatalogClient:
         self.settings = settings or AlternativeSettings.load()
         server_url(self.settings.base_url)
         self._cache_dir = cache_dir
-        self._http = httpx.Client(
-            timeout=60,
-            follow_redirects=False,
-            transport=transport,
-            headers={"User-Agent": "xknx-editor", "Accept-Encoding": "gzip"},
-        )
+        self._transport = transport
+        self._http_client: httpx.Client | None = None
         self._operation = threading.RLock()
         self._entries: tuple[AlternativeEntry, ...] = ()
         self._by_id: dict[str, AlternativeEntry] = {}
@@ -306,6 +304,20 @@ class AlternativeCatalogClient:
         self._csrf = ""
         self._registration_session = False
         self._closed = threading.Event()
+        # Loads and refreshes of the index running now (see status: "loading").
+        self._loading = 0
+        self._loading_lock = threading.Lock()
+
+    @contextlib.contextmanager
+    def _loading_index(self) -> Generator[None]:
+        """While the index is loaded or refreshed (status reports "loading")."""
+        with self._loading_lock:
+            self._loading += 1
+        try:
+            yield
+        finally:
+            with self._loading_lock:
+                self._loading -= 1
 
     def configure(self, base_url: str, user: str, password: str | None = None) -> None:
         """Save credentials locally. A server change requires an explicit new password."""
@@ -333,7 +345,8 @@ class AlternativeCatalogClient:
             self._token = self._csrf = ""
             self._token_until = 0
             self._registration_session = False
-            self._http.cookies.clear()
+            if self._http_client is not None:
+                self._http_client.cookies.clear()
             self._download_until = 0
             if changed:
                 self._entries = ()
@@ -355,6 +368,7 @@ class AlternativeCatalogClient:
             "checked_at": self.checked_at,
             "generated_at": self.generated_at,
             "error": self.last_error,
+            "loading": self._loading > 0,
         }
 
     def search(
@@ -428,7 +442,7 @@ class AlternativeCatalogClient:
 
     def load_cache(self) -> None:
         """Load once on a worker thread; a corrupt cache is replaced by the next refresh."""
-        with self._operation:
+        with self._operation, self._loading_index():
             if self._loaded:
                 return
             try:
@@ -453,7 +467,7 @@ class AlternativeCatalogClient:
         self.generation += 1
 
     def refresh(self) -> dict[str, Any]:
-        with self._operation:
+        with self._operation, self._loading_index():
             self.load_cache()
             try:
                 headers = (
@@ -518,6 +532,8 @@ class AlternativeCatalogClient:
         body: dict[str, str] | None = None,
         limit: int = 1024 * 1024,
     ) -> httpx.Response:
+        import httpx
+
         if self._closed.is_set():
             raise AlternativeCatalogError("catalog closed")
         now = time.monotonic()
@@ -731,7 +747,8 @@ class AlternativeCatalogClient:
                 "PASSWORD",
             )
         with self._operation:
-            self._http.cookies.clear()
+            if self._http_client is not None:
+                self._http_client.cookies.clear()
             self._registration_session = False
             raw = self._registration_post(
                 "/api/auth/register",
@@ -796,6 +813,25 @@ class AlternativeCatalogClient:
             raw = self._registration_post(path, body)
             return {"status": status, "message": str(raw.get("message", ""))}
 
+    @property
+    def _http(self) -> httpx.Client:
+        """The HTTP client, made when first used: its module takes a while to load, and most
+        sessions never use this catalog."""
+        if self._http_client is None:
+            import httpx
+
+            self._http_client = httpx.Client(
+                timeout=60,
+                follow_redirects=False,
+                transport=self._transport,
+                headers={"User-Agent": "xknx-editor", "Accept-Encoding": "gzip"},
+            )
+        return self._http_client
+
+    def _close_http(self) -> None:
+        if self._http_client is not None:
+            self._http_client.close()
+
     def close(self) -> None:
         if self._closed.is_set():
             return
@@ -803,11 +839,11 @@ class AlternativeCatalogClient:
 
         def close_when_idle() -> None:
             with self._operation:
-                self._http.close()
+                self._close_http()
 
         if self._operation.acquire(blocking=False):
             try:
-                self._http.close()
+                self._close_http()
             finally:
                 self._operation.release()
         else:

@@ -134,6 +134,9 @@ from .text_encoding import text_parameter_encoding
 from .ui import UiNode
 
 if TYPE_CHECKING:
+    from .ui import UiParameter
+
+if TYPE_CHECKING:
     from ..script.compat.runtime import JScriptEnv
     from ..script.sandbox import AbortToken
 
@@ -311,6 +314,23 @@ class _UnionCompetitors:
         return reached >= start + size
 
 
+class _Tested:
+    """A test of a choose's when, on the stack of a walk through the tree (see _depth_first)."""
+
+    __slots__ = ("param_ref_id", "test")
+
+    def __init__(self, param_ref_id: str, test: str) -> None:
+        self.param_ref_id = param_ref_id
+        self.test = test
+
+
+# _depth_first: the walks through a tree here take what they visit from a stack, children pushed
+# in reverse, which visits them as a function calling itself for each child would, in the same
+# order. Such a nested function would be a reference cycle (it refers to itself) that keeps all
+# it refers to until the garbage collector runs, and the long-lived objects of an application
+# are left out of the collections (see xknxeditor.prod.gc_pause).
+
+
 def _modules(elems: Iterable[object]) -> Iterator[Module]:
     """Every Module element in ``elems`` and below them (choose branches, repeats, blocks), not
     inside the module definitions they instantiate."""
@@ -416,21 +436,6 @@ class DynamicTreeBuilder:
         defs = self.idx.module_defs
         allocates: dict[str, bool] = {}
 
-        def module_allocates(module: Module) -> bool:
-            if any(getattr(arg, "allocator_ref_id", None) for arg in module.choice):
-                return True
-            def_id = module.ref_id
-            if def_id not in allocates:
-                allocates[def_id] = (
-                    False  # a definition that contains itself allocates nothing
-                )
-                definition = defs.get(def_id)
-                allocates[def_id] = definition is not None and any(
-                    module_allocates(m)
-                    for m in _modules(getattr(definition.dynamic, "choice", None) or [])
-                )
-            return allocates[def_id]
-
         seeds: set[str] = set()
         object_seeds: set[str] = set()
         placements: dict[str, set[str]] = {}
@@ -440,39 +445,47 @@ class DynamicTreeBuilder:
         tests: dict[str, list[str]] = {}
         explored: set[str] = set()
 
-        def walk(elem: object, gates: tuple[str, ...]) -> None:
+        # Depth first in document order, the application's tree and then each definition's (see
+        # _depth_first): a choose's tests in the order of its whens, each before what it holds.
+        walking: list[tuple[object, tuple[str, ...]]] = [
+            (definition.dynamic, ()) for definition in reversed(defs.values())
+        ]
+        walking.append((app.dynamic, ()))
+        while walking:
+            elem, gates = walking.pop()
+            if isinstance(elem, _Tested):
+                tests.setdefault(elem.param_ref_id, []).append(elem.test)
+                continue
             if isinstance(
                 elem, (DependentChannelChoose, ChannelChoose, ComObjectParameterChoose)
             ):
                 inner = (*gates, elem.param_ref_id)
-                for when in elem.when:
+                for when in reversed(elem.when):
+                    walking.extend((child, inner) for child in reversed(when.choice))
                     if when.test is not None:
-                        tests.setdefault(elem.param_ref_id, []).append(when.test)
-                    for child in when.choice:
-                        walk(child, inner)
-                return
+                        walking.append((_Tested(elem.param_ref_id, when.test), ()))
+                continue
             if isinstance(elem, Repeat):
                 inner = (
                     (*gates, elem.parameter_ref_id) if elem.parameter_ref_id else gates
                 )
                 if elem.parameter_ref_id:
                     explored.add(elem.parameter_ref_id)
-                for child in elem.choice:
-                    walk(child, inner)
-                return
+                walking.extend((child, inner) for child in reversed(elem.choice))
+                continue
             if isinstance(elem, Module):
                 object_seeds.update(gates)
                 module_placements.setdefault(elem.id, set()).update(gates)
-                if module_allocates(elem):
+                if self._module_allocates(elem, allocates):
                     seeds.update(gates)
-                return
+                continue
             if isinstance(elem, ComObjectRefRef):
                 object_seeds.update(gates)
                 object_placements.setdefault(elem.ref_id, set()).update(gates)
-                return
+                continue
             if isinstance(elem, ParameterRefRef):
                 placements.setdefault(elem.ref_id, set()).update(gates)
-                return
+                continue
             if isinstance(elem, Assign):
                 target = elem.target_param_ref_ref
                 placements.setdefault(target, set()).update(gates)
@@ -481,14 +494,9 @@ class DynamicTreeBuilder:
                         gates
                     )
                     sources.setdefault(target, set()).add(elem.source_param_ref_ref)
-                return
-            children: Iterable[object] = getattr(elem, "choice", None) or []
-            for child in children:
-                walk(child, gates)
-
-        walk(app.dynamic, ())
-        for definition in defs.values():
-            walk(definition.dynamic, ())
+                continue
+            children: Sequence[object] = getattr(elem, "choice", None) or []
+            walking.extend((child, gates) for child in reversed(children))
 
         def closed(start: set[str]) -> frozenset[str]:
             relevant: set[str] = set()
@@ -544,6 +552,23 @@ class DynamicTreeBuilder:
             gates_by_module,
         )
 
+    def _module_allocates(self, module: Module, allocates: dict[str, bool]) -> bool:
+        """Whether ``module`` allocates: an argument of it with an Allocator, or such a module
+        inside its definition (``allocates``: what is known per definition)."""
+        if any(getattr(arg, "allocator_ref_id", None) for arg in module.choice):
+            return True
+        def_id = module.ref_id
+        if def_id not in allocates:
+            allocates[def_id] = (
+                False  # a definition that contains itself allocates nothing
+            )
+            definition = self.idx.module_defs.get(def_id)
+            allocates[def_id] = definition is not None and any(
+                self._module_allocates(m, allocates)
+                for m in _modules(getattr(definition.dynamic, "choice", None) or [])
+            )
+        return allocates[def_id]
+
     def _build_page_maps(
         self, app: ApplicationProgram
     ) -> tuple[set[str], dict[str, str]]:
@@ -551,8 +576,12 @@ class DynamicTreeBuilder:
         assignment (see :meth:`page_param_for`)."""
         page_params: set[str] = set()
         placement: dict[str, str] = {}
-
-        def walk(elem: object, selector: str | None) -> None:
+        # Depth first in document order (see _depth_first).
+        pending: list[tuple[object, str | None]] = (
+            [(app.dynamic, None)] if app.dynamic is not None else []
+        )
+        while pending:
+            elem, selector = pending.pop()
             if isinstance(elem, ComObjectParameterBlock):
                 ctx = selector
                 if elem.param_ref_id:
@@ -564,8 +593,7 @@ class DynamicTreeBuilder:
                     # that gates the block from outside. So descend with the block as the context;
                     # a deeper choose inside the block still overrides it for its own children.
                     ctx = elem.param_ref_id
-                for child in elem.choice:
-                    walk(child, ctx)
+                pending.extend((child, ctx) for child in reversed(elem.choice))
             elif isinstance(
                 elem, (DependentChannelChoose, ChannelChoose, ComObjectParameterChoose)
             ):
@@ -573,9 +601,8 @@ class DynamicTreeBuilder:
                 # selector (that comes from where the selector's own widget is placed), so nothing
                 # is recorded here - only the descent carries the new selector downward.
                 inner = elem.param_ref_id or selector
-                for when in elem.when:
-                    for child in when.choice:
-                        walk(child, inner)
+                for when in reversed(elem.when):
+                    pending.extend((child, inner) for child in reversed(when.choice))
             elif isinstance(elem, ParameterRefRef):
                 if selector is not None:
                     placement.setdefault(elem.ref_id, selector)
@@ -588,13 +615,9 @@ class DynamicTreeBuilder:
                     Repeat,
                 ),
             ):
-                for child in elem.choice:
-                    walk(child, selector)
+                pending.extend((child, selector) for child in reversed(elem.choice))
             # Modules are instanced at runtime (their ref ids become qualified), so their internal
             # page assignment stays with the XML nesting; we do not descend into them here.
-
-        if app.dynamic is not None:
-            walk(app.dynamic, None)
         return page_params, placement
 
     def page_param_for(self, ref_id: str) -> str | None:
@@ -683,8 +706,7 @@ class DynamicTreeBuilder:
             return ChannelNode(
                 [self._build(child) for child in elem.choice],
                 id=elem.id,
-                name=elem.name,
-                text=elem.text,
+                elem=elem,
                 number=elem.number,
                 icon=elem.icon,
                 text_parameter_ref_id=elem.text_parameter_ref_id,
@@ -692,17 +714,16 @@ class DynamicTreeBuilder:
         elif isinstance(elem, ComObjectParameterBlock):
             # The importer labels a block with its heading parameter's (ParamRefId) Text when it has one — e.g.
             # a channel-prefixed "A: Drive" — in preference to the block's generic Name ("Jalousie X: …").
-            heading_text: str | None = None
-            if elem.param_ref_id:
-                pr = self.idx.parameter_refs.get(elem.param_ref_id)
-                param = self.idx.parameters.get(pr.ref_id) if pr else None
-                heading_text = (getattr(pr, "text", None) or None) or (
-                    param.text if param else None
-                )
+            pr = (
+                self.idx.parameter_refs.get(elem.param_ref_id)
+                if elem.param_ref_id
+                else None
+            )
+            param = self.idx.parameters.get(pr.ref_id) if pr else None
             return ComObjectParameterBlockNode(
                 elem,
                 [self._build(child) for child in elem.choice],
-                heading_text,
+                (pr, param) if pr is not None or param is not None else None,
             )
         elif isinstance(
             elem, (DependentChannelChoose, ChannelChoose, ComObjectParameterChoose)
@@ -1000,8 +1021,6 @@ def _rehome_to_pages(
     * a parameter under a hidden block is left where it is (a hidden page's own relocation stands);
     * moved parameters merge into the destination by display order without disturbing the block's
       existing children."""
-    import dataclasses
-
     from .ui import UiParameter, UiParameterBlock, UiTab
 
     # The single eligible destination block per ParamRefId: a block is eligible only when it is a
@@ -1010,48 +1029,49 @@ def _rehome_to_pages(
     # on this exact block instance, so an inline/hidden namesake sharing the ParamRefId never
     # receives a copy.
     eligible_block: dict[str, UiParameterBlock | None] = {}
-
-    def scan(ns: Iterable[UiNode], hidden_anc: bool) -> None:
-        for n in ns:
-            if isinstance(n, UiParameterBlock):
-                hidden = hidden_anc or n.hidden
-                if n.param_ref_id and not n.inline and not hidden:
-                    eligible_block[n.param_ref_id] = (
-                        None if n.param_ref_id in eligible_block else n
-                    )
-                scan(n.children, hidden)
-            elif isinstance(n, UiTab):
-                scan(n.children, hidden_anc)
-
-    scan(nodes, False)
+    # Depth first in document order (see _depth_first).
+    found: list[tuple[UiNode, bool]] = [(n, False) for n in reversed(nodes)]
+    while found:
+        n, hidden_anc = found.pop()
+        if isinstance(n, UiParameterBlock):
+            hidden = hidden_anc or n.hidden
+            if n.param_ref_id and not n.inline and not hidden:
+                eligible_block[n.param_ref_id] = (
+                    None if n.param_ref_id in eligible_block else n
+                )
+            found.extend((c, hidden) for c in reversed(n.children))
+        elif isinstance(n, UiTab):
+            found.extend((c, hidden_anc) for c in reversed(n.children))
     eligible = {ref for ref, block in eligible_block.items() if block is not None}
     if not eligible:
         return nodes
 
     moved_ids: set[int] = set()
     moved_by_target: dict[str, list[UiParameter]] = {}
-
-    def plan(ns: Iterable[UiNode], page: str | None, hidden_anc: bool) -> None:
-        for n in ns:
-            if isinstance(n, UiParameter):
-                target = page_for(n.ref_id)
-                if (
-                    not hidden_anc
-                    and target is not None
-                    and target in eligible
-                    and target != page
-                ):
-                    moved_ids.add(id(n))
-                    moved_by_target.setdefault(target, []).append(n)
-            elif isinstance(n, UiParameterBlock):
-                # A non-inline block is the page for its contents; an inline group keeps the
-                # enclosing page so its members are not lifted out of it.
-                inner = n.param_ref_id if (n.param_ref_id and not n.inline) else page
-                plan(n.children, inner, hidden_anc or n.hidden)
-            elif isinstance(n, UiTab):
-                plan(n.children, page, hidden_anc)
-
-    plan(nodes, None, False)
+    planned: list[tuple[UiNode, str | None, bool]] = [
+        (n, None, False) for n in reversed(nodes)
+    ]
+    while planned:
+        n, page, hidden_anc = planned.pop()
+        if isinstance(n, UiParameter):
+            target = page_for(n.ref_id)
+            if (
+                not hidden_anc
+                and target is not None
+                and target in eligible
+                and target != page
+            ):
+                moved_ids.add(id(n))
+                moved_by_target.setdefault(target, []).append(n)
+        elif isinstance(n, UiParameterBlock):
+            # A non-inline block is the page for its contents; an inline group keeps the
+            # enclosing page so its members are not lifted out of it.
+            inner = n.param_ref_id if (n.param_ref_id and not n.inline) else page
+            planned.extend(
+                (c, inner, hidden_anc or n.hidden) for c in reversed(n.children)
+            )
+        elif isinstance(n, UiTab):
+            planned.extend((c, page, hidden_anc) for c in reversed(n.children))
     if not moved_ids:
         return nodes
 
@@ -1071,22 +1091,44 @@ def _rehome_to_pages(
         out.extend(extra[i:])
         return tuple(out)
 
-    def rebuild(n: UiNode) -> UiNode:
-        if isinstance(n, UiParameterBlock):
-            kept = tuple(rebuild(c) for c in n.children if id(c) not in moved_ids)
-            # Insert only into the one eligible block instance for this ParamRefId - not every
-            # block that happens to share it (an inline/hidden namesake would otherwise duplicate).
-            if n.param_ref_id and eligible_block.get(n.param_ref_id) is n:
-                extra = moved_by_target.get(n.param_ref_id, [])
-                if extra:
-                    kept = merge(kept, extra)
-            return dataclasses.replace(n, children=kept)
-        if isinstance(n, UiTab):
-            kept = tuple(rebuild(c) for c in n.children if id(c) not in moved_ids)
-            return dataclasses.replace(n, children=kept)
-        return n
+    return [
+        _rebuild_rehomed(n, moved_ids, eligible_block, moved_by_target, merge)
+        for n in nodes
+        if id(n) not in moved_ids
+    ]
 
-    return [rebuild(n) for n in nodes if id(n) not in moved_ids]
+
+def _rebuild_rehomed(
+    n: UiNode,
+    moved_ids: set[int],
+    eligible_block: Mapping[str, object],
+    moved_by_target: Mapping[str, list[UiParameter]],
+    merge: Callable[[tuple[UiNode, ...], list[UiParameter]], tuple[UiNode, ...]],
+) -> UiNode:
+    """``n`` without the moved parameters (``moved_ids``), and with those moved to it when it is
+    their page's one eligible block (see _rehome_to_pages)."""
+    import dataclasses
+
+    from .ui import UiParameterBlock, UiTab
+
+    if isinstance(n, UiParameterBlock | UiTab):
+        kept = tuple(
+            _rebuild_rehomed(c, moved_ids, eligible_block, moved_by_target, merge)
+            for c in n.children
+            if id(c) not in moved_ids
+        )
+        # Insert only into the one eligible block instance for this ParamRefId - not every
+        # block that happens to share it (an inline/hidden namesake would otherwise duplicate).
+        if (
+            isinstance(n, UiParameterBlock)
+            and n.param_ref_id
+            and eligible_block.get(n.param_ref_id) is n
+        ):
+            extra = moved_by_target.get(n.param_ref_id, [])
+            if extra:
+                kept = merge(kept, extra)
+        return dataclasses.replace(n, children=kept)
+    return n
 
 
 class DynamicUI:
@@ -1447,16 +1489,15 @@ class DynamicUI:
         for ref_id in idx.parameter_refs:
             by_owner.setdefault(idx.ref_owner.get(ref_id), []).append(ref_id)
         result = list(by_owner.get(None, ()))
-
-        def walk(scope: ParameterState) -> None:
-            for child in scope.module_children():
-                if child.ref_id is not None:
-                    result.extend(
-                        child.qualify(ref) for ref in by_owner.get(child.ref_id, ())
-                    )
-                walk(child)
-
-        walk(self._state)
+        # Each instance before the instances in it (see _depth_first).
+        pending = list(reversed(list(self._state.module_children())))
+        while pending:
+            child = pending.pop()
+            if child.ref_id is not None:
+                result.extend(
+                    child.qualify(ref) for ref in by_owner.get(child.ref_id, ())
+                )
+            pending.extend(reversed(list(child.module_children())))
         return result
 
     def get_module_instance_arguments(self) -> dict[str, list[tuple[str, str]]]:

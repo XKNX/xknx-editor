@@ -1,11 +1,15 @@
 from __future__ import annotations
 
 import importlib
+import io
 import re
+from collections.abc import Iterator
 from types import ModuleType
-from typing import Any
+from typing import Any, cast
+from xml.etree import ElementTree
 
 from xsdata.formats.dataclass.parsers import XmlParser
+from xsdata.formats.dataclass.parsers.handlers.native import EVENTS, XmlEventHandler
 from xsdata.formats.dataclass.serializers import XmlSerializer
 from xsdata.formats.dataclass.serializers.config import SerializerConfig
 
@@ -26,7 +30,30 @@ def _load_version(version: str) -> ModuleType:
 
 VERSION_NAMESPACES = {v: f"http://knx.org/xml/project/{v}" for v in SUPPORTED_VERSIONS}
 
-_parser = XmlParser()
+
+class _PullEventHandler(XmlEventHandler):
+    """xsdata's handler of the standard library's XML parser, reading the parser's events
+    itself. ``ElementTree.iterparse`` makes a class for every document it reads, a reference
+    cycle that keeps the document until the garbage collector runs, and an application's parse
+    is left out of the collections (see xknxeditor.prod.gc_pause)."""
+
+    def parse(self, source: Any, ns_map: dict[str | None, str]) -> Any:
+        if not isinstance(source, io.IOBase):
+            return super().parse(source, ns_map)
+        return self.process_context(_pull_events(source), ns_map)
+
+
+def _pull_events(source: io.IOBase) -> Iterator[tuple[str, Any]]:
+    """The events ``ElementTree.iterparse`` gives for ``source``, read in the same chunks."""
+    parser: ElementTree.XMLPullParser[Any] = ElementTree.XMLPullParser(events=EVENTS)
+    while chunk := source.read(16 * 1024):
+        parser.feed(chunk)
+        yield from cast("Iterator[tuple[str, Any]]", parser.read_events())
+    parser.close()
+    yield from cast("Iterator[tuple[str, Any]]", parser.read_events())
+
+
+_parser = XmlParser(handler=_PullEventHandler)
 _serializer = XmlSerializer(
     config=SerializerConfig(
         xml_declaration=True,

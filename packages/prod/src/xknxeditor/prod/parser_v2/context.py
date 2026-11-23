@@ -589,6 +589,7 @@ class EvalContext:
         "_instance",
         "_memo",
         "_object_tree",
+        "_outer",
         "_pass",
         "_repeat_idx",
         "_repeat_path",
@@ -614,6 +615,9 @@ class EvalContext:
         memo: EvalMemo | None = None,
     ) -> None:
         self._scope = scope
+        # The context of the scope this module instance's scope is in (see module_ctx): a scope
+        # holds the one it is in only weakly.
+        self._outer: EvalContext | None = None
         # The iteration of the Repeats of this scope it is in, counted through all of them
         # (the third iteration of a Repeat of 2 in the second of another: 5); 1 outside one.
         self._repeat_idx = repeat_idx
@@ -1004,7 +1008,7 @@ class EvalContext:
             param_ref_bases=param_ref_bases,
             repeat_path=self._repeat_path,
         )
-        return EvalContext(
+        ctx = EvalContext(
             ms,
             idx=self._idx,
             capture=self._capture,
@@ -1016,3 +1020,5 @@ class EvalContext:
             gate_checks=self._gate_checks,
             memo=self._memo,
         )
+        ctx._outer = self
+        return ctx

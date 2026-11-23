@@ -66,13 +66,16 @@ def spinner(str_id: str) -> None:
 
 
 def loading(str_id: str, text: str) -> None:
-    """The loading animation with ``text`` (what loads) after it, the ring centred on it."""
+    """The loading animation with ``text`` (what loads) after it, the ring centred on it. Beside
+    a button (on the same line) the text is at the height of the button's label."""
     top = imgui.get_cursor_pos_y()
+    # How far down the line's texts sit: a button's label by its frame padding, else none.
+    offset = internal.get_current_window().dc.curr_line_text_base_offset
+    imgui.set_cursor_pos_y(top + offset)
     spinner(str_id)
     imgui.same_line()
-    # The text goes on the line's top, where it would be without the ring.
-    offset = internal.get_current_window().dc.curr_line_text_base_offset
-    imgui.set_cursor_pos_y(top - offset)
+    # Drawn that far down from the line's top, as the labels are.
+    imgui.set_cursor_pos_y(top)
     imgui.text_disabled(text)
 
 

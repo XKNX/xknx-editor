@@ -1574,7 +1574,7 @@ msgid "Export Method"
 msgstr "Export Method"
 
 msgid "Automatic"
-msgstr "Automatic"
+msgstr "自动"
 
 msgid "Importing the project's product data…"
 msgstr "正在导入项目的产品数据…"
@@ -1723,3 +1723,15 @@ msgstr "启动时未指定项目时，打开上次打开的项目。受保护的
 
 msgid "Tool catalog"
 msgstr "工具目录"
+
+msgid "Memory Use"
+msgstr "内存使用"
+
+msgid "Low"
+msgstr "低"
+
+msgid "High"
+msgstr "高"
+
+msgid "How much stays loaded to switch between devices quickly. Automatic sizes it from the memory free at the start; Low suits a small computer such as a Raspberry Pi, High a computer with plenty of memory."
+msgstr "为快速切换设备而保持加载的内容多少。自动会根据启动时的可用内存确定；低适合 Raspberry Pi 等小型计算机，高适合内存充足的计算机。"

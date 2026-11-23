@@ -1574,7 +1574,7 @@ msgid "Export Method"
 msgstr "Export Method"
 
 msgid "Automatic"
-msgstr "Automatic"
+msgstr "Αυτόματα"
 
 msgid "Importing the project's product data…"
 msgstr "Εισαγωγή των δεδομένων προϊόντων του έργου…"
@@ -1739,3 +1739,15 @@ msgstr "Όταν δεν δίνεται έργο κατά την εκκίνηση
 
 msgid "Tool catalog"
 msgstr "Κατάλογος εργαλείων"
+
+msgid "Memory Use"
+msgstr "Χρήση μνήμης"
+
+msgid "Low"
+msgstr "Χαμηλή"
+
+msgid "High"
+msgstr "Υψηλή"
+
+msgid "How much stays loaded to switch between devices quickly. Automatic sizes it from the memory free at the start; Low suits a small computer such as a Raspberry Pi, High a computer with plenty of memory."
+msgstr "Πόσα παραμένουν φορτωμένα για γρήγορη εναλλαγή μεταξύ συσκευών. Η επιλογή Αυτόματα το προσαρμόζει στη μνήμη που είναι ελεύθερη κατά την εκκίνηση· η Χαμηλή ταιριάζει σε μικρό υπολογιστή όπως ένα Raspberry Pi, η Υψηλή σε υπολογιστή με άφθονη μνήμη."

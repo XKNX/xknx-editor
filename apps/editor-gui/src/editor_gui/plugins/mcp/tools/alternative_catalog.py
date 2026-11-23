@@ -18,9 +18,11 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     @tool("read")
     def catalog_alternative_status() -> dict[str, Any]:
-        """Read {base_url, user, has_password, count, cached, checked_at, generated_at, error}.
-        No password or token is returned. count is the number of .knxprod files in the offline
-        index, cached tells whether an index was loaded. Dates are ISO 8601, empty if unknown."""
+        """Read {base_url, user, has_password, count, cached, checked_at, generated_at, error,
+        loading}. No password or token is returned. count is the number of .knxprod files in the
+        offline index, cached tells whether an index was loaded, loading whether it is being loaded
+        or refreshed now (the tab starts that when it is first shown). Dates are ISO 8601, empty
+        if unknown."""
         client.load_cache()
         return client.status()
 

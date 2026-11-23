@@ -379,14 +379,23 @@ async def test_cancelled_update_leaves_completion_unsent(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     import asyncio
+    import threading
 
     config = _config()
     gateway = Gateway(config)
     programmer = DeviceProgrammer(gateway)
     programmer.max_apdu_length = 55
-    monkeypatch.setattr(
-        download.asyncio, "sleep", AsyncMock(side_effect=asyncio.CancelledError())
-    )
+    sleep = asyncio.sleep
+    this_thread = threading.get_ident()
+
+    async def cancelled(delay: float, *args: Any, **kwargs: Any) -> Any:
+        # Only the update's wait: another thread's event loop (a server another test left
+        # running) sleeps as before.
+        if threading.get_ident() != this_thread:
+            return await sleep(delay, *args, **kwargs)
+        raise asyncio.CancelledError
+
+    monkeypatch.setattr(download.asyncio, "sleep", cancelled)
     with pytest.raises(asyncio.CancelledError):
         await download.program_configuration(programmer, config)
     assert not any(p.object_index == 6 and p.data == b"\x10" for p in _writes(gateway))

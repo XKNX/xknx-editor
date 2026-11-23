@@ -1574,7 +1574,7 @@ msgid "Export Method"
 msgstr "Export Method"
 
 msgid "Automatic"
-msgstr "Automatic"
+msgstr "Automatiskt"
 
 msgid "Importing the project's product data…"
 msgstr "Projektets produktdata importeras…"
@@ -1739,3 +1739,15 @@ msgstr "När inget projekt anges vid start öppnas det projekt som senast var ö
 
 msgid "Tool catalog"
 msgstr "Verktygskatalog"
+
+msgid "Memory Use"
+msgstr "Minnesanvändning"
+
+msgid "Low"
+msgstr "Låg"
+
+msgid "High"
+msgstr "Hög"
+
+msgid "How much stays loaded to switch between devices quickly. Automatic sizes it from the memory free at the start; Low suits a small computer such as a Raspberry Pi, High a computer with plenty of memory."
+msgstr "Hur mycket som förblir inläst för att snabbt växla mellan enheter. Automatiskt anpassar det efter ledigt minne vid start; Låg passar en liten dator som en Raspberry Pi, Hög en dator med gott om minne."

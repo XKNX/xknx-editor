@@ -434,3 +434,52 @@ def test_download_says_what_is_new(
     panel.poll()
     assert panel._message == message
     client.close()
+
+
+def test_the_status_says_while_the_index_is_loaded(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr("editor_gui.settings.config_dir", lambda: tmp_path)
+    seen: list[bool] = []
+    client: AlternativeCatalogClient | None = None
+
+    def respond(_request: httpx.Request) -> httpx.Response:
+        assert client is not None
+        seen.append(client.status()["loading"])
+        return httpx.Response(200, json=index())
+
+    client = AlternativeCatalogClient(
+        tmp_path,
+        settings=AlternativeSettings("https://catalog.example"),
+        transport=httpx.MockTransport(respond),
+    )
+    assert client.status()["loading"] is False
+    client.refresh()
+    # While the refresh ran (the tab shows it loading), not afterwards.
+    assert seen == [True]
+    assert client.status()["loading"] is False
+
+
+def test_the_tab_starts_loading_when_it_is_first_shown(tmp_path: Path) -> None:
+    client = AlternativeCatalogClient(
+        tmp_path,
+        settings=AlternativeSettings("https://catalog.example"),
+        transport=httpx.MockTransport(lambda r: httpx.Response(200, json=index())),
+    )
+    panel = AlternativeCatalogPanel(client, lambda _id: 1)
+    started: list[bool] = []
+    panel.start = lambda: started.append(True)  # type: ignore[method-assign]
+    context = imgui.create_context()
+    io = imgui.get_io()
+    io.display_size = imgui.ImVec2(1200, 900)
+    io.backend_flags |= imgui.BackendFlags_.renderer_has_textures
+    try:
+        imgui.new_frame()
+        imgui.begin("Catalog")
+        panel.render()
+        imgui.end()
+        imgui.end_frame()
+    finally:
+        imgui.destroy_context(context)
+        client.close()
+    assert started == [True]

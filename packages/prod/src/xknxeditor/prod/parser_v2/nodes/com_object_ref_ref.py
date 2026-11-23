@@ -60,11 +60,11 @@ class ComObjectRefRefNode(DynamicNode):
 
     __slots__ = (
         "_base_number_ref",
+        "_co",
         "_communication",
+        "_cor",
         "_dpt_codes",
-        "_function_text",
         "_local_ref_id",
-        "_name_template",
         "_number",
         "_object_size",
         "_priority",
@@ -90,20 +90,9 @@ class ComObjectRefRefNode(DynamicNode):
         co: IrComObject | None,
     ) -> None:
         self._local_ref_id = elem.ref_id
-        self._name_template: str = (
-            (cor.text if cor else None)
-            or (co.text if co else None)
-            or (cor.name if cor else None)
-            or (co.name if co else None)
-            or ""
-        )
-        # The object function (e.g. "Switch", "Status") — distinguishes objects that share the
-        # same channel Text (e.g. "G: Schlafzimmer"). Ref overrides the base ComObject.
-        self._function_text: str = (
-            (cor.function_text if cor else None)
-            or (co.function_text if co else None)
-            or ""
-        )
+        # Their texts are read when the object is shown, in the language of the program then.
+        self._cor = cor
+        self._co = co
         self._text_param_ref_id: str | None = cor.text_parameter_ref_id if cor else None
         self._number: int = co.number if co else 0
         self._base_number_ref: str | None = (
@@ -145,6 +134,28 @@ class ComObjectRefRefNode(DynamicNode):
         self._update_locked: bool = bool(co.update_flag_locked) if co else False
         self._read_on_init_locked: bool = (
             bool(co.read_on_init_flag_locked) if co else False
+        )
+
+    @property
+    def _name_template(self) -> str:
+        cor, co = self._cor, self._co
+        return (
+            (cor.text if cor else None)
+            or (co.text if co else None)
+            or (cor.name if cor else None)
+            or (co.name if co else None)
+            or ""
+        )
+
+    @property
+    def _function_text(self) -> str:
+        """The object function (e.g. "Switch", "Status"): distinguishes objects that share the
+        same channel Text (e.g. "G: Schlafzimmer"). The ref's overrides the base object's."""
+        cor, co = self._cor, self._co
+        return (
+            (cor.function_text if cor else None)
+            or (co.function_text if co else None)
+            or ""
         )
 
     def eval(self, ctx: EvalContext) -> list[UiNode]:

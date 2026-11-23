@@ -99,6 +99,33 @@ def row_selectable(label: str, selected: bool, flags: int = 0) -> tuple[bool, bo
     return result
 
 
+# Rows this far (in rows) above and below the visible part of a tree are drawn too: keyboard
+# navigation moves to the next row, and only drawn rows can be its target.
+_ROWS_AROUND = 3
+
+
+def row_out_of_view(*, keep: bool = False) -> bool:
+    """Whether the next row without an arrow (as :func:`row_selectable` draws it) is far outside
+    the visible part of its window: it then takes its room empty, and the caller draws nothing
+    of it. A tree of a large project draws thousands of rows each frame otherwise. ``keep``:
+    never (the selected row, whose keyboard shortcuts work wherever it is)."""
+    if keep:
+        return False
+    height = imgui.get_text_line_height() + _row_room()
+    top = imgui.get_cursor_screen_pos().y
+    clip = internal.get_current_window().clip_rect
+    around = height * _ROWS_AROUND
+    if clip.min.y - around <= top + height and top <= clip.max.y + around:
+        return False
+    spacing = imgui.get_style().item_spacing
+    imgui.push_style_var(imgui.StyleVar_.item_spacing, imgui.ImVec2(spacing.x, 0.0))
+    try:
+        imgui.dummy(imgui.ImVec2(1.0, height))
+    finally:
+        imgui.pop_style_var()
+    return True
+
+
 def _row_room() -> float:
     """Room of a tree row above and below its label together."""
     return imgui.get_style().item_spacing.y + px(_ROW_EXTRA)

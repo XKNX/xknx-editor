@@ -66,7 +66,7 @@ from xknxeditor.namespaces.intermediate import (
 from xknxeditor.namespaces.intermediate.enable_t import Enable
 from xknxeditor.prod import Application
 from xknxeditor.prod.errors import ImportCancelled, check_cancelled
-from xknxeditor.prod.gc_pause import gc_paused
+from xknxeditor.prod.gc_pause import gc_paused, release_long_lived
 from xknxeditor.prod.parser_v2.calculation import VALIDATION_FAILED
 from xknxeditor.proj import (
     AdditionalAddressError,
@@ -173,6 +173,9 @@ if TYPE_CHECKING:
 _INSTALLATION = 0
 # How often the evaluation in the background looks whether the user paused (seconds).
 _RECHECK_IDLE_POLL = 0.1
+# After each device the evaluation in the background rests this many times as long as the device
+# took: it takes at most half of the time, so the editor stays responsive meanwhile.
+_RECHECK_REST = 1.0
 
 ParamMode = Literal["edit", "transfer", "raw"]
 """How a parameter change is applied: ``edit`` runs calculations and validations, ``transfer``
@@ -1880,6 +1883,8 @@ class ProjectService:
         self._generation += 1
         self._mdt_firmware_reads.clear()
         self._reset()
+        # The project's devices are no longer used: a cycle among them is collected again.
+        release_long_lived()
 
     @staticmethod
     def _remove_project_file(path: Path) -> None:
@@ -2796,10 +2801,19 @@ class ProjectService:
     def _recheck_devices(self, generation: int) -> None:
         """Evaluate the queued devices of project ``generation`` one after the other, the selected
         device first; the main thread takes the results over (see take_rechecked_devices). Each
-        device waits until the user pauses: the devices are shown from their snapshots meanwhile."""
+        device waits until the user pauses: the devices are shown from their snapshots meanwhile.
+        After each device it rests as long as the device took (see _RECHECK_REST)."""
+        rest_until = 0.0
         while True:
-            while self.ui_busy() and generation == self._load_generation:
-                time.sleep(_RECHECK_IDLE_POLL)
+            while generation == self._load_generation:
+                wait = (
+                    _RECHECK_IDLE_POLL
+                    if self.ui_busy()
+                    else min(_RECHECK_IDLE_POLL, rest_until - time.monotonic())
+                )
+                if wait <= 0:
+                    break
+                time.sleep(wait)
             with self._recheck_lock:
                 if generation != self._load_generation or not self._recheck_queue:
                     if self._recheck_generation == generation:
@@ -2813,9 +2827,10 @@ class ProjectService:
             app = job.device.app
             assert app is not None
             device: Device | None
+            started = time.monotonic()
             try:
                 # As the device build: the collector would rescan the many new objects over and over.
-                with gc_paused():
+                with gc_paused(long_lived=True):
                     device = _compute_device(job.inputs, app)
             except Exception as e:
                 # Kept as opened from its snapshot; the next open tries again.
@@ -2826,6 +2841,8 @@ class ProjectService:
                     error=f"{type(e).__name__}: {e}",
                 )
                 device = None
+            finished = time.monotonic()
+            rest_until = finished + (finished - started) * _RECHECK_REST
             with self._recheck_lock:
                 if generation == self._load_generation and device is not None:
                     self._rechecked.append((job, device))
@@ -3052,7 +3069,7 @@ class ProjectService:
                 self._log.debug("building devices", total=total)
                 # Building creates millions of long-lived objects; the cyclic garbage collector would
                 # rescan all of them over and over, which dominates the load time.
-                with gc_paused():
+                with gc_paused(long_lived=True):
                     for i, row in enumerate(rows, start=1):
                         if cancelled is not None and cancelled():
                             self._log.info("device build cancelled", built=i - 1)
@@ -3201,6 +3218,16 @@ class ProjectService:
                         dev.release_dynamic_ui()
                 del self._dynui_lru[self._dynui_keep :]
             self._emit("device_selected", device)
+
+    def set_resident_devices(self, count: int) -> None:
+        """Keep the evaluated parameters of the ``count`` devices viewed last (at least one);
+        those of the others beyond it are dropped now (see Device.release_dynamic_ui)."""
+        self._dynui_keep = max(1, count)
+        for evicted in self._dynui_lru[self._dynui_keep :]:
+            device = self.find_device_by_node_id(evicted)
+            if device is not None:
+                device.release_dynamic_ui()
+        del self._dynui_lru[self._dynui_keep :]
 
     @property
     def selected_node_ids(self) -> set[int]:

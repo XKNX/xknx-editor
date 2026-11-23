@@ -1574,7 +1574,7 @@ msgid "Export Method"
 msgstr "Export Method"
 
 msgid "Automatic"
-msgstr "Automatic"
+msgstr "Automaattinen"
 
 msgid "Importing the project's product data…"
 msgstr "Projektin tuotetietoja tuodaan…"
@@ -1739,3 +1739,15 @@ msgstr "Kun käynnistyksessä ei anneta projektia, avaa viimeksi avoinna olleen 
 
 msgid "Tool catalog"
 msgstr "Työkaluluettelo"
+
+msgid "Memory Use"
+msgstr "Muistin käyttö"
+
+msgid "Low"
+msgstr "Vähäinen"
+
+msgid "High"
+msgstr "Suuri"
+
+msgid "How much stays loaded to switch between devices quickly. Automatic sizes it from the memory free at the start; Low suits a small computer such as a Raspberry Pi, High a computer with plenty of memory."
+msgstr "Kuinka paljon pysyy ladattuna laitteiden välillä nopeasti vaihtamista varten. Automaattinen mitoittaa sen käynnistyksen hetken vapaan muistin mukaan; Vähäinen sopii pienelle tietokoneelle kuten Raspberry Pille, Suuri tietokoneelle, jossa on runsaasti muistia."

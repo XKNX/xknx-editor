@@ -60,6 +60,7 @@ from editor_gui.widgets.tree import (
     keyboard_moved_here,
     leaf_rows,
     row_chosen,
+    row_out_of_view,
     row_selectable,
     tree_node,
 )
@@ -913,6 +914,8 @@ class SpacesPanel:
             and self._get_selected_node_id() == device.id
             and not self._other_selected()
         )
+        if row_out_of_view(keep=selected):
+            return
         # The same device can be in a space and in trades: the ids stay apart per place.
         where = f"t{trade_id}" if trade_id is not None else ""
         if selected and self._shortcut_row is None:

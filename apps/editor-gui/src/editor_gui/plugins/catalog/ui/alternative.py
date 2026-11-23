@@ -103,7 +103,9 @@ class AlternativeCatalogPanel:
         self._manufacturers: tuple[int, int] = (-1, 0)
 
     def start(self) -> None:
-        """Refresh on startup and hourly, keeping the cached catalog usable on failure."""
+        """Refresh now and hourly, keeping the cached catalog usable on failure. Started when the
+        tab is first shown: loading and checking the index takes seconds and tens of MB, which
+        a session that never looks at it does not need."""
         if self._refresh_thread is not None:
             return
 
@@ -174,6 +176,7 @@ class AlternativeCatalogPanel:
             self._future = None
 
     def render(self) -> None:
+        self.start()
         self.poll()
         settings_key = self._client.settings.base_url, self._client.settings.user
         if settings_key != self._settings_key:
@@ -290,10 +293,11 @@ class AlternativeCatalogPanel:
             imgui.end_table()
 
     def _render_status(self, status: dict[str, Any]) -> None:
-        """While fetching: the loading note; else the catalog's date and size, greyed, beside the
-        buttons when it fits (as the Online tab shows its product index)."""
+        """While fetching (also the refresh started when the tab is first shown): the loading
+        note; else the catalog's date and size, greyed, beside the buttons when it fits (as the
+        Online tab shows its product index)."""
         imgui.same_line()
-        if self._future is not None:
+        if self._future is not None or status.get("loading"):
             loading("##alternative-loading", S.ONLINE_LOADING_PRODUCTS)
             return
         if status["count"]:

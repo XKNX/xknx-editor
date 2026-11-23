@@ -1739,3 +1739,15 @@ msgstr "Kur në nisje nuk jepet asnjë projekt, hapet projekti që ishte hapur i
 
 msgid "Tool catalog"
 msgstr "Katalogu i mjeteve"
+
+msgid "Memory Use"
+msgstr "Përdorimi i memories"
+
+msgid "Low"
+msgstr "I ulët"
+
+msgid "High"
+msgstr "I lartë"
+
+msgid "How much stays loaded to switch between devices quickly. Automatic sizes it from the memory free at the start; Low suits a small computer such as a Raspberry Pi, High a computer with plenty of memory."
+msgstr "Sa mbetet i ngarkuar për të kaluar shpejt midis pajisjeve. Automatike e përcakton sipas memories së lirë në nisje; I ulët i përshtatet një kompjuteri të vogël si një Raspberry Pi, I lartë një kompjuteri me shumë memorie."

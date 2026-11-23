@@ -79,7 +79,15 @@ def _sorted_indices(keys: list[float]) -> list[int]:
         order[left], order[hi - 1] = order[hi - 1], order[left]
         return left
 
-    def introsort(lo: int, hi: int, depth: int) -> None:
+    # The ranges still to sort with their depth limits (.NET's: twice the number of binary digits
+    # of the length), from a stack: the parts of a range are sorted apart, in any order. A nested
+    # function calling itself would be a reference cycle, made each time a table is drawn and
+    # kept until the garbage collector runs.
+    ranges = (
+        [(0, len(order) - 1, 2 * len(order).bit_length())] if len(order) > 1 else []
+    )
+    while ranges:
+        lo, hi, depth = ranges.pop()
         while hi > lo:
             size = hi - lo + 1
             if size <= _INSERTION_SORT_SIZE:
@@ -91,18 +99,14 @@ def _sorted_indices(keys: list[float]) -> list[int]:
                     swap_if_greater(hi - 1, hi)
                 elif size > 3:
                     insertion_sort(lo, hi)
-                return
+                break
             if depth == 0:
                 heapsort(lo, hi)
-                return
+                break
             depth -= 1
             pivot = partition(lo, hi)
-            introsort(pivot + 1, hi, depth)
+            ranges.append((pivot + 1, hi, depth))
             hi = pivot - 1
-
-    if len(order) > 1:
-        # .NET's depth limit: twice the number of binary digits of the length.
-        introsort(0, len(order) - 1, 2 * len(order).bit_length())
     return order
 
 

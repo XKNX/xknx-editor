@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Protocol
+
 from xknxeditor.namespaces.intermediate.access_t import Access
 from xknxeditor.namespaces.intermediate.application_program_channel_t import (
     ComObjectParameterBlock,
@@ -12,24 +14,39 @@ from ..ui.parameter_block import UiParameterBlock
 from .base import DynamicNode, eval_all
 
 
+class _Texted(Protocol):
+    @property
+    def text(self) -> str | None: ...
+
+
 class ComObjectParameterBlockNode(DynamicNode):
     """A grouped box of parameters (dynamic-XML ParameterBlock)."""
 
-    __slots__ = ("_children", "_elem", "_heading_text", "pure")
+    __slots__ = ("_children", "_elem", "_heading", "pure")
 
     def __init__(
         self,
         elem: ComObjectParameterBlock,
         children: list[DynamicNode | None],
-        heading_text: str | None = None,
+        heading: tuple[_Texted | None, _Texted | None] | None = None,
     ) -> None:
         self._elem = elem
         self._children = children
-        # The resolved Text of the block's heading parameter (its ``ParamRefId``), if that parameter
-        # carries one. The importer labels the block with this Text (e.g. a channel-prefixed "A: Drive") in
-        # preference to the block's own Name (which may be a generic template like "Jalousie X: …").
-        self._heading_text = heading_text
+        # The ParameterRef and Parameter of the block's heading parameter (its ``ParamRefId``):
+        # the importer labels the block with their Text (e.g. a channel-prefixed "A: Drive") in
+        # preference to the block's own Name (which may be a generic template like "Jalousie
+        # X: …"). Read when the block is shown, in the language of the program then.
+        self._heading = heading
         self.pure = all(child is None or child.pure for child in children)
+
+    @property
+    def _heading_text(self) -> str | None:
+        if self._heading is None:
+            return None
+        ref, parameter = self._heading
+        return (ref.text if ref is not None else None) or (
+            parameter.text if parameter is not None else None
+        )
 
     def eval(self, ctx: EvalContext) -> list[UiNode]:
         if self.pure and ctx.explore is None:

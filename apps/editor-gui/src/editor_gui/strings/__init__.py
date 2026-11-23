@@ -2055,6 +2055,30 @@ class MenuStrings:
         return _("Check for Updates on Startup")
 
     @property
+    def SETTING_MEMORY_USE(self) -> str:
+        return _("Memory Use")
+
+    @property
+    def SETTING_MEMORY_USE_HINT(self) -> str:
+        return _(
+            "How much stays loaded to switch between devices quickly. Automatic sizes it "
+            "from the memory free at the start; Low suits a small computer such as a "
+            "Raspberry Pi, High a computer with plenty of memory."
+        )
+
+    @property
+    def MEMORY_USE_AUTOMATIC(self) -> str:
+        return _("Automatic")
+
+    @property
+    def MEMORY_USE_LOW(self) -> str:
+        return _("Low")
+
+    @property
+    def MEMORY_USE_HIGH(self) -> str:
+        return _("High")
+
+    @property
     def SETTING_OPEN_LAST_PROJECT(self) -> str:
         return _("Open Last Project on Startup")
 

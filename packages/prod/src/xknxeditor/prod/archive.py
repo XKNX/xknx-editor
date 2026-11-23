@@ -4,7 +4,7 @@ import io
 import re
 import zipfile
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import IO, TYPE_CHECKING
 from xml.etree import ElementTree as ET
 
 from xknxeditor.prod.errors import ArchiveError
@@ -187,6 +187,21 @@ class Archive:
         if entry not in self._entries:
             return None
         return self._zipfile.read(entry)
+
+    def open_application_xml(
+        self, manufacturer_id: str, app_id: str
+    ) -> IO[bytes] | None:
+        """The application XML of :meth:`get_application_xml` as a stream, unpacked as it is
+        read (to read its beginning without unpacking all of it); None when absent. Close it
+        before the archive."""
+        self._validate_manufacturer_id(manufacturer_id)
+        filename = f"{app_id}.xml"
+        if not APPLICATION_PATTERN.match(filename) or "/" in app_id:
+            return None
+        entry = f"{manufacturer_id}/{filename}"
+        if entry not in self._entries:
+            return None
+        return self._zipfile.open(entry)
 
     def get_baggages(self, manufacturer_id: str) -> dict[str, bytes]:
         """Baggage file contents for a manufacturer, keyed by Baggage id."""

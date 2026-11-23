@@ -1893,3 +1893,15 @@ msgstr "Wird beim Start kein Projekt angegeben, wird das zuletzt geöffnete Proj
 
 msgid "Tool catalog"
 msgstr "Werkzeugkatalog"
+
+msgid "Memory Use"
+msgstr "Speichernutzung"
+
+msgid "Low"
+msgstr "Gering"
+
+msgid "High"
+msgstr "Hoch"
+
+msgid "How much stays loaded to switch between devices quickly. Automatic sizes it from the memory free at the start; Low suits a small computer such as a Raspberry Pi, High a computer with plenty of memory."
+msgstr "Wie viel geladen bleibt, um schnell zwischen Geräten zu wechseln. Automatisch bemisst es nach dem beim Start freien Speicher; Gering eignet sich für einen kleinen Rechner wie einen Raspberry Pi, Hoch für einen Rechner mit viel Speicher."

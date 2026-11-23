@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import copy
 import re
+import weakref
 from collections.abc import Iterable, Mapping, Sequence
 from functools import lru_cache
 from typing import Any, ClassVar, Self, cast
@@ -218,6 +219,7 @@ class ParameterState:
     """
 
     __slots__ = (
+        "__weakref__",
         "_active_assigns",
         "_active_com_object_refs",
         "_active_module_keys",
@@ -237,7 +239,7 @@ class ParameterState:
         "_gate_param_refs",
         "_known_param_ref_values",
         "_param_ref_defaults",
-        "_parent",
+        "_parent_ref",
         "_pass_texts",
         "_pass_values",
         "_seeded",
@@ -250,6 +252,18 @@ class ParameterState:
     # a module definition, tens of thousands of entries): a copy of the state shares them.
     _SHARED_FIELDS: ClassVar[frozenset[str]] = frozenset({"_param_ref_defaults"})
 
+    @property
+    def _parent(self) -> ParameterState | None:
+        """The scope this one is in. Held weakly: the scope holds its module instances, and a
+        reference back would make a cycle, kept until the garbage collector runs (see
+        xknxeditor.prod.gc_pause)."""
+        ref = self._parent_ref
+        return ref() if ref is not None else None
+
+    @_parent.setter
+    def _parent(self, parent: ParameterState | None) -> None:
+        self._parent_ref = weakref.ref(parent) if parent is not None else None
+
     def __deepcopy__(self, memo: dict[int, Any]) -> Self:
         cls = type(self)
         new = cls.__new__(cls)
@@ -257,10 +271,16 @@ class ParameterState:
         for name in (
             n for klass in cls.__mro__ for n in getattr(klass, "__slots__", ())
         ):
-            if hasattr(self, name):
-                value = getattr(self, name)
-                shared = name in self._SHARED_FIELDS
-                setattr(new, name, value if shared else copy.deepcopy(value, memo))
+            if name == "__weakref__" or not hasattr(self, name):
+                continue
+            if name == "_parent_ref":
+                # The copy of the scope this one is in (made with it: the copy of a whole state).
+                parent = self._parent
+                new._parent = None if parent is None else copy.deepcopy(parent, memo)
+                continue
+            value = getattr(self, name)
+            shared = name in self._SHARED_FIELDS
+            setattr(new, name, value if shared else copy.deepcopy(value, memo))
         for name, value in getattr(self, "__dict__", {}).items():
             setattr(new, name, copy.deepcopy(value, memo))
         return new
@@ -278,7 +298,7 @@ class ParameterState:
         # resolved to its real value when the block is reactivated -- otherwise get() falls back to a
         # static default and the eval picks a different Choose branch (different ComObjectRef).
         self._known_param_ref_values: dict[str, str] = dict(values or {})
-        self._parent: ParameterState | None = parent
+        self._parent = parent
         self._children: dict[str, ModuleState] = {}
         # The module instances an evaluation no longer reached, by key: an instance that comes
         # back takes their explicit values again, as a device built from its stored values does.
@@ -1040,7 +1060,7 @@ class ParameterState:
         for name in (
             n for klass in cls.__mro__ for n in getattr(klass, "__slots__", ())
         ):
-            if hasattr(self, name):
+            if name != "__weakref__" and hasattr(self, name):
                 setattr(new, name, getattr(self, name))
         for name, value in getattr(self, "__dict__", {}).items():
             setattr(new, name, value)

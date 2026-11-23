@@ -266,7 +266,9 @@ Group Monitor. A **Home Assistant** menu of its own collects it.
 The editor can also run without a window and be used in a web browser — on the same computer, or
 on a server (mini PC, NAS, container) you reach from the house network. It is the same editor with
 the same dialogs; the browser draws it itself (no video stream, so it stays sharp at any scaling).
-Works in current Chrome, Edge, Opera, Firefox and Safari (WebGL 2).
+Works in current Chrome, Edge, Opera, Firefox and Safari (WebGL 2). On a small server such as a
+Raspberry Pi, **Settings → General → Memory Use** chooses how much stays loaded for quick switching
+between devices (Automatic sizes it from the free memory).
 
 Start the app with `--web` and open the address it prints:
 

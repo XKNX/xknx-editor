@@ -1,4 +1,5 @@
-"""Only the most recently used reloadable applications keep their parsed program in memory."""
+"""Only the most recently used reloadable applications keep their parsed program in memory, as
+many as their estimated memory fits in the budget."""
 
 from collections import OrderedDict
 from pathlib import Path
@@ -16,7 +17,8 @@ _FIXTURE = Path(__file__).parent / "fixtures" / "gira_2gang_button_interface.knx
 @pytest.fixture(autouse=True)
 def _isolated_residency(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(application_module, "_resident", OrderedDict())
-    monkeypatch.setattr(application_module, "RESIDENT_APPLICATIONS", 1)
+    # A budget no application fits in: only the one used last stays.
+    monkeypatch.setattr(application_module, "_budget", [0])
 
 
 def _parse() -> Application:
@@ -75,3 +77,30 @@ def test_application_without_reloader_is_kept() -> None:
     _reloadable()
     assert plain._program is not None
     assert application_module._resident.get(id(plain)) is None
+
+
+def test_applications_stay_while_they_fit_in_the_budget() -> None:
+    first, first_loads = _reloadable()
+    estimate = application_module._memory[first.id]
+    assert estimate > 0
+    # Room for two of them: both stay.
+    application_module.set_resident_budget(2 * estimate)
+    second, _ = _reloadable()
+    assert first._program is not None
+    assert second._program is not None
+    # Room for one: the least recently used goes at once, the one used last stays.
+    application_module.set_resident_budget(estimate)
+    assert first._program is None
+    assert second._program is not None
+    assert application_module.resident_budget() == estimate
+    assert first.program.id == second.id
+    assert first_loads == [1]
+    assert second._program is None
+
+
+def test_the_estimate_follows_the_size_of_the_xml() -> None:
+    app = _parse()
+    with Archive(str(_FIXTURE)) as archive:
+        mid = min(archive.manufacturer_ids)
+        _app_id, xml = next(iter(archive.get_application_xmls(mid).items()))
+    assert application_module._memory[app.id] == len(xml) * 5

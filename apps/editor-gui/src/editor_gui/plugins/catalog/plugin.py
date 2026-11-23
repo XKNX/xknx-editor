@@ -86,9 +86,6 @@ class CatalogPlugin:
         self._alternative.poll()
         self._panel.render()
 
-    def start_alternative(self) -> None:
-        self._alternative.start()
-
     def stop_alternative(self) -> None:
         self._alternative.stop()
 

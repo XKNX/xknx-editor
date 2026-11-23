@@ -1,6 +1,13 @@
 import collections
 import contextlib
 import functools
+import gc
+
+# The imports below make some 350,000 objects that stay as long as the program does: without the
+# collector, which would look at them again and again meanwhile, they take a tenth less time.
+_collecting = gc.isenabled()
+gc.disable()
+
 import os
 import platform
 import re
@@ -194,7 +201,8 @@ from xknxeditor.prod.errors import (
     PasswordRequired,
     check_cancelled,
 )
-from xknxeditor.prod.vd import is_vd_file
+from xknxeditor.prod.gc_pause import keep_long_lived
+from xknxeditor.prod.parse_cache import set_tree_code
 from xknxeditor.proj import (
     MYKNX_DLL_NAME,
     CompactCancelled,
@@ -241,6 +249,9 @@ from xknxeditor.proj.core.project_store_serialize import (
 )
 from xknxeditor.proj.db import frame_db_profiler, make_engine, url_for
 from xknxeditor.proj.models import Device, Installation, Project
+
+if _collecting:
+    gc.enable()
 
 _REPO_URL = "https://github.com/xknx/xknx-editor"
 # Direct downloads for hosts without a working OpenGL driver (VMs such as UTM/QEMU): the installer,
@@ -1125,7 +1136,14 @@ class KnxGuiApp:
 
     def setup(self) -> None:
         self._log.info("editor started", installation=self._update_scope or "none")
-        self._catalog_plugin.start_alternative()
+        self._apply_memory_use()
+        # Programs and devices are left out of the garbage collections (see gc_pause), which
+        # would otherwise stop the user interface for seconds now and then.
+        keep_long_lived(True)
+        # The parse cache keeps the evaluation trees too, as this code builds them.
+        from editor_gui.device_snapshot import code_fingerprint
+
+        set_tree_code(code_fingerprint())
         self._can_launch_file_dialog(show_error=False)
         # In the browser UI, notes about downloads show as this app's toasts.
         if web.active_hub is not None:
@@ -1360,6 +1378,36 @@ class KnxGuiApp:
         data = load_settings("app")
         data["update_check_enabled"] = enabled
         save_settings("app", data)
+
+    def _memory_use(self) -> str:
+        from editor_gui.memory_use import normalized
+
+        return normalized(load_settings("app").get("memory_use"))
+
+    def _set_memory_use(self, mode: str) -> None:
+        from editor_gui.memory_use import normalized
+
+        data = load_settings("app")
+        data["memory_use"] = normalized(mode)
+        save_settings("app", data)
+        self._apply_memory_use()
+
+    def _apply_memory_use(self) -> None:
+        """Size what stays in memory to switch between devices (see :mod:`memory_use`):
+        at the start and when the setting changes."""
+        from editor_gui.memory_use import available_memory, memory_use
+        from xknxeditor.prod.application import set_resident_budget
+
+        mode = self._memory_use()
+        use = memory_use(mode, available_memory() if mode == "automatic" else None)
+        set_resident_budget(use.applications)
+        self._project_service.set_resident_devices(use.devices)
+        self._log.info(
+            "memory use",
+            mode=mode,
+            applications_mb=use.applications // 1_000_000,
+            devices=use.devices,
+        )
 
     def _open_last_project_enabled(self) -> bool:
         return bool(load_settings("app").get("open_last_project", False))
@@ -3290,6 +3338,8 @@ class KnxGuiApp:
         Files that are not a product source are skipped."""
 
         def candidates() -> list[Path]:
+            from xknxeditor.prod.vd import is_vd_file
+
             return sorted(
                 p
                 for p in Path(folder).rglob("*")
@@ -4153,6 +4203,8 @@ class KnxGuiApp:
                 )
 
         # A .vd1-.vd5 product database is converted first, which takes a while for a big one.
+        from xknxeditor.prod.vd import is_vd_file
+
         progress = (
             S.PROGRESS_CONVERT_VD if is_vd_file(path) else S.PROGRESS_LOAD_KNXPROD
         )
@@ -7043,6 +7095,19 @@ class KnxGuiApp:
                 "bool",
                 get=self._update_check_enabled,
                 set=lambda enabled: self._set_update_check_enabled(bool(enabled)),
+            ),
+            Setting(
+                "memory_use",
+                lambda: S.SETTING_MEMORY_USE,
+                "choice",
+                get=self._memory_use,
+                set=lambda mode: self._set_memory_use(str(mode)),
+                choices=lambda: [
+                    ("automatic", S.MEMORY_USE_AUTOMATIC),
+                    ("low", S.MEMORY_USE_LOW),
+                    ("high", S.MEMORY_USE_HIGH),
+                ],
+                hint=lambda: S.SETTING_MEMORY_USE_HINT,
             ),
             Setting(
                 "open_last_project",

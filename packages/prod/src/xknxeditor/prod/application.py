@@ -34,14 +34,49 @@ if TYPE_CHECKING:
     )
     from xknxeditor.namespaces.intermediate.load_procedures_t import LoadProcedures
 
+    from .parse_cache import CacheHit
     from .parser_v2.dynamic import DynamicTreeBuilder, DynamicUI
 
 
-# How many reloadable applications keep their parsed program and evaluation tree in memory.
-RESIDENT_APPLICATIONS = 6
+# The memory the reloadable applications whose parsed program and evaluation tree stay in
+# memory may take together, estimated (see set_resident_budget): the least recently used
+# beyond it are parsed again when used. The one used last always stays.
+_DEFAULT_BUDGET = 600_000_000
+# A parsed program with its evaluation tree takes about this much per octet of its XML (four
+# to six times across applications from 0.1 to 34 MB of XML), and an application whose XML
+# was not seen this much.
+_MEMORY_PER_XML_OCTET = 5
+_UNKNOWN_MEMORY = 20_000_000
 
 _resident_lock = threading.RLock()
 _resident: OrderedDict[int, Application] = OrderedDict()
+_budget = [_DEFAULT_BUDGET]
+# Application id -> its estimated memory, from the size of its XML when it was parsed.
+_memory: dict[str, int] = {}
+
+
+def set_resident_budget(octets: int) -> None:
+    """Let the applications kept in memory take about ``octets`` together (a host with little
+    memory keeps few, one with much keeps all of a project's); those beyond it are dropped
+    now."""
+    with _resident_lock:
+        _budget[0] = max(0, octets)
+        _evict()
+
+
+def resident_budget() -> int:
+    """The memory the applications kept in memory may take together (see set_resident_budget)."""
+    return _budget[0]
+
+
+def _evict() -> None:
+    """Drop the least recently used parsed programs beyond the budget, all but the last one
+    (under ``_resident_lock``)."""
+    total = sum(_memory.get(app.id, _UNKNOWN_MEMORY) for app in _resident.values())
+    while len(_resident) > 1 and total > _budget[0]:
+        _key, oldest = _resident.popitem(last=False)
+        total -= _memory.get(oldest.id, _UNKNOWN_MEMORY)
+        oldest.unload()
 
 
 class Application:
@@ -59,15 +94,20 @@ class Application:
     )
 
     def __init__(
-        self, program: ApplicationProgram, version: str, manufacturer_id: str
+        self,
+        program: ApplicationProgram,
+        version: str,
+        manufacturer_id: str,
+        tree: DynamicTreeBuilder | None = None,
     ) -> None:
         self._program: ApplicationProgram | None = program
         self._id = program.id
         self._name = program.name or program.id
         self.version = version
         self.manufacturer_id = manufacturer_id
-        self._tree_builder: DynamicTreeBuilder | None = None
-        self._reloader: Callable[[], ApplicationProgram] | None = None
+        # The evaluation tree, when the program came with it (see parse_cache).
+        self._tree_builder: DynamicTreeBuilder | None = tree
+        self._reloader: Callable[[], ApplicationProgram | Application] | None = None
         self._load_lock = threading.Lock()
 
     @classmethod
@@ -77,10 +117,10 @@ class Application:
         name: str,
         version: str,
         manufacturer_id: str,
-        loader: Callable[[], ApplicationProgram],
+        loader: Callable[[], ApplicationProgram | Application],
     ) -> Application:
         """An application known by its id, name and versions only; ``loader`` parses its program
-        when it is first used."""
+        (or gives the application loaded, with its tree) when it is first used."""
         app = cls.__new__(cls)
         app._program = None
         app._id = application_id
@@ -100,22 +140,30 @@ class Application:
     def __repr__(self) -> str:
         return f"Application(id={self._id!r}, version={self.version!r})"
 
-    def set_reloader(self, reloader: Callable[[], ApplicationProgram]) -> None:
-        """Allow dropping the parsed program while unused; ``reloader`` parses it again."""
+    def set_reloader(
+        self, reloader: Callable[[], ApplicationProgram | Application]
+    ) -> None:
+        """Allow dropping the parsed program while unused; ``reloader`` parses it again (or
+        gives the application loaded again, with its tree)."""
         with _resident_lock:
             self._reloader = reloader
             if self._program is not None:
                 self._mark_used()
+
+    def unload(self) -> None:
+        """Drop the parsed program and its tree, parsed again when used (an application that
+        cannot be parsed again keeps them)."""
+        if self._reloader is None:
+            return
+        self._program = None
+        self._tree_builder = None
 
     def _mark_used(self) -> None:
         if self._reloader is None:
             return
         _resident[id(self)] = self
         _resident.move_to_end(id(self))
-        while len(_resident) > RESIDENT_APPLICATIONS:
-            _key, oldest = _resident.popitem(last=False)
-            oldest._program = None
-            oldest._tree_builder = None
+        _evict()
 
     def _resolve(
         self, *, with_tree: bool
@@ -124,15 +172,19 @@ class Application:
         # (e.g. while one loads in the background).
         with self._load_lock:
             program = self._program
+            tree_builder = self._tree_builder
             if program is None:
                 assert self._reloader is not None
-                with gc_paused():
-                    program = self._reloader()
-            tree_builder = self._tree_builder
+                with gc_paused(long_lived=True):
+                    loaded = self._reloader()
+                if isinstance(loaded, Application):
+                    program, tree_builder = loaded.program, loaded._tree_builder
+                else:
+                    program, tree_builder = loaded, None
             if with_tree and tree_builder is None:
                 from .parser_v2.dynamic import DynamicTreeBuilder as _DynamicTreeBuilder
 
-                with gc_paused():
+                with gc_paused(long_lived=True):
                     tree_builder = _DynamicTreeBuilder(program)
             # Publish the program and its tree together under the LRU lock, which eviction also
             # holds: otherwise a concurrent eviction during the (slow) tree build could null the
@@ -209,20 +261,73 @@ def parse_application_xml(
     manufacturer_id: str,
     language: str | None = None,
     cache_dir: Path | None = None,
+    source: str | None = None,
 ) -> list[Application]:
     """Parse one application XML on its own (no hardware/catalog context).
 
     With ``language`` (e.g. "de-DE" or "de") the .knxprod translations are overlaid for localized
-    labels. ``cache_dir`` turns on a content-addressed disk cache for the parse (see :mod:`parse_cache`)."""
-    from .parse_cache import cached_to_ir
+    labels. ``cache_dir`` turns on a content-addressed disk cache for the parse (see :mod:`parse_cache`);
+    with ``source`` (where the XML was read from, see :func:`cached_applications`) a later parse of
+    it finds the cache entry without reading the XML."""
+    from .parse_cache import cached_parse, remember_source
 
     version = detect_version(xml_bytes)
-    knx = cached_to_ir(xml_bytes, version, cache_dir)
+    hit = cached_parse(xml_bytes, version, cache_dir)
+    if cache_dir is not None and source is not None:
+        remember_source(source, xml_bytes, version, cache_dir)
+    return _applications(hit, manufacturer_id, language)
+
+
+def cached_applications(
+    source: str,
+    manufacturer_id: str,
+    language: str | None = None,
+    cache_dir: Path | None = None,
+) -> list[Application] | None:
+    """What :func:`parse_application_xml` gave for the XML of ``source`` (a stored product file
+    and an application in it, named so that another content has another name), from the parse
+    cache, without reading the XML: opening a large product file and unpacking its XML take
+    longer than the cached parse. None when the cache has no entry for it."""
+    from .parse_cache import cached_for_source
+
+    if cache_dir is None:
+        return None
+    found = cached_for_source(source, cache_dir)
+    if found is None:
+        return None
+    return _applications(found, manufacturer_id, language)
+
+
+def _applications(
+    hit: CacheHit, manufacturer_id: str, language: str | None
+) -> list[Application]:
+    from .parse_cache import store_trees, tree_code
+
+    knx = hit.knx
+    memory = hit.size * _MEMORY_PER_XML_OCTET
+    programs = list(_programs(knx))
+    trees = hit.trees
+    if trees is None and hit.path is not None and tree_code() is not None:
+        # Before the translations: the cache keeps the program as its XML has it, and a tree
+        # is the same in every language.
+        from .parser_v2.dynamic import DynamicTreeBuilder
+
+        with gc_paused(long_lived=True):
+            trees = {p.id: DynamicTreeBuilder(p) for p in programs}
+        store_trees(hit.path, knx, trees)
     if language:
         from .translate import apply_translations
 
         apply_translations(knx, language)
+    for program in programs:
+        # The programs of one XML share it (rare): each counts all of it.
+        _memory[program.id] = memory
     return [
-        Application(program=p, version=version, manufacturer_id=manufacturer_id)
-        for p in _programs(knx)
+        Application(
+            program=p,
+            version=hit.version,
+            manufacturer_id=manufacturer_id,
+            tree=trees.get(p.id) if trees is not None else None,
+        )
+        for p in programs
     ]

@@ -68,6 +68,12 @@ _ACTIVE_FPS = 60.0
 # Without a browser connected nobody sees the frames: one now and then for the work done per
 # frame; input, a browser connecting and work handed to the main thread draw one at once.
 _UNSEEN_SECONDS = 2.0
+# Idle frames that come out the same for this long (nothing changes on its own: no animation,
+# no progress, no caret) are drawn this often only; input and work handed to the main
+# thread still draw one at once. A server like a Raspberry Pi otherwise draws the same
+# picture several times a second.
+_SETTLE_SECONDS = 2.0
+_SETTLED_SECONDS = 1.0
 _TRACE = os.environ.get("XKNX_WEB_TRACE") == "1"
 # An error that keeps coming back in the same place is reported again after this many seconds.
 _ERROR_REPORT_SECONDS = 10.0
@@ -251,16 +257,25 @@ def windowless(runner_params: hello_imgui.RunnerParams) -> None:
 
 
 def frame_period(
-    *, active: bool, connected: bool, fps: float, idle_fps: float
+    *,
+    active: bool,
+    connected: bool,
+    fps: float,
+    idle_fps: float,
+    unchanged: float = 0.0,
 ) -> float:
     """Seconds from one frame to the next in the browser view at most: at the full rate while
     the user acts, at ``fps`` (the app's idle rate, raised above ``idle_fps`` while a task shows
     its progress) while a browser is connected or a task runs, and ``_UNSEEN_SECONDS`` while
-    nobody sees them. Input and work for the main thread start a frame earlier."""
+    nobody sees them. At the idle rate, once the frames came out the same for ``unchanged``
+    seconds of at least ``_SETTLE_SECONDS``, ``_SETTLED_SECONDS``. Input and work for the main
+    thread start a frame earlier."""
     if active:
         return 1.0 / _ACTIVE_FPS
     if not connected and fps <= idle_fps:
         return _UNSEEN_SECONDS
+    if fps <= idle_fps and unchanged >= _SETTLE_SECONDS:
+        return max(_SETTLED_SECONDS, 1.0 / fps)
     return 1.0 / fps
 
 
@@ -325,6 +340,8 @@ def enable_web_mode(
     after_windows = callbacks.post_render_dockable_windows or _nothing
     before_render = callbacks.before_imgui_render or _nothing
     last_frame: list[Frame | None] = [None]
+    # When the frames sent last changed (see frame_period's ``unchanged``).
+    changed_at = [time.monotonic()]
     clients_seen = [False]
     frame_start = [0.0]
     # Set up in web_post_init, once ImGui runs.
@@ -375,7 +392,11 @@ def enable_web_mode(
         # Read each frame: the app raises its idle rate while a task shows its progress.
         fps = hello_imgui.get_runner_params().fps_idling.fps_idle or idle_fps
         period = frame_period(
-            active=active, connected=hub.connected, fps=fps, idle_fps=idle_fps
+            active=active,
+            connected=hub.connected,
+            fps=fps,
+            idle_fps=idle_fps,
+            unchanged=now - changed_at[0],
         )
         wait = period - (now - frame_start[0])
         tray = trays[0] if trays else None
@@ -530,6 +551,7 @@ def enable_web_mode(
             # A browser that just connected needs the current frame even when nothing changed.
             if not encoded.same_as(last_frame[0]) or not clients_seen[0]:
                 last_frame[0] = frame = encoded
+                changed_at[0] = time.monotonic()
                 if _TRACE:
                     print(f"{time.monotonic():.3f} frame", flush=True)
         clients_seen[0] = connected
