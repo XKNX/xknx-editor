@@ -80,7 +80,11 @@ from .hid_device import (
     find_usb_interfaces,
 )
 from .rf import medium_of_mask_version, with_rf_medium_info
-from .transport_layer import KEEP_ALIVE_INTERVAL, TransportLayerMapping
+from .transport_layer import (
+    KEEP_ALIVE_INTERVAL,
+    KEEP_ALIVE_RETRY_WAIT,
+    TransportLayerMapping,
+)
 
 if TYPE_CHECKING:
     from xknx.xknx import XKNX
@@ -1450,6 +1454,7 @@ class USBTunnel(Interface):
                 )
             except CommunicationError as ex:
                 logger.debug("Could not keep the cEMI transport layer alive: %s", ex)
+                await asyncio.sleep(KEEP_ALIVE_RETRY_WAIT)
                 continue
             if mode[:1] != bytes((CommunicationMode.CEMI_TRANSPORT_LAYER,)):
                 logger.warning(
