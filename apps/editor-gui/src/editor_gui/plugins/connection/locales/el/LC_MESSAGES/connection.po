@@ -399,53 +399,8 @@ msgstr "Μέσω τοπικής πρόσβασης συσκευής είναι �
 msgid "Through local device access only the USB interface's own device {local} can be reached: scan from {local} to {local}."
 msgstr "Μέσω τοπικής πρόσβασης συσκευής είναι προσβάσιμη μόνο η δική συσκευή {local} της διεπαφής USB: σαρώστε από {local} έως {local}."
 
-msgid "M-Bus and BatiBus Frames"
-msgstr "Πλαίσια M-Bus και BatiBus"
-
-msgid "The frames of the interface's M-Bus and BatiBus tunnels (e.g. of a KNX RF USB stick that also receives wireless M-Bus meters), passed through as they are. The last 500 are kept."
-msgstr "Τα πλαίσια των σηράγγων M-Bus και BatiBus της διεπαφής (π.χ. ενός KNX RF USB stick που λαμβάνει επίσης ασύρματους μετρητές M-Bus), αμετάβλητα. Διατηρούνται τα τελευταία 500."
-
-msgid "No M-Bus or BatiBus frames yet"
-msgstr "Δεν υπάρχουν ακόμη πλαίσια M-Bus ή BatiBus"
-
-msgid "Clear"
-msgstr "Εκκαθάριση"
-
-msgid "Time"
-msgstr "Ώρα"
-
-msgid "Direction"
-msgstr "Κατεύθυνση"
-
 msgid "Protocol"
 msgstr "Πρωτόκολλο"
-
-msgid "Service"
-msgstr "Υπηρεσία"
-
-msgid "Data"
-msgstr "Δεδομένα"
-
-msgid "Sent"
-msgstr "Εστάλη"
-
-msgid "Received"
-msgstr "Ελήφθη"
-
-msgid "Send"
-msgstr "Αποστολή"
-
-msgid "{data} is not hexadecimal data (e.g. 44 AE 0C)."
-msgstr "Το {data} δεν είναι δεκαεξαδικά δεδομένα (π.χ. 44 AE 0C)."
-
-msgid "{service} is not a hexadecimal octet (00 to FF)."
-msgstr "Το {service} δεν είναι δεκαεξαδική οκτάδα (00 έως FF)."
-
-msgid "The frame could not be sent: {error}"
-msgstr "Δεν ήταν δυνατή η αποστολή του πλαισίου: {error}"
-
-msgid "Block Bus Writes is on (Settings > Connection): nothing is sent."
-msgstr "Ο αποκλεισμός εγγραφών στο bus είναι ενεργός (Ρυθμίσεις > Σύνδεση): δεν αποστέλλεται τίποτα."
 
 msgid "KNXnet/IP Server"
 msgstr "Διακομιστής KNXnet/IP"
@@ -532,6 +487,3 @@ msgstr "Ο διακομιστής KNXnet/IP εκκινείται ή σταματ
 
 msgid "The KNXnet/IP server could not start: {error}"
 msgstr "Δεν ήταν δυνατή η εκκίνηση του διακομιστή KNXnet/IP: {error}"
-
-msgid "Enter the data to send (e.g. 44 AE 0C)."
-msgstr "Εισαγάγετε τα δεδομένα προς αποστολή (π.χ. 44 AE 0C)."

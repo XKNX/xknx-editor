@@ -90,8 +90,6 @@ class FakeInterface:
         # cEMI Transport Layer: the application layer of the interface's own device,
         # answering the message code and APDU of a request (None: no answer)
         self.own_device: Callable[[int, bytes], tuple[int, bytes] | None] | None = None
-        # M-Bus and BatiBus tunnel frames are echoed back
-        self.echoes_extraneous = True
         self.written: list[USBTransferFrame] = []
         self.unplugged = threading.Event()
         self.open_count = 0
@@ -178,10 +176,6 @@ class FakeInterface:
                 and self.accepts_emi_set
             ):
                 self.features[feature] = frame.body[1:]
-            return
-        if frame.protocol in (ProtocolID.M_BUS_TUNNEL, ProtocolID.BATIBUS_TUNNEL):
-            if self.echoes_extraneous:
-                self.send_frame(frame)
             return
         if frame.service in (EMIID.EMI1, EMIID.EMI2):
             self._handle_emi(EMIID(frame.service), frame.body)

@@ -399,53 +399,8 @@ msgstr "Via lokale apparaattoegang is alleen het eigen apparaat {local} van de U
 msgid "Through local device access only the USB interface's own device {local} can be reached: scan from {local} to {local}."
 msgstr "Via lokale apparaattoegang is alleen het eigen apparaat {local} van de USB-interface bereikbaar: scan van {local} tot {local}."
 
-msgid "M-Bus and BatiBus Frames"
-msgstr "M-Bus- en BatiBus-frames"
-
-msgid "The frames of the interface's M-Bus and BatiBus tunnels (e.g. of a KNX RF USB stick that also receives wireless M-Bus meters), passed through as they are. The last 500 are kept."
-msgstr "De frames van de M-Bus- en BatiBus-tunnels van de interface (bijv. van een KNX RF USB-stick die ook draadloze M-Bus-meters ontvangt), ongewijzigd doorgegeven. De laatste 500 worden bewaard."
-
-msgid "No M-Bus or BatiBus frames yet"
-msgstr "Nog geen M-Bus- of BatiBus-frames"
-
-msgid "Clear"
-msgstr "Wissen"
-
-msgid "Time"
-msgstr "Tijd"
-
-msgid "Direction"
-msgstr "Richting"
-
 msgid "Protocol"
 msgstr "Protocol"
-
-msgid "Service"
-msgstr "Dienst"
-
-msgid "Data"
-msgstr "Gegevens"
-
-msgid "Sent"
-msgstr "Verzonden"
-
-msgid "Received"
-msgstr "Ontvangen"
-
-msgid "Send"
-msgstr "Verzenden"
-
-msgid "{data} is not hexadecimal data (e.g. 44 AE 0C)."
-msgstr "{data} zijn geen hexadecimale gegevens (bijv. 44 AE 0C)."
-
-msgid "{service} is not a hexadecimal octet (00 to FF)."
-msgstr "{service} is geen hexadecimaal octet (00 tot FF)."
-
-msgid "The frame could not be sent: {error}"
-msgstr "Het frame kon niet worden verzonden: {error}"
-
-msgid "Block Bus Writes is on (Settings > Connection): nothing is sent."
-msgstr "Schrijven naar de bus blokkeren staat aan (Instellingen > Verbinding): er wordt niets verzonden."
 
 msgid "KNXnet/IP Server"
 msgstr "KNXnet/IP-server"
@@ -532,6 +487,3 @@ msgstr "De KNXnet/IP-server wordt gestart of gestopt."
 
 msgid "The KNXnet/IP server could not start: {error}"
 msgstr "De KNXnet/IP-server kon niet starten: {error}"
-
-msgid "Enter the data to send (e.g. 44 AE 0C)."
-msgstr "Voer de te verzenden gegevens in (bijv. 44 AE 0C)."

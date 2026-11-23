@@ -398,53 +398,8 @@ msgstr "Helyi eszközhozzáféréssel csak az USB-interfész saját eszköze ({l
 msgid "Through local device access only the USB interface's own device {local} can be reached: scan from {local} to {local}."
 msgstr "Helyi eszközhozzáféréssel csak az USB-interfész saját eszköze ({local}) érhető el: a keresést {local} és {local} között végezze."
 
-msgid "M-Bus and BatiBus Frames"
-msgstr "M-Bus- és BatiBus-keretek"
-
-msgid "The frames of the interface's M-Bus and BatiBus tunnels (e.g. of a KNX RF USB stick that also receives wireless M-Bus meters), passed through as they are. The last 500 are kept."
-msgstr "Az interfész M-Bus- és BatiBus-alagútjainak keretei (pl. egy vezeték nélküli M-Bus-mérőket is fogadó KNX RF USB-stickről), változatlanul továbbítva. Az utolsó 500 marad meg."
-
-msgid "No M-Bus or BatiBus frames yet"
-msgstr "Még nincsenek M-Bus- vagy BatiBus-keretek"
-
-msgid "Clear"
-msgstr "Törlés"
-
-msgid "Time"
-msgstr "Idő"
-
-msgid "Direction"
-msgstr "Irány"
-
 msgid "Protocol"
 msgstr "Protokoll"
-
-msgid "Service"
-msgstr "Szolgáltatás"
-
-msgid "Data"
-msgstr "Adat"
-
-msgid "Sent"
-msgstr "Elküldve"
-
-msgid "Received"
-msgstr "Fogadva"
-
-msgid "Send"
-msgstr "Küldés"
-
-msgid "{data} is not hexadecimal data (e.g. 44 AE 0C)."
-msgstr "A(z) {data} nem hexadecimális adat (pl. 44 AE 0C)."
-
-msgid "{service} is not a hexadecimal octet (00 to FF)."
-msgstr "A(z) {service} nem hexadecimális oktett (00–FF)."
-
-msgid "The frame could not be sent: {error}"
-msgstr "A keretet nem sikerült elküldeni: {error}"
-
-msgid "Block Bus Writes is on (Settings > Connection): nothing is sent."
-msgstr "A busz írásának tiltása be van kapcsolva (Beállítások > Kapcsolat): semmi nem kerül elküldésre."
 
 msgid "KNXnet/IP Server"
 msgstr "KNXnet/IP-szerver"
@@ -530,6 +485,3 @@ msgstr "A KNXnet/IP-szerver indítása vagy leállítása folyamatban van."
 
 msgid "The KNXnet/IP server could not start: {error}"
 msgstr "A KNXnet/IP-szervert nem sikerült elindítani: {error}"
-
-msgid "Enter the data to send (e.g. 44 AE 0C)."
-msgstr "Adja meg az elküldendő adatokat (pl. 44 AE 0C)."

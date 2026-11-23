@@ -399,53 +399,8 @@ msgstr "Via lokal enhedsadgang kan kun USB-interfacets egen enhed {local} nås: 
 msgid "Through local device access only the USB interface's own device {local} can be reached: scan from {local} to {local}."
 msgstr "Via lokal enhedsadgang kan kun USB-interfacets egen enhed {local} nås: scan fra {local} til {local}."
 
-msgid "M-Bus and BatiBus Frames"
-msgstr "M-Bus- og BatiBus-rammer"
-
-msgid "The frames of the interface's M-Bus and BatiBus tunnels (e.g. of a KNX RF USB stick that also receives wireless M-Bus meters), passed through as they are. The last 500 are kept."
-msgstr "Rammerne fra interfacets M-Bus- og BatiBus-tunneler (f.eks. fra en KNX RF USB-stick, der også modtager trådløse M-Bus-målere), videregivet uændret. De seneste 500 gemmes."
-
-msgid "No M-Bus or BatiBus frames yet"
-msgstr "Ingen M-Bus- eller BatiBus-rammer endnu"
-
-msgid "Clear"
-msgstr "Ryd"
-
-msgid "Time"
-msgstr "Tid"
-
-msgid "Direction"
-msgstr "Retning"
-
 msgid "Protocol"
 msgstr "Protokol"
-
-msgid "Service"
-msgstr "Tjeneste"
-
-msgid "Data"
-msgstr "Data"
-
-msgid "Sent"
-msgstr "Sendt"
-
-msgid "Received"
-msgstr "Modtaget"
-
-msgid "Send"
-msgstr "Send"
-
-msgid "{data} is not hexadecimal data (e.g. 44 AE 0C)."
-msgstr "{data} er ikke hexadecimale data (f.eks. 44 AE 0C)."
-
-msgid "{service} is not a hexadecimal octet (00 to FF)."
-msgstr "{service} er ikke en hexadecimal oktet (00 til FF)."
-
-msgid "The frame could not be sent: {error}"
-msgstr "Rammen kunne ikke sendes: {error}"
-
-msgid "Block Bus Writes is on (Settings > Connection): nothing is sent."
-msgstr "Bloker skrivning til bussen er slået til (Indstillinger > Forbindelse): der sendes intet."
 
 msgid "KNXnet/IP Server"
 msgstr "KNXnet/IP-server"
@@ -532,6 +487,3 @@ msgstr "KNXnet/IP-serveren er ved at blive startet eller stoppet."
 
 msgid "The KNXnet/IP server could not start: {error}"
 msgstr "KNXnet/IP-serveren kunne ikke starte: {error}"
-
-msgid "Enter the data to send (e.g. 44 AE 0C)."
-msgstr "Angiv de data, der skal sendes (f.eks. 44 AE 0C)."

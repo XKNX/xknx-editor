@@ -399,53 +399,8 @@ msgstr "Përmes qasjes në pajisjen lokale mund të arrihet vetëm pajisja e vet
 msgid "Through local device access only the USB interface's own device {local} can be reached: scan from {local} to {local}."
 msgstr "Përmes qasjes në pajisjen lokale mund të arrihet vetëm pajisja e vetë ndërfaqes USB {local}: skanoni nga {local} deri te {local}."
 
-msgid "M-Bus and BatiBus Frames"
-msgstr "Kornizat M-Bus dhe BatiBus"
-
-msgid "The frames of the interface's M-Bus and BatiBus tunnels (e.g. of a KNX RF USB stick that also receives wireless M-Bus meters), passed through as they are. The last 500 are kept."
-msgstr "Kornizat e tuneleve M-Bus dhe BatiBus të ndërfaqes përcillen pa ndryshime (p.sh. nga një pajisje USB KNX RF që merr edhe të dhënat e matësve M-Bus pa tel). Ruhen 500 kornizat e fundit."
-
-msgid "No M-Bus or BatiBus frames yet"
-msgstr "Ende nuk ka korniza M-Bus ose BatiBus"
-
-msgid "Clear"
-msgstr "Pastro"
-
-msgid "Time"
-msgstr "Ora"
-
-msgid "Direction"
-msgstr "Drejtimi"
-
 msgid "Protocol"
 msgstr "Protokolli"
-
-msgid "Service"
-msgstr "Shërbimi"
-
-msgid "Data"
-msgstr "Të dhënat"
-
-msgid "Sent"
-msgstr "Dërguar"
-
-msgid "Received"
-msgstr "Marrë"
-
-msgid "Send"
-msgstr "Dërgo"
-
-msgid "{data} is not hexadecimal data (e.g. 44 AE 0C)."
-msgstr "Vlera {data} nuk është në format heksadecimal (p.sh. 44 AE 0C)."
-
-msgid "{service} is not a hexadecimal octet (00 to FF)."
-msgstr "{service} nuk është oktet heksadecimal (00 deri në FF)."
-
-msgid "The frame could not be sent: {error}"
-msgstr "Dërgimi i kornizës dështoi: {error}"
-
-msgid "Block Bus Writes is on (Settings > Connection): nothing is sent."
-msgstr "Bllokimi i shkrimeve në bus është aktiv (Cilësimet > Lidhja): nuk dërgohet asgjë."
 
 msgid "KNXnet/IP Server"
 msgstr "Serveri KNXnet/IP"
@@ -532,6 +487,3 @@ msgstr "Serveri KNXnet/IP po niset ose po ndalet."
 
 msgid "The KNXnet/IP server could not start: {error}"
 msgstr "Nisja e serverit KNXnet/IP dështoi: {error}"
-
-msgid "Enter the data to send (e.g. 44 AE 0C)."
-msgstr "Vendosni të dhënat për t'u dërguar (p.sh. 44 AE 0C)."

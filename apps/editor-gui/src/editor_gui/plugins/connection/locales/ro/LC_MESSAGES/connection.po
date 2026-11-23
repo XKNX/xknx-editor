@@ -400,53 +400,8 @@ msgstr "Prin accesul la dispozitivul local poate fi accesat doar dispozitivul pr
 msgid "Through local device access only the USB interface's own device {local} can be reached: scan from {local} to {local}."
 msgstr "Prin accesul la dispozitivul local poate fi accesat doar dispozitivul propriu {local} al interfeței USB: scanați de la {local} la {local}."
 
-msgid "M-Bus and BatiBus Frames"
-msgstr "Cadre M-Bus și BatiBus"
-
-msgid "The frames of the interface's M-Bus and BatiBus tunnels (e.g. of a KNX RF USB stick that also receives wireless M-Bus meters), passed through as they are. The last 500 are kept."
-msgstr "Cadrele tunelurilor M-Bus și BatiBus ale interfeței (de ex. ale unui stick USB KNX RF care recepționează și contoare M-Bus wireless), transmise neschimbate. Se păstrează ultimele 500."
-
-msgid "No M-Bus or BatiBus frames yet"
-msgstr "Încă nu există cadre M-Bus sau BatiBus"
-
-msgid "Clear"
-msgstr "Golire"
-
-msgid "Time"
-msgstr "Oră"
-
-msgid "Direction"
-msgstr "Direcție"
-
 msgid "Protocol"
 msgstr "Protocol"
-
-msgid "Service"
-msgstr "Serviciu"
-
-msgid "Data"
-msgstr "Date"
-
-msgid "Sent"
-msgstr "Trimis"
-
-msgid "Received"
-msgstr "Recepționat"
-
-msgid "Send"
-msgstr "Trimitere"
-
-msgid "{data} is not hexadecimal data (e.g. 44 AE 0C)."
-msgstr "{data} nu sunt date hexazecimale (de ex. 44 AE 0C)."
-
-msgid "{service} is not a hexadecimal octet (00 to FF)."
-msgstr "{service} nu este un octet hexazecimal (00 până la FF)."
-
-msgid "The frame could not be sent: {error}"
-msgstr "Cadrul nu a putut fi trimis: {error}"
-
-msgid "Block Bus Writes is on (Settings > Connection): nothing is sent."
-msgstr "Blocare scrieri pe magistrală este activă (Setări > Conexiune): nu se trimite nimic."
 
 msgid "KNXnet/IP Server"
 msgstr "Server KNXnet/IP"
@@ -534,6 +489,3 @@ msgstr "Serverul KNXnet/IP este în curs de pornire sau oprire."
 
 msgid "The KNXnet/IP server could not start: {error}"
 msgstr "Serverul KNXnet/IP nu a putut porni: {error}"
-
-msgid "Enter the data to send (e.g. 44 AE 0C)."
-msgstr "Introduceți datele de trimis (de ex. 44 AE 0C)."

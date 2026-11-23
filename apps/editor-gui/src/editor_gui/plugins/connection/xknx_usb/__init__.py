@@ -14,10 +14,9 @@ from .hid_device import (
     is_knx_usb_interface,
 )
 from .rf import RFMediumInfo, RFSignalStrength, rf_medium_info
-from .tunnel import EXTRANEOUS_PROTOCOLS, USBInterfaceInfo, USBTunnel
+from .tunnel import USBInterfaceInfo, USBTunnel
 
 __all__ = [
-    "EXTRANEOUS_PROTOCOLS",
     "ProtocolID",
     "RFMediumInfo",
     "RFSignalStrength",

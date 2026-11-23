@@ -80,7 +80,11 @@ from .hid_device import (
     find_usb_interfaces,
 )
 from .rf import medium_of_mask_version, with_rf_medium_info
-from .transport_layer import KEEP_ALIVE_INTERVAL, TransportLayerMapping
+from .transport_layer import (
+    KEEP_ALIVE_INTERVAL,
+    KEEP_ALIVE_RETRY_WAIT,
+    TransportLayerMapping,
+)
 
 if TYPE_CHECKING:
     from xknx.xknx import XKNX
@@ -111,10 +115,6 @@ _MANAGEMENT_RESPONSES = {
     CEMIMessageCode.M_PROP_WRITE_REQ: CEMIMessageCode.M_PROP_WRITE_CON,
 }
 _CONNECTION_CLOSED = "USB connection closed"
-# the protocols of KNX extraneous information - KNX v01.03.04 - Basic and System
-# Components - Couplers 09.03 - §3.4.1.3.4; KNX v01.04.02 - External Message Interface
-# 03.06.03 - §4.3
-EXTRANEOUS_PROTOCOLS = frozenset({ProtocolID.M_BUS_TUNNEL, ProtocolID.BATIBUS_TUNNEL})
 # why the cEMI server refused the cEMI Transport Layer - KNX v01.03.04 - Basic and System
 # Components - Couplers 09.03 - §3.5.4.2.2
 _TRANSPORT_LAYER_REFUSALS: dict[CEMIErrorCode | int, str] = {
@@ -261,7 +261,6 @@ class USBTunnel(Interface):
         "busmonitor",
         "cemi_received_callback",
         "device_info",
-        "extraneous_frame_callback",
         "individual_address",
         "keyring",
         "path",
@@ -292,7 +291,6 @@ class USBTunnel(Interface):
         busmonitor: bool = False,
         keyring: Keyring | None = None,
         transport_layer: bool = False,
-        extraneous_frame_callback: Callable[[USBTransferFrame], None] | None = None,
         individual_address: IndividualAddress | None = None,
         rf_domain_address: bytes | None = None,
     ) -> None:
@@ -321,11 +319,6 @@ class USBTunnel(Interface):
         download into a KNX device through its own USB port - and nothing else can be
         sent; the bus connection doesn't matter then. It needs a cEMI interface.
 
-        `extraneous_frame_callback` gets the frames of the M-Bus and BatiBus tunnels
-        (`EXTRANEOUS_PROTOCOLS`); `send_extraneous_frame()` sends them. The
-        specification leaves their header octet 6 and body open, so they are passed
-        on as they are.
-
         With `individual_address` the interface's own individual address is set to
         it on connect when the interface has another one (see
         `_write_individual_address()`). The change persists in the interface. When
@@ -344,7 +337,6 @@ class USBTunnel(Interface):
         self.xknx = xknx
         self.busmonitor = busmonitor
         self.transport_layer = transport_layer
-        self.extraneous_frame_callback = extraneous_frame_callback
         self.cemi_received_callback = cemi_received_callback
         self.vendor_id = vendor_id
         self.product_id = product_id
@@ -1414,20 +1406,6 @@ class USBTunnel(Interface):
         for raw_cemi in received:
             loop.call_soon(self.cemi_received_callback, raw_cemi)
 
-    async def send_extraneous_frame(self, frame: USBTransferFrame) -> None:
-        """
-        Send a frame of the M-Bus or BatiBus tunnel (`EXTRANEOUS_PROTOCOLS`) as it is.
-
-        KNX v01.03.04 - Basic and System Components - Couplers 09.03 - §3.4.1.3.4
-        """
-        if frame.protocol not in EXTRANEOUS_PROTOCOLS:
-            raise ValueError(
-                f"Not an M-Bus or BatiBus tunnel frame: protocol {frame.protocol}"
-            )
-        if not self._established:
-            raise CommunicationError("KNX USB interface not connected")
-        await self._write_frame(frame)
-
     async def _keep_alive(self) -> None:
         """
         Keep the cEMI Transport Layer connection alive, and set it up again when it ended.
@@ -1450,6 +1428,7 @@ class USBTunnel(Interface):
                 )
             except CommunicationError as ex:
                 logger.debug("Could not keep the cEMI transport layer alive: %s", ex)
+                await asyncio.sleep(KEEP_ALIVE_RETRY_WAIT)
                 continue
             if mode[:1] != bytes((CommunicationMode.CEMI_TRANSPORT_LAYER,)):
                 logger.warning(
@@ -1484,11 +1463,6 @@ class USBTunnel(Interface):
                 self._cemi_received(frame.body)
             else:
                 self._emi_received(frame.body)
-        elif (
-            frame.protocol in EXTRANEOUS_PROTOCOLS
-            and self.extraneous_frame_callback is not None
-        ):
-            self.extraneous_frame_callback(frame)
         else:
             logger.debug("Ignoring KNX USB frame of protocol %s", frame.protocol)
 

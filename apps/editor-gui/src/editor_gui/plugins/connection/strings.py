@@ -483,77 +483,6 @@ class ConnectionStrings:
         )
 
     @property
-    def MBUS_FRAMES_HEADER(self) -> str:
-        return _("M-Bus and BatiBus Frames")
-
-    @property
-    def MBUS_FRAMES_HINT(self) -> str:
-        return _(
-            "The frames of the interface's M-Bus and BatiBus tunnels (e.g. of a KNX RF USB "
-            "stick that also receives wireless M-Bus meters), passed through as they are. The "
-            "last 500 are kept."
-        )
-
-    @property
-    def MBUS_FRAMES_NONE(self) -> str:
-        return _("No M-Bus or BatiBus frames yet")
-
-    @property
-    def MBUS_FRAMES_CLEAR(self) -> str:
-        return _("Clear")
-
-    @property
-    def MBUS_FRAME_TIME(self) -> str:
-        return _("Time")
-
-    @property
-    def MBUS_FRAME_DIRECTION(self) -> str:
-        return _("Direction")
-
-    @property
-    def MBUS_FRAME_PROTOCOL(self) -> str:
-        return _("Protocol")
-
-    @property
-    def MBUS_FRAME_SERVICE(self) -> str:
-        # header octet 6 of a KNX USB transfer frame, in hexadecimal
-        return _("Service")
-
-    @property
-    def MBUS_FRAME_DATA(self) -> str:
-        return _("Data")
-
-    @property
-    def MBUS_FRAME_SENT(self) -> str:
-        # the direction of a frame: sent by the editor
-        return _("Sent")
-
-    @property
-    def MBUS_FRAME_RECEIVED(self) -> str:
-        # the direction of a frame: received from the interface
-        return _("Received")
-
-    @property
-    def MBUS_FRAME_SEND(self) -> str:
-        return _("Send")
-
-    @property
-    def MBUS_FRAME_NO_DATA(self) -> str:
-        return _("Enter the data to send (e.g. 44 AE 0C).")
-
-    @property
-    def MBUS_FRAME_INVALID_DATA(self) -> str:
-        return _("{data} is not hexadecimal data (e.g. 44 AE 0C).")
-
-    @property
-    def MBUS_FRAME_INVALID_SERVICE(self) -> str:
-        return _("{service} is not a hexadecimal octet (00 to FF).")
-
-    @property
-    def MBUS_FRAME_FAILED(self) -> str:
-        return _("The frame could not be sent: {error}")
-
-    @property
     def IP_SERVER_HEADER(self) -> str:
         return _("KNXnet/IP Server")
 
@@ -694,10 +623,6 @@ class ConnectionStrings:
     @property
     def IP_SERVER_FAILED(self) -> str:
         return _("The KNXnet/IP server could not start: {error}")
-
-    @property
-    def MBUS_FRAME_WRITES_BLOCKED(self) -> str:
-        return _("Block Bus Writes is on (Settings > Connection): nothing is sent.")
 
     @property
     def SECTION_MANUAL(self) -> str:

@@ -1,4 +1,4 @@
-"""The cEMI Transport Layer and the M-Bus and BatiBus tunnels of KNX USB interfaces (the copy
+"""The cEMI Transport Layer of KNX USB interfaces (the copy
 of ``xknx.io.usb``, its tests as they are upstream but for the connection configuration the copy
 leaves out: the editor's ``ObservableUSBInterfaceThreaded`` stands in for it)."""
 
@@ -22,9 +22,6 @@ from xknx.telegram.apci import (
 
 from editor_gui.plugins.connection.usb import ObservableUSBInterfaceThreaded, UsbTarget
 from editor_gui.plugins.connection.xknx_usb import (
-    EXTRANEOUS_PROTOCOLS,
-    ProtocolID,
-    USBTransferFrame,
     USBTunnel,
 )
 from editor_gui.plugins.connection.xknx_usb import tunnel as usb_tunnel
@@ -361,6 +358,27 @@ class TestUSBTransportLayer:
         interface.answers = True
         await tunnel.disconnect()
 
+    async def test_keep_alive_pauses_after_a_failure(
+        self, fake_hid: FakeHIDModule, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """A failed keep-alive is retried after a pause, not at once."""
+        monkeypatch.setattr(usb_tunnel, "KEEP_ALIVE_INTERVAL", 0.01)
+        monkeypatch.setattr(usb_tunnel, "KEEP_ALIVE_RETRY_WAIT", 0.1)
+        tunnel = self.tunnel()
+        await tunnel.connect()
+        reads = 0
+
+        async def failing_read(*_: object) -> bytes:
+            nonlocal reads
+            reads += 1
+            await asyncio.sleep(0)
+            raise CommunicationError("write failed")
+
+        monkeypatch.setattr(USBTunnel, "_property_read", failing_read)
+        await asyncio.sleep(0.25)
+        assert 1 <= reads <= 4
+        await tunnel.disconnect()
+
     async def test_keep_alive(
         self, fake_hid: FakeHIDModule, monkeypatch: pytest.MonkeyPatch
     ) -> None:
@@ -375,72 +393,3 @@ class TestUSBTransportLayer:
         interface.properties[(8, 52)] = b"\x00"
         await _until(lambda: interface.properties[(8, 52)] == b"\x06")
         await tunnel.disconnect()
-
-
-class TestExtraneousFrames:
-    """The M-Bus and BatiBus tunnels."""
-
-    async def test_send_and_receive(self, fake_hid: FakeHIDModule) -> None:
-        frames: list[USBTransferFrame] = []
-        tunnel = USBTunnel(
-            XKNX(),
-            cemi_received_callback=Mock(),
-            auto_reconnect=False,
-            extraneous_frame_callback=frames.append,
-        )
-        await tunnel.connect()
-        sent = [
-            USBTransferFrame(
-                protocol=protocol, service=0x00, body=bytes.fromhex("44ae0c")
-            )
-            for protocol in sorted(EXTRANEOUS_PROTOCOLS)
-        ]
-        for frame in sent:
-            await tunnel.send_extraneous_frame(frame)
-        await _until(lambda: len(frames) == 2)
-        assert frames == sent
-        with pytest.raises(ValueError, match="Not an M-Bus or BatiBus"):
-            await tunnel.send_extraneous_frame(
-                USBTransferFrame(
-                    protocol=ProtocolID.KNX_TUNNEL, service=EMIID.CEMI, body=b"\x11"
-                )
-            )
-        await tunnel.disconnect()
-        with pytest.raises(CommunicationError, match="not connected"):
-            await tunnel.send_extraneous_frame(sent[0])
-
-    async def test_ignored_without_callback(self, fake_hid: FakeHIDModule) -> None:
-        tunnel = USBTunnel(XKNX(), cemi_received_callback=Mock(), auto_reconnect=False)
-        await tunnel.connect()
-        await tunnel.send_extraneous_frame(
-            USBTransferFrame(protocol=ProtocolID.M_BUS_TUNNEL, service=0, body=b"\x01")
-        )
-        await asyncio.sleep(0.05)
-        await tunnel.disconnect()
-
-    async def test_through_the_editors_connection(
-        self, fake_hid: FakeHIDModule
-    ) -> None:
-        """The callback is given to the editor's USB connection, and frames are sent through
-        it (from the connection thread)."""
-        frames: list[USBTransferFrame] = []
-        connection = ObservableUSBInterfaceThreaded(
-            XKNX(), _TARGET, extraneous_frame_callback=frames.append
-        )
-        await connection.start()
-        try:
-            frame = USBTransferFrame(
-                protocol=ProtocolID.BATIBUS_TUNNEL, service=0, body=b"\x02"
-            )
-            await connection.send_extraneous_frame(frame)
-            await _until(lambda: frames == [frame])
-        finally:
-            await connection.stop()
-
-    async def test_only_while_connected(self) -> None:
-        """The editor's USB connection has no M-Bus tunnel before it is connected."""
-        connection = ObservableUSBInterfaceThreaded(XKNX(), _TARGET)
-        with pytest.raises(CommunicationError, match="not connected"):
-            await connection.send_extraneous_frame(
-                USBTransferFrame(protocol=ProtocolID.M_BUS_TUNNEL, service=0, body=b"")
-            )

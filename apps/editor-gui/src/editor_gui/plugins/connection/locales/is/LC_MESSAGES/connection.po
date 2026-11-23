@@ -399,53 +399,8 @@ msgstr "Með aðgangi að staðbundnu tæki næst aðeins í eigið tæki USB-vi
 msgid "Through local device access only the USB interface's own device {local} can be reached: scan from {local} to {local}."
 msgstr "Með aðgangi að staðbundnu tæki næst aðeins í eigið tæki USB-viðmótsins, {local}: leitaðu frá {local} til {local}."
 
-msgid "M-Bus and BatiBus Frames"
-msgstr "M-Bus- og BatiBus-rammar"
-
-msgid "The frames of the interface's M-Bus and BatiBus tunnels (e.g. of a KNX RF USB stick that also receives wireless M-Bus meters), passed through as they are. The last 500 are kept."
-msgstr "Rammar M-Bus- og BatiBus-gangna viðmótsins (t.d. KNX RF USB-lykils sem tekur einnig við þráðlausum M-Bus-mælum), sendir áfram óbreyttir. Síðustu 500 eru geymdir."
-
-msgid "No M-Bus or BatiBus frames yet"
-msgstr "Engir M-Bus- eða BatiBus-rammar enn"
-
-msgid "Clear"
-msgstr "Hreinsa"
-
-msgid "Time"
-msgstr "Tími"
-
-msgid "Direction"
-msgstr "Stefna"
-
 msgid "Protocol"
 msgstr "Samskiptaregla"
-
-msgid "Service"
-msgstr "Þjónusta"
-
-msgid "Data"
-msgstr "Gögn"
-
-msgid "Sent"
-msgstr "Sent"
-
-msgid "Received"
-msgstr "Móttekið"
-
-msgid "Send"
-msgstr "Senda"
-
-msgid "{data} is not hexadecimal data (e.g. 44 AE 0C)."
-msgstr "{data} eru ekki sextándakerfisgögn (t.d. 44 AE 0C)."
-
-msgid "{service} is not a hexadecimal octet (00 to FF)."
-msgstr "{service} er ekki sextándakerfisbæti (00 til FF)."
-
-msgid "The frame could not be sent: {error}"
-msgstr "Ekki tókst að senda rammann: {error}"
-
-msgid "Block Bus Writes is on (Settings > Connection): nothing is sent."
-msgstr "„Loka á skrif á bus“ er virkt (Stillingar > Tenging): ekkert er sent."
 
 msgid "KNXnet/IP Server"
 msgstr "KNXnet/IP-þjónn"
@@ -532,6 +487,3 @@ msgstr "Verið er að ræsa eða stöðva KNXnet/IP-þjóninn."
 
 msgid "The KNXnet/IP server could not start: {error}"
 msgstr "Ekki tókst að ræsa KNXnet/IP-þjóninn: {error}"
-
-msgid "Enter the data to send (e.g. 44 AE 0C)."
-msgstr "Sláðu inn gögnin sem á að senda (t.d. 44 AE 0C)."

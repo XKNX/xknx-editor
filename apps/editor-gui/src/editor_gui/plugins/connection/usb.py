@@ -21,7 +21,6 @@ from editor_gui.plugins.connection.interface import ObservableKNXIPInterfaceThre
 from editor_gui.plugins.connection.xknx_usb import (
     USBDeviceInfo,
     USBInterfaceInfo,
-    USBTransferFrame,
     USBTunnel,
     find_usb_interfaces,
 )
@@ -242,7 +241,6 @@ class ObservableUSBInterfaceThreaded(ObservableKNXIPInterfaceThreaded):
 
     __slots__ = (
         "_data_secure",
-        "_extraneous_frame_callback",
         "_individual_address",
         "_rf_domain_address",
         "_target",
@@ -260,7 +258,6 @@ class ObservableUSBInterfaceThreaded(ObservableKNXIPInterfaceThreaded):
         writes_blocked: Callable[[], bool] | None = None,
         rf_domain_address: bytes | None = None,
         transport_layer: bool = False,
-        extraneous_frame_callback: Callable[[USBTransferFrame], None] | None = None,
     ) -> None:
         """``data_secure`` is in place while the interface is set up, so an interface Data Secure
         can't work with (unknown individual address, EMI1/EMI2 only) is noticed on connect as
@@ -268,9 +265,7 @@ class ObservableUSBInterfaceThreaded(ObservableKNXIPInterfaceThreaded):
         set to it on connect when it has another one; the connect fails when that can't be done.
         ``rf_domain_address`` sets the domain address of a KNX RF interface the same way.
         With ``transport_layer`` the interface's own device is reached through the cEMI
-        Transport Layer instead of the bus (local device access). ``extraneous_frame_callback``
-        gets every frame of the interface's M-Bus and BatiBus tunnels, in the connection
-        thread."""
+        Transport Layer instead of the bus (local device access)."""
         super().__init__(
             xknx,
             ConnectionConfig(threaded=True),
@@ -283,7 +278,6 @@ class ObservableUSBInterfaceThreaded(ObservableKNXIPInterfaceThreaded):
         self._individual_address = individual_address
         self._rf_domain_address = rf_domain_address
         self._transport_layer = transport_layer
-        self._extraneous_frame_callback = extraneous_frame_callback
 
     async def _start(self) -> None:
         """Open the interface (in the connection thread)."""
@@ -301,7 +295,6 @@ class ObservableUSBInterfaceThreaded(ObservableKNXIPInterfaceThreaded):
             individual_address=self._individual_address,
             rf_domain_address=self._rf_domain_address,
             transport_layer=self._transport_layer,
-            extraneous_frame_callback=self._extraneous_frame_callback,
         )
         await self._interface.connect()
 
@@ -321,16 +314,6 @@ class ObservableUSBInterfaceThreaded(ObservableKNXIPInterfaceThreaded):
             self._interface.set_rf_domain_address(rf_domain_address)
         )
         self._rf_domain_address = rf_domain_address
-
-    async def send_extraneous_frame(self, frame: USBTransferFrame) -> None:
-        """Send a frame of the interface's M-Bus or BatiBus tunnel as it is. Raises
-        ``CommunicationError`` when no KNX USB interface is connected, ``ValueError`` for a
-        frame of another protocol."""
-        if not isinstance(self._interface, USBTunnel) or self._thread_loop is None:
-            raise CommunicationError("KNX USB interface not connected")
-        await self._await_from_connection_thread(
-            self._interface.send_extraneous_frame(frame)
-        )
 
     async def set_rf_multi_type(self, rf_multi: bool) -> None:
         """Set whether the connected KNX RF interface operates as a KNX RF Multi device, on

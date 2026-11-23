@@ -13,20 +13,14 @@ from xknx.knxip.knxip_enum import KNXMedium
 from xknx.telegram import IndividualAddress
 
 from editor_gui.plugins.connection.ip_server import IpServerSettings, OpenTunnel
-from editor_gui.plugins.connection.mbus_batibus import (
-    MbusBatibusFrame,
-    MbusBatibusFrameLog,
-)
 from editor_gui.plugins.connection.plugin import ConnectionState
 from editor_gui.plugins.connection.usb import UsbTarget
 from editor_gui.plugins.connection.xknx_usb import (
     USBDeviceInfo,
     USBInterfaceInfo,
-    USBTransferFrame,
 )
 from editor_gui.plugins.connection.xknx_usb.const import (
     EMIID,
-    ProtocolID,
     SupportedEMIType,
 )
 from editor_gui.plugins.mcp.server import build_server
@@ -422,89 +416,6 @@ async def test_switching_local_device_access(tmp_path: Path) -> None:
     assert result["local_device"] is True
     assert result["usb_interface"]["local_device"] is True
     assert conn.requests == [True, False, False, True]
-
-
-class _FramesConnection(_UsbConnection):
-    """A connected USB interface with M-Bus and BatiBus tunnels."""
-
-    def __init__(self) -> None:
-        super().__init__()
-        self.connect_to_usb_by_serial("")
-        self.log = MbusBatibusFrameLog()
-        self.blocked = False
-
-    def mbus_batibus_frames(
-        self, *, since: int = 0, limit: int | None = None
-    ) -> list[MbusBatibusFrame]:
-        return self.log.frames(since=since, limit=limit)
-
-    @property
-    def mbus_batibus_last_id(self) -> int:
-        return self.log.last_id
-
-    def send_mbus_batibus_frame(
-        self, protocol: int, service: int, body: bytes
-    ) -> Future[None]:
-        if self.blocked:
-            raise ValueError(
-                "Block Bus Writes is on (Settings > Connection): nothing is sent."
-            )
-        if not body:
-            raise ValueError("Enter the data to send (e.g. 44 AE 0C).")
-        self.log.add(
-            USBTransferFrame(protocol=protocol, service=service, body=body), sent=True
-        )
-        done: Future[None] = Future()
-        done.set_result(None)
-        return done
-
-
-async def test_mbus_and_batibus_frames(tmp_path: Path) -> None:
-    conn = _FramesConnection()
-    conn.log.add(
-        USBTransferFrame(
-            protocol=ProtocolID.M_BUS_TUNNEL, service=0, body=bytes.fromhex("44ae0c")
-        ),
-        sent=False,
-    )
-    async with Client(_server(tmp_path, conn)) as client:
-        sent = await _data(
-            client,
-            "connection_send_mbus_batibus_frame",
-            protocol="batibus",
-            data="01 02",
-            service=7,
-        )
-        listed = await _data(client, "connection_mbus_batibus_frames")
-        newer = await _data(client, "connection_mbus_batibus_frames", since=1)
-        newest = await _data(client, "connection_mbus_batibus_frames", limit=1)
-        with pytest.raises(Exception, match="not hexadecimal data"):
-            await client.call_tool(
-                "connection_send_mbus_batibus_frame",
-                {"protocol": "m_bus", "data": "xyz"},
-            )
-        with pytest.raises(Exception, match="Enter the data to send"):
-            await client.call_tool(
-                "connection_send_mbus_batibus_frame",
-                {"protocol": "m_bus", "data": ""},
-            )
-        conn.blocked = True
-        with pytest.raises(Exception, match="Block Bus Writes is on"):
-            await client.call_tool(
-                "connection_send_mbus_batibus_frame",
-                {"protocol": "m_bus", "data": "01"},
-            )
-    assert sent["direction"] == "sent"
-    assert (sent["protocol"], sent["service"], sent["data"]) == ("batibus", 7, "0102")
-    assert listed["count"] == 2 and listed["last_id"] == 2
-    received = listed["frames"][0]
-    assert received["direction"] == "received"
-    assert received["protocol"] == "m_bus"
-    assert received["data"] == "44ae0c"
-    assert received["manufacturer_code"] == 0
-    assert received["time"].startswith("20")
-    assert [frame["id"] for frame in newer["frames"]] == [2]
-    assert [frame["id"] for frame in newest["frames"]] == [2]
 
 
 async def test_no_group_telegrams_through_local_device_access(tmp_path: Path) -> None:
