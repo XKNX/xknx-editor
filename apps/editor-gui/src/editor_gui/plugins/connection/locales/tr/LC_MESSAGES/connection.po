@@ -398,53 +398,8 @@ msgstr "Yerel cihaz erişimiyle yalnızca USB arayüzünün kendi cihazı {local
 msgid "Through local device access only the USB interface's own device {local} can be reached: scan from {local} to {local}."
 msgstr "Yerel cihaz erişimiyle yalnızca USB arayüzünün kendi cihazı {local} erişilebilir: {local} ile {local} arasını tarayın."
 
-msgid "M-Bus and BatiBus Frames"
-msgstr "M-Bus ve BatiBus Çerçeveleri"
-
-msgid "The frames of the interface's M-Bus and BatiBus tunnels (e.g. of a KNX RF USB stick that also receives wireless M-Bus meters), passed through as they are. The last 500 are kept."
-msgstr "Arayüzün M-Bus ve BatiBus tünellerinin çerçeveleri (ör. kablosuz M-Bus sayaçlarını da alan bir KNX RF USB çubuğunun), olduğu gibi aktarılır. Son 500 tanesi saklanır."
-
-msgid "No M-Bus or BatiBus frames yet"
-msgstr "Henüz M-Bus veya BatiBus çerçevesi yok"
-
-msgid "Clear"
-msgstr "Temizle"
-
-msgid "Time"
-msgstr "Zaman"
-
-msgid "Direction"
-msgstr "Yön"
-
 msgid "Protocol"
 msgstr "Protokol"
-
-msgid "Service"
-msgstr "Servis"
-
-msgid "Data"
-msgstr "Veri"
-
-msgid "Sent"
-msgstr "Gönderildi"
-
-msgid "Received"
-msgstr "Alındı"
-
-msgid "Send"
-msgstr "Gönder"
-
-msgid "{data} is not hexadecimal data (e.g. 44 AE 0C)."
-msgstr "{data} onaltılık veri değil (ör. 44 AE 0C)."
-
-msgid "{service} is not a hexadecimal octet (00 to FF)."
-msgstr "{service} onaltılık bir sekizli değil (00 ile FF arası)."
-
-msgid "The frame could not be sent: {error}"
-msgstr "Çerçeve gönderilemedi: {error}"
-
-msgid "Block Bus Writes is on (Settings > Connection): nothing is sent."
-msgstr "Hatta Yazmayı Engelle açık (Ayarlar > Bağlantı): hiçbir şey gönderilmez."
 
 msgid "KNXnet/IP Server"
 msgstr "KNXnet/IP Sunucusu"
@@ -530,6 +485,3 @@ msgstr "KNXnet/IP sunucusu başlatılıyor veya durduruluyor."
 
 msgid "The KNXnet/IP server could not start: {error}"
 msgstr "KNXnet/IP sunucusu başlatılamadı: {error}"
-
-msgid "Enter the data to send (e.g. 44 AE 0C)."
-msgstr "Gönderilecek verileri girin (ör. 44 AE 0C)."

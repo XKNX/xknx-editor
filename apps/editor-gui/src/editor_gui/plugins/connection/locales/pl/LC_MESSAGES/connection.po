@@ -400,53 +400,8 @@ msgstr "Przez dostęp do urządzenia lokalnego osiągalne jest tylko własne urz
 msgid "Through local device access only the USB interface's own device {local} can be reached: scan from {local} to {local}."
 msgstr "Przez dostęp do urządzenia lokalnego osiągalne jest tylko własne urządzenie {local} interfejsu USB: skanuj od {local} do {local}."
 
-msgid "M-Bus and BatiBus Frames"
-msgstr "Ramki M-Bus i BatiBus"
-
-msgid "The frames of the interface's M-Bus and BatiBus tunnels (e.g. of a KNX RF USB stick that also receives wireless M-Bus meters), passed through as they are. The last 500 are kept."
-msgstr "Ramki tuneli M-Bus i BatiBus interfejsu (np. klucza USB KNX RF, który odbiera także bezprzewodowe liczniki M-Bus), przekazywane bez zmian. Przechowywanych jest ostatnich 500."
-
-msgid "No M-Bus or BatiBus frames yet"
-msgstr "Brak jeszcze ramek M-Bus lub BatiBus"
-
-msgid "Clear"
-msgstr "Wyczyść"
-
-msgid "Time"
-msgstr "Czas"
-
-msgid "Direction"
-msgstr "Kierunek"
-
 msgid "Protocol"
 msgstr "Protokół"
-
-msgid "Service"
-msgstr "Usługa"
-
-msgid "Data"
-msgstr "Dane"
-
-msgid "Sent"
-msgstr "Wysłana"
-
-msgid "Received"
-msgstr "Odebrana"
-
-msgid "Send"
-msgstr "Wyślij"
-
-msgid "{data} is not hexadecimal data (e.g. 44 AE 0C)."
-msgstr "{data} to nie są dane szesnastkowe (np. 44 AE 0C)."
-
-msgid "{service} is not a hexadecimal octet (00 to FF)."
-msgstr "{service} nie jest oktetem szesnastkowym (00 do FF)."
-
-msgid "The frame could not be sent: {error}"
-msgstr "Nie udało się wysłać ramki: {error}"
-
-msgid "Block Bus Writes is on (Settings > Connection): nothing is sent."
-msgstr "Blokuj zapisy na magistralę jest włączone (Ustawienia > Połączenie): nic nie jest wysyłane."
 
 msgid "KNXnet/IP Server"
 msgstr "Serwer KNXnet/IP"
@@ -534,6 +489,3 @@ msgstr "Serwer KNXnet/IP jest właśnie uruchamiany lub zatrzymywany."
 
 msgid "The KNXnet/IP server could not start: {error}"
 msgstr "Nie udało się uruchomić serwera KNXnet/IP: {error}"
-
-msgid "Enter the data to send (e.g. 44 AE 0C)."
-msgstr "Wprowadź dane do wysłania (np. 44 AE 0C)."

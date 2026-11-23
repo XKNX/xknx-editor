@@ -400,53 +400,8 @@ msgstr "Cez miestny prístup k zariadeniu je dosiahnuteľné iba vlastné zariad
 msgid "Through local device access only the USB interface's own device {local} can be reached: scan from {local} to {local}."
 msgstr "Cez miestny prístup k zariadeniu je dosiahnuteľné iba vlastné zariadenie {local} rozhrania USB: prehľadajte rozsah od {local} do {local}."
 
-msgid "M-Bus and BatiBus Frames"
-msgstr "Rámce M-Bus a BatiBus"
-
-msgid "The frames of the interface's M-Bus and BatiBus tunnels (e.g. of a KNX RF USB stick that also receives wireless M-Bus meters), passed through as they are. The last 500 are kept."
-msgstr "Rámce tunelov M-Bus a BatiBus rozhrania (napr. KNX RF USB kľúča, ktorý prijíma aj bezdrôtové merače M-Bus), odovzdávané bez zmeny. Uchováva sa posledných 500."
-
-msgid "No M-Bus or BatiBus frames yet"
-msgstr "Zatiaľ žiadne rámce M-Bus ani BatiBus"
-
-msgid "Clear"
-msgstr "Vymazať"
-
-msgid "Time"
-msgstr "Čas"
-
-msgid "Direction"
-msgstr "Smer"
-
 msgid "Protocol"
 msgstr "Protokol"
-
-msgid "Service"
-msgstr "Služba"
-
-msgid "Data"
-msgstr "Dáta"
-
-msgid "Sent"
-msgstr "Odoslané"
-
-msgid "Received"
-msgstr "Prijaté"
-
-msgid "Send"
-msgstr "Odoslať"
-
-msgid "{data} is not hexadecimal data (e.g. 44 AE 0C)."
-msgstr "{data} nie sú šestnástkové dáta (napr. 44 AE 0C)."
-
-msgid "{service} is not a hexadecimal octet (00 to FF)."
-msgstr "{service} nie je šestnástkový oktet (00 až FF)."
-
-msgid "The frame could not be sent: {error}"
-msgstr "Rámec sa nepodarilo odoslať: {error}"
-
-msgid "Block Bus Writes is on (Settings > Connection): nothing is sent."
-msgstr "Blokovať zápisy na zbernicu je zapnuté (Nastavenia > Pripojenie): nič sa neodosiela."
 
 msgid "KNXnet/IP Server"
 msgstr "Server KNXnet/IP"
@@ -534,6 +489,3 @@ msgstr "Server KNXnet/IP sa práve spúšťa alebo zastavuje."
 
 msgid "The KNXnet/IP server could not start: {error}"
 msgstr "Server KNXnet/IP sa nepodarilo spustiť: {error}"
-
-msgid "Enter the data to send (e.g. 44 AE 0C)."
-msgstr "Zadajte údaje na odoslanie (napr. 44 AE 0C)."

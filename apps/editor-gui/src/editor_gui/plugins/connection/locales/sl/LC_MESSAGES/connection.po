@@ -401,53 +401,8 @@ msgstr "Prek dostopa do lokalne naprave je dosegljiva samo lastna naprava {local
 msgid "Through local device access only the USB interface's own device {local} can be reached: scan from {local} to {local}."
 msgstr "Prek dostopa do lokalne naprave je dosegljiva samo lastna naprava {local} vmesnika USB: preiščite od {local} do {local}."
 
-msgid "M-Bus and BatiBus Frames"
-msgstr "Okvirji M-Bus in BatiBus"
-
-msgid "The frames of the interface's M-Bus and BatiBus tunnels (e.g. of a KNX RF USB stick that also receives wireless M-Bus meters), passed through as they are. The last 500 are kept."
-msgstr "Okvirji tunelov M-Bus in BatiBus vmesnika (npr. ključka USB KNX RF, ki sprejema tudi brezžične števce M-Bus), posredovani nespremenjeni. Hrani se zadnjih 500."
-
-msgid "No M-Bus or BatiBus frames yet"
-msgstr "Še ni okvirjev M-Bus ali BatiBus"
-
-msgid "Clear"
-msgstr "Počisti"
-
-msgid "Time"
-msgstr "Čas"
-
-msgid "Direction"
-msgstr "Smer"
-
 msgid "Protocol"
 msgstr "Protokol"
-
-msgid "Service"
-msgstr "Storitev"
-
-msgid "Data"
-msgstr "Podatki"
-
-msgid "Sent"
-msgstr "Poslano"
-
-msgid "Received"
-msgstr "Prejeto"
-
-msgid "Send"
-msgstr "Pošlji"
-
-msgid "{data} is not hexadecimal data (e.g. 44 AE 0C)."
-msgstr "{data} niso šestnajstiški podatki (npr. 44 AE 0C)."
-
-msgid "{service} is not a hexadecimal octet (00 to FF)."
-msgstr "{service} ni šestnajstiški oktet (00 do FF)."
-
-msgid "The frame could not be sent: {error}"
-msgstr "Okvirja ni bilo mogoče poslati: {error}"
-
-msgid "Block Bus Writes is on (Settings > Connection): nothing is sent."
-msgstr "Blokiraj pisanje na vodilo je vklopljeno (Nastavitve > Povezava): nič se ne pošlje."
 
 msgid "KNXnet/IP Server"
 msgstr "Strežnik KNXnet/IP"
@@ -536,6 +491,3 @@ msgstr "Strežnik KNXnet/IP se zaganja ali ustavlja."
 
 msgid "The KNXnet/IP server could not start: {error}"
 msgstr "Strežnika KNXnet/IP ni bilo mogoče zagnati: {error}"
-
-msgid "Enter the data to send (e.g. 44 AE 0C)."
-msgstr "Vnesite podatke za pošiljanje (npr. 44 AE 0C)."

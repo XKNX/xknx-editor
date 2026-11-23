@@ -398,53 +398,8 @@ msgstr "通过本地设备访问只能访问 USB 接口自身的设备 {local}�
 msgid "Through local device access only the USB interface's own device {local} can be reached: scan from {local} to {local}."
 msgstr "通过本地设备访问只能访问 USB 接口自身的设备 {local}：请从 {local} 扫描到 {local}。"
 
-msgid "M-Bus and BatiBus Frames"
-msgstr "M-Bus 和 BatiBus 帧"
-
-msgid "The frames of the interface's M-Bus and BatiBus tunnels (e.g. of a KNX RF USB stick that also receives wireless M-Bus meters), passed through as they are. The last 500 are kept."
-msgstr "接口的 M-Bus 和 BatiBus 隧道的帧（例如同时接收无线 M-Bus 仪表的 KNX RF USB 棒的帧），按原样传递。保留最近 500 个。"
-
-msgid "No M-Bus or BatiBus frames yet"
-msgstr "尚无 M-Bus 或 BatiBus 帧"
-
-msgid "Clear"
-msgstr "清除"
-
-msgid "Time"
-msgstr "时间"
-
-msgid "Direction"
-msgstr "方向"
-
 msgid "Protocol"
 msgstr "协议"
-
-msgid "Service"
-msgstr "服务"
-
-msgid "Data"
-msgstr "数据"
-
-msgid "Sent"
-msgstr "已发送"
-
-msgid "Received"
-msgstr "已接收"
-
-msgid "Send"
-msgstr "发送"
-
-msgid "{data} is not hexadecimal data (e.g. 44 AE 0C)."
-msgstr "{data} 不是十六进制数据（例如 44 AE 0C）。"
-
-msgid "{service} is not a hexadecimal octet (00 to FF)."
-msgstr "{service} 不是十六进制字节（00 到 FF）。"
-
-msgid "The frame could not be sent: {error}"
-msgstr "无法发送帧: {error}"
-
-msgid "Block Bus Writes is on (Settings > Connection): nothing is sent."
-msgstr "阻止写入总线已开启（设置 > 连接）：不发送任何内容。"
 
 msgid "KNXnet/IP Server"
 msgstr "KNXnet/IP 服务器"
@@ -530,6 +485,3 @@ msgstr "正在启动或停止 KNXnet/IP 服务器。"
 
 msgid "The KNXnet/IP server could not start: {error}"
 msgstr "无法启动 KNXnet/IP 服务器: {error}"
-
-msgid "Enter the data to send (e.g. 44 AE 0C)."
-msgstr "请输入要发送的数据（例如 44 AE 0C）。"

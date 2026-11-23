@@ -398,53 +398,8 @@ msgstr "ローカルデバイスアクセスでは、USB インターフェイ�
 msgid "Through local device access only the USB interface's own device {local} can be reached: scan from {local} to {local}."
 msgstr "ローカルデバイスアクセスでは、USB インターフェイス自身のデバイス {local} にのみ到達できます: {local} から {local} までスキャンしてください。"
 
-msgid "M-Bus and BatiBus Frames"
-msgstr "M-Bus および BatiBus フレーム"
-
-msgid "The frames of the interface's M-Bus and BatiBus tunnels (e.g. of a KNX RF USB stick that also receives wireless M-Bus meters), passed through as they are. The last 500 are kept."
-msgstr "インターフェイスの M-Bus および BatiBus トンネルのフレーム（例: ワイヤレス M-Bus メーターも受信する KNX RF USB スティックのもの）を、そのまま表示します。最新の 500 件が保持されます。"
-
-msgid "No M-Bus or BatiBus frames yet"
-msgstr "M-Bus または BatiBus フレームはまだありません"
-
-msgid "Clear"
-msgstr "クリア"
-
-msgid "Time"
-msgstr "時刻"
-
-msgid "Direction"
-msgstr "方向"
-
 msgid "Protocol"
 msgstr "プロトコル"
-
-msgid "Service"
-msgstr "サービス"
-
-msgid "Data"
-msgstr "データ"
-
-msgid "Sent"
-msgstr "送信済み"
-
-msgid "Received"
-msgstr "受信済み"
-
-msgid "Send"
-msgstr "送信"
-
-msgid "{data} is not hexadecimal data (e.g. 44 AE 0C)."
-msgstr "{data} は 16 進数データではありません（例: 44 AE 0C）。"
-
-msgid "{service} is not a hexadecimal octet (00 to FF)."
-msgstr "{service} は 16 進数のオクテットではありません（00 から FF）。"
-
-msgid "The frame could not be sent: {error}"
-msgstr "フレームを送信できませんでした: {error}"
-
-msgid "Block Bus Writes is on (Settings > Connection): nothing is sent."
-msgstr "「バスへの書き込みをブロック」がオンです（設定 > 接続）。何も送信されません。"
 
 msgid "KNXnet/IP Server"
 msgstr "KNXnet/IP サーバー"
@@ -530,6 +485,3 @@ msgstr "KNXnet/IP サーバーを起動または停止しています。"
 
 msgid "The KNXnet/IP server could not start: {error}"
 msgstr "KNXnet/IP サーバーを起動できませんでした: {error}"
-
-msgid "Enter the data to send (e.g. 44 AE 0C)."
-msgstr "送信するデータを入力してください（例: 44 AE 0C）。"

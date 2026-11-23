@@ -27,7 +27,6 @@ from xknx.telegram import IndividualAddress
 from editor_gui.cemi_diagnostics import DiagnosticCEMIHandler
 from editor_gui.color import color_u32
 from editor_gui.device_info import application_version_text
-from editor_gui.local_time import time_text
 from editor_gui.plugins.base import Logger, PanelDefinition, PluginAPI
 from editor_gui.plugins.connection.busmonitor import (
     DEFAULT_GATEWAY_PORT,
@@ -46,14 +45,6 @@ from editor_gui.plugins.connection.ip_server import (
     parse_tunnel_addresses,
     suggest_tunnel_addresses,
     valid_port,
-)
-from editor_gui.plugins.connection.mbus_batibus import (
-    PROTOCOLS,
-    MbusBatibusFrame,
-    MbusBatibusFrameLog,
-    parse_hex,
-    parse_octet,
-    protocol_name,
 )
 from editor_gui.plugins.connection.service import BusmonitorState, LinkInfo, LocalDevice
 from editor_gui.plugins.connection.strings import S
@@ -78,11 +69,8 @@ from editor_gui.plugins.connection.write_guard import (
     set_protected,
 )
 from editor_gui.plugins.connection.xknx_usb import (
-    EXTRANEOUS_PROTOCOLS,
-    ProtocolID,
     USBDeviceInfo,
     USBInterfaceInfo,
-    USBTransferFrame,
 )
 from editor_gui.programming import (
     DEFAULT_INDIVIDUAL_ADDRESS,
@@ -108,7 +96,6 @@ from editor_gui.widgets.spinner import loading, spinner
 from editor_gui.widgets.tables import (
     begin_data_table,
     data_table_headers,
-    text_table_height,
 )
 from editor_gui.widgets.text_util import (
     control_hint,
@@ -170,11 +157,6 @@ _RECONNECT_GRACE_SECONDS = 20.0
 _REOPEN_ATTEMPTS = 12
 # Seconds between the checks whether the credentials an interface requires are available now.
 _CREDENTIALS_CHECK_SECONDS = 2.0
-
-
-# The rows the M-Bus and BatiBus frames table shows, fewer on a short screen.
-_MBUS_TABLE_ROWS = 5
-_MBUS_TABLE_MIN_ROWS = 2
 
 
 class MissingCredentialsError(ConnectionError):
@@ -428,15 +410,6 @@ class ConnectionPlugin:
         self._usb_local_device = False
         self._usb_local_busy = False
         self._usb_local_error: str | None = None
-        # The frames of the USB interface's M-Bus and BatiBus tunnels, and the Send row of the
-        # USB Interface dialog: protocol, service and data as typed, whether a frame is being
-        # sent, and why the last one was not.
-        self._mbus_frames = MbusBatibusFrameLog()
-        self._mbus_protocol: int = ProtocolID.M_BUS_TUNNEL
-        self._mbus_service_text = "00"
-        self._mbus_data_text = ""
-        self._mbus_sending = False
-        self._mbus_error: str | None = None
         # The KNXnet/IP server in front of a USB connection ("USB to IP bridge"): its settings as
         # kept (off unless the user turns it on), the server, and the fields of its section of
         # the USB Interface dialog as typed until applied, with why they were not.
@@ -1334,7 +1307,6 @@ class ConnectionPlugin:
                     individual_address=self._usb_address_to_set(usb),
                     writes_blocked=self._api.connection.writes_blocked,
                     transport_layer=self._usb_local_device,
-                    extraneous_frame_callback=self._mbus_frame_received,
                 )
                 self._interface = usb_interface
                 config = usb_interface.connection_config
@@ -2788,7 +2760,6 @@ class ConnectionPlugin:
         if info is not None and info.medium is KNXMedium.RF:
             self._render_usb_domain_address(info.rf_domain_address, busy)
         imgui.separator()
-        self._render_mbus_batibus_frames()
         self._render_ip_server()
         if dialog_buttons(S.USB_INTERFACE_CLOSE) == 0:
             self._usb_interface_open = False
@@ -2889,254 +2860,6 @@ class ConnectionPlugin:
             imgui.text_wrapped(self._usb_local_error)
             imgui.pop_style_color()
         control_hint(S.SETTING_USB_LOCAL_DEVICE_HINT)
-
-    # --- the M-Bus and BatiBus tunnels ------------------------------------------
-
-    def _mbus_frame_received(self, frame: USBTransferFrame) -> None:
-        """A frame of the USB interface's M-Bus or BatiBus tunnel (in the connection thread)."""
-        self._mbus_frames.add(frame, sent=False)
-
-    def mbus_batibus_frames(
-        self, *, since: int = 0, limit: int | None = None
-    ) -> list[MbusBatibusFrame]:
-        """The kept frames of the M-Bus and BatiBus tunnels after the one numbered ``since``,
-        oldest first; with ``limit`` only the newest that many."""
-        return self._mbus_frames.frames(since=since, limit=limit)
-
-    @property
-    def mbus_batibus_last_id(self) -> int:
-        """The number of the newest frame of the M-Bus and BatiBus tunnels (0: none yet)."""
-        return self._mbus_frames.last_id
-
-    def clear_mbus_batibus_frames(self) -> None:
-        self._mbus_frames.clear()
-
-    def send_mbus_batibus_frame(
-        self, protocol: int, service: int, body: bytes
-    ) -> Future[None]:
-        """Send a frame through the connected USB interface's M-Bus or BatiBus tunnel
-        (``protocol``), as it is: ``service`` is its header octet 6, ``body`` its data. It is kept
-        with the received ones once sent. Raises ``ValueError`` with the reason when it can't
-        start (also while Block Bus Writes is on); the future fails with the reason when the
-        interface did not take it."""
-        if protocol not in EXTRANEOUS_PROTOCOLS:
-            raise ValueError(f"not an M-Bus or BatiBus protocol: {protocol}")
-        if not 0 <= service <= 0xFF:
-            raise ValueError(S.MBUS_FRAME_INVALID_SERVICE.format(service=service))
-        if not body:
-            raise ValueError(S.MBUS_FRAME_NO_DATA)
-        interface = self._interface
-        if (
-            not self.connected
-            or self._usb_target is None
-            or not isinstance(interface, ObservableUSBInterfaceThreaded)
-        ):
-            raise ValueError(S.USB_NOT_CONNECTED_HERE)
-        if self._api.connection.writes_refused("M-Bus/BatiBus frame"):
-            raise ValueError(S.MBUS_FRAME_WRITES_BLOCKED)
-        frame = USBTransferFrame(
-            protocol=ProtocolID(protocol), service=service, body=bytes(body)
-        )
-        return asyncio.run_coroutine_threadsafe(
-            self._send_mbus_frame(interface, frame), self._ensure_async_loop()
-        )
-
-    async def _send_mbus_frame(
-        self, interface: ObservableUSBInterfaceThreaded, frame: USBTransferFrame
-    ) -> None:
-        try:
-            await interface.send_extraneous_frame(frame)
-        except (CommunicationError, ValueError) as err:
-            raise ConnectionError(S.MBUS_FRAME_FAILED.format(error=err)) from err
-        self._mbus_frames.add(frame, sent=True)
-        self._log.info(
-            "M-Bus/BatiBus frame sent",
-            protocol=protocol_name(frame.protocol),
-            service=f"{frame.service:02X}",
-            data=frame.body.hex(" ").upper(),
-        )
-
-    def _render_mbus_batibus_frames(self) -> None:
-        """The "M-Bus and BatiBus Frames" section of the USB Interface dialog: the frames of the
-        interface's tunnels, and a row to send one."""
-        imgui.push_id("mbus_batibus")
-        if not collapsing_header(
-            f"{S.MBUS_FRAMES_HEADER} ({len(self._mbus_frames)})###mbus_frames"
-        ):
-            imgui.pop_id()
-            return
-        frames = self._mbus_frames.frames()
-        self._render_mbus_hint_and_clear(bool(frames))
-        if frames:
-            self._render_mbus_table(frames)
-        else:
-            imgui.text_disabled(S.MBUS_FRAMES_NONE)
-        self._render_mbus_send()
-        imgui.pop_id()
-
-    def _render_mbus_hint_and_clear(self, any_frames: bool) -> None:
-        """The hint on the left, wrapped, and Clear on the right, both ending on the row's
-        bottom line, right above the list it empties: always shown, disabled while there is
-        nothing to clear."""
-        clear = f"{S.MBUS_FRAMES_CLEAR}##mbus_clear"
-        style = imgui.get_style()
-        start = imgui.get_cursor_pos()
-        available = imgui.get_content_region_avail().x
-        clear_width = button_width(clear)
-        wrap = max(available - clear_width - style.item_spacing.x, px(80))
-        hint_height = imgui.calc_text_size(S.MBUS_FRAMES_HINT, wrap_width=wrap).y
-        button_height = imgui.get_frame_height()
-        row_height = max(hint_height, button_height)
-        imgui.set_cursor_pos(imgui.ImVec2(start.x, start.y + row_height - hint_height))
-        imgui.push_text_wrap_pos(start.x + wrap)
-        imgui.text_disabled(S.MBUS_FRAMES_HINT)
-        imgui.pop_text_wrap_pos()
-        # last, so the next row starts below the row's bottom line
-        imgui.set_cursor_pos(
-            imgui.ImVec2(
-                start.x + max(available - clear_width, 0.0),
-                start.y + row_height - button_height,
-            )
-        )
-        imgui.begin_disabled(not any_frames)
-        if imgui.button(clear):
-            self._mbus_frames.clear()
-        imgui.end_disabled()
-
-    def _render_mbus_table(self, frames: list[MbusBatibusFrame]) -> None:
-        flags = (
-            imgui.TableFlags_.borders_inner_v
-            | imgui.TableFlags_.row_bg
-            | imgui.TableFlags_.resizable
-            | imgui.TableFlags_.scroll_y
-        )
-        # Always the same whole rows, however many frames there are; on a short screen fewer,
-        # so the table takes at most a third of it.
-        rows = _MBUS_TABLE_ROWS
-        screen = imgui.get_main_viewport().size.y
-        while rows > _MBUS_TABLE_MIN_ROWS and text_table_height(rows) > screen / 3:
-            rows -= 1
-        height = text_table_height(rows)
-        if not begin_data_table(
-            "##mbus_frame_table", 5, flags, imgui.ImVec2(0.0, height)
-        ):
-            return
-        fixed = imgui.TableColumnFlags_.width_fixed
-        imgui.table_setup_column(S.MBUS_FRAME_TIME, fixed)
-        imgui.table_setup_column(S.MBUS_FRAME_DIRECTION, fixed)
-        imgui.table_setup_column(S.MBUS_FRAME_PROTOCOL, fixed)
-        imgui.table_setup_column(S.MBUS_FRAME_SERVICE, fixed)
-        imgui.table_setup_column(
-            S.MBUS_FRAME_DATA, imgui.TableColumnFlags_.width_stretch
-        )
-        data_table_headers()
-        clipper = imgui.ListClipper()
-        clipper.begin(len(frames))
-        while clipper.step():
-            for index in range(clipper.display_start, clipper.display_end):
-                frame = frames[index]
-                imgui.table_next_row()
-                imgui.table_set_column_index(0)
-                imgui.text(time_text(frame.time, millis=True))
-                imgui.table_set_column_index(1)
-                imgui.text(S.MBUS_FRAME_SENT if frame.sent else S.MBUS_FRAME_RECEIVED)
-                imgui.table_set_column_index(2)
-                imgui.text(protocol_name(frame.protocol))
-                imgui.table_set_column_index(3)
-                imgui.text(f"{frame.service:02X}")
-                imgui.table_set_column_index(4)
-                text_clipped_tooltip(frame.body.hex(" ").upper())
-        imgui.end_table()
-
-    def _render_mbus_send(self) -> None:
-        """The row sending a frame: protocol, service, data, Send."""
-        names = {int(protocol): name for protocol, name, _ in PROTOCOLS}
-        imgui.align_text_to_frame_padding()
-        imgui.text(S.MBUS_FRAME_PROTOCOL)
-        imgui.same_line()
-        imgui.set_next_item_width(px(100))
-        if begin_combo("##mbus_protocol", names.get(self._mbus_protocol, "")):
-            for protocol, name in names.items():
-                if imgui.selectable(
-                    f"{name}##mbus_protocol_{protocol}", protocol == self._mbus_protocol
-                )[0]:
-                    self._mbus_protocol = protocol
-            end_combo()
-        same_line_if_fits(px(50) + imgui.calc_text_size(S.MBUS_FRAME_SERVICE).x)
-        imgui.align_text_to_frame_padding()
-        imgui.text(S.MBUS_FRAME_SERVICE)
-        imgui.same_line()
-        imgui.set_next_item_width(px(40))
-        _, self._mbus_service_text = imgui.input_text(
-            "##mbus_service", self._mbus_service_text
-        )
-        imgui.align_text_to_frame_padding()
-        imgui.text(S.MBUS_FRAME_DATA)
-        imgui.same_line()
-        blocked = self._api.connection.block_bus_writes
-        imgui.set_next_item_width(
-            max(
-                px(80),
-                imgui.get_content_region_avail().x
-                - button_width(S.MBUS_FRAME_SEND)
-                - imgui.get_style().item_spacing.x,
-            )
-        )
-        entered, self._mbus_data_text = imgui.input_text(
-            "##mbus_data",
-            self._mbus_data_text,
-            imgui.InputTextFlags_.enter_returns_true,
-        )
-        # a frame needs data
-        has_data = bool(self._mbus_data_text.strip())
-        can_send = (
-            self.connected and not blocked and not self._mbus_sending and has_data
-        )
-        imgui.begin_disabled(not can_send)
-        send = _row_button(f"{S.MBUS_FRAME_SEND}##mbus_send")
-        imgui.end_disabled()
-        if blocked and imgui.is_item_hovered(imgui.HoveredFlags_.allow_when_disabled):
-            imgui.set_tooltip(S.MBUS_FRAME_WRITES_BLOCKED)
-        if send or (entered and can_send):
-            self._start_mbus_send()
-        if self._mbus_sending:
-            loading("##mbus_spinner", S.MBUS_FRAME_SEND)
-        elif self._mbus_error:
-            imgui.push_style_color(imgui.Col_.text, status_color("error"))
-            imgui.text_wrapped(self._mbus_error)
-            imgui.pop_style_color()
-
-    def _start_mbus_send(self) -> None:
-        """Send the frame of the Send row; a reason it can't is shown below it."""
-        self._mbus_error = None
-        try:
-            service = parse_octet(self._mbus_service_text)
-        except ValueError:
-            self._mbus_error = S.MBUS_FRAME_INVALID_SERVICE.format(
-                service=self._mbus_service_text.strip()
-            )
-            return
-        try:
-            body = parse_hex(self._mbus_data_text)
-        except ValueError:
-            self._mbus_error = S.MBUS_FRAME_INVALID_DATA.format(
-                data=self._mbus_data_text.strip()
-            )
-            return
-        try:
-            future = self.send_mbus_batibus_frame(self._mbus_protocol, service, body)
-        except ValueError as err:
-            self._mbus_error = str(err)
-            return
-        self._mbus_sending = True
-
-        def sent(done: Future[None]) -> None:
-            self._mbus_sending = False
-            error = done.exception() if not done.cancelled() else None
-            if error is not None:
-                self._mbus_error = str(error)
-
-        future.add_done_callback(sent)
 
     def _render_progmode_contents(self) -> None:
         imgui.begin_disabled(self._progmode_scanning)

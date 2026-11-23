@@ -400,53 +400,8 @@ msgstr "Через доступ до локального пристрою до�
 msgid "Through local device access only the USB interface's own device {local} can be reached: scan from {local} to {local}."
 msgstr "Через доступ до локального пристрою доступний лише власний пристрій {local} USB-інтерфейсу: скануйте від {local} до {local}."
 
-msgid "M-Bus and BatiBus Frames"
-msgstr "Кадри M-Bus і BatiBus"
-
-msgid "The frames of the interface's M-Bus and BatiBus tunnels (e.g. of a KNX RF USB stick that also receives wireless M-Bus meters), passed through as they are. The last 500 are kept."
-msgstr "Кадри тунелів M-Bus і BatiBus інтерфейсу (наприклад, USB-стіка KNX RF, який також приймає бездротові лічильники M-Bus), передані без змін. Зберігаються останні 500."
-
-msgid "No M-Bus or BatiBus frames yet"
-msgstr "Кадрів M-Bus або BatiBus ще немає"
-
-msgid "Clear"
-msgstr "Очистити"
-
-msgid "Time"
-msgstr "Час"
-
-msgid "Direction"
-msgstr "Напрямок"
-
 msgid "Protocol"
 msgstr "Протокол"
-
-msgid "Service"
-msgstr "Сервіс"
-
-msgid "Data"
-msgstr "Дані"
-
-msgid "Sent"
-msgstr "Надіслано"
-
-msgid "Received"
-msgstr "Отримано"
-
-msgid "Send"
-msgstr "Надіслати"
-
-msgid "{data} is not hexadecimal data (e.g. 44 AE 0C)."
-msgstr "{data} не є шістнадцятковими даними (наприклад, 44 AE 0C)."
-
-msgid "{service} is not a hexadecimal octet (00 to FF)."
-msgstr "{service} не є шістнадцятковим октетом (від 00 до FF)."
-
-msgid "The frame could not be sent: {error}"
-msgstr "Не вдалося надіслати кадр: {error}"
-
-msgid "Block Bus Writes is on (Settings > Connection): nothing is sent."
-msgstr "«Блокувати запис на шину» ввімкнено (Налаштування > Підключення): нічого не надсилається."
 
 msgid "KNXnet/IP Server"
 msgstr "Сервер KNXnet/IP"
@@ -534,6 +489,3 @@ msgstr "Сервер KNXnet/IP зараз запускається або зуп
 
 msgid "The KNXnet/IP server could not start: {error}"
 msgstr "Не вдалося запустити сервер KNXnet/IP: {error}"
-
-msgid "Enter the data to send (e.g. 44 AE 0C)."
-msgstr "Введіть дані для надсилання (наприклад, 44 AE 0C)."

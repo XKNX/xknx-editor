@@ -399,53 +399,8 @@ msgstr "Através do acesso ao dispositivo local só é possível alcançar o pr�
 msgid "Through local device access only the USB interface's own device {local} can be reached: scan from {local} to {local}."
 msgstr "Através do acesso ao dispositivo local só é possível alcançar o próprio dispositivo {local} da interface USB: analise de {local} a {local}."
 
-msgid "M-Bus and BatiBus Frames"
-msgstr "Tramas M-Bus e BatiBus"
-
-msgid "The frames of the interface's M-Bus and BatiBus tunnels (e.g. of a KNX RF USB stick that also receives wireless M-Bus meters), passed through as they are. The last 500 are kept."
-msgstr "As tramas dos túneis M-Bus e BatiBus da interface (p. ex. de uma pen USB KNX RF que também recebe contadores M-Bus sem fios), transmitidas tal como estão. São mantidas as últimas 500."
-
-msgid "No M-Bus or BatiBus frames yet"
-msgstr "Ainda não há tramas M-Bus nem BatiBus"
-
-msgid "Clear"
-msgstr "Apagar"
-
-msgid "Time"
-msgstr "Hora"
-
-msgid "Direction"
-msgstr "Direção"
-
 msgid "Protocol"
 msgstr "Protocolo"
-
-msgid "Service"
-msgstr "Serviço"
-
-msgid "Data"
-msgstr "Dados"
-
-msgid "Sent"
-msgstr "Enviada"
-
-msgid "Received"
-msgstr "Recebida"
-
-msgid "Send"
-msgstr "Enviar"
-
-msgid "{data} is not hexadecimal data (e.g. 44 AE 0C)."
-msgstr "{data} não são dados hexadecimais (p. ex. 44 AE 0C)."
-
-msgid "{service} is not a hexadecimal octet (00 to FF)."
-msgstr "{service} não é um octeto hexadecimal (00 a FF)."
-
-msgid "The frame could not be sent: {error}"
-msgstr "Não foi possível enviar a trama: {error}"
-
-msgid "Block Bus Writes is on (Settings > Connection): nothing is sent."
-msgstr "Bloquear escritas no barramento está ativado (Definições > Ligação): nada é enviado."
 
 msgid "KNXnet/IP Server"
 msgstr "Servidor KNXnet/IP"
@@ -532,6 +487,3 @@ msgstr "O servidor KNXnet/IP está a ser iniciado ou parado."
 
 msgid "The KNXnet/IP server could not start: {error}"
 msgstr "Não foi possível iniciar o servidor KNXnet/IP: {error}"
-
-msgid "Enter the data to send (e.g. 44 AE 0C)."
-msgstr "Introduza os dados a enviar (p. ex. 44 AE 0C)."

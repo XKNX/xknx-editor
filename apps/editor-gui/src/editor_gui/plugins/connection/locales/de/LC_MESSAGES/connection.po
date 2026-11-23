@@ -399,53 +399,8 @@ msgstr "Über den lokalen Gerätezugriff ist nur das eigene Gerät {local} der U
 msgid "Through local device access only the USB interface's own device {local} can be reached: scan from {local} to {local}."
 msgstr "Über den lokalen Gerätezugriff ist nur das eigene Gerät {local} der USB-Schnittstelle erreichbar: Durchsuchen Sie den Bereich von {local} bis {local}."
 
-msgid "M-Bus and BatiBus Frames"
-msgstr "M-Bus- und BatiBus-Frames"
-
-msgid "The frames of the interface's M-Bus and BatiBus tunnels (e.g. of a KNX RF USB stick that also receives wireless M-Bus meters), passed through as they are. The last 500 are kept."
-msgstr "Die Frames der M-Bus- und BatiBus-Tunnel der Schnittstelle (z. B. eines KNX RF USB-Sticks, der auch Funk-M-Bus-Zähler empfängt), unverändert durchgereicht. Die letzten 500 werden behalten."
-
-msgid "No M-Bus or BatiBus frames yet"
-msgstr "Noch keine M-Bus- oder BatiBus-Frames"
-
-msgid "Clear"
-msgstr "Löschen"
-
-msgid "Time"
-msgstr "Zeit"
-
-msgid "Direction"
-msgstr "Richtung"
-
 msgid "Protocol"
 msgstr "Protokoll"
-
-msgid "Service"
-msgstr "Dienst"
-
-msgid "Data"
-msgstr "Daten"
-
-msgid "Sent"
-msgstr "Gesendet"
-
-msgid "Received"
-msgstr "Empfangen"
-
-msgid "Send"
-msgstr "Senden"
-
-msgid "{data} is not hexadecimal data (e.g. 44 AE 0C)."
-msgstr "{data} sind keine Hexadezimaldaten (z. B. 44 AE 0C)."
-
-msgid "{service} is not a hexadecimal octet (00 to FF)."
-msgstr "{service} ist kein hexadezimales Oktett (00 bis FF)."
-
-msgid "The frame could not be sent: {error}"
-msgstr "Der Frame konnte nicht gesendet werden: {error}"
-
-msgid "Block Bus Writes is on (Settings > Connection): nothing is sent."
-msgstr "Schreiben auf den Bus sperren ist eingeschaltet (Einstellungen > Verbindung): Es wird nichts gesendet."
 
 msgid "KNXnet/IP Server"
 msgstr "KNXnet/IP-Server"
@@ -532,6 +487,3 @@ msgstr "Der KNXnet/IP-Server wird gerade gestartet oder gestoppt."
 
 msgid "The KNXnet/IP server could not start: {error}"
 msgstr "Der KNXnet/IP-Server konnte nicht starten: {error}"
-
-msgid "Enter the data to send (e.g. 44 AE 0C)."
-msgstr "Geben Sie die zu sendenden Daten ein (z. B. 44 AE 0C)."

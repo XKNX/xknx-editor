@@ -400,53 +400,8 @@ msgstr "Přes místní přístup k zařízení je dosažitelné pouze vlastní z
 msgid "Through local device access only the USB interface's own device {local} can be reached: scan from {local} to {local}."
 msgstr "Přes místní přístup k zařízení je dosažitelné pouze vlastní zařízení {local} rozhraní USB: prohledejte rozsah od {local} do {local}."
 
-msgid "M-Bus and BatiBus Frames"
-msgstr "Rámce M-Bus a BatiBus"
-
-msgid "The frames of the interface's M-Bus and BatiBus tunnels (e.g. of a KNX RF USB stick that also receives wireless M-Bus meters), passed through as they are. The last 500 are kept."
-msgstr "Rámce tunelů M-Bus a BatiBus rozhraní (např. KNX RF USB klíče, který přijímá i bezdrátové měřiče M-Bus), předávané beze změny. Uchovává se posledních 500."
-
-msgid "No M-Bus or BatiBus frames yet"
-msgstr "Zatím žádné rámce M-Bus ani BatiBus"
-
-msgid "Clear"
-msgstr "Vymazat"
-
-msgid "Time"
-msgstr "Čas"
-
-msgid "Direction"
-msgstr "Směr"
-
 msgid "Protocol"
 msgstr "Protokol"
-
-msgid "Service"
-msgstr "Služba"
-
-msgid "Data"
-msgstr "Data"
-
-msgid "Sent"
-msgstr "Odesláno"
-
-msgid "Received"
-msgstr "Přijato"
-
-msgid "Send"
-msgstr "Odeslat"
-
-msgid "{data} is not hexadecimal data (e.g. 44 AE 0C)."
-msgstr "{data} nejsou šestnáctková data (např. 44 AE 0C)."
-
-msgid "{service} is not a hexadecimal octet (00 to FF)."
-msgstr "{service} není šestnáctkový oktet (00 až FF)."
-
-msgid "The frame could not be sent: {error}"
-msgstr "Rámec se nepodařilo odeslat: {error}"
-
-msgid "Block Bus Writes is on (Settings > Connection): nothing is sent."
-msgstr "Blokovat zápisy na sběrnici je zapnuto (Nastavení > Připojení): nic se neodesílá."
 
 msgid "KNXnet/IP Server"
 msgstr "Server KNXnet/IP"
@@ -534,6 +489,3 @@ msgstr "Server KNXnet/IP se právě spouští nebo zastavuje."
 
 msgid "The KNXnet/IP server could not start: {error}"
 msgstr "Server KNXnet/IP se nepodařilo spustit: {error}"
-
-msgid "Enter the data to send (e.g. 44 AE 0C)."
-msgstr "Zadejte data k odeslání (např. 44 AE 0C)."

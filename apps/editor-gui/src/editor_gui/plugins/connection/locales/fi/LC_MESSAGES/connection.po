@@ -399,53 +399,8 @@ msgstr "Paikallisen laiteyhteyden kautta tavoitetaan vain USB-liitännän oma la
 msgid "Through local device access only the USB interface's own device {local} can be reached: scan from {local} to {local}."
 msgstr "Paikallisen laiteyhteyden kautta tavoitetaan vain USB-liitännän oma laite {local}: skannaa osoitteesta {local} osoitteeseen {local}."
 
-msgid "M-Bus and BatiBus Frames"
-msgstr "M-Bus- ja BatiBus-kehykset"
-
-msgid "The frames of the interface's M-Bus and BatiBus tunnels (e.g. of a KNX RF USB stick that also receives wireless M-Bus meters), passed through as they are. The last 500 are kept."
-msgstr "Liitännän M-Bus- ja BatiBus-tunneleiden kehykset (esim. KNX RF USB -tikulta, joka vastaanottaa myös langattomia M-Bus-mittareita) välitettyinä sellaisinaan. Viimeiset 500 säilytetään."
-
-msgid "No M-Bus or BatiBus frames yet"
-msgstr "Ei vielä M-Bus- tai BatiBus-kehyksiä"
-
-msgid "Clear"
-msgstr "Tyhjennä"
-
-msgid "Time"
-msgstr "Aika"
-
-msgid "Direction"
-msgstr "Suunta"
-
 msgid "Protocol"
 msgstr "Protokolla"
-
-msgid "Service"
-msgstr "Palvelu"
-
-msgid "Data"
-msgstr "Data"
-
-msgid "Sent"
-msgstr "Lähetetty"
-
-msgid "Received"
-msgstr "Vastaanotettu"
-
-msgid "Send"
-msgstr "Lähetä"
-
-msgid "{data} is not hexadecimal data (e.g. 44 AE 0C)."
-msgstr "{data} ei ole heksadesimaalidataa (esim. 44 AE 0C)."
-
-msgid "{service} is not a hexadecimal octet (00 to FF)."
-msgstr "{service} ei ole heksadesimaalinen oktetti (00–FF)."
-
-msgid "The frame could not be sent: {error}"
-msgstr "Kehystä ei voitu lähettää: {error}"
-
-msgid "Block Bus Writes is on (Settings > Connection): nothing is sent."
-msgstr "Estä kirjoitukset väylälle on päällä (Asetukset > Yhteys): mitään ei lähetetä."
 
 msgid "KNXnet/IP Server"
 msgstr "KNXnet/IP-palvelin"
@@ -532,6 +487,3 @@ msgstr "KNXnet/IP-palvelinta käynnistetään tai pysäytetään."
 
 msgid "The KNXnet/IP server could not start: {error}"
 msgstr "KNXnet/IP-palvelinta ei voitu käynnistää: {error}"
-
-msgid "Enter the data to send (e.g. 44 AE 0C)."
-msgstr "Anna lähetettävät tiedot (esim. 44 AE 0C)."
