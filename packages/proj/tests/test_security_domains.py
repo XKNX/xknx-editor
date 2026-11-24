@@ -235,3 +235,34 @@ def test_the_extent_and_the_proxies_at_its_edge() -> None:
     assert reached == {line1}
     assert proxies == []
     assert security.secured(100, line2) is False
+
+
+def test_the_local_domain_of_a_connection() -> None:
+    from types import SimpleNamespace
+
+    from xknxeditor.proj.core.ga_security import ProjectSecurity
+
+    rf_line, rf_other = 5, 6
+    segments = [
+        *_segments(line1_proxy=True),
+        SegmentInfo(
+            rf_line, 1, 1, 1, ip=False, proxied=True, rf=True, domain_address=7
+        ),
+        SegmentInfo(
+            rf_other, 1, 2, 1, ip=False, proxied=True, rf=True, domain_address=8
+        ),
+    ]
+    domains = Domains(segments)
+    security = SimpleNamespace(segments={s.id: s for s in segments}, domains=domains)
+
+    def local(address: int, rf: int | None = None) -> int | None:
+        return ProjectSecurity.local_domain(security, address, rf)  # type: ignore[arg-type]
+
+    # The main segment of the connection's line.
+    assert local(0x11FF) == domains.of_segment[LINE1]
+    assert local(0x12FF) == domains.of_segment[LINE2]
+    assert local(0x31FF) is None
+    # Through an RF interface: the RF segment with its domain address, its line's first.
+    assert local(0x11FF, 7) == domains.of_segment[rf_line]
+    assert local(0x31FF, 8) == domains.of_segment[rf_other]
+    assert local(0x11FF, 9) is None

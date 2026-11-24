@@ -8,6 +8,8 @@ import sqlite3
 from contextlib import closing
 from pathlib import Path
 
+import pytest
+
 from xknxeditor.proj import ProjectService
 from xknxeditor.proj.core.ga_security import SecurityContext, project_security
 from xknxeditor.proj.models import Device as DeviceRow
@@ -149,4 +151,147 @@ def test_no_entry_for_a_group_address_alike_on_both_sides(tmp_path: Path) -> Non
     plain = svc.create_group_address(pid, 0, 0x0803, "Unlinked")
     assert plain
     assert svc.security_proxy_table(pid, devices["proxy"], [0x0803]) == ([], [])
+    svc.close(pid)
+
+
+def test_secured_on_one_side_and_plain_on_the_other(tmp_path: Path) -> None:
+    svc, pid, devices = _project(tmp_path)
+    svc.set_security_context(pid, _Products())
+    # Secured behind the Security Proxy, in the clear on the sensor's line: a connection sends
+    # secured on line 2.1 only, in the clear where its line is unknown.
+    keys, secured = svc.connection_group_security(pid, 0x21FF)
+    assert set(keys) == {0x0801} and secured == {0x0801}
+    assert svc.connection_group_security(pid, 0x22FF)[1] == set()
+    assert svc.connection_group_security(pid, None)[1] == set()
+    ga_id = next(g.id for g in svc.group_addresses(pid) if g.address == 0x0801)
+    report = svc.group_address_security(pid, ga_id)
+    assert report["security"] == report["effective_security"] == "Auto"
+    assert report["forced_by"] is None
+    assert report["secured"] and report["state"] == "mixed"
+    assert not report["contradiction"]
+    states = {
+        tuple(s["line"] for s in d["segments"]): (d["state"], d["security_proxy"])
+        for d in report["domains"]
+    }
+    assert states == {("2.1",): ("secured", "2.1.0"), ("2.2",): ("plain", None)}
+    links = {
+        link["device_address"]: (link["device_secure"], link["sending"])
+        for link in report["group_objects"]
+    }
+    assert links == {"2.1.5": (True, True), "2.2.5": (False, True)}
+    by_address = {
+        link["device_address"]: link["domain"] for link in report["group_objects"]
+    }
+    assert by_address["2.1.5"] != by_address["2.2.5"]
+    assert report["bus_interfaces"] == []
+    # Only the actuator sends it secured: the sensor's line has it in the clear.
+    [candidate] = svc.secure_sender_candidates(pid, 0x0801)
+    assert (candidate.device_id, candidate.address) == (devices["actuator"], 0x2105)
+    assert not candidate.rf and not candidate.individual_address_loaded
+    assert svc.secure_sender_candidates(pid, 0x0803) == []
+    # A device on a KNX IoT segment sends nothing for a connection.
+    from xknxeditor.proj.core.medium import MEDIUM_IOT
+
+    session = svc._state(pid).session  # pyright: ignore[reportPrivateUsage]
+    segment = session.get(DeviceRow, devices["actuator"]).segment  # type: ignore[union-attr]
+    medium, segment.medium_type = segment.medium_type, MEDIUM_IOT
+    assert svc.secure_sender_candidates(pid, 0x0801) == []
+    segment.medium_type = medium
+    session.flush()
+    # Without the sensor it is secured wherever it is used: sent secured from anywhere.
+    svc.remove_device(pid, devices["sensor"])
+    assert svc.connection_group_security(pid, None)[1] == {0x0801}
+    assert svc.group_address_security(pid, ga_id)["state"] == "secure"
+    svc.close(pid)
+
+
+def test_plain_in_its_only_domain(tmp_path: Path) -> None:
+    svc, pid, _devices = _project(tmp_path)
+    # One domain: the sensor commissioned in the clear keeps the group address in the clear;
+    # it has no key either.
+    assert svc.connection_group_security(pid, 0x2101) == ({}, set())
+    ga_id = next(g.id for g in svc.group_addresses(pid) if g.address == 0x0801)
+    report = svc.group_address_security(pid, ga_id)
+    assert not report["secured"] and report["state"] == "plain"
+    assert [d["state"] for d in report["domains"]] == ["plain"]
+    with pytest.raises(KeyError):
+        svc.group_address_security(pid, ga_id + 100)
+    # Linked nowhere, it takes part in no domain and is sent in the clear.
+    unlinked = svc.create_group_address(pid, 0, 0x0803, "Unlinked")
+    assert svc.group_address_security(pid, unlinked)["state"] == "none"
+    assert svc.group_address_security(pid, unlinked)["domains"] == []
+    svc.close(pid)
+
+
+def test_a_secured_bus_interface_on_a_line_of_its_own(tmp_path: Path) -> None:
+    """The layout of issue #334: a sensor commissioned in the clear on line 2.2, whose coupler is
+    not in the project, and a secured bus interface on line 2.1 the group address is assigned
+    to."""
+    from sqlalchemy.orm import Session
+
+    from xknxeditor.proj.db import make_engine, url_for
+    from xknxeditor.proj.models import GroupAddress
+
+    svc, pid, devices = _project(tmp_path)
+    for name in ("actuator", "coupler"):
+        svc.remove_device(pid, devices[name])
+    path = tmp_path / "p.xknx"
+    svc.close(pid)
+    engine = make_engine(url_for(path))
+    try:
+        with Session(engine) as session:
+            for ga in session.query(GroupAddress):
+                ga.source_id = f"P-DOM-0_GA-{ga.address}"
+            device = session.get(DeviceRow, devices["proxy"])
+            assert device is not None
+            device.extra_subtrees = {
+                **(device.extra_subtrees or {}),
+                "BusInterfaces": '<BusInterfaces><BusInterface RefId="M-1_A-1_BI-1">'
+                '<Connectors><Connector GroupAddressRefId="P-DOM-0_GA-2049" />'
+                "</Connectors></BusInterface></BusInterfaces>",
+            }
+            session.commit()
+    finally:
+        engine.dispose()
+    pid = svc.open(path, _PASSWORD)
+    # Secured on the interface's side, in the clear on the sensor's: sent secured from the
+    # interface's line only.
+    keys, secured = svc.connection_group_security(pid, 0x21FF)
+    assert set(keys) == {0x0801} and secured == {0x0801}
+    assert svc.connection_group_security(pid, 0x22FF)[1] == set()
+    ga_id = next(g.id for g in svc.group_addresses(pid) if g.address == 0x0801)
+    report = svc.group_address_security(pid, ga_id)
+    assert report["secured"] and report["state"] == "mixed"
+    assert [
+        (link["device_address"], link["secure"]) for link in report["bus_interfaces"]
+    ] == [("2.1.0", True)]
+    assert [link["device_address"] for link in report["group_objects"]] == ["2.2.5"]
+    states = {
+        segment["line"]: d["state"]
+        for d in report["domains"]
+        for segment in d["segments"]
+    }
+    assert states == {"2.1": "secured", "2.2": "plain"}
+
+    # An internal bus interface is secured as the application supports security, whatever its
+    # own flag says: one of an application without security keeps it in the clear.
+    class _Internal(SecurityContext):
+        def interface_secure(
+            self, device: DeviceRow, ref_id: str, stored: bool
+        ) -> bool:
+            assert ref_id == "M-1_A-1_BI-1" and stored
+            return False
+
+    svc.set_security_context(pid, _Internal())
+    assert svc.group_address_security(pid, ga_id)["state"] == "plain"
+    svc.set_security_context(pid, None)
+    # Forced off, it is in the clear everywhere; its key stays, to decrypt what still comes
+    # secured.
+    svc.set_group_address_security(pid, ga_id, "Off")
+    keys, secured = svc.connection_group_security(pid, 0x21FF)
+    assert set(keys) == {0x0801} and secured == set()
+    report = svc.group_address_security(pid, ga_id)
+    assert report["effective_security"] == "Off" and not report["secured"]
+    assert report["state"] == "plain"
+    assert {d["state"] for d in report["domains"]} == {"plain"}
     svc.close(pid)

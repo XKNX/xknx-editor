@@ -22,6 +22,7 @@ from __future__ import annotations
 import xml.etree.ElementTree as ET
 from collections import defaultdict
 from collections.abc import Callable, Iterable
+from typing import Any
 
 from sqlalchemy import event
 from sqlalchemy.orm import Session
@@ -37,8 +38,9 @@ from ..models import (
     Segment,
 )
 from . import ip_secure
-from .medium import MEDIUM_IP
+from .medium import MEDIUM_IP, MEDIUM_RF
 from .security_domains import (
+    PLAIN,
     SECURE,
     Domains,
     GroupSecurity,
@@ -174,6 +176,12 @@ class SecurityContext:
         """The address index of the device's bus interface (0: the device's own address)."""
         return 0
 
+    def interface_secure(self, device: Device, ref_id: str, stored: bool) -> bool:
+        """Whether the device's bus interface is secured, ``stored`` being its
+        ``@IsSecureEnabled``: an internal one of the application is secured when the
+        application supports security, any other as stored."""
+        return stored
+
 
 class ProjectSecurity:
     """The security domains of a project and where its group addresses are secured in them."""
@@ -187,7 +195,8 @@ class ProjectSecurity:
         self.commissioned = commissioned_devices(session)
         devices = session.query(Device).all()
         self.devices = {d.id: d for d in devices}
-        self.domains = Domains(self._segments(session, devices))
+        self.segments = {s.id: s for s in self._segments(session, devices)}
+        self.domains = Domains(self.segments.values())
         self._objects: dict[int, list[ObjectLink]] = defaultdict(list)
         self._linked: dict[int, set[int]] = defaultdict(set)
         # Every link: (com object id, device id, group address id, sending).
@@ -275,6 +284,8 @@ class ProjectSecurity:
                     ip=ip,
                     proxied=proxied,
                     coupler=coupler.id if coupler is not None else None,
+                    rf=segment.medium_type == MEDIUM_RF,
+                    domain_address=segment.domain_address,
                 )
             )
         return infos
@@ -303,9 +314,11 @@ class ProjectSecurity:
                 index = self.context.interface_index(device, element.get("RefId", ""))
                 if index != 0 and index not in addressed:
                     continue
-                secure = element.get("IsSecureEnabled", "true").lower() not in (
-                    "false",
-                    "0",
+                secure = self.context.interface_secure(
+                    device,
+                    element.get("RefId", ""),
+                    element.get("IsSecureEnabled", "true").lower()
+                    not in ("false", "0"),
                 )
                 for connector in element.iter("Connector"):
                     ref = connector.get("GroupAddressRefId")
@@ -326,6 +339,69 @@ class ProjectSecurity:
             return SECURE in self.security.states(ga_id).values()
         except SecurityContradiction:
             return self._contradicted(ga_id)
+
+    def state(self, ga_id: int) -> str:
+        """The security state of the group address over all domains: ``"secure"`` (secured in
+        every domain it takes part in), ``"plain"`` (in the clear in all of them), ``"mixed"``
+        (secured in some, in the clear in others) or ``"none"`` (``Auto`` and taking part in no
+        domain)."""
+        mode = self.modes.get(ga_id)
+        if mode == "On":
+            return "secure"
+        if mode not in AUTO_MODES:
+            return "plain"
+        try:
+            states = set(self.security.states(ga_id).values())
+        except SecurityContradiction:
+            return "secure" if self._contradicted(ga_id) else "plain"
+        if not states:
+            return "none"
+        if SECURE not in states:
+            return "plain"
+        return "mixed" if PLAIN in states else "secure"
+
+    def local_domain(
+        self, local_address: int, rf_domain_address: int | None = None
+    ) -> int | None:
+        """The domain of a connection with the individual address ``local_address`` (raw): of
+        the main segment of its line, or, through an RF interface with ``rf_domain_address``,
+        of the RF segment with that domain address (its line's first, else any); None when the
+        project lacks it."""
+        area, line = local_address >> 12, (local_address >> 8) & 0x0F
+        segments = sorted(self.segments.values(), key=lambda s: (s.number, s.id))
+        if rf_domain_address is not None:
+            on_rf = [
+                s for s in segments if s.rf and s.domain_address == rf_domain_address
+            ]
+            found = next(
+                (s for s in on_rf if (s.area, s.line) == (area, line)),
+                on_rf[0] if on_rf else None,
+            )
+        else:
+            found = next(
+                (
+                    s
+                    for s in segments
+                    if (s.area, s.line) == (area, line) and s.number == 0
+                ),
+                None,
+            )
+        return None if found is None else self.domains.of_segment.get(found.id)
+
+    def sent_secured(self, ga_id: int, local_domain: int | None) -> bool:
+        """Whether a connection in ``local_domain`` sends on the group address secured: when it
+        is secured in every domain it takes part in, or, secured in some only, when it is
+        secured in ``local_domain`` (in the clear when that is unknown or it takes no part
+        there)."""
+        state = self.state(ga_id)
+        if state == "secure":
+            return True
+        if state != "mixed" or local_domain is None:
+            return False
+        try:
+            return self.security.secured(ga_id, local_domain) is True
+        except SecurityContradiction:
+            return False
 
     def _contradicted(self, ga_id: int) -> bool:
         """Links that contradict each other: the group address is decided as if the project
@@ -421,6 +497,100 @@ def project_security(session: Session) -> ProjectSecurity:
     result = ProjectSecurity(session)
     session.info[_CACHE_KEY] = result
     return result
+
+
+def group_address_security(session: Session, ga_id: int) -> dict[str, Any]:
+    """Why a group address is secured or in the clear: its own and its effective Security mode
+    (``"Auto"``, ``"On"``, ``"Off"``), the group forcing it (id or None), whether it is secured
+    in at least one domain (``secured``), its state over all domains (``state``, see
+    :meth:`ProjectSecurity.state`), whether its links contradict each other (``contradiction``: then
+    decided as if the project had a single domain), the domains it takes part in
+    (``domains``: index, the domain above, its segments as line and segment number, its
+    Security Proxy, ``state`` "secured" or "plain"), and its links: the group objects
+    (``group_objects``: com object id, device id and address, sending, whether the device is
+    commissioned securely, domain) and the bus interfaces it is assigned to
+    (``bus_interfaces``: device id and address, whether the interface is secured, domain).
+    KeyError for an unknown id."""
+    ga = session.get(GroupAddress, ga_id)
+    if ga is None:
+        raise KeyError(f"No group address with id {ga_id}")
+    security = project_security(session)
+    mode = security.modes.get(ga_id)
+    forcing = forcing_range(ga.group_range)
+
+    def address(device: Device) -> str | None:
+        segment = security.segments.get(device.segment_id or -1)
+        if segment is None or device.address is None:
+            return None
+        return f"{segment.area}.{segment.line}.{device.address}"
+
+    group_objects: list[dict[str, Any]] = [
+        {
+            "com_object_id": com_object_id,
+            "device_id": device_id,
+            "device_address": address(device) if device is not None else None,
+            "sending": sending,
+            "device_secure": device_id in security.commissioned,
+            "domain": security.domain_of(device_id),
+        }
+        for com_object_id, device_id, linked, sending in security.links
+        if linked == ga_id
+        for device in [security.devices.get(device_id)]
+    ]
+    bus_interfaces: list[dict[str, Any]] = [
+        {
+            "device_id": device.id,
+            "device_address": address(device),
+            "secure": link.secure,
+            "domain": security.domains.of_segment.get(link.segment)
+            if link.segment is not None
+            else None,
+        }
+        for link, device in security.interfaces.get(ga_id, [])
+    ]
+    contradiction = False
+    states: dict[int, bool] = {}
+    if mode in AUTO_MODES:
+        try:
+            states = {
+                domain: state == SECURE
+                for domain, state in security.security.states(ga_id).items()
+            }
+        except SecurityContradiction:
+            contradiction = True
+    else:
+        touched = [link["domain"] for link in [*group_objects, *bus_interfaces]]
+        states = {domain: mode == "On" for domain in touched if domain is not None}
+    domains: list[dict[str, Any]] = []
+    for index in sorted(states):
+        domain = security.domains.domains[index]
+        proxy = security.devices.get(domain.proxy) if domain.proxy is not None else None
+        domains.append(
+            {
+                "index": index,
+                "above": domain.parent,
+                "segments": [
+                    {
+                        "line": f"{security.segments[s].area}.{security.segments[s].line}",
+                        "segment": security.segments[s].number,
+                    }
+                    for s in domain.segments
+                ],
+                "security_proxy": address(proxy) if proxy is not None else None,
+                "state": "secured" if states[index] else "plain",
+            }
+        )
+    return {
+        "security": ga.security_mode or "Auto",
+        "effective_security": mode or "Auto",
+        "forced_by": forcing.id if forcing is not None else None,
+        "secured": ga_id in security.secured_anywhere,
+        "state": security.state(ga_id),
+        "contradiction": contradiction,
+        "domains": domains,
+        "group_objects": group_objects,
+        "bus_interfaces": bus_interfaces,
+    }
 
 
 def set_security_context(session: Session, context: SecurityContext | None) -> None:

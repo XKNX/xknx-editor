@@ -1,4 +1,5 @@
-"""MCP: nothing is sent to a protected group address (Settings > Connection)."""
+"""MCP: nothing is sent to a protected group address (Settings > Connection), nor to a secured
+one no device can send."""
 
 from __future__ import annotations
 
@@ -37,3 +38,29 @@ async def test_a_protected_group_address_is_refused(tmp_path: Path) -> None:
         assert sent == ["1/0/1"]
     finally:
         set_protected([])
+
+
+async def test_a_secured_group_address_without_a_device_to_send_it(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    ctx = _build_ctx(tmp_path)
+    sent: list[str] = []
+    ctx.monitor.send_elsewhere = lambda address, _apci: sent.append(address) or True
+    ctx.monitor.elsewhere_available = lambda: True
+    refused = "No suitable device available for sending this secure group value write"
+    monkeypatch.setattr(
+        ctx.monitor,
+        "secure_sender_refusal",
+        lambda address, *, write: refused if address == "1/0/1" else "",
+    )
+    mcp = build_server(ctx)
+    async with Client(mcp) as client:
+        for tool, args in (
+            ("monitor_send_read", {"address": "1/0/1"}),
+            ("monitor_read_value", {"address": "1/0/1", "timeout": 5.0}),
+            ("monitor_send_write", {"address": "1/0/1", "value": "1", "dpt": "1.001"}),
+        ):
+            with pytest.raises(Exception, match="No suitable device available"):
+                await client.call_tool(tool, args)
+        await client.call_tool("monitor_send_read", {"address": "1/0/2"})
+    assert sent == ["1/0/2"]

@@ -17,9 +17,10 @@ from .test_delete_product import _fixture
 
 
 def _vd_zip() -> bytes:
+    """The same bytes on every call: the entry has a fixed time, not the current one."""
     buffer = io.BytesIO()
     with zipfile.ZipFile(buffer, "w") as zf:
-        zf.writestr("Ets/ets.vd_", "EX-IM\r\n")
+        zf.writestr(zipfile.ZipInfo("Ets/ets.vd_", (2026, 1, 1, 0, 0, 0)), "EX-IM\r\n")
     return buffer.getvalue()
 
 

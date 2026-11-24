@@ -56,6 +56,9 @@ class SegmentInfo:
     proxied: bool
     # The coupler feeding the segment (a device id), if the project has one.
     coupler: int | None = None
+    # Whether its medium is RF, and its domain address (RF/PL), if it has one.
+    rf: bool = False
+    domain_address: int | None = None
 
 
 @dataclass(frozen=True)

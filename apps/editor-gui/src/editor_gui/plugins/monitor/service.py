@@ -562,6 +562,14 @@ class MonitorService:
         it may: it is a protected group address (Settings > Connection)."""
         return protected_reason(address)
 
+    def secure_sender_refusal(self, address: str, *, write: bool) -> str:
+        """Why a group write (``write``) or read to ``address`` is not sent through the editor's
+        connection, "" when it is: it is sent secured by a device that sends on it, and none
+        can."""
+        if not self.is_connected():
+            return ""
+        return self._connection.secure_sender_refusal(address, write=write)
+
     def local_device_reason(self) -> str:
         """Why no group telegram is sent through the editor's connection, "" when they are:
         it reaches only a USB interface's own device (local device access)."""
@@ -602,6 +610,13 @@ class MonitorService:
             return False
         # Through the editor's own connection to a USB interface's own device, none is sent.
         if self._connection.local_device_refused("group telegram", reaches="group"):
+            return False
+        # One the connection sends secured goes through a device that sends on it; none is sent
+        # when no device can.
+        if reason := self.secure_sender_refusal(
+            address, write=isinstance(payload, GroupValueWrite)
+        ):
+            self._warn("not sent", address=address, reason=reason)
             return False
         # Without a connection of its own: through another program's (Home Assistant's), which
         # shows the telegram as its own (see on_foreign_cemi).

@@ -104,6 +104,13 @@ class LinkInfo:
 # device info readout, a parameter script, a restart, a master reset, a DALI run): the user sees
 # its failure there, so it raises no toast (``widgets.toasts.log_toast``).
 SHOWN_IN_OPERATIONS = "operations"
+# Logged when no device can send a group telegram the connection sends secured.
+NO_SECURE_SENDER_FOR_WRITE = (
+    "No suitable device available for sending this secure group value write"
+)
+NO_SECURE_SENDER_FOR_READ = (
+    "No suitable device available for sending this secure group value read"
+)
 
 
 class DeviceCertificateRequired(Exception):
@@ -334,14 +341,25 @@ class ConnectionService:
         # maximum APDU length only of couplers on the route that the project has.
         self.project_device: Callable[[str], object | None] | None = None
         # The open project's KNX IP Secure tunnels of an interface (by its individual address),
-        # its routing backbone ``(key, latency ms)`` and its Data Secure tables ``(group keys,
-        # senders with their last valid Sequence Number)``; they take precedence over the keyring.
+        # its routing backbone ``(key, latency ms)`` and its Data Secure tables for a connection
+        # with an individual address (raw, None when unknown), through an RF interface with a
+        # domain address (else None): ``(group keys, senders with their last valid Sequence
+        # Number, group addresses sent secured)``; they take precedence over the keyring.
         self.project_tunnels: Callable[[str], list[SecureTunnel]] | None = None
         self.project_backbone: Callable[[], tuple[bytes, int] | None] | None = None
         self._group_keys: dict[int, bytes] = {}
+        # The domain address of the RF interface the connection's Data Secure was last built for.
+        self._data_secure_rf_domain: int | None = None
         self.project_data_secure: (
-            Callable[[], tuple[dict[int, bytes], dict[int, int]] | None] | None
+            Callable[
+                [int | None, int | None],
+                tuple[dict[int, bytes], dict[int, int], set[int]] | None,
+            ]
+            | None
         ) = None
+        # The device that sends a group read or write (True) on a secured group address (raw)
+        # for the connection (see ProjectService.secure_group_sender).
+        self.project_secure_sender: Callable[[int, bool], Device | None] | None = None
         # Download individual addresses by serial number when the device's is known.
         self.use_serial_number = True
         # Current point-to-point bus operation, so the UI can show a
@@ -887,13 +905,111 @@ class ConnectionService:
     def send_group_telegram(
         self, address: str, payload: GroupValueRead | GroupValueWrite
     ) -> Future[Any] | None:
-        """Send a group read or write to ``address`` (e.g. ``1/2/3``)."""
+        """Send a group read or write to ``address`` (e.g. ``1/2/3``). One the connection sends
+        secured goes through a device commissioned securely that sends on it (see
+        :meth:`_send_through_device`)."""
+        if self._sent_secured(address):
+            return self._send_through_device(address, payload)
         telegram = Telegram(destination_address=GroupAddress(address), payload=payload)
         frame = CEMIFrame(
             code=CEMIMessageCode.L_DATA_REQ,
             data=CEMILData.init_from_telegram(telegram),
         )
         return self.send_cemi(frame.to_knx())
+
+    def _sent_secured(self, address: str) -> bool:
+        """Whether a device sends the open connection's group telegrams to the group address
+        secured (see :meth:`data_secure`)."""
+        from .group_security import ConnectionDataSecure
+
+        if self._xknx is None:
+            return False
+        data_secure = self._xknx.cemi_handler.data_secure
+        return (
+            isinstance(data_secure, ConnectionDataSecure)
+            and data_secure.via_device
+            and GroupAddress(address) in data_secure.sent_secured
+        )
+
+    def secure_sender_refusal(self, address: str, *, write: bool) -> str:
+        """Why a group write (``write``) or read to ``address`` is not sent, "" when it is: the
+        connection sends it secured, but no device can send it (see
+        :meth:`_send_through_device`)."""
+        if not self._sent_secured(address):
+            return ""
+        device = self._secure_sender(address, write)
+        if device is not None and device.individual_address:
+            return ""
+        return NO_SECURE_SENDER_FOR_WRITE if write else NO_SECURE_SENDER_FOR_READ
+
+    def _secure_sender(self, address: str, write: bool) -> Device | None:
+        if self.project_secure_sender is None:
+            return None
+        return self.project_secure_sender(GroupAddress(address).raw, write)
+
+    def _send_through_device(
+        self, address: str, payload: GroupValueRead | GroupValueWrite
+    ) -> Future[Any] | None:
+        """Have the device that suits best (``project_secure_sender``) send a group read or
+        write secured, with Group Object Diagnostics: it holds the key and a Sequence Number
+        its receivers know. Nothing is sent when no device suits."""
+        from xknx.telegram import IndividualAddress
+
+        from xknxeditor.download.group_object_diagnostics import (
+            read_command,
+            send_command,
+            write_command,
+        )
+
+        write = isinstance(payload, GroupValueWrite)
+        raw = GroupAddress(address).raw
+        device = self._secure_sender(address, write)
+        if device is None or not device.individual_address:
+            self._log.error(
+                NO_SECURE_SENDER_FOR_WRITE if write else NO_SECURE_SENDER_FOR_READ,
+                address=address,
+            )
+            return None
+        command = (
+            write_command(raw, payload.value)
+            if isinstance(payload, GroupValueWrite)
+            else read_command(raw)
+        )
+        future = self.run_async(
+            send_command(
+                self._connected_xknx,
+                IndividualAddress(device.individual_address),
+                self._security_for(device),
+                command,
+            )
+        )
+        if future is not None:
+            future.add_done_callback(
+                functools.partial(
+                    self._log_device_send_result,
+                    address=address,
+                    sender=device.individual_address,
+                )
+            )
+        return future
+
+    def _log_device_send_result(
+        self, future: Future[Any], *, address: str, sender: str
+    ) -> None:
+        if future.cancelled():
+            return
+        exc = future.exception()
+        if exc is not None:
+            self._log.error(
+                "Secured group telegram not sent",
+                address=address,
+                sender=sender,
+                error=str(exc),
+            )
+        else:
+            self._log.debug(
+                "Secured group telegram sent", address=address, sender=sender
+            )
 
     def _log_send_cemi_result(self, future: Future[Any]) -> None:
         if future.cancelled():
@@ -1269,28 +1385,51 @@ class ConnectionService:
                 backbone = (key, 2000)
         return backbone
 
-    def data_secure(self) -> DataSecure | None:
-        """KNX Data Secure for the group communication of the open connection: the keys of the
-        secured group addresses and their senders, from the project, else from the loaded
-        keyring; ``None`` without any."""
-        from xknx.secure.data_secure import DataSecure
+    def data_secure(
+        self, local_address: int | None = None, rf_domain_address: int | None = None
+    ) -> DataSecure | None:
+        """KNX Data Secure for the group communication of the open connection, whose individual
+        address is ``local_address`` (raw; None when unknown), through an RF interface with
+        ``rf_domain_address`` (else None): the group keys and the senders,
+        from the project, else from the loaded keyring; ``None`` without any keys. Plain
+        telegrams are always taken, secured ones decrypted with any key there is. On the group
+        addresses the project secures where the connection is, a device sending on them sends
+        its group telegrams secured (see :meth:`send_group_telegram`); with only a keyring, the
+        connection secures them itself on all it has keys for (see
+        :class:`~.group_security.ConnectionDataSecure`)."""
         from xknx.telegram import GroupAddress, IndividualAddress
 
+        from .group_security import ConnectionDataSecure
+
+        self._data_secure_rf_domain = rf_domain_address
         tables = (
-            self.project_data_secure() if self.project_data_secure is not None else None
+            self.project_data_secure(local_address, rf_domain_address)
+            if self.project_data_secure is not None
+            else None
         )
-        if not tables and self.keyring is not None:
-            tables = self.keyring.data_secure_tables()
-        if not tables or not tables[0]:
+        via_device = bool(tables)
+        if tables:
+            group_keys, senders, secured = tables
+        else:
+            ring = (
+                self.keyring.data_secure_tables() if self.keyring is not None else None
+            )
+            if not ring:
+                self._group_keys = {}
+                return None
+            group_keys, senders = ring
+            secured = set(group_keys)
+        if not group_keys:
             self._group_keys = {}
             return None
-        group_keys, senders = tables
         self._group_keys = dict(group_keys)
-        return DataSecure(
+        return ConnectionDataSecure(
             group_key_table={GroupAddress(raw): key for raw, key in group_keys.items()},
             individual_address_table={
                 IndividualAddress(raw): sequence for raw, sequence in senders.items()
             },
+            sent_secured={GroupAddress(raw) for raw in secured},
+            via_device=via_device,
         )
 
     def secure_group_keys(self) -> dict[int, bytes]:
@@ -1303,7 +1442,9 @@ class ConnectionService:
         runs: a secured download hooks into the same place)."""
         if self._xknx is None or self.busy_operation is not None:
             return
-        self._xknx.cemi_handler.data_secure = self.data_secure()
+        self._xknx.cemi_handler.data_secure = self.data_secure(
+            self._xknx.current_address.raw, self._data_secure_rf_domain
+        )
 
     @_connects("program_device")
     def program_device(

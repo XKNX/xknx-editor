@@ -171,6 +171,7 @@ from xknxeditor.proj.core.ga_security import (
     effective_mode,
     exports_key,
     forcing_range,
+    group_address_security,
     is_secured,
     linked_devices,
     project_security,
@@ -192,8 +193,10 @@ from xknxeditor.proj.core.manufacturer_xml import (
 from xknxeditor.proj.core.medium import (
     MAX_LINES,
     MAX_SEGMENTS,
+    MEDIUM_IOT,
     MEDIUM_IP,
     MEDIUM_NAMES,
+    MEDIUM_RF,
     MEDIUM_TP,
     LineView,
     MediumError,
@@ -613,6 +616,21 @@ class LinkInfo:
     com_object_id: int
     group_address_id: int
     is_sending: bool
+
+
+@dataclass(frozen=True)
+class SecureSenderCandidate:
+    """A group object that can send a secured group address for a connection (see
+    :meth:`ProjectService.secure_sender_candidates`): its device (id and raw individual
+    address), whether the device's individual address and application are downloaded, and
+    whether it is on an RF segment."""
+
+    device_id: int
+    com_object_id: int
+    address: int
+    individual_address_loaded: bool
+    application_program_loaded: bool
+    rf: bool
 
 
 @dataclass(frozen=True)
@@ -3217,6 +3235,84 @@ class ProjectService:
             state.session.commit()
         return keys
 
+    def connection_group_security(
+        self,
+        project_id: str,
+        local_address: int | None,
+        rf_domain_address: int | None = None,
+    ) -> tuple[dict[int, bytes], set[int]]:
+        """KNX Data Secure of a connection to the bus: the key of every group address that has
+        one (raw address -> 16 octets; a secured one without a key yet gets one, see
+        :meth:`secured_group_keys`), to decrypt what is received, and the group addresses (raw)
+        it sends secured: those secured in every security domain they take part in and, of
+        those secured in some domains only, the ones secured in the domain of the connection's
+        line (``local_address``: its raw individual address; None when unknown, then they are
+        sent in the clear), or of its RF segment through an RF interface with
+        ``rf_domain_address`` (see :meth:`.ga_security.ProjectSecurity.local_domain`)."""
+        keys = self.group_keys(project_id)
+        state = self._state(project_id)
+        security = project_security(state.session)
+        local_domain = (
+            security.local_domain(local_address, rf_domain_address)
+            if local_address is not None
+            else None
+        )
+        secured = {
+            address
+            for ga_id, address in state.session.query(
+                GroupAddress.id, GroupAddress.address
+            )
+            if security.sent_secured(ga_id, local_domain)
+        }
+        return keys, secured & set(keys)
+
+    def secure_sender_candidates(
+        self, project_id: str, group_address: int
+    ) -> list[SecureSenderCandidate]:
+        """The group objects that can send a group address (raw) secured for a connection: those
+        linked to it as sending, in link order, of devices with an individual address (not on
+        a KNX IoT segment) in a security domain where it is secured."""
+        state = self._state(project_id)
+        security = project_security(state.session)
+        rows = (
+            state.session.query(ComObjectLink, ComObject.device_id)
+            .join(ComObject, ComObject.id == ComObjectLink.com_object_id)
+            .join(GroupAddress, GroupAddress.id == ComObjectLink.group_address_id)
+            .filter(GroupAddress.address == group_address, ComObjectLink.is_sending)
+            .order_by(ComObjectLink.id)
+            .all()
+        )
+        candidates: list[SecureSenderCandidate] = []
+        for link, device_id in rows:
+            device = security.devices.get(device_id)
+            if device is None or device.address is None or device.segment is None:
+                continue
+            if device.segment.medium_type == MEDIUM_IOT:
+                continue
+            if not security.secured_for(device_id, link.group_address_id):
+                continue
+            line = device.segment.line
+            candidates.append(
+                SecureSenderCandidate(
+                    device_id=device_id,
+                    com_object_id=link.com_object_id,
+                    address=(line.area.address << 12)
+                    | (line.address << 8)
+                    | device.address,
+                    individual_address_loaded=device.individual_address_loaded,
+                    application_program_loaded=device.application_program_loaded,
+                    rf=device.segment.medium_type == MEDIUM_RF,
+                )
+            )
+        return candidates
+
+    def group_address_security(
+        self, project_id: str, group_address_id: int
+    ) -> dict[str, Any]:
+        """Why a group address is secured or in the clear, per security domain (see
+        :func:`~xknxeditor.proj.core.ga_security.group_address_security`)."""
+        return group_address_security(self._state(project_id).session, group_address_id)
+
     def device_sequence_number(self, project_id: str, device_id: int) -> int | None:
         """The device's next Sequence Number Sending as last read (``None`` when unknown)."""
         device = self._state(project_id).session.get(Device, device_id)
@@ -3252,35 +3348,6 @@ class ProjectService:
             address = (line.area.address << 12) | (line.address << 8) | device.address
             senders[address] = _last_valid_sequence_number(device)
         return senders
-
-    def group_address_senders(
-        self,
-        project_id: str,
-        address: int,
-        can_send: Callable[[int], bool] | None = None,
-    ) -> list[int]:
-        """The individual addresses (raw) of the devices that can send on a group address (see
-        :meth:`group_security`), sorted."""
-        session = self._state(project_id).session
-        rows = (
-            session.query(Device, ComObject.id)
-            .join(ComObject, ComObject.device_id == Device.id)
-            .join(ComObjectLink, ComObjectLink.com_object_id == ComObject.id)
-            .join(GroupAddress, GroupAddress.id == ComObjectLink.group_address_id)
-            .filter(GroupAddress.address == address)
-            .all()
-        )
-        senders: set[int] = set()
-        for device, com_object_id in rows:
-            if device.address is None or device.segment is None:
-                continue
-            if can_send is not None and not can_send(com_object_id):
-                continue
-            line = device.segment.line
-            senders.add(
-                (line.area.address << 12) | (line.address << 8) | device.address
-            )
-        return sorted(senders)
 
     def bus_interface_group_addresses(
         self, project_id: str, device_id: int
@@ -3890,6 +3957,63 @@ class ProjectService:
         if created:
             session.commit()
         return keys, sorted(senders.items())
+
+    def tunnel_group_addresses(
+        self,
+        project_id: str,
+        device_id: int,
+        tunnel: int,
+        group_addresses: Iterable[int],
+        can_send: Callable[[int], bool] | None = None,
+        tunnel_senders: Mapping[int, Sequence[tuple[int, int]]] | None = None,
+    ) -> dict[int, list[int]]:
+        """The group addresses (raw) of a tunnel of the device, with tunnelling address
+        ``tunnel`` (raw), for a keyring: of those assigned to it (``group_addresses``) that are
+        not set to ``Off``, the ones secured in the device's security domain, each with who may
+        send on it there (raw individual addresses, sorted; see :meth:`group_security`), the
+        tunnel itself not."""
+        state = self._state(project_id)
+        security = project_security(state.session)
+        domain = security.domain_of(device_id)
+        wanted = set(group_addresses)
+        result: dict[int, list[int]] = {}
+        if domain is None or not wanted:
+            return result
+        for ga_id, address, mode in state.session.query(
+            GroupAddress.id, GroupAddress.address, GroupAddress.security_mode
+        ).filter(GroupAddress.address.in_(wanted)):
+            if mode == "Off" or not security.secured_in(ga_id, domain):
+                continue
+            senders: dict[int, int] = {}
+            self._add_senders(
+                senders,
+                security,
+                (ga_id, address, domain, None),
+                -1,
+                can_send,
+                tunnel_senders,
+            )
+            senders.pop(tunnel, None)
+            result[address] = sorted(senders)
+        return result
+
+    def group_keys(self, project_id: str) -> dict[int, bytes]:
+        """The key of every group address that has one (raw address -> 16 octets), a secured
+        one without a key yet getting one (see :meth:`secured_group_keys`)."""
+        keys = self.secured_group_keys(project_id)
+        state = self._state(project_id)
+        for ga in state.session.query(GroupAddress).filter(
+            GroupAddress.security_key.is_not(None)
+        ):
+            if ga.address in keys:
+                continue
+            value = ga.security_key
+            if state.cipher is not None:
+                value = state.cipher.value(value)
+            key = _key(value)
+            if key is not None:
+                keys[ga.address] = key
+        return keys
 
     def security_proxy_table(
         self,

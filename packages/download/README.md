@@ -74,6 +74,14 @@ decrypts a `.knxkeys` file and returns the `DeviceSecurity` for the device, and
 loaded keyring. Decryption uses xknx's keyring loader. Wiring this into the GUI is
 not part of this package yet.
 
+## Group telegrams through a device
+
+`group_object_diagnostics` makes a device send an A_GroupValue_Write or A_GroupValue_Read itself,
+secured with its own Sequence Number and group key (`PID_GO_DIAGNOSTICS` of the Group Object Table
+Object, 03_05_01 Resources §4.8.1): `write_command` / `read_command` build the command,
+`send_command` gives it to the device connectionless, with its Tool Key when it has one. A tool
+uses it for a secured group address, as the receivers know the device as a sender, not the tool.
+
 ## Group communication tables
 
 A full, application, or group-communication download writes the three tables that link a
