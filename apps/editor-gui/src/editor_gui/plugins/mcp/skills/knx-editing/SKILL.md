@@ -79,7 +79,9 @@ instructions.
    ```
 
    `is_sending` belongs to the object: it marks which of the object's group addresses it sends
-   to. Several push-buttons switching the same light each send to that group address.
+   to. A linked object always sends on exactly one: its first link does, whatever `is_sending`
+   says, and `is_sending=true` on a later link moves it there. Several push-buttons switching the
+   same light each send to that group address.
 
 5. Commission it: connect, press the device's programming button, write its address, then
    download it completely. Do not preview a device that was never programmed — the preview

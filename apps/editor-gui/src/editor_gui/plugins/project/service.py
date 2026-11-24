@@ -3574,7 +3574,10 @@ class ProjectService:
         download flow and the embedded MCP server so both program identical address/association data.
         """
         from xknxeditor.download import GroupCommunication
-        from xknxeditor.download.project_data import GroupObjectLink
+        from xknxeditor.download.project_data import (
+            GroupObjectLink,
+            with_sending_links,
+        )
 
         device_address = _parse_individual_address(device.individual_address)
         if device_address is None:
@@ -3619,7 +3622,8 @@ class ProjectService:
                 )
         return GroupCommunication(
             device_address=device_address,
-            links=links,
+            # A linked group object always sends on one of its group addresses.
+            links=with_sending_links(links),
             filter_table=self._filter_table_for(device, device_address),
             security=self._group_security(device),
             domain_address=domain_address,

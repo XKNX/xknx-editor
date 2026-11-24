@@ -12,7 +12,7 @@ including ``xknxeditor.proj`` ORM devices.
 from __future__ import annotations
 
 from collections.abc import Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import Protocol
 
 from xknxeditor.namespaces.intermediate.com_object_instance_ref_t import (
@@ -106,16 +106,37 @@ def parameter_values_from_device(device: _Device) -> dict[str, str]:
 
 
 def group_communication_from_device(device: _Device) -> tuple[GroupObjectLink, ...]:
-    """Collect the group address links of a device's com objects."""
+    """Collect the group address links of a device's com objects (see
+    :func:`with_sending_links`)."""
     return tuple(
-        GroupObjectLink(
-            com_object_ref_id=com_object.ref_id,
-            group_address=link.group_address.address,
-            sending=link.is_sending,
+        with_sending_links(
+            [
+                GroupObjectLink(
+                    com_object_ref_id=com_object.ref_id,
+                    group_address=link.group_address.address,
+                    sending=link.is_sending,
+                )
+                for com_object in device.com_objects
+                for link in com_object.links
+            ]
         )
-        for com_object in device.com_objects
-        for link in com_object.links
     )
+
+
+def with_sending_links(links: Sequence[GroupObjectLink]) -> list[GroupObjectLink]:
+    """``links`` with the first link of each group object that has links but no sending one
+    marked as its sending link: a linked group object always sends on one of its group
+    addresses. It takes the object's own slot in a BCU association list and comes first of
+    the object's associations in an association table, which is sorted with the sending ones
+    first, so the table follows the group object numbers."""
+    sending = {link.com_object_ref_id for link in links if link.sending}
+    out: list[GroupObjectLink] = []
+    for link in links:
+        if link.com_object_ref_id not in sending:
+            sending.add(link.com_object_ref_id)
+            link = replace(link, sending=True)
+        out.append(link)
+    return out
 
 
 def group_address_table(links: Sequence[GroupObjectLink]) -> tuple[int, ...]:

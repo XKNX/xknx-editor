@@ -26,10 +26,15 @@ async def _device(
     node_id = (
         await _data(client, "project_add_device", product_ref_id=product_ref_id)
     )["node_id"]
+    return node_id, await _object(client, node_id, 0, **flags)
+
+
+async def _object(client: Client, node_id: int, index: int, **flags: bool) -> str:
+    """The ``index``-th linkable group object of a device, with ``flags`` set on it."""
     objects = (await _data(client, "project_list_com_objects", node_id=node_id))[
         "items"
     ]
-    ref_id = next(o for o in objects if o["linkable"])["ref_id"]
+    ref_id = [o for o in objects if o["linkable"]][index]["ref_id"]
     for flag, value in flags.items():
         await _data(
             client,
@@ -39,7 +44,7 @@ async def _device(
             flag=flag,
             value=value,
         )
-    return node_id, ref_id
+    return ref_id
 
 
 async def _link(
@@ -138,7 +143,17 @@ async def test_senders_and_receivers_per_group_address(tmp_path: Path) -> None:
             await _data(client, "project_create_group_address", address=address)
         await _link(client, sender, "1/1/2", sending=True)
         await _link(client, receiver, "1/1/2")
-        await _link(client, sender, "2/1/1", sending=True)
+        # A group object sends on one group address: the sender's second one sends on 2/1/1.
+        other = await _object(
+            client,
+            sender[0],
+            1,
+            communication=True,
+            transmit=True,
+            write=False,
+            update=False,
+        )
+        await _link(client, (sender[0], other), "2/1/1", sending=True)
         await _link(client, receiver, "2/1/1")
         await _link(client, silent, "2/1/1", sending=True)
         # Only the receiver: one device links nothing.

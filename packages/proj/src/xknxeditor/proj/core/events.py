@@ -1604,6 +1604,8 @@ class LinkComObject(Event):
     # What the history names: the group object (given by the caller) and the group address.
     target: str = ""
     detail: str = ""
+    # The object's links that were sending before a sending link took over (one sends).
+    previous_senders: list[int] = field(default_factory=list[int])
 
     def apply(self, session: Session) -> None:
         self.cleared = _clear_communication_loaded(
@@ -1612,6 +1614,15 @@ class LinkComObject(Event):
         group_address = session.get(GroupAddress, self.group_address_id)
         if group_address is not None:
             self.detail = group_address_text(session, group_address)
+        if self.is_sending:
+            senders = (
+                session.query(ComObjectLink)
+                .filter_by(com_object_id=self.com_object_id, is_sending=True)
+                .all()
+            )
+            self.previous_senders = [sender.id for sender in senders]
+            for sender in senders:
+                sender.is_sending = False
         link = ComObjectLink(
             com_object_id=self.com_object_id,
             group_address_id=self.group_address_id,
@@ -1627,10 +1638,14 @@ class LinkComObject(Event):
         link = session.get(ComObjectLink, self.link_id)
         if link is not None:
             session.delete(link)
+        for sender_id in self.previous_senders:
+            sender = session.get(ComObjectLink, sender_id)
+            if sender is not None:
+                sender.is_sending = True
         _restore_communication_loaded(session, self.cleared)
 
     def to_dict(self) -> dict[str, Any]:
-        return {
+        data: dict[str, Any] = {
             "com_object_id": self.com_object_id,
             "group_address_id": self.group_address_id,
             "is_sending": self.is_sending,
@@ -1638,6 +1653,9 @@ class LinkComObject(Event):
             "cleared": self.cleared,
             **_texts(self.target, self.detail),
         }
+        if self.previous_senders:
+            data["previous_senders"] = self.previous_senders
+        return data
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> LinkComObject:

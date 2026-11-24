@@ -1055,7 +1055,7 @@ async def test_link_feedback_dedup_dpt_and_sending(tmp_path: Path) -> None:
         assert links["count"] == 1
 
         # A second GA with a deliberately different DPT, linked sending: the result surfaces the
-        # DPT mismatch and that the object already sends to g1.
+        # DPT mismatch, and the new link takes over sending from g1.
         g2 = (await _data(client, "project_create_group_address"))["group_address_id"]
         other_dpt = "5.001" if (co_dpt or "").startswith("1") else "1.001"
         await _data(
@@ -1072,21 +1072,21 @@ async def test_link_feedback_dedup_dpt_and_sending(tmp_path: Path) -> None:
         assert r3["already_linked"] is False
         if co_dpt:
             assert r3["dpt_mismatch"]["group_address"] == other_dpt
-        assert g1 in r3.get("other_sending_group_address_ids", [])
+        assert r3["replaced_sending_group_address_ids"] == [g1]
         assert {
             link.group_address_id
             for link in _project.get_links_for_com_object(co["db_id"])
             if link.is_sending
-        } == {g1, g2}
+        } == {g2}
 
 
 @pytest.mark.skipif(not _FIXTURE.exists(), reason="knxprod fixture missing")
 async def test_an_objects_first_link_sends_unless_told_otherwise(
     tmp_path: Path,
 ) -> None:
-    """Without is_sending, a link sends when the object has no sending link yet, as a link
-    made in the editor; the next one does not. Explicit values are kept. The batch op does
-    the same."""
+    """A linked group object always sends on exactly one of its group addresses: its first link
+    sends, also with is_sending false; a later one sends only with is_sending true, in place of
+    the current one. The batch op does the same."""
     mcp, _project = _build(tmp_path)
     async with Client(mcp) as client:
         await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
@@ -1117,9 +1117,15 @@ async def test_an_objects_first_link_sends_unless_told_otherwise(
             )
             return bool(result["is_sending"])
 
-        assert await link(first, gas[0]) is True
+        assert await link(first, gas[0], is_sending=False) is True
         assert await link(first, gas[1]) is False
         assert await link(first, gas[2], is_sending=True) is True
+        senders = [
+            link.group_address_id
+            for link in _project.get_links_for_com_object(first["db_id"])
+            if link.is_sending
+        ]
+        assert senders == [gas[2]]
         batch = await _data(
             client,
             "project_batch",
@@ -1130,6 +1136,7 @@ async def test_an_objects_first_link_sends_unless_told_otherwise(
                         "node_id": node_id,
                         "com_object_ref_id": second["ref_id"],
                         "group_address_id": gas[3],
+                        "is_sending": False,
                     },
                 }
             ],

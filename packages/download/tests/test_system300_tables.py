@@ -171,9 +171,10 @@ def test_the_tables_are_built_from_the_links() -> None:
     tables = _image(_application()).property_tables
     assert tables is not None
     assert tables.address_data == bytes.fromhex("0802 0901")
-    # Sending first, then by object number; each link names its address by its element.
-    assert tables.association_data(2) == bytes.fromhex("0201 0101 0103")
-    assert tables.association_data(4) == bytes.fromhex("00020001 00010001 00010003")
+    # Sending first, then by object number; each link names its address by its element. Object
+    # 3's only link sends: a linked group object always sends on one of its group addresses.
+    assert tables.association_data(2) == bytes.fromhex("0201 0103 0101")
+    assert tables.association_data(4) == bytes.fromhex("00020001 00010003 00010001")
     # Objects 1..3, with object 2 a hole; bit 5 (read on init) is left out.
     assert len(tables.object_flags) == 3
     assert tables.object_flags[0] & 0x20 == 0
@@ -208,7 +209,7 @@ async def test_a_full_download_writes_the_tables() -> None:
     writes = await _download(DownloadScope.FULL)
     assert writes[(1, 23)].data == bytes.fromhex("0802 0901")
     assert writes[(1, 23)].count == 2
-    assert writes[(2, 23)].data == bytes.fromhex("0201 0101 0103")
+    assert writes[(2, 23)].data == bytes.fromhex("0201 0103 0101")
     objects = writes[(3, 51)]
     assert objects.count == 3
     # Object 1: its flags, and its type from the parameter (65537 = 0x00010001).
@@ -220,7 +221,7 @@ async def test_a_full_download_writes_the_tables() -> None:
 
 async def test_four_octet_associations_follow_the_device() -> None:
     writes = await _download(DownloadScope.FULL, association_width=4)
-    assert writes[(2, 23)].data == bytes.fromhex("00020001 00010001 00010003")
+    assert writes[(2, 23)].data == bytes.fromhex("00020001 00010003 00010001")
 
 
 async def test_a_group_communication_download_keeps_the_device_bytes() -> None:

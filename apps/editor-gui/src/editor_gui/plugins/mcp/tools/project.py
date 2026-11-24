@@ -741,9 +741,10 @@ def _link_annotations(
     group_address_id: int,
 ) -> dict[str, Any]:
     """Feedback a link should surface but the service only logs: a DPT mismatch (the GA keeps its
-    own DPT, so a differing com-object DPT is a real wiring issue) and, for a sending link, the other
-    group addresses the object already sends to (one sending GA per object is the norm). DPTs are
-    compared as tokens (reliable) but reported dotted, as everywhere else."""
+    own DPT, so a differing com-object DPT is a real wiring issue) and, for a sending link, the
+    group addresses the object sent to before (a group object sends on one of its group
+    addresses: the new link takes over). DPTs are compared as tokens (reliable) but reported
+    dotted, as everywhere else."""
     out: dict[str, Any] = {}
     if co_dpt_token and ga_dpt_token and co_dpt_token != ga_dpt_token:
         out["dpt_mismatch"] = {
@@ -759,7 +760,7 @@ def _link_annotations(
             }
         )
         if others:
-            out["other_sending_group_address_ids"] = others
+            out["replaced_sending_group_address_ids"] = others
     return out
 
 
@@ -774,16 +775,16 @@ def perform_link(
     hidden: bool = False,
 ) -> dict[str, Any] | None:
     """Create a com-object -> group-address link and build a feedback result: idempotent dedup
-    (``already_linked``, no duplicate row), ``dpt_mismatch`` and ``other_sending_group_address_ids``
+    (``already_linked``, no duplicate row), ``dpt_mismatch`` and ``replaced_sending_group_address_ids``
     (see :func:`_link_annotations`), and ``hidden: true`` when the device's parameters hide the
     com-object (see :func:`com_object_hidden`). ``co`` is the resolved com-object (``db_id`` set).
-    ``is_sending`` None makes the link sending when the object has no sending link yet, as a
-    link made in the editor. Returns None when the service refuses the link (unknown GA /
+    ``is_sending`` True makes the link the object's sending one; the object's first link always
+    is. Returns None when the service refuses the link (unknown GA /
     security), so the caller raises its own error. Shared by project_link_com_object and the batch
     link op so both give the same feedback."""
     existing = list(project.get_links_for_com_object(co.db_id))
-    if is_sending is None:
-        is_sending = not any(link.is_sending for link in existing)
+    # A linked group object always sends on one of its group addresses: its first link sends.
+    is_sending = bool(is_sending) or not any(link.is_sending for link in existing)
     co_dpt = getattr(co, "dpt", None)
     ga_before = project.get_group_address(group_address_id)
     ga_dpt_before = ga_before.datapoint_type if ga_before else None
@@ -4515,17 +4516,16 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         project's style). Pass exactly one of each pair. ``com_object_ref_id`` is the object's
         ``ref_id`` from project_list_com_objects (linkable=true).
 
-        ``is_sending`` marks the group address an object sends on. Leave it out to do as the
-        editor does: the object's first link is its sending one (true when the object has no
-        sending link yet, else false). Pass true or false to set the new link's sending marker
-        explicitly. This does not change the object's flags or any existing link's sending marker:
-        true can leave several links marked as sending. Keep one sending GA per object;
-        this tool does not enforce that or move the sending marker between links.
+        ``is_sending`` marks the group address an object sends on. A linked group object always
+        sends on exactly one of its group addresses: its first link is the sending one whatever
+        ``is_sending`` says, and true makes the new link the sending one in place of the object's
+        current one. Leave it out or pass false to add a further, not sending link. This does not
+        change the object's flags.
         Returns {link_id, node_id,
         com_object_ref_id, com_object_db_id, group_address_id, is_sending, already_linked} plus, when
         relevant, ``dpt_mismatch`` ({com_object, group_address} — the GA keeps its own DPT, so the
-        DPT metadata differs; verify compatibility) and ``other_sending_group_address_ids`` (the
-        other existing links marked as sending when the requested link is sending), and
+        DPT metadata differs; verify compatibility) and ``replaced_sending_group_address_ids``
+        (the group addresses the object sent to before the new sending link took over), and
         ``hidden: true`` when the device's parameters currently hide the object (the link is kept,
         but the application does not use the object until a parameter shows it; check the
         activating parameter).
