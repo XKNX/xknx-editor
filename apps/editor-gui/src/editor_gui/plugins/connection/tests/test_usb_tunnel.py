@@ -265,6 +265,27 @@ class TestUSBTunnel:
         assert fake_hid.closed == 1
         assert self.states[-1][0] is XknxConnectionState.DISCONNECTED
 
+    async def test_no_emi_type_at_first(self, fake_hid: FakeHIDModule) -> None:
+        """Test an interface naming no EMI type at first is asked again."""
+        interface = fake_hid.interface
+        interface.features[DeviceFeature.SUPPORTED_EMI_TYPE] = b"\x00\x00"
+        handle = interface._handle  # pyright: ignore[reportPrivateUsage]
+
+        def ready_after_the_first_answer(frame: USBTransferFrame) -> None:
+            handle(frame)
+            if (
+                frame.protocol == ProtocolID.BUS_ACCESS_SERVER_FEATURE
+                and frame.body[0] == DeviceFeature.SUPPORTED_EMI_TYPE
+            ):
+                interface.features[DeviceFeature.SUPPORTED_EMI_TYPE] = b"\x00\x04"
+
+        interface._handle = ready_after_the_first_answer  # pyright: ignore[reportPrivateUsage]
+        tunnel = self.tunnel()
+        await tunnel.connect()
+        assert tunnel.info is not None
+        assert tunnel.info.emi_type is EMIID.CEMI
+        await tunnel.disconnect()
+
     async def test_several_emi_types(self, fake_hid: FakeHIDModule) -> None:
         """Test the active EMI type is checked when there is a choice."""
         interface = fake_hid.interface
