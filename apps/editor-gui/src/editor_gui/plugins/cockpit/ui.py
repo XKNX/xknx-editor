@@ -96,32 +96,39 @@ class CockpitPanel:
         flags = (
             imgui.TableFlags_.row_bg
             | imgui.TableFlags_.borders_inner_h
+            | imgui.TableFlags_.scroll_x
             | imgui.TableFlags_.scroll_y
             | imgui.TableFlags_.resizable
             | imgui.TableFlags_.sortable
             | imgui.TableFlags_.reorderable
         )
+        columns = (
+            (S.COCKPIT_COL_ADDRESS, 62.0, 0.0),
+            (S.COCKPIT_COL_NAME, 220.0, 0.4),
+            (S.COCKPIT_COL_PRODUCT, 220.0, 0.4),
+            (S.COCKPIT_COL_LOADED, 104.0, 0.0),
+            (S.COCKPIT_COL_STATUS, 184.0, 0.2),
+        )
         avail = imgui.get_content_region_avail()
-        if not begin_data_table("##cockpit", 5, flags, imgui.ImVec2(avail.x, avail.y)):
+        style = imgui.get_style()
+        sort_arrow = imgui.get_font_size() * 0.65 + style.frame_padding.x
+        widths = [
+            max(px(minimum), imgui.calc_text_size(label).x + sort_arrow)
+            for label, minimum, _share in columns
+        ]
+        padding = 2 * style.cell_padding.x * len(columns)
+        extra = max(0.0, avail.x - sum(widths) - padding - style.scrollbar_size)
+        # Old layouts saved stretch weights. Use a new ID for the fixed-width columns.
+        if not begin_data_table("##cockpit_fixed", len(columns), flags):
             return
         imgui.table_setup_scroll_freeze(0, 1)
-        imgui.table_setup_column(
-            S.COCKPIT_COL_ADDRESS,
-            imgui.TableColumnFlags_.width_fixed | imgui.TableColumnFlags_.default_sort,
-            px(54.0),
-        )
-        imgui.table_setup_column(
-            S.COCKPIT_COL_NAME, imgui.TableColumnFlags_.width_stretch, 0.403
-        )
-        imgui.table_setup_column(
-            S.COCKPIT_COL_PRODUCT, imgui.TableColumnFlags_.width_stretch, 0.403
-        )
-        imgui.table_setup_column(
-            S.COCKPIT_COL_LOADED, imgui.TableColumnFlags_.width_fixed, px(66.0)
-        )
-        imgui.table_setup_column(
-            S.COCKPIT_COL_STATUS, imgui.TableColumnFlags_.width_stretch, 0.194
-        )
+        for i, ((label, _minimum, share), width) in enumerate(
+            zip(columns, widths, strict=True)
+        ):
+            column_flags = imgui.TableColumnFlags_.width_fixed
+            if i == 0:
+                column_flags |= imgui.TableColumnFlags_.default_sort
+            imgui.table_setup_column(label, column_flags, width + extra * share)
         data_table_headers()
         rows = [r for r in self._sorted_rows() if self._matches(r, needle)]
         for i, r in enumerate(rows):

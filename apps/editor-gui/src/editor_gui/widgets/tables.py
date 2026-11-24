@@ -76,7 +76,12 @@ def begin_data_table(
         px(min_width), needed_width, _header_widths.get(imgui.get_id(table_id), 0.0)
     )
     scrolls = bool(flags & imgui.TableFlags_.scroll_y) or scroll_when_narrow
-    if scrolls and imgui.get_content_region_avail().x < width:
+    # An explicitly horizontal table lets its columns determine the scroll range.
+    if (
+        scrolls
+        and not flags & imgui.TableFlags_.scroll_x
+        and imgui.get_content_region_avail().x < width
+    ):
         flags |= imgui.TableFlags_.scroll_x | imgui.TableFlags_.scroll_y
         inner_width = width
     opened = imgui.begin_table(
