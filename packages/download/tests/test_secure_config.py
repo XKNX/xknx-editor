@@ -47,6 +47,7 @@ def _tables():
             keys={0x0900: _KEY_B, 0x0802: _KEY_A, 0x0A00: _KEY_A},
             senders=[(0x1105, 7), (0x1101, 0), (0x1105, 9)],
         ),
+        first_group_object_number=1,
     )
     assert tables is not None
     return tables
@@ -58,7 +59,28 @@ def test_tables_follow_the_address_table() -> None:
     # hold is left out.
     assert tables.group_keys == ((2, _KEY_A), (3, _KEY_B))
     assert tables.individual_addresses == ((0x1101, 0), (0x1105, 9))
-    assert tables.go_flags == bytes([0, 0, 0, 3, 0, 3, 3])
+    assert tables.go_flags == bytes([0, 0, 3, 0, 3, 3])
+
+
+def test_go_security_flags_use_the_object_number_as_property_index() -> None:
+    tables = security_tables(
+        [0x2887, 0x3087],
+        [(0x2887, 395), (0x3087, 396)],
+        GroupSecurity(keys={0x3087: _KEY_A}),
+        first_group_object_number=1,
+    )
+    assert tables is not None
+    flags = {
+        control.start_element + offset: flag
+        for control in table_controls(tables)
+        if isinstance(control, LdCtrlWriteProp)
+        and control.prop_id == 61
+        and control.start_element > 0
+        for offset, flag in enumerate(control.inline_data or b"")
+    }
+    assert flags[395] == 0
+    assert flags[396] == 3
+    assert 397 not in flags
 
 
 def test_no_tables_without_a_secured_group_address() -> None:
@@ -207,7 +229,7 @@ async def test_commissioning_writes_the_tool_key_with_the_factory_key() -> None:
     ]
     assert [w for w in device.writes if w[1] == 61] == [
         (17, 61, 0, 1, b"\x00\x00"),
-        (17, 61, 1, 7, bytes([0, 0, 0, 3, 0, 3, 3])),
+        (17, 61, 1, 6, bytes([0, 0, 3, 0, 3, 3])),
     ]
     assert device.restarted
 
@@ -222,12 +244,13 @@ async def test_a_device_with_its_tool_key_gets_only_the_tables() -> None:
 def test_p2p_partners_join_the_address_table() -> None:
     tables = security_tables(
         [0x0801, 0x0900],
-        [(0x0801, 0), (0x0900, 2)],
+        [(0x0801, 1), (0x0900, 3)],
         GroupSecurity(
             keys={0x0801: _KEY_A, 0x0900: _KEY_B},
             senders=[(0x1101, 5)],
             p2p=[(0x1109, _TOOL_KEY, 0)],
         ),
+        first_group_object_number=1,
     )
     assert tables is not None
     # The IA table holds the sender and the P2P partner, sorted.
@@ -236,6 +259,17 @@ def test_p2p_partners_join_the_address_table() -> None:
     assert tables.p2p_keys == ((2, _TOOL_KEY, 0),)
     # Every object on a secured group address gets authentication + confidentiality.
     assert tables.go_flags == bytes([0x03, 0x00, 0x03])
+
+
+def test_zero_based_table_maps_object_zero_to_the_first_element() -> None:
+    tables = security_tables(
+        [0x0801],
+        [(0x0801, 0)],
+        GroupSecurity(keys={0x0801: _KEY_A}),
+        first_group_object_number=0,
+    )
+    assert tables is not None
+    assert tables.go_flags == bytes([0x03])
 
 
 def test_p2p_only_device_has_tables() -> None:
