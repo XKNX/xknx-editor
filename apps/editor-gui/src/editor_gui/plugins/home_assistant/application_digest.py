@@ -2,8 +2,9 @@
 
 A parsed program takes tens of megabytes and only a few stay in memory (see
 ``xknxeditor.prod.application``), so the description of a project keeps just this: the group
-objects and their references, the channels and the module arguments, with the attribute values
-the program holds (texts in the product language the program was read in).
+objects and their references, the channels, the parameter blocks, the module arguments and the
+allocators, with the attribute values the program holds (texts in the product language the
+program was read in).
 """
 
 from __future__ import annotations
@@ -11,6 +12,7 @@ from __future__ import annotations
 import dataclasses
 import re
 import threading
+from collections import Counter
 from dataclasses import dataclass
 from enum import Enum
 from typing import TYPE_CHECKING
@@ -20,6 +22,7 @@ from xknxproject.util import parse_semantics_dpas, parse_semantics_functional_bl
 from editor_gui.languages import product_text_languages
 from xknxeditor.namespaces.intermediate.application_program_channel_t import (
     ApplicationProgramChannel,
+    ComObjectParameterBlock,
 )
 from xknxeditor.namespaces.intermediate.module_def_static_t_com_objects_com_object import (
     ModuleDefStaticComObjectsComObject,
@@ -86,13 +89,26 @@ class ChannelDef:
 
 
 @dataclass(frozen=True, slots=True)
+class BlockDef:
+    """A ``ParameterBlock``: it names the folders of the group object trees."""
+
+    name: str | None
+    text: str | None
+    text_parameter_ref_id: str | None
+
+
+@dataclass(frozen=True, slots=True)
 class ArgumentDef:
     """A module argument: its name, and whether the program computes its value (from an
-    allocator or a base value), which then has no literal value."""
+    allocator or a base value), which then has no literal value unless it is allocated
+    (``allocator``: a module draws its value from an allocator; ``base_value``: it is an offset
+    to a base value)."""
 
     name: str
     allocates: int | None
     computed: bool
+    allocator: bool = False
+    base_value: bool = False
 
 
 @dataclass(frozen=True, slots=True)
@@ -104,6 +120,12 @@ class ApplicationDigest:
     refs: dict[str, ObjectDef]
     channels: dict[str, ChannelDef]
     arguments: dict[str, ArgumentDef]
+    blocks: dict[str, BlockDef] = dataclasses.field(default_factory=dict[str, BlockDef])
+    # each allocator's start, and how many module arguments draw from it
+    allocators: dict[str, int] = dataclasses.field(default_factory=dict[str, int])
+    allocator_modules: dict[str, int] = dataclasses.field(
+        default_factory=dict[str, int]
+    )
 
 
 _cache: dict[tuple[str, str, str], ApplicationDigest] = {}
@@ -131,9 +153,9 @@ def digest_program(program: ApplicationProgram) -> ApplicationDigest:
     """Read the digest of a parsed application program."""
     objects: dict[str, ObjectDef] = {}
     refs: dict[str, ObjectDef] = {}
-    channels: dict[str, ChannelDef] = {}
     arguments: dict[str, tuple[str, int | None]] = {}
-    computed: set[str] = set()
+    allocators: dict[str, int] = {}
+    found = _Dynamic()
 
     static = program.static
     if static.com_object_table is not None:
@@ -142,7 +164,10 @@ def digest_program(program: ApplicationProgram) -> ApplicationDigest:
     if static.com_object_refs is not None:
         for ref in static.com_object_refs.com_object_ref:
             refs[ref.id] = _ref(ref)
-    _walk(program.dynamic, channels, computed)
+    if static.allocators is not None:
+        for allocator in static.allocators.allocator:
+            allocators[allocator.id] = allocator.start
+    _walk(program.dynamic, found)
 
     def module_def(md: ModuleDef) -> None:
         if md.arguments is not None:
@@ -154,7 +179,10 @@ def digest_program(program: ApplicationProgram) -> ApplicationDigest:
         if md.static.com_object_refs is not None:
             for ref in md.static.com_object_refs.com_object_ref:
                 refs[ref.id] = _ref(ref)
-        _walk(md.dynamic, channels, computed)
+        if md.static.allocators is not None:
+            for allocator in md.static.allocators.allocator:
+                allocators[allocator.id] = allocator.start
+        _walk(md.dynamic, found)
         if md.sub_module_defs is not None:
             for sub in md.sub_module_defs.module_def:
                 module_def(sub)
@@ -166,13 +194,20 @@ def digest_program(program: ApplicationProgram) -> ApplicationDigest:
         application_id=program.id,
         objects=objects,
         refs=refs,
-        channels=channels,
+        channels=found.channels,
         arguments={
             arg_id: ArgumentDef(
-                name=name, allocates=allocates, computed=arg_id in computed
+                name=name,
+                allocates=allocates,
+                computed=arg_id in found.allocated or arg_id in found.based,
+                allocator=arg_id in found.allocated,
+                base_value=arg_id in found.based,
             )
             for arg_id, (name, allocates) in arguments.items()
         },
+        blocks=found.blocks,
+        allocators=allocators,
+        allocator_modules=dict(found.allocator_modules),
     )
 
 
@@ -241,8 +276,24 @@ def _element_fields(cls: type) -> tuple[str, ...]:
     return names
 
 
-def _walk(node: object, channels: dict[str, ChannelDef], computed: set[str]) -> None:
-    """Collect the channels and the computed module arguments of a dynamic section."""
+@dataclass(slots=True)
+class _Dynamic:
+    """What the dynamic sections of a program hold for the digest."""
+
+    channels: dict[str, ChannelDef] = dataclasses.field(
+        default_factory=dict[str, ChannelDef]
+    )
+    blocks: dict[str, BlockDef] = dataclasses.field(default_factory=dict[str, BlockDef])
+    # the module arguments a module draws from an allocator, and those of a base value
+    allocated: set[str] = dataclasses.field(default_factory=set[str])
+    based: set[str] = dataclasses.field(default_factory=set[str])
+    # how many module arguments draw from each allocator
+    allocator_modules: Counter[str] = dataclasses.field(default_factory=Counter[str])
+
+
+def _walk(node: object, found: _Dynamic) -> None:
+    """Collect the channels, parameter blocks and computed module arguments of a dynamic
+    section."""
     if node is None:
         return
     stack: list[object] = [node]
@@ -256,16 +307,24 @@ def _walk(node: object, channels: dict[str, ChannelDef], computed: set[str]) -> 
             continue
         if isinstance(item, ApplicationProgramChannel):
             blocks = parse_semantics_functional_blocks(item.semantics)
-            channels[item.id] = ChannelDef(
+            found.channels[item.id] = ChannelDef(
                 name=item.name,
                 text=item.text,
                 text_parameter_ref_id=item.text_parameter_ref_id,
                 functional_blocks=tuple(blocks) if blocks is not None else None,
             )
-        elif isinstance(item, ModuleNumericArg) and (
-            item.allocator_ref_id is not None or item.base_value is not None
-        ):
-            computed.add(item.ref_id)
+        elif isinstance(item, ComObjectParameterBlock):
+            found.blocks[item.id] = BlockDef(
+                name=item.name,
+                text=item.text,
+                text_parameter_ref_id=item.text_parameter_ref_id,
+            )
+        elif isinstance(item, ModuleNumericArg):
+            if item.allocator_ref_id is not None:
+                found.allocated.add(item.ref_id)
+                found.allocator_modules[item.allocator_ref_id] += 1
+            if item.base_value is not None:
+                found.based.add(item.ref_id)
         for name in _element_fields(cls):
             value = getattr(item, name)
             if value is not None:

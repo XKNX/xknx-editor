@@ -3,11 +3,14 @@
 from __future__ import annotations
 
 from editor_gui.plugins.home_assistant.entities import (
+    SOURCE_EDITOR,
+    SOURCE_HOME_ASSISTANT,
     addresses_differ,
     entity_candidates,
     entity_request,
     existing_entities,
     function_key,
+    suggestion_candidates,
 )
 from xknxeditor.proj.core.service import (
     FunctionGroupAddressInfo,
@@ -218,3 +221,132 @@ def test_addresses_in_a_part_of_the_configuration() -> None:
         },
     )
     assert addresses_differ(wanted, {"target_temperature": None})
+
+
+def _suggestion(function_id: str, **changes: object) -> dict[str, object]:
+    """A suggestion of the KNX integration for a building function (``fn`` provider)."""
+    suggestion: dict[str, object] = {
+        "id": f"fn_{function_id}",
+        "suggested_name": "Kitchen Ceiling",
+        "group_id": "P-0001-0_BP-7",
+        "group_name": "Kitchen",
+        "platform_options": ["light"],
+        "suggestions": {
+            "light": {
+                "knx": {
+                    "ga_switch": {"write": "1/1/1", "state": "1/1/1", "passive": []}
+                },
+                "matched_group_addresses": [
+                    {"address": "1/1/1", "name": "Ceiling"},
+                    {"address": "9/9/9", "name": "Not in the project"},
+                    {"address": "1/1/1", "name": "Ceiling"},
+                ],
+                "unmatched": ["DimmingControl"],
+            }
+        },
+        "metadata": {"function_type": "FT-1", "roles": {"SwitchOnOff": "stored"}},
+    }
+    suggestion.update(changes)
+    return suggestion
+
+
+def test_the_knx_integrations_suggestions_become_the_candidates() -> None:
+    imported = FunctionInfo(
+        id=3,
+        name="Ceiling",
+        function_type="FT-1",
+        usage_text="",
+        group_addresses=[],
+        source_id="P-0001-0_F-12",
+    )
+    created = _function(4, "Wall", "FT-1", (9, "SwitchOnOff"))
+    unsuggested = _function(5, "Socket", "FT-10", (1, "SwitchOnOff"))
+    addresses = {"1/1/1": (0x0901, 1)}
+
+    candidates = suggestion_candidates(
+        _room(imported, created, unsuggested),
+        "guid",
+        {
+            "F-12": _suggestion("F-12"),
+            # A function created in the editor is known by its row id.
+            "F-x4": _suggestion("F-x4", suggested_name=""),
+        },
+        addresses,
+    )
+
+    first, second = candidates
+    assert first.key == function_key("guid", 3)
+    assert (first.name, first.platform, first.source) == (
+        "Kitchen Ceiling",
+        "light",
+        SOURCE_HOME_ASSISTANT,
+    )
+    assert first.knx == {
+        "ga_switch": {"write": "1/1/1", "state": "1/1/1", "passive": []}
+    }
+    assert first.group_addresses == ("1/1/1", "9/9/9")
+    assert (first.main_raw, first.group_address_ids) == (0x0901, (1,))
+    assert first.unmatched == ("DimmingControl",)
+    assert first.path == "House / Kitchen / Ceiling"
+    # Without a suggested name: the function's.
+    assert second.name == "Wall"
+
+
+def test_a_function_without_a_suggestion_keeps_the_editors_candidate() -> None:
+    imported = FunctionInfo(
+        id=3,
+        name="Ceiling",
+        function_type="FT-1",
+        usage_text="",
+        group_addresses=[],
+        source_id="P-0001-0_F-12",
+    )
+    unsuggested = _function(5, "Socket", "FT-10", (1, "SwitchOnOff"))
+    tree = _room(imported, unsuggested)
+    own = {c.function_id: c for c in entity_candidates(tree, "guid", _lookup)}
+    assert set(own) == {5}
+
+    first, second = suggestion_candidates(
+        tree, "guid", {"F-12": _suggestion("F-12")}, {"1/1/1": (0x0901, 1)}, own
+    )
+
+    # In tree order: the suggested one, then the editor's own for the other function.
+    assert (first.function_id, first.source) == (3, SOURCE_HOME_ASSISTANT)
+    assert second == own[5]
+    assert second.source == SOURCE_EDITOR
+    # A suggestion that makes no candidate falls back as well.
+    (only,) = suggestion_candidates(
+        _room(unsuggested),
+        "guid",
+        {"F-x5": _suggestion("F-x5", platform_options=[])},
+        {},
+        own,
+    )
+    assert only == own[5]
+
+
+def test_suggestions_of_another_form_make_no_candidate() -> None:
+    function = FunctionInfo(
+        id=3,
+        name="Ceiling",
+        function_type="FT-1",
+        usage_text="",
+        group_addresses=[],
+        source_id="P-0001-0_F-12",
+    )
+    for broken in (
+        _suggestion("F-12", platform_options=[]),
+        _suggestion("F-12", suggestions=[]),
+        _suggestion("F-12", platform_options=["cover"]),
+        _suggestion("F-12", suggestions={"light": {"knx": []}}),
+    ):
+        assert suggestion_candidates(_room(function), "g", {"F-12": broken}, {}) == []
+    # No addresses it uses known: none to switch with.
+    (candidate,) = suggestion_candidates(
+        _room(function),
+        "g",
+        {"F-12": _suggestion("F-12", suggestions={"light": {"knx": {}}})},
+        {},
+    )
+    assert (candidate.group_addresses, candidate.main_raw) == ((), None)
+    assert candidate.unmatched == ()

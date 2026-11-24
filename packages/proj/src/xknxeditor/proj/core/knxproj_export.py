@@ -1431,7 +1431,7 @@ def _reserve_source_identities(ids: _ExportIds, installation: Installation) -> N
             for ref in function.group_addresses:
                 ids.reserve("GF", ref, ref.source_id, ref.puid)
     for trade in installation.trades:
-        ids.reserve_puid(trade, trade.puid)
+        ids.reserve("T", trade, trade.source_id, trade.puid)
 
 
 def _assign_ids(
@@ -2116,6 +2116,7 @@ class _Writer:
         trade_el = self._el(
             parent,
             "Trade",
+            Id=f"{self._pid}-0_{self._ids.id('T', trade, trade.source_id)}",
             Name=trade.name,
             Number=trade.number or None,
             Comment=trade.comment or None,
@@ -2383,7 +2384,7 @@ class _Writer:
         self._build_module_instances(di, device, instances)
         # <GroupObjectTree> (schema order: after ModuleInstances, before BinaryData). The channel/
         # folder grouping of the device's group objects, captured verbatim on import and re-emitted
-        # here so it round-trips (issue #14); xknxproject flattens it to channel ids and loses it.
+        # here so it round-trips (issue #14); xknxproject gives only a part of it.
         self._build_group_object_tree(di, device)
         # <AdditionalAddresses> (schema order: after GroupObjectTree, before BinaryData). Extra
         # individual addresses a coupler/interface reserves, captured on import and re-emitted here.

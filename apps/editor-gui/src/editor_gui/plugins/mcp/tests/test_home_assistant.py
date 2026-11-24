@@ -546,6 +546,117 @@ async def test_the_building_functions_become_entities(
     assert service.entity_links
 
 
+async def test_the_knx_integration_s_suggestions_become_the_entities(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    mcp, _service, link = _server(tmp_path, monkeypatch)
+    asked: list[dict[str, Any]] = []
+
+    def send(message: dict[str, Any]) -> bool:
+        if message["type"] == "check_entities":
+            checks = {e["key"]: None for e in message["entities"]}
+            link.inbox.append(
+                {"type": "result", "id": message["id"], "error": None, "checks": checks}
+            )
+            return True
+        if message["type"] == "function_suggestions":
+            asked.append(message)
+            link.inbox.append(
+                {
+                    "type": "result",
+                    "id": message["id"],
+                    "error": None,
+                    "suggestions": [
+                        {
+                            "id": f"fn_F-x{function_id}",
+                            "source": "fn",
+                            "suggested_name": "Kitchen Ceiling",
+                            "platform_options": ["light"],
+                            "suggestions": {
+                                "light": {
+                                    "knx": {
+                                        "ga_switch": {
+                                            "write": "1/1/1",
+                                            "state": None,
+                                            "passive": [],
+                                        }
+                                    },
+                                    "matched_group_addresses": [
+                                        {"address": "1/1/1", "name": "Ceiling"}
+                                    ],
+                                    "unmatched": ["InfoOnOff"],
+                                }
+                            },
+                        }
+                    ],
+                    "hints": {"state": "ok"},
+                }
+            )
+            return True
+        sent = _Link.send(link, message)
+        if message["type"] == "set_project":
+            # A KNX integration with suggestions for building functions.
+            for reply in link.inbox:
+                if reply["type"] == "knx":
+                    reply["function_suggestions"] = True
+        return sent
+
+    monkeypatch.setattr(link, "send", send)
+    async with Client(mcp) as client:
+        await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
+        (house,) = (await _data(client, "project_spaces"))["items"]
+        room = await _data(
+            client,
+            "project_create_space",
+            space_type="Room",
+            name="Kitchen",
+            parent_id=house["id"],
+        )
+        ga = await _data(
+            client,
+            "project_create_group_address",
+            address="1/1/1",
+            name="Ceiling",
+            dpt="1.001",
+        )
+        made = await _data(
+            client,
+            "project_create_function",
+            space_id=room["space_id"],
+            name="Ceiling",
+            function_type="FT-1",
+        )
+        function_id = made["function_id"]
+        await _data(
+            client,
+            "project_add_function_group_address",
+            function_id=function_id,
+            group_address_id=ga["group_address_id"],
+            role="SwitchOnOff",
+        )
+        before = await _data(client, "home_assistant_entities")
+        await _data(client, "home_assistant_use_project")
+        after = await _data(client, "home_assistant_entities")
+
+    # Not linked yet: the editor's own.
+    assert before["suggestions"]["source"] == "editor"
+    assert [e["source"] for e in before["items"]] == ["editor"]
+    assert len(asked) == 1
+    assert after["suggestions"] == {
+        "source": "home_assistant",
+        "supported": True,
+        "hints": {"state": "ok"},
+        "error": None,
+    }
+    (entity,) = after["items"]
+    assert (entity["name"], entity["source"], entity["unmatched"]) == (
+        "Kitchen Ceiling",
+        "home_assistant",
+        ["InfoOnOff"],
+    )
+    assert entity["function_id"] == function_id
+
+
 async def test_entities_follow_their_functions_time_server_and_keys(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -677,3 +788,24 @@ async def test_entities_follow_their_functions_time_server_and_keys(
         assert result == {"time": "0/0/1", "date": None, "datetime": None}
         assert await _data(client, "home_assistant_send_keys") == {"sent": True}
         assert asked[-1]["type"] == "set_keyring"
+
+
+async def test_the_project_model_holds_the_trades(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    mcp, _service, _link = _server(tmp_path, monkeypatch)
+    async with Client(mcp) as client:
+        await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
+        top = await _data(client, "project_create_trade", name="Lighting")
+        await _data(client, "project_create_trade", name="Indoor", parent_id=top["id"])
+
+        overview = await _data(client, "home_assistant_project_model")
+        trades = await _data(client, "home_assistant_project_model", section="trades")
+        with pytest.raises(Exception, match="unknown section"):
+            await client.call_tool("home_assistant_project_model", {"section": "x"})
+
+    assert overview["counts"]["trades"] == 1
+    assert overview["info"]["xknxproject_version"].startswith("3.11.")
+    (lighting,) = trades["trades"]
+    assert lighting["name"] == "Lighting"
+    assert [t["name"] for t in lighting["trades"]] == ["Indoor"]

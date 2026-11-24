@@ -9,6 +9,11 @@ The entity gets the function's name and the area its room became (see :mod:`.are
 
 Whether Home Assistant takes a configuration is for Home Assistant to say: the integration checks
 each candidate with the KNX integration's own validation before it is offered.
+
+A KNX integration that suggests entities for the building functions of the project it holds
+knows its platforms better: while it holds the open project, its suggestions are the candidates
+(:func:`suggestion_candidates`). This mapping is for older KNX integrations, and for the
+functions such a KNX integration suggests nothing for, so an entity created for one stays linked.
 """
 
 from __future__ import annotations
@@ -105,6 +110,11 @@ _TYPES: dict[str, _Kind] = {
 }
 
 
+# The sources of candidates.
+SOURCE_EDITOR = "editor"
+SOURCE_HOME_ASSISTANT = "home_assistant"
+
+
 @dataclass(frozen=True)
 class EntityCandidate:
     """A building function and the entity it becomes."""
@@ -124,6 +134,10 @@ class EntityCandidate:
     main_raw: int | None = None
     # The ids of the group addresses it uses (their devices are the ones to download).
     group_address_ids: tuple[int, ...] = ()
+    # Who made it: the editor's own mapping, or Home Assistant's KNX integration.
+    source: str = SOURCE_EDITOR
+    # What of the function the KNX integration could not use (its suggestions only).
+    unmatched: tuple[str, ...] = ()
 
 
 def function_key(project_guid: str, function_id: int) -> str:
@@ -245,6 +259,111 @@ def entity_candidates(
     for space in tree:
         walk(space, ())
     return found
+
+
+def suggestion_candidates(
+    tree: Sequence[SpaceInfo],
+    project_guid: str,
+    suggestions: Mapping[str, Mapping[str, Any]],
+    addresses: Mapping[str, tuple[int, int]],
+    fallback: Mapping[int, EntityCandidate] | None = None,
+) -> list[EntityCandidate]:
+    """The entities the KNX integration suggests for the building functions of ``tree``, in tree
+    order: ``suggestions`` by the function's id in the project data (see
+    ``project_model.function_identifier``), as the KNX integration gives them (its
+    ``suggested_name``, ``platform_options``, ``suggestions[platform]`` with ``knx`` and
+    ``matched_group_addresses``). A function it suggests nothing for becomes its candidate in
+    ``fallback`` (by function id; the editor's own mapping), or none.
+    ``addresses`` gives a group address's raw address and id by its printed address."""
+    own = fallback or {}
+    from editor_gui.plugins.home_assistant.project_model import function_identifier
+
+    found: list[EntityCandidate] = []
+
+    def walk(space: SpaceInfo, path: tuple[str, ...]) -> None:
+        here = (*path, space.name)
+        for function in space.functions:
+            suggestion = suggestions.get(
+                function_identifier(function.source_id, function.id)
+            )
+            candidate = (
+                _suggested(
+                    function,
+                    space,
+                    " / ".join(here),
+                    project_guid,
+                    suggestion,
+                    addresses,
+                )
+                if suggestion is not None
+                else None
+            ) or own.get(function.id)
+            if candidate is not None:
+                found.append(candidate)
+        for child in space.children:
+            walk(child, here)
+
+    for space in tree:
+        walk(space, ())
+    return found
+
+
+def _suggested(
+    function: FunctionInfo,
+    space: SpaceInfo,
+    path: str,
+    project_guid: str,
+    suggestion: Mapping[str, Any],
+    addresses: Mapping[str, tuple[int, int]],
+) -> EntityCandidate | None:
+    options: object = suggestion.get("platform_options")
+    platforms: object = suggestion.get("suggestions")
+    if not isinstance(options, list) or not options or not isinstance(platforms, dict):
+        return None
+    platform = str(cast("list[object]", options)[0])
+    config: object = cast("dict[object, object]", platforms).get(platform)
+    if not isinstance(config, dict):
+        return None
+    platform_config = cast("dict[str, Any]", config)
+    knx: object = platform_config.get("knx")
+    if not isinstance(knx, dict):
+        return None
+    matched: object = platform_config.get("matched_group_addresses")
+    entries = [
+        cast("dict[str, Any]", entry)
+        for entry in (
+            cast("list[object]", matched) if isinstance(matched, list) else []
+        )
+        if isinstance(entry, dict)
+    ]
+    used = tuple(
+        dict.fromkeys(
+            str(entry["address"]) for entry in entries if entry.get("address")
+        )
+    )
+    known = [addresses.get(address) for address in used]
+    unmatched: object = platform_config.get("unmatched")
+    name: object = suggestion.get("suggested_name")
+    return EntityCandidate(
+        key=function_key(project_guid, function.id),
+        function_id=function.id,
+        name=str(name) if name else function.name,
+        platform=platform,
+        knx=cast("dict[str, Any]", knx),
+        group_addresses=used,
+        path=f"{path} / {function.name}",
+        space_key=space_key(project_guid, space.id),
+        # The address it is known by: the first it uses.
+        main_raw=known[0][0] if known and known[0] is not None else None,
+        group_address_ids=tuple(k[1] for k in known if k is not None),
+        source=SOURCE_HOME_ASSISTANT,
+        unmatched=tuple(
+            str(u)
+            for u in (
+                cast("list[object]", unmatched) if isinstance(unmatched, list) else []
+            )
+        ),
+    )
 
 
 def entity_request(candidate: EntityCandidate, area_id: str | None) -> dict[str, Any]:

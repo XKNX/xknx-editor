@@ -14,10 +14,9 @@ FROM python:3.13-slim-bookworm AS builder
 ENV UV_LINK_MODE=copy \
     UV_PYTHON_DOWNLOADS=never
 
-# build-essential: some wheels (e.g. dukpy's duktape) build from source on arm64. git: a workspace
-# dependency (xknxproject) is pinned to a git revision, so uv clones it during the sync.
+# build-essential: some wheels (e.g. dukpy's duktape) build from source on arm64.
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends build-essential git \
+    && apt-get install -y --no-install-recommends build-essential \
     && rm -rf /var/lib/apt/lists/*
 RUN pip install --no-cache-dir uv
 

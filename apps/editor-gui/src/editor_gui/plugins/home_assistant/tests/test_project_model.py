@@ -3,8 +3,11 @@ for the project file it was imported from, and what the editor changed since."""
 
 from __future__ import annotations
 
+import dataclasses
 import json
 import os
+import re
+import zipfile
 from pathlib import Path
 from types import SimpleNamespace
 from typing import Any
@@ -18,6 +21,7 @@ from editor_gui.plugins.catalog.service import CatalogService
 from editor_gui.plugins.home_assistant.application_digest import (
     ApplicationDigest,
     ArgumentDef,
+    BlockDef,
     ChannelDef,
     ObjectDef,
     digest_program,
@@ -26,15 +30,20 @@ from editor_gui.plugins.home_assistant.project_model import (
     CREATED_BY,
     ProjectModelUnavailable,
     _Builder,  # pyright: ignore[reportPrivateUsage]
+    _DeviceContext,  # pyright: ignore[reportPrivateUsage]
     build_project_model,
     prepare_project_model,
 )
 from editor_gui.plugins.logger.service import LogService
 from editor_gui.plugins.project.service import ProjectService
+from xknxeditor.namespaces.intermediate.allocator_t import Allocator
 from xknxeditor.namespaces.intermediate.application_program_channel_t import (
     ApplicationProgramChannel,
+    ComObjectParameterBlock,
 )
 from xknxeditor.namespaces.intermediate.com_object_ref_t import ComObjectRef
+from xknxeditor.namespaces.intermediate.module_t_numeric_arg import ModuleNumericArg
+from xknxeditor.proj import export_knxproj
 
 TOOL = "XKNX Editor 1.2.3"
 
@@ -118,6 +127,155 @@ def test_the_model_equals_what_xknxproject_reads_from_the_project_file(
     assert (
         model["info"]["xknxproject_version"] == expected["info"]["xknxproject_version"]
     )
+
+
+# Channels and folders, nested: CH-0 and the blocks are the program's, CH-7 to CH-9 are not;
+# O-10_R-485 and O-11_R-486 have no link, O-4_R-1417 is directly under the device.
+_TREE = (
+    '<GroupObjectTree GroupObjectInstances="O-4_R-1417"><Nodes>'
+    '<Node Type="Channel" RefId="CH-0" GroupObjectInstances="O-40_R-1433 O-10_R-485"><Nodes>'
+    '<Node Type="Folder" RefId="PB-147" GroupObjectInstances="O-41_R-1434"><Nodes>'
+    '<Node Type="Folder" RefId="PB-131" Text="Inner {{0:Default}}" '
+    'GroupObjectInstances="O-70_R-1505" />'
+    "</Nodes></Node>"
+    '<Node Type="Channel" RefId="CH-9" Text="Sub" GroupObjectInstances="O-71_R-1506" />'
+    '<Node Type="Folder" RefId="PB-213" GroupObjectInstances="O-11_R-486" />'
+    "</Nodes></Node>"
+    '<Node Type="Folder" RefId="PB-593" Text="Top" GroupObjectInstances="O-100_R-1577">'
+    '<Nodes><Node Type="Channel" RefId="CH-8" GroupObjectInstances="O-101_R-1578" />'
+    "</Nodes></Node>"
+    '<Node Type="Channel" RefId="CH-7" GroupObjectInstances="O-10_R-485" />'
+    "</Nodes></GroupObjectTree>"
+)
+# Nested trades, equally named siblings, each device in two trades.
+_TRADES = (
+    "<Trades>"
+    '<Trade Id="P-01D2-0_T-1" Name="Licht" Number="1" Puid="50">'
+    '<Trade Id="P-01D2-0_T-2" Name="Innen" Description="Wohnräume" Puid="51">'
+    '<DeviceInstanceRef RefId="P-01D2-0_DI-1" />'
+    "</Trade>"
+    '<DeviceInstanceRef RefId="P-01D2-0_DI-2" />'
+    '<DeviceInstanceRef RefId="P-01D2-0_DI-1" />'
+    "</Trade>"
+    '<Trade Id="P-01D2-0_T-3" Name="Licht" Comment="Kommentar" Puid="52">'
+    '<DeviceInstanceRef RefId="P-01D2-0_DI-2" />'
+    "</Trade>"
+    "</Trades>"
+)
+
+
+def _with_trades_and_tree(tmp_path: Path) -> Path:
+    """The fixture with :data:`_TREE` as the device's group object tree, a second device on
+    its line and :data:`_TRADES`."""
+    source = tmp_path / "trades.knxproj"
+    with (
+        zipfile.ZipFile(_fixture()) as original,
+        zipfile.ZipFile(source, "w") as copy,
+    ):
+        for info in original.infolist():
+            data = original.read(info)
+            if info.filename.endswith("/0.xml"):
+                text = data.decode("utf-8")
+                text, trees = re.subn(r"<GroupObjectTree [^>]*/>", _TREE, text)
+                device = text[
+                    text.index("<DeviceInstance ") : text.index("</DeviceInstance>")
+                ]
+                second = (
+                    device.split(">", 1)[0]
+                    .replace('Id="P-01D2-0_DI-1"', 'Id="P-01D2-0_DI-2"')
+                    .replace('Address="1"', 'Address="2"')
+                    .replace('Puid="7"', 'Puid="90"')
+                )
+                text = text.replace(
+                    "</DeviceInstance>", f"</DeviceInstance>{second} />", 1
+                )
+                text = text.replace("</GroupAddresses>", f"</GroupAddresses>{_TRADES}")
+                assert trees == 1 and _TRADES in text
+                data = text.encode("utf-8")
+            copy.writestr(info, data)
+    return source
+
+
+def test_trades_and_group_object_trees_equal_what_xknxproject_reads(
+    tmp_path: Path,
+) -> None:
+    source = _with_trades_and_tree(tmp_path)
+    project = _import(tmp_path, source)
+    language = product_language()
+
+    model = build_project_model(project, tool_version=TOOL, language_code=language)
+
+    expected = XKNXProj(source, language=language).parse()
+    assert _differences(_normalized(model), _normalized(expected)) == []
+    # What the comparison covers.
+    devices = model["devices"]
+    assert (devices["1.1.1"]["trade_id"], devices["1.1.2"]["trade_id"]) == (
+        "P-01D2-0_T-2",
+        "P-01D2-0_T-1",
+    )
+    assert [t["name"] for t in model["trades"]] == ["Licht", "Licht"]
+    assert model["trades"][0]["devices"] == ["1.1.1", "1.1.2"]
+    tree = devices["1.1.1"]["group_object_tree"]
+    assert [(n["type"], n["identifier"]) for n in tree] == [
+        ("Channel", "CH-0"),
+        ("Folder", "PB-593"),
+    ]
+    inner = tree[0]["nodes"][0]["nodes"][0]
+    assert (inner["name"], inner["communication_object_ids"]) == (
+        "Inner Default",
+        ["1.1.1/O-70_R-1505"],
+    )
+    assert list(devices["1.1.1"]["channels"]) == ["CH-0", "CH-9", "CH-8"]
+    assert devices["1.1.1"]["channels"]["CH-0"]["communication_object_ids"] == [
+        "1.1.1/O-40_R-1433",
+        "1.1.1/O-41_R-1434",
+        "1.1.1/O-70_R-1505",
+    ]
+    objects = model["communication_objects"]
+    assert objects["1.1.1/O-71_R-1506"]["channel"] == "CH-9"
+    assert objects["1.1.1/O-100_R-1577"]["channel"] is None
+
+
+def test_trades_edited_in_the_editor_show_in_the_model(tmp_path: Path) -> None:
+    project = _import(tmp_path, _with_trades_and_tree(tmp_path))
+    device = next(d for d in project.devices if d.individual_address == "1.1.2")
+    top = project.create_trade(None, "Heizung")
+    assert top is not None
+    sub = project.create_trade(top, "Bad")
+    assert sub is not None
+    project.set_trade_field(sub, "number", "7")
+    project.add_trade_device(sub, device.node_id)
+    renamed = next(t for t in project.get_trade_tree() if t.name == "Licht")
+    project.set_trade_field(renamed.id, "name", "Beleuchtung")
+
+    model = build_project_model(project, tool_version=TOOL)
+
+    trades = model["trades"]
+    assert [t["name"] for t in trades] == ["Beleuchtung", "Licht", "Heizung"]
+    assert trades[2] == {
+        "identifier": f"T-x{top}",
+        "name": "Heizung",
+        "number": "",
+        "description": "",
+        "project_uid": None,
+        "devices": [],
+        "trades": [
+            {
+                "identifier": f"T-x{sub}",
+                "name": "Bad",
+                "number": "7",
+                "description": "",
+                "project_uid": None,
+                "devices": ["1.1.2"],
+                "trades": [],
+            }
+        ],
+    }
+    # The editor moved the device out of the trades it was in.
+    assert trades[0]["devices"] == ["1.1.1"]
+    assert trades[1]["devices"] == []
+    assert model["devices"]["1.1.2"]["trade_id"] == f"T-x{sub}"
+    assert model["devices"]["1.1.1"]["trade_id"] == "P-01D2-0_T-2"
 
 
 _OPT_IN = os.environ.get("XKNX_TEST_HA_KNXPROJ")
@@ -213,6 +371,115 @@ def test_a_device_added_in_the_editor_gets_its_texts_from_the_program(
     assert com_object["dpts"] == [{"main": 1, "sub": None}]
 
 
+_TREE_APP = "M-00FA_A-0005-01-0000"
+_TREE_HARDWARE = f"""<?xml version="1.0" encoding="utf-8"?>
+<KNX xmlns="http://knx.org/xml/project/20">
+  <ManufacturerData><Manufacturer RefId="M-00FA"><Hardware>
+    <Hardware Id="M-00FA_H-1" Name="Tree" SerialNumber="1" VersionNumber="1"
+        HasIndividualAddress="true" HasApplicationProgram="true">
+      <Products><Product Id="M-00FA_H-1_P-1" Text="Tree" OrderNumber="T-1"
+          IsRailMounted="true" DefaultLanguage="en-US" /></Products>
+      <Hardware2Programs><Hardware2Program Id="M-00FA_H-1_HP-0005-01-0000" MediumTypes="MT-0">
+        <ApplicationProgramRef RefId="{_TREE_APP}" />
+      </Hardware2Program></Hardware2Programs>
+    </Hardware>
+  </Hardware></Manufacturer></ManufacturerData>
+</KNX>
+"""
+# The device of the tree application as a project stores it with "Extended" off.
+_TREE_DEVICE = (
+    '<DeviceInstance Id="P-01D2-0_DI-3" Address="5" Name="Tree" '
+    'ProductRefId="M-00FA_H-1_P-1" Hardware2ProgramRefId="M-00FA_H-1_HP-0005-01-0000" '
+    'Puid="95"><ParameterInstanceRefs>'
+    '<ParameterInstanceRef RefId="P-1_R-1" Value="0" /></ParameterInstanceRefs>'
+    '<ComObjectInstanceRefs><ComObjectInstanceRef RefId="O-2_R-2" Links="GA-1" />'
+    "</ComObjectInstanceRefs>"
+    '<GroupObjectTree GroupObjectInstances="O-1_R-1"><Nodes>'
+    '<Node Type="Channel" RefId="CH-1" GroupObjectInstances="O-6_R-6 O-2_R-2"><Nodes>'
+    '<Node Type="Folder" RefId="PB-3" GroupObjectInstances="O-3_R-3" />'
+    "</Nodes></Node></Nodes></GroupObjectTree></DeviceInstance>"
+)
+
+
+def _with_tree_application(tmp_path: Path) -> Path:
+    """The fixture with a device of the test application whose channels and folders
+    (``object_tree_application.xml``) depend on a parameter."""
+    application = next(
+        parent / "packages/prod/tests/fixtures/object_tree_application.xml"
+        for parent in Path(__file__).resolve().parents
+        if (parent / "packages/prod/tests/fixtures").is_dir()
+    )
+    source = tmp_path / "tree.knxproj"
+    with (
+        zipfile.ZipFile(_fixture()) as original,
+        zipfile.ZipFile(source, "w") as copy,
+    ):
+        for info in original.infolist():
+            data = original.read(info)
+            if info.filename.endswith("/0.xml"):
+                text = data.decode("utf-8")
+                text = text.replace(
+                    "</DeviceInstance>", f"</DeviceInstance>{_TREE_DEVICE}", 1
+                )
+                data = text.encode("utf-8")
+            copy.writestr(info, data)
+        copy.writestr(f"M-00FA/{_TREE_APP}.xml", application.read_bytes())
+        copy.writestr("M-00FA/Hardware.xml", _TREE_HARDWARE)
+    return source
+
+
+def test_objects_activated_in_the_editor_are_where_the_export_puts_them(
+    tmp_path: Path,
+) -> None:
+    project = _import(tmp_path, _with_tree_application(tmp_path))
+    device = next(d for d in project.devices if d.individual_address == "1.1.5")
+    # Activates the folder "Extra" of channel A and channel C.
+    project.set_param(device, f"{_TREE_APP}_P-1_R-1", "1")
+    device = next(d for d in project.devices if d.individual_address == "1.1.5")
+    addresses = {ga.address: ga.id for ga in project.group_addresses}
+    for suffix, address in (("_O-4_R-4", "2/0/6"), ("_O-5_R-5", "1/0/5")):
+        co = next(
+            co
+            for co in device.get_visible_com_objects()
+            if co.db_id is not None and co.id.endswith(suffix)
+        )
+        assert co.db_id is not None
+        project.link_com_object_to_ga(co.db_id, addresses[address], is_sending=True)
+    # Only that device has a stored tree not listing all its objects.
+    assert list(project.group_object_trees()) == [device.node_id]
+    language = product_language()
+
+    model = build_project_model(project, tool_version=TOOL, language_code=language)
+
+    out = tmp_path / "out.knxproj"
+    assert project.working_path is not None
+    export_knxproj(
+        project.working_path,
+        out,
+        module_arguments=project.module_arguments(),
+        group_object_trees=project.group_object_trees(),
+    )
+    exported = _normalized(XKNXProj(out, language=language).parse())
+    ours = _normalized(model)
+    tree = ours["devices"]["1.1.5"]
+    assert _differences(tree, exported["devices"]["1.1.5"]) == []
+    for key in tree["communication_object_ids"]:
+        assert (
+            _differences(
+                ours["communication_objects"][key],
+                exported["communication_objects"][key],
+            )
+            == []
+        )
+    # What the comparison covers: the activated object is in its folder.
+    channel_a = next(n for n in tree["group_object_tree"] if n["identifier"] == "CH-1")
+    assert [
+        (n["type"], n["identifier"], n["communication_object_ids"])
+        for n in channel_a["nodes"]
+    ] == [("Folder", "PB-4", ["1.1.5/O-4_R-4"])]
+    assert "CH-3" in tree["channels"]
+
+
 def test_no_project_no_model(tmp_path: Path) -> None:
     project = ProjectService(CatalogService(tmp_path / "c.xknxcatalog"))
     project.set_logger(Logger(LogService(), "project"))
@@ -225,6 +492,7 @@ def test_semantics_of_references_and_channels_are_read() -> None:
         id="M-0001_A-0001-01-0000",
         static=SimpleNamespace(
             com_object_table=None,
+            allocators=None,
             com_object_refs=SimpleNamespace(
                 com_object_ref=[
                     ComObjectRef(
@@ -374,6 +642,7 @@ def _source(**changes: Any) -> Any:
         "spaces": [],
         "functions": [],
         "keyed": {1},
+        "trades": [],
     }
     values.update(changes)
     return SimpleNamespace(**values)
@@ -450,6 +719,33 @@ def test_a_device_without_a_stored_tree_gets_its_channels_from_its_objects() -> 
     ]
 
 
+def test_module_instances_without_stored_arguments_take_the_evaluated_ones() -> None:
+    # As the export writes them: a device added in the editor stores its instances with the
+    # application's id and without arguments.
+    key = "1.1.7/MD-1_M-1_MI-2_O-3-0_R-3"
+    source = _source()
+    instance = source.devices[0].module_instances[0]
+    instance.instance_id = f"{_APP}_MD-1_M-1_MI-2"
+    instance.arguments = []
+    evaluated = {1: {f"{_APP}_MD-1_M-1_MI-2": [(f"{_APP}_MD-1_A-1", "C")]}}
+
+    model = _Builder(source, {1: _DIGEST}, {3: 21}, None, evaluated).build(
+        tool_version=TOOL, language_code=None
+    )
+    assert model["communication_objects"][key]["text"] == "Hall C"
+
+    # An instance only the evaluation has.
+    source.devices[0].module_instances = []
+    model = _Builder(source, {1: _DIGEST}, {3: 21}, None, evaluated).build(
+        tool_version=TOOL, language_code=None
+    )
+    assert model["communication_objects"][key]["text"] == "Hall C"
+
+    # Stored arguments win.
+    model = _build(_source())
+    assert model["communication_objects"][key]["text"] == "Hall B"
+
+
 def test_an_object_of_a_module_instance_takes_its_arguments_and_text_parameter() -> (
     None
 ):
@@ -492,3 +788,233 @@ def test_a_group_address_with_a_key_is_data_secure() -> None:
 
     model = _build(_source(keyed=set()))
     assert model["group_addresses"]["1/0/1"]["data_secure"] is False
+
+
+def test_objects_the_tree_does_not_list_go_to_their_stored_channel() -> None:
+    # O-1_R-1 is in a folder directly under the device: in no channel. O-2_R-2 is in no node of
+    # the tree: a channel node of its own. O-3 goes into its channel's empty node in the folder.
+    source = _source()
+    source.devices[0].group_object_tree = (
+        '<GroupObjectTree><Nodes><Node Type="Folder" RefId="PB-1" Text="General" '
+        'GroupObjectInstances="O-1_R-1"><Nodes>'
+        '<Node Type="Channel" RefId="MD-1_M-1_MI-2_CH-2" />'
+        "</Nodes></Node></Nodes></GroupObjectTree>"
+    )
+    source.com_objects[0].channel_id = None
+
+    model = _build(source)
+
+    device = model["devices"]["1.1.7"]
+    assert device["group_object_tree"] == [
+        {
+            "type": "Folder",
+            "identifier": "PB-1",
+            "name": "General",
+            "communication_object_ids": ["1.1.7/O-1_R-1"],
+            "nodes": [
+                {
+                    "type": "Channel",
+                    "identifier": "MD-1_M-1_MI-2_CH-2",
+                    "name": "Buttons B",
+                    "communication_object_ids": ["1.1.7/MD-1_M-1_MI-2_O-3-0_R-3"],
+                    "nodes": [],
+                }
+            ],
+        },
+        {
+            "type": "Channel",
+            "identifier": "CH-1",
+            "name": "Dimmer A",
+            "communication_object_ids": ["1.1.7/O-2_R-2"],
+            "nodes": [],
+        },
+    ]
+    assert list(device["channels"]) == ["MD-1_M-1_MI-2_CH-2", "CH-1"]
+    objects = model["communication_objects"]
+    assert objects["1.1.7/O-1_R-1"]["channel"] is None
+    assert objects["1.1.7/O-2_R-2"]["channel"] == "CH-1"
+
+
+def test_a_folder_is_named_by_its_parameter_block() -> None:
+    source = _source()
+    source.devices[0].group_object_tree = (
+        '<GroupObjectTree><Nodes><Node Type="Channel" RefId="CH-1"><Nodes>'
+        '<Node Type="Folder" RefId="MD-1_M-1_MI-2_PB-5" GroupObjectInstances="O-1_R-1" />'
+        '<Node Type="Folder" RefId="PB-6" GroupObjectInstances="O-2_R-2" />'
+        "</Nodes></Node></Nodes></GroupObjectTree>"
+    )
+    digest = dataclasses.replace(
+        _DIGEST,
+        blocks={
+            f"{_APP}_MD-1_PB-5": BlockDef(
+                name="Keys",
+                text="Keys {{ChNo}}: {{0:none}}",
+                text_parameter_ref_id=f"{_APP}_MD-1_P-4_R-4",
+            ),
+            # Only a text parameter that is not set: the block's name.
+            f"{_APP}_PB-6": BlockDef(
+                name="Spare", text="{{0}}", text_parameter_ref_id=None
+            ),
+        },
+    )
+
+    model = _Builder(source, {1: digest}, {3: 21}).build(
+        tool_version=TOOL, language_code=None
+    )
+
+    channel, module_channel = model["devices"]["1.1.7"]["group_object_tree"]
+    assert [node["name"] for node in channel["nodes"]] == ["Keys B: Hall", "Spare"]
+    assert module_channel["identifier"] == "MD-1_M-1_MI-2_CH-2"
+    # The objects of its folders are the channel's.
+    assert model["devices"]["1.1.7"]["channels"]["CH-1"][
+        "communication_object_ids"
+    ] == ["1.1.7/O-1_R-1", "1.1.7/O-2_R-2"]
+
+
+def _allocating(**changes: Any) -> ApplicationDigest:
+    """:data:`_DIGEST` with ``ChNo`` drawn from the allocator ``L-1`` (start 100, 10 each)."""
+    argument: dict[str, Any] = {
+        "name": "ChNo",
+        "allocates": 10,
+        "computed": True,
+        "allocator": True,
+    }
+    return dataclasses.replace(
+        _DIGEST,
+        arguments={f"{_APP}_MD-1_A-1": ArgumentDef(**{**argument, **changes})},
+        allocators={f"{_APP}_L-1": 100},
+        allocator_modules={f"{_APP}_L-1": 1},
+    )
+
+
+def _arguments(
+    digest: ApplicationDigest, value: str, instance: str = "MD-1_M-1_MI-3"
+) -> dict[str, str]:
+    context = _DeviceContext(
+        row=SimpleNamespace(),  # type: ignore[arg-type]
+        ia="1.1.7",
+        application=_APP,
+        digest=digest,
+        parameters={},
+        module_arguments=[(instance, [(f"{_APP}_MD-1_A-1", value)])],
+    )
+    return context.arguments_for(f"{instance}_O-3-0_R-3")
+
+
+def test_an_allocated_module_argument_takes_its_instance_s_value() -> None:
+    # The third instance: start + 2 * Allocates; a stored number as it is.
+    assert _arguments(_allocating(), "L-1") == {"ChNo": "120"}
+    assert _arguments(_allocating(), "42") == {"ChNo": "42"}
+    source = _source()
+    source.devices[0].module_instances[0].arguments[0]["value"] = "L-1"
+    model = _Builder(source, {1: _allocating()}, {3: 21}).build(
+        tool_version=TOOL, language_code=None
+    )
+    text = model["communication_objects"]["1.1.7/MD-1_M-1_MI-2_O-3-0_R-3"]["text"]
+    assert text == "Hall 110"
+
+
+def test_a_module_argument_without_an_allocated_value_keeps_its_placeholder() -> None:
+    # Several modules draw from the allocator, an unknown allocator, an offset to a base
+    # value, an argument of a submodule.
+    several = dataclasses.replace(_allocating(), allocator_modules={f"{_APP}_L-1": 2})
+    assert _arguments(several, "L-1") == {}
+    assert _arguments(_allocating(), "L-2") == {}
+    assert _arguments(_allocating(base_value=True), "L-1") == {}
+    assert _arguments(_allocating(base_value=True, allocator=False), "7") == {}
+    assert _arguments(_allocating(), "L-1", "MD-1_M-1_MI-3_SM-1_M-1_MI-3-1") == {}
+    assert _arguments(_allocating(allocates=None), "L-1") == {}
+
+
+def test_trades_of_the_rows() -> None:
+    def trade(id: int, parent: int | None, order: int, *devices: int) -> Any:
+        return SimpleNamespace(
+            id=id,
+            parent_id=parent,
+            order=order,
+            source_id="" if id == 3 else f"P-0001-0_T-{id}",
+            name=f"Trade {id}",
+            number="",
+            description="",
+            puid=None,
+            devices=[
+                SimpleNamespace(id=i, device_id=d, order=i)
+                for i, d in enumerate(devices)
+            ],
+        )
+
+    # Trade 2 lists the device after its sub-trade 3 does; a device on no line is left out.
+    model = _build(
+        _source(trades=[trade(1, None, 1), trade(2, None, 0, 1, 9), trade(3, 2, 0, 1)])
+    )
+
+    assert [t["identifier"] for t in model["trades"]] == [
+        "P-0001-0_T-2",
+        "P-0001-0_T-1",
+    ]
+    assert model["trades"][0]["devices"] == ["1.1.7"]
+    assert model["trades"][0]["trades"][0]["identifier"] == "T-x3"
+    assert model["devices"]["1.1.7"]["trade_id"] == "T-x3"
+
+
+def test_the_digest_holds_blocks_allocators_and_how_arguments_are_computed() -> None:
+    module = SimpleNamespace(
+        arguments=SimpleNamespace(
+            argument=[
+                SimpleNamespace(id=f"{_APP}_MD-1_A-1", name="ChNo", allocates=10),
+                SimpleNamespace(id=f"{_APP}_MD-1_A-2", name="Base", allocates=None),
+                SimpleNamespace(id=f"{_APP}_MD-1_A-3", name="Plain", allocates=None),
+            ]
+        ),
+        static=SimpleNamespace(
+            com_objects=None,
+            com_object_refs=None,
+            allocators=SimpleNamespace(
+                allocator=[
+                    Allocator(id=f"{_APP}_MD-1_L-2", name="M", start=5, max_inclusive=9)
+                ]
+            ),
+        ),
+        dynamic=[
+            ModuleNumericArg(ref_id=f"{_APP}_MD-1_A-1", allocator_ref_id=f"{_APP}_L-1"),
+            ModuleNumericArg(ref_id=f"{_APP}_MD-1_A-1", allocator_ref_id=f"{_APP}_L-1"),
+            ModuleNumericArg(ref_id=f"{_APP}_MD-1_A-2", base_value="A-1"),
+            ModuleNumericArg(ref_id=f"{_APP}_MD-1_A-3", value=3),
+        ],
+        sub_module_defs=None,
+    )
+    program = SimpleNamespace(
+        id=_APP,
+        static=SimpleNamespace(
+            com_object_table=None,
+            com_object_refs=None,
+            allocators=SimpleNamespace(
+                allocator=[
+                    Allocator(id=f"{_APP}_L-1", name="L", start=100, max_inclusive=200)
+                ]
+            ),
+        ),
+        dynamic=[
+            ComObjectParameterBlock(
+                id=f"{_APP}_PB-1",
+                name="Block",
+                text="General",
+                text_parameter_ref_id=f"{_APP}_P-1_R-1",
+            )
+        ],
+        module_defs=SimpleNamespace(module_def=[module]),
+    )
+
+    digest = digest_program(program)  # pyright: ignore[reportArgumentType]
+
+    assert digest.blocks == {
+        f"{_APP}_PB-1": BlockDef(
+            name="Block", text="General", text_parameter_ref_id=f"{_APP}_P-1_R-1"
+        )
+    }
+    assert digest.allocators == {f"{_APP}_L-1": 100, f"{_APP}_MD-1_L-2": 5}
+    assert digest.allocator_modules == {f"{_APP}_L-1": 2}
+    chno, base, plain = (digest.arguments[f"{_APP}_MD-1_A-{i}"] for i in (1, 2, 3))
+    assert (chno.computed, chno.allocator, chno.base_value) == (True, True, False)
+    assert (base.computed, base.allocator, base.base_value) == (True, False, True)
+    assert (plain.computed, plain.allocator, plain.base_value) == (False, False, False)

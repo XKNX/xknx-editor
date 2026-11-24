@@ -331,9 +331,10 @@ class Device(_SourcePuid, Base):
     space_id: Mapped[int | None] = mapped_column(ForeignKey("spaces.id"), index=True)
     # The DeviceInstance ``<GroupObjectTree>`` (channel/folder grouping of the device's group
     # objects), captured verbatim from the raw ``.knxproj`` as a namespace-stripped XML string and
-    # re-emitted on export. xknxproject flattens this tree to ``ComObject.channel_id`` and loses the
-    # folder nodes, nesting and order, so it is preserved here as opaque provenance metadata (the
-    # editor does not edit the tree). Empty when the source device had none.
+    # re-emitted on export. xknxproject keeps only the nodes listing objects, without the objects
+    # directly under the device and the nodes' other attributes, so it is preserved here as opaque
+    # provenance metadata (the editor does not edit the tree). Empty when the source device had
+    # none.
     group_object_tree: Mapped[str] = mapped_column(Text, nullable=False, default="")
     # The DeviceInstance ``<IPConfig>`` (IP interface/router config: assign method, static IP/subnet/
     # gateway/MAC), captured verbatim from the raw ``.knxproj`` as its attribute dict and re-emitted
@@ -807,12 +808,13 @@ class FunctionGroupAddress(_SourceIdentity, Base):
     )
 
 
-class Trade(_SourcePuid, Base):
+class Trade(_SourceIdentity, Base):
     """A trade (Gewerke): a named grouping of devices by discipline, in a recursive tree, imported
     from the .knxproj Installation ``Trades``. ``order`` preserves the original sibling order.
 
-    ``xknxproject`` does not surface trades, so the tree is read verbatim from the raw project XML
-    and re-emitted on export (the referenced devices resolve through :class:`TradeDevice`)."""
+    The tree is read verbatim from the raw project XML, as ``xknxproject`` gives neither its
+    comment, completion status and context nor the references to devices on no line, and
+    re-emitted on export (the referenced devices resolve through :class:`TradeDevice`)."""
 
     __tablename__ = "trades"
 

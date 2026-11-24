@@ -17,7 +17,7 @@ from xml.etree import ElementTree as ET
 
 from sqlalchemy.orm import Session
 
-from xknxeditor.proj import ProjectService, export_knxproj
+from xknxeditor.proj import ProjectService, export_knxproj, import_knxproj
 from xknxeditor.proj.core import knxproj_import
 from xknxeditor.proj.db import make_engine, url_for
 from xknxeditor.proj.models import (
@@ -123,7 +123,8 @@ def test_reads_device_comment_space_comment_and_function_meta() -> None:
 def test_reads_trades_tree_with_nested_trades_and_device_refs() -> None:
     body = (
         "<Trades>"
-        '<Trade Name="Electrical" Number="1" Comment="t-c" Description="t-d">'
+        '<Trade Id="P-1-0_T-4" Name="Electrical" Number="1" Comment="t-c" '
+        'Description="t-d">'
         '<Trade Name="Lighting"><DeviceInstanceRef RefId="P-1-0_DI-2"/></Trade>'
         '<DeviceInstanceRef RefId="P-1-0_DI-1"/>'
         "</Trade>"
@@ -140,9 +141,11 @@ def test_reads_trades_tree_with_nested_trades_and_device_refs() -> None:
         "t-d",
     )
     assert top.device_ids == ["P-1-0_DI-1"]
+    assert top.identifier == "P-1-0_T-4"
     assert len(top.children) == 1
     assert top.children[0].name == "Lighting"
     assert top.children[0].device_ids == ["P-1-0_DI-2"]
+    assert top.children[0].identifier == ""
 
 
 # --- full export -> re-read round-trip ------------------------------------
@@ -214,9 +217,12 @@ def _project_with_metadata(tmp_path: Path) -> Path:
             comment="trade-comment",
             description="trade-desc",
             order=0,
+            source_id="P-04BB-0_T-7",
         )
         trade.devices.append(TradeDevice(device=device, order=0))
         installation.trades.append(trade)
+        # A trade added in the editor: no id of its own.
+        installation.trades.append(Trade(name="Lighting", order=0, parent=trade))
         s.commit()
     return src
 
@@ -254,6 +260,22 @@ def _assert_metadata_present(root: ET.Element) -> None:
     assert trade.get("Description") == "trade-desc"
     ref = _find(trade, "DeviceInstanceRef")
     assert ref.get("RefId") == device.get("Id")
+    # The imported trade keeps its id; the one added is numbered after it.
+    pid = (device.get("Id") or "").split("_", 1)[0]
+    assert trade.get("Id") == f"{pid}_T-7"
+    assert _find(trade, "Trade", Name="Lighting").get("Id") == f"{pid}_T-8"
+
+
+def test_a_reimported_export_keeps_the_trade_ids(tmp_path: Path) -> None:
+    out = tmp_path / "out.knxproj"
+    export_knxproj(_project_with_metadata(tmp_path), out, schema="23")
+    again = tmp_path / "again.xknx"
+    import_knxproj(out, again)
+
+    with Session(make_engine(url_for(again))) as s:
+        ids = {trade.name: trade.source_id for trade in s.query(Trade)}
+    assert ids["Electrical"].endswith("-0_T-7")
+    assert ids["Lighting"].endswith("-0_T-8")
 
 
 def test_export_emits_all_metadata_for_project_23(tmp_path: Path) -> None:

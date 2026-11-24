@@ -15,8 +15,10 @@ import base64
 import io
 import zipfile
 from pathlib import Path
+from types import SimpleNamespace
 
 from sqlalchemy.orm import Session
+from xknxproject.zip.extractor import ArchivePath
 
 from xknxeditor.proj import ProjectService, export_knxproj, import_knxproj
 from xknxeditor.proj.core import knxproj_import
@@ -54,7 +56,7 @@ def _zero_xml(binary: str) -> str:
 
 class _FakeContents:
     """Duck-types the bits of xknxproject's ``KNXProjContents`` the reader uses: ``open_project_0``
-    plus the private ``_project_archive`` / ``_project_relative_path`` used for external files."""
+    plus the ``project_path`` used for external files."""
 
     def __init__(self, zero_xml: bytes, files: dict[str, bytes] | None = None) -> None:
         self._zero = zero_xml
@@ -64,8 +66,7 @@ class _FakeContents:
             for rel, data in (files or {}).items():
                 zf.writestr(f"P-01/{rel}", data)
         buf.seek(0)
-        self._project_archive = zipfile.ZipFile(buf)
-        self._project_relative_path = "P-01/"
+        self.project_path = ArchivePath(zipfile.ZipFile(buf), "P-01/")
 
     def open_project_0(self) -> io.BytesIO:
         return io.BytesIO(self._zero)
@@ -222,6 +223,44 @@ def test_capture_project_files_skips_generated_files() -> None:
     assert blob is not None
     with zipfile.ZipFile(io.BytesIO(blob)) as zf:
         assert {name: zf.read(name) for name in zf.namelist()} == _KEPT_FILES
+
+
+def test_capture_project_files_of_a_protected_project_root() -> None:
+    # A protected project's folder is the root of its inner archive; folder entries, the
+    # binary data folder in any case and the generated files are skipped, nested
+    # "BinaryData" folders below another folder are kept.
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w") as zf:
+        zf.writestr("0.xml", b"<KNX/>")
+        zf.writestr("Project.xml", b"<KNX/>")
+        zf.writestr("UserFiles/", b"")
+        zf.writestr("UserFiles/a.txt", b"a")
+        zf.writestr("binarydata/x.dat", b"x")
+        zf.writestr("AddinData/BinaryData/b.bin", b"b")
+    buf.seek(0)
+    contents = SimpleNamespace(project_path=ArchivePath(zipfile.ZipFile(buf)))
+
+    blob = knxproj_import._capture_project_files(contents)  # pyright: ignore[reportPrivateUsage, reportArgumentType]
+
+    assert blob is not None
+    with zipfile.ZipFile(io.BytesIO(blob)) as zf:
+        assert {name: zf.read(name) for name in zf.namelist()} == {
+            "UserFiles/a.txt": b"a",
+            "AddinData/BinaryData/b.bin": b"b",
+        }
+
+
+def test_capture_project_files_without_other_files_is_none() -> None:
+    contents = _FakeContents(_zero_xml("").encode(), {"BinaryData/x.dat": _BLOB})
+
+    assert knxproj_import._capture_project_files(contents) is None  # pyright: ignore[reportPrivateUsage]
+
+
+def test_read_project_file_of_a_missing_file_is_none() -> None:
+    contents = _FakeContents(_zero_xml("").encode())
+
+    assert knxproj_import._read_project_file(contents, "BinaryData/x.dat") is None  # pyright: ignore[reportPrivateUsage]
+    assert knxproj_import._read_project_file(contents, "BinaryData") is None  # pyright: ignore[reportPrivateUsage]
 
 
 def test_export_writes_kept_project_files_and_signs_them(tmp_path: Path) -> None:

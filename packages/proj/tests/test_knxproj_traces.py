@@ -11,6 +11,7 @@ import zipfile
 from pathlib import Path
 
 from sqlalchemy.orm import Session
+from xknxproject.zip.extractor import ArchivePath
 
 from xknxeditor.proj import ProjectService, export_knxproj, import_knxproj
 from xknxeditor.proj.core import knxproj_import
@@ -37,16 +38,15 @@ def _project_xml(traces_xml: str) -> bytes:
 
 
 class _FakeContents:
-    """Duck-types the bits of xknxproject's ``KNXProjContents`` the trace reader uses: the private
-    ``_project_archive`` / ``_project_relative_path`` behind ``_read_project_file``."""
+    """Duck-types the bits of xknxproject's ``KNXProjContents`` the trace reader uses: the
+    ``project_path`` behind ``_read_project_file``."""
 
     def __init__(self, project_xml: bytes) -> None:
         buf = io.BytesIO()
         with zipfile.ZipFile(buf, "w") as zf:
             zf.writestr("P-01/project.xml", project_xml)
         buf.seek(0)
-        self._project_archive = zipfile.ZipFile(buf)
-        self._project_relative_path = "P-01/"
+        self.project_path = ArchivePath(zipfile.ZipFile(buf), "P-01/")
 
     def open_project_0(
         self,

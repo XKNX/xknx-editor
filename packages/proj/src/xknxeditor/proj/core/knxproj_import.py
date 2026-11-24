@@ -26,9 +26,10 @@ import re
 import threading
 import zipfile
 import zlib
-from collections.abc import Callable, Generator
+from collections.abc import Callable, Generator, Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass, field
+from importlib.resources.abc import Traversable
 from pathlib import Path
 from typing import IO, Any, Protocol, cast
 from uuid import uuid4
@@ -475,6 +476,7 @@ class _TradeEntry:
     device_ids: list[str]
     children: list[_TradeEntry]
     puid: int | None = None
+    identifier: str = ""
 
 
 # Per-device data read straight from the raw project XML because xknxproject drops it. Keyed by
@@ -487,6 +489,9 @@ ModuleArgsMap = dict[str, ModuleArgs]
 
 class _ProjectContents(Protocol):
     """The slice of xknxproject's ``KNXProjContents`` that ``_read_device_extras`` needs."""
+
+    # The project folder (in the root archive, or the root of a protected project's archive).
+    project_path: Traversable
 
     def open_project_0(self) -> IO[bytes]: ...
 
@@ -1247,7 +1252,9 @@ def _read_completion_status(root: ET.Element) -> dict[str, str]:
 
 
 def _read_trades(root: ET.Element) -> list[_TradeEntry]:
-    """Read the Installation ``<Trades>`` tree (Gewerke), which xknxproject does not surface.
+    """Read the Installation ``<Trades>`` tree (Gewerke) from the raw XML: xknxproject's trades
+    lack the comment, completion status and context and the references to devices it did not
+    read (those on no line).
 
     Only the first ``<Trades>`` container is read; each ``Trade`` keeps its nested trades and the
     ``@RefId`` of every ``DeviceInstanceRef`` so the tree round-trips on export."""
@@ -1278,6 +1285,7 @@ def _read_trade(elem: ET.Element) -> _TradeEntry:
         device_ids=device_ids,
         children=children,
         puid=_int_attr(elem, "Puid"),
+        identifier=elem.get("Id") or "",
     )
 
 
@@ -1299,8 +1307,9 @@ def _strip_ns(elem: ET.Element) -> ET.Element:
 def _read_group_object_tree(device: ET.Element) -> str:
     """The device's ``<GroupObjectTree>`` as a namespace-stripped XML string, or ``""`` if absent.
 
-    xknxproject flattens this tree into ``ComObject.channel_id`` and drops the folder nodes, nesting
-    and order (see issue #14), so capture the whole subtree verbatim for a lossless re-export. The
+    xknxproject keeps only the nodes listing objects, with neither the objects listed directly
+    under the device nor attributes other than the type, id, text and objects (see issue #14), so
+    capture the whole subtree verbatim for a lossless re-export. The
     referenced ids (com-object instance refs, channel ids, module-instance segments) round-trip
     unchanged, so the exporter can re-emit the tree as-is.
     """
@@ -1563,25 +1572,28 @@ def _binary_payload(
 
 
 # Project folder files the export writes itself.
-_GENERATED_PROJECT_FILE = re.compile(r"(?i)(project|\d+)\.xml|BinaryData/.*")
+_GENERATED_PROJECT_FILE = re.compile(r"(?i)(project|\d+)\.xml")
+
+
+def _project_folder_files(folder: Traversable, prefix: str = "") -> Iterator[str]:
+    """The relative paths of the files in ``folder`` and its subfolders, in archive order per
+    folder. The top-level ``BinaryData`` folder (in any case; the export writes it) is skipped."""
+    for child in folder.iterdir():
+        rel = f"{prefix}{child.name}"
+        if child.is_file():
+            yield rel
+        elif rel.lower() != "binarydata":
+            yield from _project_folder_files(child, f"{rel}/")
 
 
 def _capture_project_files(contents: _ProjectContents) -> bytes | None:
     """The project folder's files the export does not generate, as a ZIP blob; None if none."""
-    archive: Any = getattr(contents, "_project_archive", None)
-    base: str = getattr(contents, "_project_relative_path", "") or ""
-    if archive is None:
-        return None
-    files: list[tuple[str, bytes]] = []
-    for info in archive.infolist():
-        name: str = info.filename
-        if name.endswith("/") or not name.startswith(base):
-            continue
-        rel = name[len(base) :]
-        if not rel or _GENERATED_PROJECT_FILE.fullmatch(rel):
-            continue
-        with archive.open(name) as handle:
-            files.append((rel, handle.read()))
+    folder = contents.project_path
+    files = [
+        (rel, (folder / rel).read_bytes())
+        for rel in _project_folder_files(folder)
+        if not _GENERATED_PROJECT_FILE.fullmatch(rel)
+    ]
     if not files:
         return None
     buffer = io.BytesIO()
@@ -1594,17 +1606,11 @@ def _capture_project_files(contents: _ProjectContents) -> bytes | None:
 def _read_project_file(contents: _ProjectContents, relpath: str) -> bytes | None:
     """Read a file from the project folder of the (possibly encrypted) archive; None if absent.
 
-    Uses xknxproject's already-opened project archive (private attrs) so encrypted projects work
+    Uses xknxproject's project folder of the already-opened archive, so encrypted projects work
     too. Best-effort: any failure returns None rather than aborting the import.
     """
-    archive: Any = getattr(contents, "_project_archive", None)
-    base: str = getattr(contents, "_project_relative_path", "") or ""
-    if archive is None:
-        return None
     try:
-        with archive.open(f"{base}{relpath}") as handle:
-            data: bytes = handle.read()
-            return data
+        return (contents.project_path / relpath).read_bytes()
     except (KeyError, OSError, RuntimeError):
         return None
 
@@ -2028,7 +2034,7 @@ def _build_device(
             for e in state.extras.binary_data.get(xdevice.identifier, [])
         ],
         # The <GroupObjectTree> (channel/folder grouping), captured verbatim from the raw XML and
-        # re-emitted on export; xknxproject does not surface it (issue #14).
+        # re-emitted on export; xknxproject gives only a part of it (issue #14).
         group_object_tree=group_object_tree,
         # The <IPConfig> (IP interface/router config), captured verbatim from the raw XML and
         # re-emitted on export; xknxproject does not surface it. None when the device had none.
@@ -2060,9 +2066,10 @@ def _build_device(
 def _build_module_instance(mi: object, module_args: ModuleArgs) -> ModuleInstance:
     """Build a ModuleInstance row, enriching it with the raw ``RepeatIndex``/``<Arguments>``.
 
-    ``xknxproject`` only gives ``identifier``/``module_def_id``; the allocator arguments and repeat
-    index come from ``module_args`` (captured from the raw XML, keyed by the on-disk ``@Id`` which
-    equals ``identifier``), so a module-based device survives export.
+    ``xknxproject`` gives the arguments with their ids completed by the application and no repeat
+    index; the arguments as stored and the repeat index come from ``module_args`` (captured from
+    the raw XML, keyed by the on-disk ``@Id`` which equals ``identifier``), so a module-based
+    device survives export.
     """
     identifier = str(mi.identifier)  # type: ignore[attr-defined]
     module_def_id = str(mi.module_def_id)  # type: ignore[attr-defined]
@@ -2387,6 +2394,7 @@ def _build_trade(
         order=order,
         parent=parent,
         puid=entry.puid,
+        source_id=entry.identifier,
     )
     installation.trades.append(trade)
     unresolved: list[str] = []
