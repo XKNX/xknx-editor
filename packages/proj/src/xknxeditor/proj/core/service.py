@@ -1792,7 +1792,30 @@ class ProjectService:
         )
 
     def remove_group_range(self, project_id: str, range_id: int) -> None:
-        self._state(project_id).store.append(RemoveGroupRange(target_id=range_id))
+        """Remove a main or middle group with everything below it, the links of its group
+        addresses included (see :meth:`_keep_senders`)."""
+        state = self._state(project_id)
+        children: dict[int | None, list[int]] = {}
+        for child_id, parent_id in state.session.query(
+            GroupRange.id, GroupRange.parent_id
+        ):
+            children.setdefault(parent_id, []).append(child_id)
+        ranges: set[int] = set()
+        pending = [range_id]
+        while pending:
+            current = pending.pop()
+            if current not in ranges:
+                ranges.add(current)
+                pending.extend(children.get(current, []))
+        removed = {
+            link_id
+            for (link_id,) in state.session.query(ComObjectLink.id)
+            .join(GroupAddress, GroupAddress.id == ComObjectLink.group_address_id)
+            .filter(GroupAddress.group_range_id.in_(ranges))
+        }
+        self._append_keeping_senders(
+            state, RemoveGroupRange(target_id=range_id), removed
+        )
 
     def import_group_addresses(
         self,
@@ -1869,13 +1892,22 @@ class ProjectService:
         target: str = "",
     ) -> int:
         """Attach a com-object to a group address; ``sending`` makes it the transmitting link. Use
-        :meth:`set_com_object_sending` to move the sender among a com-object's links.
+        :meth:`set_com_object_sending` to move the sender among a com-object's links. A linked
+        group object always sends on one of its group addresses: the link is the sending one
+        also when the object has no sending link yet (its first).
 
         When ``derive_datapoint_type`` is given, the link and the resulting group-address
         datapoint type are recorded as one undo step, so typing a group address
         from the object it is linked to stays one action."""
         state = self._state(project_id)
         self._check_secure_link(state, com_object_id, group_address_id)
+        if not sending:
+            sending = (
+                state.session.query(ComObjectLink.id)
+                .filter_by(com_object_id=com_object_id, is_sending=True)
+                .first()
+                is None
+            )
         event = LinkComObject(
             com_object_id=com_object_id,
             group_address_id=group_address_id,
@@ -2838,17 +2870,66 @@ class ProjectService:
         state.store.append(RemoveSegment(target_id=segment_id))
 
     def remove_group_address(self, project_id: str, group_address_id: int) -> None:
-        self._state(project_id).store.append(
-            RemoveGroupAddress(target_id=group_address_id)
+        """Remove a group address with its links (see :meth:`_keep_senders`)."""
+        state = self._state(project_id)
+        removed = {
+            link_id
+            for (link_id,) in state.session.query(ComObjectLink.id).filter_by(
+                group_address_id=group_address_id
+            )
+        }
+        self._append_keeping_senders(
+            state, RemoveGroupAddress(target_id=group_address_id), removed
         )
 
     def unlink_com_object(
         self, project_id: str, link_id: int, *, target: str = ""
     ) -> None:
-        """Remove a group object's link; ``target`` names the group object in the history."""
-        self._state(project_id).store.append(
-            UnlinkComObject(target_id=link_id, target=target)
+        """Remove a group object's link; ``target`` names the group object in the history. When
+        it was the object's sending link, the object's first other link becomes the sending one
+        in the same step (see :meth:`_keep_senders`)."""
+        state = self._state(project_id)
+        self._append_keeping_senders(
+            state, UnlinkComObject(target_id=link_id, target=target), {link_id}
         )
+
+    def _append_keeping_senders(
+        self, state: _Open, event: Event, removed_links: set[int]
+    ) -> None:
+        """Append ``event``, which removes ``removed_links``, with the sending links it takes
+        from group objects that keep other links (see :meth:`_keep_senders`) as one step."""
+        events = [event, *self._keep_senders(state, removed_links)]
+        state.store.append(
+            events[0] if len(events) == 1 else CompositeEvent(events=events)
+        )
+
+    @staticmethod
+    def _keep_senders(state: _Open, removed_links: set[int]) -> list[Event]:
+        """A linked group object always sends on one of its group addresses: for each object
+        that loses its sending link among ``removed_links`` but keeps others, the event that
+        makes the first of those (in link order) its sending link."""
+        if not removed_links:
+            return []
+        objects = {
+            com_object_id
+            for (com_object_id,) in state.session.query(ComObjectLink.com_object_id)
+            .filter(ComObjectLink.id.in_(removed_links))
+            .filter(ComObjectLink.is_sending.is_(True))
+        }
+        events: list[Event] = []
+        for com_object_id in sorted(objects):
+            remaining = (
+                state.session.query(ComObjectLink)
+                .filter(
+                    ComObjectLink.com_object_id == com_object_id,
+                    ComObjectLink.id.not_in(removed_links),
+                )
+                .order_by(ComObjectLink.id)
+                .all()
+            )
+            if remaining and not any(link.is_sending for link in remaining):
+                events.append(SetComObjectSending(link_id=remaining[0].id))
+        return events
 
     def com_object_of_link(self, project_id: str, link_id: int) -> int | None:
         """The group object a link belongs to, ``None`` for an unknown link."""
@@ -3765,6 +3846,7 @@ class ProjectService:
         events: list[Event] = [
             UnlinkComObject(target_id=link_id) for link_id in impact.removed_links
         ]
+        events += self._keep_senders(state, set(impact.removed_links))
         events.append(SetDeviceSecureCommissioning(device_id=device_id, tool_key=None))
         state.store.append(
             events[0] if len(events) == 1 else CompositeEvent(events=events)

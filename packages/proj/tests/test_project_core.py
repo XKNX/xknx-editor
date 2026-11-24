@@ -486,6 +486,63 @@ def test_link_sending_first_then_reassign(tmp_path: Path):
     )
 
 
+def _sending(svc: ProjectService, pid: str, co_id: int) -> dict[int, bool]:
+    return {ln.id: ln.is_sending for ln in svc.com_object_links(pid, co_id)}
+
+
+def test_a_linked_object_always_sends_on_one_group_address(tmp_path: Path):
+    svc, pid = _new(tmp_path)
+    seg = _backbone_segment(svc, pid)
+    svc.add_device(
+        pid, seg, PRODUCT, address=1, name="D", com_objects=[("O-1_R-1", None)]
+    )
+    co = svc.devices(pid)[0].com_objects[0]
+    g1, g2, g3 = (svc.create_group_address(pid, 0, n, f"G{n}") for n in (1, 2, 3))
+    # The first link sends even when it is not asked to.
+    l1 = svc.link_com_object(pid, co.id, g1, sending=False)
+    l2 = svc.link_com_object(pid, co.id, g2)
+    assert _sending(svc, pid, co.id) == {l1: True, l2: False}
+    # A sending link takes over in the same step; undo gives the old one back.
+    l3 = svc.link_com_object(pid, co.id, g3, sending=True)
+    assert _sending(svc, pid, co.id) == {l1: False, l2: False, l3: True}
+    svc.undo(pid)
+    assert _sending(svc, pid, co.id) == {l1: True, l2: False}
+    # Unlinking the sending link makes the first other one send, in one undo step.
+    svc.unlink_com_object(pid, l1)
+    assert _sending(svc, pid, co.id) == {l2: True}
+    svc.undo(pid)
+    assert _sending(svc, pid, co.id) == {l1: True, l2: False}
+    # Removing the sending group address does the same.
+    svc.remove_group_address(pid, g1)
+    assert _sending(svc, pid, co.id) == {l2: True}
+    svc.undo(pid)
+    assert _sending(svc, pid, co.id) == {l1: True, l2: False}
+    # A not sending link goes without changing the sender; the last one leaves none.
+    svc.unlink_com_object(pid, l2)
+    assert _sending(svc, pid, co.id) == {l1: True}
+    svc.unlink_com_object(pid, l1)
+    assert _sending(svc, pid, co.id) == {}
+
+
+def test_removing_a_group_keeps_a_sender(tmp_path: Path):
+    svc, pid = _new(tmp_path)
+    seg = _backbone_segment(svc, pid)
+    svc.add_device(
+        pid, seg, PRODUCT, address=1, name="D", com_objects=[("O-1_R-1", None)]
+    )
+    co = svc.devices(pid)[0].com_objects[0]
+    # 0/0/1 in main group 0, 1/0/1 in main group 1.
+    g1 = svc.create_group_address(pid, 0, 0x0001, "In main 0")
+    g2 = svc.create_group_address(pid, 0, 0x0801, "In main 1")
+    l1 = svc.link_com_object(pid, co.id, g1)
+    l2 = svc.link_com_object(pid, co.id, g2)
+    main = next(r for r in svc.group_ranges(pid, 0) if r.range_end < 0x0800)
+    svc.remove_group_range(pid, main.id)
+    assert _sending(svc, pid, co.id) == {l2: True}
+    svc.undo(pid)
+    assert _sending(svc, pid, co.id) == {l1: True, l2: False}
+
+
 def test_failed_append_leaves_session_usable(tmp_path: Path):
     """A mutation that fails inside apply (stale id -> FK violation) must not poison the session:
     the rollback keeps it usable, and the redo branch it would have truncated survives."""

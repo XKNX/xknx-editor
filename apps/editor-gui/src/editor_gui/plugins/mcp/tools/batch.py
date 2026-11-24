@@ -666,7 +666,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         - remove_group_address: ga -> {group_address_id}.
         - link_com_object: device, com_object_ref_id, ga [is_sending] ->
           {link_id, node_id, com_object_ref_id, com_object_db_id, group_address_id, is_sending,
-          already_linked, dpt_mismatch?, other_sending_group_address_ids?, hidden?} (same feedback
+          already_linked, dpt_mismatch?, replaced_sending_group_address_ids?, hidden?} (same feedback
           as the standalone tool; idempotent).
         - unlink_com_object: assignment_id, or device, com_object_ref_id, ga (the linked pair) ->
           {assignment_id}.

@@ -2098,11 +2098,9 @@ class ProjectPlugin:
         ]
 
     def _link_com_object(self, com_object_db_id: int, group_address_id: int) -> None:
-        # The first group address a com-object links to becomes its sending address.
-        existing = self._api.project.get_links_for_com_object(com_object_db_id)
-        self._api.project.link_com_object_to_ga(
-            com_object_db_id, group_address_id, is_sending=not existing
-        )
+        # The first group address a com-object links to becomes its sending address (the
+        # project's rule for every link).
+        self._api.project.link_com_object_to_ga(com_object_db_id, group_address_id)
 
     def _paste_com_object_links(
         self, target_db_id: int, links: list[tuple[int, bool]], replace: bool
