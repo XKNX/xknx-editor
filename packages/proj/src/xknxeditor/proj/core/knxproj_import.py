@@ -1307,8 +1307,9 @@ def _strip_ns(elem: ET.Element) -> ET.Element:
 def _read_group_object_tree(device: ET.Element) -> str:
     """The device's ``<GroupObjectTree>`` as a namespace-stripped XML string, or ``""`` if absent.
 
-    xknxproject flattens this tree into ``ComObject.channel_id`` and drops the folder nodes, nesting
-    and order (see issue #14), so capture the whole subtree verbatim for a lossless re-export. The
+    xknxproject keeps only the nodes listing objects, with neither the objects listed directly
+    under the device nor attributes other than the type, id, text and objects (see issue #14), so
+    capture the whole subtree verbatim for a lossless re-export. The
     referenced ids (com-object instance refs, channel ids, module-instance segments) round-trip
     unchanged, so the exporter can re-emit the tree as-is.
     """
@@ -2033,7 +2034,7 @@ def _build_device(
             for e in state.extras.binary_data.get(xdevice.identifier, [])
         ],
         # The <GroupObjectTree> (channel/folder grouping), captured verbatim from the raw XML and
-        # re-emitted on export; xknxproject does not surface it (issue #14).
+        # re-emitted on export; xknxproject gives only a part of it (issue #14).
         group_object_tree=group_object_tree,
         # The <IPConfig> (IP interface/router config), captured verbatim from the raw XML and
         # re-emitted on export; xknxproject does not surface it. None when the device had none.
@@ -2065,9 +2066,10 @@ def _build_device(
 def _build_module_instance(mi: object, module_args: ModuleArgs) -> ModuleInstance:
     """Build a ModuleInstance row, enriching it with the raw ``RepeatIndex``/``<Arguments>``.
 
-    ``xknxproject`` only gives ``identifier``/``module_def_id``; the allocator arguments and repeat
-    index come from ``module_args`` (captured from the raw XML, keyed by the on-disk ``@Id`` which
-    equals ``identifier``), so a module-based device survives export.
+    ``xknxproject`` gives the arguments with their ids completed by the application and no repeat
+    index; the arguments as stored and the repeat index come from ``module_args`` (captured from
+    the raw XML, keyed by the on-disk ``@Id`` which equals ``identifier``), so a module-based
+    device survives export.
     """
     identifier = str(mi.identifier)  # type: ignore[attr-defined]
     module_def_id = str(mi.module_def_id)  # type: ignore[attr-defined]

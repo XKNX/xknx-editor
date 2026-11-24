@@ -2384,7 +2384,7 @@ class _Writer:
         self._build_module_instances(di, device, instances)
         # <GroupObjectTree> (schema order: after ModuleInstances, before BinaryData). The channel/
         # folder grouping of the device's group objects, captured verbatim on import and re-emitted
-        # here so it round-trips (issue #14); xknxproject flattens it to channel ids and loses it.
+        # here so it round-trips (issue #14); xknxproject gives only a part of it.
         self._build_group_object_tree(di, device)
         # <AdditionalAddresses> (schema order: after GroupObjectTree, before BinaryData). Extra
         # individual addresses a coupler/interface reserves, captured on import and re-emitted here.

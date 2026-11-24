@@ -331,9 +331,10 @@ class Device(_SourcePuid, Base):
     space_id: Mapped[int | None] = mapped_column(ForeignKey("spaces.id"), index=True)
     # The DeviceInstance ``<GroupObjectTree>`` (channel/folder grouping of the device's group
     # objects), captured verbatim from the raw ``.knxproj`` as a namespace-stripped XML string and
-    # re-emitted on export. xknxproject flattens this tree to ``ComObject.channel_id`` and loses the
-    # folder nodes, nesting and order, so it is preserved here as opaque provenance metadata (the
-    # editor does not edit the tree). Empty when the source device had none.
+    # re-emitted on export. xknxproject keeps only the nodes listing objects, without the objects
+    # directly under the device and the nodes' other attributes, so it is preserved here as opaque
+    # provenance metadata (the editor does not edit the tree). Empty when the source device had
+    # none.
     group_object_tree: Mapped[str] = mapped_column(Text, nullable=False, default="")
     # The DeviceInstance ``<IPConfig>`` (IP interface/router config: assign method, static IP/subnet/
     # gateway/MAC), captured verbatim from the raw ``.knxproj`` as its attribute dict and re-emitted
