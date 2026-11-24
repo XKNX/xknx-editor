@@ -342,6 +342,9 @@ class ConnectionService:
         self.project_data_secure: (
             Callable[[], tuple[dict[int, bytes], dict[int, int]] | None] | None
         ) = None
+        # The project's secured group addresses (raw) in the clear in another security domain:
+        # their telegrams are taken in the clear too.
+        self.project_plain_somewhere: Callable[[], set[int]] | None = None
         # Download individual addresses by serial number when the device's is known.
         self.use_serial_number = True
         # Current point-to-point bus operation, so the UI can show a
@@ -1272,13 +1275,19 @@ class ConnectionService:
     def data_secure(self) -> DataSecure | None:
         """KNX Data Secure for the group communication of the open connection: the keys of the
         secured group addresses and their senders, from the project, else from the loaded
-        keyring; ``None`` without any."""
-        from xknx.secure.data_secure import DataSecure
+        keyring; ``None`` without any. A project's group address that is secured in one
+        security domain and in the clear in another is taken in the clear too (the connection
+        can't tell from which side a telegram comes)."""
         from xknx.telegram import GroupAddress, IndividualAddress
+
+        from .group_security import ConnectionDataSecure
 
         tables = (
             self.project_data_secure() if self.project_data_secure is not None else None
         )
+        plain: set[int] = set()
+        if tables and self.project_plain_somewhere is not None:
+            plain = self.project_plain_somewhere()
         if not tables and self.keyring is not None:
             tables = self.keyring.data_secure_tables()
         if not tables or not tables[0]:
@@ -1286,11 +1295,12 @@ class ConnectionService:
             return None
         group_keys, senders = tables
         self._group_keys = dict(group_keys)
-        return DataSecure(
+        return ConnectionDataSecure(
             group_key_table={GroupAddress(raw): key for raw, key in group_keys.items()},
             individual_address_table={
                 IndividualAddress(raw): sequence for raw, sequence in senders.items()
             },
+            plain_too={GroupAddress(raw) for raw in plain},
         )
 
     def secure_group_keys(self) -> dict[int, bytes]:

@@ -4071,6 +4071,23 @@ class ProjectService:
                 return None
             return keys, self._svc.secure_senders(self._pid, self._com_object_can_send)
 
+    def plain_somewhere_group_addresses(self) -> set[int]:
+        """The secured group addresses (raw addresses) that are in the clear in another security
+        domain, whose telegrams a connection takes in the clear too."""
+        if self._pid is None:
+            return set()
+        with self._io_lock:
+            return self._svc.plain_somewhere_group_addresses(self._pid)
+
+    def group_address_security(self, ga_id: int) -> dict[str, Any]:
+        """Why a group address is secured or in the clear, per security domain (see
+        ``xknxeditor.proj.core.ga_security.group_address_security``). KeyError for an unknown
+        id."""
+        if self._pid is None:
+            raise KeyError("No project is open.")
+        with self._io_lock:
+            return self._svc.group_address_security(self._pid, ga_id)
+
     def export_keyring(self, path: Path, password: str) -> int:
         """Write the project's key material as a keyring (``.knxkeys``) to ``path``, encrypted and
         signed with ``password``: the backbone key, every device commissioned securely (with the

@@ -72,6 +72,9 @@ _MAX_ADD_COUNT = 100
 # The com-object flags a client may override (also the schema enum for project_set_com_object_flag).
 Flag = Literal["communication", "read", "write", "transmit", "update", "read_on_init"]
 _FLAGS = ("communication", "read", "write", "transmit", "update", "read_on_init")
+# The links in a group address's security report, which project_get_group_address_security
+# gives with the MCP names.
+_SECURITY_LINKS = ("group_objects", "bus_interfaces")
 
 
 def _items(rows: list[Any]) -> dict[str, Any]:
@@ -2767,6 +2770,73 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             return result
 
         return _items(ctx.run_locked(_read))
+
+    @tool("read")
+    def project_get_group_address_security(
+        group_address_id: int | None = None, group_address: str | None = None
+    ) -> dict[str, Any]:
+        """Explain why a group address is secured (KNX Data Secure) or in the clear. Identify it
+        by ``group_address_id`` (id from project_list_group_addresses) OR ``group_address`` (a
+        printed address like "10/1/2" in the project's style); pass exactly one.
+
+        In "Auto" mode the security is decided per security domain: a coupler used as Security
+        Proxy, or a line whose coupler is not in the project, starts a domain of its own. In a
+        domain the address is in the clear when a device commissioned in the clear or a bus
+        interface without security is linked to it there, else secured.
+
+        Returns {id, address, security (its own mode: "Auto", "On", "Off"), effective_security
+        (the mode that counts, maybe forced by a group), forced_by (that group's id or null),
+        secured (secured in at least one domain), plain_somewhere (secured in one domain and in
+        the clear in another: the editor's connection then takes its telegrams in the clear
+        too), contradiction (its links contradict each other: decided as if the project had one
+        domain), domains, group_objects, bus_interfaces}. Each domain is {index, above (the
+        domain above it or null), segments [{line like "1.1", segment (0: the line's main
+        segment)}], security_proxy (the individual address of the coupler feeding it or null),
+        state ("secured" or "plain")}; only the domains the address takes part in are listed.
+        Each group object is {com_object_db_id, com_object_name, node_id, individual_address,
+        sending, device_secure (the device is commissioned securely), domain}; each bus
+        interface it is assigned to is {node_id, individual_address (of its device), secure,
+        domain}. This reads the project without checking the bus."""
+
+        def _read() -> dict[str, Any]:
+            ga_id = _require_group_address_id(group_address_id, group_address)
+            g = project.get_group_address(ga_id)
+            if g is None:
+                raise ToolError(f"no group address with id {ga_id}")
+            report = project.group_address_security(ga_id)
+            names: dict[int, str] = {}
+            for dev in project.devices:
+                for co in dev.get_visible_com_objects():
+                    if co.db_id is not None:
+                        names[co.db_id] = com_object_display_name(co)
+            return {
+                "id": g.id,
+                "address": g.address,
+                **{k: v for k, v in report.items() if k not in _SECURITY_LINKS},
+                "group_objects": [
+                    {
+                        "com_object_db_id": link["com_object_id"],
+                        "com_object_name": names.get(link["com_object_id"]),
+                        "node_id": link["device_id"],
+                        "individual_address": link["device_address"],
+                        "sending": link["sending"],
+                        "device_secure": link["device_secure"],
+                        "domain": link["domain"],
+                    }
+                    for link in report["group_objects"]
+                ],
+                "bus_interfaces": [
+                    {
+                        "node_id": link["device_id"],
+                        "individual_address": link["device_address"],
+                        "secure": link["secure"],
+                        "domain": link["domain"],
+                    }
+                    for link in report["bus_interfaces"]
+                ],
+            }
+
+        return ctx.run_locked(_read)
 
     @tool("read")
     def project_topology() -> dict[str, Any]:

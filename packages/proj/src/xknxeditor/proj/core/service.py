@@ -171,6 +171,7 @@ from xknxeditor.proj.core.ga_security import (
     effective_mode,
     exports_key,
     forcing_range,
+    group_address_security,
     is_secured,
     linked_devices,
     project_security,
@@ -3216,6 +3217,28 @@ class ProjectService:
         if created:
             state.session.commit()
         return keys
+
+    def plain_somewhere_group_addresses(self, project_id: str) -> set[int]:
+        """The secured group addresses (raw addresses) that are in the clear in another security
+        domain: their telegrams can be on the bus secured or in the clear."""
+        state = self._state(project_id)
+        security = project_security(state.session)
+        plain = [ga for ga in security.secured_anywhere if security.plain_somewhere(ga)]
+        if not plain:
+            return set()
+        return {
+            address
+            for (address,) in state.session.query(GroupAddress.address).filter(
+                GroupAddress.id.in_(plain)
+            )
+        }
+
+    def group_address_security(
+        self, project_id: str, group_address_id: int
+    ) -> dict[str, Any]:
+        """Why a group address is secured or in the clear, per security domain (see
+        :func:`~xknxeditor.proj.core.ga_security.group_address_security`)."""
+        return group_address_security(self._state(project_id).session, group_address_id)
 
     def device_sequence_number(self, project_id: str, device_id: int) -> int | None:
         """The device's next Sequence Number Sending as last read (``None`` when unknown)."""

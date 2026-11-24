@@ -6,10 +6,17 @@ import asyncio
 from types import SimpleNamespace
 from typing import Any, cast
 
+import pytest
+from xknx.cemi.cemi_frame import CEMILData
+from xknx.dpt import DPTBinary
+from xknx.exceptions import DataSecureError
 from xknx.io.connection import ConnectionType
 from xknx.knxip.dib import TunnelingSlotStatus
-from xknx.telegram import IndividualAddress
+from xknx.telegram import GroupAddress, IndividualAddress
+from xknx.telegram.apci import GroupValueWrite, SecureAPDU
+from xknx.telegram.tpci import TDataGroup
 
+from editor_gui.plugins.connection.group_security import ConnectionDataSecure
 from editor_gui.plugins.connection.plugin import ConnectionPlugin
 from editor_gui.plugins.connection.service import ConnectionService, SecureTunnel
 from editor_gui.plugins.keyring.service import KeyringIpSecrets
@@ -51,6 +58,50 @@ def test_data_secure_from_the_project() -> None:
     service.project_data_secure = lambda: None
     assert service.data_secure() is None
     assert service.secure_group_keys() == {}
+
+
+def _plain_write(destination: str) -> CEMILData:
+    return CEMILData(
+        src_addr=IndividualAddress("1.2.5"),
+        dst_addr=GroupAddress(destination),
+        tpci=TDataGroup(),
+        payload=GroupValueWrite(DPTBinary(1)),
+    )
+
+
+def test_plain_telegrams_of_a_group_address_plain_in_another_domain() -> None:
+    service = ConnectionService()
+    keys = {0x0801: bytes(16), 0x0802: bytes(16)}
+    service.project_data_secure = lambda: (keys, {0x1105: 41})
+    service.project_plain_somewhere = lambda: {0x0801}
+    data_secure = service.data_secure()
+    assert isinstance(data_secure, ConnectionDataSecure)
+    assert data_secure.plain_too == {GroupAddress("1/0/1")}
+    # Secured in one domain, in the clear in another: taken in the clear.
+    frame = _plain_write("1/0/1")
+    assert data_secure.received_cemi(frame) is frame
+    # Secured wherever it is used: a plain telegram is discarded.
+    with pytest.raises(DataSecureError, match="plain APDU"):
+        data_secure.received_cemi(_plain_write("1/0/2"))
+    # A group address without a key, as always.
+    other = _plain_write("1/0/3")
+    assert data_secure.received_cemi(other) is other
+    # Secured frames of it are still secured when sent.
+    sent = data_secure.outgoing_cemi(_plain_write("1/0/1"))
+    assert isinstance(sent.payload, SecureAPDU)
+
+
+def test_the_keyring_alone_takes_nothing_in_the_clear() -> None:
+    service = ConnectionService()
+    service.project_data_secure = lambda: None
+    service.project_plain_somewhere = lambda: {0x0801}
+    service.keyring = cast(
+        Any,
+        SimpleNamespace(data_secure_tables=lambda: ({0x0801: bytes(16)}, {})),
+    )
+    data_secure = service.data_secure()
+    assert isinstance(data_secure, ConnectionDataSecure)
+    assert data_secure.plain_too == frozenset()
 
 
 def _plugin(gateway: Any, *, routing: bool = False, **connection: Any) -> Any:

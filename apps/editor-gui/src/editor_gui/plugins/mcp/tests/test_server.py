@@ -197,6 +197,19 @@ async def test_full_edit_flow(tmp_path: Path) -> None:
         )["items"]
         assert any(link_["group_address_id"] == ga_id for link_ in links)
 
+        # Why the group address is in the clear: its device is commissioned in the clear.
+        security = await _data(
+            client, "project_get_group_address_security", group_address="1/1/1"
+        )
+        assert security["id"] == ga_id and security["address"] == "1/1/1"
+        assert security["security"] == security["effective_security"] == "Auto"
+        assert security["secured"] is False and security["plain_somewhere"] is False
+        [linked] = security["group_objects"]
+        assert linked["com_object_db_id"] == db_id and linked["node_id"] == node_id
+        assert linked["com_object_name"] and linked["device_secure"] is False
+        assert {d["state"] for d in security["domains"]} <= {"plain"}
+        assert security["bus_interfaces"] == []
+
         # Undo removes the link.
         assert (await _data(client, "project_undo"))["undone"] is True
         assignments = (
