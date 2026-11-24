@@ -4,6 +4,7 @@ new id, which has no stored column settings, and the count of resets survives a 
 from __future__ import annotations
 
 from collections.abc import Iterator
+from contextlib import contextmanager
 from pathlib import Path
 
 import pytest
@@ -75,3 +76,74 @@ def test_the_header_of_a_scrolling_table_stays() -> None:
     assert _header_freeze(scroll_both, columns_frozen=1) == (1, 1)
     # A table without its own vertical scrolling has nothing to freeze.
     assert _header_freeze(imgui.TableFlags_.none) == (0, 0)
+
+
+@contextmanager
+def _pane(width: float) -> Iterator[None]:
+    """A window ``width`` wide (instead of the frame's own window) for the time being."""
+    imgui.end()
+    imgui.set_next_window_size(imgui.ImVec2(width, 300.0))
+    imgui.begin(f"pane {width}")
+    try:
+        yield
+    finally:
+        imgui.end()
+        imgui.begin("window")
+
+
+def _scrolls_sideways(width: float, **kwargs: float) -> tuple[bool, float]:
+    """Whether a scrolling table in a pane ``width`` wide scrolls sideways, and its width."""
+    with _pane(width):
+        assert tables.begin_data_table(
+            "##wide", 2, imgui.TableFlags_.scroll_y, imgui.ImVec2(0.0, 100.0), **kwargs
+        )
+        table = internal.get_current_table()
+        scrolls = bool(table.flags & imgui.TableFlags_.scroll_x)
+        inner = table.inner_width
+        imgui.end_table()
+    return scrolls, inner
+
+
+@pytest.mark.usefixtures("frame")
+def test_a_table_scrolls_sideways_below_the_width_it_needs() -> None:
+    assert _scrolls_sideways(300.0, min_width=0.0, needed_width=500.0) == (True, 500.0)
+    # With room for it, it fills the pane.
+    assert _scrolls_sideways(600.0, min_width=0.0, needed_width=500.0) == (False, 0.0)
+    # A phone: narrower than the minimum.
+    assert _scrolls_sideways(300.0)[0]
+
+
+@pytest.mark.usefixtures("frame")
+def test_the_header_labels_keep_their_width() -> None:
+    label = "A rather long column header"
+
+    def draw() -> bool:
+        with _pane(200.0):
+            assert tables.begin_data_table(
+                "##labels",
+                2,
+                imgui.TableFlags_.scroll_y,
+                imgui.ImVec2(0.0, 100.0),
+                min_width=0.0,
+            )
+            table = internal.get_current_table()
+            scrolls = bool(table.flags & imgui.TableFlags_.scroll_x)
+            imgui.table_setup_column(label)
+            imgui.table_setup_column(label + " too")
+            tables.data_table_headers()
+            imgui.end_table()
+        return scrolls
+
+    # Not known on the first frame; from the next one on, the labels do not fit in 200 px.
+    assert not draw()
+    imgui.end()
+    imgui.end_frame()
+    imgui.new_frame()
+    imgui.begin("window")
+    assert draw()
+
+
+@pytest.mark.usefixtures("frame")
+def test_the_width_of_columns() -> None:
+    padding = imgui.get_style().cell_padding.x
+    assert tables.columns_width([100.0, 50.0]) == 150.0 + 6 * padding

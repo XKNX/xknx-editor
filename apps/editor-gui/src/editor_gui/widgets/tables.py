@@ -21,6 +21,9 @@ _SETTINGS = "app"
 _NARROW_TABLE = 560.0
 _GENERATION_KEY = "table_generation"
 _generation: list[int] = []
+# The width the header labels of a table need (by its imgui id), measured each frame its header
+# row is drawn: below it the table scrolls sideways instead of cutting the labels off.
+_header_widths: dict[int, float] = {}
 
 
 def _current_generation() -> int:
@@ -54,24 +57,30 @@ def begin_data_table(
     *,
     scroll_when_narrow: bool = False,
     min_width: float = _NARROW_TABLE,
+    needed_width: float = 0.0,
 ) -> bool:
     """``imgui.begin_table`` for a table of data, with the header menu of
     :func:`data_table_headers` instead of the built-in one.
 
-    Where the window is narrow (a phone), a table that scrolls keeps its usual width and
-    scrolls sideways; with ``scroll_when_narrow`` one that does not scroll does so too, filling
-    the rest of the window then."""
+    Where the space is narrower than the table needs, a table that scrolls keeps the width it
+    needs and scrolls sideways; with ``scroll_when_narrow`` one that does not scroll does so too,
+    filling the rest of the window then. It needs ``min_width`` (at 100 % scaling: a phone is
+    narrower), ``needed_width`` (in pixels, e.g. its columns' :func:`columns_width`) and the
+    width of its header labels, whichever is the most; where there is more, it fills it."""
     if not flags & imgui.TableFlags_.no_pad_outer_x:
         # The first header and cell keep the same distance to the left edge as between columns.
         flags |= imgui.TableFlags_.pad_outer_x
     inner_width = 0.0
-    width = px(min_width)
+    table_id = data_table_id(str_id)
+    width = max(
+        px(min_width), needed_width, _header_widths.get(imgui.get_id(table_id), 0.0)
+    )
     scrolls = bool(flags & imgui.TableFlags_.scroll_y) or scroll_when_narrow
     if scrolls and imgui.get_content_region_avail().x < width:
         flags |= imgui.TableFlags_.scroll_x | imgui.TableFlags_.scroll_y
         inner_width = width
     opened = imgui.begin_table(
-        data_table_id(str_id),
+        table_id,
         columns,
         flags,
         outer_size if outer_size is not None else imgui.ImVec2(0.0, 0.0),
@@ -80,6 +89,33 @@ def begin_data_table(
     if opened:
         internal.get_current_table().disable_default_context_menu = True
     return opened
+
+
+def columns_width(widths: list[float]) -> float:
+    """The width a table needs for columns of ``widths`` (their content, in pixels): with the
+    padding of each cell and the outer padding of a table begun with
+    :func:`begin_data_table`."""
+    padding = imgui.get_style().cell_padding.x
+    return sum(widths) + 2 * padding * (len(widths) + 1)
+
+
+def _remember_header_width(table: internal.Table) -> None:
+    """Note the width the shown header labels of ``table`` need (see :func:`begin_data_table`)."""
+    style = imgui.get_style()
+    arrow = imgui.get_font_size() * _SORT_ARROW_SCALE + style.frame_padding.x
+    widths: list[float] = []
+    for column in range(table.columns_count):
+        flags = imgui.table_get_column_flags(column)
+        if not flags & imgui.TableColumnFlags_.is_enabled:
+            continue
+        label = (internal.table_get_column_name(table, column) or "").split("##", 1)[0]
+        width = imgui.calc_text_size(label).x
+        if table.flags & imgui.TableFlags_.sortable and not (
+            flags & imgui.TableColumnFlags_.no_sort
+        ):
+            width += arrow
+        widths.append(width)
+    _header_widths[table.id_] = columns_width(widths)
 
 
 def data_table_headers() -> None:
@@ -224,12 +260,13 @@ def freeze_header() -> None:
         imgui.table_setup_scroll_freeze(table.freeze_columns_request, 1)
 
 
-def text_table_height(rows: int) -> float:
+def text_table_height(rows: int, min_width: float = _NARROW_TABLE) -> float:
     """The height of a scrolling table showing its header and ``rows`` rows of one text line, no
-    more, and the sideways scrollbar where :func:`begin_data_table` makes it scroll sideways."""
+    more, and the sideways scrollbar where :func:`begin_data_table` makes it scroll sideways
+    (with the same ``min_width``)."""
     style = imgui.get_style()
     height = (rows + 1) * (imgui.get_text_line_height() + 2 * style.cell_padding.y)
-    if imgui.get_content_region_avail().x < px(_NARROW_TABLE):
+    if imgui.get_content_region_avail().x < px(min_width):
         height += style.scrollbar_size
     return height
 
@@ -240,6 +277,7 @@ def table_header_menu() -> None:
     clicked or every column to its content, reset the order, the visibility or everything, show
     or hide columns."""
     table = internal.get_current_table()
+    _remember_header_width(table)
     # Read and changed while the table is current: in its menu (a popup) it is not.
     columns = [
         (internal.table_get_column_name(table, n), imgui.table_get_column_flags(n))

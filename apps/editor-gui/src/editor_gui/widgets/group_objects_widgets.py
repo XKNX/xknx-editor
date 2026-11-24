@@ -34,6 +34,7 @@ from editor_gui.widgets.flow import button_width, checkbox_width, same_line_if_f
 from editor_gui.widgets.strings import S
 from editor_gui.widgets.tables import (
     begin_data_table,
+    columns_width,
     data_table_headers,
     freeze_header,
     table_header,
@@ -378,25 +379,44 @@ class GroupObjectsTable:
             | imgui.TableFlags_.scroll_y
         )
         n_cols = 6 + len(FLAG_LABELS)
+        # One letter per flag in most languages; some use a short abbreviation, which the column
+        # widens for.
+        padding = 2 * imgui.get_style().cell_padding.x
+        flag_widths = [
+            max(px(22.0), imgui.calc_text_size(flag_letter(attr)).x + padding)
+            for attr, _letter, _name in FLAG_LABELS
+        ]
+        # The stretching columns share the rest; narrower than this the table scrolls sideways.
+        stretching = [
+            (S.GROUP_OBJECTS_COL_NAME, 0.279, 180.0),
+            (S.GROUP_OBJECTS_COL_DPT, 0.159, 110.0),
+            (S.GROUP_OBJECTS_COL_LENGTH, 0.040, 60.0),
+            (S.GROUP_OBJECTS_COL_PRIO, 0.080, 70.0),
+            (S.GROUP_OBJECTS_COL_GROUP_ADDRESSES, 0.441, 180.0),
+        ]
+        needed = columns_width(
+            [
+                px(59.0),
+                *(
+                    max(px(minimum), imgui.calc_text_size(label).x)
+                    for label, _weight, minimum in stretching
+                ),
+                *flag_widths,
+            ]
+        )
         # One shared layout for every device (not per node id), so a column width the user sets is
         # the default for the whole window, not just the device it was set on.
-        if not begin_data_table("##group_objects", n_cols, flags):
+        if not begin_data_table("##group_objects", n_cols, flags, needed_width=needed):
             return
 
         imgui.table_setup_column("#", imgui.TableColumnFlags_.width_fixed, px(59.0))
         stretch = imgui.TableColumnFlags_.width_stretch
-        imgui.table_setup_column(S.GROUP_OBJECTS_COL_NAME, stretch, 0.279)
-        imgui.table_setup_column(S.GROUP_OBJECTS_COL_DPT, stretch, 0.159)
-        imgui.table_setup_column(S.GROUP_OBJECTS_COL_LENGTH, stretch, 0.040)
-        imgui.table_setup_column(S.GROUP_OBJECTS_COL_PRIO, stretch, 0.080)
-        imgui.table_setup_column(S.GROUP_OBJECTS_COL_GROUP_ADDRESSES, stretch, 0.441)
-        # One letter per flag in most languages; some use a short abbreviation, which the column
-        # widens for.
-        padding = 2 * imgui.get_style().cell_padding.x
-        for attr, _letter, _name in FLAG_LABELS:
-            letter = flag_letter(attr)
-            width = max(px(22.0), imgui.calc_text_size(letter).x + padding)
-            imgui.table_setup_column(letter, imgui.TableColumnFlags_.width_fixed, width)
+        for label, weight, _minimum in stretching:
+            imgui.table_setup_column(label, stretch, weight)
+        for (attr, _letter, _name), width in zip(FLAG_LABELS, flag_widths, strict=True):
+            imgui.table_setup_column(
+                flag_letter(attr), imgui.TableColumnFlags_.width_fixed, width
+            )
         if self._on_auto_create_gas is not None:
             self._render_headers(com_objects)
         else:

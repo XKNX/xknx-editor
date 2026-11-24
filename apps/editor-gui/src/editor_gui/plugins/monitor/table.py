@@ -22,6 +22,7 @@ from editor_gui.plugins.monitor.formatting import (
     COLUMNS,
     PRINT_COLUMNS,
     PRINT_WEIGHTS,
+    Column,
     ProjectIndex,
     format_cells,
     record_cells,
@@ -41,6 +42,7 @@ from editor_gui.widgets.filter_box import filter_box
 from editor_gui.widgets.flow import button_width, same_line_if_fits, text_width
 from editor_gui.widgets.tables import (
     begin_data_table,
+    columns_width,
     data_table_headers,
     row_selectable,
 )
@@ -65,6 +67,9 @@ _FILTER_BUDGET = 0.008
 # Narrowest the filter box gets beside the Compact/Extend toggle, at 100 % scaling; else the
 # toggle goes below it.
 _NARROW_FILTER = 160.0
+# Narrowest the value of a telegram gets in the compact set, at 100 % scaling; with less room
+# the table scrolls sideways.
+_VALUE_MIN_WIDTH = 240.0
 # The rows of records that are no telegram, and of telegrams with flags.
 _EVENT_COLOR = imgui.ImVec4(0.55, 0.7, 0.95, 1.0)
 _FLAGGED_COLOR = imgui.ImVec4(0.95, 0.6, 0.15, 1.0)
@@ -460,6 +465,17 @@ class TelegramView:
 
     # --- table -----------------------------------------------------------
 
+    @staticmethod
+    def _column_width(column: Column) -> float:
+        """The width of a fixed column: its own, or as wide as the regional formats make the
+        time and date."""
+        width = px(column.width)
+        sample = sample_text(column.key)
+        if sample:
+            padding = imgui.get_style().cell_padding.x * 2
+            width = max(width, imgui.calc_text_size(sample).x + padding)
+        return width
+
     def _render_table(self, index: ProjectIndex) -> None:
         extended = self._extended
         flags = (
@@ -479,7 +495,21 @@ class TelegramView:
         # the rest of the width, so the columns end at the panel's edge.
         if extended:
             flags |= imgui.TableFlags_.scroll_x
-        if not begin_data_table(table_id, len(COLUMNS), flags):
+        widths = [self._column_width(column) for column in COLUMNS]
+        # In the compact set the value takes the rest of the width, at least this much; with less
+        # room the table scrolls sideways through the columns shown on the frame before.
+        needed = (
+            0.0
+            if extended
+            else columns_width(
+                [
+                    px(_VALUE_MIN_WIDTH) if COLUMNS[i].key == "info" else widths[i]
+                    for i in self._enabled_columns
+                    if i < len(COLUMNS)
+                ]
+            )
+        )
+        if not begin_data_table(table_id, len(COLUMNS), flags, needed_width=needed):
             return
         imgui.table_setup_scroll_freeze(0, 1)
         for i, column in enumerate(COLUMNS):
@@ -492,15 +522,11 @@ class TelegramView:
             hide = not extended and i not in _SIMPLE_COLUMNS[self.kind]
             if hide:
                 column_flags |= imgui.TableColumnFlags_.default_hide
-            if column_flags & imgui.TableColumnFlags_.width_stretch:
-                width = 1.0
-            else:
-                width = px(column.width)
-                # The time and date are as wide as the regional formats make them.
-                sample = sample_text(column.key)
-                if sample:
-                    padding = imgui.get_style().cell_padding.x * 2
-                    width = max(width, imgui.calc_text_size(sample).x + padding)
+            width = (
+                1.0
+                if column_flags & imgui.TableColumnFlags_.width_stretch
+                else widths[i]
+            )
             imgui.table_setup_column(column.label, column_flags, width)
         data_table_headers()
         self._enabled_columns = [

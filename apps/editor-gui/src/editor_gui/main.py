@@ -4828,14 +4828,15 @@ class KnxGuiApp:
             | imgui.TableFlags_.scroll_y
             | imgui.TableFlags_.no_saved_settings
         )
-        height = min(px(380.0), text_table_height(len(rows)))
+        table_width = self._product_table_width(rows)
+        height = min(px(380.0), text_table_height(len(rows), table_width))
         # Its own table per import result: the widths follow each one's content.
         if not begin_data_table(
             f"##product_import_{id(rows)}",
             len(columns),
             flags,
             imgui.ImVec2(0.0, height),
-            min_width=self._product_table_width(rows),
+            min_width=table_width,
         ):
             return
         for (label, _get, stretch, cap), width in zip(columns, widths, strict=True):
