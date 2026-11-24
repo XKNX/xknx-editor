@@ -36,13 +36,18 @@ _PACKAGE_LABELS: dict[str, str] = {
 
 # Loggers whose records reach the in-app log, each from the given level on: the packages' own, xknx's
 # point-to-point connections (a telegram the device did not acknowledge and its repetitions, an
-# unexpected sequence number, a disconnect by the device), and the rest of xknx from warnings on (a
-# frame the interface did not confirm, a lost tunnel) - its debug output has every bus frame.
+# unexpected sequence number, a disconnect by the device), the connection's steps (e.g. how a KNX USB
+# interface takes reports, the individual address it turned out to have), and the rest of xknx from
+# warnings on (a frame the interface did not confirm, a lost tunnel) - its debug output has every bus
+# frame.
 _BRIDGED_LOGGERS: tuple[tuple[str, int], ...] = (
     ("xknxeditor", logging.DEBUG),
     ("xknx.management", logging.DEBUG),
+    ("xknx.log", logging.INFO),
     ("xknx", logging.WARNING),
 )
+# Every frame sent to and received from the KNX interface, raw (``--log-frames``).
+_FRAME_LOGGER = "xknx.raw_socket"
 
 
 class _TeeStream:
@@ -178,6 +183,11 @@ class LogService:
         """
         for name, level in _BRIDGED_LOGGERS:
             self._bridge_logger(logging.getLogger(name), level)
+
+    def log_frames(self) -> None:
+        """Log every frame sent to and received from the KNX interface too, raw, as it is
+        exchanged (for error reports: it can be a lot)."""
+        self._bridge_logger(logging.getLogger(_FRAME_LOGGER), logging.DEBUG)
 
     def _bridge_logger(self, logger: logging.Logger, level: int) -> None:
         logger.setLevel(level)

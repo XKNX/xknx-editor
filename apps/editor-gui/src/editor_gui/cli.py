@@ -31,6 +31,11 @@ _GENERAL = (
         "--no-connect",
         "Connect to no KNX interface at start, whatever the setting Connect at Startup says.",
     ),
+    (
+        "--log-frames",
+        "Log every frame sent to and received from the KNX interface, raw (for error "
+        "reports).",
+    ),
     ("--profile", "Print where the time went when the editor ends (for developers)."),
 )
 _WEB = (

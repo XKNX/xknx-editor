@@ -42,7 +42,7 @@ def test_bridge_is_idempotent_across_instances():
     pkg = logging.getLogger("xknxeditor")
     from editor_gui.plugins.logger.service import _StdlibBridgeHandler
 
-    for name in ("xknxeditor", "xknx.management", "xknx"):
+    for name in ("xknxeditor", "xknx.management", "xknx.log", "xknx"):
         bridges = [
             h
             for h in logging.getLogger(name).handlers
@@ -71,10 +71,34 @@ def test_xknx_point_to_point_messages_are_logged_from_debug_on():
 def test_other_xknx_messages_are_logged_from_warnings_on():
     svc = LogService()
     logging.getLogger("xknx.cemi").debug("Outgoing CEMI: every frame")
-    logging.getLogger("xknx.log").info("Tunnel connected")
+    logging.getLogger("xknx.log").debug("Sending: every frame")
+    logging.getLogger("xknx.raw_socket").debug("Sending to USB: 0113")
     logging.getLogger("xknx.cemi").warning("Could not send CEMI frame")
     events = [r.event for r in svc.get_records() if r.plugin == "xknx"]
     assert events == ["Could not send CEMI frame"]
+
+
+def test_the_connection_steps_are_logged_from_info_on():
+    # e.g. how a KNX USB interface takes reports, or the address it turned out to have
+    svc = LogService()
+    logging.getLogger("xknx.log").info("Sending them over the control pipe")
+    events = [(r.plugin, r.level, r.event) for r in svc.get_records()]
+    assert ("xknx", "info", "Sending them over the control pipe") in events
+
+
+def test_frames_are_logged_with_log_frames() -> None:
+    frames = logging.getLogger("xknx.raw_socket")
+    level, propagate = frames.level, frames.propagate
+    try:
+        svc = LogService()
+        svc.log_frames()
+        frames.debug("Sending to USB: %s", "0113")
+        events = [(r.plugin, r.level, r.event) for r in svc.get_records()]
+        assert ("xknx", "debug", "Sending to USB: 0113") in events
+    finally:
+        frames.handlers.clear()
+        frames.setLevel(level)
+        frames.propagate = propagate
 
 
 def test_structlog_is_written_to_console_and_disk(
