@@ -51,57 +51,90 @@ def test_the_keyring_fills_in() -> None:
 
 def test_data_secure_from_the_project() -> None:
     service = ConnectionService()
-    service.project_data_secure = lambda: ({0x0801: bytes(16)}, {0x1105: 41})
-    data_secure = service.data_secure()
-    assert data_secure is not None
+    asked: list[int | None] = []
+
+    def tables(local: int | None) -> Any:
+        asked.append(local)
+        return {0x0801: bytes(16)}, {0x1105: 41}, {0x0801}
+
+    service.project_data_secure = tables
+    data_secure = service.data_secure(0x11FF)
+    assert isinstance(data_secure, ConnectionDataSecure)
+    assert asked == [0x11FF]
     assert service.secure_group_keys() == {0x0801: bytes(16)}
-    service.project_data_secure = lambda: None
+    assert data_secure.sent_secured == {GroupAddress("1/0/1")}
+    service.project_data_secure = lambda local: None
     assert service.data_secure() is None
     assert service.secure_group_keys() == {}
 
 
-def _plain_write(destination: str) -> CEMILData:
+def _write(destination: str, source: str = "1.2.5") -> CEMILData:
     return CEMILData(
-        src_addr=IndividualAddress("1.2.5"),
+        src_addr=IndividualAddress(source),
         dst_addr=GroupAddress(destination),
         tpci=TDataGroup(),
         payload=GroupValueWrite(DPTBinary(1)),
     )
 
 
-def test_plain_telegrams_of_a_group_address_plain_in_another_domain() -> None:
-    service = ConnectionService()
-    keys = {0x0801: bytes(16), 0x0802: bytes(16)}
-    service.project_data_secure = lambda: (keys, {0x1105: 41})
-    service.project_plain_somewhere = lambda: {0x0801}
-    data_secure = service.data_secure()
-    assert isinstance(data_secure, ConnectionDataSecure)
-    assert data_secure.plain_too == {GroupAddress("1/0/1")}
-    # Secured in one domain, in the clear in another: taken in the clear.
-    frame = _plain_write("1/0/1")
-    assert data_secure.received_cemi(frame) is frame
-    # Secured wherever it is used: a plain telegram is discarded.
-    with pytest.raises(DataSecureError, match="plain APDU"):
-        data_secure.received_cemi(_plain_write("1/0/2"))
-    # A group address without a key, as always.
-    other = _plain_write("1/0/3")
-    assert data_secure.received_cemi(other) is other
-    # Secured frames of it are still secured when sent.
-    sent = data_secure.outgoing_cemi(_plain_write("1/0/1"))
-    assert isinstance(sent.payload, SecureAPDU)
+def _data_secure(senders: dict[IndividualAddress, int]) -> ConnectionDataSecure:
+    return ConnectionDataSecure(
+        group_key_table={
+            GroupAddress("1/0/1"): bytes(16),
+            GroupAddress("1/0/2"): bytes(16),
+        },
+        individual_address_table=senders,
+        sent_secured={GroupAddress("1/0/1")},
+    )
 
 
-def test_the_keyring_alone_takes_nothing_in_the_clear() -> None:
+def test_plain_telegrams_are_always_taken() -> None:
+    data_secure = _data_secure({})
+    # Also for a group address with a key, secured somewhere or not.
+    for destination in ("1/0/1", "1/0/2", "1/0/3"):
+        frame = _write(destination)
+        assert data_secure.received_cemi(frame) is frame
+
+
+def test_sent_secured_only_where_the_connection_secures_it() -> None:
+    sender = _data_secure({})
+    assert isinstance(sender.outgoing_cemi(_write("1/0/1")).payload, SecureAPDU)
+    plain = _write("1/0/2")
+    assert sender.outgoing_cemi(plain) is plain
+    # Without a choice, secured on every group address with a key.
+    every = ConnectionDataSecure(
+        group_key_table={GroupAddress("1/0/2"): bytes(16)}, individual_address_table={}
+    )
+    assert every.sent_secured == {GroupAddress("1/0/2")}
+
+
+def test_secured_telegrams_decrypted_also_from_unknown_senders() -> None:
+    sender = _data_secure({})
+    secured = sender.outgoing_cemi(_write("1/0/1", "1.1.20"))
+    # A receiver that doesn't know the sender yet takes it and counts from its number on.
+    receiver = _data_secure({})
+    decrypted = receiver.received_cemi(secured)
+    assert isinstance(decrypted.payload, GroupValueWrite)
+    with pytest.raises(DataSecureError, match="Sequence number too low"):
+        receiver.received_cemi(secured)
+    # A known sender must exceed its last valid Sequence Number.
+    known = _data_secure({IndividualAddress("1.1.20"): 1 << 40})
+    with pytest.raises(DataSecureError, match="Sequence number too low"):
+        known.received_cemi(secured)
+
+
+def test_the_keyring_alone_sends_secured_on_all_its_keys() -> None:
     service = ConnectionService()
-    service.project_data_secure = lambda: None
-    service.project_plain_somewhere = lambda: {0x0801}
+    service.project_data_secure = lambda local: None
     service.keyring = cast(
         Any,
         SimpleNamespace(data_secure_tables=lambda: ({0x0801: bytes(16)}, {})),
     )
     data_secure = service.data_secure()
     assert isinstance(data_secure, ConnectionDataSecure)
-    assert data_secure.plain_too == frozenset()
+    assert data_secure.sent_secured == {GroupAddress("1/0/1")}
+    service.keyring = cast(Any, SimpleNamespace(data_secure_tables=lambda: None))
+    assert service.data_secure() is None
 
 
 def _plugin(gateway: Any, *, routing: bool = False, **connection: Any) -> Any:
@@ -288,3 +321,28 @@ def test_missing_credentials_are_an_error_when_connecting_later() -> None:
         plugin, logged = _waiting(project)
         plugin._report_failure(MissingCredentialsError(None), startup=startup)
         assert logged == [("error", "connection failed")]
+
+
+def test_refresh_gives_the_tables_for_the_connections_own_address() -> None:
+    service = ConnectionService()
+    asked: list[int | None] = []
+
+    def tables(local: int | None) -> Any:
+        asked.append(local)
+        return {0x0801: bytes(16)}, {}, set[int]()
+
+    service.project_data_secure = tables
+    # Without a connection there is nothing to refresh.
+    service.refresh_data_secure()
+    assert asked == []
+    handler = SimpleNamespace(data_secure=None)
+    service._xknx = cast(  # pyright: ignore[reportPrivateUsage]
+        Any,
+        SimpleNamespace(
+            current_address=IndividualAddress("1.2.250"), cemi_handler=handler
+        ),
+    )
+    service.refresh_data_secure()
+    assert asked == [IndividualAddress("1.2.250").raw]
+    assert isinstance(handler.data_secure, ConnectionDataSecure)
+    assert handler.data_secure.sent_secured == frozenset()

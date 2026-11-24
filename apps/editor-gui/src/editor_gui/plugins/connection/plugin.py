@@ -1341,9 +1341,11 @@ class ConnectionPlugin:
                 if isinstance(self._interface, ObservableUSBInterfaceThreaded)
                 else None
             )
-            # Secured group communication with the project's (or the keyring's) keys.
+            # Secured group communication with the project's (or the keyring's) keys, sent
+            # secured where the connection's own line secures it.
+            local_address = self._xknx.current_address.raw
             self._xknx.cemi_handler.data_secure = await self._on_main_thread(
-                self._api.connection.data_secure
+                lambda: self._api.connection.data_secure(local_address)
             )
             self._data_secure_revision = self._api.project.revision
             self._gateway_info = gateway

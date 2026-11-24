@@ -203,7 +203,7 @@ async def test_full_edit_flow(tmp_path: Path) -> None:
         )
         assert security["id"] == ga_id and security["address"] == "1/1/1"
         assert security["security"] == security["effective_security"] == "Auto"
-        assert security["secured"] is False and security["plain_somewhere"] is False
+        assert security["secured"] is False and security["state"] == "plain"
         [linked] = security["group_objects"]
         assert linked["com_object_db_id"] == db_id and linked["node_id"] == node_id
         assert linked["com_object_name"] and linked["device_secure"] is False

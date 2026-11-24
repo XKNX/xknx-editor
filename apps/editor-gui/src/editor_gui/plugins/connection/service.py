@@ -334,17 +334,19 @@ class ConnectionService:
         # maximum APDU length only of couplers on the route that the project has.
         self.project_device: Callable[[str], object | None] | None = None
         # The open project's KNX IP Secure tunnels of an interface (by its individual address),
-        # its routing backbone ``(key, latency ms)`` and its Data Secure tables ``(group keys,
-        # senders with their last valid Sequence Number)``; they take precedence over the keyring.
+        # its routing backbone ``(key, latency ms)`` and its Data Secure tables for a connection
+        # with an individual address (raw, None when unknown): ``(group keys, senders with their
+        # last valid Sequence Number, group addresses sent secured)``; they take precedence over
+        # the keyring.
         self.project_tunnels: Callable[[str], list[SecureTunnel]] | None = None
         self.project_backbone: Callable[[], tuple[bytes, int] | None] | None = None
         self._group_keys: dict[int, bytes] = {}
         self.project_data_secure: (
-            Callable[[], tuple[dict[int, bytes], dict[int, int]] | None] | None
+            Callable[
+                [int | None], tuple[dict[int, bytes], dict[int, int], set[int]] | None
+            ]
+            | None
         ) = None
-        # The project's secured group addresses (raw) in the clear in another security domain:
-        # their telegrams are taken in the clear too.
-        self.project_plain_somewhere: Callable[[], set[int]] | None = None
         # Download individual addresses by serial number when the device's is known.
         self.use_serial_number = True
         # Current point-to-point bus operation, so the UI can show a
@@ -1272,35 +1274,44 @@ class ConnectionService:
                 backbone = (key, 2000)
         return backbone
 
-    def data_secure(self) -> DataSecure | None:
-        """KNX Data Secure for the group communication of the open connection: the keys of the
-        secured group addresses and their senders, from the project, else from the loaded
-        keyring; ``None`` without any. A project's group address that is secured in one
-        security domain and in the clear in another is taken in the clear too (the connection
-        can't tell from which side a telegram comes)."""
+    def data_secure(self, local_address: int | None = None) -> DataSecure | None:
+        """KNX Data Secure for the group communication of the open connection, whose individual
+        address is ``local_address`` (raw; None when unknown): the group keys and the senders,
+        from the project, else from the loaded keyring; ``None`` without any keys. Plain
+        telegrams are always taken, secured ones decrypted with any key there is; it sends
+        secured on the group addresses the project secures where the connection is (see
+        :class:`~.group_security.ConnectionDataSecure`), with a keyring on all it has keys
+        for."""
         from xknx.telegram import GroupAddress, IndividualAddress
 
         from .group_security import ConnectionDataSecure
 
         tables = (
-            self.project_data_secure() if self.project_data_secure is not None else None
+            self.project_data_secure(local_address)
+            if self.project_data_secure is not None
+            else None
         )
-        plain: set[int] = set()
-        if tables and self.project_plain_somewhere is not None:
-            plain = self.project_plain_somewhere()
-        if not tables and self.keyring is not None:
-            tables = self.keyring.data_secure_tables()
-        if not tables or not tables[0]:
+        if tables:
+            group_keys, senders, secured = tables
+        else:
+            ring = (
+                self.keyring.data_secure_tables() if self.keyring is not None else None
+            )
+            if not ring:
+                self._group_keys = {}
+                return None
+            group_keys, senders = ring
+            secured = set(group_keys)
+        if not group_keys:
             self._group_keys = {}
             return None
-        group_keys, senders = tables
         self._group_keys = dict(group_keys)
         return ConnectionDataSecure(
             group_key_table={GroupAddress(raw): key for raw, key in group_keys.items()},
             individual_address_table={
                 IndividualAddress(raw): sequence for raw, sequence in senders.items()
             },
-            plain_too={GroupAddress(raw) for raw in plain},
+            sent_secured={GroupAddress(raw) for raw in secured},
         )
 
     def secure_group_keys(self) -> dict[int, bytes]:
@@ -1313,7 +1324,9 @@ class ConnectionService:
         runs: a secured download hooks into the same place)."""
         if self._xknx is None or self.busy_operation is not None:
             return
-        self._xknx.cemi_handler.data_secure = self.data_secure()
+        self._xknx.cemi_handler.data_secure = self.data_secure(
+            self._xknx.current_address.raw
+        )
 
     @_connects("program_device")
     def program_device(

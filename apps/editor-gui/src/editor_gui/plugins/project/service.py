@@ -4055,29 +4055,29 @@ class ProjectService:
             return 0xFFFFFFFF
         return self._svc.bcu_key(self._pid)
 
-    def data_secure_tables(self) -> tuple[dict[int, bytes], dict[int, int]] | None:
-        """The project's Data Secure tables for a connection: the keys of the secured group
-        addresses and every device that can send on them with its last valid Sequence Number."""
+    def data_secure_tables(
+        self, local_address: int | None = None
+    ) -> tuple[dict[int, bytes], dict[int, int], set[int]] | None:
+        """The project's Data Secure tables for a connection whose individual address is
+        ``local_address`` (raw; None when unknown): the key of every group address that has one,
+        every device that can send on a secured group address with its last valid Sequence
+        Number, and the group addresses the connection sends secured (see
+        ``ProjectService.connection_group_security`` of the core)."""
         from xknxeditor.proj import ProjectPasswordRequired
 
         if self._pid is None:
             return None
         with self._io_lock:
             try:
-                keys = self._svc.secured_group_keys(self._pid)
+                keys, secured = self._svc.connection_group_security(
+                    self._pid, local_address
+                )
             except ProjectPasswordRequired:
                 return None
             if not keys:
                 return None
-            return keys, self._svc.secure_senders(self._pid, self._com_object_can_send)
-
-    def plain_somewhere_group_addresses(self) -> set[int]:
-        """The secured group addresses (raw addresses) that are in the clear in another security
-        domain, whose telegrams a connection takes in the clear too."""
-        if self._pid is None:
-            return set()
-        with self._io_lock:
-            return self._svc.plain_somewhere_group_addresses(self._pid)
+            senders = self._svc.secure_senders(self._pid, self._com_object_can_send)
+            return keys, senders, secured
 
     def group_address_security(self, ga_id: int) -> dict[str, Any]:
         """Why a group address is secured or in the clear, per security domain (see

@@ -3218,20 +3218,43 @@ class ProjectService:
             state.session.commit()
         return keys
 
-    def plain_somewhere_group_addresses(self, project_id: str) -> set[int]:
-        """The secured group addresses (raw addresses) that are in the clear in another security
-        domain: their telegrams can be on the bus secured or in the clear."""
+    def connection_group_security(
+        self, project_id: str, local_address: int | None
+    ) -> tuple[dict[int, bytes], set[int]]:
+        """KNX Data Secure of a connection to the bus: the key of every group address that has
+        one (raw address -> 16 octets; a secured one without a key yet gets one, see
+        :meth:`secured_group_keys`), to decrypt what is received, and the group addresses (raw)
+        it sends secured: those secured in every security domain they take part in and, of
+        those secured in some domains only, the ones secured in the domain of the connection's
+        line (``local_address``: its raw individual address; None when unknown, then they are
+        sent in the clear)."""
+        keys = self.secured_group_keys(project_id)
         state = self._state(project_id)
+        for ga in state.session.query(GroupAddress).filter(
+            GroupAddress.security_key.is_not(None)
+        ):
+            if ga.address in keys:
+                continue
+            value = ga.security_key
+            if state.cipher is not None:
+                value = state.cipher.value(value)
+            key = _key(value)
+            if key is not None:
+                keys[ga.address] = key
         security = project_security(state.session)
-        plain = [ga for ga in security.secured_anywhere if security.plain_somewhere(ga)]
-        if not plain:
-            return set()
-        return {
+        local_domain = (
+            security.line_domain(local_address >> 12, (local_address >> 8) & 0x0F)
+            if local_address is not None
+            else None
+        )
+        secured = {
             address
-            for (address,) in state.session.query(GroupAddress.address).filter(
-                GroupAddress.id.in_(plain)
+            for ga_id, address in state.session.query(
+                GroupAddress.id, GroupAddress.address
             )
+            if security.sent_secured(ga_id, local_domain)
         }
+        return keys, secured & set(keys)
 
     def group_address_security(
         self, project_id: str, group_address_id: int

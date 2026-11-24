@@ -63,7 +63,7 @@ def short_timeouts(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(usb_tunnel, "LOCAL_MANAGEMENT_TIMEOUT", 0.2)
 
 
-def _data_secure() -> DataSecure:
+def _data_secure(local_address: int | None = None) -> DataSecure:
     return DataSecure(
         group_key_table={GroupAddress("1/2/3"): bytes(16)},
         individual_address_table={IndividualAddress("1.0.4"): 0},
@@ -150,7 +150,7 @@ def _plugin() -> Any:
             local_device_refusal=lambda *addresses, **kwargs: None,
             dispatch_raw_cemi=received.append,
             dispatch_sent_cemi=sent.append,
-            data_secure=lambda: None,
+            data_secure=lambda local_address=None: None,
             set_connection=lambda xknx, loop: events.append(
                 "connection" if xknx is not None else "no connection"
             ),

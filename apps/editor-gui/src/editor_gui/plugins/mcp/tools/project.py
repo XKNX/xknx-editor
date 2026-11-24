@@ -2786,10 +2786,11 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         Returns {id, address, security (its own mode: "Auto", "On", "Off"), effective_security
         (the mode that counts, maybe forced by a group), forced_by (that group's id or null),
-        secured (secured in at least one domain), plain_somewhere (secured in one domain and in
-        the clear in another: the editor's connection then takes its telegrams in the clear
-        too), contradiction (its links contradict each other: decided as if the project had one
-        domain), domains, group_objects, bus_interfaces}. Each domain is {index, above (the
+        secured (secured in at least one domain), state ("secure": secured in every domain it
+        takes part in, "plain": in none, "mixed": in some, "none": in no domain at all; the
+        editor's connection sends secured on "secure" ones and on "mixed" ones secured in the
+        domain of its own line), contradiction (its links contradict each other: decided as if
+        the project had one domain), domains, group_objects, bus_interfaces}. Each domain is {index, above (the
         domain above it or null), segments [{line like "1.1", segment (0: the line's main
         segment)}], security_proxy (the individual address of the coupler feeding it or null),
         state ("secured" or "plain")}; only the domains the address takes part in are listed.

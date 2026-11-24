@@ -155,15 +155,19 @@ def test_no_entry_for_a_group_address_alike_on_both_sides(tmp_path: Path) -> Non
 
 
 def test_secured_on_one_side_and_plain_on_the_other(tmp_path: Path) -> None:
-    svc, pid, _devices = _project(tmp_path)
+    svc, pid, devices = _project(tmp_path)
     svc.set_security_context(pid, _Products())
-    # Secured behind the Security Proxy, in the clear on the sensor's line.
-    assert svc.plain_somewhere_group_addresses(pid) == {0x0801}
+    # Secured behind the Security Proxy, in the clear on the sensor's line: a connection sends
+    # secured on line 2.1 only, in the clear where its line is unknown.
+    keys, secured = svc.connection_group_security(pid, 0x21FF)
+    assert set(keys) == {0x0801} and secured == {0x0801}
+    assert svc.connection_group_security(pid, 0x22FF)[1] == set()
+    assert svc.connection_group_security(pid, None)[1] == set()
     ga_id = next(g.id for g in svc.group_addresses(pid) if g.address == 0x0801)
     report = svc.group_address_security(pid, ga_id)
     assert report["security"] == report["effective_security"] == "Auto"
     assert report["forced_by"] is None
-    assert report["secured"] and report["plain_somewhere"]
+    assert report["secured"] and report["state"] == "mixed"
     assert not report["contradiction"]
     states = {
         tuple(s["line"] for s in d["segments"]): (d["state"], d["security_proxy"])
@@ -180,19 +184,28 @@ def test_secured_on_one_side_and_plain_on_the_other(tmp_path: Path) -> None:
     }
     assert by_address["2.1.5"] != by_address["2.2.5"]
     assert report["bus_interfaces"] == []
+    # Without the sensor it is secured wherever it is used: sent secured from anywhere.
+    svc.remove_device(pid, devices["sensor"])
+    assert svc.connection_group_security(pid, None)[1] == {0x0801}
+    assert svc.group_address_security(pid, ga_id)["state"] == "secure"
     svc.close(pid)
 
 
 def test_plain_in_its_only_domain(tmp_path: Path) -> None:
     svc, pid, _devices = _project(tmp_path)
-    # One domain: the sensor commissioned in the clear keeps the group address in the clear.
-    assert svc.plain_somewhere_group_addresses(pid) == set()
+    # One domain: the sensor commissioned in the clear keeps the group address in the clear;
+    # it has no key either.
+    assert svc.connection_group_security(pid, 0x2101) == ({}, set())
     ga_id = next(g.id for g in svc.group_addresses(pid) if g.address == 0x0801)
     report = svc.group_address_security(pid, ga_id)
-    assert not report["secured"] and not report["plain_somewhere"]
+    assert not report["secured"] and report["state"] == "plain"
     assert [d["state"] for d in report["domains"]] == ["plain"]
     with pytest.raises(KeyError):
         svc.group_address_security(pid, ga_id + 100)
+    # Linked nowhere, it takes part in no domain and is sent in the clear.
+    unlinked = svc.create_group_address(pid, 0, 0x0803, "Unlinked")
+    assert svc.group_address_security(pid, unlinked)["state"] == "none"
+    assert svc.group_address_security(pid, unlinked)["domains"] == []
     svc.close(pid)
 
 
@@ -227,12 +240,14 @@ def test_a_secured_bus_interface_on_a_line_of_its_own(tmp_path: Path) -> None:
     finally:
         engine.dispose()
     pid = svc.open(path, _PASSWORD)
-    # Secured on the interface's side, in the clear on the sensor's: the connection takes its
-    # telegrams in the clear too.
-    assert svc.plain_somewhere_group_addresses(pid) == {0x0801}
+    # Secured on the interface's side, in the clear on the sensor's: sent secured from the
+    # interface's line only.
+    keys, secured = svc.connection_group_security(pid, 0x21FF)
+    assert set(keys) == {0x0801} and secured == {0x0801}
+    assert svc.connection_group_security(pid, 0x22FF)[1] == set()
     ga_id = next(g.id for g in svc.group_addresses(pid) if g.address == 0x0801)
     report = svc.group_address_security(pid, ga_id)
-    assert report["secured"] and report["plain_somewhere"]
+    assert report["secured"] and report["state"] == "mixed"
     assert [
         (link["device_address"], link["secure"]) for link in report["bus_interfaces"]
     ] == [("2.1.0", True)]
@@ -243,10 +258,13 @@ def test_a_secured_bus_interface_on_a_line_of_its_own(tmp_path: Path) -> None:
         for segment in d["segments"]
     }
     assert states == {"2.1": "secured", "2.2": "plain"}
-    # Forced off, it is in the clear everywhere.
+    # Forced off, it is in the clear everywhere; its key stays, to decrypt what still comes
+    # secured.
     svc.set_group_address_security(pid, ga_id, "Off")
-    assert svc.plain_somewhere_group_addresses(pid) == set()
+    keys, secured = svc.connection_group_security(pid, 0x21FF)
+    assert set(keys) == {0x0801} and secured == set()
     report = svc.group_address_security(pid, ga_id)
     assert report["effective_security"] == "Off" and not report["secured"]
+    assert report["state"] == "plain"
     assert {d["state"] for d in report["domains"]} == {"plain"}
     svc.close(pid)

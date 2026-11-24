@@ -330,16 +330,50 @@ class ProjectSecurity:
         except SecurityContradiction:
             return self._contradicted(ga_id)
 
-    def plain_somewhere(self, ga_id: int) -> bool:
-        """Whether the group address is secured in one domain and in the clear in another
-        (``Auto`` mode only): its telegrams can then be on the bus secured or in the clear."""
-        if (
-            self.modes.get(ga_id) not in AUTO_MODES
-            or ga_id not in self.secured_anywhere
-        ):
+    def state(self, ga_id: int) -> str:
+        """The security state of the group address over all domains: ``"secure"`` (secured in
+        every domain it takes part in), ``"plain"`` (in the clear in all of them), ``"mixed"``
+        (secured in some, in the clear in others) or ``"none"`` (``Auto`` and taking part in no
+        domain)."""
+        mode = self.modes.get(ga_id)
+        if mode == "On":
+            return "secure"
+        if mode not in AUTO_MODES:
+            return "plain"
+        try:
+            states = set(self.security.states(ga_id).values())
+        except SecurityContradiction:
+            return "secure" if self._contradicted(ga_id) else "plain"
+        if not states:
+            return "none"
+        if SECURE not in states:
+            return "plain"
+        return "mixed" if PLAIN in states else "secure"
+
+    def line_domain(self, area: int, line: int) -> int | None:
+        """The domain of a line's main segment (None when the project lacks it)."""
+        segment = next(
+            (
+                s.id
+                for s in self.segments.values()
+                if s.area == area and s.line == line and s.number == 0
+            ),
+            None,
+        )
+        return None if segment is None else self.domains.of_segment.get(segment)
+
+    def sent_secured(self, ga_id: int, local_domain: int | None) -> bool:
+        """Whether a connection in ``local_domain`` sends on the group address secured: when it
+        is secured in every domain it takes part in, or, secured in some only, when it is
+        secured in ``local_domain`` (in the clear when that is unknown or it takes no part
+        there)."""
+        state = self.state(ga_id)
+        if state == "secure":
+            return True
+        if state != "mixed" or local_domain is None:
             return False
         try:
-            return PLAIN in self.security.states(ga_id).values()
+            return self.security.secured(ga_id, local_domain) is True
         except SecurityContradiction:
             return False
 
@@ -442,8 +476,8 @@ def project_security(session: Session) -> ProjectSecurity:
 def group_address_security(session: Session, ga_id: int) -> dict[str, Any]:
     """Why a group address is secured or in the clear: its own and its effective Security mode
     (``"Auto"``, ``"On"``, ``"Off"``), the group forcing it (id or None), whether it is secured
-    in at least one domain (``secured``), and in one but in the clear in another
-    (``plain_somewhere``), whether its links contradict each other (``contradiction``: then
+    in at least one domain (``secured``), its state over all domains (``state``, see
+    :meth:`ProjectSecurity.state`), whether its links contradict each other (``contradiction``: then
     decided as if the project had a single domain), the domains it takes part in
     (``domains``: index, the domain above, its segments as line and segment number, its
     Security Proxy, ``state`` "secured" or "plain"), and its links: the group objects
@@ -525,7 +559,7 @@ def group_address_security(session: Session, ga_id: int) -> dict[str, Any]:
         "effective_security": mode or "Auto",
         "forced_by": forcing.id if forcing is not None else None,
         "secured": ga_id in security.secured_anywhere,
-        "plain_somewhere": security.plain_somewhere(ga_id),
+        "state": security.state(ga_id),
         "contradiction": contradiction,
         "domains": domains,
         "group_objects": group_objects,
