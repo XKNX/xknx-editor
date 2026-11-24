@@ -50,7 +50,7 @@ from editor_gui.widgets.description import (
 )
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
 from editor_gui.widgets.dpi import px
-from editor_gui.widgets.dpt_value import GroupValueBus
+from editor_gui.widgets.dpt_value import GroupValueBus, dpt_label
 from editor_gui.widgets.filter_box import filter_box
 from editor_gui.widgets.flow import button_width, same_line_if_fits
 from editor_gui.widgets.tables import begin_data_table, table_header, table_header_menu
@@ -87,6 +87,8 @@ _FREE_RANGE_CAPACITY = 1024
 # Accent colour for the last value a group address was seen carrying on the bus, as (on dark
 # themes, on light themes).
 _LIVE_COLOR = (imgui.ImVec4(0.45, 0.7, 0.9, 1.0), imgui.ImVec4(0.1, 0.38, 0.7, 1.0))
+# Most linked objects a group address's hover tooltip lists before trailing off with an ellipsis.
+_HOVER_OBJECT_LIMIT = 20
 
 
 def _address_room(group: "GroupRangeInfo") -> int:
@@ -259,6 +261,10 @@ class GroupAddressesPanel:
         # group address is selected again.
         self._selected_range_id: int | None = None
         self._get_assignments_for_ga = get_assignments_for_ga
+        # The linked objects of the group address under the pointer, cached by its id so the hover
+        # tooltip reads them once per hovered row, not every frame (the getter is a DB query).
+        self._hover_ga_id: int | None = None
+        self._hover_objects: list[str] = []
         self._get_devices = get_devices
         self._on_remove_ga = on_remove_ga
         self._on_create_range = on_create_range
@@ -648,6 +654,7 @@ class GroupAddressesPanel:
             clicked = row_selectable(
                 f"{name}##ga{ga.id}", selected, imgui.SelectableFlags_.allow_overlap
             )[0]
+            hovered = imgui.is_item_hovered()
             if clicked or keyboard_moved_here():
                 self._selected_ga_id = ga.id
                 self._selected_range_id = None
@@ -669,12 +676,14 @@ class GroupAddressesPanel:
             left = imgui.get_item_rect_min().x - row_x
             if ga.data_secure:
                 # The KNX Data Secure shield right after the name, as after a secure device.
-                secure_icon(x=left + end + spacing)
+                if secure_icon(x=left + end + spacing):
+                    hovered = False
                 end += spacing + secure_icon_width()
             # Its description: a short one inline, a longer one behind the note icon.
             description = (ga.description or "").strip()
             if description and shows_description_icon(description):
-                description_icon(description, x=left + end + spacing)
+                if description_icon(description, x=left + end + spacing):
+                    hovered = False
                 end += spacing + description_icon_width()
             elif description:
                 with same_row():
@@ -692,9 +701,18 @@ class GroupAddressesPanel:
                     imgui.set_cursor_pos_x(end + spacing * 3.0)
                     imgui.text_colored(themed(*_LIVE_COLOR), value_text)
                 if imgui.is_item_hovered():
+                    hovered = False
                     imgui.set_tooltip(
                         f"{value_text}\n{value_time}" if value_time else value_text
                     )
+            if hovered:
+                lines: list[str] = []
+                dpt = dpt_label(ga.datapoint_type)
+                if dpt:
+                    lines.append(dpt)
+                lines.extend(self._hover_object_lines(ga.id))
+                if lines:
+                    imgui.set_tooltip("\n".join(lines))
 
     @staticmethod
     def _ga_matches(ga: object, flt: str) -> bool:
@@ -1309,6 +1327,30 @@ class GroupAddressesPanel:
                 if imgui.is_item_hovered():
                     imgui.set_tooltip(S.GA_COL_SENDING_TOOLTIP)
         imgui.end_table()
+
+    def _hover_object_lines(self, ga_id: int) -> list[str]:
+        """The group address's linked objects as ``device — object`` lines (sending ones marked),
+        cached per hovered id so the DB-backed getter runs once per hovered row, not every frame."""
+        if ga_id == self._hover_ga_id:
+            return self._hover_objects
+        names = self._com_object_names()
+        unknown = (len(names), 0)
+        assignments = sorted(
+            self._get_assignments_for_ga(ga_id),
+            key=lambda a: (
+                names[a.com_object_id][3] if a.com_object_id in names else unknown
+            ),
+        )
+        lines: list[str] = []
+        for a in assignments[:_HOVER_OBJECT_LIMIT]:
+            entry = names.get(a.com_object_id)
+            device_label, co_name = (entry[0], entry[1]) if entry else ("?", "?")
+            marker = "» " if a.is_sending else ""
+            lines.append(f"{marker}{device_label}  —  {co_name}")
+        if len(assignments) > _HOVER_OBJECT_LIMIT:
+            lines.append("…")
+        self._hover_ga_id, self._hover_objects = ga_id, lines
+        return lines
 
     def _com_object_names(self) -> dict[int, tuple[str, str, int, tuple[int, int]]]:
         """Per com-object db id: device label, object name, device node id and the row's sort

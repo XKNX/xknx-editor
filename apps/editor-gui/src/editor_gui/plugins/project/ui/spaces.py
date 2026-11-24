@@ -179,6 +179,7 @@ class SpacesPanel:
         on_add_trade_device: Callable[[int, int], None] | None = None,
         on_remove_trade_device: Callable[[int, int], None] | None = None,
         get_space_devices: "Callable[[], list[SpaceDeviceInfo]]" = list,
+        get_app_version: Callable[[int], str] = lambda _n: "",
         notify: Callable[[str], None] = lambda _t: None,
         one_undo_step: UndoStep = no_undo_step,
         paste_dialog: PasteSpecialDialog | None = None,
@@ -220,6 +221,7 @@ class SpacesPanel:
         self._on_add_trade_device = on_add_trade_device
         self._on_remove_trade_device = on_remove_trade_device
         self._get_space_devices = get_space_devices
+        self._get_app_version = get_app_version
         self._notify = notify
         # The trade selected in this tree (highlighted), until a space, function or device is.
         self._selected_trade: int | None = None
@@ -1029,6 +1031,9 @@ class SpacesPanel:
                 )
                 if p
             ]
+            version = self._get_app_version(device.id)
+            if version:
+                parts.append(f"V{version}")
             if parts:
                 imgui.set_tooltip("\n".join(parts))
 

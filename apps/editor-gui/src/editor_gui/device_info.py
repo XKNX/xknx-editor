@@ -32,6 +32,7 @@ if TYPE_CHECKING:
 
     from xknx import XKNX
 
+    from editor_gui.device import Device
     from xknxeditor.download import DeviceProgrammer
     from xknxeditor.download.data_secure import DeviceSecurity
     from xknxeditor.download.programmer import ConnectionManager
@@ -134,6 +135,22 @@ def application_program_label(name: str, version: int) -> str:
     version already."""
     text = application_version_text(version)
     return name if text in name else f"{name} V{text}"
+
+
+def device_app_version_text(device: Device) -> str:
+    """The program version from the app id or program, empty without an application.
+
+    ``device.app.version`` is the XML schema version, not the program version.
+    """
+    from xknxeditor.prod.app_id import parse_app_id
+
+    if device.app is None:
+        return ""
+    parsed = parse_app_id(device.app.id)
+    version = (
+        parsed.version if parsed is not None else device.app.program.application_version
+    )
+    return application_version_text(version)
 
 
 def firmware_text(version: int | None) -> str | None:

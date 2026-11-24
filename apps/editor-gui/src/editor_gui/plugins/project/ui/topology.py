@@ -5,6 +5,7 @@ from typing import cast
 from imgui_bundle import imgui
 
 from editor_gui.device import Device, UnloadedDevice, address_order, device_label
+from editor_gui.device_info import device_app_version_text
 from editor_gui.plugins.project.medium_text import (
     medium_error_text,
     segment_display_name,
@@ -173,6 +174,11 @@ class TopologyPanel:
         on_select_element: Callable[[str, int], None] = lambda _k, _i: None,
         get_selected_topology: Callable[[], tuple[str, int] | None] = lambda: None,
         get_device_segments: Callable[[], dict[int, int]] = dict,
+        get_device_product: Callable[[int], tuple[str, str, str]] = lambda _n: (
+            "",
+            "",
+            "",
+        ),
         on_add_segment: Callable[[Line, str, str], str | None] = (
             lambda _l, _n, _m: None
         ),
@@ -218,6 +224,7 @@ class TopologyPanel:
         # A line's sub-segments show as nodes before its main segment's devices, each with its
         # own devices (``get_device_segments``: node id -> segment id).
         self._get_device_segments = get_device_segments
+        self._get_device_product = get_device_product
         self._on_add_segment = on_add_segment
         self._on_remove_segment = on_remove_segment
         self._on_move_device_to_segment = on_move_device_to_segment
@@ -576,6 +583,7 @@ class TopologyPanel:
             imgui.set_tooltip(S.DEVICE_PRODUCT_DATA_MISSING)
             return
         tree_node(self._device_label(device), leaf(device))
+        hovered = imgui.is_item_hovered()  # capture before the context menu below
         if device.node_id in self._selected_devices and self._shortcut_row is None:
             segment = self._get_device_segments().get(device.node_id)
             dragged = self._dragged_devices(device)
@@ -593,7 +601,26 @@ class TopologyPanel:
             self._handle_device_click(device, ordered_ids)
         self._render_device_context_menu(device)
         self._render_device_drag_source(device)
-        self._render_description(device)
+        # A note/security/pending marker takes the hover (it has its own tooltip).
+        if self._render_description(device):
+            hovered = False
+        if hovered:
+            self._device_tooltip(device)
+
+    def _device_tooltip(self, device: Device) -> None:
+        """Show the product data, application version and order number."""
+        manufacturer, product, hardware = self._get_device_product(device.node_id)
+        lines = [
+            p for p in (manufacturer, product or device.product_name, hardware) if p
+        ]
+        if device.app is not None:
+            version = device_app_version_text(device)
+            name = device.app.name
+            lines.append(name if version in name else f"{name} V{version}".strip())
+        if device.order_number:
+            lines.append(device.order_number)
+        if lines:
+            imgui.set_tooltip("\n".join(lines))
 
     @staticmethod
     def _render_description(device: TreeDevice) -> bool:

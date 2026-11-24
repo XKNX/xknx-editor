@@ -34,7 +34,7 @@ from editor_gui.device import (
     device_label,
     flag_letter,
 )
-from editor_gui.device_info import serial_to_project
+from editor_gui.device_info import device_app_version_text, serial_to_project
 from editor_gui.device_plugins import ConfigurationApp, configuration_apps
 from editor_gui.device_snapshot import (
     SnapshotState,
@@ -3203,6 +3203,18 @@ class ProjectService:
 
     def find_device_by_node_id(self, node_id: int) -> Device | None:
         return next((d for d in self.devices if d.node_id == node_id), None)
+
+    def device_app_version(self, node_id: int) -> str:
+        """The device's application program version as ``major.minor``, empty when unknown."""
+        device = self.find_device_by_node_id(node_id)
+        return device_app_version_text(device) if device is not None else ""
+
+    def device_product(self, node_id: int) -> tuple[str, str, str]:
+        """``(manufacturer, product, hardware)`` of a device, empty strings when unknown."""
+        device = self.get_device_info(node_id)
+        if device is None:
+            return ("", "", "")
+        return (device.manufacturer_name, device.product_name, device.hardware_name)
 
     def find_device_by_address(self, address: str) -> Device | None:
         return next((d for d in self.devices if d.individual_address == address), None)
