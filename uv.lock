@@ -2423,7 +2423,7 @@ requires-dist = [
     { name = "pyzipper", specifier = ">=0.3.6" },
     { name = "sqlalchemy", specifier = ">=2.0.0" },
     { name = "xknxeditor-namespaces", editable = "packages/namespaces" },
-    { name = "xknxproject", git = "https://github.com/XKNX/xknxproject?rev=f97db068884eca2b460abb1fb4db2262345f7f47" },
+    { name = "xknxproject", specifier = ">=3.11.1,<3.12" },
 ]
 
 [[package]]
@@ -2468,11 +2468,15 @@ requires-dist = [
 
 [[package]]
 name = "xknxproject"
-version = "3.10.0"
-source = { git = "https://github.com/XKNX/xknxproject?rev=f97db068884eca2b460abb1fb4db2262345f7f47#f97db068884eca2b460abb1fb4db2262345f7f47" }
+version = "3.11.1"
+source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "pyzipper" },
     { name = "striprtf" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/70/3f/632eb772f6daaf809297847c514ab16b12273958d8f08352974923e33825/xknxproject-3.11.1.tar.gz", hash = "sha256:545631133fbbae284b83098e3ee47ee0bddb7e8c36783b7b3daa034acbc7abfd", size = 72153, upload-time = "2026-11-24T08:53:52.759Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/b1/fa/0ae9d9402698efc228c938234eaef0eb1faf7b297e2902e17e9b5939409c/xknxproject-3.11.1-py3-none-any.whl", hash = "sha256:148416273cad8c52d57452bc3f9da921753b2933f34875ac2690f9886cd6d9f2", size = 61370, upload-time = "2026-11-24T08:53:51.386Z" },
 ]
 
 [[package]]

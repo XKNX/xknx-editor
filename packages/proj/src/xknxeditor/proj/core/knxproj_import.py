@@ -26,9 +26,10 @@ import re
 import threading
 import zipfile
 import zlib
-from collections.abc import Callable, Generator
+from collections.abc import Callable, Generator, Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass, field
+from importlib.resources.abc import Traversable
 from pathlib import Path
 from typing import IO, Any, Protocol, cast
 from uuid import uuid4
@@ -487,6 +488,9 @@ ModuleArgsMap = dict[str, ModuleArgs]
 
 class _ProjectContents(Protocol):
     """The slice of xknxproject's ``KNXProjContents`` that ``_read_device_extras`` needs."""
+
+    # The project folder (in the root archive, or the root of a protected project's archive).
+    project_path: Traversable
 
     def open_project_0(self) -> IO[bytes]: ...
 
@@ -1563,25 +1567,28 @@ def _binary_payload(
 
 
 # Project folder files the export writes itself.
-_GENERATED_PROJECT_FILE = re.compile(r"(?i)(project|\d+)\.xml|BinaryData/.*")
+_GENERATED_PROJECT_FILE = re.compile(r"(?i)(project|\d+)\.xml")
+
+
+def _project_folder_files(folder: Traversable, prefix: str = "") -> Iterator[str]:
+    """The relative paths of the files in ``folder`` and its subfolders, in archive order per
+    folder. The top-level ``BinaryData`` folder (in any case; the export writes it) is skipped."""
+    for child in folder.iterdir():
+        rel = f"{prefix}{child.name}"
+        if child.is_file():
+            yield rel
+        elif rel.lower() != "binarydata":
+            yield from _project_folder_files(child, f"{rel}/")
 
 
 def _capture_project_files(contents: _ProjectContents) -> bytes | None:
     """The project folder's files the export does not generate, as a ZIP blob; None if none."""
-    archive: Any = getattr(contents, "_project_archive", None)
-    base: str = getattr(contents, "_project_relative_path", "") or ""
-    if archive is None:
-        return None
-    files: list[tuple[str, bytes]] = []
-    for info in archive.infolist():
-        name: str = info.filename
-        if name.endswith("/") or not name.startswith(base):
-            continue
-        rel = name[len(base) :]
-        if not rel or _GENERATED_PROJECT_FILE.fullmatch(rel):
-            continue
-        with archive.open(name) as handle:
-            files.append((rel, handle.read()))
+    folder = contents.project_path
+    files = [
+        (rel, (folder / rel).read_bytes())
+        for rel in _project_folder_files(folder)
+        if not _GENERATED_PROJECT_FILE.fullmatch(rel)
+    ]
     if not files:
         return None
     buffer = io.BytesIO()
@@ -1594,17 +1601,11 @@ def _capture_project_files(contents: _ProjectContents) -> bytes | None:
 def _read_project_file(contents: _ProjectContents, relpath: str) -> bytes | None:
     """Read a file from the project folder of the (possibly encrypted) archive; None if absent.
 
-    Uses xknxproject's already-opened project archive (private attrs) so encrypted projects work
+    Uses xknxproject's project folder of the already-opened archive, so encrypted projects work
     too. Best-effort: any failure returns None rather than aborting the import.
     """
-    archive: Any = getattr(contents, "_project_archive", None)
-    base: str = getattr(contents, "_project_relative_path", "") or ""
-    if archive is None:
-        return None
     try:
-        with archive.open(f"{base}{relpath}") as handle:
-            data: bytes = handle.read()
-            return data
+        return (contents.project_path / relpath).read_bytes()
     except (KeyError, OSError, RuntimeError):
         return None
 
