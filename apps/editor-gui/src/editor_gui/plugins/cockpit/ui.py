@@ -22,7 +22,9 @@ from editor_gui.widgets.description import (
 from editor_gui.widgets.dpi import px
 from editor_gui.widgets.filter_box import filter_box
 from editor_gui.widgets.tables import (
+    SORT_ARROW_SCALE,
     begin_data_table,
+    columns_width,
     data_table_headers,
     row_selectable,
 )
@@ -111,13 +113,12 @@ class CockpitPanel:
         )
         avail = imgui.get_content_region_avail()
         style = imgui.get_style()
-        sort_arrow = imgui.get_font_size() * 0.65 + style.frame_padding.x
+        sort_arrow = imgui.get_font_size() * SORT_ARROW_SCALE + style.frame_padding.x
         widths = [
             max(px(minimum), imgui.calc_text_size(label).x + sort_arrow)
             for label, minimum, _share in columns
         ]
-        padding = 2 * style.cell_padding.x * len(columns)
-        extra = max(0.0, avail.x - sum(widths) - padding - style.scrollbar_size)
+        extra = max(0.0, avail.x - columns_width(widths) - style.scrollbar_size)
         # Old layouts saved stretch weights. Use a new ID for the fixed-width columns.
         if not begin_data_table("##cockpit_fixed", len(columns), flags):
             return
