@@ -150,6 +150,12 @@ def _local_id(source_id: str) -> str:
     return source_id.split("_", 1)[1] if "_" in source_id else source_id
 
 
+def function_identifier(source_id: str, function_id: int) -> str:
+    """A building function's key in ``functions`` (its id in the project data): its id
+    without the project prefix, ``F-x<id>`` for one created in the editor."""
+    return _local_id(source_id) if source_id else f"F-x{function_id}"
+
+
 def _ia_key(ia: str) -> tuple[str, ...]:
     """xknxproject's order of the devices of a space or trade (by the address's parts as text)."""
     return tuple(ia.split("."))
@@ -900,9 +906,7 @@ class _Builder:
 
     @staticmethod
     def _function_identifier(function: Any) -> str:
-        return (
-            _local_id(function.source_id) if function.source_id else f"F-x{function.id}"
-        )
+        return function_identifier(function.source_id, function.id)
 
     def _functions(self) -> dict[str, Function]:
         ga_rows = {ga.id: ga for ga in self.source.group_addresses}

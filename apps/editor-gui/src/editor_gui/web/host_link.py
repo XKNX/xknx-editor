@@ -6,14 +6,19 @@ sides send JSON objects with a ``type``; one peer at a time (a new one replaces 
 - integration → editor
   - ``{"type": "hello", "protocol": 1, "integration": "<version>", "home_assistant": "<version>"}``
   - ``{"type": "knx", "loaded": bool, "project": {name, guid, tool_version, created_by,
-    last_modified} | None}``: the state of Home Assistant's KNX integration and the project it
-    holds, at the start and whenever it changes.
+    last_modified} | None, "function_suggestions": bool, ...}``: the state of Home Assistant's
+    KNX integration and the project it holds, at the start and whenever it changes;
+    ``function_suggestions``: whether it suggests entities for building functions (missing
+    from an older integration).
   - ``{"type": "result", "id": int, "error": str | None}``: the answer to a request of the editor;
     after a ``set_project`` the ``knx`` message with the new project comes first.
 - editor → integration
   - ``{"type": "hello", "protocol": 1, "editor": "<version>"}``
   - ``{"type": "set_project", "id": int, "project": {...}}``: the project, in xknxproject's
     ``KNXProject`` format, becomes the KNX integration's project.
+  - ``{"type": "function_suggestions", "id": int}``: the KNX integration's entity suggestions
+    for the building functions of the project it holds; the ``result`` has ``suggestions`` (as
+    its ``knx/get_entity_suggestions`` gives those of the source ``fn``) and ``hints``.
 
 Messages from the peer are collected for the GUI thread (:meth:`HostLink.receive`); the GUI thread
 sends from its own thread (:meth:`HostLink.send`), serialized off the GUI thread.

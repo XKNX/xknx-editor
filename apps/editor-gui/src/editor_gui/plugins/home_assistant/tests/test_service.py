@@ -6,6 +6,7 @@ from __future__ import annotations
 import threading
 import time
 from dataclasses import dataclass, field
+from types import SimpleNamespace
 from typing import Any, cast
 
 import pytest
@@ -15,6 +16,11 @@ from editor_gui.plugins.home_assistant.service import (
     DEBOUNCE_SECONDS,
     HomeAssistantService,
     LinkState,
+)
+from xknxeditor.proj.core.service import (
+    FunctionGroupAddressInfo,
+    FunctionInfo,
+    SpaceInfo,
 )
 
 
@@ -501,3 +507,131 @@ def test_connecting_like_home_assistant(
     )
     env.service.poll()
     assert env.service.connection_target() == target
+
+
+def _with_a_function(env: _Env) -> None:
+    """The open project with a switchable light in the kitchen (imported as F-12)."""
+    function = FunctionInfo(
+        id=3,
+        name="Ceiling",
+        function_type="FT-1",
+        usage_text="",
+        group_addresses=[
+            FunctionGroupAddressInfo(
+                id=1, group_address_id=1, text="1/1/1", role="SwitchOnOff"
+            )
+        ],
+        source_id="P-0001-0_F-12",
+    )
+    room = SpaceInfo(
+        id=7,
+        name="Kitchen",
+        space_type="Room",
+        number="",
+        usage_text="",
+        description="",
+        children=[],
+        devices=[],
+        functions=[function],
+    )
+    address = SimpleNamespace(id=1, address="1/1/1", raw=0x0901, datapoint_type=None)
+    project = cast("Any", env.project)
+    project.get_space_tree = lambda: [room]
+    project.group_addresses = [address]
+    project.get_group_address = lambda ga_id: address if ga_id == 1 else None
+
+
+def _report_with_suggestions(env: _Env, project: dict[str, Any] | None) -> None:
+    assert env.link is not None
+    env.link.inbox.append(
+        {
+            "type": "knx",
+            "loaded": True,
+            "project": project,
+            "function_suggestions": True,
+        }
+    )
+    env.service.poll()
+
+
+_SUGGESTION = {
+    "id": "fn_F-12",
+    "source": "fn",
+    "suggested_name": "Kitchen Ceiling",
+    "platform_options": ["light"],
+    "suggestions": {
+        "light": {
+            "knx": {"ga_switch": {"write": "1/1/1", "state": None, "passive": []}},
+            "matched_group_addresses": [{"address": "1/1/1", "name": "Ceiling"}],
+            "unmatched": [],
+        }
+    },
+}
+
+
+def test_the_knx_integrations_function_suggestions_are_the_candidates(
+    env: _Env,
+) -> None:
+    _with_a_function(env)
+    assert env.link is not None
+    _report_with_suggestions(env, _ours())
+    (request,) = [m for m in env.link.sent if m["type"] == "function_suggestions"]
+    # The editor's own until they are there.
+    assert not env.service.uses_function_suggestions
+    assert env.service.entity_rows()[0].candidate.source == "editor"
+    env.link.inbox.append(
+        {
+            "type": "result",
+            "id": request["id"],
+            "error": None,
+            "suggestions": [_SUGGESTION, "not one"],
+            "hints": {"state": "ok"},
+        }
+    )
+    env.service.poll()
+
+    assert env.service.uses_function_suggestions
+    assert env.service.function_suggestion_hints == {"state": "ok"}
+    (row,) = env.service.entity_rows()
+    assert (row.candidate.name, row.candidate.source) == (
+        "Kitchen Ceiling",
+        "home_assistant",
+    )
+    assert row.candidate.knx == _SUGGESTION["suggestions"]["light"]["knx"]
+    # Asked once for each state of the project Home Assistant holds.
+    env.service.poll()
+    asked = [m for m in env.link.sent if m["type"] == "function_suggestions"]
+    assert len(asked) == 1
+    _report_with_suggestions(env, {**_ours(), "last_modified": "2026-11-06T11:00:00"})
+    asked = [m for m in env.link.sent if m["type"] == "function_suggestions"]
+    assert len(asked) == 2
+    # Not those of the project it held before.
+    assert not env.service.uses_function_suggestions
+    # Another project in Home Assistant: the editor's own.
+    _report_with_suggestions(env, _FOREIGN)
+    assert not env.service.uses_function_suggestions
+    assert env.service.entity_rows()[0].candidate.source == "editor"
+
+
+def test_without_function_suggestions_the_editors_own_candidates(env: _Env) -> None:
+    _with_a_function(env)
+    assert env.link is not None
+    # An older integration or KNX integration.
+    env.report(_ours())
+    assert not [m for m in env.link.sent if m["type"] == "function_suggestions"]
+    assert env.service.entity_rows()[0].candidate.source == "editor"
+    # Suggestions that cannot be read: the editor's own, not asked again for that project.
+    _report_with_suggestions(env, _ours())
+    request = env.link.sent[-1]
+    env.link.inbox.append(
+        {"type": "result", "id": request["id"], "error": "not supported"}
+    )
+    env.service.poll()
+    assert env.service.suggestions_error == "not supported"
+    assert not env.service.uses_function_suggestions
+    env.service.poll()
+    assert [m["type"] for m in env.link.sent].count("function_suggestions") == 1
+    # A new connection forgets them.
+    env.link.generation += 1
+    env.service.poll()
+    assert not env.service.function_suggestions_supported

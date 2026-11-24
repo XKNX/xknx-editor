@@ -409,17 +409,35 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             "entity_id": row.created,
             "existing_entity_ids": list(row.existing),
             "reason": row.check or None,
+            "source": candidate.source,
+            "unmatched": list(candidate.unmatched),
+        }
+
+    def suggestions_state() -> dict[str, Any]:
+        ha = service()
+        return {
+            "source": "home_assistant" if ha.uses_function_suggestions else "editor",
+            "supported": ha.function_suggestions_supported,
+            "hints": ha.function_suggestion_hints,
+            "error": ha.suggestions_error,
         }
 
     def checked_rows() -> list[EntityRow]:
         """The rows once Home Assistant has checked them."""
-        ctx.run_locked(lambda: service().check_entities(service().entity_rows()))
         deadline = time.monotonic() + _SEND_TIMEOUT
+
+        def ask() -> list[EntityRow] | None:
+            ha = service()
+            rows = ha.entity_rows()
+            # Those of Home Assistant's suggestions once they are there.
+            if not ha.function_suggestions_pending:
+                ha.check_entities(rows)
+                if not rows or ha.entities_checked(rows):
+                    return rows
+            return None
+
         while time.monotonic() < deadline:
-            rows = ctx.run_locked(lambda: service().entity_rows())
-            if not ctx.run_locked(lambda: service().entities_checking) and all(
-                r.check is not None for r in rows
-            ):
+            if (rows := ctx.run_locked(ask)) is not None:
                 return rows
             time.sleep(_POLL_SECONDS)
         raise ToolError("Home Assistant did not answer in time")
@@ -432,12 +450,23 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         with its room temperature and setpoint a climate entity (its setpoint written and read
         back on one address; valve and operating mode where the function has them), with the
         group addresses of its roles, named like the function, in the area its room became
-        (home_assistant_areas). Returns {items, count}; each item has {function_id, name, path,
+        (home_assistant_areas). A KNX integration that suggests entities for building functions
+        (Home Assistant 2026.12) makes them instead while it holds the open project: its
+        platform, configuration and name (prefixed with the room where names repeat).
+        Returns {items, count, suggestions}; each item has {function_id, name, path,
         platform, knx (the configuration), group_addresses, area_id, state, entity_id,
-        existing_entity_ids, reason}. state: "new" (Home Assistant takes it), "existing" (an
-        entity uses its address already), "created" (entity_id), "not_possible" (reason)."""
+        existing_entity_ids, reason, source ("home_assistant" or "editor": who made it),
+        unmatched (what of the function Home Assistant could not use)}. state: "new" (Home
+        Assistant takes it), "existing" (an entity uses its address already), "created"
+        (entity_id), "not_possible" (reason). suggestions: {source (of the items), supported
+        (the KNX integration has function suggestions), hints (what it says about the
+        functions, e.g. {state: "ok"}), error (why its suggestions could not be read)}."""
         require_project(ctx)
-        return _items([entity_row(r) for r in checked_rows()])
+        rows = checked_rows()
+        return {
+            **_items([entity_row(r) for r in rows]),
+            "suggestions": ctx.run_locked(suggestions_state),
+        }
 
     @tool("write", open_world=True)
     def home_assistant_create_entities(

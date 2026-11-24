@@ -42,6 +42,7 @@ from editor_gui.plugins.home_assistant.entities import (
     entity_candidates,
     entity_request,
     existing_entities,
+    suggestion_candidates,
 )
 from editor_gui.plugins.home_assistant.imports import (
     HomeAssistantAddress,
@@ -258,6 +259,16 @@ class HomeAssistantService:
         self.on_entities_created: Callable[[int], None] | None = None
         # The ``knx`` part of the stored configuration of each created entity, by entity id.
         self.entity_configs: dict[str, dict[str, Any] | None] = {}
+        # Whether the KNX integration suggests entities for the building functions of its
+        # project; its suggestions by function id (project data) and its hints about them, for
+        # the project it held then ((GUID, last change), see _held); the open request, and what
+        # it failed with.
+        self.function_suggestions_supported = False
+        self.function_suggestions: dict[str, dict[str, Any]] | None = None
+        self.function_suggestion_hints: dict[str, Any] = {}
+        self._suggested_for: tuple[str, str] | None = None
+        self._suggestion_request: tuple[int, tuple[str, str]] | None = None
+        self.suggestions_error: str | None = None
         # Where the KNX integration's time server sends to ({time, date, datetime}: a printed
         # address or None), and why the editor's keys cannot be its (None: they can).
         self.time_server: dict[str, str | None] | None = None
@@ -570,15 +581,98 @@ class HomeAssistantService:
         ga = self._project.get_group_address(group_address_id)
         return (ga.datapoint_type, ga.raw) if ga is not None else None
 
+    # --- the KNX integration's suggestions for building functions ---
+
+    def _held(self) -> tuple[str, str] | None:
+        """The state of the open project the KNX integration holds (its GUID and when the
+        editor sent it), None when it holds another or none."""
+        if not self.linked or self.knx_project is None:
+            return None
+        return (
+            str(self.knx_project.get("guid")),
+            str(self.knx_project.get("last_modified") or ""),
+        )
+
+    @property
+    def uses_function_suggestions(self) -> bool:
+        """Whether the candidates for building functions are the KNX integration's suggestions
+        (it has them, and they are of the open project it holds); else the editor's own."""
+        held = self._held()
+        return (
+            self.function_suggestions_supported
+            and self.function_suggestions is not None
+            and held is not None
+            and held == self._suggested_for
+        )
+
+    def _ask_for_suggestions(self) -> None:
+        """Ask the KNX integration for its suggestions once for each state of the open project
+        it holds."""
+        link = self._link()
+        held = self._held()
+        if (
+            link is None
+            or held is None
+            or not self.connected
+            or not self.knx_loaded
+            or not self.function_suggestions_supported
+            or self._suggestion_request is not None
+            or held == self._suggested_for
+        ):
+            return
+        self._next_id += 1
+        if link.send({"type": "function_suggestions", "id": self._next_id}):
+            self._suggestion_request = (self._next_id, held)
+
+    def _take_suggestions(self, message: dict[str, Any], held: tuple[str, str]) -> None:
+        self._suggestion_request = None
+        self._suggested_for = held
+        suggestions = message.get("suggestions")
+        if (error := message.get("error")) is not None or not isinstance(
+            suggestions, list
+        ):
+            # The editor's own candidates then, until the project changes.
+            self.function_suggestions = None
+            self.suggestions_error = str(error or "no suggestions")
+            if self._log is not None:
+                self._log.warning(
+                    "Home Assistant's function suggestions not read",
+                    error=self.suggestions_error,
+                )
+            return
+        self.suggestions_error = None
+        found: dict[str, dict[str, Any]] = {}
+        for suggestion in cast("list[object]", suggestions):
+            if not isinstance(suggestion, dict):
+                continue
+            entry = cast("dict[str, Any]", suggestion)
+            # "fn_<function id>"
+            function_id = str(entry.get("id", "")).removeprefix("fn_")
+            found.setdefault(function_id, entry)
+        self.function_suggestions = found
+        hints = message.get("hints")
+        self.function_suggestion_hints = (
+            cast("dict[str, Any]", hints) if isinstance(hints, dict) else {}
+        )
+
     def entity_rows(self) -> list[EntityRow]:
         """The entities the open project's building functions become, with their area, the
-        entities of Home Assistant on their address, and Home Assistant's verdict."""
+        entities of Home Assistant on their address, and Home Assistant's verdict: as the KNX
+        integration suggests them while it holds the open project and has suggestions for
+        building functions, else by the editor's own mapping."""
         guid = self.project_guid()
         if guid is None:
             return []
-        candidates = entity_candidates(
-            self._project.get_space_tree(), guid, self._lookup
-        )
+        tree = self._project.get_space_tree()
+        if self.uses_function_suggestions and self.function_suggestions is not None:
+            addresses = {
+                ga.address: (ga.raw, ga.id) for ga in self._project.group_addresses
+            }
+            candidates = suggestion_candidates(
+                tree, guid, self.function_suggestions, addresses
+            )
+        else:
+            candidates = entity_candidates(tree, guid, self._lookup)
         links = (self.home_assistant_areas or {}).get("links")
         area_links = (
             {str(k): str(v) for k, v in cast("dict[object, object]", links).items()}
@@ -635,6 +729,20 @@ class HomeAssistantService:
     @property
     def entities_checking(self) -> bool:
         return self._check_request is not None
+
+    def entities_checked(self, rows: list[EntityRow]) -> bool:
+        """Whether Home Assistant's verdicts are those on the candidates of ``rows`` as they
+        are (not on earlier ones)."""
+        return (
+            self._check_request is None
+            and self._checked == [entity_request(r.candidate, r.area_id) for r in rows]
+            and all(r.check is not None for r in rows)
+        )
+
+    @property
+    def function_suggestions_pending(self) -> bool:
+        """Whether the KNX integration's suggestions for building functions are asked for."""
+        return self._suggestion_request is not None
 
     @property
     def entities_creating(self) -> bool:
@@ -846,8 +954,14 @@ class HomeAssistantService:
             self.time_server = None
             self.keyring_refused = None
             self._requests = {}
+            self.function_suggestions_supported = False
+            self.function_suggestions = None
+            self.function_suggestion_hints = {}
+            self._suggested_for = None
+            self._suggestion_request = None
         for message in link.receive():
             self._handle(message)
+        self._ask_for_suggestions()
         key = self._key()
         if key != self._seen:
             self._seen = key
@@ -892,6 +1006,9 @@ class HomeAssistantService:
             self.time_server = _time_server(message.get("time_server"))
             refused = message.get("keyring_refused")
             self.keyring_refused = str(refused) if refused is not None else None
+            self.function_suggestions_supported = bool(
+                message.get("function_suggestions")
+            )
             if not self.linked:
                 # Another project replaced ours (e.g. an upload in the KNX panel).
                 self._sent = None
@@ -920,6 +1037,12 @@ class HomeAssistantService:
             )
         elif kind == "result" and message.get("id") in self._requests:
             self._requests.pop(cast("int", message.get("id")))(message)
+        elif (
+            kind == "result"
+            and self._suggestion_request is not None
+            and message.get("id") == self._suggestion_request[0]
+        ):
+            self._take_suggestions(message, self._suggestion_request[1])
         elif kind == "result" and message.get("id") == self._check_request:
             self._check_request = None
             self.entity_checks = _texts(message.get("checks"))

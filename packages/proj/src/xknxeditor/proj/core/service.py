@@ -363,6 +363,8 @@ class FunctionInfo:
     usage_text: str
     group_addresses: list[FunctionGroupAddressInfo]
     description: str = ""
+    # Its ``@Id`` in the imported project ("" for one created in the editor).
+    source_id: str = ""
 
 
 @dataclass(frozen=True)
@@ -6169,6 +6171,7 @@ class ProjectService:
                 for link in function.group_addresses
             ],
             description=function.description,
+            source_id=function.source_id,
         )
 
     def _register(
