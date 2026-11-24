@@ -476,8 +476,9 @@ class ModelSource:
     """Every row a full description of the project is built from, read in a few queries with
     what the rows refer to, so nothing more is read while it is built.
 
-    The devices come with their module instances, the functions with their group addresses.
-    The group objects with links and the group addresses are plain values (a project has
+    The devices come with their module instances, the functions with their group addresses,
+    the trades with their devices. The group objects with links and the group addresses are
+    plain values (a project has
     thousands of them). ``parameters`` holds each device's parameter values by ref id,
     ``keyed`` the ids of the group addresses a project file carries a Data Secure key of
     (those secured now, and unlinked ones in ``Auto`` mode).
@@ -495,6 +496,7 @@ class ModelSource:
     spaces: list[Space]
     functions: list[Function]
     keyed: set[int]
+    trades: list[Trade]
 
 
 @dataclass(frozen=True)
@@ -5773,6 +5775,10 @@ class ProjectService:
             .order_by(Function.id)
             .all(),
             keyed=keyed,
+            trades=session.query(Trade)
+            .options(selectinload(Trade.devices))
+            .order_by(Trade.id)
+            .all(),
         )
 
     def group_ranges(self, project_id: str, installation: int) -> list[GroupRangeInfo]:

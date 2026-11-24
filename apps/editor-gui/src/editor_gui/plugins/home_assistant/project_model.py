@@ -6,12 +6,12 @@ addresses from and suggests entities by from a ``KNXProject`` dictionary. It is 
 what the editor holds, the way xknxproject builds it from a project file, so the integration
 sees the same as with an uploaded project file, and without writing and parsing a file:
 
-- the rows of the project (:meth:`ProjectService.model_source`),
-- each application program's group objects, channels and module arguments
-  (:mod:`.application_digest`, read once per program),
+- the rows of the project (:meth:`ProjectService.model_source`), the trades included,
+- each application program's group objects, channels, parameter blocks, module arguments and
+  allocators (:mod:`.application_digest`, read once per program),
 - the group objects' numbers as the editor resolves them (module base numbers included),
-- the devices' stored group object trees for the channels, completed with the linked objects
-  they do not list by the channel stored for each object.
+- the devices' stored group object trees for their channels and folders, completed with the
+  linked objects they do not list by the channel stored for each object.
 
 Where xknxproject reads an attribute that is missing as None, so does this; the text rules
 (module arguments, text parameters, the order of the fallbacks) are xknxproject's own functions.
@@ -27,7 +27,7 @@ import html
 import re
 import xml.etree.ElementTree as ET
 from collections import Counter, defaultdict
-from collections.abc import Iterable, Mapping
+from collections.abc import Iterable, Iterator, Mapping
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, cast
 
@@ -46,6 +46,7 @@ from xknxproject.models.knxproject import (
     Function,
     GroupAddress,
     GroupAddressRef,
+    GroupObjectTreeNode,
     GroupRange,
     KNXProject,
     Line,
@@ -53,6 +54,7 @@ from xknxproject.models.knxproject import (
     ProjectInfo,
     Space,
     TextParameter,
+    Trade,
 )
 from xknxproject.models.models import ParameterInstanceRef, XMLGroupAddress
 from xknxproject.models.static import MEDIUM_TYPES, GroupAddressStyle
@@ -67,6 +69,7 @@ from xknxproject.util import (
 from editor_gui.plugins.home_assistant.application_digest import (
     FLAG_NAMES,
     ApplicationDigest,
+    ArgumentDef,
     ObjectDef,
     application_digest,
 )
@@ -78,6 +81,7 @@ if TYPE_CHECKING:
     from xknxeditor.proj.models import Device as DeviceRow
     from xknxeditor.proj.models import GroupRange as GroupRangeRow
     from xknxeditor.proj.models import Space as SpaceRow
+    from xknxeditor.proj.models import Trade as TradeRow
 
 CREATED_BY = "XKNX Editor"
 _SUBMODULE = re.compile(r"(_SM-[^_]+)")
@@ -183,13 +187,43 @@ class _DeviceContext:
             ),
             key=lambda item: len(item[0]),
         )
-        for _instance_id, arguments in containing:
+        for instance_id, arguments in containing:
             for ref_id, value in arguments:
                 argument = self.digest.arguments.get(ref_id)
                 if argument is None:
                     continue
-                values[argument.name] = None if argument.computed else value
+                values[argument.name] = (
+                    self._allocated(instance_id, argument, value)
+                    if argument.computed
+                    else value
+                )
         return {name: value for name, value in values.items() if value is not None}
+
+    def _allocated(
+        self, instance_id: str, argument: ArgumentDef, value: str
+    ) -> str | None:
+        """The value an allocator gives a computed argument of a module instance (xknxproject
+        ``_allocated_argument_value``): the stored number, else the allocator's ``Start`` plus
+        ``Allocates`` per instance before it, when only one module draws from the allocator.
+        None (the placeholder stays) for an argument of a submodule or of a base value."""
+        assert self.digest is not None
+        if _SUBMODULE.search(instance_id) is not None or argument.base_value:
+            return None
+        if value.isdigit():
+            return value
+        allocator = f"{self.application}_{value}"
+        start = self.digest.allocators.get(allocator)
+        if (
+            not argument.allocator
+            or argument.allocates is None
+            or self.digest.allocator_modules.get(allocator) != 1
+            or start is None
+        ):
+            return None
+        index = instance_id.rsplit("_MI-", 1)[-1] if "_MI-" in instance_id else ""
+        if not index.isdigit():
+            return None
+        return str(start + argument.allocates * (int(index) - 1))
 
     def parameter(self, ref_id: str) -> ParameterInstanceRef | None:
         value = self.parameters.get(ref_id)
@@ -222,18 +256,28 @@ class _Builder:
 
     def build(self, *, tool_version: str, language_code: str | None) -> KNXProject:
         contexts = self._device_contexts()
+        trades, trade_ids = self._trades(contexts)
         communication_objects: dict[str, CommunicationObject] = {}
         devices: dict[str, Device] = {}
         for context in contexts:
+            tree = self._object_tree(context)
             device_objects: list[str] = []
             for co in self.com_objects[context.row.id]:
                 links = self._links(co)
                 if not links:
                     continue
-                key = f"{context.ia}/{self._instance_ref_id(context, co)}"
-                communication_objects[key] = self._com_object(context, co, links)
+                instance = self._instance_ref_id(context, co)
+                key = f"{context.ia}/{instance}"
+                communication_objects[key] = self._com_object(
+                    context,
+                    co,
+                    links,
+                    co.channel_id or tree.object_channels.get(instance),
+                )
                 device_objects.append(key)
-            devices[context.ia] = self._device(context, device_objects)
+            devices[context.ia] = self._device(
+                context, device_objects, tree, trade_ids.get(context.row.id)
+            )
 
         objects_by_address: dict[str, list[str]] = defaultdict(list)
         for key, com_object in communication_objects.items():
@@ -250,6 +294,7 @@ class _Builder:
                 group_addresses=self._group_addresses(objects_by_address),
                 group_ranges=self._group_ranges(),
                 locations=self._locations(contexts),
+                trades=trades,
                 functions=self._functions(),
             )
         )
@@ -326,8 +371,34 @@ class _Builder:
             return f"{application}_{module_ref.split('_', 1)[0]}_{ref_id}"
         return f"{application}_{ref_id}"
 
-    def _device(self, context: _DeviceContext, objects: list[str]) -> Device:
+    def _device(
+        self,
+        context: _DeviceContext,
+        objects: list[str],
+        tree: _ObjectTree,
+        trade_id: str | None,
+    ) -> Device:
         row = context.row
+        linked = set(objects)
+        group_object_tree = self._tree_nodes(context, tree.nodes, linked)
+        # A channel is exported if one of its objects is, or one of a channel below it (as a
+        # node of the tree then).
+        exported = set(_channel_ids(group_object_tree))
+        channels: dict[str, Channel] = {}
+        for node in tree.channels:
+            if node.ref_id not in exported:
+                continue
+            name, blocks = self._channel_name(context, node.ref_id, node.text)
+            channels[node.ref_id] = Channel(
+                identifier=node.ref_id,
+                name=name,
+                communication_object_ids=[
+                    key
+                    for instance in (*node.objects, *_folder_objects(node.nodes))
+                    if (key := f"{context.ia}/{instance}") in linked
+                ],
+                functional_blocks=list(blocks) if blocks is not None else None,
+            )
         product = row.product_ref_id or ""
         return Device(
             name=row.name or row.product_name,
@@ -346,8 +417,10 @@ class _Builder:
                 if row.space_id is not None
                 else None
             ),
+            trade_id=trade_id,
             communication_object_ids=objects,
-            channels=self._channels(context),
+            channels=channels,
+            group_object_tree=group_object_tree,
             serial_number=row.serial_number,
             last_download=row.last_download,
             individual_address_loaded=row.individual_address_loaded,
@@ -357,31 +430,93 @@ class _Builder:
             parameters_loaded=row.parameters_loaded,
         )
 
-    def _channels(self, context: _DeviceContext) -> dict[str, Channel]:
-        """The channels of the device that hold group objects: those of its stored group object
-        tree with their objects, completed with the linked objects the tree does not list (added
-        in the editor) by the channel the editor stored for them."""
-        nodes: dict[str, tuple[str, list[str]]] = {}
-        channel_nodes, listed = _tree_channels(context.row.group_object_tree)
-        for ref_id, text, objects in channel_nodes:
-            nodes[ref_id] = (text, objects)
+    def _object_tree(self, context: _DeviceContext) -> _ObjectTree:
+        """The device's stored group object tree, completed with the linked objects it does not
+        list (added in the editor) by the channel the editor stored for them: in that channel's
+        node, else in a channel node of their own after the others."""
+        nodes, listed = _parse_tree(context.row.group_object_tree)
         for co in self.com_objects[context.row.id]:
             instance = self._instance_ref_id(context, co)
-            if co.channel_id and instance not in listed:
-                nodes.setdefault(co.channel_id, ("", []))[1].append(instance)
-                listed.add(instance)
-        channels: dict[str, Channel] = {}
-        for ref_id, (text, objects) in nodes.items():
-            if not objects:
+            if not co.channel_id or instance in listed:
                 continue
-            name, blocks = self._channel_name(context, ref_id, text)
-            channels[ref_id] = Channel(
-                identifier=ref_id,
-                name=name,
-                communication_object_ids=[f"{context.ia}/{o}" for o in objects],
-                functional_blocks=list(blocks) if blocks is not None else None,
+            node = next(
+                (
+                    n
+                    for n in _iter_nodes(nodes)
+                    if n.is_channel and n.ref_id == co.channel_id
+                ),
+                None,
             )
-        return channels
+            if node is None:
+                node = _TreeNode("Channel", co.channel_id, "", [], [])
+                nodes.append(node)
+            node.objects.append(instance)
+            listed.add(instance)
+        used = _used_nodes(nodes)
+        channels: list[_TreeNode] = []
+        _collect_channels(used, channels)
+        return _ObjectTree(
+            nodes=used, channels=channels, object_channels=_object_channels(used)
+        )
+
+    def _tree_nodes(
+        self, context: _DeviceContext, nodes: list[_TreeNode], linked: set[str]
+    ) -> list[GroupObjectTreeNode]:
+        """The nodes as ``Device.group_object_tree`` holds them (xknxproject
+        ``_transform_group_object_tree``): only the linked objects, a node without any in or below
+        it left out, the names resolved."""
+        result: list[GroupObjectTreeNode] = []
+        for node in nodes:
+            objects = [
+                key
+                for instance in node.objects
+                if (key := f"{context.ia}/{instance}") in linked
+            ]
+            children = self._tree_nodes(context, node.nodes, linked)
+            if not objects and not children:
+                continue
+            name = (
+                self._channel_name(context, node.ref_id, node.text)[0]
+                if node.is_channel
+                else self._folder_name(context, node.ref_id, node.text)
+            )
+            result.append(
+                GroupObjectTreeNode(
+                    type="Channel" if node.is_channel else "Folder",
+                    identifier=node.ref_id,
+                    name=name,
+                    communication_object_ids=objects,
+                    nodes=children,
+                )
+            )
+        return result
+
+    @staticmethod
+    def _folder_name(context: _DeviceContext, ref_id: str, name: str) -> str:
+        """A folder's name (xknxproject ``FolderNode.resolve_folder_attributes``): its own text,
+        else that of its parameter block, with the module arguments and the text parameter."""
+        if context.digest is None:
+            return name
+        block = context.digest.blocks.get(
+            f"{context.application}_{strip_module_instance(ref_id, search_id='PB')}"
+        )
+        if not name and block is not None:
+            name = block.text or block.name or ""
+        if "{{" in name:
+            name = module_argument_replace(name, context.arguments_for(ref_id))
+            parameter: ParameterInstanceRef | None = None
+            if block is not None and block.text_parameter_ref_id:
+                parameter = context.parameter(
+                    text_parameter_insert_module_instance(
+                        instance_ref=ref_id,
+                        instance_next_id="PB",
+                        text_parameter_ref_id=block.text_parameter_ref_id,
+                    )
+                )
+            name = text_parameter_template_replace(name, parameter)
+        if not name.strip() and block is not None:
+            name = block.name or ""
+        return name
 
     def _channel_name(
         self, context: _DeviceContext, ref_id: str, name: str
@@ -436,8 +571,14 @@ class _Builder:
         return co.ref_id.removeprefix(f"{context.application}_")
 
     def _com_object(
-        self, context: _DeviceContext, co: ComObjectRow, links: list[str]
+        self,
+        context: _DeviceContext,
+        co: ComObjectRow,
+        links: list[str],
+        channel: str | None,
     ) -> CommunicationObject:
+        """The object (xknxproject ``CommunicationObject``); ``channel`` is the one the editor
+        stored for it, else the one above it in the device's group object tree."""
         instance = self._instance_ref_id(context, co)
         arguments = context.arguments_for(instance)
         ref: ObjectDef | None = None
@@ -515,7 +656,7 @@ class _Builder:
             device_address=context.ia,
             device_application=context.application,
             module_def=module,
-            channel=co.channel_id,
+            channel=channel,
             dpts=dpts,
             object_size=cast(str, object_size),
             group_address_links=links,
@@ -767,23 +908,165 @@ class _Builder:
             )
         return tuple(reversed(path))
 
+    # --- trades ------------------------------------------------------------------------------
 
-def _tree_channels(
-    tree: str,
-) -> tuple[list[tuple[str, str, list[str]]], set[str]]:
-    """The channel nodes of a group object tree, at any depth (their ``RefId``, ``Text`` and
-    ``GroupObjectInstances``), and every object the tree lists anywhere."""
+    def _trades(
+        self, contexts: list[_DeviceContext]
+    ) -> tuple[list[Trade], dict[int, str]]:
+        """The trades in project file order, and the trade of each device (``Device.trade_id``,
+        by device id): the first listing it in that order, which has a trade's sub-trades before
+        its own devices."""
+        addresses = {context.row.id: context.ia for context in contexts}
+        children: dict[int | None, list[TradeRow]] = defaultdict(list)
+        for trade in self.source.trades:
+            children[trade.parent_id].append(trade)
+        trade_ids: dict[int, str] = {}
+
+        def convert(parent: int | None) -> list[Trade]:
+            result: list[Trade] = []
+            for trade in sorted(children[parent], key=lambda t: (t.order, t.id)):
+                identifier = trade.source_id or f"T-x{trade.id}"
+                trades = convert(trade.id)
+                devices: list[str] = []
+                for link in sorted(trade.devices, key=lambda d: (d.order, d.id)):
+                    address = addresses.get(link.device_id)
+                    if address is None:
+                        continue
+                    devices.append(address)
+                    trade_ids.setdefault(link.device_id, identifier)
+                result.append(
+                    Trade(
+                        identifier=identifier,
+                        name=trade.name,
+                        number=trade.number,
+                        description=trade.description,
+                        project_uid=trade.puid,
+                        devices=sorted(devices, key=_ia_key),
+                        trades=trades,
+                    )
+                )
+            return result
+
+        return convert(None), trade_ids
+
+
+@dataclass
+class _TreeNode:
+    """A ``Node`` of a group object tree: a channel or a folder, with the objects it lists
+    directly (``GroupObjectInstances``) and its child nodes."""
+
+    kind: str
+    ref_id: str
+    text: str
+    objects: list[str]
+    nodes: list[_TreeNode]
+
+    @property
+    def is_channel(self) -> bool:
+        return self.kind == "Channel"
+
+
+@dataclass
+class _ObjectTree:
+    """A device's group object tree as xknxproject reads it: the nodes listing objects in or
+    below them, every such channel at any depth (each before the channels below it), and the
+    channel above each object (none for those of folders directly under the device)."""
+
+    nodes: list[_TreeNode]
+    channels: list[_TreeNode]
+    object_channels: dict[str, str]
+
+
+def _local(tag: str) -> str:
+    return tag.rsplit("}", 1)[-1]
+
+
+def _parse_tree(tree: str) -> tuple[list[_TreeNode], set[str]]:
+    """The nodes of a stored group object tree, and every object it lists anywhere (also
+    directly under the device)."""
     if not tree:
         return [], set()
     try:
         root = ET.fromstring(tree)
     except ET.ParseError:
         return [], set()
-    channels: list[tuple[str, str, list[str]]] = []
     listed: set[str] = set()
-    for node in root.iter():
-        objects = (node.get("GroupObjectInstances") or "").split()
-        listed.update(objects)
-        if node.tag.rsplit("}", 1)[-1] == "Node" and node.get("Type") == "Channel":
-            channels.append((node.get("RefId", ""), node.get("Text", ""), objects))
-    return channels, listed
+
+    def nodes_of(element: ET.Element) -> list[_TreeNode]:
+        result: list[_TreeNode] = []
+        for wrapper in element:
+            if _local(wrapper.tag) != "Nodes":
+                continue
+            for node in wrapper:
+                if _local(node.tag) != "Node":
+                    continue
+                objects = (node.get("GroupObjectInstances") or "").split()
+                listed.update(objects)
+                result.append(
+                    _TreeNode(
+                        kind="Channel" if node.get("Type") == "Channel" else "Folder",
+                        ref_id=node.get("RefId", ""),
+                        text=node.get("Text", ""),
+                        objects=objects,
+                        nodes=nodes_of(node),
+                    )
+                )
+        return result
+
+    listed.update((root.get("GroupObjectInstances") or "").split())
+    return nodes_of(root), listed
+
+
+def _iter_nodes(nodes: list[_TreeNode]) -> Iterator[_TreeNode]:
+    for node in nodes:
+        yield node
+        yield from _iter_nodes(node.nodes)
+
+
+def _used_nodes(nodes: list[_TreeNode]) -> list[_TreeNode]:
+    """The nodes listing an object in or below them (xknxproject reads only those)."""
+    result: list[_TreeNode] = []
+    for node in nodes:
+        children = _used_nodes(node.nodes)
+        if node.objects or children:
+            result.append(
+                _TreeNode(node.kind, node.ref_id, node.text, node.objects, children)
+            )
+    return result
+
+
+def _collect_channels(nodes: list[_TreeNode], channels: list[_TreeNode]) -> None:
+    for node in nodes:
+        if node.is_channel:
+            channels.append(node)
+        _collect_channels(node.nodes, channels)
+
+
+def _object_channels(
+    nodes: list[_TreeNode], channel: str | None = None
+) -> dict[str, str]:
+    """The nearest channel above each object of ``nodes`` (xknxproject
+    ``_group_object_channels``): the channel listing it or the folder it is in."""
+    result: dict[str, str] = {}
+    for node in nodes:
+        node_channel = node.ref_id if node.is_channel else channel
+        if node_channel is not None:
+            result |= dict.fromkeys(node.objects, node_channel)
+        result |= _object_channels(node.nodes, node_channel)
+    return result
+
+
+def _folder_objects(nodes: list[_TreeNode]) -> Iterator[str]:
+    """The objects of the folders of ``nodes``, nested; not those of channels below, which
+    belong to that channel."""
+    for node in nodes:
+        if not node.is_channel:
+            yield from node.objects
+            yield from _folder_objects(node.nodes)
+
+
+def _channel_ids(nodes: list[GroupObjectTreeNode]) -> Iterator[str]:
+    for node in nodes:
+        if node["type"] == "Channel":
+            yield node["identifier"]
+        yield from _channel_ids(node["nodes"])

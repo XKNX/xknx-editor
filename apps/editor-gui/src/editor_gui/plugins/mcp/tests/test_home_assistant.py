@@ -677,3 +677,24 @@ async def test_entities_follow_their_functions_time_server_and_keys(
         assert result == {"time": "0/0/1", "date": None, "datetime": None}
         assert await _data(client, "home_assistant_send_keys") == {"sent": True}
         assert asked[-1]["type"] == "set_keyring"
+
+
+async def test_the_project_model_holds_the_trades(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    mcp, _service, _link = _server(tmp_path, monkeypatch)
+    async with Client(mcp) as client:
+        await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
+        top = await _data(client, "project_create_trade", name="Lighting")
+        await _data(client, "project_create_trade", name="Indoor", parent_id=top["id"])
+
+        overview = await _data(client, "home_assistant_project_model")
+        trades = await _data(client, "home_assistant_project_model", section="trades")
+        with pytest.raises(Exception, match="unknown section"):
+            await client.call_tool("home_assistant_project_model", {"section": "x"})
+
+    assert overview["counts"]["trades"] == 1
+    assert overview["info"]["xknxproject_version"].startswith("3.11.")
+    (lighting,) = trades["trades"]
+    assert lighting["name"] == "Lighting"
+    assert [t["name"] for t in lighting["trades"]] == ["Indoor"]
