@@ -478,10 +478,9 @@ class ModelSource:
 
     The devices come with their module instances, the functions with their group addresses,
     the trades with their devices. The group objects with links and the group addresses are
-    plain values (a project has
-    thousands of them). ``parameters`` holds each device's parameter values by ref id,
-    ``keyed`` the ids of the group addresses a project file carries a Data Secure key of
-    (those secured now, and unlinked ones in ``Auto`` mode).
+    plain values (a project has thousands of them). ``parameters`` holds each device's
+    parameter values by ref id, ``keyed`` the ids of the group addresses a project file carries
+    a Data Secure key of (those secured now, and unlinked ones in ``Auto`` mode).
     """
 
     project: Project
