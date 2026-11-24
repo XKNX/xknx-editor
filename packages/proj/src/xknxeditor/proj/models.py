@@ -807,12 +807,13 @@ class FunctionGroupAddress(_SourceIdentity, Base):
     )
 
 
-class Trade(_SourcePuid, Base):
+class Trade(_SourceIdentity, Base):
     """A trade (Gewerke): a named grouping of devices by discipline, in a recursive tree, imported
     from the .knxproj Installation ``Trades``. ``order`` preserves the original sibling order.
 
-    ``xknxproject`` does not surface trades, so the tree is read verbatim from the raw project XML
-    and re-emitted on export (the referenced devices resolve through :class:`TradeDevice`)."""
+    The tree is read verbatim from the raw project XML, as ``xknxproject`` gives neither its
+    comment, completion status and context nor the references to devices on no line, and
+    re-emitted on export (the referenced devices resolve through :class:`TradeDevice`)."""
 
     __tablename__ = "trades"
 

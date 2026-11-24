@@ -1431,7 +1431,7 @@ def _reserve_source_identities(ids: _ExportIds, installation: Installation) -> N
             for ref in function.group_addresses:
                 ids.reserve("GF", ref, ref.source_id, ref.puid)
     for trade in installation.trades:
-        ids.reserve_puid(trade, trade.puid)
+        ids.reserve("T", trade, trade.source_id, trade.puid)
 
 
 def _assign_ids(
@@ -2116,6 +2116,7 @@ class _Writer:
         trade_el = self._el(
             parent,
             "Trade",
+            Id=f"{self._pid}-0_{self._ids.id('T', trade, trade.source_id)}",
             Name=trade.name,
             Number=trade.number or None,
             Comment=trade.comment or None,

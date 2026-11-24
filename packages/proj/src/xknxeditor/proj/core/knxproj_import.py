@@ -476,6 +476,7 @@ class _TradeEntry:
     device_ids: list[str]
     children: list[_TradeEntry]
     puid: int | None = None
+    identifier: str = ""
 
 
 # Per-device data read straight from the raw project XML because xknxproject drops it. Keyed by
@@ -1251,7 +1252,9 @@ def _read_completion_status(root: ET.Element) -> dict[str, str]:
 
 
 def _read_trades(root: ET.Element) -> list[_TradeEntry]:
-    """Read the Installation ``<Trades>`` tree (Gewerke), which xknxproject does not surface.
+    """Read the Installation ``<Trades>`` tree (Gewerke) from the raw XML: xknxproject's trades
+    lack the comment, completion status and context and the references to devices it did not
+    read (those on no line).
 
     Only the first ``<Trades>`` container is read; each ``Trade`` keeps its nested trades and the
     ``@RefId`` of every ``DeviceInstanceRef`` so the tree round-trips on export."""
@@ -1282,6 +1285,7 @@ def _read_trade(elem: ET.Element) -> _TradeEntry:
         device_ids=device_ids,
         children=children,
         puid=_int_attr(elem, "Puid"),
+        identifier=elem.get("Id") or "",
     )
 
 
@@ -2388,6 +2392,7 @@ def _build_trade(
         order=order,
         parent=parent,
         puid=entry.puid,
+        source_id=entry.identifier,
     )
     installation.trades.append(trade)
     unresolved: list[str] = []
