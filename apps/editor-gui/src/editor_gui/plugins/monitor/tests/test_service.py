@@ -103,6 +103,12 @@ class FakeConnection:
     def send_cemi(self, raw: bytes) -> None:
         self.sent.append(raw)
 
+    # why a group telegram the connection sends secured is not sent ("": it is)
+    secure_reason = ""
+
+    def secure_sender_refusal(self, _address: str, *, write: bool) -> str:
+        return self.secure_reason
+
     def start_busmonitor(self) -> None:
         self.busmonitor_requests.append("start")
 
@@ -522,3 +528,24 @@ def test_nothing_is_sent_or_replayed_to_a_protected_group_address() -> None:
         assert connection.sent == []
     finally:
         set_protected([])
+
+
+def test_nothing_is_sent_without_a_device_to_send_it_secured() -> None:
+    service, connection = _connected()
+    connection.send_group_telegram = lambda address, payload: connection.sent.append(  # type: ignore[attr-defined]
+        b"x"
+    )
+    connection.secure_reason = "No suitable device available"
+    assert (
+        service.secure_sender_refusal("1/2/3", write=True) == connection.secure_reason
+    )
+    assert not service.send_write("1/2/3", "DPST-1-1", "1")
+    service.send_read("1/2/3")
+    assert connection.sent == []
+    connection.secure_reason = ""
+    assert service.send_write("1/2/3", "DPST-1-1", "1")
+    assert connection.sent == [b"x"]
+    # Without a connection of its own, nothing of the editor's is in the way.
+    connection.xknx = None
+    connection.secure_reason = "No suitable device available"
+    assert service.secure_sender_refusal("1/2/3", write=True) == ""

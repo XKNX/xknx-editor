@@ -216,7 +216,9 @@ sources; missing product data does not produce a false missing-source finding.
 
 **Bus monitors and logs** — record and inspect bus traffic in the Group Monitor, Bus Monitor and Bus
 Activity alongside a filterable application log;
-with a project open, values are shown with the group address' name and decoded type.
+with a project open, values are shown with the group address' name and decoded type, KNX Data Secure
+telegrams are decrypted, and a value written to or read from a secured group address is sent by a
+securely commissioned device that sends on it.
 
 ![Group Monitor](docs/images/monitor.png)
 

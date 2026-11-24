@@ -148,6 +148,8 @@ def test_export_keyring(tmp_path: Path) -> None:
     )
     service.ip_secure_settings = lambda d: settings if d is router else None
     service._com_object_can_send = lambda co: True
+    service._tunnel_senders = lambda: {}
+    tunnels: list[tuple[int, int, list[int]]] = []
     service.get_project_metadata = lambda: SimpleNamespace(name="Haus")
     service._project_name_for_keyring = lambda: (
         ProjectService._project_name_for_keyring(  # pyright: ignore[reportPrivateUsage]
@@ -156,17 +158,22 @@ def test_export_keyring(tmp_path: Path) -> None:
     )
     service._svc = SimpleNamespace(
         installation_attributes=lambda pid: {"IPRoutingLatencyTolerance": "1500"},
-        secured_group_keys=lambda pid: {0x0801: group_key},
+        # Every group address with a key, also one in the clear now (0x0802).
+        group_keys=lambda pid: {0x0801: group_key, 0x0802: bytes(range(32, 48))},
         device_sequence_number=lambda pid, node: 42 if node == 2 else None,
         bus_interface_group_addresses=lambda pid, node: {"M-1_A-1_BI-1": [0x0801]},
-        group_address_senders=lambda pid, ga, can_send: [0x1105],
+        tunnel_group_addresses=lambda pid, node, tunnel, gas, can_send, senders: (
+            tunnels.append((node, tunnel, list(gas))) or {0x0801: [0x1105]}
+        ),
         ip_backbone_key=lambda pid: backbone,
     )
     path = tmp_path / "haus.knxkeys"
     assert ProjectService.export_keyring(service, path, "pw") == 2
     keyring = load_and_decrypt(path.read_bytes(), "pw")
     assert keyring.backbone_key == backbone
-    assert keyring.group_keys == {0x0801: group_key}
+    assert keyring.group_keys == {0x0801: group_key, 0x0802: bytes(range(32, 48))}
+    # The tunnel's group addresses: those assigned to it, decided where its device is.
+    assert tunnels == [(1, 0x11FA, [0x0801])]
     (tunnel,) = keyring.interfaces  # routing is the backbone, not an interface
     assert (tunnel.host, tunnel.individual_address, tunnel.user_id) == (
         "1.1.10",

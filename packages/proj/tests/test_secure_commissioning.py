@@ -572,11 +572,22 @@ def test_keyring_material(tmp_path: Path) -> None:
     svc, pid, first, second, path = _project(tmp_path)
     keys = svc.secured_group_keys(pid)
     assert keys[0x0801] == _GA_KEY and len(keys[0x0802]) == 16
-    assert svc.group_address_senders(pid, 0x0801) == [0x2105, 0x2106]
+    assert svc.group_keys(pid) == keys
+    # A tunnel of the first device: its secured group addresses with who sends on them there,
+    # the device itself included; one the tunnel is not assigned is not listed.
+    assert svc.tunnel_group_addresses(pid, first, 0x21FA, [0x0801, 0x0009]) == {
+        0x0801: [0x2105, 0x2106]
+    }
     second_co = _co(svc, pid, second)
-    assert svc.group_address_senders(pid, 0x0801, lambda co: co != second_co) == [
-        0x2105
-    ]
+    assert svc.tunnel_group_addresses(
+        pid, first, 0x21FA, [0x0801], lambda co: co != second_co
+    ) == {0x0801: [0x2105]}
+    # The tunnel itself is never one of the senders.
+    tunnels = {0x0801: [(0x21FA, first), (0x21FB, first)]}
+    tunnel_map = svc.tunnel_group_addresses(
+        pid, first, 0x21FA, [0x0801], tunnel_senders=tunnels
+    )
+    assert 0x21FA not in tunnel_map[0x0801]
     assert svc.device_sequence_number(pid, second) == 4711
     assert svc.device_sequence_number(pid, first) is None
     svc.close(pid)

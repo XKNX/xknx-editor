@@ -38,7 +38,7 @@ from ..models import (
     Segment,
 )
 from . import ip_secure
-from .medium import MEDIUM_IP
+from .medium import MEDIUM_IP, MEDIUM_RF
 from .security_domains import (
     PLAIN,
     SECURE,
@@ -176,6 +176,12 @@ class SecurityContext:
         """The address index of the device's bus interface (0: the device's own address)."""
         return 0
 
+    def interface_secure(self, device: Device, ref_id: str, stored: bool) -> bool:
+        """Whether the device's bus interface is secured, ``stored`` being its
+        ``@IsSecureEnabled``: an internal one of the application is secured when the
+        application supports security, any other as stored."""
+        return stored
+
 
 class ProjectSecurity:
     """The security domains of a project and where its group addresses are secured in them."""
@@ -278,6 +284,8 @@ class ProjectSecurity:
                     ip=ip,
                     proxied=proxied,
                     coupler=coupler.id if coupler is not None else None,
+                    rf=segment.medium_type == MEDIUM_RF,
+                    domain_address=segment.domain_address,
                 )
             )
         return infos
@@ -306,9 +314,11 @@ class ProjectSecurity:
                 index = self.context.interface_index(device, element.get("RefId", ""))
                 if index != 0 and index not in addressed:
                     continue
-                secure = element.get("IsSecureEnabled", "true").lower() not in (
-                    "false",
-                    "0",
+                secure = self.context.interface_secure(
+                    device,
+                    element.get("RefId", ""),
+                    element.get("IsSecureEnabled", "true").lower()
+                    not in ("false", "0"),
                 )
                 for connector in element.iter("Connector"):
                     ref = connector.get("GroupAddressRefId")
@@ -350,17 +360,33 @@ class ProjectSecurity:
             return "plain"
         return "mixed" if PLAIN in states else "secure"
 
-    def line_domain(self, area: int, line: int) -> int | None:
-        """The domain of a line's main segment (None when the project lacks it)."""
-        segment = next(
-            (
-                s.id
-                for s in self.segments.values()
-                if s.area == area and s.line == line and s.number == 0
-            ),
-            None,
-        )
-        return None if segment is None else self.domains.of_segment.get(segment)
+    def local_domain(
+        self, local_address: int, rf_domain_address: int | None = None
+    ) -> int | None:
+        """The domain of a connection with the individual address ``local_address`` (raw): of
+        the main segment of its line, or, through an RF interface with ``rf_domain_address``,
+        of the RF segment with that domain address (its line's first, else any); None when the
+        project lacks it."""
+        area, line = local_address >> 12, (local_address >> 8) & 0x0F
+        segments = sorted(self.segments.values(), key=lambda s: (s.number, s.id))
+        if rf_domain_address is not None:
+            on_rf = [
+                s for s in segments if s.rf and s.domain_address == rf_domain_address
+            ]
+            found = next(
+                (s for s in on_rf if (s.area, s.line) == (area, line)),
+                on_rf[0] if on_rf else None,
+            )
+        else:
+            found = next(
+                (
+                    s
+                    for s in segments
+                    if (s.area, s.line) == (area, line) and s.number == 0
+                ),
+                None,
+            )
+        return None if found is None else self.domains.of_segment.get(found.id)
 
     def sent_secured(self, ga_id: int, local_domain: int | None) -> bool:
         """Whether a connection in ``local_domain`` sends on the group address secured: when it

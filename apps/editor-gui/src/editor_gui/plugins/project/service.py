@@ -1422,7 +1422,8 @@ def _tunnelling_interfaces(device: Device) -> dict[str, int]:
 
 class _ProductSecurity(SecurityContext):
     """What the catalog and the application programs tell the project's security domains: which
-    devices are couplers used as Security Proxy, and on which address a bus interface is."""
+    devices are couplers used as Security Proxy, on which address a bus interface is, and whether
+    an internal bus interface is secured."""
 
     def __init__(self, service: "ProjectService") -> None:
         self._service = service
@@ -1449,6 +1450,24 @@ class _ProductSecurity(SecurityContext):
             ),
             0,
         )
+
+    def interface_secure(self, device: "DeviceRow", ref_id: str, stored: bool) -> bool:
+        app = self._service._resolve_app(  # pyright: ignore[reportPrivateUsage]
+            device.hardware2program_ref_id, device.application_program_ref_id
+        )
+        if app is None:
+            return stored
+        access = next(
+            (
+                access
+                for ref, access, _index in _app_bus_interfaces(app)
+                if ref == ref_id
+            ),
+            None,
+        )
+        if access != "Internal":
+            return stored
+        return bool(app.program.is_secure_enabled)
 
 
 def _int_or(value: str | None, default: int) -> int:
@@ -4056,10 +4075,11 @@ class ProjectService:
         return self._svc.bcu_key(self._pid)
 
     def data_secure_tables(
-        self, local_address: int | None = None
+        self, local_address: int | None = None, rf_domain_address: int | None = None
     ) -> tuple[dict[int, bytes], dict[int, int], set[int]] | None:
         """The project's Data Secure tables for a connection whose individual address is
-        ``local_address`` (raw; None when unknown): the key of every group address that has one,
+        ``local_address`` (raw; None when unknown), through an RF interface with
+        ``rf_domain_address``: the key of every group address that has one,
         every device that can send on a secured group address with its last valid Sequence
         Number, and the group addresses the connection sends secured (see
         ``ProjectService.connection_group_security`` of the core)."""
@@ -4070,7 +4090,7 @@ class ProjectService:
         with self._io_lock:
             try:
                 keys, secured = self._svc.connection_group_security(
-                    self._pid, local_address
+                    self._pid, local_address, rf_domain_address
                 )
             except ProjectPasswordRequired:
                 return None
@@ -4078,6 +4098,46 @@ class ProjectService:
                 return None
             senders = self._svc.secure_senders(self._pid, self._com_object_can_send)
             return keys, senders, secured
+
+    def secure_group_sender(self, group_address: int, *, write: bool) -> Device | None:
+        """The device that sends a write (``write``) or read on the group address (raw) for a
+        connection that sends it secured (see
+        ``xknxeditor.download.group_object_diagnostics``): of the group objects sending on it
+        in a security domain where it is secured, the one that suits best (see
+        :func:`_secure_sender_score`), the first of equals; None when none suits."""
+        if self._pid is None:
+            return None
+        with self._io_lock:
+            candidates = self._svc.secure_sender_candidates(self._pid, group_address)
+        flags = {
+            co.db_id: co.flags
+            for device in self.devices
+            for co in device.com_objects
+            if co.db_id is not None
+        }
+        best: tuple[int, int] | None = None
+        for candidate in candidates:
+            if not candidate.individual_address_loaded:
+                continue
+            if not candidate.application_program_loaded:
+                continue
+            co_flags = flags.get(candidate.com_object_id)
+            if co_flags is None:
+                continue
+            tx, rx = (
+                self._rf_capabilities(candidate.device_id)
+                if candidate.rf
+                else (None, None)
+            )
+            score = _secure_sender_score(
+                co_flags,
+                write=write,
+                transmit_only=candidate.rf and rx is None and tx is not None,
+                slow=candidate.rf and rx == "Slow",
+            )
+            if best is None or score > best[0]:
+                best = (score, candidate.device_id)
+        return None if best is None else self.find_device_by_node_id(best[1])
 
     def group_address_security(self, ga_id: int) -> dict[str, Any]:
         """Why a group address is secured or in the clear, per security domain (see
@@ -4092,8 +4152,9 @@ class ProjectService:
         """Write the project's key material as a keyring (``.knxkeys``) to ``path``, encrypted and
         signed with ``password``: the backbone key, every device commissioned securely (with the
         Tool Key it holds, else the one it gets), the tunnels of the KNX IP Secure devices (with
-        the secured group addresses assigned to them and their senders) and the keys of the
-        secured group addresses. Returns how many devices it holds."""
+        the group addresses assigned to them that are secured where the device is, and their
+        senders there) and the key of every group address that has one. Returns how many
+        devices it holds."""
         from xknx.telegram import IndividualAddress
 
         from xknxeditor.datasecure import (
@@ -4107,7 +4168,8 @@ class ProjectService:
             raise ValueError("No project is open.")
         installation = self._svc.installation_attributes(self._pid)
         with self._io_lock:
-            group_keys = self._svc.secured_group_keys(self._pid)
+            group_keys = self._svc.group_keys(self._pid)
+        tunnel_senders = self._tunnel_senders()
         devices: list[KeyringDevice] = []
         tunnels: list[KeyringTunnel] = []
         for device in self.devices:
@@ -4142,6 +4204,16 @@ class ProjectService:
                     continue
                 if not interface.password:
                     continue
+                tunnel = IndividualAddress(interface.address)
+                with self._io_lock:
+                    secured = self._svc.tunnel_group_addresses(
+                        self._pid,
+                        device.node_id,
+                        tunnel.raw,
+                        assigned.get(interface.ref_id, []),
+                        self._com_object_can_send,
+                        tunnel_senders,
+                    )
                 tunnels.append(
                     KeyringTunnel(
                         host=address,
@@ -4150,13 +4222,8 @@ class ProjectService:
                         password=interface.password,
                         authentication=settings.authentication_code or None,
                         group_addresses={
-                            ga: [
-                                str(IndividualAddress(raw))
-                                for raw in self._svc.group_address_senders(
-                                    self._pid, ga, self._com_object_can_send
-                                )
-                            ]
-                            for ga in assigned.get(interface.ref_id, [])
+                            ga: [str(IndividualAddress(raw)) for raw in senders]
+                            for ga, senders in secured.items()
                             if ga in group_keys
                         },
                     )
@@ -10883,3 +10950,24 @@ class ProjectService:
         Opening a previously-edited project is not "modified"; only edits (or undo/redo) made in
         this session since the open count. Used to gate the read-only pre-flight self-test."""
         return self._history_key() != self._history_baseline
+
+
+def _secure_sender_score(
+    flags: ComObjectFlags, *, write: bool, transmit_only: bool, slow: bool
+) -> int:
+    """How well a group object of a device suits for sending a secured group telegram for a
+    connection (the higher the better): a write best from one that communicates and transmits,
+    a read best from one that communicates and reads on init, then from one that communicates
+    and transmits; on RF, a device that only transmits, then one that receives slowly, comes
+    after the others."""
+    if write:
+        scores = (10, 5, 4) if flags.communication and flags.transmit else (3, 2, 1)
+    elif flags.communication and flags.read_on_init:
+        scores = (10, 6, 4)
+    elif flags.communication and flags.transmit:
+        scores = (6, 5, 4)
+    else:
+        scores = (3, 2, 1)
+    if transmit_only:
+        return scores[2]
+    return scores[1] if slow else scores[0]

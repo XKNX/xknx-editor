@@ -1344,8 +1344,16 @@ class ConnectionPlugin:
             # Secured group communication with the project's (or the keyring's) keys, sent
             # secured where the connection's own line secures it.
             local_address = self._xknx.current_address.raw
+            rf_domain = (
+                self._usb_info.rf_domain_address if self._usb_info is not None else None
+            )
+            rf_domain_address = (
+                int.from_bytes(rf_domain, "big") if rf_domain is not None else None
+            )
             self._xknx.cemi_handler.data_secure = await self._on_main_thread(
-                lambda: self._api.connection.data_secure(local_address)
+                lambda: self._api.connection.data_secure(
+                    local_address, rf_domain_address
+                )
             )
             self._data_secure_revision = self._api.project.revision
             self._gateway_info = gateway

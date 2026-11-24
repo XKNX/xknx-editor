@@ -77,9 +77,12 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         Response seen on that address since the request can satisfy the wait, including unrelated
         traffic. Returns {address, service, timestamp, payload}; timestamp is ISO-formatted and payload
         is a raw payload string. This sends a bus read without editing the project. A protected
-        group address (Settings > Connection) is refused at once, in any spelling."""
+        group address (Settings > Connection) is refused at once, in any spelling. On a group
+        address secured where the connection is, a device commissioned securely that sends on it
+        sends the read; refused when none can."""
         _require_connection()
         _refuse_protected(address)
+        _refuse_without_secure_sender(address, write=False)
         sent_at = datetime.now()
         monitor.send_read(address)
         deadline = time.monotonic() + timeout
@@ -96,6 +99,12 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         raise ToolError(
             f"no response on {address!r} within {timeout}s (device may not answer reads)"
         )
+
+    def _refuse_without_secure_sender(address: str, *, write: bool) -> None:
+        if reason := ctx.run_locked(
+            lambda: monitor.secure_sender_refusal(address, write=write)
+        ):
+            raise ToolError(reason)
 
     def _kind(name: str) -> Any:
         from editor_gui.plugins.monitor.service import MonitorKind
@@ -142,7 +151,9 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         Returns {status: "queued", address}; this does not confirm delivery or device action.
         This can actuate hardware and is not reversible with project_undo; it does not edit the
         project. Inspect fresh bus feedback to verify the effect. A protected group address
-        (Settings > Connection) is refused."""
+        (Settings > Connection) is refused. On a group address secured where the connection is,
+        a device commissioned securely that sends on it sends the write; refused when none
+        can."""
         _require_connection()
         resolved = dpt
         if resolved is None:
@@ -157,6 +168,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                 )
             )
         _refuse_protected(address)
+        _refuse_without_secure_sender(address, write=True)
         if not monitor.send_write(address, resolved, value):
             raise ToolError(f"could not encode value {value!r} for DPT {resolved!r}")
         # Fire-and-forget: the value was encoded and queued onto the bus loop; actual delivery is not
@@ -169,8 +181,10 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         connection. Returns {status: "queued", address} without waiting for a reply; monitor_read_value
         waits for a fresh value. When polling monitor_latest, check timestamp to avoid stale data.
         This sends a bus read without editing the project. A protected group address (Settings >
-        Connection) is refused."""
+        Connection) is refused. On a group address secured where the connection is, a device
+        commissioned securely that sends on it sends the read; refused when none can."""
         _require_connection()
         _refuse_protected(address)
+        _refuse_without_secure_sender(address, write=False)
         monitor.send_read(address)
         return {"status": "queued", "address": address}

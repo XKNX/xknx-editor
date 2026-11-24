@@ -184,6 +184,20 @@ def test_secured_on_one_side_and_plain_on_the_other(tmp_path: Path) -> None:
     }
     assert by_address["2.1.5"] != by_address["2.2.5"]
     assert report["bus_interfaces"] == []
+    # Only the actuator sends it secured: the sensor's line has it in the clear.
+    [candidate] = svc.secure_sender_candidates(pid, 0x0801)
+    assert (candidate.device_id, candidate.address) == (devices["actuator"], 0x2105)
+    assert not candidate.rf and not candidate.individual_address_loaded
+    assert svc.secure_sender_candidates(pid, 0x0803) == []
+    # A device on a KNX IoT segment sends nothing for a connection.
+    from xknxeditor.proj.core.medium import MEDIUM_IOT
+
+    session = svc._state(pid).session  # pyright: ignore[reportPrivateUsage]
+    segment = session.get(DeviceRow, devices["actuator"]).segment  # type: ignore[union-attr]
+    medium, segment.medium_type = segment.medium_type, MEDIUM_IOT
+    assert svc.secure_sender_candidates(pid, 0x0801) == []
+    segment.medium_type = medium
+    session.flush()
     # Without the sensor it is secured wherever it is used: sent secured from anywhere.
     svc.remove_device(pid, devices["sensor"])
     assert svc.connection_group_security(pid, None)[1] == {0x0801}
@@ -258,6 +272,19 @@ def test_a_secured_bus_interface_on_a_line_of_its_own(tmp_path: Path) -> None:
         for segment in d["segments"]
     }
     assert states == {"2.1": "secured", "2.2": "plain"}
+
+    # An internal bus interface is secured as the application supports security, whatever its
+    # own flag says: one of an application without security keeps it in the clear.
+    class _Internal(SecurityContext):
+        def interface_secure(
+            self, device: DeviceRow, ref_id: str, stored: bool
+        ) -> bool:
+            assert ref_id == "M-1_A-1_BI-1" and stored
+            return False
+
+    svc.set_security_context(pid, _Internal())
+    assert svc.group_address_security(pid, ga_id)["state"] == "plain"
+    svc.set_security_context(pid, None)
     # Forced off, it is in the clear everywhere; its key stays, to decrypt what still comes
     # secured.
     svc.set_group_address_security(pid, ga_id, "Off")

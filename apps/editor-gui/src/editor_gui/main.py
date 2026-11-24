@@ -1007,6 +1007,9 @@ class KnxGuiApp:
         self._connection_service.project_data_secure = (
             self._project_service.data_secure_tables
         )
+        self._connection_service.project_secure_sender = lambda address, write: (
+            self._project_service.secure_group_sender(address, write=write)
+        )
         self._signing_plugin = SigningPlugin(self._plugin_api)
         self._recover_plugin = RecoverPlugin(self._plugin_api)
         self._home_assistant_plugin = HomeAssistantPlugin(

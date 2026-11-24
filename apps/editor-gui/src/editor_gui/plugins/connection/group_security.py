@@ -7,11 +7,15 @@ A connection that monitors and operates the bus takes every group telegram as it
   from which side a telegram comes).
 - Secured telegrams are decrypted with any key there is, also from a sender it does not know
   yet; the Sequence Numbers of a sender count from its first telegram.
-- It sends secured only on the group addresses given as ``sent_secured`` (the project's that are
-  secured where the connection is), in the clear on the others.
+- It sends group telegrams as they are, never secured itself: one on a group address of
+  ``sent_secured`` (the project's that are secured where the connection is) is sent secured by a
+  device that sends on it (``ConnectionService.send_group_telegram``), as the receivers know
+  that device's Sequence Numbers, not the connection's. Without a project to find such a device
+  (``via_device`` off, a keyring's keys only), it secures them itself.
 
 xknx's :class:`DataSecure` instead discards plain telegrams for every group address it holds a
-key for, and secured ones of senders missing from its table, and sends secured on all of them.
+key for, and secured ones of senders missing from its table, and secures what it sends on all of
+them.
 """
 
 from __future__ import annotations
@@ -27,9 +31,9 @@ from xknx.telegram.apci import SecureAPDU
 
 class ConnectionDataSecure(DataSecure):
     """:class:`DataSecure` for a connection monitoring and operating the bus (see the module
-    docstring); ``sent_secured`` None sends secured on every group address with a key."""
+    docstring); ``sent_secured`` None: every group address with a key is sent secured."""
 
-    __slots__ = ("_sent_secured",)
+    __slots__ = ("_sent_secured", "_via_device")
 
     def __init__(
         self,
@@ -37,6 +41,7 @@ class ConnectionDataSecure(DataSecure):
         group_key_table: dict[GroupAddress, bytes],
         individual_address_table: dict[IndividualAddress, int],
         sent_secured: set[GroupAddress] | None = None,
+        via_device: bool = True,
         last_sequence_number_sending: int | None = None,
     ) -> None:
         super().__init__(
@@ -49,11 +54,18 @@ class ConnectionDataSecure(DataSecure):
             if sent_secured is None
             else frozenset(sent_secured) & frozenset(group_key_table)
         )
+        self._via_device = via_device
 
     @property
     def sent_secured(self) -> frozenset[GroupAddress]:
         """The group addresses sent secured."""
         return self._sent_secured
+
+    @property
+    def via_device(self) -> bool:
+        """Whether a device sending on them sends the group telegrams of ``sent_secured`` (else
+        the connection secures them itself)."""
+        return self._via_device
 
     def received_cemi(self, cemi_data: CEMILData) -> CEMILData:
         """Handle a received frame: a plain one as it is, a secured one decrypted."""
@@ -75,11 +87,10 @@ class ConnectionDataSecure(DataSecure):
             yield
 
     def outgoing_cemi(self, cemi_data: CEMILData) -> CEMILData:
-        """Handle a frame to send: secured to a group address of ``sent_secured``, else as it
-        is."""
-        if (
-            isinstance(cemi_data.dst_addr, GroupAddress)
-            and cemi_data.dst_addr not in self._sent_secured
+        """Handle a frame to send: a group telegram as it is, unless the connection secures it
+        itself (see the module docstring); any other as :class:`DataSecure` does."""
+        if isinstance(cemi_data.dst_addr, GroupAddress) and (
+            self._via_device or cemi_data.dst_addr not in self._sent_secured
         ):
             return cemi_data
         return super().outgoing_cemi(cemi_data)
