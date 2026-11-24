@@ -317,6 +317,11 @@ def no_bus_writes(argv: list[str]) -> bool:
     return "--no-bus-writes" in argv[1:]
 
 
+def log_frames(argv: list[str]) -> bool:
+    """Whether ``--log-frames`` logs every frame exchanged with the KNX interface, raw."""
+    return "--log-frames" in argv[1:]
+
+
 def no_connect(argv: list[str]) -> bool:
     """Whether ``--no-connect`` asks this start to connect to no KNX interface, whatever the
     setting Connect at Startup says."""
@@ -1179,6 +1184,10 @@ class KnxGuiApp:
     def block_bus_writes_this_start(self) -> None:
         """``--no-bus-writes``: nothing is written to the bus until the editor ends."""
         self._connection_plugin.block_bus_writes_this_start()
+
+    def log_frames(self) -> None:
+        """``--log-frames``: every frame exchanged with the KNX interface goes into the log."""
+        self._log_service.log_frames()
 
     def _start_session(self) -> None:
         """What a start does besides showing the app: connect, restart the MCP server, and open the
@@ -8061,6 +8070,8 @@ def _main() -> None:
     app.no_connect = no_connect(sys.argv)
     if no_bus_writes(sys.argv):
         app.block_bus_writes_this_start()
+    if log_frames(sys.argv):
+        app.log_frames()
     # Editors running already are offered first; --new-instance starts another without asking.
     if "--new-instance" not in sys.argv:
         app.running_editors = others()

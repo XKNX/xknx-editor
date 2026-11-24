@@ -16,6 +16,7 @@ _ARGUMENTS = (
     "--new-instance",
     "--no-bus-writes",
     "--no-connect",
+    "--log-frames",
     "--password-file=",
     "--profile",
     "--web[=",
@@ -96,3 +97,10 @@ def test_no_terminal_elsewhere_than_on_windows(monkeypatch: pytest.MonkeyPatch) 
     monkeypatch.setattr(sys, "stdout", None)
     monkeypatch.setattr(sys, "platform", "linux")
     assert not cli._write_terminal("text")
+
+
+def test_log_frames_is_only_set_by_its_option() -> None:
+    assert main.log_frames(["editor", "--log-frames"])
+    assert not main.log_frames(["editor"])
+    # the program name is no option
+    assert not main.log_frames(["--log-frames"])

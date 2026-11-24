@@ -564,8 +564,10 @@ class USBTunnel(Interface):
         """
         Get the EMI types the interface supports.
 
-        The first request to the interface: tried again once, with a longer timeout. An
-        interface the host may suspend gets a hint with the error.
+        The first request to the interface: tried again once, with a longer timeout,
+        also when the answer names no EMI type (an interface just plugged in can
+        answer so before it is ready). An interface the host may suspend gets a hint
+        with the error.
         """
         attempt = 1
         while True:
@@ -574,7 +576,6 @@ class USBTunnel(Interface):
                     DeviceFeature.SUPPORTED_EMI_TYPE,
                     timeout=attempt * DEVICE_FEATURE_GET_TIMEOUT,
                 )
-                break
             except CommunicationError as ex:
                 if attempt < SUPPORTED_EMI_TYPE_ATTEMPTS:
                     logger.debug("%s, trying again", ex)
@@ -589,10 +590,22 @@ class USBTunnel(Interface):
                         "(USB power management) switched off for it"
                     ) from ex
                 raise
-        return SupportedEMIType(
-            int.from_bytes(data, "big")
-            & (SupportedEMIType.EMI1 | SupportedEMIType.EMI2 | SupportedEMIType.CEMI)
-        )
+            supported = SupportedEMIType(
+                int.from_bytes(data, "big")
+                & (
+                    SupportedEMIType.EMI1
+                    | SupportedEMIType.EMI2
+                    | SupportedEMIType.CEMI
+                )
+            )
+            if supported or attempt >= SUPPORTED_EMI_TYPE_ATTEMPTS:
+                return supported
+            logger.debug(
+                "KNX USB interface reports no supported EMI type (%s), asking again",
+                data.hex(),
+            )
+            attempt += 1
+            await asyncio.sleep(SUPPORTED_EMI_TYPE_PAUSE)
 
     async def _activate_emi_type(self, supported: SupportedEMIType) -> None:
         """
@@ -1035,7 +1048,7 @@ class USBTunnel(Interface):
                 self.device_info,
                 "Data Secure telegrams are not sent until it is known"
                 if data_secure
-                else "using 0.0.0",
+                else "using 0.0.0 until it is known",
             )
             return
         if data_secure:
@@ -1612,6 +1625,13 @@ class USBTunnel(Interface):
         ):
             self._identify.resolve(None, individual_address)
             return
+        if (
+            not self.busmonitor
+            and self._individual_address_unknown()
+            and (own := emi.individual_destination(self._emi, raw)) is not None
+        ):
+            # before it is passed on: xknx takes only what is addressed to its address
+            self._adopt_individual_address(IndividualAddress(own))
         raw_cemi = emi.to_cemi(
             self._emi,
             raw,

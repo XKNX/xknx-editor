@@ -101,6 +101,7 @@ XKNX-Editor.exe --password-file=C:\Users\Me\xknx-password.txt C:\Projekte\Haus.x
 | `--new-instance` | Start another editor without offering to switch to one that runs already |
 | `--no-bus-writes` | Read from the bus only: Settings > Connection > Block Bus Writes stays on until the editor ends (downloads, address changes, restarts and group writes are refused, also for MCP clients) |
 | `--no-connect` | Connect to no KNX interface at start, whatever Settings > Connection > Connect at Startup says |
+| `--log-frames` | Log every frame sent to and received from the KNX interface, raw (for error reports) |
 | `--profile` | Print where the time went when the editor ends (for developers) |
 | `-h`, `--help` | List all options and end |
 
