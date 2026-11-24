@@ -76,7 +76,12 @@ def begin_data_table(
         px(min_width), needed_width, _header_widths.get(imgui.get_id(table_id), 0.0)
     )
     scrolls = bool(flags & imgui.TableFlags_.scroll_y) or scroll_when_narrow
-    if scrolls and imgui.get_content_region_avail().x < width:
+    # An explicitly horizontal table lets its columns determine the scroll range.
+    if (
+        scrolls
+        and not flags & imgui.TableFlags_.scroll_x
+        and imgui.get_content_region_avail().x < width
+    ):
         flags |= imgui.TableFlags_.scroll_x | imgui.TableFlags_.scroll_y
         inner_width = width
     opened = imgui.begin_table(
@@ -102,7 +107,7 @@ def columns_width(widths: list[float]) -> float:
 def _remember_header_width(table: internal.Table) -> None:
     """Note the width the shown header labels of ``table`` need (see :func:`begin_data_table`)."""
     style = imgui.get_style()
-    arrow = imgui.get_font_size() * _SORT_ARROW_SCALE + style.frame_padding.x
+    arrow = imgui.get_font_size() * SORT_ARROW_SCALE + style.frame_padding.x
     widths: list[float] = []
     for column in range(table.columns_count):
         flags = imgui.table_get_column_flags(column)
@@ -128,7 +133,7 @@ def data_table_headers() -> None:
 
 
 # imgui draws a header's sort arrow this much smaller than the text.
-_SORT_ARROW_SCALE = 0.65
+SORT_ARROW_SCALE = 0.65
 
 
 def headers_row() -> None:
@@ -227,7 +232,7 @@ def table_header(label: str) -> None:
     style = imgui.get_style()
     font = imgui.get_font_size()
     low, high = imgui.get_item_rect_min(), imgui.get_item_rect_max()
-    arrow_w = int(font * _SORT_ARROW_SCALE + style.frame_padding.x)
+    arrow_w = int(font * SORT_ARROW_SCALE + style.frame_padding.x)
     text = label.split("##", 1)[0]
     size = imgui.calc_text_size(text)
     end = max(high.x - arrow_w, start.x)
@@ -244,11 +249,11 @@ def table_header(label: str) -> None:
         draw,
         imgui.ImVec2(
             max(low.x, high.x - arrow_w),
-            start.y + font * 0.5 * (1.0 - _SORT_ARROW_SCALE),
+            start.y + font * 0.5 * (1.0 - SORT_ARROW_SCALE),
         ),
         imgui.get_color_u32(imgui.Col_.text),
         imgui.Dir.up if direction == imgui.SortDirection.ascending else imgui.Dir.down,
-        _SORT_ARROW_SCALE,
+        SORT_ARROW_SCALE,
     )
 
 
