@@ -6195,6 +6195,20 @@ class ProjectService:
         return self._svc.model_source(self._pid)
 
     @io_guarded(lambda: None)
+    def model_source_as_exported(
+        self,
+    ) -> "tuple[ModelSource, dict[int, str], dict[int, dict[str, list[tuple[str, str]]]]] | None":
+        """The rows of the whole project (:meth:`model_source`) with what the ``.knxproj``
+        export takes from the evaluated devices: the group object trees of
+        :meth:`group_object_trees` and the module arguments of :meth:`module_arguments`, all
+        read in one hold of the project, so a background import cannot come in between. None
+        like :meth:`model_source` (never waits for the import)."""
+        source = self.model_source()
+        if source is None:
+            return None
+        return source, self.group_object_trees(), self.module_arguments()
+
+    @io_guarded(lambda: None)
     @revision_cached
     def get_project_metadata(self) -> ProjectInfo | None:
         """Project-level metadata (name, author, tool/schema version, …) from the imported project."""

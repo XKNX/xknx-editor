@@ -10,8 +10,10 @@ sees the same as with an uploaded project file, and without writing and parsing 
 - each application program's group objects, channels, parameter blocks, module arguments and
   allocators (:mod:`.application_digest`, read once per program),
 - the group objects' numbers as the editor resolves them (module base numbers included),
-- the devices' stored group object trees for their channels and folders, completed with the
-  linked objects they do not list by the channel stored for each object.
+- the devices' group object trees for their channels and folders as the ``.knxproj`` export
+  writes them (the stored ones, or those evaluated from the parameters where the editor
+  activated objects), completed with the linked objects they do not list by the channel
+  stored for each object, and the module arguments the export writes.
 
 Where xknxproject reads an attribute that is missing as None, so does this; the text rules
 (module arguments, text parameters, the order of the fallbacks) are xknxproject's own functions.
@@ -27,7 +29,7 @@ import html
 import re
 import xml.etree.ElementTree as ET
 from collections import Counter, defaultdict
-from collections.abc import Iterable, Iterator, Mapping
+from collections.abc import Iterable, Iterator, Mapping, Sequence
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, cast
 
@@ -73,6 +75,7 @@ from editor_gui.plugins.home_assistant.application_digest import (
     ObjectDef,
     application_digest,
 )
+from xknxeditor.proj.core.knxproj_export import relidref
 
 if TYPE_CHECKING:
     from editor_gui.plugins.project.service import ProjectService
@@ -99,10 +102,12 @@ def build_project_model(
     ``tool_version`` names the program in ``info`` (e.g. "XKNX Editor 0.9.12"),
     ``language_code`` the language of its texts (the product language). Raises
     :class:`ProjectModelUnavailable` without an open project.
+
+    The devices whose group objects the editor changed get the group object tree and module
+    arguments the ``.knxproj`` export writes for them, so the model equals what xknxproject
+    reads from the editor's own export. Call it where the project is used (the GUI thread, or
+    an MCP tool holding it).
     """
-    source = project.model_source()
-    if source is None:
-        raise ProjectModelUnavailable("no project is open")
     digests: dict[int, ApplicationDigest] = {}
     numbers: dict[int, int] = {}
     for device in project.devices:
@@ -112,7 +117,11 @@ def build_project_model(
         for co in device.get_visible_com_objects():
             if co.db_id is not None:
                 numbers[co.db_id] = co.number
-    return _Builder(source, digests, numbers).build(
+    inputs = project.model_source_as_exported()
+    if inputs is None:
+        raise ProjectModelUnavailable("no project is open")
+    source, trees, module_arguments = inputs
+    return _Builder(source, digests, numbers, trees, module_arguments).build(
         tool_version=tool_version, language_code=language_code
     )
 
@@ -238,10 +247,18 @@ class _Builder:
         source: ModelSource,
         digests: Mapping[int, ApplicationDigest],
         numbers: Mapping[int, int],
+        trees: Mapping[int, str] | None = None,
+        module_arguments: Mapping[int, Mapping[str, Sequence[tuple[str, str]]]]
+        | None = None,
     ) -> None:
+        """``trees`` and ``module_arguments`` (by device id) are the evaluated group object
+        trees and module instance arguments the export writes for a device instead of what it
+        stored (see ``ProjectService.model_source_as_exported``)."""
         self.source = source
         self.digests = digests
         self.numbers = numbers
+        self.trees = trees or {}
+        self.module_arguments = module_arguments or {}
         self.com_objects: dict[int, list[ComObjectRow]] = defaultdict(list)
         for co in source.com_objects:
             self.com_objects[co.device_id].append(co)
@@ -340,26 +357,48 @@ class _Builder:
                 application=application,
                 digest=digest,
                 parameters=self.source.parameters.get(row.id, {}),
-                module_arguments=[
-                    (
-                        instance.instance_id,
-                        [
-                            (
-                                self._argument_ref_id(
-                                    application, instance.ref_id, arg["ref_id"]
-                                ),
-                                arg["value"],
-                            )
-                            for arg in instance.arguments
-                            if "ref_id" in arg and "value" in arg
-                        ],
-                    )
-                    for instance in row.module_instances
-                ],
+                module_arguments=self._module_instances(row, application),
             )
             placed.append(((area.address, line.address, row.address, row.id), context))
         placed.sort(key=lambda item: item[0])
         return [context for _key, context in placed]
+
+    def _module_instances(
+        self, row: DeviceRow, application: str | None
+    ) -> list[tuple[str, list[tuple[str, str]]]]:
+        """The device's module instances with their arguments as the export writes them: the
+        stored ones, those without stored arguments (a device added in the editor) with the
+        evaluated ones, and the evaluated instances not stored."""
+        evaluated = {
+            relidref(instance_id): list(arguments)
+            for instance_id, arguments in self.module_arguments.get(row.id, {}).items()
+        }
+        instances: dict[str, tuple[str, list[tuple[str, str]]]] = {}
+        for instance in row.module_instances:
+            relative = relidref(instance.instance_id)
+            stored = [
+                (arg["ref_id"], arg["value"])
+                for arg in instance.arguments
+                if "ref_id" in arg and "value" in arg
+            ]
+            instances.setdefault(
+                relative,
+                (instance.ref_id, stored or evaluated.get(relative, [])),
+            )
+        for relative, arguments in evaluated.items():
+            instances.setdefault(
+                relative, (re.sub(r"_MI-.*$", "", relative), arguments)
+            )
+        return [
+            (
+                relative,
+                [
+                    (self._argument_ref_id(application, module_ref, ref_id), value)
+                    for ref_id, value in arguments
+                ],
+            )
+            for relative, (module_ref, arguments) in instances.items()
+        ]
 
     @staticmethod
     def _argument_ref_id(application: str | None, module_ref: str, ref_id: str) -> str:
@@ -431,10 +470,13 @@ class _Builder:
         )
 
     def _object_tree(self, context: _DeviceContext) -> _ObjectTree:
-        """The device's stored group object tree, completed with the linked objects it does not
-        list (added in the editor) by the channel the editor stored for them: in that channel's
-        node, else in a channel node of their own after the others."""
-        nodes, listed = _parse_tree(context.row.group_object_tree)
+        """The device's group object tree as the export writes it (the evaluated one when the
+        stored one does not list all its objects, else the stored one), completed with the
+        linked objects it does not list by the channel the editor stored for them: in that
+        channel's node, else in a channel node of their own after the others."""
+        nodes, listed = _parse_tree(
+            self.trees.get(context.row.id) or context.row.group_object_tree
+        )
         for co in self.com_objects[context.row.id]:
             instance = self._instance_ref_id(context, co)
             if not co.channel_id or instance in listed:

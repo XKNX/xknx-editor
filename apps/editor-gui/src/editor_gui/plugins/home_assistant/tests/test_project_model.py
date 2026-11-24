@@ -43,6 +43,7 @@ from xknxeditor.namespaces.intermediate.application_program_channel_t import (
 )
 from xknxeditor.namespaces.intermediate.com_object_ref_t import ComObjectRef
 from xknxeditor.namespaces.intermediate.module_t_numeric_arg import ModuleNumericArg
+from xknxeditor.proj import export_knxproj
 
 TOOL = "XKNX Editor 1.2.3"
 
@@ -370,6 +371,115 @@ def test_a_device_added_in_the_editor_gets_its_texts_from_the_program(
     assert com_object["dpts"] == [{"main": 1, "sub": None}]
 
 
+_TREE_APP = "M-00FA_A-0005-01-0000"
+_TREE_HARDWARE = f"""<?xml version="1.0" encoding="utf-8"?>
+<KNX xmlns="http://knx.org/xml/project/20">
+  <ManufacturerData><Manufacturer RefId="M-00FA"><Hardware>
+    <Hardware Id="M-00FA_H-1" Name="Tree" SerialNumber="1" VersionNumber="1"
+        HasIndividualAddress="true" HasApplicationProgram="true">
+      <Products><Product Id="M-00FA_H-1_P-1" Text="Tree" OrderNumber="T-1"
+          IsRailMounted="true" DefaultLanguage="en-US" /></Products>
+      <Hardware2Programs><Hardware2Program Id="M-00FA_H-1_HP-0005-01-0000" MediumTypes="MT-0">
+        <ApplicationProgramRef RefId="{_TREE_APP}" />
+      </Hardware2Program></Hardware2Programs>
+    </Hardware>
+  </Hardware></Manufacturer></ManufacturerData>
+</KNX>
+"""
+# The device of the tree application as a project stores it with "Extended" off.
+_TREE_DEVICE = (
+    '<DeviceInstance Id="P-01D2-0_DI-3" Address="5" Name="Tree" '
+    'ProductRefId="M-00FA_H-1_P-1" Hardware2ProgramRefId="M-00FA_H-1_HP-0005-01-0000" '
+    'Puid="95"><ParameterInstanceRefs>'
+    '<ParameterInstanceRef RefId="P-1_R-1" Value="0" /></ParameterInstanceRefs>'
+    '<ComObjectInstanceRefs><ComObjectInstanceRef RefId="O-2_R-2" Links="GA-1" />'
+    "</ComObjectInstanceRefs>"
+    '<GroupObjectTree GroupObjectInstances="O-1_R-1"><Nodes>'
+    '<Node Type="Channel" RefId="CH-1" GroupObjectInstances="O-6_R-6 O-2_R-2"><Nodes>'
+    '<Node Type="Folder" RefId="PB-3" GroupObjectInstances="O-3_R-3" />'
+    "</Nodes></Node></Nodes></GroupObjectTree></DeviceInstance>"
+)
+
+
+def _with_tree_application(tmp_path: Path) -> Path:
+    """The fixture with a device of the test application whose channels and folders
+    (``object_tree_application.xml``) depend on a parameter."""
+    application = next(
+        parent / "packages/prod/tests/fixtures/object_tree_application.xml"
+        for parent in Path(__file__).resolve().parents
+        if (parent / "packages/prod/tests/fixtures").is_dir()
+    )
+    source = tmp_path / "tree.knxproj"
+    with (
+        zipfile.ZipFile(_fixture()) as original,
+        zipfile.ZipFile(source, "w") as copy,
+    ):
+        for info in original.infolist():
+            data = original.read(info)
+            if info.filename.endswith("/0.xml"):
+                text = data.decode("utf-8")
+                text = text.replace(
+                    "</DeviceInstance>", f"</DeviceInstance>{_TREE_DEVICE}", 1
+                )
+                data = text.encode("utf-8")
+            copy.writestr(info, data)
+        copy.writestr(f"M-00FA/{_TREE_APP}.xml", application.read_bytes())
+        copy.writestr("M-00FA/Hardware.xml", _TREE_HARDWARE)
+    return source
+
+
+def test_objects_activated_in_the_editor_are_where_the_export_puts_them(
+    tmp_path: Path,
+) -> None:
+    project = _import(tmp_path, _with_tree_application(tmp_path))
+    device = next(d for d in project.devices if d.individual_address == "1.1.5")
+    # Activates the folder "Extra" of channel A and channel C.
+    project.set_param(device, f"{_TREE_APP}_P-1_R-1", "1")
+    device = next(d for d in project.devices if d.individual_address == "1.1.5")
+    addresses = {ga.address: ga.id for ga in project.group_addresses}
+    for suffix, address in (("_O-4_R-4", "2/0/6"), ("_O-5_R-5", "1/0/5")):
+        co = next(
+            co
+            for co in device.get_visible_com_objects()
+            if co.db_id is not None and co.id.endswith(suffix)
+        )
+        assert co.db_id is not None
+        project.link_com_object_to_ga(co.db_id, addresses[address], is_sending=True)
+    # Only that device has a stored tree not listing all its objects.
+    assert list(project.group_object_trees()) == [device.node_id]
+    language = product_language()
+
+    model = build_project_model(project, tool_version=TOOL, language_code=language)
+
+    out = tmp_path / "out.knxproj"
+    assert project.working_path is not None
+    export_knxproj(
+        project.working_path,
+        out,
+        module_arguments=project.module_arguments(),
+        group_object_trees=project.group_object_trees(),
+    )
+    exported = _normalized(XKNXProj(out, language=language).parse())
+    ours = _normalized(model)
+    tree = ours["devices"]["1.1.5"]
+    assert _differences(tree, exported["devices"]["1.1.5"]) == []
+    for key in tree["communication_object_ids"]:
+        assert (
+            _differences(
+                ours["communication_objects"][key],
+                exported["communication_objects"][key],
+            )
+            == []
+        )
+    # What the comparison covers: the activated object is in its folder.
+    channel_a = next(n for n in tree["group_object_tree"] if n["identifier"] == "CH-1")
+    assert [
+        (n["type"], n["identifier"], n["communication_object_ids"])
+        for n in channel_a["nodes"]
+    ] == [("Folder", "PB-4", ["1.1.5/O-4_R-4"])]
+    assert "CH-3" in tree["channels"]
+
+
 def test_no_project_no_model(tmp_path: Path) -> None:
     project = ProjectService(CatalogService(tmp_path / "c.xknxcatalog"))
     project.set_logger(Logger(LogService(), "project"))
@@ -607,6 +717,33 @@ def test_a_device_without_a_stored_tree_gets_its_channels_from_its_objects() -> 
     assert channels["MD-1_M-1_MI-2_CH-2"]["communication_object_ids"] == [
         "1.1.7/MD-1_M-1_MI-2_O-3-0_R-3"
     ]
+
+
+def test_module_instances_without_stored_arguments_take_the_evaluated_ones() -> None:
+    # As the export writes them: a device added in the editor stores its instances with the
+    # application's id and without arguments.
+    key = "1.1.7/MD-1_M-1_MI-2_O-3-0_R-3"
+    source = _source()
+    instance = source.devices[0].module_instances[0]
+    instance.instance_id = f"{_APP}_MD-1_M-1_MI-2"
+    instance.arguments = []
+    evaluated = {1: {f"{_APP}_MD-1_M-1_MI-2": [(f"{_APP}_MD-1_A-1", "C")]}}
+
+    model = _Builder(source, {1: _DIGEST}, {3: 21}, None, evaluated).build(
+        tool_version=TOOL, language_code=None
+    )
+    assert model["communication_objects"][key]["text"] == "Hall C"
+
+    # An instance only the evaluation has.
+    source.devices[0].module_instances = []
+    model = _Builder(source, {1: _DIGEST}, {3: 21}, None, evaluated).build(
+        tool_version=TOOL, language_code=None
+    )
+    assert model["communication_objects"][key]["text"] == "Hall C"
+
+    # Stored arguments win.
+    model = _build(_source())
+    assert model["communication_objects"][key]["text"] == "Hall B"
 
 
 def test_an_object_of_a_module_instance_takes_its_arguments_and_text_parameter() -> (
