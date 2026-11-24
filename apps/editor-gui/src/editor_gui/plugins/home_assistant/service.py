@@ -659,7 +659,8 @@ class HomeAssistantService:
         """The entities the open project's building functions become, with their area, the
         entities of Home Assistant on their address, and Home Assistant's verdict: as the KNX
         integration suggests them while it holds the open project and has suggestions for
-        building functions, else by the editor's own mapping."""
+        building functions, else by the editor's own mapping (also for a function the KNX
+        integration suggests nothing for, so an entity created for it stays linked)."""
         guid = self.project_guid()
         if guid is None:
             return []
@@ -668,8 +669,11 @@ class HomeAssistantService:
             addresses = {
                 ga.address: (ga.raw, ga.id) for ga in self._project.group_addresses
             }
+            own = {
+                c.function_id: c for c in entity_candidates(tree, guid, self._lookup)
+            }
             candidates = suggestion_candidates(
-                tree, guid, self.function_suggestions, addresses
+                tree, guid, self.function_suggestions, addresses, own
             )
         else:
             candidates = entity_candidates(tree, guid, self._lookup)

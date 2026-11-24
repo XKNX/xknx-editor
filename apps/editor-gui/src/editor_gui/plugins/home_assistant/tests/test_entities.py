@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from editor_gui.plugins.home_assistant.entities import (
+    SOURCE_EDITOR,
     SOURCE_HOME_ASSISTANT,
     addresses_differ,
     entity_candidates,
@@ -289,6 +290,39 @@ def test_the_knx_integrations_suggestions_become_the_candidates() -> None:
     assert first.path == "House / Kitchen / Ceiling"
     # Without a suggested name: the function's.
     assert second.name == "Wall"
+
+
+def test_a_function_without_a_suggestion_keeps_the_editors_candidate() -> None:
+    imported = FunctionInfo(
+        id=3,
+        name="Ceiling",
+        function_type="FT-1",
+        usage_text="",
+        group_addresses=[],
+        source_id="P-0001-0_F-12",
+    )
+    unsuggested = _function(5, "Socket", "FT-10", (1, "SwitchOnOff"))
+    tree = _room(imported, unsuggested)
+    own = {c.function_id: c for c in entity_candidates(tree, "guid", _lookup)}
+    assert set(own) == {5}
+
+    first, second = suggestion_candidates(
+        tree, "guid", {"F-12": _suggestion("F-12")}, {"1/1/1": (0x0901, 1)}, own
+    )
+
+    # In tree order: the suggested one, then the editor's own for the other function.
+    assert (first.function_id, first.source) == (3, SOURCE_HOME_ASSISTANT)
+    assert second == own[5]
+    assert second.source == SOURCE_EDITOR
+    # A suggestion that makes no candidate falls back as well.
+    (only,) = suggestion_candidates(
+        _room(unsuggested),
+        "guid",
+        {"F-x5": _suggestion("F-x5", platform_options=[])},
+        {},
+        own,
+    )
+    assert only == own[5]
 
 
 def test_suggestions_of_another_form_make_no_candidate() -> None:

@@ -11,8 +11,9 @@ Whether Home Assistant takes a configuration is for Home Assistant to say: the i
 each candidate with the KNX integration's own validation before it is offered.
 
 A KNX integration that suggests entities for the building functions of the project it holds
-(Home Assistant 2026.12) knows its platforms better: while it holds the open project, its
-suggestions are the candidates (:func:`suggestion_candidates`), this mapping is for older ones.
+knows its platforms better: while it holds the open project, its suggestions are the candidates
+(:func:`suggestion_candidates`). This mapping is for older KNX integrations, and for the
+functions such a KNX integration suggests nothing for, so an entity created for one stays linked.
 """
 
 from __future__ import annotations
@@ -265,13 +266,16 @@ def suggestion_candidates(
     project_guid: str,
     suggestions: Mapping[str, Mapping[str, Any]],
     addresses: Mapping[str, tuple[int, int]],
+    fallback: Mapping[int, EntityCandidate] | None = None,
 ) -> list[EntityCandidate]:
     """The entities the KNX integration suggests for the building functions of ``tree``, in tree
     order: ``suggestions`` by the function's id in the project data (see
     ``project_model.function_identifier``), as the KNX integration gives them (its
     ``suggested_name``, ``platform_options``, ``suggestions[platform]`` with ``knx`` and
-    ``matched_group_addresses``). A function it suggests nothing for becomes none.
+    ``matched_group_addresses``). A function it suggests nothing for becomes its candidate in
+    ``fallback`` (by function id; the editor's own mapping), or none.
     ``addresses`` gives a group address's raw address and id by its printed address."""
+    own = fallback or {}
     from editor_gui.plugins.home_assistant.project_model import function_identifier
 
     found: list[EntityCandidate] = []
@@ -282,8 +286,8 @@ def suggestion_candidates(
             suggestion = suggestions.get(
                 function_identifier(function.source_id, function.id)
             )
-            if suggestion is not None and (
-                candidate := _suggested(
+            candidate = (
+                _suggested(
                     function,
                     space,
                     " / ".join(here),
@@ -291,7 +295,10 @@ def suggestion_candidates(
                     suggestion,
                     addresses,
                 )
-            ):
+                if suggestion is not None
+                else None
+            ) or own.get(function.id)
+            if candidate is not None:
                 found.append(candidate)
         for child in space.children:
             walk(child, here)

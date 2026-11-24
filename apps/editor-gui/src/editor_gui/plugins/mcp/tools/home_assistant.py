@@ -451,8 +451,9 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         back on one address; valve and operating mode where the function has them), with the
         group addresses of its roles, named like the function, in the area its room became
         (home_assistant_areas). A KNX integration that suggests entities for building functions
-        (Home Assistant 2026.12) makes them instead while it holds the open project: its
-        platform, configuration and name (prefixed with the room where names repeat).
+        makes them instead while it holds the open project: its platform, configuration and
+        name (prefixed with the room where names repeat); a function it suggests nothing for
+        keeps the editor's own (source "editor").
         Returns {items, count, suggestions}; each item has {function_id, name, path,
         platform, knx (the configuration), group_addresses, area_id, state, entity_id,
         existing_entity_ids, reason, source ("home_assistant" or "editor": who made it),
