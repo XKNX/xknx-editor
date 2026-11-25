@@ -26,12 +26,13 @@ from collections import deque
 from collections.abc import Callable, Sequence
 from concurrent.futures import Future, ProcessPoolExecutor
 from concurrent.futures import TimeoutError as FuturesTimeout
+from functools import partial
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, cast
 
 import psutil
 
-from xknxeditor.namespaces import detect_version
+from xknxeditor.namespaces import detect_version, parse_progress
 from xknxeditor.namespaces.intermediate.knx import Knx
 
 from .data import to_ir
@@ -39,6 +40,7 @@ from .errors import ImportCancelled
 
 if TYPE_CHECKING:
     import threading
+    from multiprocessing.sharedctypes import Synchronized
 
     from .parser_v2.dynamic import DynamicTreeBuilder
 
@@ -131,6 +133,9 @@ def store_trees(path: Path, knx: Knx, trees: Trees) -> None:
 PARALLEL_MIN_BYTES = 15_000_000
 # Application XML per worker: more workers than that only add their start-up time.
 BYTES_PER_WORKER = 8_000_000
+# An application this large is parsed in a worker process even alone: there it has a core and
+# the interpreter to itself, while in this process the user interface takes turns with it.
+LONE_WORKER_MIN_BYTES = 20_000_000
 # Memory one worker may need for a large application: the XML, its parse and the pickled copy.
 _WORKER_MEMORY = 1 << 30
 
@@ -249,16 +254,66 @@ def parse_workers(sizes: Sequence[int]) -> int:
     return max(1, min(len(sizes), -(-total // per_worker), cores - 1, memory))
 
 
+def worker_processes(sizes: Sequence[int]) -> int:
+    """How many worker processes parse application XMLs of ``sizes`` bytes; 0 parses them in this
+    process. Those of :func:`parse_workers`, or one for an application of at least
+    :data:`LONE_WORKER_MIN_BYTES` that no more workers would help, when the free memory holds it."""
+    workers = parse_workers(sizes)
+    if workers >= 2:
+        return workers
+    if (
+        sizes
+        and max(sizes) >= LONE_WORKER_MIN_BYTES
+        and psutil.virtual_memory().available >= _WORKER_MEMORY
+    ):
+        return 1
+    return 0
+
+
+# In a worker process: the bytes of application XML all workers have parsed (see fill_cache).
+_parsed_bytes: list[Synchronized[int] | None] = [None]
+
+
+def _start_worker(parsed: Synchronized[int] | None) -> None:
+    """Worker process: count what it parses in ``parsed``."""
+    _parsed_bytes[0] = parsed
+
+
 def _parse_into_cache(xml_bytes: bytes, cache_dir: Path) -> None:
-    """Worker process: parse one application XML into the cache."""
-    cached_to_ir(xml_bytes, detect_version(xml_bytes), cache_dir)
+    """Worker process: parse one application XML into the cache, counting its bytes as they are
+    parsed (at the end all of them, also when the parse was cached)."""
+    parsed = _parsed_bytes[0]
+    if parsed is None:
+        cached_to_ir(xml_bytes, detect_version(xml_bytes), cache_dir)
+        return
+    counted = 0
+
+    def count(position: int) -> None:
+        nonlocal counted
+        with parsed.get_lock():
+            parsed.value += position - counted
+        counted = position
+
+    with parse_progress(count):
+        cached_to_ir(xml_bytes, detect_version(xml_bytes), cache_dir)
+    count(len(xml_bytes))
+
+
+def _report_parsed(
+    report: Callable[[int], None], cached: int, parsed: Synchronized[int]
+) -> None:
+    """Tell ``report`` the bytes parsed: ``cached`` ones and what the workers counted."""
+    report(cached + parsed.value)
 
 
 def _wait(
-    future: Future[None], pool: ProcessPoolExecutor, cancel: threading.Event | None
+    future: Future[None],
+    pool: ProcessPoolExecutor,
+    cancel: threading.Event | None,
+    tick: Callable[[], None] | None = None,
 ) -> None:
-    """Wait for ``future``; when ``cancel`` is set meanwhile, drop the parses not started yet and
-    raise :class:`~.errors.ImportCancelled`."""
+    """Wait for ``future``, calling ``tick`` meanwhile; when ``cancel`` is set meanwhile, drop the
+    parses not started yet and raise :class:`~.errors.ImportCancelled`."""
     while True:
         try:
             future.result(timeout=_CANCEL_POLL)
@@ -267,6 +322,8 @@ def _wait(
             if cancel is not None and cancel.is_set():
                 pool.shutdown(wait=False, cancel_futures=True)
                 raise ImportCancelled from None
+            if tick is not None:
+                tick()
 
 
 def fill_cache(
@@ -275,19 +332,20 @@ def fill_cache(
     *,
     cancel: threading.Event | None = None,
     progress: Callable[[int, int], None] | None = None,
+    parsed_bytes: Callable[[int], None] | None = None,
 ) -> None:
     """Parse the application XMLs not cached yet in worker processes, each into the cache, so the
     caller then reads every parse from the cache.
 
     ``xmls`` gives each application XML's size and a function that reads it: the XMLs are read
     one by one when needed, and only those handed to the workers are in memory at the same time.
-    How many workers, if any, :func:`parse_workers` decides; when no workers would be started
+    How many workers, if any, :func:`worker_processes` decides; when no workers would be started
     even if nothing were cached, no XML is read at all. When they cannot run, the caller's own
     :func:`cached_to_ir` parses what is still missing. Setting ``cancel`` drops the parses not
     started yet and raises :class:`~.errors.ImportCancelled` (the started ones finish).
     ``progress`` hears how many of the applications are parsed (cached ones count as parsed) after
-    each one."""
-    if parse_workers([size for size, _read in xmls]) < 2:
+    each one, ``parsed_bytes`` how many bytes of them, while they are parsed."""
+    if not worker_processes([size for size, _read in xmls]):
         return
     known: set[Path] = set()
     missing: dict[Path, XmlSource] = {}
@@ -300,15 +358,25 @@ def fill_cache(
         del xml
     # The largest first, so the workers finish close together.
     todo = sorted(missing.values(), key=lambda source: source[0], reverse=True)
-    workers = parse_workers([size for size, _read in todo])
-    if workers < 2:
+    workers = worker_processes([size for size, _read in todo])
+    if not workers:
         return
     cached = len(known) - len(todo)
+    cached_bytes = sum(size for size, _read in xmls) - sum(size for size, _read in todo)
     logger.debug("parsing %d applications in %d processes", len(todo), workers)
+    # "spawn" starts every worker the same way on every operating system.
+    context = multiprocessing.get_context("spawn")
+    counter: Synchronized[int] | None = None
+    tick: Callable[[], None] | None = None
+    if parsed_bytes is not None:
+        counter = context.Value("q", 0)
+        tick = partial(_report_parsed, parsed_bytes, cached_bytes, counter)
     try:
-        # "spawn" starts every worker the same way on every operating system.
         with ProcessPoolExecutor(
-            max_workers=workers, mp_context=multiprocessing.get_context("spawn")
+            max_workers=workers,
+            mp_context=context,
+            initializer=_start_worker,
+            initargs=(counter,),
         ) as pool:
             # A few more XMLs handed over than there are workers, so none of them waits for the
             # next one; the others are read only when one of these is done.
@@ -316,14 +384,18 @@ def fill_cache(
             done = 0
             for _size, read in todo:
                 if len(running) >= 2 * workers:
-                    _wait(running.popleft(), pool, cancel)
+                    _wait(running.popleft(), pool, cancel, tick)
                     done += 1
+                    if tick is not None:
+                        tick()
                     if progress is not None:
                         progress(cached + done, len(known))
                 running.append(pool.submit(_parse_into_cache, read(), cache_dir))
             while running:
-                _wait(running.popleft(), pool, cancel)
+                _wait(running.popleft(), pool, cancel, tick)
                 done += 1
+                if tick is not None:
+                    tick()
                 if progress is not None:
                     progress(cached + done, len(known))
     except ImportCancelled:

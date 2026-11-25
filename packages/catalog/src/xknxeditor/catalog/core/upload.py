@@ -328,26 +328,28 @@ def upload_knxprod(
     cache_dir: Path | None = None,
     cancel: threading.Event | None = None,
     progress: Callable[[int, int], None] | None = None,
+    parsed_share: Callable[[float], None] | None = None,
 ) -> Path:
     """Ingest .knxprod bytes into the database behind ``engine``. Returns the path the content is
-    stored at, or would be: an archive no hardware program refers to is not stored.
+        stored at, or would be: an archive no hardware program refers to is not stored.
 
-    Setting ``cancel`` stops the ingest with :class:`ImportCancelled` up to the moment it writes;
-    nothing is stored then. ``progress`` hears the application programs parsed, out of how many.
+        Setting ``cancel`` stops the ingest with :class:`ImportCancelled` up to the moment it writes;
+        nothing is stored then. ``progress`` hears the application programs parsed, out of how many,
+    ``parsed_share`` the share (0 to 1) of their XML parsed.
 
-    ``require_catalog=False`` ingests product data embedded in a ``.knxproj`` (which omits
-    ``Catalog.xml``): hardware and applications are stored so devices resolve, only the catalog
-    browse index is absent for those manufacturers.
+        ``require_catalog=False`` ingests product data embedded in a ``.knxproj`` (which omits
+        ``Catalog.xml``): hardware and applications are stored so devices resolve, only the catalog
+        browse index is absent for those manufacturers.
 
-    Idempotent: skips the ingest only when the catalog already has everything the content
-    provides (see :func:`_in_catalog`), not merely when the stored file is present or some of its
-    versions are in the catalog. So a re-import repopulates a catalog whose database was deleted
-    while the file cache remained, and brings back a version deleted from the catalog while the
-    others of the file kept its stored archive. The stored file is (re)written whenever a hardware
-    program refers to it and it is missing, since resolution reads it at runtime by path.
+        Idempotent: skips the ingest only when the catalog already has everything the content
+        provides (see :func:`_in_catalog`), not merely when the stored file is present or some of its
+        versions are in the catalog. So a re-import repopulates a catalog whose database was deleted
+        while the file cache remained, and brings back a version deleted from the catalog while the
+        others of the file kept its stored archive. The stored file is (re)written whenever a hardware
+        program refers to it and it is missing, since resolution reads it at runtime by path.
 
-    Only the product data is stored (see :func:`product_members`): a ``.knxproj`` is stored without
-    its project, and the content hash is that of what is stored.
+        Only the product data is stored (see :func:`product_members`): a ``.knxproj`` is stored without
+        its project, and the content hash is that of what is stored.
     """
     content = product_members(content)
     path = _stored_path(dest_dir, content)
@@ -360,6 +362,7 @@ def upload_knxprod(
                 cache_dir=cache_dir,
                 cancel=cancel,
                 progress=progress,
+                parsed_share=parsed_share,
             )
             logger.debug(
                 "catalog import: %d bytes, %d manufacturers, %d hardware",

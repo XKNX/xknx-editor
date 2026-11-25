@@ -118,9 +118,13 @@ def test_project_opens_with_its_product_data_on_another_computer(
     # The open's progress dialog hears the import: started, then each application program.
     heard: list[tuple[int, int]] = []
     proj.product_import_progress = lambda done, total: heard.append((done, total))
+    # ... and the share of their XML parsed.
+    shares: list[float] = []
+    proj.product_import_share = shares.append
     proj.open(path)
     assert heard[0] == (0, 0)
     assert heard[-1] == (1, 1)
+    assert shares[-1] == 1.0
     (device,) = proj.devices
     assert device.node_id == device_id
     assert device.app is not None and device.app.id == _APP_ID

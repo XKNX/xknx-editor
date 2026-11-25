@@ -27,6 +27,14 @@ def test_contents_tell_the_new_versions(tmp_path: Path) -> None:
     assert again.new == frozenset()
 
 
+def test_contents_tell_the_share_parsed(tmp_path: Path) -> None:
+    cat = CatalogService(tmp_path / "c.xknxcatalog")
+    shares: list[float] = []
+    cat.import_knxprod_contents(_fixture(), parsed_share=shares.append)
+    assert shares == sorted(set(shares))
+    assert shares[-1] == 1.0
+
+
 _HW = "M-0008_H-8.20.2F.2F.205192.2000-0-O000A"
 _PROGRAM_2 = f"{_HW}_HP-7072-22-5CC3-O000A"
 _PRODUCT_2 = f"{_HW}_P-5192.2001"

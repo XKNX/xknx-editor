@@ -298,13 +298,19 @@ class CatalogService:
         *,
         cancel: threading.Event | None = None,
         progress: Callable[[int, int], None] | None = None,
+        parsed_share: Callable[[float], None] | None = None,
     ) -> list[ProductSummary]:
         """Ingest product data a project carries (a ``.knxproj``, or the archive of an ``.xknx``
         project's product data): only programs the catalog lacks are added, and ``Catalog.xml`` may
-        be missing. ``progress`` hears the application programs parsed, out of how many. Returns
-        the newly added product versions."""
+        be missing. ``progress`` hears the application programs parsed, out of how many,
+        ``parsed_share`` the share (0 to 1) of their XML parsed. Returns the newly added product
+        versions."""
         return self._import_knxprod_bytes(
-            data, require_catalog=False, cancel=cancel, progress=progress
+            data,
+            require_catalog=False,
+            cancel=cancel,
+            progress=progress,
+            parsed_share=parsed_share,
         )
 
     def import_product_source(
@@ -325,14 +331,16 @@ class CatalogService:
         *,
         cancel: threading.Event | None = None,
         progress: Callable[[int, int], None] | None = None,
+        parsed_share: Callable[[float], None] | None = None,
     ) -> ImportedProducts:
         """Import a ``.knxprod`` (or a ``.vd1``-``.vd5`` product database) and return every product
         version it provides, new or already in the catalog. Unlike :meth:`import_knxprod` (which
         returns only the newly added versions), this lets a re-import still list the file's products
-        instead of dead-ending at "nothing new"."""
+        instead of dead-ending at "nothing new". ``progress`` hears the conversion of a product
+        database, ``parsed_share`` the share (0 to 1) of the application XML parsed."""
         # A product database is converted before the lock is taken: that takes long for a big one.
         data = _as_knxprod(path.read_bytes(), cancel=cancel, progress=progress)
-        return self._import_contents(data, cancel=cancel)
+        return self._import_contents(data, cancel=cancel, parsed_share=parsed_share)
 
     def import_product_source_contents(
         self,
@@ -341,25 +349,31 @@ class CatalogService:
         *,
         cancel: threading.Event | None = None,
         progress: Callable[[int, int], None] | None = None,
+        parsed_share: Callable[[float], None] | None = None,
     ) -> ImportedProducts:
         """Like :meth:`import_product_source`, but returns every product version the source provides
-        (new or already present), so a re-import still lists the file's products."""
+        (new or already present), so a re-import still lists the file's products. ``progress``
+        hears the conversion, ``parsed_share`` the share (0 to 1) of the application XML parsed."""
         from xknxeditor.prod import knxprod_from_source
 
         # Converted outside the lock (a product database takes long), stored under it.
         knxprod = knxprod_from_source(
             data, master_xml, cancel=cancel, progress=progress
         )
-        return self._import_contents(knxprod, cancel=cancel)
+        return self._import_contents(knxprod, cancel=cancel, parsed_share=parsed_share)
 
     def _import_contents(
-        self, data: bytes, *, cancel: threading.Event | None
+        self,
+        data: bytes,
+        *,
+        cancel: threading.Event | None,
+        parsed_share: Callable[[float], None] | None = None,
     ) -> ImportedProducts:
         """Store ``.knxprod`` bytes; every product version they provide (also the ones the catalog
         has from another file), and which are new."""
         with self._io_lock:
             before = {_version_key(p) for p in self.get_products()}
-            self._service.import_knxprod(data, cancel=cancel)
+            self._service.import_knxprod(data, cancel=cancel, parsed_share=parsed_share)
             self._forget_products()
             products = self._service.products_for_archive(data)
         return ImportedProducts(
@@ -373,11 +387,16 @@ class CatalogService:
         require_catalog: bool = True,
         cancel: threading.Event | None = None,
         progress: Callable[[int, int], None] | None = None,
+        parsed_share: Callable[[float], None] | None = None,
     ) -> list[ProductSummary]:
         """Each product version (product and hardware program) new in the catalog."""
         before = {_version_key(p) for p in self.get_products()}
         self._service.import_knxprod(
-            data, require_catalog=require_catalog, cancel=cancel, progress=progress
+            data,
+            require_catalog=require_catalog,
+            cancel=cancel,
+            progress=progress,
+            parsed_share=parsed_share,
         )
         self._forget_products()
         added: dict[tuple[str, str], ProductSummary] = {}

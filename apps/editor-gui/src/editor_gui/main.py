@@ -3318,7 +3318,11 @@ class KnxGuiApp:
                 # The import holds the shared IO lock while it writes (per-frame catalog reads
                 # bail meanwhile), not while it converts; then device resolution is rebuilt.
                 imported = self._catalog_service.import_product_source_contents(
-                    data, master, cancel=cancel, progress=self._conversion_progress
+                    data,
+                    master,
+                    cancel=cancel,
+                    progress=self._conversion_progress,
+                    parsed_share=self._parsed_share,
                 )
                 self._project_service.refresh_catalog_resolution(rebuild=True)
             except ImportCancelled:
@@ -3411,6 +3415,7 @@ class KnxGuiApp:
                             master,
                             cancel=cancel,
                             progress=self._conversion_progress,
+                            parsed_share=self._parsed_share,
                         )
                     except ImportCancelled:
                         break
@@ -3592,18 +3597,37 @@ class KnxGuiApp:
         copy first, unless ``consented`` (by default: when a password is given, as the password
         prompt is answered after that question)."""
 
-        def products(done: int, total: int) -> None:
+        # The application programs parsed, out of how many, and the share of their XML.
+        counted = [0, 0]
+        parsed: list[float | None] = [None]
+
+        def show_products() -> None:
+            done, total = counted
+            share = parsed[0]
+            if share is None and total:
+                share = done / total
             self.set_progress(
-                done / total if total else None,
+                share,
                 S.PROGRESS_PROJECT_PRODUCTS_COUNT.format(done=done, total=total)
                 if total
                 else S.PROGRESS_PROJECT_PRODUCTS,
                 note=S.PROGRESS_PROJECT_PRODUCTS_NOTE,
             )
 
+        def products(done: int, total: int) -> None:
+            counted[:] = [done, total]
+            if not total:
+                parsed[0] = None
+            show_products()
+
+        def products_parsed(share: float) -> None:
+            parsed[0] = share
+            show_products()
+
         def worker() -> None:
             self._project_service.build_progress = report
             self._project_service.product_import_progress = products
+            self._project_service.product_import_share = products_parsed
             try:
                 self._project_service.open(Path(path), password)
                 self._prepare_views()
@@ -3627,6 +3651,7 @@ class KnxGuiApp:
             finally:
                 self._project_service.build_progress = None
                 self._project_service.product_import_progress = None
+                self._project_service.product_import_share = None
 
         # Open on a worker thread behind the spinner: building a large project's device view is slow.
         # A network location asks for consent first (work on a local copy), then runs the worker.
@@ -4174,7 +4199,10 @@ class KnxGuiApp:
             self._log.info("loading knxprod", path=path)
             try:
                 imported = self._catalog_service.import_knxprod_contents(
-                    Path(path), cancel=cancel, progress=self._conversion_progress
+                    Path(path),
+                    cancel=cancel,
+                    progress=self._conversion_progress,
+                    parsed_share=self._parsed_share,
                 )
                 name = Path(path).name
                 if added := imported.products:
@@ -4231,6 +4259,11 @@ class KnxGuiApp:
         self.set_progress(
             done / total, S.PROGRESS_APPLICATION_PROGRAMS.format(done=done, total=total)
         )
+
+    def _parsed_share(self, share: float) -> None:
+        """Progress of a product import: the share of its application programs parsed; the
+        rest of the import (storing them in the catalog) follows."""
+        self.set_progress(share if share < 1 else None, S.PROGRESS_LOAD_KNXPROD)
 
     def _sync_device_section(self) -> None:
         """While a space is selected in the Buildings tree, an area or a line in the Topology tree,

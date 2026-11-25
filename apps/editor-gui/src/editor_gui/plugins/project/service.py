@@ -1528,6 +1528,8 @@ class ProjectService:
         # Hears an open's import of the project's product data into the catalog: the application
         # programs parsed, out of how many (it can take minutes for a large project, once).
         self.product_import_progress: Callable[[int, int], None] | None = None
+        # Hears the share (0 to 1) of their XML parsed, while it is parsed.
+        self.product_import_share: Callable[[float], None] | None = None
         # Optional check between devices while (re)building them: ``True`` stops the build with
         # BuildCancelled (see refresh_catalog_resolution).
         self.build_cancelled: Callable[[], bool] | None = None
@@ -7159,7 +7161,7 @@ class ProjectService:
                 product
                 for archive in archives
                 for product in self._catalog.import_project_archive(
-                    archive, progress=report
+                    archive, progress=report, parsed_share=self.product_import_share
                 )
             ]
             self._log.info(

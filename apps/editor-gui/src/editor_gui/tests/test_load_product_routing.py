@@ -82,9 +82,10 @@ def test_product_database_import_can_be_cancelled(
     )
     stub._knxprod_result = None
     stub._conversion_progress = lambda done, total: None
+    stub._parsed_share = lambda share: None
 
     def import_contents(
-        path: Path, *, cancel: threading.Event, progress: object
+        path: Path, *, cancel: threading.Event, progress: object, parsed_share: object
     ) -> list[object]:
         assert path == Path("/tmp/old.vd5")
         cancel.set()  # the user pressed Cancel during the conversion
@@ -128,6 +129,17 @@ def test_conversion_progress() -> None:
     ]
 
 
+def test_parsed_share() -> None:
+    # The bar follows the application XML parsed; once it is, the catalog stores it.
+    progress: list[tuple[float | None, str]] = []
+    stub = SimpleNamespace(
+        set_progress=lambda fraction, stage="": progress.append((fraction, stage))
+    )
+    KnxGuiApp._parsed_share(stub, 0.4)  # type: ignore[arg-type]
+    KnxGuiApp._parsed_share(stub, 1.0)  # type: ignore[arg-type]
+    assert progress == [(0.4, S.PROGRESS_LOAD_KNXPROD), (None, S.PROGRESS_LOAD_KNXPROD)]
+
+
 def test_files_import_stops_at_cancel(monkeypatch: pytest.MonkeyPatch) -> None:
     # The first file imports, the user cancels during the second: the third is not read and the
     # first file's versions are listed.
@@ -141,6 +153,7 @@ def test_files_import_stops_at_cancel(monkeypatch: pytest.MonkeyPatch) -> None:
     stub._knxprod_result = None
     stub._import_rows_result = None
     stub._conversion_progress = lambda done, total: None
+    stub._parsed_share = lambda share: None
     stub._product_import_rows = lambda added, _new: [
         f"row {p.product_ref_id}" for p in added
     ]
@@ -150,7 +163,12 @@ def test_files_import_stops_at_cancel(monkeypatch: pytest.MonkeyPatch) -> None:
     imported: list[bytes] = []
 
     def import_contents(
-        data: bytes, master: bytes, *, cancel: threading.Event, progress: object
+        data: bytes,
+        master: bytes,
+        *,
+        cancel: threading.Event,
+        progress: object,
+        parsed_share: object,
     ) -> ImportedProducts:
         imported.append(data)
         if data == b"second":
