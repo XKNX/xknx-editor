@@ -36,6 +36,23 @@ class ConnectionStrings:
         return _("Gateway IP")
 
     @property
+    def SETTING_GATEWAY_IP_HINT(self) -> str:
+        return _(
+            "An open connection to the gateway connects to the new address once it is entered."
+        )
+
+    @property
+    def SETTING_USE_PROJECT_BUS_CONNECTION(self) -> str:
+        return _("Use the Project's Bus Connection")
+
+    @property
+    def SETTING_USE_PROJECT_BUS_CONNECTION_HINT(self) -> str:
+        return _(
+            "While a project is open whose backbone line has a Bus Connection (Topology), the "
+            "connection goes through it instead of the gateway set here."
+        )
+
+    @property
     def SETTING_USB_INTERFACE(self) -> str:
         return _("USB Interface")
 

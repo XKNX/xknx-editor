@@ -55,6 +55,15 @@ msgstr "Multicast-Routing verwenden (statt Tunneling)"
 msgid "Gateway IP"
 msgstr "Gateway-IP"
 
+msgid "An open connection to the gateway connects to the new address once it is entered."
+msgstr "Eine offene Verbindung zum Gateway verbindet sich mit der neuen Adresse, sobald sie eingegeben ist."
+
+msgid "Use the Project's Bus Connection"
+msgstr "Verbindung des Projekts verwenden"
+
+msgid "While a project is open whose backbone line has a Bus Connection (Topology), the connection goes through it instead of the gateway set here."
+msgstr "Solange ein Projekt geöffnet ist, dessen Backbone-Linie eine Verbindung hat (Topologie), läuft die Verbindung über diese statt über das hier eingestellte Gateway."
+
 msgid "Multicast Group"
 msgstr "Multicast-Gruppe"
 

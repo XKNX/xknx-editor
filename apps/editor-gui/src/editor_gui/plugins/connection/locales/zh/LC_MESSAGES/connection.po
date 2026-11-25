@@ -145,6 +145,15 @@ msgstr "使用组播路由（代替隧道）"
 msgid "Gateway IP"
 msgstr "网关 IP"
 
+msgid "An open connection to the gateway connects to the new address once it is entered."
+msgstr "与网关的已打开连接会在新地址输入完成后连接到该地址。"
+
+msgid "Use the Project's Bus Connection"
+msgstr "使用项目的总线连接"
+
+msgid "While a project is open whose backbone line has a Bus Connection (Topology), the connection goes through it instead of the gateway set here."
+msgstr "当打开的项目的主干线路有总线连接（拓扑）时，连接将通过它进行，而不是通过此处设置的网关。"
+
 msgid "Multicast Group"
 msgstr "组播组"
 

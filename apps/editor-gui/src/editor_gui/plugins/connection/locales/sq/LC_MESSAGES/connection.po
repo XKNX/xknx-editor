@@ -145,6 +145,15 @@ msgstr "Përdor routing multicast (në vend të tunneling)"
 msgid "Gateway IP"
 msgstr "IP e gateway-t"
 
+msgid "An open connection to the gateway connects to the new address once it is entered."
+msgstr "Një lidhje e hapur me gateway-n lidhet me adresën e re sapo të futet."
+
+msgid "Use the Project's Bus Connection"
+msgstr "Përdor lidhjen me busin të projektit"
+
+msgid "While a project is open whose backbone line has a Bus Connection (Topology), the connection goes through it instead of the gateway set here."
+msgstr "Për sa kohë është i hapur një projekt, linja kryesore e të cilit ka një lidhje me busin (Topologjia), lidhja kalon nëpër të në vend të gateway-t të caktuar këtu."
+
 msgid "Multicast Group"
 msgstr "Grupi multicast"
 

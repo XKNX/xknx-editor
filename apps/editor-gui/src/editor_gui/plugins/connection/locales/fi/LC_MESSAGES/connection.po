@@ -145,6 +145,15 @@ msgstr "Käytä multicast-reititystä (tunneloinnin sijaan)"
 msgid "Gateway IP"
 msgstr "Yhdyskäytävän IP"
 
+msgid "An open connection to the gateway connects to the new address once it is entered."
+msgstr "Avoin yhteys yhdyskäytävään yhdistää uuteen osoitteeseen, kun se on syötetty."
+
+msgid "Use the Project's Bus Connection"
+msgstr "Käytä projektin väyläyhteyttä"
+
+msgid "While a project is open whose backbone line has a Bus Connection (Topology), the connection goes through it instead of the gateway set here."
+msgstr "Kun auki on projekti, jonka runkolinjalla on väyläyhteys (Topologia), yhteys kulkee sen kautta tässä asetetun yhdyskäytävän sijaan."
+
 msgid "Multicast Group"
 msgstr "Multicast-ryhmä"
 

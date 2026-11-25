@@ -55,6 +55,15 @@ msgstr "Se utilizează rutarea multicast (în loc de tunelare)"
 msgid "Gateway IP"
 msgstr "IP gateway"
 
+msgid "An open connection to the gateway connects to the new address once it is entered."
+msgstr "O conexiune deschisă la gateway se conectează la noua adresă imediat ce aceasta este introdusă."
+
+msgid "Use the Project's Bus Connection"
+msgstr "Folosire conexiune la magistrală a proiectului"
+
+msgid "While a project is open whose backbone line has a Bus Connection (Topology), the connection goes through it instead of the gateway set here."
+msgstr "Cât timp este deschis un proiect a cărui linie principală are o conexiune la magistrală (Topologie), conexiunea trece prin aceasta în locul gateway-ului setat aici."
+
 msgid "Multicast Group"
 msgstr "Grup multicast"
 

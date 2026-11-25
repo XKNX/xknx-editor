@@ -145,6 +145,15 @@ msgstr "Użyj routingu multicast (zamiast tunelowania)"
 msgid "Gateway IP"
 msgstr "IP bramki"
 
+msgid "An open connection to the gateway connects to the new address once it is entered."
+msgstr "Otwarte połączenie z bramką łączy się z nowym adresem, gdy tylko zostanie on wprowadzony."
+
+msgid "Use the Project's Bus Connection"
+msgstr "Użyj połączenia z magistralą z projektu"
+
+msgid "While a project is open whose backbone line has a Bus Connection (Topology), the connection goes through it instead of the gateway set here."
+msgstr "Gdy otwarty jest projekt, którego linia szkieletowa ma Połączenie z magistralą (Topologia), połączenie przebiega przez nie zamiast przez ustawioną tu bramkę."
+
 msgid "Multicast Group"
 msgstr "Grupa multicast"
 

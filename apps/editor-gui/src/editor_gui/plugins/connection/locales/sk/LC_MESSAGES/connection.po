@@ -55,6 +55,15 @@ msgstr "Použiť multicastové smerovanie (namiesto tunelovania)"
 msgid "Gateway IP"
 msgstr "IP brány"
 
+msgid "An open connection to the gateway connects to the new address once it is entered."
+msgstr "Otvorené pripojenie k bráne sa po zadaní novej adresy pripojí k nej."
+
+msgid "Use the Project's Bus Connection"
+msgstr "Použiť pripojenie k zbernici z projektu"
+
+msgid "While a project is open whose backbone line has a Bus Connection (Topology), the connection goes through it instead of the gateway set here."
+msgstr "Kým je otvorený projekt, ktorého chrbticová linka má Pripojenie k zbernici (Topológia), pripojenie vedie cez neho namiesto brány nastavenej tu."
+
 msgid "Multicast Group"
 msgstr "Skupina multicast"
 

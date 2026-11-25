@@ -145,6 +145,15 @@ msgstr "Использовать многоадресную маршрутиза
 msgid "Gateway IP"
 msgstr "IP шлюза"
 
+msgid "An open connection to the gateway connects to the new address once it is entered."
+msgstr "Открытое соединение со шлюзом подключится к новому адресу, как только он будет введён."
+
+msgid "Use the Project's Bus Connection"
+msgstr "Использовать соединение с шиной из проекта"
+
+msgid "While a project is open whose backbone line has a Bus Connection (Topology), the connection goes through it instead of the gateway set here."
+msgstr "Пока открыт проект, у магистральной линии которого есть соединение с шиной (Топология), соединение идёт через него вместо заданного здесь шлюза."
+
 msgid "Multicast Group"
 msgstr "Группа multicast"
 

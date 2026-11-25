@@ -145,6 +145,15 @@ msgstr "マルチキャスト・ルーティングを使用（トンネリング
 msgid "Gateway IP"
 msgstr "ゲートウェイ IP"
 
+msgid "An open connection to the gateway connects to the new address once it is entered."
+msgstr "ゲートウェイへの接続が開いている場合、新しいアドレスを入力し終えるとそのアドレスに接続し直します。"
+
+msgid "Use the Project's Bus Connection"
+msgstr "プロジェクトのバス接続を使用"
+
+msgid "While a project is open whose backbone line has a Bus Connection (Topology), the connection goes through it instead of the gateway set here."
+msgstr "バックボーンラインにバス接続（トポロジー）があるプロジェクトを開いている間は、ここで設定したゲートウェイの代わりにそのバス接続を使用します。"
+
 msgid "Multicast Group"
 msgstr "マルチキャスト・グループ"
 

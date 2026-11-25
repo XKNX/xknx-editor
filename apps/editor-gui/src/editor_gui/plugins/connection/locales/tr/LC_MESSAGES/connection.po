@@ -145,6 +145,15 @@ msgstr "Multicast yönlendirme kullan (tünelleme yerine)"
 msgid "Gateway IP"
 msgstr "Ağ Geçidi IP"
 
+msgid "An open connection to the gateway connects to the new address once it is entered."
+msgstr "Ağ geçidine açık bir bağlantı, yeni adres girilir girilmez ona bağlanır."
+
+msgid "Use the Project's Bus Connection"
+msgstr "Projenin Bus Bağlantısını Kullan"
+
+msgid "While a project is open whose backbone line has a Bus Connection (Topology), the connection goes through it instead of the gateway set here."
+msgstr "Omurga hattında bir Bus Bağlantısı (Topoloji) bulunan bir proje açıkken, bağlantı burada ayarlanan ağ geçidi yerine onun üzerinden kurulur."
+
 msgid "Multicast Group"
 msgstr "Multicast Grubu"
 

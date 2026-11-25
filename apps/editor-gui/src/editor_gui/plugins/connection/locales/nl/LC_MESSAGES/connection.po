@@ -88,6 +88,15 @@ msgstr "Gateway"
 msgid "Gateway IP"
 msgstr "Gateway-IP"
 
+msgid "An open connection to the gateway connects to the new address once it is entered."
+msgstr "Een open verbinding met de gateway maakt verbinding met het nieuwe adres zodra het is ingevoerd."
+
+msgid "Use the Project's Bus Connection"
+msgstr "Busverbinding van het project gebruiken"
+
+msgid "While a project is open whose backbone line has a Bus Connection (Topology), the connection goes through it instead of the gateway set here."
+msgstr "Zolang een project open is waarvan de backbonelijn een busverbinding heeft (Topologie), loopt de verbinding daarlangs in plaats van via de hier ingestelde gateway."
+
 msgid "Hardware Type"
 msgstr "Hardwaretype"
 

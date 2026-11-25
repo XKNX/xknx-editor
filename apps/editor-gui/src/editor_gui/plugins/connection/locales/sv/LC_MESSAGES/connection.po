@@ -145,6 +145,15 @@ msgstr "Använd multicast-routing (i stället för tunneling)"
 msgid "Gateway IP"
 msgstr "Gateway-IP"
 
+msgid "An open connection to the gateway connects to the new address once it is entered."
+msgstr "En öppen anslutning till gatewayen ansluter till den nya adressen så snart den har angetts."
+
+msgid "Use the Project's Bus Connection"
+msgstr "Använd projektets bussanslutning"
+
+msgid "While a project is open whose backbone line has a Bus Connection (Topology), the connection goes through it instead of the gateway set here."
+msgstr "Medan ett projekt är öppet vars stamlinje har en bussanslutning (Topologi) går anslutningen genom den i stället för gatewayen som anges här."
+
 msgid "Multicast Group"
 msgstr "Multicastgrupp"
 
