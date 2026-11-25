@@ -106,6 +106,9 @@ msgstr "Készülék hozzáadásához előbb nyisson meg vagy hozzon létre egy p
 msgid "This product has no usable application program."
 msgstr "Ennek a terméknek nincs használható alkalmazási programja."
 
+msgid "Adding device…"
+msgstr "Eszköz hozzáadása…"
+
 msgid "Added device: {name}"
 msgstr "Készülék hozzáadva: {name}"
 

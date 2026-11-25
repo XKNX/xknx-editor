@@ -25,19 +25,24 @@ def _space(sid: int, name: str, space_type: str, *children: Any) -> Any:
 
 
 def _plugin(
-    project: Any, notices: list[str], refused: list[str] | None = None
+    project: Any,
+    notices: list[str],
+    refused: list[str] | None = None,
+    **api: Any,
 ) -> CatalogPlugin:
-    """The plugin on ``project``: confirmations go to ``notices``, refusals to ``refused``."""
+    """The plugin on ``project``: confirmations go to ``notices``, refusals to ``refused``;
+    ``api`` sets more of the plugin API (without a progress dialog and a user interface thread,
+    the work runs at once)."""
     plugin = CatalogPlugin.__new__(CatalogPlugin)
-    plugin._api = cast(  # pyright: ignore[reportPrivateUsage]
-        Any,
-        SimpleNamespace(
-            project=project,
-            notify=notices.append,
-            tell_refused=(refused if refused is not None else []).append,
-            ask_device_certificate=None,
-        ),
-    )
+    fields: dict[str, Any] = {
+        "project": project,
+        "notify": notices.append,
+        "tell_refused": (refused if refused is not None else []).append,
+        "ask_device_certificate": None,
+        "run_background": None,
+        "main_thread": None,
+    }
+    plugin._api = cast(Any, SimpleNamespace(**(fields | api)))  # pyright: ignore[reportPrivateUsage]
     plugin._log = cast(  # pyright: ignore[reportPrivateUsage]
         Any,
         SimpleNamespace(warning=lambda *_a, **_k: None, info=lambda *_a, **_k: None),
@@ -159,6 +164,48 @@ def test_a_product_without_an_application_is_added() -> None:
         (None, 3, 12)
     ]
     assert refused == [] and notices == [S.CATALOG_ADD_OK.format(name="Power Supply")]
+
+
+def test_a_device_is_added_behind_the_progress_dialog() -> None:
+    # Loading the application program and adding the device run as a background task; asking
+    # for the device certificate goes back to the user interface's thread.
+    events: list[str] = []
+    project = SimpleNamespace(
+        is_open=True,
+        add_device=lambda **_kwargs: events.append("add") or 9,
+        device_target_segment=12,
+        secure_commissioning_of=lambda _d: True,
+    )
+    catalog = SimpleNamespace(
+        get_application=lambda _id: (
+            events.append("load")
+            or SimpleNamespace(
+                name="App", program=SimpleNamespace(is_secure_enabled=False)
+            )
+        )
+    )
+    tasks: list[tuple[str, Any]] = []
+    on_main: list[Any] = []
+    plugin = _plugin(
+        project,
+        [],
+        catalog=catalog,
+        run_background=lambda text, work: tasks.append((text, work)),
+        main_thread=SimpleNamespace(submit=on_main.append),
+        request_project_password=None,
+    )
+    plugin._api.ask_device_certificate = lambda node: events.append(
+        f"certificate {node}"
+    )  # pyright: ignore[reportPrivateUsage]
+    product = ProductSummary("P", "H", "Dimmer", None, "M-1_A-1", "M-1", None)
+    plugin._on_select(product)  # pyright: ignore[reportPrivateUsage]
+    # Nothing in this frame: the task waits for its worker.
+    assert events == [] and [text for text, _ in tasks] == [S.ADDING_DEVICE]
+    tasks[0][1]()
+    assert events == ["load", "add"]
+    (ask,) = on_main
+    ask()
+    assert events == ["load", "add", "certificate 9"]
 
 
 @pytest.fixture

@@ -106,6 +106,9 @@ msgstr "Åbn eller opret først et projekt for at tilføje en enhed."
 msgid "This product has no usable application program."
 msgstr "Dette produkt har intet anvendeligt applikationsprogram."
 
+msgid "Adding device…"
+msgstr "Tilføjer enhed…"
+
 msgid "Added device: {name}"
 msgstr "Enhed tilføjet: {name}"
 

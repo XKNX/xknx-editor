@@ -106,6 +106,9 @@ msgstr "Öppna eller skapa ett projekt först för att lägga till en apparat."
 msgid "This product has no usable application program."
 msgstr "Den här produkten har inget användbart applikationsprogram."
 
+msgid "Adding device…"
+msgstr "Lägger till enhet…"
+
 msgid "Added device: {name}"
 msgstr "Apparat tillagd: {name}"
 

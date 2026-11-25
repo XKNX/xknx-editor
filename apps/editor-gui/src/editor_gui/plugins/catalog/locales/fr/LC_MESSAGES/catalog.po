@@ -106,6 +106,9 @@ msgstr "Ouvrez ou créez d'abord un projet pour ajouter un participant."
 msgid "This product has no usable application program."
 msgstr "Ce produit n'a aucun programme d'application utilisable."
 
+msgid "Adding device…"
+msgstr "Ajout de l'appareil…"
+
 msgid "Added device: {name}"
 msgstr "Participant ajouté : {name}"
 

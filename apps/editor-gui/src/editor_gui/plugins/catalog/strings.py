@@ -339,6 +339,10 @@ class CatalogStrings:
         return _("This product has no usable application program.")
 
     @property
+    def ADDING_DEVICE(self) -> str:
+        return _("Adding device…")
+
+    @property
     def CATALOG_ADD_OK(self) -> str:
         return _("Added device: {name}")
 

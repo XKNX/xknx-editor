@@ -106,6 +106,9 @@ msgstr "Opnaðu eða búðu til verkefni fyrst til að bæta við tæki."
 msgid "This product has no usable application program."
 msgstr "Þessi vara hefur ekkert nothæft verkforrit."
 
+msgid "Adding device…"
+msgstr "Bæti við tæki…"
+
 msgid "Added device: {name}"
 msgstr "Tæki bætt við: {name}"
 

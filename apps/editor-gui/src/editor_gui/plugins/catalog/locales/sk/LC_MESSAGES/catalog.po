@@ -106,6 +106,9 @@ msgstr "Na pridanie zariadenia najprv otvorte alebo vytvorte projekt."
 msgid "This product has no usable application program."
 msgstr "Tento produkt nemá žiadny použiteľný aplikačný program."
 
+msgid "Adding device…"
+msgstr "Pridáva sa zariadenie…"
+
 msgid "Added device: {name}"
 msgstr "Pridané zariadenie: {name}"
 

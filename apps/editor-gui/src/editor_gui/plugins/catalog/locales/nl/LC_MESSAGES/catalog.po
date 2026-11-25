@@ -49,6 +49,9 @@ msgstr "Open of maak eerst een project om een apparaat toe te voegen."
 msgid "This product has no usable application program."
 msgstr "Dit product heeft geen bruikbaar applicatieprogramma."
 
+msgid "Adding device…"
+msgstr "Apparaat wordt toegevoegd…"
+
 msgid "Added device: {name}"
 msgstr "Apparaat toegevoegd: {name}"
 
