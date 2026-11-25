@@ -23,6 +23,7 @@ from xknxeditor.download.communication_path import (
     SecureSystemBroadcastBlocked,
 )
 from xknxeditor.download.data_secure import SecureProgrammingError
+from xknxeditor.download.errors import SerialNumberNotFoundError
 
 SERIAL = bytes.fromhex("00837AA2039C")
 MULTICAST = bytes((224, 0, 23, 12))
@@ -94,7 +95,8 @@ def _xknx() -> tuple[XKNX, AsyncMock]:
 
 async def test_the_addresses_of_an_ip_device(monkeypatch: pytest.MonkeyPatch) -> None:
     _fast(monkeypatch)
-    _reads(monkeypatch, [_OLD])
+    # found by serial number, then answering with its new address
+    _reads(monkeypatch, [_OLD, _OLD, _NEW])
     sent: list[tuple[apci.APCI, bool]] = []
 
     async def fake_send(xknx: XKNX, payload: apci.APCI, system_broadcast: bool) -> None:
@@ -134,6 +136,42 @@ async def test_the_addresses_of_an_ip_device(monkeypatch: pytest.MonkeyPatch) ->
         xknx, SERIAL, _NEW, MULTICAST, system_broadcast=False
     )
     broadcast.assert_not_awaited()
+
+
+async def test_an_ip_device_not_answering_by_serial_number_fails(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _fast(monkeypatch)
+    monkeypatch.setattr(rf, "_SERIAL_NUMBER_WAIT_S", 0)
+    _reads(monkeypatch, [None])
+    monkeypatch.setattr(rf, "_send", AsyncMock())
+    xknx, broadcast = _xknx()
+    with pytest.raises(
+        SerialNumberNotFoundError, match="No device with the serial number 00837AA2039C"
+    ):
+        await rf.ip_addresses_by_serial_number(
+            xknx, SERIAL, _NEW, MULTICAST, system_broadcast=False
+        )
+    # no address is written to a device that is not there
+    broadcast.assert_not_awaited()
+
+
+async def test_an_ip_device_not_taking_the_address_fails(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _fast(monkeypatch)
+    monkeypatch.setattr(rf, "_ADDRESS_VERIFY_S", 0)
+    _reads(monkeypatch, [_OLD, _OLD])
+    monkeypatch.setattr(rf, "_send", AsyncMock())
+    xknx, _broadcast = _xknx()
+    with pytest.raises(
+        SerialNumberNotFoundError,
+        match=r"did not take the individual address 1\.0\.20 "
+        r"\(it answers with 15\.15\.255\)",
+    ):
+        await rf.ip_addresses_by_serial_number(
+            xknx, SERIAL, _NEW, MULTICAST, system_broadcast=False
+        )
 
 
 async def test_the_rf_mode_is_switched_while_waiting(

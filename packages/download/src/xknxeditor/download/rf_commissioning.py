@@ -269,6 +269,8 @@ _ROUTING_SECURITY_VERSION = 1
 _IP_DOMAIN_ADDRESS_DELAY_S = 1.0
 _SERIAL_NUMBER_POLL_S = 0.5
 _SERIAL_NUMBER_WAIT_S = 60.0
+# How long a device written its individual address by serial number may take to answer with it.
+_ADDRESS_VERIFY_S = 5.0
 
 
 def ip_domain_address(multicast_address: bytes, backbone_key: bytes | None) -> bytes:
@@ -351,6 +353,11 @@ async def ip_addresses_by_serial_number(
     if close_system_broadcast is not None:
         await close_system_broadcast()
     current = await wait_by_serial_number(xknx, serial_number)
+    if current is None:
+        raise SerialNumberNotFoundError(
+            f"No device with the serial number {serial_number.hex().upper()} answered "
+            f"within {int(_SERIAL_NUMBER_WAIT_S)} s."
+        )
     if current == individual_address:
         logger.debug("The device has the individual address %s already.", current)
         return
@@ -358,6 +365,31 @@ async def ip_addresses_by_serial_number(
         apci.IndividualAddressSerialWrite(
             address=individual_address, serial=serial_number
         )
+    )
+    await _verify_by_serial_number(xknx, serial_number, individual_address)
+
+
+async def _verify_by_serial_number(
+    xknx: XKNX, serial_number: bytes, individual_address: IndividualAddress
+) -> None:
+    """Wait until the device with ``serial_number`` answers with ``individual_address``, asked
+    every half second for up to :data:`_ADDRESS_VERIFY_S`. Raises ``SerialNumberNotFoundError``
+    when it does not."""
+    loop = asyncio.get_running_loop()
+    deadline = loop.time() + _ADDRESS_VERIFY_S
+    found: IndividualAddress | None = None
+    while True:
+        with contextlib.suppress(ManagementConnectionError, ConfirmationError):
+            found = await _serial_number_read(xknx, serial_number)
+        if found == individual_address:
+            return
+        if loop.time() >= deadline:
+            break
+        await asyncio.sleep(_SERIAL_NUMBER_POLL_S)
+    raise SerialNumberNotFoundError(
+        f"The device with the serial number {serial_number.hex().upper()} did not take "
+        f"the individual address {individual_address}"
+        + (f" (it answers with {found})." if found is not None else ".")
     )
 
 
