@@ -315,7 +315,9 @@ def _fake_serial_bus(
         return occupied
 
     async def fake_read(*args: object, **kwargs: object) -> list[IndividualAddress]:
-        raise AssertionError("programming mode must not be used")
+        # looked for first; no device is in programming mode
+        calls.append(("programming_mode", None))
+        return []
 
     monkeypatch.setattr(
         commissioning, "nm_individual_address_serial_number_read", fake_serial_read
@@ -337,6 +339,7 @@ async def test_download_by_serial_number(monkeypatch: pytest.MonkeyPatch) -> Non
 
     assert serial == _SERIAL
     assert calls == [
+        ("programming_mode", None),
         ("serial_read", _SERIAL),
         ("check", _NEW),
         ("serial_write", (_SERIAL, _NEW)),
@@ -376,7 +379,7 @@ async def test_download_by_serial_number_device_not_found(
         await commissioning.download_individual_address(
             cast("XKNX", _XKNX()), _NEW, serial_number=_SERIAL
         )
-    assert [c[0] for c in calls] == ["serial_read"]
+    assert [c[0] for c in calls] == ["programming_mode", "serial_read"]
 
 
 async def test_download_by_serial_number_refuses_an_address_in_use(
@@ -401,7 +404,7 @@ async def test_download_by_serial_number_already_has_the_address(
     await commissioning.download_individual_address(
         cast("XKNX", _XKNX()), _NEW, serial_number=_SERIAL
     )
-    assert [c[0] for c in calls] == ["serial_read"]
+    assert [c[0] for c in calls] == ["programming_mode", "serial_read"]
 
 
 async def test_overwrite_cannot_use_a_serial_number() -> None:

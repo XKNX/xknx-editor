@@ -621,6 +621,7 @@ async def test_services_a_coupler_makes_system_broadcasts_go_as_broadcasts(
     assert ("as broadcast", _SERIAL) in calls
 
 
+@pytest.mark.usefixtures("no_programming_mode")
 async def test_a_tp_address_download_opens_the_path_for_broadcasts(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

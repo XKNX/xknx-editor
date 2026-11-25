@@ -3677,7 +3677,11 @@ class ProjectPlugin:
             self._record_commissioning(
                 node_id,
                 scope_value,
-                result if isinstance(result, bytes) else None,
+                # the serial number read from the device the address went to (also over another
+                # one stored for it)
+                result
+                if isinstance(result, bytes)
+                else getattr(result, "serial_number", None),
                 getattr(result, "mac_address", None),
                 result=result,
                 ip_secure=ip_secure,

@@ -386,3 +386,18 @@ def _no_sync_interval(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
     secure_session._last_sync_response.clear()  # pyright: ignore[reportPrivateUsage]
     yield
     secure_session._last_sync_response.clear()  # pyright: ignore[reportPrivateUsage]
+
+
+@pytest.fixture
+def no_programming_mode(monkeypatch: pytest.MonkeyPatch) -> None:
+    """No device is in programming mode when an address download looks for one first."""
+    from xknxeditor.download import commissioning
+
+    async def none_in_programming_mode(
+        *args: object, **kwargs: object
+    ) -> list[IndividualAddress]:
+        return []
+
+    monkeypatch.setattr(
+        commissioning, "nm_individual_address_read", none_in_programming_mode
+    )

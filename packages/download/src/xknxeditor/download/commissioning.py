@@ -52,6 +52,7 @@ from .communication_path import (
 from .errors import (
     AddressInUseError,
     ProgrammingModeError,
+    SerialNumberMismatchError,
     SerialNumberNotFoundError,
     UnsupportedProcedureError,
 )
@@ -105,8 +106,10 @@ async def program_individual_address(
     domain_address: bytes | None = None,
     security: DeviceSecurity | None = None,
     ip_system_broadcast: bool = False,
-) -> None:
-    """Program ``individual_address`` into a device.
+) -> bytes | None:
+    """Program ``individual_address`` into a device. Returns the serial number read from the
+    device in programming mode (to record it, also over another one stored for the device),
+    else None.
 
     With ``serial_number`` the device is addressed by serial number; otherwise
     the single device currently in programming mode is addressed. A KNX RF device
@@ -116,10 +119,13 @@ async def program_individual_address(
     when it takes them (``ip_system_broadcast``). The couplers on the way pass the
     broadcasts meanwhile (see :func:`.communication_path.broadcast_path`). ``xknx`` has to be
     started. A serial number that cannot tell the device apart is not used (see
-    :func:`distinct_serial_number`).
+    :func:`distinct_serial_number`), nor one while a device is in programming mode (see
+    :func:`_serial_number_unless_programming_mode`).
     """
     address = IndividualAddress(individual_address)
-    serial_number = distinct_serial_number(serial_number)
+    serial_number = await _serial_number_unless_programming_mode(
+        xknx, distinct_serial_number(serial_number), domain_address, security
+    )
     medium = _domain_medium(domain_address, serial_number)
     async with broadcast_path(
         xknx,
@@ -141,7 +147,72 @@ async def program_individual_address(
                 xknx, serial_number, address
             )
         else:
-            await _write_address_via_programming_mode(xknx, address)
+            return await _write_address_via_programming_mode(xknx, address)
+    return None
+
+
+async def _serial_number_unless_programming_mode(
+    xknx: XKNX,
+    serial_number: bytes | None,
+    domain_address: bytes | None,
+    security: DeviceSecurity | None,
+) -> bytes | None:
+    """``serial_number``, unless a device is in programming mode: then None, so the address
+    goes to that device. The devices in programming mode are looked for first, and the serial
+    number is only used while none is; a serial number stored for the device does not keep the
+    device whose programming button was pressed from getting the address (its serial number is
+    read and recorded afterwards). Two devices in programming mode raise
+    ``ProgrammingModeError``. A device secured with ``security`` (its device certificate has the
+    serial number) has to be the one with ``serial_number``; another one raises
+    ``SerialNumberMismatchError`` before its address is written. A KNX RF device (6-octet
+    ``domain_address``) is looked for in programming mode by its own path."""
+    if serial_number is None or (
+        domain_address is not None and len(domain_address) == 6
+    ):
+        return serial_number
+    devices = await nm_individual_address_read(xknx, timeout=_PROGRAMMING_MODE_POLL_S)
+    if not devices:
+        return serial_number
+    if len(devices) > 1:
+        raise ProgrammingModeError("More than one device is in programming mode.")
+    (found,) = devices
+    if security is not None:
+        found_serial = await _plain_serial_number(xknx, found)
+        if found_serial != serial_number:
+            raise SerialNumberMismatchError(
+                f"The device {found} in programming mode has the serial number "
+                f"{_serial_text(found_serial)}, not {_serial_text(serial_number)} of the "
+                "device's certificate."
+            )
+    logger.info(
+        "device %s is in programming mode: the address goes to it, not to the device with "
+        "the serial number %s",
+        found,
+        serial_number.hex().upper(),
+    )
+    return None
+
+
+def _serial_text(serial_number: bytes | None) -> str:
+    return "unknown" if serial_number is None else serial_number.hex().upper()
+
+
+async def _plain_serial_number(xknx: XKNX, address: IndividualAddress) -> bytes | None:
+    """The KNX Serial Number of the device at ``address``, read in the clear; None when it
+    cannot be read."""
+    from .errors import DownloadError
+    from .programmer import DeviceProgrammer
+    from .session import management_session
+
+    manager = management_session(xknx, address, None)
+    try:
+        connection = await manager.open()
+        programmer = DeviceProgrammer(connection)
+        return await programmer.read_property(0, _PID_SERIAL_NUMBER) or None
+    except (ManagementConnectionError, DownloadError):
+        return None
+    finally:
+        await manager.close()
 
 
 async def _program_rf_addresses(
@@ -306,8 +377,9 @@ async def _ip_addresses(
 
 async def _write_address_via_programming_mode(
     xknx: XKNX, address: IndividualAddress
-) -> None:
-    """Write ``address`` to the single device in programming mode, without restarting it.
+) -> bytes | None:
+    """Write ``address`` to the single device in programming mode, without restarting it, and
+    return its serial number (None when it cannot be read).
 
     The device keeps its new address and stays reachable, so a following
     application download can connect immediately. xknx's
@@ -336,6 +408,7 @@ async def _write_address_via_programming_mode(
             raise ManagementConnectionError(
                 f"No device answered at {address} after the address write."
             )
+    return await _plain_serial_number(xknx, address)
 
 
 async def switch_programming_mode(
@@ -424,7 +497,8 @@ async def download_individual_address(
 
     With ``serial_number`` the device is addressed by its KNX serial number
     instead, without programming mode and without a restart; not with one that cannot tell the
-    device apart (see :func:`distinct_serial_number`).
+    device apart (see :func:`distinct_serial_number`), nor while a device is in programming mode,
+    which then gets the address (see :func:`_serial_number_unless_programming_mode`).
 
     A KNX RF device gets ``domain_address`` as well, and is reached by system
     broadcasts, also with another or no domain address (see :mod:`.rf_commissioning`). By
@@ -443,7 +517,9 @@ async def download_individual_address(
         raise ValueError(f"the device already has the address {address}")
     if serial_number is not None and current is not None:
         raise ValueError("an overwrite addresses the device by its current address")
-    serial_number = distinct_serial_number(serial_number)
+    serial_number = await _serial_number_unless_programming_mode(
+        xknx, distinct_serial_number(serial_number), domain_address, security
+    )
     by_serial = serial_number is not None or (
         current is not None and current_security is not None
     )

@@ -274,6 +274,7 @@ def _ip_bus(
     monkeypatch.setattr(commissioning, "nm_individual_address_check", check)
 
 
+@pytest.mark.usefixtures("no_programming_mode")
 async def test_an_ip_device_by_serial_number(monkeypatch: pytest.MonkeyPatch) -> None:
     calls: list[tuple[str, object]] = []
     _path(monkeypatch, calls, local=True)
@@ -350,6 +351,7 @@ async def test_an_ip_device_through_programming_mode(
     assert written == [_NEW]
 
 
+@pytest.mark.usefixtures("no_programming_mode")
 async def test_the_backbone_key_is_never_written_in_the_clear(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -378,6 +380,7 @@ async def test_the_backbone_key_is_never_written_in_the_clear(
     assert caught.value.coupler == _COUPLER
 
 
+@pytest.mark.usefixtures("no_programming_mode")
 async def test_written_in_the_clear_when_a_coupler_stops_secured_system_broadcasts(
     monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
 ) -> None:

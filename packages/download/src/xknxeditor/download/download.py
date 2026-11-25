@@ -136,6 +136,9 @@ class DownloadResult:
     binary_updates: Mapping[str, tuple[bytes, bytes]] = field(
         default_factory=dict[str, tuple[bytes, bytes]]
     )
+    # The serial number of the device that got its individual address in programming mode
+    # before the download (None otherwise, or when it could not be read).
+    serial_number: bytes | None = None
 
 
 _IP_CONFIG_SCOPES = frozenset(
@@ -902,6 +905,7 @@ async def download(
     if prepared is not None:
         controls = prepared_steps
     address = IndividualAddress(individual_address)
+    commissioned_serial: bytes | None = None
     if (
         commission
         and scope is DownloadScope.FULL
@@ -916,7 +920,7 @@ async def download(
             address,
             "by serial number" if serial_number is not None else "in programming mode",
         )
-        await program_individual_address(
+        commissioned_serial = await program_individual_address(
             xknx,
             address,
             serial_number=serial_number,
@@ -1113,6 +1117,7 @@ async def download(
         memory_service_count=used_memory_cap,
         factory_reset=factory_reset,
         property_reads=dict(runner.property_reads),
+        serial_number=commissioned_serial,
     )
 
 
