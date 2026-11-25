@@ -1453,6 +1453,15 @@ msgstr "確認を待っています"
 msgid "The application program currently loaded in the device is different from the projected application program"
 msgstr "現在デバイスにロードされているアプリケーションプログラムは、プロジェクトのアプリケーションプログラムと異なります"
 
+msgid "The device in programming mode has the serial number {found}, the project has {stored} for this device."
+msgstr "プログラミングモードのデバイスのシリアル番号は {found} ですが、プロジェクトではこのデバイスに {stored} が登録されています。"
+
+msgid "Do you want to take over its serial number? The download then starts again with it and asks for its device certificate if the project does not have it."
+msgstr "このシリアル番号を引き継ぎますか？ダウンロードはこの番号でやり直し、プロジェクトにデバイス証明書がない場合はその入力を求めます。"
+
+msgid "Serial number {serial} taken over: the download starts again with it."
+msgstr "シリアル番号 {serial} を引き継ぎました。この番号でダウンロードをやり直します。"
+
 msgid "Do you want to overwrite the application program (this may take several minutes)?"
 msgstr "アプリケーションプログラムを上書きしますか（数分かかるかもしれません）？"
 

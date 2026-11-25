@@ -1453,6 +1453,15 @@ msgstr "In attesa di conferma"
 msgid "The application program currently loaded in the device is different from the projected application program"
 msgstr "Il programma applicativo attualmente caricato nel dispositivo è diverso dal programma applicativo progettato"
 
+msgid "The device in programming mode has the serial number {found}, the project has {stored} for this device."
+msgstr "Il dispositivo in modalità di programmazione ha il numero di serie {found}, il progetto ha {stored} per questo dispositivo."
+
+msgid "Do you want to take over its serial number? The download then starts again with it and asks for its device certificate if the project does not have it."
+msgstr "Vuoi adottare il suo numero di serie? La programmazione riparte allora con esso e chiede il suo certificato del dispositivo se il progetto non lo ha."
+
+msgid "Serial number {serial} taken over: the download starts again with it."
+msgstr "Numero di serie {serial} adottato: la programmazione riparte con esso."
+
 msgid "Do you want to overwrite the application program (this may take several minutes)?"
 msgstr "Sovrascrivere il programma applicativo (l'operazione può richiedere diversi minuti)?"
 

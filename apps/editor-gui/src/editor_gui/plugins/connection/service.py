@@ -337,6 +337,10 @@ class ConnectionService:
         self.project_ip_domain_address: (
             Callable[[Device], tuple[bytes | None, bool]] | None
         ) = None
+        # Whether the serial number stored for a device is known to be its own (see
+        # ProjectService.serial_number_known): its address then goes to it by serial number
+        # without looking for a device in programming mode first.
+        self.project_serial_number_known: Callable[[Device], bool] | None = None
         # The open project's device at an individual address (or None): a download reads the
         # maximum APDU length only of couplers on the route that the project has.
         self.project_device: Callable[[str], object | None] | None = None
@@ -1464,6 +1468,7 @@ class ConnectionService:
         disable_security: bool = False,
         routing_blocking: bool | None = None,
         in_programming_mode: bool = False,
+        confirm_serial_number: Callable[[bytes, bytes], Awaitable[bool]] | None = None,
     ) -> Future[Any] | None:
         """Download the device's configured application/parameters onto the bus.
 
@@ -1477,7 +1482,10 @@ class ConnectionService:
         answer yet gets its address by ``serial_number`` when given. ``tool_key`` commissions the
         device securely; ``disable_security`` switches it to plain communication with the key it
         holds. For an unload of everything, ``in_programming_mode`` has the user put the device
-        into programming mode first (``waiting`` is called while none is).
+        into programming mode first (``waiting`` is called while none is). A device in programming
+        mode gets the address before the one with ``serial_number``; ``confirm_serial_number``
+        (found, stored) is asked when the secured device in programming mode has another serial
+        number.
         """
         if self.writes_refused("program_device") or self.not_connected(
             "program_device"
@@ -1501,6 +1509,7 @@ class ConnectionService:
                 overwrite,
                 waiting,
                 None if overwrite else serial_number,
+                confirm_serial_number,
             )
         from editor_gui.device_plugins import download_needs_plugin_confirmation
 
@@ -1572,6 +1581,8 @@ class ConnectionService:
                 rf_interface_domain=self._interface_domain_address(device) is not None,
                 ip_domain_address=ip_domain[0],
                 ip_system_broadcast=ip_domain[1],
+                serial_number_known=self._serial_number_known(device),
+                confirm_serial_number=confirm_serial_number,
             )
         )
         if future is not None:
@@ -1623,6 +1634,7 @@ class ConnectionService:
         overwrite: bool,
         waiting: Callable[[], None] | None,
         serial_number: bytes | None,
+        confirm_serial_number: Callable[[bytes, bytes], Awaitable[bool]] | None = None,
     ) -> Future[Any] | None:
         from xknxeditor.download.commissioning import download_individual_address
 
@@ -1665,6 +1677,8 @@ class ConnectionService:
                     serial_number=serial_number,
                     domain_address=domain_address or ip_domain_address,
                     ip_system_broadcast=ip_system_broadcast,
+                    serial_number_known=self._serial_number_known(device),
+                    confirm_serial_number=confirm_serial_number,
                 ),
             )
         )
@@ -1810,6 +1824,12 @@ class ConnectionService:
         ):
             return None, False
         return getter(device)
+
+    def _serial_number_known(self, device: Device) -> bool:
+        """Whether the serial number stored for ``device`` is known to be its own (read here,
+        not on the bus thread)."""
+        getter = self.project_serial_number_known
+        return getter is not None and getter(device)
 
     def _interface_domain_address(self, device: Device) -> bytes | None:
         """The domain address a KNX RF USB interface needs to reach ``device``: the one of its

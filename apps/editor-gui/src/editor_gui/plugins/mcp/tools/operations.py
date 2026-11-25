@@ -66,6 +66,17 @@ def item_dict(
         "canceled_by_user": item.canceled_by_user,
         "awaiting_overwrite_answer": question is not None and not question.done(),
     }
+    serial_question = item.serial_number_question
+    if (
+        serial_question is not None
+        and not serial_question.done()
+        and item.serial_number_asked is not None
+    ):
+        found, stored = item.serial_number_asked
+        entry["awaiting_serial_number_answer"] = {
+            "found": found.hex().upper(),
+            "stored": stored.hex().upper(),
+        }
     if item.state is OperationState.RUNNING:
         if run is not None:
             entry["progress_percent"] = run.progress
@@ -107,7 +118,9 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         (the result sections of a device info: [{section, rows: [{label, value, tone?}]}], tone
         "ok" or "differs" where the value is compared with the project), connection, started_at, ended_at,
         canceled_by_user, awaiting_overwrite_answer (a download asks whether to overwrite the
-        application in the device: answer with connection_answer_overwrite), and while running
+        application in the device: answer with connection_answer_overwrite), when asked
+        awaiting_serial_number_answer {found, stored} (the secured device in programming mode has
+        another serial number: answer with connection_answer_serial_number), and while running
         progress [done, total] (load controls) with progress_bytes [done, total] (octets the
         current control wrote of its memory, while it writes memory) or, for a parameter script, progress_percent, script_text and
         force_stop_available}."""
@@ -382,6 +395,31 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                 question = item.full_download_question
                 if question is not None and not question.done():
                     question.set_result(overwrite)
+                    return {"answered": True}
+            raise ToolError("no download of this device is waiting for an answer")
+
+        return ctx.run_locked(_answer)
+
+    @tool("destructive", open_world=True)
+    def connection_answer_serial_number(
+        take_over: bool,
+        node_id: int | None = None,
+        device_address: str | None = None,
+    ) -> dict[str, Any]:
+        """Answer the question a running download of the device (``node_id`` or
+        ``device_address``) asks in the Operations panel when the secured device in programming
+        mode has another serial number than the one stored for it
+        (awaiting_serial_number_answer in connection_operations: {found, stored}): ``take_over``
+        true is its Yes (the serial number found is stored for the device and the download
+        starts again with it, asking for that device's certificate unless the project has it),
+        false its No (the download is canceled). Returns {answered: true}."""
+        plugin = _plugin()
+
+        def _answer() -> dict[str, Any]:
+            for item in _active_of(plugin, node_id, device_address):
+                question = item.serial_number_question
+                if question is not None and not question.done():
+                    question.set_result(take_over)
                     return {"answered": True}
             raise ToolError("no download of this device is waiting for an answer")
 

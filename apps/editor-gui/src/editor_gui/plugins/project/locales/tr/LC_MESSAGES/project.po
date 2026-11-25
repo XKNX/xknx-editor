@@ -1453,6 +1453,15 @@ msgstr "Onay bekleniyor"
 msgid "The application program currently loaded in the device is different from the projected application program"
 msgstr "Cihazda yüklü olan uygulama programı, öngörülen uygulama programından farklı"
 
+msgid "The device in programming mode has the serial number {found}, the project has {stored} for this device."
+msgstr "Programlama modundaki cihazın seri numarası {found}, projede bu cihaz için {stored} var."
+
+msgid "Do you want to take over its serial number? The download then starts again with it and asks for its device certificate if the project does not have it."
+msgstr "Seri numarasını devralmak istiyor musunuz? Programlama bu numarayla yeniden başlar ve projede yoksa cihaz sertifikasını ister."
+
+msgid "Serial number {serial} taken over: the download starts again with it."
+msgstr "{serial} seri numarası devralındı: programlama bu numarayla yeniden başlıyor."
+
 msgid "Do you want to overwrite the application program (this may take several minutes)?"
 msgstr "Uygulama programının üzerine yazmak istiyor musunuz (bu işlem birkaç dakika sürecektir)?"
 

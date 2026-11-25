@@ -3371,6 +3371,56 @@ class ProjectPlugin:
         finally:
             item.full_download_question = None
 
+    async def _confirm_serial_number(
+        self, item: QueueItem, found: bytes, stored: bytes
+    ) -> bool:
+        """Ask in the Operations panel whether to take over the serial number ``found`` of the
+        secured device in programming mode, the project having ``stored`` for it."""
+        self._api.log.info(
+            "serial number of the device in programming mode needs confirmation",
+            plugin="project",
+            found=found.hex().upper(),
+            stored=stored.hex().upper(),
+        )
+        from concurrent.futures import Future
+
+        answer: Future[bool] = Future()
+        item.serial_number_asked = (found, stored)
+        item.serial_number_question = answer
+        try:
+            return await asyncio.wrap_future(answer)
+        finally:
+            item.serial_number_question = None
+
+    def _program_again_with(self, item: QueueItem, serial_number: bytes) -> None:
+        """The serial number of the secured device in programming mode was taken over: record
+        it and queue the download again, which then asks for that device's certificate unless
+        the project has it."""
+        device = self._api.project.find_device_by_node_id(item.node_id)
+        if device is None:
+            return
+        self._set_serial_number(device, serial_number)
+        self._program_queue.enqueue(
+            QueueItem(
+                node_id=item.node_id,
+                address=item.address,
+                name=item.name,
+                scope=item.scope,
+                medium_config=item.medium_config,
+                without_plugin=item.without_plugin,
+                current_address=item.current_address,
+                serial_number=serial_number if item.serial_number is not None else None,
+                origin=item.origin,
+            )
+        )
+
+    def _on_main(self, fn: Callable[[], None]) -> None:
+        """Run ``fn`` on the UI thread (directly without one)."""
+        if self._api.main_thread is not None:
+            self._api.main_thread.submit(fn)
+        else:
+            fn()
+
     @staticmethod
     def _program_error_text(error: BaseException) -> str | None:
         """Translated text of the download errors the editor explains itself."""
@@ -3621,6 +3671,9 @@ class ProjectPlugin:
                 # An unload of everything from the editor waits for the user's programming
                 # mode; over MCP it writes the address by serial number or switches it on.
                 in_programming_mode=True,
+                confirm_serial_number=functools.partial(
+                    self._confirm_serial_number, item
+                ),
             )
         except DeviceCertificateRequired:
             item.message = S.DEVICE_CERTIFICATE_REQUIRED
@@ -3661,6 +3714,18 @@ class ProjectPlugin:
         scope_value = getattr(item.scope, "value", "full")
 
         def _on_done(f: "Future[Any]") -> None:
+            from xknxeditor.download.errors import SerialNumberTakenOver
+
+            error = None if f.cancelled() else f.exception()
+            if isinstance(error, SerialNumberTakenOver):
+                item.message = S.SERIAL_NUMBER_TAKEN_OVER.format(
+                    serial=serial_text(error.serial_number)
+                )
+                self._on_main(
+                    functools.partial(
+                        self._program_again_with, item, error.serial_number
+                    )
+                )
             if f.cancelled() or f.exception() is not None:
                 self._api.log.debug(
                     "program: finished without commissioning record",
@@ -3677,7 +3742,11 @@ class ProjectPlugin:
             self._record_commissioning(
                 node_id,
                 scope_value,
-                result if isinstance(result, bytes) else None,
+                # the serial number read from the device the address went to (also over another
+                # one stored for it)
+                result
+                if isinstance(result, bytes)
+                else getattr(result, "serial_number", None),
                 getattr(result, "mac_address", None),
                 result=result,
                 ip_secure=ip_secure,

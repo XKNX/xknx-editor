@@ -583,6 +583,8 @@ async def download_device(
     rf_interface_domain: bool = True,
     ip_domain_address: bytes | None = None,
     ip_system_broadcast: bool = False,
+    serial_number_known: bool = False,
+    confirm_serial_number: Callable[[bytes, bytes], Awaitable[bool]] | None = None,
 ) -> DownloadResult:
     """Program ``device``: build its image and run the load procedure on the bus.
 
@@ -619,7 +621,9 @@ async def download_device(
     couplers on the way pass the frames (see :mod:`xknxeditor.download.communication_path`). A
     new KNX IP device addressed by serial number gets ``ip_domain_address`` (its routing
     multicast address, also with the backbone key), by system broadcast with
-    ``ip_system_broadcast``.
+    ``ip_system_broadcast``. A device in programming mode gets the address before the one with
+    ``serial_number``, unless ``serial_number_known``; ``confirm_serial_number`` is asked when the
+    secured device in programming mode has another serial number.
     """
     from editor_gui.plugin_providers import prepared_for, programming_error
     from editor_gui.plugins.connection.usb import ensure_rf_domain_address
@@ -649,6 +653,8 @@ async def download_device(
         commission_serial_number=serial_number,
         commission_domain_address=rf_domain_address or ip_domain_address,
         commission_ip_system_broadcast=ip_system_broadcast,
+        commission_serial_number_known=serial_number_known,
+        confirm_serial_number=confirm_serial_number,
         progress=progress,
         security=security,
         tool_key=tool_key,

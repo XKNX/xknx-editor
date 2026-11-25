@@ -1009,6 +1009,9 @@ class KnxGuiApp:
         self._connection_service.project_ip_domain_address = (
             self._project_service.device_ip_domain_address
         )
+        self._connection_service.project_serial_number_known = (
+            self._project_service.serial_number_known
+        )
         self._connection_service.project_device = (
             self._project_service.find_device_by_address
         )

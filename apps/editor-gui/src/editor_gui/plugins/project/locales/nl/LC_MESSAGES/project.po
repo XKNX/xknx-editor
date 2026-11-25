@@ -748,6 +748,15 @@ msgstr "Wacht op bevestiging"
 msgid "The application program currently loaded in the device is different from the projected application program"
 msgstr "Het applicatieprogramma dat nu in het apparaat geladen is, verschilt van het geprojecteerde applicatieprogramma"
 
+msgid "The device in programming mode has the serial number {found}, the project has {stored} for this device."
+msgstr "Het apparaat in programmeermodus heeft serienummer {found}, het project heeft {stored} voor dit apparaat."
+
+msgid "Do you want to take over its serial number? The download then starts again with it and asks for its device certificate if the project does not have it."
+msgstr "Wilt u het serienummer overnemen? De programmering begint dan opnieuw met dat nummer en vraagt om het apparaatcertificaat als het project dat niet heeft."
+
+msgid "Serial number {serial} taken over: the download starts again with it."
+msgstr "Serienummer {serial} overgenomen: de programmering begint opnieuw met dat nummer."
+
 msgid "Do you want to overwrite the application program (this may take several minutes)?"
 msgstr "Wilt u het applicatieprogramma overschrijven (dit kan enkele minuten duren)?"
 

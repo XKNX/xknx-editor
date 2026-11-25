@@ -136,6 +136,9 @@ class DownloadResult:
     binary_updates: Mapping[str, tuple[bytes, bytes]] = field(
         default_factory=dict[str, tuple[bytes, bytes]]
     )
+    # The serial number of the device that got its individual address in programming mode
+    # before the download (None otherwise, or when it could not be read).
+    serial_number: bytes | None = None
 
 
 _IP_CONFIG_SCOPES = frozenset(
@@ -748,6 +751,8 @@ async def download(
     commission_serial_number: bytes | None = None,
     commission_domain_address: bytes | None = None,
     commission_ip_system_broadcast: bool = False,
+    commission_serial_number_known: bool = False,
+    confirm_serial_number: Callable[[bytes, bytes], Awaitable[bool]] | None = None,
     progress: Callable[[int, int], None] | None = None,
     confirm_full_download: Callable[[str], Awaitable[bool]] | None = None,
     ip_config: IpDeviceConfig | None = None,
@@ -793,7 +798,10 @@ async def download(
     device gets ``commission_domain_address`` as well (see :mod:`.rf_commissioning`), secured
     with ``security`` when it is addressed by serial number; a KNX IP device its routing
     multicast address (also with the backbone key) by serial number, by system broadcast with
-    ``commission_ip_system_broadcast``.
+    ``commission_ip_system_broadcast``. A device in programming mode gets the address before
+    the one with the serial number, unless ``commission_serial_number_known``;
+    ``confirm_serial_number`` is asked when the secured device in programming mode has another
+    serial number (see :func:`.commissioning.program_individual_address`).
     Without it, the device must already carry ``individual_address`` (a partial
     download always requires that). ``xknx`` has to be started.
 
@@ -902,6 +910,7 @@ async def download(
     if prepared is not None:
         controls = prepared_steps
     address = IndividualAddress(individual_address)
+    commissioned_serial: bytes | None = None
     if (
         commission
         and scope is DownloadScope.FULL
@@ -916,13 +925,15 @@ async def download(
             address,
             "by serial number" if serial_number is not None else "in programming mode",
         )
-        await program_individual_address(
+        commissioned_serial = await program_individual_address(
             xknx,
             address,
             serial_number=serial_number,
             domain_address=commission_domain_address,
             security=security,
             ip_system_broadcast=commission_ip_system_broadcast,
+            serial_number_known=commission_serial_number_known,
+            confirm_serial_number=confirm_serial_number,
         )
     if prepared is not None:
         await _check_prepared_association_format(xknx, address, security, prepared)
@@ -1113,6 +1124,7 @@ async def download(
         memory_service_count=used_memory_cap,
         factory_reset=factory_reset,
         property_reads=dict(runner.property_reads),
+        serial_number=commissioned_serial,
     )
 
 

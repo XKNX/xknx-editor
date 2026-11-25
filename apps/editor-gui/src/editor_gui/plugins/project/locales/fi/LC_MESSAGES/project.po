@@ -1453,6 +1453,15 @@ msgstr "Odotetaan kuittausta"
 msgid "The application program currently loaded in the device is different from the projected application program"
 msgstr "Laitteessa tällä hetkellä ladattu sovellusohjelma on erilainen kuin siihen projisoitu sovellusohjelma"
 
+msgid "The device in programming mode has the serial number {found}, the project has {stored} for this device."
+msgstr "Ohjelmointitilassa olevan laitteen sarjanumero on {found}, projektissa tälle laitteelle on {stored}."
+
+msgid "Do you want to take over its serial number? The download then starts again with it and asks for its device certificate if the project does not have it."
+msgstr "Haluatko ottaa sen sarjanumeron käyttöön? Ohjelmointi alkaa silloin uudelleen sillä ja pyytää laitteen varmennetta, jos projektissa ei ole sitä."
+
+msgid "Serial number {serial} taken over: the download starts again with it."
+msgstr "Sarjanumero {serial} otettu käyttöön: ohjelmointi alkaa uudelleen sillä."
+
 msgid "Do you want to overwrite the application program (this may take several minutes)?"
 msgstr "Haluatko korvata sovellusohjelman (tämä voi viedä muutaman minuutin)?"
 
