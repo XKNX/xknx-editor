@@ -2,8 +2,11 @@ from __future__ import annotations
 
 import importlib
 import io
+import logging
 import re
-from collections.abc import Iterator
+from collections.abc import Callable, Generator, Iterator
+from contextlib import contextmanager
+from contextvars import ContextVar
 from types import ModuleType
 from typing import Any, cast
 from xml.etree import ElementTree
@@ -12,6 +15,28 @@ from xsdata.formats.dataclass.parsers import XmlParser
 from xsdata.formats.dataclass.parsers.handlers.native import EVENTS, XmlEventHandler
 from xsdata.formats.dataclass.serializers import XmlSerializer
 from xsdata.formats.dataclass.serializers.config import SerializerConfig
+
+from xknxeditor.namespaces.binding import Binder, Unsupported
+
+logger = logging.getLogger(__name__)
+
+# Hears how many bytes of the document being parsed are read so far (see parse_progress).
+_progress: ContextVar[Callable[[int], None] | None] = ContextVar(
+    "xknxeditor_parse_progress", default=None
+)
+
+
+@contextmanager
+def parse_progress(report: Callable[[int], None]) -> Generator[None]:
+    """While in the block, ``report`` hears how many bytes of each document :func:`load_xml`
+    parses are read so far, after each chunk. A document xsdata parses after the faster binding
+    gave up on it is reported again from its start."""
+    token = _progress.set(report)
+    try:
+        yield
+    finally:
+        _progress.reset(token)
+
 
 SUPPORTED_VERSIONS = frozenset({"10", "11", "12", "13", "14", "20", "21", "22", "23"})
 
@@ -46,14 +71,18 @@ class _PullEventHandler(XmlEventHandler):
 def _pull_events(source: io.IOBase) -> Iterator[tuple[str, Any]]:
     """The events ``ElementTree.iterparse`` gives for ``source``, read in the same chunks."""
     parser: ElementTree.XMLPullParser[Any] = ElementTree.XMLPullParser(events=EVENTS)
+    report = _progress.get()
     while chunk := source.read(16 * 1024):
         parser.feed(chunk)
         yield from cast("Iterator[tuple[str, Any]]", parser.read_events())
+        if report is not None:
+            report(source.tell())
     parser.close()
     yield from cast("Iterator[tuple[str, Any]]", parser.read_events())
 
 
 _parser = XmlParser(handler=_PullEventHandler)
+_binder = Binder()
 _serializer = XmlSerializer(
     config=SerializerConfig(
         xml_declaration=True,
@@ -83,9 +112,16 @@ def get_model_class(version: str) -> type[Any]:
 
 
 def load_xml(source: bytes, version: str | None = None) -> Any:
+    """``source`` bound into the classes of its KNX schema version (of ``version``, detected when
+    not given). The binding of :mod:`.binding` builds it; a document it leaves to xsdata, xsdata's
+    parser, which also raises what is wrong with it."""
     if version is None:
         version = detect_version(source)
     model_class = get_model_class(version)
+    try:
+        return _binder.parse(source, model_class, _progress.get())
+    except Unsupported as exc:
+        logger.debug("parsed by xsdata: %s", exc)
     return _parser.from_bytes(source, model_class)
 
 

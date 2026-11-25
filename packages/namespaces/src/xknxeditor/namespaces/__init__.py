@@ -8,6 +8,7 @@ from xknxeditor.namespaces.schema import (
     detect_version,
     get_model_class,
     load_xml,
+    parse_progress,
     serialize_xml,
 )
 
@@ -22,6 +23,7 @@ __all__ = [
     "detect_version",
     "get_model_class",
     "load_xml",
+    "parse_progress",
     "serialize_xml",
     "unpadded_id",
 ]
