@@ -184,7 +184,7 @@ async def test_the_rf_mode_is_switched_while_waiting(
     ) -> list[IndividualAddress]:
         return answers.pop(0)
 
-    monkeypatch.setattr(rf, "_devices_in_programming_mode", in_programming_mode)
+    monkeypatch.setattr(rf, "rf_devices_in_programming_mode", in_programming_mode)
     modes: list[bool] = []
 
     async def switch(multi: bool) -> None:
@@ -410,6 +410,7 @@ async def test_written_in_the_clear_when_a_coupler_stops_secured_system_broadcas
         )
 
 
+@pytest.mark.usefixtures("no_programming_mode")
 async def test_an_rf_device_written_in_the_clear_behind_such_a_coupler(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

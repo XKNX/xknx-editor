@@ -5015,6 +5015,26 @@ class ProjectStrings:
         return _("Waiting for confirmation")
 
     @property
+    def SERIAL_NUMBER_DIFFERENT(self) -> str:
+        return _(
+            "The device in programming mode has the serial number {found}, the project has "
+            "{stored} for this device."
+        )
+
+    @property
+    def SERIAL_NUMBER_QUESTION(self) -> str:
+        return _(
+            "Do you want to take over its serial number? The download then starts again with it "
+            "and asks for its device certificate if the project does not have it."
+        )
+
+    @property
+    def SERIAL_NUMBER_TAKEN_OVER(self) -> str:
+        return _(
+            "Serial number {serial} taken over: the download starts again with it."
+        )
+
+    @property
     def FULL_DOWNLOAD_DIFFERENT(self) -> str:
         return _(
             "The application program currently loaded in the device is different from "

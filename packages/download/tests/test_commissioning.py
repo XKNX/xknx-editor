@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+import contextlib
+from collections.abc import AsyncIterator, Awaitable, Callable
+from types import SimpleNamespace
 from typing import Any, cast
 
 import pytest
@@ -11,7 +14,12 @@ from xknx.telegram import apci
 from xknx.telegram.address import IndividualAddress, IndividualAddressableType
 
 import xknxeditor.download.commissioning as commissioning
-from xknxeditor.download.errors import ProgrammingModeError, SerialNumberMismatchError
+from xknxeditor.download.errors import (
+    ProgrammingModeError,
+    SerialNumberDeclined,
+    SerialNumberMismatchError,
+    SerialNumberTakenOver,
+)
 
 
 async def test_program_via_programming_mode(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -193,57 +201,191 @@ async def test_a_device_in_programming_mode_gets_the_address_not_the_serial_numb
     assert calls == [("programming_mode", IndividualAddress("1.1.5"))]
 
 
-async def test_the_serial_number_only_without_a_device_in_programming_mode(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    serial = bytes.fromhex("00FAE70AA822")
-    _in_programming_mode(monkeypatch, [])
+def _looked_for(
+    devices: list[IndividualAddress],
+) -> Callable[[], Awaitable[list[IndividualAddress]]]:
+    async def in_programming_mode() -> list[IndividualAddress]:
+        return devices
+
+    return in_programming_mode
+
+
+async def _no_serial_number(address: IndividualAddress) -> bytes | None:
+    raise AssertionError("not read for a device in the clear")
+
+
+_STORED = bytes.fromhex("00FAE70AA822")
+_FOUND = bytes.fromhex("00FAD6B25D85")
+_unless = commissioning._serial_number_unless_programming_mode  # pyright: ignore[reportPrivateUsage]
+
+
+async def test_the_serial_number_only_without_a_device_in_programming_mode() -> None:
+    one = _looked_for([IndividualAddress("15.15.255")])
     assert (
-        await commissioning._serial_number_unless_programming_mode(  # pyright: ignore[reportPrivateUsage]
-            cast("XKNX", object()), serial, None, None
+        await _unless(
+            _STORED,
+            None,
+            in_programming_mode=_looked_for([]),
+            read_serial_number=_no_serial_number,
         )
-        == serial
+        == _STORED
     )
-    _in_programming_mode(
-        monkeypatch, [IndividualAddress("15.15.255"), IndividualAddress("1.1.9")]
-    )
-    with pytest.raises(ProgrammingModeError, match="More than one"):
-        await commissioning._serial_number_unless_programming_mode(  # pyright: ignore[reportPrivateUsage]
-            cast("XKNX", object()), serial, None, None
-        )
-    # nothing to look for without a serial number, nor for a KNX RF device (its own path)
     assert (
-        await commissioning._serial_number_unless_programming_mode(  # pyright: ignore[reportPrivateUsage]
-            cast("XKNX", object()), None, None, None
+        await _unless(
+            _STORED, None, in_programming_mode=one, read_serial_number=_no_serial_number
         )
         is None
     )
-    assert (
-        await commissioning._serial_number_unless_programming_mode(  # pyright: ignore[reportPrivateUsage]
-            cast("XKNX", object()), serial, bytes(6), None
+    two = _looked_for([IndividualAddress("15.15.255"), IndividualAddress("1.1.9")])
+    with pytest.raises(ProgrammingModeError, match="More than one"):
+        await _unless(
+            _STORED, None, in_programming_mode=two, read_serial_number=_no_serial_number
         )
-        == serial
-    )
-
-
-@pytest.mark.parametrize("found", ["00FAE70AA822", "00FAD6B25D85", None])
-async def test_a_secured_device_in_programming_mode_has_to_be_the_certificates(
-    monkeypatch: pytest.MonkeyPatch, found: str | None
-) -> None:
-    serial = bytes.fromhex("00FAE70AA822")
-    _in_programming_mode(monkeypatch, [IndividualAddress("15.15.255")])
-
-    async def plain_serial(xknx: XKNX, address: IndividualAddress) -> bytes | None:
-        assert address == IndividualAddress("15.15.255")
-        return bytes.fromhex(found) if found is not None else None
-
-    monkeypatch.setattr(commissioning, "_plain_serial_number", plain_serial)
-    unless = commissioning._serial_number_unless_programming_mode  # pyright: ignore[reportPrivateUsage]
-    if found == "00FAE70AA822":
+    # nothing to look for without a serial number, nor with one known to be the device's
+    for serial, known in ((None, False), (_STORED, True)):
         assert (
-            await unless(cast("XKNX", object()), serial, None, cast("Any", object()))
-            is None
+            await _unless(
+                serial,
+                None,
+                in_programming_mode=one,
+                read_serial_number=_no_serial_number,
+                known=known,
+            )
+            == serial
         )
+
+
+@pytest.mark.parametrize(
+    ("found", "answer", "raised"),
+    [
+        (_STORED, None, None),
+        (_FOUND, None, "SerialNumberMismatchError"),
+        (None, True, "SerialNumberMismatchError"),
+        (_FOUND, True, "SerialNumberTakenOver"),
+        (_FOUND, False, "SerialNumberDeclined"),
+    ],
+)
+async def test_a_secured_device_in_programming_mode_has_to_be_the_certificates(
+    found: bytes | None, answer: bool | None, raised: str | None
+) -> None:
+    asked: list[tuple[bytes, bytes]] = []
+
+    async def read_serial_number(address: IndividualAddress) -> bytes | None:
+        assert address == IndividualAddress("15.15.255")
+        return found
+
+    async def confirm(found_serial: bytes, stored: bytes) -> bool:
+        asked.append((found_serial, stored))
+        assert answer is not None
+        return answer
+
+    call = _unless(
+        _STORED,
+        cast("Any", object()),
+        in_programming_mode=_looked_for([IndividualAddress("15.15.255")]),
+        read_serial_number=read_serial_number,
+        confirm=confirm if answer is not None else None,
+    )
+    if raised is None:
+        assert await call is None
+        assert asked == []
         return
-    with pytest.raises(SerialNumberMismatchError, match="not 00FAE70AA822"):
-        await unless(cast("XKNX", object()), serial, None, cast("Any", object()))
+    errors = {
+        "SerialNumberMismatchError": SerialNumberMismatchError,
+        "SerialNumberTakenOver": SerialNumberTakenOver,
+        "SerialNumberDeclined": SerialNumberDeclined,
+    }
+    with pytest.raises(errors[raised]) as error:
+        await call
+    if raised == "SerialNumberTakenOver":
+        assert cast("SerialNumberTakenOver", error.value).serial_number == _FOUND
+    if raised == "SerialNumberMismatchError" and found is None:
+        # nothing to take over
+        assert asked == []
+    elif answer is not None:
+        assert asked == [(_FOUND, _STORED)]
+
+
+@pytest.mark.parametrize("multi_coupler", [False, True])
+async def test_an_rf_device_is_looked_for_in_both_rf_modes(
+    monkeypatch: pytest.MonkeyPatch, multi_coupler: bool
+) -> None:
+    events: list[object] = []
+    answers: list[list[IndividualAddress]] = [[], [IndividualAddress("1.1.9")]]
+
+    async def in_programming_mode(
+        xknx: XKNX, system_broadcast: bool = True
+    ) -> list[IndividualAddress]:
+        events.append(("poll", system_broadcast))
+        return answers.pop(0)
+
+    async def switch(multi: bool) -> None:
+        events.append(("multi", multi))
+
+    monkeypatch.setattr(
+        commissioning, "rf_devices_in_programming_mode", in_programming_mode
+    )
+    path = cast(
+        "Any",
+        SimpleNamespace(
+            system_broadcast=True, switch_rf_mode=switch if multi_coupler else None
+        ),
+    )
+    found = await commissioning._rf_serial_number_unless_programming_mode(  # pyright: ignore[reportPrivateUsage]
+        cast("XKNX", object()), _STORED, None, path, known=False, confirm=None
+    )
+    if multi_coupler:
+        # in KNX RF Ready first, then in KNX RF Multi, and back
+        assert found is None
+        assert events == [
+            ("multi", False),
+            ("poll", True),
+            ("multi", True),
+            ("poll", True),
+            ("multi", False),
+        ]
+    else:
+        # one look without a coupler to switch: none in programming mode
+        assert found == _STORED
+        assert events == [("poll", True)]
+
+
+async def test_a_new_rf_device_in_programming_mode_gets_the_address(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    calls: list[object] = []
+
+    async def in_programming_mode(*args: object) -> list[IndividualAddress]:
+        return [IndividualAddress("15.15.255")]
+
+    async def rf_addresses(
+        xknx: XKNX,
+        address: IndividualAddress,
+        domain_address: bytes,
+        serial_number: bytes | None,
+        security: object,
+        path: object,
+    ) -> bytes | None:
+        calls.append(serial_number)
+        return _FOUND
+
+    @contextlib.asynccontextmanager
+    async def no_path(*args: object, **kwargs: object) -> AsyncIterator[Any]:
+        yield SimpleNamespace(system_broadcast=True, switch_rf_mode=None)
+
+    monkeypatch.setattr(
+        commissioning, "rf_devices_in_programming_mode", in_programming_mode
+    )
+    monkeypatch.setattr(commissioning, "_program_rf_addresses", rf_addresses)
+    monkeypatch.setattr(commissioning, "broadcast_path", no_path)
+    assert (
+        await commissioning.program_individual_address(
+            cast("XKNX", object()),
+            "1.1.5",
+            serial_number=_STORED,
+            domain_address=bytes(6),
+        )
+        == _FOUND
+    )
+    # through programming mode, not by the serial number stored
+    assert calls == [None]

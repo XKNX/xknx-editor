@@ -9008,6 +9008,17 @@ class ProjectService:
         key = backbone[0] if backbone is not None else None
         return ip_domain_address(multicast, key), system_broadcast
 
+    def serial_number_known(self, device: Device) -> bool:
+        """Whether the serial number stored for ``device`` is known to be its own: a KNX IP
+        device with KNX IP Secure that was downloaded securely (it uses its Tool Key). Its address
+        then goes to it by serial number without looking for a device in programming mode first."""
+        if device.app is None or not device.app.program.is_secure_enabled:
+            return False
+        if self.device_ip_domain_address(device)[0] is None:
+            return False
+        keys = self.device_keys(device)
+        return keys is not None and keys.loaded_tool_key is not None
+
     def _line_of_segment(self, segment_id: int | None) -> tuple[int, _Line] | None:
         """The area number and the line of the segment ``segment_id``."""
         if segment_id is None:

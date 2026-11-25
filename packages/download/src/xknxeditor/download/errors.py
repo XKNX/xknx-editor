@@ -199,6 +199,23 @@ class SerialNumberMismatchError(DownloadError):
     device certificate."""
 
 
+class SerialNumberDeclined(SerialNumberMismatchError):
+    """The user did not take over the serial number of the secured device in programming mode:
+    the download is canceled."""
+
+
+class SerialNumberTakenOver(DownloadError):
+    """The user took over the serial number of the secured device in programming mode: the
+    download starts again with it (and its device certificate)."""
+
+    def __init__(self, serial_number: bytes) -> None:
+        super().__init__(
+            f"The serial number {serial_number.hex().upper()} of the device in programming "
+            "mode was taken over."
+        )
+        self.serial_number = serial_number
+
+
 class InterfaceNotConfirming(DownloadError):
     """The interface did not confirm a frame to the device in time (no L_Data.con), so whether
     the device is there is unknown. A slow connection needs a longer confirmation timeout."""

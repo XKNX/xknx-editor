@@ -27,6 +27,7 @@ from typing import TYPE_CHECKING, Any
 
 from editor_gui.plugins.connection.service import EndedBusOperation, OperationNotStarted
 from editor_gui.plugins.project.strings import S
+from xknxeditor.download.errors import SerialNumberDeclined, SerialNumberTakenOver
 from xknxeditor.download.partial import FullDownloadDeclined
 from xknxeditor.prod.script import AbortToken, ScriptAborted
 
@@ -128,6 +129,10 @@ class QueueItem:
     waiting_for_button: bool = False
     # Answered by the user: overwrite the application a download found in the device.
     full_download_question: Future[bool] | None = field(default=None, repr=False)
+    # Answered by the user: take over the serial number of the secured device in programming
+    # mode, which is not the one stored for the device (found, stored).
+    serial_number_question: Future[bool] | None = field(default=None, repr=False)
+    serial_number_asked: tuple[bytes, bytes] | None = None
     future: Future[Any] | None = field(default=None, repr=False)
     # The user canceled it; a running operation shows Canceling until it has ended.
     canceled_by_user: bool = False
@@ -373,7 +378,14 @@ def _outcome(
     if item.canceled_by_user and error is not None:
         # Stopped while it ran: whatever the interrupted exchange raised is the cancellation.
         return OperationState.CANCELED, None
-    if isinstance(error, ScriptAborted | FullDownloadDeclined):
+    if isinstance(
+        error,
+        ScriptAborted
+        | FullDownloadDeclined
+        | SerialNumberDeclined
+        | SerialNumberTakenOver,
+    ):
+        # A taken over serial number starts the download again (see ProjectPlugin).
         return OperationState.CANCELED, None
     if isinstance(error, OperationNotStarted) and item.message:
         # Connected for it, it did not start: for the reason it gave.

@@ -49,6 +49,8 @@ async def _run(
         domain_address: bytes | None = None,
         security: Any = None,
         ip_system_broadcast: bool = False,
+        serial_number_known: bool = False,
+        confirm_serial_number: Any = None,
     ) -> None:
         trace.append(f"assign:{address}")
         if domain_address is not None:

@@ -111,7 +111,7 @@ async def _send(xknx: XKNX, payload: APCI, system_broadcast: bool) -> None:
         await xknx.management.broadcast.send(payload)
 
 
-async def _devices_in_programming_mode(
+async def rf_devices_in_programming_mode(
     xknx: XKNX, system_broadcast: bool = True
 ) -> list[IndividualAddress]:
     """The individual addresses of the devices in programming mode (a system broadcast
@@ -144,7 +144,7 @@ async def wait_for_rf_programming_mode(
         if switch_rf_mode is not None:
             await switch_rf_mode(multi)
             multi = not multi
-        devices = await _devices_in_programming_mode(xknx, system_broadcast)
+        devices = await rf_devices_in_programming_mode(xknx, system_broadcast)
         if len(devices) > 1:
             raise ProgrammingModeError("More than one device is in programming mode.")
         if devices:

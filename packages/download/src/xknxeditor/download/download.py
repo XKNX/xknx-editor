@@ -751,6 +751,8 @@ async def download(
     commission_serial_number: bytes | None = None,
     commission_domain_address: bytes | None = None,
     commission_ip_system_broadcast: bool = False,
+    commission_serial_number_known: bool = False,
+    confirm_serial_number: Callable[[bytes, bytes], Awaitable[bool]] | None = None,
     progress: Callable[[int, int], None] | None = None,
     confirm_full_download: Callable[[str], Awaitable[bool]] | None = None,
     ip_config: IpDeviceConfig | None = None,
@@ -796,7 +798,10 @@ async def download(
     device gets ``commission_domain_address`` as well (see :mod:`.rf_commissioning`), secured
     with ``security`` when it is addressed by serial number; a KNX IP device its routing
     multicast address (also with the backbone key) by serial number, by system broadcast with
-    ``commission_ip_system_broadcast``.
+    ``commission_ip_system_broadcast``. A device in programming mode gets the address before
+    the one with the serial number, unless ``commission_serial_number_known``;
+    ``confirm_serial_number`` is asked when the secured device in programming mode has another
+    serial number (see :func:`.commissioning.program_individual_address`).
     Without it, the device must already carry ``individual_address`` (a partial
     download always requires that). ``xknx`` has to be started.
 
@@ -927,6 +932,8 @@ async def download(
             domain_address=commission_domain_address,
             security=security,
             ip_system_broadcast=commission_ip_system_broadcast,
+            serial_number_known=commission_serial_number_known,
+            confirm_serial_number=confirm_serial_number,
         )
     if prepared is not None:
         await _check_prepared_association_format(xknx, address, security, prepared)

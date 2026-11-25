@@ -1453,6 +1453,15 @@ msgstr "Очікування підтвердження"
 msgid "The application program currently loaded in the device is different from the projected application program"
 msgstr "Прикладна програма, завантажена в пристрій, відрізняється від програми в проєкті"
 
+msgid "The device in programming mode has the serial number {found}, the project has {stored} for this device."
+msgstr "Пристрій у режимі програмування має серійний номер {found}, у проєкті для цього пристрою вказано {stored}."
+
+msgid "Do you want to take over its serial number? The download then starts again with it and asks for its device certificate if the project does not have it."
+msgstr "Прийняти його серійний номер? Тоді програмування почнеться знову з ним і запитає сертифікат пристрою, якщо його немає в проєкті."
+
+msgid "Serial number {serial} taken over: the download starts again with it."
+msgstr "Серійний номер {serial} прийнято: програмування починається знову з ним."
+
 msgid "Do you want to overwrite the application program (this may take several minutes)?"
 msgstr "Ви бажаєте перезаписати прикладну програму (це може зайняти кілька хвилин)?"
 

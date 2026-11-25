@@ -167,6 +167,40 @@ async def test_answer_overwrite_question(tmp_path: Path) -> None:
         assert question.result() is False
 
 
+async def test_answer_serial_number_question(tmp_path: Path) -> None:
+    _ctx, mcp, plugin, _started = _setup(tmp_path)
+    async with Client(mcp) as client:
+        (node_id,) = await _devices(client, tmp_path, "1.1.5")
+        with pytest.raises(Exception, match="no download of this device is waiting"):
+            await client.call_tool(
+                "connection_answer_serial_number",
+                {"take_over": True, "node_id": node_id},
+            )
+        item = _item(node_id, "1.1.5")
+        plugin.program_queue.enqueue(item)
+        entry = (await _data(client, "connection_operations"))["active"][0]
+        assert "awaiting_serial_number_answer" not in entry
+        question: Future[bool] = Future()
+        item.serial_number_asked = (
+            bytes.fromhex("00FAD6B25D85"),
+            bytes.fromhex("00FAE70AA822"),
+        )
+        item.serial_number_question = question
+        entry = (await _data(client, "connection_operations"))["active"][0]
+        assert entry["awaiting_serial_number_answer"] == {
+            "found": "00FAD6B25D85",
+            "stored": "00FAE70AA822",
+        }
+        assert entry["state_text"] == "Waiting for confirmation"
+        assert await _data(
+            client,
+            "connection_answer_serial_number",
+            take_over=True,
+            device_address="1.1.5",
+        ) == {"answered": True}
+        assert question.result() is True
+
+
 async def test_force_stop_a_script_that_ignores_its_cancel(tmp_path: Path) -> None:
     _ctx, mcp, plugin, _started = _setup(tmp_path)
     async with Client(mcp) as client:

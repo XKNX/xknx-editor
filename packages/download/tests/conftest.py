@@ -401,3 +401,6 @@ def no_programming_mode(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(
         commissioning, "nm_individual_address_read", none_in_programming_mode
     )
+    monkeypatch.setattr(
+        commissioning, "rf_devices_in_programming_mode", none_in_programming_mode
+    )

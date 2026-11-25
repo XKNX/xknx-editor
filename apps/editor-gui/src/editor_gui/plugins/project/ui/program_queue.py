@@ -11,6 +11,7 @@ from collections.abc import Callable
 
 from imgui_bundle import hello_imgui, imgui
 
+from editor_gui.device_info import serial_text
 from editor_gui.local_time import recent_text
 from editor_gui.plugins.project.device_info_view import Toned
 from editor_gui.plugins.project.program_queue import OperationState, QueueItem
@@ -148,6 +149,7 @@ class ProgramQueuePanel:
             if item.state is OperationState.RUNNING:
                 self._render_progress(item)
             _render_full_download_question(item)
+            _render_serial_number_question(item)
         if item.script is not None and item.script.text:
             imgui.text_wrapped(item.script.text)
         failed = item.state is OperationState.FAILED
@@ -228,6 +230,24 @@ def _render_full_download_question(item: QueueItem) -> None:
         question.set_result(True)
     imgui.same_line()
     if imgui.button(f"{S.BTN_NO}##full_download_no"):
+        question.set_result(False)
+
+
+def _render_serial_number_question(item: QueueItem) -> None:
+    question = item.serial_number_question
+    if question is None or question.done() or item.serial_number_asked is None:
+        return
+    found, stored = item.serial_number_asked
+    imgui.text_wrapped(
+        S.SERIAL_NUMBER_DIFFERENT.format(
+            found=serial_text(found), stored=serial_text(stored)
+        )
+    )
+    imgui.text_wrapped(S.SERIAL_NUMBER_QUESTION)
+    if imgui.button(f"{S.BTN_YES}##serial_number_yes"):
+        question.set_result(True)
+    imgui.same_line()
+    if imgui.button(f"{S.BTN_NO}##serial_number_no"):
         question.set_result(False)
 
 
@@ -382,7 +402,10 @@ def state_text(item: QueueItem, connecting: bool = False) -> str:
             if item.script is None:
                 if item.waiting_for_button:
                     return S.OPERATION_PRESS_PROGRAMMING_BUTTON
-                if item.full_download_question is not None:
+                if (
+                    item.full_download_question is not None
+                    or item.serial_number_question is not None
+                ):
                     return S.OPERATION_CONFIRM
                 return S.OPERATION_DOWNLOADING
             return S.SCRIPT_CANCELING if item.script.canceled else S.SCRIPT_RUNNING

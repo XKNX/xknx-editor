@@ -1453,6 +1453,15 @@ msgstr "Čekání na potvrzení"
 msgid "The application program currently loaded in the device is different from the projected application program"
 msgstr "Aplikační program v současnosti načtený v zařízení je jiný než projektovaný aplikační program"
 
+msgid "The device in programming mode has the serial number {found}, the project has {stored} for this device."
+msgstr "Zařízení v programovacím režimu má sériové číslo {found}, projekt má pro toto zařízení {stored}."
+
+msgid "Do you want to take over its serial number? The download then starts again with it and asks for its device certificate if the project does not have it."
+msgstr "Chcete převzít jeho sériové číslo? Programování pak začne znovu s ním a vyžádá si certifikát zařízení, pokud ho projekt nemá."
+
+msgid "Serial number {serial} taken over: the download starts again with it."
+msgstr "Sériové číslo {serial} převzato: programování začíná znovu s ním."
+
 msgid "Do you want to overwrite the application program (this may take several minutes)?"
 msgstr "Přejete si přepsat aplikační program (tato akce může trvat několik minut)?"
 

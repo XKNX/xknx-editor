@@ -411,6 +411,7 @@ async def test_an_rf_overwrite(monkeypatch: pytest.MonkeyPatch) -> None:
     assert _without_routing(calls)[-1] == ("switch", (current, False))
 
 
+@pytest.mark.usefixtures("no_programming_mode")
 async def test_an_rf_download_by_serial_number(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -424,6 +425,7 @@ async def test_an_rf_download_by_serial_number(
     ]
 
 
+@pytest.mark.usefixtures("no_programming_mode")
 async def test_commissioning_an_rf_device_for_a_full_download(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -447,6 +449,7 @@ class _Security:
     """A device's Data Secure keys, as the commissioning passes them on."""
 
 
+@pytest.mark.usefixtures("no_programming_mode")
 async def test_a_secured_rf_address_download_by_serial_number(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -492,6 +495,7 @@ async def test_a_secured_rf_overwrite(monkeypatch: pytest.MonkeyPatch) -> None:
     ]
 
 
+@pytest.mark.usefixtures("no_programming_mode")
 async def test_a_secured_commissioning_for_a_full_download(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -573,6 +577,7 @@ async def test_the_serial_number_read(monkeypatch: pytest.MonkeyPatch) -> None:
     assert await read(cast("XKNX", None), bytes(6)) is None
 
 
+@pytest.mark.usefixtures("no_programming_mode")
 async def test_services_a_coupler_makes_system_broadcasts_go_as_broadcasts(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
