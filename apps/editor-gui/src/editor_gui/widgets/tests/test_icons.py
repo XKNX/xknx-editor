@@ -94,10 +94,11 @@ def test_dark_greys_are_kept_on_a_light_background() -> None:
 
 
 def test_light_greys_are_inverted_on_a_light_background() -> None:
-    src = _png([(240, 240, 240, 255), (30, 30, 30, 64), (0, 0, 0, 0)], 3)
+    src = _png([(240, 240, 240, 255), (0, 0, 0, 0), (30, 30, 30, 64)], 3)
     result = readable_png(src, dark_background=False)
     assert result is not None
-    assert _pixels(result)[:2] == [(15, 15, 15, 255), (225, 225, 225, 64)]
+    pixels = _pixels(result)
+    assert (pixels[0], pixels[2]) == ((15, 15, 15, 255), (225, 225, 225, 64))
     assert readable_png(src, dark_background=True) is None
 
 
@@ -110,3 +111,52 @@ def test_opaque_picture_is_kept() -> None:
     src = _png([(0, 0, 0, 255), (255, 255, 255, 255)], 2)
     assert readable_png(src, dark_background=True) is None
     assert readable_png(src, dark_background=False) is None
+
+
+def _framed(
+    size: int, fill: tuple[int, int, int, int], outline: tuple[int, int, int, int]
+):  # type: ignore[no-untyped-def]
+    """A ``size`` square of ``fill`` inside a one-pixel ``outline``, on a one-pixel transparent
+    margin."""
+    clear = (0, 0, 0, 0)
+    side = size + 4
+    pixels: list[tuple[int, int, int, int]] = []
+    for y in range(side):
+        for x in range(side):
+            if x in (0, side - 1) or y in (0, side - 1):
+                pixels.append(clear)
+            elif x in (1, side - 2) or y in (1, side - 2):
+                pixels.append(outline)
+            else:
+                pixels.append(fill)
+    return _png(pixels, side)
+
+
+def test_a_light_fill_inside_a_coloured_outline_is_kept() -> None:
+    # The white inside a blue frame (a drawn device, a dialog) needs no contrast to the
+    # background: the frame gives it.
+    src = _framed(20, (255, 255, 255, 255), (77, 120, 180, 255))
+    assert readable_png(src, dark_background=False) is None
+    assert readable_png(src, dark_background=True) is None
+
+
+def test_a_light_grey_shape_on_the_background_is_inverted() -> None:
+    # Its edge borders the background: on a light theme it would hardly show.
+    grey = (230, 230, 230, 255)
+    src = _framed(20, grey, grey)
+    result = readable_png(src, dark_background=False)
+    assert result is not None
+    assert _pixels(result)[24 * 2 + 2] == (25, 25, 25, 255)
+    assert readable_png(src, dark_background=True) is None
+
+
+def test_a_dark_fill_inside_a_light_grey_outline_follows_the_outline() -> None:
+    # Only the outline borders the background, so its light grey decides, however much dark
+    # fill it holds; every grey turns with it.
+    src = _framed(20, (40, 40, 40, 255), (235, 235, 235, 255))
+    assert readable_png(src, dark_background=True) is None
+    result = readable_png(src, dark_background=False)
+    assert result is not None
+    pixels = _pixels(result)
+    assert pixels[24 + 1] == (20, 20, 20, 255)
+    assert pixels[24 * 2 + 2] == (215, 215, 215, 255)
