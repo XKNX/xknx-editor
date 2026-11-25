@@ -9,6 +9,7 @@ import threading
 from dataclasses import asdict, replace
 from pathlib import Path
 from typing import Any
+from unittest.mock import Mock
 
 import pytest
 
@@ -21,6 +22,7 @@ from editor_gui.instances import (
     request,
     with_project,
 )
+from editor_gui.main import KnxGuiApp, writes_note
 
 
 def _registry(folder: Path, received: list[dict[str, Any]]) -> Registry:
@@ -123,3 +125,51 @@ def test_the_entry_of_an_editor_no_longer_running_is_dropped_without_asking(
 
 def test_modes() -> None:
     assert {DESKTOP, BROWSER} == {"desktop", "browser"}
+
+
+def test_whether_an_editor_blocks_bus_writes_comes_with_its_answer(
+    tmp_path: Path,
+) -> None:
+    blocked = [True]
+    registry = Registry(
+        BROWSER,
+        "http://localhost:8081/",
+        lambda _command: None,
+        tmp_path,
+        bus_writes_blocked=lambda: blocked[0],
+    )
+    try:
+        entry = json.loads((tmp_path / f"{os.getpid()}.json").read_text("utf-8"))
+        # its entry stays as editors read it that do not know it
+        assert "bus_writes_blocked" not in entry
+        entry["pid"] = os.getppid()
+        (tmp_path / f"{os.getppid()}.json").write_text(json.dumps(entry), "utf-8")
+        assert [other.bus_writes_blocked for other in others(tmp_path)] == [True]
+        blocked[0] = False
+        assert [other.bus_writes_blocked for other in others(tmp_path)] == [False]
+        # nothing for a request without the token
+        forged = replace(registry.entry, token="0" * 32)
+        answer = request(forged, {"cmd": "ping"})
+        assert answer is not None
+        assert "bus_writes_blocked" not in answer
+    finally:
+        registry.close()
+
+
+def test_the_dialog_names_an_editor_blocking_bus_writes() -> None:
+    other = Instance(1, DESKTOP, "", 1, "t", "C:/Haus.xknx", 0.0)
+    label = KnxGuiApp._editor_label(Mock(), other)  # pyright: ignore[reportPrivateUsage]
+    assert label == "Window: Haus.xknx"
+    blocked = replace(other, bus_writes_blocked=True)
+    label = KnxGuiApp._editor_label(Mock(), blocked)  # pyright: ignore[reportPrivateUsage]
+    assert label == "Window: Haus.xknx, bus writes blocked"
+
+
+def test_a_start_that_writes_to_the_bus_unlike_a_running_editor_says_so() -> None:
+    writing = Instance(1, DESKTOP, "", 1, "t", "", 0.0)
+    blocking = replace(writing, pid=2, bus_writes_blocked=True)
+    assert writes_note([writing, blocking], blocked_here=False) is not None
+    # this start blocks them too (--no-bus-writes, or Block Bus Writes on)
+    assert writes_note([writing, blocking], blocked_here=True) is None
+    # none of them blocks them
+    assert writes_note([writing], blocked_here=False) is None

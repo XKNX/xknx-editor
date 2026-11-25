@@ -11,6 +11,7 @@ import pytest
 from xknx import XKNX
 from xknx.exceptions import (
     CommunicationError,
+    ConfirmationError,
     ManagementConnectionError,
     ManagementConnectionRefused,
 )
@@ -415,6 +416,55 @@ async def test_send_failure_closes_connection(wait_for_ack: bool) -> None:
     peer.on_data = fail
     with pytest.raises(ManagementConnectionError, match="interface unavailable"):
         await connection.send_data(_WRITE, wait_for_ack=wait_for_ack)
+    await _assert_closed(peer, connection)
+
+
+async def test_a_frame_the_interface_did_not_confirm_is_repeated() -> None:
+    peer = _Peer()
+    connection = await peer.connect()
+
+    def respond(telegram: Telegram) -> None:
+        if len(peer.sequences) == 1:
+            # lost by the interface: no L_Data.con, so no ACK either
+            raise ConfirmationError("L_DATA_CON Data Link Layer confirmation timed out")
+        peer.ack(telegram)
+
+    peer.on_data = respond
+    await connection.send_data(_WRITE)
+    await connection.send_data(_WRITE)
+    assert peer.sequences == [0, 0, 1]
+    assert not any(isinstance(t.tpci, tpci.TDisconnect) for t in peer.sent)
+    await connection.disconnect()
+
+
+async def test_an_ack_of_a_frame_without_confirmation_is_taken() -> None:
+    peer = _Peer()
+    connection = await peer.connect()
+
+    def respond(telegram: Telegram) -> None:
+        # the device took it, only the interface's confirmation got lost
+        peer.ack(telegram)
+        raise ConfirmationError("L_DATA_CON Data Link Layer confirmation timed out")
+
+    peer.on_data = respond
+    await connection.send_data(_WRITE)
+    assert peer.sequences == [0]
+    await connection.disconnect()
+
+
+async def test_a_frame_never_confirmed_closes_the_connection() -> None:
+    peer = _Peer()
+    connection = await peer.connect()
+
+    def fail(_: Telegram) -> None:
+        raise ConfirmationError("L_DATA_CON Data Link Layer confirmation timed out")
+
+    peer.on_data = fail
+    with pytest.raises(
+        ManagementConnectionError, match=r"sequence 0 .*confirmation timed out"
+    ):
+        await connection.send_data(_WRITE)
+    assert peer.sequences == [0, 0, 0, 0]
     await _assert_closed(peer, connection)
 
 

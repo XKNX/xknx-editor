@@ -1249,6 +1249,12 @@ msgstr "Tarayıcı Arayüzü ({url})"
 msgid "{kind}: {project}"
 msgstr "{kind}: {project}"
 
+msgid "{kind}: {project}, bus writes blocked"
+msgstr "{kind}: {project}, hatta yazma engellendi"
+
+msgid "Started now, this editor writes to the bus, unlike an editor above that blocks bus writes. To block them in this one too, start it with --no-bus-writes or turn on Block Bus Writes in Settings > Connection."
+msgstr "Şimdi başlatılırsa bu düzenleyici hatta yazar; yukarıdaki, hatta yazmayı engelleyen düzenleyiciden farklıdır. Bunda da engellemek için --no-bus-writes ile başlatın veya Ayarlar > Bağlantı altında “Hatta Yazmayı Engelle” seçeneğini açın."
+
 msgid "Switch to It"
 msgstr "Ona Geç"
 

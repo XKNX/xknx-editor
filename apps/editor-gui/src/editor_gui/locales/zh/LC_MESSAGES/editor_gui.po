@@ -1249,6 +1249,12 @@ msgstr "浏览器界面（{url}）"
 msgid "{kind}: {project}"
 msgstr "{kind}：{project}"
 
+msgid "{kind}: {project}, bus writes blocked"
+msgstr "{kind}：{project}，总线写入已阻止"
+
+msgid "Started now, this editor writes to the bus, unlike an editor above that blocks bus writes. To block them in this one too, start it with --no-bus-writes or turn on Block Bus Writes in Settings > Connection."
+msgstr "现在启动的话，此编辑器会写入总线，而上方的某个编辑器阻止了总线写入。若要在此编辑器中也阻止写入，请使用 --no-bus-writes 启动，或在 配置 > 连接 中打开“阻止写入总线”。"
+
 msgid "Switch to It"
 msgstr "切换到该实例"
 

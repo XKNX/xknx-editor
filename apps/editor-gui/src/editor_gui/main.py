@@ -317,6 +317,15 @@ def no_bus_writes(argv: list[str]) -> bool:
     return "--no-bus-writes" in argv[1:]
 
 
+def writes_note(running: list[Instance], blocked_here: bool) -> str | None:
+    """What the dialog at a start while ``running`` editors run says about bus writes: that this
+    one writes to the bus (``blocked_here`` False) while one of them blocks them, as a start from
+    the Start menu has no --no-bus-writes; else nothing."""
+    if blocked_here or not any(other.bus_writes_blocked for other in running):
+        return None
+    return S.EDITOR_WRITES_NOT_BLOCKED
+
+
 def log_frames(argv: list[str]) -> bool:
     """Whether ``--log-frames`` logs every frame exchanged with the KNX interface, raw."""
     return "--log-frames" in argv[1:]
@@ -1246,7 +1255,12 @@ class KnxGuiApp:
 
         mode = BROWSER if hub is not None else DESKTOP
         try:
-            self._registry = Registry(mode, web.page_url, received)
+            self._registry = Registry(
+                mode,
+                web.page_url,
+                received,
+                bus_writes_blocked=self._connection_service.writes_blocked,
+            )
         except OSError as e:
             self._log.warning("not registered for other editors", error=str(e))
 
@@ -1303,7 +1317,12 @@ class KnxGuiApp:
             else S.EDITOR_WINDOW
         )
         project = Path(other.project).name if other.project else S.EDITOR_NO_PROJECT
-        return S.EDITOR_ENTRY.format(kind=kind, project=project)
+        entry = (
+            S.EDITOR_ENTRY_WRITES_BLOCKED
+            if other.bus_writes_blocked
+            else S.EDITOR_ENTRY
+        )
+        return entry.format(kind=kind, project=project)
 
     def _render_running_editors_modal(self) -> None:
         """At a start while other editors run: switch to one of them, or start this one too."""
@@ -1318,6 +1337,12 @@ class KnxGuiApp:
         switched = self._render_editor_rows(
             self.running_editors, self.startup_file, self.startup_password_file
         )
+        note = writes_note(
+            self.running_editors, self._connection_service.writes_blocked()
+        )
+        if note is not None:
+            imgui.spacing()
+            imgui.text_wrapped(note)
         imgui.spacing()
         clicked = dialog_buttons(S.EDITOR_START_ANOTHER, S.BTN_CANCEL)
         if switched or clicked == 1:
@@ -1336,16 +1361,31 @@ class KnxGuiApp:
         file: str | None,
         password_file: str | None = None,
     ) -> bool:
-        """One row per editor with its "Switch to It" button; whether one was switched to."""
+        """One row per editor with its "Switch to It" button; whether one was switched to. On a
+        narrow screen (a phone) the label wraps and the button goes below it."""
         switched = False
+        style = imgui.get_style()
+        button = imgui.calc_text_size(S.EDITOR_SWITCH).x + 2 * style.frame_padding.x
+        indent = imgui.get_tree_node_to_label_spacing()
         for index, other in enumerate(editors):
             imgui.push_id(f"editor-{index}")
+            label = self._editor_label(other)
+            one_line = (
+                indent + imgui.calc_text_size(label).x + style.item_spacing.x + button
+                <= imgui.get_content_region_avail().x
+            )
             imgui.align_text_to_frame_padding()
-            imgui.bullet_text(self._editor_label(other))
-            imgui.same_line()
-            if imgui.button(S.EDITOR_SWITCH) and self._switch_to(
-                other, file, password_file
-            ):
+            if one_line:
+                imgui.bullet_text(label)
+                imgui.same_line()
+            else:
+                imgui.bullet()
+                imgui.text_wrapped(label)
+                imgui.indent(indent)
+            clicked = imgui.button(S.EDITOR_SWITCH)
+            if not one_line:
+                imgui.unindent(indent)
+            if clicked and self._switch_to(other, file, password_file):
                 switched = True
             imgui.pop_id()
         return switched

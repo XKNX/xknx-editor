@@ -2,7 +2,7 @@
 
 Each editor registers itself in the data folder (``instances/<pid>.json``: window or browser UI, the
 browser UI's address, the open project) and listens on a local port for requests from another
-editor. A second start can so offer switching to an editor that runs already (bringing it to the
+editor; its answer tells whether it blocks bus writes. A second start can so offer switching to an editor that runs already (bringing it to the
 front, or opening a project there), and opening a project another editor has open can warn first.
 
 A request is one JSON line with the editor's token (only readable from its file, so only the same
@@ -40,7 +40,7 @@ _TIMEOUT = 2.0
 @dataclass(frozen=True)
 class Instance:
     """A running editor: its process, window or browser UI (with its address), control port and
-    token, the open project ("" without one) and when it started."""
+    token, the open project ("" without one), when it started and whether it blocks bus writes."""
 
     pid: int
     mode: str
@@ -49,6 +49,15 @@ class Instance:
     token: str
     project: str
     started: float
+    # From its answer, not its entry: an editor that does not know it would skip that entry.
+    bus_writes_blocked: bool = False
+
+
+def _entry(instance: Instance) -> dict[str, Any]:
+    """What an entry file holds of ``instance``."""
+    entry = asdict(instance)
+    del entry["bus_writes_blocked"]
+    return entry
 
 
 def same_file(a: str, b: str) -> bool:
@@ -109,14 +118,20 @@ def others(folder: Path | None = None) -> list[Instance]:
             continue
         # The entry of an editor that no longer runs is dropped without asking it: a request to a
         # port nobody listens on waits for the whole timeout on Windows.
-        if (
-            not psutil.pid_exists(instance.pid)
-            or request(instance, {"cmd": "ping"}) is None
-        ):
+        answer = (
+            request(instance, {"cmd": "ping"})
+            if psutil.pid_exists(instance.pid)
+            else None
+        )
+        if answer is None:
             with contextlib.suppress(OSError):
                 path.unlink()
             continue
-        found.append(instance)
+        found.append(
+            replace(
+                instance, bus_writes_blocked=answer.get("bus_writes_blocked") is True
+            )
+        )
     return sorted(found, key=lambda i: i.started, reverse=True)
 
 
@@ -127,7 +142,8 @@ def with_project(project: str, running: list[Instance]) -> list[Instance]:
 
 class Registry:
     """This editor's entry and the port it answers other editors on. ``on_request`` gets each
-    request (``{"cmd": "activate", "file": ...}``) on the listening thread."""
+    request (``{"cmd": "activate", "file": ...}``) on the listening thread, where
+    ``bus_writes_blocked`` is asked for each answer."""
 
     def __init__(
         self,
@@ -135,9 +151,11 @@ class Registry:
         url: str,
         on_request: Callable[[dict[str, Any]], None],
         folder: Path | None = None,
+        bus_writes_blocked: Callable[[], bool] = lambda: False,
     ) -> None:
         self._folder = folder or _folder()
         self._on_request = on_request
+        self._bus_writes_blocked = bus_writes_blocked
         sock = bind_port("127.0.0.1", 0)
         if sock is None:
             raise OSError("no local port for the editor's requests")
@@ -179,7 +197,7 @@ class Registry:
         try:
             self._folder.mkdir(parents=True, exist_ok=True)
             partial = self._path.with_suffix(".tmp")
-            partial.write_text(json.dumps(asdict(self.entry)), encoding="utf-8")
+            partial.write_text(json.dumps(_entry(self.entry)), encoding="utf-8")
             partial.replace(self._path)
         except OSError:
             logger.warning("editor registry not written", exc_info=True)
@@ -210,6 +228,8 @@ class Registry:
                         self._on_request(command)
                     except Exception:
                         logger.exception("editor request failed")
-                answer = {"ok": ok, "project": self.entry.project}
+                answer: dict[str, object] = {"ok": ok, "project": self.entry.project}
+                if ok:
+                    answer["bus_writes_blocked"] = self._bus_writes_blocked()
                 with contextlib.suppress(OSError):
                     conn.sendall((json.dumps(answer) + "\n").encode("utf-8"))

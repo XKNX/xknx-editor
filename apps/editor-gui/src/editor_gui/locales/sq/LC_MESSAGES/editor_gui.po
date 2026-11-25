@@ -1249,6 +1249,12 @@ msgstr "Ndërfaqja në shfletues ({url})"
 msgid "{kind}: {project}"
 msgstr "{kind}: {project}"
 
+msgid "{kind}: {project}, bus writes blocked"
+msgstr "{kind}: {project}, shkrimet në bus të bllokuara"
+
+msgid "Started now, this editor writes to the bus, unlike an editor above that blocks bus writes. To block them in this one too, start it with --no-bus-writes or turn on Block Bus Writes in Settings > Connection."
+msgstr "I nisur tani, ky redaktor shkruan në bus, ndryshe nga një redaktor më sipër që bllokon shkrimet në bus. Për t’i bllokuar edhe në këtë, niseni me --no-bus-writes ose aktivizoni „Blloko shkrimet në bus“ te Cilësimet > Lidhja."
+
 msgid "Switch to It"
 msgstr "Kalo te ai"
 

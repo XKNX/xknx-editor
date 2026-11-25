@@ -164,6 +164,8 @@ class _TransportP2PConnection(P2PConnection):
             if not wait_for_ack:
                 await self.xknx.cemi_handler.send_telegram(telegram)
                 return
+            # the last transmission's, when the interface did not confirm it
+            unconfirmed: ConfirmationError | None = None
             for repetition in range(management.MANAGEMENT_MAX_REPETITIONS + 1):
                 if repetition:
                     logger.info(
@@ -174,12 +176,30 @@ class _TransportP2PConnection(P2PConnection):
                         management.MANAGEMENT_MAX_REPETITIONS,
                     )
                 self._ack_waiter = asyncio.get_running_loop().create_future()
-                await self.xknx.cemi_handler.send_telegram(telegram)
+                unconfirmed = None
                 try:
-                    async with asyncio.timeout(management.MANAGEMENT_ACK_TIMEOUT):
-                        ack = await self._ack_waiter
-                except TimeoutError:
-                    continue
+                    await self.xknx.cemi_handler.send_telegram(telegram)
+                except ConfirmationError as exc:
+                    # The link layer's confirmation of a T_Data_Connected changes nothing (E22:
+                    # A0 in OPEN_WAIT); a frame the interface lost is repeated once the
+                    # acknowledge timeout passed without an ACK (E17: A9), as any other - KNX
+                    # v01.02.03 - Transport Layer 03.03.04 - §5.4.1. Waiting for the
+                    # confirmation took that long already.
+                    unconfirmed = exc
+                    if not self._ack_waiter.done():
+                        logger.info(
+                            "%s: the interface did not confirm sequence %d",
+                            self.address,
+                            sequence,
+                        )
+                        continue
+                    ack = self._ack_waiter.result()
+                else:
+                    try:
+                        async with asyncio.timeout(management.MANAGEMENT_ACK_TIMEOUT):
+                            ack = await self._ack_waiter
+                    except TimeoutError:
+                        continue
                 if not self._connected:
                     raise ManagementConnectionRefused(
                         f"Management connection to {self.address} disconnected by the peer."
@@ -197,6 +217,11 @@ class _TransportP2PConnection(P2PConnection):
                         f"{self.address}: repeated NAK for sequence {sequence} for {payload}"
                     )
                 return
+            if unconfirmed is not None:
+                raise ManagementConnectionError(
+                    f"{self.address}: error sending sequence {sequence} for {payload}: "
+                    f"{unconfirmed}"
+                ) from unconfirmed
             raise ManagementAckTimeout(
                 f"{self.address}: no ACK received for sequence {sequence} "
                 f"after {management.MANAGEMENT_MAX_REPETITIONS + 1} transmissions of {payload}"

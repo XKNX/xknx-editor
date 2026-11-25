@@ -1249,6 +1249,12 @@ msgstr "Interfaccia browser ({url})"
 msgid "{kind}: {project}"
 msgstr "{kind}: {project}"
 
+msgid "{kind}: {project}, bus writes blocked"
+msgstr "{kind}: {project}, scritture sul bus bloccate"
+
+msgid "Started now, this editor writes to the bus, unlike an editor above that blocks bus writes. To block them in this one too, start it with --no-bus-writes or turn on Block Bus Writes in Settings > Connection."
+msgstr "Avviato ora, questo editor scrive sul bus, a differenza di un editor sopra che blocca le scritture sul bus. Per bloccarle anche in questo, avvialo con --no-bus-writes o attiva «Blocca Scritture sul Bus» in Impostazioni > Connessione."
+
 msgid "Switch to It"
 msgstr "Passa a quella"
 

@@ -1249,6 +1249,12 @@ msgstr "Περιβάλλον Browser ({url})"
 msgid "{kind}: {project}"
 msgstr "{kind}: {project}"
 
+msgid "{kind}: {project}, bus writes blocked"
+msgstr "{kind}: {project}, οι εγγραφές στο bus αποκλείστηκαν"
+
+msgid "Started now, this editor writes to the bus, unlike an editor above that blocks bus writes. To block them in this one too, start it with --no-bus-writes or turn on Block Bus Writes in Settings > Connection."
+msgstr "Αν ξεκινήσει τώρα, αυτός ο επεξεργαστής γράφει στο bus, σε αντίθεση με έναν επεξεργαστή παραπάνω που αποκλείει τις εγγραφές στο bus. Για να τις αποκλείσετε και σε αυτόν, ξεκινήστε τον με --no-bus-writes ή ενεργοποιήστε το «Αποκλεισμός Εγγραφών στο Bus» στις Ρυθμίσεις > Σύνδεση."
+
 msgid "Switch to It"
 msgstr "Μετάβαση σε Αυτό"
 

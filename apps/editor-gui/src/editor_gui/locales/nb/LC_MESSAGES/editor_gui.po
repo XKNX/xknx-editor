@@ -1249,6 +1249,12 @@ msgstr "Nettlesergrensesnitt ({url})"
 msgid "{kind}: {project}"
 msgstr "{kind}: {project}"
 
+msgid "{kind}: {project}, bus writes blocked"
+msgstr "{kind}: {project}, skriving til bussen blokkert"
+
+msgid "Started now, this editor writes to the bus, unlike an editor above that blocks bus writes. To block them in this one too, start it with --no-bus-writes or turn on Block Bus Writes in Settings > Connection."
+msgstr "Startet nå skriver denne editoren til bussen, i motsetning til en editor ovenfor som blokkerer skriving til bussen. For å blokkere den også i denne starter du den med --no-bus-writes eller slår på «Blokker skriving til bussen» under Innstillinger > Tilkobling."
+
 msgid "Switch to It"
 msgstr "Bytt til den"
 

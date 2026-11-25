@@ -15,6 +15,7 @@ import importlib
 import logging
 import sys
 import threading
+import time
 from collections.abc import Callable
 from concurrent.futures import Future, ThreadPoolExecutor
 from dataclasses import dataclass
@@ -24,10 +25,12 @@ from typing import Any, Final
 from xknx.exceptions import CommunicationError
 
 from .const import HID_REPORT_LENGTH
-from .control_pipe import ControlPipe, open_control_pipe
+from .control_pipe import ControlPipe, WriteTimeout, open_control_pipe
 
 logger = logging.getLogger("xknx.log")
 raw_socket_logger = logging.getLogger("xknx.raw_socket")
+# A write taking this long (seconds) is logged: one takes a few milliseconds.
+SLOW_WRITE: Final = 0.25
 
 # Known KNX USB interfaces by USB vendor and product id, with the manufacturer selling
 # them. Unless noted otherwise the entries are the list `KNOWN_DEVICES` of the KNX USB
@@ -485,8 +488,32 @@ class HIDDevice:
 
         A report the interface doesn't take over its interrupt OUT endpoint (the
         write fails or times out) is sent over the control pipe; when that works,
-        all later reports go that way.
+        all later reports go that way. A report the interface doesn't take in time
+        over the control pipe (WriteTimeout, see control_pipe) is no error: it often
+        sent the frame anyway, and what waits for its L_Data.con repeats it otherwise.
         """
+        started = time.monotonic()
+        try:
+            self._send_report(report)
+        except WriteTimeout as err:
+            logger.info(
+                "KNX USB interface %s took no report over the control pipe in %.1f s "
+                "(%s): writing the next one",
+                self.info,
+                time.monotonic() - started,
+                err,
+            )
+            return
+        elapsed = time.monotonic() - started
+        if elapsed >= SLOW_WRITE:
+            logger.info(
+                "Writing a report to KNX USB interface %s took %.1f s",
+                self.info,
+                elapsed,
+            )
+
+    def _send_report(self, report: bytes) -> None:
+        """Write one HID report, over the control pipe when it is in use."""
         if self._control_pipe is not None:
             self._control_pipe.send(report)
             return
@@ -503,6 +530,11 @@ class HIDDevice:
             pipe = open_control_pipe(self._device, self.info.backend, self.info.path)
             if pipe is not None:
                 pipe.send(report)
+        except WriteTimeout:
+            # it takes them, slowly as such an interface does at times
+            assert pipe is not None
+            self._use_control_pipe(pipe, interrupt_error)
+            raise
         except OSError as err:
             if pipe is not None:
                 with contextlib.suppress(OSError):
@@ -510,6 +542,10 @@ class HIDDevice:
             raise OSError(f"{interrupt_error}; over the control pipe: {err}") from err
         if pipe is None:
             raise OSError(interrupt_error)
+        self._use_control_pipe(pipe, interrupt_error)
+
+    def _use_control_pipe(self, pipe: ControlPipe, interrupt_error: str) -> None:
+        """Send all later reports over `pipe`."""
         logger.info(
             "KNX USB interface %s took no report over its interrupt OUT endpoint "
             "(%s): sending them over the control pipe",

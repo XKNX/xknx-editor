@@ -1321,6 +1321,12 @@ msgstr "Vafraviðmót ({url})"
 msgid "{kind}: {project}"
 msgstr "{kind}: {project}"
 
+msgid "{kind}: {project}, bus writes blocked"
+msgstr "{kind}: {project}, skrif á bus lokuð"
+
+msgid "Started now, this editor writes to the bus, unlike an editor above that blocks bus writes. To block them in this one too, start it with --no-bus-writes or turn on Block Bus Writes in Settings > Connection."
+msgstr "Ef hann er ræstur núna skrifar þessi ritill á businn, ólíkt ritli hér að ofan sem lokar á skrif á bus. Til að loka á þau líka í þessum skaltu ræsa hann með --no-bus-writes eða kveikja á „Loka á skrif á bus“ í Stillingar > Tenging."
+
 msgid "Switch to It"
 msgstr "Skipta yfir"
 

@@ -1249,6 +1249,12 @@ msgstr "Інтерфейс браузера ({url})"
 msgid "{kind}: {project}"
 msgstr "{kind}: {project}"
 
+msgid "{kind}: {project}, bus writes blocked"
+msgstr "{kind}: {project}, запис на шину заблоковано"
+
+msgid "Started now, this editor writes to the bus, unlike an editor above that blocks bus writes. To block them in this one too, start it with --no-bus-writes or turn on Block Bus Writes in Settings > Connection."
+msgstr "Якщо запустити цей редактор зараз, він записуватиме на шину, на відміну від редактора вище, який блокує запис на шину. Щоб заблокувати його і в цьому, запустіть його з --no-bus-writes або увімкніть «Блокувати запис на шину» в розділі Налаштування > Підключення."
+
 msgid "Switch to It"
 msgstr "Перейти до нього"
 
