@@ -1361,16 +1361,31 @@ class KnxGuiApp:
         file: str | None,
         password_file: str | None = None,
     ) -> bool:
-        """One row per editor with its "Switch to It" button; whether one was switched to."""
+        """One row per editor with its "Switch to It" button; whether one was switched to. On a
+        narrow screen (a phone) the label wraps and the button goes below it."""
         switched = False
+        style = imgui.get_style()
+        button = imgui.calc_text_size(S.EDITOR_SWITCH).x + 2 * style.frame_padding.x
+        indent = imgui.get_tree_node_to_label_spacing()
         for index, other in enumerate(editors):
             imgui.push_id(f"editor-{index}")
+            label = self._editor_label(other)
+            one_line = (
+                indent + imgui.calc_text_size(label).x + style.item_spacing.x + button
+                <= imgui.get_content_region_avail().x
+            )
             imgui.align_text_to_frame_padding()
-            imgui.bullet_text(self._editor_label(other))
-            imgui.same_line()
-            if imgui.button(S.EDITOR_SWITCH) and self._switch_to(
-                other, file, password_file
-            ):
+            if one_line:
+                imgui.bullet_text(label)
+                imgui.same_line()
+            else:
+                imgui.bullet()
+                imgui.text_wrapped(label)
+                imgui.indent(indent)
+            clicked = imgui.button(S.EDITOR_SWITCH)
+            if not one_line:
+                imgui.unindent(indent)
+            if clicked and self._switch_to(other, file, password_file):
                 switched = True
             imgui.pop_id()
         return switched
