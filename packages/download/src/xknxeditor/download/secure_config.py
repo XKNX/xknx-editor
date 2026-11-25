@@ -30,6 +30,8 @@ from xknxeditor.namespaces.intermediate import (
 )
 from xknxeditor.namespaces.intermediate.ld_ctrl_proc_type_t import LdCtrlProcType
 
+from .errors import ImageError
+
 SECURITY_OBJECT: Final = 17
 PID_SECURITY_MODE: Final = 51
 PID_P2P_KEY_TABLE: Final = 52
@@ -97,7 +99,7 @@ class SecurityTables:
 
     ``group_keys`` are ``(address table index, key)`` in index order, ``individual_addresses``
     ``(individual address, last valid sequence number)`` in address order, ``go_flags`` one octet
-    per group object number from 0, and ``p2p_keys`` ``(individual-address-table index, key,
+    per group object in table order, and ``p2p_keys`` ``(individual-address-table index, key,
     roles)`` in index order (3/5/1 6.3.6). ``proxy`` is the Security Proxy Group Key Table of a
     coupler used as Security Proxy, in group address order (None for any other device)."""
 
@@ -112,10 +114,15 @@ def security_tables(
     group_addresses: Sequence[int],
     links: Sequence[tuple[int, int]],
     security: GroupSecurity,
+    *,
+    first_group_object_number: int = 0,
 ) -> SecurityTables | None:
     """The security tables for an address table of ``group_addresses`` (in table order) and the
     active ``(group address, group object number)`` links, or ``None`` when the device has no
     secured group address and no secure point-to-point partner.
+
+    PID 61 starts at property element 1. System B group object numbers start
+    at 1 as well, while legacy memory tables can start at 0.
 
     The Security Individual Address Table holds every secured sender and every point-to-point
     partner; a point-to-point key references the partner by its 1-based index in that table
@@ -131,10 +138,20 @@ def security_tables(
     if not group_keys and not security.p2p and security.proxy is None:
         return None
     secured = {address for address in security.keys if address in index_of}
-    numbers = {number for address, number in links if address in secured}
-    flags = bytearray(max(numbers) + 1 if numbers else 0)
-    for number in numbers:
-        flags[number] = GO_AUTHENTICATION_AND_CONFIDENTIALITY
+    offsets = {
+        number - first_group_object_number
+        for address, number in links
+        if address in secured
+    }
+    lowest = min(offsets, default=0)
+    if lowest < 0:
+        raise ImageError(
+            f"secured group object {lowest + first_group_object_number} is below "
+            f"the first group object {first_group_object_number}"
+        )
+    flags = bytearray(max(offsets, default=-1) + 1)
+    for offset in offsets:
+        flags[offset] = GO_AUTHENTICATION_AND_CONFIDENTIALITY
     sequence_of: dict[int, int] = {}
     for address, sequence in security.senders:
         sequence_of[address] = max(sequence, sequence_of.get(address, 0))

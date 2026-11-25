@@ -18,6 +18,7 @@ from xknxeditor.download.procedure import LoadProcedureRunner
 from xknxeditor.download.programmer import DeviceProgrammer
 from xknxeditor.download.project_data import GroupObjectLink
 from xknxeditor.download.scope import DownloadScope
+from xknxeditor.download.secure_config import GroupSecurity
 from xknxeditor.namespaces.intermediate.ld_ctrl_write_prop_t import LdCtrlWriteProp
 from xknxeditor.prod import Application
 from xknxeditor.prod.application import parse_application_xml
@@ -180,6 +181,23 @@ def test_the_tables_are_built_from_the_links() -> None:
     assert tables.object_flags[0] & 0x20 == 0
     assert tables.object_flags[0] & 0x5C == 0x54  # communication, write, transmit
     assert tables.object_flags[1] == 0x03
+
+
+def test_the_security_flags_follow_the_group_object_numbers() -> None:
+    app = _application()
+    links = [
+        GroupObjectLink(f"{_APP}_O-1_R-1", _GA_HIGH, sending=True),
+        GroupObjectLink(f"{_APP}_O-3_R-3", _GA_LOW, sending=True),
+    ]
+    image = build_image(
+        app,
+        group_communication=GroupCommunication(
+            0x1105, links, security=GroupSecurity(keys={_GA_LOW: bytes(16)})
+        ),
+    )
+    assert image.security_tables is not None
+    # Objects are numbered from 1, as is PID 61: object 3 is its third element.
+    assert image.security_tables.go_flags == bytes([0, 0, 3])
 
 
 def test_each_table_write_gets_its_number_of_elements() -> None:
