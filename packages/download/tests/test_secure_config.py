@@ -272,6 +272,22 @@ def test_zero_based_table_maps_object_zero_to_the_first_element() -> None:
     assert tables.go_flags == bytes([0x03])
 
 
+def test_a_secured_object_below_the_first_number_is_refused() -> None:
+    import pytest
+
+    from xknxeditor.download.errors import ImageError
+
+    with pytest.raises(
+        ImageError, match="secured group object 0 is below the first group object 1"
+    ):
+        security_tables(
+            [0x0801],
+            [(0x0801, 0)],
+            GroupSecurity(keys={0x0801: _KEY_A}),
+            first_group_object_number=1,
+        )
+
+
 def test_p2p_only_device_has_tables() -> None:
     tables = security_tables([], [], GroupSecurity(keys={}, p2p=[(0x1109, _KEY_A, 0)]))
     assert tables is not None
