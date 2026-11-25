@@ -31,7 +31,12 @@ def test_the_clock_runs_smoothly_on_the_desktop_and_in_steps_in_the_browser(
     monkeypatch.setattr(web, "active_hub", None)
     assert animation.animation_time() == 1.23
     monkeypatch.setattr(web, "active_hub", object())
-    assert animation.animation_time() == 1.125  # 8 steps a second
+    # Twice a second, an eighth of a second on each time.
+    assert animation.animation_time() == 0.25
+    monkeypatch.setattr(imgui, "get_time", lambda: 1.49)
+    assert animation.animation_time() == 0.25
+    monkeypatch.setattr(imgui, "get_time", lambda: 1.5)
+    assert animation.animation_time() == 0.375
 
 
 def _child_windows(draw: Any) -> list[tuple[str, imgui.ImVec2]]:
@@ -84,3 +89,5 @@ def test_a_progress_dialog_redraws_less_often_in_the_browser(
     desktop = main.progress_fps()
     monkeypatch.setattr(web, "active_hub", object())
     assert main.progress_fps() < desktop
+    # As often as its animations move.
+    assert main.progress_fps() == animation.WEB_STEPS

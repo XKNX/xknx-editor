@@ -1205,6 +1205,9 @@ def test_frames_nobody_sees_come_now_and_then() -> None:
     # No browser: a frame now and then only, unless a task shows its progress.
     assert period(active=False, connected=False, fps=6.0, idle_fps=6.0) == 2.0
     assert period(active=False, connected=False, fps=30.0, idle_fps=6.0) == 1 / 30
+    # A progress dialog in the browser view: twice a second, as its animations move.
+    assert period(active=False, connected=True, fps=2.0, idle_fps=6.0) == 0.5
+    assert period(active=False, connected=False, fps=2.0, idle_fps=6.0) == 2.0
     # Idle frames that stopped changing: one a second; not while a task shows progress.
     assert (
         period(active=False, connected=True, fps=6.0, idle_fps=6.0, unchanged=1.0)

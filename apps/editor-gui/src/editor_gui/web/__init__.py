@@ -265,9 +265,9 @@ def frame_period(
     unchanged: float = 0.0,
 ) -> float:
     """Seconds from one frame to the next in the browser view at most: at the full rate while
-    the user acts, at ``fps`` (the app's idle rate, raised above ``idle_fps`` while a task shows
-    its progress) while a browser is connected or a task runs, and ``_UNSEEN_SECONDS`` while
-    nobody sees them. At the idle rate, once the frames came out the same for ``unchanged``
+    the user acts, at ``fps`` (the app's idle rate, or its rate while a task shows its progress)
+    while a browser is connected or a task runs faster than ``idle_fps``, and
+    ``_UNSEEN_SECONDS`` while nobody sees them. At the idle rate, once the frames came out the same for ``unchanged``
     seconds of at least ``_SETTLE_SECONDS``, ``_SETTLED_SECONDS``. Input and work for the main
     thread start a frame earlier."""
     if active:

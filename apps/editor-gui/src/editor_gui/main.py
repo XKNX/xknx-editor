@@ -508,10 +508,10 @@ _VD_PASSWORD_HINT_URL = "https://github.com/christoph2/knx/blob/72b6732322cc2f46
 _STATUS_PADDING = 7.0
 
 # Refresh rate (Hz) once input stops, and while a progress dialog shows work going on (on the
-# desktop, in the browser view).
+# desktop, in the browser view: as often as its animations move there, see widgets.animation).
 _FPS_IDLE = 6.0
 _FPS_PROGRESS = 30.0
-_FPS_PROGRESS_WEB = 10.0
+_FPS_PROGRESS_WEB = 2.0
 
 
 def progress_fps() -> float:
@@ -2970,7 +2970,7 @@ class KnxGuiApp:
     def _render_progress_modal(self) -> None:
         # Without input the window drops to the idle refresh rate, at which a progress bar looks
         # frozen; it keeps redrawing at the active rate while work is in progress (in the browser
-        # view at a lower one: its animations move in steps anyway, every frame is sent).
+        # view twice a second: its animations move in steps that often, every frame is sent).
         idling = hello_imgui.get_runner_params().fps_idling
         idling.fps_idle = progress_fps() if self._progress_running else _FPS_IDLE
         if self._progress_requested:
