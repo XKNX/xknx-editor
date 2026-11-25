@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 from concurrent.futures import Future
+from dataclasses import replace
 from types import SimpleNamespace
 from typing import Any, cast
 
@@ -172,12 +173,13 @@ def _gateway(**fields: Any) -> Any:
     return SimpleNamespace(**(values | fields))
 
 
-def test_a_secure_tunnel_when_the_interface_requires_it() -> None:
+@pytest.mark.parametrize("authorized", [True, False])
+def test_a_secure_tunnel_when_the_interface_requires_it(authorized: bool) -> None:
     gateway = _gateway(
         tunnelling_requires_secure=True,
         tunnelling_slots={
-            IndividualAddress("1.1.250"): TunnelingSlotStatus(True, True, False),
-            IndividualAddress("1.1.251"): TunnelingSlotStatus(True, True, True),
+            IndividualAddress("1.1.250"): TunnelingSlotStatus(True, authorized, False),
+            IndividualAddress("1.1.251"): TunnelingSlotStatus(True, authorized, True),
         },
     )
     service = ConnectionService()
@@ -209,7 +211,7 @@ def test_plain_tunnel_and_secure_routing() -> None:
     assert config.secure_config.latency_ms == 1500
 
 
-def _reopening(plugin: Any, description: Any) -> list[bool]:
+def _reopening(plugin: Any, description: Any, *, link_up: bool = True) -> list[bool]:
     """Run the reopen check of ``plugin`` against ``description``; the reopens it starts."""
     reopened: list[bool] = []
 
@@ -220,6 +222,7 @@ def _reopening(plugin: Any, description: Any) -> list[bool]:
         reopened.append(retry)
 
     plugin._session = 1
+    plugin._link_up = link_up
     plugin._gateway_description = gateway_description
     plugin._reopen = reopen
     plugin._log = SimpleNamespace(info=lambda *a, **k: None)  # pyright: ignore[reportUnknownLambdaType]
@@ -240,6 +243,52 @@ def test_reopened_when_the_interface_now_requires_secure_tunnelling() -> None:
     # Without credentials it is tried once, to show why it fails.
     plugin = _plugin(_gateway(), secure_tunnel=lambda *a: None)
     assert _reopening(plugin, secured) == [False]
+
+
+@pytest.mark.parametrize(
+    ("link_up", "slot_usable", "password_changed", "expected_reopens"),
+    [
+        (True, True, False, []),
+        (False, True, False, [True]),
+        (True, False, False, [True]),
+        (True, True, True, [True]),
+    ],
+)
+def test_reopen_of_an_occupied_secure_tunnel(
+    link_up: bool,
+    slot_usable: bool,
+    password_changed: bool,
+    expected_reopens: list[bool],
+) -> None:
+    first = IndividualAddress("1.1.250")
+    second = IndividualAddress("1.1.251")
+    original = _gateway(
+        tunnelling_requires_secure=True,
+        tunnelling_slots={
+            first: TunnelingSlotStatus(usable=True, authorized=False, free=True),
+            second: TunnelingSlotStatus(usable=True, authorized=False, free=True),
+        },
+    )
+    refreshed = _gateway(
+        tunnelling_requires_secure=True,
+        tunnelling_slots={
+            first: TunnelingSlotStatus(
+                usable=slot_usable, authorized=False, free=False
+            ),
+            second: TunnelingSlotStatus(usable=True, authorized=False, free=True),
+        },
+    )
+    initial_tunnels = iter((_TUNNELS,))
+    refreshed_tunnels = (
+        [replace(_TUNNELS[0], password="updated"), _TUNNELS[1]]
+        if password_changed
+        else _TUNNELS
+    )
+    service = ConnectionService()
+    service.project_tunnels = lambda host: next(initial_tunnels, refreshed_tunnels)
+    plugin = _plugin(original, secure_tunnel=service.secure_tunnel)
+
+    assert _reopening(plugin, refreshed, link_up=link_up) == expected_reopens
 
 
 def test_the_interfaces_download_reopens_the_connection() -> None:

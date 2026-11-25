@@ -1552,7 +1552,12 @@ class ConnectionPlugin:
             )
             return None
 
-    def _connection_config(self, gateway: GatewayDescriptor | None) -> ConnectionConfig:
+    def _connection_config(
+        self,
+        gateway: GatewayDescriptor | None,
+        *,
+        active_tunnel: IndividualAddress | None = None,
+    ) -> ConnectionConfig:
         """The connection to open to ``gateway``: KNX IP Secure tunnelling (over TCP) when the
         interface requires it, KNX IP Secure routing when the backbone does, with the credentials
         of the project or the loaded keyring; plain otherwise."""
@@ -1582,13 +1587,20 @@ class ConnectionPlugin:
             )
         host, port = self._endpoint()
         if gateway is not None and gateway.tunnelling_requires_secure:
-            free = [
+            # UDP discovery cannot authorize a secure tunnel. The gateway checks the selected
+            # credentials when establishing the secure session.
+            candidates = [
                 str(address)
                 for address, slot in gateway.tunnelling_slots.items()
-                if slot.usable and slot.authorized and slot.free
+                if slot.usable and slot.free
             ]
+            if active_tunnel is not None:
+                active_slot = gateway.tunnelling_slots.get(active_tunnel)
+                if active_slot is not None and active_slot.usable:
+                    # Our open tunnel is reported occupied. Compare its credentials first.
+                    candidates = [str(active_tunnel)]
             tunnel = (
-                connection.secure_tunnel(str(gateway.individual_address), free)
+                connection.secure_tunnel(str(gateway.individual_address), candidates)
                 if gateway.individual_address is not None
                 else None
             )
@@ -1958,7 +1970,8 @@ class ConnectionPlugin:
         """Replace the open connection when the interface now requires another configuration
         (secure or plain, other credentials). Without the credentials it requires, the connection
         is tried once and shows why it fails. ``False`` when the interface did not answer."""
-        if self._open_config(session) is None:
+        current = self._open_config(session)
+        if current is None:
             return True
         if self._usb_target is not None:
             # A USB interface takes no other connection; it is reopened when plugged in again.
@@ -1968,9 +1981,15 @@ class ConnectionPlugin:
             gateway = await self._gateway_description()
             if gateway is None:
                 return False
+        active_tunnel = (
+            current.individual_address
+            if self._link_up
+            and current.connection_type is ConnectionType.TUNNELING_TCP_SECURE
+            else None
+        )
         try:
             config = await self._on_main_thread(
-                lambda: self._connection_config(gateway)
+                lambda: self._connection_config(gateway, active_tunnel=active_tunnel)
             )
         except ConnectionError:
             config = None
