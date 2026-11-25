@@ -1403,6 +1403,12 @@ msgstr "Browser-Oberfläche ({url})"
 msgid "{kind}: {project}"
 msgstr "{kind}: {project}"
 
+msgid "{kind}: {project}, bus writes blocked"
+msgstr "{kind}: {project}, Schreiben auf den Bus gesperrt"
+
+msgid "Started now, this editor writes to the bus, unlike an editor above that blocks bus writes. To block them in this one too, start it with --no-bus-writes or turn on Block Bus Writes in Settings > Connection."
+msgstr "Jetzt gestartet, schreibt dieser Editor auf den Bus, anders als ein Editor oben, der das Schreiben auf den Bus sperrt. Um es auch in diesem zu sperren, starten Sie ihn mit --no-bus-writes oder schalten Sie „Schreiben auf den Bus sperren“ unter Einstellungen > Verbindung ein."
+
 msgid "Switch to It"
 msgstr "Dorthin wechseln"
 

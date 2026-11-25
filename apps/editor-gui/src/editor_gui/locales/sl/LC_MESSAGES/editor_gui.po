@@ -1321,6 +1321,12 @@ msgstr "Brskalniški vmesnik ({url})"
 msgid "{kind}: {project}"
 msgstr "{kind}: {project}"
 
+msgid "{kind}: {project}, bus writes blocked"
+msgstr "{kind}: {project}, pisanje na vodilo blokirano"
+
+msgid "Started now, this editor writes to the bus, unlike an editor above that blocks bus writes. To block them in this one too, start it with --no-bus-writes or turn on Block Bus Writes in Settings > Connection."
+msgstr "Če ga zaženete zdaj, ta urejevalnik piše na vodilo, za razliko od urejevalnika zgoraj, ki blokira pisanje na vodilo. Če ga želite blokirati tudi v tem, ga zaženite z --no-bus-writes ali vklopite »Blokiraj pisanje na vodilo« v Nastavitve > Povezava."
+
 msgid "Switch to It"
 msgstr "Preklopi nanj"
 

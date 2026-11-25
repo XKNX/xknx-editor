@@ -1321,6 +1321,12 @@ msgstr "Rozhranie v prehliadači ({url})"
 msgid "{kind}: {project}"
 msgstr "{kind}: {project}"
 
+msgid "{kind}: {project}, bus writes blocked"
+msgstr "{kind}: {project}, zápisy na zbernicu blokované"
+
+msgid "Started now, this editor writes to the bus, unlike an editor above that blocks bus writes. To block them in this one too, start it with --no-bus-writes or turn on Block Bus Writes in Settings > Connection."
+msgstr "Spustený teraz tento editor zapisuje na zbernicu, na rozdiel od editora vyššie, ktorý zápisy na zbernicu blokuje. Ak ich chcete blokovať aj v tomto, spustite ho s --no-bus-writes alebo zapnite „Blokovať zápisy na zbernicu“ v Nastavenia > Pripojenie."
+
 msgid "Switch to It"
 msgstr "Prepnúť naň"
 

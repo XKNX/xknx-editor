@@ -1321,6 +1321,12 @@ msgstr "Böngészős felület ({url})"
 msgid "{kind}: {project}"
 msgstr "{kind}: {project}"
 
+msgid "{kind}: {project}, bus writes blocked"
+msgstr "{kind}: {project}, busz írása tiltva"
+
+msgid "Started now, this editor writes to the bus, unlike an editor above that blocks bus writes. To block them in this one too, start it with --no-bus-writes or turn on Block Bus Writes in Settings > Connection."
+msgstr "Most elindítva ez a szerkesztő ír a buszra, ellentétben egy fenti szerkesztővel, amely tiltja a busz írását. Ha ebben is tiltani szeretné, indítsa a --no-bus-writes kapcsolóval, vagy kapcsolja be a „Busz írásának tiltása” beállítást a Beállítások > Kapcsolat alatt."
+
 msgid "Switch to It"
 msgstr "Váltás rá"
 

@@ -1249,6 +1249,12 @@ msgstr "ブラウザーUI（{url}）"
 msgid "{kind}: {project}"
 msgstr "{kind}：{project}"
 
+msgid "{kind}: {project}, bus writes blocked"
+msgstr "{kind}：{project}、バスへの書き込みはブロック中"
+
+msgid "Started now, this editor writes to the bus, unlike an editor above that blocks bus writes. To block them in this one too, start it with --no-bus-writes or turn on Block Bus Writes in Settings > Connection."
+msgstr "今起動すると、このエディターはバスに書き込みます。上のエディターのようにバスへの書き込みをブロックしません。このエディターでもブロックするには、--no-bus-writes を付けて起動するか、設定 > 接続 で「バスへの書き込みをブロック」をオンにしてください。"
+
 msgid "Switch to It"
 msgstr "切り替える"
 

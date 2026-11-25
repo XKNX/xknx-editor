@@ -1249,6 +1249,12 @@ msgstr "Selainkäyttöliittymä ({url})"
 msgid "{kind}: {project}"
 msgstr "{kind}: {project}"
 
+msgid "{kind}: {project}, bus writes blocked"
+msgstr "{kind}: {project}, kirjoitukset väylälle estetty"
+
+msgid "Started now, this editor writes to the bus, unlike an editor above that blocks bus writes. To block them in this one too, start it with --no-bus-writes or turn on Block Bus Writes in Settings > Connection."
+msgstr "Nyt käynnistettynä tämä editori kirjoittaa väylälle, toisin kuin yllä oleva editori, joka estää kirjoitukset väylälle. Estääksesi ne myös tässä käynnistä se valitsimella --no-bus-writes tai ota käyttöön ”Estä kirjoitukset väylälle” kohdassa Asetukset > Yhteys."
+
 msgid "Switch to It"
 msgstr "Siirry siihen"
 

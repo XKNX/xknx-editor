@@ -1321,6 +1321,12 @@ msgstr "Interfață browser ({url})"
 msgid "{kind}: {project}"
 msgstr "{kind}: {project}"
 
+msgid "{kind}: {project}, bus writes blocked"
+msgstr "{kind}: {project}, scrierile pe magistrală sunt blocate"
+
+msgid "Started now, this editor writes to the bus, unlike an editor above that blocks bus writes. To block them in this one too, start it with --no-bus-writes or turn on Block Bus Writes in Settings > Connection."
+msgstr "Pornit acum, acest editor scrie pe magistrală, spre deosebire de un editor de mai sus care blochează scrierile pe magistrală. Pentru a le bloca și în acesta, porniți-l cu --no-bus-writes sau activați „Blocare scrieri pe magistrală” în Setări > Conexiune."
+
 msgid "Switch to It"
 msgstr "Comutare la el"
 

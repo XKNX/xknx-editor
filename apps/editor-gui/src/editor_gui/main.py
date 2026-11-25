@@ -317,6 +317,15 @@ def no_bus_writes(argv: list[str]) -> bool:
     return "--no-bus-writes" in argv[1:]
 
 
+def writes_note(running: list[Instance], blocked_here: bool) -> str | None:
+    """What the dialog at a start while ``running`` editors run says about bus writes: that this
+    one writes to the bus (``blocked_here`` False) while one of them blocks them, as a start from
+    the Start menu has no --no-bus-writes; else nothing."""
+    if blocked_here or not any(other.bus_writes_blocked for other in running):
+        return None
+    return S.EDITOR_WRITES_NOT_BLOCKED
+
+
 def log_frames(argv: list[str]) -> bool:
     """Whether ``--log-frames`` logs every frame exchanged with the KNX interface, raw."""
     return "--log-frames" in argv[1:]
@@ -1246,7 +1255,12 @@ class KnxGuiApp:
 
         mode = BROWSER if hub is not None else DESKTOP
         try:
-            self._registry = Registry(mode, web.page_url, received)
+            self._registry = Registry(
+                mode,
+                web.page_url,
+                received,
+                bus_writes_blocked=self._connection_service.writes_blocked,
+            )
         except OSError as e:
             self._log.warning("not registered for other editors", error=str(e))
 
@@ -1303,7 +1317,12 @@ class KnxGuiApp:
             else S.EDITOR_WINDOW
         )
         project = Path(other.project).name if other.project else S.EDITOR_NO_PROJECT
-        return S.EDITOR_ENTRY.format(kind=kind, project=project)
+        entry = (
+            S.EDITOR_ENTRY_WRITES_BLOCKED
+            if other.bus_writes_blocked
+            else S.EDITOR_ENTRY
+        )
+        return entry.format(kind=kind, project=project)
 
     def _render_running_editors_modal(self) -> None:
         """At a start while other editors run: switch to one of them, or start this one too."""
@@ -1318,6 +1337,12 @@ class KnxGuiApp:
         switched = self._render_editor_rows(
             self.running_editors, self.startup_file, self.startup_password_file
         )
+        note = writes_note(
+            self.running_editors, self._connection_service.writes_blocked()
+        )
+        if note is not None:
+            imgui.spacing()
+            imgui.text_wrapped(note)
         imgui.spacing()
         clicked = dialog_buttons(S.EDITOR_START_ANOTHER, S.BTN_CANCEL)
         if switched or clicked == 1:

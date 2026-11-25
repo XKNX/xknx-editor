@@ -1249,6 +1249,12 @@ msgstr "Interface do Navegador ({url})"
 msgid "{kind}: {project}"
 msgstr "{kind}: {project}"
 
+msgid "{kind}: {project}, bus writes blocked"
+msgstr "{kind}: {project}, escritas no barramento bloqueadas"
+
+msgid "Started now, this editor writes to the bus, unlike an editor above that blocks bus writes. To block them in this one too, start it with --no-bus-writes or turn on Block Bus Writes in Settings > Connection."
+msgstr "Iniciado agora, este editor escreve no barramento, ao contrário de um editor acima que bloqueia as escritas no barramento. Para as bloquear também neste, inicie-o com --no-bus-writes ou ative «Bloquear Escritas no Barramento» em Configurações > Ligação."
+
 msgid "Switch to It"
 msgstr "Mudar para Ele"
 

@@ -2566,6 +2566,18 @@ class _CombinedStrings(BaseStrings, MenuStrings):
         return _("{kind}: {project}")
 
     @property
+    def EDITOR_ENTRY_WRITES_BLOCKED(self) -> str:
+        return _("{kind}: {project}, bus writes blocked")
+
+    @property
+    def EDITOR_WRITES_NOT_BLOCKED(self) -> str:
+        return _(
+            "Started now, this editor writes to the bus, unlike an editor above that blocks bus "
+            "writes. To block them in this one too, start it with --no-bus-writes or turn on "
+            "Block Bus Writes in Settings > Connection."
+        )
+
+    @property
     def EDITOR_SWITCH(self) -> str:
         return _("Switch to It")
 
