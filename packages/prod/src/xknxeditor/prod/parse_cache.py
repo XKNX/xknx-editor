@@ -32,11 +32,16 @@ from typing import TYPE_CHECKING, Any, cast
 
 import psutil
 
-from xknxeditor.namespaces import detect_version, parse_progress
+from xknxeditor.namespaces import (
+    current_parse_progress,
+    detect_version,
+    parse_progress,
+)
 from xknxeditor.namespaces.intermediate.knx import Knx
 
 from .data import to_ir
 from .errors import ImportCancelled
+from .gc_pause import gc_paused
 
 if TYPE_CHECKING:
     import threading
@@ -133,6 +138,11 @@ def store_trees(path: Path, knx: Knx, trees: Trees) -> None:
 PARALLEL_MIN_BYTES = 15_000_000
 # Application XML per worker: more workers than that only add their start-up time.
 BYTES_PER_WORKER = 8_000_000
+# How far an application's parse has got after reading its XML, and after converting it (the
+# rest is storing it in the cache): measured on large applications, where healing the XML takes
+# 10 %, reading it 32 %, converting it 24 % and storing the result 35 % of the time.
+READ_SHARE = 0.4
+CONVERTED_SHARE = 0.65
 # An application this large is parsed in a worker process even alone: there it has a core and
 # the interpreter to itself, while in this process the user interface takes turns with it.
 LONE_WORKER_MIN_BYTES = 20_000_000
@@ -208,10 +218,36 @@ def cached_to_ir(xml_bytes: bytes, version: str, cache_dir: Path | None) -> Knx:
     return cached_parse(xml_bytes, version, cache_dir).knx
 
 
+def _staged_to_ir(xml_bytes: bytes, version: str) -> Knx:
+    """:func:`to_ir`, telling a :func:`~xknxeditor.namespaces.parse_progress` block around it how
+    far the parse has got in bytes of the XML: reading it counts for :data:`READ_SHARE` of them,
+    converting it up to :data:`CONVERTED_SHARE` (storing it does the rest)."""
+    report = current_parse_progress()
+    if report is None:
+        return to_ir(xml_bytes, version)
+    size = len(xml_bytes)
+    with parse_progress(lambda position: report(int(min(position, size) * READ_SHARE))):
+        knx = to_ir(xml_bytes, version)
+    report(int(size * CONVERTED_SHARE))
+    return knx
+
+
 def cached_parse(xml_bytes: bytes, version: str, cache_dir: Path | None) -> CacheHit:
-    """:func:`cached_to_ir` with the trees kept in the entry (see CacheHit)."""
+    """:func:`cached_to_ir` with the trees kept in the entry (see CacheHit). A
+    :func:`~xknxeditor.namespaces.parse_progress` block around it hears how far the parse has
+    got, in bytes of the XML (all of them once it is done)."""
+    report = current_parse_progress()
+    hit = _cached_parse(xml_bytes, version, cache_dir)
+    if report is not None:
+        report(len(xml_bytes))
+    return hit
+
+
+def _cached_parse(xml_bytes: bytes, version: str, cache_dir: Path | None) -> CacheHit:
     if cache_dir is None:
-        return CacheHit(to_ir(xml_bytes, version), version, len(xml_bytes), None, None)
+        return CacheHit(
+            _staged_to_ir(xml_bytes, version), version, len(xml_bytes), None, None
+        )
     path = _cache_path(xml_bytes, version, cache_dir)
     if path.exists():
         try:
@@ -225,7 +261,7 @@ def cached_parse(xml_bytes: bytes, version: str, cache_dir: Path | None) -> Cach
             Exception
         ) as exc:  # corrupt / incompatible pickle -> reparse and overwrite
             logger.debug("parse cache miss (unreadable %s): %s", path.name, exc)
-    knx = to_ir(xml_bytes, version)
+    knx = _staged_to_ir(xml_bytes, version)
     try:
         cache_dir.mkdir(parents=True, exist_ok=True)
         _remove_other_versions(cache_dir)
@@ -281,7 +317,14 @@ def _start_worker(parsed: Synchronized[int] | None) -> None:
 
 def _parse_into_cache(xml_bytes: bytes, cache_dir: Path) -> None:
     """Worker process: parse one application XML into the cache, counting its bytes as they are
-    parsed (at the end all of them, also when the parse was cached)."""
+    parsed (at the end all of them, also when the parse was cached). The collector is paused, as
+    for a parse in the editor's process: the parse holds no reference cycles, and collecting
+    while its objects are created took about as long as the parse."""
+    with gc_paused():
+        _counted_parse(xml_bytes, cache_dir)
+
+
+def _counted_parse(xml_bytes: bytes, cache_dir: Path) -> None:
     parsed = _parsed_bytes[0]
     if parsed is None:
         cached_to_ir(xml_bytes, detect_version(xml_bytes), cache_dir)

@@ -287,3 +287,23 @@ def test_a_cached_application_counts_as_parsed(
     parse_cache.fill_cache(_sources(xmls), tmp_path, parsed_bytes=heard.append)
     assert heard[0] >= len(xmls[0])
     assert heard[-1] == sum(len(xml) for xml in xmls)
+
+
+def test_a_parse_tells_how_far_it_has_got(tmp_path: Path) -> None:
+    """Reading the XML counts for READ_SHARE of its bytes, converting it up to CONVERTED_SHARE,
+    storing it the rest; a parse read back from the cache is done at once."""
+    from xknxeditor.namespaces import parse_progress
+
+    xml = _xmls()[0]
+    size = len(xml)
+    heard: list[int] = []
+    with parse_progress(heard.append):
+        parse_cache.cached_parse(xml, detect_version(xml), tmp_path)
+    assert heard[-2:] == [int(size * parse_cache.CONVERTED_SHARE), size]
+    assert all(0 < position <= size * parse_cache.READ_SHARE for position in heard[:-2])
+    assert heard == sorted(heard)
+
+    heard.clear()
+    with parse_progress(heard.append):
+        parse_cache.cached_parse(xml, detect_version(xml), tmp_path)
+    assert heard == [size]

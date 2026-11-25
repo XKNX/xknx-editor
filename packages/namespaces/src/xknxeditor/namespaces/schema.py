@@ -38,6 +38,11 @@ def parse_progress(report: Callable[[int], None]) -> Generator[None]:
         _progress.reset(token)
 
 
+def current_parse_progress() -> Callable[[int], None] | None:
+    """The ``report`` of the :func:`parse_progress` block this runs in, if any."""
+    return _progress.get()
+
+
 SUPPORTED_VERSIONS = frozenset({"10", "11", "12", "13", "14", "20", "21", "22", "23"})
 
 VERSION_PATTERN = re.compile(rb'xmlns="http://knx\.org/xml/project/(\d+)"')
