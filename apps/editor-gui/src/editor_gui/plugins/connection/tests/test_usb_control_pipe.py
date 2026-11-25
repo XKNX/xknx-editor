@@ -1,8 +1,10 @@
 """Tests for output reports over the control pipe of KNX USB interfaces."""
 
+import errno
 import logging
 import os
 import sys
+import time
 from pathlib import Path
 from unittest.mock import Mock
 
@@ -166,6 +168,66 @@ class TestFallback:
         pipe.close.assert_called_once()
         await device.close()
 
+    async def test_report_taken_too_slowly_is_no_error(
+        self,
+        fake_hid: FakeHIDModule,
+        monkeypatch: pytest.MonkeyPatch,
+        caplog: pytest.LogCaptureFixture,
+    ) -> None:
+        """Test a control pipe write that times out is logged, its pipe kept and used."""
+        pipe = Mock()
+        pipe.send.side_effect = [
+            control_pipe.WriteTimeout("no report taken"),
+            None,
+            None,
+        ]
+        monkeypatch.setattr(
+            "editor_gui.plugins.connection.xknx_usb.hid_device.open_control_pipe",
+            lambda device, backend, path: pipe,
+        )
+        fake_hid.interface.interrupt_out = False
+        device = HIDDevice(
+            find_usb_interfaces()[0], report_received=Mock(), connection_lost=Mock()
+        )
+        await device.open()
+        with caplog.at_level(logging.INFO, logger="xknx.log"):
+            # the first report over the control pipe already
+            await device.write(REPORT)
+            await device.write(REPORT)
+        assert pipe.send.call_count == 2
+        pipe.close.assert_not_called()
+        assert any("sending them over the control pipe" in m for m in caplog.messages)
+        assert any(
+            "took no report over the control pipe" in m and "no report taken" in m
+            for m in caplog.messages
+        )
+        pipe.send.side_effect = control_pipe.WriteTimeout("no report taken")
+        # once the control pipe is in use too
+        await device.write(REPORT)
+        assert pipe.send.call_count == 3
+        await device.close()
+
+    async def test_slow_write_is_logged(
+        self,
+        fake_hid: FakeHIDModule,
+        monkeypatch: pytest.MonkeyPatch,
+        caplog: pytest.LogCaptureFixture,
+    ) -> None:
+        """Test a write taking longer than usual is logged with its duration."""
+        monkeypatch.setattr(
+            "editor_gui.plugins.connection.xknx_usb.hid_device.SLOW_WRITE", 0.0
+        )
+        device = HIDDevice(
+            find_usb_interfaces()[0], report_received=Mock(), connection_lost=Mock()
+        )
+        await device.open()
+        with caplog.at_level(logging.INFO, logger="xknx.log"):
+            await device.write(REPORT)
+        assert any(
+            "Writing a report to KNX USB interface" in m for m in caplog.messages
+        )
+        await device.close()
+
 
 class TestOpenControlPipe:
     """Test the control pipe chosen for an interface."""
@@ -243,6 +305,69 @@ class TestOpenControlPipe:
             ("set", (42, REPORT)),
             ("close", 42),
         ]
+
+    def test_hidraw_timeout(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        """Test the kernel's timeout of HIDIOCSOUTPUT is a WriteTimeout, other errors not."""
+        monkeypatch.setattr(control_pipe.os, "open", lambda path, flags: 7)
+        monkeypatch.setattr(control_pipe.os, "close", lambda fd: None)
+        error = errno.ETIMEDOUT
+
+        def ioctl(fd: int, request: int, report: bytes) -> None:
+            raise OSError(error, os.strerror(error))
+
+        monkeypatch.setattr(control_pipe, "_hidraw_ioctl", ioctl)
+        pipe = control_pipe.open_control_pipe(
+            Mock(spec=["write"]), "hidraw", b"/dev/hidraw3"
+        )
+        assert pipe is not None
+        with pytest.raises(control_pipe.WriteTimeout):
+            pipe.send(REPORT)
+        error = errno.EPIPE
+        with pytest.raises(OSError) as raised:
+            pipe.send(REPORT)
+        assert not isinstance(raised.value, control_pipe.WriteTimeout)
+        pipe.close()
+
+    @pytest.mark.skipif(sys.platform != "win32", reason="Windows' synchronous I/O")
+    def test_windows_io_cancelled_after_the_timeout(self) -> None:
+        """Test a call whose synchronous I/O takes too long is cancelled, others not."""
+        assert sys.platform == "win32"  # for type checkers elsewhere
+        import ctypes
+        import msvcrt
+        from ctypes import wintypes
+
+        read_file = ctypes.WinDLL("kernel32", use_last_error=True).ReadFile
+        read_file.argtypes = (
+            wintypes.HANDLE,
+            ctypes.c_void_p,
+            wintypes.DWORD,
+            ctypes.POINTER(wintypes.DWORD),
+            ctypes.c_void_p,
+        )
+        read_file.restype = wintypes.BOOL
+        reader, writer = os.pipe()
+        try:
+            handle = msvcrt.get_osfhandle(reader)
+            buffer = ctypes.create_string_buffer(1)
+            count = wintypes.DWORD()
+
+            def read() -> int:
+                return read_file(handle, buffer, 1, ctypes.byref(count), None)
+
+            # nothing written to the pipe yet: the read waits
+            started = time.monotonic()
+            with pytest.raises(control_pipe.WriteTimeout):
+                control_pipe._windows_within(0.2, read)
+            assert time.monotonic() - started < 5
+            os.write(writer, b"x")
+            control_pipe._windows_within(5.0, read)
+            assert buffer.raw == b"x"
+        finally:
+            os.close(reader)
+            os.close(writer)
+        with pytest.raises(OSError) as raised:
+            control_pipe._windows_set_output_report(0, REPORT)
+        assert not isinstance(raised.value, control_pipe.WriteTimeout)
 
     def test_hidiocsoutput(self) -> None:
         """Test the hidraw ioctl request for 64 octet reports."""
