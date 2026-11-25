@@ -3,7 +3,8 @@
 Single-coloured icons are drawn in the text colour (not a fully opaque one: that is a colour,
 e.g. of an enumeration entry). The grey parts of other images on a
 transparent background are inverted when they would hardly stand out from the theme's
-background: dark greys on a dark theme, light greys on a light one.
+background: dark greys on a dark theme, light greys on a light one. Only greys that border the
+transparent background count: a light fill inside a coloured outline stands out from its outline.
 """
 
 from __future__ import annotations
@@ -36,6 +37,9 @@ _cache: dict[tuple[str, bool], Icon | None] = {}
 _pictures: dict[tuple[str, bool], Picture | None] = {}
 # Largest channel difference of a pixel that still counts as grey.
 _GREY_SPREAD = 16
+# Share (percent, by opacity) of the greys that must border the transparent background for them
+# to be inverted: below it, they are fills inside outlines plus a few smoothed edge pixels.
+_BORDER_SHARE = 2
 
 
 def _chunks(data: bytes) -> list[tuple[bytes, bytes]]:
@@ -138,24 +142,49 @@ def _is_grey(r: int, g: int, b: int) -> bool:
     return max(r, g, b) - min(r, g, b) <= _GREY_SPREAD
 
 
+def _border_rows(pixels: bytearray, width: int, height: int) -> list[int]:
+    """Per row, a bit per pixel (bit x for column x) that is transparent or next to a
+    transparent pixel, also diagonally."""
+    clear: list[int] = []
+    for y in range(height):
+        row = 0
+        start = y * width * 4
+        for x in range(width):
+            if pixels[start + 4 * x + 3] == 0:
+                row |= 1 << x
+        clear.append(row | row << 1 | row >> 1)
+    return [
+        (clear[y - 1] if y else 0) | clear[y] | (clear[y + 1] if y + 1 < height else 0)
+        for y in range(height)
+    ]
+
+
 def readable_png(data: bytes, dark_background: bool) -> bytes | None:
-    """``data`` with its grey pixels inverted when, on average, they are as dark (or as light)
-    as the background, if it is an RGBA PNG with transparent parts; ``None`` when it is kept
-    (an image without transparent parts brings its own background)."""
+    """``data`` with its grey pixels inverted when, on average, those bordering its transparent
+    parts are as dark (or as light) as the background, if it is an RGBA PNG with transparent
+    parts; ``None`` when it is kept (an image without transparent parts brings its own
+    background, and greys that hardly border them are fills inside outlines)."""
     decoded = _decode_rgba(data)
     if decoded is None:
         return None
     header, width, height, pixels = decoded
     if not any(pixels[i] == 0 for i in range(3, len(pixels), 4)):
         return None
-    # The brightness of the visible greys, weighted by their opacity.
-    weight = brightness = 0
+    border = _border_rows(pixels, width, height)
+    # The visible greys and the brightness of those bordering the transparent background,
+    # weighted by their opacity.
+    weight = bordering = brightness = 0
     for i in range(0, len(pixels), 4):
         r, g, b, a = pixels[i], pixels[i + 1], pixels[i + 2], pixels[i + 3]
         if a and _is_grey(r, g, b):
             weight += a
-            brightness += (r + g + b) * a
-    if not weight or (brightness / (3 * weight) < 128) != dark_background:
+            pixel = i // 4
+            if border[pixel // width] >> (pixel % width) & 1:
+                bordering += a
+                brightness += (r + g + b) * a
+    if not bordering or bordering * 100 < weight * _BORDER_SHARE:
+        return None
+    if (brightness / (3 * bordering) < 128) != dark_background:
         return None
     for i in range(0, len(pixels), 4):
         r, g, b = pixels[i], pixels[i + 1], pixels[i + 2]

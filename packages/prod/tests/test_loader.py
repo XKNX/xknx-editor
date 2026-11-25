@@ -157,3 +157,41 @@ def test_a_missing_cache_entry_is_parsed_again(tmp_path: Path) -> None:
     app = registry.applications["M-00FA_A-0002-01-0000"]
     assert app.program.id == "M-00FA_A-0002-01-0000"
     assert len(list(tmp_path.glob("ir_*.pkl"))) == 1
+
+
+def _sizes() -> list[int]:
+    return [len(xml) for _app_id, xml in sorted(_xmls().items())]
+
+
+def test_the_parsed_share_follows_the_xml_parsed() -> None:
+    """In this process: the share rises while each application XML is parsed, ends at 1, and
+    the applications are counted by their size."""
+    shares: list[float] = []
+    load(_product(), parsed_share=shares.append)
+    assert shares == sorted(set(shares))
+    assert shares[-1] == 1.0
+    total = sum(_sizes())
+    ends = [sum(_sizes()[: count + 1]) / total for count in range(len(_sizes()))]
+    assert all(end in shares for end in ends)
+
+
+def test_the_parsed_share_of_a_lone_worker(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """An application parsed in a worker process is counted there and heard here."""
+    monkeypatch.setattr(parse_cache, "LONE_WORKER_MIN_BYTES", 1)
+    started: list[int] = []
+    real_pool = parse_cache.ProcessPoolExecutor
+
+    def pool(**kwargs: object) -> object:
+        started.append(int(kwargs["max_workers"]))  # type: ignore[call-overload]
+        return real_pool(**kwargs)  # type: ignore[arg-type]
+
+    monkeypatch.setattr(parse_cache, "ProcessPoolExecutor", pool)
+    shares: list[float] = []
+    registry = load(_product(), cache_dir=tmp_path, parsed_share=shares.append)
+    assert started == [1]
+    assert shares[-1] == 1.0
+    assert shares == sorted(set(shares))
+    assert list(registry.applications) == sorted(_xmls())
+    assert len(list(tmp_path.glob("ir_*.pkl"))) == len(_xmls())

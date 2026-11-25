@@ -106,6 +106,9 @@ msgstr "Deschideți sau creați mai întâi un proiect pentru a adăuga un dispo
 msgid "This product has no usable application program."
 msgstr "Acest produs nu are niciun program de aplicație utilizabil."
 
+msgid "Adding device…"
+msgstr "Se adaugă dispozitivul…"
+
 msgid "Added device: {name}"
 msgstr "Dispozitiv adăugat: {name}"
 

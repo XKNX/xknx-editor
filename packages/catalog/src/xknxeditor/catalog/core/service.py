@@ -96,13 +96,15 @@ class CatalogService:
         require_catalog: bool = True,
         cancel: threading.Event | None = None,
         progress: Callable[[int, int], None] | None = None,
+        parsed_share: Callable[[float], None] | None = None,
     ) -> Path:
         """Store and ingest .knxprod bytes (content-hash dedup). Returns the stored path.
 
         ``require_catalog=False`` ingests ``.knxproj``-embedded product data that omits
         ``Catalog.xml`` (hardware/applications still resolve devices). Setting ``cancel`` stops the
         import before it stores anything (:class:`~xknxeditor.prod.errors.ImportCancelled`);
-        ``progress`` hears the application programs parsed, out of how many."""
+        ``progress`` hears the application programs parsed, out of how many, ``parsed_share``
+        the share (0 to 1) of their XML parsed."""
         return upload_knxprod(
             content,
             self._knxprod_dir,
@@ -111,6 +113,7 @@ class CatalogService:
             cache_dir=self._parse_cache_dir,
             cancel=cancel,
             progress=progress,
+            parsed_share=parsed_share,
         )
 
     def tidy_store(self, now: float | None = None) -> StoreTidying:

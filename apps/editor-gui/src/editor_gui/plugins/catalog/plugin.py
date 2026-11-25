@@ -112,6 +112,28 @@ class CatalogPlugin:
             )
             self._api.tell_refused(S.CATALOG_ADD_NEEDS_PROJECT)
             return
+        # Loading a large application program and building the device take seconds: behind the
+        # progress dialog, not in the user interface's frames.
+        self._in_background(lambda: self._load_and_add(product, space_id, segment_id))
+
+    def _in_background(self, work: Callable[[], None]) -> None:
+        """Run ``work`` behind the progress dialog, or directly without one."""
+        if self._api.run_background is not None:
+            self._api.run_background(S.ADDING_DEVICE, work)
+        else:
+            work()
+
+    def _on_main(self, fn: Callable[[], None]) -> None:
+        """Run ``fn`` (it asks the user) on the user interface's thread."""
+        if self._api.main_thread is not None:
+            self._api.main_thread.submit(fn)
+        else:
+            fn()
+
+    def _load_and_add(
+        self, product: ProductSummary, space_id: int | None, segment_id: int | None
+    ) -> None:
+        """Load the application program of ``product`` and add the device (see _on_select)."""
         if product.application_id is None:
             # A product without an application program (e.g. a power supply) is a device with a
             # name and an address only.
@@ -133,14 +155,28 @@ class CatalogPlugin:
             and request is not None
             and self._api.project.project_password is None
         ):
-            request(
-                S.CATALOG_ADD_SECURE_PASSWORD,
-                lambda: self._add(
-                    product, app, space_id, segment_id, secure_commissioning=True
-                ),
-                lambda: self._add(
-                    product, app, space_id, segment_id, secure_commissioning=False
-                ),
+            self._on_main(
+                lambda: request(
+                    S.CATALOG_ADD_SECURE_PASSWORD,
+                    lambda: self._in_background(
+                        lambda: self._add(
+                            product,
+                            app,
+                            space_id,
+                            segment_id,
+                            secure_commissioning=True,
+                        )
+                    ),
+                    lambda: self._in_background(
+                        lambda: self._add(
+                            product,
+                            app,
+                            space_id,
+                            segment_id,
+                            secure_commissioning=False,
+                        )
+                    ),
+                )
             )
             return
         self._add(product, app, space_id, segment_id)
@@ -182,7 +218,7 @@ class CatalogPlugin:
         if device_id:
             ask = self._api.ask_device_certificate
             if ask is not None and self._api.project.secure_commissioning_of(device_id):
-                ask(device_id)
+                self._on_main(lambda: ask(device_id))
             label = product.name or (app.name if app is not None else "")
             self._log.info("device added", name=label, id=device_id)
             self._notify(S.CATALOG_ADD_OK.format(name=label))

@@ -103,8 +103,9 @@ class TableUI:
         io.add_mouse_button_event(0, True)
         self.frame()
         io.add_mouse_button_event(0, False)
-        self.frame()
-        self.frame()
+        # A dialog the click opens shows once its size settled.
+        for _ in range(4):
+            self.frame()
 
     def click_at(self, x: float, y: float) -> None:
         io = imgui.get_io()

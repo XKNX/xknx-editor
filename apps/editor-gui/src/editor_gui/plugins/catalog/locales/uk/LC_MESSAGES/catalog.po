@@ -106,6 +106,9 @@ msgstr "Щоб додати пристрій, спочатку відкрийт�
 msgid "This product has no usable application program."
 msgstr "Цей продукт не має придатної прикладної програми."
 
+msgid "Adding device…"
+msgstr "Додавання пристрою…"
+
 msgid "Added device: {name}"
 msgstr "Додано пристрій: {name}"
 

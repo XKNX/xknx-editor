@@ -106,6 +106,9 @@ msgstr "Avaa tai luo ensin projekti, jotta voit lisätä laitteen."
 msgid "This product has no usable application program."
 msgstr "Tällä tuotteella ei ole käyttökelpoista sovellusohjelmaa."
 
+msgid "Adding device…"
+msgstr "Lisätään laitetta…"
+
 msgid "Added device: {name}"
 msgstr "Laite lisätty: {name}"
 

@@ -106,6 +106,9 @@ msgstr "请先打开或创建项目，然后再添加设备。"
 msgid "This product has no usable application program."
 msgstr "此产品没有可用的应用程序。"
 
+msgid "Adding device…"
+msgstr "正在添加设备…"
+
 msgid "Added device: {name}"
 msgstr "已添加设备：{name}"
 

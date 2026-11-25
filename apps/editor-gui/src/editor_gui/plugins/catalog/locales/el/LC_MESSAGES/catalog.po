@@ -106,6 +106,9 @@ msgstr "Ανοίξτε ή δημιουργήστε πρώτα ένα έργο γ
 msgid "This product has no usable application program."
 msgstr "Αυτό το προϊόν δεν έχει χρησιμοποιήσιμο πρόγραμμα εφαρμογής."
 
+msgid "Adding device…"
+msgstr "Προσθήκη συσκευής…"
+
 msgid "Added device: {name}"
 msgstr "Προστέθηκε συσκευή: {name}"
 

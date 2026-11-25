@@ -255,3 +255,39 @@ def test_resizable_dialog_gets_its_size_again_on_a_larger_screen() -> None:
     small, large = rects[3], rects[-1]
     assert small[2] <= 390
     assert (large[2], large[3]) == (820, 680)
+
+
+def _shown_places(
+    content: Callable[[], None], width: float | None
+) -> list[tuple[int, int]]:
+    """Where the dialog is in each frame it shows, opened twice (the second time imgui knows its
+    window already)."""
+    from imgui_bundle.imgui import internal
+
+    places: list[tuple[int, int]] = []
+    for _opening in range(2):
+        for frame in range(8):
+            imgui.new_frame()
+            if frame == 0:
+                imgui.open_popup("Delete")
+            if begin_dialog("Delete", width=width):
+                content()
+                closed = dialog_buttons("Delete", "Cancel") is not None or frame == 7
+                if not internal.get_current_window().hidden:
+                    pos = imgui.get_window_pos()
+                    places.append((round(pos.x), round(pos.y)))
+                if closed:
+                    imgui.close_current_popup()
+                end_dialog()
+            imgui.end_frame()
+    return places
+
+
+@pytest.mark.usefixtures("context")
+@pytest.mark.parametrize("width", [None, 420.0])
+def test_a_dialog_shows_only_where_it_stays(width: float | None) -> None:
+    # Wrapped text makes a dialog that fits its content tall at first: it is hidden until its
+    # size settled, so it never shows anywhere but centred, also when opened again.
+    places = _shown_places(lambda: imgui.text_wrapped(_TEXT), width)
+    assert places
+    assert set(places) == {places[0]}

@@ -238,3 +238,72 @@ def test_a_cache_entry_is_the_pickled_parse(
 
     monkeypatch.setattr(parse_cache, "to_ir", no_parse)
     assert parse_cache.cached_to_ir(xml, version, tmp_path) == knx
+
+
+@pytest.mark.usefixtures("machine")
+@pytest.mark.parametrize(
+    ("sizes", "processes"),
+    [
+        ([1 * _MB] * 9, 0),  # parsed in this process
+        ([19 * _MB], 0),
+        ([20 * _MB], 1),  # a large application alone: one worker
+        ([80 * _MB, 1 * _MB], 1),
+        ([2 * _MB] * 10, 3),  # as many as parse_workers
+        ([], 0),
+    ],
+)
+def test_worker_processes(sizes: list[int], processes: int) -> None:
+    assert parse_cache.worker_processes(sizes) == processes
+
+
+def test_no_lone_worker_without_the_memory_for_it(
+    machine: None, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    class _Memory:
+        available = 512 << 20
+
+    monkeypatch.setattr(psutil, "virtual_memory", lambda: _Memory())
+    assert parse_cache.worker_processes([80 * _MB]) == 0
+
+
+def test_workers_count_the_bytes_they_parse(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(parse_cache, "parse_workers", _one_per_application)
+    xmls = _xmls()
+    heard: list[int] = []
+    parse_cache.fill_cache(_sources(xmls), tmp_path, parsed_bytes=heard.append)
+    assert heard[-1] == sum(len(xml) for xml in xmls)
+    assert heard == sorted(heard)
+
+
+def test_a_cached_application_counts_as_parsed(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(parse_cache, "parse_workers", _one_per_application)
+    xmls = _xmls()
+    parse_cache.cached_to_ir(xmls[0], detect_version(xmls[0]), tmp_path)
+    heard: list[int] = []
+    parse_cache.fill_cache(_sources(xmls), tmp_path, parsed_bytes=heard.append)
+    assert heard[0] >= len(xmls[0])
+    assert heard[-1] == sum(len(xml) for xml in xmls)
+
+
+def test_a_parse_tells_how_far_it_has_got(tmp_path: Path) -> None:
+    """Reading the XML counts for READ_SHARE of its bytes, converting it up to CONVERTED_SHARE,
+    storing it the rest; a parse read back from the cache is done at once."""
+    from xknxeditor.namespaces import parse_progress
+
+    xml = _xmls()[0]
+    size = len(xml)
+    heard: list[int] = []
+    with parse_progress(heard.append):
+        parse_cache.cached_parse(xml, detect_version(xml), tmp_path)
+    assert heard[-2:] == [int(size * parse_cache.CONVERTED_SHARE), size]
+    assert all(0 < position <= size * parse_cache.READ_SHARE for position in heard[:-2])
+    assert heard == sorted(heard)
+
+    heard.clear()
+    with parse_progress(heard.append):
+        parse_cache.cached_parse(xml, detect_version(xml), tmp_path)
+    assert heard == [size]

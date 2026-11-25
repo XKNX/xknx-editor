@@ -106,6 +106,9 @@ msgstr "Abra o cree primero un proyecto para añadir un dispositivo."
 msgid "This product has no usable application program."
 msgstr "Este producto no tiene un programa de aplicación utilizable."
 
+msgid "Adding device…"
+msgstr "Añadiendo dispositivo…"
+
 msgid "Added device: {name}"
 msgstr "Dispositivo añadido: {name}"
 

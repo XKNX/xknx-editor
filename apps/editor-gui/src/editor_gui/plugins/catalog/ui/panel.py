@@ -14,8 +14,13 @@ from editor_gui.languages import product_text_languages
 from editor_gui.local_time import MISSING, date_text, parse_stamp, stamp_text
 from editor_gui.plugins.catalog.strings import S
 from editor_gui.plugins.project.ui.move_menu import render_move_menu
-from editor_gui.plugins.project.ui.paste_special import MenuGroups
-from editor_gui.strings import get_locale
+from editor_gui.plugins.project.ui.paste_special import (
+    MenuGroups,
+    ShortcutRow,
+    handle_row_keys,
+    no_paste,
+)
+from editor_gui.strings import delete_key, get_locale
 from editor_gui.theme import status_color
 from editor_gui.widgets.checkbox import checkbox
 from editor_gui.widgets.combo import combo
@@ -295,6 +300,8 @@ class CatalogPanel:
         self._delete_affected = 0
         self._open_delete_popup = False
         self._deleting: str | None = None
+        # Whether the selected product's row was drawn this frame (the Delete key acts on it).
+        self._selected_shown = False
         # Export a local product's original .knxprod archive. The save dialog is polled each frame
         # (desktop or browser); on a chosen path the callback copies the stored archive there.
         self._export_product_cb = export_product
@@ -350,7 +357,28 @@ class CatalogPanel:
 
     def _render_local_tree(self) -> None:
         """The local products below the search, by manufacturer, and the chosen one's
-        details."""
+        details; the Delete key deletes the chosen one while its row shows (as its menu's
+        "Delete")."""
+        self._selected_shown = False
+        self._render_local_rows()
+        product = self._selected_product
+        if self._selected_shown and product is not None:
+            handle_row_keys(
+                ShortcutRow(
+                    None,
+                    no_paste,
+                    on_delete=(lambda: self._request_delete(product))
+                    if self._can_delete()
+                    else None,
+                    named=False,
+                )
+            )
+
+    def _can_delete(self) -> bool:
+        """Whether a product can be deleted now (none is being deleted)."""
+        return self._delete_product is not None and self._deleting is None
+
+    def _render_local_rows(self) -> None:
         deleting = self._deleting
         if deleting is not None:
             imgui.text_disabled(S.DELETING.format(name=deleting))
@@ -467,6 +495,7 @@ class CatalogPanel:
         """A product's row: selected (highlighted) by a click, added by a double-click."""
         if _same(self._selected_product, product):
             flags |= imgui.TreeNodeFlags_.selected
+            self._selected_shown = True
         tree_node(label, flags)
         self._handle_product_click(product)
         self._render_product_context_menu(product)
@@ -523,7 +552,7 @@ class CatalogPanel:
                 self._delete_product is not None
                 and groups.show()
                 and imgui.menu_item(
-                    S.CONTEXT_DELETE, "", False, self._deleting is None
+                    S.CONTEXT_DELETE, delete_key(), False, self._deleting is None
                 )[0]
             ):
                 self._request_delete(product)

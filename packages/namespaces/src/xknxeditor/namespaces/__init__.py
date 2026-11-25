@@ -5,9 +5,11 @@ from xknxeditor.namespaces.schema import (
     VERSION_NAMESPACES,
     VERSION_PATTERN,
     VersionError,
+    current_parse_progress,
     detect_version,
     get_model_class,
     load_xml,
+    parse_progress,
     serialize_xml,
 )
 
@@ -19,9 +21,11 @@ __all__ = [
     "VERSION_NAMESPACES",
     "VERSION_PATTERN",
     "VersionError",
+    "current_parse_progress",
     "detect_version",
     "get_model_class",
     "load_xml",
+    "parse_progress",
     "serialize_xml",
     "unpadded_id",
 ]

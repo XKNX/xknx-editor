@@ -13,6 +13,8 @@ from functools import partial
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+from xknxeditor.namespaces import parse_progress
+
 from .application import Application, parse_application_xml
 from .archive import Archive
 from .catalog import parse_catalog_xml
@@ -30,6 +32,29 @@ if TYPE_CHECKING:
     )
 
 logger = logging.getLogger(__name__)
+
+
+class _ParsedShare:
+    """Tells ``report`` the share (0 to 1) of ``total`` bytes of application XML parsed so far,
+    never less than before."""
+
+    def __init__(self, report: Callable[[float], None] | None, total: int) -> None:
+        self._report = report
+        self._total = total
+        self._shown = 0.0
+
+    def __call__(self, parsed: int) -> None:
+        if self._report is None or not self._total:
+            return
+        share = min(1.0, parsed / self._total)
+        if share > self._shown:
+            self._shown = share
+            self._report(share)
+
+
+def _shifted(share: _ParsedShare, before: int, position: int) -> None:
+    """Report ``position`` bytes into an application XML that follows ``before`` bytes."""
+    share(before + position)
 
 
 def _reload_program(
@@ -87,6 +112,7 @@ def load(
     cache_dir: Path | None = None,
     cancel: threading.Event | None = None,
     progress: Callable[[int, int], None] | None = None,
+    parsed_share: Callable[[float], None] | None = None,
 ) -> Registry:
     """Load a .knxprod (path or bytes) into one queryable `Registry`; ids are globally unique.
 
@@ -100,7 +126,8 @@ def load(
     used, so a product with many large applications never holds more than one of them at a time.
     Without it, every application keeps its parsed program. Setting ``cancel`` stops the
     load between applications with :class:`~.errors.ImportCancelled`. ``progress`` hears how many
-    of the archive's application programs are parsed, out of how many, after each one.
+    of the archive's application programs are parsed, out of how many, after each one;
+    ``parsed_share`` the share (0 to 1) of their XML parsed, while it is parsed.
     """
     with Archive(source, require_catalog=require_catalog) as archive:
         registry = Registry(master=parse_master_xml(archive.get_master_xml()))
@@ -109,11 +136,19 @@ def load(
         }
         total = sum(len(ids) for ids in application_ids.values())
         parsed = 0
+        sizes = {
+            (manufacturer_id, app_id): archive.application_xml_size(
+                manufacturer_id, app_id
+            )
+            for manufacturer_id, ids in application_ids.items()
+            for app_id in ids
+        }
+        share = _ParsedShare(parsed_share, sum(sizes.values()))
         if cache_dir is not None:
             fill_cache(
                 [
                     (
-                        archive.application_xml_size(manufacturer_id, app_id),
+                        sizes[manufacturer_id, app_id],
                         partial(archive.read_application_xml, manufacturer_id, app_id),
                     )
                     for manufacturer_id, ids in sorted(application_ids.items())
@@ -122,7 +157,10 @@ def load(
                 cache_dir,
                 cancel=cancel,
                 progress=progress,
+                parsed_bytes=share if parsed_share is not None else None,
             )
+        # The bytes of the applications added so far.
+        added = 0
 
         for manufacturer_id in sorted(archive.manufacturer_ids):
             # A manufacturer without Hardware.xml only contributes application programs.
@@ -144,20 +182,23 @@ def load(
             # before the next one.
             for app_id in application_ids[manufacturer_id]:
                 check_cancelled(cancel)
-                _add_applications(
-                    registry,
-                    archive.read_application_xml(manufacturer_id, app_id),
-                    manufacturer_id,
-                    cache_dir,
-                    partial(
-                        _reload_program,
-                        source,
-                        require_catalog,
+                with parse_progress(partial(_shifted, share, added)):
+                    _add_applications(
+                        registry,
+                        archive.read_application_xml(manufacturer_id, app_id),
                         manufacturer_id,
-                        app_id,
                         cache_dir,
-                    ),
-                )
+                        partial(
+                            _reload_program,
+                            source,
+                            require_catalog,
+                            manufacturer_id,
+                            app_id,
+                            cache_dir,
+                        ),
+                    )
+                added += sizes[manufacturer_id, app_id]
+                share(added)
                 parsed += 1
                 if progress is not None:
                     progress(parsed, total)

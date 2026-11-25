@@ -1,8 +1,9 @@
 """Modal dialogs and tool windows with one look.
 
 Every dialog opens centred on the main window, at most as large as it (it scrolls then), and
-stays centred while its content changes its size (wrapped text settles over the first frames,
-content loads later), until the user moves it. When the screen changes its size (a browser window
+stays centred while its content changes its size (content loads later), until the user moves it.
+It shows only once its size settled where it is centred (wrapped text changes a dialog's size over
+its first frames): it appears where it stays, never somewhere else first. When the screen changes its size (a browser window
 resized, a phone turned), it is centred and fitted to it again. It has a title bar and does not
 remember a position it was moved to. Its buttons sit in one row of equal-width buttons: the actions
 left-aligned (the first triggered by Enter), the button that dismisses the dialog (Cancel, Close,
@@ -33,6 +34,9 @@ _enter_frame = [-1]
 _MOVED_TOLERANCE = 1.5
 # Room a dialog leaves to each edge of a screen it does not fit on, at 100 % scaling.
 _SCREEN_MARGIN = 6.0
+# Frames a dialog stays hidden at most while its size settles (content that keeps changing its
+# size shows after them anyway).
+_SETTLE_FRAMES = 8
 
 
 @dataclass
@@ -44,6 +48,10 @@ class _Placement:
     screen: tuple[float, float]
     off_centre: bool = False
     moved: bool = False
+    # Whether it shows: once its size settled (see _track_placement).
+    shown: bool = False
+    # The frames it was hidden while its size settled.
+    settling: int = 0
 
 
 # The open dialogs' placements, by dialog id.
@@ -147,9 +155,15 @@ def _track_placement(title: str) -> None:
         or imgui.is_window_appearing()
         or placement.screen != _screen_size()
     ):
-        # A dialog fitting its content is not placed yet in the frame it appears.
+        # A dialog fitting its content is not placed yet in the frame it appears. Shown before,
+        # it stays shown on a screen that changed its size.
         _placements[title] = _Placement(
-            current, _screen_size(), off_centre=not centred_now
+            current,
+            _screen_size(),
+            off_centre=not centred_now,
+            shown=placement is not None
+            and placement.shown
+            and not imgui.is_window_appearing(),
         )
         return
     centred_before = _near(
@@ -162,6 +176,12 @@ def _track_placement(title: str) -> None:
         and imgui.is_mouse_down(imgui.MouseButton_.left)
     ):
         placement.moved = True
+    if not placement.shown:
+        placement.settling += 1
+        # As large as in the last frame: it shows from the next frame on. imgui places a hidden
+        # window centred only once it shows, at the size it has then.
+        settled = placement.size == current
+        placement.shown = settled or placement.settling >= _SETTLE_FRAMES
     placement.off_centre = not centred_now
     placement.size = current
 
@@ -225,6 +245,7 @@ def begin_dialog(
     else:
         flags |= imgui.WindowFlags_.always_auto_resize
     flags |= imgui.WindowFlags_.no_saved_settings
+    _hide_while_settling(title)
     with floating_window_border():
         opened = imgui.begin_popup_modal(title, None, flags)[0]
     if opened:
@@ -234,6 +255,22 @@ def begin_dialog(
     else:
         _forget(title)
     return opened
+
+
+def _hide_while_settling(title: str) -> None:
+    """Hide the dialog ``title`` in this frame while its size has not settled (it lays its
+    content out all the same, measuring its size); imgui centres it when it shows."""
+    placement = _placements.get(title)
+    if placement is not None and placement.shown:
+        return
+    window = internal.find_window_by_name(title)
+    # The bindings type it as non-optional, but it is None before the dialog's first frame (imgui
+    # hides a new window in its first frame itself).
+    if window is not None:  # pyright: ignore[reportUnnecessaryComparison]
+        # Counted down once as the window begins: hidden in this frame.
+        window.hidden_frames_cannot_skip_items = max(
+            window.hidden_frames_cannot_skip_items, 2
+        )
 
 
 def _forget(title: str) -> None:

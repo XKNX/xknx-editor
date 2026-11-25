@@ -106,6 +106,9 @@ msgstr "デバイスを追加するには、先にプロジェクトを開くか
 msgid "This product has no usable application program."
 msgstr "この製品には使用可能なアプリケーションプログラムがありません。"
 
+msgid "Adding device…"
+msgstr "デバイスを追加中…"
+
 msgid "Added device: {name}"
 msgstr "デバイスを追加しました：{name}"
 

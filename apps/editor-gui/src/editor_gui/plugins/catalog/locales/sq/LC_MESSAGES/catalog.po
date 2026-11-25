@@ -106,6 +106,9 @@ msgstr "Për të shtuar një pajisje, fillimisht hapni ose krijoni një projekt.
 msgid "This product has no usable application program."
 msgstr "Ky produkt nuk ka program aplikativ të përdorshëm."
 
+msgid "Adding device…"
+msgstr "Po shtohet pajisja…"
+
 msgid "Added device: {name}"
 msgstr "U shtua pajisja: {name}"
 

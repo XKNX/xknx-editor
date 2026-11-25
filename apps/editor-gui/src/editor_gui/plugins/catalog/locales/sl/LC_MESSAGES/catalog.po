@@ -106,6 +106,9 @@ msgstr "Če želite dodati napravo, najprej odprite ali ustvarite projekt."
 msgid "This product has no usable application program."
 msgstr "Ta izdelek nima uporabnega aplikacijskega programa."
 
+msgid "Adding device…"
+msgstr "Dodajanje naprave…"
+
 msgid "Added device: {name}"
 msgstr "Naprava dodana: {name}"
 
