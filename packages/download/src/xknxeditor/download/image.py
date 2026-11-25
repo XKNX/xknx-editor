@@ -831,6 +831,7 @@ def build_image(
     tables: PropertyTables | None = None
     moved: MovedTables | None = None
     table_memory: list[tuple[int, int]] = []
+    first_group_object_number = 0
     if group_communication is not None:
         static = application.program.static
         # Tables in a relative segment live in their objects' relative memory, as without
@@ -845,6 +846,7 @@ def build_image(
         )
         mask_version = device_mask_version(application)
         if property_group_tables(mask_version):
+            first_group_object_number = 1
             tables = _group_communication_properties(
                 application, ui, group_communication, factory_image
             )
@@ -867,6 +869,7 @@ def build_image(
             table_memory.extend(table_ranges(group_tables.segments))
             moved = group_tables.moved
         else:
+            first_group_object_number = 1
             relative_segments.extend(
                 _group_communication_relative_segments(
                     application, ui, group_communication, factory_image
@@ -895,7 +898,9 @@ def build_image(
         group_communication.filter_table if group_communication is not None else None
     )
     security = (
-        _security_tables(application, ui, group_communication)
+        _security_tables(
+            application, ui, group_communication, first_group_object_number
+        )
         if group_communication is not None and group_communication.security is not None
         else None
     )
@@ -1173,7 +1178,10 @@ def group_table_bits(application: Application, ui: DynamicUI) -> dict[int, int]:
 
 
 def _security_tables(
-    application: Application, ui: DynamicUI, gc: GroupCommunication
+    application: Application,
+    ui: DynamicUI,
+    gc: GroupCommunication,
+    first_group_object_number: int,
 ) -> SecurityTables | None:
     """The security tables for the address table the download writes: the same active links,
     so a group key refers to the index its group address gets there."""
@@ -1192,6 +1200,7 @@ def _security_tables(
         group_addresses,
         [(link.group_address, number_of[link.com_object_ref_id]) for link in links],
         gc.security,
+        first_group_object_number=first_group_object_number,
     )
     if tables is not None:
         _validate_security_capacity(application, tables)

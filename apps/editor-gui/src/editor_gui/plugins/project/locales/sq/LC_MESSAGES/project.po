@@ -4171,3 +4171,12 @@ msgstr "Të rikthehen në këtë gateway inventari fizik dhe konfigurimi që jan
 
 msgid "Template members"
 msgstr "Anëtarët e shabllonit"
+
+msgid "Read Values"
+msgstr "Lexo vlerat"
+
+msgid "Copy Name"
+msgstr "Kopjo emrin"
+
+msgid "Copy Path"
+msgstr "Kopjo shtegun"

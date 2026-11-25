@@ -4248,3 +4248,12 @@ msgstr "Obnoviť uložené fyzické zariadenia a konfiguráciu do tejto brány a
 
 msgid "Template members"
 msgstr "Členovia šablóny"
+
+msgid "Read Values"
+msgstr "Čítať hodnoty"
+
+msgid "Copy Name"
+msgstr "Kopírovať názov"
+
+msgid "Copy Path"
+msgstr "Kopírovať cestu"

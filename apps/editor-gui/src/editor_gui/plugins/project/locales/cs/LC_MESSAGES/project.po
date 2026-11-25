@@ -4221,3 +4221,12 @@ msgstr "Obnovit uložená fyzická zařízení a konfiguraci do této brány a r
 
 msgid "Template members"
 msgstr "Členové šablony"
+
+msgid "Read Values"
+msgstr "Číst hodnoty"
+
+msgid "Copy Name"
+msgstr "Kopírovat název"
+
+msgid "Copy Path"
+msgstr "Kopírovat cestu"

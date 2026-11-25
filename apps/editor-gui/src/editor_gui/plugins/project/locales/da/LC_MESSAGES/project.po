@@ -4169,3 +4169,12 @@ msgstr "Gendan de gemte fysiske enheder og konfigurationen på denne gateway, og
 
 msgid "Template members"
 msgstr "Skabelonmedlemmer"
+
+msgid "Read Values"
+msgstr "Læs værdier"
+
+msgid "Copy Name"
+msgstr "Kopier navn"
+
+msgid "Copy Path"
+msgstr "Kopier sti"

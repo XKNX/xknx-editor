@@ -4221,3 +4221,12 @@ msgstr "Восстановить сохранённые физические у�
 
 msgid "Template members"
 msgstr "Участники шаблона"
+
+msgid "Read Values"
+msgstr "Прочитать значения"
+
+msgid "Copy Name"
+msgstr "Копировать имя"
+
+msgid "Copy Path"
+msgstr "Копировать путь"

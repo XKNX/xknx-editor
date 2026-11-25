@@ -4117,3 +4117,12 @@ msgstr "保存された物理デバイスと設定をこのゲートウェイに
 
 msgid "Template members"
 msgstr "テンプレートのメンバー"
+
+msgid "Read Values"
+msgstr "値の読み込み"
+
+msgid "Copy Name"
+msgstr "名前をコピー"
+
+msgid "Copy Path"
+msgstr "パスをコピー"

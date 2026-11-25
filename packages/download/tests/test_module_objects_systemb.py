@@ -5,8 +5,9 @@ from __future__ import annotations
 
 from xknx.profile.const import ResourceObjectType
 
-from xknxeditor.download.image import GroupCommunication, build_image
+from xknxeditor.download.image import DownloadImage, GroupCommunication, build_image
 from xknxeditor.download.project_data import GroupObjectLink
+from xknxeditor.download.secure_config import GroupSecurity
 from xknxeditor.prod.application import Application, parse_application_xml
 
 _APP = "M-00FA_A-00F0-01-0000"
@@ -72,8 +73,8 @@ def _application() -> Application:
     return parse_application_xml(_XML.encode(), "M-00FA")[0]
 
 
-def _tables() -> dict[int, bytes]:
-    image = build_image(
+def _image(security: GroupSecurity | None = None) -> DownloadImage:
+    return build_image(
         _application(),
         group_communication=GroupCommunication(
             device_address=0x1101,
@@ -84,9 +85,13 @@ def _tables() -> dict[int, bytes]:
                     sending=True,
                 ),
             ),
+            security=security,
         ),
     )
-    return {segment.object_type: segment.data for segment in image.relative_segments}
+
+
+def _tables() -> dict[int, bytes]:
+    return {segment.object_type: segment.data for segment in _image().relative_segments}
 
 
 def test_a_module_instance_object_above_255_is_linked_in_the_wide_format() -> None:
@@ -101,3 +106,9 @@ def test_the_group_object_table_reaches_the_module_instance_objects() -> None:
     # The instance's object has its record (flags, size code), the numbers between are empty.
     assert table[2 + 2 * 300 : 2 + 2 * 301] != b"\x00\x00"
     assert table[2 + 2 * 1 : 2 + 2 * 300] == bytes(2 * 299)
+
+
+def test_security_table_uses_the_system_b_group_object_number() -> None:
+    image = _image(GroupSecurity(keys={0x0801: bytes(16)}))
+    assert image.security_tables is not None
+    assert image.security_tables.go_flags == bytes(300) + b"\x03"

@@ -4173,3 +4173,12 @@ msgstr "Restaurar os dispositivos físicos e a configuração guardados nesta in
 
 msgid "Template members"
 msgstr "Membros do modelo"
+
+msgid "Read Values"
+msgstr "Ler Valores"
+
+msgid "Copy Name"
+msgstr "Copiar Nome"
+
+msgid "Copy Path"
+msgstr "Copiar Caminho"

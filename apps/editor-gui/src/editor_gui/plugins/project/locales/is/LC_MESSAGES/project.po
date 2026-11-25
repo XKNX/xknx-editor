@@ -4196,3 +4196,12 @@ msgstr "Endurheimta vistuð tæki og stillingar á þessari gátt og endurræsa 
 
 msgid "Template members"
 msgstr "Meðlimir sniðmáts"
+
+msgid "Read Values"
+msgstr "Lesa gildin"
+
+msgid "Copy Name"
+msgstr "Afrita heiti"
+
+msgid "Copy Path"
+msgstr "Afrita slóð"

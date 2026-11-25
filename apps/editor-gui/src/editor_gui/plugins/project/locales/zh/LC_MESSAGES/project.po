@@ -4117,3 +4117,12 @@ msgstr "将保存的物理设备和配置恢复到此网关并重启？这将覆
 
 msgid "Template members"
 msgstr "模板成员"
+
+msgid "Read Values"
+msgstr "读取值"
+
+msgid "Copy Name"
+msgstr "复制名称"
+
+msgid "Copy Path"
+msgstr "复制路径"

@@ -4310,3 +4310,12 @@ msgstr "Gespeicherten Gerätebestand und Konfiguration auf diesem Gateway wieder
 
 msgid "Template members"
 msgstr "Mitglieder der Vorlage"
+
+msgid "Read Values"
+msgstr "Werte lesen"
+
+msgid "Copy Name"
+msgstr "Name kopieren"
+
+msgid "Copy Path"
+msgstr "Pfad kopieren"

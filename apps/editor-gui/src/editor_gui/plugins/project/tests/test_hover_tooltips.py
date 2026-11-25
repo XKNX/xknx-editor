@@ -203,7 +203,7 @@ def test_device_markers_take_the_hover(
         )
 
         def render() -> None:
-            tree._render_device_node(device, lambda _d: flags, [7])
+            tree._render_device_node(device, lambda _d: flags, [7], "")
 
         row_tip = (
             S.DEVICE_PRODUCT_DATA_MISSING

@@ -4169,3 +4169,12 @@ msgstr "Gjenopprette de lagrede fysiske enhetene og konfigurasjonen på denne ga
 
 msgid "Template members"
 msgstr "Malmedlemmer"
+
+msgid "Read Values"
+msgstr "Les verdier"
+
+msgid "Copy Name"
+msgstr "Kopier navn"
+
+msgid "Copy Path"
+msgstr "Kopier sti"

@@ -4117,3 +4117,12 @@ msgstr "Kaydedilen fiziksel cihazlar ve yapılandırma bu ağ geçidine geri yü
 
 msgid "Template members"
 msgstr "Şablon üyeleri"
+
+msgid "Read Values"
+msgstr "Değerleri Oku"
+
+msgid "Copy Name"
+msgstr "Adı Kopyala"
+
+msgid "Copy Path"
+msgstr "Yolu Kopyala"

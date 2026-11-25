@@ -5,6 +5,7 @@ create / rename / delete group addresses and groups (context menus + modals, mir
 Topology panel); a secured group address, and a group whose Security is on, shows the KNX Data
 Secure shield. Address, data type and security are changed in the details."""
 
+import time
 from collections.abc import Callable, Iterable
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -37,6 +38,7 @@ from editor_gui.plugins.project.ui.paste_special import (
     handle_row_keys,
     render_copy_group_address_item,
     render_copy_item,
+    render_copy_name_path_items,
     render_delete_item,
 )
 from editor_gui.plugins.project.ui.tree_drag import Dragged, drag_source, drop_target
@@ -142,6 +144,15 @@ def has_group_addresses(tree: "list[GroupRangeInfo]") -> bool:
     return False
 
 
+def range_ga_texts(node: "GroupRangeInfo") -> list[str]:
+    """Every group address under ``node`` (its own and its descendants'), as printed text,
+    in tree order."""
+    texts = [ga.text for ga in node.group_addresses]
+    for child in node.children:
+        texts.extend(range_ga_texts(child))
+    return texts
+
+
 def used_addresses(tree: "list[GroupRangeInfo]") -> set[int]:
     """Every address in use, in every group (Free style ranges may share them)."""
     used: set[int] = set()
@@ -233,6 +244,8 @@ class GroupAddressesPanel:
         paste_dialog: PasteSpecialDialog | None = None,
         on_create_free_range: Callable[[int | None, str, int, int], object]
         | None = None,
+        read_gap: float = 0.1,
+        clock: Callable[[], float] = time.monotonic,
     ) -> None:
         """``on_create_range`` adds a main group (parent None) or a middle group below a main
         group, with a name and a number (None: the next free one), giving its id or None;
@@ -297,12 +310,19 @@ class GroupAddressesPanel:
         self._group_value = (
             GroupValueActions(bus, "ga_write_value") if bus is not None else None
         )
+        # Reading a whole group sends one GroupValueRead at a time, ``read_gap`` seconds apart,
+        # so a group of dozens of addresses does not flood the bus (each read draws a response).
+        self._read_gap = read_gap
+        self._clock = clock
+        self._pending_reads: list[str] = []
+        self._next_read_at = 0.0
         # Group-range (folder) modal state.
         self._popup_range_id: int = 0
         self._open_delete_range = False
 
     def render(self) -> None:
         tree = self._get_range_tree()
+        self._pump_reads()
 
         # Adopt an externally requested selection (Health navigation) once, before drawing.
         if self._take_requested_ga is not None:
@@ -730,6 +750,29 @@ class GroupAddressesPanel:
             return True
         return any(self._range_contains_ga(child, ga_id) for child in node.children)
 
+    def _name_path(
+        self, *, ga_id: int | None = None, range_id: int | None = None
+    ) -> str:
+        """The "/"-joined names from the top group down to a group address or a group range
+        (empty names skipped); "" when not found. Walked on demand (only a context menu asks)."""
+
+        def walk(nodes: "list[GroupRangeInfo]", prefix: list[str]) -> list[str] | None:
+            for node in nodes:
+                here = [*prefix, node.name]
+                if range_id is not None and node.id == range_id:
+                    return here
+                if ga_id is not None:
+                    for ga in node.group_addresses:
+                        if ga.id == ga_id:
+                            return [*here, ga.name]
+                found = walk(node.children, here)
+                if found is not None:
+                    return found
+            return None
+
+        chain = walk(self._get_range_tree(), [])
+        return "/".join(part for part in chain if part) if chain else ""
+
     def _render_ga_context_menu(self, ga: object, group: "GroupRangeInfo") -> None:
         """The menu of a group address in ``group``: what is pasted on it goes into its
         group."""
@@ -740,6 +783,10 @@ class GroupAddressesPanel:
         # Copy / Cut / Paste and "Delete".
         self._render_move_ga_menu(ga.id)  # type: ignore[attr-defined]
         render_copy_group_address_item(getattr(ga, "text", "") or "")
+        render_copy_name_path_items(
+            getattr(ga, "name", "") or "",
+            self._name_path(ga_id=ga.id),  # type: ignore[attr-defined]
+        )
         if self._group_value is not None:
             imgui.separator()
             self._group_value.render_menu_items(
@@ -873,10 +920,21 @@ class GroupAddressesPanel:
         )
 
     def _render_range_context_menu(self, node: "GroupRangeInfo", is_root: bool) -> None:
-        if self._on_create_range is None and self._on_remove_range is None:
-            return  # folder editing disabled
+        editing = self._on_create_range is not None or self._on_remove_range is not None
+        # Open the menu when it would hold something: editing, reading the values, or a name
+        # to copy (an unnamed folder with nothing to do gets no empty popup).
+        if not (editing or self._group_value is not None or node.name):
+            return
         if not context_menu(f"##gr_ctx_{node.id}"):
             return
+        # Copy the group's name or its full path, then read its values from the bus.
+        head = render_copy_name_path_items(node.name, self._name_path(range_id=node.id))
+        head = self._render_range_read_item(node) or head
+        if not editing:
+            imgui.end_popup()
+            return
+        if head:
+            imgui.separator()
         # Group addresses live in middle groups (ThreeLevel) or main groups (TwoLevel).
         if not (is_root and self._middle_enabled()) and add_menu_item(
             S.GA_ADD_GROUP_ADDRESSES, no_room(_address_room(node))
@@ -914,6 +972,37 @@ class GroupAddressesPanel:
             if render_delete_item():
                 self._ask_delete_range(node.id)
         imgui.end_popup()
+
+    def _render_range_read_item(self, node: "GroupRangeInfo") -> bool:
+        """ "Read Values": read every group address in this group (its own and its descendants')
+        from the bus, one at a time so the group does not flood it. Shown only when a bus
+        connection is wired; returns whether it was shown."""
+        if self._group_value is None:
+            return False
+        addresses = range_ga_texts(node)
+        connected = self._group_value.connected()
+        if imgui.menu_item(S.GA_READ_VALUES, "", False, connected and bool(addresses))[
+            0
+        ]:
+            self._pending_reads = addresses
+            self._next_read_at = 0.0  # send the first at once
+        if not connected:
+            imgui.set_item_tooltip(S.GA_NOT_CONNECTED)
+        return True
+
+    def _pump_reads(self) -> None:
+        """Send the next queued group-address read once its gap has passed (see "Read Values");
+        a lost connection drops the rest."""
+        if not self._pending_reads:
+            return
+        if self._group_value is None or not self._group_value.connected():
+            self._pending_reads = []
+            return
+        now = self._clock()
+        if now < self._next_read_at:
+            return
+        self._group_value.read(self._pending_reads.pop(0))
+        self._next_read_at = now + self._read_gap
 
     def _style(self) -> "GroupAddressStyle":
         from xknxeditor.proj.core.addressing import GroupAddressStyle

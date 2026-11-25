@@ -4169,3 +4169,12 @@ msgstr "Palautetaanko tallennetut fyysiset laitteet ja asetukset tähän yhdysk�
 
 msgid "Template members"
 msgstr "Mallin jäsenet"
+
+msgid "Read Values"
+msgstr "Lue arvot"
+
+msgid "Copy Name"
+msgstr "Kopioi nimi"
+
+msgid "Copy Path"
+msgstr "Kopioi polku"

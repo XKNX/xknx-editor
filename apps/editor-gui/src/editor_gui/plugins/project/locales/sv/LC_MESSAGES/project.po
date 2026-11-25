@@ -4169,3 +4169,12 @@ msgstr "Återställa de sparade fysiska enheterna och konfigurationen på denna 
 
 msgid "Template members"
 msgstr "Mallmedlemmar"
+
+msgid "Read Values"
+msgstr "Läs värden"
+
+msgid "Copy Name"
+msgstr "Kopiera namn"
+
+msgid "Copy Path"
+msgstr "Kopiera sökväg"

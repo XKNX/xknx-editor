@@ -4171,3 +4171,12 @@ msgstr "Επαναφορά των αποθηκευμένων φυσικών συ
 
 msgid "Template members"
 msgstr "Μέλη προτύπου"
+
+msgid "Read Values"
+msgstr "Ανάγνωση Τιμών"
+
+msgid "Copy Name"
+msgstr "Αντιγραφή Ονόματος"
+
+msgid "Copy Path"
+msgstr "Αντιγραφή Διαδρομής"

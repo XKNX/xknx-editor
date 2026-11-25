@@ -4248,3 +4248,12 @@ msgstr "Restaurezi dispozitivele fizice și configurația salvate pe acest gatew
 
 msgid "Template members"
 msgstr "Membrii șablonului"
+
+msgid "Read Values"
+msgstr "Citire valori"
+
+msgid "Copy Name"
+msgstr "Copiere nume"
+
+msgid "Copy Path"
+msgstr "Copiere cale"

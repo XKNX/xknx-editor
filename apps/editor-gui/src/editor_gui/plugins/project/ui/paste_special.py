@@ -97,6 +97,23 @@ def render_copy_group_address_item(text: str) -> None:
         imgui.set_clipboard_text(text)
 
 
+def render_copy_name_path_items(name: str, path: str) -> bool:
+    """ "Copy Name" (the element's own name) and "Copy Path" (its full path, names joined with
+    "/"), both to the clipboard. "Copy Name" shows when there is a name; "Copy Path" only when
+    the path adds something over the name (not at the top of a tree). Returns whether any item
+    was shown."""
+    shown = False
+    if name:
+        if imgui.menu_item(S.CONTEXT_COPY_NAME, "", False)[0]:
+            imgui.set_clipboard_text(name)
+        shown = True
+    if path and path != name:
+        if imgui.menu_item(S.CONTEXT_COPY_PATH, "", False)[0]:
+            imgui.set_clipboard_text(path)
+        shown = True
+    return shown
+
+
 class MenuGroups:
     """The separators between the groups of a context menu whose items show only sometimes:
     :meth:`next` ends a group, :meth:`show` (called right before an item that shows) draws the

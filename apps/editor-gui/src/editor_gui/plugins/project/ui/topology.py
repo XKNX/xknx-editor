@@ -33,6 +33,7 @@ from editor_gui.plugins.project.ui.paste_special import (
     handle_row_keys,
     render_copy_device_address_item,
     render_copy_item,
+    render_copy_name_path_items,
     render_delete_item,
 )
 from editor_gui.plugins.project.ui.tree_drag import Dragged, drag_source, drop_target
@@ -414,14 +415,15 @@ class TopologyPanel:
                 self._render_line_drop_target(area, main, area_node=True)
             render_description(area.description)
             if area_open:
+                area_name = self._area_plain_name(area, main)
                 for line, found in lines:
                     if line.number == 0:
                         self._render_line_content(
-                            area, line, found, segment_of, _leaf, ordered_ids
+                            area, line, found, segment_of, _leaf, ordered_ids, area_name
                         )
                     elif found or not flt:
                         self._render_line(
-                            area, line, found, segment_of, _leaf, ordered_ids
+                            area, line, found, segment_of, _leaf, ordered_ids, area_name
                         )
                 imgui.tree_pop()
 
@@ -440,7 +442,7 @@ class TopologyPanel:
             ):
                 with leaf_rows(nodes=True):
                     for device in unassigned:
-                        self._render_device_node(device, _leaf, ordered_ids)
+                        self._render_device_node(device, _leaf, ordered_ids, "")
                 imgui.tree_pop()
 
     def _render_line(
@@ -451,8 +453,10 @@ class TopologyPanel:
         segment_of: dict[int, int],
         leaf: Callable[[TreeDevice], int],
         ordered_ids: list[int],
+        area_name: str,
     ) -> None:
         """A sub-line's node with its sub-segments and devices below it."""
+        path = self._join_path(area_name, self._line_plain_name(line))
         flags = (
             imgui.TreeNodeFlags_.default_open
             | imgui.TreeNodeFlags_.span_avail_width
@@ -474,13 +478,13 @@ class TopologyPanel:
         opened = tree_node(f"{label}##line_{line.id}", flags)
         if row_chosen():
             self._select_element("line", line.id)
-        self._render_line_context_menu(area, line)
+        self._render_line_context_menu(area, line, path)
         drag_source(Dragged("line", (line.id,)), label)
         self._render_line_drop_target(area, line)
         render_description(line.description)
         if opened:
             self._render_line_content(
-                area, line, devices, segment_of, leaf, ordered_ids
+                area, line, devices, segment_of, leaf, ordered_ids, path
             )
             imgui.tree_pop()
 
@@ -492,6 +496,7 @@ class TopologyPanel:
         segment_of: dict[int, int],
         leaf: Callable[[TreeDevice], int],
         ordered_ids: list[int],
+        path: str,
     ) -> None:
         """A line's sub-segments, then the devices of its main segment."""
         segments, main_devices = _split_line(line, devices, segment_of)
@@ -499,11 +504,11 @@ class TopologyPanel:
             if self._filter_text.strip() and not segment_devices:
                 continue  # hide segments with no match while filtering
             self._render_segment(
-                area, line, segment, segment_devices, leaf, ordered_ids
+                area, line, segment, segment_devices, leaf, ordered_ids, path
             )
         with leaf_rows(nodes=True):
             for device in main_devices:
-                self._render_device_node(device, leaf, ordered_ids)
+                self._render_device_node(device, leaf, ordered_ids, path)
 
     def _render_segment(
         self,
@@ -513,9 +518,13 @@ class TopologyPanel:
         devices: list[TreeDevice],
         leaf: Callable[[TreeDevice], int],
         ordered_ids: list[int],
+        path: str,
     ) -> None:
         """A sub-segment's node, its devices below it; a click selects it, a device dropped on
         it moves there."""
+        segment_path = self._join_path(
+            path, segment_display_name(segment.name, segment.medium_type)
+        )
         flags = (
             imgui.TreeNodeFlags_.default_open
             | imgui.TreeNodeFlags_.span_avail_width
@@ -540,6 +549,9 @@ class TopologyPanel:
         if row_chosen():
             self._select_element("segment", segment.id)
         if context_menu(f"##segment_ctx_{segment.id}"):
+            name = segment_display_name(segment.name, segment.medium_type)
+            if render_copy_name_path_items(name, segment_path):
+                imgui.separator()
             if self._on_add_devices is not None and imgui.begin_menu(S.SPACES_ADD_MENU):
                 self._render_add_devices_item(segment.id)
                 imgui.end_menu()
@@ -562,7 +574,7 @@ class TopologyPanel:
         if opened:
             with leaf_rows(nodes=True):
                 for device in devices:
-                    self._render_device_node(device, leaf, ordered_ids)
+                    self._render_device_node(device, leaf, ordered_ids, segment_path)
             imgui.tree_pop()
 
     def _render_device_node(
@@ -570,14 +582,16 @@ class TopologyPanel:
         device: TreeDevice,
         leaf: Callable[[TreeDevice], int],
         ordered_ids: list[int],
+        path: str,
     ) -> None:
+        device_path = self._join_path(path, device.name or self._device_label(device))
         if isinstance(device, UnloadedDevice):
             # Shown like any device, but without an application there is nothing to configure.
             imgui.push_style_color(imgui.Col_.text, status_color("warning"))
             tree_node(self._device_label(device), leaf(device))
             imgui.pop_style_color()
             hovered = imgui.is_item_hovered()
-            self._render_unloaded_device_context_menu(device)
+            self._render_unloaded_device_context_menu(device, device_path)
             if self._render_description(device) or not hovered:
                 return
             imgui.set_tooltip(S.DEVICE_PRODUCT_DATA_MISSING)
@@ -599,7 +613,7 @@ class TopologyPanel:
             )
         if imgui.is_item_clicked() or keyboard_moved_here():
             self._handle_device_click(device, ordered_ids)
-        self._render_device_context_menu(device)
+        self._render_device_context_menu(device, device_path)
         self._render_device_drag_source(device)
         # A note/security/pending marker takes the hover (it has its own tooltip).
         if self._render_description(device):
@@ -629,8 +643,12 @@ class TopologyPanel:
             device.node_id, device.description, show_pending=True
         )
 
-    def _render_unloaded_device_context_menu(self, device: UnloadedDevice) -> None:
+    def _render_unloaded_device_context_menu(
+        self, device: UnloadedDevice, path: str
+    ) -> None:
         if context_menu(f"##dev_ctx_{device.node_id}"):
+            if render_copy_name_path_items(device.name or "", path):
+                imgui.separator()
             groups = MenuGroups()
             self._render_move_device_menu(device, groups.show)
             render_copy_device_address_item(device.individual_address, groups.show)
@@ -733,7 +751,7 @@ class TopologyPanel:
             if self._on_select_devices is not None:
                 self._on_select_devices(device, [device.node_id])
 
-    def _render_device_context_menu(self, device: Device) -> None:
+    def _render_device_context_menu(self, device: Device, path: str) -> None:
         if context_menu(f"##dev_ctx_{device.node_id}"):
             # Its configuration; where it is and its address; reading, comparing and
             # unlinking; then Copy / Cut / Paste and "Delete". On one of several selected
@@ -741,6 +759,8 @@ class TopologyPanel:
             # parking and unlinking them, Copy / Cut / Paste and deleting them.
             dragged = self._dragged_devices(device)
             several = len(dragged.ids) > 1
+            if not several and render_copy_name_path_items(device.name or "", path):
+                imgui.separator()
             groups = MenuGroups()
             label = self._device_display_name(device)
             groups.show()
@@ -929,10 +949,32 @@ class TopologyPanel:
         name = segment_display_name(segment.name, segment.medium_type)
         return f"{area.number}.{line.number} {name}"
 
+    @staticmethod
+    def _area_plain_name(area: Area, main: Line | None) -> str:
+        """An area's name without the "1.0" prefix (its medium-based default when unnamed)."""
+        name = area.name
+        if not name:
+            medium = medium_name(main.medium_type) if main is not None else ""
+            text = S.BACKBONE_LINE_NAME if area.number == 0 else S.MAIN_LINE_NAME
+            name = text.format(medium=medium).strip()
+        return name
+
+    @staticmethod
+    def _line_plain_name(line: Line) -> str:
+        return line.name or S.LINE_NAME.format(medium=medium_name(line.medium_type))
+
+    @staticmethod
+    def _join_path(*parts: str) -> str:
+        """The non-empty ``parts`` joined with "/" (a tree path)."""
+        return "/".join(part for part in parts if part)
+
     def _render_area_context_menu(
         self, area: Area, lines: list[Line], main: Line | None
     ) -> None:
         if context_menu(f"##area_ctx_{area.id}"):
+            name = self._area_plain_name(area, main)
+            if render_copy_name_path_items(name, name):
+                imgui.separator()
             if imgui.begin_menu(S.SPACES_ADD_MENU):
                 self._render_add_items(area, lines, main)
                 if main is not None:
@@ -948,8 +990,10 @@ class TopologyPanel:
                 self._on_remove_area(area)
             imgui.end_popup()
 
-    def _render_line_context_menu(self, area: Area, line: Line) -> None:
+    def _render_line_context_menu(self, area: Area, line: Line, path: str) -> None:
         if context_menu(f"##line_ctx_{line.id}"):
+            if render_copy_name_path_items(self._line_plain_name(line), path):
+                imgui.separator()
             if imgui.begin_menu(S.SPACES_ADD_MENU):
                 if add_menu_item(S.TOPOLOGY_ADD_SEGMENTS, _no_segment(line)):
                     self._start_add_segments(area, line)

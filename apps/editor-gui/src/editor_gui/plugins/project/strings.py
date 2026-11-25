@@ -4276,6 +4276,16 @@ class ProjectStrings:
         return _("Copy Group Address")
 
     @property
+    def CONTEXT_COPY_NAME(self) -> str:
+        # Any tree row's menu: the element's own name to the clipboard.
+        return _("Copy Name")
+
+    @property
+    def CONTEXT_COPY_PATH(self) -> str:
+        # Any tree row's menu: the element's full path (names joined with "/") to the clipboard.
+        return _("Copy Path")
+
+    @property
     def CONTEXT_DUPLICATE(self) -> str:
         return _("Duplicate")
 
@@ -5150,6 +5160,10 @@ class ProjectStrings:
     @property
     def GA_READ_VALUE(self) -> str:
         return _("Read Value")
+
+    @property
+    def GA_READ_VALUES(self) -> str:
+        return _("Read Values")
 
     @property
     def GA_WRITE_VALUE(self) -> str:
