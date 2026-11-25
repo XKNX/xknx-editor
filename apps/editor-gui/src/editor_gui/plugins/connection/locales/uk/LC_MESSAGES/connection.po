@@ -145,6 +145,15 @@ msgstr "Використовувати multicast-роутинг (замість 
 msgid "Gateway IP"
 msgstr "IP шлюзу"
 
+msgid "An open connection to the gateway connects to the new address once it is entered."
+msgstr "Відкрите з'єднання зі шлюзом підключиться до нової адреси, щойно її буде введено."
+
+msgid "Use the Project's Bus Connection"
+msgstr "Використовувати з'єднання з шиною з проєкту"
+
+msgid "While a project is open whose backbone line has a Bus Connection (Topology), the connection goes through it instead of the gateway set here."
+msgstr "Поки відкрито проєкт, магістральна лінія якого має з'єднання з шиною (Топологія), з'єднання йде через нього замість шлюзу, заданого тут."
+
 msgid "Multicast Group"
 msgstr "Multicast-група"
 

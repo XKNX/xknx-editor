@@ -17,12 +17,15 @@ from editor_gui.plugins.connection.ip_server import IpServer, IpServerSettings
 from editor_gui.plugins.connection.plugin import (
     _DEFAULT_CONTROLLER_IP,  # pyright: ignore[reportPrivateUsage]
     ConnectionPlugin,
+    ConnectionState,
 )
 from xknxeditor.download.timeouts import BusTimeouts, bus_timeouts, set_bus_timeouts
 
 
 def _plugin() -> Any:
     plugin = cast(Any, object.__new__(ConnectionPlugin))
+    # not connected: changed settings are kept for the next connect
+    plugin._state = ConnectionState.DISCONNECTED
     plugin._usb_target = None
     plugin._usb_addresses = {}
     plugin._usb_local_device = False

@@ -350,6 +350,24 @@ def tunnel_host(parameter: str) -> str | None:
     )
 
 
+def tunnel_type(parameter: str) -> ConnectionType:
+    """The tunnelling a Bus Connection (a ``<BusAccess>`` ``Parameter``) asks for: over TCP for
+    ``ProtocolType=Tcp``, else over UDP."""
+    for part in parameter.split(";"):
+        key, _, value = part.partition("=")
+        if key.strip() == "ProtocolType" and value.strip().strip('"').lower() == "tcp":
+            return ConnectionType.TUNNELING_TCP
+    return ConnectionType.TUNNELING
+
+
+# The connection settings a connection through another interface replaces while it is open:
+# the gateway's address, the connection type, the scanned gateway, the routing multicast group
+# and the USB interface.
+_KeptSettings = tuple[
+    str, ConnectionType, "GatewayDescriptor | None", str, "UsbTarget | None"
+]
+
+
 class _OperationConnector:
     """The connection plugin as the connection service's ``OperationConnector``."""
 
@@ -371,6 +389,15 @@ class _OperationConnector:
 
 class ConnectionPlugin:
     name = "connection"
+    # Set in __init__ (see there); the class has them for a plugin made without it (tests).
+    _reopen_when_idle = False
+    _operation_open = False
+    _operation_pending: Future[None] | None = None
+    _operation_restore: _KeptSettings | None = None
+    _use_project_bus = False
+    _project_bus_seen: tuple[int, int] | None = None
+    _project_bus: tuple[str, ConnectionType] | None = None
+    _project_restore: _KeptSettings | None = None
 
     def __init__(self, api: PluginAPI) -> None:
         self._api = api
@@ -513,10 +540,18 @@ class ConnectionPlugin:
         self._operation_users = 0
         self._operation_open = False
         self._operation_pending: Future[None] | None = None
-        self._operation_restore: (
-            tuple[str, ConnectionType, GatewayDescriptor | None, str, UsbTarget | None]
-            | None
-        ) = None
+        self._operation_restore: _KeptSettings | None = None
+        # Changed connection settings wait for the running bus operation before the open
+        # connection opens anew with them.
+        self._reopen_when_idle = False
+        # "Use the Project's Bus Connection": the open project's backbone Bus Connection (a
+        # KNXnet/IP tunnel) replaces the gateway set here while the project is open. The project
+        # state it was last looked at for (generation, revision), the tunnel applied (host,
+        # connection type) and the settings it replaces.
+        self._use_project_bus = False
+        self._project_bus_seen: tuple[int, int] | None = None
+        self._project_bus: tuple[str, ConnectionType] | None = None
+        self._project_restore: _KeptSettings | None = None
         self._operation_name = ""
         self._select_open = False
         self._select_shown = False
@@ -698,6 +733,7 @@ class ConnectionPlugin:
             data.get("serial_number_downloads", True)
         )
         self._connect_at_startup = bool(data.get("connect_at_startup", True))
+        self._use_project_bus = bool(data.get("use_project_bus_connection", False))
         self._block_bus_writes_setting = bool(data.get("block_bus_writes", False))
         self._apply_block_bus_writes()
         self._load_protected(str(data.get("protected_group_addresses", "")))
@@ -714,23 +750,34 @@ class ConnectionPlugin:
         )
 
     def _save_current_settings(self) -> None:
+        # The settings of their own, not those a connection through the project's Bus
+        # Connection or one opened for operations puts in place while it is open.
+        kept = self._project_restore or self._operation_restore
+        if kept is not None:
+            controller_ip, connection_type, _gateway, multicast_group, usb_target = kept
+        else:
+            controller_ip, connection_type, multicast_group, usb_target = (
+                self._controller_ip,
+                self._connection_type,
+                self._multicast_group,
+                self._usb_target,
+            )
         save_settings(
             _SETTINGS,
             {
-                "controller_ip": self._controller_ip,
-                "multicast_group": self._multicast_group,
-                "connection_type": self._connection_type.value,
+                "controller_ip": controller_ip,
+                "multicast_group": multicast_group,
+                "connection_type": connection_type.value,
                 "preferred_gateway_ip": self._preferred_gateway_ip,
                 "usb_interface": (
-                    self._usb_target.to_settings()
-                    if self._usb_target is not None
-                    else None
+                    usb_target.to_settings() if usb_target is not None else None
                 ),
                 "usb_interface_addresses": dict(self._usb_addresses),
                 "usb_local_device": self._usb_local_device,
                 "ip_server": self._ip_settings.to_settings(),
                 "serial_number_downloads": self._api.connection.use_serial_number,
                 "connect_at_startup": self._connect_at_startup,
+                "use_project_bus_connection": self._use_project_bus,
                 "block_bus_writes": self._block_bus_writes_setting,
                 "protected_group_addresses": " ".join(protected_patterns()),
                 **{
@@ -752,6 +799,7 @@ class ConnectionPlugin:
             return
         if self._busmonitor_blocks("connect"):
             return
+        self._chosen_connection(startup)
         if connection_type in _TUNNEL_TYPES:
             self._connection_type = connection_type
         elif self._connection_type not in _TUNNEL_TYPES:
@@ -781,6 +829,7 @@ class ConnectionPlugin:
             return
         if self._busmonitor_blocks("connect"):
             return
+        self._chosen_connection(startup)
         self._connection_type = connection_type or default_transport(gateway)
         if self._connection_type == ConnectionType.ROUTING:
             self._multicast_group = gateway.multicast_address or DEFAULT_MCAST_GRP
@@ -812,6 +861,7 @@ class ConnectionPlugin:
             return
         if self._busmonitor_blocks("connect"):
             return
+        self._chosen_connection(startup)
         self._usb_target = (
             device if isinstance(device, UsbTarget) else UsbTarget.of(device)
         )
@@ -2364,6 +2414,8 @@ class ConnectionPlugin:
     def render_status_indicator(self) -> None:
         self._refresh_data_secure()
         self._connect_with_credentials()
+        self._follow_project_bus_connection()
+        self._reopen_once_idle()
         self._render_status_indicator()
 
     def _render_status_indicator(self) -> None:
@@ -3169,9 +3221,19 @@ class ConnectionPlugin:
                 "gateway_ip",
                 lambda: S.SETTING_GATEWAY_IP,
                 "text",
-                get=lambda: self._controller_ip,
+                get=self._gateway_ip_setting,
                 set=self._set_controller_ip,
+                hint=lambda: S.SETTING_GATEWAY_IP_HINT,
                 shown=lambda: self._usb_target is None,
+                applied_when_done=True,
+            ),
+            Setting(
+                "use_project_bus_connection",
+                lambda: S.SETTING_USE_PROJECT_BUS_CONNECTION,
+                "bool",
+                get=lambda: self._use_project_bus,
+                set=self._set_use_project_bus,
+                hint=lambda: S.SETTING_USE_PROJECT_BUS_CONNECTION_HINT,
             ),
             Setting(
                 "connect_at_startup",
@@ -3267,9 +3329,10 @@ class ConnectionPlugin:
 
     def _set_connection_type_name(self, value: object) -> None:
         """Set the stored transport from an MCP name ("tunneling"/"tunneling_tcp"/"routing" or
-        "usb": the stored KNX USB interface, else the first one found); takes effect on the next
-        connect, like the Gateway menu's choice. Nothing changes while the connection is open
-        through another kind of interface."""
+        "usb": the stored KNX USB interface, else the first one found). An open gateway connection
+        opens anew with it (see ``_reopen_with_settings``); the USB interface takes effect on the
+        next connect. Nothing changes while the connection is open through another kind of
+        interface."""
         name = str(value).strip().lower()
         if name == "usb":
             if self._usb_target is not None or self._connection_open:
@@ -3290,6 +3353,7 @@ class ConnectionPlugin:
             return
         self._connection_type = connection_type
         self._save_current_settings()
+        self._reopen_with_settings()
 
     def _usb_interface_targets(self) -> list[UsbTarget]:
         """The KNX USB interfaces the USB Interface setting offers: the stored one, then those the
@@ -3325,9 +3389,148 @@ class ConnectionPlugin:
         self._usb_local_device = bool(value)
         self._save_current_settings()
 
+    def _gateway_ip_setting(self) -> str:
+        """The gateway's address as set here (not the one of the project's Bus Connection or of a
+        connection opened for operations, in use for a while)."""
+        kept = self._project_restore or self._operation_restore
+        return kept[0] if kept is not None else self._controller_ip
+
     def _set_controller_ip(self, value: object) -> None:
-        self._controller_ip = str(value).strip() or self._controller_ip
+        """Set the gateway's address; an open tunnelling connection opens anew with it (see
+        ``_reopen_with_settings``). While the project's Bus Connection or a connection opened for
+        operations is in use, the address is kept for afterwards."""
+        address = str(value).strip()
+        if not address or address == self._gateway_ip_setting():
+            return
+        kept = self._project_restore or self._operation_restore
+        if kept is not None:
+            changed = (address, *kept[1:])
+            if self._project_restore is not None:
+                self._project_restore = changed
+            else:
+                self._operation_restore = changed
+            self._save_current_settings()
+            return
+        self._controller_ip = address
+        self._selected_gateway = None
         self._save_current_settings()
+        if self._connection_type != ConnectionType.ROUTING:
+            self._reopen_with_settings()
+
+    def _reopen_with_settings(self) -> None:
+        """The settings of the open gateway connection changed: it opens anew with them, at once
+        or once the running bus operation has ended. Not a connection through a USB interface or
+        the bus monitor, nor one opened for operations."""
+        if (
+            not self._connection_open
+            or self._usb_target is not None
+            or self._operation_open
+            or self._operation_pending is not None
+            or self.busmonitor_active
+        ):
+            self._reopen_when_idle = False
+            return
+        if self._api.connection.busy_operation is not None:
+            self._reopen_when_idle = True
+            return
+        self._reopen_when_idle = False
+        self._session += 1
+        self._log.info("the connection settings changed, connecting again")
+        self._run_async(self._reopen(self._session))
+
+    def _reopen_once_idle(self) -> None:
+        """Open the connection anew with changed settings once the bus operation that held it
+        back has ended (every frame)."""
+        if self._reopen_when_idle and self._api.connection.busy_operation is None:
+            self._reopen_with_settings()
+
+    def _set_use_project_bus(self, value: object) -> None:
+        if bool(value) == self._use_project_bus:
+            return
+        self._use_project_bus = bool(value)
+        self._project_bus_seen = None
+        self._save_current_settings()
+
+    def _wanted_project_bus(self) -> tuple[str, ConnectionType] | None:
+        """The tunnel of the open project's backbone Bus Connection to connect through (host,
+        connection type), with the setting on; None otherwise."""
+        project = self._api.project
+        if not self._use_project_bus or not project.is_open:
+            return None
+        bus = project.backbone_bus_connection()
+        if bus is None:
+            return None
+        parameter, _name = bus
+        host = tunnel_host(parameter)
+        return (host, tunnel_type(parameter)) if host is not None else None
+
+    def _follow_project_bus_connection(self) -> None:
+        """Connect through the open project's Bus Connection with "Use the Project's Bus
+        Connection" on, and through the gateway set here again once the project has none (closed,
+        another project, set to Automatic, the setting off). Looked at again when the project
+        changed (every frame); an open connection opens anew, not while a bus operation, the bus
+        monitor or a connection opened for operations holds it."""
+        project = self._api.project
+        seen = (project.generation, project.revision) if project.is_open else (-1, -1)
+        if seen == self._project_bus_seen:
+            return
+        if (
+            self._api.connection.busy_operation is not None
+            or self.busmonitor_active
+            or self._operation_open
+            or self._operation_pending is not None
+        ):
+            return
+        self._project_bus_seen = seen
+        wanted = self._wanted_project_bus()
+        if wanted == self._project_bus and (
+            wanted is not None or self._project_restore is None
+        ):
+            return
+        if self._project_restore is None and wanted is not None:
+            self._project_restore = (
+                self._controller_ip,
+                self._connection_type,
+                self._selected_gateway,
+                self._multicast_group,
+                self._usb_target,
+            )
+        if wanted is not None:
+            host, connection_type = wanted
+            self._controller_ip = host
+            self._connection_type = connection_type
+            self._selected_gateway = None
+            self._usb_target = None
+            self._log.info("connecting through the project's Bus Connection", host=host)
+        else:
+            restore, self._project_restore = self._project_restore, None
+            if restore is not None:
+                (
+                    self._controller_ip,
+                    self._connection_type,
+                    self._selected_gateway,
+                    self._multicast_group,
+                    self._usb_target,
+                ) = restore
+            self._log.info("connecting through the gateway set in the settings again")
+        self._project_bus = wanted
+        if self._connection_open:
+            if self._usb_target is not None or wanted is None:
+                # back to a USB interface, or anywhere else: closed and opened anew
+                self._session += 1
+                self._run_async(self._reopen(self._session))
+            else:
+                self._reopen_with_settings()
+
+    def _chosen_connection(self, startup: bool) -> None:
+        """A connect to an interface: the user's choice ends the connection through the project's
+        Bus Connection (what it chose is kept as set here) until the project changes; at startup
+        the project's Bus Connection, if any, takes over again once connected."""
+        if startup:
+            self._project_bus_seen = None
+            self._project_bus = None
+        else:
+            self._project_restore = None
 
     def block_bus_writes_this_start(self) -> None:
         """``--no-bus-writes``: Block Bus Writes stays on until the editor ends, whatever the

@@ -145,6 +145,7 @@ def _plugin() -> Any:
         connection=SimpleNamespace(
             use_serial_number=True,
             busmonitor_active=False,
+            busy_operation=None,
             block_bus_writes=False,
             writes_blocked=lambda: False,
             writes_refused=lambda op: False,
@@ -1043,7 +1044,9 @@ class TestConnectionTypeSetting:
     def _setting(plugin: Any) -> Any:
         plugin._connection_type = ConnectionType.TUNNELING
         plugin._api = SimpleNamespace(
-            connection=SimpleNamespace(use_serial_number=True)
+            connection=SimpleNamespace(
+                use_serial_number=True, busmonitor_active=False, busy_operation=None
+            )
         )
         saved: list[bool] = []
         plugin._save_current_settings = lambda: saved.append(True)
@@ -1087,9 +1090,15 @@ class TestConnectionTypeSetting:
         assert "usb" not in dict(setting.choices())
         setting.set("usb")
         assert plugin._usb_target is None
-        # another IP type applies on the next connect, as before
+        # another IP type: the open gateway connection opens anew with it
+        opened: list[str] = []
+        plugin._run_async = lambda coro: (
+            opened.append(coro.cr_code.co_name),
+            coro.close(),
+        )
         setting.set("routing")
         assert plugin._connection_type is ConnectionType.ROUTING
+        assert opened == ["_reopen"]
 
     def test_the_usb_interface_setting(self) -> None:
         plugin = _plugin()

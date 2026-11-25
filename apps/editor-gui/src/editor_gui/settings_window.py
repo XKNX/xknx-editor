@@ -66,6 +66,9 @@ class Setting:
     secret: bool = False
     # The values MCP may set (``settings_set``); the rest only the user sets, in the window.
     mcp_may_set: Callable[[Any], bool] = _any_value
+    # A text set once its field is done (Enter, or leaving it), not with every key: setting it
+    # does something (e.g. connects again). MCP sets it at once.
+    applied_when_done: bool = False
 
 
 @dataclass(frozen=True, slots=True)
@@ -317,6 +320,24 @@ def _render_setting(setting: Setting, narrow: bool) -> None:
     imgui.spacing()
 
 
+# The texts typed into the fields of settings applied when done, by key, until they are done.
+_drafts: dict[str, str] = {}
+
+
+def _render_text_applied_when_done(setting: Setting, value: str, flags: int) -> None:
+    """The field of a text ``applied_when_done``: what is typed stays in it, and the setting is
+    set once the field is done (Enter, or leaving it)."""
+    changed, text = imgui.input_text("##value", _drafts.get(setting.key, value), flags)
+    if changed:
+        _drafts[setting.key] = text
+    if imgui.is_item_deactivated_after_edit():
+        done = _drafts.pop(setting.key, text)
+        if setting.set is not None and done != value:
+            setting.set(done)
+    elif not imgui.is_item_active():
+        _drafts.pop(setting.key, None)
+
+
 def _render_control(setting: Setting, label: str) -> None:
     if setting.kind == "custom":
         if setting.render is not None:
@@ -343,6 +364,9 @@ def _render_control(setting: Setting, label: str) -> None:
             end_combo()
     elif setting.kind in ("text", "password"):
         flags = imgui.InputTextFlags_.password if setting.kind == "password" else 0
+        if setting.applied_when_done:
+            _render_text_applied_when_done(setting, str(value or ""), flags)
+            return
         changed, text = imgui.input_text("##value", str(value or ""), flags)
         if changed and change is not None:
             change(text)

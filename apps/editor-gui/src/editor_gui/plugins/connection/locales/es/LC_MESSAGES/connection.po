@@ -145,6 +145,15 @@ msgstr "Usar enrutamiento multicast (en lugar de tunnelling)"
 msgid "Gateway IP"
 msgstr "IP de la Pasarela"
 
+msgid "An open connection to the gateway connects to the new address once it is entered."
+msgstr "Una conexión abierta con la pasarela se conecta a la nueva dirección en cuanto se introduce."
+
+msgid "Use the Project's Bus Connection"
+msgstr "Usar la Conexión Bus del Proyecto"
+
+msgid "While a project is open whose backbone line has a Bus Connection (Topology), the connection goes through it instead of the gateway set here."
+msgstr "Mientras esté abierto un proyecto cuya línea troncal tenga una Conexión Bus (Topología), la conexión pasa por ella en lugar de por la pasarela configurada aquí."
+
 msgid "Multicast Group"
 msgstr "Grupo Multicast"
 

@@ -55,6 +55,15 @@ msgstr "Multicast routing használata (tunneling helyett)"
 msgid "Gateway IP"
 msgstr "Átjáró IP-címe"
 
+msgid "An open connection to the gateway connects to the new address once it is entered."
+msgstr "Az átjáróhoz nyitott kapcsolat az új címhez csatlakozik, amint azt megadták."
+
+msgid "Use the Project's Bus Connection"
+msgstr "A projekt buszkapcsolatának használata"
+
+msgid "While a project is open whose backbone line has a Bus Connection (Topology), the connection goes through it instead of the gateway set here."
+msgstr "Amíg olyan projekt van nyitva, amelynek gerincvonalán van buszkapcsolat (Topológia), a kapcsolat azon keresztül megy az itt beállított átjáró helyett."
+
 msgid "Multicast Group"
 msgstr "Multicast csoport"
 

@@ -218,3 +218,50 @@ def test_the_window_knows_it_is_shown_from_anywhere() -> None:
         imgui.new_frame()
         imgui.end_frame()
     assert not window.is_open()
+
+
+def test_a_text_applied_when_done_is_set_once_its_field_is_done(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from editor_gui import settings_window
+
+    values = {"gateway": "192.168.0.221"}
+    set_to: list[str] = []
+    setting = Setting(
+        "gateway_ip",
+        lambda: "Gateway IP",
+        "text",
+        get=lambda: values["gateway"],
+        set=set_to.append,
+        applied_when_done=True,
+    )
+    # one frame of the field: what it shows, what is typed, whether it is done or still active
+    frames = iter(
+        [
+            ("192.168.0.3", True, False, True),
+            ("192.168.0.30", True, False, True),
+            ("192.168.0.30", False, True, False),
+        ]
+    )
+    shown: list[str] = []
+    state = {"done": False, "active": False}
+
+    def input_text(label: str, text: str, flags: int = 0) -> tuple[bool, str]:
+        shown.append(text)
+        typed, changed, done, active = next(frames)
+        state["done"], state["active"] = done, active
+        return changed, typed
+
+    monkeypatch.setattr(settings_window.imgui, "input_text", input_text)
+    monkeypatch.setattr(
+        settings_window.imgui, "is_item_deactivated_after_edit", lambda: state["done"]
+    )
+    monkeypatch.setattr(
+        settings_window.imgui, "is_item_active", lambda: state["active"]
+    )
+    for _ in range(3):
+        settings_window._render_text_applied_when_done(setting, values["gateway"], 0)  # pyright: ignore[reportPrivateUsage]
+    # what is typed stays in the field, the setting is set once, when the field is done
+    assert shown == ["192.168.0.221", "192.168.0.3", "192.168.0.30"]
+    assert set_to == ["192.168.0.30"]
+    assert settings_window._drafts == {}  # pyright: ignore[reportPrivateUsage]
