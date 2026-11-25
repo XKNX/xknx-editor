@@ -35,6 +35,14 @@ class GroupValueActions:
         if not connected:
             imgui.set_item_tooltip(S.GA_NOT_CONNECTED)
 
+    def connected(self) -> bool:
+        """Whether a read or write can be sent now."""
+        return self._bus.connected()
+
+    def read(self, address: str) -> None:
+        """Send a GroupValueRead to ``address`` (a protected address is dropped downstream)."""
+        self._bus.read(address)
+
     def render(self) -> None:
         """The Write Value dialog; call once per frame in the window that shows the menu."""
         if self._open:

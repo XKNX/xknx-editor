@@ -4144,3 +4144,12 @@ msgstr "Visszaállítja a mentett fizikai eszközöket és konfigurációt ezen 
 
 msgid "Template members"
 msgstr "Sablon tagjai"
+
+msgid "Read Values"
+msgstr "Értékek olvasása"
+
+msgid "Copy Name"
+msgstr "Név másolása"
+
+msgid "Copy Path"
+msgstr "Útvonal másolása"

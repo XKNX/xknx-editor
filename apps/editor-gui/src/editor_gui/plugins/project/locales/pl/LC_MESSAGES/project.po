@@ -4221,3 +4221,12 @@ msgstr "Przywrócić zapisane urządzenia fizyczne i konfigurację na tej bramie
 
 msgid "Template members"
 msgstr "Elementy szablonu"
+
+msgid "Read Values"
+msgstr "Odczytaj wartości"
+
+msgid "Copy Name"
+msgstr "Kopiuj nazwę"
+
+msgid "Copy Path"
+msgstr "Kopiuj ścieżkę"

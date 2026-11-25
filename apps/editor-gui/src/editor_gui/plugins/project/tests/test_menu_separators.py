@@ -213,9 +213,13 @@ def test_a_device_menu_is_grouped(monkeypatch: pytest.MonkeyPatch) -> None:
     )
     _frames(panel.render)
     shown = _shown(clicks, menu, panel.render, "##dev_ctx_7")
-    # Its configuration; "Move to" with its address; reading, comparing, its links, unlinking;
-    # then Copy / Cut / Paste and "Delete" ("Read from Device" brings no separator of its own).
+    # Copy its name and path; its configuration; "Move to" with its address; reading, comparing,
+    # its links, unlinking; then Copy / Cut / Paste and "Delete" ("Read from Device" brings no
+    # separator of its own).
     assert shown == [
+        S.CONTEXT_COPY_NAME,
+        S.CONTEXT_COPY_PATH,
+        _SEPARATOR,
         S.CONTEXT_DUPLICATE,
         S.CONTEXT_COPY_CONFIG,
         S.CONTEXT_PASTE_CONFIG,

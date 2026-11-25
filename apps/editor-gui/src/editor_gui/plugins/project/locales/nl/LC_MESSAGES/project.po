@@ -4202,3 +4202,12 @@ msgstr "De opgeslagen fysieke apparaten en configuratie op deze gateway herstell
 
 msgid "Template members"
 msgstr "Sjabloonleden"
+
+msgid "Read Values"
+msgstr "Waarden lezen"
+
+msgid "Copy Name"
+msgstr "Naam kopiëren"
+
+msgid "Copy Path"
+msgstr "Pad kopiëren"

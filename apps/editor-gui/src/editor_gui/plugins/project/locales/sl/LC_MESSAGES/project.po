@@ -4300,3 +4300,12 @@ msgstr "Obnovim shranjene fizične naprave in konfiguracijo na tem prehodu ter g
 
 msgid "Template members"
 msgstr "Člani predloge"
+
+msgid "Read Values"
+msgstr "Preberi vrednosti"
+
+msgid "Copy Name"
+msgstr "Kopiraj ime"
+
+msgid "Copy Path"
+msgstr "Kopiraj pot"

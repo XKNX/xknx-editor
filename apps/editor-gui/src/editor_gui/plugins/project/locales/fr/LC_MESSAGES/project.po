@@ -4175,3 +4175,12 @@ msgstr "Restaurer les appareils physiques et la configuration enregistrés sur c
 
 msgid "Template members"
 msgstr "Membres du modèle"
+
+msgid "Read Values"
+msgstr "Lire les valeurs"
+
+msgid "Copy Name"
+msgstr "Copier le nom"
+
+msgid "Copy Path"
+msgstr "Copier le chemin"

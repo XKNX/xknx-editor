@@ -46,6 +46,7 @@ from editor_gui.plugins.project.ui.paste_special import (
     render_copy_device_address_item,
     render_copy_group_address_item,
     render_copy_item,
+    render_copy_name_path_items,
     render_delete_item,
 )
 from editor_gui.plugins.project.ui.topology import render_read_device_item
@@ -84,6 +85,11 @@ def space_label(space: "SpaceInfo") -> str:
     if space.number:
         label = f"{label} ({space.number})"
     return label
+
+
+def _join_path(*parts: str) -> str:
+    """The non-empty ``parts`` joined with "/" (a tree path)."""
+    return "/".join(part for part in parts if part)
 
 
 # The type the "Add" dialog adds when it adds trades.
@@ -494,9 +500,10 @@ class SpacesPanel:
                     elif not trade and self._on_create_space is not None:
                         self._on_create_space(parent, add_type, name, row.choice)
 
-    def _render_space(self, space: "SpaceInfo", flt: str = "") -> None:
+    def _render_space(self, space: "SpaceInfo", flt: str = "", path: str = "") -> None:
         if flt and not self._space_has_match(space, flt):
             return  # while filtering, hide spaces with no match anywhere below
+        space_path = _join_path(path, space_label(space))
         # A space that matches by its own name shows all its contents; otherwise
         # only the matching devices/functions (and matching child spaces).
         self_match = not flt or self._space_matches_self(space, flt)
@@ -533,7 +540,7 @@ class SpacesPanel:
             self._on_select_space(space.id)
         # The context menu and the space's own popups must run whether the node is expanded or not
         # (a collapsed node can still be moved/deleted), so render them before the return.
-        self._render_space_context_menu(space)
+        self._render_space_context_menu(space, space_path)
         self._drag_and_drop_space(space)
         # A short description shows inline; a longer one shows while its icon is hovered.
         render_description(space.description)
@@ -544,14 +551,14 @@ class SpacesPanel:
         if not open_node:
             return
         for child in space.children:
-            self._render_space(child, flt)
+            self._render_space(child, flt, space_path)
         with leaf_rows():
             for device in space.devices:
                 if self_match or self._device_matches(device, flt):
-                    self._render_device(device, space_id=space.id)
+                    self._render_device(device, space_id=space.id, path=space_path)
         for function in space.functions:
             if self_match or self._function_matches(function, flt):
-                self._render_function(function, space.id)
+                self._render_function(function, space.id, space_path)
         imgui.tree_pop()
 
     def _clear_selection(self) -> None:
@@ -630,11 +637,21 @@ class SpacesPanel:
             self._pending_popup_id = None
             imgui.open_popup(popup_id)
 
-    def _render_space_context_menu(self, space: "SpaceInfo") -> None:
-        editing = (self._on_create_space, self._on_move_space, self._on_remove_space)
-        if all(callback is None for callback in editing):  # editing disabled -> no menu
-            return
+    def _render_space_context_menu(self, space: "SpaceInfo", path: str) -> None:
         if not context_menu(f"##spctx{space.id}"):
+            return
+        editing = any(
+            callback is not None
+            for callback in (
+                self._on_create_space,
+                self._on_move_space,
+                self._on_remove_space,
+            )
+        )
+        if render_copy_name_path_items(space_label(space), path) and editing:
+            imgui.separator()
+        if not editing:
+            imgui.end_popup()
             return
         self._render_add_menu(space)
         if self._on_move_space is not None:
@@ -906,6 +923,7 @@ class SpacesPanel:
         device: "SpaceDeviceInfo",
         space_id: int | None = None,
         trade_id: int | None = None,
+        path: str = "",
     ) -> None:
         detail = device.description
         leaf = self._device_label(device)
@@ -947,10 +965,16 @@ class SpacesPanel:
             or self._on_show_links is not None
             or self._paste_dialog is not None
             or self._on_delete_device is not None
+            or bool(device.name)
+            or bool(path)
         )
         if has_menu and context_menu(f"##spdev_ctx_{where}{device.id}"):
             # As in the Topology tree: its configuration; where it is and its address; reading,
             # comparing and unlinking; then Copy / Cut / Paste and "Delete".
+            if render_copy_name_path_items(
+                device.name or "", _join_path(path, device.name or leaf)
+            ):
+                imgui.separator()
             groups = MenuGroups()
             if self._on_copy_config is not None and groups.show():
                 config_label = self._device_label(device)
@@ -1245,7 +1269,9 @@ class SpacesPanel:
             imgui.close_current_popup()
         end_dialog()
 
-    def _render_function(self, function: "FunctionInfo", space_id: int) -> None:
+    def _render_function(
+        self, function: "FunctionInfo", space_id: int, path: str = ""
+    ) -> None:
         label = _function_label(function)
         type_label = function_type_label(function.function_type)
         # A click selects the function, the arrow and a double click open it.
@@ -1268,7 +1294,7 @@ class SpacesPanel:
             self._clear_selection()
             self._selected_function = function.id
             self._on_select_element("function", function.id)
-        self._render_function_context_menu(function, space_id)
+        self._render_function_context_menu(function, space_id, path)
         if self._on_move_function is not None:
             drag_source(Dragged("function", (function.id,)), label)
         render_description(function.description)
@@ -1312,7 +1338,7 @@ class SpacesPanel:
             imgui.end_popup()
 
     def _render_function_context_menu(
-        self, function: "FunctionInfo", space_id: int
+        self, function: "FunctionInfo", space_id: int, path: str = ""
     ) -> None:
         editable = (
             self._on_move_function is not None
@@ -1320,43 +1346,50 @@ class SpacesPanel:
             or self._on_add_function_ga is not None
             or self._paste_dialog is not None
         )
-        if editable and context_menu(f"##fnctx{function.id}"):
-            if self._on_add_function_ga is not None:
-                if imgui.menu_item(S.SPACES_FN_LINK, "", False)[0]:
-                    self._link_filter = ""
-                    self._pending_popup_id = _link_function_dialog(function.id)
-                tree = self._get_ga_range_tree() if self._get_ga_range_tree else []
-                if self._on_create_ga_in is not None and add_menu_item(
-                    S.GA_ADD_GROUP_ADDRESSES,
-                    ""
-                    if address_groups(tree, self._group_style())
-                    else S.SPACES_FN_NO_GROUP,
-                ):
-                    self._start_add_function_gas(function)
-            if self._on_move_function is not None:
-                # Into any other space.
-                targets = [
-                    (
-                        f"{'  ' * depth}{space_label(target)}##mvfn{function.id}_{target.id}",
-                        target.id,
-                    )
-                    for target, depth in self._all_spaces()
-                ]
-                chosen = render_move_menu(targets, space_id)
-                if chosen is not None:
-                    self._on_move_function(function.id, chosen[0])
-            if self._paste_dialog is not None:
-                imgui.separator()
-                render_copy_item(Dragged("function", (function.id,)))
-                # What is pasted on a function goes into its building part.
-                self._paste_dialog.render_paste_items(
-                    lambda c: self._beside_device_target(space_id, None, c)
-                )
-            if self._on_remove_function is not None:
-                imgui.separator()
-                if render_delete_item(S.SPACES_FN_DELETE):
-                    self._on_remove_function(function.id)
+        if not context_menu(f"##fnctx{function.id}"):
+            return
+        name = _function_label(function)
+        if render_copy_name_path_items(name, _join_path(path, name)) and editable:
+            imgui.separator()
+        if not editable:
             imgui.end_popup()
+            return
+        if self._on_add_function_ga is not None:
+            if imgui.menu_item(S.SPACES_FN_LINK, "", False)[0]:
+                self._link_filter = ""
+                self._pending_popup_id = _link_function_dialog(function.id)
+            tree = self._get_ga_range_tree() if self._get_ga_range_tree else []
+            if self._on_create_ga_in is not None and add_menu_item(
+                S.GA_ADD_GROUP_ADDRESSES,
+                ""
+                if address_groups(tree, self._group_style())
+                else S.SPACES_FN_NO_GROUP,
+            ):
+                self._start_add_function_gas(function)
+        if self._on_move_function is not None:
+            # Into any other space.
+            targets = [
+                (
+                    f"{'  ' * depth}{space_label(target)}##mvfn{function.id}_{target.id}",
+                    target.id,
+                )
+                for target, depth in self._all_spaces()
+            ]
+            chosen = render_move_menu(targets, space_id)
+            if chosen is not None:
+                self._on_move_function(function.id, chosen[0])
+        if self._paste_dialog is not None:
+            imgui.separator()
+            render_copy_item(Dragged("function", (function.id,)))
+            # What is pasted on a function goes into its building part.
+            self._paste_dialog.render_paste_items(
+                lambda c: self._beside_device_target(space_id, None, c)
+            )
+        if self._on_remove_function is not None:
+            imgui.separator()
+            if render_delete_item(S.SPACES_FN_DELETE):
+                self._on_remove_function(function.id)
+        imgui.end_popup()
 
     def _start_add_function_gas(self, function: "FunctionInfo") -> None:
         """ "Add Group Addresses…" of a function: the group addresses dialog of a group, with
