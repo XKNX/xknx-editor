@@ -2107,6 +2107,9 @@ msgstr "Konfiguracja wtyczki"
 msgid "Press 'Read DALI Bus' to list the ECGs on the gateway."
 msgstr "Naciśnij „Odczytaj magistralę DALI”, aby wyświetlić ECG na bramce."
 
+msgid "Press 'Read from Device' or 'Scan Bus' to list the DALI devices."
+msgstr "Naciśnij „Odczytaj z urządzenia” lub „Skanuj magistralę”, aby wyświetlić urządzenia DALI."
+
 msgid "Random Address"
 msgstr "Adres losowy"
 

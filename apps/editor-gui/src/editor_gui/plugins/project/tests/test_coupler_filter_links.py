@@ -141,8 +141,10 @@ def _segment_service(segment_coupler: bool) -> Any:
     service._coupled_segment = lambda device: ProjectService._coupled_segment(  # pyright: ignore[reportPrivateUsage]
         service, device
     )
-    service._coupler_sides = lambda device, address: ProjectService._coupler_sides(  # pyright: ignore[reportPrivateUsage]
-        service, device, address
+    service._coupler_sides = lambda device, address, links=None: (
+        ProjectService._coupler_sides(  # pyright: ignore[reportPrivateUsage]
+            service, device, address, links
+        )
     )
     service._all_device_group_addresses = lambda: {
         int(address.split(".")[0]) << 12
@@ -173,9 +175,9 @@ def _segment_service(segment_coupler: bool) -> Any:
     service._coupler_node_ids = (
         lambda: ProjectService._coupler_node_ids(service)  # pyright: ignore[reportPrivateUsage]
     )
-    service._routed_group_addresses_for = lambda device, address: (
+    service._routed_group_addresses_for = lambda device, address, links=None: (
         ProjectService._routed_group_addresses_for(  # pyright: ignore[reportPrivateUsage]
-            service, device, address
+            service, device, address, links
         )
     )
     service.coupler_filter_table = lambda node: ProjectService.coupler_filter_table(

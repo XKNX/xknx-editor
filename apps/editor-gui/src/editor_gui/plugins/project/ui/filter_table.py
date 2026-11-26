@@ -125,9 +125,10 @@ class FilterTableDialog:
 
 
 def _safe_cell(text: str) -> str:
-    """A CSV cell that a spreadsheet will not run as a formula: a leading =, +, -, @, tab or
-    carriage return (through which formula injection works) is prefixed with an apostrophe."""
-    if text[:1] in ("=", "+", "-", "@", "\t", "\r"):
+    """A CSV cell that a spreadsheet will not run as a formula: a leading =, +, -, @, tab,
+    carriage return or newline (through which formula injection works) is prefixed with an
+    apostrophe."""
+    if text[:1] in ("=", "+", "-", "@", "\t", "\r", "\n"):
         return "'" + text
     return text
 

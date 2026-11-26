@@ -220,9 +220,11 @@ class HealthService:
                         )
                     )
                 elif senders > 1:
+                    # A prompt to check the assignment (shared controls may be intended), not
+                    # a fault: a hint.
                     out.append(
                         Finding(
-                            Severity.WARNING,
+                            Severity.INFO,
                             "group-address",
                             S.HEALTH_SENDERS(senders).format(
                                 address=ga.address, name=ga.name, count=senders

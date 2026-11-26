@@ -2107,6 +2107,9 @@ msgstr "Eklenti yapılandırması"
 msgid "Press 'Read DALI Bus' to list the ECGs on the gateway."
 msgstr "Ağ geçidindeki ECG'leri listelemek için «DALI veri yolunu oku»'ya basın."
 
+msgid "Press 'Read from Device' or 'Scan Bus' to list the DALI devices."
+msgstr "DALI cihazlarını listelemek için «Cihazdan Oku» veya «Bus'ı Tara» düğmesine basın."
+
 msgid "Random Address"
 msgstr "Rastgele adres"
 

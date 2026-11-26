@@ -2107,6 +2107,9 @@ msgstr "Configurazione del plugin"
 msgid "Press 'Read DALI Bus' to list the ECGs on the gateway."
 msgstr "Premi «Leggi bus DALI» per elencare gli ECG sul gateway."
 
+msgid "Press 'Read from Device' or 'Scan Bus' to list the DALI devices."
+msgstr "Premi «Leggi dal dispositivo» o «Scansiona bus» per elencare i dispositivi DALI."
+
 msgid "Random Address"
 msgstr "Indirizzo casuale"
 

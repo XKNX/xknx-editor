@@ -27,15 +27,14 @@ class ParameterRefRefNode(DynamicNode):
         param_ref: ParameterRef,
         param: ParameterBase,
         param_type: ParameterType,
+        *,
+        widgets: dict[str, Widget] | None = None,
     ) -> None:
         self._elem = elem
         self._param_ref = param_ref
         self._param = param
         self._param_type = param_type
-        # Built on first use: it depends on the parameter type only, and each settle evaluates
-        # the tree several times.
-        self._widget: Widget = None
-        self._widget_resolved = False
+        self._widgets = widgets if widgets is not None else {}
         # The UiParameters made so far, by what differs between them (the rest, the access
         # too, is this node's): each pass of each evaluation places the same parameters again.
         self._made: dict[tuple[str, str, str, str | None], UiParameter] = {}
@@ -43,10 +42,11 @@ class ParameterRefRefNode(DynamicNode):
         self._made_before: dict[tuple[str, str, str, str | None], UiParameter] = {}
 
     def _get_widget(self) -> Widget:
-        if not self._widget_resolved:
-            self._widget = resolve_widget(self._param_type)
-            self._widget_resolved = True
-        return self._widget
+        type_id = self._param_type.id
+        try:
+            return self._widgets[type_id]
+        except KeyError:
+            return self._widgets.setdefault(type_id, resolve_widget(self._param_type))
 
     def eval(self, ctx: EvalContext) -> list[UiNode]:
         ctx.mark_active_param(self._elem.ref_id)

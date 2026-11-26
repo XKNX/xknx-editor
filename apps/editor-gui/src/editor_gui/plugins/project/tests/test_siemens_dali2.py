@@ -635,3 +635,34 @@ def test_identification_control_separates_projects_and_propagates_cleanup_error(
     with pytest.raises(ValueError, match="cleanup failed"):
         session.ended.result()
     assert control.stop(target) is None
+
+
+def test_hint_before_a_scan_names_the_scan_buttons(monkeypatch):
+    from editor_gui.plugins.project.strings import S
+
+    buttons: list[str] = []
+    hints: list[str] = []
+
+    def button(text):
+        buttons.append(text)
+        return False
+
+    monkeypatch.setattr(imgui, "button", button)
+    monkeypatch.setattr(imgui, "text_disabled", hints.append)
+    panel = SiemensDali2Panel(lambda *args: None)
+    context = imgui.create_context()
+    try:
+        io = imgui.get_io()
+        io.display_size = imgui.ImVec2(800, 700)
+        io.backend_flags |= imgui.BackendFlags_.renderer_has_textures
+        imgui.new_frame()
+        imgui.begin("DALI-2")
+        panel.render(device(), True)
+        imgui.end()
+        imgui.end_frame()
+    finally:
+        imgui.destroy_context(context)
+    assert S.SIEMENS_DALI2_NO_SCAN in hints
+    scan_buttons = [S.E64_BUS_ACTIONS["read"], S.DALI_SCAN]
+    assert all(label in buttons for label in scan_buttons)
+    assert all(f"'{label}'" in S.SIEMENS_DALI2_NO_SCAN for label in scan_buttons)

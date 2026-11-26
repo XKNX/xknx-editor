@@ -13,8 +13,9 @@ import pytest
 
 from xknxeditor.prod import parse_cache
 from xknxeditor.prod.application import Application, parse_application_xml
-from xknxeditor.prod.parser_v2 import dynamic
+from xknxeditor.prod.parser_v2.activation import shown_parameters
 from xknxeditor.prod.parser_v2.dynamic import DynamicTreeBuilder, DynamicUI
+from xknxeditor.prod.parser_v2.ui.parameter import EnumWidget
 
 _XML = (Path(__file__).parent / "fixtures" / "fan_coil_application.xml").read_bytes()
 _MANUFACTURER = re.search(rb'RefId="(M-[0-9A-F]{4})"', _XML).group(1).decode()  # type: ignore[union-attr]
@@ -94,13 +95,28 @@ def test_an_entry_of_the_program_alone_gets_its_tree(
 def test_the_kept_tree_shows_the_language_asked_for(
     tmp_path: Path, built: list[str]
 ) -> None:
-    _load(tmp_path)
-    english = _load(tmp_path, "en")
-    program, tree = english.resolved()
-    fresh = dynamic.DynamicTreeBuilder(program)
-    assert DynamicUI(program, tree_builder=tree).ui() == (
-        DynamicUI(program, tree_builder=fresh).ui()
+    xml = _XML.replace(
+        b"</Manufacturer>",
+        b"""<Languages><Language Identifier="de-DE">
+          <TranslationUnit RefId="M-00FA_A-0007-01-0000">
+            <TranslationElement RefId="M-00FA_A-0007-01-0000_PT-YN_EN-0">
+              <Translation AttributeName="Text" Text="Nein"/>
+            </TranslationElement>
+          </TranslationUnit>
+        </Language></Languages></Manufacturer>""",
     )
+    (original,) = parse_application_xml(xml, _MANUFACTURER, cache_dir=tmp_path)
+    (german,) = parse_application_xml(xml, _MANUFACTURER, "de-DE", cache_dir=tmp_path)
+    assert (
+        len(built) == 1
+    )  # German uses the stored tree built from the untranslated IR.
+    for app, label in [(original, "No"), (german, "Nein")]:
+        ui = app.dynamic_ui()
+        assert ui is not None
+        params = {p.label: p for p in shown_parameters(ui.ui()).values()}
+        widget = params["Fan Coil"].widget
+        assert isinstance(widget, EnumWidget)
+        assert [c.label for c in widget.choices] == [label, "Yes"]
 
 
 def test_a_reloaded_application_keeps_the_tree_it_was_loaded_with(

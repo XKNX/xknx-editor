@@ -2104,6 +2104,9 @@ msgstr "Les DALI-brautina frá hlut {object_index}…"
 msgid "Press 'Read DALI Bus' to list the ECGs on the gateway."
 msgstr "Ýttu á 'Lesa DALI-braut' til að birta straumfestana á gáttinni."
 
+msgid "Press 'Read from Device' or 'Scan Bus' to list the DALI devices."
+msgstr "Ýttu á 'Lesa úr tæki' eða 'Leita á braut' til að birta DALI-tækin."
+
 msgid "Short Address"
 msgstr "Stutt vistfang"
 

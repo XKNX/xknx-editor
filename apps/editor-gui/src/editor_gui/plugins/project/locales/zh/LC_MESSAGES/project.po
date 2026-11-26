@@ -2107,6 +2107,9 @@ msgstr "插件配置"
 msgid "Press 'Read DALI Bus' to list the ECGs on the gateway."
 msgstr "按下「读取 DALI 总线」以列出网关上的 ECG。"
 
+msgid "Press 'Read from Device' or 'Scan Bus' to list the DALI devices."
+msgstr "按下「从设备读取」或「扫描总线」以列出 DALI 设备。"
+
 msgid "Random Address"
 msgstr "随机地址"
 

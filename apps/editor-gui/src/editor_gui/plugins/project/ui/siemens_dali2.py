@@ -279,7 +279,7 @@ class SiemensDali2Panel:
             with self._lock:
                 scan = state.scans.get((state.line, state.sensors))
             if scan is None:
-                imgui.text_disabled(S.SIEMENS_DALI_NO_SCAN)
+                imgui.text_disabled(S.SIEMENS_DALI2_NO_SCAN)
                 return
             self._table(state, scan)
             imgui.begin_disabled(busy or not connected or not scan.devices)
