@@ -329,42 +329,23 @@ class TestOpenControlPipe:
         pipe.close()
 
     @pytest.mark.skipif(sys.platform != "win32", reason="Windows' synchronous I/O")
-    def test_windows_io_cancelled_after_the_timeout(self) -> None:
-        """Test a call whose synchronous I/O takes too long is cancelled, others not."""
+    def test_windows_failure_after_the_timeout(self) -> None:
+        """Test a call failing after the timeout is a WriteTimeout, one failing sooner not."""
         assert sys.platform == "win32"  # for type checkers elsewhere
-        import ctypes
-        import msvcrt
-        from ctypes import wintypes
 
-        read_file = ctypes.WinDLL("kernel32", use_last_error=True).ReadFile
-        read_file.argtypes = (
-            wintypes.HANDLE,
-            ctypes.c_void_p,
-            wintypes.DWORD,
-            ctypes.POINTER(wintypes.DWORD),
-            ctypes.c_void_p,
-        )
-        read_file.restype = wintypes.BOOL
-        reader, writer = os.pipe()
-        try:
-            handle = msvcrt.get_osfhandle(reader)
-            buffer = ctypes.create_string_buffer(1)
-            count = wintypes.DWORD()
+        def slow_failure() -> int:
+            time.sleep(0.05)
+            return 0
 
-            def read() -> int:
-                return read_file(handle, buffer, 1, ctypes.byref(count), None)
-
-            # nothing written to the pipe yet: the read waits
-            started = time.monotonic()
-            with pytest.raises(control_pipe.WriteTimeout):
-                control_pipe._windows_within(0.2, read)
-            assert time.monotonic() - started < 5
-            os.write(writer, b"x")
-            control_pipe._windows_within(5.0, read)
-            assert buffer.raw == b"x"
-        finally:
-            os.close(reader)
-            os.close(writer)
+        with pytest.raises(control_pipe.WriteTimeout):
+            control_pipe._windows_timed(0.01, slow_failure)
+        with pytest.raises(OSError) as raised:
+            control_pipe._windows_timed(5.0, lambda: 0)
+        assert not isinstance(raised.value, control_pipe.WriteTimeout)
+        # a slow call that succeeds is no error, and nothing cuts it short
+        started = time.monotonic()
+        control_pipe._windows_timed(0.01, lambda: time.sleep(0.05) or 1)
+        assert time.monotonic() - started >= 0.05
         with pytest.raises(OSError) as raised:
             control_pipe._windows_set_output_report(0, REPORT)
         assert not isinstance(raised.value, control_pipe.WriteTimeout)

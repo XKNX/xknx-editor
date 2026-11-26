@@ -3,6 +3,7 @@ from __future__ import annotations
 import logging
 import sys
 import time
+import traceback
 from collections import deque
 from collections.abc import MutableMapping
 from dataclasses import dataclass, field
@@ -96,6 +97,8 @@ class LogRecord:
     plugin: str
     event: str
     payload: dict[str, str] = field(default_factory=dict[str, str])
+    # The traceback of the exception logged with the record, "" without one.
+    traceback: str = ""
 
     @cached_property
     def timestamp_str(self) -> str:
@@ -218,6 +221,12 @@ class LogService:
             payload = cemi_error_details() | payload
         level = record.levelname.lower()
         event = record.getMessage()
+        trace = ""
+        if record.exc_info and record.exc_info[1] is not None:
+            error = record.exc_info[1]
+            # The exception on the record's line, its traceback in the copied log.
+            payload["exception"] = traceback.format_exception_only(error)[-1].strip()
+            trace = "".join(traceback.format_exception(error)).rstrip()
         self._store(
             LogRecord(
                 timestamp=record.created,
@@ -225,6 +234,7 @@ class LogService:
                 plugin=plugin,
                 event=event,
                 payload=payload,
+                traceback=trace,
             )
         )
         # Also into the console and the log file, in the app's own format, so a reported log has

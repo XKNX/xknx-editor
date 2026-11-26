@@ -35,6 +35,30 @@ def test_bridge_surfaces_extra_fields_as_payload():
     assert hit.payload.get("product_id") == "X-1"
 
 
+def test_an_exception_shows_on_its_line_and_its_traceback_in_the_copy():
+    """Test an error logged with its exception (as xknx's failing background tasks are)
+    names it on its line and keeps the traceback for the copied log."""
+    from editor_gui.plugins.logger.ui import LogPanel
+
+    svc = LogService()
+    try:
+        raise TimeoutError("L_DATA_CON timed out")
+    except TimeoutError as err:
+        logging.getLogger("xknx.core").error("Unexpected error in task", exc_info=err)
+    hit = next(r for r in svc.get_records() if r.event == "Unexpected error in task")
+    assert hit.payload["exception"] == "TimeoutError: L_DATA_CON timed out"
+    assert hit.traceback.startswith("Traceback (most recent call last):")
+    assert "test_bridge.py" in hit.traceback
+    panel = LogPanel(lambda: [hit], lambda: 1, lambda: None)
+    text = panel._record_as_text(hit)
+    assert text.splitlines()[0].endswith("exception=TimeoutError: L_DATA_CON timed out")
+    assert hit.traceback in text
+    logging.getLogger("xknx.core").error("Plain error")
+    plain = next(r for r in svc.get_records() if r.event == "Plain error")
+    assert not plain.traceback and "exception" not in plain.payload
+    assert len(panel._record_as_text(plain).splitlines()) == 1
+
+
 def test_bridge_is_idempotent_across_instances():
     # Re-creating the service must not stack duplicate handlers on the shared package logger.
     LogService()
