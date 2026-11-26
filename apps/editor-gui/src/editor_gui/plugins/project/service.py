@@ -3279,12 +3279,16 @@ class ProjectService:
         keeps them as long as it uses them every frame, like a panel showing the device; after
         that the next use evaluates them again (see Device.release_dynamic_ui)."""
         used, self._dynui_used = self._dynui_used, {}
+        # A background job (a download evaluating a device) may still note a use in the dict
+        # just taken: work on a copy, so it never changes size while it is iterated.
+        used_items = list(used.items())
+        used_ids = {node_id for node_id, _device in used_items}
         keep = {*self._dynui_lru, *self._selected_node_ids}
         for node_id, device in self._dynui_idle.items():
-            if node_id not in used and node_id not in keep:
+            if node_id not in used_ids and node_id not in keep:
                 device.release_dynamic_ui()
         self._dynui_idle = {
-            node_id: device for node_id, device in used.items() if node_id not in keep
+            node_id: device for node_id, device in used_items if node_id not in keep
         }
 
     @property
