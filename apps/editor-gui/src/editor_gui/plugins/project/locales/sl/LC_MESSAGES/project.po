@@ -2104,6 +2104,9 @@ msgstr "Branje vodila DALI iz objekta {object_index}…"
 msgid "Press 'Read DALI Bus' to list the ECGs on the gateway."
 msgstr "Pritisnite »Preberi vodilo DALI«, da prikažete predstikalne naprave prehoda."
 
+msgid "Press 'Read from Device' or 'Scan Bus' to list the DALI devices."
+msgstr "Pritisnite »Preberi iz naprave« ali »Preišči vodilo«, da prikažete naprave DALI."
+
 msgid "Short Address"
 msgstr "Kratki naslov"
 

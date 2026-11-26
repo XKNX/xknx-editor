@@ -2104,6 +2104,9 @@ msgstr "A DALI-busz olvasása ebből az objektumból: {object_index}…"
 msgid "Press 'Read DALI Bus' to list the ECGs on the gateway."
 msgstr "Az átjáró előtéteinek listázásához nyomja meg a „DALI-busz olvasása” gombot."
 
+msgid "Press 'Read from Device' or 'Scan Bus' to list the DALI devices."
+msgstr "A DALI-eszközök listázásához nyomja meg a „Kiolvasás a készülékből” vagy a „Busz átvizsgálása” gombot."
+
 msgid "Short Address"
 msgstr "Rövid cím"
 

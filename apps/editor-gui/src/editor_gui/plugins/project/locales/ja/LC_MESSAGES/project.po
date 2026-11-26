@@ -2107,6 +2107,9 @@ msgstr "プラグイン設定"
 msgid "Press 'Read DALI Bus' to list the ECGs on the gateway."
 msgstr "「DALI バスを読み取る」を押してゲートウェイ上の ECG を一覧表示します。"
 
+msgid "Press 'Read from Device' or 'Scan Bus' to list the DALI devices."
+msgstr "「デバイスから読み込む」または「バスをスキャン」を押して DALI デバイスを一覧表示します。"
+
 msgid "Random Address"
 msgstr "ランダムアドレス"
 

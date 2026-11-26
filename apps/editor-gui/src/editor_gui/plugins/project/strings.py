@@ -3335,6 +3335,10 @@ class ProjectStrings:
     def SIEMENS_DALI_NO_SCAN(self) -> str:
         return _("Press 'Read DALI Bus' to list the ECGs on the gateway.")
 
+    @property
+    def SIEMENS_DALI2_NO_SCAN(self) -> str:
+        return _("Press 'Read from Device' or 'Scan Bus' to list the DALI devices.")
+
     def SIEMENS_DALI_PRESENT_COUNT(self, count: int) -> str:
         return _.plural(
             "{count} ECG present on line {line}",
