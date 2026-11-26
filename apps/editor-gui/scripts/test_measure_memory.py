@@ -3,14 +3,26 @@
 from __future__ import annotations
 
 import json
+import os
+import sqlite3
 import sys
+from contextlib import closing
 from pathlib import Path
 from typing import cast
+from unittest.mock import Mock
 from zipfile import ZipFile
 
+import psutil
 import pytest
 from httpx2 import EventSource, Request, Response
-from measure_memory import arguments, items_digest
+from measure_memory import (
+    CATALOG,
+    arguments,
+    items_digest,
+    seed_master_cache,
+    select_products,
+    snapshot_catalog,
+)
 from memory_measurement.analysis import (
     archive_manifest,
     compare,
@@ -18,11 +30,16 @@ from memory_measurement.analysis import (
     differences,
 )
 from memory_measurement.editor import (
+    APP_NAME,
     MIB,
     Phase,
+    RunOptions,
     Sample,
     editor_transport,
+    isolated_env,
+    limit_command,
     render_table,
+    stop_editor,
     summarize_phase,
     write_json,
 )
@@ -119,6 +136,172 @@ def test_deep_walk_counts_shared_slots_and_cycles_once() -> None:
     assert size.strings == 1
     assert size.string_bytes == sys.getsizeof(label)
     assert deep_size(node, seen).bytes == 0
+
+
+def test_deep_walk_counts_large_dictionary_key_once() -> None:
+    key = "x" * 10_000
+    value = {key: None}
+    size = deep_size([value, key])
+    assert size.strings == 1
+    assert size.string_bytes == sys.getsizeof(key)
+    assert deep_size(value).string_bytes == size.string_bytes
+
+
+def test_snapshot_catalog_keeps_source_and_tolerates_missing_archive(
+    tmp_path: Path,
+) -> None:
+    source = tmp_path / "source"
+    store = source / "knxprod"
+    store.mkdir(parents=True)
+    product = store / "product.knxprod"
+    product.write_bytes(b"product")
+    paths = [str(tmp_path / "old" / product.name), str(store / "missing.knxprod")]
+    with closing(sqlite3.connect(source / CATALOG)) as db, db:
+        db.execute("CREATE TABLE hardware_programs (knxprod_path TEXT)")
+        db.executemany(
+            "INSERT INTO hardware_programs VALUES (?)", [(p,) for p in paths]
+        )
+
+    destination = tmp_path / "copy"
+    snapshot = snapshot_catalog(source, destination)
+    with closing(sqlite3.connect(snapshot)) as db:
+        present, missing = [
+            Path(row[0])
+            for row in db.execute(
+                "SELECT knxprod_path FROM hardware_programs ORDER BY rowid"
+            )
+        ]
+    assert present.is_relative_to(destination)
+    assert present.read_bytes() == b"product"
+    assert missing.is_relative_to(destination)
+    assert not missing.exists()
+
+    present.write_bytes(b"changed copy")
+    assert product.read_bytes() == b"product"
+    with closing(sqlite3.connect(source / CATALOG)) as db:
+        assert db.execute(
+            "SELECT knxprod_path FROM hardware_programs ORDER BY rowid"
+        ).fetchall() == [(p,) for p in paths]
+
+
+def test_select_products_skips_missing_archives_unless_explicitly_requested(
+    tmp_path: Path,
+) -> None:
+    present = Mock(application_id="available", hardware2program_ref_id="present")
+    missing = Mock(application_id="lost", hardware2program_ref_id="missing")
+    archive = tmp_path / "available.knxprod"
+    with ZipFile(archive, "w") as product:
+        product.writestr("M-0001/available.xml", b"<KNX/>")
+    catalog = Mock()
+    catalog.list_products.return_value = [missing, present]
+    catalog.get_program_source.side_effect = {
+        "present": (str(archive), "M-0001"),
+        "missing": (str(tmp_path / "lost.knxprod"), "M-0001"),
+    }.get
+
+    assert select_products(catalog, (), 1) == [(6, present)]
+    with pytest.raises(ValueError, match="No product archive for lost"):
+        select_products(catalog, ("lost",), 1)
+
+
+def test_stop_editor_terminates_and_reaps_recursive_children(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    app = Mock(pid=123)
+    app.poll.return_value = None
+    app.wait.return_value = 0
+    worker = Mock()
+    tree = Mock()
+    tree.children.return_value = [worker]
+    monkeypatch.setattr(psutil, "Process", Mock(return_value=tree))
+    wait = Mock(side_effect=[([], [worker]), ([worker], [])])
+    monkeypatch.setattr(psutil, "wait_procs", wait)
+    monkeypatch.setattr(os, "killpg", Mock(), raising=False)
+
+    stop_editor(app, tmp_path / "editor.pid", profiled=False)
+
+    tree.children.assert_called_once_with(recursive=True)
+    worker.terminate.assert_called_once_with()
+    worker.kill.assert_called_once_with()
+    assert wait.call_count == 2
+
+
+def test_isolated_env_replaces_directory_settings_and_removes_passwords(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    sensitive = (
+        "PYTHONPATH",
+        "PYTHONHOME",
+        "XKNX_PROJECT_PASSWORD",
+        "XKNX_WEB_PASSWORD",
+    )
+    for key in sensitive:
+        monkeypatch.setenv(key, "inherited")
+    monkeypatch.setenv("XDG_DATA_HOME", "host-data")
+
+    env = isolated_env(tmp_path, "local-token")
+
+    for key, directory in {
+        "HOME": "home",
+        "USERPROFILE": "home",
+        "XDG_DATA_HOME": "data",
+        "XDG_CONFIG_HOME": "config",
+        "XDG_CACHE_HOME": "cache",
+        "TMPDIR": "tmp",
+        "TEMP": "tmp",
+    }.items():
+        assert env[key] == str(tmp_path / directory)
+    assert not set(sensitive).intersection(env)
+    assert env["XKNX_MCP_AUTH_TOKEN"] == "local-token"
+    assert os.environ["XDG_DATA_HOME"] == "host-data"
+
+
+def test_limit_command_uses_available_cpus_and_optional_systemd_scope(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    command = ["python", "launch.py"]
+    assert limit_command(command, RunOptions(Path("python"))) == command
+    monkeypatch.setattr(sys, "platform", "linux")
+    monkeypatch.setattr("shutil.which", Mock(return_value="available"))
+    monkeypatch.setattr(psutil, "Process", lambda: Mock(cpu_affinity=lambda: [9, 5, 7]))
+    options = RunOptions(Path("python"), pi=(2, 512), hard_limit=True)
+    assert limit_command(command, options) == [
+        "systemd-run",
+        "--user",
+        "--scope",
+        "--quiet",
+        "-p",
+        "MemoryMax=512M",
+        "-p",
+        "MemorySwapMax=0",
+        "taskset",
+        "-c",
+        "5,7",
+        *command,
+    ]
+    with pytest.raises(ValueError, match="affinity allows only 3"):
+        limit_command(command, RunOptions(Path("python"), pi=(4, 512)))
+    monkeypatch.setattr("shutil.which", Mock(return_value=None))
+    with pytest.raises(ValueError, match="needs Linux and taskset"):
+        limit_command(command, options)
+
+
+@pytest.mark.parametrize(
+    ("schema", "filename"), [("20", "knx_master-20.xml"), ("23", "knx_master.xml")]
+)
+def test_seed_master_cache_uses_fixture_master(
+    tmp_path: Path, schema: str, filename: str
+) -> None:
+    fixture = tmp_path / "fixture.knxproj"
+    master = (
+        f'<KNX xmlns="http://knx.org/xml/project/{schema}"><MasterData/></KNX>'.encode()
+    )
+    with ZipFile(fixture, "w") as archive:
+        archive.writestr("knx_master.xml", master)
+    root = tmp_path / "run"
+    seed_master_cache(fixture, root)
+
+    assert (root / "data" / APP_NAME / filename).read_bytes() == master
 
 
 def test_item_digest_preserves_values_visibility_and_order() -> None:

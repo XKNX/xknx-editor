@@ -1,6 +1,7 @@
 {
   "include": [
     "apps/editor-gui/src",
+    "apps/editor-gui/scripts",
     "packages/catalog/src",
     "packages/dali/src",
     "packages/download/src",

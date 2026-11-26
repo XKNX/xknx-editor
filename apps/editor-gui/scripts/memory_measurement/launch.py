@@ -91,6 +91,25 @@ def register_measurement_tools() -> None:
     project.register = register
 
 
+def disable_master_downloads() -> None:
+    from editor_gui import master_data
+
+    from xknxeditor.proj.core import knxproj_export
+
+    def offline(
+        knxproj: Path | str | None = None,
+        timeout: float = 15.0,
+        schema: str = "23",
+    ) -> bytes:
+        raise OSError(
+            f"KNX master download disabled for measurement (project/{schema})"
+        )
+
+    # Both paths still use the fixture cache or their existing offline fallbacks.
+    master_data.fetch_master_xml = offline
+    knxproj_export.fetch_master_xml = offline
+
+
 def main() -> None:
     root = Path(sys.argv[1])
     (root / "editor.pid").write_text(str(os.getpid()), encoding="ascii")
@@ -98,6 +117,8 @@ def main() -> None:
     cores, available = map(int, sys.argv[2:4])
     if cores:
         simulate_pi(cores, available)
+    if os.environ.get("XKNX_MEASUREMENT_OFFLINE_MASTER") == "1":
+        disable_master_downloads()
     register_measurement_tools()
     sys.argv = ["editor_gui.main", *sys.argv[4:]]
     runpy.run_module("editor_gui.main", run_name="__main__", alter_sys=True)

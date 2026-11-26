@@ -146,6 +146,9 @@ def deep_size(root: object, seen: set[int] | None = None) -> DeepSize:
             string_size += current
             strings += 1
         else:
+            if isinstance(obj, dict):
+                # CPython can omit string keys from gc.get_referents().
+                stack.extend(cast(dict[object, object], obj).keys())
             stack.extend(gc.get_referents(obj))
     return DeepSize(size, count, string_size, strings)
 

@@ -169,6 +169,16 @@ def free_ports() -> tuple[int, int]:
 
 
 def stop_editor(app: subprocess.Popen[bytes], pid_file: Path, profiled: bool) -> None:
+    # Capture descendants before their parents exit and they become reparented.
+    descendants: set[psutil.Process] = set()
+    with suppress(psutil.Error):
+        descendants.update(psutil.Process(app.pid).children(recursive=True))
+    if pid_file.exists():
+        with suppress(OSError, ValueError, psutil.Error):
+            editor_process = psutil.Process(int(pid_file.read_text(encoding="ascii")))
+            if editor_process.pid != app.pid:
+                descendants.add(editor_process)
+            descendants.update(editor_process.children(recursive=True))
     # End the editor first so py-spy can write its profile before the process group is torn down.
     if profiled and pid_file.exists() and app.poll() is None:
         with suppress(psutil.Error, subprocess.TimeoutExpired):
@@ -180,6 +190,9 @@ def stop_editor(app: subprocess.Popen[bytes], pid_file: Path, profiled: bool) ->
             os.killpg(app.pid, signal.SIGTERM)
     elif app.poll() is None:
         app.terminate()
+    for process in descendants:
+        with suppress(psutil.NoSuchProcess):
+            process.terminate()
     try:
         code = app.wait(10)
     except subprocess.TimeoutExpired:
@@ -189,6 +202,16 @@ def stop_editor(app: subprocess.Popen[bytes], pid_file: Path, profiled: bool) ->
         else:
             app.kill()
         code = app.wait()
+    _, alive = psutil.wait_procs(descendants, timeout=3)
+    for process in alive:
+        with suppress(psutil.NoSuchProcess):
+            process.kill()
+    _, alive = psutil.wait_procs(alive, timeout=3)
+    if any(
+        process.is_running() and process.status() != psutil.STATUS_ZOMBIE
+        for process in alive
+    ):
+        raise RuntimeError("Some editor subprocesses did not exit")
     if profiled and code != 0:
         raise RuntimeError(f"py-spy exited with status {code}")
 
@@ -203,6 +226,7 @@ class RunOptions:
     browser: bool = False
     idle: float = 2.0
     snapshot: bool = False
+    offline_master: bool = False
 
 
 def limit_command(command: list[str], options: RunOptions) -> list[str]:
@@ -310,7 +334,12 @@ async def editor(
         app = subprocess.Popen(
             command,
             cwd=root,
-            env=isolated_env(root, token),
+            env={
+                **isolated_env(root, token),
+                "XKNX_MEASUREMENT_OFFLINE_MASTER": "1"
+                if options.offline_master
+                else "0",
+            },
             stdout=stream,
             stderr=subprocess.STDOUT,
             start_new_session=os.name == "posix",
@@ -328,7 +357,13 @@ async def editor(
                 print(errors.read().decode(errors="replace"), file=sys.stderr)
             raise
         finally:
-            stop_editor(app, pid_file, profile is not None)
+            original = sys.exception()
+            try:
+                stop_editor(app, pid_file, profile is not None)
+            except Exception as cleanup_error:
+                if original is None:
+                    raise
+                original.add_note(f"Editor cleanup failed: {cleanup_error}")
     if profile is not None and not profile.is_file():
         raise RuntimeError("py-spy did not write the profile")
 

@@ -12,10 +12,12 @@ From the repository root (use --help on each subcommand for its options)::
 The fixture and application probe default to the platform's editor data directory. Select another
 with --catalog-dir. Fixture devices use distinct applications ranked by uncompressed XML size.
 Repeat an ID in --apps to create several devices with that application. --knxproj uses an
-existing archive. Pass its password through --password-file where needed.
+existing archive. Pass its password through --password-file where needed. Automatic selection
+skips missing product archives.
 
 Cold runs begin with an empty catalog and parse cache. Warm runs import and evaluate the same
 archive once in a separate editor, then time opening the resulting .xknx in a fresh editor.
+Measured editors seed the master cache from the fixture and use offline master selection.
 The phases sample editor RSS and the sum of RSS across it and its descendants, including parser
 workers. Shared pages can be counted more than once and short peaks can fall between samples.
 CPU seconds cover user and system time, including reaped children where supported. A browser
@@ -31,7 +33,7 @@ Its deep-size estimates count distinct Python objects once, in the displayed par
 String bytes are included in each part's total.
 
 Use --snapshot on two runs to include correctness data for compare. Verify takes cold
-snapshots from the two worktrees. It compares evaluated parameters, including those hidden
+and warm snapshots from the two worktrees. It compares evaluated parameters, including those hidden
 by the current configuration, group objects, planned memory bytes, and the uncompressed
 contents of the export, decrypting its project folder when applicable. Snapshots record counts,
 member names and content hashes so that parameter values and decrypted text stay in memory.
@@ -49,9 +51,11 @@ import sqlite3
 import subprocess
 import sys
 import tempfile
+import xml.etree.ElementTree as ET
 from collections.abc import Generator, Sequence
 from contextlib import AsyncExitStack, closing, contextmanager
 from dataclasses import asdict, replace
+from importlib import import_module
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, cast
 from zipfile import ZipFile
@@ -110,8 +114,11 @@ def snapshot_catalog(source: Path, dest: Path) -> Path:
             if not replacement.is_file():
                 replacement = Path(old)
             new = store / replacement.name
-            if not new.exists():
-                shutil.copy2(replacement, new)
+            if replacement.is_file():
+                if not new.exists():
+                    shutil.copy2(replacement, new)
+            else:
+                new = store / "missing" / replacement.name
             copy.execute(
                 "UPDATE hardware_programs SET knxprod_path = ? WHERE knxprod_path = ?",
                 (str(new), old),
@@ -137,8 +144,10 @@ def select_products(
     for app_id in app_ids or tuple(products):
         product = products[app_id]
         source = catalog.get_program_source(product.hardware2program_ref_id)
-        if source is None:
-            raise ValueError(f"No product archive for {app_id}")
+        if source is None or not Path(source[0]).is_file():
+            if app_ids:
+                raise ValueError(f"No product archive for {app_id}")
+            continue
         path, manufacturer_id = source
         with ZipFile(path) as archive:
             try:
@@ -268,11 +277,11 @@ async def load_project(
 
 async def start_browser(stack: AsyncExitStack, web: str) -> None:
     try:
-        from playwright.async_api import async_playwright
+        playwright_api: Any = import_module("playwright.async_api")
     except ImportError as exc:
         raise ValueError("--browser needs uv run --with playwright==1.64.0") from exc
 
-    playwright = await stack.enter_async_context(async_playwright())
+    playwright = await stack.enter_async_context(playwright_api.async_playwright())
     browser = await playwright.chromium.launch(
         args=[
             "--use-gl=angle",
@@ -286,6 +295,27 @@ async def start_browser(stack: AsyncExitStack, web: str) -> None:
     await page.wait_for_function("window.xknxWebStats?.frames > 0")
 
 
+def seed_master_cache(archive: Path, root: Path) -> None:
+    """Use the fixture's master in each isolated editor, with a fresh timestamp."""
+    from xknxeditor.proj import master_cache_path
+
+    with ZipFile(archive) as source:
+        try:
+            master = source.read("knx_master.xml")
+        except KeyError:
+            return
+    tag = ET.fromstring(master).tag
+    prefix = "{http://knx.org/xml/project/"
+    if not tag.startswith(prefix) or not tag.endswith("}KNX"):
+        return
+    schema = tag.removeprefix(prefix).removesuffix("}KNX")
+    if not schema.isascii() or not schema.isdecimal():
+        return
+    cache = master_cache_path(root / "data" / APP_NAME, schema)
+    cache.parent.mkdir(parents=True, exist_ok=True)
+    cache.write_bytes(master)
+
+
 async def run_editor(
     root: Path,
     archive: Path,
@@ -294,6 +324,8 @@ async def run_editor(
     *,
     warm: bool,
 ) -> dict[str, object]:
+    seed_master_cache(archive, root)
+    options = replace(options, offline_master=True)
     project = root / "project.xknx"
     if warm:
         async with editor(root, replace(options, profile=None)) as (client, _):
@@ -308,9 +340,6 @@ async def run_editor(
     async with AsyncExitStack() as stack:
         with recorder.phase("start"):
             client, web = await stack.enter_async_context(editor(root, options))
-            has_shell = any(
-                tool.name == "shell_open" for tool in await client.list_tools()
-            )
         if options.browser:
             with recorder.phase("browser"):
                 await start_browser(stack, web)
@@ -324,14 +353,7 @@ async def run_editor(
         first = next((node for node, has_app in device_apps.items() if has_app), None)
         if first is not None:
             with recorder.phase("open device editor"):
-                if has_shell:
-                    await client.call_tool(
-                        "shell_open", {"key": f"panel:editor:device:{first}"}
-                    )
-                else:
-                    await client.call_tool(
-                        "measurement_open_device", {"node_id": first}
-                    )
+                await client.call_tool("measurement_open_device", {"node_id": first})
                 await call(client, "project_status")
         exported = root / "export.knxproj"
         with recorder.phase("export"):
@@ -385,16 +407,26 @@ def worktree_python(path: Path, env_dir: Path) -> Path:
 async def verify(args: argparse.Namespace, root: Path, password: str | None) -> int:
     output = args.out_dir or root
     output.mkdir(parents=True, exist_ok=True)
-    paths = [output / "before.json", output / "after.json"]
-    for checkout, path in zip((args.before, args.after), paths, strict=True):
-        print(f"Measuring {checkout}", flush=True)
-        python = worktree_python(checkout, root / f"{path.stem}-venv")
-        options = RunOptions(python, args.memory_use, snapshot=True)
-        result = await run_editor(
-            root / path.stem, args.knxproj, password, options, warm=False
-        )
-        write_json(path, result)
-    return compare(*paths)
+    results: list[int] = []
+    checkouts = (args.before, args.after)
+    labels = ("before", "after")
+    interpreters = [
+        worktree_python(checkout, root / f"{label}-venv")
+        for checkout, label in zip(checkouts, labels, strict=True)
+    ]
+    for warm in (False, True):
+        mode = "warm" if warm else "cold"
+        paths = [output / f"{label}{'-warm' if warm else ''}.json" for label in labels]
+        for checkout, python, path in zip(checkouts, interpreters, paths, strict=True):
+            print(f"Measuring {checkout} ({mode})", flush=True)
+            options = RunOptions(python, args.memory_use, snapshot=True)
+            result = await run_editor(
+                root / path.stem, args.knxproj, password, options, warm=warm
+            )
+            write_json(path, result)
+        print(f"Comparing {mode} snapshots", flush=True)
+        results.append(compare(*paths))
+    return max(results)
 
 
 def app_probe(args: argparse.Namespace, root: Path) -> None:
@@ -514,7 +546,7 @@ def arguments(argv: Sequence[str] | None = None) -> argparse.Namespace:
     verify_parser.add_argument("--before", type=absolute, required=True)
     verify_parser.add_argument("--after", type=absolute, required=True)
     verify_parser.add_argument(
-        "--out-dir", type=absolute, help="keep before.json and after.json here"
+        "--out-dir", type=absolute, help="keep cold and warm comparison JSON here"
     )
     for command in (run_parser, verify_parser):
         command.add_argument("--knxproj", type=absolute, required=True)
@@ -554,7 +586,15 @@ def arguments(argv: Sequence[str] | None = None) -> argparse.Namespace:
     if (
         args.command == "verify"
         and args.out_dir is not None
-        and {args.out_dir / "before.json", args.out_dir / "after.json"}
+        and {
+            args.out_dir / name
+            for name in (
+                "before.json",
+                "after.json",
+                "before-warm.json",
+                "after-warm.json",
+            )
+        }
         & {args.knxproj, args.password_file}
     ):
         parser.error("the verification output files must differ from the input files")
