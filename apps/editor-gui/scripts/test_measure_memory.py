@@ -2,11 +2,14 @@
 
 from __future__ import annotations
 
+import json
 import sys
 from pathlib import Path
+from typing import cast
 from zipfile import ZipFile
 
 import pytest
+from httpx2 import EventSource, Request, Response
 from measure_memory import arguments, items_digest
 from memory_measurement.analysis import (
     archive_manifest,
@@ -18,6 +21,7 @@ from memory_measurement.editor import (
     MIB,
     Phase,
     Sample,
+    editor_transport,
     render_table,
     summarize_phase,
     write_json,
@@ -128,6 +132,28 @@ def test_item_digest_preserves_values_visibility_and_order() -> None:
     assert expected != items_digest(
         {"items": [{**row, "visible": True}, other], "count": 2}
     )
+
+
+def test_large_parameter_event_preserves_snapshot_digest() -> None:
+    rows = [
+        {"ref_id": f"P-{i}", "value": "long value" * 60, "visible": i % 2 == 0}
+        for i in range(2000)
+    ]
+    result = {"items": rows, "count": len(rows)}
+    payload = json.dumps(result).encode()
+    assert len(payload) > MIB
+
+    transport = editor_transport(12345)
+    response = Response(
+        200,
+        request=Request("POST", transport.url),
+        headers={"content-type": "text/event-stream"},
+        content=b"data: " + payload + b"\n\n",
+    )
+    (event,) = EventSource(response, max_event_size=transport.max_sse_event_size)
+    decoded = cast(dict[str, object], event.json())
+    assert decoded == result
+    assert items_digest(decoded) == items_digest(result)
 
 
 def test_arguments(tmp_path: Path) -> None:

@@ -252,12 +252,20 @@ async def wait_port(app: subprocess.Popen[bytes], port: int) -> None:
     )
 
 
+def editor_transport(port: int) -> StreamableHttpTransport:
+    from fastmcp.client.transports import StreamableHttpTransport
+
+    # The isolated loopback editor returns all hidden parameters in one response.
+    return StreamableHttpTransport(
+        f"http://127.0.0.1:{port}/mcp", max_sse_event_size=None
+    )
+
+
 @asynccontextmanager
 async def editor(
     root: Path, options: RunOptions
 ) -> AsyncGenerator[tuple[Client[StreamableHttpTransport], str]]:
     from fastmcp import Client
-    from fastmcp.client.transports import StreamableHttpTransport
 
     data = root / "data" / APP_NAME
     data.mkdir(parents=True, exist_ok=True)
@@ -309,7 +317,7 @@ async def editor(
         )
         try:
             await asyncio.gather(wait_port(app, mcp_port), wait_port(app, web_port))
-            transport = StreamableHttpTransport(f"http://127.0.0.1:{mcp_port}/mcp")
+            transport = editor_transport(mcp_port)
             async with Client(transport, auth=token, timeout=TIMEOUT + 30) as client:
                 yield client, f"http://127.0.0.1:{web_port}/"
             if app.poll() is not None:
