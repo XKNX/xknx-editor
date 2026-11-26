@@ -496,3 +496,79 @@ msgstr "KNXnet/IP-serveren er ved at blive startet eller stoppet."
 
 msgid "The KNXnet/IP server could not start: {error}"
 msgstr "KNXnet/IP-serveren kunne ikke starte: {error}"
+
+msgid "Configured Connections…"
+msgstr "Konfigurerede forbindelser…"
+
+msgid "Configured Connections"
+msgstr "Konfigurerede forbindelser"
+
+msgid "New"
+msgstr "Ny"
+
+msgid "Delete"
+msgstr "Slet"
+
+msgid "Import…"
+msgstr "Importér…"
+
+msgid "Export…"
+msgstr "Eksportér…"
+
+msgid "Use as project connection"
+msgstr "Brug som projektforbindelse"
+
+msgid "Project connection"
+msgstr "Projektforbindelse"
+
+msgid "IP Address or Host Name"
+msgstr "IP-adresse eller værtsnavn"
+
+msgid "Automatic"
+msgstr "Automatisk"
+
+msgid "Use NAT mode"
+msgstr "Brug NAT-tilstand"
+
+msgid "No configured connections yet."
+msgstr "Ingen konfigurerede forbindelser endnu."
+
+msgid "The address is neither an IP address nor a valid host name."
+msgstr "Adressen er hverken en IP-adresse eller et gyldigt værtsnavn."
+
+msgid "IP Tunneling"
+msgstr "IP Tunneling"
+
+msgid "The file could not be read: {error}"
+msgstr "Filen kunne ikke læses: {error}"
+
+msgid "Connections exported to {name}."
+msgstr "Forbindelser eksporteret til {name}."
+
+msgid "XML Files"
+msgstr "XML-filer"
+
+msgid "Import Connections"
+msgstr "Importér forbindelser"
+
+msgid "Export Connections"
+msgstr "Eksportér forbindelser"
+
+msgid "Open a project to use a connection as its connection."
+msgstr "Åbn et projekt for at bruge en forbindelse som dets forbindelse."
+
+msgid "Interfaces entered once by their address: offered in the Gateway menu, in Select Connection and as a project's Bus Connection, also those a gateway search can't find."
+msgstr "Grænseflader, der indtastes én gang med deres adresse: tilbydes i menuen Gateway, i Vælg forbindelse og som et projekts busforbindelse, også dem en gateway-søgning ikke kan finde."
+
+msgid "{count} connection imported."
+msgid_plural "{count} connections imported."
+msgstr[0] "{count} forbindelse importeret."
+msgstr[1] "{count} forbindelser importeret."
+
+msgid "{count} connection"
+msgid_plural "{count} connections"
+msgstr[0] "{count} forbindelse"
+msgstr[1] "{count} forbindelser"
+
+msgid "The file could not be written: {error}"
+msgstr "Filen kunne ikke skrives: {error}"

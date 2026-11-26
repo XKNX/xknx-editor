@@ -332,7 +332,7 @@ def test_bus_connections_as_shown() -> None:
     )
     assert format_bus_access({"Name": "USB", "Parameter": "Type=Usb"}) == "USB"
     assert interface_bus_access("X", "10.0.0.1", 3700) == (
-        'Type=IpTunneling;HostAddress=10.0.0.1;Port=3700;ProtocolType=Udp;Name="X"'
+        "Type=IpTunneling;HostAddress=10.0.0.1;IpPort=3700;ProtocolType=Udp;Name=X"
     )
     assert latency_options()[0] == (400, "LAN (< 400ms)")
     assert [value for value, _text in latency_options()] == [

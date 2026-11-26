@@ -50,6 +50,7 @@ class _StubConnectionPlugin:
     multicast_group = "224.0.23.12"
     is_routing = False
     gateways: tuple[Any, ...] = ()
+    configured_connections: tuple[Any, ...] = ()
     gateway_info = None
     connection_type = "tunneling"
     usb_target = None

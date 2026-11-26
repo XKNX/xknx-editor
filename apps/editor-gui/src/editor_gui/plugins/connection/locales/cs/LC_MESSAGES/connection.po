@@ -498,3 +498,81 @@ msgstr "Server KNXnet/IP se právě spouští nebo zastavuje."
 
 msgid "The KNXnet/IP server could not start: {error}"
 msgstr "Server KNXnet/IP se nepodařilo spustit: {error}"
+
+msgid "Configured Connections…"
+msgstr "Nakonfigurovaná připojení…"
+
+msgid "Configured Connections"
+msgstr "Nakonfigurovaná připojení"
+
+msgid "New"
+msgstr "Nové"
+
+msgid "Delete"
+msgstr "Odstranit"
+
+msgid "Import…"
+msgstr "Importovat…"
+
+msgid "Export…"
+msgstr "Exportovat…"
+
+msgid "Use as project connection"
+msgstr "Použít jako připojení projektu"
+
+msgid "Project connection"
+msgstr "Připojení projektu"
+
+msgid "IP Address or Host Name"
+msgstr "IP adresa nebo název hostitele"
+
+msgid "Automatic"
+msgstr "Automaticky"
+
+msgid "Use NAT mode"
+msgstr "Použít režim NAT"
+
+msgid "No configured connections yet."
+msgstr "Zatím žádná nakonfigurovaná připojení."
+
+msgid "The address is neither an IP address nor a valid host name."
+msgstr "Adresa není IP adresa ani platný název hostitele."
+
+msgid "IP Tunneling"
+msgstr "IP Tunneling"
+
+msgid "The file could not be read: {error}"
+msgstr "Soubor nelze přečíst: {error}"
+
+msgid "Connections exported to {name}."
+msgstr "Připojení exportována do {name}."
+
+msgid "XML Files"
+msgstr "Soubory XML"
+
+msgid "Import Connections"
+msgstr "Importovat připojení"
+
+msgid "Export Connections"
+msgstr "Exportovat připojení"
+
+msgid "Open a project to use a connection as its connection."
+msgstr "Otevřete projekt, abyste mohli připojení použít jako jeho připojení."
+
+msgid "Interfaces entered once by their address: offered in the Gateway menu, in Select Connection and as a project's Bus Connection, also those a gateway search can't find."
+msgstr "Rozhraní zadaná jednou podle adresy: nabízená v nabídce Brána, ve Vybrat připojení a jako Spojení se sběrnicí projektu, i ta, která hledání brány nenajde."
+
+msgid "{count} connection imported."
+msgid_plural "{count} connections imported."
+msgstr[0] "{count} připojení importováno."
+msgstr[1] "{count} připojení importována."
+msgstr[2] "{count} připojení importováno."
+
+msgid "{count} connection"
+msgid_plural "{count} connections"
+msgstr[0] "{count} připojení"
+msgstr[1] "{count} připojení"
+msgstr[2] "{count} připojení"
+
+msgid "The file could not be written: {error}"
+msgstr "Soubor nelze zapsat: {error}"

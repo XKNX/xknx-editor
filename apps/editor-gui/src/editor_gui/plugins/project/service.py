@@ -1018,26 +1018,25 @@ class ElementDetails:
 def format_bus_access(bus_access: dict[str, str] | None) -> str:
     """A bus connection kept with a segment, as shown: its name and where it connects to
     ("IP Tunneling (192.168.16.103:3671 Tcp)"); "" for none."""
+    from editor_gui.plugins.connection.configured import parse_fields, parse_parameter
+
     if not bus_access:
         return ""
-    fields: dict[str, str] = {}
-    for part in bus_access.get("Parameter", "").split(";"):
-        key, _, value = part.partition("=")
-        if key.strip():
-            fields[key.strip()] = value.strip().strip('"')
-    name = fields.get("Name") or bus_access.get("Name", "") or fields.get("Type", "")
-    host = fields.get("HostAddress", "")
-    if not host:
+    parameter = bus_access.get("Parameter", "")
+    fields = parse_fields(parameter)
+    name = fields.get("name") or bus_access.get("Name", "") or fields.get("type", "")
+    tunnel = parse_parameter(parameter)
+    if tunnel is None:
         return name
-    where = f"{host}:{fields.get('Port') or 3671}"
-    protocol = fields.get("ProtocolType", "")
-    return f"{name} ({where} {protocol})".replace(" )", ")")
+    protocol = "" if tunnel.protocol == "Auto" else tunnel.protocol
+    return f"{name} ({tunnel.host}:{tunnel.port} {protocol})".replace(" )", ")")
 
 
 def interface_bus_access(name: str, host: str, port: int) -> str:
     """The ``Parameter`` of the ``<BusAccess>`` of a KNXnet/IP interface tunnelled to over UDP."""
-    where = host if port == 3671 else f"{host};Port={port}"
-    return f'Type=IpTunneling;HostAddress={where};ProtocolType=Udp;Name="{name}"'
+    from editor_gui.plugins.connection.configured import ConfiguredConnection
+
+    return ConfiguredConnection(name, host, port, "Udp").to_parameter()
 
 
 def line_display_name(area_number: int, line: "_Line") -> str:

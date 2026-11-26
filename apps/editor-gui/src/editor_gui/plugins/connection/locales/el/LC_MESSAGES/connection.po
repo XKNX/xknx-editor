@@ -496,3 +496,79 @@ msgstr "Ο διακομιστής KNXnet/IP εκκινείται ή σταματ
 
 msgid "The KNXnet/IP server could not start: {error}"
 msgstr "Δεν ήταν δυνατή η εκκίνηση του διακομιστή KNXnet/IP: {error}"
+
+msgid "Configured Connections…"
+msgstr "Διαμορφωμένες συνδέσεις…"
+
+msgid "Configured Connections"
+msgstr "Διαμορφωμένες συνδέσεις"
+
+msgid "New"
+msgstr "Νέα"
+
+msgid "Delete"
+msgstr "Διαγραφή"
+
+msgid "Import…"
+msgstr "Εισαγωγή…"
+
+msgid "Export…"
+msgstr "Εξαγωγή…"
+
+msgid "Use as project connection"
+msgstr "Χρήση ως σύνδεση έργου"
+
+msgid "Project connection"
+msgstr "Σύνδεση έργου"
+
+msgid "IP Address or Host Name"
+msgstr "Διεύθυνση IP ή όνομα κεντρικού υπολογιστή"
+
+msgid "Automatic"
+msgstr "Αυτόματα"
+
+msgid "Use NAT mode"
+msgstr "Χρήση λειτουργίας NAT"
+
+msgid "No configured connections yet."
+msgstr "Δεν υπάρχουν ακόμη διαμορφωμένες συνδέσεις."
+
+msgid "The address is neither an IP address nor a valid host name."
+msgstr "Η διεύθυνση δεν είναι ούτε διεύθυνση IP ούτε έγκυρο όνομα κεντρικού υπολογιστή."
+
+msgid "IP Tunneling"
+msgstr "IP Tunneling"
+
+msgid "The file could not be read: {error}"
+msgstr "Δεν ήταν δυνατή η ανάγνωση του αρχείου: {error}"
+
+msgid "Connections exported to {name}."
+msgstr "Οι συνδέσεις εξήχθησαν στο {name}."
+
+msgid "XML Files"
+msgstr "Αρχεία XML"
+
+msgid "Import Connections"
+msgstr "Εισαγωγή συνδέσεων"
+
+msgid "Export Connections"
+msgstr "Εξαγωγή συνδέσεων"
+
+msgid "Open a project to use a connection as its connection."
+msgstr "Ανοίξτε ένα έργο για να χρησιμοποιήσετε μια σύνδεση ως σύνδεσή του."
+
+msgid "Interfaces entered once by their address: offered in the Gateway menu, in Select Connection and as a project's Bus Connection, also those a gateway search can't find."
+msgstr "Διεπαφές που εισάγονται μία φορά με τη διεύθυνσή τους: προσφέρονται στο μενού Gateway, στην Επιλογή σύνδεσης και ως Σύνδεση Bus ενός έργου, ακόμη και όσες δεν βρίσκει μια αναζήτηση gateway."
+
+msgid "{count} connection imported."
+msgid_plural "{count} connections imported."
+msgstr[0] "Εισήχθη {count} σύνδεση."
+msgstr[1] "Εισήχθησαν {count} συνδέσεις."
+
+msgid "{count} connection"
+msgid_plural "{count} connections"
+msgstr[0] "{count} σύνδεση"
+msgstr[1] "{count} συνδέσεις"
+
+msgid "The file could not be written: {error}"
+msgstr "Δεν ήταν δυνατή η εγγραφή του αρχείου: {error}"

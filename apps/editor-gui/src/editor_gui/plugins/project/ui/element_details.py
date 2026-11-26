@@ -32,6 +32,40 @@ if TYPE_CHECKING:
     from editor_gui.plugins.project.service import ElementDetails
 
 
+_Choices = list[tuple[str, str]]
+
+
+def bus_connection_choices(
+    bus_access: str, bus_connection: str, configured: _Choices, found: _Choices
+) -> tuple[str, _Choices, _Choices, _Choices]:
+    """The Bus Connection drop-down's ``(current value, stored, configured, found)`` choices, each
+    as (value, text): "Automatic", then the stored connection (``bus_access``, shown as
+    ``bus_connection``) unless it is one of the others, the ``configured`` connections and the
+    interfaces ``found`` that are none of them. A choice that is the same interface as the
+    stored one (address and port) is the current one."""
+    from editor_gui.plugins.connection.configured import parse_parameter
+
+    def same(a: str, b: str) -> bool:
+        first, second = parse_parameter(a), parse_parameter(b)
+        return first is not None and second is not None and first.same_interface(second)
+
+    found = [f for f in found if not any(same(f[0], c[0]) for c in configured)]
+    current = bus_access
+    if bus_access:
+        match = next(
+            (v for v, _t in [*configured, *found] if same(v, bus_access)), None
+        )
+        current = match if match is not None else bus_access
+    stored = [("", S.BUS_CONNECTION_AUTOMATIC)]
+    if (
+        bus_access
+        and current == bus_access
+        and all(v != bus_access for v, _t in [*configured, *found])
+    ):
+        stored.append((bus_access, bus_connection))
+    return current, stored, configured, found
+
+
 def latency_options() -> list[tuple[int, str]]:
     """The choices of the network latency (milliseconds, text)."""
     return [
@@ -70,6 +104,7 @@ class ElementDetailsPanel:
         on_set_backbone_security: Callable[[str], str | None] = lambda _m: None,
         on_set_bus_connection: Callable[[str], None] = lambda _p: None,
         found_interfaces: Callable[[], list[tuple[str, str]]] = list,
+        configured_interfaces: Callable[[], list[tuple[str, str]]] = list,
         on_set_dpt: Callable[[int, str], str | None] = lambda _i, _d: None,
         dpt_names: Callable[[], Mapping[str, str]] = dict,
         on_set_domain_address: Callable[[str, int, str | None], str | None] = (
@@ -100,6 +135,7 @@ class ElementDetailsPanel:
         self._on_set_backbone_security = on_set_backbone_security
         self._on_set_bus_connection = on_set_bus_connection
         self._found_interfaces = found_interfaces
+        self._configured_interfaces = configured_interfaces
         self._on_set_dpt = on_set_dpt
         self._dpt_names = dpt_names
         self._key: tuple[str, int] | None = None
@@ -321,20 +357,19 @@ class ElementDetailsPanel:
             imgui.text_colored(status_color("error"), self._security_error)
             imgui.pop_text_wrap_pos()
         self._row(S.BUS_CONNECTION)
-        stored = [("", S.BUS_CONNECTION_AUTOMATIC)]
-        if details.bus_access:
-            stored.append((details.bus_access, details.bus_connection))
-        found = [
-            (value, text)
-            for value, text in self._found_interfaces()
-            if value != details.bus_access
-        ]
+        current, stored, configured, found = bus_connection_choices(
+            details.bus_access,
+            details.bus_connection,
+            self._configured_interfaces(),
+            self._found_interfaces(),
+        )
         chosen = bus_connection_combo(
             "##bus_connection",
-            details.bus_access,
+            current,
             details.bus_connection or S.BUS_CONNECTION_AUTOMATIC,
             stored,
             found,
+            configured,
         )
         if chosen is not None:
             self._on_set_bus_connection(chosen)

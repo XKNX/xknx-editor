@@ -175,7 +175,7 @@ async def test_the_backbone(tmp_path: Path) -> None:
         backbone = await _data(client, "project_get_backbone")
         interface = {
             "parameter": "Type=IpTunneling;HostAddress=192.168.16.88;ProtocolType=Udp;"
-            'Name="IP-Interface"',
+            "Name=IP-Interface",
             "text": "IP-Interface (192.168.16.88:3671 Udp - 1.0.58)",
         }
         assert {k: v for k, v in backbone.items() if k != "area_id"} == {
@@ -187,6 +187,7 @@ async def test_the_backbone(tmp_path: Path) -> None:
             "multicast_address": "224.0.23.12",
             "security": "Auto",
             "bus_connection": None,
+            "configured_connections": [],
             "found_interfaces": [interface],
         }
         changed = await _data(

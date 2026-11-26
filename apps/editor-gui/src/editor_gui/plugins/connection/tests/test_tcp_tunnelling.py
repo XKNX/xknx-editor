@@ -62,7 +62,9 @@ def _plugin(connection_type: ConnectionType) -> Any:
     plugin._gateway_info = None
     # Only the routing / secure branches read the connection service; the plain tunnel path
     # (gateway=None) never reaches it.
-    plugin._api = SimpleNamespace(connection=SimpleNamespace())
+    plugin._api = SimpleNamespace(
+        connection=SimpleNamespace(), project=SimpleNamespace(is_open=False)
+    )
     return plugin
 
 

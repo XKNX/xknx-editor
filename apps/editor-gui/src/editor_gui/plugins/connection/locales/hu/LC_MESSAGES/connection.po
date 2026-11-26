@@ -494,3 +494,77 @@ msgstr "A KNXnet/IP-szerver indítása vagy leállítása folyamatban van."
 
 msgid "The KNXnet/IP server could not start: {error}"
 msgstr "A KNXnet/IP-szervert nem sikerült elindítani: {error}"
+
+msgid "Configured Connections…"
+msgstr "Konfigurált kapcsolatok…"
+
+msgid "Configured Connections"
+msgstr "Konfigurált kapcsolatok"
+
+msgid "New"
+msgstr "Új"
+
+msgid "Delete"
+msgstr "Törlés"
+
+msgid "Import…"
+msgstr "Importálás…"
+
+msgid "Export…"
+msgstr "Exportálás…"
+
+msgid "Use as project connection"
+msgstr "Használat projektkapcsolatként"
+
+msgid "Project connection"
+msgstr "Projektkapcsolat"
+
+msgid "IP Address or Host Name"
+msgstr "IP-cím vagy állomásnév"
+
+msgid "Automatic"
+msgstr "Automatikus"
+
+msgid "Use NAT mode"
+msgstr "NAT mód használata"
+
+msgid "No configured connections yet."
+msgstr "Még nincsenek konfigurált kapcsolatok."
+
+msgid "The address is neither an IP address nor a valid host name."
+msgstr "A cím sem nem IP-cím, sem nem érvényes állomásnév."
+
+msgid "IP Tunneling"
+msgstr "IP Tunneling"
+
+msgid "The file could not be read: {error}"
+msgstr "A fájl nem olvasható: {error}"
+
+msgid "Connections exported to {name}."
+msgstr "A kapcsolatok exportálva ide: {name}."
+
+msgid "XML Files"
+msgstr "XML-fájlok"
+
+msgid "Import Connections"
+msgstr "Kapcsolatok importálása"
+
+msgid "Export Connections"
+msgstr "Kapcsolatok exportálása"
+
+msgid "Open a project to use a connection as its connection."
+msgstr "Nyisson meg egy projektet, hogy egy kapcsolatot annak kapcsolataként használjon."
+
+msgid "Interfaces entered once by their address: offered in the Gateway menu, in Select Connection and as a project's Bus Connection, also those a gateway search can't find."
+msgstr "Egyszer, a címükkel megadott interfészek: az Átjáró menüben, a Kapcsolat kiválasztása párbeszédben és egy projekt buszkapcsolataként felkínálva, azok is, amelyeket az átjárókeresés nem talál meg."
+
+msgid "{count} connection imported."
+msgid_plural "{count} connections imported."
+msgstr[0] "{count} kapcsolat importálva."
+
+msgid "{count} connection"
+msgid_plural "{count} connections"
+msgstr[0] "{count} kapcsolat"
+
+msgid "The file could not be written: {error}"
+msgstr "A fájl nem írható: {error}"

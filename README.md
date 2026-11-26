@@ -171,7 +171,7 @@ address, also behind a TP/RF media coupler, with KNX RF Multi and with KNX Data 
 KNX IP device's routing multicast address and backbone key), also through couplers that block
 traffic as Security Proxy, which it opens for that time. A read-only **preflight**
 and **Test Programming** read the device back and show the exact changes before anything is
-written. Longer timeouts in Settings > Connection let it work over slow connections such as a remote tunnel or a VPN. With Use the Project's Bus Connection, each project connects through the Bus Connection of its backbone line. Vendor-independent by design. The USB Interface dialog can also run a KNXnet/IP server so other tools use the USB interface as a KNXnet/IP interface (USB to IP bridge, off unless turned on).
+written. Longer timeouts in Settings > Connection let it work over slow connections such as a remote tunnel or a VPN. Configured Connections keep interfaces entered by their address, also in other networks, to connect through and to set as a project's Bus Connection; with Use the Project's Bus Connection, each project connects through the Bus Connection of its backbone line. Vendor-independent by design. The USB Interface dialog can also run a KNXnet/IP server so other tools use the USB interface as a KNXnet/IP interface (USB to IP bridge, off unless turned on).
 
 <img src="docs/images/programming.png" alt="Programming and preflight" width="384">
 
