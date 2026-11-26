@@ -246,6 +246,7 @@ class GroupAddressesPanel:
         | None = None,
         read_gap: float = 0.1,
         clock: Callable[[], float] = time.monotonic,
+        get_project_generation: Callable[[], int] = lambda: 0,
     ) -> None:
         """``on_create_range`` adds a main group (parent None) or a middle group below a main
         group, with a name and a number (None: the next free one), giving its id or None;
@@ -314,6 +315,8 @@ class GroupAddressesPanel:
         # so a group of dozens of addresses does not flood the bus (each read draws a response).
         self._read_gap = read_gap
         self._clock = clock
+        self._get_project_generation = get_project_generation
+        self._read_project_generation = 0
         self._pending_reads: list[str] = []
         self._next_read_at = 0.0
         # Group-range (folder) modal state.
@@ -985,6 +988,7 @@ class GroupAddressesPanel:
             0
         ]:
             self._pending_reads = addresses
+            self._read_project_generation = self._get_project_generation()
             self._next_read_at = 0.0  # send the first at once
         if not connected:
             imgui.set_item_tooltip(S.GA_NOT_CONNECTED)
@@ -992,10 +996,14 @@ class GroupAddressesPanel:
 
     def _pump_reads(self) -> None:
         """Send the next queued group-address read once its gap has passed (see "Read Values");
-        a lost connection drops the rest."""
+        a lost connection or project change drops the rest."""
         if not self._pending_reads:
             return
-        if self._group_value is None or not self._group_value.connected():
+        if (
+            self._group_value is None
+            or not self._group_value.connected()
+            or self._read_project_generation != self._get_project_generation()
+        ):
             self._pending_reads = []
             return
         now = self._clock()
