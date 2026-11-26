@@ -218,7 +218,8 @@ def test_receiving_flags_do_not_disqualify_a_transmitter(
         replace(_link(11, 1, sending=True, transmit=True), write=write, update=update),
     )
     (finding,) = _group_findings(project)
-    assert finding.severity is Severity.WARNING
+    # A prompt to check the assignment, not a fault.
+    assert finding.severity is Severity.INFO
     assert finding.message == S.HEALTH_SENDERS(2).format(
         address="1/1/1", name="Light", count=2
     )
