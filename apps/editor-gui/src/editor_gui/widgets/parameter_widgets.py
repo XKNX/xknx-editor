@@ -38,6 +38,7 @@ from editor_gui.widgets.combo import begin_combo, end_combo
 from editor_gui.widgets.dpi import px
 from editor_gui.widgets.float_format import format_float, general_float, parse_float
 from editor_gui.widgets.fonts import bold, bold_font, semilight
+from editor_gui.widgets.hint_colors import hint_colors
 from editor_gui.widgets.icons import Icon, Picture, draw_icon
 from editor_gui.widgets.star_columns import star_widths
 from editor_gui.widgets.strings import S
@@ -2822,7 +2823,7 @@ def _render_param_table(
 
 
 # An information box as in Windows tools: a blue border, the page tinted with that blue, and a
-# lighter blue round icon.
+# lighter blue round icon; in a theme with box colors of its own (see hint_colors), those.
 _INFO_BORDER = imgui.ImVec4(62 / 255, 120 / 255, 179 / 255, 1.0)
 _INFO_ICON = imgui.ImVec4(55 / 255, 148 / 255, 194 / 255, 1.0)
 _INFO_TINT = 0.11
@@ -2848,6 +2849,9 @@ _HINT_TEXT_RIGHT = 6.0
 # The icon's top below the box's top edge, and its "i": 2 px wide, the dot and the stem from and
 # to these rows of the icon.
 _HINT_ICON_TOP = 11.0
+# The least height of a box: its icon with as much room below as above it (38 px), so the icon of
+# a box with one line of text is in its middle; the text is then in its middle too.
+_HINT_MIN_HEIGHT = 2 * _HINT_ICON_TOP + _HINT_ICON
 _HINT_I_WIDTH = 2.0
 _HINT_I_DOT = (3.0, 5.0)
 _HINT_I_STEM = (7.0, 13.0)
@@ -2946,6 +2950,33 @@ def _aligned_text(text: str, alignment: str | None) -> None:
     wrapped_text(text, avail)
 
 
+def hint_box_layout(lines_height: float) -> tuple[float, float]:
+    """The height of an information or error box whose text is ``lines_height`` high, and its
+    text's top below the box's top: the text with its room above and below, at least the box's
+    least height (see _HINT_MIN_HEIGHT), the text then in its middle."""
+    above, below = px(_HINT_PAD), px(_HINT_PAD_BELOW)
+    least = px(_HINT_MIN_HEIGHT)
+    height = above + lines_height + below
+    if height >= least:
+        return height, above
+    return least, above + (least - height) / 2
+
+
+def box_colors(error: bool) -> tuple[imgui.ImVec4, imgui.ImVec4, imgui.ImVec4]:
+    """The (border, background, icon) colors of an information or an ``error`` box: the theme's
+    own (see hint_colors), else the border's color tinting the page."""
+    own = hint_colors()
+    if own is not None:
+        box = own.error if error else own.info
+        return box.border, box.fill, box.icon
+    border, icon, tint = (
+        (_ERROR_BORDER, _ERROR_ICON, _ERROR_TINT)
+        if error
+        else (_INFO_BORDER, _INFO_ICON, _INFO_TINT)
+    )
+    return border, _mix(content_background(), border, tint), icon
+
+
 def _render_hint(
     text: str,
     border: imgui.ImVec4,
@@ -2955,16 +2986,14 @@ def _render_hint(
 ) -> None:
     """An information or error text in a box of ``fill`` with a ``border``, and a round icon of
     ``color`` showing an "i" (``glyph``), or a cross without one."""
-    pad = px(_HINT_PAD)
     icon = px(_HINT_ICON)
     width = _wrap_width()
     text_width = width - px(_HINT_TEXT_LEFT) - px(_HINT_TEXT_RIGHT)
     with semilight():
         lines_height = text_height(len(wrap_lines(text, text_width)))
     top = imgui.get_cursor_screen_pos()
-    box_max = imgui.ImVec2(
-        top.x + width, top.y + pad + max(lines_height, icon) + px(_HINT_PAD_BELOW)
-    )
+    height, text_top = hint_box_layout(lines_height)
+    box_max = imgui.ImVec2(top.x + width, top.y + height)
     draw = imgui.get_window_draw_list()
     # Corners as round as those of fields.
     rounding = imgui.get_style().frame_rounding
@@ -2994,7 +3023,9 @@ def _render_hint(
                 white,
                 px(1.6),
             )
-    imgui.set_cursor_screen_pos(imgui.ImVec2(top.x + px(_HINT_TEXT_LEFT), top.y + pad))
+    imgui.set_cursor_screen_pos(
+        imgui.ImVec2(top.x + px(_HINT_TEXT_LEFT), top.y + text_top)
+    )
     with semilight():
         wrapped_text(text, text_width)
     # The next item follows the usual spacing plus _HINT_BELOW (which may be less than none).
@@ -3020,14 +3051,11 @@ def _render_separator(sep: UiSeparator) -> None:
             imgui.set_cursor_pos_y(imgui.get_cursor_pos_y() + px(_HEADLINE_ABOVE))
             _aligned_text(sep.text, sep.alignment)
         vertical_space(px(_HEADLINE_BELOW))
-    elif sep.hint == "Information":
+    elif sep.hint in ("Information", "Error"):
         vertical_space(px(_HINT_ABOVE))
-        fill = _mix(content_background(), _INFO_BORDER, _INFO_TINT)
-        _render_hint(sep.text, _INFO_BORDER, fill, _INFO_ICON, "i")
-    elif sep.hint == "Error":
-        vertical_space(px(_HINT_ABOVE))
-        fill = _mix(content_background(), _ERROR_BORDER, _ERROR_TINT)
-        _render_hint(sep.text, _ERROR_BORDER, fill, _ERROR_ICON, "")
+        error = sep.hint == "Error"
+        border, fill, icon = box_colors(error)
+        _render_hint(sep.text, border, fill, icon, "" if error else "i")
     else:
         vertical_space(px(_TEXT_ABOVE))
         with semilight():

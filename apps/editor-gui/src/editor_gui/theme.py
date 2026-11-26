@@ -18,6 +18,7 @@ from editor_gui.widgets.combo import begin_combo, end_combo
 from editor_gui.widgets.dialog import begin_tool_window
 from editor_gui.widgets.dpi import label_column_width
 from editor_gui.widgets.filter_box import filter_box
+from editor_gui.widgets.hint_colors import BoxColors, HintColors, set_hint_colors
 from editor_gui.widgets.tabs import begin_tab_bar
 from editor_gui.widgets.text_util import text_clipped_tooltip
 
@@ -163,6 +164,13 @@ _WINDOWS_COLORS = {
 # light blue-gray of Windows 11 choices, the drop-down's list on a light gray.
 _WINDOWS_CHOICE = ChoiceColors(fill=_rgb(195, 208, 221), list_bg=_rgb(242, 242, 242))
 
+# The information and error boxes of a parameter page in Microsoft Style: the border, background
+# and icon colors of those of Windows dialogs.
+_MICROSOFT_HINTS = HintColors(
+    info=BoxColors(_rgb(62, 120, 179), _rgb(233, 241, 247), _rgb(55, 148, 194)),
+    error=BoxColors(_rgb(199, 81, 80), _rgb(240, 222, 222), _rgb(204, 75, 50)),
+)
+
 # A disabled button in Windows dialogs: nearly white with a faint border and text, not the enabled
 # button faded (which could never get lighter than the window it is drawn on).
 _WINDOWS_DISABLED_BUTTON: dict[imgui.Col_, imgui.ImVec4] = {
@@ -258,6 +266,7 @@ def apply_style() -> None:
     # text color.
     style.set_color_(imgui.Col_.input_text_cursor, style.color_(imgui.Col_.text))
     set_choice_colors(_WINDOWS_CHOICE if windows else None)
+    set_hint_colors(_MICROSOFT_HINTS if square else None)
     _apply_text_selection(style)
     _apply_link_color(style)
     _apply_table_lines(style)

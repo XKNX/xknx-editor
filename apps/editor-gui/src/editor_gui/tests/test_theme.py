@@ -249,6 +249,44 @@ def test_other_themes_keep_their_own_choice_colors(
     assert choice_colors() is None
 
 
+@pytest.mark.parametrize(
+    ("applied", "own"),
+    [
+        (hello_imgui.ImGuiTheme_.microsoft_style, True),
+        (hello_imgui.ImGuiTheme_.white_is_white, False),
+        (hello_imgui.ImGuiTheme_.darcula_darker, False),
+    ],
+)
+def test_microsoft_style_has_the_box_colors_of_windows_dialogs(
+    context: None,
+    monkeypatch: pytest.MonkeyPatch,
+    applied: hello_imgui.ImGuiTheme_,
+    own: bool,
+) -> None:
+    from editor_gui.widgets.hint_colors import hint_colors
+
+    hello_imgui.apply_theme(applied)
+    _use_theme(monkeypatch, hello_imgui.ImGuiThemeTweaks(), applied)
+    theme.apply_style()
+    colors = hint_colors()
+    if not own:
+        # the border's color tinting the page
+        assert colors is None
+        return
+    assert colors is not None
+    info, error = colors.info, colors.error
+    assert [_hex(c) for c in (info.border, info.fill, info.icon)] == [
+        "#3E78B3",
+        "#E9F1F7",
+        "#3794C2",
+    ]
+    assert [_hex(c) for c in (error.border, error.fill, error.icon)] == [
+        "#C75150",
+        "#F0DEDE",
+        "#CC4B32",
+    ]
+
+
 @pytest.mark.usefixtures("context")
 @pytest.mark.parametrize("kind", ["warning", "error", "success", "info"])
 def test_status_colors_read_on_light_and_dark_windows(kind: str) -> None:

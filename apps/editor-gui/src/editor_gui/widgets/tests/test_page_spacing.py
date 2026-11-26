@@ -14,7 +14,7 @@ import pytest
 from imgui_bundle import imgui
 from imgui_bundle.imgui import internal
 
-from editor_gui.widgets import backgrounds, parameter_widgets, text_layout
+from editor_gui.widgets import backgrounds, parameter_widgets, text_layout, wrapping
 from editor_gui.widgets.parameter_widgets import ParameterPage
 from xknxeditor.prod.parser_v2.ui import (
     NumberWidget,
@@ -337,15 +337,59 @@ def test_an_information_box_places_its_icon_and_text(
         imgui.ImVec4(0, 0, 1, 1),
         "i",
     )
-    # The 16 px icon 11 px from the box's left and top edges, the text 7 px below the top.
+    # The 16 px icon 11 px from the box's left and top edges; the box at least 38 px high, its
+    # icon and its one line of text in its middle.
     [centre] = circles
     assert (centre.x - top.x, centre.y - top.y) == (19, 19)
-    assert texts == [top.y + 7]
+    box = rects[0]
+    assert box[3] - box[1] == 38
+    line = wrapping.text_height(1)
+    assert texts == [top.y + (38 - line) / 2]
     # Its "i": a dot of 2 x 2 px 3 px below the icon's top, a stem of 2 x 6 px 7 px below it.
     dot, stem = rects[-2:]
     icon_top = top.y + 11
     assert dot == (centre.x - 1, icon_top + 3, centre.x + 1, icon_top + 5)
     assert stem == (centre.x - 1, icon_top + 7, centre.x + 1, icon_top + 13)
+
+
+def test_a_box_is_as_high_as_its_icon_needs_and_grows_with_its_text() -> None:
+    line = wrapping.text_height(1)
+    # one line: the least height, the text in its middle
+    assert parameter_widgets.hint_box_layout(line) == (38, (38 - line) / 2)
+    # more lines than fit: 7 px above and below them
+    tall = 30.0
+    assert parameter_widgets.hint_box_layout(tall) == (44, 7)
+
+
+def test_box_colors_are_the_themes_own_or_tint_the_page() -> None:
+    from editor_gui.widgets.hint_colors import (
+        BoxColors,
+        HintColors,
+        set_hint_colors,
+    )
+
+    red, pink, orange = (
+        imgui.ImVec4(*c, 1.0) for c in ((1, 0, 0), (1, 0.9, 0.9), (1, 0.5, 0))
+    )
+    blue = imgui.ImVec4(0, 0, 1, 1)
+    set_hint_colors(
+        HintColors(info=BoxColors(blue, blue, blue), error=BoxColors(red, pink, orange))
+    )
+    try:
+        assert parameter_widgets.box_colors(error=True) == (red, pink, orange)
+        assert parameter_widgets.box_colors(error=False) == (blue, blue, blue)
+    finally:
+        set_hint_colors(None)
+    border, fill, _icon = parameter_widgets.box_colors(error=False)
+    page = backgrounds.content_background()
+    # the page with a little of the border's blue: between the two, near the page
+    for a, b, c in (
+        (page.x, fill.x, border.x),
+        (page.y, fill.y, border.y),
+        (page.z, fill.z, border.z),
+    ):
+        assert min(a, c) <= b <= max(a, c)
+        assert abs(b - a) < abs(c - a) / 2
 
 
 @pytest.mark.parametrize(
