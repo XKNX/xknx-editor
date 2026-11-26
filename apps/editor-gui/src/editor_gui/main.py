@@ -5574,6 +5574,11 @@ class KnxGuiApp:
             imgui.close_current_popup()
         end_dialog()
 
+    def release_unused_parameters(self) -> None:
+        """Release the evaluated parameters no panel or tool used in the last frame, outside the
+        selection (once per frame, before it starts; see Settings > General > Memory Use)."""
+        self._project_service.release_unused_dynamic_ui()
+
     def note_input(self) -> None:
         """Note the time when the last frame had input: the mouse moved, scrolled or held, a key
         held, or a field in use (once per frame, before it starts)."""
@@ -8243,6 +8248,7 @@ def _main() -> None:
         # lists and trees, Escape leaves them.
         imgui.get_io().config_flags |= imgui.ConfigFlags_.nav_enable_keyboard
         app.note_input()
+        app.release_unused_parameters()
         if frame_db_profiler.enabled:
             app.watch_db_frame()
 

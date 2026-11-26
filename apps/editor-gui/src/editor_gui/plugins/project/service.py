@@ -1669,6 +1669,10 @@ class ProjectService:
         # between a few devices is instant instead of re-parsing each time. Older ones are released.
         self._dynui_lru: list[int] = []
         self._dynui_keep = 3
+        # Devices whose evaluated parameters were used since the last frame ended, and those
+        # outside the selection that were used in the frame before (see release_unused_dynamic_ui).
+        self._dynui_used: dict[int, Device] = {}
+        self._dynui_idle: dict[int, Device] = {}
         # Cross-panel "please select this group address" request (consumed by the GA panel).
         self._requested_ga_id: int | None = None
         # Cross-panel "please bring the editor tab to front" request (consumed by the editor panel).
@@ -2366,6 +2370,8 @@ class ProjectService:
         self._status_cache.clear()
         self._selected_node_ids = set()
         self._dynui_lru.clear()
+        self._dynui_used = {}
+        self._dynui_idle = {}
         self._app_cache.clear()
         self._missing_refs = None
         self._snapshots = None
@@ -2478,6 +2484,7 @@ class ProjectService:
         with self._calculated_lock:
             device.calculate_anew = device.node_id not in self._calculated_anew
         device.calculated_anew = calculated
+        device.dynamic_ui_used = self._note_dynamic_ui_use
 
     def _calculate_anew(self, node_ids: Collection[int], *, now: bool = False) -> None:
         """Calculate the devices ``node_ids`` anew, as after an undo or redo of their
@@ -3303,6 +3310,28 @@ class ProjectService:
             if device is not None:
                 device.release_dynamic_ui()
         del self._dynui_lru[self._dynui_keep :]
+
+    def _note_dynamic_ui_use(self, device: Device) -> None:
+        self._dynui_used[device.node_id] = device
+
+    def release_unused_dynamic_ui(self) -> None:
+        """Release the evaluated parameters of the devices outside the selection and its last
+        viewed devices that nothing used in a whole frame (call once per frame, on the UI thread).
+        Whatever reads a device's parameters outside the selection (MCP, a check, another panel)
+        keeps them as long as it uses them every frame, like a panel showing the device; after
+        that the next use evaluates them again (see Device.release_dynamic_ui)."""
+        used, self._dynui_used = self._dynui_used, {}
+        # A background job (a download evaluating a device) may still note a use in the dict
+        # just taken: work on a copy, so it never changes size while it is iterated.
+        used_items = list(used.items())
+        used_ids = {node_id for node_id, _device in used_items}
+        keep = {*self._dynui_lru, *self._selected_node_ids}
+        for node_id, device in self._dynui_idle.items():
+            if node_id not in used_ids and node_id not in keep:
+                device.release_dynamic_ui()
+        self._dynui_idle = {
+            node_id: device for node_id, device in used_items if node_id not in keep
+        }
 
     @property
     def selected_node_ids(self) -> set[int]:

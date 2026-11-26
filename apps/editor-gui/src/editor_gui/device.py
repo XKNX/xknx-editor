@@ -345,6 +345,11 @@ class Device:
     project_code_page: Callable[[], str | None] | None = field(
         default=None, repr=False, compare=False, init=False
     )
+    # Told each time the device's evaluated parameters are used, so those of a device outside
+    # the selection are released once unused (see ProjectService.release_unused_dynamic_ui).
+    dynamic_ui_used: Callable[[Device], None] | None = field(
+        default=None, repr=False, compare=False, init=False
+    )
     # UI frozen while a script changes this device's parameters on the script worker.
     _script_ui: list[UiNode] | None = field(
         default=None, repr=False, compare=False, init=False
@@ -443,7 +448,11 @@ class Device:
                 self._touched()
             if self.calculated_anew is not None:
                 self.calculated_anew(self, changes, before)
-        return self._dynamic_ui
+        # Read once: the UI thread may release it at any time (release_unused_dynamic_ui).
+        dynamic_ui = self._dynamic_ui
+        if dynamic_ui is not None and self.dynamic_ui_used is not None:
+            self.dynamic_ui_used(self)
+        return dynamic_ui
 
     def release_dynamic_ui(self) -> None:
         """Drop the heavy DynamicUI evaluator to free memory, keeping the lightweight cached views.
