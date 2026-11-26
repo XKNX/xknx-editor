@@ -1989,7 +1989,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         parts; project_list_devices(download_pending_only=true) lists their machine-readable
         pending_download_parts. Group-address checks count active objects with communication
         and transmit enabled on their sending link; write/update flags do not exclude them.
-        Multiple transmitters are a review hint, not proof of a conflict. Read responders and
+        Multiple transmitters are a hint (severity info), not proof of a conflict. Read responders and
         known external senders also provide values; unresolved objects suppress missing-source
         findings. This reads stored project status, not the bus."""
         from dataclasses import asdict

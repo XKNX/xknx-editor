@@ -210,7 +210,7 @@ show the same pending state, including flags imported with a project. MCP client
 `project_list_devices(download_pending_only=true)` or `project_health(category="download-pending")`.
 
 The sender check counts active group objects with communication and transmit enabled on their
-sending group address. Multiple transmitters are a prompt to check the assignment, as shared
+sending group address. Multiple transmitters are a hint to check the assignment, as shared
 controls may be intentional. Read responders and known external senders also qualify as value
 sources; missing product data does not produce a false missing-source finding.
 
