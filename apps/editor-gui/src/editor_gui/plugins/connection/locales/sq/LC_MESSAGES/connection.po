@@ -143,16 +143,16 @@ msgid "Use multicast routing (instead of tunneling)"
 msgstr "Përdor routing multicast (në vend të tunneling)"
 
 msgid "Gateway IP"
-msgstr "IP e gateway-t"
+msgstr "IP e gateway-it"
 
 msgid "An open connection to the gateway connects to the new address once it is entered."
-msgstr "Një lidhje e hapur me gateway-n lidhet me adresën e re sapo të futet."
+msgstr "Një lidhje e hapur me gateway-in lidhet me adresën e re sapo të futet."
 
 msgid "Use the Project's Bus Connection"
-msgstr "Përdor lidhjen me busin të projektit"
+msgstr "Përdor lidhjen e projektit me busin"
 
 msgid "While a project is open whose backbone line has a Bus Connection (Topology), the connection goes through it instead of the gateway set here."
-msgstr "Për sa kohë është i hapur një projekt, linja kryesore e të cilit ka një lidhje me busin (Topologjia), lidhja kalon nëpër të në vend të gateway-t të caktuar këtu."
+msgstr "Për sa kohë është i hapur një projekt, linja kryesore e të cilit ka një lidhje me busin (Topologjia), lidhja kalon përmes kësaj lidhjeje, në vend të gateway-it të caktuar këtu."
 
 msgid "Multicast Group"
 msgstr "Grupi multicast"
@@ -516,7 +516,7 @@ msgid "Export…"
 msgstr "Eksporto…"
 
 msgid "Use as project connection"
-msgstr "Përdor si lidhje të projektit"
+msgstr "Përdor si lidhjen e projektit"
 
 msgid "Project connection"
 msgstr "Lidhja e projektit"
@@ -540,7 +540,7 @@ msgid "IP Tunneling"
 msgstr "IP Tunneling"
 
 msgid "The file could not be read: {error}"
-msgstr "Skedari nuk mund të lexohej: {error}"
+msgstr "Leximi i skedarit dështoi: {error}"
 
 msgid "Connections exported to {name}."
 msgstr "Lidhjet u eksportuan te {name}."
@@ -549,16 +549,16 @@ msgid "XML Files"
 msgstr "Skedarë XML"
 
 msgid "Import Connections"
-msgstr "Importo lidhjet"
+msgstr "Importimi i lidhjeve"
 
 msgid "Export Connections"
-msgstr "Eksporto lidhjet"
+msgstr "Eksportimi i lidhjeve"
 
 msgid "Open a project to use a connection as its connection."
 msgstr "Hapni një projekt për të përdorur një lidhje si lidhjen e tij."
 
 msgid "Interfaces entered once by their address: offered in the Gateway menu, in Select Connection and as a project's Bus Connection, also those a gateway search can't find."
-msgstr "Ndërfaqe të futura një herë me adresën e tyre: ofrohen në menynë Gateway, te Zgjidh lidhjen dhe si Lidhja me busin e një projekti, edhe ato që një kërkim gateway-sh nuk i gjen."
+msgstr "Ndërfaqet që vendosen një herë sipas adresës së tyre ofrohen te menyja Gateway, te “Zgjidh lidhjen” dhe si lidhja me busin e projektit, përfshirë edhe ato që nuk gjenden gjatë kërkimit të gateway-ve."
 
 msgid "{count} connection imported."
 msgid_plural "{count} connections imported."
@@ -571,4 +571,4 @@ msgstr[0] "{count} lidhje"
 msgstr[1] "{count} lidhje"
 
 msgid "The file could not be written: {error}"
-msgstr "Skedari nuk mund të shkruhej: {error}"
+msgstr "Shkrimi i skedarit dështoi: {error}"
