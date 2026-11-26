@@ -304,17 +304,55 @@ def _ns_for(schema: str) -> str:
     return f"http://knx.org/xml/project/{schema}"
 
 
+# The bytes the schema detection feeds the parser at a time until the root element is read.
+_HEAD_CHUNK = 64 * 1024
+
+
+def _schema_of_tag(tag: str) -> str | None:
+    """The ``project/<NN>`` schema number of a root ``{namespace}KNX`` tag, or ``None``."""
+    if not tag.startswith("{"):
+        return None
+    uri = tag[1:].split("}", 1)[0]
+    match = re.fullmatch(r"http://knx\.org/xml/project/(\d+)", uri)
+    return match.group(1) if match else None
+
+
 def _schema_from_knx_xml(xml_bytes: bytes) -> str | None:
-    """Return the ``project/<NN>`` schema number from a KNX XML root namespace, or ``None``."""
+    """Return the ``project/<NN>`` schema number from a KNX XML root namespace, or ``None``.
+
+    Only the head of the document is parsed, up to the root element: manufacturer members are
+    product XMLs of up to tens of MB and their schema is all the export needs here. Whether the
+    rest is well-formed is not checked (see :func:`_schema_from_whole_xml`)."""
+    parser: ET.XMLPullParser[ET.Element] = ET.XMLPullParser(events=("start",))
+    for offset in range(0, len(xml_bytes), _HEAD_CHUNK):
+        broken = False
+        try:
+            parser.feed(xml_bytes[offset : offset + _HEAD_CHUNK])
+            parser.flush()
+        except ET.ParseError:
+            # The error may lie after the root in this chunk: its start event is still queued.
+            broken = True
+        try:
+            for event in parser.read_events():
+                element = event[-1]
+                if isinstance(element, ET.Element):
+                    return _schema_of_tag(element.tag)
+        except ET.ParseError:
+            # read_events re-raises a parse error queued before any root.
+            return None
+        if broken:
+            return None
+    return None
+
+
+def _schema_from_whole_xml(xml_bytes: bytes) -> str | None:
+    """:func:`_schema_from_knx_xml` of a document that must be well-formed as a whole, else
+    ``None``."""
     try:
         root = ET.fromstring(xml_bytes)
     except ET.ParseError:
         return None
-    if not root.tag.startswith("{"):
-        return None
-    uri = root.tag[1:].split("}", 1)[0]
-    match = re.fullmatch(r"http://knx\.org/xml/project/(\d+)", uri)
-    return match.group(1) if match else None
+    return _schema_of_tag(root.tag)
 
 
 def _master_url(schema: str) -> str:
@@ -357,7 +395,8 @@ def _provenance_schema(
 ) -> str | None:
     """The ``project/<NN>`` schema of stored provenance, from its master or a Hardware.xml."""
     if master is not None:
-        detected = _schema_from_knx_xml(master)
+        # A master that is not well-formed is replaced on export: its schema does not count.
+        detected = _schema_from_whole_xml(master)
         if detected is not None:
             return detected
     for name, data in members.items():
