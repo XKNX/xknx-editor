@@ -78,8 +78,11 @@ class IpDeviceConfig:
     ip_address: str | None = None
     subnet_mask: str | None = None
     default_gateway: str | None = None
-    # Device numbers (last address octet) of the additional individual addresses.
-    additional_addresses: Sequence[int] = field(default_factory=tuple[int, ...])
+    # Device numbers (last address octet) of the device's additional individual address entries,
+    # in order (entry n is the one of AddressIndex n), None for an entry without an address.
+    additional_addresses: Sequence[int | None] = field(
+        default_factory=tuple[int | None, ...]
+    )
 
 
 def applies(application: Application) -> bool:
@@ -108,6 +111,50 @@ def _friendly_name(name: str) -> bytes:
         )
         data = ascii_text.strip().encode("latin-1")
     return data[:_FRIENDLY_NAME_LENGTH].ljust(_FRIENDLY_NAME_LENGTH, b"\x00")
+
+
+def device_additional_addresses(
+    application: Application, addresses: Sequence[int | None]
+) -> list[int | None]:
+    """The device number of each additional individual address a full download writes, ``None``
+    for one left free, from the project's entries ``addresses`` (see
+    :attr:`IpDeviceConfig.additional_addresses`).
+
+    A tunnelling bus interface's address is its entry's (its AddressIndex); a tunnel whose entry
+    has no address gets the address of the first tunnel with one. The device's other addresses
+    (entries no bus interface uses) take the entries still free, in order, each address once."""
+    count = application.program.additional_addresses_count or 0
+
+    def entry(index: int) -> int | None:
+        return addresses[index - 1] if 0 < index <= len(addresses) else None
+
+    tunnels: set[int] = set()
+    interfaces: set[int] = set()
+    bus_interfaces = application.program.static.bus_interfaces
+    for bus_interface in bus_interfaces.bus_interface if bus_interfaces else []:
+        index = bus_interface.address_index
+        if index <= 0:
+            continue
+        interfaces.add(index)
+        if getattr(bus_interface.access_type, "value", None) == "Tunneling":
+            tunnels.add(index)
+    result: list[int | None] = [None] * count
+    used = [False] * count
+    first = next((i for i in sorted(tunnels) if entry(i) is not None), None)
+    if first is not None:
+        for index in sorted(i for i in tunnels if i <= count):
+            own = entry(index)
+            result[index - 1] = own if own is not None else entry(first)
+            used[index - 1] = True
+    for position, number in enumerate(addresses, start=1):
+        if position in interfaces or number is None or number in result:
+            continue
+        free = next((i for i in range(count) if not used[i]), None)
+        if free is None:
+            break
+        result[free] = number
+        used[free] = True
+    return result
 
 
 def _write(property_id: int, data: bytes, count: int = 1) -> LdCtrlWriteProp:
@@ -164,10 +211,18 @@ def ip_config_controls(
                 controls.append(_write(property_id, value))
     count = application.program.additional_addresses_count or 0
     if count > 0:
+        # Each entry in its place, one left free as device number FFh of the device's line; all
+        # FFFFh without any additional address entry.
         line = (config.individual_address >> 8) & 0xFF
         entries = bytearray(b"\xff" * (2 * count))
-        for i, number in enumerate(list(config.additional_addresses)[:count]):
-            entries[2 * i : 2 * i + 2] = bytes([line, number & 0xFF])
+        if config.additional_addresses:
+            numbers = device_additional_addresses(
+                application, config.additional_addresses
+            )
+            for i, number in enumerate(numbers):
+                entries[2 * i : 2 * i + 2] = bytes(
+                    [line, 0xFF if number is None else number & 0xFF]
+                )
         controls.append(
             _write(PID_ADDITIONAL_INDIVIDUAL_ADDRESSES, bytes(entries), count)
         )

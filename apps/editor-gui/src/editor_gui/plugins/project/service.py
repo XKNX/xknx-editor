@@ -6691,9 +6691,7 @@ class ProjectService:
             ip_address=ip.get("IPAddress"),
             subnet_mask=ip.get("SubnetMask"),
             default_gateway=ip.get("DefaultGateway"),
-            additional_addresses=tuple(
-                a.address for a in row.additional_addresses if a.address is not None
-            ),
+            additional_addresses=tuple(a.address for a in row.additional_addresses),
         )
 
     @io_guarded(dict)
