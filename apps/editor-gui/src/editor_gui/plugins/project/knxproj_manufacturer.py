@@ -61,7 +61,7 @@ def collect_manufacturer_bundle(
             ref = device.hardware2program or device.product
             if not ref:
                 continue
-            source = _program_source(ref, catalog)
+            source = catalog.get_program_source(ref)
             if source is not None:
                 path, manufacturer = source
                 needed.setdefault(path, set()).add(manufacturer)
@@ -82,23 +82,13 @@ def program_sources(
     needed: dict[str, set[str]] = {}
     skipped: set[str] = set()
     for ref in program_refs:
-        source = _program_source(ref, catalog)
+        source = catalog.get_program_source(ref)
         if source is None:
             skipped.add(ref)
             continue
         knxprod_path, manufacturer_id = source
         needed.setdefault(knxprod_path, set()).add(manufacturer_id)
     return needed, skipped
-
-
-def _program_source(ref: str, catalog: CatalogService) -> tuple[str, str] | None:
-    source = catalog.get_program_source(ref)
-    if source is not None or "_P-" not in ref:
-        return source
-    product = catalog.find_product(ref)
-    if product is None or not product.hardware2program_ref_id:
-        return None
-    return catalog.get_program_source(product.hardware2program_ref_id)
 
 
 def read_manufacturer_bundle(

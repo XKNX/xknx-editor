@@ -953,8 +953,8 @@ def export_knxproj(
             installation = (
                 session.query(Installation).order_by(Installation.index).first()
             )
-            # Resolve from the same database snapshot as the installation. The project's product
-            # data is preferred, and the caller supplies what it lacks.
+            # Resolve product data from the project being exported. The caller
+            # supplies the catalog members its stored product data lacks.
             schema, ns, effective_extra, master_xml = _resolve_export_sources(
                 project,
                 schema,

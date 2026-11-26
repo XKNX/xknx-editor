@@ -67,14 +67,27 @@ def _members(*numbers: int) -> dict[str, bytes]:
 
 
 @pytest.mark.parametrize(
-    "coverage", ["imported", "stored", "mixed", "missing app", "missing product"]
+    "coverage",
+    [
+        "imported",
+        "stored",
+        "mixed",
+        "missing app",
+        "missing product",
+        "mixed schemas",
+        "unidentified",
+    ],
 )
 async def test_export_reads_only_missing_catalog_members(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, coverage: str
 ) -> None:
     # A manufacturer's archive contains two products with separate application and baggage files.
     catalog_members = _members(1, 2)
-    master = b'<KNX xmlns="http://knx.org/xml/project/20"><MasterData Signature="AA=="/></KNX>'
+    schema = "23" if coverage == "mixed schemas" else "20"
+    master = (
+        f'<KNX xmlns="http://knx.org/xml/project/{schema}">'
+        '<MasterData Signature="AA=="/></KNX>'
+    ).encode()
     archive = tmp_path / "catalog.knxprod"
     with zipfile.ZipFile(archive, "w") as zf:
         zf.writestr("knx_master.xml", master)
@@ -84,7 +97,8 @@ async def test_export_reads_only_missing_catalog_members(
     source = tmp_path / "project.xknx"
     service = ProjectService()
     pid = service.create(source)
-    for n in (1, 2) if coverage == "mixed" else (1,):
+    mixed = coverage in {"mixed", "mixed schemas"}
+    for n in (1, 2) if mixed else (1,):
         product, program, app = _product(n)
         service.add_device(
             pid,
@@ -93,8 +107,15 @@ async def test_export_reads_only_missing_catalog_members(
             hardware2program_ref_id=program,
             application_program_ref_id=app,
         )
+    if coverage == "unidentified":
+        service.add_device(pid, None, "")
     service.ensure_guid(pid)
     owned = _members(1)
+    if coverage == "mixed schemas":
+        owned = {
+            name: data.replace(b"project/23", b"project/20")
+            for name, data in owned.items()
+        }
     app_member = f"{_MID}/{_product(1)[2]}.xml"
     if coverage == "missing app":
         del owned[app_member]
@@ -111,7 +132,7 @@ async def test_export_reads_only_missing_catalog_members(
             "UPDATE projects SET last_modified = ?, imported_product_members = ?",
             (
                 "2026-01-01T00:00:00.0000000Z",
-                None if coverage == "stored" else zip_members(owned),
+                None if coverage in {"stored", "unidentified"} else zip_members(owned),
             ),
         )
 
@@ -122,7 +143,7 @@ async def test_export_reads_only_missing_catalog_members(
         ctx.api.catalog, "get_program_source", lambda _: (str(archive), _MID)
     )
     monkeypatch.setattr(
-        "editor_gui.plugins.mcp.tools.project.export_schema", lambda: "20"
+        "editor_gui.plugins.mcp.tools.project.export_schema", lambda: schema
     )
     monkeypatch.setattr(
         "xknxeditor.proj.core.knxproj_export._newest_master",
@@ -133,7 +154,7 @@ async def test_export_reads_only_missing_catalog_members(
     # archive member can be checked, including the project and manufacturer signatures.
     reference = tmp_path / "reference.knxproj"
     export_knxproj(
-        source, reference, schema="20", master_xml=master, extra_files=catalog_members
+        source, reference, schema=schema, master_xml=master, extra_files=catalog_members
     )
     reads: set[str] = set()
     read = zipfile.ZipFile.read
@@ -156,8 +177,10 @@ async def test_export_reads_only_missing_catalog_members(
         ctx.api.project.close()
 
     expected_reads = {"knx_master.xml"}
-    if coverage not in {"imported", "stored"}:
-        expected_reads.update(_members(2 if coverage == "mixed" else 1))
+    if coverage == "unidentified":
+        expected_reads.update(catalog_members)
+    elif coverage not in {"imported", "stored"}:
+        expected_reads.update(_members(2 if mixed else 1))
     assert reads == expected_reads
     with zipfile.ZipFile(reference) as old, zipfile.ZipFile(exported) as new:
         assert new.namelist() == old.namelist()
@@ -166,3 +189,8 @@ async def test_export_reads_only_missing_catalog_members(
         }
         assert app_member in new.namelist()
         assert _product(1)[0].encode() in new.read(_HARDWARE)
+        if coverage == "mixed schemas":
+            assert new.read(app_member) == owned[app_member].replace(
+                b"project/20", b"project/23"
+            )
+            assert b"project/23" in new.read(f"{_MID}/{_product(2)[2]}.xml")

@@ -3,14 +3,27 @@ in each; the export bundles one merged file, so every device's hardware entry is
 
 from __future__ import annotations
 
+import sqlite3
 import xml.etree.ElementTree as ET
 import zipfile
+from functools import partial
 from pathlib import Path
 from types import SimpleNamespace
 from typing import Any
+from unittest.mock import Mock
 
-from editor_gui.plugins.project.knxproj_manufacturer import collect_manufacturer_bundle
-from xknxeditor.proj.core.manufacturer_xml import merge_manufacturer_xml
+import pytest
+
+from editor_gui.plugins.base import Logger
+from editor_gui.plugins.catalog.service import CatalogService
+from editor_gui.plugins.project.knxproj_manufacturer import (
+    catalog_export_sources,
+    collect_manufacturer_bundle,
+)
+from xknxeditor.proj import export_knxproj
+from xknxeditor.proj.core.manufacturer_xml import DeviceProduct, merge_manufacturer_xml
+from xknxeditor.proj.core.product_data import zip_members
+from xknxeditor.proj.core.service import ProjectService
 
 
 def _hardware(ns: str, *items: tuple[str, str]) -> bytes:
@@ -85,3 +98,91 @@ def test_the_bundle_merges_hardware_of_two_sources(tmp_path: Path) -> None:
         "M-00FA_H-1_HP-A1",
     ]
     assert "M-00FA/M-00FA_A-A502.xml" in bundle.extra_files
+
+
+def test_catalog_export_includes_an_application_in_another_folder(
+    tmp_path: Path,
+) -> None:
+    device = DeviceProduct("", "M-00FA_H-1_HP-A1", "M-0001_A-OTHER", imported=False)
+    members = {
+        "M-00FA/Hardware.xml": _hardware("23", ("M-00FA_H-1", "A1")),
+        "M-0001/M-0001_A-OTHER.xml": b"<KNX/>",
+    }
+    master = b'<KNX xmlns="http://knx.org/xml/project/23"><MasterData Signature="AA=="/></KNX>'
+    path = tmp_path / "product.knxprod"
+    with zipfile.ZipFile(path, "w") as archive:
+        archive.writestr("knx_master.xml", master)
+        for name, data in members.items():
+            archive.writestr(name, data)
+    catalog = Mock(spec=CatalogService)
+    catalog.get_program_source.return_value = (str(path), "M-00FA")
+    log = Mock(spec=Logger)
+    stage = Mock()
+
+    assert catalog_export_sources(
+        [device], [device], catalog=catalog, log=log, on_collected=stage
+    ) == (members, master, True)
+    stage.assert_called_once_with()
+    log.info.assert_called_once()
+    log.warning.assert_not_called()
+
+
+def test_catalog_export_resolves_product_only_refs_by_the_program_lookup() -> None:
+    device = DeviceProduct("M-00FA_H-1_P-1", "", "", imported=False)
+    catalog = Mock(spec=CatalogService)
+    catalog.get_program_source.return_value = None
+
+    assert catalog_export_sources([device], [device], catalog=catalog) == (
+        {},
+        None,
+        False,
+    )
+    catalog.get_program_source.assert_called_with(device.product)
+    catalog.find_product.assert_not_called()
+
+
+@pytest.mark.parametrize("malformed_master", [False, True])
+def test_failed_desktop_bundle_leaves_provenance_schema_selection(
+    tmp_path: Path, malformed_master: bool
+) -> None:
+    path = tmp_path / "bad.knxprod"
+    if malformed_master:
+        with zipfile.ZipFile(path, "w") as archive:
+            archive.writestr("knx_master.xml", b"<malformed")
+            archive.writestr("M-00FA/Hardware.xml", b"<KNX/>")
+    catalog = Mock(spec=CatalogService)
+    catalog.get_program_source.return_value = (str(path), "M-00FA")
+    log = Mock(spec=Logger)
+    stage = Mock()
+
+    source = tmp_path / "project.xknx"
+    service = ProjectService()
+    pid = service.create(source)
+    service.add_device(pid, None, "", hardware2program_ref_id="M-00FA_H-1_HP-A1")
+    service.close(pid)
+    owned = {"M-00FA/Hardware.xml": _hardware("23", ("M-00FA_H-1", "A1"))}
+    with sqlite3.connect(source) as db:
+        db.execute(
+            "UPDATE projects SET imported_product_members = ?", (zip_members(owned),)
+        )
+
+    exported = tmp_path / "export.knxproj"
+    result = export_knxproj(
+        source,
+        exported,
+        schema="20",
+        catalog_sources=partial(
+            catalog_export_sources, catalog=catalog, log=log, on_collected=stage
+        ),
+    )
+
+    assert result.schema == "23"
+    stage.assert_called_once_with()
+    if malformed_master:
+        log.warning.assert_called_once()
+    else:
+        log.info.assert_called_once_with(
+            "manufacturer bundle collected", manufacturers=0, files=0, skipped=1
+        )
+    with zipfile.ZipFile(exported) as archive:
+        assert archive.read("M-00FA/Hardware.xml") == owned["M-00FA/Hardware.xml"]
