@@ -11,6 +11,7 @@ import pytest
 
 from xknxeditor.namespaces import detect_version
 from xknxeditor.prod import parse_cache
+from xknxeditor.prod.data import to_ir
 
 _FIXTURES = Path(__file__).parent / "fixtures"
 _APPLICATIONS = [
@@ -200,18 +201,23 @@ def test_without_workers_the_caller_parses(
         assert knx.manufacturer_data is not None
 
 
+@pytest.mark.parametrize("old", ["0", "3"])
 def test_entries_of_other_cache_versions_are_removed(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, old: str
 ) -> None:
-    """A parse written by another cache version (another conversion) is never read again: the
-    next parse into the folder removes it, and the parse is made anew."""
+    """A parse written by another cache version (another conversion, or 3: pickled as pickle
+    does) is never read again: the next parse into the folder removes it, and the parse is made
+    anew."""
     monkeypatch.setattr(parse_cache, "_SWEPT", set())
     xml = _xmls()[0]
     version = detect_version(xml)
     stale = parse_cache._cache_path(xml, version, tmp_path).name.replace(  # pyright: ignore[reportPrivateUsage]
-        f"ir_{parse_cache.CACHE_VERSION}_", "ir_0_"
+        f"ir_{parse_cache.CACHE_VERSION}_", f"ir_{old}_"
     )
-    (tmp_path / stale).write_bytes(b"old conversion")
+    assert stale != parse_cache._cache_path(xml, version, tmp_path).name  # pyright: ignore[reportPrivateUsage]
+    (tmp_path / stale).write_bytes(
+        pickle.dumps(to_ir(xml, version)) if old == "3" else b"old conversion"
+    )
     other = tmp_path / "unrelated.txt"
     other.write_text("kept")
 
@@ -226,11 +232,11 @@ def test_entries_of_other_cache_versions_are_removed(
 def test_a_cache_entry_is_the_pickled_parse(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """The entry written is the pickle of the parse, and it is read back without parsing."""
+    """The entry written is a pickle of the parse, and it is read back without parsing."""
     xml = _xmls()[0]
     version = detect_version(xml)
     knx = parse_cache.cached_to_ir(xml, version, tmp_path)
-    assert _cached(xml, tmp_path) == pickle.dumps(knx, protocol=pickle.HIGHEST_PROTOCOL)
+    assert pickle.loads(_cached(xml, tmp_path)) == knx
     assert not list(tmp_path.glob("*.tmp"))
 
     def no_parse(*_args: object) -> None:

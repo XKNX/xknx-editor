@@ -163,14 +163,14 @@ def test_import_of_several_applications(tmp_path: Path) -> None:
     ]
 
     # One parse cache entry per application XML: the pickled parse of it.
-    entries = {entry.name: entry.read_bytes() for entry in cache.glob("ir_*.pkl")}
-    expected: dict[str, bytes] = {}
+    entries = {
+        entry.name: pickle.loads(entry.read_bytes()) for entry in cache.glob("ir_*.pkl")
+    }
+    expected: dict[str, object] = {}
     for xml in _xmls():
         version = detect_version(xml)
         path = parse_cache._cache_path(xml, version, cache)  # pyright: ignore[reportPrivateUsage]
-        expected[path.name] = pickle.dumps(
-            to_ir(xml, version), protocol=pickle.HIGHEST_PROTOCOL
-        )
+        expected[path.name] = to_ir(xml, version)
     assert entries == expected
 
 
