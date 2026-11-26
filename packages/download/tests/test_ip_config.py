@@ -9,6 +9,7 @@ from xknxeditor.download.image import DownloadImage
 from xknxeditor.download.ip_config import (
     IpDeviceConfig,
     applies,
+    device_additional_addresses,
     ip_config_controls,
     with_ip_config_controls,
 )
@@ -49,7 +50,28 @@ def _application(
     additional: int = 16,
     mask: str = "MV-07B0",
     ipconfig: ApplicationProgramIpconfig = ApplicationProgramIpconfig.TOOL,
+    tunnels: tuple[int, ...] = (),
 ) -> Application:
+    """An IP application with ``additional`` additional addresses and tunnelling bus interfaces
+    on the AddressIndex ``tunnels``, plus a routing one on the device's own address."""
+    bus_interfaces = (
+        SimpleNamespace(
+            bus_interface=[
+                SimpleNamespace(
+                    access_type=SimpleNamespace(value="Routing"), address_index=0
+                ),
+                *(
+                    SimpleNamespace(
+                        access_type=SimpleNamespace(value="Tunneling"),
+                        address_index=index,
+                    )
+                    for index in tunnels
+                ),
+            ]
+        )
+        if tunnels
+        else None
+    )
     return cast(
         "Application",
         SimpleNamespace(
@@ -63,7 +85,8 @@ def _application(
                 application_version=0x13,
                 is_secure_enabled=False,
                 static=SimpleNamespace(
-                    options=SimpleNamespace(supports_extended_property_services=True)
+                    options=SimpleNamespace(supports_extended_property_services=True),
+                    bus_interfaces=bus_interfaces,
                 ),
             ),
         ),
@@ -108,6 +131,45 @@ def test_fixed_address_writes_ip_mask_and_gateway() -> None:
         (61, 1, "ffffff00"),
         (62, 1, "c0a80101"),
         (53, 2, "ffffffff"),
+    ]
+
+
+def _additional_write(application: Application, entries: tuple[int | None, ...]) -> str:
+    config = IpDeviceConfig(individual_address=0x1101, additional_addresses=entries)
+    writes = _writes(ip_config_controls(application, config))
+    return next(data for pid, _, data in writes if pid == 53)
+
+
+def test_each_tunnel_keeps_the_entry_of_its_address_index() -> None:
+    application = _application(additional=4, tunnels=(1, 2, 3))
+    # Entry 2 has no address: its tunnel gets the first tunnel's, the others stay in place; the
+    # fourth entry is no tunnel's.
+    assert device_additional_addresses(application, (251, None, 253, 200)) == [
+        251,
+        251,
+        253,
+        200,
+    ]
+    assert _additional_write(application, (251, None, 253, 200)) == "11fb11fb11fd11c8"
+
+
+def test_the_other_addresses_take_the_free_entries() -> None:
+    application = _application(additional=4, tunnels=(1, 2))
+    # Entry 3 repeats a tunnel's address and is left out; entry 4 takes the first free one, the
+    # last stays free (device number FFh).
+    assert device_additional_addresses(application, (251, 252, 252, 230)) == [
+        251,
+        252,
+        230,
+        None,
+    ]
+    assert _additional_write(application, (251, 252, 252, 230)) == "11fb11fc11e611ff"
+    # No tunnel with an address: every address is one of the others.
+    assert device_additional_addresses(application, (None, None, 240)) == [
+        240,
+        None,
+        None,
+        None,
     ]
 
 

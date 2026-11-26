@@ -1,4 +1,6 @@
-"""The KNX IP Secure passwords a download writes: from the project, else the keyring."""
+"""The KNX IP Secure passwords a download writes and the user of each tunnel: from the project,
+else the keyring. User 1 is the management user; the tunnels follow in the order of their
+address index, and tunnels with the same password share one user."""
 
 from __future__ import annotations
 
@@ -7,7 +9,11 @@ from types import SimpleNamespace
 from typing import Any, cast
 
 from editor_gui.plugins.keyring.service import KeyringIpSecrets, KeyringService
-from editor_gui.plugins.project.service import ip_secure_users
+from editor_gui.plugins.project.service import (
+    ProjectService,
+    ip_secure_users,
+    tunnelling_users,
+)
 from xknxeditor.datasecure import DecryptedKeyring
 from xknxeditor.datasecure.files.knx_keyring import InterfaceType
 from xknxeditor.datasecure.secure import DecryptedDevice, DecryptedInterface
@@ -25,18 +31,20 @@ def test_project_passwords_come_first() -> None:
             IpBusInterface("M-1_A-1_BI-2", "two"),
         ],
     )
-    ring = KeyringIpSecrets("other", "other", [(2, "1.1.250", "ring")])
+    ring = KeyringIpSecrets(
+        "other", "other", [(2, "1.1.250", "taken"), (3, "1.1.250", "ring")]
+    )
     authentication, passwords, tunnelling = ip_secure_users(
         project, ring, _TUNNELS, [250, 251]
     )
     assert authentication == "auth"
-    # The second bus interface (tunnelling address 2) is user 3; the keyring adds user 2.
-    assert passwords == {1: "mgmt", 3: "two", 2: "ring"}
-    assert sorted(tunnelling) == [(2, 1), (3, 2)]
+    # The first tunnel with a password is user 2; the keyring fills in the tunnel without one,
+    # with a user the project leaves free.
+    assert passwords == {1: "mgmt", 2: "two", 3: "ring"}
+    assert tunnelling == [(2, 2), (3, 1)]
 
 
-def test_a_routing_interface_takes_the_first_user() -> None:
-    # A routing bus interface with a password is user 2, the tunnels follow.
+def test_a_routing_interface_has_no_user() -> None:
     project = IpSecrets(
         management_password="mgmt",
         bus_interfaces=[
@@ -46,8 +54,78 @@ def test_a_routing_interface_takes_the_first_user() -> None:
         ],
     )
     _, passwords, tunnelling = ip_secure_users(project, None, _TUNNELS, [1, 2])
-    assert passwords == {1: "mgmt", 2: "routing", 3: "one", 4: "two"}
-    assert tunnelling == [(3, 1), (4, 2)]
+    assert passwords == {1: "mgmt", 2: "one", 3: "two"}
+    assert tunnelling == [(2, 1), (3, 2)]
+
+
+_FOUR = {f"M-1_A-1_BI-{n}": n for n in range(1, 5)}
+
+
+def test_tunnels_with_the_same_password_share_a_user() -> None:
+    passwords = {
+        "M-1_A-1_BI-1": "same",
+        "M-1_A-1_BI-2": "same",
+        "M-1_A-1_BI-3": "three",
+        "M-1_A-1_BI-4": "four",
+    }
+    users, by_ref, tunnelling = tunnelling_users(
+        "mgmt", passwords, _FOUR, [251, 252, 253, 254]
+    )
+    assert users == ["mgmt", "same", "three", "four"]
+    assert by_ref == {
+        "M-1_A-1_BI-1": 2,
+        "M-1_A-1_BI-2": 2,
+        "M-1_A-1_BI-3": 3,
+        "M-1_A-1_BI-4": 4,
+    }
+    assert tunnelling == [(2, 1), (2, 2), (3, 3), (4, 4)]
+    # The management password as a tunnel's is user 1.
+    _users, by_ref, _tunnelling = tunnelling_users(
+        "same", passwords, _FOUR, [251, 252, 253, 254]
+    )
+    assert by_ref["M-1_A-1_BI-1"] == 1
+
+
+def test_the_tunnels_follow_their_address_index() -> None:
+    # Bus interfaces listed in another order, the address entries not ascending: the users
+    # follow the AddressIndex.
+    passwords = {
+        "M-1_A-1_BI-4": "four",
+        "M-1_A-1_BI-2": "two",
+        "M-1_A-1_BI-1": "one",
+        "M-1_A-1_BI-3": "three",
+    }
+    tunnels = {
+        "M-1_A-1_BI-3": 3,
+        "M-1_A-1_BI-1": 1,
+        "M-1_A-1_BI-4": 4,
+        "M-1_A-1_BI-2": 2,
+    }
+    users, by_ref, tunnelling = tunnelling_users(
+        "mgmt", passwords, tunnels, [254, 251, 253, 252]
+    )
+    assert users == ["mgmt", "one", "two", "three", "four"]
+    assert by_ref["M-1_A-1_BI-3"] == 4
+    assert tunnelling == [(2, 1), (3, 2), (4, 3), (5, 4)]
+
+
+def test_a_tunnel_without_an_address_or_a_password() -> None:
+    passwords = {"M-1_A-1_BI-1": "one", "M-1_A-1_BI-2": "two", "M-1_A-1_BI-3": None}
+    tunnels = {"M-1_A-1_BI-1": 1, "M-1_A-1_BI-2": 2, "M-1_A-1_BI-3": 3}
+    # Entry 1 has no address: its tunnel takes the user of the first one with an address and
+    # has no user of its own; tunnel 3 has no password and no user.
+    users, by_ref, tunnelling = tunnelling_users(
+        "mgmt", passwords, tunnels, [None, 252, 253]
+    )
+    assert users == ["mgmt", "two"]
+    assert by_ref == {"M-1_A-1_BI-2": 2}
+    assert tunnelling == [(2, 1), (2, 2)]
+    # No tunnel with an address at all: no tunnelling users.
+    assert tunnelling_users("mgmt", passwords, tunnels, [None, None]) == (
+        ["mgmt"],
+        {},
+        [],
+    )
 
 
 def test_the_keyring_fills_in() -> None:
@@ -66,6 +144,61 @@ def test_no_passwords_without_the_management_password() -> None:
         bus_interfaces=[IpBusInterface("M-1_A-1_BI-1", "one")],
     )
     assert ip_secure_users(project, None, _TUNNELS, [250]) == ("auth", {}, [])
+
+
+def _secure_interface(order: list[str]) -> Any:
+    """A project service with a KNX IP Secure interface at 1.1.250 with four tunnels (1.1.251 to
+    1.1.254, the first two with the same password), its bus interfaces in the project in
+    ``order``."""
+    access = SimpleNamespace(value="Tunneling")
+    app = SimpleNamespace(
+        program=SimpleNamespace(
+            static=SimpleNamespace(
+                bus_interfaces=SimpleNamespace(
+                    bus_interface=[
+                        SimpleNamespace(id=ref, access_type=access, address_index=index)
+                        for ref, index in _FOUR.items()
+                    ]
+                )
+            )
+        )
+    )
+    device = SimpleNamespace(node_id=7, individual_address="1.1.250", app=app)
+    password = {1: "same", 2: "same", 3: "three", 4: "four"}
+    secrets = IpSecrets(
+        device_authentication_code="auth",
+        management_password="mgmt",
+        bus_interfaces=[IpBusInterface(ref, password[_FOUR[ref]]) for ref in order],
+    )
+    service = cast(Any, SimpleNamespace())
+    service._pid = "P"
+    service.ip_secure_device = lambda d: True
+    service._svc = SimpleNamespace(
+        secure_commissioning=lambda pid, node: True,
+        ip_secrets=lambda pid, node: secrets,
+        device_additional_addresses=lambda pid, node: [251, 252, 253, 254],
+    )
+    service.devices = [device]
+    settings = ProjectService._read_ip_secure_settings(  # pyright: ignore[reportPrivateUsage]
+        service, cast(Any, device)
+    )
+    service.ip_secure_settings = lambda d: settings
+    return service
+
+
+def test_the_project_tunnels_have_the_users_of_the_device() -> None:
+    # #348: the gateway gives 1.1.253 to user 3, its bus interface the third in the project.
+    order = ["M-1_A-1_BI-1", "M-1_A-1_BI-4", "M-1_A-1_BI-3", "M-1_A-1_BI-2"]
+    service = _secure_interface(order)
+    tunnels = ProjectService.secure_tunnels(service, "1.1.250")
+    assert [(t.individual_address, t.user_id) for t in tunnels] == [
+        ("1.1.251", 2),
+        ("1.1.254", 4),
+        ("1.1.253", 3),
+        ("1.1.252", 2),
+    ]
+    settings = service.ip_secure_settings(None)
+    assert [i.user_id for i in settings.interfaces] == [2, 4, 3, 2]
 
 
 def test_keyring_ip_secrets() -> None:
@@ -134,8 +267,10 @@ def test_export_keyring(tmp_path: Path) -> None:
         commissioning_password="mgmt",
         secure_tunnelling=True,
         interfaces=[
-            IpSecureInterface("M-1_A-1_BI-0", "Routing", 2, None, "route"),
+            IpSecureInterface("M-1_A-1_BI-0", "Routing", None, None, "route"),
             IpSecureInterface("M-1_A-1_BI-1", "Tunneling", 3, "1.1.250", "tunnel"),
+            # without a user (its address entry has none): not in the keyring
+            IpSecureInterface("M-1_A-1_BI-2", "Tunneling", None, None, "spare"),
         ],
     )
     service = cast(Any, SimpleNamespace())

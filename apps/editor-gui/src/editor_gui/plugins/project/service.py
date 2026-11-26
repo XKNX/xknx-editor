@@ -14,7 +14,14 @@ import threading
 import time
 import xml.etree.ElementTree as ET
 import zipfile
-from collections.abc import Callable, Collection, Generator, Iterable, Mapping
+from collections.abc import (
+    Callable,
+    Collection,
+    Generator,
+    Iterable,
+    Mapping,
+    Sequence,
+)
 from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal, NamedTuple, cast
@@ -1288,12 +1295,13 @@ def _security_role_masks(device: Device) -> dict[str, int]:
 @dataclass(frozen=True)
 class IpSecureInterface:
     """A bus interface of a KNX IP Secure device as the settings show it: its ``@RefId``, kind
-    (``"Tunneling"``/``"Routing"``), user id, tunnelling address (``None`` for routing) and
+    (``"Tunneling"``/``"Routing"``), user id (``None`` for routing and for a tunnel without a
+    user, see :func:`tunnelling_users`), tunnelling address (``None`` for routing) and
     password."""
 
     ref_id: str
     access: str
-    user_id: int
+    user_id: int | None
     address: str | None
     password: str
 
@@ -1309,28 +1317,64 @@ class IpSecureSettings:
     interfaces: list[IpSecureInterface]
 
 
+def tunnelling_users(
+    management_password: str,
+    passwords: Mapping[str, str | None],
+    tunnelling_interfaces: Mapping[str, int],
+    addresses: Sequence[int | None],
+) -> tuple[list[str], dict[str, int], list[tuple[int, int]]]:
+    """The users of a KNX IP Secure device's tunnels: ``(the password of each user from user 1
+    on, user id by tunnelling bus interface @RefId, tunnelling users as (user id, AddressIndex))``.
+
+    User 1 is the management user (``management_password``). The tunnelling bus interfaces
+    (``tunnelling_interfaces``: ``@RefId`` -> ``@AddressIndex``, their ``passwords`` by @RefId)
+    follow in the order of their AddressIndex, the device's additional address entry of that
+    number (``addresses``: the last octet of each entry, ``None`` without an address). Each
+    password is the user it first appears as, so tunnels with the same password share one user.
+    A tunnel whose entry has no address takes the user of the first tunnel with one; a tunnel
+    without a password has no user. Routing bus interfaces have no user."""
+    users = [management_password]
+    by_index = {index: ref for ref, index in tunnelling_interfaces.items()}
+
+    def has_address(index: int) -> bool:
+        return 0 < index <= len(addresses) and addresses[index - 1] is not None
+
+    first = next((i for i in sorted(by_index) if has_address(i)), None)
+    by_ref: dict[str, int] = {}
+    tunnelling: list[tuple[int, int]] = []
+    for index in sorted(i for i in by_index if i > 0):
+        source = index if has_address(index) else first
+        if source is None:
+            continue
+        password = passwords.get(by_index[source])
+        if not password:
+            continue
+        if password not in users:
+            users.append(password)
+        user_id = users.index(password) + 1
+        if source == index:
+            by_ref[by_index[index]] = user_id
+        tunnelling.append((user_id, index))
+    return users, by_ref, tunnelling
+
+
 def ip_secure_users(
     project: "IpSecrets",
     keyring: "KeyringIpSecrets | None",
     tunnelling_interfaces: dict[str, int],
-    tunnelling_octets: list[int],
+    addresses: Sequence[int | None],
 ) -> tuple[str | None, dict[int, str], list[tuple[int, int]]]:
     """``(device authentication code, password by user id, tunnelling users)`` of an IP device,
     from the project's passwords, else the keyring's.
 
-    The project's bus interfaces are users 2, 3, … in the device's order (user 1 is the
-    management user), the order exported projects number them in: a routing bus interface with a
-    password takes a user id as well, so the tunnels then start at user 3. A tunnelling one
-    (``tunnelling_interfaces``: ``@RefId`` -> ``@AddressIndex``) is that user's tunnelling
-    address ``AddressIndex`` (the device's additional address of that number). A keyring tunnel
-    names its user and its address, found among the device's tunnelling addresses
-    (``tunnelling_octets``, the last octet of each, in order). Without a management password no
-    password is returned: the hashes are written as one table, which would lock the management
-    access out."""
+    The project's tunnels are numbered by :func:`tunnelling_users` (``tunnelling_interfaces``:
+    ``@RefId`` -> ``@AddressIndex``; ``addresses``: the last octet of each additional address
+    entry, ``None`` without an address). A keyring tunnel names its user and its address, the
+    entry with that address; it fills in a user and an entry the project leaves free. Without a
+    management password no password is returned: the hashes are written as one table, which
+    would lock the management access out."""
     from xknx.exceptions import CouldNotParseAddress
     from xknx.telegram import IndividualAddress
-
-    from xknxeditor.download.ip_secure import MANAGEMENT_USER_ID
 
     authentication = project.device_authentication_code or (
         keyring.device_authentication_code if keyring else None
@@ -1338,29 +1382,27 @@ def ip_secure_users(
     management = project.management_password or (
         keyring.management_password if keyring else None
     )
-    passwords: dict[int, str] = {}
-    tunnelling: list[tuple[int, int]] = []
     if not management:
-        return authentication, passwords, tunnelling
-    passwords[MANAGEMENT_USER_ID] = management
-    for position, bus_interface in enumerate(project.bus_interfaces, start=1):
-        user_id = MANAGEMENT_USER_ID + position
-        if not bus_interface.password:
-            continue
-        passwords[user_id] = bus_interface.password
-        index = tunnelling_interfaces.get(bus_interface.ref_id)
-        if index is not None:
-            tunnelling.append((user_id, index))
+        return authentication, {}, []
+    users, _by_ref, tunnelling = tunnelling_users(
+        management,
+        {b.ref_id: b.password for b in project.bus_interfaces},
+        tunnelling_interfaces,
+        addresses,
+    )
+    passwords = dict(enumerate(users, start=1))
     for user_id, address, password in keyring.tunnels if keyring else []:
-        if user_id in passwords:
-            continue
         try:
             octet = IndividualAddress(address).raw & 0xFF
         except CouldNotParseAddress:
             continue
-        if octet in tunnelling_octets:
-            passwords[user_id] = password
-            tunnelling.append((user_id, tunnelling_octets.index(octet) + 1))
+        if user_id in passwords or octet not in addresses:
+            continue
+        index = addresses.index(octet) + 1
+        if any(entry == index for _user, entry in tunnelling):
+            continue
+        passwords[user_id] = password
+        tunnelling.append((user_id, index))
     return authentication, passwords, tunnelling
 
 
@@ -4070,6 +4112,7 @@ class ProjectService:
             if interface.access == "Tunneling"
             and interface.address
             and interface.password
+            and interface.user_id is not None
         ]
 
     def secure_backbone(self) -> tuple[bytes, int] | None:
@@ -4220,7 +4263,7 @@ class ProjectService:
             for interface in settings.interfaces:
                 if interface.access != "Tunneling" or not interface.address:
                     continue
-                if not interface.password:
+                if not interface.password or interface.user_id is None:
                     continue
                 tunnel = IndividualAddress(interface.address)
                 with self._io_lock:
@@ -4290,20 +4333,27 @@ class ProjectService:
         secrets = self._svc.ip_secrets(self._pid, device.node_id)
         kinds = {ref: (access, index) for ref, access, index in _bus_interfaces(device)}
         octets = self._svc.device_additional_addresses(self._pid, device.node_id)
+        _users, user_ids, _tunnelling = tunnelling_users(
+            secrets.management_password or "",
+            {b.ref_id: b.password for b in secrets.bus_interfaces},
+            _tunnelling_interfaces(device),
+            octets,
+        )
         prefix = device.individual_address.rsplit(".", 1)[0]
         interfaces: list[IpSecureInterface] = []
-        for position, bus_interface in enumerate(secrets.bus_interfaces, start=1):
+        for bus_interface in secrets.bus_interfaces:
             access, index = kinds.get(bus_interface.ref_id, ("", 0))
             if access not in PASSWORD_ACCESS_TYPES:
                 continue
             address = None
-            if access == "Tunneling" and 0 < index <= len(octets) and prefix:
-                address = f"{prefix}.{octets[index - 1]}"
+            octet = octets[index - 1] if 0 < index <= len(octets) else None
+            if access == "Tunneling" and octet is not None and prefix:
+                address = f"{prefix}.{octet}"
             interfaces.append(
                 IpSecureInterface(
                     ref_id=bus_interface.ref_id,
                     access=access,
-                    user_id=1 + position,
+                    user_id=user_ids.get(bus_interface.ref_id),
                     address=address,
                     password=bus_interface.password or "",
                 )
@@ -6641,9 +6691,7 @@ class ProjectService:
             ip_address=ip.get("IPAddress"),
             subnet_mask=ip.get("SubnetMask"),
             default_gateway=ip.get("DefaultGateway"),
-            additional_addresses=tuple(
-                a.address for a in row.additional_addresses if a.address is not None
-            ),
+            additional_addresses=tuple(a.address for a in row.additional_addresses),
         )
 
     @io_guarded(dict)
@@ -6761,7 +6809,7 @@ class ProjectService:
             project,
             ring,
             _tunnelling_interfaces(device),
-            [a.address for a in row.additional_addresses if a.address is not None],
+            [a.address for a in row.additional_addresses],
         )
         if backbone is None and authentication is None and not passwords:
             return None

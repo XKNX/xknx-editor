@@ -3462,13 +3462,16 @@ class ProjectService:
                 result[element.get("RefId", "")] = addresses
         return result
 
-    def device_additional_addresses(self, project_id: str, device_id: int) -> list[int]:
-        """The last octet of each additional individual address the device holds (its tunnelling
-        addresses), in order."""
+    def device_additional_addresses(
+        self, project_id: str, device_id: int
+    ) -> list[int | None]:
+        """The last octet of each additional individual address entry of the device (its
+        tunnelling addresses; ``None`` for an entry without an address), in order: entry ``n`` is
+        the one a bus interface with ``AddressIndex`` ``n`` uses."""
         device = self._state(project_id).session.get(Device, device_id)
         if device is None:
             return []
-        return [a.address for a in device.additional_addresses if a.address is not None]
+        return [a.address for a in device.additional_addresses]
 
     def additional_addresses(
         self, project_id: str, device_id: int

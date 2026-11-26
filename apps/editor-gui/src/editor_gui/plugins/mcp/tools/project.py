@@ -1582,7 +1582,9 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         include_passwords: bool = False,
     ) -> dict[str, Any]:
         """The KNX IP Secure settings of a secure IP device commissioned securely: whether its
-        tunnels are secured and its bus interfaces (kind, user id, tunnelling address). Identify
+        tunnels are secured and its bus interfaces (kind, user id, tunnelling address; the user
+        id is null for routing and for a tunnel without a user, and tunnels with the same
+        password share one user id). Identify
         the device by ``node_id`` OR ``device_address`` (an individual address like "1.0.30");
         pass exactly one. With ``include_passwords`` also its commissioning password, its
         authentication code and the bus interfaces' passwords - only when the user asks for
