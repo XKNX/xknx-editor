@@ -528,6 +528,7 @@ class ProjectPlugin:
             notify=api.tell_refused,
             one_undo_step=api.project.one_undo_step,
             paste_dialog=self._paste_dialog("group_addresses"),
+            get_project_generation=lambda: api.project.generation,
         )
 
         # Drawn below a group address's details with its raw address (e.g. what uses it in Home

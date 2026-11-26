@@ -77,6 +77,7 @@ def _panel(
         group_style=lambda: project.group_address_style,
         one_undo_step=project.one_undo_step,
         bus=bus,
+        get_project_generation=lambda: project.generation,
         **extra,
     )
 
@@ -161,6 +162,8 @@ def test_group_read_is_paced_one_at_a_time(
     # The clock stands still: only the first read goes out, however many frames render.
     _frames(panel.render, count=6)
     assert reads == expected[:1]
+    # An edit in the same project keeps the queued reads.
+    assert project.create_group_range(None, "Heating", 2) is not None
     # Each time the gap elapses, exactly one more read is sent.
     now[0] = 0.1
     _frames(panel.render, count=6)
@@ -168,6 +171,48 @@ def test_group_read_is_paced_one_at_a_time(
     now[0] = 0.2
     _frames(panel.render, count=6)
     assert reads == expected
+
+
+@pytest.mark.usefixtures("context")
+@pytest.mark.parametrize("change", ("close", "open", "new"))
+def test_group_read_drops_pending_reads_on_project_change(
+    project: ProjectService,
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    change: str,
+) -> None:
+    other_path = tmp_path / "other.xknx"
+    if change == "open":
+        original_path = project.path
+        assert original_path is not None
+        project.new(other_path)
+        project.open(original_path)
+
+    clicks = Clicks(monkeypatch, group_addresses, add_dialog)
+    main = project.create_group_range(None, "Lights", 1)
+    middle = project.create_group_range(main, "Ground", 1)
+    assert main is not None and middle is not None
+    _two_addresses(project, middle)
+    first = _node(project, middle).group_addresses[0].text
+    reads: list[str] = []
+    now = [0.0]
+    panel = _panel(project, _bus(reads), read_gap=0.1, clock=lambda: now[0])
+    _frames(panel.render)
+    clicks.context = f"##gr_ctx_{main}"
+    clicks.items.add(S.GA_READ_VALUES)
+    _frames(panel.render, count=6)
+    assert reads == [first]
+
+    if change == "close":
+        project.close()
+    elif change == "open":
+        project.open(other_path)
+    else:
+        project.new(other_path)
+
+    now[0] = 0.1
+    _frames(panel.render, count=6)
+    assert reads == [first]
 
 
 @pytest.mark.usefixtures("context")
