@@ -62,7 +62,7 @@ _CANCEL_POLL = 0.2
 
 # Bump when the IR shape, the conversion into it or pickle compatibility changes, to abandon old
 # cache entries (2: a v10/v11 colour text is a TypeColor; 3: an object size "Variable" is
-# "LegacyVarData"; 4: compact pickles, see _CompactPickler).
+# "LegacyVarData"; 4: compact pickles, see _CompactPickler, and equal texts shared).
 CACHE_VERSION = "4"
 # The cache folders whose entries of other cache versions this process removed.
 _SWEPT: set[Path] = set()

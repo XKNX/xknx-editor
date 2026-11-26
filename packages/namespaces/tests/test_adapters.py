@@ -123,6 +123,20 @@ def test_copies_same_named_scalar_fields():
     assert out.central is True
 
 
+def test_equal_texts_of_a_conversion_are_one_object():
+    """Equal texts read from different elements are kept once per conversion."""
+    first, second = ("".join(["Liv", "ing"]) for _ in range(2))
+    assert first == second and first is not second
+    ctx = v10()
+    a = convert(ctx, V10GroupAddress(id="GA-1", address=1, name=first), IRGroupAddress)
+    b = convert(ctx, V10GroupAddress(id="GA-2", address=2, name=second), IRGroupAddress)
+    assert a.name is b.name is first
+    other = convert(
+        v10(), V10GroupAddress(id="GA-3", address=3, name=second), IRGroupAddress
+    )
+    assert other.name is second  # another conversion keeps its own
+
+
 def test_recurses_into_lists_of_dataclasses():
     src = V10AdditionalAddresses(address=[5, 7])
     out = convert(v10(), src, IRAdditionalAddresses)

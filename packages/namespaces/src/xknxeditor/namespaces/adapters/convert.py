@@ -61,6 +61,8 @@ class Context:
     puid: PuidAllocator = field(default_factory=PuidAllocator)
     # Injected structlog logger, or the silent default when none is given.
     logger: structlog.typing.FilteringBoundLogger = field(default_factory=_NullLogger)  # type: ignore[assignment]
+    # Each text of the conversion, by itself: equal texts become one object (see convert).
+    texts: dict[str, str] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         # Tag every log event with the source version.
@@ -278,6 +280,10 @@ def convert(ctx: Context, src: Any, target_cls: type) -> Any:
                     if isinstance(src_val, Enum) and type(src_val) is not base
                     else src_val
                 )
+        elif type(src_val) is str:
+            # A large application repeats many texts (help contexts, parameter types, names):
+            # one object each instead of one per attribute holds about a third less memory.
+            kwargs[f.name] = ctx.texts.setdefault(src_val, src_val)
         else:
             kwargs[f.name] = src_val
 

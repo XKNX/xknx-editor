@@ -230,6 +230,41 @@ def test_an_entry_written_with_other_slots_is_parsed_again(
     assert parsed == [xml]
 
 
+def _texts(root: object) -> Iterator[str]:
+    """The texts in the slots of the objects reachable from ``root``."""
+    seen: set[int] = set()
+    stack: list[Any] = [root]
+    while stack:
+        item = stack.pop()
+        if id(item) in seen or isinstance(item, (str, int, float, bytes, Enum)):
+            continue
+        seen.add(id(item))
+        if isinstance(item, list):
+            stack.extend(item)
+            continue
+        for name in parse_cache._slot_names(type(item)):  # pyright: ignore[reportPrivateUsage]
+            value = getattr(item, name, None)
+            if isinstance(value, str):
+                yield value
+            else:
+                stack.append(value)
+
+
+def test_equal_texts_are_one_object_after_the_conversion_and_the_cache(
+    tmp_path: Path,
+) -> None:
+    xml = (_FIXTURES / "fan_coil_application.xml").read_bytes()
+    version = detect_version(xml)
+    parsed = list(_texts(to_ir(xml, version)))
+    assert len(parsed) > len(set(parsed))  # the application repeats texts
+    assert len({id(text) for text in parsed}) == len(set(parsed))
+
+    parse_cache.cached_to_ir(xml, version, tmp_path)
+    cached = list(_texts(parse_cache.cached_to_ir(xml, version, tmp_path)))
+    assert cached == parsed
+    assert len({id(text) for text in cached}) == len(set(cached))
+
+
 def _same_graph(first: object, second: object) -> None:
     """``first`` and ``second`` are graphs of the same types and values, with the same objects
     shared."""
