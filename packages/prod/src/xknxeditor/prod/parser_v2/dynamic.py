@@ -135,6 +135,7 @@ from .ui import UiNode
 
 if TYPE_CHECKING:
     from .ui import UiParameter
+    from .ui.parameter import Widget
 
 if TYPE_CHECKING:
     from ..script.compat.runtime import JScriptEnv
@@ -358,6 +359,9 @@ class DynamicTreeBuilder:
         # active, so it must not gate the capture chain (would wrongly disqualify every object under it).
         # This set is shared by reference into the Choose/Repeat nodes and is complete once _build ends.
         self._widget_param_refs: set[str] = set()
+        # Resolve widgets on first use, after translations have been applied to the IR. All
+        # placements of a ParameterType in this tree share its immutable widget.
+        self._widgets: dict[str, Widget] = {}
         self._plugin_warned: set[str] = set()
         # A module definition's subtree, built once and shared by all its instances: nodes hold no
         # per-instance state (the instance comes from the evaluation context).
@@ -809,7 +813,7 @@ class DynamicTreeBuilder:
                 )
             # Record this ref as widget-rendered so Choose/Repeat gates on it count toward activeness.
             self._widget_param_refs.add(elem.ref_id)
-            return ParameterRefRefNode(elem, pr, param, pt)
+            return ParameterRefRefNode(elem, pr, param, pt, widgets=self._widgets)
         elif isinstance(elem, ComObjectRefRef):
             cor = self.idx.com_object_refs.get(elem.ref_id)
             co = self.idx.com_objects.get(cor.ref_id) if cor else None

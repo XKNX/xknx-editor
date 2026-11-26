@@ -8,13 +8,14 @@ from pathlib import Path
 
 import pytest
 
-from editor_gui.device import Device
+from editor_gui.device import Device, collect_ui_parameters
 from editor_gui.plugins.base import Logger
 from editor_gui.plugins.catalog.service import CatalogService
 from editor_gui.plugins.logger.service import LogService
 from editor_gui.plugins.project.service import ProjectService
 from xknxeditor.prod import Application
 from xknxeditor.prod.application import parse_application_xml
+from xknxeditor.prod.parser_v2.ui.parameter import EnumWidget
 
 
 def _fixture() -> Path:
@@ -59,7 +60,7 @@ def test_parameters_read_outside_the_selection_are_released(
     proj.set_resident_devices(1)
     proj.selected_device = selected
     selected.get_ui()
-    other.get_ui()
+    before = other.get_ui()
     third.get_ui()
     assert other.evaluated and third.evaluated
     # Used in this frame: kept over its end.
@@ -70,8 +71,26 @@ def test_parameters_read_outside_the_selection_are_released(
     assert not other.evaluated and not third.evaluated
     assert selected.evaluated
     # Read again later: evaluated again with the same values.
-    assert other.get_ui()
+    assert before and other.get_ui() == before
     assert other.evaluated
+
+
+def test_enum_choices_are_shared_between_project_devices(
+    proj: ProjectService, app: Application
+) -> None:
+    first, second = _devices(proj, app, 2)
+    first_params = collect_ui_parameters(first.get_ui())
+    second_params = collect_ui_parameters(second.get_ui())
+    assert [(p.label, p.value) for p in first_params] == [
+        ("Fan Coil", "0"),
+        ("Lock", "0"),
+        ("Output", "0"),
+    ]
+    assert second_params == first_params
+    widget = first_params[0].widget
+    assert isinstance(widget, EnumWidget)
+    assert [(c.value, c.label) for c in widget.choices] == [(0, "No"), (1, "Yes")]
+    assert all(p.widget is widget for p in first_params + second_params)
 
 
 def test_a_device_used_every_frame_stays_evaluated(
