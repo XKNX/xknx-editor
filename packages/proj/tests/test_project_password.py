@@ -5,6 +5,7 @@ import io
 import json
 import sqlite3
 import zipfile
+import zlib
 from contextlib import closing
 from pathlib import Path
 
@@ -46,7 +47,9 @@ def test_zipcrypto_folder() -> None:
     data = protected_folder_zip(_FILES, "Pässwort", schema=20)
     with zipfile.ZipFile(io.BytesIO(data)) as archive:
         assert all(info.flag_bits & 0x1 for info in archive.infolist())
-        with pytest.raises(RuntimeError):
+        # ZipCrypto checks a password against one byte of a random header: about one wrong
+        # password in 256 passes that check and fails only while decompressing.
+        with pytest.raises((RuntimeError, zlib.error, zipfile.BadZipFile)):
             archive.read("0.xml", pwd=b"wrong")
         archive.setpassword("Pässwort".encode())
         assert {name: archive.read(name) for name in archive.namelist()} == _FILES
