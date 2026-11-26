@@ -1949,7 +1949,7 @@ class ConfigurePanel:
                     )
                 )
             imgui.table_next_column()
-            imgui.text(str(interface.user_id))
+            imgui.text("-" if interface.user_id is None else str(interface.user_id))
             imgui.table_next_column()
             self._ip_secure_input(
                 device,
