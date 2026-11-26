@@ -146,7 +146,7 @@ msgid "Use multicast routing (instead of tunneling)"
 msgstr "Përdor routing multicast (në vend të tunneling)"
 
 msgid "Gateway IP"
-msgstr "IP e gateway-t"
+msgstr "IP e gateway-it"
 
 msgid "Multicast Group"
 msgstr "Grupi multicast"
@@ -1253,7 +1253,7 @@ msgid "{kind}: {project}, bus writes blocked"
 msgstr "{kind}: {project}, shkrimet në bus të bllokuara"
 
 msgid "Started now, this editor writes to the bus, unlike an editor above that blocks bus writes. To block them in this one too, start it with --no-bus-writes or turn on Block Bus Writes in Settings > Connection."
-msgstr "I nisur tani, ky redaktor shkruan në bus, ndryshe nga një redaktor më sipër që bllokon shkrimet në bus. Për t’i bllokuar edhe në këtë, niseni me --no-bus-writes ose aktivizoni „Blloko shkrimet në bus“ te Cilësimet > Lidhja."
+msgstr "Ky editor, që sapo u nis, shkruan në bus, ndryshe nga një nga editorët e renditur më sipër që bllokon shkrimet në bus. Për t'i bllokuar edhe në këtë editor, niseni me --no-bus-writes ose aktivizoni “Blloko shkrimet në bus” te Cilësimet > Lidhja."
 
 msgid "Switch to It"
 msgstr "Kalo te ai"
@@ -1756,4 +1756,4 @@ msgid "High"
 msgstr "I lartë"
 
 msgid "How much stays loaded to switch between devices quickly. Automatic sizes it from the memory free at the start; Low suits a small computer such as a Raspberry Pi, High a computer with plenty of memory."
-msgstr "Sa mbetet i ngarkuar për të kaluar shpejt midis pajisjeve. Automatike e përcakton sipas memories së lirë në nisje; I ulët i përshtatet një kompjuteri të vogël si një Raspberry Pi, I lartë një kompjuteri me shumë memorie."
+msgstr "Ky cilësim përcakton sa të dhëna mbahen të ngarkuara në memorie, për të kaluar shpejt nga një pajisje te tjetra. Me opsionin “Automatike”, sasia përcaktohet sipas memories së lirë në nisje; opsioni “I ulët” i përshtatet një kompjuteri të vogël, si Raspberry Pi, ndërsa opsioni “I lartë” është i përshtatshëm për një kompjuter me shumë memorie."

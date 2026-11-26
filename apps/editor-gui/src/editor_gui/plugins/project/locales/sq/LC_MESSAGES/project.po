@@ -1457,10 +1457,10 @@ msgid "The device in programming mode has the serial number {found}, the project
 msgstr "Pajisja në modalitetin e programimit ka numrin serial {found}, projekti ka {stored} për këtë pajisje."
 
 msgid "Do you want to take over its serial number? The download then starts again with it and asks for its device certificate if the project does not have it."
-msgstr "Doni ta merrni numrin e saj serial? Programimi atëherë nis përsëri me të dhe kërkon certifikatën e pajisjes nëse projekti nuk e ka."
+msgstr "Doni që projekti të përdorë numrin serial të pajisjes? Programimi rifillon duke përdorur këtë numër dhe kërkon certifikatën e pajisjes nëse projekti nuk e ka."
 
 msgid "Serial number {serial} taken over: the download starts again with it."
-msgstr "Numri serial {serial} u mor: programimi nis përsëri me të."
+msgstr "Numri serial {serial} u vendos në projekt; programimi rifillon duke përdorur këtë numër."
 
 msgid "Do you want to overwrite the application program (this may take several minutes)?"
 msgstr "Të mbishkruhet programi aplikativ (kjo mund të zgjasë disa minuta)?"
