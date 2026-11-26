@@ -345,6 +345,11 @@ class Device:
     project_code_page: Callable[[], str | None] | None = field(
         default=None, repr=False, compare=False, init=False
     )
+    # Told the device each time its parameters are evaluated anew (its DynamicUI built), from
+    # whichever thread built it, so the evaluated devices kept in memory stay within their limit.
+    dynamic_ui_built: Callable[[Device], None] | None = field(
+        default=None, repr=False, compare=False, init=False
+    )
     # UI frozen while a script changes this device's parameters on the script worker.
     _script_ui: list[UiNode] | None = field(
         default=None, repr=False, compare=False, init=False
@@ -426,6 +431,8 @@ class Device:
                 tree_builder=tree_builder,
                 keep_assigned=True,
             )
+            if self.dynamic_ui_built is not None:
+                self.dynamic_ui_built(self)
         if self._dynamic_ui is not None and self.project_code_page is not None:
             # Read every time: the project's code page can change (and be undone) any time.
             self._dynamic_ui.project_code_page = self.project_code_page()

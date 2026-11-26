@@ -1627,6 +1627,10 @@ class ProjectService:
         # between a few devices is instant instead of re-parsing each time. Older ones are released.
         self._dynui_lru: list[int] = []
         self._dynui_keep = 3
+        # Devices evaluated anew since the last frame, by any code and thread (see
+        # Device.dynamic_ui_built): they count against the same limit (keep_resident_devices).
+        self._dynui_built: list[int] = []
+        self._dynui_built_lock = threading.Lock()
         # Cross-panel "please select this group address" request (consumed by the GA panel).
         self._requested_ga_id: int | None = None
         # Cross-panel "please bring the editor tab to front" request (consumed by the editor panel).
@@ -2324,6 +2328,8 @@ class ProjectService:
         self._status_cache.clear()
         self._selected_node_ids = set()
         self._dynui_lru.clear()
+        with self._dynui_built_lock:
+            self._dynui_built.clear()
         self._app_cache.clear()
         self._missing_refs = None
         self._snapshots = None
@@ -2407,7 +2413,9 @@ class ProjectService:
     def _prepare_calculation(self, device: Device) -> None:
         """Have the device calculated anew by its first evaluation since the project opened (or
         since an undo or redo of its parameters, see _calculate_anew), as each evaluation of
-        a device whose calculation is not current is, and the values that changes stored."""
+        a device whose calculation is not current is, and the values that changes stored. Each
+        evaluation also counts against the devices kept evaluated (keep_resident_devices)."""
+        device.dynamic_ui_built = self._dynamic_ui_built
         if device.native_objects is not None:
             return
         generation = self._load_generation
@@ -3245,22 +3253,60 @@ class ProjectService:
                 if new_id in self._dynui_lru:
                     self._dynui_lru.remove(new_id)
                 self._dynui_lru.insert(0, new_id)
-                for evicted in self._dynui_lru[self._dynui_keep :]:
-                    dev = self.find_device_by_node_id(evicted)
-                    if dev is not None:
-                        dev.release_dynamic_ui()
-                del self._dynui_lru[self._dynui_keep :]
+                self._release_beyond_resident()
             self._emit("device_selected", device)
 
     def set_resident_devices(self, count: int) -> None:
-        """Keep the evaluated parameters of the ``count`` devices viewed last (at least one);
+        """Keep the evaluated parameters of the ``count`` devices used last (at least one);
         those of the others beyond it are dropped now (see Device.release_dynamic_ui)."""
         self._dynui_keep = max(1, count)
-        for evicted in self._dynui_lru[self._dynui_keep :]:
-            device = self.find_device_by_node_id(evicted)
+        self._release_beyond_resident()
+
+    def _dynamic_ui_built(self, device: Device) -> None:
+        """A device's parameters were evaluated anew, on any thread (see
+        Device.dynamic_ui_built); keep_resident_devices counts it on the main thread."""
+        with self._dynui_built_lock:
+            self._dynui_built.append(device.node_id)
+
+    def keep_resident_devices(self) -> None:
+        """Count the devices evaluated since the last frame as the ones used last, and drop the
+        evaluated parameters beyond the devices kept (main thread, every frame): also those code
+        outside the device selection evaluated (an MCP tool, a check, an export), which nothing
+        else releases."""
+        if not self._dynui_built:
+            return
+        with self._dynui_built_lock:
+            built, self._dynui_built = self._dynui_built, []
+        for node_id in built:
+            device = self.find_device_by_node_id(node_id)
+            if device is None or not device.evaluated:
+                continue
+            if node_id in self._dynui_lru:
+                self._dynui_lru.remove(node_id)
+            self._dynui_lru.insert(0, node_id)
+        self._release_beyond_resident()
+
+    def _release_beyond_resident(self) -> None:
+        """Drop the evaluated parameters of the devices beyond the ones kept (most recently used
+        first), never those of the selected devices: they are shown."""
+        selected = self._selected_node_ids | (
+            {self._selected_node_id}
+            if self._selected_node_id is not None
+            else set[int]()
+        )
+        # The selected device is the one used last: it is drawn every frame.
+        if self._selected_node_id in self._dynui_lru:
+            self._dynui_lru.remove(self._selected_node_id)
+            self._dynui_lru.insert(0, self._selected_node_id)
+        kept: list[int] = []
+        for node_id in self._dynui_lru:
+            if len(kept) < self._dynui_keep or node_id in selected:
+                kept.append(node_id)
+                continue
+            device = self.find_device_by_node_id(node_id)
             if device is not None:
                 device.release_dynamic_ui()
-        del self._dynui_lru[self._dynui_keep :]
+        self._dynui_lru = kept
 
     @property
     def selected_node_ids(self) -> set[int]:
