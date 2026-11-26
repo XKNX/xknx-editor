@@ -40,6 +40,8 @@ STEP_STORE = "store"
 STEP_VACUUM = "vacuum"
 
 _BAGGAGE_REF = re.compile(rb"M-[0-9A-Fa-f]{4}_BG-[^\"'<>\s]+")
+_BAGGAGE_PREFIX_SIZE = len(b"M-0000_BG-")
+_BAGGAGE_READ_SIZE = 64 * 1024
 # Containers removed together with their last element child.
 _PRUNABLE_CONTAINERS = frozenset(
     {
@@ -209,8 +211,36 @@ def _translation_removals(root: _Element, removed_ids: set[str]) -> list[_Elemen
     ]
 
 
-def _baggage_refs(data: bytes) -> set[bytes]:
-    return set(_BAGGAGE_REF.findall(data))
+def _decode_baggage_ref(ref: bytes) -> str:
+    return html.unescape(ref.decode("utf-8", "replace"))
+
+
+def _baggage_refs(data: bytes) -> set[str]:
+    return {_decode_baggage_ref(ref) for ref in _BAGGAGE_REF.findall(data)}
+
+
+def _stream_baggage_refs(read: Callable[[int], bytes]) -> set[str]:
+    """Scan discarded XML without retaining the member."""
+    refs: set[str] = set()
+    tail = b""
+    while chunk := read(_BAGGAGE_READ_SIZE):
+        data = tail + chunk
+        consumed = 0
+        for match in _BAGGAGE_REF.finditer(data):
+            if match.end() == len(data):
+                tail = match.group()
+                if len(tail) > _BAGGAGE_READ_SIZE:
+                    # Keep baggage conservatively when malformed input has an
+                    # oversized token. Other, complete references are still usable.
+                    return refs
+                break
+            refs.add(_decode_baggage_ref(match.group()))
+            consumed = match.end()
+        else:
+            # A reference prefix can also straddle two chunks.
+            tail = data[max(consumed, len(data) - _BAGGAGE_PREFIX_SIZE) :]
+    refs.update(_baggage_refs(tail))
+    return refs
 
 
 def _baggage_path(mid: str, el: _Element) -> str:
@@ -239,7 +269,7 @@ class _Folder:
         applications: frozenset[str],
         plan: _Plan,
         *,
-        catalog_subset: bool = False,
+        read_removed_baggage_refs: Callable[[str], set[str]] | None = None,
     ) -> None:
         self.mid = mid
         self.names = names
@@ -248,7 +278,7 @@ class _Folder:
         self.programs = programs
         self.applications = applications
         self.plan = plan
-        self.catalog_subset = catalog_subset
+        self.read_removed_baggage_refs = read_removed_baggage_refs
 
     def _app_files(self) -> dict[str, str]:
         prefix = f"{self.mid}/{self.mid}_A-"
@@ -263,9 +293,11 @@ class _Folder:
     def run(self) -> None:
         mid = self.mid
         hw_name = f"{mid}/Hardware.xml"
-        hw_data = self.read(hw_name) if hw_name in self.names else b""
-        hw_root = _parse(hw_data) if hw_data else None
-        if hw_root is None and (hw_name in self.names or not self.catalog_subset):
+        if hw_name not in self.names:
+            return
+        hw_data = self.read(hw_name)
+        hw_root = _parse(hw_data)
+        if hw_root is None:
             return
 
         removed_hw: list[_Element] = []
@@ -273,7 +305,7 @@ class _Folder:
         kept_any = False
         kept_refs: set[str] = set()
         report = ProductPruneReport()
-        for hw in hw_root.iter() if hw_root is not None else ():
+        for hw in hw_root.iter():
             if hw.name != "Hardware" or "Id" not in hw.attrs:
                 continue
             products = [el for el in hw.iter() if el.name == "Product"]
@@ -320,20 +352,19 @@ class _Folder:
 
         removed_content: list[bytes] = []
         changed: dict[str, bytes] = {}
-        if hw_root is not None:
-            hw_removals = _close_containers(
-                removed_hw + _translation_removals(hw_root, removed_ids)
-            )
-            if hw_removals:
-                changed[hw_name] = _cut(hw_data, hw_removals)
-                removed_content += [hw_data[el.start : el.end] for el in hw_removals]
+        hw_removals = _close_containers(
+            removed_hw + _translation_removals(hw_root, removed_ids)
+        )
+        if hw_removals:
+            changed[hw_name] = _cut(hw_data, hw_removals)
+            removed_content += [hw_data[el.start : el.end] for el in hw_removals]
 
         removed_files: set[str] = set()
         for app_id, name in apps.items():
             if app_id not in used_apps:
                 removed_files.add(name)
                 report.application_programs.append(app_id)
-                if not self.catalog_subset:
+                if self.read_removed_baggage_refs is None:
                     data = self.read(name)
                     _application_name(report, app_id, data)
                     removed_content.append(data)
@@ -382,12 +413,15 @@ class _Folder:
         bag_name = f"{self.mid}/Baggages.xml"
         if bag_name not in self.names:
             return
-        candidates: set[bytes] = set()
+        candidates: set[str] = set()
         for data in removed_content:
             candidates |= _baggage_refs(data)
-        if not candidates and not self.catalog_subset:
+        if self.read_removed_baggage_refs is not None:
+            for name in removed_files:
+                candidates |= self.read_removed_baggage_refs(name)
+        if not candidates:
             return
-        still: set[bytes] = set()
+        still: set[str] = set()
         for name in self.names:
             if (
                 name.endswith(".xml")
@@ -398,19 +432,14 @@ class _Folder:
                 data = changed.get(name)
                 still |= _baggage_refs(self.read(name) if data is None else data)
         drop = candidates - still
-        if not drop and not self.catalog_subset:
+        if not drop:
             return
         bag_data = self.read(bag_name)
         bag_root = _parse(bag_data)
         if bag_root is None:
             return
         baggages = [el for el in bag_root.iter() if el.name == "Baggage"]
-        gone = [
-            el
-            for el in baggages
-            if (baggage := el.attrs.get("Id", "").encode())
-            and (baggage not in still if self.catalog_subset else baggage in drop)
-        ]
+        gone = [el for el in baggages if el.attrs.get("Id") in drop]
         if not gone:
             return
         for el in gone:
@@ -427,7 +456,7 @@ class _Folder:
         mid = self.mid
         report.manufacturers.append(mid)
         report.application_programs += sorted(apps)
-        if not self.catalog_subset:
+        if self.read_removed_baggage_refs is None:
             for app_id, name in apps.items():
                 _application_name(report, app_id, self.read(name))
             cat_name = f"{mid}/Catalog.xml"
@@ -492,7 +521,7 @@ def _plan(
     application_ids: Iterable[str],
     progress: ProgressCallback | None,
     *,
-    catalog_subset: bool = False,
+    read_removed_baggage_refs: Callable[[str], set[str]] | None = None,
 ) -> _Plan:
     products = frozenset(i for i in product_ids if i)
     programs = frozenset(i for i in hardware2program_ids if i)
@@ -515,7 +544,7 @@ def _plan(
             programs,
             applications,
             plan,
-            catalog_subset=catalog_subset,
+            read_removed_baggage_refs=read_removed_baggage_refs,
         ).run()
         if mid in plan.report.manufacturers and f"{mid}.signature" in names:
             plan.removed.add(f"{mid}.signature")
@@ -565,18 +594,17 @@ def read_product_subset(
     hardware2program_ids: Iterable[str],
     application_ids: Iterable[str],
 ) -> dict[str, bytes]:
-    """Read a catalog subset without inflating unused applications or baggage files.
-
-    Baggage selection uses references in the retained XML. Explicit pruning of project
-    provenance also inspects discarded XML, to preserve any unreferenced baggage the
-    originating project carried.
-    """
+    """Read a catalog subset, streaming unused applications for baggage references."""
     cache: dict[str, bytes] = {}
 
     def read(name: str) -> bytes:
         if name not in cache:
             cache[name] = archive.read(name)
         return cache[name]
+
+    def read_removed_baggage_refs(name: str) -> set[str]:
+        with archive.open(name) as member:
+            return _stream_baggage_refs(member.read)
 
     plan = _plan(
         names,
@@ -585,7 +613,7 @@ def read_product_subset(
         hardware2program_ids,
         application_ids,
         None,
-        catalog_subset=True,
+        read_removed_baggage_refs=read_removed_baggage_refs,
     )
     return {
         name: plan.replaced[name] if name in plan.replaced else read(name)
