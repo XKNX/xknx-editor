@@ -68,11 +68,14 @@ def test_parse_workers_within_free_memory(
 
 @pytest.mark.usefixtures("machine")
 def test_parse_workers_within_container_memory(tmp_path: Path) -> None:
-    cgroup = tmp_path / "cgroupfs"
+    cgroup = tmp_path / "cgroup fs"
     container = cgroup / "container"
     container.mkdir(parents=True)
     (tmp_path / "cgroup").write_text("0::/container\n")
-    (tmp_path / "mountinfo").write_text(f"1 0 0:1 / {cgroup} rw - cgroup2 cgroup rw\n")
+    encoded_mount = cgroup.as_posix().replace(" ", r"\040")
+    (tmp_path / "mountinfo").write_text(
+        f"1 0 0:1 / {encoded_mount} rw - cgroup2 cgroup rw\n"
+    )
     (container / "memory.max").write_text(str(2 << 30))
     sizes = [25 * _MB] * 10
 

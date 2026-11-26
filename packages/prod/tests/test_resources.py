@@ -40,11 +40,12 @@ def unified(tmp_path: Path) -> Path:
 @pytest.fixture
 def legacy(tmp_path: Path) -> Path:
     # Only /docker/container is mounted, under a name unrelated to the controller list.
-    mount = tmp_path / "legacy"
+    mount = tmp_path / "legacy cgroup"
     group = mount / "editor"
     group.mkdir(parents=True)
+    encoded_mount = mount.as_posix().replace(" ", r"\040")
     (tmp_path / "mountinfo").write_text(
-        f"2 0 0:1 /docker/container {mount.as_posix()} ro - cgroup cgroup rw,cpu,memory\n"
+        f"2 0 0:1 /docker/container {encoded_mount} ro - cgroup cgroup rw,cpu,memory\n"
     )
     (tmp_path / "cgroup").write_text("8:cpu,memory:/docker/container/editor\n")
     return group
