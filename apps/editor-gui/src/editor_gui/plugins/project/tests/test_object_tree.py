@@ -76,7 +76,7 @@ def test_only_devices_with_an_out_of_date_tree_get_one() -> None:
     service._svc.devices.return_value = rows
     ui = SimpleNamespace(group_object_tree=_tree)
     service.find_device_by_node_id.return_value = SimpleNamespace(
-        app=object(), dynamic_ui=ui
+        app=object(), dynamic_ui=ui, evaluated=True
     )
     trees = ProjectService.group_object_trees(service)
     assert list(trees) == [2]

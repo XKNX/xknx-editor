@@ -1,6 +1,4 @@
-"""The ``.knxproj`` export of a device whose module instances are not stored (a project saved
-before they were stored): the project gives the export the instances of the evaluated
-application, so the module's group objects are written with their links and instance."""
+"""Evaluated module instances and group object trees supplied to the archive exporter."""
 
 from __future__ import annotations
 
@@ -13,6 +11,7 @@ import pytest
 from editor_gui.plugins.base import Logger
 from editor_gui.plugins.catalog.service import CatalogService
 from editor_gui.plugins.logger.service import LogService
+from editor_gui.plugins.project.object_tree import group_object_tree_xml
 from editor_gui.plugins.project.service import ProjectService
 from editor_gui.plugins.project.tests.test_module_instance_objects import (
     _XML,
@@ -95,3 +94,33 @@ def test_a_device_without_module_values_gets_no_evaluation(
     assert device is not None
     proj.set_param(device, f"{APP}_P-1_R-1", "0")
     assert proj.module_arguments() == {}
+
+
+def test_group_object_trees_release_temporary_evaluators(
+    proj: ProjectService, app: Application
+) -> None:
+    devices = []
+    for name in ("temporary", "recent", "selected", "dirty", "resident"):
+        node_id = proj.add_device("P-1", "HP-1", name, app)
+        assert node_id is not None
+        device = proj.find_device_by_node_id(node_id)
+        assert device is not None
+        devices.append(device)
+    temporary, recent, selected, dirty, resident = devices
+    proj.set_resident_devices(2)
+    proj.selected_device = recent
+    proj.selected_device = selected
+    dirty.set_param_value(f"{APP}_P-1_R-1", "1")
+
+    expected: dict[int, str] = {}
+    for device in devices:
+        ui = device.dynamic_ui
+        assert ui is not None
+        expected[device.node_id] = group_object_tree_xml(ui.group_object_tree())
+        if device is not resident:
+            device.release_dynamic_ui()
+    assert [device.evaluated for device in devices] == [False, False, False, True, True]
+
+    assert proj.group_object_trees() == expected
+    assert not temporary.evaluated
+    assert all(device.evaluated for device in (recent, selected, dirty, resident))
