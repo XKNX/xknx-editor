@@ -16,6 +16,7 @@ List tools return a ``{items, count}`` envelope; single-entity mutations return 
 from __future__ import annotations
 
 from dataclasses import dataclass
+from functools import partial
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal, overload
 
@@ -1772,7 +1773,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         def _export() -> None:
             from editor_gui.plugins.project.knxproj_manufacturer import (
-                collect_manufacturer_bundle,
+                catalog_export_sources,
             )
             from xknxeditor.proj import export_knxproj
 
@@ -1781,16 +1782,14 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             source = project.working_path
             if source is None:
                 raise ToolError("no project is open")
-            bundle = collect_manufacturer_bundle(
-                project.program_refs(), ctx.api.catalog
-            )
             result = export_knxproj(
                 source,
                 Path(dest),
                 schema=export_schema(),
                 password=project.project_password,
-                extra_files=bundle.extra_files,
-                master_xml=bundle.master_xml,
+                catalog_sources=partial(
+                    catalog_export_sources, catalog=ctx.api.catalog
+                ),
                 # The current signed master, cached with the app's master data.
                 fetch_master=True,
                 master_cache_dir=config_dir(),
@@ -1836,7 +1835,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         import tempfile
 
         from editor_gui.plugins.project.knxproj_manufacturer import (
-            collect_manufacturer_bundle,
+            catalog_export_sources,
         )
         from xknxeditor.proj import (
             ets5_local_available,
@@ -1866,16 +1865,14 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             source = project.working_path
             if source is None:
                 raise ToolError("no project is open")
-            bundle = collect_manufacturer_bundle(
-                project.program_refs(), ctx.api.catalog
-            )
             export_knxproj(
                 source,
                 staged,
                 schema=schema,
                 password=project.project_password,
-                extra_files=bundle.extra_files,
-                master_xml=bundle.master_xml,
+                catalog_sources=partial(
+                    catalog_export_sources, catalog=ctx.api.catalog
+                ),
                 fetch_master=True,
                 master_cache_dir=config_dir(),
                 module_arguments=project.module_arguments(),

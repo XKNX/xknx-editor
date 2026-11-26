@@ -89,6 +89,7 @@ from xknxeditor.proj.core.manufacturer_xml import (
     DeviceProduct,
     combine_product_members,
     merge_members,
+    missing_product_devices,
 )
 from xknxeditor.proj.core.product_data import stored_members
 from xknxeditor.proj.core.product_prune import (
@@ -128,6 +129,10 @@ logger = logging.getLogger(__name__)
 # The concrete MyKnx implementation lives in :mod:`myknx_cert` (kept out of this module so the
 # export itself performs no network I/O unless a signer is passed in).
 CertificateSigner = Callable[[str, bytes, str], bytes | None]
+CatalogExportSources = Callable[
+    [list[DeviceProduct], list[DeviceProduct] | None],
+    tuple[Mapping[str, bytes], bytes | None, bool],
+]
 
 
 def _project_info(
@@ -626,7 +631,10 @@ def _newest_master(
 
 
 def _stored_provenance_sources(
-    project: Project, schema: str, master_xml: bytes | None
+    project: Project,
+    schema: str,
+    master_xml: bytes | None,
+    stored_members: dict[str, bytes],
 ) -> tuple[dict[str, bytes], bytes | None, str]:
     """Decide whether to re-emit the project's stored import provenance, and at which schema.
 
@@ -636,7 +644,6 @@ def _stored_provenance_sources(
     then realigns up to it. Otherwise the provenance is dropped and only the supplied master is used.
     The realignment is up-only: an explicit higher request is honoured and lower provenance dropped
     rather than silently downgrading the export's schema."""
-    stored_members = _unzip_members(project.imported_product_members)
     stored_master = project.knx_master_xml
     if not stored_members and stored_master is None:
         return {}, master_xml, schema
@@ -663,6 +670,7 @@ def _resolve_export_sources(
     master_source: Path | str | None,
     fetch_master: bool,
     master_cache_dir: Path | str | None = None,
+    catalog_sources: CatalogExportSources | None = None,
 ) -> tuple[str, str, dict[str, bytes], bytes | None]:
     """Resolve the schema, namespace, manufacturer members and master XML the archive is built from.
 
@@ -679,19 +687,39 @@ def _resolve_export_sources(
     # The product data the project stores for devices added in the editor comes first, the
     # supplied files add what it lacks (e.g. a device whose product it could not store).
     session = object_session(project)
-    stored = stored_members(session) if session is not None else {}
-    sources = merge_members(stored, extra_files or {})
-    if sources:
-        effective_extra = combine_product_members(
-            _unzip_members(project.imported_product_members),
-            sources,
-            _device_products(project),
+    sources = stored_members(session) if session is not None else {}
+    if extra_files:
+        sources = merge_members(sources, extra_files)
+    own = _unzip_members(project.imported_product_members)
+    devices = (
+        _device_products(project) if sources or catalog_sources is not None else []
+    )
+    catalog_has_products = False
+    if catalog_sources is not None:
+        # An unidentified device used to keep the whole catalog bundle when there
+        # was no imported provenance. A missing list of None preserves that case.
+        missing = (
+            missing_product_devices(devices, own, sources)
+            if own or all(d.hardware2program or d.product for d in devices)
+            else None
         )
+        catalog_files, catalog_master, catalog_has_products = catalog_sources(
+            devices, missing
+        )
+        if catalog_files:
+            sources = merge_members(sources, catalog_files)
+        master_xml = master_xml or catalog_master
+        # The healed product data may replace these bytes, so only retain the
+        # input maps until source selection and merging are complete.
+        del catalog_files
+    if sources or catalog_has_products:
+        effective_extra = combine_product_members(own, sources, devices)
         effective_master = _usable_master(project.knx_master_xml, schema) or master_xml
     else:
         effective_extra, effective_master, schema = _stored_provenance_sources(
-            project, schema, master_xml
+            project, schema, master_xml, own
         )
+    del own, sources
 
     # The project files (project.xml / 0.xml) and knx_master.xml use ONE schema (``schema``), but the
     # manufacturer data under each ``M-xxxx/`` keeps its OWN original schema — exactly what ETS writes
@@ -776,6 +804,7 @@ def export_knxproj(
     *,
     schema: str = DEFAULT_SCHEMA,
     extra_files: Mapping[str, bytes] | None = None,
+    catalog_sources: CatalogExportSources | None = None,
     master_xml: bytes | None = None,
     master_source: Path | str | None = None,
     fetch_master: bool = False,
@@ -807,6 +836,11 @@ def export_knxproj(
       extra_files: Optional raw archive members to add verbatim (e.g. manufacturer ``M-XXXX/``
         trees and their ``M-XXXX.signature`` files, supplied by a caller that has the catalog).
         Keys colliding with the export's own paths are ignored.
+      catalog_sources: Optional callback receiving all device product refs and the refs whose
+        members the project and ``extra_files`` lack (None to request the full sources).
+        Returns the missing archive members, the master XML chosen across all devices' sources,
+        and whether those sources contain any manufacturer members. The latter preserves schema
+        selection when the project already supplies all the product data.
       master_xml: Optional ``knx_master.xml`` bytes to write instead of the generated one. A stored
         master of the project that fits the schema takes precedence.
       master_source: Optional signed ``.knxproj`` whose (signed) master data is reused when no
@@ -919,9 +953,8 @@ def export_knxproj(
             installation = (
                 session.query(Installation).order_by(Installation.index).first()
             )
-            # Resolve the schema, manufacturer members and master actually written: caller-supplied
-            # extra_files win, else the project's captured import provenance is re-emitted (and the
-            # schema realigned to it). Done inside the session so stored provenance can be read.
+            # Resolve from the same database snapshot as the installation. The project's product
+            # data is preferred, and the caller supplies what it lacks.
             schema, ns, effective_extra, master_xml = _resolve_export_sources(
                 project,
                 schema,
@@ -930,6 +963,7 @@ def export_knxproj(
                 master_source,
                 fetch_master,
                 master_cache_dir,
+                catalog_sources,
             )
             if remove_unused_products and effective_extra:
                 used = used_product_ids(session)

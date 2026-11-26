@@ -163,6 +163,49 @@ def _manufacturer(ref: str) -> str:
     return ref.split("_", 1)[0]
 
 
+def missing_product_devices(
+    devices: Iterable[DeviceProduct], *sources: Mapping[str, bytes]
+) -> list[DeviceProduct]:
+    """Devices whose product, hardware program or application data the sources lack."""
+    products: set[str] = set()
+    programs: dict[str, set[str]] = {}
+    names = {name for source in sources for name in source}
+    for source in sources:
+        for name, data in source.items():
+            if not name.endswith("/Hardware.xml"):
+                continue
+            try:
+                root = ET.fromstring(data)
+            except ET.ParseError:
+                continue
+            for element in root.iter():
+                ref = element.get("Id")
+                if not ref:
+                    continue
+                tag = _localname(element.tag)
+                if tag == "Product":
+                    products.add(ref)
+                elif tag == "Hardware2Program":
+                    programs.setdefault(ref, set()).update(
+                        app_ref
+                        for child in element
+                        if _localname(child.tag) == "ApplicationProgramRef"
+                        and (app_ref := child.get("RefId"))
+                    )
+    return [
+        device
+        for device in devices
+        if (device.product and device.product not in products)
+        or (device.hardware2program and device.hardware2program not in programs)
+        or any(
+            f"{_manufacturer(app)}/{app}.xml" not in names
+            for app in programs.get(device.hardware2program, set())
+            | {device.application}
+            if app
+        )
+    ]
+
+
 def _subset(
     members: Mapping[str, bytes], devices: Iterable[DeviceProduct]
 ) -> dict[str, bytes]:
@@ -184,7 +227,7 @@ def combine_product_members(
 ) -> dict[str, bytes]:
     """The product data an export writes: the project's ``own`` members exactly, plus, from
     ``sources`` (the product files the devices were added from), the data of each device whose
-    ``Hardware2Program`` the own data does not declare.
+    product, hardware program or application the own data lacks.
 
     Only what those devices use is added: their hardware, products and programs, their application
     programs and baggages. A catalog entry is added for a device added in the editor, as one is when
@@ -207,15 +250,12 @@ def add_product_members(
     sources: Mapping[str, bytes],
     devices: Iterable[DeviceProduct],
 ) -> dict[str, bytes]:
-    """The project's ``own`` product data plus, from ``sources``, only what each device whose
-    ``Hardware2Program`` the own data does not declare uses (see :func:`combine_product_members`),
-    also when there is no own data yet: what a project stores to carry its devices' product data."""
-    defined = defined_programs(own)
-    missing = [
-        d for d in devices if d.hardware2program and d.hardware2program not in defined
-    ]
+    """Add the devices' product data that ``own`` lacks (see :func:`combine_product_members`)."""
     result = dict(own)
-    if not missing or not sources:
+    if not sources:
+        return result
+    missing = missing_product_devices(devices, own)
+    if not missing:
         return result
     own_catalogs = {
         name.split("/", 1)[0] for name in own if name.endswith("/Catalog.xml")
@@ -223,7 +263,8 @@ def add_product_members(
     listed = [
         d
         for d in missing
-        if not d.imported or _manufacturer(d.hardware2program) not in own_catalogs
+        if not d.imported
+        or _manufacturer(d.hardware2program or d.product) not in own_catalogs
     ]
     data_subset = _subset(sources, missing)
     catalog_subset = _subset(sources, listed) if listed else {}

@@ -238,6 +238,8 @@ class _Folder:
         programs: frozenset[str],
         applications: frozenset[str],
         plan: _Plan,
+        *,
+        catalog_subset: bool = False,
     ) -> None:
         self.mid = mid
         self.names = names
@@ -246,6 +248,7 @@ class _Folder:
         self.programs = programs
         self.applications = applications
         self.plan = plan
+        self.catalog_subset = catalog_subset
 
     def _app_files(self) -> dict[str, str]:
         prefix = f"{self.mid}/{self.mid}_A-"
@@ -260,11 +263,9 @@ class _Folder:
     def run(self) -> None:
         mid = self.mid
         hw_name = f"{mid}/Hardware.xml"
-        if hw_name not in self.names:
-            return
-        hw_data = self.read(hw_name)
-        hw_root = _parse(hw_data)
-        if hw_root is None:
+        hw_data = self.read(hw_name) if hw_name in self.names else b""
+        hw_root = _parse(hw_data) if hw_data else None
+        if hw_root is None and (hw_name in self.names or not self.catalog_subset):
             return
 
         removed_hw: list[_Element] = []
@@ -272,7 +273,7 @@ class _Folder:
         kept_any = False
         kept_refs: set[str] = set()
         report = ProductPruneReport()
-        for hw in hw_root.iter():
+        for hw in hw_root.iter() if hw_root is not None else ():
             if hw.name != "Hardware" or "Id" not in hw.attrs:
                 continue
             products = [el for el in hw.iter() if el.name == "Product"]
@@ -319,21 +320,23 @@ class _Folder:
 
         removed_content: list[bytes] = []
         changed: dict[str, bytes] = {}
-        hw_removals = _close_containers(
-            removed_hw + _translation_removals(hw_root, removed_ids)
-        )
-        if hw_removals:
-            changed[hw_name] = _cut(hw_data, hw_removals)
-            removed_content += [hw_data[el.start : el.end] for el in hw_removals]
+        if hw_root is not None:
+            hw_removals = _close_containers(
+                removed_hw + _translation_removals(hw_root, removed_ids)
+            )
+            if hw_removals:
+                changed[hw_name] = _cut(hw_data, hw_removals)
+                removed_content += [hw_data[el.start : el.end] for el in hw_removals]
 
         removed_files: set[str] = set()
         for app_id, name in apps.items():
             if app_id not in used_apps:
                 removed_files.add(name)
                 report.application_programs.append(app_id)
-                data = self.read(name)
-                _application_name(report, app_id, data)
-                removed_content.append(data)
+                if not self.catalog_subset:
+                    data = self.read(name)
+                    _application_name(report, app_id, data)
+                    removed_content.append(data)
 
         cat_name = f"{mid}/Catalog.xml"
         if cat_name in self.names:
@@ -382,7 +385,7 @@ class _Folder:
         candidates: set[bytes] = set()
         for data in removed_content:
             candidates |= _baggage_refs(data)
-        if not candidates:
+        if not candidates and not self.catalog_subset:
             return
         still: set[bytes] = set()
         for name in self.names:
@@ -394,15 +397,20 @@ class _Folder:
             ):
                 data = changed.get(name)
                 still |= _baggage_refs(self.read(name) if data is None else data)
-        drop = {c.decode("utf-8", "replace") for c in candidates - still}
-        if not drop:
+        drop = candidates - still
+        if not drop and not self.catalog_subset:
             return
         bag_data = self.read(bag_name)
         bag_root = _parse(bag_data)
         if bag_root is None:
             return
         baggages = [el for el in bag_root.iter() if el.name == "Baggage"]
-        gone = [el for el in baggages if el.attrs.get("Id") in drop]
+        gone = [
+            el
+            for el in baggages
+            if (baggage := el.attrs.get("Id", "").encode())
+            and (baggage not in still if self.catalog_subset else baggage in drop)
+        ]
         if not gone:
             return
         for el in gone:
@@ -419,16 +427,17 @@ class _Folder:
         mid = self.mid
         report.manufacturers.append(mid)
         report.application_programs += sorted(apps)
-        for app_id, name in apps.items():
-            _application_name(report, app_id, self.read(name))
-        cat_name = f"{mid}/Catalog.xml"
-        if cat_name in self.names:
-            cat_root = _parse(self.read(cat_name))
-            if cat_root is not None:
-                items = [el for el in cat_root.iter() if el.name == "CatalogItem"]
-                report.catalog_items += [el.attrs.get("Id", "") for el in items]
-                for el in items:
-                    _name(report, el, "Name")
+        if not self.catalog_subset:
+            for app_id, name in apps.items():
+                _application_name(report, app_id, self.read(name))
+            cat_name = f"{mid}/Catalog.xml"
+            if cat_name in self.names:
+                cat_root = _parse(self.read(cat_name))
+                if cat_root is not None:
+                    items = [el for el in cat_root.iter() if el.name == "CatalogItem"]
+                    report.catalog_items += [el.attrs.get("Id", "") for el in items]
+                    for el in items:
+                        _name(report, el, "Name")
         report.baggages += [n for n in self.names if n.startswith(f"{mid}/Baggages/")]
         self.plan.removed |= set(self.names)
         self._merge(report)
@@ -482,6 +491,8 @@ def _plan(
     hardware2program_ids: Iterable[str],
     application_ids: Iterable[str],
     progress: ProgressCallback | None,
+    *,
+    catalog_subset: bool = False,
 ) -> _Plan:
     products = frozenset(i for i in product_ids if i)
     programs = frozenset(i for i in hardware2program_ids if i)
@@ -496,7 +507,16 @@ def _plan(
     for done, mid in enumerate(sorted(folders)):
         if progress is not None:
             progress(f"{STEP_MANUFACTURER}:{mid}", done, total)
-        _Folder(mid, folders[mid], read, products, programs, applications, plan).run()
+        _Folder(
+            mid,
+            folders[mid],
+            read,
+            products,
+            programs,
+            applications,
+            plan,
+            catalog_subset=catalog_subset,
+        ).run()
         if mid in plan.report.manufacturers and f"{mid}.signature" in names:
             plan.removed.add(f"{mid}.signature")
     if progress is not None and total:
@@ -536,6 +556,42 @@ def prune_product_members(
     plan.report.size_before = sum(len(d) for d in members.values())
     plan.report.size_after = sum(len(d) for d in out.values())
     return out, plan.report
+
+
+def read_product_subset(
+    archive: zipfile.ZipFile,
+    names: list[str],
+    product_ids: Iterable[str],
+    hardware2program_ids: Iterable[str],
+    application_ids: Iterable[str],
+) -> dict[str, bytes]:
+    """Read a catalog subset without inflating unused applications or baggage files.
+
+    Baggage selection uses references in the retained XML. Explicit pruning of project
+    provenance also inspects discarded XML, to preserve any unreferenced baggage the
+    originating project carried.
+    """
+    cache: dict[str, bytes] = {}
+
+    def read(name: str) -> bytes:
+        if name not in cache:
+            cache[name] = archive.read(name)
+        return cache[name]
+
+    plan = _plan(
+        names,
+        read,
+        product_ids,
+        hardware2program_ids,
+        application_ids,
+        None,
+        catalog_subset=True,
+    )
+    return {
+        name: plan.replaced[name] if name in plan.replaced else read(name)
+        for name in names
+        if name not in plan.removed
+    }
 
 
 def prune_product_blob(
