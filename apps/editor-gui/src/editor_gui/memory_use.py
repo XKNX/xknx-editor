@@ -11,6 +11,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from xknxeditor.prod.resources import available_memory as _available_memory
+
 MODES = ("automatic", "low", "high")
 DEFAULT_MODE = "automatic"
 
@@ -45,11 +47,9 @@ def memory_use(mode: str, available: int | None) -> MemoryUse:
 
 
 def available_memory() -> int | None:
-    """The memory free now (octets), None when it cannot be read."""
+    """The memory free to the editor now (octets), None when it cannot be read."""
     try:
-        import psutil
-
-        return int(psutil.virtual_memory().available)
+        return _available_memory()
     except Exception:
         return None
 

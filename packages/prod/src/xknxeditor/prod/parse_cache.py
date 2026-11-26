@@ -23,17 +23,13 @@ import logging
 import multiprocessing
 import os
 import pickle
-from collections import deque
 from collections.abc import Callable, Sequence
-from concurrent.futures import Future, ProcessPoolExecutor
-from concurrent.futures import TimeoutError as FuturesTimeout
+from concurrent.futures import FIRST_COMPLETED, Future, ProcessPoolExecutor, wait
 from enum import Enum
 from functools import partial
 from operator import attrgetter
 from pathlib import Path
 from typing import IO, TYPE_CHECKING, Any, cast
-
-import psutil
 
 from xknxeditor.namespaces import (
     current_parse_progress,
@@ -45,6 +41,7 @@ from xknxeditor.namespaces.intermediate.knx import Knx
 from .data import to_ir
 from .errors import ImportCancelled
 from .gc_pause import gc_paused
+from .resources import available_memory, usable_cpu_count
 
 if TYPE_CHECKING:
     import threading
@@ -439,13 +436,13 @@ def _cached_parse(xml_bytes: bytes, version: str, cache_dir: Path | None) -> Cac
 def parse_workers(sizes: Sequence[int]) -> int:
     """How many worker processes parse application XMLs of ``sizes`` bytes; 1 parses them in this
     process. One worker per :data:`BYTES_PER_WORKER` of XML, or per the largest application's size
-    when it is larger (more workers would wait for it), at most one per physical core but one (left
-    to the user interface) and no more than the free memory holds."""
+    when it is larger (more workers would wait for it), at most one per usable core but one (left
+    to the user interface) and no more than the available memory holds."""
     total = sum(sizes)
     if len(sizes) < 2 or total - max(sizes) < PARALLEL_MIN_BYTES:
         return 1
-    cores = psutil.cpu_count(logical=False) or os.cpu_count() or 1
-    memory = psutil.virtual_memory().available // _WORKER_MEMORY
+    cores = usable_cpu_count()
+    memory = available_memory() // _WORKER_MEMORY
     per_worker = max(BYTES_PER_WORKER, max(sizes))
     return max(1, min(len(sizes), -(-total // per_worker), cores - 1, memory))
 
@@ -460,7 +457,7 @@ def worker_processes(sizes: Sequence[int]) -> int:
     if (
         sizes
         and max(sizes) >= LONE_WORKER_MIN_BYTES
-        and psutil.virtual_memory().available >= _WORKER_MEMORY
+        and available_memory() >= _WORKER_MEMORY
     ):
         return 1
     return 0
@@ -510,23 +507,22 @@ def _report_parsed(
 
 
 def _wait(
-    future: Future[None],
+    running: set[Future[None]],
     pool: ProcessPoolExecutor,
     cancel: threading.Event | None,
     tick: Callable[[], None] | None = None,
-) -> None:
-    """Wait for ``future``, calling ``tick`` meanwhile; when ``cancel`` is set meanwhile, drop the
+) -> Future[None]:
+    """Wait for any parse to finish, calling ``tick`` meanwhile. When cancelled, drop the
     parses not started yet and raise :class:`~.errors.ImportCancelled`."""
     while True:
-        try:
-            future.result(timeout=_CANCEL_POLL)
-            return
-        except FuturesTimeout:
-            if cancel is not None and cancel.is_set():
-                pool.shutdown(wait=False, cancel_futures=True)
-                raise ImportCancelled from None
-            if tick is not None:
-                tick()
+        if cancel is not None and cancel.is_set():
+            pool.shutdown(wait=False, cancel_futures=True)
+            raise ImportCancelled
+        finished, _ = wait(running, timeout=_CANCEL_POLL, return_when=FIRST_COMPLETED)
+        if finished:
+            return next(iter(finished))
+        if tick is not None:
+            tick()
 
 
 def fill_cache(
@@ -581,26 +577,25 @@ def fill_cache(
             initializer=_start_worker,
             initargs=(counter,),
         ) as pool:
-            # A few more XMLs handed over than there are workers, so none of them waits for the
-            # next one; the others are read only when one of these is done.
-            running: deque[Future[None]] = deque()
-            done = 0
-            for _size, read in todo:
-                if len(running) >= 2 * workers:
-                    _wait(running.popleft(), pool, cancel, tick)
-                    done += 1
-                    if tick is not None:
-                        tick()
-                    if progress is not None:
-                        progress(cached + done, len(known))
-                running.append(pool.submit(_parse_into_cache, read(), cache_dir))
-            while running:
-                _wait(running.popleft(), pool, cancel, tick)
-                done += 1
+            # Keep at most one full XML per worker in flight. Refill as soon as any worker
+            # finishes so a slow parse does not leave other workers waiting for input.
+            running = {
+                pool.submit(_parse_into_cache, read(), cache_dir)
+                for _size, read in todo[:workers]
+            }
+            remaining = iter(todo[workers:])
+            for done in range(1, len(todo) + 1):
+                finished = _wait(running, pool, cancel, tick)
+                finished.result()
+                running.remove(finished)
                 if tick is not None:
                     tick()
                 if progress is not None:
                     progress(cached + done, len(known))
+                source = next(remaining, None)
+                if source is not None:
+                    _size, read = source
+                    running.add(pool.submit(_parse_into_cache, read(), cache_dir))
     except ImportCancelled:
         raise
     except Exception as exc:  # e.g. processes cannot be started: parse in this process

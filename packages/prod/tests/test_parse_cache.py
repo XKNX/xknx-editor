@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import pickle
 from collections.abc import Callable
+from concurrent.futures import Future
 from pathlib import Path
 
 import psutil
@@ -23,9 +24,13 @@ _MB = 1_000_000
 
 
 @pytest.fixture
-def machine(monkeypatch: pytest.MonkeyPatch) -> None:
+def machine(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """A machine with 8 physical cores and 32 GiB of free memory."""
     monkeypatch.setattr(psutil, "cpu_count", lambda logical=True: 8)
+    monkeypatch.setattr(
+        "os.sched_getaffinity", lambda _pid: set(range(8)), raising=False
+    )
+    monkeypatch.setattr("xknxeditor.prod.resources._PROC_SELF", tmp_path)
 
     class _Memory:
         available = 32 << 30
@@ -59,6 +64,24 @@ def test_parse_workers_within_free_memory(
 
     monkeypatch.setattr(psutil, "virtual_memory", lambda: _Memory())
     assert parse_cache.parse_workers([14 * _MB] * 59) == 3
+
+
+@pytest.mark.usefixtures("machine")
+def test_parse_workers_within_container_memory(tmp_path: Path) -> None:
+    cgroup = tmp_path / "cgroupfs"
+    container = cgroup / "container"
+    container.mkdir(parents=True)
+    (tmp_path / "cgroup").write_text("0::/container\n")
+    (tmp_path / "mountinfo").write_text(f"1 0 0:1 / {cgroup} rw - cgroup2 cgroup rw\n")
+    (container / "memory.max").write_text(str(2 << 30))
+    sizes = [25 * _MB] * 10
+
+    (container / "memory.current").write_text(str(512 << 20))
+    assert parse_cache.parse_workers(sizes) == 1
+    assert parse_cache.worker_processes(sizes) == 1
+
+    (container / "memory.current").write_text(str(1536 << 20))
+    assert parse_cache.worker_processes(sizes) == 0
 
 
 def _one_per_application(sizes: list[int]) -> int:
@@ -115,15 +138,18 @@ def test_small_applications_stay_in_this_process(
     assert reads == []
 
 
-class _Done:
+class _RecordingFuture(Future[None]):
     """A finished parse that tells when it is waited for."""
 
     def __init__(self, events: list[str], index: int) -> None:
+        super().__init__()
         self._events = events
         self._index = index
 
     def result(self, timeout: float | None = None) -> None:
         self._events.append(f"wait {self._index}")
+        assert self.done()
+        super().result(timeout)
 
 
 class _RecordingPool:
@@ -132,6 +158,7 @@ class _RecordingPool:
     def __init__(self, events: list[str], xmls: list[bytes]) -> None:
         self._events = events
         self._xmls = xmls
+        self._futures: list[_RecordingFuture] = []
 
     def __call__(self, **_kwargs: object) -> _RecordingPool:
         return self
@@ -142,18 +169,25 @@ class _RecordingPool:
     def __exit__(self, *_args: object) -> None:
         pass
 
-    def submit(self, _fn: object, xml: bytes, _cache_dir: Path) -> _Done:
+    def submit(self, _fn: object, xml: bytes, _cache_dir: Path) -> Future[None]:
         index = self._xmls.index(xml)
         self._events.append(f"submit {index}")
-        return _Done(self._events, index)
+        future = _RecordingFuture(self._events, index)
+        self._futures.append(future)
+        # The second worker finishes first. The first one stays busy until the pool feeds the
+        # second one another XML.
+        if index != 0:
+            future.set_result(None)
+        if index == 2:
+            self._futures[0].set_result(None)
+        return future
 
 
 def test_only_a_few_xmls_are_handed_over_at_once(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """The XMLs are read one by one, first to see which are cached, then each right before it is
-    handed to a worker, and only twice as many as there are workers are handed over before the
-    first of them is done; a cached XML is not handed over."""
+    handed to a worker. Each worker gets one XML at a time and a cached XML is not handed over."""
     base = _xmls()[0]
     # Ten different applications of falling size (the largest are handed over first).
     xmls = [base + b"<!--" + b"x" * (10 - index) + b"-->" for index in range(10)]
@@ -172,16 +206,26 @@ def test_only_a_few_xmls_are_handed_over_at_once(
     )
 
     todo = [0, 1, 2, 4, 5, 6, 7, 8, 9]
-    assert events == [
+    assert events[:15] == [
         *(f"read {index}" for index in range(10)),
-        *(step for index in todo[:4] for step in (f"read {index}", f"submit {index}")),
-        *(
-            step
-            for waited, submitted in zip(todo, todo[4:], strict=False)
-            for step in (f"wait {waited}", f"read {submitted}", f"submit {submitted}")
-        ),
-        *(f"wait {index}" for index in todo[-4:]),
+        "read 0",
+        "submit 0",
+        "read 1",
+        "submit 1",
+        "wait 1",
     ]
+    assert [event for event in events if event.startswith("submit")] == [
+        f"submit {index}" for index in todo
+    ]
+    pending = 0
+    for event in events[10:]:
+        if event.startswith("wait"):
+            pending -= 1
+        elif event.startswith("submit"):
+            pending += 1
+        else:
+            assert pending < 2
+    assert pending == 0
     assert progress == [(done, 10) for done in range(2, 11)]
 
 
