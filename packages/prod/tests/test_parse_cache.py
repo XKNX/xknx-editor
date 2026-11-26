@@ -28,7 +28,7 @@ def machine(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """A machine with 8 physical cores and 32 GiB of free memory."""
     monkeypatch.setattr(psutil, "cpu_count", lambda logical=True: 8)
     monkeypatch.setattr(
-        "os.sched_getaffinity", lambda _pid: set(range(8)), raising=False
+        psutil.Process, "cpu_affinity", lambda _self: list(range(8)), raising=False
     )
     monkeypatch.setattr("xknxeditor.prod.resources._PROC_SELF", tmp_path)
 
@@ -85,6 +85,9 @@ def test_parse_workers_within_container_memory(tmp_path: Path) -> None:
 
     (container / "memory.current").write_text(str(1536 << 20))
     assert parse_cache.worker_processes(sizes) == 0
+
+    (container / "memory.stat").write_text(f"inactive_file {1024 << 20}\n")
+    assert parse_cache.worker_processes(sizes) == 1
 
 
 def _one_per_application(sizes: list[int]) -> int:

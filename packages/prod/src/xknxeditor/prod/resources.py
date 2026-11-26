@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import os
 import re
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator
 from contextlib import suppress
 from pathlib import Path, PurePosixPath
 
@@ -51,16 +51,29 @@ def _cgroups(proc_self: Path, controller: str) -> Iterator[tuple[Path, bool]]:
             directory = directory.parent
 
 
+def _inactive_file_cache(directory: Path, key: str) -> int:
+    with suppress(OSError, ValueError):
+        for line in (directory / "memory.stat").read_text().splitlines():
+            name, _, value = line.partition(" ")
+            if name == key:
+                return int(value)
+    return 0
+
+
 def available_memory(*, proc_self: Path | None = None) -> int:
-    """Return available memory in bytes, capped by readable cgroup headroom."""
+    """Return available memory in bytes, capped by cgroup headroom after reclaimable file cache."""
     available = psutil.virtual_memory().available
     headroom = available
     try:
         for directory, unified in _cgroups(proc_self or _PROC_SELF, "memory"):
-            limit_name, usage_name = (
-                ("memory.max", "memory.current")
+            limit_name, usage_name, cache_key = (
+                ("memory.max", "memory.current", "inactive_file")
                 if unified
-                else ("memory.limit_in_bytes", "memory.usage_in_bytes")
+                else (
+                    "memory.limit_in_bytes",
+                    "memory.usage_in_bytes",
+                    "total_inactive_file",
+                )
             )
             # The file can be absent where the controller is disabled or at the hierarchy root.
             try:
@@ -73,6 +86,9 @@ def available_memory(*, proc_self: Path | None = None) -> int:
             # cgroup v1 can report a page-aligned value near LONG_MAX for an unlimited group.
             if 0 <= limit < 1 << 60:
                 usage = int((directory / usage_name).read_text())
+                cache = _inactive_file_cache(directory, cache_key)
+                if 0 < cache <= usage:
+                    usage -= cache
                 headroom = min(headroom, max(0, limit - usage))
     except (OSError, ValueError):
         return available
@@ -82,8 +98,12 @@ def available_memory(*, proc_self: Path | None = None) -> int:
 def usable_cpu_count(*, proc_self: Path | None = None) -> int:
     """Return physical cores capped by CPU affinity and rounded-up cgroup quotas."""
     cores = psutil.cpu_count(logical=False) or os.cpu_count() or 1
-    with suppress(AttributeError, OSError):
-        cores = min(cores, len(os.sched_getaffinity(0)))
+    with suppress(OSError, psutil.Error):
+        affinity: Callable[[], list[int]] | None = getattr(
+            psutil.Process(), "cpu_affinity", None
+        )
+        if affinity is not None:
+            cores = min(cores, len(affinity()))
 
     usable = cores
     try:

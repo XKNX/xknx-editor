@@ -20,7 +20,7 @@ def host(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(psutil, "virtual_memory", Memory)
     monkeypatch.setattr(psutil, "cpu_count", lambda logical=True: 8)
     monkeypatch.setattr(
-        "os.sched_getaffinity", lambda _pid: set(range(4)), raising=False
+        psutil.Process, "cpu_affinity", lambda _self: list(range(4)), raising=False
     )
 
 
@@ -87,6 +87,40 @@ def test_v1_memory(tmp_path: Path, legacy: Path, limit: int, expected: int) -> N
     assert available_memory(proc_self=tmp_path) == expected
 
 
+@pytest.mark.parametrize(
+    ("group_fixture", "limit_file", "usage_file", "cache_key"),
+    [
+        ("unified", "memory.max", "memory.current", "inactive_file"),
+        (
+            "legacy",
+            "memory.limit_in_bytes",
+            "memory.usage_in_bytes",
+            "total_inactive_file",
+        ),
+    ],
+)
+@pytest.mark.parametrize(
+    ("cache", "expected"),
+    [(str(_GIB), _GIB + 4096), ("invalid", 4096), ("-1", 4096), (str(3 * _GIB), 4096)],
+)
+def test_memory_accounts_for_reclaimable_file_cache(
+    tmp_path: Path,
+    request: pytest.FixtureRequest,
+    group_fixture: str,
+    limit_file: str,
+    usage_file: str,
+    cache_key: str,
+    cache: str,
+    expected: int,
+) -> None:
+    group: Path = request.getfixturevalue(group_fixture)
+    (group / limit_file).write_text(str(2 * _GIB))
+    (group / usage_file).write_text(str(2 * _GIB - 4096))
+    (group / "memory.stat").write_text(f"active_file 12345\n{cache_key} {cache}\n")
+
+    assert available_memory(proc_self=tmp_path) == expected
+
+
 def test_unreadable_usage_falls_back_to_host(tmp_path: Path, unified: Path) -> None:
     (unified / "memory.max").write_text(str(_GIB))
     (unified / "memory.current").mkdir()
@@ -96,7 +130,7 @@ def test_unreadable_usage_falls_back_to_host(tmp_path: Path, unified: Path) -> N
 def test_without_proc_or_affinity(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    monkeypatch.delattr("os.sched_getaffinity")
+    monkeypatch.delattr(psutil.Process, "cpu_affinity")
     assert available_memory(proc_self=tmp_path) == 8 * _GIB
     assert usable_cpu_count(proc_self=tmp_path) == 8
 
