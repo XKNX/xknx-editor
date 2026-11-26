@@ -17,6 +17,7 @@ that built it (see :func:`set_tree_code`), and built and stored again by other c
 
 from __future__ import annotations
 
+import copyreg
 import hashlib
 import logging
 import multiprocessing
@@ -26,9 +27,11 @@ from collections import deque
 from collections.abc import Callable, Sequence
 from concurrent.futures import Future, ProcessPoolExecutor
 from concurrent.futures import TimeoutError as FuturesTimeout
+from enum import Enum
 from functools import partial
+from operator import attrgetter
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, cast
+from typing import IO, TYPE_CHECKING, Any, cast
 
 import psutil
 
@@ -59,8 +62,8 @@ _CANCEL_POLL = 0.2
 
 # Bump when the IR shape, the conversion into it or pickle compatibility changes, to abandon old
 # cache entries (2: a v10/v11 colour text is a TypeColor; 3: an object size "Variable" is
-# "LegacyVarData").
-CACHE_VERSION = "3"
+# "LegacyVarData"; 4: compact pickles, see _CompactPickler, and equal texts shared).
+CACHE_VERSION = "4"
 # The cache folders whose entries of other cache versions this process removed.
 _SWEPT: set[Path] = set()
 # The identity of the code that builds the evaluation trees (see set_tree_code); None: no trees
@@ -81,6 +84,171 @@ def set_tree_code(code: str | None) -> None:
 def tree_code() -> str | None:
     """The identity of the code whose evaluation trees the cache keeps (see set_tree_code)."""
     return _tree_code[0]
+
+
+# Compact pickles. By default pickle writes an object of a class with slots as its class and a
+# state dict of its slots, an object with a ``__dict__`` as its class and a copy of that dict; the
+# unpickler keeps every such state container until the end of the load (the pickler memoizes
+# them), and freeing them all at once leaves the heap fragmented: a loaded entry took about twice
+# its live size. :class:`_CompactPickler` writes the objects of this package's classes as a call
+# of :func:`_restore` with a :class:`_Layout` (written once per pickle) and the attribute values
+# instead. Reading such a pickle needs nothing but :func:`pickle.load`.
+
+# The packages whose classes _CompactPickler writes compactly (see _compact_class).
+_PACKAGES = ("xknxeditor.",)
+# The slot names of a class by class (see _slot_names).
+_slots: dict[type[Any], tuple[str, ...]] = {}
+
+
+def _slot_names(cls: type[Any]) -> tuple[str, ...]:
+    """The names of the slots of ``cls`` and its bases, private ones as Python mangles them,
+    those of the bases first."""
+    names = _slots.get(cls)
+    if names is None:
+        found: list[str] = []
+        for base in reversed(cls.__mro__):
+            declared: str | Sequence[str] = base.__dict__.get("__slots__", ())
+            for name in (declared,) if isinstance(declared, str) else declared:
+                if name in ("__dict__", "__weakref__"):
+                    continue
+                if name.startswith("__") and not name.endswith("__"):
+                    name = f"_{base.__name__.lstrip('_')}{name}"
+                found.append(name)
+        names = _slots[cls] = tuple(dict.fromkeys(found))
+    return names
+
+
+class _Layout:
+    """The attributes a compact pickle writes for an object of ``cls``, in this order: its slots
+    that have a value, then the keys of its ``__dict__``, if it has one; and all the slots
+    ``cls`` had (see _slot_names), to know when it has changed."""
+
+    __slots__ = ("cls", "names", "slots")
+
+    def __init__(
+        self, cls: type[Any], slots: tuple[str, ...], names: tuple[str, ...]
+    ) -> None:
+        self.cls = cls
+        self.slots = slots
+        self.names = names
+
+    def __reduce__(self) -> tuple[Callable[..., _Layout], tuple[Any, ...]]:
+        return (_layout, (self.cls, self.slots, self.names))
+
+
+def _layout(cls: type[Any], slots: tuple[str, ...], names: tuple[str, ...]) -> _Layout:
+    """The layout a compact pickle was written with, when ``cls`` still has the same slots
+    (else the pickle is not read: a slot added since would be left without a value)."""
+    if slots != _slot_names(cls):
+        raise pickle.UnpicklingError(
+            f"{cls.__qualname__} has changed since it was pickled"
+        )
+    return _Layout(cls, slots, names)
+
+
+def _restore(layout: _Layout, *values: object) -> object:
+    """An object written by :class:`_CompactPickler`: one of ``layout.cls`` with the attributes
+    of ``layout`` set to ``values``, made without calling ``__init__``, as pickle does."""
+    obj = object.__new__(layout.cls)
+    # No strict zip: it takes a fifth of the load, and the pickler wrote one value per name.
+    for name, value in zip(layout.names, values):  # noqa: B905
+        object.__setattr__(obj, name, value)
+    return obj
+
+
+type _Getter = Callable[[object], tuple[object, ...]]
+
+
+def _getter(names: tuple[str, ...]) -> _Getter:
+    """A function giving the values of the attributes ``names`` of an object, in this order (an
+    AttributeError when one has none)."""
+    if len(names) > 1:
+        return attrgetter(*names)
+    if names:
+        get = attrgetter(names[0])
+        return lambda obj: (get(obj),)
+    return lambda _obj: ()
+
+
+# Per class, its slots and their getter when its objects are written compactly, else None (see
+# _compact_class).
+_compact: dict[type[Any], tuple[tuple[str, ...], _Getter] | None] = {}
+
+
+def _compact_class(cls: type[Any]) -> tuple[tuple[str, ...], _Getter] | None:
+    """The slots of ``cls`` and their getter when :class:`_CompactPickler` writes its objects,
+    else None: a class of this package that pickles as any object does (no reduction or state
+    of its own, no arguments for ``__new__``, not an enum)."""
+    try:
+        return _compact[cls]
+    except KeyError:
+        pass
+    default = (
+        cls.__module__.startswith(_PACKAGES)
+        and cls.__new__ is object.__new__
+        and not issubclass(cls, Enum)
+        and cls not in copyreg.dispatch_table
+        and cls.__reduce_ex__ is object.__reduce_ex__  # pyright: ignore[reportUnknownMemberType]
+        and cls.__reduce__ is object.__reduce__
+        and cls.__getstate__ is object.__getstate__  # pyright: ignore[reportUnknownMemberType]
+        and not any(
+            hasattr(cls, name)
+            for name in ("__setstate__", "__getnewargs__", "__getnewargs_ex__")
+        )
+    )
+    slots = _slot_names(cls)
+    found = _compact[cls] = (slots, _getter(slots)) if default else None
+    return found
+
+
+class _CompactPickler(pickle.Pickler):
+    """Writes the objects of this package's classes (see _compact_class) compactly (see
+    _restore), everything else as pickle does."""
+
+    def __init__(self, file: IO[bytes]) -> None:
+        super().__init__(file, protocol=pickle.HIGHEST_PROTOCOL)
+        # The layouts written, by class and attribute names.
+        self._layouts: dict[tuple[type[Any], tuple[str, ...]], _Layout] = {}
+
+    def reducer_override(self, obj: object) -> Any:
+        cls = type(obj)
+        compact = _compact_class(cls)
+        if compact is None:
+            return NotImplemented
+        slots, get = compact
+        names = slots
+        try:
+            values = get(obj)
+        except AttributeError:  # a slot without a value: left out
+            names = tuple(name for name in slots if hasattr(obj, name))
+            values = tuple(getattr(obj, name) for name in names)
+        if cls.__dictoffset__:
+            attributes: dict[str, object] = vars(obj)
+            if attributes:
+                names = (*names, *attributes)
+                values = (*values, *attributes.values())
+        layout = self._layouts.get((cls, names))
+        if layout is None:
+            layout = self._layouts[cls, names] = _Layout(cls, slots, names)
+        return (_restore, (layout, *values))
+
+
+def _write_entry(path: Path, entry: object) -> None:
+    """Write ``entry`` compactly into the cache entry ``path``: aside and renamed, so a reader
+    never sees a partly written entry, and to the file as it goes, so the pickled bytes are
+    never in memory beside the parse."""
+    partial = path.with_name(f"{path.name}.{os.getpid()}.tmp")
+    with partial.open("wb") as file:
+        try:
+            _CompactPickler(file).dump(entry)
+        except RecursionError:
+            # A reference cycle through objects written compactly: each object is made from its
+            # values, so one in a cycle would need itself first (the IR and the trees have
+            # none). Written as pickle does, which makes an object before its values.
+            file.seek(0)
+            file.truncate()
+            pickle.dump(entry, file, protocol=pickle.HIGHEST_PROTOCOL)
+    partial.replace(path)
 
 
 class CacheHit:
@@ -123,10 +291,7 @@ def store_trees(path: Path, knx: Knx, trees: Trees) -> None:
     if code is None:
         return
     try:
-        partial = path.with_name(f"{path.name}.{os.getpid()}.tmp")
-        with partial.open("wb") as file:
-            pickle.dump((knx, code, trees), file, protocol=pickle.HIGHEST_PROTOCOL)
-        partial.replace(path)
+        _write_entry(path, (knx, code, trees))
     except OSError as exc:  # a cache write failure must never break loading
         logger.debug("could not store the trees in %s: %s", path.name, exc)
 
@@ -265,12 +430,7 @@ def _cached_parse(xml_bytes: bytes, version: str, cache_dir: Path | None) -> Cac
     try:
         cache_dir.mkdir(parents=True, exist_ok=True)
         _remove_other_versions(cache_dir)
-        # Written aside and renamed, so a reader never sees a partly written entry. Written to
-        # the file as it goes, so the pickled bytes are never in memory beside the parse.
-        partial = path.with_name(f"{path.name}.{os.getpid()}.tmp")
-        with partial.open("wb") as file:
-            pickle.dump(knx, file, protocol=pickle.HIGHEST_PROTOCOL)
-        partial.replace(path)
+        _write_entry(path, knx)
     except OSError as exc:  # a cache write failure must never break parsing
         logger.debug("could not write parse cache %s: %s", path.name, exc)
     return CacheHit(knx, version, len(xml_bytes), None, path)
