@@ -2212,6 +2212,9 @@ msgstr "DALI-Bus wird aus Objekt {object_index} gelesen…"
 msgid "Press 'Read DALI Bus' to list the ECGs on the gateway."
 msgstr "Mit „DALI-Bus lesen“ die EVGs des Gateways auflisten."
 
+msgid "Press 'Read from Device' or 'Scan Bus' to list the DALI devices."
+msgstr "Mit „Vom Gerät lesen“ oder „Bus scannen“ die DALI-Geräte auflisten."
+
 msgid "Short Address"
 msgstr "Kurzadresse"
 

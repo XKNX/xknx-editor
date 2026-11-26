@@ -2107,6 +2107,9 @@ msgstr "Konfigurace pluginu"
 msgid "Press 'Read DALI Bus' to list the ECGs on the gateway."
 msgstr "Stiskněte „Číst sběrnici DALI“ pro výpis ECG na gatewayi."
 
+msgid "Press 'Read from Device' or 'Scan Bus' to list the DALI devices."
+msgstr "Seznam zařízení DALI zobrazíte pomocí „Načíst ze zařízení“ nebo „Prohledat sběrnici“."
+
 msgid "Random Address"
 msgstr "Náhodná adresa"
 

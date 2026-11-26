@@ -2107,6 +2107,9 @@ msgstr "Настройка плагина"
 msgid "Press 'Read DALI Bus' to list the ECGs on the gateway."
 msgstr "Нажмите «Прочитать шину DALI», чтобы вывести список ECG на шлюзе."
 
+msgid "Press 'Read from Device' or 'Scan Bus' to list the DALI devices."
+msgstr "Нажмите «Прочитать из устройства» или «Сканировать шину», чтобы вывести список устройств DALI."
+
 msgid "Random Address"
 msgstr "Случайный адрес"
 

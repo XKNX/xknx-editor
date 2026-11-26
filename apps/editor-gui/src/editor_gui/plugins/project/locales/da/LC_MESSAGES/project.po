@@ -2107,6 +2107,9 @@ msgstr "Pluginkonfiguration"
 msgid "Press 'Read DALI Bus' to list the ECGs on the gateway."
 msgstr "Tryk på „Læs DALI-bus“ for at vise ECG'er på gatewayen."
 
+msgid "Press 'Read from Device' or 'Scan Bus' to list the DALI devices."
+msgstr "Tryk på „Læs fra enhed“ eller „Scan bus“ for at vise DALI-enhederne."
+
 msgid "Random Address"
 msgstr "Tilfældig adresse"
 

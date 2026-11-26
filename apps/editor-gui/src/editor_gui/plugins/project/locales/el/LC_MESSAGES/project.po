@@ -2107,6 +2107,9 @@ msgstr "Ρύθμιση plugin"
 msgid "Press 'Read DALI Bus' to list the ECGs on the gateway."
 msgstr "Πατήστε «Ανάγνωση διαύλου DALI» για να εμφανιστούν τα ECG στο gateway."
 
+msgid "Press 'Read from Device' or 'Scan Bus' to list the DALI devices."
+msgstr "Πατήστε «Ανάγνωση από τη Συσκευή» ή «Σάρωση Bus» για να εμφανιστούν οι συσκευές DALI."
+
 msgid "Random Address"
 msgstr "Τυχαία διεύθυνση"
 
