@@ -500,3 +500,83 @@ msgstr "Strežnik KNXnet/IP se zaganja ali ustavlja."
 
 msgid "The KNXnet/IP server could not start: {error}"
 msgstr "Strežnika KNXnet/IP ni bilo mogoče zagnati: {error}"
+
+msgid "Configured Connections…"
+msgstr "Konfigurirane povezave…"
+
+msgid "Configured Connections"
+msgstr "Konfigurirane povezave"
+
+msgid "New"
+msgstr "Nova"
+
+msgid "Delete"
+msgstr "Izbriši"
+
+msgid "Import…"
+msgstr "Uvozi…"
+
+msgid "Export…"
+msgstr "Izvozi…"
+
+msgid "Use as project connection"
+msgstr "Uporabi kot povezavo projekta"
+
+msgid "Project connection"
+msgstr "Povezava projekta"
+
+msgid "IP Address or Host Name"
+msgstr "Naslov IP ali ime gostitelja"
+
+msgid "Automatic"
+msgstr "Samodejno"
+
+msgid "Use NAT mode"
+msgstr "Uporabi način NAT"
+
+msgid "No configured connections yet."
+msgstr "Konfiguriranih povezav še ni."
+
+msgid "The address is neither an IP address nor a valid host name."
+msgstr "Naslov ni niti naslov IP niti veljavno ime gostitelja."
+
+msgid "IP Tunneling"
+msgstr "IP Tunneling"
+
+msgid "The file could not be read: {error}"
+msgstr "Datoteke ni bilo mogoče prebrati: {error}"
+
+msgid "Connections exported to {name}."
+msgstr "Povezave izvožene v {name}."
+
+msgid "XML Files"
+msgstr "Datoteke XML"
+
+msgid "Import Connections"
+msgstr "Uvozi povezave"
+
+msgid "Export Connections"
+msgstr "Izvozi povezave"
+
+msgid "Open a project to use a connection as its connection."
+msgstr "Odprite projekt, da povezavo uporabite kot njegovo povezavo."
+
+msgid "Interfaces entered once by their address: offered in the Gateway menu, in Select Connection and as a project's Bus Connection, also those a gateway search can't find."
+msgstr "Vmesniki, enkrat vneseni z naslovom: na voljo v meniju Prehod, v Izbira povezave in kot povezava z vodilom projekta, tudi tisti, ki jih iskanje prehodov ne najde."
+
+msgid "{count} connection imported."
+msgid_plural "{count} connections imported."
+msgstr[0] "{count} povezava uvožena."
+msgstr[1] "{count} povezavi uvoženi."
+msgstr[2] "{count} povezave uvožene."
+msgstr[3] "{count} povezav uvoženih."
+
+msgid "{count} connection"
+msgid_plural "{count} connections"
+msgstr[0] "{count} povezava"
+msgstr[1] "{count} povezavi"
+msgstr[2] "{count} povezave"
+msgstr[3] "{count} povezav"
+
+msgid "The file could not be written: {error}"
+msgstr "Datoteke ni bilo mogoče zapisati: {error}"

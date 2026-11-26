@@ -384,6 +384,14 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             if g.supports_tunnelling
         ]
 
+    def _configured() -> list[dict[str, str]]:
+        from editor_gui.plugins.connection.configured_ui import connection_label
+
+        return [
+            {"parameter": c.to_parameter(), "text": connection_label(c)}
+            for c in ctx.connection_plugin.configured_connections
+        ]
+
     def _backbone_dict() -> dict[str, Any]:
         area = next((a for a in project.get_areas() if a.area_number == 0), None)
         details = project.element_details("backbone", area.id) if area else None
@@ -403,6 +411,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                 if details.bus_access
                 else None
             ),
+            "configured_connections": _configured(),
             "found_interfaces": _interfaces(),
         }
 
@@ -412,8 +421,10 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         {area_id, name, description, status, medium (IP or TP), latency_ms (the network latency:
         400 LAN, 1000 WLAN, 2000 WAN, 4000 Mobile, 8000 Satellite), multicast_address (of the IP
         routing), security (of the IP routing: Auto, On or Off), bus_connection ({parameter,
-        text} of the connection kept with the backbone, null for Automatic), found_interfaces
-        ([{parameter, text}] of the KNXnet/IP interfaces found on the network)}. Name,
+        text} of the connection kept with the backbone, null for Automatic),
+        configured_connections ([{parameter, text}] of the configured connections, see
+        connection_list_configured), found_interfaces ([{parameter, text}] of the KNXnet/IP
+        interfaces found on the network)}. Name,
         description and status change with project_rename_area, project_set_description and
         project_set_status (kind area)."""
         require_project(ctx)
@@ -432,8 +443,8 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         1000 WLAN, 2000 WAN, 4000 Mobile, 8000 Satellite); ``multicast_address`` of the IP
         routing (224.0.0.0 to 239.255.255.255); ``security`` of the IP routing (On needs a
         project password: it creates the backbone key); ``bus_connection`` "" for Automatic, or
-        the parameter of one of project_get_backbone's found_interfaces or of its current
-        bus_connection: an online operation (programming, a device test, a group value read or
+        the parameter of one of project_get_backbone's configured_connections or
+        found_interfaces or of its current bus_connection: an online operation (programming, a device test, a group value read or
         write …) that finds no open connection connects through it and closes it afterwards.
         Each change is an undo step (project_undo), except the security. Returns
         what project_get_backbone returns."""
@@ -458,7 +469,13 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                 if error:
                     raise ToolError(error)
             if bus_connection is not None:
-                known = {i["parameter"] for i in backbone["found_interfaces"]}
+                known = {
+                    i["parameter"]
+                    for i in [
+                        *backbone["configured_connections"],
+                        *backbone["found_interfaces"],
+                    ]
+                }
                 current = backbone["bus_connection"]
                 if current is not None:
                     known.add(current["parameter"])

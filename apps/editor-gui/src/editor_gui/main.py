@@ -100,6 +100,7 @@ from editor_gui.plugins.base import API_VERSION, Logger, PanelDefinition, Plugin
 from editor_gui.plugins.bus_diagram import BusDiagramPlugin
 from editor_gui.plugins.catalog import CatalogPlugin, CatalogService
 from editor_gui.plugins.cockpit import CockpitPlugin
+from editor_gui.plugins.connection.configured_ui import connection_label
 from editor_gui.plugins.connection.plugin import (
     SETTINGS_PAGE as CONNECTION_SETTINGS_PAGE,
 )
@@ -1057,6 +1058,10 @@ class KnxGuiApp:
                 )
                 for g in self._connection_plugin.gateways
                 if g.supports_tunnelling
+            ],
+            get_configured_interfaces=lambda: [
+                (c.to_parameter(), connection_label(c))
+                for c in self._connection_plugin.configured_connections
             ],
         )
         self._project_plugin.show_context_help = bool(

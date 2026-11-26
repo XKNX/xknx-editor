@@ -496,3 +496,79 @@ msgstr "Serveri KNXnet/IP po niset ose po ndalet."
 
 msgid "The KNXnet/IP server could not start: {error}"
 msgstr "Nisja e serverit KNXnet/IP dështoi: {error}"
+
+msgid "Configured Connections…"
+msgstr "Lidhjet e konfiguruara…"
+
+msgid "Configured Connections"
+msgstr "Lidhjet e konfiguruara"
+
+msgid "New"
+msgstr "E re"
+
+msgid "Delete"
+msgstr "Fshi"
+
+msgid "Import…"
+msgstr "Importo…"
+
+msgid "Export…"
+msgstr "Eksporto…"
+
+msgid "Use as project connection"
+msgstr "Përdor si lidhje të projektit"
+
+msgid "Project connection"
+msgstr "Lidhja e projektit"
+
+msgid "IP Address or Host Name"
+msgstr "Adresa IP ose emri i hostit"
+
+msgid "Automatic"
+msgstr "Automatike"
+
+msgid "Use NAT mode"
+msgstr "Përdor modalitetin NAT"
+
+msgid "No configured connections yet."
+msgstr "Ende nuk ka lidhje të konfiguruara."
+
+msgid "The address is neither an IP address nor a valid host name."
+msgstr "Adresa nuk është as adresë IP, as emër i vlefshëm hosti."
+
+msgid "IP Tunneling"
+msgstr "IP Tunneling"
+
+msgid "The file could not be read: {error}"
+msgstr "Skedari nuk mund të lexohej: {error}"
+
+msgid "Connections exported to {name}."
+msgstr "Lidhjet u eksportuan te {name}."
+
+msgid "XML Files"
+msgstr "Skedarë XML"
+
+msgid "Import Connections"
+msgstr "Importo lidhjet"
+
+msgid "Export Connections"
+msgstr "Eksporto lidhjet"
+
+msgid "Open a project to use a connection as its connection."
+msgstr "Hapni një projekt për të përdorur një lidhje si lidhjen e tij."
+
+msgid "Interfaces entered once by their address: offered in the Gateway menu, in Select Connection and as a project's Bus Connection, also those a gateway search can't find."
+msgstr "Ndërfaqe të futura një herë me adresën e tyre: ofrohen në menynë Gateway, te Zgjidh lidhjen dhe si Lidhja me busin e një projekti, edhe ato që një kërkim gateway-sh nuk i gjen."
+
+msgid "{count} connection imported."
+msgid_plural "{count} connections imported."
+msgstr[0] "U importua {count} lidhje."
+msgstr[1] "U importuan {count} lidhje."
+
+msgid "{count} connection"
+msgid_plural "{count} connections"
+msgstr[0] "{count} lidhje"
+msgstr[1] "{count} lidhje"
+
+msgid "The file could not be written: {error}"
+msgstr "Skedari nuk mund të shkruhej: {error}"

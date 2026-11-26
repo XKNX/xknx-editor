@@ -496,3 +496,79 @@ msgstr "De KNXnet/IP-server wordt gestart of gestopt."
 
 msgid "The KNXnet/IP server could not start: {error}"
 msgstr "De KNXnet/IP-server kon niet starten: {error}"
+
+msgid "Configured Connections…"
+msgstr "Geconfigureerde verbindingen…"
+
+msgid "Configured Connections"
+msgstr "Geconfigureerde verbindingen"
+
+msgid "New"
+msgstr "Nieuw"
+
+msgid "Delete"
+msgstr "Verwijderen"
+
+msgid "Import…"
+msgstr "Importeren…"
+
+msgid "Export…"
+msgstr "Exporteren…"
+
+msgid "Use as project connection"
+msgstr "Als projectverbinding gebruiken"
+
+msgid "Project connection"
+msgstr "Projectverbinding"
+
+msgid "IP Address or Host Name"
+msgstr "IP-adres of hostnaam"
+
+msgid "Automatic"
+msgstr "Automatisch"
+
+msgid "Use NAT mode"
+msgstr "NAT-modus gebruiken"
+
+msgid "No configured connections yet."
+msgstr "Nog geen geconfigureerde verbindingen."
+
+msgid "The address is neither an IP address nor a valid host name."
+msgstr "Het adres is geen IP-adres en ook geen geldige hostnaam."
+
+msgid "IP Tunneling"
+msgstr "IP Tunneling"
+
+msgid "The file could not be read: {error}"
+msgstr "Het bestand kon niet worden gelezen: {error}"
+
+msgid "Connections exported to {name}."
+msgstr "Verbindingen geëxporteerd naar {name}."
+
+msgid "XML Files"
+msgstr "XML-bestanden"
+
+msgid "Import Connections"
+msgstr "Verbindingen importeren"
+
+msgid "Export Connections"
+msgstr "Verbindingen exporteren"
+
+msgid "Open a project to use a connection as its connection."
+msgstr "Open een project om een verbinding als de verbinding ervan te gebruiken."
+
+msgid "Interfaces entered once by their address: offered in the Gateway menu, in Select Connection and as a project's Bus Connection, also those a gateway search can't find."
+msgstr "Interfaces die één keer met hun adres worden ingevoerd: aangeboden in het menu Gateway, in Selecteer verbinding en als busverbinding van een project, ook die een gatewayzoekopdracht niet vindt."
+
+msgid "{count} connection imported."
+msgid_plural "{count} connections imported."
+msgstr[0] "{count} verbinding geïmporteerd."
+msgstr[1] "{count} verbindingen geïmporteerd."
+
+msgid "{count} connection"
+msgid_plural "{count} connections"
+msgstr[0] "{count} verbinding"
+msgstr[1] "{count} verbindingen"
+
+msgid "The file could not be written: {error}"
+msgstr "Het bestand kon niet worden geschreven: {error}"

@@ -33,6 +33,17 @@ from editor_gui.plugins.connection.busmonitor import (
     BusmonitorConnection,
     rejection_reason,
 )
+from editor_gui.plugins.connection.configured import (
+    ConfiguredConnection,
+    host_valid,
+    parse_fields,
+    parse_parameter,
+    unique_name,
+)
+from editor_gui.plugins.connection.configured_ui import (
+    ConfiguredConnectionsDialog,
+    connection_label,
+)
 from editor_gui.plugins.connection.interface import (
     ObservableKNXIPInterfaceThreaded,
     interface_apdu_limit,
@@ -336,27 +347,17 @@ def default_transport(gateway: GatewayDescriptor) -> ConnectionType:
 
 def tunnel_host(parameter: str) -> str | None:
     """The address a Bus Connection (a ``<BusAccess>`` ``Parameter``) tunnels to, for a
-    KNXnet/IP tunnelling one (``Type=IpTunneling;HostAddress=…;Port=…``): its host, with
+    KNXnet/IP tunnelling one (``Type=IpTunneling;HostAddress=…;IpPort=…``): its host, with
     ``:port`` when not 3671; None for any other kind."""
-    fields: dict[str, str] = {}
-    for part in parameter.split(";"):
-        key, _, value = part.partition("=")
-        fields[key.strip()] = value.strip().strip('"')
-    if fields.get("Type") != "IpTunneling" or not fields.get("HostAddress"):
-        return None
-    port = fields.get("Port", "")
-    return join_endpoint(
-        fields["HostAddress"], int(port) if port.isdigit() else DEFAULT_GATEWAY_PORT
-    )
+    tunnel = parse_parameter(parameter)
+    return join_endpoint(tunnel.host, tunnel.port) if tunnel is not None else None
 
 
 def tunnel_type(parameter: str) -> ConnectionType:
     """The tunnelling a Bus Connection (a ``<BusAccess>`` ``Parameter``) asks for: over TCP for
     ``ProtocolType=Tcp``, else over UDP."""
-    for part in parameter.split(";"):
-        key, _, value = part.partition("=")
-        if key.strip() == "ProtocolType" and value.strip().strip('"').lower() == "tcp":
-            return ConnectionType.TUNNELING_TCP
+    if parse_fields(parameter).get("protocoltype", "").lower() == "tcp":
+        return ConnectionType.TUNNELING_TCP
     return ConnectionType.TUNNELING
 
 
@@ -398,6 +399,9 @@ class ConnectionPlugin:
     _project_bus_seen: tuple[int, int] | None = None
     _project_bus: tuple[str, ConnectionType] | None = None
     _project_restore: _KeptSettings | None = None
+    _configured: tuple[ConfiguredConnection, ...] = ()
+    _configured_dialog: ConfiguredConnectionsDialog | None = None
+    _configured_in_settings = False
 
     def __init__(self, api: PluginAPI) -> None:
         self._api = api
@@ -557,6 +561,15 @@ class ConnectionPlugin:
         self._select_shown = False
         self._select_failures: list[tuple[str, str]] = []
         self._select_ip = ""
+        # Configured Connections: the interfaces entered by their address (see configured.py),
+        # their dialog, and whether it was opened from the Settings window (it is drawn there).
+        self._configured: tuple[ConfiguredConnection, ...] = ()
+        self._configured_dialog = ConfiguredConnectionsDialog(
+            self._apply_configured,
+            notify=api.notify or (lambda _text: None),
+            warn=api.tell_refused,
+        )
+        self._configured_in_settings = False
         api.connection.operation_connector = _OperationConnector(self)
 
     @property
@@ -660,6 +673,116 @@ class ConnectionPlugin:
         self.connect_to_gateway(gateway, connection_type=connection_type)
         return True
 
+    # --- configured connections ------------------------------------------------------------
+
+    @property
+    def configured_connections(self) -> list[ConfiguredConnection]:
+        """The configured connections (Gateway menu > Configured Connections…), in order."""
+        return list(self._configured)
+
+    def set_configured_connections(
+        self, connections: Iterable[ConfiguredConnection]
+    ) -> None:
+        """Replace the configured connections, and keep them for the next start."""
+        self._configured = tuple(connections)
+        self._log.info("configured connections", count=len(self._configured))
+        self._save_current_settings()
+
+    def add_configured_connection(
+        self, connection: ConfiguredConnection
+    ) -> ConfiguredConnection:
+        """Add a connection (an empty name: the next free default one); the one added. Raises
+        ``ValueError`` for an address no interface can have."""
+        if not host_valid(connection.host):
+            raise ValueError(S.CONFIGURED_HOST_INVALID)
+        if not connection.name:
+            connection = replace(
+                connection,
+                name=unique_name(
+                    S.CONFIGURED_DEFAULT_NAME, (c.name for c in self._configured)
+                ),
+            )
+        self.set_configured_connections([*self._configured, connection])
+        return connection
+
+    def project_connection(self) -> ConfiguredConnection | None:
+        """The open project's connection: its backbone's Bus Connection, when that is a
+        KNXnet/IP tunnel; None otherwise."""
+        project = self._api.project
+        bus = project.backbone_bus_connection() if project.is_open else None
+        return parse_parameter(bus[0]) if bus is not None else None
+
+    def set_project_connection(self, connection: ConfiguredConnection | None) -> None:
+        """Make ``connection`` the open project's connection (its backbone's Bus Connection;
+        None: Automatic), one undo step."""
+        if not self._api.project.is_open:
+            return
+        self._api.project.set_backbone_bus_connection(
+            connection.to_parameter() if connection is not None else ""
+        )
+
+    def open_configured_connections(self, *, in_settings: bool = False) -> None:
+        """Open the Configured Connections dialog (``in_settings``: from the Settings window,
+        which then draws it)."""
+        dialog = self._configured_dialog
+        if dialog is None or dialog.is_open:
+            return
+        self._configured_in_settings = in_settings
+        dialog.open(
+            self._configured,
+            self.project_connection(),
+            project_open=self._api.project.is_open,
+        )
+
+    def _apply_configured(
+        self,
+        connections: list[ConfiguredConnection],
+        project: ConfiguredConnection | None,
+        changed: bool,
+    ) -> None:
+        """The Configured Connections dialog's OK: the connections, and the project's
+        connection when its marking changed."""
+        self.set_configured_connections(connections)
+        if changed:
+            self.set_project_connection(project)
+
+    def tunnel_type_of(self, connection: ConfiguredConnection) -> ConnectionType:
+        """The tunnelling a configured connection uses: its protocol; for Automatic TCP when a
+        discovered gateway at its address offers it, else UDP."""
+        if connection.protocol == "Tcp":
+            return ConnectionType.TUNNELING_TCP
+        if connection.protocol == "Udp":
+            return ConnectionType.TUNNELING
+        gateway = next(
+            (
+                g
+                for g in self._gateways
+                if g.ip_addr == connection.host and g.port == connection.port
+            ),
+            None,
+        )
+        if gateway is not None and gateway.supports_tunnelling_tcp:
+            return ConnectionType.TUNNELING_TCP
+        return ConnectionType.TUNNELING
+
+    def connect_to_configured(self, connection: ConfiguredConnection) -> None:
+        """Connect through a configured connection, as the connection the user chose."""
+        if self._state in (ConnectionState.CONNECTING, ConnectionState.CONNECTED):
+            return
+        self._controller_ip = connection.endpoint
+        self.connect(connection_type=self.tunnel_type_of(connection))
+
+    def _uses_nat(self, host: str, port: int) -> bool:
+        """Whether the tunnel to ``host``:``port`` goes through NAT: a configured connection or
+        the project's connection to it says so."""
+        project = self.project_connection()
+        known = [*self._configured, *([project] if project is not None else [])]
+        target = ConfiguredConnection("", host, port)
+        return any(
+            c.use_nat and c.protocol != "Tcp" and c.same_interface(target)
+            for c in known
+        )
+
     def configure(
         self,
         controller_ip: str,
@@ -734,6 +857,14 @@ class ConnectionPlugin:
         )
         self._connect_at_startup = bool(data.get("connect_at_startup", True))
         self._use_project_bus = bool(data.get("use_project_bus_connection", False))
+        stored = data.get("configured_connections")
+        if isinstance(stored, list):
+            self._configured = tuple(
+                connection
+                for text in cast(list[object], stored)
+                if isinstance(text, str)
+                and (connection := parse_parameter(text)) is not None
+            )
         self._block_bus_writes_setting = bool(data.get("block_bus_writes", False))
         self._apply_block_bus_writes()
         self._load_protected(str(data.get("protected_group_addresses", "")))
@@ -778,6 +909,7 @@ class ConnectionPlugin:
                 "serial_number_downloads": self._api.connection.use_serial_number,
                 "connect_at_startup": self._connect_at_startup,
                 "use_project_bus_connection": self._use_project_bus,
+                "configured_connections": [c.to_parameter() for c in self._configured],
                 "block_bus_writes": self._block_bus_writes_setting,
                 "protected_group_addresses": " ".join(protected_patterns()),
                 **{
@@ -1668,14 +1800,14 @@ class ConnectionPlugin:
                 ),
                 threaded=True,
             )
+        tcp = self._connection_type == ConnectionType.TUNNELING_TCP
         return ConnectionConfig(
             connection_type=(
-                ConnectionType.TUNNELING_TCP
-                if self._connection_type == ConnectionType.TUNNELING_TCP
-                else ConnectionType.TUNNELING
+                ConnectionType.TUNNELING_TCP if tcp else ConnectionType.TUNNELING
             ),
             gateway_ip=host,
             gateway_port=port,
+            route_back=not tcp and self._uses_nat(host, port),
             threaded=True,
         )
 
@@ -1754,12 +1886,17 @@ class ConnectionPlugin:
             self._open_select_connection()
             return pending
         parameter, name = bus
-        host = tunnel_host(parameter)
-        if host is None:
+        tunnel = parse_parameter(parameter)
+        if tunnel is None:
             self._select_failures.append((name, S.BUS_CONNECTION_UNSUPPORTED))
             self._open_select_connection()
         else:
-            self._connect_for_operation(name, host, None)
+            self._connect_for_operation(
+                name,
+                tunnel.endpoint,
+                None,
+                connection_type=self.tunnel_type_of(tunnel),
+            )
         return pending
 
     def release_operation(self) -> None:
@@ -1782,17 +1919,23 @@ class ConnectionPlugin:
         await self._on_main_thread(self._restore_connection_settings)
 
     def _connect_for_operation(
-        self, name: str, host: str, gateway: GatewayDescriptor | None
+        self,
+        name: str,
+        host: str,
+        gateway: GatewayDescriptor | None,
+        *,
+        connection_type: ConnectionType = ConnectionType.TUNNELING,
     ) -> None:
         """Connect to ``host`` (or the discovered ``gateway``) for the waiting operations, without
-        making it the connection the user chose (its settings return when it closes)."""
+        making it the connection the user chose (its settings return when it closes); tunnelled
+        to over ``connection_type``."""
         self._keep_settings_for_operation()
         self._usb_target = None
         if gateway is not None and not gateway.supports_tunnelling:
             self._connection_type = ConnectionType.ROUTING
             self._multicast_group = gateway.multicast_address or DEFAULT_MCAST_GRP
         else:
-            self._connection_type = ConnectionType.TUNNELING
+            self._connection_type = connection_type
             self._controller_ip = host
         self._selected_gateway = gateway
         self._operation_name = name
@@ -1924,6 +2067,17 @@ class ConnectionPlugin:
                 )
         if not self._gateways and not self._scanning:
             imgui.text_disabled(S.NO_GATEWAYS_FOUND)
+        if self._configured:
+            imgui.text_disabled(S.CONFIGURED_TITLE)
+            for index, connection in enumerate(self._configured):
+                label = connection_label(connection)
+                if imgui.selectable(f"{label}##select_configured_{index}", False)[0]:
+                    self._connect_for_operation(
+                        label,
+                        connection.endpoint,
+                        None,
+                        connection_type=self.tunnel_type_of(connection),
+                    )
         imgui.text_disabled(S.SECTION_USB)
         for device in self._usb_devices:
             label = self._usb_option_label(device)
@@ -2528,6 +2682,8 @@ class ConnectionPlugin:
         from the overlay pass."""
         self._render_select_connection()
         self._render_usb_interface()
+        if not self._configured_in_settings:
+            self._render_configured_dialog()
         if not self._progmode_open:
             return
         expanded, open_state = begin_tool_window(
@@ -3137,10 +3293,14 @@ class ConnectionPlugin:
             self._render_gateway_picker(retry_label=S.MENU_RETRY)
         else:
             self._render_gateway_picker(retry_label=S.MENU_CONNECT)
-        if self.open_settings is not None:
-            imgui.separator()
-            if imgui.menu_item(app_strings.MENU_SETTINGS, "", False)[0]:
-                self.open_settings(SETTINGS_PAGE)
+        imgui.separator()
+        if imgui.menu_item(S.MENU_CONFIGURED_CONNECTIONS, "", False)[0]:
+            self.open_configured_connections()
+        if (
+            self.open_settings is not None
+            and imgui.menu_item(app_strings.MENU_SETTINGS, "", False)[0]
+        ):
+            self.open_settings(SETTINGS_PAGE)
 
     def _render_gateway_details(self) -> None:
         """The connected gateway's name, individual address, KNXnet/IP version and services; for
@@ -3236,6 +3396,14 @@ class ConnectionPlugin:
                 hint=lambda: S.SETTING_USE_PROJECT_BUS_CONNECTION_HINT,
             ),
             Setting(
+                "configured_connections",
+                lambda: S.CONFIGURED_TITLE,
+                "custom",
+                get=lambda: [c.to_parameter() for c in self._configured],
+                hint=lambda: S.SETTING_CONFIGURED_CONNECTIONS_HINT,
+                render=self._render_configured_setting,
+            ),
+            Setting(
                 "connect_at_startup",
                 lambda: S.SETTING_CONNECT_AT_STARTUP,
                 "bool",
@@ -3289,6 +3457,23 @@ class ConnectionPlugin:
                 lambda: S.SETTING_RESPONSE_TIMEOUT_HINT,
             ),
         ]
+
+    def _render_configured_dialog(self) -> None:
+        if self._configured_dialog is not None:
+            self._configured_dialog.render()
+            if not self._configured_dialog.is_open:
+                self._configured_in_settings = False
+
+    def _render_configured_setting(self) -> None:
+        """How many connections are configured, and the button opening their dialog, which the
+        Settings window then draws (a dialog opened from it stays above it)."""
+        imgui.align_text_to_frame_padding()
+        imgui.text(S.SETTING_CONFIGURED_COUNT(len(self._configured)))
+        same_line_if_fits(button_width(S.MENU_CONFIGURED_CONNECTIONS))
+        if imgui.button(f"{S.MENU_CONFIGURED_CONNECTIONS}##configured_setting"):
+            self.open_configured_connections(in_settings=True)
+        if self._configured_in_settings:
+            self._render_configured_dialog()
 
     def _timeout_setting(
         self, name: str, label: Callable[[], str], hint: Callable[[], str]
@@ -3461,8 +3646,10 @@ class ConnectionPlugin:
         if bus is None:
             return None
         parameter, _name = bus
-        host = tunnel_host(parameter)
-        return (host, tunnel_type(parameter)) if host is not None else None
+        tunnel = parse_parameter(parameter)
+        if tunnel is None:
+            return None
+        return tunnel.endpoint, self.tunnel_type_of(tunnel)
 
     def _follow_project_bus_connection(self) -> None:
         """Connect through the open project's Bus Connection with "Use the Project's Bus
@@ -3616,6 +3803,14 @@ class ConnectionPlugin:
                 self._render_gateway_option(gw)
         elif not self._scanning:
             imgui.text_disabled(S.NO_GATEWAYS_FOUND)
+
+        if self._configured:
+            imgui.separator()
+            imgui.text_disabled(S.CONFIGURED_TITLE)
+            for index, connection in enumerate(self._configured):
+                label = f"{connection_label(connection)}##configured_{index}"
+                if imgui.menu_item(label, "", False)[0]:
+                    self.connect_to_configured(connection)
 
         imgui.separator()
         imgui.text_disabled(S.SECTION_USB)

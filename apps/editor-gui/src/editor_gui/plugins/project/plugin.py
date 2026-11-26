@@ -202,9 +202,11 @@ class ProjectPlugin:
         get_latest_value: Callable[[str, str | None], tuple[str, str, float] | None]
         | None = None,
         get_interfaces: Callable[[], list[tuple[str, str, int, str]]] = list,
+        get_configured_interfaces: Callable[[], list[tuple[str, str]]] = list,
     ) -> None:
         """``get_interfaces`` lists the KNXnet/IP interfaces found on the network, each as
-        (name, IP address, port, individual address)."""
+        (name, IP address, port, individual address); ``get_configured_interfaces`` the
+        configured connections, each as (connection string, text)."""
         self._api = api
         self._get_selected_node_ids = get_selected_node_ids
         api.project.set_logger(Logger(api.log, "project"))
@@ -554,6 +556,7 @@ class ProjectPlugin:
                 )
                 for name, host, port, address in get_interfaces()
             ],
+            configured_interfaces=get_configured_interfaces,
             on_set_dpt=api.project.set_element_dpt,
             on_set_domain_address=api.project.set_element_domain_address,
             on_set_number=lambda trade_id, number: api.project.set_trade_field(

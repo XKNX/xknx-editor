@@ -99,3 +99,50 @@ def test_a_value_the_list_lacks(
     assert _frame(lambda: choice_combo("##c", options, "z")) is None
     pick.append(1)
     assert _frame(lambda: choice_combo("##c", options, "z")) == "b"
+
+
+_CONFIGURED = [("Type=IpTunneling;HostAddress=10.0.0.7;Name=Home", "Home (10.0.0.7)")]
+
+
+def test_the_configured_connections_come_between(clicks: Clicks) -> None:
+    def render() -> str | None:
+        return bus_connection_combo(
+            "##bus", "", "Automatic", _STORED, _FOUND, _CONFIGURED
+        )
+
+    clicks.combos.add("##bus")
+    clicks.items.add("Home (10.0.0.7)##2")
+    assert _frame(render) == _CONFIGURED[0][0]
+    clicks.combos.add("##bus")
+    clicks.items.add("IP-Interface (10.0.0.5:3671 Udp)##3")
+    assert _frame(render) == _FOUND[0][0]
+
+
+def test_the_bus_connection_choices() -> None:
+    from editor_gui.plugins.project.ui.element_details import bus_connection_choices
+
+    home = "Type=IpTunneling;HostAddress=10.0.0.7;ProtocolType=Tcp;Name=Home"
+    configured = [(home, "Home (10.0.0.7 TCP)")]
+    found = [
+        ("Type=IpTunneling;HostAddress=10.0.0.7;ProtocolType=Udp;Name=X", "X"),
+        ("Type=IpTunneling;HostAddress=10.0.0.5;ProtocolType=Udp;Name=Y", "Y"),
+    ]
+    # Automatic: a found interface that is a configured one is left out.
+    current, stored, own, other = bus_connection_choices("", "", configured, found)
+    assert current == ""
+    assert stored == [("", "Automatic")]
+    assert (own, other) == (configured, found[1:])
+    # The stored one is the configured one (the same address and port): that is chosen.
+    stored_access = "Type=IpTunneling;HostAddress=10.0.0.7;Name=Old"
+    current, stored, _own, _other = bus_connection_choices(
+        stored_access, "Old (10.0.0.7:3671)", configured, found
+    )
+    assert current == home
+    assert stored == [("", "Automatic")]
+    # One that is none of them is listed as it is.
+    usb = "Type=Usb;Name=USB"
+    current, stored, _own, _other = bus_connection_choices(
+        usb, "USB", configured, found
+    )
+    assert current == usb
+    assert stored == [("", "Automatic"), (usb, "USB")]

@@ -158,7 +158,10 @@ def _plugin(gateway: Any, *, routing: bool = False, **connection: Any) -> Any:
     plugin._selected_gateway = gateway
     plugin._controller_ip = "192.0.2.1"
     plugin._multicast_group = "224.0.23.12"
-    plugin._api = SimpleNamespace(connection=SimpleNamespace(**connection))
+    plugin._api = SimpleNamespace(
+        connection=SimpleNamespace(**connection),
+        project=SimpleNamespace(is_open=False),
+    )
     plugin._credentials_error = None
     return plugin
 

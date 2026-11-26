@@ -496,3 +496,79 @@ msgstr "El servidor KNXnet/IP se está iniciando o deteniendo."
 
 msgid "The KNXnet/IP server could not start: {error}"
 msgstr "No se pudo iniciar el servidor KNXnet/IP: {error}"
+
+msgid "Configured Connections…"
+msgstr "Conexiones configuradas…"
+
+msgid "Configured Connections"
+msgstr "Conexiones configuradas"
+
+msgid "New"
+msgstr "Nueva"
+
+msgid "Delete"
+msgstr "Eliminar"
+
+msgid "Import…"
+msgstr "Importar…"
+
+msgid "Export…"
+msgstr "Exportar…"
+
+msgid "Use as project connection"
+msgstr "Usar como conexión del proyecto"
+
+msgid "Project connection"
+msgstr "Conexión del proyecto"
+
+msgid "IP Address or Host Name"
+msgstr "Dirección IP o nombre de host"
+
+msgid "Automatic"
+msgstr "Automática"
+
+msgid "Use NAT mode"
+msgstr "Usar modo NAT"
+
+msgid "No configured connections yet."
+msgstr "Aún no hay conexiones configuradas."
+
+msgid "The address is neither an IP address nor a valid host name."
+msgstr "La dirección no es una dirección IP ni un nombre de host válido."
+
+msgid "IP Tunneling"
+msgstr "IP Tunneling"
+
+msgid "The file could not be read: {error}"
+msgstr "No se pudo leer el archivo: {error}"
+
+msgid "Connections exported to {name}."
+msgstr "Conexiones exportadas a {name}."
+
+msgid "XML Files"
+msgstr "Archivos XML"
+
+msgid "Import Connections"
+msgstr "Importar conexiones"
+
+msgid "Export Connections"
+msgstr "Exportar conexiones"
+
+msgid "Open a project to use a connection as its connection."
+msgstr "Abra un proyecto para usar una conexión como su conexión."
+
+msgid "Interfaces entered once by their address: offered in the Gateway menu, in Select Connection and as a project's Bus Connection, also those a gateway search can't find."
+msgstr "Interfaces introducidas una vez por su dirección: se ofrecen en el menú Pasarela, en Seleccione Conexión y como Conexión Bus de un proyecto, también las que una búsqueda de pasarelas no encuentra."
+
+msgid "{count} connection imported."
+msgid_plural "{count} connections imported."
+msgstr[0] "{count} conexión importada."
+msgstr[1] "{count} conexiones importadas."
+
+msgid "{count} connection"
+msgid_plural "{count} connections"
+msgstr[0] "{count} conexión"
+msgstr[1] "{count} conexiones"
+
+msgid "The file could not be written: {error}"
+msgstr "No se pudo escribir el archivo: {error}"

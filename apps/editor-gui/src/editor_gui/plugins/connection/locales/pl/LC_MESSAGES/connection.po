@@ -498,3 +498,81 @@ msgstr "Serwer KNXnet/IP jest właśnie uruchamiany lub zatrzymywany."
 
 msgid "The KNXnet/IP server could not start: {error}"
 msgstr "Nie udało się uruchomić serwera KNXnet/IP: {error}"
+
+msgid "Configured Connections…"
+msgstr "Skonfigurowane połączenia…"
+
+msgid "Configured Connections"
+msgstr "Skonfigurowane połączenia"
+
+msgid "New"
+msgstr "Nowe"
+
+msgid "Delete"
+msgstr "Usuń"
+
+msgid "Import…"
+msgstr "Importuj…"
+
+msgid "Export…"
+msgstr "Eksportuj…"
+
+msgid "Use as project connection"
+msgstr "Użyj jako połączenia projektu"
+
+msgid "Project connection"
+msgstr "Połączenie projektu"
+
+msgid "IP Address or Host Name"
+msgstr "Adres IP lub nazwa hosta"
+
+msgid "Automatic"
+msgstr "Automatycznie"
+
+msgid "Use NAT mode"
+msgstr "Użyj trybu NAT"
+
+msgid "No configured connections yet."
+msgstr "Brak skonfigurowanych połączeń."
+
+msgid "The address is neither an IP address nor a valid host name."
+msgstr "Adres nie jest ani adresem IP, ani prawidłową nazwą hosta."
+
+msgid "IP Tunneling"
+msgstr "IP Tunneling"
+
+msgid "The file could not be read: {error}"
+msgstr "Nie można odczytać pliku: {error}"
+
+msgid "Connections exported to {name}."
+msgstr "Połączenia wyeksportowano do {name}."
+
+msgid "XML Files"
+msgstr "Pliki XML"
+
+msgid "Import Connections"
+msgstr "Importuj połączenia"
+
+msgid "Export Connections"
+msgstr "Eksportuj połączenia"
+
+msgid "Open a project to use a connection as its connection."
+msgstr "Otwórz projekt, aby użyć połączenia jako jego połączenia."
+
+msgid "Interfaces entered once by their address: offered in the Gateway menu, in Select Connection and as a project's Bus Connection, also those a gateway search can't find."
+msgstr "Interfejsy wprowadzone raz przez ich adres: dostępne w menu Bramka, w oknie Wybierz połączenie i jako Połączenie z magistralą projektu, także te, których wyszukiwanie bramek nie znajduje."
+
+msgid "{count} connection imported."
+msgid_plural "{count} connections imported."
+msgstr[0] "Zaimportowano {count} połączenie."
+msgstr[1] "Zaimportowano {count} połączenia."
+msgstr[2] "Zaimportowano {count} połączeń."
+
+msgid "{count} connection"
+msgid_plural "{count} connections"
+msgstr[0] "{count} połączenie"
+msgstr[1] "{count} połączenia"
+msgstr[2] "{count} połączeń"
+
+msgid "The file could not be written: {error}"
+msgstr "Nie można zapisać pliku: {error}"

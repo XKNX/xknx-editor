@@ -498,3 +498,81 @@ msgstr "Serverul KNXnet/IP este în curs de pornire sau oprire."
 
 msgid "The KNXnet/IP server could not start: {error}"
 msgstr "Serverul KNXnet/IP nu a putut porni: {error}"
+
+msgid "Configured Connections…"
+msgstr "Conexiuni configurate…"
+
+msgid "Configured Connections"
+msgstr "Conexiuni configurate"
+
+msgid "New"
+msgstr "Nouă"
+
+msgid "Delete"
+msgstr "Ștergere"
+
+msgid "Import…"
+msgstr "Import…"
+
+msgid "Export…"
+msgstr "Export…"
+
+msgid "Use as project connection"
+msgstr "Folosire ca conexiune a proiectului"
+
+msgid "Project connection"
+msgstr "Conexiunea proiectului"
+
+msgid "IP Address or Host Name"
+msgstr "Adresă IP sau nume de gazdă"
+
+msgid "Automatic"
+msgstr "Automat"
+
+msgid "Use NAT mode"
+msgstr "Folosire mod NAT"
+
+msgid "No configured connections yet."
+msgstr "Încă nu există conexiuni configurate."
+
+msgid "The address is neither an IP address nor a valid host name."
+msgstr "Adresa nu este nici o adresă IP, nici un nume de gazdă valid."
+
+msgid "IP Tunneling"
+msgstr "IP Tunneling"
+
+msgid "The file could not be read: {error}"
+msgstr "Fișierul nu a putut fi citit: {error}"
+
+msgid "Connections exported to {name}."
+msgstr "Conexiuni exportate în {name}."
+
+msgid "XML Files"
+msgstr "Fișiere XML"
+
+msgid "Import Connections"
+msgstr "Import conexiuni"
+
+msgid "Export Connections"
+msgstr "Export conexiuni"
+
+msgid "Open a project to use a connection as its connection."
+msgstr "Deschideți un proiect pentru a folosi o conexiune drept conexiunea lui."
+
+msgid "Interfaces entered once by their address: offered in the Gateway menu, in Select Connection and as a project's Bus Connection, also those a gateway search can't find."
+msgstr "Interfețe introduse o singură dată prin adresa lor: oferite în meniul Gateway, în Selectare conexiune și drept Conexiune la magistrală a unui proiect, inclusiv cele pe care o căutare de gateway nu le găsește."
+
+msgid "{count} connection imported."
+msgid_plural "{count} connections imported."
+msgstr[0] "{count} conexiune importată."
+msgstr[1] "{count} conexiuni importate."
+msgstr[2] "{count} de conexiuni importate."
+
+msgid "{count} connection"
+msgid_plural "{count} connections"
+msgstr[0] "{count} conexiune"
+msgstr[1] "{count} conexiuni"
+msgstr[2] "{count} de conexiuni"
+
+msgid "The file could not be written: {error}"
+msgstr "Fișierul nu a putut fi scris: {error}"

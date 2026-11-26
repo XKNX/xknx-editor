@@ -799,5 +799,119 @@ class ConnectionStrings:
     def BUS_CONNECTION_UNSUPPORTED(self) -> str:
         return _("This kind of connection is not supported.")
 
+    @property
+    def MENU_CONFIGURED_CONNECTIONS(self) -> str:
+        return _("Configured Connections…")
+
+    @property
+    def CONFIGURED_TITLE(self) -> str:
+        return _("Configured Connections")
+
+    @property
+    def CONFIGURED_NEW(self) -> str:
+        return _("New")
+
+    @property
+    def CONFIGURED_DELETE(self) -> str:
+        return _("Delete")
+
+    @property
+    def CONFIGURED_IMPORT(self) -> str:
+        return _("Import…")
+
+    @property
+    def CONFIGURED_EXPORT(self) -> str:
+        return _("Export…")
+
+    @property
+    def CONFIGURED_USE_AS_PROJECT(self) -> str:
+        return _("Use as project connection")
+
+    @property
+    def CONFIGURED_PROJECT_TAG(self) -> str:
+        return _("Project connection")
+
+    @property
+    def CONFIGURED_HOST(self) -> str:
+        return _("IP Address or Host Name")
+
+    @property
+    def CONFIGURED_PROTOCOL_AUTO(self) -> str:
+        return _("Automatic")
+
+    @property
+    def CONFIGURED_USE_NAT(self) -> str:
+        return _("Use NAT mode")
+
+    @property
+    def CONFIGURED_NONE(self) -> str:
+        return _("No configured connections yet.")
+
+    @property
+    def CONFIGURED_HOST_INVALID(self) -> str:
+        return _("The address is neither an IP address nor a valid host name.")
+
+    @property
+    def CONFIGURED_DEFAULT_NAME(self) -> str:
+        return _("IP Tunneling")
+
+    @property
+    def CONFIGURED_EXPORT_FAILED(self) -> str:
+        return _("The file could not be written: {error}")
+
+    @property
+    def CONFIGURED_IMPORT_FAILED(self) -> str:
+        return _("The file could not be read: {error}")
+
+    @property
+    def CONFIGURED_EXPORTED(self) -> str:
+        return _("Connections exported to {name}.")
+
+    @property
+    def CONFIGURED_FILE_FILTER(self) -> str:
+        return _("XML Files")
+
+    @property
+    def CONFIGURED_IMPORT_TITLE(self) -> str:
+        return _("Import Connections")
+
+    @property
+    def CONFIGURED_EXPORT_TITLE(self) -> str:
+        return _("Export Connections")
+
+    @property
+    def CONFIGURED_NO_PROJECT(self) -> str:
+        return _("Open a project to use a connection as its connection.")
+
+    @property
+    def SETTING_CONFIGURED_CONNECTIONS_HINT(self) -> str:
+        return _(
+            "Interfaces entered once by their address: offered in the Gateway menu, in Select "
+            "Connection and as a project's Bus Connection, also those a gateway search can't "
+            "find."
+        )
+
+    @property
+    def CONFIGURED_NAME(self) -> str:
+        return _("Name")
+
+    @property
+    def CONFIGURED_PORT(self) -> str:
+        return _("Port")
+
+    @property
+    def CONFIGURED_PROTOCOL(self) -> str:
+        return _("Protocol")
+
+    def CONFIGURED_IMPORTED(self, count: int) -> str:
+        return _.plural(
+            "{count} connection imported.", "{count} connections imported.", count
+        ).format(count=count)
+
+    def SETTING_CONFIGURED_COUNT(self, count: int) -> str:
+        return _.plural("{count} connection", "{count} connections", count).format(
+            count=count
+        )
+
 
 S = ConnectionStrings()

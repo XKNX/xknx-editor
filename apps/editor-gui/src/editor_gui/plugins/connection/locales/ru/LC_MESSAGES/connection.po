@@ -498,3 +498,81 @@ msgstr "Сервер KNXnet/IP сейчас запускается или ост
 
 msgid "The KNXnet/IP server could not start: {error}"
 msgstr "Не удалось запустить сервер KNXnet/IP: {error}"
+
+msgid "Configured Connections…"
+msgstr "Настроенные соединения…"
+
+msgid "Configured Connections"
+msgstr "Настроенные соединения"
+
+msgid "New"
+msgstr "Создать"
+
+msgid "Delete"
+msgstr "Удалить"
+
+msgid "Import…"
+msgstr "Импорт…"
+
+msgid "Export…"
+msgstr "Экспорт…"
+
+msgid "Use as project connection"
+msgstr "Использовать как соединение проекта"
+
+msgid "Project connection"
+msgstr "Соединение проекта"
+
+msgid "IP Address or Host Name"
+msgstr "IP-адрес или имя хоста"
+
+msgid "Automatic"
+msgstr "Автоматически"
+
+msgid "Use NAT mode"
+msgstr "Использовать режим NAT"
+
+msgid "No configured connections yet."
+msgstr "Настроенных соединений пока нет."
+
+msgid "The address is neither an IP address nor a valid host name."
+msgstr "Адрес не является ни IP-адресом, ни допустимым именем хоста."
+
+msgid "IP Tunneling"
+msgstr "IP Tunneling"
+
+msgid "The file could not be read: {error}"
+msgstr "Не удалось прочитать файл: {error}"
+
+msgid "Connections exported to {name}."
+msgstr "Соединения экспортированы в {name}."
+
+msgid "XML Files"
+msgstr "Файлы XML"
+
+msgid "Import Connections"
+msgstr "Импорт соединений"
+
+msgid "Export Connections"
+msgstr "Экспорт соединений"
+
+msgid "Open a project to use a connection as its connection."
+msgstr "Откройте проект, чтобы использовать соединение как его соединение."
+
+msgid "Interfaces entered once by their address: offered in the Gateway menu, in Select Connection and as a project's Bus Connection, also those a gateway search can't find."
+msgstr "Интерфейсы, один раз введённые по адресу: предлагаются в меню «Шлюз», в окне «Выберите соединение» и как соединение с шиной проекта, в том числе те, которые поиск шлюзов не находит."
+
+msgid "{count} connection imported."
+msgid_plural "{count} connections imported."
+msgstr[0] "Импортировано {count} соединение."
+msgstr[1] "Импортировано {count} соединения."
+msgstr[2] "Импортировано {count} соединений."
+
+msgid "{count} connection"
+msgid_plural "{count} connections"
+msgstr[0] "{count} соединение"
+msgstr[1] "{count} соединения"
+msgstr[2] "{count} соединений"
+
+msgid "The file could not be written: {error}"
+msgstr "Не удалось записать файл: {error}"
