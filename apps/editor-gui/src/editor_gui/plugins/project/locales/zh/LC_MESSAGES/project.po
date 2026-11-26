@@ -4135,3 +4135,15 @@ msgstr "复制名称"
 
 msgid "Copy Path"
 msgstr "复制路径"
+
+msgid "Show Filter Table…"
+msgstr "显示过滤表…"
+
+msgid "Filter Table"
+msgstr "过滤表"
+
+msgid "This coupler routes no group addresses."
+msgstr "此耦合器不路由任何组地址。"
+
+msgid "The filter table needs downloading."
+msgstr "需要下载过滤表。"

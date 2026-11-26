@@ -8,7 +8,8 @@ from typing import Any, cast
 import pytest
 
 from editor_gui.plugins.project import service as service_module
-from editor_gui.plugins.project.service import ProjectService
+from editor_gui.plugins.project.service import GroupAddressInfo, ProjectService
+from editor_gui.plugins.project.strings import S
 from xknxeditor.download.filter_table import (
     addresses_in_filter_table,
     compute_coupler_filter_table,
@@ -122,7 +123,7 @@ def _segment_service(segment_coupler: bool) -> Any:
     service = cast(Any, SimpleNamespace())
     service._pid = "P"
     service.devices = [
-        SimpleNamespace(node_id=node, individual_address=address)
+        SimpleNamespace(node_id=node, individual_address=address, name=f"Device {node}")
         for node, (address, _segment, _links) in devices.items()
     ]
     service.device_segments = lambda: {
@@ -156,6 +157,38 @@ def _segment_service(segment_coupler: bool) -> Any:
         return [], [_OWN] if segment == 2 else []
 
     service._coupler_pass_through = _pass_through
+    service.find_device_by_node_id = lambda node: next(
+        (d for d in service.devices if d.node_id == node), None
+    )
+    service.group_addresses = [
+        GroupAddressInfo(id=1, address="1/0/1", name="Shared", raw=_SHARED),
+        GroupAddressInfo(
+            id=2, address="1/2/3", name="Tunnel", datapoint_type="DPST-1-1", raw=_TUNNEL
+        ),
+        GroupAddressInfo(id=3, address="1/2/5", name="Own", raw=_OWN),
+    ]
+    service.is_coupler = lambda node: ProjectService.is_coupler(service, node)
+    service.revision = 0
+    service._revision_cache = {}
+    service._coupler_node_ids = (
+        lambda: ProjectService._coupler_node_ids(service)  # pyright: ignore[reportPrivateUsage]
+    )
+    service._routed_group_addresses_for = lambda device, address: (
+        ProjectService._routed_group_addresses_for(  # pyright: ignore[reportPrivateUsage]
+            service, device, address
+        )
+    )
+    service.coupler_filter_table = lambda node: ProjectService.coupler_filter_table(
+        service, node
+    )
+    service._pending_downloads = {}
+    service.pending_downloads = lambda: service._pending_downloads
+    service.couplers_needing_download = lambda: (
+        ProjectService.couplers_needing_download(service)
+    )
+    service.pending_download_text = lambda node: ProjectService.pending_download_text(
+        service, node
+    )
     return service
 
 
@@ -187,3 +220,57 @@ def test_no_table_for_other_devices() -> None:
     # A device in a sub segment that is no segment coupler, and one on a main segment.
     assert _routed(_segment_service(segment_coupler=False), 3) is None
     assert _routed(_segment_service(segment_coupler=True), 2) is None
+
+
+def test_coupler_filter_table_lists_named_entries() -> None:
+    service = _segment_service(segment_coupler=True)
+    table = service.coupler_filter_table(3)  # the segment coupler 1.1.100
+    assert table is not None
+    assert (table.device_address, table.device_name) == ("1.1.100", "Device 3")
+    assert [(e.address, e.name, e.datapoint_type) for e in table.entries] == [
+        ("1/0/1", "Shared", None),
+        ("1/2/3", "Tunnel", "DPST-1-1"),
+        ("1/2/5", "Own", None),
+    ]
+
+
+def test_coupler_filter_table_is_none_for_a_non_coupler() -> None:
+    service = _segment_service(segment_coupler=True)
+    assert service.coupler_filter_table(2) is None  # the sensor 1.1.7
+
+
+def test_is_coupler_distinguishes_couplers_from_devices() -> None:
+    service = _segment_service(segment_coupler=True)
+    assert service.is_coupler(1) is True  # line coupler 1.1.0
+    assert service.is_coupler(3) is True  # segment coupler 1.1.100
+    assert service.is_coupler(2) is False  # sensor 1.1.7
+    assert service.is_coupler(5) is False  # sensor 1.2.3
+
+
+def test_a_routed_address_without_a_project_group_address_falls_back() -> None:
+    service = _segment_service(segment_coupler=True)
+    # Drop the project group address for 1/2/3: the routed entry keeps a three-level address.
+    service.group_addresses = [g for g in service.group_addresses if g.raw != _TUNNEL]
+    table = service.coupler_filter_table(3)
+    assert table is not None
+    tunnel = next(e for e in table.entries if e.raw == _TUNNEL)
+    assert (tunnel.address, tunnel.name, tunnel.datapoint_type) == ("1/2/3", "", None)
+
+
+def test_couplers_need_download_when_a_routed_device_is_unsynced() -> None:
+    service = _segment_service(segment_coupler=True)
+    assert service.couplers_needing_download() == frozenset()
+    # The sensor 1.2.3 (links 1/2/3, which crosses both couplers) has unsynced group
+    # communication: both couplers that route it are flagged.
+    service._pending_downloads = {5: ("group_communication",)}
+    service.revision = 1  # a fresh revision, past the cached empty result
+    assert service.couplers_needing_download() == frozenset({1, 3})
+
+
+def test_pending_text_shows_the_filter_table_hint_for_a_stale_coupler() -> None:
+    service = _segment_service(segment_coupler=True)
+    service._pending_downloads = {5: ("group_communication",)}
+    # The line coupler 1.1.0 has nothing of its own pending, only its filter table is stale.
+    assert service.pending_download_text(1) == S.FILTER_TABLE_PENDING
+    # A non-coupler with nothing pending has no marker.
+    assert service.pending_download_text(2) == ""

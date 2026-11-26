@@ -348,6 +348,47 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         return ctx.run_locked(_read)
 
+    @tool("read")
+    def coupler_filter_table(
+        node_id: int | None = None, device_address: str | None = None
+    ) -> dict[str, Any]:
+        """The group-address filter table of a coupler: the group addresses it routes across
+        itself, the same set the editor writes when it programs the coupler. The coupler by its
+        node_id (from project_list_devices) OR device_address (an individual address like
+        "1.1.0"). A group address crosses a coupler when a device behind it and a device in front
+        of it both link the address, plus any address or group flagged Unfiltered and the
+        segment's additional pass-through addresses. Returns {device_address, device_name, count,
+        needs_download, entries:[{address, name, datapoint_type}]}, entries in address order;
+        needs_download is true when a device the coupler routes has unsynced group communication,
+        so the coupler should be programmed again. Errors when the device is no coupler (a
+        line/area/backbone coupler x.y.0 or a segment coupler)."""
+        require_project(ctx)
+
+        def _read() -> dict[str, Any]:
+            device = require_device(project, node_id, device_address)
+            table = project.coupler_filter_table(device.node_id)
+            if table is None:
+                raise ToolError(
+                    f"device {device.individual_address} is no coupler "
+                    "(no group-address filter table)"
+                )
+            return {
+                "device_address": table.device_address,
+                "device_name": table.device_name,
+                "count": len(table.entries),
+                "needs_download": device.node_id in project.couplers_needing_download(),
+                "entries": [
+                    {
+                        "address": entry.address,
+                        "name": entry.name,
+                        "datapoint_type": entry.datapoint_type,
+                    }
+                    for entry in table.entries
+                ],
+            }
+
+        return ctx.run_locked(_read)
+
     @tool("write")
     def project_set_status(
         status: Status,

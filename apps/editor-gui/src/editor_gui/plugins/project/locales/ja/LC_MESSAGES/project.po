@@ -4135,3 +4135,15 @@ msgstr "名前をコピー"
 
 msgid "Copy Path"
 msgstr "パスをコピー"
+
+msgid "Show Filter Table…"
+msgstr "フィルターテーブルを表示…"
+
+msgid "Filter Table"
+msgstr "フィルターテーブル"
+
+msgid "This coupler routes no group addresses."
+msgstr "このカプラはグループ・アドレスをルーティングしません。"
+
+msgid "The filter table needs downloading."
+msgstr "フィルターテーブルをダウンロードする必要があります。"

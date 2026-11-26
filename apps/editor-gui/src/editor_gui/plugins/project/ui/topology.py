@@ -1,6 +1,6 @@
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
-from typing import cast
+from typing import TYPE_CHECKING, cast
 
 from imgui_bundle import imgui
 
@@ -25,6 +25,7 @@ from editor_gui.plugins.project.ui.add_dialog import (
     start_add,
 )
 from editor_gui.plugins.project.ui.config_dialog import DeviceConfigDialog
+from editor_gui.plugins.project.ui.filter_table import FilterTableDialog
 from editor_gui.plugins.project.ui.move_menu import render_move_menu
 from editor_gui.plugins.project.ui.paste_special import (
     MenuGroups,
@@ -61,6 +62,9 @@ from xknxeditor.proj.core.medium import (
     sub_segment_media,
 )
 from xknxeditor.proj.core.paste import AddressPool
+
+if TYPE_CHECKING:
+    from editor_gui.plugins.project.service import CouplerFilterTable
 
 TreeDevice = Device | UnloadedDevice
 
@@ -198,6 +202,8 @@ class TopologyPanel:
         notify: Callable[[str], None] = lambda _t: None,
         on_park_device: Callable[[int], None] | None = None,
         on_add_devices: Callable[[int | None], None] | None = None,
+        is_coupler: Callable[[int], bool] = lambda _n: False,
+        get_filter_table: "Callable[[int], CouplerFilterTable | None] | None" = None,
     ) -> None:
         """``on_park_device`` clears a device's (by id) device number, keeping it on its line
         ("Park"). ``on_add_devices`` opens the catalog to add devices to a segment (by id; None:
@@ -220,6 +226,12 @@ class TopologyPanel:
         self._on_unlink_device = on_unlink_device
         self._on_park_device = on_park_device
         self._on_add_devices = on_add_devices
+        self._is_coupler = is_coupler
+        self._filter_table_dialog = (
+            FilterTableDialog(get_filter_table)
+            if get_filter_table is not None
+            else None
+        )
         self._on_move_line = on_move_line
         self._on_move_segment = on_move_segment
         # A line's sub-segments show as nodes before its main segment's devices, each with its
@@ -325,6 +337,8 @@ class TopologyPanel:
         self._config_dialog.render()
         if self._paste_dialog is not None:
             self._paste_dialog.render()
+        if self._filter_table_dialog is not None:
+            self._filter_table_dialog.render()
 
         leaf_flags = (
             imgui.TreeNodeFlags_.leaf
@@ -800,6 +814,14 @@ class TopologyPanel:
                 and imgui.menu_item(S.CONTEXT_SHOW_IN_BUS_DIAGRAM, "", False)[0]
             ):
                 self._on_show_links(device.node_id)
+            if (
+                not several
+                and self._filter_table_dialog is not None
+                and self._is_coupler(device.node_id)
+                and groups.show()
+                and imgui.menu_item(S.FILTER_TABLE_MENU, "", False)[0]
+            ):
+                self._filter_table_dialog.open(device.node_id)
             self._render_unlink_item(dragged.ids, groups.show)
             # Devices pasted on a device go to its segment.
             segment = self._get_device_segments().get(device.node_id)

@@ -261,6 +261,12 @@ def _parse_individual_address(text: str) -> int | None:
     return (area << 12) | (line << 8) | device
 
 
+def _three_level_address(raw: int) -> str:
+    """A raw 16-bit group-address value as a three-level string ("1/2/3"); a fallback for a
+    routed address the project has no group address for."""
+    return f"{(raw >> 11) & 0x1F}/{(raw >> 8) & 0x7}/{raw & 0xFF}"
+
+
 def _parse_group_address(text: str) -> int | None:
     """Parse a 3-level (``a/b/c``), 2-level (``a/b``) or free group address into a raw value."""
     parts = text.split("/")
@@ -1198,6 +1204,25 @@ class GroupAddressInfo:
     security_mode: str | None = None
     forced_by: "ForcedSecurity | None" = None
     central: bool = False
+
+
+@dataclass(frozen=True)
+class FilterTableEntry:
+    """One routed group address of a coupler's filter table."""
+
+    raw: int  # raw 16-bit group-address value
+    address: str  # the style-formatted address ("1/2/3")
+    name: str
+    datapoint_type: str | None
+
+
+@dataclass(frozen=True)
+class CouplerFilterTable:
+    """A coupler's computed group-address filter table: the addresses it routes."""
+
+    device_address: str
+    device_name: str
+    entries: list[FilterTableEntry]  # sorted by raw value
 
 
 @dataclass
@@ -3724,21 +3749,83 @@ class ProjectService:
         and the rest. The project's pass-through addresses are included, or the table blocks
         addresses it was configured to always route: group addresses (or whole ranges) flagged
         Unfiltered, and the AdditionalGroupAddresses of the segment the coupler feeds."""
-        from xknxeditor.download.filter_table import (
-            build_filter_table,
-            routed_group_addresses,
-        )
+        from xknxeditor.download.filter_table import build_filter_table
+
+        routed = self._routed_group_addresses_for(device, device_address)
+        if routed is None:
+            return None
+        return build_filter_table(routed)
+
+    def _routed_group_addresses_for(
+        self, device: Device, device_address: int
+    ) -> list[int] | None:
+        """The raw group-address values a coupler routes (see :meth:`_filter_table_for`); None
+        for a device that is no coupler."""
+        from xknxeditor.download.filter_table import routed_group_addresses
 
         sides = self._coupler_sides(device, device_address)
         if sides is None:
             return None
         inside, outside, segment_id = sides
         unfiltered, additional = self._coupler_pass_through(device_address, segment_id)
-        return build_filter_table(
-            routed_group_addresses(
-                inside, outside, unfiltered=unfiltered, additional=additional
-            )
+        return routed_group_addresses(
+            inside, outside, unfiltered=unfiltered, additional=additional
         )
+
+    @revision_cached
+    def _coupler_node_ids(self) -> frozenset[int]:
+        """Node ids of the devices that route group addresses through a filter table: segment
+        couplers, and line/area/backbone couplers (address x.y.0) whose application is a coupler;
+        a device without a settled address is excluded (its table cannot be computed). Cached per
+        revision because the device context menu asks per frame while it is open."""
+        from xknxeditor.download.filter_table import is_coupler_address
+
+        if self._pid is None:
+            return frozenset()
+        programs = self._svc.device_programs(self._pid)
+        ids: set[int] = set()
+        for device in self.devices:
+            address = _parse_individual_address(device.individual_address)
+            if address is None:
+                continue
+            if self._coupled_segment(device) is not None or (
+                is_coupler_address(address)
+                and self._coupler_device(programs.get(device.node_id)) is not None
+            ):
+                ids.add(device.node_id)
+        return frozenset(ids)
+
+    def is_coupler(self, node_id: int) -> bool:
+        """Whether the device routes group addresses through a filter table (a coupler with a
+        settled address); see :meth:`_coupler_node_ids`."""
+        return node_id in self._coupler_node_ids()
+
+    def coupler_filter_table(self, node_id: int) -> CouplerFilterTable | None:
+        """The coupler's computed filter table as the group addresses it routes, in address
+        order, each with its name and data type; None for a device that is no coupler (see
+        :meth:`is_coupler`). The same set the download writes into the coupler."""
+        device = self.find_device_by_node_id(node_id)
+        if device is None or not self.is_coupler(node_id):
+            return None
+        address = _parse_individual_address(device.individual_address)
+        if address is None:
+            return None
+        routed = self._routed_group_addresses_for(device, address)
+        if routed is None:
+            return None
+        by_raw = {g.raw: g for g in self.group_addresses}
+        entries: list[FilterTableEntry] = []
+        for raw in routed:
+            info = by_raw.get(raw)
+            if info is not None:
+                entries.append(
+                    FilterTableEntry(raw, info.address, info.name, info.datapoint_type)
+                )
+            else:
+                entries.append(
+                    FilterTableEntry(raw, _three_level_address(raw), "", None)
+                )
+        return CouplerFilterTable(device.individual_address, device.name, entries)
 
     def _coupler_sides(
         self, device: Device, device_address: int
@@ -6748,8 +6835,50 @@ class ProjectService:
         return pending
 
     def pending_download_text(self, node_id: int) -> str:
-        """The pending parts of a device as shown in the trees, in the current language."""
-        return pending_download_text(self.pending_downloads().get(node_id, ()))
+        """The pending parts of a device as shown in the trees, in the current language; for a
+        coupler whose filter table is out of date (a device it routes has unsynced group
+        communication) the filter-table hint, when the coupler itself has nothing else pending."""
+        text = pending_download_text(self.pending_downloads().get(node_id, ()))
+        if text:
+            return text
+        if node_id in self.couplers_needing_download():
+            return S.FILTER_TABLE_PENDING
+        return ""
+
+    @revision_cached
+    def couplers_needing_download(self) -> frozenset[int]:
+        """Couplers whose filter table may be out of date: a device whose links cross the coupler
+        has group communication that is not loaded yet, so the routed set differs from what the
+        coupler holds. A display hint only (it clears once that device is programmed, even if the
+        coupler itself has not been re-programmed); the table is recomputed fresh at the next
+        coupler download regardless."""
+        coupler_ids = self._coupler_node_ids()
+        if not coupler_ids:
+            return frozenset()
+        pending = self.pending_downloads()
+        ia_by_node: dict[int, int] = {}
+        for device in self.devices:
+            ia = _parse_individual_address(device.individual_address)
+            if ia is not None:
+                ia_by_node[device.node_id] = ia
+        pending_comm = {
+            ia_by_node[node_id]
+            for node_id, parts in pending.items()
+            if "group_communication" in parts and node_id in ia_by_node
+        }
+        if not pending_comm:
+            return frozenset()
+        links = self._all_device_group_addresses()
+        result: set[int] = set()
+        for node_id in coupler_ids:
+            device = self.find_device_by_node_id(node_id)
+            address = ia_by_node.get(node_id)
+            if device is None or address is None:
+                continue
+            routed = set(self._routed_group_addresses_for(device, address) or ())
+            if routed and any(links.get(ia, set()) & routed for ia in pending_comm):
+                result.add(node_id)
+        return frozenset(result)
 
     def download_parts(self, node_id: int, scope: "DownloadScope") -> "PartialDownload":
         """What a download of ``scope`` loads into the device: a partial one

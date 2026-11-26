@@ -4193,3 +4193,15 @@ msgstr "Copier le nom"
 
 msgid "Copy Path"
 msgstr "Copier le chemin"
+
+msgid "Show Filter Table…"
+msgstr "Afficher la table de filtrage…"
+
+msgid "Filter Table"
+msgstr "Table de filtrage"
+
+msgid "This coupler routes no group addresses."
+msgstr "Ce coupleur ne route aucune adresse de groupe."
+
+msgid "The filter table needs downloading."
+msgstr "La table de filtrage doit être téléchargée."

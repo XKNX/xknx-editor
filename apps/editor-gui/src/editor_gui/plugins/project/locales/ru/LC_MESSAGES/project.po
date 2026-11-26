@@ -4239,3 +4239,15 @@ msgstr "Копировать имя"
 
 msgid "Copy Path"
 msgstr "Копировать путь"
+
+msgid "Show Filter Table…"
+msgstr "Показать таблицу фильтрации…"
+
+msgid "Filter Table"
+msgstr "Таблица фильтрации"
+
+msgid "This coupler routes no group addresses."
+msgstr "Этот соединитель не маршрутизирует групповые адреса."
+
+msgid "The filter table needs downloading."
+msgstr "Таблицу фильтрации нужно загрузить."

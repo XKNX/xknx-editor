@@ -4239,3 +4239,15 @@ msgstr "Kopírovat název"
 
 msgid "Copy Path"
 msgstr "Kopírovat cestu"
+
+msgid "Show Filter Table…"
+msgstr "Zobrazit filtrovací tabulku…"
+
+msgid "Filter Table"
+msgstr "Filtrovací tabulka"
+
+msgid "This coupler routes no group addresses."
+msgstr "Tato spojka nesměruje žádné skupinové adresy."
+
+msgid "The filter table needs downloading."
+msgstr "Filtrovací tabulka musí být stažena."

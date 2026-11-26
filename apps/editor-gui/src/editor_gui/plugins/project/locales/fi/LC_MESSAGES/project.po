@@ -4187,3 +4187,15 @@ msgstr "Kopioi nimi"
 
 msgid "Copy Path"
 msgstr "Kopioi polku"
+
+msgid "Show Filter Table…"
+msgstr "Näytä suodatustaulukko…"
+
+msgid "Filter Table"
+msgstr "Suodatustaulukko"
+
+msgid "This coupler routes no group addresses."
+msgstr "Tämä liitin ei reititä yhtään ryhmäosoitetta."
+
+msgid "The filter table needs downloading."
+msgstr "Suodatustaulukko on ladattava."

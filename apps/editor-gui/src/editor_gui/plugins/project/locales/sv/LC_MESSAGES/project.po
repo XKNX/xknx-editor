@@ -4187,3 +4187,15 @@ msgstr "Kopiera namn"
 
 msgid "Copy Path"
 msgstr "Kopiera sökväg"
+
+msgid "Show Filter Table…"
+msgstr "Visa filtertabell…"
+
+msgid "Filter Table"
+msgstr "Filtertabell"
+
+msgid "This coupler routes no group addresses."
+msgstr "Den här kopplaren dirigerar inga gruppadresser."
+
+msgid "The filter table needs downloading."
+msgstr "Filtertabellen måste laddas ner."

@@ -4189,3 +4189,15 @@ msgstr "Αντιγραφή Ονόματος"
 
 msgid "Copy Path"
 msgstr "Αντιγραφή Διαδρομής"
+
+msgid "Show Filter Table…"
+msgstr "Προβολή πίνακα φίλτρου…"
+
+msgid "Filter Table"
+msgstr "Πίνακας φίλτρου"
+
+msgid "This coupler routes no group addresses."
+msgstr "Αυτός ο συζεύκτης δεν δρομολογεί καμία διεύθυνση ομάδας."
+
+msgid "The filter table needs downloading."
+msgstr "Ο πίνακας φίλτρου πρέπει να μεταφορτωθεί."

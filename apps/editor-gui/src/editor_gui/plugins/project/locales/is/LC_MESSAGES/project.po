@@ -4214,3 +4214,15 @@ msgstr "Afrita heiti"
 
 msgid "Copy Path"
 msgstr "Afrita slóð"
+
+msgid "Show Filter Table…"
+msgstr "Sýna síutöflu…"
+
+msgid "Filter Table"
+msgstr "Síutafla"
+
+msgid "This coupler routes no group addresses."
+msgstr "Þessi tengir beinir engum hópvistföngum."
+
+msgid "The filter table needs downloading."
+msgstr "Hlaða þarf niður síutöflunni."

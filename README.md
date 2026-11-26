@@ -129,6 +129,7 @@ compatibility checks, and every change has full undo/redo. In the Group Objects 
 Modules dropdown shows the product's channel and group-object folder hierarchy and can show
 several groups together. Selecting a parent includes its subgroups. Select All modules to clear
 the filter, or Without module for ungrouped objects. Bulk actions use only the selected, shown objects.
+A coupler's context menu shows and exports (CSV) the group-address filter table it routes.
 
 ![Project editor](docs/images/editor.png)
 

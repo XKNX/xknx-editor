@@ -4162,3 +4162,15 @@ msgstr "Név másolása"
 
 msgid "Copy Path"
 msgstr "Útvonal másolása"
+
+msgid "Show Filter Table…"
+msgstr "Szűrőtábla megjelenítése…"
+
+msgid "Filter Table"
+msgstr "Szűrőtábla"
+
+msgid "This coupler routes no group addresses."
+msgstr "Ez a csatoló nem továbbít csoportcímeket."
+
+msgid "The filter table needs downloading."
+msgstr "A szűrőtáblát le kell tölteni."

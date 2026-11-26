@@ -44,6 +44,21 @@ async def _device(client: Client) -> int:
     )["node_id"]
 
 
+@_needs_fixture
+async def test_coupler_filter_table_errors_for_a_non_coupler(tmp_path: Path) -> None:
+    mcp, _project = _build(tmp_path)
+    async with Client(mcp) as client:
+        await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
+        node_id = await _device(client)
+        device = (await _data(client, "project_list_devices"))["items"][0]
+        address = device["individual_address"]
+        # A regular device routes nothing: the tool refuses it, by node_id and by address.
+        await _error(client, "coupler_filter_table", "no coupler", node_id=node_id)
+        await _error(
+            client, "coupler_filter_table", "no coupler", device_address=address
+        )
+
+
 async def test_project_comment_as_text_and_paragraphs(tmp_path: Path) -> None:
     mcp, project = _build(tmp_path)
     async with Client(mcp) as client:

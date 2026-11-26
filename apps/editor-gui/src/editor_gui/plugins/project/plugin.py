@@ -314,6 +314,8 @@ class ProjectPlugin:
             ),
             one_undo_step=api.project.one_undo_step,
             paste_dialog=self._paste_dialog("topology"),
+            is_coupler=api.project.is_coupler,
+            get_filter_table=api.project.coupler_filter_table,
         )
         self._compare_panel = DeviceComparePanel(
             get_devices=lambda: api.project.devices,

@@ -5283,6 +5283,37 @@ class ProjectStrings:
         return _("Import")
 
     @property
+    def FILTER_TABLE_MENU(self) -> str:
+        # A coupler's menu: show the group addresses it routes.
+        return _("Show Filter Table…")
+
+    @property
+    def FILTER_TABLE_TITLE(self) -> str:
+        return _("Filter Table")
+
+    @property
+    def FILTER_TABLE_GROUP_ADDRESSES(self) -> str:
+        # Section label above the routed-address table, with the count beside it.
+        return _("Group Addresses")
+
+    @property
+    def FILTER_TABLE_NAME(self) -> str:
+        return _("Name")
+
+    @property
+    def FILTER_TABLE_EMPTY(self) -> str:
+        return _("This coupler routes no group addresses.")
+
+    @property
+    def FILTER_TABLE_EXPORT(self) -> str:
+        return _("Export…")
+
+    @property
+    def FILTER_TABLE_PENDING(self) -> str:
+        # Tooltip of the download marker on a coupler whose filter table is out of date.
+        return _("The filter table needs downloading.")
+
+    @property
     def DEVICE_CERTIFICATE_PLAIN(self) -> str:
         return _("Plain")
 

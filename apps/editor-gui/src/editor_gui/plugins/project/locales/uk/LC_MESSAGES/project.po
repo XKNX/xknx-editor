@@ -4239,3 +4239,15 @@ msgstr "Копіювати назву"
 
 msgid "Copy Path"
 msgstr "Копіювати шлях"
+
+msgid "Show Filter Table…"
+msgstr "Показати таблицю фільтрації…"
+
+msgid "Filter Table"
+msgstr "Таблиця фільтрації"
+
+msgid "This coupler routes no group addresses."
+msgstr "Цей з'єднувач не маршрутизує жодних групових адрес."
+
+msgid "The filter table needs downloading."
+msgstr "Таблицю фільтрації потрібно завантажити."

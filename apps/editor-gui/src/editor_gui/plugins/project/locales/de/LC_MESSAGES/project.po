@@ -4328,3 +4328,15 @@ msgstr "Name kopieren"
 
 msgid "Copy Path"
 msgstr "Pfad kopieren"
+
+msgid "Show Filter Table…"
+msgstr "Filtertabelle anzeigen…"
+
+msgid "Filter Table"
+msgstr "Filtertabelle"
+
+msgid "This coupler routes no group addresses."
+msgstr "Dieser Koppler leitet keine Gruppenadressen weiter."
+
+msgid "The filter table needs downloading."
+msgstr "Die Filtertabelle muss geladen werden."
