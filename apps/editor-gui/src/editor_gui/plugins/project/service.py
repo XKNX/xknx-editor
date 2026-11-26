@@ -3757,13 +3757,16 @@ class ProjectService:
         return build_filter_table(routed)
 
     def _routed_group_addresses_for(
-        self, device: Device, device_address: int
+        self,
+        device: Device,
+        device_address: int,
+        links: dict[int, set[int]] | None = None,
     ) -> list[int] | None:
         """The raw group-address values a coupler routes (see :meth:`_filter_table_for`); None
-        for a device that is no coupler."""
+        for a device that is no coupler. ``links`` reuses a prebuilt device→group-address map."""
         from xknxeditor.download.filter_table import routed_group_addresses
 
-        sides = self._coupler_sides(device, device_address)
+        sides = self._coupler_sides(device, device_address, links)
         if sides is None:
             return None
         inside, outside, segment_id = sides
@@ -3828,17 +3831,22 @@ class ProjectService:
         return CouplerFilterTable(device.individual_address, device.name, entries)
 
     def _coupler_sides(
-        self, device: Device, device_address: int
+        self,
+        device: Device,
+        device_address: int,
+        links: dict[int, set[int]] | None = None,
     ) -> tuple[set[int], set[int], int | None] | None:
         """The group addresses linked behind a coupler and in front of it, and the segment it
         feeds for a segment coupler; None for a device that is no coupler (see
-        :meth:`_filter_table_for`)."""
+        :meth:`_filter_table_for`). ``links`` reuses a prebuilt device→group-address map (see
+        :meth:`couplers_needing_download`) instead of reading it again."""
         from xknxeditor.download.filter_table import is_behind, is_coupler_address
 
         segment_id = self._coupled_segment(device)
         if segment_id is None and not is_coupler_address(device_address):
             return None
-        links = self._all_device_group_addresses()
+        if links is None:
+            links = self._all_device_group_addresses()
         segments = self.device_segments() if segment_id is not None else {}
         inside: set[int] = set()
         outside: set[int] = set()
@@ -6875,7 +6883,7 @@ class ProjectService:
             address = ia_by_node.get(node_id)
             if device is None or address is None:
                 continue
-            routed = set(self._routed_group_addresses_for(device, address) or ())
+            routed = set(self._routed_group_addresses_for(device, address, links) or ())
             if routed and any(links.get(ia, set()) & routed for ia in pending_comm):
                 result.add(node_id)
         return frozenset(result)
