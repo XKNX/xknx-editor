@@ -16,7 +16,12 @@ from collections.abc import Callable, Iterable
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
-from xknxeditor.proj.core.manufacturer_xml import DeviceProduct, merge_members
+from xknxeditor.proj.core.manufacturer_xml import (
+    DeviceProduct,
+    manufacturer_id,
+    merge_manufacturer_xml,
+    merge_members,
+)
 from xknxeditor.proj.core.product_prune import read_product_subset
 
 if TYPE_CHECKING:
@@ -46,7 +51,7 @@ def collect_manufacturer_bundle(
       program_refs: Distinct hardware-program (or product) refs used by the project's devices.
       catalog: The GUI catalog service (resolves a ref to its source ``.knxprod`` and manufacturer).
       missing_products: When supplied, collect only these devices' product data.
-        The master is still chosen from all sources.
+        Their refs must also be in ``program_refs``. The master is chosen from all sources.
 
     Returns:
       A :class:`ManufacturerBundle` with the ``extra_files`` to add, a merged
@@ -64,11 +69,9 @@ def collect_manufacturer_bundle(
             source = catalog.get_program_source(ref)
             if source is not None:
                 path, manufacturer = source
-                needed.setdefault(path, set()).add(manufacturer)
                 selected.setdefault(path, {}).setdefault(manufacturer, []).append(
                     device
                 )
-                skipped.discard(ref)
     bundle = read_manufacturer_bundle(needed, selected)
     bundle.skipped_refs |= skipped
     return bundle
@@ -117,13 +120,19 @@ def read_manufacturer_bundle(
                 ]
                 bundle.has_product_members |= bool(members)
                 if selected is None:
-                    files = {name: zf.read(name) for name in members}
+                    for name in members:
+                        if name not in bundle.extra_files:
+                            bundle.extra_files[name] = zf.read(name)
+                        elif name.endswith(".xml") and name.count("/") == 1:
+                            bundle.extra_files[name] = merge_manufacturer_xml(
+                                bundle.extra_files[name], zf.read(name)
+                            )
                 elif manufacturers := selected.get(knxprod_path):
                     products = [
                         d for devices in manufacturers.values() for d in devices
                     ]
                     folders = set(manufacturers) | {
-                        d.application.split("_", 1)[0]
+                        manufacturer_id(d.application)
                         for d in products
                         if d.application
                     }
@@ -140,9 +149,9 @@ def read_manufacturer_bundle(
                         (d.hardware2program for d in products),
                         (d.application for d in products),
                     )
+                    bundle.extra_files = merge_members(bundle.extra_files, files)
                 else:
                     continue
-                bundle.extra_files = merge_members(bundle.extra_files, files)
                 bundle.resolved_manufacturers.update(manufacturer_ids)
         except (OSError, zipfile.BadZipFile):
             # Source archive gone or unreadable: skip every ref that pointed at it.

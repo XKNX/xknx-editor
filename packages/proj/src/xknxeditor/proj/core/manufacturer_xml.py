@@ -159,7 +159,8 @@ def defined_programs(members: Mapping[str, bytes]) -> set[str]:
     return programs
 
 
-def _manufacturer(ref: str) -> str:
+def manufacturer_id(ref: str) -> str:
+    """The manufacturer prefix of a KNX product, hardware or application reference."""
     return ref.split("_", 1)[0]
 
 
@@ -198,7 +199,7 @@ def missing_product_devices(
         if (device.product and device.product not in products)
         or (device.hardware2program and device.hardware2program not in programs)
         or any(
-            f"{_manufacturer(app)}/{app}.xml" not in names
+            f"{manufacturer_id(app)}/{app}.xml" not in names
             for app in programs.get(device.hardware2program, set())
             | {device.application}
             if app
@@ -264,7 +265,7 @@ def add_product_members(
         d
         for d in missing
         if not d.imported
-        or _manufacturer(d.hardware2program or d.product) not in own_catalogs
+        or manufacturer_id(d.hardware2program or d.product) not in own_catalogs
     ]
     data_subset = _subset(sources, missing)
     catalog_subset = _subset(sources, listed) if listed else {}

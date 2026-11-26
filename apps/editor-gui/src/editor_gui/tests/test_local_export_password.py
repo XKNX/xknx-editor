@@ -38,7 +38,6 @@ def test_local_export_forwards_password(
         _show_ets_result=Mock(),
         _show_export_failure=Mock(),
     )
-    bundle = SimpleNamespace(extra_files={}, master_xml=None)
     stage = Mock(return_value=SimpleNamespace(missing_references=[]))
     signer = Mock(
         return_value=SimpleNamespace(
@@ -48,9 +47,6 @@ def test_local_export_forwards_password(
             licensed_devices=1,
             notes=(),
         )
-    )
-    monkeypatch.setattr(
-        "editor_gui.main.collect_manufacturer_bundle", lambda *_: bundle
     )
     monkeypatch.setattr("editor_gui.main.export_knxproj", stage)
     monkeypatch.setattr("editor_gui.main.ets_local_sign", signer)

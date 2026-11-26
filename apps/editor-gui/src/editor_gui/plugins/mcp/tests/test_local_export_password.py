@@ -38,7 +38,6 @@ async def test_local_export_forwards_password(
         return result
 
     monkeypatch.setattr(ctx, "run_locked", stage_then_change)
-    bundle = SimpleNamespace(extra_files={}, master_xml=None)
     stage = Mock()
     signer = Mock(
         return_value=SimpleNamespace(
@@ -56,10 +55,6 @@ async def test_local_export_forwards_password(
         signer,
     )
     monkeypatch.setattr("xknxeditor.proj.export_knxproj", stage)
-    monkeypatch.setattr(
-        "editor_gui.plugins.project.knxproj_manufacturer.collect_manufacturer_bundle",
-        lambda *_: bundle,
-    )
     dest = str(tmp_path / "export.knxproj")
     try:
         async with Client(build_server(ctx)) as client:

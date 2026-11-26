@@ -100,6 +100,36 @@ def test_the_bundle_merges_hardware_of_two_sources(tmp_path: Path) -> None:
     assert "M-00FA/M-00FA_A-A502.xml" in bundle.extra_files
 
 
+def test_full_bundle_merges_duplicate_application_xml_and_reads_baggage_once(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    application = "M-00FA/M-00FA_A-A1.xml"
+    baggage = "M-00FA/Baggages/logo.png"
+    sources: dict[str, tuple[str, str]] = {}
+    for ref in ("first", "second"):
+        path = tmp_path / f"{ref}.knxprod"
+        with zipfile.ZipFile(path, "w") as archive:
+            archive.writestr(application, f'<KNX><Item Id="{ref}"/></KNX>')
+            archive.writestr(baggage, ref.encode())
+        sources[ref] = (str(path), "M-00FA")
+
+    read = Mock(side_effect=zipfile.ZipFile.read)
+    monkeypatch.setattr(zipfile.ZipFile, "read", lambda zf, name: read(zf, name))
+    catalog = Mock(spec=CatalogService)
+    catalog.get_program_source.side_effect = sources.get
+
+    bundle = collect_manufacturer_bundle(sources, catalog)
+
+    assert [
+        item.get("Id") for item in ET.fromstring(bundle.extra_files[application])
+    ] == [
+        "first",
+        "second",
+    ]
+    assert bundle.extra_files[baggage] == b"first"
+    assert sum(call.args[1] == baggage for call in read.call_args_list) == 1
+
+
 def test_catalog_export_includes_an_application_in_another_folder(
     tmp_path: Path,
 ) -> None:
