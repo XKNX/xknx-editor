@@ -225,8 +225,8 @@ msgstr "デバイスマスク: %(device)s、製品マスク: %(product)s"
 msgid "Mask compatibility data unavailable; only exact masks checked"
 msgstr "マスク互換性データがありません。同一のマスクのみ確認しました"
 
-msgid "The application version missing from the local catalog was found in the alternative catalog. A login is required to download it. Enter your username and password in Settings > Catalog."
-msgstr "ローカルカタログにないアプリケーションバージョンが代替カタログで見つかりました。ダウンロードするにはログインが必要です。「設定 > カタログ」でユーザー名とパスワードを入力してください。"
+msgid "The application version missing from the local catalog was found in the alternative catalog. Downloading it needs an account for the alternative catalog. Register one, or enter your username and password, in Settings > Catalog."
+msgstr "ローカルカタログにないアプリケーションバージョンが代替カタログで見つかりました。ダウンロードには代替カタログのアカウントが必要です。アカウントを登録するか、「設定 > カタログ」でユーザー名とパスワードを入力してください。"
 
 msgid "Other Application Versions"
 msgstr "他のアプリケーションバージョン"

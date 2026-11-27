@@ -265,8 +265,8 @@ msgstr "Alternative Catalog"
 msgid "The login was refused: the username or password is wrong, or the account is not approved yet."
 msgstr "Kirjautuminen hylättiin: käyttäjätunnus tai salasana on väärä, tai tiliä ei ole vielä hyväksytty."
 
-msgid "Enter your username and password, or register, before downloading."
-msgstr "Anna käyttäjätunnuksesi ja salasanasi tai rekisteröidy ennen lataamista."
+msgid "Register an account for the alternative catalog, or enter your username and password, before downloading."
+msgstr "Rekisteröi vaihtoehtoisen luettelon tili tai anna käyttäjänimi ja salasana ennen lataamista."
 
 msgid "The daily download limit is reached. Try again tomorrow."
 msgstr "Päivittäinen latausraja on täynnä. Yritä huomenna uudelleen."

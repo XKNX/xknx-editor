@@ -265,8 +265,8 @@ msgstr "Alternative Catalog"
 msgid "The login was refused: the username or password is wrong, or the account is not approved yet."
 msgstr "Oturum açma reddedildi: kullanıcı adı veya parola yanlış ya da hesap henüz onaylanmadı."
 
-msgid "Enter your username and password, or register, before downloading."
-msgstr "İndirmeden önce kullanıcı adınızı ve parolanızı girin veya kaydolun."
+msgid "Register an account for the alternative catalog, or enter your username and password, before downloading."
+msgstr "İndirmeden önce alternatif katalog için bir hesap oluşturun veya kullanıcı adınızı ve parolanızı girin."
 
 msgid "The daily download limit is reached. Try again tomorrow."
 msgstr "Günlük indirme sınırına ulaşıldı. Yarın yeniden deneyin."

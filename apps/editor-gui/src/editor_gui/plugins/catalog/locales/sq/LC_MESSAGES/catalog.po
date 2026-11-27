@@ -265,8 +265,8 @@ msgstr "Katalogu alternativ"
 msgid "The login was refused: the username or password is wrong, or the account is not approved yet."
 msgstr "Hyrja u refuzua: emri i përdoruesit ose fjalëkalimi është i gabuar, ose llogaria nuk është miratuar ende."
 
-msgid "Enter your username and password, or register, before downloading."
-msgstr "Vendosni emrin e përdoruesit dhe fjalëkalimin, ose regjistrohuni, para se të shkarkoni."
+msgid "Register an account for the alternative catalog, or enter your username and password, before downloading."
+msgstr "Regjistroni një llogari për katalogun alternativ, ose vendosni emrin e përdoruesit dhe fjalëkalimin, para shkarkimit."
 
 msgid "The daily download limit is reached. Try again tomorrow."
 msgstr "U arrit kufiri ditor i shkarkimeve. Provoni sërish nesër."

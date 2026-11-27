@@ -107,6 +107,36 @@ async def test_search_import_settings_and_annotations(
     ctx.api.catalog.alternative.close()
 
 
+async def test_download_without_account_points_to_register(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr("editor_gui.settings.config_dir", lambda: tmp_path / "settings")
+    data = _FIXTURE.read_bytes()
+
+    def serve(r: httpx.Request) -> httpx.Response:
+        if r.url.path.endswith("index.json"):
+            return httpx.Response(200, json=index(data))
+        raise AssertionError(f"unexpected request {r.url.path}")
+
+    ctx = _build_ctx(tmp_path)
+    ctx.api.catalog.alternative.close()
+    ctx.api.catalog.alternative = AlternativeCatalogClient(
+        tmp_path,
+        settings=AlternativeSettings("https://catalog.example"),
+        transport=httpx.MockTransport(serve),
+    )
+    mcp = build_server(ctx)
+    async with Client(mcp) as client:
+        assert (await _data(client, "catalog_alternative_refresh"))["count"] == 1
+        result = await _data(
+            client, "catalog_alternative_search", query="MDT AKD040102"
+        )
+        item = result["items"][0]
+        with pytest.raises(Exception, match="catalog_alternative_register"):
+            await _data(client, "catalog_alternative_download", entry_id=item["id"])
+    ctx.api.catalog.alternative.close()
+
+
 def test_registration_secrets_are_redacted() -> None:
     assert _redact_args(
         "catalog_alternative_register", {"password": "test-password"}

@@ -273,8 +273,8 @@ msgstr "Maska naprave: %(device)s; maska izdelka: %(product)s"
 msgid "Mask compatibility data unavailable; only exact masks checked"
 msgstr "Podatki o združljivosti mask niso na voljo; preverjene so bile le enake maske"
 
-msgid "The application version missing from the local catalog was found in the alternative catalog. A login is required to download it. Enter your username and password in Settings > Catalog."
-msgstr "Različica aplikacije, ki manjka v lokalnem katalogu, je bila najdena v alternativnem katalogu. Za prenos je potrebna prijava. Vnesite uporabniško ime in geslo v Nastavitve > Katalog."
+msgid "The application version missing from the local catalog was found in the alternative catalog. Downloading it needs an account for the alternative catalog. Register one, or enter your username and password, in Settings > Catalog."
+msgstr "Različica aplikacije, ki manjka v lokalnem katalogu, je bila najdena v alternativnem katalogu. Za prenos je potreben račun za alternativni katalog. Registrirajte ga ali vnesite uporabniško ime in geslo v Nastavitve > Katalog."
 
 msgid "Other Application Versions"
 msgstr "Druge različice aplikacije"

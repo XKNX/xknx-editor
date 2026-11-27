@@ -265,8 +265,8 @@ msgstr "Alternative Catalog"
 msgid "The login was refused: the username or password is wrong, or the account is not approved yet."
 msgstr "Вход отклонён: неверное имя пользователя или пароль, либо учётная запись ещё не одобрена."
 
-msgid "Enter your username and password, or register, before downloading."
-msgstr "Перед загрузкой введите имя пользователя и пароль или зарегистрируйтесь."
+msgid "Register an account for the alternative catalog, or enter your username and password, before downloading."
+msgstr "Зарегистрируйте учётную запись альтернативного каталога или укажите имя пользователя и пароль перед скачиванием."
 
 msgid "The daily download limit is reached. Try again tomorrow."
 msgstr "Достигнут дневной лимит загрузок. Повторите попытку завтра."

@@ -5,6 +5,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
+from fastmcp.exceptions import ToolError
+
 from editor_gui.plugins.mcp.context import McpContext, make_tool
 
 if TYPE_CHECKING:
@@ -69,9 +71,19 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         with project_add_device. Outside project undo history. Does not program the bus.
         An INVALID_TOKEN response renews the token and retries once; other errors are reported.
         Daily limits and Retry-After are respected without automatic repeated downloads."""
+        from editor_gui.plugins.catalog.alternative import AlternativeCatalogError
         from editor_gui.plugins.mcp.tools.catalog import added_products
 
-        data = client.download(entry_id)
+        try:
+            data = client.download(entry_id)
+        except AlternativeCatalogError as exc:
+            if exc.code == "NO_ACCOUNT":
+                raise ToolError(
+                    "no account for the alternative catalog; configure a login with "
+                    "catalog_alternative_configure, or create one with "
+                    "catalog_alternative_register, before downloading"
+                ) from exc
+            raise
 
         def import_product() -> dict[str, Any]:
             added = catalog.import_alternative_product(data)

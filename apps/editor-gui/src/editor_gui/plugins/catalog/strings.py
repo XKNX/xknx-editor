@@ -111,7 +111,10 @@ class CatalogStrings:
 
     @property
     def ALTERNATIVE_ERROR_NO_ACCOUNT(self) -> str:
-        return _("Enter your username and password, or register, before downloading.")
+        return _(
+            "Register an account for the alternative catalog, or enter your username and "
+            "password, before downloading."
+        )
 
     @property
     def ALTERNATIVE_ERROR_DAILY_LIMIT(self) -> str:

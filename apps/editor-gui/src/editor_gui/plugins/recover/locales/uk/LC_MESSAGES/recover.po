@@ -253,8 +253,8 @@ msgstr "Маска пристрою: %(device)s; маска продукту: %(
 msgid "Mask compatibility data unavailable; only exact masks checked"
 msgstr "Дані про сумісність масок недоступні; перевірено лише однакові маски"
 
-msgid "The application version missing from the local catalog was found in the alternative catalog. A login is required to download it. Enter your username and password in Settings > Catalog."
-msgstr "Версію програми, якої немає в локальному каталозі, знайдено в альтернативному каталозі. Для завантаження потрібно ввійти в обліковий запис. Вкажіть ім’я користувача та пароль у розділі Налаштування > Каталог."
+msgid "The application version missing from the local catalog was found in the alternative catalog. Downloading it needs an account for the alternative catalog. Register one, or enter your username and password, in Settings > Catalog."
+msgstr "Версію програми, якої немає в локальному каталозі, знайдено в альтернативному каталозі. Для завантаження потрібен обліковий запис альтернативного каталогу. Зареєструйте його або вкажіть ім’я користувача та пароль у розділі Налаштування > Каталог."
 
 msgid "Other Application Versions"
 msgstr "Інші версії застосунку"

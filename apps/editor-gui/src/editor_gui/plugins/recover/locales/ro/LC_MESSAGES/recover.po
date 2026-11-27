@@ -259,8 +259,8 @@ msgstr "Masca dispozitivului: %(device)s; masca produsului: %(product)s"
 msgid "Mask compatibility data unavailable; only exact masks checked"
 msgstr "Datele de compatibilitate a măștilor nu sunt disponibile; au fost verificate doar măștile identice"
 
-msgid "The application version missing from the local catalog was found in the alternative catalog. A login is required to download it. Enter your username and password in Settings > Catalog."
-msgstr "Versiunea aplicației care lipsește din catalogul local a fost găsită în catalogul alternativ. Descărcarea necesită autentificare. Introduceți numele de utilizator și parola în Setări > Catalog."
+msgid "The application version missing from the local catalog was found in the alternative catalog. Downloading it needs an account for the alternative catalog. Register one, or enter your username and password, in Settings > Catalog."
+msgstr "Versiunea aplicației care lipsește din catalogul local a fost găsită în catalogul alternativ. Descărcarea necesită un cont pentru catalogul alternativ. Înregistrați unul sau introduceți numele de utilizator și parola în Setări > Catalog."
 
 msgid "Other Application Versions"
 msgstr "Alte versiuni ale aplicației"

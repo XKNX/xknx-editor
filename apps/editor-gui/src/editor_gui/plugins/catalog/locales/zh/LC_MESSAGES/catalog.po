@@ -265,8 +265,8 @@ msgstr "Alternative Catalog"
 msgid "The login was refused: the username or password is wrong, or the account is not approved yet."
 msgstr "登录被拒绝：用户名或密码错误，或者账户尚未获批。"
 
-msgid "Enter your username and password, or register, before downloading."
-msgstr "下载前请输入用户名和密码，或先注册。"
+msgid "Register an account for the alternative catalog, or enter your username and password, before downloading."
+msgstr "下载前，请注册替代目录的账户，或输入您的用户名和密码。"
 
 msgid "The daily download limit is reached. Try again tomorrow."
 msgstr "已达到每日下载上限。请明天再试。"

@@ -8,7 +8,11 @@ import pytest
 from imgui_bundle import imgui
 
 from editor_gui.plugins.project.service import CouplerFilterTable, FilterTableEntry
-from editor_gui.plugins.project.ui.filter_table import FilterTableDialog, _csv
+from editor_gui.plugins.project.ui.filter_table import (
+    FilterTableDialog,
+    _csv,
+    _safe_cell,
+)
 from editor_gui.widgets.dpt_value import dpt_label
 
 
@@ -49,6 +53,17 @@ def test_csv_neutralises_formula_injection_in_names() -> None:
     )
     # A name a spreadsheet would run as a formula is prefixed with an apostrophe.
     assert _csv(table).splitlines()[1] == "1/0/1,'=1+1,"
+
+
+@pytest.mark.parametrize("prefix", ["=", "+", "-", "@", "\t", "\r", "\n"])
+def test_safe_cell_prefixes_every_formula_trigger(prefix: str) -> None:
+    assert _safe_cell(f"{prefix}x") == f"'{prefix}x"
+
+
+def test_safe_cell_leaves_ordinary_text() -> None:
+    assert _safe_cell("Kitchen Light") == "Kitchen Light"
+    assert _safe_cell("1/2/3") == "1/2/3"
+    assert _safe_cell("") == ""
 
 
 def test_open_ignores_a_device_that_is_no_coupler() -> None:

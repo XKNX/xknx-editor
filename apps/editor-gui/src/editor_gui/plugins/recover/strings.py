@@ -127,8 +127,9 @@ class RecoverStrings:
     def CATALOG_LOGIN_REQUIRED(self) -> str:
         return _(
             "The application version missing from the local catalog was found in the "
-            "alternative catalog. A login is required to download it. Enter your username "
-            "and password in Settings > Catalog."
+            "alternative catalog. Downloading it needs an account for the alternative "
+            "catalog. Register one, or enter your username and password, in Settings > "
+            "Catalog."
         )
 
     @property

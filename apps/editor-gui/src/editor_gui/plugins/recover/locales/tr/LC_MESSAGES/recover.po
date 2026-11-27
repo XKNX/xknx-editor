@@ -225,8 +225,8 @@ msgstr "Cihaz maskesi: %(device)s; ürün maskesi: %(product)s"
 msgid "Mask compatibility data unavailable; only exact masks checked"
 msgstr "Maske uyumluluk verileri yok; yalnızca aynı maskeler kontrol edildi"
 
-msgid "The application version missing from the local catalog was found in the alternative catalog. A login is required to download it. Enter your username and password in Settings > Catalog."
-msgstr "Yerel katalogda eksik olan uygulama sürümü alternatif katalogda bulundu. İndirmek için oturum açılması gerekiyor. Ayarlar > Katalog bölümüne kullanıcı adınızı ve parolanızı girin."
+msgid "The application version missing from the local catalog was found in the alternative catalog. Downloading it needs an account for the alternative catalog. Register one, or enter your username and password, in Settings > Catalog."
+msgstr "Yerel katalogda eksik olan uygulama sürümü alternatif katalogda bulundu. İndirmek için alternatif katalog hesabı gerekiyor. Bir hesap oluşturun veya Ayarlar > Katalog bölümüne kullanıcı adınızı ve parolanızı girin."
 
 msgid "Other Application Versions"
 msgstr "Diğer Uygulama Sürümleri"

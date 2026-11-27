@@ -239,8 +239,8 @@ msgstr "Maska e pajisjes: %(device)s; maska e produktit: %(product)s"
 msgid "Mask compatibility data unavailable; only exact masks checked"
 msgstr "Të dhënat e përputhshmërisë së maskave mungojnë; u kontrolluan vetëm maskat identike"
 
-msgid "The application version missing from the local catalog was found in the alternative catalog. A login is required to download it. Enter your username and password in Settings > Catalog."
-msgstr "Versioni i programit aplikativ që mungon në katalogun lokal u gjet në katalogun alternativ. Për ta shkarkuar duhet të identifikoheni. Vendosni emrin e përdoruesit dhe fjalëkalimin te Cilësimet > Katalogu."
+msgid "The application version missing from the local catalog was found in the alternative catalog. Downloading it needs an account for the alternative catalog. Register one, or enter your username and password, in Settings > Catalog."
+msgstr "Versioni i programit aplikativ që mungon në katalogun lokal u gjet në katalogun alternativ. Për ta shkarkuar duhet një llogari për katalogun alternativ. Regjistroni një ose vendosni emrin e përdoruesit dhe fjalëkalimin te Cilësimet > Katalogu."
 
 msgid "Other Application Versions"
 msgstr "Versione të tjera të programit aplikativ"

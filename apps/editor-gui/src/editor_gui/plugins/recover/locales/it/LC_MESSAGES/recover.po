@@ -239,8 +239,8 @@ msgstr "Maschera del dispositivo: %(device)s; maschera del prodotto: %(product)s
 msgid "Mask compatibility data unavailable; only exact masks checked"
 msgstr "Dati di compatibilità delle maschere non disponibili; verificate solo le maschere identiche"
 
-msgid "The application version missing from the local catalog was found in the alternative catalog. A login is required to download it. Enter your username and password in Settings > Catalog."
-msgstr "La versione dell’applicazione assente dal catalogo locale è stata trovata nel catalogo alternativo. Per scaricarla è necessario accedere. Inserisci nome utente e password in Impostazioni > Catalogo."
+msgid "The application version missing from the local catalog was found in the alternative catalog. Downloading it needs an account for the alternative catalog. Register one, or enter your username and password, in Settings > Catalog."
+msgstr "La versione dell’applicazione assente dal catalogo locale è stata trovata nel catalogo alternativo. Per scaricarla è necessario un account per il catalogo alternativo. Registrane uno o inserisci nome utente e password in Impostazioni > Catalogo."
 
 msgid "Other Application Versions"
 msgstr "Altre versioni dell’applicazione"

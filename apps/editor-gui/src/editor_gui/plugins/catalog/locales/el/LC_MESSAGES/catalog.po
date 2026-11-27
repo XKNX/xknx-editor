@@ -265,8 +265,8 @@ msgstr "Alternative Catalog"
 msgid "The login was refused: the username or password is wrong, or the account is not approved yet."
 msgstr "Η σύνδεση απορρίφθηκε: το όνομα χρήστη ή ο κωδικός είναι λάθος, ή ο λογαριασμός δεν έχει εγκριθεί ακόμη."
 
-msgid "Enter your username and password, or register, before downloading."
-msgstr "Εισαγάγετε το όνομα χρήστη και τον κωδικό σας ή κάντε εγγραφή πριν από τη λήψη."
+msgid "Register an account for the alternative catalog, or enter your username and password, before downloading."
+msgstr "Δημιουργήστε λογαριασμό για τον εναλλακτικό κατάλογο ή συμπληρώστε το όνομα χρήστη και τον κωδικό πρόσβασης πριν από τη λήψη."
 
 msgid "The daily download limit is reached. Try again tomorrow."
 msgstr "Το ημερήσιο όριο λήψεων συμπληρώθηκε. Δοκιμάστε ξανά αύριο."

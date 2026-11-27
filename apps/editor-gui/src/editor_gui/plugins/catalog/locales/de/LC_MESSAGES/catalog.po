@@ -270,8 +270,8 @@ msgstr "Alternativer Katalog"
 msgid "The login was refused: the username or password is wrong, or the account is not approved yet."
 msgstr "Die Anmeldung wurde abgelehnt: Benutzername oder Passwort sind falsch, oder das Konto ist noch nicht freigeschaltet."
 
-msgid "Enter your username and password, or register, before downloading."
-msgstr "Geben Sie vor dem Herunterladen Ihren Benutzernamen und Ihr Passwort ein, oder registrieren Sie sich."
+msgid "Register an account for the alternative catalog, or enter your username and password, before downloading."
+msgstr "Registrieren Sie ein Konto für den alternativen Katalog, oder geben Sie Benutzername und Passwort ein, bevor Sie herunterladen."
 
 msgid "The daily download limit is reached. Try again tomorrow."
 msgstr "Das tägliche Download-Limit ist erreicht. Versuchen Sie es morgen wieder."

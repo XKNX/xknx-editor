@@ -268,8 +268,8 @@ msgstr "Alternative Catalog"
 msgid "The login was refused: the username or password is wrong, or the account is not approved yet."
 msgstr "Innskráningu var hafnað: notandanafn eða lykilorð er rangt, eða aðgangurinn hefur ekki enn verið samþykktur."
 
-msgid "Enter your username and password, or register, before downloading."
-msgstr "Sláðu inn notandanafn og lykilorð, eða skráðu þig, áður en þú sækir."
+msgid "Register an account for the alternative catalog, or enter your username and password, before downloading."
+msgstr "Skráðu aðgang að öðrum vörulista, eða sláðu inn notandanafn og lykilorð, áður en þú sækir."
 
 msgid "The daily download limit is reached. Try again tomorrow."
 msgstr "Daglegu niðurhalshámarki er náð. Reyndu aftur á morgun."

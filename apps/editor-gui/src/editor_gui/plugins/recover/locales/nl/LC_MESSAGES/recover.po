@@ -245,8 +245,8 @@ msgstr "Apparaatmasker: %(device)s; productmasker: %(product)s"
 msgid "Mask compatibility data unavailable; only exact masks checked"
 msgstr "Gegevens over maskercompatibiliteit ontbreken; alleen identieke maskers gecontroleerd"
 
-msgid "The application version missing from the local catalog was found in the alternative catalog. A login is required to download it. Enter your username and password in Settings > Catalog."
-msgstr "De applicatieversie die ontbreekt in de lokale catalogus is gevonden in de alternatieve catalogus. Aanmelden is vereist om deze te downloaden. Voer uw gebruikersnaam en wachtwoord in onder Instellingen > Catalogus."
+msgid "The application version missing from the local catalog was found in the alternative catalog. Downloading it needs an account for the alternative catalog. Register one, or enter your username and password, in Settings > Catalog."
+msgstr "De applicatieversie die ontbreekt in de lokale catalogus is gevonden in de alternatieve catalogus. Voor het downloaden is een account voor de alternatieve catalogus nodig. Registreer er een of voer uw gebruikersnaam en wachtwoord in onder Instellingen > Catalogus."
 
 msgid "Other Application Versions"
 msgstr "Andere applicatieversies"
