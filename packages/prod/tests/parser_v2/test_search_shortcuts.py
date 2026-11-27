@@ -218,6 +218,18 @@ def test_the_scope_of_a_ref_told_by_the_instance_ids_is_the_one_looked_up(
             scopes.extend(scope.module_children())
 
 
+def test_the_active_refs_of_an_instance_are_qualified_as_each_on_its_own() -> None:
+    base = f"{_APP}_MD-1"
+    refs = [f"{base}_P-1_R-1", f"{base}_P-2_R-2", f"{_APP}_MD-2_P-3_R-3", "P-4_R-4"]
+    # Instances asked again (by the same id and base) and others.
+    for instance in (f"{base}_M-1_MI-1", f"{base}_M-1_MI-2", f"{base}_M-1_MI-1"):
+        for ref_id in (base, None, f"{base}_SM-1"):
+            state = ModuleState(instance, ref_id=ref_id)
+            for ref in refs:
+                state.mark_active_param(ref)
+            assert state.active_param_refs() == {state.qualify(ref) for ref in refs}
+
+
 def test_a_value_its_type_cannot_take_raises_at_every_encode() -> None:
     application = _application(_MEMORY)
     ui = _ui(application, {})

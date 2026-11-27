@@ -1642,18 +1642,15 @@ class ModuleState(ParameterState):
         return _qualified_in(self.module_instance_id, ref_id)
 
     def active_param_refs(self) -> set[str]:
-        # Each qualified as by _qualify, the base looked up once (a search asks for the
-        # active refs of thousands of states, each with hundreds of instances).
-        base = self._local_base()
-        mid = self.module_instance_id
-        if base is None:
-            result = {_qualified_in(mid, ref) for ref in self._active_param_refs}
-        else:
-            prefix, start = base + "_", len(base)
-            result = {
-                mid + ref[start:] if ref.startswith(prefix) else _qualified_in(mid, ref)
-                for ref in self._active_param_refs
-            }
+        # Each qualified as by _qualify, looked up in what the instances with the same id and
+        # base qualified before (a search asks for the active refs of thousands of states,
+        # each with hundreds of instances).
+        result = set(
+            map(
+                _qualifying(self.module_instance_id, self._local_base()).__getitem__,
+                self._active_param_refs,
+            )
+        )
         for child in self._children.values():
             result.update(child.active_param_refs())
         return result
@@ -1677,6 +1674,42 @@ class ModuleState(ParameterState):
         for child in self._children.values():
             result.extend(child.module_instances())
         return result
+
+
+class _Qualified(dict[str, str]):
+    """The local ids of a module definition qualified with a module instance (as
+    :meth:`ModuleState._qualify` does): each qualified when first asked for."""
+
+    __slots__ = ("_base", "_instance")
+
+    def __init__(self, instance: str, base: str | None) -> None:
+        super().__init__()
+        self._instance = instance
+        self._base = base
+
+    def __missing__(self, ref_id: str) -> str:
+        base, instance = self._base, self._instance
+        if base is not None and ref_id.startswith(base + "_"):
+            qualified = instance + ref_id[len(base) :]
+        else:
+            qualified = _qualified_in(instance, ref_id)
+        self[ref_id] = qualified
+        return qualified
+
+
+# The qualified ids of the module instances by instance id and base (see _qualifying).
+_QUALIFIED: dict[tuple[str, str | None], _Qualified] = {}
+
+
+def _qualifying(instance: str, base: str | None) -> _Qualified:
+    """The local ids qualified with the module instance ``instance`` whose local ids start
+    with ``base`` (see ModuleState._local_base), of the last several hundred instances."""
+    table = _QUALIFIED.get((instance, base))
+    if table is None:
+        if len(_QUALIFIED) >= 512:
+            _QUALIFIED.clear()
+        table = _QUALIFIED[instance, base] = _Qualified(instance, base)
+    return table
 
 
 __all__ = [
