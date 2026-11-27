@@ -1090,17 +1090,19 @@ def _differing_property_cells(
     """The bytes of the ``properties`` read off the device that ``ui`` does not give back, as
     cells (see :func:`_property_cell`), where a parameter is stored: the bits its active
     parameters write, and the other bits of the byte as the parameters there (no member of a
-    union) write them with their default values. A property holds its parameter's default until a download writes
-    it, so another value there is one a configuration that writes it gave (a setting shown
-    behind a switch the device keeps no copy of). A byte only inactive parameters cover is
-    written with the property's base, zeros (or the factory contents, which the defaults
-    stand for without a factory image): zeros there fit too. Where the search knows the
-    contents the device leaves the factory with (see :meth:`_SearchCache.factory_property`),
-    those fit the bits no active parameter writes as well: a download writes them as the
-    property's base, and a device that was never written holds them. An object addressed by
-    index is one object whatever
-    the occurrence (as :func:`~xknxeditor.prod.parser_v2.encode.property_data` reads it).
-    ``None`` when ``ui`` cannot be encoded."""
+    union) write them with their default values. The bits a parameter covers without writing
+    a value (an inactive one downloaded in the background, or the rest of an active one's
+    byte) a download that writes the property (see :meth:`_SearchCache.unwritten`) writes
+    with the property's base: the contents the device leaves the factory with where the
+    search knows them (see :meth:`_SearchCache.factory_property`), else zeros; only that
+    fits there. A property holds its parameter's default until a download writes it, so
+    another value in the bits nothing covers, or in a property not known to be written, is
+    one a configuration that writes it gave (a setting shown behind a switch the device
+    keeps no copy of); the factory contents fit there as well (a device that was never
+    written holds them), and zeros where a parameter covers the byte. An object addressed by
+    index is one object whatever the occurrence (as
+    :func:`~xknxeditor.prod.parser_v2.encode.property_data` reads it). ``None`` when ``ui``
+    cannot be encoded."""
     from xknxeditor.prod.errors import EncodingError
 
     try:
@@ -1123,32 +1125,52 @@ def _differing_property_cells(
         mine = written.get(key)
         default = layout.defaults.get(key)
         factory = cache.factory_property(key) if cache is not None else None
+        # The download writes the base only where it is known to write the property: one no
+        # load control writes keeps the device's own value (see _unwritten_property_cells),
+        # and without a procedure that resolves, either may be.
+        writes_base = (
+            cache is not None and not cache.unwritten(ui, key) and cache.resolves
+        )
         for offset in stored:
             if offset >= len(device):
                 continue
             held = device[offset]
             ours = 0
-            base = False
+            covered = 0
             if mine is not None and offset < len(mine.mask):
                 ours = mine.mask[offset]
                 if (mine.data[offset] ^ held) & ours:
                     differing.add(_property_cell(key, offset))
                     continue
-                # Covered (by an inactive parameter downloaded in the background, or beside
-                # an active one), the download writes the base where no value is.
-                base = mine.covered[offset] != 0
-            # The bits no active parameter writes: the default, unless a configuration wrote
-            # another value.
+                if offset < len(mine.covered):
+                    covered = mine.covered[offset]
+            # Covered (by an inactive parameter downloaded in the background, or beside an
+            # active one), the download writes the property's base where no value is: the
+            # factory contents, else zeros.
+            base = covered & ~ours if writes_base else 0
+            if base:
+                bits = (
+                    factory[offset]
+                    if factory is not None and offset < len(factory)
+                    else 0
+                )
+                if (bits ^ held) & base:
+                    differing.add(_property_cell(key, offset))
+                    continue
+            # The bits no active parameter writes otherwise: the default, unless a
+            # configuration wrote another value, or the factory contents.
             if default is None or offset >= len(default.mask):
                 continue
-            rest = default.mask[offset] & ~ours
-            if (
+            rest = default.mask[offset] & ~ours & ~base
+            if not rest or (
                 factory is not None
                 and offset < len(factory)
                 and not (factory[offset] ^ held) & rest
             ):
                 continue
-            if (default.data[offset] ^ held) & rest and not (base and not held & rest):
+            if (default.data[offset] ^ held) & rest and not (
+                covered and not writes_base and not held & rest
+            ):
                 differing.add(_property_cell(key, offset))
     return differing
 
