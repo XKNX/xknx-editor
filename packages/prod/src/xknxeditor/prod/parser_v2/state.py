@@ -140,7 +140,7 @@ class _InstanceIds:
     part is a run of the ref id's underscore-separated pieces, which starts with the first
     piece of an instance id and ends with the last piece of one."""
 
-    __slots__ = ("_firsts", "_lasts", "_order", "_owners", "_placed")
+    __slots__ = ("_firsts", "_lasts", "_order", "_owners", "_placed", "routes")
 
     def __init__(self, ids: Iterable[str]) -> None:
         self._order = {mid: n for n, mid in enumerate(ids)}
@@ -149,6 +149,8 @@ class _InstanceIds:
         # The owners found so far: the same instances own the same values seeding after seeding.
         self._owners: dict[str, str | None] = {}
         self._placed: dict[tuple[str, str, str], tuple[str, str]] = {}
+        # The routes found so far (see route).
+        self.routes: dict[str, tuple[str, str, str, str]] = {}
 
     def place(self, ref_id: str, owner: str, definition: str) -> tuple[str, str]:
         """For the value of ``ref_id`` its instance ``owner`` owns (a module instance of the
@@ -165,6 +167,20 @@ class _InstanceIds:
                 app_prefix + definition + suffix,
             )
         return placed
+
+    def route(self, ref_id: str, bases: Mapping[str, str]) -> tuple[str, str, str, str]:
+        """Where the value of ``ref_id`` goes, with ``bases`` the definition the local ids of
+        each instance start with: the instance that owns it ("" for the application), its id
+        and the value's ref id in it, as :meth:`owner` and :meth:`place` give them, and the
+        definition. Kept in :attr:`routes`, found again where the definition is the same."""
+        owner = self.owner(ref_id)
+        if owner is None:
+            found = ("", "", ref_id, "")
+        else:
+            base = bases[owner]
+            found = (owner, *self.place(ref_id, owner, base), base)
+        self.routes[ref_id] = found
+        return found
 
     def owner(self, ref_id: str) -> str | None:
         """The first instance id that is such a part of ``ref_id``; None when none is."""
@@ -203,11 +219,15 @@ def _instance_ids(ids: tuple[str, ...]) -> _InstanceIds:
 
 
 @lru_cache(maxsize=1 << 17)
-def _instance_in_ref(ref_id: str) -> tuple[str, str] | None:
-    """The module instance in an instance-qualified ref id and its module definition (see
-    ``_INSTANCE_IN_REF`` and ``_LEGACY_SUBMODULE_IN_REF``); None for another ref id."""
+def _instance_key(ref_id: str, app_id: str | None) -> tuple[str, str, str] | None:
+    """The module instance in an instance-qualified ref id (see ``_INSTANCE_IN_REF`` and
+    ``_LEGACY_SUBMODULE_IN_REF``) qualified with the application id ``app_id`` (see
+    :func:`_qualified`), with the instance as the ref id names it and its module definition;
+    None for another ref id."""
     match = _INSTANCE_IN_REF.search(ref_id) or _LEGACY_SUBMODULE_IN_REF.search(ref_id)
-    return None if match is None else (match.group(1), match.group(2))
+    if match is None:
+        return None
+    return _qualified(match.group(1), app_id), match.group(1), match.group(2)
 
 
 class ParameterState:
@@ -240,6 +260,7 @@ class ParameterState:
         "_known_param_ref_values",
         "_param_ref_defaults",
         "_parent_ref",
+        "_pass_changed",
         "_pass_texts",
         "_pass_values",
         "_seeded",
@@ -353,6 +374,10 @@ class ParameterState:
         # first such write (as _ungated_writes; see give_back_lapsed_assigns).
         self._evaluation_writes: dict[str, tuple[str | None, str | None]] = {}
         self._pass_texts: dict[str, str | None] = {}
+        # Whether a write of the current pass changed a value of this scope (an Assign that
+        # writes another value than the target holds, a value given back after the pass): a
+        # pass that changed none read every value as it started with.
+        self._pass_changed = False
 
     def get(self, ref_id: str) -> str | None:
         # Prefer the durable known value: it survives trim_to_active(), so an inactive block's
@@ -363,8 +388,12 @@ class ParameterState:
         val = self.param_ref_id_to_value.get(ref_id)
         if val is not None:
             return val
-        if self._parent is not None:
-            parent_val = self._parent.get(ref_id)
+        # The scope this one is in (see _parent), looked up once: every evaluation reads
+        # millions of values.
+        ref = self._parent_ref
+        parent = ref() if ref is not None else None
+        if parent is not None:
+            parent_val = parent.get(ref_id)
             if parent_val is not None:
                 return parent_val
         return self._param_ref_defaults.get(ref_id)
@@ -398,8 +427,28 @@ class ParameterState:
     def set(self, ref_id: str, value: str) -> None:
         if ref_id not in self._pass_values:
             self._pass_values[ref_id] = self._known_param_ref_values.get(ref_id)
+        if not self._pass_changed and (
+            self._known_param_ref_values.get(ref_id) != value
+            or self.param_ref_id_to_value.get(ref_id) != value
+        ):
+            self._pass_changed = True
         self.param_ref_id_to_value[ref_id] = value
         self._known_param_ref_values[ref_id] = value
+
+    def set_values(self, values: Mapping[str, str]) -> None:
+        """:meth:`set` each of ``values``, in their order."""
+        if (
+            self.param_ref_id_to_value
+            or self._known_param_ref_values
+            or self._pass_values
+        ):
+            for ref_id, value in values.items():
+                self.set(ref_id, value)
+            return
+        # Into a scope without values: each is new to all three.
+        self._pass_values.update(dict.fromkeys(values))
+        self.param_ref_id_to_value.update(values)
+        self._known_param_ref_values.update(values)
 
     def run_assign(
         self,
@@ -421,15 +470,13 @@ class ParameterState:
 
         The value is stored like any other value and stays when the Assign no longer applies.
         Nothing is written while the source has no value."""
-        if key in self._assign_seen:
-            write = from_source and self._assign_seen[key] != value
-        else:
-            write = self._seeded is None or target not in self._seeded
         self._assigns_now[key] = value if from_source else None
         if value is None:
             return
         self._assign_targets.add(target)
-        if not (write or always):
+        if not (
+            always or self.assign_writes(key, target, value, from_source=from_source)
+        ):
             return
         before = (
             self._known_param_ref_values.get(target),
@@ -440,6 +487,21 @@ class ParameterState:
         self._evaluation_writes.setdefault(target, before)
         self.set(target, value)
         self._assign_written.add(target)
+
+    def assign_writes(
+        self, key: int, target: str, value: str | None, *, from_source: bool
+    ) -> bool:
+        """Whether the Assign ``key`` of the current pass writes into ``target`` when its value
+        is ``value`` (see :meth:`run_assign`; it writes no value None in any case)."""
+        seen = self._assign_seen
+        if key in seen:
+            return from_source and seen[key] != value
+        return self._seeded is None or target not in self._seeded
+
+    @property
+    def gated(self) -> bool:
+        """Whether the Chooses of the current pass are gated (see :meth:`is_gate_active`)."""
+        return self._gate_param_refs is not None
 
     def commit_assigns(self) -> None:
         """An evaluation ended (this scope and the module scopes below): the Assigns of its
@@ -501,6 +563,7 @@ class ParameterState:
             for ref_id, (known, value) in self._ungated_writes.items():
                 if ref_id in self._assign_written:
                     continue
+                self._pass_changed = True
                 if ref_id not in self._pass_values:
                     self._pass_values[ref_id] = self._known_param_ref_values.get(ref_id)
                 if known is None:
@@ -527,6 +590,7 @@ class ParameterState:
                 r for r in self._evaluation_writes if r not in self._assign_targets
             ]:
                 known, value = self._evaluation_writes.pop(ref_id)
+                self._pass_changed = True
                 if ref_id not in self._pass_values:
                     self._pass_values[ref_id] = self._known_param_ref_values.get(ref_id)
                 if known is None:
@@ -572,6 +636,15 @@ class ParameterState:
         if ref_id not in self._pass_texts:
             self._pass_texts[ref_id] = self._text.get(ref_id)
         self._text[ref_id] = text
+
+    def pass_kept_values(self) -> bool:
+        """Whether no write of the pass since :meth:`reset_active` changed a value at any point
+        (see ``_pass_changed``) and no value a pass without gates wrote waits to be given back
+        (see :meth:`undo_ungated_assigns`), in this scope and the module scopes below: a pass
+        after it from the same gates reads every value it read and writes none."""
+        if self._pass_changed or self._ungated_writes:
+            return False
+        return all(child.pass_kept_values() for child in self._children.values())
 
     def pass_changed_state(self) -> bool:
         """Whether the pass since :meth:`reset_active` left a value or a text different from
@@ -651,6 +724,87 @@ class ParameterState:
         """:meth:`pass_written`, kept as it is once the pass ended."""
         return frozenset(self._pass_values), frozenset(self._pass_texts)
 
+    def apply_assign(
+        self,
+        key: int,
+        target: str,
+        source: str | None,
+        value: str | None,
+        *,
+        marks: bool,
+    ) -> None:
+        """The Assign ``key`` (the id of its element) of the current pass applies in this
+        scope, as it does in a pass that explores nothing (see AssignNode): it is noted,
+        with ``marks`` its ``target`` and ``source`` are marked active, and it writes its
+        fixed ``value``, else its source's (see :meth:`run_assign`). One call for all of it:
+        a pass of a large application runs thousands of Assigns."""
+        self._active_assigns.add(key)
+        if marks:
+            self.mark_active_param(target)
+            if source is not None:
+                self.mark_active_param(source)
+        if value is not None:
+            # The last Assign of the pass decides where the target's value comes from.
+            self._assigned_from.pop(target, None)
+            self.run_assign(key, target, value, from_source=False)
+        elif source is not None:
+            self._assigned_from[target] = source
+            self.run_assign(key, target, self.get(source), from_source=True)
+
+    def redo_assigns(self, assigns: Iterable[AssignDone]) -> None:
+        """:meth:`apply_assign` without the marks of each of ``assigns`` in their order (see
+        :data:`AssignDone`), with the value its source has now known: one call for all
+        those of an evaluation taken again (see EvalMemo), :meth:`run_assign` and
+        :meth:`set` done in place (a search takes thousands of them again each pass)."""
+        active = self._active_assigns
+        assigned_from = self._assigned_from
+        seen = self._assign_seen
+        seeded = self._seeded
+        now = self._assigns_now
+        targets = self._assign_targets
+        known = self._known_param_ref_values
+        values = self.param_ref_id_to_value
+        pass_values = self._pass_values
+        evaluation = self._evaluation_writes
+        ungated = self._ungated_writes if self._gate_param_refs is None else None
+        written = self._assign_written
+        changed = False
+        for key, target, source, fixed, read in assigns:
+            active.add(key)
+            if fixed is not None:
+                # The last Assign of the pass decides where the target's value comes from.
+                assigned_from.pop(target, None)
+                value, from_source = fixed, False
+            elif source is not None:
+                assigned_from[target] = source
+                value, from_source = read, True
+            else:
+                continue
+            # As run_assign.
+            now[key] = value if from_source else None
+            if value is None:
+                continue
+            targets.add(target)
+            if key in seen:
+                if not (from_source and seen[key] != value):
+                    continue
+            elif seeded is not None and target in seeded:
+                continue
+            before = (known.get(target), values.get(target))
+            if ungated is not None:
+                ungated.setdefault(target, before)
+            evaluation.setdefault(target, before)
+            # As set.
+            if target not in pass_values:
+                pass_values[target] = before[0]
+            if before[0] != value or before[1] != value:
+                changed = True
+            values[target] = value
+            known[target] = value
+            written.add(target)
+        if changed:
+            self._pass_changed = True
+
     def mark_assigned_from(self, target: str, source: str) -> None:
         """An Assign of the current pass wrote ``target`` from ``source``."""
         self._assigned_from[target] = source
@@ -718,6 +872,7 @@ class ParameterState:
         self._alloc_positions.clear()
         self._pass_values.clear()
         self._pass_texts.clear()
+        self._pass_changed = False
         self._assigned_from.clear()
         self._assign_targets.clear()
         self._assign_written.clear()
@@ -956,7 +1111,9 @@ class ParameterState:
             self._children[key] = child
         else:
             child = self._children[key]
-            child._parent = self
+            ref = child._parent_ref
+            if ref is None or ref() is not self:
+                child._parent = self
             child.repeat_path = path
             child.earlier = earlier
             if ref_id is not None:
@@ -1035,6 +1192,18 @@ class ParameterState:
 
     def module_children(self) -> list[ModuleState]:
         return list(self._children.values())
+
+    def instance_ids_name_instances(self) -> bool:
+        """Whether the id of each module instance below this scope, also of each one set aside
+        until an evaluation reaches it again, names a module instance (``_MI-``)."""
+        pending = [*self._children.values(), *self._dormant_children.values()]
+        while pending:
+            scope = pending.pop()
+            if "_MI-" not in scope.module_instance_id:
+                return False
+            pending.extend(scope._children.values())
+            pending.extend(scope._dormant_children.values())
+        return True
 
     def with_module_child_of(
         self, other: ParameterState, instance_id: str
@@ -1267,18 +1436,6 @@ class GlobalState(ParameterState):
         an id is the value of that parameter ref. When both spellings are stored, the value under
         the application's spelling counts."""
         root = cls()
-        exact: set[tuple[int, str]] = set()
-
-        def put(scope: ParameterState, ref_id: str, value: str) -> None:
-            if padded_ref_ids:
-                own = padded_ref_ids.get(unpadded_id(ref_id))
-                if own is not None and own != ref_id:
-                    if (id(scope), own) in exact:
-                        return
-                    ref_id = own
-                else:
-                    exact.add((id(scope), ref_id))
-            scope.set(ref_id, value)
 
         # Instance id -> (its state, the definition its parameters' local ids start with). A
         # submodule instance's parameters keep their ids below the top-level module definition
@@ -1315,26 +1472,51 @@ class GlobalState(ParameterState):
         for ref_id, value in pairs:
             if value is None:
                 continue
-            match = _instance_in_ref(ref_id)
-            if match is None or _qualified(match[0], app_id) in known:
+            match = _instance_key(ref_id, app_id)
+            if match is None or match[0] in known:
                 continue
-            known.add(_qualified(match[0], app_id))
-            add(match[0], match[1])
+            known.add(match[0])
+            add(match[1], match[2])
         # The innermost instance a value is of: a submodule instance's id starts with that of
         # its enclosing instance. With many instances, the parts of the value's ref id are
         # looked up instead of every instance being searched for.
         by_length = sorted(stored.items(), key=lambda item: len(item[0]), reverse=True)
         instances = _instance_ids(tuple(mid for mid, _ in by_length))
+        bases = {mid: base for mid, (_ms, base) in stored.items()}
+        routes = instances.routes
+        # The values of each scope (by its instance, "" for the application's), in the order
+        # they come: every scope is new, so they are set at once, as one after another.
+        scoped: dict[str, dict[str, str]] = {}
+        instance_ids: dict[str, str] = {}
+        exact: dict[str, set[str]] = {}
         for ref_id, value in pairs:
             if value is None:
                 continue
-            owner = instances.owner(ref_id)
-            if owner is None:
-                put(root, ref_id, value)
+            found = routes.get(ref_id)
+            if found is None or (found[0] and bases[found[0]] != found[3]):
+                found = instances.route(ref_id, bases)
+            owner, instance_id, local, _base = found
+            if owner:
+                instance_ids[owner] = instance_id
+            into = scoped.get(owner)
+            if into is None:
+                into = scoped[owner] = {}
+            if padded_ref_ids:
+                own = padded_ref_ids.get(unpadded_id(local))
+                if own is not None and own != local:
+                    if own in exact.get(owner, ()):
+                        continue
+                    local = own
+                else:
+                    exact.setdefault(owner, set()).add(local)
+            into[local] = value
+        for owner, into in scoped.items():
+            if not owner:
+                root.set_values(into)
                 continue
-            ms, base = stored[owner]
-            ms.module_instance_id, local = instances.place(ref_id, owner, base)
-            put(ms, local, value)
+            ms = stored[owner][0]
+            ms.module_instance_id = instance_ids[owner]
+            ms.set_values(into)
 
         for coir in com_object_instance_refs or []:
             root._com_obj_instance_refs[coir.ref_id] = coir
@@ -1424,11 +1606,56 @@ class ModuleState(ParameterState):
         return ref_id
 
     def get(self, ref_id: str) -> str | None:
-        base = self.param_ref_bases.get(ref_id)
-        arg = self.get_arg(base) if base is not None else None
-        if arg is not None and arg.value is not None:
-            return str(arg.value)
-        return super().get(ref_id)
+        bases = self.param_ref_bases
+        if bases:
+            base = bases.get(ref_id)
+            if base is not None:
+                # As get_arg: a numeric argument with a value is the value.
+                arg = self.arguments.get(base)
+                if isinstance(arg, ModuleNumericArg) and arg.value is not None:
+                    return str(arg.value)
+        return ParameterState.get(self, ref_id)
+
+    def evaluation_state(self, *, copy: bool) -> tuple[object, ...]:
+        """All an evaluation of a node in this instance reads of the instance itself (see
+        EvalMemo; the scope it is in left out): its values and defaults, its gates, the
+        parameters it reached in the union discovery, its texts and group object settings,
+        its arguments and ids, and what its Assigns apply by. With ``copy`` as it is now, to
+        be compared with what it is later (each part compares equal where it is the same)."""
+        gate = self._gate_param_refs
+        if not copy:
+            return (
+                self._known_param_ref_values,
+                self.param_ref_id_to_value,
+                self._param_ref_defaults,
+                gate,
+                self._discovered_active_param_refs,
+                self._text,
+                self._com_obj_instance_refs,
+                self.arguments,
+                self.param_ref_bases,
+                self._arg_defaults,
+                self.module_instance_id,
+                self.ref_id,
+                self._assign_seen,
+                self._seeded,
+            )
+        return (
+            dict(self._known_param_ref_values),
+            dict(self.param_ref_id_to_value),
+            self._param_ref_defaults,
+            None if gate is None else frozenset(gate),
+            frozenset(self._discovered_active_param_refs),
+            dict(self._text),
+            dict(self._com_obj_instance_refs),
+            dict(self.arguments),
+            dict(self.param_ref_bases),
+            dict(self._arg_defaults),
+            self.module_instance_id,
+            self.ref_id,
+            dict(self._assign_seen),
+            self._seeded,
+        )
 
     def get_arg_defaults(self) -> dict[str, str]:
         return self._arg_defaults
@@ -1473,6 +1700,11 @@ class ModuleState(ParameterState):
             result = child.find_scope_for_qualified(ref_id)
             if result is not None:
                 return result
+        return self.own_scope_for_qualified(ref_id)
+
+    def own_scope_for_qualified(self, ref_id: str) -> tuple[ParameterState, str] | None:
+        """:meth:`find_scope_for_qualified` of this instance itself, the instances in it left
+        out."""
         mid = self.module_instance_id
         if not ref_id.startswith(mid + "_"):
             return None
@@ -1489,7 +1721,15 @@ class ModuleState(ParameterState):
         return _qualified_in(self.module_instance_id, ref_id)
 
     def active_param_refs(self) -> set[str]:
-        result = {self.qualify(ref) for ref in self._active_param_refs}
+        # Each qualified as by _qualify, looked up in what the instances with the same id and
+        # base qualified before (a search asks for the active refs of thousands of states,
+        # each with hundreds of instances).
+        result = set(
+            map(
+                _qualifying(self.module_instance_id, self._local_base()).__getitem__,
+                self._active_param_refs,
+            )
+        )
         for child in self._children.values():
             result.update(child.active_param_refs())
         return result
@@ -1513,6 +1753,47 @@ class ModuleState(ParameterState):
         for child in self._children.values():
             result.extend(child.module_instances())
         return result
+
+
+# An Assign of an evaluation taken again (see ParameterState.redo_assigns): its key (the id of
+# its element), target, source and fixed value, and the value its source had when it read it.
+AssignDone = tuple[int, str, str | None, str | None, str | None]
+
+
+class _Qualified(dict[str, str]):
+    """The local ids of a module definition qualified with a module instance (as
+    :meth:`ModuleState._qualify` does): each qualified when first asked for."""
+
+    __slots__ = ("_base", "_instance")
+
+    def __init__(self, instance: str, base: str | None) -> None:
+        super().__init__()
+        self._instance = instance
+        self._base = base
+
+    def __missing__(self, ref_id: str) -> str:
+        base, instance = self._base, self._instance
+        if base is not None and ref_id.startswith(base + "_"):
+            qualified = instance + ref_id[len(base) :]
+        else:
+            qualified = _qualified_in(instance, ref_id)
+        self[ref_id] = qualified
+        return qualified
+
+
+# The qualified ids of the module instances by instance id and base (see _qualifying).
+_QUALIFIED: dict[tuple[str, str | None], _Qualified] = {}
+
+
+def _qualifying(instance: str, base: str | None) -> _Qualified:
+    """The local ids qualified with the module instance ``instance`` whose local ids start
+    with ``base`` (see ModuleState._local_base), of the last several hundred instances."""
+    table = _QUALIFIED.get((instance, base))
+    if table is None:
+        if len(_QUALIFIED) >= 512:
+            _QUALIFIED.clear()
+        table = _QUALIFIED[instance, base] = _Qualified(instance, base)
+    return table
 
 
 __all__ = [

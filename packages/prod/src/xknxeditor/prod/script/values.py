@@ -56,6 +56,60 @@ _STRING_TYPES = (
 )
 _INT_LITERAL = re.compile(r"^\s*[+-]?\d+\s*$")
 _COLOR = re.compile(r"^#?[0-9A-Fa-f]{6}$")
+# A colour text a script sets: upper case hex digits only.
+_SCRIPT_COLOR = re.compile(r"^#?[A-F0-9]{6}$")
+# A text that converts to a 32-bit integer: digits with a sign, white space around them.
+_INT32_TEXT = re.compile(r"^[\t-\r ]*([+-]?[0-9]+)[\t-\r ]*$")
+
+
+def _color_to_js(value: str) -> JsValue:
+    """A stored colour as scripts see it: its ARGB number with an opaque alpha, a 32-bit signed
+    integer (``#D6D2D6`` is ``0xFFD6D2D6``, -2698538); a text that is no colour as it is."""
+    if not _SCRIPT_COLOR.match(value.upper()):
+        return value
+    return int(value.removeprefix("#"), 16) - (1 << 24)
+
+
+def _raw_data_to_js(value: str) -> list[int] | str:
+    """Stored data as scripts see it: an array of its octets; a text that is no data as it is."""
+    try:
+        return list(base64.b64decode(value, validate=True))
+    except (binascii.Error, ValueError):
+        return value
+
+
+def _to_int32(js: object) -> int | None:
+    """``Convert.ToInt32`` of a script value: a number rounded half to even, a boolean as 0 or
+    1, a text of an integer; None for any other value and for one outside 32 bits."""
+    if isinstance(js, bool):
+        return int(js)
+    if isinstance(js, int):
+        n = js
+    elif isinstance(js, float):
+        if not -2147483648.5 <= js < 2147483647.5:
+            return None
+        n = round(js)
+    elif isinstance(js, str) and (m := _INT32_TEXT.match(js)):
+        n = int(m.group(1))
+    else:
+        return None
+    return n if -(1 << 31) <= n < (1 << 31) else None
+
+
+def _color_from_script(js: object) -> str:
+    """The colour a script sets: a number is an ARGB value whose red, green and blue are kept
+    (``#RRGGBB``, upper case; the alpha is dropped), a text one of six upper case hex digits
+    (with or without "#"), kept as it is."""
+    from .texts import COLOR_TEXT_INVALID, COLOR_TYPE_NOT_SUPPORTED, VALUE_ERROR_NUMBER
+
+    n = _to_int32(js)
+    if n is not None:
+        return f"#{n & 0xFFFFFF:06X}"
+    if not isinstance(js, str):
+        raise ScriptValueError(COLOR_TYPE_NOT_SUPPORTED, VALUE_ERROR_NUMBER)
+    if not _SCRIPT_COLOR.match(js):
+        raise ScriptValueError(COLOR_TEXT_INVALID, VALUE_ERROR_NUMBER)
+    return js
 
 
 def is_numeric(tc: object) -> bool:
@@ -73,10 +127,16 @@ def _parse_int(value: str) -> int:
     return int(v)
 
 
-def to_js(value: str | None, tc: object) -> JsValue:
-    """Stored value string to the JS value a script sees."""
+def to_js(value: str | None, tc: object) -> JsValue | list[int]:
+    """Stored value string to the JS value a script sees: integer and float parameters as
+    numbers, a colour as its ARGB number (:func:`_color_to_js`), data as an array of octets,
+    everything else as text."""
     if value is None or not has_value(tc):
         return None
+    if isinstance(tc, ParameterTypeTypeColor):
+        return _color_to_js(value)
+    if isinstance(tc, ParameterTypeTypeRawData):
+        return _raw_data_to_js(value)
     if isinstance(tc, _INTEGER_TYPES):
         try:
             return _parse_int(value)
@@ -253,6 +313,8 @@ def coerce_script_value(
         if not tc.min_inclusive <= f <= tc.max_inclusive:
             raise _range_error(tc.min_inclusive, tc.max_inclusive, f)
         return str(int(f)) if f.is_integer() else repr(f)
+    if isinstance(tc, ParameterTypeTypeColor):
+        return _color_from_script(js)
     value = from_js(js, tc)
     if (
         isinstance(tc, ParameterTypeTypeText)

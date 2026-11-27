@@ -1,6 +1,7 @@
 """Seeding a parameter state with values: each value goes to the first module instance its ref
 id names (also among many instances), values given by ref id seed as instance refs do, and the
-layout of a state tells two seedings apart."""
+layout of a state tells two seedings apart. A state is seeded as with each value set one after
+another."""
 
 from __future__ import annotations
 
@@ -8,10 +9,16 @@ import random
 
 import pytest
 
+from xknxeditor.namespaces.ids import unpadded_id
 from xknxeditor.namespaces.intermediate import ModuleInstance, ParameterInstanceRef
 from xknxeditor.prod.parser_v2.state import (
     GlobalState,
+    ModuleState,
+    ParameterState,
+    _instance_key,  # pyright: ignore[reportPrivateUsage]
     _InstanceIds,  # pyright: ignore[reportPrivateUsage]
+    _qualified,  # pyright: ignore[reportPrivateUsage]
+    _submodule_definition,  # pyright: ignore[reportPrivateUsage]
     layouts_alike,
 )
 
@@ -166,3 +173,123 @@ def test_states_holding_other_things_are_not_alike() -> None:
         parameter_values=values,
     )
     assert not layouts_alike(alone.layout(), other.layout())
+
+
+def _one_by_one(
+    values: dict[str, str],
+    module_instances: list[ModuleInstance],
+    padded: dict[str, str],
+) -> GlobalState:
+    """A state seeded as :meth:`GlobalState.from_project` seeds it, each value set one after
+    another."""
+    root = GlobalState()
+    exact: set[tuple[int, str]] = set()
+
+    def put(scope: ParameterState, ref_id: str, value: str) -> None:
+        if padded:
+            own = padded.get(unpadded_id(ref_id))
+            if own is not None and own != ref_id:
+                if (id(scope), own) in exact:
+                    return
+                ref_id = own
+            else:
+                exact.add((id(scope), ref_id))
+        scope.set(ref_id, value)
+
+    stored: dict[str, tuple[ModuleState, str]] = {}
+
+    def add(instance_id: str, definition: str) -> None:
+        key = _qualified(instance_id, APP)
+        submodule = _submodule_definition(instance_id)
+        if submodule is not None:
+            definition, base = submodule
+        else:
+            base = definition
+        ms = ModuleState(key, ref_id=_qualified(definition, APP))
+        ms._parent = root  # pyright: ignore[reportPrivateUsage]
+        root._children[key] = ms  # pyright: ignore[reportPrivateUsage]
+        stored[instance_id] = (ms, base)
+
+    for mi in module_instances:
+        assert mi.id is not None and mi.ref_id is not None
+        add(mi.id, mi.ref_id)
+    known = {_qualified(mid, APP) for mid in stored}
+    for ref_id in values:
+        match = _instance_key(ref_id, APP)
+        if match is None or match[0] in known:
+            continue
+        known.add(match[0])
+        add(match[1], match[2])
+    by_length = sorted(stored.items(), key=lambda item: len(item[0]), reverse=True)
+    instances = _InstanceIds(tuple(mid for mid, _ in by_length))
+    for ref_id, value in values.items():
+        owner = instances.owner(ref_id)
+        if owner is None:
+            put(root, ref_id, value)
+            continue
+        ms, base = stored[owner]
+        ms.module_instance_id, local = instances.place(ref_id, owner, base)
+        put(ms, local, value)
+    return root
+
+
+def test_a_state_is_seeded_as_with_each_value_set_one_after_another() -> None:
+    rng = random.Random(11)
+    instances = [
+        *(
+            f"{APP}_MD-{d}_M-{m}_MI-{i}"
+            for d in (1, 2)
+            for m in (1, 2, 12)
+            for i in (1, 2)
+        ),
+        "MD-1_M-3_MI-1",
+        f"{APP}_MD-1_M-2_MI-1_SM-1_M-1_MI-1-1",
+        "MD-1_SM-1_M-1_MI-1",
+    ]
+    tails = ["P-1_R-1", "P-01_R-01", "P-2_R-2", "P-02_R-02", "UP-3_R-3"]
+    # The application's spelling of the refs a project may store unpadded.
+    padded_refs = [f"{APP}_MD-1_P-01_R-01", f"{APP}_P-02_R-02", f"{APP}_MD-2_P-02_R-02"]
+    for _ in range(3000):
+        values: dict[str, str] = {}
+        for _ in range(rng.randint(0, 14)):
+            owner = rng.choice([*instances, APP, APP])
+            values[f"{owner}_{rng.choice(tails)}"] = str(rng.randint(0, 3))
+        listed = [
+            ModuleInstance(
+                id=instance,
+                ref_id=instance.split("_M-", 1)[0]
+                if rng.random() < 0.8
+                else f"{APP}_MD-2",
+            )
+            for instance in rng.sample(instances, rng.randint(0, 4))
+        ]
+        padded = (
+            {unpadded_id(ref): ref for ref in padded_refs} if rng.random() < 0.5 else {}
+        )
+        state = GlobalState.from_project(
+            None,
+            listed,
+            app_id=APP,
+            padded_ref_ids=padded,
+            parameter_values=values,
+        )
+        assert state.layout() == _one_by_one(values, listed, padded).layout()
+        # Seeded again (the routes of the values are kept), and with other definitions.
+        again = GlobalState.from_project(
+            None, listed, app_id=APP, padded_ref_ids=padded, parameter_values=values
+        )
+        assert again.layout() == state.layout()
+
+
+def test_values_set_at_once_are_set_as_one_after_another() -> None:
+    values = {"a": "1", "b": "2", "c": "3"}
+    for before in ({}, {"b": "0", "d": "4"}):
+        at_once, one_by_one = GlobalState(), GlobalState()
+        for state in (at_once, one_by_one):
+            for ref_id, value in before.items():
+                state.set(ref_id, value)
+        at_once.set_values(values)
+        for ref_id, value in values.items():
+            one_by_one.set(ref_id, value)
+        assert at_once.layout() == one_by_one.layout()
+        assert at_once.pass_written() == one_by_one.pass_written()

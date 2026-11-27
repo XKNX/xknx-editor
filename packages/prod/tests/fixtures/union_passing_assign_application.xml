@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<KNX xmlns="http://knx.org/xml/project/20" CreatedBy="test" ToolVersion="1">
+  <ManufacturerData>
+    <Manufacturer RefId="M-00FA">
+      <ApplicationPrograms>
+        <ApplicationProgram Id="M-00FA_A-0007-01-0000" ApplicationNumber="7" ApplicationVersion="1"
+            ProgramType="ApplicationProgram" MaskVersion="MV-07B0" Name="UnionPassingAssign"
+            LoadProcedureStyle="MergedProcedure" PeiType="0" DefaultLanguage="en-US"
+            DynamicTableManagement="false" Linkable="false" MinEtsVersion="5.0">
+          <Static>
+            <ParameterTypes>
+              <ParameterType Id="M-00FA_A-0007-01-0000_PT-ONE" Name="OnOff">
+                <TypeRestriction Base="Value" SizeInBit="8">
+                  <Enumeration Text="Off" Value="0" Id="M-00FA_A-0007-01-0000_PT-ONE_EN-0" />
+                  <Enumeration Text="On" Value="1" Id="M-00FA_A-0007-01-0000_PT-ONE_EN-1" />
+                </TypeRestriction>
+              </ParameterType>
+            </ParameterTypes>
+            <Parameters>
+              <!-- A and B overlay the same octet: A is shown, the Choose on B selects nothing once
+                   B is not active, and the render pass suppresses it. -->
+              <Union SizeInBit="8">
+                <Parameter Id="M-00FA_A-0007-01-0000_P-3" Name="A" ParameterType="M-00FA_A-0007-01-0000_PT-ONE" Text="A" Value="1" Offset="0" BitOffset="0" />
+                <Parameter Id="M-00FA_A-0007-01-0000_P-4" Name="B" ParameterType="M-00FA_A-0007-01-0000_PT-ONE" Text="B" Value="1" Offset="0" BitOffset="0" />
+              </Union>
+              <!-- Copy takes the value of First, then that of Second: between the two Assigns it
+                   holds First's value only while the Assigns write it, the first two passes. -->
+              <Parameter Id="M-00FA_A-0007-01-0000_P-5" Name="Copy" ParameterType="M-00FA_A-0007-01-0000_PT-ONE" Text="Copy" Value="0" />
+              <Parameter Id="M-00FA_A-0007-01-0000_P-6" Name="First" ParameterType="M-00FA_A-0007-01-0000_PT-ONE" Text="First" Value="1" />
+              <Parameter Id="M-00FA_A-0007-01-0000_P-7" Name="Second" ParameterType="M-00FA_A-0007-01-0000_PT-ONE" Text="Second" Value="0" />
+              <Parameter Id="M-00FA_A-0007-01-0000_P-8" Name="WhileCopied" ParameterType="M-00FA_A-0007-01-0000_PT-ONE" Text="While copied" Value="0" />
+              <Parameter Id="M-00FA_A-0007-01-0000_P-9" Name="BehindB" ParameterType="M-00FA_A-0007-01-0000_PT-ONE" Text="Behind B" Value="0" />
+            </Parameters>
+            <ParameterRefs>
+              <ParameterRef Id="M-00FA_A-0007-01-0000_P-3_R-3" RefId="M-00FA_A-0007-01-0000_P-3" />
+              <ParameterRef Id="M-00FA_A-0007-01-0000_P-4_R-4" RefId="M-00FA_A-0007-01-0000_P-4" />
+              <ParameterRef Id="M-00FA_A-0007-01-0000_P-5_R-5" RefId="M-00FA_A-0007-01-0000_P-5" />
+              <ParameterRef Id="M-00FA_A-0007-01-0000_P-6_R-6" RefId="M-00FA_A-0007-01-0000_P-6" />
+              <ParameterRef Id="M-00FA_A-0007-01-0000_P-7_R-7" RefId="M-00FA_A-0007-01-0000_P-7" />
+              <ParameterRef Id="M-00FA_A-0007-01-0000_P-8_R-8" RefId="M-00FA_A-0007-01-0000_P-8" />
+              <ParameterRef Id="M-00FA_A-0007-01-0000_P-9_R-9" RefId="M-00FA_A-0007-01-0000_P-9" />
+            </ParameterRefs>
+          </Static>
+          <Dynamic>
+            <ChannelIndependentBlock>
+              <ParameterBlock Id="M-00FA_A-0007-01-0000_PB-1" Text="General">
+                <ParameterRefRef RefId="M-00FA_A-0007-01-0000_P-3_R-3" />
+                <choose ParamRefId="M-00FA_A-0007-01-0000_P-4_R-4">
+                  <when test="1">
+                    <ParameterRefRef RefId="M-00FA_A-0007-01-0000_P-9_R-9" />
+                  </when>
+                </choose>
+                <Assign TargetParamRefRef="M-00FA_A-0007-01-0000_P-5_R-5" SourceParamRefRef="M-00FA_A-0007-01-0000_P-6_R-6" />
+                <choose ParamRefId="M-00FA_A-0007-01-0000_P-5_R-5">
+                  <when test="1">
+                    <ParameterRefRef RefId="M-00FA_A-0007-01-0000_P-8_R-8" />
+                  </when>
+                </choose>
+                <Assign TargetParamRefRef="M-00FA_A-0007-01-0000_P-5_R-5" SourceParamRefRef="M-00FA_A-0007-01-0000_P-7_R-7" />
+              </ParameterBlock>
+            </ChannelIndependentBlock>
+          </Dynamic>
+        </ApplicationProgram>
+      </ApplicationPrograms>
+    </Manufacturer>
+  </ManufacturerData>
+</KNX>

@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-from .description import ParameterType, TypeKind, integer
+from .description import INTEGER_KINDS, ParameterType, TypeKind, integer
 
-_INTEGER_KINDS = (TypeKind.NUMBER, TypeKind.TIME_S, TypeKind.TIME_MS)
+_INTEGER_KINDS = INTEGER_KINDS
 
 
 def byte_size(ptype: ParameterType) -> int | None:

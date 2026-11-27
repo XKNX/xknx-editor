@@ -103,6 +103,18 @@ class ChooseWhenNode(DynamicNode):
             for node in nodes
         )
 
+    @property
+    def union_sibling_refs(self) -> set[str] | None:
+        """The parameter-refs competing with its parameter's (a union member), if any."""
+        return self._union_sibling_refs
+
+    def branch_nodes(self) -> list[DynamicNode | None]:
+        """The nodes of all its branches, the default one's too."""
+        nodes = [
+            node for branch in self._condition_to_nodes.values() for node in branch
+        ]
+        return nodes + list(self._default_nodes or [])
+
     def _gates_capture(self) -> bool:
         return self._widget_param_refs is None or (
             self._param_ref_id in self._widget_param_refs

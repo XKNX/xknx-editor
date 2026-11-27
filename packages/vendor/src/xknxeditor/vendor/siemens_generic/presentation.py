@@ -6,7 +6,7 @@ import re
 from dataclasses import dataclass
 from decimal import Decimal, InvalidOperation
 
-from .description import Description, TypeKind, integer
+from .description import TIME_KINDS, TIME_UNIT_MS, Description, TypeKind, integer
 
 
 @dataclass(frozen=True)
@@ -24,7 +24,7 @@ class ValueFormat:
 
     @property
     def time(self) -> bool:
-        return self.kind in (TypeKind.TIME_S, TypeKind.TIME_MS) and bool(self.clock)
+        return self.kind in TIME_KINDS and bool(self.clock)
 
     def display(self, value: str) -> str:
         if not value or not (self.percent or self.time):
@@ -33,7 +33,7 @@ class ValueFormat:
         if self.percent:
             return str(round(raw * 100 / 255))
         self._clock_parts()
-        millis = raw if self.kind is TypeKind.TIME_MS else raw * 1000
+        millis = raw * TIME_UNIT_MS[self.kind]
         sign = "-" if millis < 0 else ""
         seconds, fraction = divmod(abs(millis), 1000)
         minutes, secs = divmod(seconds, 60)
@@ -91,7 +91,7 @@ class ValueFormat:
             if index < len(parts) - 1 and number != int(number):
                 raise ValueError("Only the last time component may have a fraction")
             seconds += number * {"h": 3600, "hh": 3600, "mm": 60, "ss": 1}[part]
-        raw = seconds * (1000 if self.kind is TypeKind.TIME_MS else 1)
+        raw = seconds * 1000 / TIME_UNIT_MS[self.kind]
         if raw != int(raw):
             raise ValueError("The time exceeds the parameter's precision")
         if self.pattern and re.fullmatch(self.pattern, value) is None:

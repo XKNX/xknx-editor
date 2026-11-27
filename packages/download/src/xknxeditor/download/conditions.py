@@ -1,4 +1,4 @@
-"""Property alternatives and state-dependent writes in prepared load plans."""
+"""Property alternatives and state-dependent writes and reads in prepared load plans."""
 
 from dataclasses import dataclass
 
@@ -22,6 +22,14 @@ class PropertyAlternatives:
 class ConditionalWrite:
     conditions: tuple[LdCtrlCompareProp, ...]
     write: LdCtrlWriteProp
+
+
+@dataclass(frozen=True)
+class ConditionalRead:
+    """Read a property into the image only while every condition matches the device."""
+
+    conditions: tuple[LdCtrlCompareProp, ...]
+    read: LdCtrlLoadImageProp
 
 
 @dataclass(frozen=True)

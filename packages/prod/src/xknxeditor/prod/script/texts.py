@@ -18,6 +18,10 @@ VALUE_OUT_OF_RANGE = (
 )
 TEXT_TOO_LONG = "The maximum byte length cannot exceed."
 ENUM_VALUE_NOT_FOUND = "The given value cannot be found."
+# A colour a script sets as a text that is no colour, or as a value that is neither a number
+# nor a text.
+COLOR_TEXT_INVALID = "The given string is not a valid input RGB string."
+COLOR_TYPE_NOT_SUPPORTED = "The given type is not supported."
 VALUE_ERROR_NUMBER = COR_E_EXCEPTION
 
 # Observed: number of System.FormatException.

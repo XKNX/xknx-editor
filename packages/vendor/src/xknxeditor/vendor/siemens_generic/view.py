@@ -24,6 +24,9 @@ from enum import Enum
 from .blob import PluginSettings
 from .codec import byte_size, decode, encode
 from .description import (
+    INTEGER_KINDS,
+    TIME_KINDS,
+    TIME_UNIT_MS,
     Description,
     Node,
     NodeKind,
@@ -31,6 +34,7 @@ from .description import (
     ParameterType,
     TypeKind,
     integer,
+    locked_parameters,
 )
 from .presentation import ValueFormat, value_format
 
@@ -162,6 +166,7 @@ class Evaluator:
         self.globals = globals_
         self.assigned: dict[str, str] = {}
         self.previous_active: dict[str, str] = {}
+        self._locked: tuple[_Walk, set[str]] | None = None
 
     # --- values ---------------------------------------------------------------------------
 
@@ -353,6 +358,16 @@ class Evaluator:
 
     # --- rows -----------------------------------------------------------------------------
 
+    def locked(self, walk: _Walk) -> set[str]:
+        """The parameters a download of ``walk``'s settings leaves as the device holds them
+        (see :func:`.description.locked_parameters`)."""
+        if self._locked is None or self._locked[0] is not walk:
+            active = [r for r, _ in walk.memory_values]
+            values = {**self.s.values, **walk.assigned}
+            values.update((r, self.value(r, walk)) for r in active)
+            self._locked = (walk, locked_parameters(self.d, values, active))
+        return self._locked[1]
+
     def label(self, ref_id: str) -> str:
         ref = self.d.refs.get(ref_id)
         if ref is None:
@@ -383,10 +398,9 @@ class Evaluator:
             if enum is None:
                 return value
             return self.texts.get(enum.id) or enum.text or value
-        if ptype.kind is TypeKind.TIME_S:
-            return f"{value} s"
-        if ptype.kind is TypeKind.TIME_MS:
-            return f"{value} ms"
+        if ptype.kind in TIME_KINDS:
+            with suppress(ValueError):
+                return raw_time(integer(value), ptype.kind)
         return value
 
     def row(self, ref_id: str, walk: _Walk, fitted: bool = True) -> Row:
@@ -398,7 +412,7 @@ class Evaluator:
         memory_value = ""
         address = param.offset if param is not None else None
         image = self.s.memory_image
-        base = self.d.memory_base
+        base = self.d.image_origin
         if param is not None and param.offset is None:
             memory = MemoryCheck.NOT_IN_MEMORY
         elif not fitted:
@@ -421,14 +435,7 @@ class Evaluator:
                     self.s.memory_mask is None
                     or self.s.memory_mask[start : start + size] == b"\xff" * size
                 )
-                and (
-                    not ref
-                    or not ref.download_if
-                    or self.test_value(
-                        ref.download_if, self.value(ref.download_if, walk)
-                    )
-                    != "0"
-                )
+                and (param is None or param.id not in self.locked(walk))
             ):
                 held = image[start : start + size]
                 if held == expected:
@@ -442,7 +449,7 @@ class Evaluator:
             enum = ptype.enumeration(value) if ptype.kind is TypeKind.ENUM else None
             if enum is not None:
                 comparison_value = str(enum.value)
-            elif ptype.kind in (TypeKind.NUMBER, TypeKind.TIME_S, TypeKind.TIME_MS):
+            elif ptype.kind in INTEGER_KINDS:
                 with suppress(ValueError):
                     comparison_value = str(integer(value))
         formatting = (
@@ -457,8 +464,7 @@ class Evaluator:
                     shown = formatting.display(raw)
                     if formatting.percent:
                         return f"{shown} %"
-                    unit = "ms" if formatting.kind is TypeKind.TIME_MS else "s"
-                    return f"{shown} ({raw} {unit})"
+                    return f"{shown} ({raw_time(integer(raw), formatting.kind)})"
             return self.value_text(raw, ptype, param, label)
 
         return Row(
@@ -487,7 +493,7 @@ def clock_text(value: str, ptype: ParameterType | None, label: str) -> str | Non
     """A time setting in the format its name gives ("mm:ss", "hh:mm:ss" or "hh:mm"), followed
     by the raw time: "15:00 (900 s)", "00:00:01.5 (1500 ms)". None for any other setting, a
     name without a format or a value that is not a number."""
-    if ptype is None or ptype.kind not in (TypeKind.TIME_S, TypeKind.TIME_MS):
+    if ptype is None or ptype.kind not in TIME_KINDS:
         return None
     found = _CLOCK_FORMAT.search(label)
     if found is None:
@@ -496,8 +502,7 @@ def clock_text(value: str, ptype: ParameterType | None, label: str) -> str | Non
         raw = int(value)
     except ValueError:
         return None
-    millis = raw if ptype.kind is TypeKind.TIME_MS else raw * 1000
-    unit = "ms" if ptype.kind is TypeKind.TIME_MS else "s"
+    millis = raw * TIME_UNIT_MS[ptype.kind]
     sign = "-" if millis < 0 else ""
     millis = abs(millis)
     seconds, fraction = divmod(millis, 1000)
@@ -511,7 +516,15 @@ def clock_text(value: str, ptype: ParameterType | None, label: str) -> str | Non
         text = f"{hours:02d}:{minutes:02d}"
     else:
         text = f"{hours:02d}:{minutes:02d}:{secs:02d}{tail}"
-    return f"{sign}{text} ({raw} {unit})"
+    return f"{sign}{text} ({raw_time(raw, ptype.kind)})"
+
+
+def raw_time(raw: int, kind: TypeKind) -> str:
+    """A stored time in its own unit, "900 s" or "1500 ms"; a time in tenths or hundredths
+    of a second in milliseconds ("1500 ms" for 150 hundredths)."""
+    if kind is TypeKind.TIME_S:
+        return f"{raw} s"
+    return f"{raw * TIME_UNIT_MS[kind]} ms"
 
 
 def percent_text(

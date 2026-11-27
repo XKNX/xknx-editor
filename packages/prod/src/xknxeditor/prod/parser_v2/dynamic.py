@@ -85,6 +85,7 @@ from .encode import (
     build_property_param_map,
     collect_writes,
     decode_memory_parameters,
+    decode_memory_values,
     decode_module_parameters,
     decode_property_parameters,
     decode_writes,
@@ -360,6 +361,11 @@ class DynamicTreeBuilder:
         # active, so it must not gate the capture chain (would wrongly disqualify every object under it).
         # This set is shared by reference into the Choose/Repeat nodes and is complete once _build ends.
         self._widget_param_refs: set[str] = set()
+        # The param-refs the application's own tree (outside its modules) marks active where it
+        # shows or assigns them, collected during _build (see DynamicUI.never_active); and how
+        # deep in module definitions _build is.
+        self.application_marked_refs: set[str] = set()
+        self._module_depth = 0
         # Resolve widgets on first use, after translations have been applied to the IR. All
         # placements of a ParameterType in this tree share its immutable widget.
         self._widgets: dict[str, Widget] = {}
@@ -725,6 +731,8 @@ class DynamicTreeBuilder:
                 else None
             )
             param = self.idx.parameters.get(pr.ref_id) if pr else None
+            if elem.param_ref_id and not self._module_depth:
+                self.application_marked_refs.add(elem.param_ref_id)
             return ComObjectParameterBlockNode(
                 elem,
                 [self._build(child) for child in elem.choice],
@@ -771,7 +779,11 @@ class DynamicTreeBuilder:
                 # its arguments' Allocates) still takes its allocator ranges, so the modules
                 # after it keep their addresses.
                 choice = mod_def.dynamic.choice if mod_def.dynamic is not None else []
-                children = [self._build(child) for child in choice]
+                self._module_depth += 1
+                try:
+                    children = [self._build(child) for child in choice]
+                finally:
+                    self._module_depth -= 1
                 self._module_subtrees[ref_id] = children
             arguments: dict[str, ModuleArg] = {arg.ref_id: arg for arg in elem.choice}
             param_ref_defaults = compute_param_ref_defaults(
@@ -814,6 +826,8 @@ class DynamicTreeBuilder:
                 )
             # Record this ref as widget-rendered so Choose/Repeat gates on it count toward activeness.
             self._widget_param_refs.add(elem.ref_id)
+            if not self._module_depth:
+                self.application_marked_refs.add(elem.ref_id)
             return ParameterRefRefNode(elem, pr, param, pt, widgets=self._widgets)
         elif isinstance(elem, ComObjectRefRef):
             cor = self.idx.com_object_refs.get(elem.ref_id)
@@ -831,6 +845,10 @@ class DynamicTreeBuilder:
         elif isinstance(elem, Assign):
             # Leaf: pins a parameter to a fixed value; state-only, no UI
             self.has_assigns = True
+            if not self._module_depth:
+                self.application_marked_refs.add(elem.target_param_ref_ref)
+                if elem.source_param_ref_ref is not None:
+                    self.application_marked_refs.add(elem.source_param_ref_ref)
             return AssignNode(elem)
         elif isinstance(elem, Rename):
             # Leaf: renames a channel or element inside a choose branch
@@ -852,6 +870,41 @@ def _local_ids_of(
     elif len(found) >= 1 << 17:
         found.clear()
     return found
+
+
+class _Placed:
+    """The scopes of an evaluated state in their order (the application's first, then the
+    module instances level by level), with what UIs of the application with the same module
+    scopes (``key``, see :meth:`ParameterState.scopes`) found in theirs, kept with the indexer
+    (of the last few kinds of scopes): the position of the scope of each ref looked up and its
+    local id, and the refs grouped by their scopes (see :meth:`DynamicUI._group_by_scope`)."""
+
+    __slots__ = ("_positions", "key", "places", "scopes")
+
+    def __init__(self, idx: ApplicationIndexer, state: ParameterState) -> None:
+        self.key = state.scopes()
+        scopes: list[ParameterState] = [state]
+        n = 0
+        while n < len(scopes):
+            scopes.extend(scopes[n].module_children())
+            n += 1
+        self.scopes = scopes
+        self._positions: dict[int, int] | None = None
+        places = idx.scope_places.get(self.key)
+        if places is None:
+            if len(idx.scope_places) >= 64:
+                idx.scope_places.clear()
+            places = idx.scope_places[self.key] = {}
+        self.places = places
+
+    def position(self, scope: ParameterState) -> int | None:
+        """Where ``scope`` is among the scopes; None for another one."""
+        positions = self._positions
+        if positions is None:
+            positions = self._positions = {
+                id(found): n for n, found in enumerate(self.scopes)
+            }
+        return positions.get(id(scope))
 
 
 def _com_object_number(ref_id: str) -> str:
@@ -1142,6 +1195,7 @@ class DynamicUI:
         "_active_snapshot",
         "_allocation_param_refs",
         "_app",
+        "_application_marked_refs",
         "_explore_param_refs",
         "_has_assigns",
         "_idx",
@@ -1153,6 +1207,8 @@ class DynamicUI:
         "_page_for",
         "_parameter_gates",
         "_program_pin",
+        "_scope_ids",
+        "_scope_places",
         "_selector_param_refs",
         "_selector_tested_values",
         "_state",
@@ -1201,6 +1257,7 @@ class DynamicUI:
         self._tree = builder.tree
         self._idx = builder.idx
         self._allocation_param_refs = builder.allocation_param_refs
+        self._application_marked_refs = builder.application_marked_refs
         self._object_param_refs = builder.object_param_refs
         self._parameter_gates = builder.parameter_gates
         self._object_gates = builder.object_gates
@@ -1233,9 +1290,15 @@ class DynamicUI:
         # The scope and local id of each ref looked up in the evaluated state (see _locate);
         # cleared with ``_ui``.
         self._located: dict[str, tuple[ParameterState, str]] = {}
+        # The module instances of the evaluated state by their ids (see _locate); cleared
+        # with ``_located``.
+        self._scope_ids: dict[str, list[ModuleState]] | None = None
         # The local ids of the refs looked up, shared by the UIs with the same module scopes
         # (see local_ref_id); cleared with ``_ui``.
         self._local_ids: dict[str, str] | None = None
+        # The scopes of the evaluated state in their order, with where the UIs with the same
+        # module scopes found refs (see _placed); cleared with ``_ui``.
+        self._scope_places: _Placed | None = None
         self.script_env: JScriptEnv | None = None
         self.script_abort: AbortToken | None = None
         # What the nodes gave in evaluations of other UIs of the program alike (see
@@ -1248,7 +1311,9 @@ class DynamicUI:
         self._active_snapshot = None
         self._active_refs = None
         self._located = {}
+        self._scope_ids = None
         self._local_ids = None
+        self._scope_places = None
 
     def _discover_union_activity(self) -> list[UiNode] | None:
         """Discovery pass ahead of a render eval: evaluate the tree WITHOUT union suppression so every
@@ -1266,7 +1331,14 @@ class DynamicUI:
         Returns the tree of the last pass when a render pass would evaluate it the same way:
         the discovery settled, and no Choose on a union member it reached is suppressed by the
         snapshot (the only difference between the two kinds of pass). The render pass would then
-        repeat that last pass: from the same values, gated by the same parameters."""
+        repeat that last pass: from the same values, gated by the same parameters. Settled, the
+        snapshot holds the parameters the gates hold: a Choose it suppresses is on a parameter
+        that is not active, which selected nothing in the last pass and selects nothing in the
+        render pass either way. So the render pass repeats the last pass with such Chooses too
+        when no write of that pass changed a value at any point and nothing is left to give back
+        (see :meth:`ParameterState.pass_kept_values`): its Assigns, which write where their
+        source has another value than in that pass, write nothing then, and each read gives what
+        it gave."""
         self._state.clear_gate()
         chooses: list[tuple[ParameterState, str, Collection[str]]] = []
 
@@ -1283,10 +1355,13 @@ class DynamicUI:
 
         tree, settled = self._settle(make_ctx)
         self._state.snapshot_discovered_active()
-        if not settled or any(
-            not scope.is_discovered_active(param)
-            and any(scope.is_discovered_active(sibling) for sibling in siblings)
-            for scope, param, siblings in chooses
+        if not settled or (
+            any(
+                not scope.is_discovered_active(param)
+                and any(scope.is_discovered_active(sibling) for sibling in siblings)
+                for scope, param, siblings in chooses
+            )
+            and not self._state.pass_kept_values()
         ):
             return None
         return tree
@@ -1367,7 +1442,9 @@ class DynamicUI:
         capture = (lambda: EvalCapture(None)) if capture_active else None
         self._active_refs = None
         self._located = {}
+        self._scope_ids = None
         self._local_ids = None
+        self._scope_places = None
         self._ui, result = self._eval_settled(capture)
         self._state.trim_to_active()
         if capture_active:
@@ -1699,6 +1776,30 @@ class DynamicUI:
             )
         return decoded
 
+    def decode_memory_values(
+        self, segments: Mapping[str, bytes], parameter_ids: Collection[str]
+    ) -> dict[str, str | None]:
+        """What :meth:`decode_memory_parameters` gives the parameters ``parameter_ids`` (those
+        it decodes): of the application's own read at their fields alone where that tells
+        (see :func:`~xknxeditor.prod.parser_v2.encode.decode_memory_values`)."""
+        self.ui()
+        found = decode_memory_values(
+            self._app,
+            self._idx,
+            segments,
+            self._state,
+            parameter_ids,
+            self.text_encoding,
+        )
+        if found is None:
+            decoded = self.decode_memory_parameters(segments)
+            found = {
+                parameter: decoded[parameter]
+                for parameter in parameter_ids
+                if parameter in decoded
+            }
+        return found
+
     def decode_module_parameters(
         self,
         segments: Mapping[str, bytes],
@@ -1883,9 +1984,67 @@ class DynamicUI:
         if self._ui is not None:
             located = self._located.get(ref_id)
             if located is None:
-                located = self._located[ref_id] = self._find_scope(ref_id)
+                located = self._located[ref_id] = self._find_placed(ref_id)
             return located
         return self._find_scope(ref_id)
+
+    def _placed(self) -> _Placed:
+        """The scopes of the evaluated state, with where the UIs with the same module scopes
+        found refs (see :class:`_Placed`)."""
+        placed = self._scope_places
+        if placed is None:
+            placed = self._scope_places = _Placed(self._idx, self._state)
+        return placed
+
+    def _find_placed(self, ref_id: str) -> tuple[ParameterState, str]:
+        """:meth:`_find_evaluated_scope`, where UIs with the same module scopes found it before
+        (it depends on the module scopes alone: their ids, in their order)."""
+        placed = self._placed()
+        place = placed.places.get(ref_id)
+        if place is not None:
+            return placed.scopes[place[0]], place[1]
+        scope, local = self._find_evaluated_scope(ref_id)
+        n = placed.position(scope)
+        if n is not None:
+            if len(placed.places) >= 1 << 17:
+                placed.places.clear()
+            placed.places[ref_id] = (n, local)
+        return scope, local
+
+    def _find_evaluated_scope(self, ref_id: str) -> tuple[ParameterState, str]:
+        """:meth:`_find_scope` in the evaluated state, told by the ids of its module instances
+        (collected once per evaluation; a search looks up thousands of refs in states with
+        hundreds of instances): an instance is the scope of ``ref_id`` only where its id
+        followed by "_" starts it (see
+        :meth:`~xknxeditor.prod.parser_v2.state.ParameterState.find_scope_for_qualified`),
+        so where one instance alone is, it is the one, and where none is, the application's
+        scope is."""
+        scopes = self._scope_ids
+        if scopes is None:
+            scopes = self._scope_ids = {}
+            pending = self._state.module_children()
+            while pending:
+                scope = pending.pop()
+                scopes.setdefault(scope.module_instance_id, []).append(scope)
+                pending.extend(scope.module_children())
+        if not scopes:
+            return (self._state, ref_id)
+        found: list[ModuleState] | None = None
+        end = ref_id.find("_")
+        while end != -1:
+            named = scopes.get(ref_id[:end])
+            if named is not None:
+                if found is not None:
+                    # Several: as the instances nest.
+                    return self._find_scope(ref_id)
+                found = named
+            end = ref_id.find("_", end + 1)
+        if found is None:
+            return (self._state, ref_id)
+        if len(found) > 1:
+            return self._find_scope(ref_id)
+        own = found[0].own_scope_for_qualified(ref_id)
+        return own if own is not None else (self._state, ref_id)
 
     def _find_scope(self, ref_id: str) -> tuple[ParameterState, str]:
         found = self._state.find_scope_for_qualified(ref_id)
@@ -2223,17 +2382,22 @@ class DynamicUI:
         # nothing about the settings it is computed from.
         active = self.active_parameter_ref_ids() if stored else frozenset[str]()
         journal = self._journal()
+        idx = self._idx
         for scope, locals_ in self._group_by_scope(ref_ids):
             run_calculations_many(
-                self._idx,
+                idx,
                 locals_,
                 self._calc_scope(scope),
                 journal,
                 self.script_env,
                 raise_errors=False,
                 abort=self.script_abort,
+                # Only asked for the refs on the right side of a calculation.
                 stored={
-                    local for local in locals_ if scope.qualify_local(local) in active
+                    local
+                    for local in locals_
+                    if idx.calculations_for_r(local)
+                    and scope.qualify_local(local) in active
                 }
                 if stored
                 else None,
@@ -2246,6 +2410,38 @@ class DynamicUI:
     def _group_by_scope(
         self, ref_ids: Iterable[str]
     ) -> list[tuple[ParameterState, list[str]]]:
+        """The local ids of the param-refs of ``ref_ids`` by their scopes, in the order the
+        scopes and the ids first come. Evaluated, each ref is placed where UIs with the same
+        module scopes found it (see :meth:`_find_placed`): a search recalculates thousands of
+        values in many."""
+        if self._ui is None:
+            return self._grouped(ref_ids)
+        ref_ids = list(ref_ids)
+        placed = self._placed()
+        places = placed.places
+        parameter_refs = self._idx.parameter_refs
+        groups: dict[int, list[str]] = {}
+        for ref_id in ref_ids:
+            place = places.get(ref_id)
+            if place is None:
+                self._locate(ref_id)
+                place = places.get(ref_id)
+                if place is None:
+                    # Not in a scope of the state: as it is found.
+                    return self._grouped(ref_ids)
+            n, local = place
+            if local in parameter_refs:
+                found = groups.get(n)
+                if found is None:
+                    found = groups[n] = []
+                found.append(local)
+        scopes = placed.scopes
+        return [(scopes[n], locals_) for n, locals_ in groups.items()]
+
+    def _grouped(
+        self, ref_ids: Iterable[str]
+    ) -> list[tuple[ParameterState, list[str]]]:
+        """:meth:`_group_by_scope`, worked out."""
         groups: dict[int, tuple[ParameterState, list[str]]] = {}
         for ref_id in ref_ids:
             scope, local = self._locate(ref_id)
@@ -2560,11 +2756,31 @@ class DynamicUI:
             self._active_snapshot = snapshot
             self._active_refs = active_refs
             self._located = {}
+            self._scope_ids = None
             self._local_ids = None
+            self._scope_places = None
 
     @property
     def indexer(self) -> ApplicationIndexer:
         return self._idx
+
+    @property
+    def allocation_param_refs(self) -> frozenset[str]:
+        """Param-refs (local to their application or module definition) whose value can change
+        which allocating module instances the tree makes: no other value can make an allocator
+        overflow."""
+        return self._allocation_param_refs
+
+    def never_active(self, ref_ids: Iterable[str]) -> bool:
+        """Whether no evaluation of this state, also after its values change, makes any of
+        ``ref_ids`` active: none names a module instance (``_MI-``) or is a ref the
+        application's own tree (outside its modules) shows or assigns, and the id of each
+        module instance the state holds names one. The refs active in a module instance start
+        with its id, and an evaluation makes an instance only with an id that names one."""
+        marked = self._application_marked_refs
+        if any("_MI-" in ref_id or ref_id in marked for ref_id in ref_ids):
+            return False
+        return self._state.instance_ids_name_instances()
 
     @property
     def object_param_refs(self) -> frozenset[str]:
@@ -2652,7 +2868,7 @@ class DynamicUI:
         # seeds many) look up each ref once.
         local_ids = self._local_ids
         if local_ids is None:
-            local_ids = self._local_ids = _local_ids_of(self._idx, self._state.scopes())
+            local_ids = self._local_ids = _local_ids_of(self._idx, self._placed().key)
         local = local_ids.get(ref_id)
         if local is None:
             local = local_ids[ref_id] = self._locate(ref_id)[1]

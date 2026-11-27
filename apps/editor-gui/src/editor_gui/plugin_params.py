@@ -163,9 +163,6 @@ def mapping_for_device(device: Device) -> PluginMapping | None:
     app = getattr(device, "app", None)
     if app is None:
         return None
-    mapping = mapping_for(getattr(app, "id", None))
-    if mapping is not None:
-        return mapping
     extension = getattr(
         getattr(getattr(app, "program", None), "static", None), "extension", None
     )
@@ -174,6 +171,16 @@ def mapping_for_device(device: Device) -> PluginMapping | None:
         for field in ("ets_download_plugin", "ets_ui_plugin", "ets_data_handler")
     }
     blob_names = {row.name for row in getattr(device, "binary_data", ())}
+    mapping = mapping_for(getattr(app, "id", None))
+    # A mapping of a plug-in applies to an application of its numbers only when the
+    # application names the plug-in, or the device holds its configuration: another version
+    # with the same number (an older one without the plug-in) is programmed as it is.
+    if mapping is not None and (
+        not mapping.plugin_ids
+        or identifiers.intersection(mapping.plugin_ids)
+        or blob_names.intersection(mapping.blob_names)
+    ):
+        return mapping
     for path in sorted(_MAPPINGS_DIR.glob("*.json")):
         try:
             candidate = _load_mapping(str(path))

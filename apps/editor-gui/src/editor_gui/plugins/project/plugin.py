@@ -1541,6 +1541,7 @@ class ProjectPlugin:
         from xknxeditor.vendor.siemens_generic import parse_settings
         from xknxeditor.vendor.siemens_generic.image import compile_image
         from xknxeditor.vendor.siemens_generic.prepare import validate_profile
+        from xknxeditor.vendor.siemens_generic.recover import memory_location
 
         source = sources(device)
         assert device.app is not None
@@ -1548,11 +1549,17 @@ class ProjectPlugin:
         settings = parse_settings(blob(device))
         if settings is None:
             raise ValueError("Siemens configuration is unreadable")
-        compiled = compile_image(
+        compile_image(
             source.description, settings, {"DeviceOrderNumber": device.order_number}
         )
+        # Where a download writes the parameter memory: relative to the application's
+        # segment (object 4) for a relative download.
+        location = memory_location(source.description)
         return MemoryReadRequest(
-            "plugin_parameters", compiled.base, compiled.used_length
+            "plugin_parameters",
+            location.address,
+            location.length,
+            4 if location.relative else None,
         )
 
     def _generic_memory_owner(self, device: "Device") -> tuple[int, str, str | None]:
@@ -1648,17 +1655,19 @@ class ProjectPlugin:
             return None
         static = getattr(device.app.program, "static", None)
         extension = getattr(static, "extension", None)
+        # Every baggage: the XML ones hold the description, the plug-in's setup names its
+        # version.
         baggage_ids: list[str] = []
         for b in cast("list[Any]", getattr(extension, "baggage", None) or []):
             ref_id = str(getattr(b, "ref_id", None) or "")
-            if ref_id and is_xml_baggage(ref_id):
+            if ref_id:
                 baggage_ids.append(ref_id)
         blobs: list[bytes] = []
         for entry in cast("list[Any]", getattr(device, "binary_data", None) or []):
             data = getattr(entry, "data", None)
             if data:
                 blobs.append(bytes(cast("bytes", data)))
-        if not baggage_ids or not blobs:
+        if not any(is_xml_baggage(i) for i in baggage_ids) or not blobs:
             return None
         if memory is not None:
             blobs = [
@@ -1685,10 +1694,18 @@ class ProjectPlugin:
                             parse_settings,
                             pick_language,
                         )
+                        from xknxeditor.vendor.siemens_generic.recover import (
+                            memory_location,
+                            stored_image,
+                        )
 
                         settings = parse_settings(blob)
                         assert settings is not None
-                        if memory.address != sources.description.memory_base:
+                        location = memory_location(sources.description)
+                        if (
+                            memory.request.address,
+                            memory.request.object_index is not None,
+                        ) != (location.address, location.relative):
                             raise ValueError(
                                 "Device memory no longer matches this layout"
                             )
@@ -1696,7 +1713,9 @@ class ProjectPlugin:
                             sources.description,
                             replace(
                                 settings,
-                                memory_image=memory.data,
+                                memory_image=stored_image(
+                                    sources.description, memory.data
+                                ),
                                 memory_mask=None,
                                 last_download="",
                             ),

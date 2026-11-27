@@ -48,6 +48,32 @@ def test_shared_mapping_uses_plugin_identity_and_keeps_profile_gate(
     proj.close()
 
 
+def test_an_application_of_the_plugins_numbers_without_the_plugin_is_not_its():
+    # An older version of the same application number that names no plug-in (6108-10, a
+    # BCU 1 application) is programmed with its own procedure; one that names it, or a
+    # device holding the plug-in's configuration, is the plug-in's.
+    from types import SimpleNamespace
+
+    def device(extension: object, blobs: tuple[str, ...] = ()) -> object:
+        app = SimpleNamespace(
+            id="M-0007_A-6108-10-0BCB",
+            program=SimpleNamespace(static=SimpleNamespace(extension=extension)),
+        )
+        return SimpleNamespace(
+            app=app, binary_data=[SimpleNamespace(name=name) for name in blobs]
+        )
+
+    assert mapping_for_device(device(None)) is None  # type: ignore[arg-type]
+    named = SimpleNamespace(
+        ets_download_plugin="{008C1C2B-2FA8-480C-B174-3F5CB660980E}",
+        ets_ui_plugin="",
+        ets_data_handler="",
+    )
+    for found in (device(named), device(None, ("PT2EtsPlugin",))):
+        mapping = mapping_for_device(found)  # type: ignore[arg-type]
+        assert mapping is not None and mapping.provider == "powertool"
+
+
 def test_family_mapping_does_not_grant_unknown_version_support(tmp_path, monkeypatch):
     proj, nid = native_project(tmp_path, monkeypatch)
     device = current(proj, nid)

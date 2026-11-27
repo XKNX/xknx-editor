@@ -323,3 +323,124 @@ def test_a_pass_inside_another_is_compared_with_none() -> None:
     memo.end_pass(inner, GlobalState())
     memo.end_pass(outer, outer_scope)
     assert memo.begin_pass(outer_scope, True).previous == first.number
+
+
+_EXTRA = f"{_RENAMING}_P-3_R-3"
+# A block titled by a text argument (the value of the param-ref with unique number 2,
+# "Other"), and another block with a setting the first one does not read.
+_TITLED_XML = (
+    _RENAMING_XML.replace('Text="Plain"', 'Text="Other {{2}}"')
+    .replace(
+        "</Parameters>",
+        f'<Parameter Id="{_RENAMING}_P-3" Name="Extra" ParameterType="{_RENAMING}_PT-OnOff"'
+        ' Text="Extra" Value="0" />\n</Parameters>',
+    )
+    .replace(
+        "</ParameterRefs>",
+        f'<ParameterRef Id="{_EXTRA}" RefId="{_RENAMING}_P-3" />\n</ParameterRefs>',
+    )
+    .replace(
+        "</ChannelIndependentBlock>",
+        f'<ParameterBlock Id="{_RENAMING}_PB-2" Text="Extra">\n'
+        f'<ParameterRefRef RefId="{_EXTRA}" />\n</ParameterBlock>\n'
+        "</ChannelIndependentBlock>",
+    )
+)
+
+
+def test_a_text_argument_is_told_by_the_value_it_stands_for(
+    fast_checks: list[bool], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    application = parse_application_xml(_TITLED_XML.encode(), "M-00FA")[0]
+    memo = EvalMemo()
+    assert _block_text(_ui(application, {}, memo)) == "Other 0"
+    told: list[Recording] = []
+    unchanged = EvalMemo.unchanged
+
+    def noted(recording: Recording, ctx: EvalContext) -> bool:
+        result = unchanged(recording, ctx)
+        if result and recording.text_arg_keys:
+            told.append(recording)
+        return result
+
+    monkeypatch.setattr(EvalMemo, "unchanged", staticmethod(noted))
+    # A value the title does not stand for: the block is told without reading again.
+    ui = _ui(application, {_EXTRA: "1"}, memo)
+    assert _observed(ui) == _observed(_ui(application, {_EXTRA: "1"}, None))
+    assert _block_text(ui) == "Other 0"
+    assert told
+    # The value it stands for: read again, with the other title.
+    told.clear()
+    ui = _ui(application, {_EXTRA: "1", _OTHER: "1"}, memo)
+    assert _observed(ui) == _observed(
+        _ui(application, {_EXTRA: "1", _OTHER: "1"}, None)
+    )
+    assert _block_text(ui) == "Other 1"
+    assert not told
+
+
+def _flat(events: tuple[object, ...]) -> tuple[object, ...]:
+    """The events with those of the recordings among them in their place."""
+    return tuple(
+        part
+        for event in events
+        for part in (_flat(event.events) if isinstance(event, Recording) else (event,))
+    )
+
+
+def _read(recording: Recording) -> tuple[object, ...]:
+    return (
+        frozenset(recording.values),
+        frozenset(recording.gates),
+        frozenset(recording.all_reads),
+        recording.count,
+        recording.checked_by_change,
+        recording.value_keys,
+        recording.gate_keys,
+        recording.text_keys,
+        recording.text_arg_keys,
+        recording.discovered_keys,
+        recording.object_reads,
+        recording.parameter_set,
+        recording.texts,
+        recording.unions,
+    )
+
+
+def test_a_recording_with_one_inside_it_reads_what_its_events_read() -> None:
+    inner = Recording(
+        False,
+        (
+            ("g", "A", "1"),
+            ("a", "A", True),
+            ("t", "T", "old"),
+            ("s", "U", "new"),
+            ("t", "U", "new"),
+            ("p", "P", None),
+            ("g", "A", "1"),
+            ("q", "Q", "Q"),
+            ("q", "Q", "Q"),
+            ("u", "A", ("B",)),
+        ),
+        (),
+    )
+    events = (
+        # A text set before the inner evaluation reads it: nothing to check there.
+        ("s", "T", "set"),
+        ("g", "B", "2"),
+        inner,
+        ("t", "U", "new"),
+        ("x", "3", "v"),
+        ("d", "A", True),
+        ("p", "P", None),
+        ("p", "R", None),
+        inner,
+    )
+    nested = Recording(True, events, ())
+    flat = Recording(True, _flat(events), ())
+    assert _read(nested) == _read(flat)
+    assert nested.count == 13
+    assert ("t", "T", "old") not in nested.all_reads
+    # Each read once, each parameter marked once.
+    assert len(nested.values) == 2
+    assert nested.parameters == ("P", "R")

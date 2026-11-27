@@ -187,3 +187,17 @@ def test_the_switches_show_the_linked_objects(
     ui = seed_dynamic_ui(application, result.values, None)
     assert ui is not None
     assert _shown_objects(ui) == {11, 12}
+
+
+def test_a_decode_without_fixed_values_reads_the_instances_alike(
+    application: Application,
+) -> None:
+    # No fixed values, or only one of no setting the application has: the same values read.
+    memory = _memory(application)
+    for inferred in ({}, {_SHOW_2: "1"}):
+        plain = _decode(application, memory, None, None, inferred, fixed={})
+        other = _decode(
+            application, memory, None, None, inferred, fixed={f"{_APP}_P-99_R-99": "0"}
+        )
+        assert plain == other
+        assert plain[0][_KIND_1] == "1"

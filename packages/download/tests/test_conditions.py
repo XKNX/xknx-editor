@@ -182,3 +182,36 @@ async def test_final_record_read_runs_only_after_programming():
     with pytest.raises(VerificationError):
         await runner.run()
     assert runner.state_mutated is False
+
+
+@pytest.mark.parametrize("loaded", [True, False])
+@pytest.mark.parametrize("preflight", [True, False])
+async def test_conditional_read_reads_only_when_its_condition_matches(
+    loaded, preflight
+):
+    from xknxeditor.download.conditions import ConditionalRead
+    from xknxeditor.download.load_state import LoadState
+    from xknxeditor.namespaces.intermediate.ld_ctrl_load_image_prop_t import (
+        LdCtrlLoadImageProp,
+    )
+
+    app, _ = applications()
+    fake = FakeDevice({0: 0, 4: 3, 6: 0xFFFF}, 0x07B0)
+    fake.load_states[4] = LoadState.LOADED if loaded else LoadState.UNLOADED
+    fake.properties[6, 203] = b"\x03"
+    fake.property_element_sizes[6, 203] = 1
+    control = ConditionalRead(
+        (LdCtrlCompareProp(obj_idx=4, prop_id=5, inline_data=b"\x01"),),
+        LdCtrlLoadImageProp(obj_idx=6, prop_id=203),
+    )
+    runner = LoadProcedureRunner(
+        app,
+        DownloadImage((), ()),
+        DeviceProgrammer(fake),
+        controls=[control],
+        object_types=fake.object_types,
+    )
+    await (runner.preflight() if preflight else runner.run())
+    assert (runner.property_reads.get((6, 203, 1)) == b"\x03") == loaded
+    assert not any(isinstance(p, PropertyValueWrite) for p in fake.sent)
+    assert not runner.state_mutated

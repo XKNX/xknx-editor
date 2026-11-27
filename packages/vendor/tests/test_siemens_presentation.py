@@ -33,6 +33,8 @@ from xknxeditor.vendor.siemens_generic.presentation import ValueFormat, value_fo
             "00:00:02.345",
             "2345",
         ),
+        (TypeKind.TIME_100MS, "mm:ss.f", "15", "00:01.5", "00:02,5", "25"),
+        (TypeKind.TIME_10MS, "HH:mm:ss.f", "150", "00:00:01.5", "00:01:00.25", "6025"),
     ],
 )
 def test_clock_display_and_edit(kind, clock, raw, shown, entered, stored):
@@ -106,3 +108,37 @@ def test_description_format_controls_edit_and_image_independently_of_labels():
     assert compile_image(description, settings).data[:2] == b"\x00\x78"
     row = build_view(description, settings).pages[0].rows[0]
     assert row.value_text == "2 (120 s)" and row.clock
+
+
+@pytest.mark.parametrize(
+    ("element", "kind", "shown"),
+    [
+        ("TypeTimeSec10", TypeKind.TIME_100MS, "1500 ms"),
+        ("TypeTimeSec100", TypeKind.TIME_10MS, "150 ms"),
+    ],
+)
+def test_tenths_and_hundredths_of_seconds_are_whole_units(element, kind, shown):
+    description = parse_description(
+        f"""<ApplicationProgram Id="demo"><Static>
+      <CodeSegments><CodeSegment Id="s" Address="4096"/></CodeSegments>
+      <ParameterTypes><ParameterType Id="t"><{element} Size="32" maxInclusive="100000"/>
+      </ParameterType></ParameterTypes>
+      <Parameters><Parameter Id="p" RefId="t" Value="15" Text="Delay">
+        <Memory CodeSegment="s" Offset="0"/></Parameter></Parameters>
+      <ParameterRefs><ParameterRef Id="r" RefId="p"/></ParameterRefs>
+      </Static><Dynamic><Channel Id="c"><ParameterBlock Id="b"><ParameterRefRef RefId="r"/>
+      </ParameterBlock></Channel></Dynamic></ApplicationProgram>""".encode()
+    )
+    assert description is not None
+    assert description.types["t"].kind is kind
+    description = replace(description, allocation_size=4)
+    before = default_config(description)
+    settings = parse_settings(edit(description, before, "r", "70000"))
+    assert settings is not None and settings.values["r"] == "70000"
+    assert compile_image(description, settings).data[:4] == (70000).to_bytes(4, "big")
+    row = build_view(description, parse_settings(before)).pages[0].rows[0]
+    assert row.value_text == shown
+    with pytest.raises(ValueError, match="between 0 and 100000"):
+        edit(description, before, "r", "100001")
+    with pytest.raises(ValueError, match="precision"):
+        ValueFormat(kind, clock="mm:ss.f").parse("00:00.005", "15")

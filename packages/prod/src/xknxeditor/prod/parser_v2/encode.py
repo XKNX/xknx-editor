@@ -8,7 +8,16 @@ import logging
 import math
 import re
 import struct
-from collections.abc import Callable, Collection, Container, Iterable, Iterator, Mapping
+from bisect import bisect_left
+from collections.abc import (
+    Callable,
+    Collection,
+    Container,
+    Iterable,
+    Iterator,
+    Mapping,
+    Sequence,
+)
 from functools import lru_cache
 from typing import NamedTuple
 
@@ -165,6 +174,15 @@ _COLOR_SIZE_IN_BIT = {
     ParameterTypeTypeColorSpace.RGBW: 24,
     ParameterTypeTypeColorSpace.HSV: 24,
 }
+# The types that carry their size themselves (none of the others above).
+_SIZED_TYPES: frozenset[type] = frozenset(
+    {
+        ParameterTypeTypeNumber,
+        ParameterTypeTypeRestriction,
+        ParameterTypeTypeText,
+        ParameterTypeTypeTime,
+    }
+)
 
 
 def type_size_in_bit(tc: object, *, for_property: bool = False) -> int | None:
@@ -180,6 +198,9 @@ def type_size_in_bit(tc: object, *, for_property: bool = False) -> int | None:
     writers gated on a plain ``getattr(tc, "size_in_bit", None)`` and silently skipped all
     five sizeless types, leaving their cells at the segment seed.
     """
+    if type(tc) in _SIZED_TYPES:
+        # Most of the types, asked for millions of times in a search.
+        return tc.size_in_bit  # type: ignore[union-attr]
     if isinstance(tc, ParameterTypeTypeFloat):
         return _FLOAT_ENCODING_SIZE_IN_BIT.get(tc.encoding)
     if isinstance(tc, ParameterTypeTypeDate):
@@ -825,6 +846,60 @@ def _active_ref_ranks(
     return ranks
 
 
+class _RefLookups:
+    """What each encoding and decoding asks of an application's ParameterRefs (``orders``,
+    see _ref_orders) again and again, made from them once: their ids in order, and the
+    place of each ref of a module definition among its refs (by its id; None for refs with
+    an id twice). It holds no part of the application itself."""
+
+    __slots__ = ("orders", "places", "sorted_ids")
+
+    def __init__(self, orders: dict[str, tuple[str, tuple[int, int], int]]) -> None:
+        self.orders = orders
+        self.sorted_ids = sorted(orders)
+        self.places: dict[str, dict[str, int] | None] = {}
+
+
+# The lookups of the last few applications, by the identity of their orders.
+_REF_LOOKUPS: dict[int, _RefLookups] = {}
+
+
+def _ref_lookups(idx: ApplicationIndexer) -> _RefLookups:
+    """The :class:`_RefLookups` of the application of ``idx``."""
+    orders = _ref_orders(idx)
+    kept = _REF_LOOKUPS.get(id(orders))
+    if kept is None or kept.orders is not orders:
+        if len(_REF_LOOKUPS) >= 4:
+            _REF_LOOKUPS.clear()
+        kept = _REF_LOOKUPS[id(orders)] = _RefLookups(orders)
+    return kept
+
+
+def _active_refs_in_order(
+    idx: ApplicationIndexer,
+    md_id: str,
+    refs: Sequence[ParameterRef],
+    active: Collection[str],
+) -> Sequence[ParameterRef]:
+    """The refs of ``refs`` (those of the module definition ``md_id`` of ``idx``'s
+    application) whose id is in ``active``, in their order: found from the active ones where
+    they are few (a module definition has hundreds of refs, each encoding and decoding asks
+    for those of each of its instances)."""
+    if 4 * len(active) > len(refs):
+        return [ref for ref in refs if ref.id in active]
+    lookups = _ref_lookups(idx)
+    if md_id in lookups.places:
+        places = lookups.places[md_id]
+    else:
+        places = {ref.id: place for place, ref in enumerate(refs)}
+        if len(places) != len(refs):
+            places = None
+        lookups.places[md_id] = places
+    if places is None:
+        return [ref for ref in refs if ref.id in active]
+    return [refs[place] for place in sorted(places[i] for i in active if i in places)]
+
+
 def last_active_ref_ranks(
     refs: Iterable[ParameterRef], active: Container[str]
 ) -> dict[str, tuple[int, int]]:
@@ -838,6 +913,31 @@ def last_active_ref_ranks(
             if ref.ref_id not in ranks or rank >= ranks[ref.ref_id]:
                 ranks[ref.ref_id] = rank
     return ranks
+
+
+def _application_active_refs(idx: ApplicationIndexer, state: GlobalState) -> set[str]:
+    """The active refs of ``state`` (see ParameterState.active_param_refs) that are
+    ParameterRefs of ``idx``'s application: the application's own and, where one of them
+    starts with its id, those of a module instance (each qualified with it, see
+    ModuleState.qualify). A state of hundreds of module instances is asked for them at each
+    encoding."""
+    lookups = _ref_lookups(idx)
+    refs = lookups.orders
+    ordered = lookups.sorted_ids
+    found = {ref for ref in state.local_active_param_refs() if ref in refs}
+    scopes = list(state.module_children())
+    while scopes:
+        scope = scopes.pop()
+        mid = scope.module_instance_id
+        at = bisect_left(ordered, mid)
+        if at < len(ordered) and ordered[at].startswith(mid):
+            found.update(
+                qualified
+                for qualified in map(scope.qualify, scope.local_active_param_refs())
+                if qualified in refs
+            )
+        scopes.extend(scope.module_children())
+    return found
 
 
 def resolve_param_values(idx: ApplicationIndexer, state: GlobalState) -> dict[str, str]:
@@ -861,7 +961,8 @@ def resolve_param_values(idx: ApplicationIndexer, state: GlobalState) -> dict[st
     orders = _ref_orders(idx)
     chosen: dict[str, tuple[tuple[int, int], int, str]] = {}
     first: dict[str, int] = {}
-    for ref_id in state.active_param_refs():
+    # Those of the application's ParameterRefs (the others have no entry).
+    for ref_id in _application_active_refs(idx, state):
         entry = orders.get(ref_id)
         if entry is None:
             continue
@@ -1194,8 +1295,13 @@ def _collect_scope_writes(
     md = idx.module_defs.get(ms.ref_id)
     if md is None or md.static.parameters is None:
         return (), ()
-    refs = md.static.parameter_refs.parameter_ref if md.static.parameter_refs else []
+    all_refs = (
+        md.static.parameter_refs.parameter_ref if md.static.parameter_refs else []
+    )
     active = ms.local_active_param_refs()
+    # Of the module definition's refs those that are active, in their order: what each loop
+    # over the refs below takes.
+    refs = _active_refs_in_order(idx, ms.ref_id, all_refs, active)
     ranks = last_active_ref_ranks(refs, active)
     arguments = tuple(
         (name, arg.value if isinstance(arg, ModuleNumericArg) else None)
@@ -1204,7 +1310,7 @@ def _collect_scope_writes(
     if behavior is None:
         instance_overrides = _build_instance_overrides(ms, idx)
         if active_unions and md.static.parameter_refs is not None:
-            for ref in md.static.parameter_refs.parameter_ref:
+            for ref in refs:
                 if (
                     ref.id in active
                     and ref.ref_id not in instance_overrides
@@ -1373,7 +1479,11 @@ def collect_writes(
     behavior = download_behavior(app)
     keep = inactive_ranges and behavior is DownloadBehavior.BACKGROUND
     referenced = _referenced_parameters(idx)
-    active_refs = state.active_param_refs() if state is not None else set[str]()
+    # Of the active refs those of the application's ParameterRefs (all the ones below ask
+    # for).
+    active_refs = (
+        _application_active_refs(idx, state) if state is not None else set[str]()
+    )
     # Active union members over the same bits are written in ParameterRef order.
     ranks = _active_ref_ranks(idx, active_refs) if state is not None else None
     # With a resolved state, gate top-level parameters to the active set (regular
@@ -1432,8 +1542,17 @@ def collect_writes(
             for item in first:
                 collect(item, active)
             _extend_in_ref_order(out, active, ranks)
-            for item in rest:
-                collect(item, out)
+            if keep or active_ids is None or not active_ids <= active_params:
+                for item in rest:
+                    collect(item, out)
+            else:
+                # A parameter of none of the active refs writes nothing then (most of a
+                # large application's): only the unions are collected.
+                for item in rest:
+                    if not isinstance(
+                        item, ApplicationProgramStaticParametersParameter
+                    ):
+                        collect(item, out)
     if state is not None:
         for ms in state.module_children():
             _collect_module_writes(ms, idx, out, behavior, keep)
@@ -1581,26 +1700,42 @@ def encode_to_memory(
     bufs: dict[str, bytearray] = {
         seg_id: segment_seed(seg) for seg_id, seg in idx.code_segments.items()
     }
+    # A type writes a value the same way each time (a search encodes thousands of states
+    # that differ in a few values).
+    plans = idx.memory_plans
+    if len(plans) >= _MEMORY_PLANS:
+        plans.clear()
     for w in writes.mem:
         buf = bufs.get(w.seg_id)
         if buf is None:
             continue
-        pt = idx.parameter_types.get(w.parameter_type)
-        if pt is None:
-            continue
-        plan = _plan_memory_write(
-            pt.choice,
-            w.value,
-            w.param_id,
-            w.parameter_type,
-            little_endian=little_endian,
-            text_encoding=text_encoding,
-        )
+        key = (w.parameter_type, w.value, little_endian, text_encoding)
+        if key in plans:
+            plan = plans[key]
+        else:
+            pt = idx.parameter_types.get(w.parameter_type)
+            if pt is None:
+                continue
+            # A value that cannot be encoded raises, with the parameter of the write, and is
+            # not kept.
+            plan = _plan_memory_write(
+                pt.choice,
+                w.value,
+                w.param_id,
+                w.parameter_type,
+                little_endian=little_endian,
+                text_encoding=text_encoding,
+            )
+            plans[key] = plan
         if plan is None:
             continue
         encoded, write_bits = plan
         _write_param(buf, w, write_bits, encoded)
     return {seg_id: bytes(buf) for seg_id, buf in bufs.items()}
+
+
+# The plans of memory writes kept at most per application (see encode_to_memory).
+_MEMORY_PLANS = 65536
 
 
 def encode_to_memory_masked(
@@ -2145,7 +2280,17 @@ def _decode_value(
         return value
     if isinstance(tc, ParameterTypeTypeNumber):
         logical = _apply_byte_order(raw, size_in_bit, little_endian) or 0
-        if _is_signed_number(tc) and logical >= (1 << (size_in_bit - 1)):
+        if (
+            _is_signed_number(tc)
+            and logical >= (1 << (size_in_bit - 1))
+            and (
+                tc.min_inclusive <= logical - (1 << size_in_bit)
+                or not logical <= tc.max_inclusive
+            )
+        ):
+            # A signed type whose range reaches past the signed values of its size
+            # (-127..128 in 8 bits) writes its top values as the same bits: 0x80 is
+            # 128 there, not -128.
             logical -= 1 << size_in_bit
         if not tc.min_inclusive <= logical <= tc.max_inclusive:
             # Not a value of this type (the bytes of another member of a union, or a
@@ -2276,6 +2421,127 @@ def decode_memory_parameters(
             text_encoding=text_encoding,
         )
     return result
+
+
+def decode_memory_values(
+    app: ApplicationProgram,
+    idx: ApplicationIndexer,
+    segments: Mapping[str, bytes],
+    state: GlobalState,
+    parameter_ids: Collection[str],
+    text_encoding: str | None = None,
+) -> dict[str, str | None] | None:
+    """What :func:`decode_memory_parameters` gives the parameters ``parameter_ids`` (those it
+    decodes), without laying out the fields of the others: a parameter of the application's
+    own is decoded where the resolved values (see :func:`resolve_param_values`) hold it, at
+    the field it has whatever the state. ``None`` when that does not tell: with module
+    instances, for an id that is no memory parameter or union member of the application, or
+    when a field the decode reads raises (as it does there)."""
+    if state.module_children():
+        return None
+    fields = _memory_fields(app, idx)
+    if not all(parameter in fields for parameter in parameter_ids):
+        return None
+    little_endian = _program_little_endian(app)
+    text_encoding = text_encoding or text_parameter_encoding(app)
+    overrides = resolve_param_values(idx, state)
+    if not overrides.keys().isdisjoint(
+        _raising_fields(idx, fields, segments, little_endian, text_encoding)
+    ):
+        return None
+    result: dict[str, str | None] = {}
+    for parameter in parameter_ids:
+        if parameter not in overrides:
+            continue
+        found = _decoded_field(
+            fields[parameter], segments, idx, little_endian, text_encoding
+        )
+        if found is not _NOT_DECODED:
+            result[parameter] = found  # type: ignore[assignment]
+    return result
+
+
+# What _decoded_field gives a field decode_memory_parameters leaves out.
+_NOT_DECODED = object()
+
+
+def _decoded_field(
+    w: MemWrite,
+    segments: Mapping[str, bytes],
+    idx: ApplicationIndexer,
+    little_endian: bool,
+    text_encoding: str,
+) -> object:
+    """The value :func:`decode_memory_parameters` decodes from the field of the write ``w``,
+    ``_NOT_DECODED`` where it decodes none."""
+    data = segments.get(w.seg_id)
+    if data is None:
+        return _NOT_DECODED
+    pt = idx.parameter_types.get(w.parameter_type)
+    if pt is None:
+        return _NOT_DECODED
+    size_in_bit = type_size_in_bit(pt.choice)
+    if not size_in_bit:
+        return _NOT_DECODED
+    if w.offset * 8 + w.bit_offset + size_in_bit > len(data) * 8:
+        return _NOT_DECODED
+    raw = _read_bits(data, w.offset, w.bit_offset, size_in_bit)
+    return _decode_value(
+        raw,
+        size_in_bit,
+        pt.choice,
+        little_endian=little_endian,
+        text_encoding=text_encoding,
+    )
+
+
+def _memory_fields(
+    app: ApplicationProgram, idx: ApplicationIndexer
+) -> dict[str, MemWrite]:
+    """The field of each memory parameter and memory union member of the application's own
+    (as the write :func:`collect_writes` makes of it, without a value), made once per
+    indexer."""
+    found = idx.memory_fields
+    if found is None:
+        found = idx.memory_fields = {}
+        parameters = app.static.parameters
+        for item in parameters.choice if parameters is not None else []:
+            writes = Writes()
+            if isinstance(item, ApplicationProgramStaticParametersParameter):
+                _collect_param(item, {}, None, writes)
+            else:
+                _collect_union(
+                    item, {member.id: "" for member in item.parameter}, None, writes
+                )
+            for w in writes.mem:
+                found[w.param_id] = w._replace(value="")
+    return found
+
+
+def _raising_fields(
+    idx: ApplicationIndexer,
+    fields: Mapping[str, MemWrite],
+    segments: Mapping[str, bytes],
+    little_endian: bool,
+    text_encoding: str,
+) -> frozenset[str]:
+    """The parameters of ``fields`` whose decode from ``segments`` raises (see
+    :func:`_decode_value`), for the last segments asked for (held, so their identity stays
+    theirs)."""
+    kept = idx.raising_fields
+    key = (little_endian, text_encoding)
+    if kept is not None and kept[0] is segments and kept[1] == key:
+        return kept[2]
+    raising: set[str] = set()
+    for parameter, w in fields.items():
+        try:
+            _decoded_field(w, segments, idx, little_endian, text_encoding)
+        except Exception:
+            # Raised again by the decode that reads it.
+            raising.add(parameter)
+    found = frozenset(raising)
+    idx.raising_fields = (segments, key, found)
+    return found
 
 
 def property_data(

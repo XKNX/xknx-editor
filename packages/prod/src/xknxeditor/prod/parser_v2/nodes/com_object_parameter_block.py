@@ -19,10 +19,48 @@ class _Texted(Protocol):
     def text(self) -> str | None: ...
 
 
+# A block with at least this many children may take them from the memo in parts (see
+# EvalMemo.eval_children).
+_IN_PARTS = 512
+
+
+def _apart_children(children: list[DynamicNode | None]) -> bool:
+    """Whether the evaluations of ``children`` can be taken in parts (see
+    EvalMemo.eval_children): they hold parameters, group objects, separators, blocks and
+    Chooses alone, no Choose on a union member, and no node twice."""
+    from .choose import ChooseWhenNode
+    from .com_object_ref_ref import ComObjectRefRefNode
+    from .parameter_ref_ref import ParameterRefRefNode
+    from .parameter_separator import ParameterSeparatorNode
+
+    seen: set[int] = set()
+    stack = [child for child in children if child is not None]
+    while stack:
+        node = stack.pop()
+        if id(node) in seen or not node.pure:
+            return False
+        seen.add(id(node))
+        if isinstance(node, ChooseWhenNode):
+            if node.union_sibling_refs:
+                return False
+            stack.extend(child for child in node.branch_nodes() if child is not None)
+        elif isinstance(node, ComObjectParameterBlockNode):
+            stack.extend(
+                child
+                for child in node._children  # pyright: ignore[reportPrivateUsage]
+                if child is not None
+            )
+        elif not isinstance(
+            node, ParameterRefRefNode | ComObjectRefRefNode | ParameterSeparatorNode
+        ):
+            return False
+    return True
+
+
 class ComObjectParameterBlockNode(DynamicNode):
     """A grouped box of parameters (dynamic-XML ParameterBlock)."""
 
-    __slots__ = ("_children", "_elem", "_heading", "pure")
+    __slots__ = ("_apart", "_children", "_elem", "_heading", "pure")
 
     def __init__(
         self,
@@ -38,6 +76,9 @@ class ComObjectParameterBlockNode(DynamicNode):
         # X: …"). Read when the block is shown, in the language of the program then.
         self._heading = heading
         self.pure = all(child is None or child.pure for child in children)
+        # Whether its children are taken from the memo in parts (see _apart_children);
+        # None until told.
+        self._apart: bool | None = None
 
     @property
     def _heading_text(self) -> str | None:
@@ -76,8 +117,14 @@ class ComObjectParameterBlockNode(DynamicNode):
             )
         tree = ctx.object_tree if self._elem.show_in_com_object_tree else None
         tree_node = tree.enter("Folder", ctx.qualify(self._elem.id)) if tree else None
+        memo = ctx.memo if len(self._children) >= _IN_PARTS else None
+        if memo is not None and self._apart is None:
+            self._apart = _apart_children(self._children)
         try:
-            items = eval_all(self._children, ctx)
+            if memo is not None and self._apart:
+                items = memo.eval_children(self, ctx, self._children)
+            else:
+                items = eval_all(self._children, ctx)
         finally:
             if explorer is not None:
                 explorer.leave_section(hidden=hidden)

@@ -152,21 +152,137 @@ def test_the_render_pass_is_left_out_when_it_would_repeat_the_last_discovery_pas
     assert passes[0] == reused + 1
 
 
-def test_a_suppressed_union_member_is_evaluated_by_the_render_pass(
+def _suppressed_chooses(monkeypatch: pytest.MonkeyPatch) -> list[str]:
+    """Collect the parameters of the Chooses on union members the render passes suppress
+    from now on."""
+    found: list[str] = []
+    is_discovered_active = EvalContext.is_discovered_active
+
+    def noted(self: EvalContext, ref_id: str) -> bool:
+        active = is_discovered_active(self, ref_id)
+        if not active:
+            found.append(ref_id)
+        return active
+
+    monkeypatch.setattr(EvalContext, "is_discovered_active", noted)
+    return found
+
+
+def test_a_suppressed_union_member_leaves_the_render_pass_out_where_it_selects_nothing(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     # The discovery reaches both members of the union; the snapshot suppresses the one the
-    # settled values do not select, which the render pass leaves out.
+    # settled values do not select, whose Choose the gates leave out in the last pass of the
+    # discovery as well: that pass is what the render pass gives.
     program = parse_application_xml(
         (FIXTURES / "union_late_assign_application.xml").read_bytes(), "M-00FA"
     )[0].program
     passes = _counted_passes(monkeypatch)
-    DynamicUI(program).ui()
-    reused = passes[0]
+    reused = DynamicUI(program)
+    reused.ui()
+    left_out = passes[0]
+    _render_pass_forced(monkeypatch)
+    suppressed = _suppressed_chooses(monkeypatch)
+    passes[0] = 0
+    rendered = DynamicUI(program)
+    assert reused.ui() == rendered.ui()
+    assert passes[0] == left_out + 1
+    assert f"{program.id}_P-4_R-4" in suppressed
+    assert reused.active_parameter_ref_ids() == rendered.active_parameter_ref_ids()
+    assert reused.get_module_instances() == rendered.get_module_instances()
+    assert reused.state_layout() == rendered.state_layout()
+
+
+def test_a_suppressed_union_member_is_evaluated_by_the_render_pass_after_a_passing_value(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # Copy holds First's value between its two Assigns only while they write it: in the last
+    # pass of the discovery, which shows WhileCopied, not in the render pass. With a union
+    # member suppressed, the render pass is evaluated.
+    program = parse_application_xml(
+        (FIXTURES / "union_passing_assign_application.xml").read_bytes(), "M-00FA"
+    )[0].program
+    passes = _counted_passes(monkeypatch)
+    ui = DynamicUI(program)
+    shown = shown_parameters(ui.ui())
+    evaluated = passes[0]
     _render_pass_forced(monkeypatch)
     passes[0] = 0
-    DynamicUI(program).ui()
-    assert passes[0] == reused
+    rendered = DynamicUI(program)
+    assert ui.ui() == rendered.ui()
+    assert passes[0] == evaluated
+    assert f"{program.id}_P-8_R-8" not in shown
+    assert ui.state_layout() == rendered.state_layout()
+
+
+def test_a_pass_keeps_the_values_where_no_write_changes_one() -> None:
+    state = GlobalState()
+    state.set("a", "1")
+    state.reset_active()
+    assert state.pass_kept_values()
+    # The value it has: nothing changed.
+    state.set("a", "1")
+    assert state.pass_kept_values()
+    # Written back to what it was: changed in between.
+    state.set("a", "2")
+    state.set("a", "1")
+    assert not state.pass_changed_state()
+    assert not state.pass_kept_values()
+    state.reset_active()
+    assert state.pass_kept_values()
+
+
+def test_an_assign_taken_again_keeps_the_values_where_it_writes_what_is_there() -> None:
+    state = GlobalState()
+    state.set_values({"target": "1", "source": "1"})
+    state.update_gate_active()
+    state.reset_active()
+    # Key, target, source, fixed value and the value its source had (see AssignDone).
+    state.redo_assigns([(1, "target", "source", None, "1")])
+    assert state.pass_kept_values()
+    state.redo_assigns([(2, "target", None, "2", None)])
+    assert state.get("target") == "2"
+    assert not state.pass_kept_values()
+
+
+def test_a_value_given_back_or_left_to_give_back_is_no_kept_value() -> None:
+    state = GlobalState()
+    state.set("target", "0")
+    state.reset_active()
+    # A pass without gates: what its Assigns write waits to be given back.
+    state.run_assign(1, "target", "1", from_source=False)
+    state.update_gate_active()
+    state.reset_active()
+    assert not state.pass_kept_values()
+    # A pass with gates in which no Assign writes it gives it back.
+    state.undo_ungated_assigns()
+    assert state.get("target") == "0"
+    assert not state.pass_kept_values()
+    state.reset_active()
+    assert state.pass_kept_values()
+
+
+def test_a_value_of_a_lapsed_assign_given_back_is_no_kept_value() -> None:
+    state = GlobalState()
+    state.set("target", "0")
+    state.update_gate_active()
+    state.reset_active()
+    state.run_assign(1, "target", "1", from_source=False)
+    # The next pass reaches no Assign of the target: the value it wrote is given back.
+    state.reset_active()
+    state.give_back_lapsed_assigns()
+    assert state.get("target") == "0"
+    assert not state.pass_kept_values()
+
+
+def test_a_module_scope_that_changes_a_value_keeps_no_values() -> None:
+    state = GlobalState()
+    child = state.module_child(f"{APP}_MD-1_M-1")
+    state.reset_active()
+    assert state.pass_kept_values()
+    child.set("a", "1")
+    assert child.get("a") == "1"
+    assert not state.pass_kept_values()
 
 
 def test_with_a_capture_the_render_pass_is_evaluated(

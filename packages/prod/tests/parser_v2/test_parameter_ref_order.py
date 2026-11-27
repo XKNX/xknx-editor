@@ -34,6 +34,8 @@ def test_untagged_refs_come_first_by_number_then_tagged_ones_by_tag() -> None:
 def _state(values: dict[str, str], active: set[str]) -> Any:
     return SimpleNamespace(
         active_param_refs=lambda: active,
+        local_active_param_refs=lambda: active,
+        module_children=lambda: [],
         get=values.get,
         relative_param_values=lambda: [],
     )

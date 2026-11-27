@@ -76,6 +76,11 @@ class ShownObjects:
         # value shows are not told from the UI, see learn).
         self._made: dict[str, bool | None] = {}
 
+    def tells(self, ref_id: str) -> bool:
+        """Whether :meth:`guess` may tell what a value of ``ref_id`` shows (and :meth:`learn`
+        takes an evaluation of one): a setting of :func:`object_selectors`."""
+        return ref_id in self._selectors
+
     def guess(self, ref_id: str, value: str) -> tuple[set[int], int, bool] | None:
         """The linked objects the UI shows with ``ref_id`` set to ``value``, how many others,
         and whether it shows settings it does not show now (never: the setting shows group

@@ -5,7 +5,7 @@ of other instances doing as well do not fit together."""
 
 from __future__ import annotations
 
-from collections.abc import Iterator
+from collections.abc import Iterator, Mapping
 
 import pytest
 
@@ -131,6 +131,17 @@ def one_by_one(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 @pytest.fixture
+def alone(monkeypatch: pytest.MonkeyPatch) -> None:
+    """From now on each value tried for the memory is evaluated in a UI of its own, none
+    together with values of other instances (see _tried_together)."""
+    monkeypatch.setattr(
+        parameters,
+        "_tried_together",
+        lambda *_args, **_kwargs: None,  # pyright: ignore[reportUnknownLambdaType]
+    )
+
+
+@pytest.fixture
 def taken_again(monkeypatch: pytest.MonkeyPatch) -> Iterator[list[str]]:
     """The module instances whose evaluation of a value is taken again from now on."""
     seen: list[str] = []
@@ -181,7 +192,7 @@ def _rounds(application: Application) -> tuple[object, ...]:
     )
 
 
-@pytest.mark.usefixtures("one_by_one")
+@pytest.mark.usefixtures("one_by_one", "alone")
 def test_the_inference_takes_a_value_tried_before_again(
     application: Application, taken_again: list[str]
 ) -> None:
@@ -220,7 +231,7 @@ def test_a_search_ends_as_with_every_value_evaluated_anew(
     assert recovered.values.get(_kind(4), "0") == "0"
 
 
-@pytest.mark.usefixtures("one_by_one")
+@pytest.mark.usefixtures("one_by_one", "alone")
 def test_a_value_is_evaluated_anew_once_the_application_scope_differs(
     application: Application, taken_again: list[str]
 ) -> None:
@@ -244,7 +255,7 @@ def test_a_value_is_evaluated_anew_once_the_application_scope_differs(
     assert all(entry.shared[_GENERAL] == "2" for entry in evaluated.values())
 
 
-@pytest.mark.usefixtures("one_by_one")
+@pytest.mark.usefixtures("one_by_one", "alone")
 def test_an_inference_takes_the_values_one_before_tried_alike(
     application: Application, taken_again: list[str]
 ) -> None:
@@ -290,3 +301,91 @@ def test_the_values_tried_kept_are_the_last_used(application: Application) -> No
     assert cache.memory_trial((0,)) is None
     assert cache.memory_trial(("first",)) is entry
     assert len(cache.memory_trials) == cache.MEMORY_TRIALS
+
+
+@pytest.fixture
+def seeded(monkeypatch: pytest.MonkeyPatch) -> list[Mapping[str, str]]:
+    """The values each UI is seeded with from now on."""
+    found: list[Mapping[str, str]] = []
+    seed = parameters._seeded  # pyright: ignore[reportPrivateUsage]
+
+    def recorded(
+        application: Application,
+        values: Mapping[str, str],
+        project_code_page: str | None,
+        **kw: object,
+    ) -> DynamicUI | None:
+        found.append(values)
+        return seed(application, values, project_code_page, **kw)  # pyright: ignore[reportArgumentType]
+
+    monkeypatch.setattr(parameters, "_seeded", recorded)
+    return found
+
+
+def _first_inference(
+    application: Application, evaluated: dict[tuple[str, str], object]
+) -> object:
+    values, unknown = parameters._decode(  # pyright: ignore[reportPrivateUsage]
+        application, _SEGMENTS, None, None, {}, fixed={}
+    )
+    return parameters._infer_from_memory(  # pyright: ignore[reportPrivateUsage]
+        application,
+        _SEGMENTS,
+        None,
+        None,
+        values,
+        unknown,
+        set(),
+        {},
+        None,
+        evaluated,  # pyright: ignore[reportArgumentType]
+    )
+
+
+@pytest.mark.usefixtures("one_by_one")
+def test_values_of_several_instances_are_tried_in_one_ui(
+    application: Application,
+    seeded: list[Mapping[str, str]],
+    taken_again: list[str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # The kind of each channel is tried: in one UI with each other channel's kind.
+    together: dict[tuple[str, str], object] = {}
+    first = _first_inference(application, together)
+    tried = [values for values in seeded if _kind(1) in values or _kind(2) in values]
+    assert any(
+        all(values.get(_kind(n)) == "1" for n in (1, 2, 3, 4)) for values in tried
+    )
+    assert taken_again
+    # Each value of it is what it is tried alone.
+    monkeypatch.setattr(
+        parameters,
+        "_tried_together",
+        lambda *_args, **_kwargs: None,  # pyright: ignore[reportUnknownLambdaType]
+    )
+    seeded.clear()
+    alone: dict[tuple[str, str], object] = {}
+    assert _first_inference(application, alone) == first
+    assert len([values for values in seeded if len(values) > 0]) > len(tried)
+    assert together.keys() == alone.keys()
+
+
+@pytest.mark.usefixtures("one_by_one")
+def test_a_value_tried_with_others_is_taken_again(
+    application: Application, taken_again: list[str]
+) -> None:
+    evaluated: dict[tuple[str, str], object] = {}
+    first = _first_inference(application, evaluated)
+    taken_again.clear()
+    assert _first_inference(application, evaluated) == first
+    # Each instance's value is taken again from the UI it was tried in.
+    assert sorted(set(taken_again)) == [f"{_MD}_M-{n}_MI-1" for n in (1, 2, 3, 4)]
+
+
+@pytest.mark.usefixtures("alone")
+def test_the_rounds_end_as_with_each_value_tried_alone(
+    application: Application, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    alone = _rounds(application)
+    monkeypatch.undo()
+    assert _rounds(application) == alone
