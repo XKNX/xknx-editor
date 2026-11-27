@@ -223,3 +223,53 @@ def test_a_search_cancelled_at_once_ends_with_the_values_read() -> None:
     assert recovered.limited
     assert _ON not in recovered.values
     assert getattr(parameters._SEARCH, "nested", None) is None  # pyright: ignore[reportPrivateUsage]
+
+
+def _unread(
+    application: Application,
+    segments: dict[str, bytes],
+    values: dict[str, str],
+    read: dict[str, tuple[str | None, str]],
+) -> dict[str, str]:
+    """The values :func:`parameters._unread_hidden` leaves of a result with ``values``, when the
+    inference the search started from took ``read`` (setting -> value before, value taken)."""
+    parameters._SEARCH.read_further = read  # pyright: ignore[reportPrivateUsage]
+    try:
+        result = parameters._unread_hidden(  # pyright: ignore[reportPrivateUsage]
+            application,
+            segments,
+            None,
+            None,
+            set(),
+            {},
+            RecoveredParameters(values=values, unknown=[]),
+            None,
+        )
+    finally:
+        parameters._SEARCH.read_further = None  # pyright: ignore[reportPrivateUsage]
+    return result.values
+
+
+def test_a_value_read_further_out_that_the_result_hides_goes_back() -> None:
+    # The extension is off in the result: the mode taken from a marker is hidden, and it
+    # keeps what it had before (here no value); the value of the extension stays.
+    application = _application()
+    segments = _device(application)
+    values = {_ON: "0", _KIND: "1", _MODE: "1"}
+    read: dict[str, tuple[str | None, str]] = {_KIND: ("0", "1"), _MODE: (None, "1")}
+    assert _unread(application, segments, values, read) == {_ON: "0", _KIND: "0"}
+
+
+def test_a_value_read_further_out_stays_where_it_is_shown_or_changed() -> None:
+    application = _application()
+    segments = _device(application, (_ON, "1"), (_KIND, "1"), (_MODE, "1"))
+    shown = {_ON: "1", _KIND: "1", _MODE: "1"}
+    read: dict[str, tuple[str | None, str]] = {
+        _ON: (None, "1"),
+        _KIND: (None, "1"),
+        _MODE: (None, "1"),
+    }
+    assert _unread(application, segments, shown, read) == shown
+    # Hidden, but the search changed it after the reading: no value of the reading.
+    hidden = {_ON: "0", _MODE: "0"}
+    assert _unread(application, _device(application), hidden, read) == hidden

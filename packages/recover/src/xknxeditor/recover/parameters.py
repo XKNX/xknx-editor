@@ -746,9 +746,13 @@ def _search(
     from, once: what the memory names is read before anything is tried. The corrections after
     it, each followed by an inference of its own, name only the selectors whose own branches
     hold such settings: looking further out there would explore the layout of every value
-    tried again."""
-    previous = getattr(_SEARCH, "nested", None)
-    _SEARCH.nested = False
+    tried again. A setting that reading took and that the result hides again keeps the value it
+    had before (see :func:`_unread_hidden`)."""
+    previous = (
+        getattr(_SEARCH, "nested", None),
+        getattr(_SEARCH, "read_further", None),
+    )
+    _SEARCH.nested, _SEARCH.read_further = False, {}
     try:
         return _search_once(
             application,
@@ -762,7 +766,7 @@ def _search(
             start,
         )
     finally:
-        _SEARCH.nested = previous
+        _SEARCH.nested, _SEARCH.read_further = previous
 
 
 def _search_once(
@@ -892,7 +896,85 @@ def _search_once(
         # The fast search leaves out the search of pairs the other efforts make: with
         # selectors left to try, more effort may find a result that fits.
         result = replace(result, limited=True)
-    return result
+    return _unread_hidden(
+        application,
+        parameter_segments,
+        property_values,
+        project_code_page,
+        linked,
+        sizes,
+        result,
+        cancel,
+    )
+
+
+def _unread_hidden(
+    application: Application,
+    parameter_segments: Mapping[str, bytes],
+    property_values: Mapping[TypedPropertyKey, bytes] | None,
+    project_code_page: str | None,
+    linked: set[int],
+    sizes: Mapping[int, str],
+    result: RecoveredParameters,
+    cancel: Callable[[], bool] | None,
+) -> RecoveredParameters:
+    """``result`` with each setting the inference the search started from took from a selector
+    further out (see :func:`_search`) back at the value it had before, where the result still
+    has the value taken there but hides the setting, and the result writes and shows the same
+    without it: a value nothing shows that explains no byte of the device is no reading."""
+    from xknxeditor.prod.parser_v2.activation import shown_parameters
+
+    read: Mapping[str, tuple[str | None, str]] = (
+        getattr(_SEARCH, "read_further", None) or {}
+    )
+    if not read or (cancel is not None and cancel()):
+        return result
+    values = result.values
+    ui = _seeded(application, values, project_code_page)
+    if ui is None:
+        return result
+    shown = shown_parameters(ui.ui())
+    hidden = [
+        key
+        for key in read
+        if key in values and key not in shown and values[key] == read[key][1]
+    ]
+    if not hidden:
+        return result
+    try:
+        before = _misfit(ui, parameter_segments, linked, sizes, property_values)
+    except AllocatorOverflow:
+        return result
+
+    def without(keys: Collection[str]) -> dict[str, str] | None:
+        """``values`` with ``keys`` back at what they had before, when that writes and shows
+        the same."""
+        restored: dict[str, str] = {}
+        for key, value in values.items():
+            if key not in keys:
+                restored[key] = value
+            elif (earlier := read[key][0]) is not None:
+                restored[key] = earlier
+        trial = _seeded(application, restored, project_code_page)
+        if trial is None:
+            return None
+        try:
+            fit = _misfit(trial, parameter_segments, linked, sizes, property_values)
+        except AllocatorOverflow:
+            return None
+        if fit != before or shown_parameters(trial.ui()).keys() != shown.keys():
+            return None
+        return restored
+
+    restored = without(hidden)
+    if restored is None:
+        # One by one: each that explains nothing goes back.
+        back: list[str] = []
+        for key in hidden:
+            if without([*back, key]) is not None:
+                back.append(key)
+        restored = without(back) if back else None
+    return result if restored is None else replace(result, values=restored)
 
 
 def _pairs_to_try(
@@ -5869,7 +5951,17 @@ def _infer_from_fixed(
     except AllocatorOverflow:
         return {}
     chosen = {key: value for key, value in chosen.items() if key in visible}
-    return chosen if chosen and improves(chosen) else {}
+    if not chosen or not improves(chosen):
+        return {}
+    read: dict[str, tuple[str | None, str]] | None = getattr(
+        _SEARCH, "read_further", None
+    )
+    if depth == 0 and read is not None:
+        # What each setting had before and the value taken, for the end of the search (see
+        # _unread_hidden).
+        for key, value in chosen.items():
+            read.setdefault(key, (values.get(key), value))
+    return chosen
 
 
 # How many selectors further out than the one a hidden setting with a fixed value sits behind
