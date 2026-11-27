@@ -3,7 +3,7 @@ from __future__ import annotations
 import threading
 from collections.abc import Callable, Collection, Iterable, Iterator, Mapping
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Protocol
 
 from xknxeditor.namespaces.intermediate import ModuleArg
 from xknxeditor.namespaces.intermediate.com_object_instance_ref_t import (
@@ -237,8 +237,20 @@ GateChecks = list[tuple["ParameterState", str, bool]]
 # group object settings, "v" a module argument, "q" / "l" a qualified id, "x" a text
 # argument (None: none). Writes: "p" / "c" a parameter / group object marked active, "u" a
 # Choose on a union member reached (with its siblings), "h" a node handed out (the node), "s"
-# a text set (a Rename of a block).
+# a text set (a Rename of a block), "A" an Assign that applied (the node, see _Redone).
 Event = tuple[str, object, object]
+
+
+class _Redone(Protocol):
+    """An Assign node (see :class:`~xknxeditor.prod.parser_v2.nodes.assign.AssignNode`): what
+    it writes depends on what earlier evaluations left, so an evaluation taken from the memo
+    does it again."""
+
+    @property
+    def target(self) -> str: ...
+
+    def redo(self, scope: ParameterState) -> None: ...
+
 
 _READS = frozenset("dxtqlov")
 
@@ -253,10 +265,16 @@ class Recording:
     """What an evaluation of a node read and did (its :data:`Event` s), grouped to check and to
     do again (see :meth:`EvalContext.replay`): none of it depends on the order (the reads give
     the same in any order, the marks are sets, the gate decisions and union chooses are only
-    asked whether any or all are so). Gives the UiNodes ``output``."""
+    asked whether any or all are so). Gives the UiNodes ``output``.
+
+    The Assigns that applied are done again in their order (``assigns``). Only a recording
+    that reads no value an Assign of it wrote before, nor a text argument (a value by unique
+    number) after one, is ``replayable``: its reads give at its start what they gave, as
+    checked, and its Assigns write what they write now."""
 
     __slots__ = (
         "all_reads",
+        "assigns",
         "checked_by_change",
         "count",
         "discovered_keys",
@@ -273,6 +291,7 @@ class Recording:
         "parameter_set",
         "parameters",
         "reads",
+        "replayable",
         "suppress",
         "text_arg_keys",
         "text_events",
@@ -305,6 +324,10 @@ class Recording:
         parameters: list[object] = []
         objects: list[object] = []
         unions: list[tuple[object, object]] = []
+        assigns: list[_Redone] = []
+        replayable = True
+        # The targets of the Assigns so far (see replayable).
+        targets: set[str] = set()
         # A text read after the evaluation set it (a block its Rename retitles) gives what
         # was set: nothing to check.
         written: set[object] = set()
@@ -314,6 +337,14 @@ class Recording:
             if isinstance(event, Recording):
                 # An evaluation inside this one recorded or done again: what it recorded.
                 count += event.count
+                if targets and replayable:
+                    replayable = not any(
+                        key in targets for key, _ in event.values
+                    ) and not any(kind == "x" for kind, _, _ in event.reads)
+                if event.assigns:
+                    assigns.extend(event.assigns)
+                    targets.update(assign.target for assign in event.assigns)
+                    replayable = replayable and event.replayable
                 values.extend(event.values)
                 gates.extend(event.gates)
                 reads.extend(event.reads)
@@ -339,6 +370,8 @@ class Recording:
             if kind == "g":
                 count += 1
                 values.append((key, result))
+                if targets and key in targets:
+                    replayable = False
             elif kind == "p":
                 parameters.append(key)
             elif kind == "a":
@@ -354,6 +387,8 @@ class Recording:
                 elif kind == "o":
                     object_reads.append(event)
                 else:
+                    if kind == "x" and targets:
+                        replayable = False
                     reads.append(event)
                 count += 1
             elif kind == "u":
@@ -363,6 +398,9 @@ class Recording:
             elif kind == "s":
                 written.add(key)
                 texts.append((key, result))
+            elif kind == "A":
+                assigns.append(key)  # type: ignore[arg-type]
+                targets.add(key.target)  # type: ignore[attr-defined]
         # The same read twice gives the same: each value, gate decision and read once (in
         # the order first read), but the texts (a text set later in an evaluation around
         # this one leaves out those read after it) and the group object settings.
@@ -384,6 +422,8 @@ class Recording:
         self.objects = tuple(objects)
         self.object_set = frozenset(objects)
         self.unions = tuple(unions)
+        self.assigns = tuple(assigns)
+        self.replayable = replayable
         # Per kind of pass (see _Pass.slot), the pass in which each read gave what it gave
         # here last.
         self.valid_in: dict[tuple[bool, bool], int] = {}
@@ -500,7 +540,7 @@ class EvalMemo:
     pass before of the same kind and nothing it reads differs from then (see
     :meth:`unchanged`): a search evaluates thousands of states that differ in a few values."""
 
-    __slots__ = ("_count", "_entries", "_last", "_open", "thread")
+    __slots__ = ("_count", "_entries", "_last", "_open", "_unrecorded", "thread")
 
     # A node of a channel a search tries values in takes turns between a few states (its
     # selector's values, with and without gates): fewer are evaluated again and again.
@@ -510,6 +550,9 @@ class EvalMemo:
         # By node and module instance (empty for the application's scope): a module
         # definition's nodes are evaluated once for each of its instances.
         self._entries: dict[tuple[int, str], tuple[object, list[Recording]]] = {}
+        # The nodes (by their identity) of module definitions whose evaluation in an instance
+        # did Assigns: evaluated in each instance without the memo from then on.
+        self._unrecorded: dict[int, object] = {}
         # The thread it is used in (a UI evaluated with it may be evaluated in another).
         self.thread = threading.get_ident()
         self._count = 0
@@ -596,7 +639,10 @@ class EvalMemo:
     ) -> list[UiNode]:
         """What ``evaluate`` gives ``node`` in ``ctx``: what it gave before where each read
         gives what it gave then (its effects done again), else evaluated, and kept."""
-        key = (id(node), ctx._instance)  # pyright: ignore[reportPrivateUsage]
+        instance = ctx._instance  # pyright: ignore[reportPrivateUsage]
+        if instance and self._unrecorded.get(id(node)) is node:
+            return evaluate(ctx)
+        key = (id(node), instance)
         kept = self._entries.get(key)
         if kept is not None and kept[0] is not node:
             kept = None
@@ -638,6 +684,14 @@ class EvalMemo:
         finally:
             if outermost:
                 ctx._tape = None  # pyright: ignore[reportPrivateUsage]
+        if entry.assigns and instance:
+            # In a module instance a node with Assigns reads the same too rarely: each
+            # instance evaluates it as it is from then on.
+            self._unrecorded[id(node)] = node
+            return output
+        if not entry.replayable:
+            # Its reads cannot tell that its Assigns write the same (see Recording).
+            return output
         if current is not None:
             entry.valid_in[current.slot] = current.number
         if kept is None:
@@ -846,6 +900,10 @@ class EvalContext:
         if chooses is not None:
             chooses.extend((scope, key, siblings) for key, siblings in recording.unions)  # type: ignore[misc]
         handed.update(recording.handed_ids)
+        # The Assigns write as they would now (each in its order, after the marks: an Assign
+        # marks its target and source before it writes).
+        for assign in recording.assigns:
+            assign.redo(scope)
         return True
 
     def hand(self, node: UiNode) -> None:
@@ -927,6 +985,17 @@ class EvalContext:
     def note_assign(self, key: int) -> None:
         """The pass reached an Assign (see :meth:`ParameterState.note_assign`)."""
         self._scope.note_assign(key)
+
+    def unrecorded_scope(self) -> ParameterState | None:
+        """The scope, where nothing is recorded (no memo, no explore): what a node does there
+        needs no step of this context."""
+        return self._scope if self._tape is None and self._explore is None else None
+
+    def note_assign_node(self, node: _Redone) -> None:
+        """The Assign ``node`` applied: done again where the evaluation it is in is taken from
+        the memo (see Recording)."""
+        if self._tape is not None:
+            self._tape.append(("A", node, None))
 
     def set_text(self, ref_id: str, text: str) -> None:
         self._scope.set_text(ref_id, text)
@@ -1025,6 +1094,9 @@ class EvalContext:
             union_chooses=self._union_chooses,
             handed=self._handed,
             gate_checks=self._gate_checks,
+            # Not taken in the iteration itself (see memo), but in the scope of each module
+            # instance it places: an instance of its own.
+            memo=self._memo,
         )
 
     def get_arg_value(self, ref_id: str) -> int:

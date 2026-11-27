@@ -1,21 +1,49 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from xknxeditor.namespaces.intermediate import Assign
 
 from ..context import EvalContext
 from ..ui import UiNode
 from .base import DynamicNode
 
+if TYPE_CHECKING:
+    from ..state import ParameterState
+
 
 class AssignNode(DynamicNode):
     """Writes a value into a parameter (stored like any other value) when it starts applying
     and whenever its source changes (see :meth:`ParameterState.run_assign`); state-only,
-    renders nothing."""
+    renders nothing.
+
+    It reads nothing but its source's value, so a block or Choose holding it is taken from
+    the memo like one without (see EvalMemo): what it writes depends on what earlier
+    evaluations left, so taking it again does it again (see :meth:`redo`)."""
+
+    pure = True
 
     def __init__(self, elem: Assign):
         self._elem = elem
 
+    @property
+    def target(self) -> str:
+        """The param-ref it writes."""
+        return self._elem.target_param_ref_ref
+
     def eval(self, ctx: EvalContext) -> list[UiNode]:
+        scope = ctx.unrecorded_scope()
+        if scope is not None:
+            # As below, in one call (a pass of a large application runs thousands).
+            elem = self._elem
+            scope.apply_assign(
+                id(elem),
+                elem.target_param_ref_ref,
+                elem.source_param_ref_ref,
+                elem.value,
+                marks=True,
+            )
+            return []
         # The Assign applies, also while its source has no value.
         key = id(self._elem)
         ctx.note_assign(key)
@@ -32,4 +60,17 @@ class AssignNode(DynamicNode):
             ctx.mark_assigned_from(target, self._elem.source_param_ref_ref)
             value = ctx.get(self._elem.source_param_ref_ref)
             ctx.run_assign(key, target, value, from_source=True)
+        ctx.note_assign_node(self)
         return []
+
+    def redo(self, scope: ParameterState) -> None:
+        """What :meth:`eval` does in ``scope`` but the marks, as in a pass that explores
+        nothing, the evaluation taken from the memo with its source's value read the same."""
+        elem = self._elem
+        scope.apply_assign(
+            id(elem),
+            elem.target_param_ref_ref,
+            elem.source_param_ref_ref,
+            elem.value,
+            marks=False,
+        )

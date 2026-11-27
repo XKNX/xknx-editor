@@ -651,6 +651,33 @@ class ParameterState:
         """:meth:`pass_written`, kept as it is once the pass ended."""
         return frozenset(self._pass_values), frozenset(self._pass_texts)
 
+    def apply_assign(
+        self,
+        key: int,
+        target: str,
+        source: str | None,
+        value: str | None,
+        *,
+        marks: bool,
+    ) -> None:
+        """The Assign ``key`` (the id of its element) of the current pass applies in this
+        scope, as it does in a pass that explores nothing (see AssignNode): it is noted,
+        with ``marks`` its ``target`` and ``source`` are marked active, and it writes its
+        fixed ``value``, else its source's (see :meth:`run_assign`). One call for all of it:
+        a pass of a large application runs thousands of Assigns."""
+        self._active_assigns.add(key)
+        if marks:
+            self.mark_active_param(target)
+            if source is not None:
+                self.mark_active_param(source)
+        if value is not None:
+            # The last Assign of the pass decides where the target's value comes from.
+            self._assigned_from.pop(target, None)
+            self.run_assign(key, target, value, from_source=False)
+        elif source is not None:
+            self._assigned_from[target] = source
+            self.run_assign(key, target, self.get(source), from_source=True)
+
     def mark_assigned_from(self, target: str, source: str) -> None:
         """An Assign of the current pass wrote ``target`` from ``source``."""
         self._assigned_from[target] = source
@@ -1473,6 +1500,11 @@ class ModuleState(ParameterState):
             result = child.find_scope_for_qualified(ref_id)
             if result is not None:
                 return result
+        return self.own_scope_for_qualified(ref_id)
+
+    def own_scope_for_qualified(self, ref_id: str) -> tuple[ParameterState, str] | None:
+        """:meth:`find_scope_for_qualified` of this instance itself, the instances in it left
+        out."""
         mid = self.module_instance_id
         if not ref_id.startswith(mid + "_"):
             return None
@@ -1489,7 +1521,18 @@ class ModuleState(ParameterState):
         return _qualified_in(self.module_instance_id, ref_id)
 
     def active_param_refs(self) -> set[str]:
-        result = {self.qualify(ref) for ref in self._active_param_refs}
+        # Each qualified as by _qualify, the base looked up once (a search asks for the
+        # active refs of thousands of states, each with hundreds of instances).
+        base = self._local_base()
+        mid = self.module_instance_id
+        if base is None:
+            result = {_qualified_in(mid, ref) for ref in self._active_param_refs}
+        else:
+            prefix, start = base + "_", len(base)
+            result = {
+                mid + ref[start:] if ref.startswith(prefix) else _qualified_in(mid, ref)
+                for ref in self._active_param_refs
+            }
         for child in self._children.values():
             result.update(child.active_param_refs())
         return result
