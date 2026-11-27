@@ -49,13 +49,35 @@ from xknxeditor.vendor.siemens_generic.image import compile_image
 from xknxeditor.vendor.siemens_generic.prepare import prepare_image, validate_profile
 from xknxeditor.vendor.siemens_generic.recover import (
     DeviceImage,
+    MemoryLocation,
     decode_device,
     image_of,
+    memory_location,
     read_device_image,
+    stored_image,
 )
 
 master = cache(_master)
 MAPPING = {0: 0, 1: 1, 2: 2, 3: 9, 4: 3, 5: 4, 6: 0xFFFF}
+
+DESCRIPTION_ID = "M-0001_BG-982101-0001.5F9821.5F01.5FGenericPlugInAll.2Exml"
+
+
+def setup_id(version: tuple[int, int, int] | None) -> str:
+    """The baggage id of the plug-in's setup (or of another file, without a version)."""
+    if version is None:
+        return "M-0001_BG-982101-Readme.2Etxt"
+    return "M-0001_BG-982101-PlugInSetup.5FV{}.5F{}.5F{}.2Emsi".format(*version)
+
+
+def application_xml(version: tuple[int, int, int] | None = None) -> bytes:
+    """The catalog application, with the plug-in's baggage."""
+    extension = (
+        f'<Extension><Baggage RefId="{DESCRIPTION_ID}"/>'
+        f'<Baggage RefId="{setup_id(version)}"/></Extension>'
+    )
+    return APPLICATION.replace(b"</Static>", extension.encode() + b"</Static>")
+
 
 APPLICATION = b"""<?xml version="1.0"?>
 <KNX xmlns="http://knx.org/xml/project/14"><ManufacturerData><Manufacturer RefId="M-0001">
@@ -82,16 +104,16 @@ APPLICATION = b"""<?xml version="1.0"?>
 </Static></ApplicationProgram></ApplicationPrograms></Manufacturer></ManufacturerData></KNX>"""
 
 
-def _description(
-    version: tuple[int, int, int] | None,
+def description_xml(
     *,
     schema: str = "GenericPlugIn_4.xsd",
     segment: str = '<CodeSegment Id="s" Address="0x5000" AllocLength="64"/>',
     hardware: str = '<HwType Data="000000000052"/>',
     root: str = 'HardwareType="000000000051"',
     application_ids: str = "",
-) -> Description:
-    xml = f"""<?xml version="1.0" encoding="UTF-8"?>
+) -> bytes:
+    """The plug-in's description of the application."""
+    return f"""<?xml version="1.0" encoding="UTF-8"?>
 <ApplicationProgram Id="id-0001_9821_01" {root}
  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
  xsi:noNamespaceSchemaLocation="{schema}"><Static>
@@ -134,17 +156,13 @@ def _description(
   <ComObjectRefRef RefId="or_switch"/>
  </ParameterBlock></ChannelIndependentBlock>
  </Dynamic></ApplicationProgram>""".encode()
-    setup = (
-        "M-0001_BG-982101-"
-        + (
-            "PlugInSetup.5FV{}.5F{}.5F{}.2Emsi".format(*version)
-            if version is not None
-            else "Readme.2Etxt"
-        ),
-    )
+
+
+def _description(version: tuple[int, int, int] | None, **kw: str) -> Description:
+    xml = description_xml(**kw)
     sources = find_sources(
-        ("M-0001_BG-982101-0001.5F9821.5F01.5FGenericPlugInAll.2Exml", *setup),
-        lambda ref: xml if ref.endswith("All.2Exml") else None,
+        (DESCRIPTION_ID, setup_id(version)),
+        lambda ref: xml if ref == DESCRIPTION_ID else None,
     )
     assert sources is not None
     return sources.description
@@ -472,3 +490,12 @@ def test_the_comparison_leaves_a_setting_not_downloaded_unchecked():
     checks = _memory_checks(d, data, bytes(image), bytes(mask))
     assert checks["r_scene"] is MemoryCheck.UNCHECKED
     assert checks["r_on"] is MemoryCheck.MATCH
+
+
+def test_where_a_device_holds_the_parameter_memory():
+    assert memory_location(_description((2, 0, 37))) == MemoryLocation(0x5000, 25)
+    assert memory_location(_relative()) == MemoryLocation(0x1000, 25, relative=True)
+    # An image read off the device as the plug-in stores one.
+    first = _description((1, 2, 16), schema="GenericPlugIn_1.xsd", hardware="")
+    assert stored_image(first, b"\x01\x02") == bytes(0x5000) + b"\x01\x02"
+    assert stored_image(_relative(), b"\x01\x02") == b"\x01\x02"

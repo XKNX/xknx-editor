@@ -81,20 +81,48 @@ def memory_range(description: Description) -> tuple[int, int]:
     return base, end
 
 
+@dataclass(frozen=True)
+class MemoryLocation:
+    """Where a device holds the parameter memory: ``length`` octets from ``address`` on,
+    relative to the start of the application's segment (object 4) when ``relative``."""
+
+    address: int
+    length: int
+    relative: bool = False
+
+
+def memory_location(description: Description) -> MemoryLocation:
+    """Where a device holds the parameter memory a download of ``description`` writes."""
+    base, length = memory_range(description)
+    offset = description.download_offset
+    if offset is None:
+        return MemoryLocation(base, length)
+    return MemoryLocation(base - offset, length, relative=True)
+
+
+def stored_image(description: Description, data: bytes) -> bytes:
+    """The parameter memory ``data`` read off a device (from the memory base on) as the
+    plug-in stores an image: from its origin on (see ``Description.image_origin``)."""
+    base, origin = description.memory_base, description.image_origin
+    if base is None or origin is None:
+        raise ValueError("Missing parameter memory base")
+    return bytes(base - origin) + data
+
+
 async def read_device_image(
     device: MemoryReader, description: Description
 ) -> DeviceImage:
     """Read the parameter memory a download of ``description`` writes off a device, and
     the device's record of that segment."""
-    base, length = memory_range(description)
-    offset = description.download_offset
-    address = base
-    if offset is not None:
+    base, _length = memory_range(description)
+    location = memory_location(description)
+    address = location.address
+    if location.relative:
         pointer = await device.read_property(_SEGMENT_OBJECT, _SEGMENT_POINTER)
         if len(pointer) != 4:
             raise ValueError("The device reports no application segment")
-        address = int.from_bytes(pointer, "big") + base - offset
-    data = await device.read_memory(address, length)
+        address += int.from_bytes(pointer, "big")
+    data = await device.read_memory(address, location.length)
     segment_info = await device.read_property(_SEGMENT_OBJECT, _SEGMENT_PROPERTY)
     if len(segment_info) != _SEGMENT_RECORD_SIZE:
         segment_info = b""
