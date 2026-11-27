@@ -4,8 +4,11 @@
 
 from __future__ import annotations
 
+import ctypes
 from collections.abc import Generator
 from contextlib import contextmanager, suppress
+from functools import cache
+from pathlib import Path
 
 from imgui_bundle import hello_imgui, imgui
 
@@ -47,6 +50,12 @@ _CJK_FONTS = {
     "sc": ("fonts/NotoSansSC-Regular.otf", "fonts/NotoSansSC-Bold.otf"),
     "jp": ("fonts/NotoSansJP-Regular.otf", "fonts/NotoSansJP-Bold.otf"),
 }
+
+# imgui-bundle represents ImFontConfig's void pointer as a nanobind capsule. Passing
+# bytes as c_char_p points into the bytes object without copying it.
+_font_data_capsule = ctypes.pythonapi.PyCapsule_New
+_font_data_capsule.argtypes = (ctypes.c_char_p, ctypes.c_char_p, ctypes.c_void_p)
+_font_data_capsule.restype = ctypes.py_object
 
 _default: imgui.ImFont | None = None
 _semilight: imgui.ImFont | None = None
@@ -99,13 +108,26 @@ def _wanted_cjk_order() -> tuple[str, ...]:
     return ("jp", "sc") if get_locale() == "ja" else ("sc", "jp")
 
 
+@cache
+def _cjk_font_bytes(asset: str) -> bytes:
+    # Keep the four bundled faces alive for the editor process. The atlas borrows
+    # them for on-demand glyph rasterization, including after a locale or DPI change.
+    return Path(hello_imgui.asset_file_full_path(asset)).read_bytes()
+
+
 def _merge_cjk(order: tuple[str, ...], *, bold: bool, flags: int = 0) -> None:
+    atlas = imgui.get_io().fonts
     for script in order:
-        params = hello_imgui.FontLoadingParams()
-        params.merge_to_last_font = True
-        params.font_config.font_loader_flags = flags | _FREETYPE_HINTING
-        with suppress(RuntimeError):
-            hello_imgui.load_font(_CJK_FONTS[script][bold], _FONT_SIZE, params)
+        with suppress(OSError, RuntimeError):
+            data = _cjk_font_bytes(_CJK_FONTS[script][bold])
+            config = imgui.ImFontConfig()
+            config.font_data = _font_data_capsule(data, b"nb_handle", None)
+            config.font_data_size = len(data)
+            config.font_data_owned_by_atlas = False
+            config.merge_mode = True
+            config.size_pixels = _FONT_SIZE
+            config.font_loader_flags = flags | _FREETYPE_HINTING
+            atlas.add_font(config)
 
 
 def _load_variant(path: str, flags: int = 0) -> imgui.ImFont | None:
