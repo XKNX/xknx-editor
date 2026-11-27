@@ -165,6 +165,15 @@ _COLOR_SIZE_IN_BIT = {
     ParameterTypeTypeColorSpace.RGBW: 24,
     ParameterTypeTypeColorSpace.HSV: 24,
 }
+# The types that carry their size themselves (none of the others above).
+_SIZED_TYPES: frozenset[type] = frozenset(
+    {
+        ParameterTypeTypeNumber,
+        ParameterTypeTypeRestriction,
+        ParameterTypeTypeText,
+        ParameterTypeTypeTime,
+    }
+)
 
 
 def type_size_in_bit(tc: object, *, for_property: bool = False) -> int | None:
@@ -180,6 +189,9 @@ def type_size_in_bit(tc: object, *, for_property: bool = False) -> int | None:
     writers gated on a plain ``getattr(tc, "size_in_bit", None)`` and silently skipped all
     five sizeless types, leaving their cells at the segment seed.
     """
+    if type(tc) in _SIZED_TYPES:
+        # Most of the types, asked for millions of times in a search.
+        return tc.size_in_bit  # type: ignore[union-attr]
     if isinstance(tc, ParameterTypeTypeFloat):
         return _FLOAT_ENCODING_SIZE_IN_BIT.get(tc.encoding)
     if isinstance(tc, ParameterTypeTypeDate):
@@ -1432,8 +1444,17 @@ def collect_writes(
             for item in first:
                 collect(item, active)
             _extend_in_ref_order(out, active, ranks)
-            for item in rest:
-                collect(item, out)
+            if keep or active_ids is None or not active_ids <= active_params:
+                for item in rest:
+                    collect(item, out)
+            else:
+                # A parameter of none of the active refs writes nothing then (most of a
+                # large application's): only the unions are collected.
+                for item in rest:
+                    if not isinstance(
+                        item, ApplicationProgramStaticParametersParameter
+                    ):
+                        collect(item, out)
     if state is not None:
         for ms in state.module_children():
             _collect_module_writes(ms, idx, out, behavior, keep)
@@ -1581,26 +1602,42 @@ def encode_to_memory(
     bufs: dict[str, bytearray] = {
         seg_id: segment_seed(seg) for seg_id, seg in idx.code_segments.items()
     }
+    # A type writes a value the same way each time (a search encodes thousands of states
+    # that differ in a few values).
+    plans = idx.memory_plans
+    if len(plans) >= _MEMORY_PLANS:
+        plans.clear()
     for w in writes.mem:
         buf = bufs.get(w.seg_id)
         if buf is None:
             continue
-        pt = idx.parameter_types.get(w.parameter_type)
-        if pt is None:
-            continue
-        plan = _plan_memory_write(
-            pt.choice,
-            w.value,
-            w.param_id,
-            w.parameter_type,
-            little_endian=little_endian,
-            text_encoding=text_encoding,
-        )
+        key = (w.parameter_type, w.value, little_endian, text_encoding)
+        if key in plans:
+            plan = plans[key]
+        else:
+            pt = idx.parameter_types.get(w.parameter_type)
+            if pt is None:
+                continue
+            # A value that cannot be encoded raises, with the parameter of the write, and is
+            # not kept.
+            plan = _plan_memory_write(
+                pt.choice,
+                w.value,
+                w.param_id,
+                w.parameter_type,
+                little_endian=little_endian,
+                text_encoding=text_encoding,
+            )
+            plans[key] = plan
         if plan is None:
             continue
         encoded, write_bits = plan
         _write_param(buf, w, write_bits, encoded)
     return {seg_id: bytes(buf) for seg_id, buf in bufs.items()}
+
+
+# The plans of memory writes kept at most per application (see encode_to_memory).
+_MEMORY_PLANS = 65536
 
 
 def encode_to_memory_masked(
@@ -2286,6 +2323,127 @@ def decode_memory_parameters(
             text_encoding=text_encoding,
         )
     return result
+
+
+def decode_memory_values(
+    app: ApplicationProgram,
+    idx: ApplicationIndexer,
+    segments: Mapping[str, bytes],
+    state: GlobalState,
+    parameter_ids: Collection[str],
+    text_encoding: str | None = None,
+) -> dict[str, str | None] | None:
+    """What :func:`decode_memory_parameters` gives the parameters ``parameter_ids`` (those it
+    decodes), without laying out the fields of the others: a parameter of the application's
+    own is decoded where the resolved values (see :func:`resolve_param_values`) hold it, at
+    the field it has whatever the state. ``None`` when that does not tell: with module
+    instances, for an id that is no memory parameter or union member of the application, or
+    when a field the decode reads raises (as it does there)."""
+    if state.module_children():
+        return None
+    fields = _memory_fields(app, idx)
+    if not all(parameter in fields for parameter in parameter_ids):
+        return None
+    little_endian = _program_little_endian(app)
+    text_encoding = text_encoding or text_parameter_encoding(app)
+    overrides = resolve_param_values(idx, state)
+    if not overrides.keys().isdisjoint(
+        _raising_fields(idx, fields, segments, little_endian, text_encoding)
+    ):
+        return None
+    result: dict[str, str | None] = {}
+    for parameter in parameter_ids:
+        if parameter not in overrides:
+            continue
+        found = _decoded_field(
+            fields[parameter], segments, idx, little_endian, text_encoding
+        )
+        if found is not _NOT_DECODED:
+            result[parameter] = found  # type: ignore[assignment]
+    return result
+
+
+# What _decoded_field gives a field decode_memory_parameters leaves out.
+_NOT_DECODED = object()
+
+
+def _decoded_field(
+    w: MemWrite,
+    segments: Mapping[str, bytes],
+    idx: ApplicationIndexer,
+    little_endian: bool,
+    text_encoding: str,
+) -> object:
+    """The value :func:`decode_memory_parameters` decodes from the field of the write ``w``,
+    ``_NOT_DECODED`` where it decodes none."""
+    data = segments.get(w.seg_id)
+    if data is None:
+        return _NOT_DECODED
+    pt = idx.parameter_types.get(w.parameter_type)
+    if pt is None:
+        return _NOT_DECODED
+    size_in_bit = type_size_in_bit(pt.choice)
+    if not size_in_bit:
+        return _NOT_DECODED
+    if w.offset * 8 + w.bit_offset + size_in_bit > len(data) * 8:
+        return _NOT_DECODED
+    raw = _read_bits(data, w.offset, w.bit_offset, size_in_bit)
+    return _decode_value(
+        raw,
+        size_in_bit,
+        pt.choice,
+        little_endian=little_endian,
+        text_encoding=text_encoding,
+    )
+
+
+def _memory_fields(
+    app: ApplicationProgram, idx: ApplicationIndexer
+) -> dict[str, MemWrite]:
+    """The field of each memory parameter and memory union member of the application's own
+    (as the write :func:`collect_writes` makes of it, without a value), made once per
+    indexer."""
+    found = idx.memory_fields
+    if found is None:
+        found = idx.memory_fields = {}
+        parameters = app.static.parameters
+        for item in parameters.choice if parameters is not None else []:
+            writes = Writes()
+            if isinstance(item, ApplicationProgramStaticParametersParameter):
+                _collect_param(item, {}, None, writes)
+            else:
+                _collect_union(
+                    item, {member.id: "" for member in item.parameter}, None, writes
+                )
+            for w in writes.mem:
+                found[w.param_id] = w._replace(value="")
+    return found
+
+
+def _raising_fields(
+    idx: ApplicationIndexer,
+    fields: Mapping[str, MemWrite],
+    segments: Mapping[str, bytes],
+    little_endian: bool,
+    text_encoding: str,
+) -> frozenset[str]:
+    """The parameters of ``fields`` whose decode from ``segments`` raises (see
+    :func:`_decode_value`), for the last segments asked for (held, so their identity stays
+    theirs)."""
+    kept = idx.raising_fields
+    key = (little_endian, text_encoding)
+    if kept is not None and kept[0] is segments and kept[1] == key:
+        return kept[2]
+    raising: set[str] = set()
+    for parameter, w in fields.items():
+        try:
+            _decoded_field(w, segments, idx, little_endian, text_encoding)
+        except Exception:
+            # Raised again by the decode that reads it.
+            raising.add(parameter)
+    found = frozenset(raising)
+    idx.raising_fields = (segments, key, found)
+    return found
 
 
 def property_data(

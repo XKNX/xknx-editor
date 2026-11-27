@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import re
 import warnings
-from collections.abc import Iterable, Sequence
+from collections.abc import Iterable, Mapping, Sequence
 from typing import TYPE_CHECKING
 
 from xknxeditor.namespaces.ids import unpadded_id
@@ -52,6 +52,8 @@ class ApplicationIndexer:
         "instance_cells",
         "item_parameters",
         "local_ids",
+        "memory_fields",
+        "memory_plans",
         "messages",
         "module_defs",
         "module_referenced",
@@ -60,6 +62,7 @@ class ApplicationIndexer:
         "parameter_refs",
         "parameter_types",
         "parameters",
+        "raising_fields",
         "ref_orders",
         "ref_owner",
         "referenced_parameters",
@@ -132,6 +135,17 @@ class ApplicationIndexer:
                 dict[str, str | None],
             ],
         ] = {}
+        # How each value of each parameter type is written into memory (see
+        # encode.encode_to_memory), by the type, the value, the byte order and the text
+        # encoding (None: nothing is written for it).
+        self.memory_plans: dict[tuple[str, str, bool, str], tuple[int, int] | None] = {}
+        # The field of each memory parameter and union member of the application's own, and
+        # those whose decode raises from the last memory decoded (see
+        # encode.decode_memory_values).
+        self.memory_fields: dict[str, MemWrite] | None = None
+        self.raising_fields: (
+            tuple[Mapping[str, bytes], tuple[bool, str], frozenset[str]] | None
+        ) = None
         # The local ids of the refs looked up in UIs, by their module scopes (see
         # DynamicUI.local_ref_id), of the last few kinds of scopes.
         self.local_ids: dict[tuple[object, ...], dict[str, str]] = {}

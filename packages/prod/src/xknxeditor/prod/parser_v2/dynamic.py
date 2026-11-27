@@ -85,6 +85,7 @@ from .encode import (
     build_property_param_map,
     collect_writes,
     decode_memory_parameters,
+    decode_memory_values,
     decode_module_parameters,
     decode_property_parameters,
     decode_writes,
@@ -1153,6 +1154,7 @@ class DynamicUI:
         "_page_for",
         "_parameter_gates",
         "_program_pin",
+        "_scope_ids",
         "_selector_param_refs",
         "_selector_tested_values",
         "_state",
@@ -1233,6 +1235,9 @@ class DynamicUI:
         # The scope and local id of each ref looked up in the evaluated state (see _locate);
         # cleared with ``_ui``.
         self._located: dict[str, tuple[ParameterState, str]] = {}
+        # The module instances of the evaluated state by their ids (see _locate); cleared
+        # with ``_located``.
+        self._scope_ids: dict[str, list[ModuleState]] | None = None
         # The local ids of the refs looked up, shared by the UIs with the same module scopes
         # (see local_ref_id); cleared with ``_ui``.
         self._local_ids: dict[str, str] | None = None
@@ -1248,6 +1253,7 @@ class DynamicUI:
         self._active_snapshot = None
         self._active_refs = None
         self._located = {}
+        self._scope_ids = None
         self._local_ids = None
 
     def _discover_union_activity(self) -> list[UiNode] | None:
@@ -1367,6 +1373,7 @@ class DynamicUI:
         capture = (lambda: EvalCapture(None)) if capture_active else None
         self._active_refs = None
         self._located = {}
+        self._scope_ids = None
         self._local_ids = None
         self._ui, result = self._eval_settled(capture)
         self._state.trim_to_active()
@@ -1699,6 +1706,30 @@ class DynamicUI:
             )
         return decoded
 
+    def decode_memory_values(
+        self, segments: Mapping[str, bytes], parameter_ids: Collection[str]
+    ) -> dict[str, str | None]:
+        """What :meth:`decode_memory_parameters` gives the parameters ``parameter_ids`` (those
+        it decodes): of the application's own read at their fields alone where that tells
+        (see :func:`~xknxeditor.prod.parser_v2.encode.decode_memory_values`)."""
+        self.ui()
+        found = decode_memory_values(
+            self._app,
+            self._idx,
+            segments,
+            self._state,
+            parameter_ids,
+            self.text_encoding,
+        )
+        if found is None:
+            decoded = self.decode_memory_parameters(segments)
+            found = {
+                parameter: decoded[parameter]
+                for parameter in parameter_ids
+                if parameter in decoded
+            }
+        return found
+
     def decode_module_parameters(
         self,
         segments: Mapping[str, bytes],
@@ -1883,9 +1914,44 @@ class DynamicUI:
         if self._ui is not None:
             located = self._located.get(ref_id)
             if located is None:
-                located = self._located[ref_id] = self._find_scope(ref_id)
+                located = self._located[ref_id] = self._find_evaluated_scope(ref_id)
             return located
         return self._find_scope(ref_id)
+
+    def _find_evaluated_scope(self, ref_id: str) -> tuple[ParameterState, str]:
+        """:meth:`_find_scope` in the evaluated state, told by the ids of its module instances
+        (collected once per evaluation; a search looks up thousands of refs in states with
+        hundreds of instances): an instance is the scope of ``ref_id`` only where its id
+        followed by "_" starts it (see
+        :meth:`~xknxeditor.prod.parser_v2.state.ParameterState.find_scope_for_qualified`),
+        so where one instance alone is, it is the one, and where none is, the application's
+        scope is."""
+        scopes = self._scope_ids
+        if scopes is None:
+            scopes = self._scope_ids = {}
+            pending = self._state.module_children()
+            while pending:
+                scope = pending.pop()
+                scopes.setdefault(scope.module_instance_id, []).append(scope)
+                pending.extend(scope.module_children())
+        if not scopes:
+            return (self._state, ref_id)
+        found: list[ModuleState] | None = None
+        end = ref_id.find("_")
+        while end != -1:
+            named = scopes.get(ref_id[:end])
+            if named is not None:
+                if found is not None:
+                    # Several: as the instances nest.
+                    return self._find_scope(ref_id)
+                found = named
+            end = ref_id.find("_", end + 1)
+        if found is None:
+            return (self._state, ref_id)
+        if len(found) > 1:
+            return self._find_scope(ref_id)
+        own = found[0].own_scope_for_qualified(ref_id)
+        return own if own is not None else (self._state, ref_id)
 
     def _find_scope(self, ref_id: str) -> tuple[ParameterState, str]:
         found = self._state.find_scope_for_qualified(ref_id)
@@ -2560,6 +2626,7 @@ class DynamicUI:
             self._active_snapshot = snapshot
             self._active_refs = active_refs
             self._located = {}
+            self._scope_ids = None
             self._local_ids = None
 
     @property

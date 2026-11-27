@@ -4470,11 +4470,17 @@ def _later_members_read(
     missing = [ref for ref in sorted(later) if ref not in values]
     if not missing:
         return {}
-    decoded = ui.decode_stored_parameters(segments, {})
+    parameters = {
+        ref: local.ref_id
+        for ref in missing
+        if (local := ui.indexer.parameter_refs.get(ui.local_ref_id(ref))) is not None
+    }
+    # Only these are read (a decode of the whole memory lays out every field).
+    decoded = ui.decode_memory_values(segments, set(parameters.values()))
     read: _ValueMap = {}
     for ref in missing:
-        local = ui.indexer.parameter_refs.get(ui.local_ref_id(ref))
-        value = decoded.get(local.ref_id) if local is not None else None
+        parameter = parameters.get(ref)
+        value = decoded.get(parameter) if parameter is not None else None
         if value is not None:
             read[ref] = value
     return read
