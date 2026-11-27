@@ -16,6 +16,7 @@ from xknxeditor.prod.parser_v2.nodes.choose import ChooseWhenNode
 from xknxeditor.prod.parser_v2.nodes.com_object_parameter_block import (
     ComObjectParameterBlockNode,
 )
+from xknxeditor.prod.parser_v2.nodes.module import ModuleNode
 
 _FIXTURES = Path(__file__).parents[1] / "fixtures"
 _ASSIGNING = sorted(
@@ -324,7 +325,8 @@ def test_a_choose_of_a_module_instance_a_repeat_places_is_taken_again(
 
 # A module whose block sets its Detail and its Label where its Kind is on, copies the
 # application's Other into its Copy, and reads them after that: the Detail and the Copy in
-# Chooses on them, the Label in its heading only, by its unique number (4).
+# Chooses on them, the Label in its heading only, by its unique number (4). It shows its
+# Extra where the application's Target is on.
 _ASSIGNING_MODULE = f"""<ModuleDefs><ModuleDef Id="{_APP}_MD-2" Name="Assigning">
 <Arguments><Argument Id="{_APP}_MD-2_A-1" Name="Ch" /></Arguments>
 <Static>
@@ -333,12 +335,14 @@ _ASSIGNING_MODULE = f"""<ModuleDefs><ModuleDef Id="{_APP}_MD-2" Name="Assigning"
 <Parameter Id="{_APP}_MD-2_P-2" Name="Detail" ParameterType="{_APP}_PT-OnOff" Text="Detail" Value="0" />
 <Parameter Id="{_APP}_MD-2_P-3" Name="Copy" ParameterType="{_APP}_PT-OnOff" Text="Copy" Value="0" />
 <Parameter Id="{_APP}_MD-2_P-4" Name="Label" ParameterType="{_APP}_PT-OnOff" Text="Label" Value="0" />
+<Parameter Id="{_APP}_MD-2_P-5" Name="Extra" ParameterType="{_APP}_PT-OnOff" Text="Extra" Value="0" />
 </Parameters>
 <ParameterRefs>
 <ParameterRef Id="{_APP}_MD-2_P-1_R-1" RefId="{_APP}_MD-2_P-1" />
 <ParameterRef Id="{_APP}_MD-2_P-2_R-2" RefId="{_APP}_MD-2_P-2" />
 <ParameterRef Id="{_APP}_MD-2_P-3_R-3" RefId="{_APP}_MD-2_P-3" />
 <ParameterRef Id="{_APP}_MD-2_P-4_R-4" RefId="{_APP}_MD-2_P-4" />
+<ParameterRef Id="{_APP}_MD-2_P-5_R-5" RefId="{_APP}_MD-2_P-5" />
 </ParameterRefs>
 </Static>
 <Dynamic><ParameterBlock Id="{_APP}_MD-2_PB-1" Text="Channel {{{{Ch}}}}: {{{{4}}}}">
@@ -354,12 +358,19 @@ _ASSIGNING_MODULE = f"""<ModuleDefs><ModuleDef Id="{_APP}_MD-2" Name="Assigning"
 <choose ParamRefId="{_APP}_MD-2_P-3_R-3"><when test="1">
 <ParameterRefRef RefId="{_APP}_MD-2_P-3_R-3" />
 </when></choose>
+<choose ParamRefId="{_TARGET}"><when test="1">
+<ParameterRefRef RefId="{_APP}_MD-2_P-5_R-5" />
+</when></choose>
 </ParameterBlock></Dynamic>
 </ModuleDef></ModuleDefs>"""
 
+# The application's Other the instances copy, which its Mode sets (in the pass, before them).
 _ASSIGNING_REPEATED = f"""<ParameterBlock Id="{_APP}_PB-1" Text="Channels">
 <ParameterRefRef RefId="{_MODE}" />
 <ParameterRefRef RefId="{_OTHER}" />
+<choose ParamRefId="{_MODE}"><when test="1">
+<Assign TargetParamRefRef="{_OTHER}" Value="1" />
+</when></choose>
 <Repeat Id="{_APP}_X-1" Name="" Count="2">
 <Module Id="{_APP}_MD-2_M-1" RefId="{_APP}_MD-2"><NumericArg RefId="{_APP}_MD-2_A-1" Value="1" /></Module>
 </Repeat>
@@ -377,6 +388,9 @@ _INSTANCE_TRIALS: list[dict[str, str]] = [
     {_KIND_2: "1"},
     {_KIND_1: "1", _KIND_2: "1", _OTHER: "1"},
     {_KIND_1: "1", _DETAIL_1: "0"},
+    {_MODE: "1"},
+    {_MODE: "1", _KIND_1: "1"},
+    {_MODE: "1", _OTHER: "0"},
 ]
 
 
@@ -458,6 +472,105 @@ def test_a_value_an_assign_no_longer_writes_is_read_as_it_is(kept: str) -> None:
     anew = _ui(application, values, None, keep_assigned=True)
     assert _observed(with_memo) == _observed(anew)
     assert with_memo.get_value(kept) == "0"
+
+
+def _instance_reads(monkeypatch: pytest.MonkeyPatch) -> list[str | None]:
+    """The module instances whose evaluations are read again from now on (to tell whether
+    the memo may take them, see EvalContext.reads_same)."""
+    read: list[str | None] = []
+    reads_same = EvalContext.reads_same
+
+    def counted(self: EvalContext, *args: object) -> bool:
+        if self.module_instance_id:
+            read.append(self.module_instance_id)
+        return reads_same(self, *args)  # type: ignore[arg-type]
+
+    monkeypatch.setattr(EvalContext, "reads_same", counted)
+    return read
+
+
+_COPY_1 = f"{_APP}_MD-2_M-1_MI-1_P-3_R-3"
+
+
+@pytest.mark.parametrize(
+    "turns",
+    [
+        [{_KIND_1: "1", _OTHER: "1"}],
+        # The first instance with a value of its own its Assign writes over, and without.
+        [{_KIND_1: "1"}, {_KIND_1: "1", _COPY_1: "0"}],
+    ],
+)
+def test_a_module_instance_block_that_holds_what_it_held_is_not_read_again(
+    monkeypatch: pytest.MonkeyPatch, turns: list[dict[str, str]]
+) -> None:
+    read = _instance_reads(monkeypatch)
+    blocks = _instance_blocks(monkeypatch)
+    application = _parsed(_xml(_ASSIGNING_REPEATED, _ASSIGNING_MODULE))
+    memo = EvalMemo()
+    for values in turns * 3:
+        _ui(application, values, memo).ui()
+    read.clear()
+    blocks.clear()
+    for values in turns:
+        observed = _observed(_ui(application, values, memo))
+        # The instances hold what they held, and nothing they read of the application
+        # changed since the pass before: taken again without reading again.
+        assert not read
+        assert not blocks
+        assert observed == _observed(_ui(application, values, None))
+        blocks.clear()
+
+
+@pytest.mark.parametrize("written", [False, True])
+def test_a_module_instance_block_whose_application_values_changed_is_evaluated_again(
+    monkeypatch: pytest.MonkeyPatch, written: bool
+) -> None:
+    blocks = _instance_blocks(monkeypatch)
+    application = _parsed(_xml(_ASSIGNING_REPEATED, _ASSIGNING_MODULE))
+    memo = EvalMemo()
+    for _ in range(3):
+        _ui(application, {_TARGET: "0"}, memo).ui()
+    blocks.clear()
+    values = {_TARGET: "0"}
+    if written:
+        # The Target is the same when each pass starts, but written in it while the
+        # instances are evaluated (and written back after them).
+        evaluate = ModuleNode.eval
+
+        def writing(self: ModuleNode, ctx: EvalContext) -> object:
+            ctx.set(_TARGET, "1")
+            try:
+                return evaluate(self, ctx)
+            finally:
+                ctx.set(_TARGET, "0")
+
+        monkeypatch.setattr(ModuleNode, "eval", writing)
+    else:
+        # The Target differs from the pass before.
+        values = {_TARGET: "1"}
+    ui = _ui(application, values, memo)
+    observed = _observed(ui)
+    assert set(blocks) == {f"{_APP}_MD-2_M-1_MI-1", f"{_APP}_MD-2_M-1_MI-2"}
+    assert observed == _observed(_ui(application, values, None))
+    assert f"{_APP}_MD-2_M-1_MI-1_P-5_R-5" in ui.active_parameter_ref_ids()
+
+
+def test_a_module_instance_block_taken_in_another_pass_than_the_one_before_is_read_again(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    read = _instance_reads(monkeypatch)
+    application = _parsed(_xml(_ASSIGNING_REPEATED, _ASSIGNING_MODULE))
+    memo = EvalMemo()
+    for _ in range(3):
+        _ui(application, {}, memo).ui()
+    # As if taken last in a pass before the one before: what changed since is not known.
+    for _node, in_orders in memo._in_order.values():  # pyright: ignore[reportPrivateUsage]
+        for in_order in in_orders:
+            in_order.valid = -1
+    read.clear()
+    observed = _observed(_ui(application, {}, memo))
+    assert set(read) == {f"{_APP}_MD-2_M-1_MI-1", f"{_APP}_MD-2_M-1_MI-2"}
+    assert observed == _observed(_ui(application, {}, None))
 
 
 def test_module_instances_with_assigns_evaluated_with_the_memo_are_evaluated_anew() -> (

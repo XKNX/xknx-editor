@@ -3,7 +3,7 @@ from __future__ import annotations
 import threading
 from collections.abc import Callable, Collection, Iterable, Iterator, Mapping
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Protocol
+from typing import TYPE_CHECKING, Protocol, cast
 
 from xknxeditor.namespaces.intermediate import ModuleArg
 from xknxeditor.namespaces.intermediate.com_object_instance_ref_t import (
@@ -12,7 +12,7 @@ from xknxeditor.namespaces.intermediate.com_object_instance_ref_t import (
 
 if TYPE_CHECKING:
     from .application_indexer import ApplicationIndexer
-    from .state import ParameterState
+    from .state import ModuleState, ParameterState
     from .ui import UiNode
     from .ui.parameter import UiParameter
 
@@ -513,9 +513,33 @@ class _InOrder:
     first of them (it may stand for such a value, see _TextArgs), gives what it gave
     (``steps``: the Assigns and those reads, as ``(kind, key, result)``). Each read giving
     what it gave, the evaluation would do what it did: the recording is done again (see
-    EvalContext.replay)."""
+    EvalContext.replay).
 
-    __slots__ = ("reads", "recording", "steps", "values")
+    That each read gives what it gave is told without reading again (see :meth:`unchanged`)
+    where the instance holds all it held when an evaluation it read the same in started
+    (``states``, the last ``STATES`` of them, see ModuleState.evaluation_state) and the reads
+    of the application's scope (``outer``: the values, gate decisions and parameters reached
+    in the union discovery the instance had none of in such a state, and whether it read the
+    application's group object settings) give what they gave in the pass before of the same
+    kind (``valid``: the last pass it was taken in)."""
+
+    __slots__ = (
+        "numbers",
+        "outer",
+        "outer_discovered",
+        "outer_gates",
+        "outer_objects",
+        "reads",
+        "recording",
+        "states",
+        "steps",
+        "valid",
+        "values",
+    )
+
+    # An instance seeded with its values and without them (as a search seeds a UI twice)
+    # reads the same from other states.
+    STATES = 3
 
     def __init__(
         self,
@@ -523,22 +547,39 @@ class _InOrder:
         values: tuple[tuple[object, object], ...],
         reads: tuple[Event, ...],
         steps: tuple[Event | _Redone, ...],
+        numbers: frozenset[str],
     ) -> None:
         self.recording = recording
         self.values = values
         self.reads = reads
         self.steps = steps
+        # The text arguments it reads that may stand for a value by its unique number (see
+        # _TextArgs).
+        self.numbers = numbers
+        self.states: list[tuple[object, ...]] = []
+        self.outer: frozenset[object] = _NONE
+        self.outer_gates: frozenset[object] = _NONE
+        self.outer_discovered: frozenset[object] = _NONE
+        self.outer_objects = False
+        self.valid: int | None = None
 
     @staticmethod
-    def of(recording: Recording) -> _InOrder:
-        """``recording`` checked in its order."""
+    def of(
+        recording: Recording, state: tuple[object, ...] | None, ctx: EvalContext
+    ) -> _InOrder:
+        """``recording`` checked in its order; ``state``: what the instance held when its
+        evaluation in ``ctx`` started (see ModuleState.evaluation_state, copied), where
+        known."""
         targets: set[object] = set()
         texts: set[object] = set()
         values: list[tuple[object, object]] = []
         reads: list[Event] = []
         steps: list[Event | _Redone] = []
+        numbers: set[str] = set()
         for event in _flat(recording.events):
             kind, key, result = event
+            if kind == "x" and _TextArgs.reads_value(key):  # type: ignore[arg-type]
+                numbers.add(key)  # type: ignore[arg-type]
             if kind == "g":
                 if key in targets:
                     steps.append(event)
@@ -554,8 +595,89 @@ class _InOrder:
                 texts.add(key)
             elif kind in _READS and not (kind == "t" and key in texts):
                 reads.append(event)
-        return _InOrder(
-            recording, tuple(dict.fromkeys(values)), tuple(reads), _told(steps)
+        in_order = _InOrder(
+            recording,
+            tuple(dict.fromkeys(values)),
+            tuple(reads),
+            _told(steps),
+            frozenset(numbers),
+        )
+        if state is not None:
+            in_order.read_from(state, ctx)
+        return in_order
+
+    def read_from(self, state: tuple[object, ...], ctx: EvalContext) -> None:
+        """Each read of the recording gives what it gave in ``ctx`` with the instance holding
+        ``state`` (see ModuleState.evaluation_state, copied) and the application's scope as
+        it is now: told so without reading again from then on (see :meth:`unchanged`)."""
+        known = cast("dict[object, object]", state[0])
+        own = cast("dict[object, object]", state[1])
+        gate = cast("frozenset[object] | None", state[3])
+        discovered = cast("frozenset[object]", state[4])
+        objects = cast("dict[object, object]", state[6])
+        # A value the instance holds none of is the application's (else its default), also
+        # one read after an Assign that wrote none.
+        outer = {
+            key
+            for key in (
+                *(key for key, _ in self.values),
+                *(step[1] for step in self.steps if isinstance(step, tuple)),
+                # The values the text arguments may stand for.
+                *(ctx.ref_by_number(int(key)) for key in self.numbers),
+            )
+            if known.get(key) is None and own.get(key) is None
+        }
+        self.outer = self.outer.union(outer)
+        if gate is not None:
+            self.outer_gates = self.outer_gates.union(
+                key for key, _ in self.recording.gates if key not in gate
+            )
+        self.outer_discovered = self.outer_discovered.union(
+            frozenset(key for kind, key, _ in self.reads if kind == "d").difference(
+                discovered
+            )
+        )
+        self.outer_objects = self.outer_objects or any(
+            kind == "o" and objects.get(key) is None for kind, key, _ in self.reads
+        )
+        self.states.insert(0, state)
+        del self.states[self.STATES :]
+
+    def unchanged(self, ctx: EvalContext) -> bool:
+        """Whether each read of the recording gives in ``ctx`` what it gave, told without
+        reading again (see above): the instance holds what it held in one of the states it
+        read the same in, the recording was taken in the pass before of this kind, and
+        nothing it reads of the application's scope differs from that pass at the start of
+        this one, was written in that pass or so far in this one (as EvalMemo.unchanged
+        tells it)."""
+        current = ctx._root_pass  # pyright: ignore[reportPrivateUsage]
+        if (
+            not self.states
+            or current is None
+            or current.previous is None
+            or self.valid != current.previous
+            or (self.outer_objects and not current.objects_same)
+        ):
+            return False
+        # A module instance's scope (only such a one has an instance id).
+        scope = cast("ModuleState", ctx._scope)  # pyright: ignore[reportPrivateUsage]
+        parent = scope._parent  # pyright: ignore[reportPrivateUsage]
+        if (
+            parent is None
+            or not parent.is_root()
+            or scope.evaluation_state(copy=False) not in self.states
+        ):
+            return False
+        outer = self.outer
+        if not outer.isdisjoint(current.changed):
+            return False
+        written, _texts = parent.pass_written()
+        if written and not outer.isdisjoint(written):
+            return False
+        if self.outer_gates and not self.outer_gates.isdisjoint(current.gates_changed):
+            return False
+        return not self.outer_discovered or self.outer_discovered.isdisjoint(
+            current.discovered_changed
         )
 
     def reads_same(self, ctx: EvalContext) -> bool:
@@ -806,6 +928,10 @@ class EvalMemo:
         gives what it gave then (its effects done again), else evaluated, and kept."""
         instance = ctx._instance  # pyright: ignore[reportPrivateUsage]
         slot: tuple[int, str, bool, bool] | None = None
+        # The state of the module instance the evaluation starts from, where it is checked in
+        # its order (see _InOrder).
+        state: tuple[object, ...] | None = None
+        root = ctx._root_pass  # pyright: ignore[reportPrivateUsage]
         if instance and self._in_order_nodes.get(id(node)) is node:
             scope = ctx._scope  # pyright: ignore[reportPrivateUsage]
             slot = (id(node), instance, ctx.union_suppress, scope.gated)
@@ -816,15 +942,28 @@ class EvalMemo:
                 in_orders = kept_in_order[1]
                 for at, in_order in enumerate(in_orders):
                     recording = in_order.recording
-                    if in_order.reads_same(ctx) and ctx._redo(  # pyright: ignore[reportPrivateUsage]
+                    if in_order.unchanged(ctx):
+                        same = True
+                    elif in_order.reads_same(ctx):
+                        same = True
+                        # Told so without reading again from this state on.
+                        in_order.read_from(
+                            cast("ModuleState", scope).evaluation_state(copy=True), ctx
+                        )
+                    else:
+                        same = False
+                    if same and ctx._redo(  # pyright: ignore[reportPrivateUsage]
                         recording, scope, handed
                     ):
+                        in_order.valid = None if root is None else root.number
                         if at:
                             # The states a node takes turns between (a UI seeded twice
                             # with other module instances), the last first.
                             del in_orders[at]
                             in_orders.insert(0, in_order)
                         return list(recording.output)
+            # A module instance's scope (only such a one has an instance id).
+            state = cast("ModuleState", scope).evaluation_state(copy=True)
         key = (id(node), instance)
         kept = self._entries.get(key)
         if kept is not None and kept[0] is not node:
@@ -880,11 +1019,13 @@ class EvalMemo:
             # as it is from then on.
             if slot is None:
                 slot = (id(node), instance, suppress, ctx._scope.gated)  # pyright: ignore[reportPrivateUsage]
+            in_order = _InOrder.of(entry, state, ctx)
+            in_order.valid = None if root is None else root.number
             kept_in_order = self._in_order.get(slot)
             if kept_in_order is None or kept_in_order[0] is not node:
-                self._in_order[slot] = (node, [_InOrder.of(entry)])
+                self._in_order[slot] = (node, [in_order])
             else:
-                kept_in_order[1].insert(0, _InOrder.of(entry))
+                kept_in_order[1].insert(0, in_order)
                 del kept_in_order[1][self.ENTRIES :]
             self._in_order_nodes[id(node)] = node
             return output
@@ -926,6 +1067,7 @@ class EvalContext:
         "_pass",
         "_repeat_idx",
         "_repeat_path",
+        "_root_pass",
         "_scope",
         "_tape",
         "_union_chooses",
@@ -986,6 +1128,9 @@ class EvalContext:
         self._pass: _Pass | None = None
         if memo is not None and scope.is_root() and self.memo is not None:
             self._pass = memo.begin_pass(scope, union_suppress)
+        # That pass, also in the contexts made from this one (the Repeats and the module
+        # instances in it, see _InOrder.unchanged).
+        self._root_pass = self._pass
 
     @property
     def capture(self) -> EvalCapture | None:
@@ -1294,7 +1439,7 @@ class EvalContext:
             if self._repeat_path
             else repeat_idx
         )
-        return EvalContext(
+        ctx = EvalContext(
             self._scope,
             number,
             self._idx,
@@ -1310,6 +1455,8 @@ class EvalContext:
             # instance it places: an instance of its own.
             memo=self._memo,
         )
+        ctx._root_pass = self._root_pass
+        return ctx
 
     def get_arg_value(self, ref_id: str) -> int:
         arg = self._scope.get_arg(ref_id)
@@ -1387,4 +1534,5 @@ class EvalContext:
             memo=self._memo,
         )
         ctx._outer = self
+        ctx._root_pass = self._root_pass
         return ctx

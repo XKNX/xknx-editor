@@ -1537,6 +1537,47 @@ class ModuleState(ParameterState):
                     return str(arg.value)
         return ParameterState.get(self, ref_id)
 
+    def evaluation_state(self, *, copy: bool) -> tuple[object, ...]:
+        """All an evaluation of a node in this instance reads of the instance itself (see
+        EvalMemo; the scope it is in left out): its values and defaults, its gates, the
+        parameters it reached in the union discovery, its texts and group object settings,
+        its arguments and ids, and what its Assigns apply by. With ``copy`` as it is now, to
+        be compared with what it is later (each part compares equal where it is the same)."""
+        gate = self._gate_param_refs
+        if not copy:
+            return (
+                self._known_param_ref_values,
+                self.param_ref_id_to_value,
+                self._param_ref_defaults,
+                gate,
+                self._discovered_active_param_refs,
+                self._text,
+                self._com_obj_instance_refs,
+                self.arguments,
+                self.param_ref_bases,
+                self._arg_defaults,
+                self.module_instance_id,
+                self.ref_id,
+                self._assign_seen,
+                self._seeded,
+            )
+        return (
+            dict(self._known_param_ref_values),
+            dict(self.param_ref_id_to_value),
+            self._param_ref_defaults,
+            None if gate is None else frozenset(gate),
+            frozenset(self._discovered_active_param_refs),
+            dict(self._text),
+            dict(self._com_obj_instance_refs),
+            dict(self.arguments),
+            dict(self.param_ref_bases),
+            dict(self._arg_defaults),
+            self.module_instance_id,
+            self.ref_id,
+            dict(self._assign_seen),
+            self._seeded,
+        )
+
     def get_arg_defaults(self) -> dict[str, str]:
         return self._arg_defaults
 
