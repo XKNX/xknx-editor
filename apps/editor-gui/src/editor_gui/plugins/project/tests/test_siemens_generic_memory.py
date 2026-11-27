@@ -57,3 +57,27 @@ def test_the_memory_read_follows_the_plug_in_s_download(version, segment, expect
     assert sources(device).description.plugin_version == version
     request = ProjectPlugin._generic_memory_request(cast(Any, None), device)
     assert (request.address, request.size, request.object_index) == expected
+
+
+def _oem_device(described: str) -> Any:
+    """A device of an OEM's application (its own manufacturer, "-O" with the original's)
+    whose description names the application ``described``."""
+    application = (
+        application_xml((2, 0, 36))
+        .replace(b"M-0001_A-9821-01-0000", b"M-000B_A-9821-01-0000-O0001")
+        .replace(b'RefId="M-0001"', b'RefId="M-000B"')
+    )
+    app = parse_application_xml(application, "M-000B")[0]
+    xml = description_xml().replace(b'Id="id-0001_9821_01"', described.encode())
+    return SimpleNamespace(
+        app=app, plugin_baggage=lambda ref: xml if ref == DESCRIPTION_ID else None
+    )
+
+
+def test_an_oem_application_is_described_as_the_oem_s_own():
+    found = sources(_oem_device('Id="id-000B_9821_01"'))
+    assert found.description.id == "id-000B_9821_01"
+    assert found.description.plugin_version == (2, 0, 36)
+    # A description of the original manufacturer's application is another one.
+    with pytest.raises(ValueError, match="another catalog application"):
+        sources(_oem_device('Id="id-0001_9821_01"'))

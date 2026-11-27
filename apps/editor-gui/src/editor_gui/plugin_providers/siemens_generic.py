@@ -68,8 +68,10 @@ def sources(device: Device) -> Sources:
     except (OSError, ArchiveError, zipfile.BadZipFile) as exc:
         raise ValueError("Siemens application description is unavailable") from exc
     found = _sources(payloads)
+    # The description names the application by its manufacturer, number and version: an
+    # OEM's application ("..._A-9822-02-DAD4-O0001") by the OEM, whose own it is.
     identity = re.fullmatch(
-        r"M-([0-9A-F]{4})_A-([0-9A-F]{4})-([0-9A-F]{2})-[0-9A-F]{4}",
+        r"M-([0-9A-F]{4})_A-([0-9A-F]{4})-([0-9A-F]{2})-[0-9A-F]{4}(?:-O[0-9A-F]{4})?",
         device.app.id,
         re.IGNORECASE,
     )
