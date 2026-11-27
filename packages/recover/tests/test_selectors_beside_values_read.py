@@ -231,3 +231,29 @@ def test_the_first_function_of_the_code_stays_without_a_value(
 
     assert result.complete
     assert result.values[_FUNCTION] == "1"
+
+
+def test_a_cancel_is_heard_before_the_next_value_is_compared_with_the_reads(
+    function_code: Application, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # Each value compared with the values read builds a configuration: once the search is
+    # cancelled, no further value is compared, also when the last one was left out.
+    import xknxeditor.recover.parameters as parameters
+
+    memory = _device(function_code, (_FUNCTION, "2"), (_VALUE, "9"))
+    compared: list[str] = []
+    original = parameters._alike_for_reads  # pyright: ignore[reportPrivateUsage]
+
+    def alike(*args: object) -> bool:
+        compared.append(str(args[-1]))
+        return False
+
+    monkeypatch.setattr(parameters, "_alike_for_reads", alike)
+
+    result = recover_parameters(
+        function_code, memory, effort=RecoveryEffort.FAST, cancel=lambda: bool(compared)
+    )
+
+    assert original is not alike
+    assert len(compared) == 1
+    assert result.limited

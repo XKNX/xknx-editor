@@ -2245,9 +2245,11 @@ def _refine_pairs(
             for gate, value in _refinement_trials(
                 ui, current[1], _contradicting_objects(ui, linked, sizes), cancel
             ):
+                # Before the filter too: it builds a configuration for each value it leaves
+                # out.
+                _check(cancel)
                 if _calculated_from_reads(ui, gate) and not alike(gate, value):
                     continue
-                _check(cancel)
                 if evaluated == budget:
                     limited = True
                     return finish()
@@ -2700,6 +2702,9 @@ def _refine_fixed(
             # with them.
             for wide in (False, True):
                 for gate, value in trials:
+                    # Before the filter too: it builds a configuration for each value it
+                    # leaves out, and a selector can have many.
+                    _check(cancel)
                     change = joint.get((gate, value))
                     if (
                         change is None
@@ -2709,7 +2714,6 @@ def _refine_fixed(
                         )
                     ):
                         continue
-                    _check(cancel)
                     if evaluated == budget:
                         exhausted = True
                         break
