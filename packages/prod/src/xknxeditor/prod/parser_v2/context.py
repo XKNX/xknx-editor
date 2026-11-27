@@ -256,13 +256,16 @@ class Recording:
     asked whether any or all are so). Gives the UiNodes ``output``."""
 
     __slots__ = (
+        "all_reads",
         "checked_by_change",
+        "count",
         "discovered_keys",
         "events",
         "gate_keys",
         "gates",
         "handed",
         "handed_ids",
+        "object_events",
         "object_reads",
         "object_set",
         "objects",
@@ -271,7 +274,8 @@ class Recording:
         "parameters",
         "reads",
         "suppress",
-        "text_args",
+        "text_arg_keys",
+        "text_events",
         "text_keys",
         "texts",
         "unions",
@@ -281,14 +285,21 @@ class Recording:
     )
 
     def __init__(
-        self, suppress: bool, events: tuple[Event, ...], output: tuple[UiNode, ...]
+        self,
+        suppress: bool,
+        events: tuple[Event | Recording, ...],
+        output: tuple[UiNode, ...],
     ) -> None:
         self.suppress = suppress
         self.events = events
         self.output = output
         values: list[tuple[object, object]] = []
         gates: list[tuple[object, object]] = []
+        # The reads but the texts and group object settings, the texts, and those (which
+        # do not hash).
         reads: list[Event] = []
+        text_reads: list[Event] = []
+        object_reads: list[Event] = []
         texts: list[tuple[object, object]] = []
         handed: list[object] = []
         parameters: list[object] = []
@@ -297,34 +308,79 @@ class Recording:
         # A text read after the evaluation set it (a block its Rename retitles) gives what
         # was set: nothing to check.
         written: set[object] = set()
+        # The reads as the events of the evaluation and those inside it count them.
+        count = 0
         for event in events:
+            if isinstance(event, Recording):
+                # An evaluation inside this one recorded or done again: what it recorded.
+                count += event.count
+                values.extend(event.values)
+                gates.extend(event.gates)
+                reads.extend(event.reads)
+                object_reads.extend(event.object_events)
+                if written:
+                    for read in event.text_events:
+                        if read[1] in written:
+                            count -= 1
+                        else:
+                            text_reads.append(read)
+                else:
+                    text_reads.extend(event.text_events)
+                if event.texts:
+                    texts.extend(event.texts)
+                    written.update(key for key, _text in event.texts)
+                handed.extend(event.handed)
+                parameters.extend(event.parameters)
+                objects.extend(event.objects)
+                unions.extend(event.unions)
+                continue
             kind, key, result = event
-            if kind == "p":
-                parameters.append(key)
-            elif kind == "g":
+            # The kinds by how often they come.
+            if kind == "g":
+                count += 1
                 values.append((key, result))
+            elif kind == "p":
+                parameters.append(key)
             elif kind == "a":
+                count += 1
                 gates.append((key, result))
-            elif kind == "c":
-                objects.append(key)
             elif kind == "h":
                 handed.append(key)
+            elif kind in _READS:
+                if kind == "t":
+                    if key in written:
+                        continue
+                    text_reads.append(event)
+                elif kind == "o":
+                    object_reads.append(event)
+                else:
+                    reads.append(event)
+                count += 1
+            elif kind == "u":
+                unions.append((key, result))
+            elif kind == "c":
+                objects.append(key)
             elif kind == "s":
                 written.add(key)
                 texts.append((key, result))
-            elif kind == "u":
-                unions.append((key, result))
-            elif kind in _READS and not (kind == "t" and key in written):
-                reads.append(event)
-        self.values = tuple(values)
-        self.gates = tuple(gates)
-        self.reads = tuple(reads)
+        # The same read twice gives the same: each value, gate decision and read once (in
+        # the order first read), but the texts (a text set later in an evaluation around
+        # this one leaves out those read after it) and the group object settings.
+        self.values = tuple(dict.fromkeys(values))
+        self.gates = tuple(dict.fromkeys(gates))
+        self.reads = tuple(dict.fromkeys(reads))
+        self.text_events = tuple(text_reads)
+        self.object_events = tuple(object_reads)
+        self.all_reads = self.reads + self.text_events + self.object_events
+        # How many reads its events make (each value, gate decision and read).
+        self.count = count
         # In their order: of two texts set for the same, the last one stays.
         self.texts = tuple(texts)
         self.handed = tuple(handed)
-        self.handed_ids = frozenset(id(node) for node in handed)
-        self.parameters = tuple(parameters)
-        self.parameter_set = frozenset(parameters)
+        self.handed_ids = frozenset(map(id, handed))
+        # Each marked once (in the order first marked).
+        self.parameters = tuple(dict.fromkeys(parameters))
+        self.parameter_set = frozenset(self.parameters)
         self.objects = tuple(objects)
         self.object_set = frozenset(objects)
         self.unions = tuple(unions)
@@ -333,23 +389,26 @@ class Recording:
         self.valid_in: dict[tuple[bool, bool], int] = {}
         # Whether it is worth telling that the reads give the same without reading again
         # (see EvalMemo.unchanged): reading a few again takes less.
-        self.checked_by_change = len(values) + len(gates) + len(reads) > _READ_AGAIN
+        self.checked_by_change = count > _READ_AGAIN
         # What the reads depend on, to tell so: the values, the gate decisions, the parameters
         # reached in the discovery and the texts read; whether it reads group object
-        # settings, and text arguments (values by unique number, told only by reading again).
+        # settings, and the text arguments read (values by unique number, see
+        # EvalMemo.unchanged).
         if self.checked_by_change:
-            self.value_keys = frozenset(key for key, _result in values)
-            self.gate_keys = frozenset(key for key, _result in gates)
+            self.value_keys = frozenset(dict(self.values))
+            self.gate_keys = frozenset(dict(self.gates))
             self.discovered_keys = frozenset(
-                key for kind, key, _ in reads if kind == "d"
+                key for kind, key, _ in self.reads if kind == "d"
             )
-            self.text_keys = frozenset(key for kind, key, _ in reads if kind == "t")
-            self.object_reads = any(kind == "o" for kind, _key, _ in reads)
-            self.text_args = any(kind == "x" for kind, _key, _ in reads)
+            self.text_keys = frozenset(key for _kind, key, _ in text_reads)
+            self.object_reads = bool(object_reads)
+            self.text_arg_keys = frozenset(
+                key for kind, key, _ in self.reads if kind == "x"
+            )
         else:
             self.value_keys = self.gate_keys = _NONE
-            self.discovered_keys = self.text_keys = _NONE
-            self.object_reads = self.text_args = False
+            self.discovered_keys = self.text_keys = self.text_arg_keys = _NONE
+            self.object_reads = False
 
 
 class _Pass:
@@ -487,23 +546,34 @@ class EvalMemo:
     def unchanged(recording: Recording, ctx: EvalContext) -> bool:
         """Whether each read of ``recording`` gives what it gave, told without reading again:
         it gave that in the pass before of this kind, and nothing it reads differs from that
-        pass at the start of this one, was written in that pass or so far in this one."""
+        pass at the start of this one, was written in that pass or so far in this one. A text
+        argument by unique number reads the value of the parameter-ref with that number (in
+        a scope without module arguments, where the number alone tells which)."""
         current = ctx._pass  # pyright: ignore[reportPrivateUsage]
         if (
             current is None
             or current.previous is None
             or recording.valid_in.get(current.slot) != current.previous
-            or recording.text_args
             or (recording.object_reads and not current.objects_same)
         ):
             return False
         keys = recording.value_keys
-        if not keys.isdisjoint(current.changed):
+        changed = current.changed
+        if not keys.isdisjoint(changed):
             return False
         scope = ctx._scope  # pyright: ignore[reportPrivateUsage]
         written, texts_written = scope.pass_written()
         if written and not keys.isdisjoint(written):
             return False
+        if recording.text_arg_keys:
+            if scope.get_arg_defaults():
+                return False
+            for key in recording.text_arg_keys:
+                if not isinstance(key, str) or not key.isdigit() or int(key) == 0:
+                    continue
+                ref = ctx.ref_by_number(int(key))
+                if ref is not None and (ref in changed or (written and ref in written)):
+                    return False
         if recording.gate_keys and not recording.gate_keys.isdisjoint(
             current.gates_changed
         ):
@@ -561,6 +631,10 @@ class EvalMemo:
         try:
             output = evaluate(ctx)
             entry = Recording(suppress, tuple(tape[start:]), tuple(output))
+            if not outermost:
+                # The evaluation around it takes what it recorded as recorded.
+                del tape[start:]
+                tape.append(entry)
         finally:
             if outermost:
                 ctx._tape = None  # pyright: ignore[reportPrivateUsage]
@@ -647,7 +721,7 @@ class EvalContext:
         # keys what it keeps by.
         mid = getattr(scope, "module_instance_id", None)
         self._instance = mid if isinstance(mid, str) else ""
-        self._tape: list[Event] | None = None
+        self._tape: list[Event | Recording] | None = None
         # The pass this context evaluates the application's scope in for the memo (see
         # EvalMemo.begin_pass), ended with end_pass.
         self._pass: _Pass | None = None
@@ -714,16 +788,18 @@ class EvalContext:
     def reads_same(self, recording: Recording) -> bool:
         """Whether each read of ``recording`` gives what it gave then, read again."""
         scope = self._scope
-        get = scope.get
-        for key, value in recording.values:
-            if get(key) != value:  # type: ignore[arg-type]
-                return False
+        # The gate decisions first: of the reads that give otherwise, most are one (a
+        # Choose of a channel taking turns with and without gates), and they are fewer.
         gate = scope.is_gate_active
         for key, active in recording.gates:
             if gate(key) is not active:  # type: ignore[arg-type]
                 return False
+        get = scope.get
+        for key, value in recording.values:
+            if get(key) != value:  # type: ignore[arg-type]
+                return False
         args: _TextArgs | None = None
-        for kind, key, result in recording.reads:
+        for kind, key, result in recording.all_reads:
             if kind == "d":
                 same = scope.is_discovered_active(key) is result  # type: ignore[arg-type]
             elif kind == "x":
@@ -756,7 +832,7 @@ class EvalContext:
         tape = self._tape
         if tape is not None:
             # Inside the evaluation of a node being recorded: part of what it does.
-            tape.extend(recording.events)
+            tape.append(recording)
         if recording.parameters:
             scope.mark_active_params(recording.parameters, recording.parameter_set)  # type: ignore[arg-type]
         if recording.objects:
