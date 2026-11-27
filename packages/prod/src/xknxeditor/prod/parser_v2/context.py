@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 import threading
+from collections import Counter
 from collections.abc import Callable, Collection, Iterable, Iterator, Mapping, Sequence
 from dataclasses import dataclass
-from itertools import repeat
+from itertools import chain, repeat
 from typing import TYPE_CHECKING, Protocol, cast
 
 from xknxeditor.namespaces.intermediate import ModuleArg
@@ -838,7 +839,10 @@ class EvalMemo:
         "_in_order",
         "_in_order_nodes",
         "_last",
+        "_no_record",
         "_open",
+        "_parts",
+        "_parts_taken",
         "_unreplayable",
         "thread",
     )
@@ -864,6 +868,13 @@ class EvalMemo:
             tuple[int, str, bool, bool], tuple[object, list[_InOrder]]
         ] = {}
         self._in_order_nodes: dict[int, object] = {}
+        # Of each block whose children are taken in parts (see eval_children), by the block
+        # and kind of pass, their evaluations; how many times children were taken in parts
+        # (an evaluation around them reads more than its tape holds then), and the nodes such
+        # an evaluation was of (evaluated without the memo from then on).
+        self._parts: dict[tuple[int, tuple[bool, bool]], _Parts] = {}
+        self._parts_taken = 0
+        self._no_record: dict[int, object] = {}
         # How many evaluations of each node (by the same key as the entries) were recorded
         # without being replayable (see Recording): one that is so again and again is
         # evaluated without recording from then on (see UNREPLAYABLE).
@@ -954,6 +965,8 @@ class EvalMemo:
     ) -> list[UiNode]:
         """What ``evaluate`` gives ``node`` in ``ctx``: what it gave before where each read
         gives what it gave then (its effects done again), else evaluated, and kept."""
+        if self._no_record.get(id(node)) is node:
+            return evaluate(ctx)
         instance = ctx._instance  # pyright: ignore[reportPrivateUsage]
         slot: tuple[int, str, bool, bool] | None = None
         # The state of the module instance the evaluation starts from, where it is checked in
@@ -1031,8 +1044,15 @@ class EvalMemo:
         tape = ctx._tape  # pyright: ignore[reportPrivateUsage]
         assert tape is not None
         start = len(tape)
+        taken = self._parts_taken
         try:
             output = evaluate(ctx)
+            if self._parts_taken != taken:
+                # Children in it were taken in parts (see eval_children): not all it read
+                # is on the tape.
+                del tape[start:]
+                self._no_record[id(node)] = node
+                return output
             entry = Recording(suppress, tuple(tape[start:]), tuple(output))
             if not outermost:
                 # The evaluation around it takes what it recorded as recorded.
@@ -1074,6 +1094,224 @@ class EvalMemo:
             kept[1].insert(0, entry)
             del kept[1][self.ENTRIES :]
         return output
+
+    def eval_children(
+        self,
+        owner: object,
+        ctx: EvalContext,
+        children: Sequence[_Evaluated | None],
+    ) -> list[UiNode]:
+        """The UiNodes of ``children`` (of the block ``owner``) evaluated in ``ctx`` in the
+        application's scope, taken in parts: each child recorded on its own, and of those
+        taken in the pass before of this kind, those whose reads give what they gave (told
+        by what changed since, see _Parts.affected, else read again) done again together,
+        the others evaluated (a block of tens of thousands of Chooses, a search trying one
+        setting of it at a time).
+
+        No child may change what another one reads, reach a Choose on a union member or
+        share a node with another one (no Assign, Rename or such a Choose in them): what each
+        does is the same in whichever order they are done then, and so is what they do
+        together (the marks are sets, the gate decisions are asked whether all are so). An
+        evaluation around them is not recorded (see evaluate)."""
+        current = ctx._pass  # pyright: ignore[reportPrivateUsage]
+        nodes = [child for child in children if child]
+        if (
+            current is None
+            or ctx._instance  # pyright: ignore[reportPrivateUsage]
+            or not ctx._scope.is_root()  # pyright: ignore[reportPrivateUsage]
+        ):
+            result: list[UiNode] = []
+            for node in nodes:
+                result.extend(node.eval(ctx))
+            return result
+        key = (id(owner), current.slot)
+        kept = self._parts.get(key)
+        if kept is not None and (
+            kept.node is not owner or len(kept.recordings) != len(nodes)
+        ):
+            kept = None
+        self._parts_taken += 1
+        tape = ctx._tape  # pyright: ignore[reportPrivateUsage]
+        ctx._tape = None  # pyright: ignore[reportPrivateUsage]
+        try:
+            if kept is None or not self._take_again(kept, nodes, ctx, current):
+                kept = self._parts[key] = _Parts(
+                    owner, [_recorded(node, ctx) for node in nodes]
+                )
+            kept.valid = current.number
+            return list(chain.from_iterable(kept.outputs))
+        finally:
+            ctx._tape = tape  # pyright: ignore[reportPrivateUsage]
+
+    @staticmethod
+    def _take_again(
+        parts: _Parts, nodes: list[_Evaluated], ctx: EvalContext, current: _Pass
+    ) -> bool:
+        """Take ``nodes`` again in parts (see eval_children): whether it was done (else
+        nothing was, as a node of the others is handed out in this pass already)."""
+        scope = ctx._scope  # pyright: ignore[reportPrivateUsage]
+        recordings = parts.recordings
+        if current.previous is not None and parts.valid == current.previous:
+            affected = parts.affected(current, scope)
+        else:
+            affected = {
+                at
+                for at, recording in enumerate(recordings)
+                if not ctx.reads_same(recording)
+            }
+        # What the others do: what is done by the affected ones alone left out.
+        totals = (parts.parameters, parts.objects, parts.gates, parts.handed)
+        alone: list[Counter[object]] = [Counter(), Counter(), Counter(), Counter()]
+        for at in affected:
+            recording = recordings[at]
+            for counted, keys in zip(
+                alone,
+                (
+                    recording.parameter_set,
+                    recording.object_set,
+                    recording.gates,
+                    recording.handed_ids,
+                ),
+                strict=True,
+            ):
+                counted.update(keys)
+        parameters, objects, gates, handed_ids = (
+            total.keys() - {key for key, n in counted.items() if total[key] == n}  # type: ignore[index]
+            for total, counted in zip(totals, alone, strict=True)
+        )
+        handed = ctx._handed  # pyright: ignore[reportPrivateUsage]
+        assert handed is not None
+        if not handed.isdisjoint(handed_ids):
+            return False
+        if parameters:
+            scope.mark_active_params(tuple(parameters), frozenset(parameters))  # type: ignore[arg-type]
+        if objects:
+            scope.mark_active_com_objects(frozenset(objects))  # type: ignore[arg-type]
+        checks = ctx._gate_checks  # pyright: ignore[reportPrivateUsage]
+        if checks is not None and gates:
+            checks.extend((scope, key, active) for key, active in gates)  # type: ignore[misc]
+        handed.update(handed_ids)  # type: ignore[arg-type]
+        for at in sorted(affected):
+            recording = _recorded(nodes[at], ctx)
+            parts.count(at, recordings[at], -1)
+            recordings[at] = recording
+            parts.outputs[at] = recording.output
+            parts.count(at, recording, 1)
+        return True
+
+
+class _Parts:
+    """The evaluations of the children of a block (see EvalMemo.eval_children), each
+    recorded on its own (``recordings``, with their UiNodes ``outputs``), and what they do
+    together: the parameters and group objects they mark active, their gate decisions and
+    the nodes they hand out, each with how many of them do so; by each read (its kind and
+    key), which of them read it; those that read a text argument (``always``) or group object
+    settings. ``valid``: the pass they were taken in last. In the application's scope, as
+    they are, a qualified id, a module argument and a text argument but a value by its
+    unique number read the same in every pass."""
+
+    __slots__ = (
+        "always",
+        "gates",
+        "handed",
+        "node",
+        "object_readers",
+        "objects",
+        "outputs",
+        "parameters",
+        "readers",
+        "recordings",
+        "valid",
+    )
+
+    def __init__(self, node: object, recordings: list[Recording]) -> None:
+        self.node = node
+        self.recordings = recordings
+        self.outputs = [recording.output for recording in recordings]
+        self.valid: int | None = None
+        self.parameters: dict[object, int] = {}
+        self.objects: dict[object, int] = {}
+        self.gates: dict[tuple[object, object], int] = {}
+        self.handed: dict[int, int] = {}
+        self.readers: dict[tuple[str, object], set[int]] = {}
+        self.always: set[int] = set()
+        self.object_readers: set[int] = set()
+        for at, recording in enumerate(recordings):
+            self.count(at, recording, 1)
+
+    def count(self, at: int, recording: Recording, step: int) -> None:
+        """Count in (``step`` 1) or out (-1) what the child ``at`` with ``recording`` does
+        and reads."""
+        for counts, keys in (
+            (self.parameters, recording.parameter_set),
+            (self.objects, recording.object_set),
+            (self.gates, recording.gates),
+            (self.handed, recording.handed_ids),
+        ):
+            for key in keys:
+                left = counts.get(key, 0) + step  # type: ignore[call-overload]
+                if left:
+                    counts[key] = left  # type: ignore[index]
+                else:
+                    del counts[key]  # type: ignore[arg-type]
+        reads = [("g", key) for key, _ in recording.values]
+        reads += [("a", key) for key, _ in recording.gates]
+        reads += [(kind, key) for kind, key, _ in recording.text_events]
+        for kind, key, _ in recording.reads:
+            if kind == "d":
+                reads.append((kind, key))
+            elif kind == "x" and _TextArgs.reads_value(key):  # type: ignore[arg-type]
+                # A value by its unique number (the others stand for the application's
+                # arguments, which are none).
+                (self.always.add if step > 0 else self.always.discard)(at)
+        if recording.object_events:
+            (self.object_readers.add if step > 0 else self.object_readers.discard)(at)
+        for read in reads:
+            if step > 0:
+                self.readers.setdefault(read, set()).add(at)
+            else:
+                readers = self.readers.get(read)
+                if readers is not None:
+                    readers.discard(at)
+
+    def affected(self, current: _Pass, scope: ParameterState) -> set[int]:
+        """The children whose reads may give otherwise than in the pass before of this kind,
+        in which each read what it reads (as EvalMemo.unchanged tells it, by each read)."""
+        written, texts_written = scope.pass_written()
+        found = set(self.always)
+        readers = self.readers
+        for kind, keys in (
+            ("g", current.changed),
+            ("g", written),
+            ("a", current.gates_changed),
+            ("d", current.discovered_changed),
+            ("t", current.texts_changed),
+            ("t", texts_written),
+        ):
+            for key in keys:
+                these = readers.get((kind, key))
+                if these:
+                    found |= these
+        if not current.objects_same:
+            found |= self.object_readers
+        return found
+
+
+class _Evaluated(Protocol):
+    """A node of the tree (see DynamicNode)."""
+
+    def eval(self, ctx: EvalContext) -> list[UiNode]: ...
+
+
+def _recorded(node: _Evaluated, ctx: EvalContext) -> Recording:
+    """``node`` evaluated in ``ctx``, recorded on a tape of its own (see EvalMemo)."""
+    ctx._tape = []  # pyright: ignore[reportPrivateUsage]
+    try:
+        output = node.eval(ctx)
+        tape = ctx._tape  # pyright: ignore[reportPrivateUsage]
+    finally:
+        ctx._tape = None  # pyright: ignore[reportPrivateUsage]
+    return Recording(ctx.union_suppress, tuple(tape), tuple(output))
 
 
 class EvalContext:
