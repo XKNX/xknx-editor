@@ -8,7 +8,15 @@ import logging
 import math
 import re
 import struct
-from collections.abc import Callable, Collection, Container, Iterable, Iterator, Mapping
+from collections.abc import (
+    Callable,
+    Collection,
+    Container,
+    Iterable,
+    Iterator,
+    Mapping,
+    Sequence,
+)
 from functools import lru_cache
 from typing import NamedTuple
 
@@ -837,6 +845,30 @@ def _active_ref_ranks(
     return ranks
 
 
+# The place of each ParameterRef of a module definition among its refs, by the identity of
+# their list (see _active_refs_in_order); None for refs with an id twice.
+_REF_PLACES: dict[int, tuple[Sequence[ParameterRef], dict[str, int] | None]] = {}
+
+
+def _active_refs_in_order(
+    refs: Sequence[ParameterRef], active: Collection[str]
+) -> Sequence[ParameterRef]:
+    """The refs of ``refs`` whose id is in ``active``, in their order: found from the active
+    ones where they are few (a module definition has hundreds of refs, each encoding and
+    decoding asks for those of each of its instances)."""
+    kept = _REF_PLACES.get(id(refs))
+    if kept is None or kept[0] is not refs:
+        places = {ref.id: place for place, ref in enumerate(refs)}
+        kept = (refs, places if len(places) == len(refs) else None)
+        if len(_REF_PLACES) >= 256:
+            _REF_PLACES.clear()
+        _REF_PLACES[id(refs)] = kept
+    places = kept[1]
+    if places is None or 4 * len(active) > len(refs):
+        return [ref for ref in refs if ref.id in active]
+    return [refs[place] for place in sorted(places[i] for i in active if i in places)]
+
+
 def last_active_ref_ranks(
     refs: Iterable[ParameterRef], active: Container[str]
 ) -> dict[str, tuple[int, int]]:
@@ -1206,8 +1238,13 @@ def _collect_scope_writes(
     md = idx.module_defs.get(ms.ref_id)
     if md is None or md.static.parameters is None:
         return (), ()
-    refs = md.static.parameter_refs.parameter_ref if md.static.parameter_refs else []
+    all_refs = (
+        md.static.parameter_refs.parameter_ref if md.static.parameter_refs else []
+    )
     active = ms.local_active_param_refs()
+    # Of the module definition's refs those that are active, in their order: what each loop
+    # over the refs below takes.
+    refs = _active_refs_in_order(all_refs, active)
     ranks = last_active_ref_ranks(refs, active)
     arguments = tuple(
         (name, arg.value if isinstance(arg, ModuleNumericArg) else None)
@@ -1216,7 +1253,7 @@ def _collect_scope_writes(
     if behavior is None:
         instance_overrides = _build_instance_overrides(ms, idx)
         if active_unions and md.static.parameter_refs is not None:
-            for ref in md.static.parameter_refs.parameter_ref:
+            for ref in refs:
                 if (
                     ref.id in active
                     and ref.ref_id not in instance_overrides

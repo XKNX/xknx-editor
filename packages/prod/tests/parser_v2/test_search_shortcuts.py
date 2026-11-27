@@ -230,6 +230,21 @@ def test_the_active_refs_of_an_instance_are_qualified_as_each_on_its_own() -> No
             assert state.active_param_refs() == {state.qualify(ref) for ref in refs}
 
 
+def test_the_active_refs_of_a_module_definition_are_those_found_one_by_one() -> None:
+    from types import SimpleNamespace
+    from typing import Any, cast
+
+    rng = random.Random(7)
+    refs = cast(Any, [SimpleNamespace(id=f"R-{n}") for n in range(200)])
+    # A list with an id twice is taken one by one.
+    twice = cast(Any, [*refs[:50], SimpleNamespace(id="R-3"), *refs[50:]])
+    for listed in (refs, twice, refs):
+        for size in (0, 1, 5, 40, 60, 200):
+            active = {f"R-{rng.randrange(260)}" for _ in range(size)}
+            found = encode._active_refs_in_order(listed, active)  # pyright: ignore[reportPrivateUsage]
+            assert list(found) == [ref for ref in listed if ref.id in active]
+
+
 def test_a_value_its_type_cannot_take_raises_at_every_encode() -> None:
     application = _application(_MEMORY)
     ui = _ui(application, {})
