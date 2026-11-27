@@ -88,6 +88,9 @@ class Parameter:
     format: str = ""  # e.g. "Percent"
     format_string: str = ""
     pattern: str = ""
+    # A setting downloaded only while this ParameterRef's value is not 0: while it is, the
+    # device keeps what it holds at the parameter's memory (see ``locked_parameters``).
+    download_if: str = ""
 
 
 @dataclass(frozen=True, slots=True)
@@ -170,6 +173,41 @@ class Description:
     hardware_types: tuple[bytes, ...] = ()
     application_ids: tuple[str, ...] = ()
     image_unsupported: tuple[str, ...] = ()
+    # The ApplicationProgram's own HardwareType: the one hardware a plug-in of version 1
+    # downloads to (later ones take ``hardware_types``).
+    root_hardware_type: bytes | None = None
+    # UseRelDownloadSubThisOffset of a CodeSegment: the parameter memory is written relative
+    # to the application's segment, at an address less this offset.
+    relative_offset: int | None = None
+    # The version of the plug-in the product ships (its setup in the baggage), e.g. (2, 0, 37).
+    plugin_version: tuple[int, int, int] | None = None
+
+    def plugin_from(self, *version: int) -> bool:
+        """Whether the product's plug-in is ``version`` or later (an unknown one is the
+        latest)."""
+        return self.plugin_version is None or self.plugin_version >= version
+
+    @property
+    def compatible_hardware(self) -> tuple[bytes, ...]:
+        """The hardware types (PID 78 of the device object) a download is allowed to."""
+        if not self.plugin_from(2):
+            return (self.root_hardware_type,) if self.root_hardware_type else ()
+        return self.hardware_types
+
+    @property
+    def image_origin(self) -> int | None:
+        """The address byte 0 of a stored memory image stands for: 0 for a plug-in of
+        version 1 (its image holds the whole address space), else the memory base."""
+        if not self.plugin_from(2):
+            return 0 if self.memory_base is not None else None
+        return self.memory_base
+
+    @property
+    def download_offset(self) -> int | None:
+        """What a download subtracts from a parameter's address to write it relative to the
+        application's segment; None when it writes the addresses themselves (a plug-in
+        before version 2.0.24 knows no relative download)."""
+        return self.relative_offset if self.plugin_from(2, 0, 24) else None
 
     @property
     def memory_base(self) -> int | None:
@@ -239,6 +277,7 @@ def parse_description(data: bytes) -> Description | None:
             format=e.get("Format", ""),
             format_string=e.get("FormatString", ""),
             pattern=e.get("RegEx", ""),
+            download_if=e.get("DownloadIfParameterRefId", ""),
         )
     refs: dict[str, ParameterRef] = {}
     by_parameter: dict[str, list[str]] = {}
@@ -339,14 +378,25 @@ def parse_description(data: bytes) -> Description | None:
                 "Static/DeviceDownloadCompatibility/ApplicationIDs/ApplicationID"
             )
         ),
+        root_hardware_type=_hex(root.get("HardwareType")),
+        relative_offset=next(
+            (
+                offset
+                for e in root.iterfind("Static/CodeSegments/CodeSegment")
+                if (offset := _int(e.get("UseRelDownloadSubThisOffset"))) is not None
+            ),
+            None,
+        ),
         image_unsupported=tuple(
             sorted(
                 {
                     e.tag
                     for e in root.iter()
                     if e.tag in {"Union", "Property"}
-                    or "DownloadIfParameterRefId" in e.attrib
-                    or "UseRelDownloadSubThisOffset" in e.attrib
+                    or (
+                        "DownloadIfParameterRefId" in e.attrib
+                        and e.tag not in {"Parameter", "ParameterRef"}
+                    )
                     or (e.tag == "CodeSegment" and e.get("Data"))
                     or (e.tag == "Memory" and e.get("CodeSegment", "") not in segments)
                 }
@@ -384,6 +434,13 @@ def parse_translations(data: bytes) -> dict[str, dict[str, str]]:
                 if tr.get("AttributeName") == "Text" and ref:
                     texts[ref] = clean_text(tr.get("Text", ""))
     return out
+
+
+def _hex(text: str | None) -> bytes | None:
+    try:
+        return bytes.fromhex(text) if text else None
+    except ValueError:
+        return None
 
 
 def _int(text: str | None) -> int | None:
@@ -483,3 +540,53 @@ def _parse_node(e: ET.Element, texts: dict[str, str]) -> Node | None:
             texts[node.id] = node.text
     node.children = [n for n in (_parse_node(c, texts) for c in e) if n is not None]
     return node
+
+
+def dynamic_refs(nodes: list[Node]) -> list[str]:
+    """The ParameterRefs of the Dynamic tree, in every branch: the settings it shows and the
+    targets of its Assigns."""
+    found: list[str] = []
+    for node in nodes:
+        if node.kind is NodeKind.PARAMETER and node.id:
+            found.append(node.id)
+        elif node.kind is NodeKind.ASSIGN and node.target:
+            found.append(node.target)
+        found.extend(dynamic_refs(node.children))
+    return found
+
+
+def locked_parameters(
+    description: Description, values: dict[str, str], active: list[str]
+) -> set[str]:
+    """The parameters a download leaves as the device holds them: those whose download
+    condition (``DownloadIfParameterRefId``, of the ParameterRef or else of the parameter)
+    names a setting of value 0 in ``values``. A plug-in from version 2.0.24 on checks every
+    setting of the Dynamic tree, an earlier one only the ``active`` ones and only their
+    ParameterRef's condition; one of version 1 knows no condition."""
+    if not description.plugin_from(2):
+        return set()
+    every = description.plugin_from(2, 0, 24)
+    locked: set[str] = set()
+    for ref_id in dynamic_refs(description.dynamic) if every else active:
+        ref = description.refs.get(ref_id)
+        if ref is None:
+            continue
+        parameter = description.parameters.get(ref.parameter_id)
+        if parameter is None:
+            continue
+        condition = ref.download_if or (parameter.download_if if every else "")
+        if condition and _is_zero(description, condition, values.get(condition)):
+            locked.add(parameter.id)
+    return locked
+
+
+def _is_zero(description: Description, ref_id: str, value: str | None) -> bool:
+    """Whether a setting holds 0 (an enumeration by the value of its choice); a setting
+    without a value is not 0."""
+    if value is None:
+        return False
+    ref = description.refs.get(ref_id)
+    parameter = description.parameters.get(ref.parameter_id) if ref else None
+    ptype = description.types.get(parameter.type_id) if parameter else None
+    enum = ptype.enum_by_name(value) if ptype is not None else None
+    return (str(enum.value) if enum is not None else value) == "0"

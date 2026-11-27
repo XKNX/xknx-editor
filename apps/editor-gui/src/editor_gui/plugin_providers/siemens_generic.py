@@ -54,10 +54,16 @@ def sources(device: Device) -> Sources:
     extension = device.app.program.static.extension
     baggage_ids = tuple(b.ref_id for b in extension.baggage) if extension else ()
     try:
+        # The XML baggage with its content; the others (the plug-in's setup, which names
+        # its version) by their id alone.
         payloads = tuple(
-            (ref, device.plugin_baggage(ref))
+            (
+                ref,
+                device.plugin_baggage(ref)
+                if ref.lower().endswith((".xml", ".2exml"))
+                else None,
+            )
             for ref in baggage_ids
-            if ref.lower().endswith((".xml", ".2exml"))
         )
     except (OSError, ArchiveError, zipfile.BadZipFile) as exc:
         raise ValueError("Siemens application description is unavailable") from exc

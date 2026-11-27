@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
+import re
 from collections.abc import Callable, Iterable
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
 from .blob import PluginSettings, parse_settings
 from .description import Description, parse_description, parse_translations
@@ -38,6 +39,7 @@ __all__ = [
     "parse_settings",
     "parse_translations",
     "pick_language",
+    "plugin_version",
     "read_view",
 ]
 
@@ -46,6 +48,24 @@ def is_xml_baggage(baggage_id: str) -> bool:
     """Whether a baggage id names an ``.xml`` file (KNX ids encode "." as ".2E")."""
     lowered = baggage_id.lower()
     return lowered.endswith((".2exml", ".xml"))
+
+
+# The plug-in's setup in the baggage names its version, e.g. "...PlugInSetup_V2_0_37.msi".
+_SETUP = re.compile(r"PlugInSetup_V(\d+)_(\d+)_(\d+)\.msi$", re.IGNORECASE)
+
+
+def plugin_version(baggage_ids: Iterable[str]) -> tuple[int, int, int] | None:
+    """The version of the plug-in whose setup is among ``baggage_ids`` (KNX ids encode
+    characters as ".XX", e.g. "_" as ".5F"); None when none is."""
+    for baggage_id in baggage_ids:
+        name = re.sub(
+            r"\.([0-9A-F]{2})", lambda m: chr(int(m.group(1), 16)), baggage_id
+        )
+        found = _SETUP.search(name)
+        if found is not None:
+            major, minor, build = (int(v) for v in found.groups())
+            return major, minor, build
+    return None
 
 
 @dataclass(slots=True)
@@ -60,7 +80,9 @@ def find_sources(
     baggage_ids: Iterable[str], read: Callable[[str], bytes | None]
 ) -> Sources | None:
     """The description and translations among ``baggage_ids`` (XML ones only), read by
-    ``read``; None when no description is among them."""
+    ``read``, with the version of the plug-in whose setup is among them; None when no
+    description is among them."""
+    baggage_ids = tuple(baggage_ids)
     description: Description | None = None
     translations: dict[str, dict[str, str]] = {}
     for baggage_id in baggage_ids:
@@ -78,6 +100,7 @@ def find_sources(
             translations.setdefault(language, {}).update(texts)
     if description is None:
         return None
+    description = replace(description, plugin_version=plugin_version(baggage_ids))
     return Sources(description=description, translations=translations)
 
 

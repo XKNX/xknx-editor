@@ -34,6 +34,7 @@ from .description import (
     ParameterType,
     TypeKind,
     integer,
+    locked_parameters,
 )
 from .presentation import ValueFormat, value_format
 
@@ -165,6 +166,7 @@ class Evaluator:
         self.globals = globals_
         self.assigned: dict[str, str] = {}
         self.previous_active: dict[str, str] = {}
+        self._locked: tuple[_Walk, set[str]] | None = None
 
     # --- values ---------------------------------------------------------------------------
 
@@ -356,6 +358,16 @@ class Evaluator:
 
     # --- rows -----------------------------------------------------------------------------
 
+    def locked(self, walk: _Walk) -> set[str]:
+        """The parameters a download of ``walk``'s settings leaves as the device holds them
+        (see :func:`.description.locked_parameters`)."""
+        if self._locked is None or self._locked[0] is not walk:
+            active = [r for r, _ in walk.memory_values]
+            values = {**self.s.values, **walk.assigned}
+            values.update((r, self.value(r, walk)) for r in active)
+            self._locked = (walk, locked_parameters(self.d, values, active))
+        return self._locked[1]
+
     def label(self, ref_id: str) -> str:
         ref = self.d.refs.get(ref_id)
         if ref is None:
@@ -400,7 +412,7 @@ class Evaluator:
         memory_value = ""
         address = param.offset if param is not None else None
         image = self.s.memory_image
-        base = self.d.memory_base
+        base = self.d.image_origin
         if param is not None and param.offset is None:
             memory = MemoryCheck.NOT_IN_MEMORY
         elif not fitted:
@@ -423,14 +435,7 @@ class Evaluator:
                     self.s.memory_mask is None
                     or self.s.memory_mask[start : start + size] == b"\xff" * size
                 )
-                and (
-                    not ref
-                    or not ref.download_if
-                    or self.test_value(
-                        ref.download_if, self.value(ref.download_if, walk)
-                    )
-                    != "0"
-                )
+                and (param is None or param.id not in self.locked(walk))
             ):
                 held = image[start : start + size]
                 if held == expected:
