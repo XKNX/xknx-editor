@@ -361,6 +361,11 @@ class DynamicTreeBuilder:
         # active, so it must not gate the capture chain (would wrongly disqualify every object under it).
         # This set is shared by reference into the Choose/Repeat nodes and is complete once _build ends.
         self._widget_param_refs: set[str] = set()
+        # The param-refs the application's own tree (outside its modules) marks active where it
+        # shows or assigns them, collected during _build (see DynamicUI.never_active); and how
+        # deep in module definitions _build is.
+        self.application_marked_refs: set[str] = set()
+        self._module_depth = 0
         # Resolve widgets on first use, after translations have been applied to the IR. All
         # placements of a ParameterType in this tree share its immutable widget.
         self._widgets: dict[str, Widget] = {}
@@ -726,6 +731,8 @@ class DynamicTreeBuilder:
                 else None
             )
             param = self.idx.parameters.get(pr.ref_id) if pr else None
+            if elem.param_ref_id and not self._module_depth:
+                self.application_marked_refs.add(elem.param_ref_id)
             return ComObjectParameterBlockNode(
                 elem,
                 [self._build(child) for child in elem.choice],
@@ -772,7 +779,11 @@ class DynamicTreeBuilder:
                 # its arguments' Allocates) still takes its allocator ranges, so the modules
                 # after it keep their addresses.
                 choice = mod_def.dynamic.choice if mod_def.dynamic is not None else []
-                children = [self._build(child) for child in choice]
+                self._module_depth += 1
+                try:
+                    children = [self._build(child) for child in choice]
+                finally:
+                    self._module_depth -= 1
                 self._module_subtrees[ref_id] = children
             arguments: dict[str, ModuleArg] = {arg.ref_id: arg for arg in elem.choice}
             param_ref_defaults = compute_param_ref_defaults(
@@ -815,6 +826,8 @@ class DynamicTreeBuilder:
                 )
             # Record this ref as widget-rendered so Choose/Repeat gates on it count toward activeness.
             self._widget_param_refs.add(elem.ref_id)
+            if not self._module_depth:
+                self.application_marked_refs.add(elem.ref_id)
             return ParameterRefRefNode(elem, pr, param, pt, widgets=self._widgets)
         elif isinstance(elem, ComObjectRefRef):
             cor = self.idx.com_object_refs.get(elem.ref_id)
@@ -832,6 +845,10 @@ class DynamicTreeBuilder:
         elif isinstance(elem, Assign):
             # Leaf: pins a parameter to a fixed value; state-only, no UI
             self.has_assigns = True
+            if not self._module_depth:
+                self.application_marked_refs.add(elem.target_param_ref_ref)
+                if elem.source_param_ref_ref is not None:
+                    self.application_marked_refs.add(elem.source_param_ref_ref)
             return AssignNode(elem)
         elif isinstance(elem, Rename):
             # Leaf: renames a channel or element inside a choose branch
@@ -1178,6 +1195,7 @@ class DynamicUI:
         "_active_snapshot",
         "_allocation_param_refs",
         "_app",
+        "_application_marked_refs",
         "_explore_param_refs",
         "_has_assigns",
         "_idx",
@@ -1239,6 +1257,7 @@ class DynamicUI:
         self._tree = builder.tree
         self._idx = builder.idx
         self._allocation_param_refs = builder.allocation_param_refs
+        self._application_marked_refs = builder.application_marked_refs
         self._object_param_refs = builder.object_param_refs
         self._parameter_gates = builder.parameter_gates
         self._object_gates = builder.object_gates
@@ -2734,6 +2753,24 @@ class DynamicUI:
     @property
     def indexer(self) -> ApplicationIndexer:
         return self._idx
+
+    @property
+    def allocation_param_refs(self) -> frozenset[str]:
+        """Param-refs (local to their application or module definition) whose value can change
+        which allocating module instances the tree makes: no other value can make an allocator
+        overflow."""
+        return self._allocation_param_refs
+
+    def never_active(self, ref_ids: Iterable[str]) -> bool:
+        """Whether no evaluation of this state, also after its values change, makes any of
+        ``ref_ids`` active: none names a module instance (``_MI-``) or is a ref the
+        application's own tree (outside its modules) shows or assigns, and the id of each
+        module instance the state holds names one. The refs active in a module instance start
+        with its id, and an evaluation makes an instance only with an id that names one."""
+        marked = self._application_marked_refs
+        if any("_MI-" in ref_id or ref_id in marked for ref_id in ref_ids):
+            return False
+        return self._state.instance_ids_name_instances()
 
     @property
     def object_param_refs(self) -> frozenset[str]:

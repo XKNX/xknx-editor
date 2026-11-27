@@ -1,15 +1,17 @@
 """What the calculations compute from the values read is found without evaluating the UI again
-after they ran, when they wrote no selector (the same parameters are active), or when none of
-the values not active is a setting a calculation computes from (none shown runs one again);
+after they ran, when they wrote no selector (the same parameters are active), when none of the
+values not active is a setting a calculation computes from (none shown runs one again), or when
+no evaluation makes one of those active (settings of a module definition no instance names);
 the result is the same as with that evaluation."""
 
 from __future__ import annotations
 
+import dataclasses
 from collections.abc import Iterator
 from pathlib import Path
 
 import pytest
-from test_calculated_switches import _CODE, _DELAY, _FUNCTION, _SWITCH
+from test_calculated_switches import _CODE, _DELAY, _ENABLE, _FUNCTION, _SWITCH
 from test_calculated_switches import _XML as _SWITCHES_XML
 
 import xknxeditor.recover.parameters as parameters
@@ -161,3 +163,42 @@ def test_the_settings_with_a_copy_come_first(
     # Asked again, with what was found of each kept.
     assert copies_first(ui, refs) == expected
     assert copies_first(ui, refs) == expected
+
+
+def test_settings_never_active_need_no_second_evaluation(
+    switches: Application, builds: list[int], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # The enable setting computes the switch (a selector); the value of a module definition's
+    # setting with the code's tail is one a calculation could compute from, but no instance
+    # names it.
+    values = {_ENABLE: "1", f"{_APP}_MD-9_P-4_R-4": "3"}
+    ui = switches.dynamic_ui()
+    assert ui is not None
+    shows_no_more = parameters._shows_no_more  # pyright: ignore[reportPrivateUsage]
+    assert shows_no_more(ui, [_SWITCH], [f"{_APP}_MD-9_P-4_R-4"])
+    assert not shows_no_more(ui, [_SWITCH], [_CODE])
+    computed = parameters._calculate(  # pyright: ignore[reportPrivateUsage]
+        switches, values, None, None
+    )
+    left_out = builds[0]
+    monkeypatch.setattr(DynamicUI, "never_active", lambda *_args: False)
+    builds[0] = 0
+    assert (
+        parameters._calculate(  # pyright: ignore[reportPrivateUsage]
+            switches, values, None, None
+        )
+        == computed
+    )
+    assert builds[0] == left_out + 1
+
+
+def test_a_write_that_can_overflow_an_allocator_is_evaluated(
+    switches: Application,
+) -> None:
+    ui = switches.dynamic_ui()
+    assert ui is not None
+    kinds = parameters._ref_kinds(ui)  # pyright: ignore[reportPrivateUsage]
+    assert not kinds.allocation
+    allocating = dataclasses.replace(kinds, allocation=frozenset({"_P-2_R-2"}))
+    assert allocating.allocating(_SWITCH)
+    assert not allocating.allocating(_CODE)

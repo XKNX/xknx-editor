@@ -3238,11 +3238,18 @@ def _shows_no_more(
 ) -> bool:
     """Whether the calculations that wrote ``written`` in ``ui`` cannot show a setting of
     ``others`` (the values not active before) that a calculation computes from: they wrote no
-    selector (the same parameters are active), or none of ``others`` is such a setting. The
-    evaluation that would tell is then left out."""
+    selector (the same parameters are active), none of ``others`` is such a setting, or no
+    evaluation makes one of those active (settings of a module definition no instance names,
+    see :meth:`~xknxeditor.prod.parser_v2.dynamic.DynamicUI.never_active`) and the
+    calculations wrote nothing that can make an allocator overflow. The evaluation that would
+    tell is then left out."""
     kinds = _ref_kinds(ui)
-    return not any(kinds.selector(ref_id) for ref_id in written) or not any(
-        kinds.computed_from(ref_id) for ref_id in others
+    if not any(kinds.selector(ref_id) for ref_id in written):
+        return True
+    computed = [ref_id for ref_id in others if kinds.computed_from(ref_id)]
+    return not computed or (
+        not any(kinds.allocating(ref_id) for ref_id in written)
+        and ui.never_active(computed)
     )
 
 
@@ -3265,6 +3272,8 @@ class _RefKinds:
     computed: frozenset[str]
     # Those on the left side of a calculation (what it computes).
     left: frozenset[str] = frozenset()
+    # Those whose value can change which allocating module instances the tree makes.
+    allocation: frozenset[str] = frozenset()
     # What computing told of each ref asked for (searches ask for thousands, again and again).
     computing_refs: dict[str, bool] = field(
         default_factory=dict[str, bool], compare=False
@@ -3280,6 +3289,9 @@ class _RefKinds:
 
     def computed_from(self, ref_id: str) -> bool:
         return _ref_tail(ref_id) in self.computed
+
+    def allocating(self, ref_id: str) -> bool:
+        return _ref_tail(ref_id) in self.allocation
 
     def computing(self, ref_id: str) -> bool:
         found = self.computing_refs.get(ref_id)
@@ -3332,6 +3344,7 @@ def _ref_kinds(ui: DynamicUI) -> _RefKinds:
             for ref in indexer.parameter_refs
             if indexer.calculations_for_l(ref)
         ),
+        frozenset(_ref_tail(ref) for ref in ui.allocation_param_refs),
     )
     _REF_KINDS.insert(0, (indexer, kinds))
     del _REF_KINDS[4:]

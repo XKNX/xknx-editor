@@ -133,6 +133,7 @@ def test_recovery_decodes_again_with_the_values_read(
             calculations_for_r=lambda _ref_id: (),
         )
         selector_param_refs: frozenset[str] = frozenset({"R-selector"})
+        allocation_param_refs: frozenset[str] = frozenset()
 
         def __init__(self, seeded: dict[str, str]) -> None:
             self.seeded = seeded

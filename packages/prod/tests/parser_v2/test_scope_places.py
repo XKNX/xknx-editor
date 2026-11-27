@@ -1,7 +1,8 @@
 """Where a UI finds the refs it looks up in its evaluated state: UIs with the same module scopes
 find each ref in the same place (kept for all of them) and group refs by their scopes as they
 are found one by one, and a recalculation of stored values hands the calculations the stored
-values they ask for, as all the active ones."""
+values they ask for, as all the active ones. The refs of a module definition no instance names
+are never active."""
 
 from __future__ import annotations
 
@@ -11,7 +12,7 @@ from typing import Any
 
 import pytest
 
-from xknxeditor.namespaces.intermediate import ApplicationProgram
+from xknxeditor.namespaces.intermediate import ApplicationProgram, ModuleInstance
 from xknxeditor.prod.application import parse_application_xml
 from xknxeditor.prod.parser_v2 import calculation, dynamic
 from xknxeditor.prod.parser_v2.dynamic import DynamicTreeBuilder, DynamicUI
@@ -173,3 +174,35 @@ def test_a_recalculation_hands_over_the_stored_values_calculations_ask_for(
         assert stored == {
             ref for ref in refs if idx.calculations_for_r(ref) and ref in active
         }
+
+
+# The refs of the module definitions (no instance named) and of the application's own tree.
+DEFINITION_REFS = [f"{APP}_MD-1_P-1_R-1", f"{APP}_MD-2_P-1_R-1"]
+APPLICATION_REFS = [f"{APP}_P-{n}_R-{n}" for n in range(1, 5)]
+
+
+@pytest.mark.parametrize("layout", ["0", "1", "2"])
+def test_the_refs_of_a_definition_are_never_active(layout: str) -> None:
+    built = _builder()
+    # Seeded with values of the definitions' refs too.
+    ui = _ui(built, {LAYOUT: layout, **dict.fromkeys(DEFINITION_REFS, "1")})
+    assert ui.never_active(DEFINITION_REFS)
+    assert not set(DEFINITION_REFS) & ui.active_parameter_ref_ids()
+    for ref in [*APPLICATION_REFS, REFS[1], REFS[3]]:
+        assert not ui.never_active([*DEFINITION_REFS, ref])
+    # After a change of the values too.
+    ui.set_parameter_ref(LAYOUT, "2" if layout != "2" else "0")
+    assert ui.never_active(DEFINITION_REFS)
+    assert not set(DEFINITION_REFS) & ui.active_parameter_ref_ids()
+
+
+def test_an_instance_whose_id_names_none_may_make_any_ref_active() -> None:
+    program, builder = _builder()
+    ui = DynamicUI(
+        program,
+        tree_builder=builder,
+        module_instances=[ModuleInstance(id=f"{APP}_MD-1", ref_id=f"{APP}_MD-1")],
+    )
+    ui.ui()
+    assert not ui.never_active(DEFINITION_REFS)
+    assert _ui((program, builder)).never_active(DEFINITION_REFS)

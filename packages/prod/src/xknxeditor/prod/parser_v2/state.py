@@ -1102,6 +1102,18 @@ class ParameterState:
     def module_children(self) -> list[ModuleState]:
         return list(self._children.values())
 
+    def instance_ids_name_instances(self) -> bool:
+        """Whether the id of each module instance below this scope, also of each one set aside
+        until an evaluation reaches it again, names a module instance (``_MI-``)."""
+        pending = [*self._children.values(), *self._dormant_children.values()]
+        while pending:
+            scope = pending.pop()
+            if "_MI-" not in scope.module_instance_id:
+                return False
+            pending.extend(scope._children.values())
+            pending.extend(scope._dormant_children.values())
+        return True
+
     def with_module_child_of(
         self, other: ParameterState, instance_id: str
     ) -> Self | None:
