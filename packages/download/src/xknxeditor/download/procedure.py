@@ -104,7 +104,12 @@ from xknxeditor.namespaces.intermediate.resource_addr_space_t import ResourceAdd
 from xknxeditor.namespaces.intermediate.resource_name_t import ResourceName
 
 from . import gaps, load_state
-from .conditions import ConditionalWrite, FinalPropertyRead, PropertyAlternatives
+from .conditions import (
+    ConditionalRead,
+    ConditionalWrite,
+    FinalPropertyRead,
+    PropertyAlternatives,
+)
 from .errors import (
     RESOURCE_READ_PROTECTED_ERROR,
     RESOURCE_WRITE_PROTECTED_ERROR,
@@ -316,6 +321,7 @@ _SUPPORTED_CONTROLS = frozenset(
     {
         "PropertyAlternatives",
         "ConditionalWrite",
+        "ConditionalRead",
         "FinalPropertyRead",
         "LdCtrlConnect",
         "LdCtrlDisconnect",
@@ -1029,6 +1035,8 @@ class LoadProcedureRunner:
                 self._prevalidate(list(control.comparisons))
             elif isinstance(control, ConditionalWrite):
                 self._prevalidate([*control.conditions, control.write])
+            elif isinstance(control, ConditionalRead):
+                self._prevalidate([*control.conditions, control.read])
             elif isinstance(control, FinalPropertyRead):
                 self._prevalidate([control.read])
                 if control.size <= 0 or control.read.count != 1:
@@ -1540,6 +1548,14 @@ class LoadProcedureRunner:
                     return
             self.state_mutated = True
             await self._write_prop(control.write)
+            return
+        if isinstance(control, ConditionalRead):
+            for comparison in control.conditions:
+                try:
+                    await self._compare_prop(comparison, literal=True)
+                except CompareMismatch:
+                    return
+            await self._execute(control.read)
             return
         where = f" [{self._position[0]}/{self._position[1]}]" if self._position else ""
         logger.debug("execute load control: %s%s", type(control).__name__, where)
@@ -3569,6 +3585,14 @@ class LoadProcedureRunner:
                 except CompareMismatch:
                     return
             await self._preflight_control(control.write, segments, properties)
+            return
+        if isinstance(control, ConditionalRead):
+            for comparison in control.conditions:
+                try:
+                    await self._compare_prop(comparison, literal=True)
+                except CompareMismatch:
+                    return
+            await self._preflight_control(control.read, segments, properties)
             return
         if isinstance(control, LdCtrlConnect):
             await self._bus()
