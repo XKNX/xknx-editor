@@ -63,6 +63,18 @@ def _mark_failed(connection: P2PConnection) -> None:
     )
 
 
+def _acknowledged(waiter: asyncio.Future[TAck | TNak] | None) -> bool:
+    """Whether the device acknowledged the frame ``waiter`` waits for (a positive ACK; only
+    one of that frame's sequence reaches the waiter)."""
+    return (
+        waiter is not None
+        and waiter.done()
+        and not waiter.cancelled()
+        and waiter.exception() is None
+        and isinstance(waiter.result(), TAck)
+    )
+
+
 class _TransportP2PConnection(P2PConnection):
     """Holds the transport guards installed on xknx's connections."""
 
@@ -162,7 +174,22 @@ class _TransportP2PConnection(P2PConnection):
         )
         try:
             if not wait_for_ack:
-                await self.xknx.cemi_handler.send_telegram(telegram)
+                # An ACK is not waited for, but taken when the device sends one: it shows the
+                # device got the frame where the interface does not confirm it. A restart of
+                # the interface the connection runs through (#390) acknowledges the A_Restart
+                # and restarts before the interface sends its L_Data.con.
+                self._ack_waiter = asyncio.get_running_loop().create_future()
+                try:
+                    await self.xknx.cemi_handler.send_telegram(telegram)
+                except ConfirmationError:
+                    if not _acknowledged(self._ack_waiter):
+                        raise
+                    logger.info(
+                        "%s: the interface did not confirm sequence %d, the device "
+                        "acknowledged it",
+                        self.address,
+                        sequence,
+                    )
                 return
             # the last transmission's, when the interface did not confirm it
             unconfirmed: ConfirmationError | None = None
