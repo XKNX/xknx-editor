@@ -78,6 +78,9 @@ from xknxeditor.namespaces.intermediate.parameter_type_t_type_text import (
 from xknxeditor.namespaces.intermediate.parameter_type_t_type_time import (
     ParameterTypeTypeTime,
 )
+from xknxeditor.namespaces.intermediate.parameter_type_t_type_time_unit import (
+    ParameterTypeTypeTimeUnit,
+)
 from xknxeditor.namespaces.intermediate.property_parameter_t import PropertyParameter
 from xknxeditor.namespaces.intermediate.property_union_t import PropertyUnion
 from xknxeditor.namespaces.intermediate.segment_base_t import SegmentBase
@@ -285,6 +288,10 @@ def _encode_value(
                     size_in_bit,
                     bits,
                 )
+    if isinstance(tc, ParameterTypeTypeTime) and _is_packed_dhms(tc, size_in_bit):
+        # A packed duration is not a plain integer: one octet each for seconds, minutes
+        # and hours (see _pack_dhms).
+        return _pack_dhms(str_value)
     if isinstance(tc, (ParameterTypeTypeNumber, ParameterTypeTypeTime)):
         # A time value is stored as a plain integer in the type's unit.
         return _apply_byte_order(
@@ -392,6 +399,47 @@ def _encode_number(str_value: str, size_in_bit: int) -> int | None:
     except (ValueError, TypeError):
         return None
     return v & ((1 << size_in_bit) - 1)
+
+
+def _is_packed_dhms(tc: object, size_in_bit: int) -> bool:
+    """Whether ``tc`` is a 24-bit ``TypeTime`` with ``Unit="PackedDaysHoursMinutesAndSeconds"``."""
+    return (
+        isinstance(tc, ParameterTypeTypeTime)
+        and getattr(tc, "unit", None)
+        == ParameterTypeTypeTimeUnit.PACKED_DAYS_HOURS_MINUTES_AND_SECONDS
+        and size_in_bit == 24
+    )
+
+
+def _pack_dhms(str_value: str) -> int | None:
+    """Pack a duration given in seconds into the 24-bit ``PackedDaysHoursMinutesAndSeconds``
+    layout: first octet seconds, second octet minutes, third octet hours.
+
+    ETS shows and stores the parameter value in seconds (e.g. ``600`` = 10 minutes), but
+    writes it to the device packed: 30 s -> ``1E 00 00``, 300 s -> ``00 05 00``,
+    600 s -> ``00 0A 00``, 3600 s -> ``00 00 01``. Writing the plain integer instead
+    (``00 02 58`` for 600 s) makes the device read seconds as hours, e.g. ``1`` (1 s)
+    as 1 hour (B.E.G. PD2N-KNXs Generation 7 "Nachlaufzeit").
+    """
+    try:
+        seconds = int(str_value, 0) if str_value[:2].lower() == "0x" else int(str_value)
+    except (ValueError, TypeError):
+        return None
+    if seconds < 0:
+        return None
+    hours, rest = divmod(seconds, 3600)
+    minutes, secs = divmod(rest, 60)
+    if hours > 0xFF:
+        return None
+    return (secs << 16) | (minutes << 8) | hours
+
+
+def _unpack_dhms(raw: int) -> str | None:
+    """Inverse of :func:`_pack_dhms`: the duration in seconds, ``None`` for invalid octets."""
+    secs, minutes, hours = (raw >> 16) & 0xFF, (raw >> 8) & 0xFF, raw & 0xFF
+    if secs > 59 or minutes > 59:
+        return None
+    return str(hours * 3600 + minutes * 60 + secs)
 
 
 def _number_bits_in_range(number: int, tc: ParameterTypeTypeNumber) -> bool:
@@ -2062,6 +2110,8 @@ def _decode_value(
             return None
         return str(logical)
     if isinstance(tc, ParameterTypeTypeTime):
+        if _is_packed_dhms(tc, size_in_bit):
+            return _unpack_dhms(raw)
         return str(_apply_byte_order(raw, size_in_bit, little_endian) or 0)
     if isinstance(tc, ParameterTypeTypeFloat):
         # Mirror the encoder: a little-endian program reverses the float octets, so undo
