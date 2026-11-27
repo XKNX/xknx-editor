@@ -4,6 +4,7 @@ last-viewed devices (Settings > General > Memory Use)."""
 
 from __future__ import annotations
 
+from collections import OrderedDict
 from pathlib import Path
 
 import pytest
@@ -14,7 +15,9 @@ from editor_gui.plugins.catalog.service import CatalogService
 from editor_gui.plugins.logger.service import LogService
 from editor_gui.plugins.project.service import ProjectService
 from xknxeditor.prod import Application
+from xknxeditor.prod import application as residency
 from xknxeditor.prod.application import parse_application_xml
+from xknxeditor.prod.parser_v2.dynamic import DynamicUI
 from xknxeditor.prod.parser_v2.ui.parameter import EnumWidget
 
 
@@ -91,6 +94,39 @@ def test_enum_choices_are_shared_between_project_devices(
     assert isinstance(widget, EnumWidget)
     assert [(c.value, c.label) for c in widget.choices] == [(0, "No"), (1, "Yes")]
     assert all(p.widget is widget for p in first_params + second_params)
+
+
+def test_an_evaluated_device_pins_its_application(
+    proj: ProjectService, app: Application, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(residency, "_resident", OrderedDict())
+    monkeypatch.setattr(residency, "_budget", [0])
+
+    def load() -> Application:
+        return parse_application_xml(_fixture().read_bytes(), "M-00FA")[0]
+
+    app.set_reloader(load)
+    (device,) = _devices(proj, app, 1)
+    device.release_dynamic_ui()
+    other = Application.unloaded(
+        app.id, app.name, app.version, app.manufacturer_id, load
+    )
+    original_init = DynamicUI.__init__
+
+    def init(ui: DynamicUI, program, **kwargs) -> None:
+        other.resolved()
+        assert app.loaded
+        assert app.program is program
+        original_init(ui, program, **kwargs)
+
+    monkeypatch.setattr(DynamicUI, "__init__", init)
+    before = device.get_ui()
+    assert app.loaded
+    assert before and device.get_ui() == before
+
+    device.release_dynamic_ui()
+    other.resolved()
+    assert not app.loaded
 
 
 def test_a_device_used_every_frame_stays_evaluated(

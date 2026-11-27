@@ -716,12 +716,15 @@ def build_image(
     if ui is None and device is not None:
         from xknxeditor.prod.parser_v2.dynamic import DynamicUI
 
+        program, tree_builder, program_pin = application.resolved(pin=True)
         ui = DynamicUI(
-            application.program,
+            program,
             parameter_instance_refs=parameter_instance_refs_from_device(device),
             module_instances=module_instances_from_device(device),
             com_object_instance_refs=com_object_instance_refs_from_device(device),
             project_code_page=project_code_page,
+            tree_builder=tree_builder,
+            program_pin=program_pin,
         )
     elif ui is None:
         ui = application.dynamic_ui()
@@ -729,8 +732,8 @@ def build_image(
             # No parameters (e.g. an interface): nothing to encode, the procedure still loads it.
             from xknxeditor.prod.parser_v2.dynamic import DynamicUI
 
-            program, tree_builder = application.resolved()
-            ui = DynamicUI(program, tree_builder=tree_builder)
+            program, tree_builder, program_pin = application.resolved(pin=True)
+            ui = DynamicUI(program, tree_builder=tree_builder, program_pin=program_pin)
         ui.project_code_page = project_code_page
 
     if parameter_values:

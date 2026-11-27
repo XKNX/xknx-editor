@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from contextlib import ExitStack
 from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -148,15 +149,16 @@ def get_application_detail(
         return None
 
     manufacturer_id = program.hardware.manufacturer_id
+    knxprod_path, application_id = program.knxprod_path, program.application_id
     app = _load_application(
-        program.knxprod_path,
+        knxprod_path,
         manufacturer_id,
-        program.application_id,
+        application_id,
         language,
         cache_dir,
+        reserve=True,
     )
     if app is not None:
-        knxprod_path, application_id = program.knxprod_path, program.application_id
 
         def reload() -> ProductApplication:
             again = _load_application(
@@ -216,9 +218,15 @@ def _load_application(
     application_id: str,
     language: str | None,
     cache_dir: Path | None,
+    *,
+    reserve: bool = False,
 ) -> ProductApplication | None:
     from xknxeditor.prod import parse_application_xml
-    from xknxeditor.prod.application import cached_applications
+    from xknxeditor.prod.application import (
+        cached_applications,
+        note_application_size,
+        reserve_application_memory,
+    )
     from xknxeditor.prod.archive import Archive
 
     # A stored product file and an application in it: another content of the file has another
@@ -228,26 +236,44 @@ def _load_application(
         source = f"{knxprod_path}|{stat.st_size}|{stat.st_mtime_ns}|{application_id}"
     except OSError:
         source = None
-    if source is not None:
-        cached = cached_applications(source, manufacturer_id, language, cache_dir)
-        found = next((a for a in cached or () if a.id == application_id), None)
-        if found is not None:
-            return found
-    # Only the application XML is read (not Catalog.xml), so tolerate project-embedded archives.
-    with Archive(knxprod_path, require_catalog=False) as archive:
-        xml_bytes = archive.get_application_xml(manufacturer_id, application_id)
-    if xml_bytes is None:
-        logger.debug(
-            "application XML not in archive: app=%s manufacturer=%s archive=%s",
-            application_id,
-            manufacturer_id,
-            knxprod_path,
+    # Only the application XML is needed (not Catalog.xml), so tolerate project-embedded archives.
+    with ExitStack() as stack:
+        reserved = False
+
+        def make_room(xml_size: int) -> None:
+            nonlocal reserved
+            if reserve and not reserved:
+                stack.enter_context(
+                    reserve_application_memory(application_id, xml_size=xml_size)
+                )
+                reserved = True
+            else:
+                # A wrapper resolving this program already has a reservation.
+                note_application_size(application_id, xml_size)
+
+        if source is not None:
+            cached = cached_applications(
+                source, manufacturer_id, language, cache_dir, before_load=make_room
+            )
+            found = next((a for a in cached or () if a.id == application_id), None)
+            if found is not None:
+                return found
+        with Archive(knxprod_path, require_catalog=False) as archive:
+            if application_id in archive.application_ids(manufacturer_id):
+                make_room(archive.application_xml_size(manufacturer_id, application_id))
+            xml_bytes = archive.get_application_xml(manufacturer_id, application_id)
+        if xml_bytes is None:
+            logger.debug(
+                "application XML not in archive: app=%s manufacturer=%s archive=%s",
+                application_id,
+                manufacturer_id,
+                knxprod_path,
+            )
+            return None
+        apps = parse_application_xml(
+            xml_bytes, manufacturer_id, language, cache_dir=cache_dir, source=source
         )
-        return None
-    apps = parse_application_xml(
-        xml_bytes, manufacturer_id, language, cache_dir=cache_dir, source=source
-    )
-    return next((a for a in apps if a.id == application_id), None)
+        return next((a for a in apps if a.id == application_id), None)
 
 
 def get_application_detail_by_id(

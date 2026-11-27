@@ -339,24 +339,35 @@ def remember_source(
         logger.debug("could not note parse cache source %s: %s", source, exc)
 
 
-def cached_for_source(source: str, cache_dir: Path) -> CacheHit | None:
+def cached_for_source(
+    source: str,
+    cache_dir: Path,
+    *,
+    before_load: Callable[[int], None] | None = None,
+) -> CacheHit | None:
     """The parse of the XML of ``source`` (see remember_source) without reading the XML; None
-    when the cache has no entry for it (the XML is read and parsed then)."""
+    when the cache has no entry for it (the XML is read and parsed then). If given,
+    ``before_load`` gets the stored XML size before unpickling."""
     try:
-        version, digest, size = (
+        version, digest, size_text = (
             _source_path(source, cache_dir).read_text(encoding="ascii").split()
         )
+        size = int(size_text)
         path = cache_dir / f"ir_{CACHE_VERSION}_{version}_{digest}.pkl"
-        with path.open("rb") as file:
-            entry = _entry(pickle.load(file))
+        file = path.open("rb")
     except (OSError, ValueError):
         return None
-    except Exception as exc:  # corrupt / incompatible pickle: read and parse again
-        logger.debug("parse cache miss for %s: %s", source, exc)
-        return None
+    with file:
+        if before_load is not None:
+            before_load(size)
+        try:
+            entry = _entry(pickle.load(file))
+        except Exception as exc:  # corrupt / incompatible pickle: read and parse again
+            logger.debug("parse cache miss for %s: %s", source, exc)
+            return None
     if entry is None:
         return None
-    return CacheHit(entry[0], version, int(size), entry[1], path)
+    return CacheHit(entry[0], version, size, entry[1], path)
 
 
 def _remove_other_versions(cache_dir: Path) -> None:
