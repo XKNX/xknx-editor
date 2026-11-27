@@ -23,7 +23,7 @@ from __future__ import annotations
 import contextlib
 import threading
 from collections import Counter, OrderedDict
-from collections.abc import Callable, Collection, Iterator, Mapping, Sequence
+from collections.abc import Callable, Collection, Iterable, Iterator, Mapping, Sequence
 from dataclasses import dataclass, field, replace
 from enum import Enum
 from functools import lru_cache, partial
@@ -4923,6 +4923,23 @@ def _infer_unstored(
     # told from the UI, once an evaluation of one of its values showed it alike.
     told = ShownObjects(application, ui, sizes, linked)
 
+    def reveals_in(
+        seeded: DynamicUI, parameters: Iterable[tuple[str, UiParameter]]
+    ) -> bool:
+        """Whether of the settings ``parameters`` ``seeded`` shows one is such a setting that
+        is not shown now."""
+        return any(
+            ref_id not in shown_settings
+            and ref_id not in known
+            and seeded.local_ref_id(ref_id) in seeded.object_param_refs
+            and _inferable(seeded, ref_id, parameter)
+            for ref_id, parameter in parameters
+        )
+
+    # What values of module instances' settings tried one at a time show, told from UIs
+    # seeded with a value tried in each of several instances (see _instance_trials).
+    in_instances: dict[tuple[str, str], tuple[set[int], int, bool]] = {}
+
     def shown(trial: Mapping[str, str]) -> tuple[set[int], int, bool]:
         """The linked objects ``values`` with ``trial`` show, how many others, and whether
         they show such settings that are not shown now."""
@@ -4931,6 +4948,9 @@ def _infer_unstored(
             guess = told.guess(*alone)
             if guess is not None:
                 return guess
+            found = in_instances.get(alone)
+            if found is not None:
+                return found
         seeded = _seeded(
             application,
             {**values, **trial},
@@ -4939,13 +4959,7 @@ def _infer_unstored(
         )
         assert seeded is not None
         objects = _shown_objects(seeded, sizes)
-        reveals = any(
-            ref_id not in shown_settings
-            and ref_id not in known
-            and seeded.local_ref_id(ref_id) in seeded.object_param_refs
-            and _inferable(seeded, ref_id, parameter)
-            for ref_id, parameter in shown_parameters(seeded.ui()).items()
-        )
+        reveals = reveals_in(seeded, shown_parameters(seeded.ui()).items())
         result = objects & linked, len(objects - linked), reveals
         if alone is not None:
             told.learn(*alone, seeded, result)
@@ -4968,8 +4982,8 @@ def _infer_unstored(
             uis[key] = seeded
         return _fixed_clashes(uis, segments, fixed)
 
-    best: list[tuple[tuple[int, int], str, str]] = []
-    neutral: list[tuple[str, str]] = []
+    # The settings tried, each with the values tried.
+    tried: list[tuple[str, list[str]]] = []
     for ref_id, parameter in shown_settings.items():
         if (
             ref_id in values
@@ -4979,8 +4993,32 @@ def _infer_unstored(
         ):
             continue
         current = ui.get_value(ref_id) or parameter.default_value
+        tried.append((ref_id, values_to_try(parameter, current)))
+    in_instances.update(
+        _instance_trials(
+            application,
+            ui,
+            values,
+            instances,
+            [
+                (ref_id, candidate)
+                for ref_id, candidates in tried
+                if not told.tells(ref_id)
+                for candidate in candidates
+                if dead is None or (ref_id, candidate) not in dead
+            ],
+            sizes,
+            linked,
+            project_code_page,
+            reveals_in,
+            cancel,
+        )
+    )
+    best: list[tuple[tuple[int, int], str, str]] = []
+    neutral: list[tuple[str, str]] = []
+    for ref_id, candidates in tried:
         gaining: list[tuple[int, int, str]] = []
-        for candidate in values_to_try(parameter, current):
+        for candidate in candidates:
             _check(cancel)
             if dead is not None and (ref_id, candidate) in dead:
                 continue
@@ -5090,6 +5128,89 @@ def _infer_unstored(
             found, found_count, fewest = trial, count, unlinked
         elif count <= len(base) and dead is not None:
             dead.add(key)
+    return found
+
+
+def _instance_trials(
+    application: Application,
+    ui: DynamicUI,
+    values: Mapping[str, str],
+    instances: Sequence[tuple[str, str]],
+    trials: Sequence[tuple[str, str]],
+    sizes: Mapping[int, str],
+    linked: set[int],
+    project_code_page: str | None,
+    reveals_in: Callable[[DynamicUI, Iterable[tuple[str, UiParameter]]], bool],
+    cancel: Callable[[], bool] | None,
+) -> dict[tuple[str, str], tuple[set[int], int, bool]]:
+    """What ``ui`` (seeded with ``values``, making the module ``instances``) shows with each
+    of ``trials`` (a setting of a module instance and a value for it) as
+    :func:`_infer_unstored` tells it: the linked objects, how many others and whether
+    ``reveals_in`` the settings it shows in the instance. Told for the settings of the
+    instances the application places itself that have no instances of their own and values
+    of their own given (see :class:`_InstanceValues`), where several such instances have
+    values to try.
+
+    An instance's evaluation reads only its own values and those of the application's
+    scope, which reads none of an instance's (see
+    :meth:`~xknxeditor.prod.parser_v2.dynamic.DynamicUI.decode_parameters_with_instance`):
+    a UI seeded with a value tried in each of several instances shows in each of them what
+    a UI seeded with that value alone shows there, and that UI shows outside the instance
+    what ``ui`` does, its settings too. So the values are tried a value of each instance at a
+    time. A UI that makes other instances, or more than the product has room for, tells none
+    of its values (they are tried alone then)."""
+    from xknxeditor.prod.parser_v2.activation import shown_parameters
+
+    split = _InstanceValues(values, instances, {})
+    by_instance: dict[str, list[tuple[str, str]]] = {}
+    for ref_id, candidate in trials:
+        instance = split.instance(ref_id)
+        if instance is not None:
+            by_instance.setdefault(instance, []).append((ref_id, candidate))
+    found: dict[tuple[str, str], tuple[set[int], int, bool]] = {}
+    if len(by_instance) < 2:
+        return found
+    outside: dict[str, set[int]] = {}
+    for at in range(max(len(tried) for tried in by_instance.values())):
+        together = {
+            instance: tried[at]
+            for instance, tried in by_instance.items()
+            if at < len(tried)
+        }
+        if len(together) < 2:
+            break
+        _check(cancel)
+        try:
+            seeded = _seeded(
+                application,
+                {**values, **dict(together.values())},
+                project_code_page,
+                module_instances=instances,
+            )
+            assert seeded is not None
+            if frozenset(seeded.get_module_instances()) != split.instances:
+                continue
+            parameters = shown_parameters(seeded.ui())
+        except AllocatorOverflow:
+            continue
+        for instance, trial in together.items():
+            if instance not in outside:
+                outside[instance] = _shown_objects_split(ui, sizes, instance)[0]
+            _, inside = _shown_objects_split(seeded, sizes, instance)
+            objects = outside[instance] | inside
+            prefix = instance + "_"
+            found[trial] = (
+                objects & linked,
+                len(objects - linked),
+                reveals_in(
+                    seeded,
+                    (
+                        (ref_id, parameter)
+                        for ref_id, parameter in parameters.items()
+                        if ref_id.startswith(prefix)
+                    ),
+                ),
+            )
     return found
 
 
