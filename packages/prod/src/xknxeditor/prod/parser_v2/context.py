@@ -209,16 +209,25 @@ class _TextArgs(Mapping[str, str]):
             raise KeyError(key)
         return value
 
-    def lookup(self, key: str) -> str | None:
-        """What ``key`` stands for, None for nothing; read without recording it."""
+    def lookup(
+        self, key: str, read: Callable[[str], str | None] | None = None
+    ) -> str | None:
+        """What ``key`` stands for, None for nothing; read without recording it (a value
+        with ``read``, where given)."""
         if key in self._args:
             return self._args[key]
-        if key.isdigit() and int(key) != 0:
+        if self.reads_value(key):
             ctx = self._ctx
             ref = ctx.ref_by_number(int(key))
             if ref is not None:
-                return ctx.value_or_default(ref, record=False) or ""
+                return ctx.value_or_default(ref, record=False, read=read) or ""
         return None
+
+    @staticmethod
+    def reads_value(key: str) -> bool:
+        """Whether ``key`` may stand for a value (by its unique number, see :meth:`lookup`):
+        what another key stands for depends on the module arguments alone."""
+        return key.isdigit() and int(key) != 0
 
     def __iter__(self) -> Iterator[str]:
         return iter(self._args)
@@ -249,7 +258,14 @@ class _Redone(Protocol):
     @property
     def target(self) -> str: ...
 
+    @property
+    def source(self) -> str | None: ...
+
     def redo(self, scope: ParameterState) -> None: ...
+
+    def written(
+        self, scope: ParameterState, get: Callable[[str], str | None]
+    ) -> str | None: ...
 
 
 _READS = frozenset("dxtqlov")
@@ -451,6 +467,132 @@ class Recording:
             self.object_reads = False
 
 
+def _flat(events: Iterable[Event | Recording]) -> Iterator[Event]:
+    """The events of an evaluation in their order, those of the evaluations inside it in
+    their place."""
+    for event in events:
+        if isinstance(event, Recording):
+            yield from _flat(event.events)
+        else:
+            yield event
+
+
+def _told(steps: list[Event | _Redone]) -> tuple[Event | _Redone, ...]:
+    """Of the ``steps`` of an :class:`_InOrder` the reads and the Assigns whose writes a read
+    after them may give: those whose target such a read reads or whose target is the source
+    of such an Assign after them, and all of them before a text argument (it may read any
+    value by its unique number)."""
+    told: list[Event | _Redone] = []
+    needed: set[object] = set()
+    every = False
+    for step in reversed(steps):
+        if isinstance(step, tuple):
+            kind, key, _result = step
+            if kind == "x":
+                every = True
+            else:
+                needed.add(key)
+            told.append(step)
+        elif every or step.target in needed:
+            told.append(step)
+            if step.source is not None:
+                needed.add(step.source)
+    told.reverse()
+    return tuple(told)
+
+
+class _InOrder:
+    """A recording of a node with Assigns in a module instance (see Recording), checked in its
+    order: a value read after an Assign of it may have written it gives what that Assign
+    writes now, so a recording that is not ``replayable`` is taken again too where it reads
+    the same. Its other reads give at its start what they gave (the recording's gate
+    decisions, ``values`` and ``reads``: a text read after the evaluation set it gives what
+    was set, see Recording); then each of its Assigns in their order is told what it would
+    write now (see AssignNode.written), and each read after the first of them of a value
+    one of them wrote before it in the evaluation, and each text argument read after the
+    first of them (it may stand for such a value, see _TextArgs), gives what it gave
+    (``steps``: the Assigns and those reads, as ``(kind, key, result)``). Each read giving
+    what it gave, the evaluation would do what it did: the recording is done again (see
+    EvalContext.replay)."""
+
+    __slots__ = ("reads", "recording", "steps", "values")
+
+    def __init__(
+        self,
+        recording: Recording,
+        values: tuple[tuple[object, object], ...],
+        reads: tuple[Event, ...],
+        steps: tuple[Event | _Redone, ...],
+    ) -> None:
+        self.recording = recording
+        self.values = values
+        self.reads = reads
+        self.steps = steps
+
+    @staticmethod
+    def of(recording: Recording) -> _InOrder:
+        """``recording`` checked in its order."""
+        targets: set[object] = set()
+        texts: set[object] = set()
+        values: list[tuple[object, object]] = []
+        reads: list[Event] = []
+        steps: list[Event | _Redone] = []
+        for event in _flat(recording.events):
+            kind, key, result = event
+            if kind == "g":
+                if key in targets:
+                    steps.append(event)
+                else:
+                    values.append((key, result))
+            elif kind == "A":
+                assign: _Redone = key  # type: ignore[assignment]
+                steps.append(assign)
+                targets.add(assign.target)
+            elif kind == "x" and targets and _TextArgs.reads_value(key):  # type: ignore[arg-type]
+                steps.append(event)
+            elif kind == "s":
+                texts.add(key)
+            elif kind in _READS and not (kind == "t" and key in texts):
+                reads.append(event)
+        return _InOrder(
+            recording, tuple(dict.fromkeys(values)), tuple(reads), _told(steps)
+        )
+
+    def reads_same(self, ctx: EvalContext) -> bool:
+        """Whether each read of the recording gives in ``ctx`` what it gave (see above)."""
+        if not ctx.reads_same(self.recording, self.values, self.reads):
+            return False
+        scope = ctx._scope  # pyright: ignore[reportPrivateUsage]
+        get = scope.get
+        bases: Mapping[str, str] | None = getattr(scope, "param_ref_bases", None)
+        written: dict[object, str] = {}
+        args: _TextArgs | None = None
+
+        def read(ref_id: str) -> str | None:
+            return written[ref_id] if ref_id in written else get(ref_id)
+
+        for step in self.steps:
+            if isinstance(step, tuple):
+                kind, key, result = step
+                if kind == "g":
+                    if (written[key] if key in written else get(key)) != result:  # type: ignore[arg-type]
+                        return False
+                    continue
+                if args is None:
+                    args = _TextArgs(ctx)
+                if args.lookup(key, read) != result:  # type: ignore[arg-type]
+                    return False
+                continue
+            target = step.target
+            if bases and target in bases:
+                # Its value may be a module argument's, whatever is written.
+                return False
+            value = step.written(scope, read)
+            if value is not None:
+                written[target] = value
+        return True
+
+
 class _Pass:
     """A pass over the application's scope evaluated with an :class:`EvalMemo`: what its reads
     can depend on when it starts (the values, the gates, the parameters reached in the union
@@ -543,9 +685,10 @@ class EvalMemo:
     __slots__ = (
         "_count",
         "_entries",
+        "_in_order",
+        "_in_order_nodes",
         "_last",
         "_open",
-        "_unrecorded",
         "_unreplayable",
         "thread",
     )
@@ -561,9 +704,16 @@ class EvalMemo:
         # By node and module instance (empty for the application's scope): a module
         # definition's nodes are evaluated once for each of its instances.
         self._entries: dict[tuple[int, str], tuple[object, list[Recording]]] = {}
-        # The nodes (by their identity) of module definitions whose evaluation in an instance
-        # did Assigns: evaluated in each instance without the memo from then on.
-        self._unrecorded: dict[int, object] = {}
+        # Of each node of a module definition whose evaluation in an instance did Assigns,
+        # the last ``ENTRIES`` evaluations in each instance and kind of pass (with union
+        # suppression, and whether the instance's Chooses are gated), checked in their order
+        # (see _InOrder): an instance the values of a search do not change reads the same
+        # pass after pass. By node and instance as the entries, and the kind; and the nodes
+        # that have them.
+        self._in_order: dict[
+            tuple[int, str, bool, bool], tuple[object, list[_InOrder]]
+        ] = {}
+        self._in_order_nodes: dict[int, object] = {}
         # How many evaluations of each node (by the same key as the entries) were recorded
         # without being replayable (see Recording): one that is so again and again is
         # evaluated without recording from then on (see UNREPLAYABLE).
@@ -655,8 +805,26 @@ class EvalMemo:
         """What ``evaluate`` gives ``node`` in ``ctx``: what it gave before where each read
         gives what it gave then (its effects done again), else evaluated, and kept."""
         instance = ctx._instance  # pyright: ignore[reportPrivateUsage]
-        if instance and self._unrecorded.get(id(node)) is node:
-            return evaluate(ctx)
+        slot: tuple[int, str, bool, bool] | None = None
+        if instance and self._in_order_nodes.get(id(node)) is node:
+            scope = ctx._scope  # pyright: ignore[reportPrivateUsage]
+            slot = (id(node), instance, ctx.union_suppress, scope.gated)
+            kept_in_order = self._in_order.get(slot)
+            if kept_in_order is not None and kept_in_order[0] is node:
+                handed = ctx._handed  # pyright: ignore[reportPrivateUsage]
+                assert handed is not None
+                in_orders = kept_in_order[1]
+                for at, in_order in enumerate(in_orders):
+                    recording = in_order.recording
+                    if in_order.reads_same(ctx) and ctx._redo(  # pyright: ignore[reportPrivateUsage]
+                        recording, scope, handed
+                    ):
+                        if at:
+                            # The states a node takes turns between (a UI seeded twice
+                            # with other module instances), the last first.
+                            del in_orders[at]
+                            in_orders.insert(0, in_order)
+                        return list(recording.output)
         key = (id(node), instance)
         kept = self._entries.get(key)
         if kept is not None and kept[0] is not node:
@@ -707,9 +875,18 @@ class EvalMemo:
             if outermost:
                 ctx._tape = None  # pyright: ignore[reportPrivateUsage]
         if entry.assigns and instance:
-            # In a module instance a node with Assigns reads the same too rarely: each
-            # instance evaluates it as it is from then on.
-            self._unrecorded[id(node)] = node
+            # In a module instance a node with Assigns reads what they wrote too often: it is
+            # checked in its order, or where that cannot be told, each instance evaluates it
+            # as it is from then on.
+            if slot is None:
+                slot = (id(node), instance, suppress, ctx._scope.gated)  # pyright: ignore[reportPrivateUsage]
+            kept_in_order = self._in_order.get(slot)
+            if kept_in_order is None or kept_in_order[0] is not node:
+                self._in_order[slot] = (node, [_InOrder.of(entry)])
+            else:
+                kept_in_order[1].insert(0, _InOrder.of(entry))
+                del kept_in_order[1][self.ENTRIES :]
+            self._in_order_nodes[id(node)] = node
             return output
         if not entry.replayable:
             # Its reads cannot tell that its Assigns write the same (see Recording).
@@ -867,8 +1044,15 @@ class EvalContext:
             return False
         return self._redo(recording, self._scope, handed)
 
-    def reads_same(self, recording: Recording) -> bool:
-        """Whether each read of ``recording`` gives what it gave then, read again."""
+    def reads_same(
+        self,
+        recording: Recording,
+        values: tuple[tuple[object, object], ...] | None = None,
+        reads: tuple[Event, ...] | None = None,
+    ) -> bool:
+        """Whether each read of ``recording`` gives what it gave then, read again (of the
+        values only ``values`` and of the other reads but the gate decisions only ``reads``,
+        where given)."""
         scope = self._scope
         # The gate decisions first: of the reads that give otherwise, most are one (a
         # Choose of a channel taking turns with and without gates), and they are fewer.
@@ -877,11 +1061,11 @@ class EvalContext:
             if gate(key) is not active:  # type: ignore[arg-type]
                 return False
         get = scope.get
-        for key, value in recording.values:
+        for key, value in recording.values if values is None else values:
             if get(key) != value:  # type: ignore[arg-type]
                 return False
         args: _TextArgs | None = None
-        for kind, key, result in recording.all_reads:
+        for kind, key, result in recording.all_reads if reads is None else reads:
             if kind == "d":
                 same = scope.is_discovered_active(key) is result  # type: ignore[arg-type]
             elif kind == "x":
@@ -1154,10 +1338,16 @@ class EvalContext:
                 return ref
         return None
 
-    def value_or_default(self, ref_id: str, *, record: bool = True) -> str | None:
+    def value_or_default(
+        self,
+        ref_id: str,
+        *,
+        record: bool = True,
+        read: Callable[[str], str | None] | None = None,
+    ) -> str | None:
         """The value of ``ref_id`` in this scope, else its default (without ``record`` read
-        without recording it, see EvalMemo)."""
-        value = self.get(ref_id) if record else self._scope.get(ref_id)
+        without recording it, see EvalMemo; with ``read``, where given)."""
+        value = self.get(ref_id) if record else (read or self._scope.get)(ref_id)
         if value is None and self._idx is not None:
             value = self._idx.default_value(ref_id)
         return value

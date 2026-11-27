@@ -10,7 +10,7 @@ from pathlib import Path
 import pytest
 
 from xknxeditor.prod.application import Application, parse_application_xml
-from xknxeditor.prod.parser_v2.context import EvalMemo, Recording
+from xknxeditor.prod.parser_v2.context import EvalContext, EvalMemo, Recording
 from xknxeditor.prod.parser_v2.dynamic import DynamicUI
 from xknxeditor.prod.parser_v2.nodes.choose import ChooseWhenNode
 from xknxeditor.prod.parser_v2.nodes.com_object_parameter_block import (
@@ -127,10 +127,19 @@ def _fixture(name: str) -> Application:
 
 
 def _ui(
-    application: Application, values: dict[str, str], memo: EvalMemo | None
+    application: Application,
+    values: dict[str, str],
+    memo: EvalMemo | None,
+    *,
+    keep_assigned: bool = False,
 ) -> DynamicUI:
     program, builder = application.resolved()
-    ui = DynamicUI(program, tree_builder=builder, parameter_values=values)
+    ui = DynamicUI(
+        program,
+        tree_builder=builder,
+        parameter_values=values,
+        keep_assigned=keep_assigned,
+    )
     ui.eval_memo = memo
     return ui
 
@@ -311,3 +320,162 @@ def test_a_choose_of_a_module_instance_a_repeat_places_is_taken_again(
     assert not selections
     assert observed == _observed(_ui(application, values, None))
     assert len(ui.get_module_instances()) == 2
+
+
+# A module whose block sets its Detail and its Label where its Kind is on, copies the
+# application's Other into its Copy, and reads them after that: the Detail and the Copy in
+# Chooses on them, the Label in its heading only, by its unique number (4).
+_ASSIGNING_MODULE = f"""<ModuleDefs><ModuleDef Id="{_APP}_MD-2" Name="Assigning">
+<Arguments><Argument Id="{_APP}_MD-2_A-1" Name="Ch" /></Arguments>
+<Static>
+<Parameters>
+<Parameter Id="{_APP}_MD-2_P-1" Name="Kind" ParameterType="{_APP}_PT-OnOff" Text="Kind" Value="0" />
+<Parameter Id="{_APP}_MD-2_P-2" Name="Detail" ParameterType="{_APP}_PT-OnOff" Text="Detail" Value="0" />
+<Parameter Id="{_APP}_MD-2_P-3" Name="Copy" ParameterType="{_APP}_PT-OnOff" Text="Copy" Value="0" />
+<Parameter Id="{_APP}_MD-2_P-4" Name="Label" ParameterType="{_APP}_PT-OnOff" Text="Label" Value="0" />
+</Parameters>
+<ParameterRefs>
+<ParameterRef Id="{_APP}_MD-2_P-1_R-1" RefId="{_APP}_MD-2_P-1" />
+<ParameterRef Id="{_APP}_MD-2_P-2_R-2" RefId="{_APP}_MD-2_P-2" />
+<ParameterRef Id="{_APP}_MD-2_P-3_R-3" RefId="{_APP}_MD-2_P-3" />
+<ParameterRef Id="{_APP}_MD-2_P-4_R-4" RefId="{_APP}_MD-2_P-4" />
+</ParameterRefs>
+</Static>
+<Dynamic><ParameterBlock Id="{_APP}_MD-2_PB-1" Text="Channel {{{{Ch}}}}: {{{{4}}}}">
+<ParameterRefRef RefId="{_APP}_MD-2_P-1_R-1" />
+<choose ParamRefId="{_APP}_MD-2_P-1_R-1"><when test="1">
+<Assign TargetParamRefRef="{_APP}_MD-2_P-2_R-2" Value="1" />
+<Assign TargetParamRefRef="{_APP}_MD-2_P-4_R-4" Value="1" />
+</when></choose>
+<Assign TargetParamRefRef="{_APP}_MD-2_P-3_R-3" SourceParamRefRef="{_OTHER}" />
+<choose ParamRefId="{_APP}_MD-2_P-2_R-2"><when test="1">
+<ParameterRefRef RefId="{_APP}_MD-2_P-2_R-2" />
+</when></choose>
+<choose ParamRefId="{_APP}_MD-2_P-3_R-3"><when test="1">
+<ParameterRefRef RefId="{_APP}_MD-2_P-3_R-3" />
+</when></choose>
+</ParameterBlock></Dynamic>
+</ModuleDef></ModuleDefs>"""
+
+_ASSIGNING_REPEATED = f"""<ParameterBlock Id="{_APP}_PB-1" Text="Channels">
+<ParameterRefRef RefId="{_MODE}" />
+<ParameterRefRef RefId="{_OTHER}" />
+<Repeat Id="{_APP}_X-1" Name="" Count="2">
+<Module Id="{_APP}_MD-2_M-1" RefId="{_APP}_MD-2"><NumericArg RefId="{_APP}_MD-2_A-1" Value="1" /></Module>
+</Repeat>
+</ParameterBlock>"""
+
+_KIND_1 = f"{_APP}_MD-2_M-1_MI-1_P-1_R-1"
+_KIND_2 = f"{_APP}_MD-2_M-1_MI-2_P-1_R-1"
+_DETAIL_1 = f"{_APP}_MD-2_M-1_MI-1_P-2_R-2"
+
+_INSTANCE_TRIALS: list[dict[str, str]] = [
+    {},
+    {_KIND_1: "1"},
+    {_KIND_1: "1", _OTHER: "1"},
+    {_OTHER: "1"},
+    {_KIND_2: "1"},
+    {_KIND_1: "1", _KIND_2: "1", _OTHER: "1"},
+    {_KIND_1: "1", _DETAIL_1: "0"},
+]
+
+
+def _instance_blocks(monkeypatch: pytest.MonkeyPatch) -> list[str | None]:
+    """The module instances whose block is evaluated from now on."""
+    blocks: list[str | None] = []
+    evaluate = ComObjectParameterBlockNode._eval  # pyright: ignore[reportPrivateUsage]
+
+    def counted(self: ComObjectParameterBlockNode, ctx: EvalContext) -> object:
+        if self._elem.id.endswith("_MD-2_PB-1"):  # pyright: ignore[reportPrivateUsage]
+            blocks.append(ctx.module_instance_id)
+        return evaluate(self, ctx)
+
+    monkeypatch.setattr(ComObjectParameterBlockNode, "_eval", counted)
+    return blocks
+
+
+def test_a_module_instance_block_that_reads_what_its_assigns_wrote_is_taken_again(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    blocks = _instance_blocks(monkeypatch)
+    application = _parsed(_xml(_ASSIGNING_REPEATED, _ASSIGNING_MODULE))
+    memo = EvalMemo()
+    values = {_KIND_1: "1", _OTHER: "1"}
+    _ui(application, values, memo).ui()
+    blocks.clear()
+    ui = _ui(application, values, memo)
+    observed = _observed(ui)
+    # Each instance's block reads the same, its Assigns writing what they wrote: taken
+    # again, and it is what the evaluation anew gives.
+    assert not blocks
+    assert observed == _observed(_ui(application, values, None))
+    assert ui.get_value(_DETAIL_1) == "1"
+    headings = [
+        child.text
+        for node in observed[0]  # type: ignore[attr-defined]
+        for block in node.children
+        for child in block.children
+        if str(getattr(child, "id", "")).endswith("_MD-2_PB-1")
+    ]
+    assert headings == ["Channel 1: 1", "Channel 1: 0"]
+
+
+def test_a_module_instance_block_whose_assign_writes_otherwise_is_evaluated_again(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    blocks = _instance_blocks(monkeypatch)
+    application = _parsed(_xml(_ASSIGNING_REPEATED, _ASSIGNING_MODULE))
+    memo = EvalMemo()
+    _ui(application, {_OTHER: "1"}, memo).ui()
+    blocks.clear()
+    # The Other its Assign copies differs: each instance is evaluated again.
+    values = {_OTHER: "0"}
+    observed = _observed(_ui(application, values, memo))
+    assert set(blocks) == {f"{_APP}_MD-2_M-1_MI-1", f"{_APP}_MD-2_M-1_MI-2"}
+    assert observed == _observed(_ui(application, values, None))
+    blocks.clear()
+    # Only the first instance's Kind differs: the second one is taken again.
+    values = {_OTHER: "0", _KIND_1: "1"}
+    observed = _observed(_ui(application, values, memo))
+    assert set(blocks) == {f"{_APP}_MD-2_M-1_MI-1"}
+    assert observed == _observed(_ui(application, values, None))
+
+
+_LABEL_1 = f"{_APP}_MD-2_M-1_MI-1_P-4_R-4"
+
+
+@pytest.mark.parametrize("kept", [_DETAIL_1, _LABEL_1])
+def test_a_value_an_assign_no_longer_writes_is_read_as_it_is(kept: str) -> None:
+    # Evaluated as a device built again after an edit, the instance's Assigns keep the value
+    # it has: everything but what the Assign wrote reads as before (the Kind, the value at
+    # the start), and the Detail read in a Choose or the Label shown in the heading (a text
+    # argument) gives the value kept, not the one written before.
+    application = _parsed(_xml(_ASSIGNING_REPEATED, _ASSIGNING_MODULE))
+    memo = EvalMemo()
+    values = {_KIND_1: "1", kept: "0"}
+    _ui(application, values, memo).ui()
+    with_memo = _ui(application, values, memo, keep_assigned=True)
+    anew = _ui(application, values, None, keep_assigned=True)
+    assert _observed(with_memo) == _observed(anew)
+    assert with_memo.get_value(kept) == "0"
+
+
+def test_module_instances_with_assigns_evaluated_with_the_memo_are_evaluated_anew() -> (
+    None
+):
+    application = _parsed(_xml(_ASSIGNING_REPEATED, _ASSIGNING_MODULE))
+    memo = EvalMemo()
+    for values in _INSTANCE_TRIALS + _INSTANCE_TRIALS[::-1] + _INSTANCE_TRIALS:
+        assert _observed(_ui(application, values, memo)) == _observed(
+            _ui(application, values, None)
+        ), values
+    # Edited after an evaluation: an Assign writes where its source changed only.
+    for edit in ({_OTHER: "1"}, {_KIND_2: "1"}, {_DETAIL_1: "1"}, {_OTHER: "0"}):
+        with_memo, anew = _ui(application, {}, memo), _ui(application, {}, None)
+        for ui in (with_memo, anew):
+            ui.ui()
+            ui.apply_parameter_values(edit)
+        assert _observed(with_memo) == _observed(anew), edit
+        for ui in (with_memo, anew):
+            ui.apply_parameter_values({_KIND_1: "1"})
+        assert _observed(with_memo) == _observed(anew), edit

@@ -460,10 +460,7 @@ class ParameterState:
 
         The value is stored like any other value and stays when the Assign no longer applies.
         Nothing is written while the source has no value."""
-        if key in self._assign_seen:
-            write = from_source and self._assign_seen[key] != value
-        else:
-            write = self._seeded is None or target not in self._seeded
+        write = self.assign_writes(key, target, value, from_source=from_source)
         self._assigns_now[key] = value if from_source else None
         if value is None:
             return
@@ -479,6 +476,21 @@ class ParameterState:
         self._evaluation_writes.setdefault(target, before)
         self.set(target, value)
         self._assign_written.add(target)
+
+    def assign_writes(
+        self, key: int, target: str, value: str | None, *, from_source: bool
+    ) -> bool:
+        """Whether the Assign ``key`` of the current pass writes into ``target`` when its value
+        is ``value`` (see :meth:`run_assign`; it writes no value None in any case)."""
+        seen = self._assign_seen
+        if key in seen:
+            return from_source and seen[key] != value
+        return self._seeded is None or target not in self._seeded
+
+    @property
+    def gated(self) -> bool:
+        """Whether the Chooses of the current pass are gated (see :meth:`is_gate_active`)."""
+        return self._gate_param_refs is not None
 
     def commit_assigns(self) -> None:
         """An evaluation ended (this scope and the module scopes below): the Assigns of its

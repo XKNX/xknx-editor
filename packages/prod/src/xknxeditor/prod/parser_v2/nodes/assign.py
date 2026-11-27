@@ -9,6 +9,8 @@ from ..ui import UiNode
 from .base import DynamicNode
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from ..state import ParameterState
 
 
@@ -30,6 +32,12 @@ class AssignNode(DynamicNode):
     def target(self) -> str:
         """The param-ref it writes."""
         return self._elem.target_param_ref_ref
+
+    @property
+    def source(self) -> str | None:
+        """The param-ref whose value it writes, None for a fixed value."""
+        elem = self._elem
+        return elem.source_param_ref_ref if elem.value is None else None
 
     def eval(self, ctx: EvalContext) -> list[UiNode]:
         scope = ctx.unrecorded_scope()
@@ -62,6 +70,24 @@ class AssignNode(DynamicNode):
             ctx.run_assign(key, target, value, from_source=True)
         ctx.note_assign_node(self)
         return []
+
+    def written(
+        self, scope: ParameterState, get: Callable[[str], str | None]
+    ) -> str | None:
+        """What :meth:`redo` would write into its target in ``scope`` now, its source's value
+        read with ``get``; None when it writes nothing."""
+        elem = self._elem
+        if elem.value is not None:
+            value, from_source = elem.value, False
+        elif elem.source_param_ref_ref is not None:
+            value, from_source = get(elem.source_param_ref_ref), True
+        else:
+            return None
+        if value is None or not scope.assign_writes(
+            id(elem), elem.target_param_ref_ref, value, from_source=from_source
+        ):
+            return None
+        return value
 
     def redo(self, scope: ParameterState) -> None:
         """What :meth:`eval` does in ``scope`` but the marks, as in a pass that explores
