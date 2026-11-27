@@ -211,7 +211,8 @@ class Description:
 
     @property
     def memory_base(self) -> int | None:
-        """The lowest parameter memory address: byte 0 of a stored memory image."""
+        """The lowest parameter memory address (byte 0 of a stored memory image from plug-in
+        version 2 on, see ``image_origin``)."""
         offsets = [
             p.offset
             for p in self.parameters.values()
