@@ -47,6 +47,7 @@ from xknxeditor.namespaces.intermediate.parameter_type_t_type_float import (
 )
 from xknxeditor.namespaces.intermediate.property_union_t import PropertyUnion
 
+from ..application import pin_program
 from ..errors import EncodingError
 from ..script.errors import ParameterValidationError
 from ..script.values import check_value
@@ -1151,6 +1152,7 @@ class DynamicUI:
         "_object_param_refs",
         "_page_for",
         "_parameter_gates",
+        "_program_pin",
         "_selector_param_refs",
         "_selector_tested_values",
         "_state",
@@ -1188,8 +1190,9 @@ class DynamicUI:
         # The builder (indexer + node tree) is a pure function of the app program and is read-only
         # during eval, so callers share one across all devices of the same app (see
         # Application.tree_builder) instead of rebuilding it per device.
-        builder = tree_builder if tree_builder is not None else DynamicTreeBuilder(app)
         self._app = app
+        self._program_pin = pin_program(app)
+        builder = tree_builder if tree_builder is not None else DynamicTreeBuilder(app)
         # The device's project ``CodePage`` (None: the system language); some applications encode
         # their text parameters with it (see :attr:`text_encoding`).
         self.project_code_page = project_code_page

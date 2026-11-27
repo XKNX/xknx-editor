@@ -10,9 +10,13 @@ import sqlite3
 import zipfile
 from pathlib import Path
 
+import pytest
+
 from xknxeditor.catalog import CatalogService
 from xknxeditor.namespaces import detect_version
+from xknxeditor.prod import application as residency
 from xknxeditor.prod import parse_cache
+from xknxeditor.prod.archive import Archive
 from xknxeditor.prod.data import to_ir
 
 _FIXTURES = Path(__file__).parents[3] / "packages/prod/tests/fixtures"
@@ -172,6 +176,31 @@ def test_import_of_several_applications(tmp_path: Path) -> None:
         path = parse_cache._cache_path(xml, version, cache)  # pyright: ignore[reportPrivateUsage]
         expected[path.name] = to_ir(xml, version)
     assert entries == expected
+
+
+def test_catalog_makes_room_before_reading_application_xml(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    service = CatalogService(tmp_path / "catalog.xknxcatalog", tmp_path / "cache")
+    service.import_knxprod(_product())
+    first = service.get_application("M-00FA_A-0001-01-0000")
+    assert first is not None
+    first.resolved()
+    monkeypatch.setattr(residency, "_budget", [0])
+    read_xml = Archive.get_application_xml
+    reads: list[str] = []
+
+    def read(archive: Archive, manufacturer_id: str, app_id: str) -> bytes | None:
+        reads.append(app_id)
+        assert first is not None and not first.loaded
+        return read_xml(archive, manufacturer_id, app_id)
+
+    monkeypatch.setattr(Archive, "get_application_xml", read)
+    second = service.get_application("M-00FA_A-0002-01-0000")
+    assert second is not None
+    assert reads == [second.id]
+    second.unload()
+    service.close()
 
 
 def test_a_program_that_names_no_media_has_its_mask_versions(tmp_path: Path) -> None:

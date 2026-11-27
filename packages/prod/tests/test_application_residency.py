@@ -2,7 +2,10 @@
 many as their estimated memory fits in the budget."""
 
 from collections import OrderedDict
+from collections.abc import Callable
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
+from threading import Event
 
 import pytest
 
@@ -10,6 +13,7 @@ import xknxeditor.prod.application as application_module
 from xknxeditor.prod import parse_application_xml
 from xknxeditor.prod.application import Application
 from xknxeditor.prod.archive import Archive
+from xknxeditor.prod.parser_v2.dynamic import DynamicUI
 
 _FIXTURE = Path(__file__).parent / "fixtures" / "gira_2gang_button_interface.knxprod"
 
@@ -104,3 +108,106 @@ def test_the_estimate_follows_the_size_of_the_xml() -> None:
         mid = min(archive.manufacturer_ids)
         _app_id, xml = next(iter(archive.get_application_xmls(mid).items()))
     assert application_module._memory[app.id] == len(xml) * 5
+
+
+@pytest.mark.parametrize("fits", [False, True])
+def test_lazy_load_makes_room_before_calling_loader(fits: bool) -> None:
+    first, _ = _reloadable()
+    first.resolved()
+    estimate = application_module._memory[first.id]
+    application_module.set_resident_budget((2 if fits else 1) * estimate)
+
+    def load() -> Application:
+        assert first.loaded is fits
+        return _parse()
+
+    second = _unloaded(first, load)
+    second.resolved()
+    assert second.loaded
+    assert first.loaded is fits
+
+
+def _unloaded(app: Application, loader: Callable[[], Application]) -> Application:
+    return Application.unloaded(
+        app.id, app.name, app.version, app.manufacturer_id, loader
+    )
+
+
+def test_evaluating_device_keeps_its_program_resident() -> None:
+    first, loads = _reloadable()
+    program, tree = first.resolved()
+    ui = DynamicUI(program, tree_builder=tree)
+    expected = ui.ui()
+
+    def load() -> Application:
+        assert first.loaded
+        return _parse()
+
+    second = _unloaded(first, load)
+    second.resolved()
+    assert first.loaded and second.loaded
+    assert first._program is program
+    assert first._tree_builder is tree
+    assert ui.ui() == expected
+    del ui
+    second.resolved()
+    assert not first.loaded
+    assert loads == []
+
+
+def test_concurrent_loads_preserve_pairs_and_reserve_their_combined_estimate() -> None:
+    resident, _ = _reloadable()
+    resident.resolved()
+    estimate = application_module._memory[resident.id]
+    application_module.set_resident_budget(2 * estimate)
+    started, finish = Event(), Event()
+    loads: list[Application] = []
+
+    def load_first() -> Application:
+        assert resident.loaded
+        started.set()
+        assert finish.wait(10)
+        loaded = _parse()
+        loads.append(loaded)
+        return loaded
+
+    def load_second() -> Application:
+        assert not resident.loaded
+        return _parse()
+
+    first = _unloaded(resident, load_first)
+    second = _unloaded(resident, load_second)
+    with ThreadPoolExecutor(3) as workers:
+        pending = workers.submit(first.resolved)
+        try:
+            assert started.wait(10)
+            same = workers.submit(first.resolved)
+            other = workers.submit(second.resolved)
+            second_program, second_tree = other.result(timeout=10)
+            assert second.resolved() == (second_program, second_tree)
+        finally:
+            finish.set()
+        first_program, first_tree = pending.result(timeout=10)
+        assert same.result(timeout=10) == (first_program, first_tree)
+
+    assert len(loads) == 1
+    assert first_program is loads[0].program
+    assert first.resolved() == (first_program, first_tree)
+    assert first.loaded and second.loaded
+
+
+def test_failed_load_releases_its_reservation() -> None:
+    first, _ = _reloadable()
+    first.resolved()
+    estimate = application_module._memory[first.id]
+    application_module.set_resident_budget(2 * estimate)
+
+    def fail() -> Application:
+        raise ValueError("broken application")
+
+    broken = _unloaded(first, fail)
+    with pytest.raises(ValueError, match="broken application"):
+        broken.resolved()
+    second = _unloaded(first, _parse)
+    second.resolved()
+    assert first.loaded and second.loaded
