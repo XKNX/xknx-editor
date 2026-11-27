@@ -3265,6 +3265,15 @@ class _RefKinds:
     computed: frozenset[str]
     # Those on the left side of a calculation (what it computes).
     left: frozenset[str] = frozenset()
+    # What computing told of each ref asked for (searches ask for thousands, again and again).
+    computing_refs: dict[str, bool] = field(
+        default_factory=dict[str, bool], compare=False
+    )
+    # Whether the device keeps no copy of the parameter of each local ref asked for (see
+    # _copies_first).
+    no_copy_refs: dict[str, bool] = field(
+        default_factory=dict[str, bool], compare=False
+    )
 
     def selector(self, ref_id: str) -> bool:
         return _ref_tail(ref_id) in self.selectors
@@ -3273,7 +3282,10 @@ class _RefKinds:
         return _ref_tail(ref_id) in self.computed
 
     def computing(self, ref_id: str) -> bool:
-        return _ref_tail(ref_id) in self.left
+        found = self.computing_refs.get(ref_id)
+        if found is None:
+            found = self.computing_refs[ref_id] = _ref_tail(ref_id) in self.left
+        return found
 
 
 def _ref_kinds(ui: DynamicUI) -> _RefKinds:
@@ -3340,8 +3352,9 @@ def _guessed_sources(
     kinds = _ref_kinds(ui)
     sources: list[str] = []
     targets: set[str] = set()
+    computing = kinds.computing
     for ref_id in values:
-        if not kinds.computing(ref_id):
+        if not computing(ref_id):
             # On the left side of no calculation (most settings).
             continue
         local = ui.local_ref_id(ref_id)
@@ -3370,10 +3383,18 @@ def _copies_first(ui: DynamicUI, refs: list[str]) -> list[str]:
     computes its left side from that value, also where a setting it computes the value from
     (an inferred switch) is among the refs too."""
     indexer = ui.indexer
+    local_ref_id = ui.local_ref_id
+    known = _ref_kinds(ui).no_copy_refs
 
     def no_copy(ref_id: str) -> bool:
-        ref = indexer.parameter_refs.get(ui.local_ref_id(ref_id))
-        return ref is not None and _keeps_no_copy(indexer.parameters.get(ref.ref_id))
+        local = local_ref_id(ref_id)
+        found = known.get(local)
+        if found is None:
+            ref = indexer.parameter_refs.get(local)
+            found = known[local] = ref is not None and _keeps_no_copy(
+                indexer.parameters.get(ref.ref_id)
+            )
+        return found
 
     return sorted(refs, key=no_copy)
 

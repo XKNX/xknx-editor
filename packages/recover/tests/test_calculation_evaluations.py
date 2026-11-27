@@ -126,3 +126,38 @@ def test_a_tail_is_what_an_instance_keeps_of_a_ref() -> None:
     assert tail(f"{_APP}_MD-1_P-5_R-5") == "_P-5_R-5"
     assert tail(f"{_APP}_MD-1_M-2_MI-3_UP-4_R-9") == "_UP-4_R-9"
     assert tail("other") == "other"
+
+
+def test_the_kinds_asked_again_are_the_same(switches: Application) -> None:
+    ui = switches.dynamic_ui()
+    assert ui is not None
+    kinds = parameters._ref_kinds(ui)  # pyright: ignore[reportPrivateUsage]
+    tail = parameters._ref_tail  # pyright: ignore[reportPrivateUsage]
+    refs = [*ui.indexer.parameter_refs, f"{_APP}_MD-1_M-2_MI-3_P-5_R-5", "other"]
+    for _ in range(2):
+        for ref in refs:
+            assert kinds.computing(ref) == (tail(ref) in kinds.left)
+
+
+@pytest.mark.parametrize("fixture", ["flat", "switches"])
+def test_the_settings_with_a_copy_come_first(
+    fixture: str, request: pytest.FixtureRequest
+) -> None:
+    application: Application = request.getfixturevalue(fixture)
+    ui = application.dynamic_ui()
+    assert ui is not None
+    ui.ui()
+    indexer = ui.indexer
+    keeps_no_copy = parameters._keeps_no_copy  # pyright: ignore[reportPrivateUsage]
+
+    def no_copy(ref_id: str) -> bool:
+        ref = indexer.parameter_refs.get(ui.local_ref_id(ref_id))
+        return ref is not None and keeps_no_copy(indexer.parameters.get(ref.ref_id))
+
+    refs = [*reversed(indexer.parameter_refs), "other", _ref(1)]
+    expected = sorted(refs, key=no_copy)
+    assert any(no_copy(ref) for ref in refs) or fixture == "flat"
+    copies_first = parameters._copies_first  # pyright: ignore[reportPrivateUsage]
+    # Asked again, with what was found of each kept.
+    assert copies_first(ui, refs) == expected
+    assert copies_first(ui, refs) == expected
