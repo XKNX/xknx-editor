@@ -22,9 +22,24 @@ class TypeKind(Enum):
     ENUM = "enum"
     NUMBER = "number"
     TIME_S = "time_s"
+    TIME_100MS = "time_100ms"
+    TIME_10MS = "time_10ms"
     TIME_MS = "time_ms"
     TEXT = "text"
     UNKNOWN = "unknown"
+
+
+# The milliseconds one unit of a time setting stands for: a time is stored as a whole number
+# of its units.
+TIME_UNIT_MS = {
+    TypeKind.TIME_S: 1000,
+    TypeKind.TIME_100MS: 100,
+    TypeKind.TIME_10MS: 10,
+    TypeKind.TIME_MS: 1,
+}
+TIME_KINDS = tuple(TIME_UNIT_MS)
+# The kinds stored as a plain whole number.
+INTEGER_KINDS = (TypeKind.NUMBER, *TIME_KINDS)
 
 
 @dataclass(frozen=True, slots=True)
@@ -388,6 +403,8 @@ _KINDS = {
     "TypeRestriction": TypeKind.ENUM,
     "TypeNumber": TypeKind.NUMBER,
     "TypeTimeSec": TypeKind.TIME_S,
+    "TypeTimeSec10": TypeKind.TIME_100MS,
+    "TypeTimeSec100": TypeKind.TIME_10MS,
     "TypeTimeMSec": TypeKind.TIME_MS,
     "TypeText": TypeKind.TEXT,
 }

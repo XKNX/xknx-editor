@@ -24,6 +24,9 @@ from enum import Enum
 from .blob import PluginSettings
 from .codec import byte_size, decode, encode
 from .description import (
+    INTEGER_KINDS,
+    TIME_KINDS,
+    TIME_UNIT_MS,
     Description,
     Node,
     NodeKind,
@@ -383,10 +386,9 @@ class Evaluator:
             if enum is None:
                 return value
             return self.texts.get(enum.id) or enum.text or value
-        if ptype.kind is TypeKind.TIME_S:
-            return f"{value} s"
-        if ptype.kind is TypeKind.TIME_MS:
-            return f"{value} ms"
+        if ptype.kind in TIME_KINDS:
+            with suppress(ValueError):
+                return raw_time(integer(value), ptype.kind)
         return value
 
     def row(self, ref_id: str, walk: _Walk, fitted: bool = True) -> Row:
@@ -442,7 +444,7 @@ class Evaluator:
             enum = ptype.enumeration(value) if ptype.kind is TypeKind.ENUM else None
             if enum is not None:
                 comparison_value = str(enum.value)
-            elif ptype.kind in (TypeKind.NUMBER, TypeKind.TIME_S, TypeKind.TIME_MS):
+            elif ptype.kind in INTEGER_KINDS:
                 with suppress(ValueError):
                     comparison_value = str(integer(value))
         formatting = (
@@ -457,8 +459,7 @@ class Evaluator:
                     shown = formatting.display(raw)
                     if formatting.percent:
                         return f"{shown} %"
-                    unit = "ms" if formatting.kind is TypeKind.TIME_MS else "s"
-                    return f"{shown} ({raw} {unit})"
+                    return f"{shown} ({raw_time(integer(raw), formatting.kind)})"
             return self.value_text(raw, ptype, param, label)
 
         return Row(
@@ -487,7 +488,7 @@ def clock_text(value: str, ptype: ParameterType | None, label: str) -> str | Non
     """A time setting in the format its name gives ("mm:ss", "hh:mm:ss" or "hh:mm"), followed
     by the raw time: "15:00 (900 s)", "00:00:01.5 (1500 ms)". None for any other setting, a
     name without a format or a value that is not a number."""
-    if ptype is None or ptype.kind not in (TypeKind.TIME_S, TypeKind.TIME_MS):
+    if ptype is None or ptype.kind not in TIME_KINDS:
         return None
     found = _CLOCK_FORMAT.search(label)
     if found is None:
@@ -496,8 +497,7 @@ def clock_text(value: str, ptype: ParameterType | None, label: str) -> str | Non
         raw = int(value)
     except ValueError:
         return None
-    millis = raw if ptype.kind is TypeKind.TIME_MS else raw * 1000
-    unit = "ms" if ptype.kind is TypeKind.TIME_MS else "s"
+    millis = raw * TIME_UNIT_MS[ptype.kind]
     sign = "-" if millis < 0 else ""
     millis = abs(millis)
     seconds, fraction = divmod(millis, 1000)
@@ -511,7 +511,15 @@ def clock_text(value: str, ptype: ParameterType | None, label: str) -> str | Non
         text = f"{hours:02d}:{minutes:02d}"
     else:
         text = f"{hours:02d}:{minutes:02d}:{secs:02d}{tail}"
-    return f"{sign}{text} ({raw} {unit})"
+    return f"{sign}{text} ({raw_time(raw, ptype.kind)})"
+
+
+def raw_time(raw: int, kind: TypeKind) -> str:
+    """A stored time in its own unit, "900 s" or "1500 ms"; a time in tenths or hundredths
+    of a second in milliseconds ("1500 ms" for 150 hundredths)."""
+    if kind is TypeKind.TIME_S:
+        return f"{raw} s"
+    return f"{raw * TIME_UNIT_MS[kind]} ms"
 
 
 def percent_text(

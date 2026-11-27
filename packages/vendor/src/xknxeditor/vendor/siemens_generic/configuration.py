@@ -11,7 +11,13 @@ from datetime import datetime
 
 from .blob import PluginSettings, decode_text, parse_settings
 from .codec import encode
-from .description import CommunicationObject, Description, TypeKind, integer
+from .description import (
+    INTEGER_KINDS,
+    CommunicationObject,
+    Description,
+    TypeKind,
+    integer,
+)
 from .view import Evaluator, same_application
 
 
@@ -103,7 +109,7 @@ def validate_value(
             or len(value) * 8 > ptype.size_bits
         ):
             raise ValueError("Text exceeds the parameter's character range or length")
-    elif ptype.kind in (TypeKind.NUMBER, TypeKind.TIME_S, TypeKind.TIME_MS):
+    elif ptype.kind in INTEGER_KINDS:
         try:
             number = integer(value)
         except ValueError as exc:
