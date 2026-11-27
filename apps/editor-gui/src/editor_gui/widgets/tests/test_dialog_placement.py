@@ -291,3 +291,34 @@ def test_a_dialog_shows_only_where_it_stays(width: float | None) -> None:
     places = _shown_places(lambda: imgui.text_wrapped(_TEXT), width)
     assert places
     assert set(places) == {places[0]}
+
+
+@pytest.mark.usefixtures("context")
+@pytest.mark.parametrize("open_first", [True, False])
+def test_a_dialog_shows_beside_a_closed_one_of_the_same_title(open_first: bool) -> None:
+    """Two windows each have a dialog of the same title (Write Value of the group addresses and
+    of a device's group objects, #391): the closed one asking for itself every frame does not
+    keep the open one hidden, which as a modal took every click and froze the UI."""
+    from imgui_bundle.imgui import internal
+
+    def panel(name: str, opens: bool, frame: int) -> None:
+        imgui.begin(name)
+        if opens and frame == 0:
+            imgui.open_popup("Write Value")
+        if begin_dialog("Write Value"):
+            imgui.text_unformatted("1/0/0")
+            dialog_buttons("Write", "Cancel")
+            end_dialog()
+        imgui.end()
+
+    order = [("Panel", True), ("Other", False)]
+    if not open_first:
+        order.reverse()
+    for frame in range(12):
+        imgui.new_frame()
+        for name, opens in order:
+            panel(name, opens, frame)
+        imgui.end_frame()
+    window = internal.find_window_by_name("Write Value")
+    assert window.active
+    assert not window.hidden

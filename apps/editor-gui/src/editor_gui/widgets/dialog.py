@@ -223,7 +223,10 @@ def begin_dialog(
     """
     if not imgui.is_popup_open(title):
         # Asked for every frame while closed (a tree asks for one per row): nothing to set up.
-        _forget(title)
+        # What is kept by title belongs to the dialog of this title another window has open,
+        # if one has (#391: forgotten every frame, it stayed hidden and took every click).
+        if not _open_by_title(title):
+            _forget(title)
         return False
     _center_next_window(title)
     buttons = _button_rows.get(title, 0.0) / px(1.0)
@@ -271,6 +274,16 @@ def _hide_while_settling(title: str) -> None:
         window.hidden_frames_cannot_skip_items = max(
             window.hidden_frames_cannot_skip_items, 2
         )
+
+
+def _open_by_title(title: str) -> bool:
+    """Whether a dialog of the title ``title`` is open in some window (dialogs of the same title
+    in different windows are different popups, but one window of that name)."""
+    context = imgui.get_current_context()
+    return any(
+        popup.window is not None and popup.window.name == title  # pyright: ignore[reportUnnecessaryComparison]
+        for popup in context.open_popup_stack
+    )
 
 
 def _forget(title: str) -> None:
