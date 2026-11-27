@@ -34,6 +34,18 @@ class AssignNode(DynamicNode):
         return self._elem.target_param_ref_ref
 
     @property
+    def spec(self) -> tuple[int, str, str | None, str | None]:
+        """What :meth:`redo` applies: its key (the id of its element), its target, its
+        source and its fixed value (see :meth:`ParameterState.apply_assign`)."""
+        elem = self._elem
+        return (
+            id(elem),
+            elem.target_param_ref_ref,
+            elem.source_param_ref_ref,
+            elem.value,
+        )
+
+    @property
     def source(self) -> str | None:
         """The param-ref whose value it writes, None for a fixed value."""
         elem = self._elem

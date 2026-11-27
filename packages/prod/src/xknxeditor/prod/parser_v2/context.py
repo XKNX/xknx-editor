@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import threading
-from collections.abc import Callable, Collection, Iterable, Iterator, Mapping
+from collections.abc import Callable, Collection, Iterable, Iterator, Mapping, Sequence
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Protocol, cast
 
@@ -12,7 +12,7 @@ from xknxeditor.namespaces.intermediate.com_object_instance_ref_t import (
 
 if TYPE_CHECKING:
     from .application_indexer import ApplicationIndexer
-    from .state import ModuleState, ParameterState
+    from .state import AssignDone, ModuleState, ParameterState
     from .ui import UiNode
     from .ui.parameter import UiParameter
 
@@ -260,6 +260,9 @@ class _Redone(Protocol):
 
     @property
     def source(self) -> str | None: ...
+
+    @property
+    def spec(self) -> tuple[int, str, str | None, str | None]: ...
 
     def redo(self, scope: ParameterState) -> None: ...
 
@@ -524,6 +527,7 @@ class _InOrder:
     kind (``valid``: the last pass it was taken in)."""
 
     __slots__ = (
+        "assigns",
         "numbers",
         "outer",
         "outer_discovered",
@@ -548,11 +552,16 @@ class _InOrder:
         reads: tuple[Event, ...],
         steps: tuple[Event | _Redone, ...],
         numbers: frozenset[str],
+        assigns: tuple[AssignDone, ...],
     ) -> None:
         self.recording = recording
         self.values = values
         self.reads = reads
         self.steps = steps
+        # The recording's Assigns, each with the value of its source it read (see
+        # ParameterState.redo_assigns): what they read again where each read gives what it
+        # gave.
+        self.assigns = assigns
         # The text arguments it reads that may stand for a value by its unique number (see
         # _TextArgs).
         self.numbers = numbers
@@ -576,11 +585,15 @@ class _InOrder:
         reads: list[Event] = []
         steps: list[Event | _Redone] = []
         numbers: set[str] = set()
+        # The value each read last (an Assign reads its source right before it applies).
+        last: dict[object, object] = {}
+        assigns: list[AssignDone] = []
         for event in _flat(recording.events):
             kind, key, result = event
             if kind == "x" and _TextArgs.reads_value(key):  # type: ignore[arg-type]
                 numbers.add(key)  # type: ignore[arg-type]
             if kind == "g":
+                last[key] = result
                 if key in targets:
                     steps.append(event)
                 else:
@@ -589,6 +602,13 @@ class _InOrder:
                 assign: _Redone = key  # type: ignore[assignment]
                 steps.append(assign)
                 targets.add(assign.target)
+                number, target, source, fixed = assign.spec
+                read = (
+                    cast("str | None", last.get(source))
+                    if fixed is None and source is not None
+                    else None
+                )
+                assigns.append((number, target, source, fixed, read))
             elif kind == "x" and targets and _TextArgs.reads_value(key):  # type: ignore[arg-type]
                 steps.append(event)
             elif kind == "s":
@@ -601,6 +621,7 @@ class _InOrder:
             tuple(reads),
             _told(steps),
             frozenset(numbers),
+            tuple(assigns),
         )
         if state is not None:
             in_order.read_from(state, ctx)
@@ -953,7 +974,7 @@ class EvalMemo:
                     else:
                         same = False
                     if same and ctx._redo(  # pyright: ignore[reportPrivateUsage]
-                        recording, scope, handed
+                        recording, scope, handed, in_order.assigns
                     ):
                         in_order.valid = None if root is None else root.number
                         if at:
@@ -1234,10 +1255,15 @@ class EvalContext:
         return True
 
     def _redo(
-        self, recording: Recording, scope: ParameterState, handed: set[int]
+        self,
+        recording: Recording,
+        scope: ParameterState,
+        handed: set[int],
+        assigns: Sequence[AssignDone] | None = None,
     ) -> bool:
         """Do again what ``recording`` records, unless a node it hands out is handed out in
-        this pass already: whether it was done."""
+        this pass already: whether it was done. ``assigns``: its Assigns with what they read
+        (see ParameterState.redo_assigns), where each read gives what it gave."""
         if recording.handed_ids and not handed.isdisjoint(recording.handed_ids):
             return False
         tape = self._tape
@@ -1259,8 +1285,11 @@ class EvalContext:
         handed.update(recording.handed_ids)
         # The Assigns write as they would now (each in its order, after the marks: an Assign
         # marks its target and source before it writes).
-        for assign in recording.assigns:
-            assign.redo(scope)
+        if assigns is not None:
+            scope.redo_assigns(assigns)
+        else:
+            for assign in recording.assigns:
+                assign.redo(scope)
         return True
 
     def hand(self, node: UiNode) -> None:

@@ -729,6 +729,23 @@ class ParameterState:
             self._assigned_from[target] = source
             self.run_assign(key, target, self.get(source), from_source=True)
 
+    def redo_assigns(self, assigns: Iterable[AssignDone]) -> None:
+        """:meth:`apply_assign` without the marks of each of ``assigns`` in their order (see
+        :data:`AssignDone`), with the value its source has now known: one call for all
+        those of an evaluation taken again (see EvalMemo)."""
+        active = self._active_assigns
+        assigned_from = self._assigned_from
+        run = self.run_assign
+        for key, target, source, value, read in assigns:
+            active.add(key)
+            if value is not None:
+                # The last Assign of the pass decides where the target's value comes from.
+                assigned_from.pop(target, None)
+                run(key, target, value, from_source=False)
+            elif source is not None:
+                assigned_from[target] = source
+                run(key, target, read, from_source=True)
+
     def mark_assigned_from(self, target: str, source: str) -> None:
         """An Assign of the current pass wrote ``target`` from ``source``."""
         self._assigned_from[target] = source
@@ -1674,6 +1691,11 @@ class ModuleState(ParameterState):
         for child in self._children.values():
             result.extend(child.module_instances())
         return result
+
+
+# An Assign of an evaluation taken again (see ParameterState.redo_assigns): its key (the id of
+# its element), target, source and fixed value, and the value its source had when it read it.
+AssignDone = tuple[int, str, str | None, str | None, str | None]
 
 
 class _Qualified(dict[str, str]):
