@@ -131,7 +131,7 @@ def seed_dynamic_ui(
     from xknxeditor.prod.parser_v2.dynamic import DynamicUI
 
     # The evaluation tree depends on the program only: build it once, not per seeding.
-    program, tree_builder = application.resolved()
+    program, tree_builder, program_pin = application.resolved(pin=True)
     if program.dynamic is None:
         return None
     if module_instances is None:
@@ -140,6 +140,7 @@ def seed_dynamic_ui(
             parameter_values=parameter_values,
             project_code_page=project_code_page,
             tree_builder=tree_builder,
+            program_pin=program_pin,
         )
         probe.eval_memo = eval_memo
         layout = probe.state_layout() if evaluated else None
@@ -150,6 +151,7 @@ def seed_dynamic_ui(
             program,
             parameter_values=parameter_values,
             tree_builder=tree_builder,
+            program_pin=program_pin,
             module_instances=[
                 ModuleInstance(id=instance_id, ref_id=ref_id)
                 for instance_id, ref_id in module_instances
@@ -166,6 +168,7 @@ def seed_dynamic_ui(
         program,
         parameter_values=parameter_values,
         tree_builder=tree_builder,
+        program_pin=program_pin,
         module_instances=[
             ModuleInstance(id=instance_id, ref_id=ref_id)
             for instance_id, ref_id in module_instances

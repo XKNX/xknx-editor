@@ -1,11 +1,14 @@
 """Only the most recently used reloadable applications keep their parsed program in memory, as
 many as their estimated memory fits in the budget."""
 
+import gc
 from collections import OrderedDict
 from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
+from dataclasses import replace
 from pathlib import Path
 from threading import Event
+from weakref import WeakValueDictionary
 
 import pytest
 
@@ -13,7 +16,7 @@ import xknxeditor.prod.application as application_module
 from xknxeditor.prod import parse_application_xml
 from xknxeditor.prod.application import Application
 from xknxeditor.prod.archive import Archive
-from xknxeditor.prod.parser_v2.dynamic import DynamicUI
+from xknxeditor.prod.parser_v2.dynamic import DynamicTreeBuilder, DynamicUI
 
 _FIXTURE = Path(__file__).parent / "fixtures" / "gira_2gang_button_interface.knxprod"
 
@@ -21,6 +24,9 @@ _FIXTURE = Path(__file__).parent / "fixtures" / "gira_2gang_button_interface.knx
 @pytest.fixture(autouse=True)
 def _isolated_residency(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(application_module, "_resident", OrderedDict())
+    monkeypatch.setattr(application_module, "_loading", {})
+    monkeypatch.setattr(application_module, "_evaluated", WeakValueDictionary())
+    monkeypatch.setattr(application_module, "_memory", {})
     # A budget no application fits in: only the one used last stays.
     monkeypatch.setattr(application_module, "_budget", [0])
 
@@ -211,3 +217,130 @@ def test_failed_load_releases_its_reservation() -> None:
     second = _unloaded(first, _parse)
     second.resolved()
     assert first.loaded and second.loaded
+
+
+@pytest.mark.parametrize("tree_already_loaded", [False, True])
+def test_dynamic_ui_pins_the_program_before_its_constructor(
+    monkeypatch: pytest.MonkeyPatch, tree_already_loaded: bool
+) -> None:
+    first, loads = _reloadable()
+    if tree_already_loaded:
+        first.resolved()
+    second = _unloaded(first, _parse)
+    original_init = DynamicUI.__init__
+
+    def init(ui: DynamicUI, program, **kwargs) -> None:
+        second.resolved()  # Trigger a pre-eviction between resolve and construction.
+        assert first.loaded
+        assert first.program is program
+        original_init(ui, program, **kwargs)
+
+    monkeypatch.setattr(DynamicUI, "__init__", init)
+    ui = first.dynamic_ui()
+    assert ui is not None
+    assert loads == []
+
+
+def test_xml_metadata_resizes_a_warm_load_before_decoding() -> None:
+    first, _ = _reloadable()
+    first.resolved()
+    estimate = application_module._memory[first.id]
+    unknown = application_module._UNKNOWN_MEMORY
+    application_module.set_resident_budget(2 * estimate + unknown)
+    second, _ = _reloadable()
+    second.resolved()
+    app_id = first.id + "-new"
+    program = replace(first.program, id=app_id)
+    # Keep the oldest entry on the left after obtaining the test program.
+    second.resolved()
+    assert app_id not in application_module._memory
+
+    def load():
+        assert first.loaded and second.loaded
+        application_module.note_application_size(
+            app_id, (unknown + estimate) // application_module._MEMORY_PER_XML_OCTET
+        )
+        assert not first.loaded
+        assert second.loaded  # The resized estimate is counted once.
+        return program
+
+    third = Application.unloaded(
+        app_id, first.name, first.version, first.manufacturer_id, load
+    )
+    assert third.program is program
+
+
+@pytest.mark.parametrize("eager", [False, True])
+def test_pre_eviction_error_releases_its_reservation(
+    monkeypatch: pytest.MonkeyPatch, eager: bool
+) -> None:
+    app = _parse()
+
+    def fail(*, keep_last: bool) -> None:
+        assert not keep_last
+        assert list(application_module._loading.values()) == [app.id]
+        raise RuntimeError("eviction failed")
+
+    monkeypatch.setattr(application_module, "_evict", fail)
+    with pytest.raises(RuntimeError, match="eviction failed"):
+        if eager:
+            with application_module.reserve_application_memory(app.id, xml_size=100):
+                pytest.fail("entered the reservation")
+        else:
+            _unloaded(app, _parse).resolved()
+    assert not application_module._loading
+
+
+def test_resident_program_cannot_be_unloaded_during_tree_build(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    first, _ = _reloadable()
+    program = first.program
+    other = _unloaded(first, _parse)
+    entered, finish = Event(), Event()
+    original_init = DynamicTreeBuilder.__init__
+
+    def init(builder: DynamicTreeBuilder, building_program) -> None:
+        if building_program is program:
+            entered.set()
+            assert finish.wait(10)
+        original_init(builder, building_program)
+
+    monkeypatch.setattr(DynamicTreeBuilder, "__init__", init)
+    with ThreadPoolExecutor(1) as workers:
+        pending = workers.submit(first.resolved)
+        try:
+            assert entered.wait(10)
+            assert application_module._loading[id(first)] == first.id
+            other.resolved()
+            first.unload()
+            assert first._program is program
+        finally:
+            finish.set()
+        assert pending.result(timeout=10)[0] is program
+    assert not application_module._loading
+
+
+def test_collecting_an_evaluator_cycle_releases_the_pin() -> None:
+    class CyclicUI(DynamicUI):
+        __slots__ = ("cycle",)
+
+    first, _ = _reloadable()
+    program, tree = first.resolved()
+    other = _unloaded(first, _parse)
+    gc_was_enabled = gc.isenabled()
+    gc.disable()
+    try:
+        ui = CyclicUI(program, tree_builder=tree)
+        ui.cycle = ui
+        del ui
+        other.resolved()
+        assert first.loaded
+        gc.collect()
+        assert not application_module._evaluated
+        assert first.loaded  # Release alone does not evict from the LRU.
+        other.resolved()
+        assert not first.loaded
+    finally:
+        if gc_was_enabled:
+            gc.enable()

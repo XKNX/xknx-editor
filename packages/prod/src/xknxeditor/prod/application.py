@@ -14,7 +14,7 @@ import threading
 from collections import OrderedDict
 from collections.abc import Callable, Generator, Iterator
 from contextlib import contextmanager
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal, overload
 from weakref import WeakValueDictionary
 
 from xknxeditor.namespaces import detect_version
@@ -57,17 +57,18 @@ _budget = [_DEFAULT_BUDGET]
 _memory: dict[str, int] = {}
 
 
-class _EvaluationPin:
+class EvaluationPin:
     """Shared by the evaluators of one parsed program."""
 
 
-_evaluated: WeakValueDictionary[int, _EvaluationPin] = WeakValueDictionary()
+# Dropping the last pin makes the program eligible for eviction on the next cache use.
+_evaluated: WeakValueDictionary[int, EvaluationPin] = WeakValueDictionary()
 
 
-def pin_program(program: ApplicationProgram) -> _EvaluationPin:
+def pin_program(program: ApplicationProgram) -> EvaluationPin:
     """Keep a program resident for as long as a DynamicUI holds this pin and the program."""
     with _resident_lock:
-        return _evaluated.setdefault(id(program), _EvaluationPin())
+        return _evaluated.setdefault(id(program), EvaluationPin())
 
 
 def set_resident_budget(octets: int) -> None:
@@ -114,15 +115,26 @@ def reserve_application_memory(
     """Make room for an application loaded directly from the catalog."""
     load = object()
     key = id(load)
-    with _resident_lock:
-        _memory[application_id] = xml_size * _MEMORY_PER_XML_OCTET
-        _loading[key] = application_id
-        _evict(keep_last=False)
     try:
+        with _resident_lock:
+            _memory[application_id] = xml_size * _MEMORY_PER_XML_OCTET
+            _loading[key] = application_id
+            _evict(keep_last=False)
         yield
     finally:
         with _resident_lock:
-            del _loading[key]
+            _loading.pop(key, None)
+
+
+def note_application_size(application_id: str, xml_size: int) -> None:
+    """Update the XML-based estimate before decoding and resize any existing reservations."""
+    estimate = xml_size * _MEMORY_PER_XML_OCTET
+    with _resident_lock:
+        if _memory.get(application_id) == estimate:
+            return
+        _memory[application_id] = estimate
+        if application_id in _loading.values():
+            _evict(keep_last=False)
 
 
 class Application:
@@ -220,27 +232,35 @@ class Application:
         _evict()
 
     def _resolve(
-        self, *, with_tree: bool
-    ) -> tuple[ApplicationProgram, DynamicTreeBuilder | None]:
+        self, *, with_tree: bool, pin: bool = False
+    ) -> tuple[ApplicationProgram, DynamicTreeBuilder | None, EvaluationPin | None]:
         with self._load_lock:
-            with _resident_lock:
-                program, tree_builder = self._program, self._tree_builder
-                reloader = self._reloader
-                if program is not None and (tree_builder is not None or not with_tree):
-                    self._mark_used()
-                    return program, tree_builder
-                if reloader is not None:
-                    _loading[id(self)] = self.id
-                    _evict(keep_last=False)
-            # The resident lock is free while decoding or building the tree. Other callers
-            # can use their applications, and eviction accounts for all concurrent loads.
+            reserved = False
             try:
+                with _resident_lock:
+                    program, tree_builder = self._program, self._tree_builder
+                    reloader = self._reloader
+                    if program is not None and (
+                        tree_builder is not None or not with_tree
+                    ):
+                        self._mark_used()
+                        return (
+                            program,
+                            tree_builder,
+                            pin_program(program) if pin else None,
+                        )
+                    if reloader is not None:
+                        reserved = True
+                        _loading[id(self)] = self.id
+                        _evict(keep_last=False)
+                # Decode and build outside the resident lock. Other callers can use their
+                # applications, and eviction accounts for all concurrent loads.
                 if program is None:
                     assert reloader is not None
                     with gc_paused(long_lived=True):
                         loaded = reloader()
                     if isinstance(loaded, Application):
-                        program, tree_builder = loaded._resolve(with_tree=False)
+                        program, tree_builder, _ = loaded._resolve(with_tree=False)
                     else:
                         program, tree_builder = loaded, None
                 if with_tree and tree_builder is None:
@@ -255,10 +275,11 @@ class Application:
                     self._program = program
                     self._tree_builder = tree_builder
                     self._mark_used()
+                    return program, tree_builder, pin_program(program) if pin else None
             finally:
-                with _resident_lock:
-                    _loading.pop(id(self), None)
-        return program, tree_builder
+                if reserved:
+                    with _resident_lock:
+                        _loading.pop(id(self), None)
 
     @property
     def program(self) -> ApplicationProgram:
@@ -286,10 +307,29 @@ class Application:
     def load_procedure_style(self) -> LoadProcedureStyle | None:
         return self.program.load_procedure_style
 
-    def resolved(self) -> tuple[ApplicationProgram, DynamicTreeBuilder]:
-        """The program together with the evaluation tree built from that same program."""
-        program, tree_builder = self._resolve(with_tree=True)
+    @overload
+    def resolved(
+        self, *, pin: Literal[False] = False
+    ) -> tuple[ApplicationProgram, DynamicTreeBuilder]: ...
+
+    @overload
+    def resolved(
+        self, *, pin: Literal[True]
+    ) -> tuple[ApplicationProgram, DynamicTreeBuilder, EvaluationPin]: ...
+
+    def resolved(
+        self, *, pin: bool = False
+    ) -> (
+        tuple[ApplicationProgram, DynamicTreeBuilder]
+        | tuple[ApplicationProgram, DynamicTreeBuilder, EvaluationPin]
+    ):
+        """Return the matching program and tree. With ``pin=True``, also return a residency
+        pin acquired before releasing the cache lock. Pass it to the evaluator that uses them."""
+        program, tree_builder, program_pin = self._resolve(with_tree=True, pin=pin)
         assert tree_builder is not None
+        if pin:
+            assert program_pin is not None
+            return program, tree_builder, program_pin
         return program, tree_builder
 
     def tree_builder(self) -> DynamicTreeBuilder:
@@ -304,10 +344,10 @@ class Application:
         """Build a new caller-owned DynamicUI (with its own GlobalState), or None if no dynamic section."""
         if self.program.dynamic is None:
             return None
-        program, tree_builder = self.resolved()
+        program, tree_builder, program_pin = self.resolved(pin=True)
         from .parser_v2.dynamic import DynamicUI as _DynamicUI
 
-        return _DynamicUI(program, tree_builder=tree_builder)
+        return _DynamicUI(program, tree_builder=tree_builder, program_pin=program_pin)
 
 
 def _programs(knx: Knx) -> Iterator[ApplicationProgram]:
@@ -345,16 +385,19 @@ def cached_applications(
     manufacturer_id: str,
     language: str | None = None,
     cache_dir: Path | None = None,
+    *,
+    before_load: Callable[[int], None] | None = None,
 ) -> list[Application] | None:
     """What :func:`parse_application_xml` gave for the XML of ``source`` (a stored product file
     and an application in it, named so that another content has another name), from the parse
     cache, without reading the XML: opening a large product file and unpacking its XML take
-    longer than the cached parse. None when the cache has no entry for it."""
+    longer than the cached parse. None when the cache has no entry for it. If given,
+    ``before_load`` receives the XML size before decoding a cache entry."""
     from .parse_cache import cached_for_source
 
     if cache_dir is None:
         return None
-    found = cached_for_source(source, cache_dir)
+    found = cached_for_source(source, cache_dir, before_load=before_load)
     if found is None:
         return None
     return _applications(found, manufacturer_id, language)

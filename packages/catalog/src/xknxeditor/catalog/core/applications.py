@@ -224,6 +224,7 @@ def _load_application(
     from xknxeditor.prod import parse_application_xml
     from xknxeditor.prod.application import (
         cached_applications,
+        note_application_size,
         reserve_application_memory,
     )
     from xknxeditor.prod.archive import Archive
@@ -237,28 +238,30 @@ def _load_application(
         source = None
     # Only the application XML is needed (not Catalog.xml), so tolerate project-embedded archives.
     with ExitStack() as stack:
-        archive = None
-        # A reloader already makes room in Application._resolve. The first eager load
-        # uses ZIP metadata to reserve room before reading the cache or the XML.
-        if reserve:
-            archive = stack.enter_context(Archive(knxprod_path, require_catalog=False))
-            if application_id in archive.application_ids(manufacturer_id):
+        reserved = False
+
+        def make_room(xml_size: int) -> None:
+            nonlocal reserved
+            if reserve and not reserved:
                 stack.enter_context(
-                    reserve_application_memory(
-                        application_id,
-                        xml_size=archive.application_xml_size(
-                            manufacturer_id, application_id
-                        ),
-                    )
+                    reserve_application_memory(application_id, xml_size=xml_size)
                 )
+                reserved = True
+            else:
+                # A wrapper resolving this program already has a reservation.
+                note_application_size(application_id, xml_size)
+
         if source is not None:
-            cached = cached_applications(source, manufacturer_id, language, cache_dir)
+            cached = cached_applications(
+                source, manufacturer_id, language, cache_dir, before_load=make_room
+            )
             found = next((a for a in cached or () if a.id == application_id), None)
             if found is not None:
                 return found
-        if archive is None:
-            archive = stack.enter_context(Archive(knxprod_path, require_catalog=False))
-        xml_bytes = archive.get_application_xml(manufacturer_id, application_id)
+        with Archive(knxprod_path, require_catalog=False) as archive:
+            if application_id in archive.application_ids(manufacturer_id):
+                make_room(archive.application_xml_size(manufacturer_id, application_id))
+            xml_bytes = archive.get_application_xml(manufacturer_id, application_id)
         if xml_bytes is None:
             logger.debug(
                 "application XML not in archive: app=%s manufacturer=%s archive=%s",

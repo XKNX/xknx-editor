@@ -360,7 +360,7 @@ def editor_image(
         application = catalog.get_application(application_id)
         if application is None:
             raise ValueError(f"application {application_id} is not in the catalog")
-        program, tree = application.resolved()
+        program, tree, program_pin = application.resolved(pin=True)
 
         def enable(value: bool | None) -> Enable | None:
             if value is None:
@@ -417,6 +417,7 @@ def editor_image(
             module_instances=modules,
             com_object_instance_refs=com_objects,
             tree_builder=tree,
+            program_pin=program_pin,
         )
         area, line, octet = (int(part) for part in device_address.split("."))
         image = build_image(

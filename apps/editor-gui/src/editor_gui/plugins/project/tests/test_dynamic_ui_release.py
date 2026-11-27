@@ -17,6 +17,7 @@ from editor_gui.plugins.project.service import ProjectService
 from xknxeditor.prod import Application
 from xknxeditor.prod import application as residency
 from xknxeditor.prod.application import parse_application_xml
+from xknxeditor.prod.parser_v2.dynamic import DynamicUI
 from xknxeditor.prod.parser_v2.ui.parameter import EnumWidget
 
 
@@ -106,11 +107,20 @@ def test_an_evaluated_device_pins_its_application(
 
     app.set_reloader(load)
     (device,) = _devices(proj, app, 1)
-    before = device.get_ui()
+    device.release_dynamic_ui()
     other = Application.unloaded(
         app.id, app.name, app.version, app.manufacturer_id, load
     )
-    other.resolved()
+    original_init = DynamicUI.__init__
+
+    def init(ui: DynamicUI, program, **kwargs) -> None:
+        other.resolved()
+        assert app.loaded
+        assert app.program is program
+        original_init(ui, program, **kwargs)
+
+    monkeypatch.setattr(DynamicUI, "__init__", init)
+    before = device.get_ui()
     assert app.loaded
     assert before and device.get_ui() == before
 

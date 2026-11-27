@@ -418,8 +418,7 @@ class Device:
         ):
             from xknxeditor.prod.parser_v2.dynamic import DynamicUI as _DynamicUI
 
-            # Program and tree as one pair: an unused application may have been reloaded.
-            program, tree_builder = self.app.resolved()
+            program, tree_builder, program_pin = self.app.resolved(pin=True)
             # The stored values are what the device's evaluation left (it is built again after
             # each edit and after a release): an Assign target set directly keeps its value,
             # unless the device is calculated anew (see calculate_anew).
@@ -430,6 +429,7 @@ class Device:
                 com_object_instance_refs=self.com_object_instance_refs or None,
                 tree_builder=tree_builder,
                 keep_assigned=True,
+                program_pin=program_pin,
             )
         if self._dynamic_ui is not None and self.project_code_page is not None:
             # Read every time: the project's code page can change (and be undone) any time.
