@@ -2145,7 +2145,17 @@ def _decode_value(
         return value
     if isinstance(tc, ParameterTypeTypeNumber):
         logical = _apply_byte_order(raw, size_in_bit, little_endian) or 0
-        if _is_signed_number(tc) and logical >= (1 << (size_in_bit - 1)):
+        if (
+            _is_signed_number(tc)
+            and logical >= (1 << (size_in_bit - 1))
+            and (
+                tc.min_inclusive <= logical - (1 << size_in_bit)
+                or not logical <= tc.max_inclusive
+            )
+        ):
+            # A signed type whose range reaches past the signed values of its size
+            # (-127..128 in 8 bits) writes its top values as the same bits: 0x80 is
+            # 128 there, not -128.
             logical -= 1 << size_in_bit
         if not tc.min_inclusive <= logical <= tc.max_inclusive:
             # Not a value of this type (the bytes of another member of a union, or a

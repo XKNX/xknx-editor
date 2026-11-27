@@ -442,6 +442,33 @@ def test_decode_number_outside_its_range_is_not_recovered() -> None:
     assert _decode_value(100, 16, tc, little_endian=False) == "100"
 
 
+def test_decode_signed_number_whose_range_reaches_past_its_size() -> None:
+    # -127..128 in 8 bits: 128 is written as 0x80, which is no -128 of this type.
+    tc = ParameterTypeTypeNumber(
+        size_in_bit=8,
+        type_value=ParameterTypeTypeNumberType.SIGNED_INT,
+        min_inclusive=-127,
+        max_inclusive=128,
+    )
+    raw = _encode_value("128", 8, tc)
+    assert raw == 0x80
+    assert _decode_value(raw, 8, tc, little_endian=False) == "128"
+    assert _decode_value(0x81, 8, tc, little_endian=False) == "-127"
+    assert _decode_value(0x7F, 8, tc, little_endian=False) == "127"
+
+
+def test_decode_signed_number_whose_range_holds_both_readings() -> None:
+    # -128..255 in 8 bits: 0x80 is -128 or 128, both written alike; the signed one is read.
+    tc = ParameterTypeTypeNumber(
+        size_in_bit=8,
+        type_value=ParameterTypeTypeNumberType.SIGNED_INT,
+        min_inclusive=-128,
+        max_inclusive=255,
+    )
+    assert _decode_value(0x80, 8, tc, little_endian=False) == "-128"
+    assert _decode_value(0xFF, 8, tc, little_endian=False) == "-1"
+
+
 def test_decode_float_dpt9() -> None:
     tc = _float(ParameterTypeTypeFloatEncoding.DPT_9)
     raw = _encode_value("21.0", 16, tc)
