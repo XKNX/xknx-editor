@@ -31,7 +31,7 @@ from xknxeditor.namespaces.intermediate.resource_name_t import ResourceName
 from xknxeditor.prod import Application
 from xknxeditor.prod.errors import EncodingError
 
-from .errors import ImageError
+from .errors import DownloadError, ImageError
 from .factory_image import FactoryImage, FactoryLocation
 from .merge import (
     device_mask_version,
@@ -1178,6 +1178,42 @@ def group_table_bits(application: Application, ui: DynamicUI) -> dict[int, int]:
         for address, value in plain.items()
         if address in inverse and (bits := ~(value ^ inverse[address]) & 0xFF)
     }
+
+
+def written_octets(application: Application, ui: DynamicUI) -> dict[str, bytes]:
+    """The octets of each absolute code segment (by segment id, ``0xFF`` for each octet
+    written) a full download of ``ui`` writes: what its active parameters encode, the
+    segment's data where the download initializes the segment with it (not in the segment
+    of a group object table, nor past the data or outside its mask, see
+    :func:`build_image`), and the group communication tables. The device keeps what it held
+    in the others (what an earlier download wrote there). Built without links: a download
+    with links writes longer address and association tables. Empty when the image does not
+    build; user memory (an address space of its own) is left out."""
+    code = application.program.static.code
+    if code is None or not code.absolute_segment:
+        return {}
+    try:
+        image = build_image(
+            application,
+            ui=ui,
+            group_communication=GroupCommunication(device_address=0, links=()),
+        )
+    except (DownloadError, EncodingError, ValueError):
+        return {}
+    bases, sizes = ui.segment_base_addrs(), ui.segment_sizes()
+    written: dict[str, bytes] = {}
+    for segment in code.absolute_segment:
+        base = bases.get(segment.id)
+        size = sizes.get(segment.id, 0)
+        if segment.user_memory or base is None or not size:
+            continue
+        mask = bytearray(size)
+        for address, data in (
+            image.masked_writes(base, size, include_initialized=True) or []
+        ):
+            mask[address - base : address - base + len(data)] = b"\xff" * len(data)
+        written[segment.id] = bytes(mask)
+    return written
 
 
 def _security_tables(

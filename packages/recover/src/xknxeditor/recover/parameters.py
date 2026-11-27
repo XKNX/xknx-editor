@@ -252,6 +252,12 @@ class _SearchCache:
         # The code segments the group communication tables are in (``None``: not resolved
         # yet).
         self.table_segments: frozenset[str] | None = None
+        # The absolute code segments outside the user memory (``None``: not resolved yet), and
+        # the octets of them the download of each of the last UIs writes (see written_octets).
+        self.absolute: frozenset[str] | None = None
+        self.octets: OrderedDict[int, tuple[DynamicUI, dict[str, bytes]]] = (
+            OrderedDict()
+        )
         # The UIs values of module instances' settings were tried in for the memory (see
         # _infer_from_memory), by the values they were tried with (see
         # _InstanceValues.kept_key): an inference after another (a correction tried) tries
@@ -315,6 +321,32 @@ class _SearchCache:
                 if table is not None and table.code_segment is not None
             )
         return segment_id in self.table_segments
+
+    def absolute_segments(self) -> frozenset[str]:
+        """The absolute code segments of the application outside the user memory."""
+        if self.absolute is None:
+            code = self.application.program.static.code
+            self.absolute = frozenset(
+                segment.id
+                for segment in (code.absolute_segment if code is not None else ())
+                if not segment.user_memory
+            )
+        return self.absolute
+
+    def written_octets(self, ui: DynamicUI) -> dict[str, bytes]:
+        """The octets of each absolute code segment a full download of ``ui`` writes (see
+        :func:`~xknxeditor.download.image.written_octets`), by the UI itself (kept with its
+        entry, so no other object has its id meanwhile)."""
+        entry = self.octets.get(id(ui))
+        if entry is None or entry[0] is not ui:
+            from xknxeditor.download.image import written_octets
+
+            entry = (ui, written_octets(self.application, ui))
+            self.octets[id(ui)] = entry
+            if len(self.octets) > self.UIS:
+                self.octets.popitem(last=False)
+        self.octets.move_to_end(id(ui))
+        return entry[1]
 
     def table_bits(self, ui: DynamicUI) -> dict[_Cell, int]:
         """The bits of the bytes of the code segments that the group communication tables
@@ -1158,6 +1190,30 @@ def _unwritten_property_cells(ui: DynamicUI, cells: Collection[_Cell]) -> set[_C
     return {cell for cell in cells if cell[0] in unwritten}
 
 
+def _unwritten_memory_cells(ui: DynamicUI, cells: Collection[_Cell]) -> set[_Cell]:
+    """Of ``cells``, the bytes of absolute code segments a full download of ``ui`` writes
+    nothing into (see :meth:`_SearchCache.written_octets`): no active setting is stored
+    there, and the download writes neither the segment's data (none in the segment of a
+    group object table) nor a group table there. The device keeps what an earlier download
+    left there, so they only tell apart results that fit the device alike otherwise. None
+    outside a search."""
+    cache: _SearchCache | None = getattr(_SEARCH, "cache", None)
+    if cache is None:
+        return set()
+    absolute = cache.absolute_segments()
+    candidates = [cell for cell in cells if cell[0] in absolute]
+    if not candidates:
+        return set()
+    written = cache.written_octets(ui)
+    return {
+        cell
+        for cell in candidates
+        if cell[0] in written
+        and cell[1] < len(written[cell[0]])
+        and not written[cell[0]][cell[1]]
+    }
+
+
 def _nothing_differs(score: _Score) -> bool:
     """Whether a result with ``score`` contradicts no byte or object of the device, not even
     one of a property no download writes (only objects it shows without a link)."""
@@ -1792,13 +1848,16 @@ def _misfit(
         return None
     if differing:
         differing = _compared(seeded, differing)
-    unwritten: set[_Cell] = set()
+    # Bytes no download writes are kept with the others, so the search tries the selectors
+    # behind them too.
+    unwritten = (
+        _unwritten_memory_cells(seeded, differing) if differing else set[_Cell]()
+    )
     if properties:
         in_properties = _differing_property_cells(seeded, properties)
         if in_properties is None:
             return None
-        # Kept with the others, so the search tries the selectors behind them too.
-        unwritten = _unwritten_property_cells(seeded, in_properties)
+        unwritten |= _unwritten_property_cells(seeded, in_properties)
         differing |= in_properties
     objects: set[int] = _shown_objects(seeded) if linked or sizes else set()
     matching = _shown_objects(seeded, sizes) if sizes else objects
@@ -1808,7 +1867,7 @@ def _misfit(
     # channel whose linked objects show is on, however many objects it shows without a link.
     # The differing bytes count next: a channel whose settings the memory holds is on, however
     # many objects it shows without a link. Those only tell apart results alike otherwise, after
-    # the bytes of properties no download writes.
+    # the bytes of properties and memory no download writes.
     contradicted = len((linked - objects) | conflicts)
     contradiction = _OBJECT_WEIGHT * contradicted + len(differing) - len(unwritten)
     unlinked = len(objects - linked) if linked else 0
@@ -2776,8 +2835,13 @@ def _with_misfit(
     if misfit is None:
         return RecoveredParameters(values=values, unknown=unknown, lossy=lossy)
     _score, differing, wrong = misfit
-    # The bytes of properties no download writes are the device's own: no result has to match.
-    differing = differing - _unwritten_property_cells(seeded, differing)
+    # The bytes of properties and memory no download writes are the device's own: no result
+    # has to match.
+    differing = (
+        differing
+        - _unwritten_property_cells(seeded, differing)
+        - _unwritten_memory_cells(seeded, differing)
+    )
     return RecoveredParameters(
         values=values,
         unknown=unknown,
