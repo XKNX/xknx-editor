@@ -15,9 +15,11 @@ same call as hidapi's `write` there) there is none without the binding's.
 
 Such an interface sometimes holds a SET_REPORT for seconds, often after it sent the
 frame already (its L_Data.con arrives meanwhile), sometimes without sending it. A
-report that takes longer than `WRITE_TIMEOUT` is cancelled on Windows, and the
-kernel's own timeout of hidraw ends with `WriteTimeout` too: whether the frame went
-out, its L_Data.con tells.
+report that fails after taking longer than `WRITE_TIMEOUT` ends with `WriteTimeout`,
+as does the kernel's own timeout of hidraw: whether the frame went out, its
+L_Data.con tells. The request is not cancelled: Windows' HID driver ends it only when
+the interface does (after up to 5 s) anyway, and cancelling one made such an
+interface hold every later report that long.
 """
 
 from __future__ import annotations
@@ -26,7 +28,7 @@ import errno
 import importlib
 import os
 import sys
-import threading
+import time
 from collections.abc import Callable
 from typing import Any, Final, Protocol
 
@@ -49,8 +51,9 @@ def hidiocsoutput(length: int) -> int:
     )
 
 
-# How long a report may take over the control pipe: as long as hidapi's `write`
-# waits for the interrupt OUT endpoint on Windows.
+# How long a report may take over the control pipe before a failure counts as not
+# taken in time: as long as hidapi's `write` waits for the interrupt OUT endpoint on
+# Windows.
 WRITE_TIMEOUT: Final = 1.0
 
 
@@ -143,9 +146,6 @@ _GENERIC_WRITE: Final = 0x40000000
 _FILE_SHARE_READ: Final = 0x00000001
 _FILE_SHARE_WRITE: Final = 0x00000002
 _OPEN_EXISTING: Final = 3
-# OpenThread access right CancelSynchronousIo needs
-_THREAD_TERMINATE: Final = 0x0001
-_ERROR_OPERATION_ABORTED: Final = 995
 
 if sys.platform == "win32":
     import ctypes
@@ -185,56 +185,23 @@ if sys.platform == "win32":
         set_output_report.argtypes = (wintypes.HANDLE, ctypes.c_void_p, wintypes.ULONG)
         set_output_report.restype = wintypes.BOOLEAN
         buffer = ctypes.create_string_buffer(report, len(report))
-        _windows_within(
+        _windows_timed(
             WRITE_TIMEOUT, lambda: set_output_report(handle, buffer, len(report))
         )
 
-    def _windows_within(timeout: float, call: Callable[[], int]) -> None:
+    def _windows_timed(timeout: float, call: Callable[[], int]) -> None:
         """
-        Make `call`, a Windows API call with synchronous I/O of this thread returning
-        nonzero on success, and cancel its I/O when it takes longer than `timeout`.
+        Make `call`, a Windows API call returning nonzero on success.
 
-        Raise WriteTimeout when it was cancelled, OSError when it failed.
+        Raise WriteTimeout when it failed after taking longer than `timeout`, OSError
+        when it failed sooner.
         """
-        kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
-        current_thread_id = kernel32.GetCurrentThreadId
-        current_thread_id.argtypes = ()
-        current_thread_id.restype = wintypes.DWORD
-        open_thread = kernel32.OpenThread
-        open_thread.argtypes = (wintypes.DWORD, wintypes.BOOL, wintypes.DWORD)
-        open_thread.restype = wintypes.HANDLE
-        cancel_io = kernel32.CancelSynchronousIo
-        cancel_io.argtypes = (wintypes.HANDLE,)
-        cancel_io.restype = wintypes.BOOL
-        thread = open_thread(_THREAD_TERMINATE, False, current_thread_id())
-        if not thread:
-            raise ctypes.WinError(ctypes.get_last_error())
-        lock = threading.Lock()
-        pending = threading.Event()
-        pending.set()
-        cancelled = threading.Event()
-
-        def cancel() -> None:
-            # never once the call returned: the thread may be in its next I/O then
-            with lock:
-                if pending.is_set():
-                    cancelled.set()
-                    cancel_io(thread)
-
-        timer = threading.Timer(timeout, cancel)
-        timer.daemon = True
-        timer.start()
-        try:
-            succeeded = call()
-            error = ctypes.get_last_error()
-        finally:
-            with lock:
-                pending.clear()
-            timer.cancel()
-            _windows_close(thread)
+        started = time.monotonic()
+        succeeded = call()
+        error = ctypes.get_last_error()
         if succeeded:
             return
-        if cancelled.is_set() or error == _ERROR_OPERATION_ABORTED:
+        if time.monotonic() - started > timeout:
             raise WriteTimeout(f"no report taken within {timeout:g} s")
         raise ctypes.WinError(error)
 

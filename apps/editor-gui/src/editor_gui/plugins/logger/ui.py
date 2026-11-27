@@ -154,6 +154,8 @@ class LogPanel:
         )
         if record.payload:
             line += "  " + "  ".join(f"{k}={v}" for k, v in record.payload.items())
+        if record.traceback:
+            line += "\n" + record.traceback
         return line
 
     def _render_toolbar(self) -> None:
