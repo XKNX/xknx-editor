@@ -5381,12 +5381,13 @@ def _infer_from_memory(
     best: _ValueMap = {}
     fewest = len(misfits)
     share = fitting / (fitting + fewest)
+    instances = ui.get_module_instances()
     split = (
         None
         if evaluated is None
         else _InstanceValues(
             values,
-            ui.get_module_instances(),
+            instances,
             evaluated,
             _search_cache(application),
         )
@@ -5394,7 +5395,12 @@ def _infer_from_memory(
     # The values doing better than none, each with the union members it leaves with no value
     # of their type.
     doing_better: list[tuple[str, str, int]] = []
-    for _, ref_id, candidate in candidates[:_MEMORY_TRIES]:
+    tried = candidates[:_MEMORY_TRIES]
+    # The UIs values still to try were seeded in together with one tried before (see
+    # _tried_together), by the value.
+    pending: dict[tuple[str, str], _Evaluated] = {}
+
+    for at, (_, ref_id, candidate) in enumerate(tried):
         _check(cancel)
         instance = None if split is None else split.instance(ref_id)
         own: _ValueMap = {}
@@ -5421,6 +5427,40 @@ def _infer_from_memory(
                 continue
             decoded = ui.decode_parameters_with_instance(
                 parameter_segments, property_values or {}, instance, before.ui
+            )
+            assert decoded is not None
+            trial_fitting, trial_misfits = _union_fit(ui, decoded)
+        elif (
+            split is not None
+            and evaluated is not None
+            and instance is not None
+            and (
+                entry := _tried_together(
+                    application,
+                    values,
+                    project_code_page,
+                    instances,
+                    split,
+                    evaluated,
+                    pending,
+                    tried,
+                    at,
+                    own,
+                )
+            )
+            is not None
+        ):
+            # Evaluated with values of other instances, as one seeded with the value alone
+            # would be: kept as that one.
+            evaluated[(ref_id, candidate)] = entry
+            if kept_key is not None and split.kept is not None:
+                split.kept.keep_memory_trial(kept_key, entry)
+            outside, _ = _shown_objects_split(ui, sizes, instance)
+            _, inside = _shown_objects_split(entry.ui, sizes, instance)
+            if not base <= outside | inside:
+                continue
+            decoded = ui.decode_parameters_with_instance(
+                parameter_segments, property_values or {}, instance, entry.ui
             )
             assert decoded is not None
             trial_fitting, trial_misfits = _union_fit(ui, decoded)
@@ -5474,6 +5514,79 @@ def _infer_from_memory(
         sizes,
         cancel,
     )
+
+
+def _tried_together(
+    application: Application,
+    values: Mapping[str, str],
+    project_code_page: str | None,
+    instances: Sequence[tuple[str, str]],
+    split: _InstanceValues,
+    evaluated: Mapping[tuple[str, str], _Evaluated],
+    pending: dict[tuple[str, str], _Evaluated],
+    tried: Sequence[tuple[int, str, str]],
+    at: int,
+    own: _ValueMap,
+) -> _Evaluated | None:
+    """The UI :func:`_infer_from_memory` evaluates the value ``tried[at]`` of a setting of a
+    module instance in (with the values ``own`` of its instance; ``values`` split by
+    ``split``, making the module ``instances``) where it was tried in no UI before
+    (``evaluated``): seeded with it and with the first value still to try of each other
+    instance that was tried in none either, as the values after it are then tried in it
+    (``pending``, by the value). An instance's evaluation reads only its own values and
+    those of the application's scope, which reads none of an instance's (see
+    DynamicUI.decode_parameters_with_instance): each instance of it is what seeding the
+    values with its value alone evaluates to. None where no other instance has such a
+    value, or where the UI makes other instances or more than the product has room for
+    (each value is tried alone then)."""
+    _, ref_id, candidate = tried[at]
+    found = pending.pop((ref_id, candidate), None)
+    if found is not None:
+        return found
+    instance = split.instance(ref_id)
+    others: dict[str, tuple[str, str, _ValueMap]] = {}
+    for _, other_ref, other_value in tried[at + 1 :]:
+        other = split.instance(other_ref)
+        if (
+            other is None
+            or other == instance
+            or other in others
+            or (other_ref, other_value) in pending
+        ):
+            continue
+        other_own = {**split.own[other], other_ref: other_value}
+        before = evaluated.get((other_ref, other_value))
+        if before is not None and before.own == other_own:
+            continue
+        other_key = split.kept_key(other_own, other_ref)
+        if other_key is not None and split.kept is not None:
+            kept = split.kept.memory_trials.get(other_key)
+            if kept is not None and kept.own == other_own:
+                continue
+        others[other] = (other_ref, other_value, other_own)
+    if not others:
+        return None
+    try:
+        seeded = _seeded(
+            application,
+            {
+                **values,
+                ref_id: candidate,
+                **{key: value for key, value, _ in others.values()},
+            },
+            project_code_page,
+            module_instances=instances,
+        )
+        assert seeded is not None
+        if frozenset(seeded.get_module_instances()) != split.instances:
+            return None
+    except AllocatorOverflow:
+        return None
+    for other_ref, other_value, other_own in others.values():
+        pending[(other_ref, other_value)] = _Evaluated(
+            split.instances, split.shared, other_own, seeded
+        )
+    return _Evaluated(split.instances, split.shared, own, seeded)
 
 
 class _AlikeFit(NamedTuple):

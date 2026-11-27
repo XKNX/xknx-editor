@@ -150,6 +150,13 @@ def test_values_hiding_a_linked_object_together_are_taken_one_by_one(
     application: Application, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     shown: Callable[..., set[int]] = parameters._shown_objects  # pyright: ignore[reportPrivateUsage]
+    # Each value is tried in a UI of its own: the objects told hidden here depend on the
+    # values of several instances, which no evaluation of one instance's values does.
+    monkeypatch.setattr(
+        parameters,
+        "_tried_together",
+        lambda *_args, **_kwargs: None,  # pyright: ignore[reportUnknownLambdaType]
+    )
 
     def hidden_together(
         ui: DynamicUI, sizes: Mapping[int, str] | None = None
