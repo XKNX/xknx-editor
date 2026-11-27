@@ -253,6 +253,17 @@ async def test_a_group_communication_download_keeps_the_device_bytes() -> None:
     assert (3, 52) not in writes
 
 
+async def test_a_parameters_download_writes_no_group_object_element() -> None:
+    # The product's writes of PID 51 and 52 have no elements of their own: a download of the
+    # parameters alone writes neither, not even the octets its parameters are stored at. They
+    # are written by a download with the group communication.
+    writes = await _download(DownloadScope.PARAMETERS)
+    assert (3, 51) not in writes
+    assert (3, 52) not in writes
+    assert (1, 23) not in writes
+    assert (2, 23) not in writes
+
+
 def test_the_descriptor_completes_a_plain_system_300_mask() -> None:
     from xknxeditor.download.merge import device_mask_version
 
