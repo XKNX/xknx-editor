@@ -6,11 +6,12 @@ the plug-in's XML dialects: no manufacturer product data is used.
 
 import asyncio
 from dataclasses import replace
+from functools import cache
 
 import pytest
 
 from packages.download.tests.conftest import FakeDevice
-from packages.download.tests.test_prepared import master
+from packages.download.tests.test_prepared import master as _master
 from xknxeditor.download.conditions import (
     ConditionalRead,
     ConditionalWrite,
@@ -22,6 +23,7 @@ from xknxeditor.download.load_state import LoadState
 from xknxeditor.download.procedure import LoadProcedureRunner
 from xknxeditor.download.programmer import DeviceProgrammer
 from xknxeditor.namespaces.intermediate.ld_ctrl_compare_prop_t import LdCtrlCompareProp
+from xknxeditor.namespaces.intermediate.ld_ctrl_delay_t import LdCtrlDelay
 from xknxeditor.namespaces.intermediate.ld_ctrl_load_completed_t import (
     LdCtrlLoadCompleted,
 )
@@ -31,6 +33,8 @@ from xknxeditor.namespaces.intermediate.ld_ctrl_write_prop_t import LdCtrlWriteP
 from xknxeditor.namespaces.intermediate.ld_ctrl_write_rel_mem_t import LdCtrlWriteRelMem
 from xknxeditor.prod import parse_application_xml
 from xknxeditor.vendor.siemens_generic import (
+    MemoryCheck,
+    build_view,
     find_sources,
     parse_settings,
     plugin_version,
@@ -50,6 +54,7 @@ from xknxeditor.vendor.siemens_generic.recover import (
     read_device_image,
 )
 
+master = cache(_master)
 MAPPING = {0: 0, 1: 1, 2: 2, 3: 9, 4: 3, 5: 4, 6: 0xFFFF}
 
 APPLICATION = b"""<?xml version="1.0"?>
@@ -334,7 +339,8 @@ def test_a_relative_download_writes_from_the_application_s_segment():
         _application(),
         prepared.image,
         DeviceProgrammer(fake),
-        controls=controls,
+        # Without the waits for the device.
+        controls=[c for c in controls if not isinstance(c, LdCtrlDelay)],
         object_types=MAPPING,
     )
     asyncio.run(runner.run())
@@ -431,3 +437,38 @@ def test_the_last_controls_complete_the_application():
     controls = _prepared(_description((1, 2, 7), hardware=""))[2]
     completed = [c.lsm_idx for c in controls if isinstance(c, LdCtrlLoadCompleted)]
     assert completed[-1] == 4
+
+
+def _memory_checks(d: Description, configured: bytes, image: bytes, mask: bytes):
+    stored = parse_settings(downloaded_config(configured, image, mask, bytes(8)))
+    assert stored is not None
+    view = build_view(d, stored, {})
+    return {row.ref_id: row.memory for page in view.pages for row in page.rows}
+
+
+def test_the_comparison_reads_a_stored_image_as_its_plugin_keeps_it():
+    d = _description((1, 2, 16), schema="GenericPlugIn_1.xsd", hardware="")
+    data = default_config(d)
+    compiled = compile_image(d, parse_settings(data))
+    checks = _memory_checks(d, data, compiled.data, compiled.mask)
+    assert checks["r_on"] is MemoryCheck.MATCH
+    assert checks["r_level"] is MemoryCheck.MATCH
+    # A device that holds another value.
+    image = bytearray(compiled.data)
+    image[0x5018] = 9
+    checks = _memory_checks(d, data, bytes(image), compiled.mask)
+    assert checks["r_level"] is MemoryCheck.MISMATCH
+
+
+def test_the_comparison_leaves_a_setting_not_downloaded_unchecked():
+    d = _description((2, 0, 36))
+    data = edit(d, edit(d, default_config(d), "r_keep", "0"), "r_on", "1")
+    compiled = compile_image(d, parse_settings(data))
+    image = bytearray(compiled.data)
+    image[0x5002 - compiled.base] = 0x63
+    # Even an image that holds the setting (one stored before) is not compared there.
+    mask = bytearray(compiled.mask)
+    mask[0x5002 - compiled.base] = 0xFF
+    checks = _memory_checks(d, data, bytes(image), bytes(mask))
+    assert checks["r_scene"] is MemoryCheck.UNCHECKED
+    assert checks["r_on"] is MemoryCheck.MATCH
