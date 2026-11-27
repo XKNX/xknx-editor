@@ -1,14 +1,8 @@
 """Collect the manufacturer archive members a ``.knxproj`` export needs to bundle.
 
-``xknxeditor-proj`` is catalog-free, so its :func:`~xknxeditor.proj.export_knxproj` writes only the
-project structure. To make the archive self-contained (applications resolvable), the GUI — which has
-the catalog — re-extracts each used manufacturer's ``M-XXXX/`` tree (Hardware/Catalog/application
-program XMLs, baggages) and its ``M-XXXX.signature`` from the original ``.knxprod`` the device was
-imported from, and merges those archives' ``knx_master.xml`` into one. A manufacturer whose
-products come from several ``.knxprod`` files has a ``Hardware.xml``/``Catalog.xml`` in each; those
-are merged into one, so every device's hardware and catalog entry is in the archive (the export
-re-signs the changed folder). The result is passed to
-``export_knxproj(..., extra_files=..., master_xml=...)``.
+The project supplies its stored product data. The GUI obtains any missing members from
+the devices' original ``.knxprod`` files in the catalog. It merges shared manufacturer
+files and chooses a ``knx_master.xml`` from the archives of all devices.
 
 The original ``.knxprod`` files must still exist at the paths the catalog recorded; refs that can't
 be resolved are reported in :attr:`ManufacturerBundle.skipped_refs` and simply left out.
@@ -18,13 +12,20 @@ from __future__ import annotations
 
 import xml.etree.ElementTree as ET
 import zipfile
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
-from xknxeditor.proj.core.manufacturer_xml import merge_manufacturer_xml
+from xknxeditor.proj.core.manufacturer_xml import (
+    DeviceProduct,
+    manufacturer_id,
+    merge_manufacturer_xml,
+    merge_members,
+)
+from xknxeditor.proj.core.product_prune import read_product_subset
 
 if TYPE_CHECKING:
+    from editor_gui.plugins.base import Logger
     from editor_gui.plugins.catalog.service import CatalogService
 
 
@@ -36,24 +37,42 @@ class ManufacturerBundle:
     master_xml: bytes | None = None
     resolved_manufacturers: set[str] = field(default_factory=set[str])
     skipped_refs: set[str] = field(default_factory=set[str])
+    has_product_members: bool = False
 
 
 def collect_manufacturer_bundle(
-    program_refs: Iterable[str], catalog: CatalogService
+    program_refs: Iterable[str],
+    catalog: CatalogService,
+    missing_products: Iterable[DeviceProduct] | None = None,
 ) -> ManufacturerBundle:
     """Gather manufacturer archive members for the given hardware-program refs.
 
     Args:
       program_refs: Distinct hardware-program (or product) refs used by the project's devices.
       catalog: The GUI catalog service (resolves a ref to its source ``.knxprod`` and manufacturer).
+      missing_products: When supplied, collect only these devices' product data.
+        Their refs must also be in ``program_refs``. The master is chosen from all sources.
 
     Returns:
-      A :class:`ManufacturerBundle` with the verbatim ``extra_files`` to add, a merged
+      A :class:`ManufacturerBundle` with the ``extra_files`` to add, a merged
       ``knx_master.xml`` (or ``None`` if nothing resolved), and bookkeeping of what was resolved
       or skipped.
     """
     needed, skipped = program_sources(program_refs, catalog)
-    bundle = read_manufacturer_bundle(needed)
+    selected: dict[str, dict[str, list[DeviceProduct]]] | None = None
+    if missing_products is not None:
+        selected = {}
+        for device in missing_products:
+            ref = device.hardware2program or device.product
+            if not ref:
+                continue
+            source = catalog.get_program_source(ref)
+            if source is not None:
+                path, manufacturer = source
+                selected.setdefault(path, {}).setdefault(manufacturer, []).append(
+                    device
+                )
+    bundle = read_manufacturer_bundle(needed, selected)
     bundle.skipped_refs |= skipped
     return bundle
 
@@ -75,9 +94,15 @@ def program_sources(
     return needed, skipped
 
 
-def read_manufacturer_bundle(needed: dict[str, set[str]]) -> ManufacturerBundle:
-    """The manufacturer archive members of ``needed`` (see :func:`program_sources`), read from the
-    files alone: it needs no catalog, so it can run without the shared lock."""
+def read_manufacturer_bundle(
+    needed: dict[str, set[str]],
+    selected: dict[str, dict[str, list[DeviceProduct]]] | None = None,
+) -> ManufacturerBundle:
+    """Read the master from the given sources and their manufacturer members for ``selected``.
+
+    Without a selection, read the manufacturers in ``needed`` in full. No catalog access
+    is needed here, so the reader can also run outside the shared project lock.
+    """
     bundle = ManufacturerBundle()
     masters: list[bytes] = []
     for knxprod_path, manufacturer_ids in needed.items():
@@ -86,32 +111,84 @@ def read_manufacturer_bundle(needed: dict[str, set[str]]) -> ManufacturerBundle:
                 names = zf.namelist()
                 if "knx_master.xml" in names:
                     masters.append(zf.read("knx_master.xml"))
-                for mid in manufacturer_ids:
-                    prefix = f"{mid}/"
-                    signature = f"{mid}.signature"
-                    for name in names:
-                        if name.endswith("/"):
-                            continue  # zip directory entry
-                        member = name == signature or name.startswith(prefix)
-                        if not member:
-                            continue
+                members = [
+                    name
+                    for mid in manufacturer_ids
+                    for name in names
+                    if not name.endswith("/")
+                    and (name == f"{mid}.signature" or name.startswith(f"{mid}/"))
+                ]
+                bundle.has_product_members |= bool(members)
+                if selected is None:
+                    for name in members:
                         if name not in bundle.extra_files:
                             bundle.extra_files[name] = zf.read(name)
                         elif name.endswith(".xml") and name.count("/") == 1:
-                            # The same manufacturer file from another source: merge what it adds
-                            # (e.g. Hardware.xml of a product imported on its own).
                             bundle.extra_files[name] = merge_manufacturer_xml(
                                 bundle.extra_files[name], zf.read(name)
                             )
-                        # Other files of the same name (application programs, baggages) are the
-                        # same data: the first source's copy is kept.
-                    bundle.resolved_manufacturers.add(mid)
+                elif manufacturers := selected.get(knxprod_path):
+                    products = [
+                        d for devices in manufacturers.values() for d in devices
+                    ]
+                    folders = set(manufacturers) | {
+                        manufacturer_id(d.application)
+                        for d in products
+                        if d.application
+                    }
+                    files = read_product_subset(
+                        zf,
+                        [
+                            name
+                            for name in names
+                            if not name.endswith("/")
+                            and name.partition("/")[0].removesuffix(".signature")
+                            in folders
+                        ],
+                        (d.product for d in products),
+                        (d.hardware2program for d in products),
+                        (d.application for d in products),
+                    )
+                    bundle.extra_files = merge_members(bundle.extra_files, files)
+                else:
+                    continue
+                bundle.resolved_manufacturers.update(manufacturer_ids)
         except (OSError, zipfile.BadZipFile):
             # Source archive gone or unreadable: skip every ref that pointed at it.
             bundle.skipped_refs.update(manufacturer_ids)
 
     bundle.master_xml = _merge_masters(masters)
     return bundle
+
+
+def catalog_export_sources(
+    devices: list[DeviceProduct],
+    missing: list[DeviceProduct] | None,
+    *,
+    catalog: CatalogService,
+    log: Logger | None = None,
+    on_collected: Callable[[], None] | None = None,
+) -> tuple[dict[str, bytes], bytes | None, bool]:
+    """Supply the missing product members and the catalog master to the project exporter."""
+    refs = {d.hardware2program or d.product for d in devices} - {""}
+    try:
+        bundle = collect_manufacturer_bundle(refs, catalog, missing)
+    except Exception as e:
+        if log is None:
+            raise
+        log.warning("manufacturer bundle failed", error=f"{type(e).__name__}: {e}")
+        return {}, None, False
+    finally:
+        if on_collected is not None:
+            on_collected()
+    if log is not None:
+        log.info(
+            "manufacturer bundle collected",
+            manufacturers=len(bundle.resolved_manufacturers),
+            files=len(bundle.extra_files),
+            skipped=len(bundle.skipped_refs),
+        )
+    return bundle.extra_files, bundle.master_xml, bundle.has_product_members
 
 
 def _localname(tag: str) -> str:

@@ -11,6 +11,7 @@ from xknxeditor.proj.core.manufacturer_xml import (
     combine_product_members,
     defined_programs,
     merge_members,
+    missing_product_devices,
 )
 
 _NS = "http://knx.org/xml/project/23"
@@ -97,6 +98,25 @@ def _ids(xml: bytes, tag: str) -> set[str]:
 def test_the_own_data_is_kept_exactly_when_it_covers_every_device() -> None:
     devices = [_device("1", "One", "10", imported=True)]
     assert combine_product_members(_OWN, _SOURCE, devices) == _OWN
+
+
+def test_missing_product_devices_checks_program_product_and_application() -> None:
+    covered = _device("1", "One", "10", imported=True)
+    no_product = _device("1", "Other", "10", imported=False)
+    no_program = _device("1", "One", "11", imported=False)
+    # The hardware program is covered, but its required application file can
+    # live in a different source. Its reference works without an explicit app.
+    without_explicit_app = DeviceProduct(
+        covered.product, covered.hardware2program, "", imported=True
+    )
+    name, data = _app("10")
+    hardware = {f"{_M}/Hardware.xml": _OWN[f"{_M}/Hardware.xml"]}
+    devices = [covered, no_product, no_program, without_explicit_app]
+    assert missing_product_devices(devices, hardware) == devices
+    assert missing_product_devices(devices, hardware, {name: data}) == [
+        no_product,
+        no_program,
+    ]
 
 
 def test_a_replaced_application_adds_its_data_but_no_catalog_entry() -> None:

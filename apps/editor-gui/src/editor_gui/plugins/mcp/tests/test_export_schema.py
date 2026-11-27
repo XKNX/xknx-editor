@@ -12,15 +12,6 @@ from editor_gui.plugins.mcp.server import build_server
 from .test_server import _build_ctx, _data
 
 
-@pytest.fixture
-def bundle(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr(
-        "editor_gui.plugins.project.knxproj_manufacturer.collect_manufacturer_bundle",
-        lambda *_: SimpleNamespace(extra_files={}, master_xml=None),
-    )
-
-
-@pytest.mark.usefixtures("bundle")
 @pytest.mark.parametrize("chosen", ["20", "23"])
 async def test_export_uses_the_export_format(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, chosen: str
@@ -46,7 +37,6 @@ async def test_export_uses_the_export_format(
         project.close()
 
 
-@pytest.mark.usefixtures("bundle")
 @pytest.mark.parametrize(
     ("version_6", "chosen", "staged"),
     [

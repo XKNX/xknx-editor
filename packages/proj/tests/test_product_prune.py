@@ -18,6 +18,7 @@ from xknxeditor.proj import (
     prune_product_members,
 )
 from xknxeditor.proj.core.knxproj_signing import verify_directory_signature
+from xknxeditor.proj.core.product_prune import read_product_subset
 from xknxeditor.proj.db import make_engine, url_for
 from xknxeditor.proj.models import Device, Project
 
@@ -285,6 +286,72 @@ def test_prune_synthetic_set() -> None:
     assert _unzip(blob_out) == out
     assert blob_report.removed_members == report.removed_members
     assert blob_report.size_after < blob_report.size_before
+
+
+@pytest.mark.parametrize("encoded", [False, True])
+def test_catalog_subset_preserves_baggage_needed_by_kept_products(
+    monkeypatch: pytest.MonkeyPatch, encoded: bool
+) -> None:
+    members = _synthetic()
+    dropped_app = f"{M1}/{A2}.xml"
+    if encoded:
+        # A kept app uses a character reference. A discarded app uses the literal
+        # equivalent, making the attachment a deletion candidate unless both match.
+        members[f"{M1}/Baggages.xml"] = members[f"{M1}/Baggages.xml"].replace(
+            BG_SHARED.encode(), f"{M1}_BG-gr&#252;n".encode()
+        )
+        members[f"{M1}/{A1}.xml"] = members[f"{M1}/{A1}.xml"].replace(
+            BG_SHARED.encode(), f"{M1}_BG-gr&#xFC;n".encode()
+        )
+        members[dropped_app] = members[dropped_app].replace(
+            BG_SHARED.encode(), f"{M1}_BG-grün".encode()
+        )
+    # Put the dropped-only baggage reference across a chunk boundary.
+    discarded_xml = members[dropped_app]
+    reference_start = discarded_xml.index(BG_A2.encode())
+    declaration_end = discarded_xml.index(b"?>") + 2
+    members[dropped_app] = (
+        discarded_xml[:declaration_end]
+        + b" " * (64 * 1024 - reference_start - 3)
+        + discarded_xml[declaration_end:]
+    )
+    expected, _ = prune_product_members(members, _USED_PRODUCTS, _USED_PROGRAMS)
+    with zipfile.ZipFile(io.BytesIO(_zip(members))) as archive:
+        read = archive.read
+
+        def read_kept(name: str | zipfile.ZipInfo) -> bytes:
+            assert name not in {dropped_app, f"{M1}/{A3}.xml"}
+            return read(name)
+
+        monkeypatch.setattr(archive, "read", read_kept)
+        result = read_product_subset(
+            archive, archive.namelist(), _USED_PRODUCTS, _USED_PROGRAMS, ()
+        )
+
+    assert result == expected
+    assert f"{M1}/Baggages/shared.png" in result
+    assert f"{M1}/Baggages/orphan.png" in result
+    assert f"{M1}/Baggages/sub/dir/a2.zip" not in result
+
+
+@pytest.mark.parametrize("hardware", [None, b"<unparseable"])
+def test_catalog_subset_keeps_a_folder_without_readable_hardware(
+    hardware: bytes | None,
+) -> None:
+    members = {name: data for name, data in _synthetic().items() if name.startswith(M1)}
+    hw_name = f"{M1}/Hardware.xml"
+    if hardware is None:
+        del members[hw_name]
+    else:
+        members[hw_name] = hardware
+
+    with zipfile.ZipFile(io.BytesIO(_zip(members))) as archive:
+        assert (
+            read_product_subset(
+                archive, archive.namelist(), _USED_PRODUCTS, _USED_PROGRAMS, [A1]
+            )
+            == members
+        )
 
 
 def test_prune_keeps_application_named_by_device() -> None:

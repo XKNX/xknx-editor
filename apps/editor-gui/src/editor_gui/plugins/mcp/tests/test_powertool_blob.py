@@ -289,7 +289,6 @@ async def test_mcp_rtc_pages_raw_values_and_search_match_gui(tmp_path, monkeypat
 
 
 async def test_mcp_archive_export_uses_plugin_writeback(tmp_path, monkeypatch):
-    from types import SimpleNamespace
 
     from editor_gui.plugins.project.plugin_export import binary_data_for_export
     from xknxeditor.proj import export_knxproj
@@ -308,10 +307,6 @@ async def test_mcp_archive_export_uses_plugin_writeback(tmp_path, monkeypatch):
         return result
 
     monkeypatch.setattr("xknxeditor.proj.export_knxproj", export)
-    monkeypatch.setattr(
-        "editor_gui.plugins.project.knxproj_manufacturer.collect_manufacturer_bundle",
-        lambda *_: SimpleNamespace(extra_files={}, master_xml=None),
-    )
     async with Client(build_server(ctx)) as client:
         await _data(
             client, "project_export_knxproj", dest=str(tmp_path / "mcp.knxproj")

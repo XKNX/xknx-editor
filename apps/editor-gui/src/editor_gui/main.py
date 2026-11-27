@@ -21,6 +21,7 @@ import unicodedata
 from collections.abc import Callable, Generator, Sequence
 from dataclasses import dataclass
 from datetime import datetime
+from functools import partial
 from pathlib import Path
 from typing import Any, cast
 
@@ -119,7 +120,10 @@ from editor_gui.plugins.mcp import McpServerPlugin
 from editor_gui.plugins.mcp.plugin import advertise_url as _mcp_advertise_url
 from editor_gui.plugins.monitor import MonitorPlugin
 from editor_gui.plugins.project import ProjectPlugin, ProjectService
-from editor_gui.plugins.project.knxproj_manufacturer import collect_manufacturer_bundle
+from editor_gui.plugins.project.knxproj_manufacturer import (
+    catalog_export_sources,
+    collect_manufacturer_bundle,
+)
 from editor_gui.plugins.project.plugin_export import binary_data_for_export
 from editor_gui.plugins.project.space_text import space_type_name
 from editor_gui.plugins.project.strings import S as PROJECT_S
@@ -1958,34 +1962,18 @@ class KnxGuiApp:
                 signed=signer is not None,
                 remove_unused_products=remove_unused,
             )
-            extra_files: dict[str, bytes] = {}
-            master_xml: bytes | None = None
-            try:
-                bundle = collect_manufacturer_bundle(
-                    prepared.program_refs, self._catalog_service
-                )
-                extra_files, master_xml = bundle.extra_files, bundle.master_xml
-                self._log.info(
-                    "manufacturer bundle collected",
-                    manufacturers=len(bundle.resolved_manufacturers),
-                    files=len(extra_files),
-                    skipped=len(bundle.skipped_refs),
-                )
-            except (
-                Exception
-            ) as e:  # best effort: export the structure even if bundling fails
-                self._log.warning(
-                    "manufacturer bundle failed", error=f"{type(e).__name__}: {e}"
-                )
-            stage(S.EXPORT_STAGE_WRITE)
             try:
                 result = export_knxproj(
                     prepared.source,
                     Path(dest),
                     password=prepared.password,
                     schema=schema,
-                    extra_files=extra_files,
-                    master_xml=master_xml,
+                    catalog_sources=partial(
+                        catalog_export_sources,
+                        catalog=self._catalog_service,
+                        log=self._log,
+                        on_collected=lambda: stage(S.EXPORT_STAGE_WRITE),
+                    ),
                     # The current signed master, cached with the app's master data for exports
                     # without a download.
                     fetch_master=True,
@@ -6150,29 +6138,21 @@ class KnxGuiApp:
 
         def _export() -> None:
             stage(S.EXPORT_STAGE_BUNDLE)
-            extra_files: dict[str, bytes] = {}
-            master_xml: bytes | None = None
-            try:
-                bundle = collect_manufacturer_bundle(
-                    prepared.program_refs, self._catalog_service
-                )
-                extra_files, master_xml = bundle.extra_files, bundle.master_xml
-            except Exception as e:
-                self._log.warning(
-                    "manufacturer bundle failed", error=f"{type(e).__name__}: {e}"
-                )
             work: Path | None = None
             try:
                 work = Path(tempfile.mkdtemp(prefix="xknx_etsexport_"))
                 staged = work / Path(dest).name
-                stage(S.EXPORT_STAGE_WRITE)
                 result = export_knxproj(
                     prepared.source,
                     staged,
                     password=prepared.password,
                     schema=schema,
-                    extra_files=extra_files,
-                    master_xml=master_xml,
+                    catalog_sources=partial(
+                        catalog_export_sources,
+                        catalog=self._catalog_service,
+                        log=self._log,
+                        on_collected=lambda: stage(S.EXPORT_STAGE_WRITE),
+                    ),
                     fetch_master=True,
                     master_cache_dir=config_dir(),
                     remove_unused_products=remove_unused,

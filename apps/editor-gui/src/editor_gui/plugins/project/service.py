@@ -7194,11 +7194,24 @@ class ProjectService:
             if not com_objects or tree_covers(stored, com_objects):
                 continue
             device = self.find_device_by_node_id(device_id)
-            ui = device.dynamic_ui if device is not None and device.app else None
-            if ui is not None:
-                result[device_id] = group_object_tree_xml(
-                    ui.group_object_tree(), stored
-                )
+            if device is None or device.app is None:
+                continue
+            resident = device.evaluated
+            try:
+                ui = device.dynamic_ui
+                if ui is not None:
+                    result[device_id] = group_object_tree_xml(
+                        ui.group_object_tree(), stored
+                    )
+            finally:
+                if (
+                    not resident
+                    and device_id not in self._selected_node_ids
+                    and device_id not in self._dynui_lru
+                ):
+                    device.release_dynamic_ui()
+                # Avoid keeping this evaluator alive while loading the next one.
+                ui = None
         return result
 
     @io_guarded(list)
