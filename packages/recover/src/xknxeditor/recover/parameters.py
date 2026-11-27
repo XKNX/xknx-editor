@@ -5390,6 +5390,8 @@ def _infer_from_fixed(
     sizes: Mapping[int, str],
     fixed: _ValueMap,
     cancel: Callable[[], bool] | None = None,
+    *,
+    depth: int = 0,
 ) -> _ValueMap:
     """Values for shown settings the device keeps no copy of, read from the hidden settings
     with a fixed value (see :func:`_fixed_values`) their branches hold: a datapoint's type
@@ -5405,7 +5407,9 @@ def _infer_from_fixed(
     and hide no linked group object shown now; empty otherwise, or when nothing differs.
     ``values`` are decoded with no fixed values kept (each reference of a hidden setting of a
     module instance has the value the device holds); the application's own hidden settings
-    are each read as if they were the one written.
+    are each read as if they were the one written. Where no selector's own branches name a
+    value, one further out may (see :func:`_nested_from_fixed`), with the selectors it shows
+    named in turn (``depth``: how far out this already looks, ``_FIXED_NESTING`` at most).
     """
     from xknxeditor.prod.errors import EncodingError
     from xknxeditor.prod.parser_v2.activation import shown_parameters, values_to_try
@@ -5530,21 +5534,166 @@ def _infer_from_fixed(
         chosen.update(
             _sized(application, clean, project_code_page, sizes, ties, cancel)
         )
+
+    def improves(chosen: _ValueMap) -> bool:
+        """Whether ``chosen`` makes fewer bytes of the hidden settings differ from the memory
+        and hides no linked group object shown now."""
+        _check(cancel)
+        try:
+            trial = _seeded(application, {**clean, **chosen}, project_code_page)
+            assert trial is not None
+            if not _shown_objects(ui, sizes) & linked <= _shown_objects(trial, sizes):
+                return False
+            cells = _fixed_cells(ui, fixed) | _fixed_cells(trial, fixed)
+            before = _mismatches(ui, parameter_segments, cells)
+            after = _mismatches(trial, parameter_segments, cells)
+        except AllocatorOverflow:
+            # More than the product has room for: no configuration of the device.
+            return False
+        return after < before
+
+    if chosen and improves(chosen):
+        return chosen
+    if depth == _FIXED_NESTING:
+        return {}
+    # No selector names a branch whose own hidden settings fit: one further out may, whose
+    # branches hold them behind selectors of their own the device keeps no copy of either
+    # (the mode of a rocker, then the evaluation of its buttons). Those it shows are named by
+    # their branches in turn, and taken together with it.
+    chosen = _nested_from_fixed(
+        application, ui, values, shown, active, selectors, owning, held, fixed, cancel
+    )
     if not chosen:
         return {}
+    chosen.update(
+        _infer_from_fixed(
+            application,
+            parameter_segments,
+            property_values,
+            project_code_page,
+            {**values, **chosen},
+            linked,
+            sizes,
+            fixed,
+            cancel,
+            depth=depth + 1,
+        )
+    )
+    return chosen if improves(chosen) else {}
+
+
+# How many selectors further out than the one a hidden setting with a fixed value sits behind
+# _infer_from_fixed looks at most (each one with the selectors it shows named in turn).
+_FIXED_NESTING = 3
+
+
+def _nested_from_fixed(
+    application: Application,
+    ui: DynamicUI,
+    values: Mapping[str, str],
+    shown: Mapping[str, UiParameter],
+    active: Collection[str],
+    selectors: Mapping[str, UiParameter],
+    owning: Collection[str],
+    held: Mapping[str, str | None],
+    fixed: _ValueMap,
+    cancel: Callable[[], bool] | None,
+) -> _ValueMap:
+    """Values for the ``selectors`` (shown settings the device keeps no copy of) of
+    :func:`_infer_from_fixed` whose branches hold hidden settings with a fixed value behind
+    further selectors the device keeps no copy of, which are not shown yet: a branch fits a
+    hidden setting when one of its places there has the value the device holds (``held``, or
+    the instance's value in ``values``), whatever the selectors after it choose. A selector on
+    the way to a hidden setting with a fixed value stored at a byte that differs (``owning``)
+    takes the value whose branches fit the most such settings (those at bytes that differ),
+    when that is one value only and it fits more than the value now; empty when none does."""
+    from xknxeditor.prod.parser_v2.activation import values_to_try
+    from xknxeditor.prod.parser_v2.nodes.choose import satisfies, tested_values
+
+    indexer = ui.indexer
+
+    def setting_of(ref_id: str) -> str:
+        """The setting (of its instance) of the (qualified) param-ref ``ref_id``."""
+        return ref_id[: ref_id.rindex("_R-")] if "_R-" in ref_id else ref_id
+
+    # The hidden settings stored at a byte that differs: only they tell the branches apart.
+    wrong = {setting_of(ref_id) for ref_id in owning}
+    # Per selector and value, the hidden settings (each of each instance once) a branch fits.
+    fitting: dict[str, dict[str, set[str]]] = {}
+    differing: set[str] = set()
+    free: dict[str, bool] = {}
+
+    def is_free(param: str) -> bool:
+        """Whether the selector ``param`` may take any value: the device keeps no copy of it,
+        and it has no value read."""
+        known = free.get(param)
+        if known is None:
+            known = free[param] = param not in values and _is_unstored(ui, param)
+        return known
+
+    for ref_id, gates in _explored(application, ui, cancel):
+        local = ui.local_ref_id(ref_id)
+        own = fixed.get(local)
+        if own is None or not gates:
+            continue
+        if ref_id in owning:
+            differing.update(gate.param for gate in gates if gate.param in selectors)
+        value = (
+            held.get(indexer.parameter_refs[local].ref_id)
+            if ref_id == local
+            else values.get(ref_id)
+        )
+        setting = setting_of(ref_id)
+        if value is None or setting not in wrong or not _same_value(value, own):
+            continue
+        holding = [_gate_holds(ui, gate, shown, active) for gate in gates]
+        for n, gate in enumerate(gates):
+            parameter = selectors.get(gate.param)
+            if parameter is not None and all(
+                holds or (later.param != gate.param and is_free(later.param))
+                for later, holds in zip(gates[n + 1 :], holding[n + 1 :], strict=True)
+            ):
+                current = ui.get_value(gate.param) or parameter.default_value
+                allowed = [
+                    *values_to_try(parameter, current, ui.tested_values(gate.param)),
+                    current,
+                ]
+                # A default branch takes every value its choose tests for nothing else.
+                taken = (
+                    [
+                        name
+                        for name in tested_values(gate.when)
+                        if satisfies(gate.when, name)
+                    ]
+                    if gate.when is not None
+                    else [
+                        name
+                        for name in allowed
+                        if not any(satisfies(other, name) for other in gate.unless)
+                    ]
+                )
+                branches = fitting.setdefault(gate.param, {})
+                for name in taken:
+                    if name in allowed:
+                        branches.setdefault(name, set()).add(setting)
+            if not holding[n]:
+                break
     _check(cancel)
-    try:
-        trial = _seeded(application, {**clean, **chosen}, project_code_page)
-        assert trial is not None
-        if not _shown_objects(ui, sizes) & linked <= _shown_objects(trial, sizes):
-            return {}
-        cells = _fixed_cells(ui, fixed) | _fixed_cells(trial, fixed)
-        before = _mismatches(ui, parameter_segments, cells)
-        after = _mismatches(trial, parameter_segments, cells)
-    except AllocatorOverflow:
-        # More than the product has room for: no configuration of the device.
-        return {}
-    return chosen if after < before else {}
+    chosen: _ValueMap = {}
+    for selector in differing:
+        branches = fitting.get(selector)
+        if not branches:
+            continue
+        current = ui.get_value(selector) or selectors[selector].default_value
+        most = max(len(settings) for settings in branches.values())
+        best = [name for name, settings in branches.items() if len(settings) == most]
+        if (
+            len(best) == 1
+            and best[0] != current
+            and most > len(branches.get(current, ()))
+        ):
+            chosen[selector] = best[0]
+    return chosen
 
 
 def _offsets_differing(device: bytes, mine: bytes) -> list[int]:
