@@ -70,6 +70,7 @@ class ApplicationIndexer:
         "refs_by_number",
         "refs_of_parameters",
         "scope_decoded",
+        "scope_places",
         "scope_writes",
         "script",
         "stored_bits",
@@ -149,6 +150,9 @@ class ApplicationIndexer:
         # The local ids of the refs looked up in UIs, by their module scopes (see
         # DynamicUI.local_ref_id), of the last few kinds of scopes.
         self.local_ids: dict[tuple[object, ...], dict[str, str]] = {}
+        # Where the refs looked up in UIs are (the position of their scope and their local
+        # id), by their module scopes (see dynamic._Placed), of the last few kinds of scopes.
+        self.scope_places: dict[tuple[object, ...], dict[str, tuple[int, str]]] = {}
         self.ref_owner: dict[str, str | None] = {}
         self.refs_by_name: dict[str | None, dict[str, str]] = {}
         self.refs_by_number: dict[str | None, dict[int, str]] = {}

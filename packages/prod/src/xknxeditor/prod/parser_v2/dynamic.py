@@ -855,6 +855,41 @@ def _local_ids_of(
     return found
 
 
+class _Placed:
+    """The scopes of an evaluated state in their order (the application's first, then the
+    module instances level by level), with what UIs of the application with the same module
+    scopes (``key``, see :meth:`ParameterState.scopes`) found in theirs, kept with the indexer
+    (of the last few kinds of scopes): the position of the scope of each ref looked up and its
+    local id, and the refs grouped by their scopes (see :meth:`DynamicUI._group_by_scope`)."""
+
+    __slots__ = ("_positions", "key", "places", "scopes")
+
+    def __init__(self, idx: ApplicationIndexer, state: ParameterState) -> None:
+        self.key = state.scopes()
+        scopes: list[ParameterState] = [state]
+        n = 0
+        while n < len(scopes):
+            scopes.extend(scopes[n].module_children())
+            n += 1
+        self.scopes = scopes
+        self._positions: dict[int, int] | None = None
+        places = idx.scope_places.get(self.key)
+        if places is None:
+            if len(idx.scope_places) >= 64:
+                idx.scope_places.clear()
+            places = idx.scope_places[self.key] = {}
+        self.places = places
+
+    def position(self, scope: ParameterState) -> int | None:
+        """Where ``scope`` is among the scopes; None for another one."""
+        positions = self._positions
+        if positions is None:
+            positions = self._positions = {
+                id(found): n for n, found in enumerate(self.scopes)
+            }
+        return positions.get(id(scope))
+
+
 def _com_object_number(ref_id: str) -> str:
     """A com-object ref canonicalized by dropping ONLY the terminal ComObjectRef qualifier
     (``_R-<m>``), while preserving any module-instance path (``MD-…_M-…_MI-…_O-…``).
@@ -1155,6 +1190,7 @@ class DynamicUI:
         "_parameter_gates",
         "_program_pin",
         "_scope_ids",
+        "_scope_places",
         "_selector_param_refs",
         "_selector_tested_values",
         "_state",
@@ -1241,6 +1277,9 @@ class DynamicUI:
         # The local ids of the refs looked up, shared by the UIs with the same module scopes
         # (see local_ref_id); cleared with ``_ui``.
         self._local_ids: dict[str, str] | None = None
+        # The scopes of the evaluated state in their order, with where the UIs with the same
+        # module scopes found refs (see _placed); cleared with ``_ui``.
+        self._scope_places: _Placed | None = None
         self.script_env: JScriptEnv | None = None
         self.script_abort: AbortToken | None = None
         # What the nodes gave in evaluations of other UIs of the program alike (see
@@ -1255,6 +1294,7 @@ class DynamicUI:
         self._located = {}
         self._scope_ids = None
         self._local_ids = None
+        self._scope_places = None
 
     def _discover_union_activity(self) -> list[UiNode] | None:
         """Discovery pass ahead of a render eval: evaluate the tree WITHOUT union suppression so every
@@ -1375,6 +1415,7 @@ class DynamicUI:
         self._located = {}
         self._scope_ids = None
         self._local_ids = None
+        self._scope_places = None
         self._ui, result = self._eval_settled(capture)
         self._state.trim_to_active()
         if capture_active:
@@ -1914,9 +1955,32 @@ class DynamicUI:
         if self._ui is not None:
             located = self._located.get(ref_id)
             if located is None:
-                located = self._located[ref_id] = self._find_evaluated_scope(ref_id)
+                located = self._located[ref_id] = self._find_placed(ref_id)
             return located
         return self._find_scope(ref_id)
+
+    def _placed(self) -> _Placed:
+        """The scopes of the evaluated state, with where the UIs with the same module scopes
+        found refs (see :class:`_Placed`)."""
+        placed = self._scope_places
+        if placed is None:
+            placed = self._scope_places = _Placed(self._idx, self._state)
+        return placed
+
+    def _find_placed(self, ref_id: str) -> tuple[ParameterState, str]:
+        """:meth:`_find_evaluated_scope`, where UIs with the same module scopes found it before
+        (it depends on the module scopes alone: their ids, in their order)."""
+        placed = self._placed()
+        place = placed.places.get(ref_id)
+        if place is not None:
+            return placed.scopes[place[0]], place[1]
+        scope, local = self._find_evaluated_scope(ref_id)
+        n = placed.position(scope)
+        if n is not None:
+            if len(placed.places) >= 1 << 17:
+                placed.places.clear()
+            placed.places[ref_id] = (n, local)
+        return scope, local
 
     def _find_evaluated_scope(self, ref_id: str) -> tuple[ParameterState, str]:
         """:meth:`_find_scope` in the evaluated state, told by the ids of its module instances
@@ -2289,17 +2353,22 @@ class DynamicUI:
         # nothing about the settings it is computed from.
         active = self.active_parameter_ref_ids() if stored else frozenset[str]()
         journal = self._journal()
+        idx = self._idx
         for scope, locals_ in self._group_by_scope(ref_ids):
             run_calculations_many(
-                self._idx,
+                idx,
                 locals_,
                 self._calc_scope(scope),
                 journal,
                 self.script_env,
                 raise_errors=False,
                 abort=self.script_abort,
+                # Only asked for the refs on the right side of a calculation.
                 stored={
-                    local for local in locals_ if scope.qualify_local(local) in active
+                    local
+                    for local in locals_
+                    if idx.calculations_for_r(local)
+                    and scope.qualify_local(local) in active
                 }
                 if stored
                 else None,
@@ -2312,6 +2381,38 @@ class DynamicUI:
     def _group_by_scope(
         self, ref_ids: Iterable[str]
     ) -> list[tuple[ParameterState, list[str]]]:
+        """The local ids of the param-refs of ``ref_ids`` by their scopes, in the order the
+        scopes and the ids first come. Evaluated, each ref is placed where UIs with the same
+        module scopes found it (see :meth:`_find_placed`): a search recalculates thousands of
+        values in many."""
+        if self._ui is None:
+            return self._grouped(ref_ids)
+        ref_ids = list(ref_ids)
+        placed = self._placed()
+        places = placed.places
+        parameter_refs = self._idx.parameter_refs
+        groups: dict[int, list[str]] = {}
+        for ref_id in ref_ids:
+            place = places.get(ref_id)
+            if place is None:
+                self._locate(ref_id)
+                place = places.get(ref_id)
+                if place is None:
+                    # Not in a scope of the state: as it is found.
+                    return self._grouped(ref_ids)
+            n, local = place
+            if local in parameter_refs:
+                found = groups.get(n)
+                if found is None:
+                    found = groups[n] = []
+                found.append(local)
+        scopes = placed.scopes
+        return [(scopes[n], locals_) for n, locals_ in groups.items()]
+
+    def _grouped(
+        self, ref_ids: Iterable[str]
+    ) -> list[tuple[ParameterState, list[str]]]:
+        """:meth:`_group_by_scope`, worked out."""
         groups: dict[int, tuple[ParameterState, list[str]]] = {}
         for ref_id in ref_ids:
             scope, local = self._locate(ref_id)
@@ -2628,6 +2729,7 @@ class DynamicUI:
             self._located = {}
             self._scope_ids = None
             self._local_ids = None
+            self._scope_places = None
 
     @property
     def indexer(self) -> ApplicationIndexer:
@@ -2719,7 +2821,7 @@ class DynamicUI:
         # seeds many) look up each ref once.
         local_ids = self._local_ids
         if local_ids is None:
-            local_ids = self._local_ids = _local_ids_of(self._idx, self._state.scopes())
+            local_ids = self._local_ids = _local_ids_of(self._idx, self._placed().key)
         local = local_ids.get(ref_id)
         if local is None:
             local = local_ids[ref_id] = self._locate(ref_id)[1]
