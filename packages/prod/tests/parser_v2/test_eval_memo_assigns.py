@@ -5,6 +5,8 @@ again too. A UI evaluated with the memo is the UI evaluated anew, also after an 
 
 from __future__ import annotations
 
+import copy
+import random
 from pathlib import Path
 
 import pytest
@@ -17,6 +19,7 @@ from xknxeditor.prod.parser_v2.nodes.com_object_parameter_block import (
     ComObjectParameterBlockNode,
 )
 from xknxeditor.prod.parser_v2.nodes.module import ModuleNode
+from xknxeditor.prod.parser_v2.state import GlobalState, ParameterState
 
 _FIXTURES = Path(__file__).parents[1] / "fixtures"
 _ASSIGNING = sorted(
@@ -592,3 +595,63 @@ def test_module_instances_with_assigns_evaluated_with_the_memo_are_evaluated_ane
         for ui in (with_memo, anew):
             ui.apply_parameter_values({_KIND_1: "1"})
         assert _observed(with_memo) == _observed(anew), edit
+
+
+def _assign_fields(scope: ParameterState) -> tuple[object, ...]:
+    """What an Assign changes in ``scope``, the mappings with their order."""
+    return tuple(
+        list(field.items()) if isinstance(field, dict) else field
+        for field in (
+            scope._active_assigns,  # pyright: ignore[reportPrivateUsage]
+            scope._assigned_from,  # pyright: ignore[reportPrivateUsage]
+            scope._assigns_now,  # pyright: ignore[reportPrivateUsage]
+            scope._assign_targets,  # pyright: ignore[reportPrivateUsage]
+            scope._known_param_ref_values,  # pyright: ignore[reportPrivateUsage]
+            scope.param_ref_id_to_value,
+            scope._pass_values,  # pyright: ignore[reportPrivateUsage]
+            scope._evaluation_writes,  # pyright: ignore[reportPrivateUsage]
+            scope._ungated_writes,  # pyright: ignore[reportPrivateUsage]
+            scope._assign_written,  # pyright: ignore[reportPrivateUsage]
+        )
+    )
+
+
+def test_assigns_done_again_in_one_call_write_as_each_does_on_its_own() -> None:
+    rng = random.Random(5)
+    refs = [f"R-{n}" for n in range(6)]
+
+    def some(values: list[str]) -> list[str]:
+        return [value for value in values if rng.random() < 0.4]
+
+    for _ in range(400):
+        scope = GlobalState({ref: rng.choice("01") for ref in some(refs)})
+        for ref in some(refs):
+            scope.param_ref_id_to_value[ref] = rng.choice("012")
+        scope._assign_seen = {  # pyright: ignore[reportPrivateUsage]
+            key: rng.choice(["0", "1", None]) for key in range(4) if rng.random() < 0.5
+        }
+        if rng.random() < 0.5:
+            scope._seeded = frozenset(some(refs))  # pyright: ignore[reportPrivateUsage]
+        if rng.random() < 0.5:
+            scope._gate_param_refs = set(some(refs))  # pyright: ignore[reportPrivateUsage]
+        for ref in some(refs):
+            scope._pass_values[ref] = rng.choice(["0", None])  # pyright: ignore[reportPrivateUsage]
+            scope._evaluation_writes[ref] = ("0", None)  # pyright: ignore[reportPrivateUsage]
+            scope._ungated_writes[ref] = (None, "1")  # pyright: ignore[reportPrivateUsage]
+        assigns = [
+            (
+                rng.randrange(4),
+                rng.choice(refs),
+                rng.choice([*refs, None]),
+                rng.choice(["0", "1", None, None]),
+            )
+            for _ in range(rng.randrange(8))
+        ]
+        each, in_one = copy.deepcopy(scope), copy.deepcopy(scope)
+        done: list[tuple[int, str, str | None, str | None, str | None]] = []
+        for key, target, source, fixed in assigns:
+            read = each.get(source) if fixed is None and source is not None else None
+            done.append((key, target, source, fixed, read))
+            each.apply_assign(key, target, source, fixed, marks=False)
+        in_one.redo_assigns(done)
+        assert _assign_fields(in_one) == _assign_fields(each), assigns

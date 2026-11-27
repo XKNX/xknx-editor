@@ -76,9 +76,10 @@ class RepeatNode(DynamicNode):
             capture.push(ctx.qualify_local(count_param))  # type: ignore[union-attr]
         try:
             count = self._count(ctx)
+            active = self._active()
             for i in range(1, count + 1):
                 rctx = ctx.repeat_ctx(i, count)
-                for c in self._active():
+                for c in active:
                     result.extend(c.eval(rctx))
         finally:
             if gating and count_param:

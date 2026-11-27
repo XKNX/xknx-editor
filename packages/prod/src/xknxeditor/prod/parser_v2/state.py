@@ -460,12 +460,13 @@ class ParameterState:
 
         The value is stored like any other value and stays when the Assign no longer applies.
         Nothing is written while the source has no value."""
-        write = self.assign_writes(key, target, value, from_source=from_source)
         self._assigns_now[key] = value if from_source else None
         if value is None:
             return
         self._assign_targets.add(target)
-        if not (write or always):
+        if not (
+            always or self.assign_writes(key, target, value, from_source=from_source)
+        ):
             return
         before = (
             self._known_param_ref_values.get(target),
@@ -732,19 +733,51 @@ class ParameterState:
     def redo_assigns(self, assigns: Iterable[AssignDone]) -> None:
         """:meth:`apply_assign` without the marks of each of ``assigns`` in their order (see
         :data:`AssignDone`), with the value its source has now known: one call for all
-        those of an evaluation taken again (see EvalMemo)."""
+        those of an evaluation taken again (see EvalMemo), :meth:`run_assign` and
+        :meth:`set` done in place (a search takes thousands of them again each pass)."""
         active = self._active_assigns
         assigned_from = self._assigned_from
-        run = self.run_assign
-        for key, target, source, value, read in assigns:
+        seen = self._assign_seen
+        seeded = self._seeded
+        now = self._assigns_now
+        targets = self._assign_targets
+        known = self._known_param_ref_values
+        values = self.param_ref_id_to_value
+        pass_values = self._pass_values
+        evaluation = self._evaluation_writes
+        ungated = self._ungated_writes if self._gate_param_refs is None else None
+        written = self._assign_written
+        for key, target, source, fixed, read in assigns:
             active.add(key)
-            if value is not None:
+            if fixed is not None:
                 # The last Assign of the pass decides where the target's value comes from.
                 assigned_from.pop(target, None)
-                run(key, target, value, from_source=False)
+                value, from_source = fixed, False
             elif source is not None:
                 assigned_from[target] = source
-                run(key, target, read, from_source=True)
+                value, from_source = read, True
+            else:
+                continue
+            # As run_assign.
+            now[key] = value if from_source else None
+            if value is None:
+                continue
+            targets.add(target)
+            if key in seen:
+                if not (from_source and seen[key] != value):
+                    continue
+            elif seeded is not None and target in seeded:
+                continue
+            before = (known.get(target), values.get(target))
+            if ungated is not None:
+                ungated.setdefault(target, before)
+            evaluation.setdefault(target, before)
+            # As set.
+            if target not in pass_values:
+                pass_values[target] = before[0]
+            values[target] = value
+            known[target] = value
+            written.add(target)
 
     def mark_assigned_from(self, target: str, source: str) -> None:
         """An Assign of the current pass wrote ``target`` from ``source``."""
@@ -1051,7 +1084,9 @@ class ParameterState:
             self._children[key] = child
         else:
             child = self._children[key]
-            child._parent = self
+            ref = child._parent_ref
+            if ref is None or ref() is not self:
+                child._parent = self
             child.repeat_path = path
             child.earlier = earlier
             if ref_id is not None:
