@@ -26,7 +26,7 @@ from collections import Counter, OrderedDict
 from collections.abc import Callable, Collection, Iterator, Mapping, Sequence
 from dataclasses import dataclass, field, replace
 from enum import Enum
-from functools import partial
+from functools import lru_cache, partial
 from itertools import count
 from typing import TYPE_CHECKING, NamedTuple, cast
 
@@ -3253,9 +3253,11 @@ def _shows_no_more(
     )
 
 
+@lru_cache(maxsize=1 << 18)
 def _ref_tail(ref_id: str) -> str:
     """The part of a param-ref id that a module instance's qualified id of it keeps: from its
-    parameter (``_P-5_R-5`` of ``..._MD-1_M-2_MI-3_P-5_R-5`` and of ``..._MD-1_P-5_R-5``)."""
+    parameter (``_P-5_R-5`` of ``..._MD-1_M-2_MI-3_P-5_R-5`` and of ``..._MD-1_P-5_R-5``).
+    Asked for millions of times in a search, of the same refs."""
     start = max(ref_id.rfind("_P-"), ref_id.rfind("_UP-"))
     return ref_id if start < 0 else ref_id[start:]
 

@@ -128,6 +128,9 @@ def test_a_tail_is_what_an_instance_keeps_of_a_ref() -> None:
     assert tail(f"{_APP}_MD-1_P-5_R-5") == "_P-5_R-5"
     assert tail(f"{_APP}_MD-1_M-2_MI-3_UP-4_R-9") == "_UP-4_R-9"
     assert tail("other") == "other"
+    # Asked again (the tails are kept).
+    assert tail(f"{_APP}_MD-1_M-2_MI-3_P-5_R-5") == "_P-5_R-5"
+    assert tail(f"{_APP}_MD-1_M-2_MI-3_UP-4_R-9") == "_UP-4_R-9"
 
 
 def test_the_kinds_asked_again_are_the_same(switches: Application) -> None:
