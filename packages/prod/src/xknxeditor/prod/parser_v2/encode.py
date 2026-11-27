@@ -288,10 +288,12 @@ def _encode_value(
                     size_in_bit,
                     bits,
                 )
-    if isinstance(tc, ParameterTypeTypeTime) and _is_packed_dhms(tc, size_in_bit):
-        # A packed duration is not a plain integer: one octet each for seconds, minutes
-        # and hours (see _pack_dhms).
+    if _is_packed_dhms(tc, size_in_bit):
+        # A packed duration is not a plain integer (see _pack_dhms).
         return _pack_dhms(str_value)
+    if _is_packed_sms(tc, size_in_bit):
+        # A packed duration is not a plain integer (see _pack_sms).
+        return _pack_sms(str_value)
     if isinstance(tc, (ParameterTypeTypeNumber, ParameterTypeTypeTime)):
         # A time value is stored as a plain integer in the type's unit.
         return _apply_byte_order(
@@ -411,35 +413,77 @@ def _is_packed_dhms(tc: object, size_in_bit: int) -> bool:
     )
 
 
-def _pack_dhms(str_value: str) -> int | None:
-    """Pack a duration given in seconds into the 24-bit ``PackedDaysHoursMinutesAndSeconds``
-    layout: first octet seconds, second octet minutes, third octet hours.
+def _is_packed_sms(tc: object, size_in_bit: int) -> bool:
+    """Whether ``tc`` is a 16-bit ``TypeTime`` with ``Unit="PackedSecondsAndMilliseconds"``."""
+    return (
+        isinstance(tc, ParameterTypeTypeTime)
+        and getattr(tc, "unit", None)
+        == ParameterTypeTypeTimeUnit.PACKED_SECONDS_AND_MILLISECONDS
+        and size_in_bit == 16
+    )
 
-    ETS shows and stores the parameter value in seconds (e.g. ``600`` = 10 minutes), but
-    writes it to the device packed: 30 s -> ``1E 00 00``, 300 s -> ``00 05 00``,
-    600 s -> ``00 0A 00``, 3600 s -> ``00 00 01``. Writing the plain integer instead
-    (``00 02 58`` for 600 s) makes the device read seconds as hours, e.g. ``1`` (1 s)
-    as 1 hour (B.E.G. PD2N-KNXs Generation 7 "Nachlaufzeit").
-    """
+
+def _parse_int(str_value: str) -> int | None:
     try:
-        seconds = int(str_value, 0) if str_value[:2].lower() == "0x" else int(str_value)
+        return int(str_value, 0) if str_value[:2].lower() == "0x" else int(str_value)
     except (ValueError, TypeError):
         return None
-    if seconds < 0:
+
+
+def _pack_dhms(str_value: str) -> int | None:
+    """Pack a duration in seconds into the three octets of ``PackedDaysHoursMinutesAndSeconds``.
+
+    Octet 1 holds the seconds (0-59), octet 2 the minutes (0-59), octet 3 the days in its
+    top three bits and the hours (0-23) in its low five bits:
+    ``[s, m, ((days & 7) << 5) | (hours & 0x1F)]``. Values beyond that range are masked.
+    Examples: 30 s -> ``1E 00 00``, 300 s -> ``00 05 00``, 3600 s -> ``00 00 01``,
+    86400 s -> ``00 00 20``.
+    """
+    seconds = _parse_int(str_value)
+    if seconds is None or seconds < 0:
         return None
-    hours, rest = divmod(seconds, 3600)
+    days, rest = divmod(seconds, 86400)
+    hours, rest = divmod(rest, 3600)
     minutes, secs = divmod(rest, 60)
-    if hours > 0xFF:
-        return None
-    return (secs << 16) | (minutes << 8) | hours
+    third = ((days & 0x07) << 5) | (hours & 0x1F)
+    return (secs << 16) | (minutes << 8) | third
 
 
 def _unpack_dhms(raw: int) -> str | None:
-    """Inverse of :func:`_pack_dhms`: the duration in seconds, ``None`` for invalid octets."""
-    secs, minutes, hours = (raw >> 16) & 0xFF, (raw >> 8) & 0xFF, raw & 0xFF
-    if secs > 59 or minutes > 59:
+    """Inverse of :func:`_pack_dhms`: the duration in seconds; ``None`` for octets whose
+    seconds or minutes exceed 59 or whose hours exceed 23."""
+    secs, minutes, third = (raw >> 16) & 0xFF, (raw >> 8) & 0xFF, raw & 0xFF
+    days, hours = third >> 5, third & 0x1F
+    if secs > 59 or minutes > 59 or hours > 23:
         return None
-    return str(hours * 3600 + minutes * 60 + secs)
+    return str(days * 86400 + hours * 3600 + minutes * 60 + secs)
+
+
+def _pack_sms(str_value: str) -> int | None:
+    """Pack a duration in milliseconds into the two octets of ``PackedSecondsAndMilliseconds``.
+
+    With ``ms = value % 1000`` and ``s = value // 1000``: octet 1 holds the low eight bits
+    of ``ms``, octet 2 the two high bits of ``ms`` in its top two bits and the seconds in
+    its low six bits: ``[ms & 0xFF, ((ms & 0x300) >> 2) | (s & 0x3F)]``.
+    Examples: 1500 ms -> ``F4 41``, 59999 ms -> ``E7 FB``.
+    """
+    value = _parse_int(str_value)
+    if value is None or value < 0:
+        return None
+    secs, ms = divmod(value, 1000)
+    first = ms & 0xFF
+    second = ((ms & 0x300) >> 2) | (secs & 0x3F)
+    return (first << 8) | second
+
+
+def _unpack_sms(raw: int) -> str | None:
+    """Inverse of :func:`_pack_sms`: the duration in milliseconds; ``None`` for octets whose
+    milliseconds exceed 999."""
+    first, second = (raw >> 8) & 0xFF, raw & 0xFF
+    ms = first | ((second & 0xC0) << 2)
+    if ms > 999:
+        return None
+    return str((second & 0x3F) * 1000 + ms)
 
 
 def _number_bits_in_range(number: int, tc: ParameterTypeTypeNumber) -> bool:
@@ -2112,6 +2156,8 @@ def _decode_value(
     if isinstance(tc, ParameterTypeTypeTime):
         if _is_packed_dhms(tc, size_in_bit):
             return _unpack_dhms(raw)
+        if _is_packed_sms(tc, size_in_bit):
+            return _unpack_sms(raw)
         return str(_apply_byte_order(raw, size_in_bit, little_endian) or 0)
     if isinstance(tc, ParameterTypeTypeFloat):
         # Mirror the encoder: a little-endian program reverses the float octets, so undo
