@@ -363,8 +363,12 @@ class ParameterState:
         val = self.param_ref_id_to_value.get(ref_id)
         if val is not None:
             return val
-        if self._parent is not None:
-            parent_val = self._parent.get(ref_id)
+        # The scope this one is in (see _parent), looked up once: every evaluation reads
+        # millions of values.
+        ref = self._parent_ref
+        parent = ref() if ref is not None else None
+        if parent is not None:
+            parent_val = parent.get(ref_id)
             if parent_val is not None:
                 return parent_val
         return self._param_ref_defaults.get(ref_id)
@@ -1451,11 +1455,15 @@ class ModuleState(ParameterState):
         return ref_id
 
     def get(self, ref_id: str) -> str | None:
-        base = self.param_ref_bases.get(ref_id)
-        arg = self.get_arg(base) if base is not None else None
-        if arg is not None and arg.value is not None:
-            return str(arg.value)
-        return super().get(ref_id)
+        bases = self.param_ref_bases
+        if bases:
+            base = bases.get(ref_id)
+            if base is not None:
+                # As get_arg: a numeric argument with a value is the value.
+                arg = self.arguments.get(base)
+                if isinstance(arg, ModuleNumericArg) and arg.value is not None:
+                    return str(arg.value)
+        return ParameterState.get(self, ref_id)
 
     def get_arg_defaults(self) -> dict[str, str]:
         return self._arg_defaults
