@@ -227,6 +227,30 @@ def test_a_block_that_reads_what_its_assign_wrote_is_evaluated_again(
     assert observed == _observed(_ui(application, {_MODE: "1"}, None))
 
 
+def test_a_block_that_is_never_replayable_is_no_longer_recorded(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    recorded: list[Recording] = []
+    record = Recording.__init__
+
+    def counted(self: Recording, *args: object) -> None:
+        record(self, *args)  # type: ignore[arg-type]
+        if self.assigns and not self.replayable:
+            recorded.append(self)
+
+    monkeypatch.setattr(Recording, "__init__", counted)
+    application = _parsed(_xml(_READS_ITS_OWN))
+    memo = EvalMemo()
+    for n in range(8):
+        values = {_MODE: "1", _OTHER: str(n % 2)}
+        assert _observed(_ui(application, values, memo)) == _observed(
+            _ui(application, values, None)
+        )
+    # The block and the channel around it, each recorded until it was not replayable
+    # UNREPLAYABLE times, then evaluated as it is.
+    assert len(recorded) == 2 * EvalMemo.UNREPLAYABLE
+
+
 def test_a_ui_edited_after_an_evaluation_with_the_memo_is_the_one_evaluated_anew() -> (
     None
 ):

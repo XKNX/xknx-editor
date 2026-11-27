@@ -540,11 +540,22 @@ class EvalMemo:
     pass before of the same kind and nothing it reads differs from then (see
     :meth:`unchanged`): a search evaluates thousands of states that differ in a few values."""
 
-    __slots__ = ("_count", "_entries", "_last", "_open", "_unrecorded", "thread")
+    __slots__ = (
+        "_count",
+        "_entries",
+        "_last",
+        "_open",
+        "_unrecorded",
+        "_unreplayable",
+        "thread",
+    )
 
     # A node of a channel a search tries values in takes turns between a few states (its
     # selector's values, with and without gates): fewer are evaluated again and again.
     ENTRIES = 4
+    # The recordings of a node that were not replayable after which it is evaluated without
+    # recording (a block that reads what its Assigns wrote in most states).
+    UNREPLAYABLE = 3
 
     def __init__(self) -> None:
         # By node and module instance (empty for the application's scope): a module
@@ -553,6 +564,10 @@ class EvalMemo:
         # The nodes (by their identity) of module definitions whose evaluation in an instance
         # did Assigns: evaluated in each instance without the memo from then on.
         self._unrecorded: dict[int, object] = {}
+        # How many evaluations of each node (by the same key as the entries) were recorded
+        # without being replayable (see Recording): one that is so again and again is
+        # evaluated without recording from then on (see UNREPLAYABLE).
+        self._unreplayable: dict[tuple[int, str], tuple[object, int]] = {}
         # The thread it is used in (a UI evaluated with it may be evaluated in another).
         self.thread = threading.get_ident()
         self._count = 0
@@ -666,6 +681,13 @@ class EvalMemo:
                     if current is not None:
                         recording.valid_in[current.slot] = current.number
                     return list(recording.output)
+        unreplayable = self._unreplayable.get(key)
+        if (
+            unreplayable is not None
+            and unreplayable[0] is node
+            and unreplayable[1] >= self.UNREPLAYABLE
+        ):
+            return evaluate(ctx)
         # What the evaluation reads and does is recorded on the tape: of the outermost
         # evaluation a new one, those inside it record on the same.
         outermost = ctx._tape is None  # pyright: ignore[reportPrivateUsage]
@@ -691,6 +713,12 @@ class EvalMemo:
             return output
         if not entry.replayable:
             # Its reads cannot tell that its Assigns write the same (see Recording).
+            strikes = (
+                unreplayable[1] + 1
+                if unreplayable is not None and unreplayable[0] is node
+                else 1
+            )
+            self._unreplayable[key] = (node, strikes)
             return output
         if current is not None:
             entry.valid_in[current.slot] = current.number
