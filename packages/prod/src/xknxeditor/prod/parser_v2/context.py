@@ -3,6 +3,7 @@ from __future__ import annotations
 import threading
 from collections.abc import Callable, Collection, Iterable, Iterator, Mapping, Sequence
 from dataclasses import dataclass
+from itertools import repeat
 from typing import TYPE_CHECKING, Protocol, cast
 
 from xknxeditor.namespaces.intermediate import ModuleArg
@@ -299,6 +300,7 @@ class Recording:
         "discovered_keys",
         "events",
         "gate_keys",
+        "gate_parts",
         "gates",
         "handed",
         "handed_ids",
@@ -425,6 +427,11 @@ class Recording:
         # this one leaves out those read after it) and the group object settings.
         self.values = tuple(dict.fromkeys(values))
         self.gates = tuple(dict.fromkeys(gates))
+        # The same as their parameters and decisions (to note them in one call).
+        self.gate_parts: tuple[tuple[object, ...], tuple[object, ...]] = (
+            tuple(key for key, _ in self.gates),
+            tuple(active for _, active in self.gates),
+        )
         self.reads = tuple(dict.fromkeys(reads))
         self.text_events = tuple(text_reads)
         self.object_events = tuple(object_reads)
@@ -1278,7 +1285,8 @@ class EvalContext:
             scope.set_text(key, text)  # type: ignore[arg-type]
         checks = self._gate_checks
         if checks is not None:
-            checks.extend((scope, key, active) for key, active in recording.gates)  # type: ignore[misc]
+            keys, decisions = recording.gate_parts
+            checks.extend(zip(repeat(scope), keys, decisions))  # type: ignore[arg-type]
         chooses = self._union_chooses
         if chooses is not None:
             chooses.extend((scope, key, siblings) for key, siblings in recording.unions)  # type: ignore[misc]
