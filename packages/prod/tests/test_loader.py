@@ -180,6 +180,9 @@ def test_the_parsed_share_of_a_lone_worker(
 ) -> None:
     """An application parsed in a worker process is counted there and heard here."""
     monkeypatch.setattr(parse_cache, "LONE_WORKER_MIN_BYTES", 1)
+    # The worker starts only when the free memory holds it: the test's own amount, not the
+    # machine's (a loaded machine has less than one worker's share free at times).
+    monkeypatch.setattr(parse_cache, "available_memory", lambda: 32 << 30)
     started: list[int] = []
     real_pool = parse_cache.ProcessPoolExecutor
 
