@@ -452,6 +452,71 @@ async def test_an_ack_of_a_frame_without_confirmation_is_taken() -> None:
     await connection.disconnect()
 
 
+async def test_a_restart_the_device_acked_without_confirmation_is_sent(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """#390: the interface the connection runs through acknowledges its restart and restarts
+    before its L_Data.con; the ACK shows the restart arrived."""
+    peer = _Peer()
+    connection = await peer.connect()
+
+    def respond(telegram: Telegram) -> None:
+        peer.ack(telegram)
+        raise ConfirmationError("L_DATA_CON Data Link Layer confirmation timed out")
+
+    peer.on_data = respond
+    programmer = DeviceProgrammer(XknxBusConnection(connection))
+    with caplog.at_level(logging.INFO):
+        await programmer.restart()
+    assert peer.sequences == [0]
+    assert "unexpected ACK" not in caplog.text
+    assert "the device acknowledged it" in caplog.text
+    await connection.disconnect()
+
+
+async def test_an_unconfirmed_frame_sent_without_ack_fails_without_an_ack() -> None:
+    peer = _Peer()
+    connection = await peer.connect()
+
+    def fail(_: Telegram) -> None:
+        raise ConfirmationError("L_DATA_CON Data Link Layer confirmation timed out")
+
+    peer.on_data = fail
+    with pytest.raises(
+        ManagementConnectionError, match=r"sequence 0 .*confirmation timed out"
+    ):
+        await connection.send_data(apci.Restart(), wait_for_ack=False)
+    assert peer.sequences == [0]
+    await _assert_closed(peer, connection)
+
+
+async def test_a_nak_does_not_stand_for_a_confirmation() -> None:
+    peer = _Peer()
+    connection = await peer.connect()
+
+    def nak(telegram: Telegram) -> None:
+        assert isinstance(telegram.tpci, tpci.TDataConnected)
+        peer.receive(tpci.TNak(telegram.tpci.sequence_number))
+        raise ConfirmationError("L_DATA_CON Data Link Layer confirmation timed out")
+
+    peer.on_data = nak
+    with pytest.raises(ManagementConnectionError, match="confirmation timed out"):
+        await connection.send_data(apci.Restart(), wait_for_ack=False)
+    await _assert_closed(peer, connection)
+
+
+async def test_a_frame_sent_without_ack_takes_its_ack_quietly(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    peer = _Peer()
+    connection = await peer.connect()
+    peer.on_data = peer.ack
+    with caplog.at_level(logging.WARNING):
+        await connection.send_data(apci.Restart(), wait_for_ack=False)
+    assert "unexpected ACK" not in caplog.text
+    await connection.disconnect()
+
+
 async def test_a_frame_never_confirmed_closes_the_connection() -> None:
     peer = _Peer()
     connection = await peer.connect()
