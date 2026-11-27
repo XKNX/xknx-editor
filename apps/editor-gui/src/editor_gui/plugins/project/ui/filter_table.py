@@ -16,7 +16,12 @@ from imgui_bundle import imgui
 from editor_gui import file_dialogs
 from editor_gui.plugins.project.strings import S
 from editor_gui.theme import status_color
-from editor_gui.widgets.dialog import begin_dialog, end_dialog
+from editor_gui.widgets.dialog import (
+    begin_dialog,
+    dialog_buttons,
+    dialog_room,
+    end_dialog,
+)
 from editor_gui.widgets.dpi import px
 from editor_gui.widgets.dpt_value import dpt_label
 from editor_gui.widgets.tables import begin_data_table, data_table_headers
@@ -24,6 +29,10 @@ from editor_gui.widgets.text_util import text_clipped_tooltip
 
 if TYPE_CHECKING:
     from editor_gui.plugins.project.service import CouplerFilterTable
+
+# The dialog's width and the table's height, at 100 % scaling.
+DIALOG_WIDTH = 640.0
+TABLE_HEIGHT = 320.0
 
 
 class FilterTableDialog:
@@ -56,10 +65,12 @@ class FilterTableDialog:
         table = self._table
         if table is None:
             return
-        if not begin_dialog(S.FILTER_TABLE_TITLE, min_width=460.0):
+        # A fixed width: fitted to its content, the dialog took the width of the rows in view and
+        # changed it while the table scrolled. The table fills it; long texts are clipped.
+        if not begin_dialog(S.FILTER_TABLE_TITLE, width=DIALOG_WIDTH):
             return
         heading = f"{table.device_address}  {table.device_name}".strip()
-        imgui.text_unformatted(heading)
+        text_clipped_tooltip(heading)
         imgui.spacing()
         if not table.entries:
             imgui.text_disabled(S.FILTER_TABLE_EMPTY)
@@ -68,18 +79,20 @@ class FilterTableDialog:
                 f"{S.FILTER_TABLE_GROUP_ADDRESSES} ({len(table.entries)})"
             )
             self._render_table(table)
-        imgui.spacing()
-        if imgui.button(S.FILTER_TABLE_EXPORT, imgui.ImVec2(px(120.0), 0.0)):
+        if self._error:
+            imgui.spacing()
+            imgui.push_text_wrap_pos(0.0)
+            imgui.text_colored(status_color("error"), self._error)
+            imgui.pop_text_wrap_pos()
+        clicked = dialog_buttons(S.FILTER_TABLE_EXPORT, S.BTN_CLOSE)
+        if clicked == 0:
             self._save = file_dialogs.save_file(
                 S.FILTER_TABLE_EXPORT,
                 default_path=f"filter-table-{table.device_address}.csv",
                 filters=["CSV", "*.csv"],
             )
-        imgui.same_line()
-        if imgui.button(S.BTN_CLOSE, imgui.ImVec2(px(120.0), 0.0)):
+        elif clicked == 1:
             imgui.close_current_popup()
-        if self._error:
-            imgui.text_colored(status_color("error"), self._error)
         end_dialog()
 
     def _render_table(self, table: CouplerFilterTable) -> None:
@@ -89,11 +102,13 @@ class FilterTableDialog:
             | imgui.TableFlags_.sizing_stretch_prop
             | imgui.TableFlags_.scroll_y
         )
-        if not begin_data_table("filter_table", 3, flags, imgui.ImVec2(0.0, px(320.0))):
+        # As high as the screen leaves room for, below the buttons too (a phone).
+        height = min(px(TABLE_HEIGHT), dialog_room(120.0))
+        if not begin_data_table("filter_table", 3, flags, imgui.ImVec2(0.0, height)):
             return
         stretch = imgui.TableColumnFlags_.width_stretch
-        imgui.table_setup_column(S.GA_WRITE_ADDRESS, stretch, 0.3)
-        imgui.table_setup_column(S.FILTER_TABLE_NAME, stretch, 0.45)
+        imgui.table_setup_column(S.GA_WRITE_ADDRESS, stretch, 0.2)
+        imgui.table_setup_column(S.FILTER_TABLE_NAME, stretch, 0.55)
         imgui.table_setup_column(S.GA_WRITE_DPT, stretch, 0.25)
         data_table_headers()
         clipper = imgui.ListClipper()

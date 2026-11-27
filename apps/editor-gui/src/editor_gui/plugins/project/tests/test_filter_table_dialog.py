@@ -6,9 +6,12 @@ from collections.abc import Iterator
 
 import pytest
 from imgui_bundle import imgui
+from imgui_bundle.imgui import internal
 
 from editor_gui.plugins.project.service import CouplerFilterTable, FilterTableEntry
+from editor_gui.plugins.project.strings import S
 from editor_gui.plugins.project.ui.filter_table import (
+    DIALOG_WIDTH,
     FilterTableDialog,
     _csv,
     _safe_cell,
@@ -93,3 +96,40 @@ def test_render_does_not_crash() -> None:
         dialog.render()
         imgui.end()
         imgui.end_frame()
+
+
+def _dialog_width(table: CouplerFilterTable, frames: int = 12) -> float:
+    """The width the dialog of ``table`` has after ``frames`` frames."""
+    dialog = FilterTableDialog(lambda _n: table)
+    dialog.open(1)
+    for _ in range(frames):
+        imgui.new_frame()
+        dialog.render()
+        imgui.end_frame()
+    window = internal.find_window_by_name(S.FILTER_TABLE_TITLE)
+    return window.size.x
+
+
+def _entries(name: str) -> list[FilterTableEntry]:
+    return [
+        FilterTableEntry(0x0800 + i, f"1/0/{i}", f"{name} {i}", "DPST-1-1")
+        for i in range(100)
+    ]
+
+
+@pytest.mark.usefixtures("context")
+def test_the_width_does_not_follow_the_names() -> None:
+    """The dialog keeps its width whatever the rows hold (#388: it took the width of the rows in
+    view, and changed it while the table scrolled); long names are clipped in the table."""
+    short = _dialog_width(CouplerFilterTable("1.1.0", "Coupler", _entries("Hall")))
+    long = _dialog_width(
+        CouplerFilterTable("1.1.0", "Coupler", _entries("Hall.Workshop.Gate " * 12))
+    )
+    assert short == long == DIALOG_WIDTH
+
+
+@pytest.mark.usefixtures("context")
+def test_a_narrow_screen_gets_a_narrower_dialog() -> None:
+    imgui.get_io().display_size = imgui.ImVec2(360, 640)
+    table = CouplerFilterTable("1.1.0", "Coupler", _entries("Hall.Workshop " * 12))
+    assert _dialog_width(table) <= 360
