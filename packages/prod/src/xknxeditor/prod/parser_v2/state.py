@@ -260,6 +260,7 @@ class ParameterState:
         "_known_param_ref_values",
         "_param_ref_defaults",
         "_parent_ref",
+        "_pass_changed",
         "_pass_texts",
         "_pass_values",
         "_seeded",
@@ -373,6 +374,10 @@ class ParameterState:
         # first such write (as _ungated_writes; see give_back_lapsed_assigns).
         self._evaluation_writes: dict[str, tuple[str | None, str | None]] = {}
         self._pass_texts: dict[str, str | None] = {}
+        # Whether a write of the current pass changed a value of this scope (an Assign that
+        # writes another value than the target holds, a value given back after the pass): a
+        # pass that changed none read every value as it started with.
+        self._pass_changed = False
 
     def get(self, ref_id: str) -> str | None:
         # Prefer the durable known value: it survives trim_to_active(), so an inactive block's
@@ -422,6 +427,11 @@ class ParameterState:
     def set(self, ref_id: str, value: str) -> None:
         if ref_id not in self._pass_values:
             self._pass_values[ref_id] = self._known_param_ref_values.get(ref_id)
+        if not self._pass_changed and (
+            self._known_param_ref_values.get(ref_id) != value
+            or self.param_ref_id_to_value.get(ref_id) != value
+        ):
+            self._pass_changed = True
         self.param_ref_id_to_value[ref_id] = value
         self._known_param_ref_values[ref_id] = value
 
@@ -553,6 +563,7 @@ class ParameterState:
             for ref_id, (known, value) in self._ungated_writes.items():
                 if ref_id in self._assign_written:
                     continue
+                self._pass_changed = True
                 if ref_id not in self._pass_values:
                     self._pass_values[ref_id] = self._known_param_ref_values.get(ref_id)
                 if known is None:
@@ -579,6 +590,7 @@ class ParameterState:
                 r for r in self._evaluation_writes if r not in self._assign_targets
             ]:
                 known, value = self._evaluation_writes.pop(ref_id)
+                self._pass_changed = True
                 if ref_id not in self._pass_values:
                     self._pass_values[ref_id] = self._known_param_ref_values.get(ref_id)
                 if known is None:
@@ -624,6 +636,15 @@ class ParameterState:
         if ref_id not in self._pass_texts:
             self._pass_texts[ref_id] = self._text.get(ref_id)
         self._text[ref_id] = text
+
+    def pass_kept_values(self) -> bool:
+        """Whether no write of the pass since :meth:`reset_active` changed a value at any point
+        (see ``_pass_changed``) and no value a pass without gates wrote waits to be given back
+        (see :meth:`undo_ungated_assigns`), in this scope and the module scopes below: a pass
+        after it from the same gates reads every value it read and writes none."""
+        if self._pass_changed or self._ungated_writes:
+            return False
+        return all(child.pass_kept_values() for child in self._children.values())
 
     def pass_changed_state(self) -> bool:
         """Whether the pass since :meth:`reset_active` left a value or a text different from
@@ -747,6 +768,7 @@ class ParameterState:
         evaluation = self._evaluation_writes
         ungated = self._ungated_writes if self._gate_param_refs is None else None
         written = self._assign_written
+        changed = False
         for key, target, source, fixed, read in assigns:
             active.add(key)
             if fixed is not None:
@@ -775,9 +797,13 @@ class ParameterState:
             # As set.
             if target not in pass_values:
                 pass_values[target] = before[0]
+            if before[0] != value or before[1] != value:
+                changed = True
             values[target] = value
             known[target] = value
             written.add(target)
+        if changed:
+            self._pass_changed = True
 
     def mark_assigned_from(self, target: str, source: str) -> None:
         """An Assign of the current pass wrote ``target`` from ``source``."""
@@ -846,6 +872,7 @@ class ParameterState:
         self._alloc_positions.clear()
         self._pass_values.clear()
         self._pass_texts.clear()
+        self._pass_changed = False
         self._assigned_from.clear()
         self._assign_targets.clear()
         self._assign_written.clear()

@@ -1331,7 +1331,14 @@ class DynamicUI:
         Returns the tree of the last pass when a render pass would evaluate it the same way:
         the discovery settled, and no Choose on a union member it reached is suppressed by the
         snapshot (the only difference between the two kinds of pass). The render pass would then
-        repeat that last pass: from the same values, gated by the same parameters."""
+        repeat that last pass: from the same values, gated by the same parameters. Settled, the
+        snapshot holds the parameters the gates hold: a Choose it suppresses is on a parameter
+        that is not active, which selected nothing in the last pass and selects nothing in the
+        render pass either way. So the render pass repeats the last pass with such Chooses too
+        when no write of that pass changed a value at any point and nothing is left to give back
+        (see :meth:`ParameterState.pass_kept_values`): its Assigns, which write where their
+        source has another value than in that pass, write nothing then, and each read gives what
+        it gave."""
         self._state.clear_gate()
         chooses: list[tuple[ParameterState, str, Collection[str]]] = []
 
@@ -1348,10 +1355,13 @@ class DynamicUI:
 
         tree, settled = self._settle(make_ctx)
         self._state.snapshot_discovered_active()
-        if not settled or any(
-            not scope.is_discovered_active(param)
-            and any(scope.is_discovered_active(sibling) for sibling in siblings)
-            for scope, param, siblings in chooses
+        if not settled or (
+            any(
+                not scope.is_discovered_active(param)
+                and any(scope.is_discovered_active(sibling) for sibling in siblings)
+                for scope, param, siblings in chooses
+            )
+            and not self._state.pass_kept_values()
         ):
             return None
         return tree
