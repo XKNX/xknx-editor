@@ -14,7 +14,11 @@ import pytest
 
 from xknxeditor.prod.application import Application, parse_application_xml
 from xknxeditor.recover import parameters
-from xknxeditor.recover.parameters import RecoveryEffort, recover_parameters
+from xknxeditor.recover.parameters import (
+    RecoveredParameters,
+    RecoveryEffort,
+    recover_parameters,
+)
 
 _APP = "M-00FA_A-0D02-01-0000"
 _SEGMENT = f"{_APP}_AS-0000"
@@ -151,3 +155,74 @@ def test_the_search_reads_the_nested_selectors_back(effort: RecoveryEffort) -> N
     assert recovered.values[_KIND] == "1"
     assert recovered.values[_MODE] == "1"
     assert recovered.values[_LEVEL] == "42"
+
+
+def _searched(
+    monkeypatch: pytest.MonkeyPatch,
+    first: RecoveredParameters,
+    again: RecoveredParameters,
+    *,
+    seen: bool,
+) -> tuple[RecoveredParameters, list[bool]]:
+    """What the search gives when its first run gives ``first`` (noting a selector further out
+    with ``seen``) and a run that looks further out gives ``again``; and, per run, whether it
+    looked further out."""
+    runs: list[bool] = []
+
+    def once(*_args: object, **_kwargs: object) -> RecoveredParameters:
+        looked = bool(parameters._SEARCH.nested)  # pyright: ignore[reportPrivateUsage]
+        runs.append(looked)
+        if not looked:
+            parameters._SEARCH.nested_seen = seen  # pyright: ignore[reportPrivateUsage]
+        return again if looked else first
+
+    monkeypatch.setattr(parameters, "_search_once", once)
+    result = parameters._search(  # pyright: ignore[reportPrivateUsage]
+        _application(), {}, None, None, (), None, RecoveryEffort.FAST, None
+    )
+    return result, runs
+
+
+def _result(differing: int, unknown: int = 0) -> RecoveredParameters:
+    return RecoveredParameters(
+        values={}, unknown=[str(n) for n in range(unknown)], differing_bytes=differing
+    )
+
+
+def test_the_search_looks_further_out_only_when_it_does_not_fit(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    fitting = _result(0)
+    result, runs = _searched(monkeypatch, fitting, _result(0), seen=True)
+    assert result is fitting
+    assert runs == [False]
+    differing = _result(3)
+    result, runs = _searched(monkeypatch, differing, _result(0), seen=False)
+    assert result is differing
+    assert runs == [False]
+
+
+def test_the_result_that_looks_further_out_is_taken_when_it_fits_better(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    better = _result(1)
+    result, runs = _searched(monkeypatch, _result(3), better, seen=True)
+    assert result is better
+    assert runs == [False, True]
+    first = _result(3)
+    result, _runs = _searched(monkeypatch, first, _result(3), seen=True)
+    assert result is first
+    result, _runs = _searched(monkeypatch, first, _result(3, unknown=1), seen=True)
+    assert result is first
+    assert getattr(parameters._SEARCH, "nested", None) is None  # pyright: ignore[reportPrivateUsage]
+
+
+def test_a_search_at_its_effort_limit_does_not_look_further_out(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    limited = RecoveredParameters(
+        values={}, unknown=[], differing_bytes=3, limited=True
+    )
+    result, runs = _searched(monkeypatch, limited, _result(0), seen=True)
+    assert result is limited
+    assert runs == [False]

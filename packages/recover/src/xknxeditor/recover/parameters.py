@@ -739,7 +739,76 @@ def _search(
     cancel: Callable[[], bool] | None,
     start: Mapping[str, str] | None = None,
 ) -> RecoveredParameters:
-    """The search of :func:`recover_parameters`."""
+    """The search of :func:`recover_parameters`.
+
+    The selectors further out that hidden settings with a fixed value name behind selectors of
+    their own (see :func:`_nested_from_fixed`) are searched only when the search without them
+    ends within its effort without fitting the device and they name a value somewhere: the
+    search runs again with them, and its result is taken when it fits better. A search that
+    stopped at its effort's limit says more effort may help, and the next one looks further
+    out where it ends."""
+    previous = (
+        getattr(_SEARCH, "nested", None),
+        getattr(_SEARCH, "nested_seen", False),
+    )
+    _SEARCH.nested, _SEARCH.nested_seen = False, False
+    try:
+        result = _search_once(
+            application,
+            parameter_segments,
+            property_values,
+            project_code_page,
+            linked_objects,
+            object_sizes,
+            effort,
+            cancel,
+            start,
+        )
+        if (
+            result.complete
+            or result.limited
+            or not _SEARCH.nested_seen
+            or (cancel is not None and cancel())
+        ):
+            return result
+        _SEARCH.nested = True
+        again = _search_once(
+            application,
+            parameter_segments,
+            property_values,
+            project_code_page,
+            linked_objects,
+            object_sizes,
+            effort,
+            cancel,
+            start,
+        )
+        return again if _distance(again) < _distance(result) else result
+    finally:
+        _SEARCH.nested, _SEARCH.nested_seen = previous
+
+
+def _distance(result: RecoveredParameters) -> tuple[int, int]:
+    """How far a result is from the device: the bytes it differs in, a linked group object it
+    does not show weighing ``_OBJECT_WEIGHT`` bytes, then the parameters it leaves unknown."""
+    return (
+        result.differing_objects * _OBJECT_WEIGHT + result.differing_bytes,
+        len(result.unknown),
+    )
+
+
+def _search_once(
+    application: Application,
+    parameter_segments: Mapping[str, bytes],
+    property_values: Mapping[TypedPropertyKey, bytes] | None,
+    project_code_page: str | None,
+    linked_objects: Collection[int],
+    object_sizes: Mapping[int, str] | None,
+    effort: RecoveryEffort,
+    cancel: Callable[[], bool] | None,
+    start: Mapping[str, str] | None = None,
+) -> RecoveredParameters:
+    """One search of :func:`_search`."""
     ui = application.dynamic_ui()
     if ui is None:
         return RecoveredParameters(values={}, unknown=[])
@@ -5556,6 +5625,10 @@ def _infer_from_fixed(
         return chosen
     if depth == _FIXED_NESTING:
         return {}
+    # Outside a search, or in a search that looks further out (see _search).
+    nested = getattr(_SEARCH, "nested", None) is not False
+    if not nested and getattr(_SEARCH, "nested_seen", False):
+        return {}
     # No selector names a branch whose own hidden settings fit: one further out may, whose
     # branches hold them behind selectors of their own the device keeps no copy of either
     # (the mode of a rocker, then the evaluation of its buttons). Those it shows are named by
@@ -5564,6 +5637,10 @@ def _infer_from_fixed(
         application, ui, values, shown, active, selectors, owning, held, fixed, cancel
     )
     if not chosen:
+        return {}
+    if not nested:
+        # Only noted: the search looks further out when it does not fit without.
+        _SEARCH.nested_seen = True
         return {}
     chosen.update(
         _infer_from_fixed(
@@ -5579,7 +5656,17 @@ def _infer_from_fixed(
             depth=depth + 1,
         )
     )
-    return chosen if improves(chosen) else {}
+    # A selector the values taken together hide again (one further out picks another branch)
+    # keeps the value it has: only the settings shown with them are taken.
+    _check(cancel)
+    try:
+        together = _seeded(application, {**clean, **chosen}, project_code_page)
+        assert together is not None
+        visible = shown_parameters(together.ui())
+    except AllocatorOverflow:
+        return {}
+    chosen = {key: value for key, value in chosen.items() if key in visible}
+    return chosen if chosen and improves(chosen) else {}
 
 
 # How many selectors further out than the one a hidden setting with a fixed value sits behind
