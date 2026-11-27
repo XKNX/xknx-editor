@@ -3073,7 +3073,8 @@ def _decode(
         for ref_id, value in seeded.decode_module_parameters(
             parameter_segments, property_values or {}
         ).items():
-            if seeded.local_ref_id(ref_id) in fixed:
+            # Most decodes keep no fixed values: no ref is looked up then.
+            if fixed and seeded.local_ref_id(ref_id) in fixed:
                 continue
             if value is None:
                 unknown.append(ref_id)
