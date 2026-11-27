@@ -7,6 +7,7 @@ best-effort decoder inverts the encoder for the reliable (integer / enum) types.
 
 from __future__ import annotations
 
+import gc
 from pathlib import Path
 
 import pytest
@@ -43,6 +44,23 @@ def test_recover_editable_integer_parameter(application) -> None:  # type: ignor
 
     recovered = recover_parameters(application, segments)
     assert recovered.values[seconds_ref] == "17"
+
+
+def test_the_collector_is_paused_while_a_search_runs(application) -> None:  # type: ignore[no-untyped-def]
+    ui = application.dynamic_ui()
+    assert ui is not None
+    segments = ui.encode_to_memory()
+    enabled: list[bool] = []
+
+    def cancel() -> bool:
+        enabled.append(gc.isenabled())
+        return False
+
+    gc.enable()
+    recover_parameters(application, segments, cancel=cancel)
+    assert enabled
+    assert not any(enabled)
+    assert gc.isenabled()
 
 
 def test_recover_module_parameters_yields_instance_qualified_refs(application) -> None:  # type: ignore[no-untyped-def]

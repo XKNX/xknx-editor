@@ -30,6 +30,7 @@ from functools import lru_cache, partial
 from itertools import count
 from typing import TYPE_CHECKING, NamedTuple, cast
 
+from xknxeditor.prod.gc_pause import gc_paused
 from xknxeditor.prod.parser_v2.allocator import AllocatorOverflow
 from xknxeditor.prod.script.errors import ScriptAborted
 from xknxeditor.prod.script.sandbox import AbortToken
@@ -679,48 +680,52 @@ def recover_parameters(
     _SEARCH.cache = _SearchCache(
         application, master, factory_image, editable_parameter_refs
     )
-    try:
-        start: Mapping[str, str] = {}
-        if parameter_candidates:
-            trials: list[tuple[RecoveredParameters, Mapping[str, str]]] = []
-            for candidate in (dict[str, str](), *parameter_candidates):
-                trial = _search(
-                    application,
-                    parameter_segments,
-                    property_values,
-                    project_code_page,
-                    linked_objects,
-                    object_sizes,
-                    RecoveryEffort.FAST,
-                    cancel,
-                    candidate,
+    # The search makes millions of objects that live a short while and next to no reference
+    # cycles: a collection while it runs looks at the objects of the application and of the
+    # search's caches again and again for next to nothing.
+    with gc_paused():
+        try:
+            start: Mapping[str, str] = {}
+            if parameter_candidates:
+                trials: list[tuple[RecoveredParameters, Mapping[str, str]]] = []
+                for candidate in (dict[str, str](), *parameter_candidates):
+                    trial = _search(
+                        application,
+                        parameter_segments,
+                        property_values,
+                        project_code_page,
+                        linked_objects,
+                        object_sizes,
+                        RecoveryEffort.FAST,
+                        cancel,
+                        candidate,
+                    )
+                    trials.append((trial, candidate))
+                    if trial.complete or (cancel is not None and cancel()):
+                        return trial
+                best, start = min(
+                    trials,
+                    key=lambda item: (
+                        item[0].differing_objects * _OBJECT_WEIGHT
+                        + item[0].differing_bytes,
+                        len(item[0].unknown),
+                    ),
                 )
-                trials.append((trial, candidate))
-                if trial.complete or (cancel is not None and cancel()):
-                    return trial
-            best, start = min(
-                trials,
-                key=lambda item: (
-                    item[0].differing_objects * _OBJECT_WEIGHT
-                    + item[0].differing_bytes,
-                    len(item[0].unknown),
-                ),
+                if effort is RecoveryEffort.FAST:
+                    return best
+            return _search(
+                application,
+                parameter_segments,
+                property_values,
+                project_code_page,
+                linked_objects,
+                object_sizes,
+                effort,
+                cancel,
+                start,
             )
-            if effort is RecoveryEffort.FAST:
-                return best
-        return _search(
-            application,
-            parameter_segments,
-            property_values,
-            project_code_page,
-            linked_objects,
-            object_sizes,
-            effort,
-            cancel,
-            start,
-        )
-    finally:
-        _SEARCH.cache = previous
+        finally:
+            _SEARCH.cache = previous
 
 
 def _search(
