@@ -10,6 +10,8 @@ the branch of the outermost selector, and with it the selectors it shows, one af
 
 from __future__ import annotations
 
+from typing import Any
+
 import pytest
 
 from xknxeditor.prod.application import Application, parse_application_xml
@@ -157,72 +159,67 @@ def test_the_search_reads_the_nested_selectors_back(effort: RecoveryEffort) -> N
     assert recovered.values[_LEVEL] == "42"
 
 
-def _searched(
-    monkeypatch: pytest.MonkeyPatch,
-    first: RecoveredParameters,
-    again: RecoveredParameters,
-    *,
-    seen: bool,
-) -> tuple[RecoveredParameters, list[bool]]:
-    """What the search gives when its first run gives ``first`` (noting a selector further out
-    with ``seen``) and a run that looks further out gives ``again``; and, per run, whether it
-    looked further out."""
-    runs: list[bool] = []
-
-    def once(*_args: object, **_kwargs: object) -> RecoveredParameters:
-        looked = bool(parameters._SEARCH.nested)  # pyright: ignore[reportPrivateUsage]
-        runs.append(looked)
-        if not looked:
-            parameters._SEARCH.nested_seen = seen  # pyright: ignore[reportPrivateUsage]
-        return again if looked else first
-
-    monkeypatch.setattr(parameters, "_search_once", once)
-    result = parameters._search(  # pyright: ignore[reportPrivateUsage]
-        _application(), {}, None, None, (), None, RecoveryEffort.FAST, None
+def _named_in_a_correction(
+    application: Application, *values: tuple[str, str]
+) -> dict[str, str]:
+    """What :func:`parameters._infer_from_fixed` names for a device configured with ``values``
+    in the inference behind a correction of a search."""
+    segments = _device(application, *values)
+    decoded, _unknown = parameters._decode(  # pyright: ignore[reportPrivateUsage]
+        application, segments, None, None, {}, fixed={}
     )
-    return result, runs
+    ui = application.dynamic_ui()
+    assert ui is not None
+    fixed = parameters._fixed_values(application, ui)  # pyright: ignore[reportPrivateUsage]
+    parameters._SEARCH.nested = False  # pyright: ignore[reportPrivateUsage]
+    try:
+        return parameters._infer_from_fixed(  # pyright: ignore[reportPrivateUsage]
+            application, segments, None, None, decoded, set(), {}, fixed
+        )
+    finally:
+        parameters._SEARCH.nested = None  # pyright: ignore[reportPrivateUsage]
 
 
-def _result(differing: int, unknown: int = 0) -> RecoveredParameters:
-    return RecoveredParameters(
-        values={}, unknown=[str(n) for n in range(unknown)], differing_bytes=differing
+def test_a_correction_does_not_look_further_out() -> None:
+    # The markers sit behind selectors the device keeps no copy of: outside a search they
+    # name the outer selectors (see above), in a correction nothing.
+    application = _application()
+    assert (
+        _named_in_a_correction(application, (_ON, "1"), (_KIND, "1"), (_MODE, "1"))
+        == {}
     )
+    assert _named_in_a_correction(application, (_ON, "1"), (_KIND, "0")) == {}
 
 
-def test_the_search_looks_further_out_only_when_it_does_not_fit(
-    monkeypatch: pytest.MonkeyPatch,
+@pytest.mark.parametrize("effort", [RecoveryEffort.FAST, RecoveryEffort.MEDIUM])
+def test_the_search_starts_from_the_selectors_further_out(
+    monkeypatch: pytest.MonkeyPatch, effort: RecoveryEffort
 ) -> None:
-    fitting = _result(0)
-    result, runs = _searched(monkeypatch, fitting, _result(0), seen=True)
-    assert result is fitting
-    assert runs == [False]
-    differing = _result(3)
-    result, runs = _searched(monkeypatch, differing, _result(0), seen=False)
-    assert result is differing
-    assert runs == [False]
+    # The inference the search starts from names the outer selectors; the corrections after
+    # it do not look further out, and the search runs once.
+    application = _application()
+    segments = _device(application, (_ON, "1"), (_KIND, "1"), (_MODE, "1"))
+    refine = parameters._refine  # pyright: ignore[reportPrivateUsage]
+    starts: list[tuple[dict[str, str], object]] = []
 
+    def recorded(*args: Any, **kwargs: Any) -> RecoveredParameters:
+        starts.append((dict(args[7]), parameters._SEARCH.nested))  # pyright: ignore[reportPrivateUsage]
+        return refine(*args, **kwargs)
 
-def test_the_result_that_looks_further_out_is_taken_when_it_fits_better(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    better = _result(1)
-    result, runs = _searched(monkeypatch, _result(3), better, seen=True)
-    assert result is better
-    assert runs == [False, True]
-    first = _result(3)
-    result, _runs = _searched(monkeypatch, first, _result(3), seen=True)
-    assert result is first
-    result, _runs = _searched(monkeypatch, first, _result(3, unknown=1), seen=True)
-    assert result is first
+    monkeypatch.setattr(parameters, "_refine", recorded)
+    recovered = recover_parameters(application, segments, effort=effort)
+    assert recovered.complete
+    assert len(starts) == 1
+    values, looking = starts[0]
+    assert (values[_ON], values[_KIND], values[_MODE]) == ("1", "1", "1")
+    assert looking is False
     assert getattr(parameters._SEARCH, "nested", None) is None  # pyright: ignore[reportPrivateUsage]
 
 
-def test_a_search_at_its_effort_limit_does_not_look_further_out(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    limited = RecoveredParameters(
-        values={}, unknown=[], differing_bytes=3, limited=True
-    )
-    result, runs = _searched(monkeypatch, limited, _result(0), seen=True)
-    assert result is limited
-    assert runs == [False]
+def test_a_search_cancelled_at_once_ends_with_the_values_read() -> None:
+    application = _application()
+    segments = _device(application, (_ON, "1"), (_KIND, "1"), (_MODE, "1"))
+    recovered = recover_parameters(application, segments, cancel=lambda: True)
+    assert recovered.limited
+    assert _ON not in recovered.values
+    assert getattr(parameters._SEARCH, "nested", None) is None  # pyright: ignore[reportPrivateUsage]

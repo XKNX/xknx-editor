@@ -742,18 +742,15 @@ def _search(
     """The search of :func:`recover_parameters`.
 
     The selectors further out that hidden settings with a fixed value name behind selectors of
-    their own (see :func:`_nested_from_fixed`) are searched only when the search without them
-    ends within its effort without fitting the device and they name a value somewhere: the
-    search runs again with them, and its result is taken when it fits better. A search that
-    stopped at its effort's limit says more effort may help, and the next one looks further
-    out where it ends."""
-    previous = (
-        getattr(_SEARCH, "nested", None),
-        getattr(_SEARCH, "nested_seen", False),
-    )
-    _SEARCH.nested, _SEARCH.nested_seen = False, False
+    their own (see :func:`_nested_from_fixed`) are read in the inference the search starts
+    from, once: what the memory names is read before anything is tried. The corrections after
+    it, each followed by an inference of its own, name only the selectors whose own branches
+    hold such settings: looking further out there would explore the layout of every value
+    tried again."""
+    previous = getattr(_SEARCH, "nested", None)
+    _SEARCH.nested = False
     try:
-        result = _search_once(
+        return _search_once(
             application,
             parameter_segments,
             property_values,
@@ -764,37 +761,8 @@ def _search(
             cancel,
             start,
         )
-        if (
-            result.complete
-            or result.limited
-            or not _SEARCH.nested_seen
-            or (cancel is not None and cancel())
-        ):
-            return result
-        _SEARCH.nested = True
-        again = _search_once(
-            application,
-            parameter_segments,
-            property_values,
-            project_code_page,
-            linked_objects,
-            object_sizes,
-            effort,
-            cancel,
-            start,
-        )
-        return again if _distance(again) < _distance(result) else result
     finally:
-        _SEARCH.nested, _SEARCH.nested_seen = previous
-
-
-def _distance(result: RecoveredParameters) -> tuple[int, int]:
-    """How far a result is from the device: the bytes it differs in, a linked group object it
-    does not show weighing ``_OBJECT_WEIGHT`` bytes, then the parameters it leaves unknown."""
-    return (
-        result.differing_objects * _OBJECT_WEIGHT + result.differing_bytes,
-        len(result.unknown),
-    )
+        _SEARCH.nested = previous
 
 
 def _search_once(
@@ -816,6 +784,9 @@ def _search_once(
     sizes = dict(object_sizes or {})
     fixed = _fixed_values(application, ui)
     dead: set[tuple[str, str]] = set()
+    # The inference the search starts from looks further out (see _search).
+    looking = getattr(_SEARCH, "nested", None)
+    _SEARCH.nested = True
     try:
         values, unknown, inferred = _infer_all(
             application,
@@ -845,6 +816,8 @@ def _search_once(
             )
             inferred = {}
         cancel = _stopped
+    finally:
+        _SEARCH.nested = looking
 
     result = _refine(
         application,
@@ -5711,8 +5684,9 @@ def _infer_from_fixed(
     ``values`` are decoded with no fixed values kept (each reference of a hidden setting of a
     module instance has the value the device holds); the application's own hidden settings
     are each read as if they were the one written. Where no selector's own branches name a
-    value, one further out may (see :func:`_nested_from_fixed`), with the selectors it shows
-    named in turn (``depth``: how far out this already looks, ``_FIXED_NESTING`` at most).
+    value, one further out may (see :func:`_nested_from_fixed`; not in the corrections of a
+    search, see :func:`_search`), with the selectors it shows named in turn (``depth``: how
+    far out this already looks, ``_FIXED_NESTING`` at most).
     """
     from xknxeditor.prod.errors import EncodingError
     from xknxeditor.prod.parser_v2.activation import shown_parameters, values_to_try
@@ -5859,9 +5833,8 @@ def _infer_from_fixed(
         return chosen
     if depth == _FIXED_NESTING:
         return {}
-    # Outside a search, or in a search that looks further out (see _search).
-    nested = getattr(_SEARCH, "nested", None) is not False
-    if not nested and getattr(_SEARCH, "nested_seen", False):
+    if getattr(_SEARCH, "nested", None) is False:
+        # In a correction of a search (see _search).
         return {}
     # No selector names a branch whose own hidden settings fit: one further out may, whose
     # branches hold them behind selectors of their own the device keeps no copy of either
@@ -5871,10 +5844,6 @@ def _infer_from_fixed(
         application, ui, values, shown, active, selectors, owning, held, fixed, cancel
     )
     if not chosen:
-        return {}
-    if not nested:
-        # Only noted: the search looks further out when it does not fit without.
-        _SEARCH.nested_seen = True
         return {}
     chosen.update(
         _infer_from_fixed(
