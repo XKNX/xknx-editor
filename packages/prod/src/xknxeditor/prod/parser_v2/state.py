@@ -140,7 +140,7 @@ class _InstanceIds:
     part is a run of the ref id's underscore-separated pieces, which starts with the first
     piece of an instance id and ends with the last piece of one."""
 
-    __slots__ = ("_firsts", "_lasts", "_order", "_owners", "_placed")
+    __slots__ = ("_firsts", "_lasts", "_order", "_owners", "_placed", "routes")
 
     def __init__(self, ids: Iterable[str]) -> None:
         self._order = {mid: n for n, mid in enumerate(ids)}
@@ -149,6 +149,8 @@ class _InstanceIds:
         # The owners found so far: the same instances own the same values seeding after seeding.
         self._owners: dict[str, str | None] = {}
         self._placed: dict[tuple[str, str, str], tuple[str, str]] = {}
+        # The routes found so far (see route).
+        self.routes: dict[str, tuple[str, str, str, str]] = {}
 
     def place(self, ref_id: str, owner: str, definition: str) -> tuple[str, str]:
         """For the value of ``ref_id`` its instance ``owner`` owns (a module instance of the
@@ -165,6 +167,20 @@ class _InstanceIds:
                 app_prefix + definition + suffix,
             )
         return placed
+
+    def route(self, ref_id: str, bases: Mapping[str, str]) -> tuple[str, str, str, str]:
+        """Where the value of ``ref_id`` goes, with ``bases`` the definition the local ids of
+        each instance start with: the instance that owns it ("" for the application), its id
+        and the value's ref id in it, as :meth:`owner` and :meth:`place` give them, and the
+        definition. Kept in :attr:`routes`, found again where the definition is the same."""
+        owner = self.owner(ref_id)
+        if owner is None:
+            found = ("", "", ref_id, "")
+        else:
+            base = bases[owner]
+            found = (owner, *self.place(ref_id, owner, base), base)
+        self.routes[ref_id] = found
+        return found
 
     def owner(self, ref_id: str) -> str | None:
         """The first instance id that is such a part of ``ref_id``; None when none is."""
@@ -203,11 +219,15 @@ def _instance_ids(ids: tuple[str, ...]) -> _InstanceIds:
 
 
 @lru_cache(maxsize=1 << 17)
-def _instance_in_ref(ref_id: str) -> tuple[str, str] | None:
-    """The module instance in an instance-qualified ref id and its module definition (see
-    ``_INSTANCE_IN_REF`` and ``_LEGACY_SUBMODULE_IN_REF``); None for another ref id."""
+def _instance_key(ref_id: str, app_id: str | None) -> tuple[str, str, str] | None:
+    """The module instance in an instance-qualified ref id (see ``_INSTANCE_IN_REF`` and
+    ``_LEGACY_SUBMODULE_IN_REF``) qualified with the application id ``app_id`` (see
+    :func:`_qualified`), with the instance as the ref id names it and its module definition;
+    None for another ref id."""
     match = _INSTANCE_IN_REF.search(ref_id) or _LEGACY_SUBMODULE_IN_REF.search(ref_id)
-    return None if match is None else (match.group(1), match.group(2))
+    if match is None:
+        return None
+    return _qualified(match.group(1), app_id), match.group(1), match.group(2)
 
 
 class ParameterState:
@@ -404,6 +424,21 @@ class ParameterState:
             self._pass_values[ref_id] = self._known_param_ref_values.get(ref_id)
         self.param_ref_id_to_value[ref_id] = value
         self._known_param_ref_values[ref_id] = value
+
+    def set_values(self, values: Mapping[str, str]) -> None:
+        """:meth:`set` each of ``values``, in their order."""
+        if (
+            self.param_ref_id_to_value
+            or self._known_param_ref_values
+            or self._pass_values
+        ):
+            for ref_id, value in values.items():
+                self.set(ref_id, value)
+            return
+        # Into a scope without values: each is new to all three.
+        self._pass_values.update(dict.fromkeys(values))
+        self.param_ref_id_to_value.update(values)
+        self._known_param_ref_values.update(values)
 
     def run_assign(
         self,
@@ -1298,18 +1333,6 @@ class GlobalState(ParameterState):
         an id is the value of that parameter ref. When both spellings are stored, the value under
         the application's spelling counts."""
         root = cls()
-        exact: set[tuple[int, str]] = set()
-
-        def put(scope: ParameterState, ref_id: str, value: str) -> None:
-            if padded_ref_ids:
-                own = padded_ref_ids.get(unpadded_id(ref_id))
-                if own is not None and own != ref_id:
-                    if (id(scope), own) in exact:
-                        return
-                    ref_id = own
-                else:
-                    exact.add((id(scope), ref_id))
-            scope.set(ref_id, value)
 
         # Instance id -> (its state, the definition its parameters' local ids start with). A
         # submodule instance's parameters keep their ids below the top-level module definition
@@ -1346,26 +1369,51 @@ class GlobalState(ParameterState):
         for ref_id, value in pairs:
             if value is None:
                 continue
-            match = _instance_in_ref(ref_id)
-            if match is None or _qualified(match[0], app_id) in known:
+            match = _instance_key(ref_id, app_id)
+            if match is None or match[0] in known:
                 continue
-            known.add(_qualified(match[0], app_id))
-            add(match[0], match[1])
+            known.add(match[0])
+            add(match[1], match[2])
         # The innermost instance a value is of: a submodule instance's id starts with that of
         # its enclosing instance. With many instances, the parts of the value's ref id are
         # looked up instead of every instance being searched for.
         by_length = sorted(stored.items(), key=lambda item: len(item[0]), reverse=True)
         instances = _instance_ids(tuple(mid for mid, _ in by_length))
+        bases = {mid: base for mid, (_ms, base) in stored.items()}
+        routes = instances.routes
+        # The values of each scope (by its instance, "" for the application's), in the order
+        # they come: every scope is new, so they are set at once, as one after another.
+        scoped: dict[str, dict[str, str]] = {}
+        instance_ids: dict[str, str] = {}
+        exact: dict[str, set[str]] = {}
         for ref_id, value in pairs:
             if value is None:
                 continue
-            owner = instances.owner(ref_id)
-            if owner is None:
-                put(root, ref_id, value)
+            found = routes.get(ref_id)
+            if found is None or (found[0] and bases[found[0]] != found[3]):
+                found = instances.route(ref_id, bases)
+            owner, instance_id, local, _base = found
+            if owner:
+                instance_ids[owner] = instance_id
+            into = scoped.get(owner)
+            if into is None:
+                into = scoped[owner] = {}
+            if padded_ref_ids:
+                own = padded_ref_ids.get(unpadded_id(local))
+                if own is not None and own != local:
+                    if own in exact.get(owner, ()):
+                        continue
+                    local = own
+                else:
+                    exact.setdefault(owner, set()).add(local)
+            into[local] = value
+        for owner, into in scoped.items():
+            if not owner:
+                root.set_values(into)
                 continue
-            ms, base = stored[owner]
-            ms.module_instance_id, local = instances.place(ref_id, owner, base)
-            put(ms, local, value)
+            ms = stored[owner][0]
+            ms.module_instance_id = instance_ids[owner]
+            ms.set_values(into)
 
         for coir in com_object_instance_refs or []:
             root._com_obj_instance_refs[coir.ref_id] = coir
