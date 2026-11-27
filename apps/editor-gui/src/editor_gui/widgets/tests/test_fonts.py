@@ -14,6 +14,7 @@ from editor_gui.widgets import fonts
 
 _ASSETS = Path(fonts.__file__).resolve().parents[1] / "assets"
 _SAMPLE = "设备漢字かなカナ"
+_DEFAULT_ASSETS_FOLDER = "assets"
 
 _capsule_address = ctypes.pythonapi.PyCapsule_GetPointer
 _capsule_address.argtypes = (ctypes.py_object, ctypes.c_char_p)
@@ -37,6 +38,8 @@ def atlas(monkeypatch: pytest.MonkeyPatch) -> Iterator[imgui.ImFontAtlas]:
         yield io.fonts
     finally:
         imgui.destroy_context(context)
+        # hello_imgui has no getter for the assets folder: back to its default.
+        hello_imgui.set_assets_folder(_DEFAULT_ASSETS_FOLDER)
 
 
 def _cjk_sources(atlas: imgui.ImFontAtlas) -> list[list[tuple[int, int, int]]]:
@@ -96,12 +99,14 @@ def test_shared_cjk_sources_survive_language_and_dpi_rebuilds(
         bold,
         [],
     ]
+    hinted = fonts._FREETYPE_HINTING  # pyright: ignore[reportPrivateUsage]
+    oblique = hinted | fonts._FREETYPE_OBLIQUE  # pyright: ignore[reportPrivateUsage]
     assert [[flags for _, _, flags in style] for style in sources] == [
-        [8, 8],
-        [8, 8],
-        [8, 8],
-        [72, 72],
-        [72, 72],
+        [hinted, hinted],
+        [hinted, hinted],
+        [hinted, hinted],
+        [oblique, oblique],
+        [oblique, oblique],
         [],
     ]
     _assert_cjk_glyphs(atlas, 14.0, 1.0)
@@ -117,3 +122,33 @@ def test_shared_cjk_sources_survive_language_and_dpi_rebuilds(
     fonts.load_fonts()
     assert _cjk_sources(atlas) == japanese_sources
     _assert_cjk_glyphs(atlas, 21.0, 2.0)
+
+
+def test_cjk_falls_back_to_hello_imgui_when_the_capsule_is_refused(
+    atlas: imgui.ImFontAtlas, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """An imgui-bundle that rejects the hand-made capsule still gets the CJK glyphs, through
+    hello_imgui's own loading (one copy per style), instead of failing to start."""
+    monkeypatch.setattr(fonts, "get_locale", lambda: "en")
+
+    def refuse(*_args: object) -> object:
+        raise TypeError("capsule rejected")
+
+    monkeypatch.setattr(fonts, "_font_data_capsule", refuse)
+
+    fonts.load_fonts()
+    cjk_sizes = {
+        (_ASSETS / f"fonts/NotoSans{region}-{weight}.otf").stat().st_size
+        for region in ("SC", "JP")
+        for weight in ("Regular", "Bold")
+    }
+    owned = [
+        [
+            source.font_data_owned_by_atlas
+            for source in font.sources
+            if source.merge_mode and source.font_data_size in cjk_sizes
+        ]
+        for font in list(atlas.fonts)[:5]
+    ]
+    assert owned == [[True, True]] * 5
+    _assert_cjk_glyphs(atlas, 14.0, 1.0)

@@ -56,6 +56,8 @@ _CJK_FONTS = {
 _font_data_capsule = ctypes.pythonapi.PyCapsule_New
 _font_data_capsule.argtypes = (ctypes.c_char_p, ctypes.c_char_p, ctypes.c_void_p)
 _font_data_capsule.restype = ctypes.py_object
+# The capsule keeps a pointer to its name: a module constant outlives every capsule.
+_NB_HANDLE = b"nb_handle"
 
 _default: imgui.ImFont | None = None
 _semilight: imgui.ImFont | None = None
@@ -115,18 +117,34 @@ def _cjk_font_bytes(asset: str) -> bytes:
     return Path(hello_imgui.asset_file_full_path(asset)).read_bytes()
 
 
+def _borrowed_cjk_config(asset: str, flags: int) -> imgui.ImFontConfig:
+    """A merge config for ``asset`` that borrows its cached bytes instead of a copy."""
+    data = _cjk_font_bytes(asset)
+    config = imgui.ImFontConfig()
+    config.font_data = _font_data_capsule(data, _NB_HANDLE, None)
+    config.font_data_size = len(data)
+    config.font_data_owned_by_atlas = False
+    config.merge_mode = True
+    config.size_pixels = _FONT_SIZE
+    config.font_loader_flags = flags | _FREETYPE_HINTING
+    return config
+
+
 def _merge_cjk(order: tuple[str, ...], *, bold: bool, flags: int = 0) -> None:
     atlas = imgui.get_io().fonts
     for script in order:
+        asset = _CJK_FONTS[script][bold]
         with suppress(OSError, RuntimeError):
-            data = _cjk_font_bytes(_CJK_FONTS[script][bold])
-            config = imgui.ImFontConfig()
-            config.font_data = _font_data_capsule(data, b"nb_handle", None)
-            config.font_data_size = len(data)
-            config.font_data_owned_by_atlas = False
-            config.merge_mode = True
-            config.size_pixels = _FONT_SIZE
-            config.font_loader_flags = flags | _FREETYPE_HINTING
+            try:
+                config = _borrowed_cjk_config(asset, flags)
+            except (TypeError, ValueError, AttributeError):
+                # An imgui-bundle that no longer takes the hand-made capsule: load the
+                # file as hello_imgui does (a copy per style, but the glyphs are there).
+                params = hello_imgui.FontLoadingParams()
+                params.merge_to_last_font = True
+                params.font_config.font_loader_flags = flags | _FREETYPE_HINTING
+                hello_imgui.load_font(asset, _FONT_SIZE, params)
+                continue
             atlas.add_font(config)
 
 
