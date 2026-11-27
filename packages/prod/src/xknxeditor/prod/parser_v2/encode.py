@@ -8,6 +8,7 @@ import logging
 import math
 import re
 import struct
+from bisect import bisect_left
 from collections.abc import (
     Callable,
     Collection,
@@ -845,26 +846,56 @@ def _active_ref_ranks(
     return ranks
 
 
-# The place of each ParameterRef of a module definition among its refs, by the identity of
-# their list (see _active_refs_in_order); None for refs with an id twice.
-_REF_PLACES: dict[int, tuple[Sequence[ParameterRef], dict[str, int] | None]] = {}
+class _RefLookups:
+    """What each encoding and decoding asks of an application's ParameterRefs (``orders``,
+    see _ref_orders) again and again, made from them once: their ids in order, and the
+    place of each ref of a module definition among its refs (by its id; None for refs with
+    an id twice). It holds no part of the application itself."""
+
+    __slots__ = ("orders", "places", "sorted_ids")
+
+    def __init__(self, orders: dict[str, tuple[str, tuple[int, int], int]]) -> None:
+        self.orders = orders
+        self.sorted_ids = sorted(orders)
+        self.places: dict[str, dict[str, int] | None] = {}
+
+
+# The lookups of the last few applications, by the identity of their orders.
+_REF_LOOKUPS: dict[int, _RefLookups] = {}
+
+
+def _ref_lookups(idx: ApplicationIndexer) -> _RefLookups:
+    """The :class:`_RefLookups` of the application of ``idx``."""
+    orders = _ref_orders(idx)
+    kept = _REF_LOOKUPS.get(id(orders))
+    if kept is None or kept.orders is not orders:
+        if len(_REF_LOOKUPS) >= 4:
+            _REF_LOOKUPS.clear()
+        kept = _REF_LOOKUPS[id(orders)] = _RefLookups(orders)
+    return kept
 
 
 def _active_refs_in_order(
-    refs: Sequence[ParameterRef], active: Collection[str]
+    idx: ApplicationIndexer,
+    md_id: str,
+    refs: Sequence[ParameterRef],
+    active: Collection[str],
 ) -> Sequence[ParameterRef]:
-    """The refs of ``refs`` whose id is in ``active``, in their order: found from the active
-    ones where they are few (a module definition has hundreds of refs, each encoding and
-    decoding asks for those of each of its instances)."""
-    kept = _REF_PLACES.get(id(refs))
-    if kept is None or kept[0] is not refs:
+    """The refs of ``refs`` (those of the module definition ``md_id`` of ``idx``'s
+    application) whose id is in ``active``, in their order: found from the active ones where
+    they are few (a module definition has hundreds of refs, each encoding and decoding asks
+    for those of each of its instances)."""
+    if 4 * len(active) > len(refs):
+        return [ref for ref in refs if ref.id in active]
+    lookups = _ref_lookups(idx)
+    if md_id in lookups.places:
+        places = lookups.places[md_id]
+    else:
         places = {ref.id: place for place, ref in enumerate(refs)}
-        kept = (refs, places if len(places) == len(refs) else None)
-        if len(_REF_PLACES) >= 256:
-            _REF_PLACES.clear()
-        _REF_PLACES[id(refs)] = kept
-    places = kept[1]
-    if places is None or 4 * len(active) > len(refs):
+        if len(places) != len(refs):
+            places = None
+        lookups.places[md_id] = places
+    if places is None:
         return [ref for ref in refs if ref.id in active]
     return [refs[place] for place in sorted(places[i] for i in active if i in places)]
 
@@ -882,6 +913,31 @@ def last_active_ref_ranks(
             if ref.ref_id not in ranks or rank >= ranks[ref.ref_id]:
                 ranks[ref.ref_id] = rank
     return ranks
+
+
+def _application_active_refs(idx: ApplicationIndexer, state: GlobalState) -> set[str]:
+    """The active refs of ``state`` (see ParameterState.active_param_refs) that are
+    ParameterRefs of ``idx``'s application: the application's own and, where one of them
+    starts with its id, those of a module instance (each qualified with it, see
+    ModuleState.qualify). A state of hundreds of module instances is asked for them at each
+    encoding."""
+    lookups = _ref_lookups(idx)
+    refs = lookups.orders
+    ordered = lookups.sorted_ids
+    found = {ref for ref in state.local_active_param_refs() if ref in refs}
+    scopes = list(state.module_children())
+    while scopes:
+        scope = scopes.pop()
+        mid = scope.module_instance_id
+        at = bisect_left(ordered, mid)
+        if at < len(ordered) and ordered[at].startswith(mid):
+            found.update(
+                qualified
+                for qualified in map(scope.qualify, scope.local_active_param_refs())
+                if qualified in refs
+            )
+        scopes.extend(scope.module_children())
+    return found
 
 
 def resolve_param_values(idx: ApplicationIndexer, state: GlobalState) -> dict[str, str]:
@@ -905,7 +961,8 @@ def resolve_param_values(idx: ApplicationIndexer, state: GlobalState) -> dict[st
     orders = _ref_orders(idx)
     chosen: dict[str, tuple[tuple[int, int], int, str]] = {}
     first: dict[str, int] = {}
-    for ref_id in state.active_param_refs():
+    # Those of the application's ParameterRefs (the others have no entry).
+    for ref_id in _application_active_refs(idx, state):
         entry = orders.get(ref_id)
         if entry is None:
             continue
@@ -1244,7 +1301,7 @@ def _collect_scope_writes(
     active = ms.local_active_param_refs()
     # Of the module definition's refs those that are active, in their order: what each loop
     # over the refs below takes.
-    refs = _active_refs_in_order(all_refs, active)
+    refs = _active_refs_in_order(idx, ms.ref_id, all_refs, active)
     ranks = last_active_ref_ranks(refs, active)
     arguments = tuple(
         (name, arg.value if isinstance(arg, ModuleNumericArg) else None)
@@ -1422,7 +1479,11 @@ def collect_writes(
     behavior = download_behavior(app)
     keep = inactive_ranges and behavior is DownloadBehavior.BACKGROUND
     referenced = _referenced_parameters(idx)
-    active_refs = state.active_param_refs() if state is not None else set[str]()
+    # Of the active refs those of the application's ParameterRefs (all the ones below ask
+    # for).
+    active_refs = (
+        _application_active_refs(idx, state) if state is not None else set[str]()
+    )
     # Active union members over the same bits are written in ParameterRef order.
     ranks = _active_ref_ranks(idx, active_refs) if state is not None else None
     # With a resolved state, gate top-level parameters to the active set (regular

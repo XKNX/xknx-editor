@@ -238,11 +238,52 @@ def test_the_active_refs_of_a_module_definition_are_those_found_one_by_one() -> 
     refs = cast(Any, [SimpleNamespace(id=f"R-{n}") for n in range(200)])
     # A list with an id twice is taken one by one.
     twice = cast(Any, [*refs[:50], SimpleNamespace(id="R-3"), *refs[50:]])
-    for listed in (refs, twice, refs):
+    idx = _ui(_application(_MEMORY), {}).indexer
+    for md_id, listed in (("MD-1", refs), ("MD-2", twice), ("MD-1", refs)):
         for size in (0, 1, 5, 40, 60, 200):
             active = {f"R-{rng.randrange(260)}" for _ in range(size)}
-            found = encode._active_refs_in_order(listed, active)  # pyright: ignore[reportPrivateUsage]
+            found = encode._active_refs_in_order(idx, md_id, listed, active)  # pyright: ignore[reportPrivateUsage]
             assert list(found) == [ref for ref in listed if ref.id in active]
+
+
+@pytest.mark.parametrize(
+    "name",
+    sorted(
+        path.name
+        for path in _FIXTURES.glob("*_application.xml")
+        if b"<ModuleDef " in path.read_bytes()
+    ),
+)
+def test_the_active_refs_of_the_application_are_those_of_all_its_active_refs(
+    name: str,
+) -> None:
+    data = (_FIXTURES / name).read_bytes()
+    manufacturer = data.split(b'Manufacturer RefId="', 1)[1].split(b'"', 1)[0]
+    application = parse_application_xml(data, manufacturer.decode())[0]
+    ui = application.dynamic_ui()
+    assert ui is not None
+    ui.ui()
+    state = ui._state  # pyright: ignore[reportPrivateUsage]
+    idx = ui.indexer
+    refs = idx.parameter_refs
+
+    def application_refs() -> set[str]:
+        return encode._application_active_refs(idx, state)  # pyright: ignore[reportPrivateUsage]
+
+    assert application_refs() == {
+        ref for ref in state.active_param_refs() if ref in refs
+    }
+    # An application with a ParameterRef of a module instance's id: that one too.
+    qualified = sorted(state.active_param_refs() - state.local_active_param_refs())
+    if qualified:
+        refs[qualified[0]] = next(iter(refs.values()))
+        try:
+            assert qualified[0] in application_refs()
+            assert application_refs() == {
+                ref for ref in state.active_param_refs() if ref in refs
+            }
+        finally:
+            del refs[qualified[0]]
 
 
 def test_a_value_its_type_cannot_take_raises_at_every_encode() -> None:
