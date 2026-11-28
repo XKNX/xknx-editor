@@ -463,6 +463,13 @@ class ConnectionPlugin:
         self._block_bus_writes_forced = False
         # Protected Group Addresses as typed in the Settings window, until applied.
         self._protected_draft: str | None = None
+        # "Use the Project's Bus Connection" (Settings > Connection): the open project's backbone
+        # Bus Connection (a KNXnet/IP tunnel) replaces the gateway set here while the project is
+        # open. Set before the saved settings are read, which restore it.
+        self._use_project_bus = False
+        # Configured Connections: the interfaces entered by their address (see configured.py),
+        # also set before the saved settings are read.
+        self._configured: tuple[ConfiguredConnection, ...] = ()
         self._panels: list[PanelDefinition] = []
         self._load_saved_settings()
 
@@ -548,11 +555,9 @@ class ConnectionPlugin:
         # Changed connection settings wait for the running bus operation before the open
         # connection opens anew with them.
         self._reopen_when_idle = False
-        # "Use the Project's Bus Connection": the open project's backbone Bus Connection (a
-        # KNXnet/IP tunnel) replaces the gateway set here while the project is open. The project
-        # state it was last looked at for (generation, revision), the tunnel applied (host,
-        # connection type) and the settings it replaces.
-        self._use_project_bus = False
+        # The project state "Use the Project's Bus Connection" was last looked at for
+        # (generation, revision), the tunnel applied (host, connection type) and the settings it
+        # replaces. The setting itself is read with the saved settings above.
         self._project_bus_seen: tuple[int, int] | None = None
         self._project_bus: tuple[str, ConnectionType] | None = None
         self._project_restore: _KeptSettings | None = None
@@ -561,9 +566,8 @@ class ConnectionPlugin:
         self._select_shown = False
         self._select_failures: list[tuple[str, str]] = []
         self._select_ip = ""
-        # Configured Connections: the interfaces entered by their address (see configured.py),
-        # their dialog, and whether it was opened from the Settings window (it is drawn there).
-        self._configured: tuple[ConfiguredConnection, ...] = ()
+        # Configured Connections (read with the saved settings above): their dialog, and whether
+        # it was opened from the Settings window (it is drawn there).
         self._configured_dialog = ConfiguredConnectionsDialog(
             self._apply_configured,
             notify=api.notify or (lambda _text: None),
