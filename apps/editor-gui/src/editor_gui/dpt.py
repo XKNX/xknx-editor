@@ -54,14 +54,13 @@ def primary_dpt(supported: list[DPT]) -> DPT:
     first of equal ones), otherwise the main type with the lowest number.
 
     B.E.G. lists ``DatapointType="DPT-7 DPST-7-6"``: the object is shown as 7.006 (minutes, with
-    its unit), as ETS shows it, not as the main type 7.000."""
+    its unit), not as the main type 7.000."""
     if not supported:
         return DPT_UNKNOWN
     subtypes = [dpt for dpt in supported if dpt.has_subtype]
     if subtypes:
-        return min(
-            subtypes, key=lambda dpt: dpt.minor
-        )  # min keeps the first of equal ones
+        # min keeps the first of equal ones
+        return min(subtypes, key=lambda dpt: dpt.minor)
     return min(supported, key=lambda dpt: dpt.major)
 
 
