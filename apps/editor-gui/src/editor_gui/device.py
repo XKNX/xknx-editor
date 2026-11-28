@@ -464,7 +464,7 @@ class Device:
     def _create_com_objects_from_app(self) -> list[ComObject]:
         if self._dynamic_ui is None:
             return []
-        from editor_gui.dpt import DPT_UNKNOWN, lookup_or_make_dpt
+        from editor_gui.dpt import lookup_or_make_dpt, primary_dpt
 
         ui_cos = _collect_ui_com_objects(self._dynamic_ui.ui())
         # An imported device carries the exact set of com objects it instantiated
@@ -492,7 +492,7 @@ class Device:
                 if key not in seen:
                     seen.add(key)
                     unique_supported.append(dpt)
-            primary = unique_supported[0] if unique_supported else DPT_UNKNOWN
+            primary = primary_dpt(unique_supported)
             result.append(
                 ComObject(
                     id=ui_co.ref_id,

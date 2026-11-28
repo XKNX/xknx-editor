@@ -48,6 +48,22 @@ def dpt_from_token(token: str | None) -> DPT:
     return lookup_or_make_dpt(token)
 
 
+def primary_dpt(supported: list[DPT]) -> DPT:
+    """The type a com object is shown and linked with, from the types its product lists in order.
+
+    A product may list a main type before its subtype (B.E.G.: ``DatapointType="DPT-7
+    DPST-7-6"``); the subtype of the first main type is then the more precise one (minutes, with
+    its unit), as ETS shows it. Otherwise the first listed type."""
+    if not supported:
+        return DPT_UNKNOWN
+    first = supported[0]
+    if not first.has_subtype:
+        for dpt in supported[1:]:
+            if dpt.has_subtype and dpt.major == first.major:
+                return dpt
+    return first
+
+
 @lru_cache(maxsize=512)
 def lookup_or_make_dpt(code: str | None) -> DPT:
     if not code:
