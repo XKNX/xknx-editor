@@ -31,7 +31,10 @@ def test_pattern(hint: str | None, pattern: str | None) -> None:
         ("5400", "Seconds", "Duration_mmss", "90:00"),
         ("15", "HundredMilliseconds", "Time_ssf", "01.5"),
         ("90", "Seconds", None, "90"),
-        ("3", "PackedSecondsAndMilliseconds", "Time_ss", "3"),
+        # The packed units are stored as seconds and milliseconds (B.E.G. follow-up time).
+        ("300", "PackedDaysHoursMinutesAndSeconds", "Duration_hhmmss", "00:05:00"),
+        ("86400", "PackedDaysHoursMinutesAndSeconds", "Duration_hhmmss", "24:00:00"),
+        ("3500", "PackedSecondsAndMilliseconds", "Time_ssfff", "03.500"),
     ],
 )
 def test_format(stored: str, unit: str, hint: str | None, shown: str) -> None:
@@ -50,6 +53,8 @@ def test_format(stored: str, unit: str, hint: str | None, shown: str) -> None:
         ("90:00", "Seconds", "Duration_mmss", "5400"),
         ("30:00:00", "Seconds", "Duration_hhmmss", "100000"),
         ("7.30", "Minutes", "Time_hhmm", None),
+        ("00:05:00", "PackedDaysHoursMinutesAndSeconds", "Duration_hhmmss", "300"),
+        ("03.5", "PackedSecondsAndMilliseconds", "Time_ssfff", "3500"),
     ],
 )
 def test_parse(text: str, unit: str, hint: str, stored: str | None) -> None:
