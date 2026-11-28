@@ -49,19 +49,20 @@ def dpt_from_token(token: str | None) -> DPT:
 
 
 def primary_dpt(supported: list[DPT]) -> DPT:
-    """The type a com object is shown and linked with, from the types its product lists in order.
+    """The type a com object is shown with and gives a group address on link, from the types its
+    product lists: the subtype with the lowest subtype number if the list has any subtype (the
+    first of equal ones), otherwise the main type with the lowest number.
 
-    A product may list a main type before its subtype (B.E.G.: ``DatapointType="DPT-7
-    DPST-7-6"``); the subtype of the first main type is then the more precise one (minutes, with
-    its unit), as ETS shows it. Otherwise the first listed type."""
+    B.E.G. lists ``DatapointType="DPT-7 DPST-7-6"``: the object is shown as 7.006 (minutes, with
+    its unit), as ETS shows it, not as the main type 7.000."""
     if not supported:
         return DPT_UNKNOWN
-    first = supported[0]
-    if not first.has_subtype:
-        for dpt in supported[1:]:
-            if dpt.has_subtype and dpt.major == first.major:
-                return dpt
-    return first
+    subtypes = [dpt for dpt in supported if dpt.has_subtype]
+    if subtypes:
+        return min(
+            subtypes, key=lambda dpt: dpt.minor
+        )  # min keeps the first of equal ones
+    return min(supported, key=lambda dpt: dpt.major)
 
 
 @lru_cache(maxsize=512)
