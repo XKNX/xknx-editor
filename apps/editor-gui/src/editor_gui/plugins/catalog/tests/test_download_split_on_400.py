@@ -111,3 +111,48 @@ def test_the_error_keeps_the_http_status(monkeypatch: pytest.MonkeyPatch) -> Non
         )
     assert caught.value.http_status == 400
     assert "400 Bad Request" in str(caught.value)
+
+
+class _Flaky(_Client):
+    """Refuses the bundle with the power supply, and also the item ``failing`` on its own."""
+
+    def __init__(self, failing: set[str], error: OnlineCatalogError) -> None:
+        super().__init__()
+        self.failing = failing
+        self.error = error
+
+    def download_product(self, ids: list[str], languages: list[str]) -> bytes:
+        if len(ids) == 1 and ids[0] in self.failing:
+            self.requests.append(list(ids))
+            raise self.error
+        return super().download_product(ids, languages)
+
+
+def test_an_item_failing_on_its_own_does_not_discard_the_others(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    client = _Flaky({_POWER_SUPPLY}, OnlineCatalogError("DownloadProduct: timed out"))
+    service = _service(client)
+    added = service.download_online_products(["CI-ROUTER", _POWER_SUPPLY, "CI-DALI"])
+    assert client.requests[1:] == [["CI-ROUTER"], [_POWER_SUPPLY], ["CI-DALI"]]
+    assert added == ["version of CI-ROUTER", "version of CI-DALI"]
+    assert _POWER_SUPPLY in caplog.text
+
+
+def test_the_error_is_raised_when_no_item_arrives() -> None:
+    error = OnlineCatalogHTTPError("DownloadProduct: 400 Bad Request", 400)
+    client = _Flaky({"CI-ROUTER", _POWER_SUPPLY}, error)
+    with pytest.raises(OnlineCatalogHTTPError) as caught:
+        _service(client).download_online_products(["CI-ROUTER", _POWER_SUPPLY])
+    assert caught.value is error
+
+
+def test_items_already_in_the_catalog_are_no_failure() -> None:
+    client = _Flaky(
+        {"CI-BOGUS"}, OnlineCatalogError("DownloadProduct: 400 Bad Request")
+    )
+    service = _service(client)
+    service._import_knxprod_bytes = lambda data: []  # every version is already there
+    assert (
+        service.download_online_products([_POWER_SUPPLY, "CI-BOGUS", "CI-ROUTER"]) == []
+    )

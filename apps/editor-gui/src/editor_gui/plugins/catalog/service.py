@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import contextlib
+import logging
 import threading
 from dataclasses import dataclass
 from pathlib import Path
@@ -12,6 +13,8 @@ from editor_gui.concurrency import io_guarded
 from editor_gui.languages import product_language, product_text_languages
 from editor_gui.plugins.catalog.filters import OnlineFilters
 from xknxeditor.prod import Application
+
+logger = logging.getLogger(__name__)
 
 # The settings file the download language was stored in (see _forget_stored_language).
 _CATALOG_SETTINGS = "catalog"
@@ -471,7 +474,9 @@ class CatalogService:
 
         The service refuses (400 Bad Request) a request that bundles a product without an
         application, such as a power supply, with any other product, although it hands out each of
-        them on its own. A refused request for several items is therefore repeated per item."""
+        them on its own. A refused request for several items is therefore repeated per item. An
+        item that fails on its own is logged with its id and skipped, so the others still arrive;
+        the error is raised only when none of the items could be downloaded."""
         from editor_gui.plugins.catalog.online_catalog import (
             OnlineCatalogHTTPError,
             with_variants,
@@ -486,13 +491,32 @@ class CatalogService:
         except OnlineCatalogHTTPError as exc:
             if exc.http_status != 400 or len(catalog_item_ids) < 2:
                 raise
-            added: list[ProductSummary] = []
-            for item_id in catalog_item_ids:
-                added += self._import_knxprod_bytes(
-                    self._online_client.download_product([item_id], language_ids)
-                )
-            return added
+            return self._download_item_by_item(catalog_item_ids, language_ids)
         return self._import_knxprod_bytes(data)
+
+    def _download_item_by_item(
+        self, catalog_item_ids: list[str], language_ids: list[str]
+    ) -> list[ProductSummary]:
+        """Download and import each item on its own, skipping (and logging) the ones that fail."""
+        from editor_gui.plugins.catalog.online_catalog import OnlineCatalogError
+
+        added: list[ProductSummary] = []
+        downloaded = 0
+        first_error: OnlineCatalogError | None = None
+        for item_id in catalog_item_ids:
+            try:
+                data = self._online_client.download_product([item_id], language_ids)
+            except OnlineCatalogError as exc:
+                logger.warning(
+                    "Online catalog item %s could not be downloaded: %s", item_id, exc
+                )
+                first_error = first_error or exc
+                continue
+            downloaded += 1
+            added += self._import_knxprod_bytes(data)
+        if not downloaded and first_error is not None:
+            raise first_error
+        return added
 
     def _offered_languages(self, catalog_item_ids: list[str]) -> list[str]:
         """The text languages of the given catalog items, as the cached index or the products
