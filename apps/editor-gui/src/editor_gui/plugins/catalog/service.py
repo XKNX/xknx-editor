@@ -467,14 +467,31 @@ class CatalogService:
         product versions.
 
         Defaults to the editor's languages (:attr:`online_languages`), with the variants of them
-        the products offer (a manufacturer may label its texts "de" or "es-MX")."""
-        from editor_gui.plugins.catalog.online_catalog import with_variants
+        the products offer (a manufacturer may label its texts "de" or "es-MX").
+
+        The service refuses (400 Bad Request) a request that bundles a product without an
+        application, such as a power supply, with any other product, although it hands out each of
+        them on its own. A refused request for several items is therefore repeated per item."""
+        from editor_gui.plugins.catalog.online_catalog import (
+            OnlineCatalogHTTPError,
+            with_variants,
+        )
 
         if language_ids is None:
             language_ids = with_variants(
                 self.online_languages, self._offered_languages(catalog_item_ids)
             )
-        data = self._online_client.download_product(catalog_item_ids, language_ids)
+        try:
+            data = self._online_client.download_product(catalog_item_ids, language_ids)
+        except OnlineCatalogHTTPError as exc:
+            if exc.http_status != 400 or len(catalog_item_ids) < 2:
+                raise
+            added: list[ProductSummary] = []
+            for item_id in catalog_item_ids:
+                added += self._import_knxprod_bytes(
+                    self._online_client.download_product([item_id], language_ids)
+                )
+            return added
         return self._import_knxprod_bytes(data)
 
     def _offered_languages(self, catalog_item_ids: list[str]) -> list[str]:
