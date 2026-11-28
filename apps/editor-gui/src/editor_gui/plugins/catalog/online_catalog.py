@@ -108,6 +108,14 @@ class OnlineCatalogError(Exception):
     """Raised when the online catalog service cannot be reached or returns bad data."""
 
 
+class OnlineCatalogHTTPError(OnlineCatalogError):
+    """The online catalog service answered with an HTTP error; ``http_status`` is its code."""
+
+    def __init__(self, message: str, http_status: int) -> None:
+        super().__init__(message)
+        self.http_status = http_status
+
+
 @dataclass(frozen=True)
 class OnlineManufacturer:
     id: int
@@ -293,8 +301,8 @@ def _http_post(url: str, body: bytes, content_type: str = "application/json") ->
         with urllib.request.urlopen(request, timeout=_TIMEOUT_SECONDS) as response:
             return response.read()
     except urllib.error.HTTPError as exc:
-        raise OnlineCatalogError(
-            f"{url}: {exc.code} {exc.reason}{_http_error_detail(exc)}"
+        raise OnlineCatalogHTTPError(
+            f"{url}: {exc.code} {exc.reason}{_http_error_detail(exc)}", exc.code
         ) from exc
     except (urllib.error.URLError, TimeoutError, OSError) as exc:
         reason = getattr(exc, "reason", None) or exc
