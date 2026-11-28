@@ -10,8 +10,12 @@ from __future__ import annotations
 
 import re
 
-# Milliseconds per unit; packed units are not shown as a time.
+# Milliseconds per unit. The packed units are stored as a count of seconds and of milliseconds
+# (packed only when written to the device), so they are shown as a time like the others.
 _UNIT_MS = {
+    "PackedDaysHoursMinutesAndSeconds": 1_000,
+    "PackedSecondsAndMilliseconds": 1,
+    "PackedMinutesSecondsAndMilliseconds": 1,
     "Hours": 3_600_000,
     "Minutes": 60_000,
     "Seconds": 1_000,
@@ -24,7 +28,7 @@ _HINT_FIELDS = re.compile(r"(?P<d>d)?(?P<hh>hh)?(?P<mm>mm)?(?P<ss>ss)?(?P<f>f{1,
 
 
 def unit_ms(unit: str) -> int | None:
-    """Milliseconds per unit, None for a packed unit."""
+    """Milliseconds per unit, None for a unit not known here."""
     return _UNIT_MS.get(unit)
 
 

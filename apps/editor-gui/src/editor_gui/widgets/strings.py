@@ -276,6 +276,10 @@ class WidgetStrings(BaseStrings):
             "TenMilliseconds": _("x 10 ms"),
             "Milliseconds": _("Milliseconds"),
         }
+        # The packed units are stored as a count of seconds or of milliseconds.
+        names["PackedDaysHoursMinutesAndSeconds"] = names["Seconds"]
+        names["PackedSecondsAndMilliseconds"] = names["Milliseconds"]
+        names["PackedMinutesSecondsAndMilliseconds"] = names["Milliseconds"]
         return names.get(unit, unit)
 
     @property
