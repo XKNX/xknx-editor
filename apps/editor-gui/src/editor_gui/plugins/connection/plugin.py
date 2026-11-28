@@ -467,6 +467,9 @@ class ConnectionPlugin:
         # Bus Connection (a KNXnet/IP tunnel) replaces the gateway set here while the project is
         # open. Set before the saved settings are read, which restore it.
         self._use_project_bus = False
+        # Configured Connections: the interfaces entered by their address (see configured.py),
+        # also set before the saved settings are read.
+        self._configured: tuple[ConfiguredConnection, ...] = ()
         self._panels: list[PanelDefinition] = []
         self._load_saved_settings()
 
@@ -563,9 +566,8 @@ class ConnectionPlugin:
         self._select_shown = False
         self._select_failures: list[tuple[str, str]] = []
         self._select_ip = ""
-        # Configured Connections: the interfaces entered by their address (see configured.py),
-        # their dialog, and whether it was opened from the Settings window (it is drawn there).
-        self._configured: tuple[ConfiguredConnection, ...] = ()
+        # Configured Connections (read with the saved settings above): their dialog, and whether
+        # it was opened from the Settings window (it is drawn there).
         self._configured_dialog = ConfiguredConnectionsDialog(
             self._apply_configured,
             notify=api.notify or (lambda _text: None),

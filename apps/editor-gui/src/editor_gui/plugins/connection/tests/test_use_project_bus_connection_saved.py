@@ -37,3 +37,18 @@ def test_without_a_saved_value_it_is_off(
     assert {s.key: s for s in plugin.settings()}[
         "use_project_bus_connection"
     ].get() is False
+
+
+def test_a_started_plugin_keeps_the_configured_connections(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(app_settings, "config_dir", lambda: tmp_path)
+    stored = "Type=IpTunneling;HostAddress=100.64.0.1;ProtocolType=Tcp;Name=Site"
+    plugin_module.save_settings("connection", {"configured_connections": [stored]})
+    plugin = _started(MagicMock())
+    assert [c.to_parameter() for c in plugin.configured_connections] == [stored]
+    # Saving any setting keeps them in the file.
+    {s.key: s for s in plugin.settings()}["use_project_bus_connection"].set(True)
+    assert plugin_module.load_settings("connection")["configured_connections"] == [
+        stored
+    ]
