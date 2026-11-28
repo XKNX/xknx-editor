@@ -15,6 +15,7 @@ import re
 _UNIT_MS = {
     "PackedDaysHoursMinutesAndSeconds": 1_000,
     "PackedSecondsAndMilliseconds": 1,
+    "PackedMinutesSecondsAndMilliseconds": 1,
     "Hours": 3_600_000,
     "Minutes": 60_000,
     "Seconds": 1_000,
